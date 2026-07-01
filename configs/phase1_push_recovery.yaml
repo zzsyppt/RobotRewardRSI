@@ -1,0 +1,115 @@
+schema_version: humanoid_agent.phase1.push_recovery.config.v1
+
+task:
+  gym_id: Unitree-G1-29dof-Velocity
+  robot: Unitree G1 29DoF
+  vendor_env: unitree_rl_lab.tasks.locomotion.robots.g1.29dof.velocity_env_cfg
+  implementation_strategy: project_local_config_overlay
+
+environment:
+  episode_length_s: 4.0
+  terrain_rows: 2
+  terrain_cols: 2
+  disable_curriculum: true
+  disable_observation_corruption: true
+
+evaluation:
+  # Eval should be governed by the protected classifier, not by vendor
+  # bad-orientation/base-height auto resets. Training smoke keeps vendor
+  # terminations because early termination is useful for PPO runability.
+  disable_vendor_fall_terminations: true
+
+standing_command:
+  command_name: base_velocity
+  resampling_time_range_s: [10.0, 10.0]
+  lin_vel_x_mps: [0.0, 0.0]
+  lin_vel_y_mps: [0.0, 0.0]
+  ang_vel_z_radps: [0.0, 0.0]
+  rel_standing_envs: 1.0
+  rel_heading_envs: 0.0
+  heading_command: false
+
+push:
+  mechanism: base_velocity_kick
+  isaac_event: push_by_setting_velocity
+  # Audit label only. IsaacLab's push_by_setting_velocity writes root velocity;
+  # it does not apply a force to this body link.
+  body: torso_link
+  interval_range_s: [1.0, 1.0]
+  velocity_range_mps:
+    x: [-0.6, 0.6]
+    y: [-0.6, 0.6]
+  evidence:
+    pre_window_s: 0.75
+    post_window_s: 1.0
+    single_step_window_s: [0.9, 1.1]
+    min_observed_delta_mps: 0.12
+    min_env_fraction_with_delta: 0.20
+    min_single_step_delta_mps: 0.12
+    min_env_fraction_with_single_step_delta: 0.20
+
+success_thresholds:
+  min_base_height_m: 0.45
+  max_abs_roll_rad: 0.65
+  max_abs_pitch_rad: 0.65
+  max_final_xy_drift_m: 0.80
+
+metrics:
+  max_per_episode_records: 24
+
+smoke_gates:
+  random_strong_push_max_success_rate: 0.35
+  push_effect_min_margin_over_no_push_mps: 0.08
+  require_reward_finite: true
+  require_observation_finite: true
+  require_push_evidence_for_profiles:
+    - strong_push
+    - small_push
+
+profiles:
+  strong_push:
+    push:
+      interval_range_s: [1.0, 1.0]
+      velocity_range_mps:
+        x: [-0.6, 0.6]
+        y: [-0.6, 0.6]
+  small_push:
+    push:
+      interval_range_s: [1.0, 1.0]
+      velocity_range_mps:
+        x: [-0.25, 0.25]
+        y: [-0.25, 0.25]
+  no_push:
+    push:
+      interval_range_s: [1.0, 1.0]
+      velocity_range_mps:
+        x: [0.0, 0.0]
+        y: [0.0, 0.0]
+  phase2_train:
+    push:
+      interval_range_s: [1.0, 1.0]
+      velocity_range_mps:
+        x: [0.0, 0.0]
+        y: [0.0, 0.0]
+  phase2_public:
+    push:
+      interval_range_s: [1.0, 1.0]
+      velocity_range_mps:
+        x: [-0.25, 0.25]
+        y: [-0.25, 0.25]
+  phase2_iid_hidden:
+    push:
+      interval_range_s: [1.0, 1.0]
+      velocity_range_mps:
+        x: [-0.25, 0.25]
+        y: [-0.25, 0.25]
+
+policy_defaults:
+  random_action_scale: 1.0
+  zero_action_scale: 0.0
+
+json_output:
+  include_per_episode: true
+  include_diagnostic_hints: true
+  include_config_snapshot: true
+  include_command_line: true

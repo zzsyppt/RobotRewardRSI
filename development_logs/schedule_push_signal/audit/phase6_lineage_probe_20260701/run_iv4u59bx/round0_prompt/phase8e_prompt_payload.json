@@ -1,0 +1,1128 @@
+{
+  "task": {
+    "objective": "maximize fixed public standing push-recovery success from random policy initialization",
+    "policy_initialization": "random_each_candidate",
+    "reference_only": {
+      "config_warm_reference_kept": true,
+      "not_used_as_training_start": true
+    },
+    "robot": "Unitree G1 29DoF",
+    "task_id": "g1_standing_push_recovery_cold_start"
+  },
+  "loop_contract": {
+    "policy_initialization": "random_each_candidate",
+    "recipe_code_inheritance": "accepted_recipe_only",
+    "candidate_allowed_controls": [
+      "CurriculumDesign in operation_diff.json over approved capability_registry ids; runner compiles, clamps, and executes it as the primary train-only curriculum surface",
+      "RewardTerm callables over prompt-visible public RewardInputs",
+      "ScheduleTerm callables for auxiliary currently effective runner keys: reward_weight_scale",
+      "DiagnosticTerm callables over prompt-visible public RewardInputs returning numeric public summaries"
+    ],
+    "candidate_control_effectiveness_ref": "required_candidate_package.component_contract.control_effectiveness_contract",
+    "candidate_forbidden": [
+      "runner hook",
+      "PPO loop hook",
+      "optimizer hook",
+      "env-step dispatcher",
+      "checkpoint selector",
+      "eval observation wrapper",
+      "eval action wrapper",
+      "success metric",
+      "budget or seed changes",
+      "network/filesystem/process control"
+    ],
+    "formal_training_in_this_command": false
+  },
+  "public_feedback_summary": {
+    "schema_version": "humanoid_agent.phase8e.public_feedback_summary.v1",
+    "status": "no_public_history",
+    "round_count": 0
+  },
+  "public_curriculum_evidence_bundle": {
+    "schema_version": "humanoid_agent.phase8e.public_curriculum_evidence.v1",
+    "role": "prompt_facing_public_evidence_for_curriculum_design",
+    "task_ref": "task",
+    "objective_ref": "task.objective",
+    "public_feedback_summary": {
+      "schema_version": "humanoid_agent.phase8e.public_feedback_summary.v1",
+      "status": "no_public_history",
+      "round_count": 0
+    },
+    "prompt_visible_reward_inputs": [
+      "base_height",
+      "roll",
+      "pitch",
+      "base_pos_xy",
+      "base_lin_vel",
+      "base_ang_vel",
+      "projected_gravity",
+      "commanded_base_vel",
+      "joint_pos",
+      "joint_vel",
+      "joint_pos_error",
+      "last_action",
+      "prev_action",
+      "action_delta",
+      "push_active",
+      "push_vec_public",
+      "progress_fraction"
+    ],
+    "effective_schedule_keys": [
+      "reward_weight_scale"
+    ],
+    "current_recipe_present": true,
+    "capability_registry": {
+      "schema_version": "humanoid_agent.phase8e.curriculum_capability_registry.v1",
+      "version": "v1-fixed-human-runner-approved",
+      "first_version_allows_capability_requests": false,
+      "capabilities": [
+        {
+          "id": "reward_weight_scale",
+          "kind": "currently_effective_schedule_key",
+          "candidate_recipe_surface": true,
+          "runner_execution_owner": true,
+          "status": "available_now",
+          "purpose": "allow stage-specific scaling of candidate reward terms"
+        },
+        {
+          "id": "external_push_curriculum",
+          "kind": "train_only_intervention",
+          "candidate_recipe_surface": false,
+          "runner_execution_owner": true,
+          "status": "preapproved_v1_runner_capability",
+          "purpose": "let curriculum design reason about train-only perturbation progression"
+        },
+        {
+          "id": "train_only_dr_scale",
+          "kind": "train_only_intervention",
+          "candidate_recipe_surface": false,
+          "runner_execution_owner": true,
+          "status": "preapproved_v1_runner_capability",
+          "purpose": "let curriculum design reason about train-only robustness progression"
+        },
+        {
+          "id": "reward_only_push_signal",
+          "kind": "reward_only_signal",
+          "candidate_recipe_surface": true,
+          "runner_execution_owner": true,
+          "status": "available_now",
+          "purpose": "represent current-step push information as prompt-visible reward-only training signal"
+        },
+        {
+          "id": "recovery_window_diagnostic",
+          "kind": "public_diagnostic",
+          "candidate_recipe_surface": false,
+          "runner_execution_owner": true,
+          "status": "report_only_not_decision_metric",
+          "purpose": "surface recovery quality without changing pass/fail metrics"
+        },
+        {
+          "id": "public_push_probe",
+          "kind": "public_probe",
+          "candidate_recipe_surface": false,
+          "runner_execution_owner": true,
+          "status": "public_dev_evidence_only",
+          "purpose": "provide public training evidence for curriculum reasoning"
+        }
+      ]
+    },
+    "probe_visibility_policy": {
+      "public_dev_probes": "prompt_visible_when_projected_by_runner",
+      "public_accept_probes": "withheld_from_prompt",
+      "reserved_audit_probes": "never_prompt_visible"
+    },
+    "forbidden_evidence": [
+      "raw evaluation seed identifiers",
+      "private evaluation internals",
+      "private server paths",
+      "runner decision internals",
+      "candidate claimed budget"
+    ]
+  },
+  "curriculum_design_contract": {
+    "schema_version": "humanoid_agent.phase8e.curriculum_design_contract.v1",
+    "first_version_scope": "design_with_fixed_registry_no_capability_requests",
+    "response_location": {
+      "curriculum_hypothesis": "diagnostics.json.curriculum_hypothesis",
+      "curriculum_design": "operation_diff.json.curriculum_design"
+    },
+    "artifact_shape": {
+      "diagnostics_curriculum_hypothesis_type": "object",
+      "operation_diff_curriculum_design_type": "object",
+      "stage_list_location": "operation_diff.json.curriculum_design.stage_list"
+    },
+    "stage_schema": {
+      "required_fields": [
+        "name",
+        "progress_range",
+        "capabilities",
+        "rationale"
+      ],
+      "progress_range": "two numeric values [start, end] inside [0, 1]",
+      "progress_coverage": "stage ranges must start at 0.0, be contiguous with no gaps, and end at 1.0",
+      "capabilities": {
+        "type": "list[string]",
+        "must_use_exact_registry_ids": true,
+        "must_include_one_of": [
+          "external_push_curriculum",
+          "train_only_dr_scale",
+          "reward_only_push_signal",
+          "recovery_window_diagnostic",
+          "public_push_probe"
+        ],
+        "do_not_invent_ids": true,
+        "example": [
+          "external_push_curriculum",
+          "train_only_dr_scale"
+        ]
+      },
+      "forbidden_stage_shape": "do not describe curriculum only in prose; encode stage_list objects with exact capabilities"
+    },
+    "final_consolidation_schema": {
+      "required_fields": [
+        "fraction",
+        "distribution",
+        "includes_target_push",
+        "includes_target_robustness_variation"
+      ],
+      "accepted_aliases": {
+        "fraction": [
+          "min_fraction",
+          "min_fraction_of_training"
+        ],
+        "includes_target_push": [
+          "target_push_included",
+          "must_include_target_push"
+        ],
+        "includes_target_robustness_variation": [
+          "target_robustness_included",
+          "must_include_target_robustness_variation"
+        ]
+      },
+      "distribution_required_value": "runner_owned_target_distribution"
+    },
+    "required_sections": [
+      "curriculum_hypothesis",
+      "curriculum_design",
+      "final_consolidation",
+      "anti_tuning_rationale",
+      "improvement_attribution_intent"
+    ],
+    "final_consolidation_requirements": {
+      "min_fraction_of_training": 0.2,
+      "distribution": "runner_owned_target_distribution",
+      "must_include_target_push": true,
+      "must_include_target_robustness_variation": true
+    },
+    "non_degenerate_design_requirements": {
+      "min_stage_count": 2,
+      "must_use_curriculum_capability_beyond_reward_weight_scale": true,
+      "reject_reward_only_attribution": true,
+      "response_must_explain_stage_progression": true
+    },
+    "degenerate_curriculum_reject_rules": [
+      "reject all-no-push or long-running below-floor push curriculum",
+      "reject single-stage or no-op curricula that do not change training distribution over progress",
+      "reject reward-only attribution that says improvement is not due to curriculum change",
+      "reject final stage shorter than required final_consolidation.min_fraction_of_training",
+      "reject curricula that never return to runner-owned target distribution",
+      "reject unregistered capability usage",
+      "reject curriculum changes that alter budget seed evaluation metric or checkpoint selection",
+      "reject recovery-window diagnostics as pass/fail metrics in V1"
+    ],
+    "capability_request_policy": {
+      "allowed_in_v1": false,
+      "next_version_requires_typed_templates": true
+    }
+  },
+  "required_candidate_package": {
+    "schema_version": "humanoid_agent.cold_start.candidate.v1",
+    "entrypoint": "training_code.components:build_training_components",
+    "candidate_manifest_contract": {
+      "file": "candidate_manifest.yaml",
+      "format": "YAML or JSON object serialized as text",
+      "schema_version": "humanoid_agent.cold_start.candidate.v1",
+      "required_fields_in_order": [
+        "schema_version",
+        "candidate_id",
+        "description",
+        "author",
+        "llm_authored",
+        "entrypoint",
+        "phase",
+        "expected_behavior"
+      ],
+      "required_entrypoint": "training_code.components:build_training_components",
+      "template": "schema_version: humanoid_agent.cold_start.candidate.v1\ncandidate_id: phase8e_candidate_short_snake_case\ndescription: \"One sentence describing the training-side change.\"\nauthor: LLM\nllm_authored: true\nentrypoint: training_code.components:build_training_components\nphase: \"8E\"\nexpected_behavior: \"Public training-side behavior expected from this candidate.\"\n"
+    },
+    "component_contract": {
+      "module": "humanoid_agent.code_sandbox.components",
+      "builder_signature": "def build_training_components(task_spec, base_env_cfg, base_agent_cfg):",
+      "builder_contract": "The runner calls the entrypoint with exactly three positional arguments. Return TrainingComponents or a compatible dict; ignore arguments you do not need.",
+      "candidate_must_define": [
+        "build_training_components"
+      ],
+      "candidate_must_not_import": [
+        "build_training_components"
+      ],
+      "minimal_component_template": "from __future__ import annotations\n\nfrom humanoid_agent.code_sandbox.components import RewardInputs, RewardTerm, TrainingComponents\n\n\ndef example_reward(inp: RewardInputs):\n    return inp.base_height\n\n\ndef build_training_components(task_spec, base_env_cfg, base_agent_cfg) -> TrainingComponents:\n    _ = (task_spec, base_env_cfg, base_agent_cfg)\n    return TrainingComponents(\n        name=\"phase8e_candidate\",\n        reward_terms=[\n            RewardTerm(name=\"example_reward\", fn=example_reward, weight=1.0),\n        ],\n        schedules=[],\n        diagnostics=[],\n        rationale=\"Describe the public training-side change here.\",\n    )\n",
+      "component_classes_to_import": [
+        "RewardInputs",
+        "RewardTerm",
+        "ScheduleTerm",
+        "DiagnosticTerm",
+        "TrainingComponents"
+      ],
+      "training_components_fields": [
+        "name",
+        "reward_terms",
+        "schedules",
+        "diagnostics",
+        "metadata",
+        "rationale"
+      ],
+      "reward_inputs_contract": {
+        "schema_version": "humanoid_agent.phase8e.reward_inputs_contract.v1",
+        "field_order": [
+          "base_height",
+          "roll",
+          "pitch",
+          "base_pos_xy",
+          "base_lin_vel",
+          "base_ang_vel",
+          "projected_gravity",
+          "commanded_base_vel",
+          "joint_pos",
+          "joint_vel",
+          "joint_pos_error",
+          "last_action",
+          "prev_action",
+          "action_delta",
+          "push_active",
+          "push_vec_public",
+          "progress_fraction"
+        ],
+        "fields": {
+          "base_height": {
+            "shape": [
+              "N"
+            ],
+            "dtype_or_value_kind": "tensor_like_numeric",
+            "shape_source": "RewardInputs.field_names + runner_owned_field_shapes",
+            "semantics": "base height scalar per env",
+            "source_status": "observed_when_root_position_available_else_zero_fallback",
+            "provenance": "observed_or_zero_fallback",
+            "units": "m",
+            "coordinate_frame": "world_z",
+            "fallback_behavior": "zero_fallback_when_root_position_missing"
+          },
+          "roll": {
+            "shape": [
+              "N"
+            ],
+            "dtype_or_value_kind": "tensor_like_numeric",
+            "shape_source": "RewardInputs.field_names + runner_owned_field_shapes",
+            "semantics": "base roll angle per env derived from root quaternion",
+            "source_status": "derived_from_root_quaternion_when_available_else_zero_fallback",
+            "provenance": "derived_from_observed_or_zero_fallback",
+            "units": "rad",
+            "coordinate_frame": "root_orientation",
+            "fallback_behavior": "zero_fallback_when_root_quaternion_missing"
+          },
+          "pitch": {
+            "shape": [
+              "N"
+            ],
+            "dtype_or_value_kind": "tensor_like_numeric",
+            "shape_source": "RewardInputs.field_names + runner_owned_field_shapes",
+            "semantics": "base pitch angle per env derived from root quaternion",
+            "source_status": "derived_from_root_quaternion_when_available_else_zero_fallback",
+            "provenance": "derived_from_observed_or_zero_fallback",
+            "units": "rad",
+            "coordinate_frame": "root_orientation",
+            "fallback_behavior": "zero_fallback_when_root_quaternion_missing"
+          },
+          "base_pos_xy": {
+            "shape": [
+              "N",
+              2
+            ],
+            "dtype_or_value_kind": "tensor_like_numeric",
+            "shape_source": "RewardInputs.field_names + runner_owned_field_shapes",
+            "semantics": "env-origin-relative base xy position per env",
+            "source_status": "derived_from_root_pos_w_and_scene_env_origins_when_available_else_zero_fallback",
+            "provenance": "derived_from_observed_or_zero_fallback",
+            "units": "m",
+            "coordinate_frame": "env_origin_relative_world_xy",
+            "fallback_behavior": "zero_fallback_when_root_pos_w_or_scene.env_origins_missing"
+          },
+          "base_lin_vel": {
+            "shape": [
+              "N",
+              3
+            ],
+            "dtype_or_value_kind": "tensor_like_numeric",
+            "shape_source": "RewardInputs.field_names + runner_owned_field_shapes",
+            "semantics": "base linear velocity vector per env",
+            "source_status": "observed_when_robot_velocity_attr_available_else_zero_fallback",
+            "provenance": "observed_or_zero_fallback",
+            "units": "m/s",
+            "coordinate_frame": "base_or_world_as_reported_by_adapter",
+            "fallback_behavior": "zero_fallback_when_robot_velocity_attr_missing"
+          },
+          "base_ang_vel": {
+            "shape": [
+              "N",
+              3
+            ],
+            "dtype_or_value_kind": "tensor_like_numeric",
+            "shape_source": "RewardInputs.field_names + runner_owned_field_shapes",
+            "semantics": "base angular velocity vector per env",
+            "source_status": "observed_when_robot_angular_velocity_attr_available_else_zero_fallback",
+            "provenance": "observed_or_zero_fallback",
+            "units": "rad/s",
+            "coordinate_frame": "base_or_world_as_reported_by_adapter",
+            "fallback_behavior": "zero_fallback_when_robot_angular_velocity_attr_missing"
+          },
+          "projected_gravity": {
+            "shape": [
+              "N",
+              3
+            ],
+            "dtype_or_value_kind": "tensor_like_numeric",
+            "shape_source": "RewardInputs.field_names + runner_owned_field_shapes",
+            "semantics": "gravity direction projected into the base frame",
+            "source_status": "derived_from_root_quaternion_when_available_else_zero_fallback",
+            "provenance": "derived_from_observed_or_zero_fallback",
+            "units": "unitless",
+            "coordinate_frame": "base_frame",
+            "fallback_behavior": "zero_vector3_fallback_when_root_quaternion_missing"
+          },
+          "commanded_base_vel": {
+            "shape": [
+              "N",
+              3
+            ],
+            "dtype_or_value_kind": "tensor_like_numeric",
+            "shape_source": "RewardInputs.field_names + runner_owned_field_shapes",
+            "semantics": "public commanded base velocity vector per env",
+            "source_status": "observed_command_when_command_manager_available_else_zero_fallback",
+            "provenance": "observed_or_zero_fallback",
+            "units": "m/s_and_rad/s",
+            "coordinate_frame": "command_frame_xy_yaw",
+            "fallback_behavior": "zero_vector3_fallback_when_base_velocity_command_missing"
+          },
+          "joint_pos": {
+            "shape": [
+              "N",
+              "num_joints"
+            ],
+            "dtype_or_value_kind": "tensor_like_numeric",
+            "shape_source": "RewardInputs.field_names + runner_owned_field_shapes",
+            "semantics": "joint position vector per env in runner joint order",
+            "source_status": "observed_when_joint_pos_available_else_zero_fallback",
+            "provenance": "observed_or_zero_fallback",
+            "units": "rad",
+            "coordinate_frame": "joint_order",
+            "fallback_behavior": "zero_matrix_[N,num_joints]_when_joint_pos_missing_and_num_joints_known"
+          },
+          "joint_vel": {
+            "shape": [
+              "N",
+              "num_joints"
+            ],
+            "dtype_or_value_kind": "tensor_like_numeric",
+            "shape_source": "RewardInputs.field_names + runner_owned_field_shapes",
+            "semantics": "joint velocity vector per env in runner joint order",
+            "source_status": "observed_when_joint_vel_available_else_zero_fallback",
+            "provenance": "observed_or_zero_fallback",
+            "units": "rad/s",
+            "coordinate_frame": "joint_order",
+            "fallback_behavior": "zero_matrix_[N,num_joints]_when_joint_vel_missing_and_num_joints_known"
+          },
+          "joint_pos_error": {
+            "shape": [
+              "N",
+              "num_joints"
+            ],
+            "dtype_or_value_kind": "tensor_like_numeric",
+            "shape_source": "RewardInputs.field_names + runner_owned_field_shapes",
+            "semantics": "joint_pos minus default_joint_pos in runner joint order",
+            "source_status": "derived_from_joint_pos_and_default_joint_pos_when_available_else_zero_fallback",
+            "provenance": "derived_from_observed_or_zero_fallback",
+            "units": "rad",
+            "coordinate_frame": "joint_order",
+            "fallback_behavior": "zero_matrix_[N,num_joints]_when_default_joint_pos_missing_or_not_broadcastable_and_num_joints_known"
+          },
+          "last_action": {
+            "shape": [
+              "N",
+              "num_actions"
+            ],
+            "dtype_or_value_kind": "tensor_like_numeric",
+            "shape_source": "RewardInputs.field_names + runner_owned_field_shapes",
+            "semantics": "current action vector passed to this env step",
+            "source_status": "observed_current_action",
+            "provenance": "observed",
+            "units": "policy_action_units",
+            "coordinate_frame": "action_order",
+            "fallback_behavior": "zero_fallback_when_actions_missing"
+          },
+          "prev_action": {
+            "shape": [
+              "N",
+              "num_actions"
+            ],
+            "dtype_or_value_kind": "tensor_like_numeric",
+            "shape_source": "RewardInputs.field_names + runner_owned_field_shapes",
+            "semantics": "previous action vector from runner-owned action history",
+            "source_status": "runner_owned_action_history",
+            "provenance": "derived_from_action_history_or_zero_fallback",
+            "units": "policy_action_units",
+            "coordinate_frame": "action_order",
+            "fallback_behavior": "zero_previous_action_on_first_step_or_after_episode_reset"
+          },
+          "action_delta": {
+            "shape": [
+              "N",
+              "num_actions"
+            ],
+            "dtype_or_value_kind": "tensor_like_numeric",
+            "shape_source": "RewardInputs.field_names + runner_owned_field_shapes",
+            "semantics": "current action minus previous action",
+            "source_status": "runner_owned_action_history",
+            "provenance": "derived_from_action_history_or_current_action_and_zero_previous_action",
+            "units": "policy_action_units",
+            "coordinate_frame": "action_order",
+            "fallback_behavior": "current_action_minus_zero_previous_on_first_step_or_after_episode_reset"
+          },
+          "push_active": {
+            "shape": [
+              "N"
+            ],
+            "dtype_or_value_kind": "tensor_like_numeric",
+            "shape_source": "RewardInputs.field_names + runner_owned_field_shapes",
+            "semantics": "bool-like indicator for envs that received a runner-owned push event on the latest step",
+            "source_status": "runner_owned_push_event_instrumentation",
+            "provenance": "runner_wrapped_push_robot_event_or_zero_fallback",
+            "units": "bool_like",
+            "coordinate_frame": "not_applicable",
+            "fallback_behavior": "zero_when_no_push_event_fired_or_push_signal_buffer_unavailable"
+          },
+          "push_vec_public": {
+            "shape": [
+              "N",
+              2
+            ],
+            "dtype_or_value_kind": "tensor_like_numeric",
+            "shape_source": "RewardInputs.field_names + runner_owned_field_shapes",
+            "semantics": "public xy velocity delta sampled by the runner-owned push event on the latest step",
+            "source_status": "runner_owned_push_event_instrumentation",
+            "provenance": "runner_wrapped_push_robot_event_or_zero_fallback",
+            "units": "m/s",
+            "coordinate_frame": "world_xy_velocity_delta",
+            "fallback_behavior": "zero_vector2_when_no_push_event_fired_or_push_signal_buffer_unavailable"
+          },
+          "progress_fraction": {
+            "shape": [
+              "N"
+            ],
+            "dtype_or_value_kind": "tensor_like_numeric",
+            "shape_source": "RewardInputs.field_names + runner_owned_field_shapes",
+            "semantics": "per-env public training progress fraction inside RewardInputs",
+            "source_status": "runner_owned_progress",
+            "provenance": "runner_owned",
+            "units": "fraction",
+            "coordinate_frame": "not_applicable",
+            "fallback_behavior": "runner_always_supplies_clamped_progress_fraction"
+          }
+        }
+      },
+      "reward_inputs_fields": [
+        "base_height",
+        "roll",
+        "pitch",
+        "base_pos_xy",
+        "base_lin_vel",
+        "base_ang_vel",
+        "projected_gravity",
+        "commanded_base_vel",
+        "joint_pos",
+        "joint_vel",
+        "joint_pos_error",
+        "last_action",
+        "prev_action",
+        "action_delta",
+        "push_active",
+        "push_vec_public",
+        "progress_fraction"
+      ],
+      "reward_inputs_field_expansion_report": {
+        "schema_version": "humanoid_agent.phase8e.reward_inputs_field_expansion.v1",
+        "admission_policy": [
+          "training_side_public_state_only",
+          "runner_constructed_or_runner_derived",
+          "shape_declared_before_prompt_exposure",
+          "synthetic_fast_validation_required",
+          "no_eval_decision_or_checkpoint_policy_state",
+          "no_env_runner_optimizer_or_policy_objects"
+        ],
+        "baseline_fields": [
+          "base_height",
+          "roll",
+          "pitch",
+          "base_lin_vel",
+          "base_ang_vel",
+          "joint_pos",
+          "joint_vel",
+          "last_action",
+          "push_active",
+          "push_vec_public",
+          "progress_fraction"
+        ],
+        "first_batch_fields": [
+          "base_pos_xy",
+          "projected_gravity",
+          "commanded_base_vel",
+          "prev_action",
+          "action_delta",
+          "joint_pos_error"
+        ],
+        "implemented_public_fields": [
+          "base_height",
+          "roll",
+          "pitch",
+          "base_pos_xy",
+          "base_lin_vel",
+          "base_ang_vel",
+          "projected_gravity",
+          "commanded_base_vel",
+          "joint_pos",
+          "joint_vel",
+          "joint_pos_error",
+          "last_action",
+          "prev_action",
+          "action_delta",
+          "push_active",
+          "push_vec_public",
+          "progress_fraction"
+        ],
+        "planned_public_fields": [],
+        "field_shapes": {
+          "base_height": [
+            "N"
+          ],
+          "roll": [
+            "N"
+          ],
+          "pitch": [
+            "N"
+          ],
+          "base_pos_xy": [
+            "N",
+            2
+          ],
+          "base_lin_vel": [
+            "N",
+            3
+          ],
+          "base_ang_vel": [
+            "N",
+            3
+          ],
+          "projected_gravity": [
+            "N",
+            3
+          ],
+          "commanded_base_vel": [
+            "N",
+            3
+          ],
+          "joint_pos": [
+            "N",
+            "num_joints"
+          ],
+          "joint_vel": [
+            "N",
+            "num_joints"
+          ],
+          "joint_pos_error": [
+            "N",
+            "num_joints"
+          ],
+          "last_action": [
+            "N",
+            "num_actions"
+          ],
+          "prev_action": [
+            "N",
+            "num_actions"
+          ],
+          "action_delta": [
+            "N",
+            "num_actions"
+          ],
+          "push_active": [
+            "N"
+          ],
+          "push_vec_public": [
+            "N",
+            2
+          ],
+          "progress_fraction": [
+            "N"
+          ]
+        },
+        "field_status": {
+          "base_height": "observed_when_root_position_available_else_zero_fallback; fallback=zero_fallback_when_root_position_missing",
+          "roll": "derived_from_root_quaternion_when_available_else_zero_fallback; fallback=zero_fallback_when_root_quaternion_missing",
+          "pitch": "derived_from_root_quaternion_when_available_else_zero_fallback; fallback=zero_fallback_when_root_quaternion_missing",
+          "base_pos_xy": "derived_from_root_pos_w_and_scene_env_origins_when_available_else_zero_fallback; fallback=zero_fallback_when_root_pos_w_or_scene.env_origins_missing",
+          "base_lin_vel": "observed_when_robot_velocity_attr_available_else_zero_fallback; fallback=zero_fallback_when_robot_velocity_attr_missing",
+          "base_ang_vel": "observed_when_robot_angular_velocity_attr_available_else_zero_fallback; fallback=zero_fallback_when_robot_angular_velocity_attr_missing",
+          "projected_gravity": "derived_from_root_quaternion_when_available_else_zero_fallback; fallback=zero_vector3_fallback_when_root_quaternion_missing",
+          "commanded_base_vel": "observed_command_when_command_manager_available_else_zero_fallback; fallback=zero_vector3_fallback_when_base_velocity_command_missing",
+          "joint_pos": "observed_when_joint_pos_available_else_zero_fallback; fallback=zero_matrix_[N,num_joints]_when_joint_pos_missing_and_num_joints_known",
+          "joint_vel": "observed_when_joint_vel_available_else_zero_fallback; fallback=zero_matrix_[N,num_joints]_when_joint_vel_missing_and_num_joints_known",
+          "joint_pos_error": "derived_from_joint_pos_and_default_joint_pos_when_available_else_zero_fallback; fallback=zero_matrix_[N,num_joints]_when_default_joint_pos_missing_or_not_broadcastable_and_num_joints_known",
+          "last_action": "observed_current_action; fallback=zero_fallback_when_actions_missing",
+          "prev_action": "runner_owned_action_history; fallback=zero_previous_action_on_first_step_or_after_episode_reset",
+          "action_delta": "runner_owned_action_history; fallback=current_action_minus_zero_previous_on_first_step_or_after_episode_reset",
+          "push_active": "runner_owned_push_event_instrumentation; fallback=zero_when_no_push_event_fired_or_push_signal_buffer_unavailable",
+          "push_vec_public": "runner_owned_push_event_instrumentation; fallback=zero_vector2_when_no_push_event_fired_or_push_signal_buffer_unavailable",
+          "progress_fraction": "runner_owned_progress; fallback=runner_always_supplies_clamped_progress_fraction"
+        }
+      },
+      "reward_inputs_field_contract": "The reward_inputs_fields list is complete. Do not use fields not listed here; for previous-step action history use prev_action and action_delta.",
+      "reward_terms": "RewardTerm(name, fn, weight=1.0, clip_min=None, clip_max=None); fn(RewardInputs) -> vector[num_envs]",
+      "schedules": "ScheduleTerm(name, fn, allowed_keys); fn(progress_fraction: float) -> dict[str, numeric_or_bool]. Every returned key must be listed in that term's allowed_keys and in runner_schedule_allowed_keys.",
+      "diagnostics": "DiagnosticTerm(name, fn); fn(RewardInputs) -> dict[str, numeric_or_bool_or_vector[num_envs]] summarized by the runner",
+      "control_effectiveness_contract": {
+        "schema_version": "humanoid_agent.phase8e.control_effectiveness.v1",
+        "component_controls": {
+          "reward_terms": {
+            "allowed": true,
+            "effectiveness": "effective_now",
+            "training_effect": "guarded vector output is added to env reward"
+          },
+          "schedules": {
+            "allowed": true,
+            "effectiveness": "key_specific",
+            "training_effect": "schedule payloads are precomputed; only effective_keys alter current training"
+          },
+          "diagnostics": {
+            "allowed": true,
+            "effectiveness": "public_numeric_summary_only",
+            "training_effect": "summarized for feedback, not used as a reward, loss, or decision rule",
+            "limits": {
+              "max_diagnostic_terms": 32,
+              "max_fields_per_diagnostic": 128,
+              "max_total_diagnostic_fields": 512,
+              "overflow_behavior": "reject_candidate_payload"
+            }
+          }
+        },
+        "schedule_controls": {
+          "allowed_keys": [
+            "reward_weight_scale"
+          ],
+          "effective_keys": {
+            "reward_weight_scale": {
+              "training_effect": "multiplies candidate reward term weights after guard checks",
+              "bounds": [
+                0.0,
+                10.0
+              ],
+              "effectiveness": "effective_now"
+            }
+          }
+        },
+        "curriculum_controls": {
+          "surface": "operation_diff.json.curriculum_design",
+          "contract_ref": "curriculum_design_contract",
+          "execution_owner": "runner_curriculum_compiler_and_training_adapter",
+          "candidate_role": "design_stage_structure_and_select_approved_capability_ids",
+          "allowed_capability_source": "public_curriculum_evidence_bundle.capability_registry"
+        },
+        "primary_mechanism_required": "candidate_must_include_runner_compiled_curriculum_design_as_primary_training_surface",
+        "runtime_evidence": {
+          "source": "Phase8ETrainingAdapter.public_summary.runtime_contract",
+          "reward_weight_scale_behavior_probe": "covered_by_phase8e_training_adapter_selftest"
+        },
+        "guidance": [
+          "CurriculumDesign in operation_diff.json is a first-class runner-compiled training surface; design stage structure and approved capability usage before reward repairs.",
+          "RewardTerm, ScheduleTerm, and DiagnosticTerm remain allowed component surfaces; reward_weight_scale is auxiliary and not a substitute for curriculum design."
+        ]
+      },
+      "runner_schedule_allowed_keys": [
+        "reward_weight_scale"
+      ],
+      "effective_schedule_keys": {
+        "reward_weight_scale": {
+          "training_effect": "multiplies candidate reward term weights after guard checks",
+          "bounds": [
+            0.0,
+            10.0
+          ],
+          "effectiveness": "effective_now"
+        }
+      },
+      "not_available_to_candidate": [
+        "env object",
+        "eval config",
+        "success metric implementation",
+        "budget controls",
+        "checkpoint selector",
+        "runner hooks"
+      ]
+    },
+    "allowed_top_level_files": [
+      "candidate_manifest.yaml",
+      "training_code/",
+      "rationale.md",
+      "operation_diff.json",
+      "diagnostics.json"
+    ],
+    "response_mode": "source_requests_then_candidate_or_direct_candidate_only",
+    "provider_json_output": {
+      "allowed_first_response_modes": [
+        "source_requests",
+        "candidate_package"
+      ],
+      "format": {
+        "candidate_package": {
+          "files": {
+            "candidate_manifest.yaml": "schema_version: humanoid_agent.cold_start.candidate.v1\ncandidate_id: phase8e_candidate_short_snake_case\ndescription: \"One sentence describing the training-side change.\"\nauthor: LLM\nllm_authored: true\nentrypoint: training_code.components:build_training_components\nphase: \"8E\"\nexpected_behavior: \"Public training-side behavior expected from this candidate.\"\n",
+            "training_code/components.py": "complete Python source text",
+            "rationale.md": "public rationale text",
+            "operation_diff.json": "public semantic diff JSON text",
+            "diagnostics.json": "public diagnostics JSON text"
+          }
+        }
+      },
+      "response_skeleton": {
+        "candidate_package": {
+          "files": {
+            "candidate_manifest.yaml": "schema_version: humanoid_agent.cold_start.candidate.v1\ncandidate_id: phase8e_candidate_short_snake_case\ndescription: \"One sentence describing the training-side change.\"\nauthor: LLM\nllm_authored: true\nentrypoint: training_code.components:build_training_components\nphase: \"8E\"\nexpected_behavior: \"Public training-side behavior expected from this candidate.\"\n",
+            "training_code/components.py": "...",
+            "rationale.md": "...",
+            "operation_diff.json": "...",
+            "diagnostics.json": "..."
+          }
+        }
+      },
+      "rules": [
+        "Return one JSON object only; no prose outside JSON.",
+        "All file paths must be relative POSIX paths under the allowed top-level entries.",
+        "training_code/components.py must define the entrypoint with the exact builder_signature from component_contract.",
+        "operation_diff.json must include a curriculum_design object whose stages and capabilities are the primary training proposal.",
+        "Do not present reward-only or reward_weight_scale-only tweaks as curriculum improvements.",
+        "Do not include credentials, hidden/IID identifiers, eval seed numbers, or runner path requests."
+      ],
+      "source_requests": {
+        "enabled": true,
+        "max_source_read_turns": 2,
+        "shape": {
+          "source_requests": [
+            {
+              "id": "examples/known_good_reward_terms.py",
+              "reason": "need a runnable import and builder skeleton"
+            }
+          ]
+        },
+        "rules": [
+          "Return a source_requests object only when you need additional audited source text before authoring the candidate; runtime will serve at most 2 source-read turn(s).",
+          "Each requested id must come from source_access_policy.allowed_logical_ids.",
+          "Do not mix source_requests and candidate_package in the same JSON object.",
+          "Do not spend a source-read turn unless the candidate would be materially better with that audited source."
+        ]
+      }
+    }
+  },
+  "known_good_reward_examples": {
+    "schema_version": "humanoid_agent.phase8e.known_good_reward_examples.v1",
+    "source_item_id": "examples/known_good_reward_terms.py",
+    "examples": [
+      {
+        "id": "upright_action_smoothness",
+        "source_item_id": "examples/known_good_reward_terms.py",
+        "reward_term_name": "upright_action_smoothness",
+        "covers_fields": [
+          "base_height",
+          "roll",
+          "pitch",
+          "action_delta"
+        ],
+        "return_shape": [
+          "N"
+        ],
+        "validation": "covered_by_phase8e_selftest_evaluate_reward_terms"
+      },
+      {
+        "id": "xy_velocity_command_tracking",
+        "source_item_id": "examples/known_good_reward_terms.py",
+        "reward_term_name": "xy_velocity_command_tracking",
+        "covers_fields": [
+          "base_lin_vel[:, :2]",
+          "commanded_base_vel[:, :2]"
+        ],
+        "return_shape": [
+          "N"
+        ],
+        "validation": "covered_by_phase8e_selftest_evaluate_reward_terms"
+      }
+    ],
+    "notes": [
+      "Examples are runnable component code, not a reward menu.",
+      "They demonstrate shape-safe RewardTerm patterns over public RewardInputs.",
+      "If you need the full runnable example body, request examples/known_good_reward_terms.py via source_requests."
+    ]
+  },
+  "current_recipe": {
+    "candidate_dir": "current_recipe/phase8a_noop_candidate",
+    "manifest": {
+      "schema_version": "humanoid_agent.cold_start.candidate.v1",
+      "candidate_id": "phase8a_noop_candidate",
+      "description": "Human-authored no-op demo candidate for Phase 8A loader and runner smoke.",
+      "author": "human",
+      "llm_authored": false,
+      "entrypoint": "training_code.components:build_training_components",
+      "phase": "8A-min",
+      "expected_behavior": "no training behavior changes"
+    },
+    "fingerprint": {
+      "candidate_id": "phase8a_noop_candidate",
+      "manifest_sha256": "75285263e204e93a1238b909d082b9f3609cae1d6ea2e7fd89cedc1fa5422ae7",
+      "entrypoint": "training_code.components:build_training_components",
+      "entrypoint_sha256": "f511eea12b105544d60b8f080d4a1c448bef3966e548419c2bdccc0044ea210b",
+      "training_code_tree_sha256": "7097767f9fd0c72102d0c53a9460e79cd934b6097cd88dad65bcd242983d8eb4"
+    },
+    "operation_diff": null,
+    "diagnostics": null,
+    "source_item_id": "current_best/training_code/components.py",
+    "accepted_history_available": false,
+    "baseline_role": "bootstrap_scaffold_not_current_best",
+    "baseline_guidance": "No accepted LLM recipe yet. This initial recipe is a bootstrap scaffold, not a performance baseline."
+  },
+  "public_history": [],
+  "source_pack": {
+    "schema_version": "humanoid_agent.phase8e.source_pack.v1",
+    "policy": {
+      "scope": "training_side_public_only",
+      "ids_are_closed_allowlist": true,
+      "no_full_runner_adapter_by_default": true,
+      "source_requests_service": "enabled_closed_allowlist"
+    },
+    "items": {
+      "contract/reward_inputs_contract.json": {
+        "id": "contract/reward_inputs_contract.json",
+        "kind": "generated_contract",
+        "format": "json",
+        "source": "runner_owned_generated",
+        "bytes": 10292,
+        "content_sha256": "4ab854d4d5e5e12386222684175a9646d5b43d703d09fa4d8d9d7040d542806e",
+        "public_safe": true,
+        "content_available": true,
+        "summary": "Contract body is already present once in required_candidate_package.component_contract.",
+        "see": "required_candidate_package.component_contract.reward_inputs_contract"
+      },
+      "contract/reward_inputs_field_expansion_report.json": {
+        "id": "contract/reward_inputs_field_expansion_report.json",
+        "kind": "generated_contract",
+        "format": "json",
+        "source": "runner_owned_generated",
+        "bytes": 4500,
+        "content_sha256": "1c38c7968731949792577ae2f0faf0ebdecb9494105914b2be6dc59691da2793",
+        "public_safe": true,
+        "content_available": true,
+        "summary": "Contract body is already present once in required_candidate_package.component_contract.",
+        "see": "required_candidate_package.component_contract.reward_inputs_field_expansion_report"
+      },
+      "contract/control_effectiveness_contract.json": {
+        "id": "contract/control_effectiveness_contract.json",
+        "kind": "generated_contract",
+        "format": "json",
+        "source": "runner_owned_generated",
+        "bytes": 2268,
+        "content_sha256": "6eb33d26d6d733245361cb5e75668265a48e6e7c429cd7cf3a9403a2dba5bb72",
+        "public_safe": true,
+        "content_available": true,
+        "summary": "Contract body is already present once in required_candidate_package.component_contract.",
+        "see": "required_candidate_package.component_contract.control_effectiveness_contract"
+      },
+      "examples/known_good_reward_terms.py": {
+        "id": "examples/known_good_reward_terms.py",
+        "kind": "runner_owned_example",
+        "format": "text",
+        "source": "runner_owned_embedded_example",
+        "bytes": 3084,
+        "content_sha256": "e32749eb822bcc6d5af1e46e953a753c4912441b25fa33d25788ecdbe4f3981f",
+        "public_safe": true,
+        "content_available": true,
+        "summary": "Runnable public RewardTerm and ScheduleTerm example source available by source-read."
+      },
+      "current_best/training_code/components.py": {
+        "id": "current_best/training_code/components.py",
+        "kind": "current_recipe_source",
+        "format": "text",
+        "source": "current_recipe/training_code/components.py",
+        "bytes": 660,
+        "content_sha256": "f511eea12b105544d60b8f080d4a1c448bef3966e548419c2bdccc0044ea210b",
+        "public_safe": true,
+        "content_available": true,
+        "summary": "Prompt-facing current-best component source available by source-read."
+      },
+      "public_failures/recent_training_errors.json": {
+        "id": "public_failures/recent_training_errors.json",
+        "kind": "public_failure_records",
+        "format": "json",
+        "source": "runner_owned_generated",
+        "bytes": 3,
+        "content_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "public_safe": true,
+        "content_available": true,
+        "summary": "Recent prompt-safe failed-round feedback records available by source-read."
+      }
+    }
+  },
+  "source_access_policy": {
+    "schema_version": "humanoid_agent.phase8e.source_access_policy.v1",
+    "enabled": true,
+    "scope": "training_side_public_source_pack_only",
+    "max_source_read_turns": 2,
+    "ids_are_closed_allowlist": true,
+    "request_ids_are_untrusted": true,
+    "allowed_logical_ids": [
+      "contract/reward_inputs_contract.json",
+      "contract/reward_inputs_field_expansion_report.json",
+      "contract/control_effectiveness_contract.json",
+      "examples/known_good_reward_terms.py",
+      "current_best/training_code/components.py",
+      "public_failures/recent_training_errors.json"
+    ],
+    "max_bytes_per_item": 65536,
+    "source_resolution": "orchestrator_returns_audited_source_pack_items_by_logical_id",
+    "provider_filesystem_access": false,
+    "content_audited_before_return": true
+  },
+  "candidate_self_audit_checklist": {
+    "schema_version": "humanoid_agent.phase8e.candidate_self_audit_checklist.v1",
+    "role": "guidance_only_not_trusted_for_acceptance",
+    "enforcement": "runner_verifier_and_sandbox_remain_authoritative",
+    "candidate_must_not_return_self_certification": true,
+    "items": [
+      {
+        "id": "curriculum_design_is_primary_surface",
+        "derived_from": {
+          "curriculum_contract": "curriculum_design_contract",
+          "operation_diff": "required_candidate_package.provider_json_output.format.candidate_package.files.operation_diff.json"
+        },
+        "rule": "operation_diff.json must contain a curriculum_design using approved capability ids; component code may support it but must not replace it as the claimed curriculum mechanism."
+      },
+      {
+        "id": "component_outputs_match_public_contract",
+        "derived_from": {
+          "reward_inputs_field_order": "required_candidate_package.component_contract.reward_inputs_contract.field_order",
+          "component_specs": "required_candidate_package.component_contract"
+        },
+        "reward_inputs_field_order": [
+          "base_height",
+          "roll",
+          "pitch",
+          "base_pos_xy",
+          "base_lin_vel",
+          "base_ang_vel",
+          "projected_gravity",
+          "commanded_base_vel",
+          "joint_pos",
+          "joint_vel",
+          "joint_pos_error",
+          "last_action",
+          "prev_action",
+          "action_delta",
+          "push_active",
+          "push_vec_public",
+          "progress_fraction"
+        ],
+        "component_output_contracts": [
+          {
+            "component": "RewardTerm",
+            "required_output": "public vector[num_envs]"
+          },
+          {
+            "component": "DiagnosticTerm",
+            "required_output": "public numeric/bool scalar or vector[num_envs] summary"
+          }
+        ]
+      },
+      {
+        "id": "component_names_unique",
+        "derived_from": {
+          "component_families": "required_candidate_package.component_contract.training_components_fields"
+        },
+        "component_families": [
+          "reward_terms",
+          "schedules",
+          "diagnostics"
+        ]
+      },
+      {
+        "id": "no_unsupported_imports_or_runner_hooks",
+        "derived_from": {
+          "imports": "required_candidate_package.component_contract.component_classes_to_import",
+          "blocked_surfaces": "required_candidate_package.component_contract.not_available_to_candidate"
+        },
+        "rule": "Use only public component APIs and do not call runner-owned hooks or objects."
+      },
+      {
+        "id": "no_private_eval_or_metric_dependency",
+        "derived_from": {
+          "blocked_surfaces": "required_candidate_package.component_contract.not_available_to_candidate",
+          "loop_forbidden": "loop_contract.candidate_forbidden"
+        },
+        "rule": "Do not depend on private evaluation details, benchmark identifiers, or decision metrics."
+      },
+      {
+        "id": "json_output_matches_allowed_files",
+        "derived_from": {
+          "allowed_top_level_files": "required_candidate_package.allowed_top_level_files",
+          "provider_json_output": "required_candidate_package.provider_json_output"
+        },
+        "allowed_top_level_files": [
+          "candidate_manifest.yaml",
+          "training_code/",
+          "rationale.md",
+          "operation_diff.json",
+          "diagnostics.json"
+        ],
+        "rule": "Return exactly the requested JSON object with candidate package files only."
+      },
+      {
+        "id": "small_step_from_current_best_when_available",
+        "derived_from": {
+          "current_recipe": "current_recipe",
+          "public_feedback_summary": "public_feedback_summary",
+          "known_good_examples": "known_good_reward_examples"
+        },
+        "current_recipe_present": true,
+        "accepted_recipe_available": false,
+        "rule": "No accepted LLM recipe exists yet. Treat current_recipe as a bootstrap scaffold, not current best. Use the public contract, inline component template, and known-good examples to produce a complete verifier-safe candidate."
+      }
+    ]
+  },
+  "selection_guidance": [
+    "Prefer interpretable training-side mechanisms that can pass the verifier.",
+    "Write real Python RewardTerm and ScheduleTerm callables; do not return declarative hint dictionaries.",
+    "Schedules are pre-evaluated by the runner on public progress points before training.",
+    "The candidate must include runner-compiled CurriculumDesign as the primary training proposal.",
+    "Use curriculum_design_contract to design curriculum hypothesis and stage structure in operation_diff.json, with diagnostics.json supporting the rationale.",
+    "First-version curriculum design must use only the fixed capability_registry and must not request new runner capabilities.",
+    "Each curriculum stage must include a capabilities list using exact ids from the fixed capability_registry.",
+    "Curriculum proposals must include final_consolidation returning to the runner-owned target distribution.",
+    "Do not submit single-stage/no-op curriculum designs or reward-only attribution; those fail the V1 curriculum audit.",
+    "Use public feedback and recipe history only.",
+    "Do not modify evaluation, success metrics, budget, checkpoint policy, or runner code.",
+    "If the recipe changes curriculum, describe the schedule and expected failure mode it targets."
+  ],
+  "schema_version": "humanoid_agent.phase8e.prompt_payload.v1"
+}

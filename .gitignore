@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+.claude/
+.codex/
+artifacts/
+runs/*
+!runs/.gitkeep
+development_logs/**/raw/
+.env
+.env.*
+!.env.example
+*.secrets
+codex/
+# Local visualization/export scratch helpers. Keep them out of candidate diffs;
+# promote intentionally useful tooling into Git with `git add -f`.
+scripts/export_policy_trajectory.py
+scripts/render_policy_trajectory_gif.py
+scripts/start_viewer_livestream.sh
+scripts/view_phase1_push_recovery.py

@@ -1,0 +1,70 @@
+{
+  "candidate": null,
+  "candidate_dir": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase2_provider_dry_run_20260701\\candidate_package",
+  "config_path": "D:\\humanoid_agent\\configs\\cold_start\\phase8e_loop.yaml",
+  "created_at_utc": "2026-07-01T07:53:19.075346+00:00",
+  "errors": [
+    {
+      "message": "candidate_failed_pretraining_inner_loop",
+      "type": "Phase8EInnerLoopFailure"
+    }
+  ],
+  "inner_loop": {
+    "attempts": [
+      {
+        "attempt": 1,
+        "repair_feedback_file": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase2_provider_dry_run_20260701\\attempts\\attempt_001\\repair_feedback.json",
+        "source_read_turns": 0,
+        "stage_status": "pass",
+        "staged_candidate_dir": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase2_provider_dry_run_20260701\\attempts\\attempt_001\\staged_candidate",
+        "status": "failed_pretraining_gate",
+        "verifier_status": "fail"
+      },
+      {
+        "attempt": 2,
+        "repair_feedback_file": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase2_provider_dry_run_20260701\\attempts\\attempt_002\\repair_feedback.json",
+        "source_read_turns": 0,
+        "stage_status": "pass",
+        "staged_candidate_dir": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase2_provider_dry_run_20260701\\attempts\\attempt_002\\staged_candidate",
+        "status": "failed_pretraining_gate",
+        "verifier_status": "fail"
+      },
+      {
+        "attempt": 3,
+        "source_read_turns": 0,
+        "stage_status": "pass",
+        "staged_candidate_dir": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase2_provider_dry_run_20260701\\attempts\\attempt_003\\staged_candidate",
+        "status": "failed_pretraining_gate",
+        "verifier_status": "fail"
+      }
+    ],
+    "enabled": true,
+    "parent_imported_candidate_code": false,
+    "provider_call_count": 3,
+    "reason": "candidate_failed_pretraining_inner_loop",
+    "selected_attempt": null,
+    "status": "rejected"
+  },
+  "next_step": "Run linked full-budget train/eval/decision orchestration after a candidate has passed Phase 8D on the target server.",
+  "phase": "8E-6-3-provider-to-candidate-package",
+  "prompt": {
+    "messages_file": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase2_provider_dry_run_20260701\\phase8e_prompt_messages.json",
+    "payload_file": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase2_provider_dry_run_20260701\\phase8e_prompt_payload.json",
+    "public_only": true,
+    "text_file": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase2_provider_dry_run_20260701\\phase8e_prompt.txt"
+  },
+  "provider": {
+    "provider": "dry_run",
+    "status": "not_available"
+  },
+  "run_dir": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase2_provider_dry_run_20260701",
+  "schema_version": "humanoid_agent.phase8e.provider_candidate.summary.v1",
+  "stage": null,
+  "status": "reject",
+  "training_ready": false,
+  "verifier": {
+    "status": "skipped"
+  },
+  "verifier_public_projection": null,
+  "verifier_status": "skipped"
+}

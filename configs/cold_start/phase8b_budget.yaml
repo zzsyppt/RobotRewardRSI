@@ -1,0 +1,59 @@
+{
+  "schema_version": "humanoid_agent.phase8b.budget_runner.config.v1",
+  "phase": "8B-budget",
+  "summary_schema_version": "humanoid_agent.phase8b.budget_runner.summary.v1",
+  "runner": {
+    "task": "Unitree-G1-29dof-Velocity",
+    "train_profile": "phase2_train",
+    "seed": 801,
+    "device": "cuda:0",
+    "num_envs": 4096,
+    "max_iterations": 500,
+    "timeout_seconds": 7200,
+    "phase1_config": "configs/phase1_push_recovery.yaml",
+    "phase2_config": "configs/phase2_baseline.yaml",
+    "run_root": "/data/yuyangliu/runs/phase_8_cold_start_autoresearch",
+    "commands_filename": "commands.sh",
+    "train_summary_filename": "train_start_smoke_summary.json",
+    "runner_summary_filename": "phase8b_budget_runner_summary.json"
+  },
+  "budget_contract": {
+    "primary_unit": "env_steps",
+    "enforcement_status": "runner_enforced_for_planned_and_config_derived_env_steps",
+    "env_step_budget": 49152000,
+    "calibration_basis": "Phase7A 4000 iterations * 512 envs * 24 env steps per iteration",
+    "num_envs": 4096,
+    "steps_per_iteration": 24,
+    "derive_max_iterations_from_env_step_budget": true,
+    "expected_derived_max_iterations": 500,
+    "require_config_derived_total_timesteps": true,
+    "require_config_derived_matches_planned": true,
+    "config_derived_planned_tolerance_env_steps": 0,
+    "require_summary_steps_per_iteration_matches_budget": true,
+    "allow_stdout_total_timesteps_fallback": false,
+    "candidate_may_change_budget": false,
+    "candidate_may_select_checkpoint": false,
+    "candidate_may_run_eval": false,
+    "secondary_caps": {
+      "wall_clock_seconds": 7200,
+      "max_policy_update_iterations": 500,
+      "max_checkpoints": 512,
+      "max_checkpoint_total_bytes": 10737418240
+    }
+  },
+  "candidate_policy": {
+    "allowed_schema_version": "humanoid_agent.cold_start.candidate.v1",
+    "allow_llm_authored": false,
+    "require_noop_components": true,
+    "require_trusted_human_provenance": true,
+    "trusted_human_candidates": [
+      {
+        "candidate_id": "phase8a_noop_candidate",
+        "path": "examples/cold_start_candidates/noop_candidate",
+        "manifest_sha256": "75285263e204e93a1238b909d082b9f3609cae1d6ea2e7fd89cedc1fa5422ae7",
+        "entrypoint_sha256": "f511eea12b105544d60b8f080d4a1c448bef3966e548419c2bdccc0044ea210b",
+        "training_code_tree_sha256": "7097767f9fd0c72102d0c53a9460e79cd934b6097cd88dad65bcd242983d8eb4"
+      }
+    ]
+  }
+}

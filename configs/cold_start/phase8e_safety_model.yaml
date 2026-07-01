@@ -1,0 +1,53 @@
+{
+  "schema_version": "humanoid_agent.phase8e.safety_model.config.v1",
+  "phase": "8E-1-safety-model",
+  "summary_schema_version": "humanoid_agent.phase8e.safety_model.summary.v1",
+  "training_boundary": {
+    "process_role": "isolated_training_process",
+    "candidate_code_allowed": true,
+    "candidate_code_process": "separate_subprocess",
+    "filesystem_policy": "minimal_rootfs_pivot_root",
+    "require_network_namespace": true,
+    "require_pid_namespace": true,
+    "require_landlock": false,
+    "allow_cuda_device_paths": true,
+    "require_cuda_training_smoke": true,
+    "cuda_device": "cuda:0",
+    "timeout_seconds": 30,
+    "env_allowlist": [
+      "PATH",
+      "LANG",
+      "LC_ALL",
+      "LD_LIBRARY_PATH",
+      "CUDA_VISIBLE_DEVICES",
+      "NVIDIA_VISIBLE_DEVICES",
+      "NVIDIA_DRIVER_CAPABILITIES"
+    ],
+    "candidate_output_dirname": "candidate_output",
+    "runner_artifacts_dirname": "runner_artifacts",
+    "train_summary_filename": "public_train_boundary_summary.json",
+    "checkpoint_dirname": "checkpoints",
+    "checkpoint_filename": "model_0.pt",
+    "must_not_read_hidden": true,
+    "must_not_read_repo_protected_config": true,
+    "must_not_write_repo": true,
+    "must_not_access_network": true,
+    "must_not_receive_secret_env": true
+  },
+  "eval_boundary": {
+    "process_role": "trusted_eval_process",
+    "candidate_code_allowed": false,
+    "input_contract": "checkpoint_plus_public_runner_metadata_only",
+    "reject_candidate_dir_argument": true,
+    "frozen_observation_interface": true,
+    "frozen_action_interface": true,
+    "immutable_success_metric": true,
+    "timeout_seconds": 30,
+    "summary_filename": "trusted_eval_probe_summary.json"
+  },
+  "notes": {
+    "scope": "Phase8E-1 implements the safety model contract and probes. It does not execute formal Isaac/RSL-RL training or reward/loss callables.",
+    "main_defense": "candidate code executes only inside an OS-isolated training process; evaluation is a separate trusted process that never imports candidate code.",
+    "defense_in_depth": "Phase8D static checks remain useful but are not treated as the primary security boundary for true code-level candidates."
+  }
+}

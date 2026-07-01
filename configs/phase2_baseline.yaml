@@ -1,0 +1,75 @@
+schema_version: humanoid_agent.phase2.baseline.v1
+
+baseline:
+  name: manual_standing_push_recovery_v1
+  description: >
+    Config-level hand baseline for standing push recovery. It reuses the
+    official Unitree G1 velocity task reward terms and changes only reward
+    weights, push profiles, seeds, and PPO scalar budget.
+  source_basis:
+    - Unitree RL Lab G1 velocity environment
+    - IsaacLab manager-based event/reward/curriculum structure
+
+training:
+  task: Unitree-G1-29dof-Velocity
+  profile: phase2_train
+  seeds: [101, 102, 103, 104, 105]
+  num_envs: 512
+  max_iterations: 500
+  device: cuda:0
+  timeout_seconds_per_seed: 1500
+
+evaluation:
+  public:
+    profile: phase2_public
+    seed: 1001
+    num_envs: 128
+    max_steps: 220
+  iid_hidden:
+    profile: phase2_iid_hidden
+    seed: 2001
+    num_envs: 128
+    max_steps: 220
+  target_success_rate_range: [0.30, 0.70]
+
+reward_weights:
+  track_lin_vel_xy: 2.0
+  track_ang_vel_z: 0.75
+  alive: 0.25
+  base_linear_velocity: -2.0
+  base_angular_velocity: -0.20
+  joint_vel: -0.001
+  joint_acc: -2.5e-7
+  action_rate: -0.08
+  dof_pos_limits: -5.0
+  energy: -2.0e-5
+  joint_deviation_arms: -0.10
+  joint_deviation_waists: -1.0
+  joint_deviation_legs: -1.0
+  flat_orientation_l2: -8.0
+  base_height: -12.0
+  gait: 0.0
+  feet_slide: -0.2
+  feet_clearance: 0.0
+  undesired_contacts: -1.0
+
+reward_params:
+  base_height:
+    target_height: 0.78
+
+curriculum:
+  disable_terrain_levels: true
+  disable_velocity_command_levels: true
+  rationale: >
+    Phase 2 measures baseline seed variance on a fixed standing push task.
+    Evaluation difficulty must stay fixed; training command curriculum is not
+    meaningful because the command is zero velocity.
+
+ppo:
+  # Keep PPO mostly official. These fields are accepted only if present on the
+  # loaded Unitree RSL-RL config.
+  empirical_normalization: null
+
+compute_accounting:
+  count_gpu_hours: true
+  notes: GPU-hours are estimated from wall-clock seconds and number of visible devices used by each run.

@@ -1,0 +1,352 @@
+{
+  "candidate": {
+    "candidate_dir": "D:\\humanoid_agent\\examples\\cold_start_candidates\\declarative_curriculum_candidate",
+    "diagnostics": {
+      "diagnostics": [
+        {
+          "name": "collapse_vs_recovery_margin",
+          "public_only": true,
+          "source": "candidate_callable_contract"
+        }
+      ],
+      "schema_version": "humanoid_agent.phase8e.public_candidate_diagnostics.v1"
+    },
+    "fingerprint": {
+      "candidate_id": "phase8e_declarative_curriculum_candidate",
+      "entrypoint": "training_code.components:build_training_components",
+      "entrypoint_path": "D:\\humanoid_agent\\examples\\cold_start_candidates\\declarative_curriculum_candidate\\training_code\\components.py",
+      "entrypoint_sha256": "a4d654e9e6c822f7f057c69b79763edc9e25d15b5464c2260daef24a6c4d14f1",
+      "manifest_path": "D:\\humanoid_agent\\examples\\cold_start_candidates\\declarative_curriculum_candidate\\candidate_manifest.yaml",
+      "manifest_sha256": "62789a3b70f190c716ce322ed2ea157c5c8260372f1d0e14aeaec00098d4aa64",
+      "path": "D:\\humanoid_agent\\examples\\cold_start_candidates\\declarative_curriculum_candidate",
+      "training_code_tree_sha256": "ef394a80d960860a1fb27e881654bd995b9551959d5b2a60070e97f29905057c"
+    },
+    "manifest": {
+      "author": "phase8e-dry-run-agent",
+      "candidate_id": "phase8e_declarative_curriculum_candidate",
+      "description": "Minimal LLM-authored callable training recipe for Phase 8E scaffold validation.",
+      "entrypoint": "training_code.components:build_training_components",
+      "expected_behavior": "Return training-side RewardTerm and ScheduleTerm callables only; runner remains immutable.",
+      "llm_authored": true,
+      "phase": "8E-callable-contract",
+      "schema_version": "humanoid_agent.cold_start.candidate.v1"
+    },
+    "operation_diff": {
+      "operations": [
+        {
+          "kind": "add_reward_callable",
+          "name": "upright_survival_margin",
+          "scope": "training_components"
+        },
+        {
+          "kind": "add_schedule_callable",
+          "name": "delayed_push_ramp",
+          "scope": "training_components"
+        },
+        {
+          "kind": "add_public_diagnostic_note",
+          "name": "collapse_vs_recovery_margin",
+          "scope": "training_components"
+        }
+      ],
+      "schema_version": "humanoid_agent.phase8e.operation_diff.v1"
+    }
+  },
+  "config_path": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_final_review_probe_tu0yg1ey\\phase8e_loop_for_selftest.json",
+  "created_at_utc": "2026-07-01T10:50:16.249111+00:00",
+  "current_recipe": {
+    "candidate_dir": "D:\\humanoid_agent\\examples\\cold_start_candidates\\noop_candidate",
+    "diagnostics": null,
+    "fingerprint": {
+      "candidate_id": "phase8a_noop_candidate",
+      "entrypoint": "training_code.components:build_training_components",
+      "entrypoint_path": "D:\\humanoid_agent\\examples\\cold_start_candidates\\noop_candidate\\training_code\\components.py",
+      "entrypoint_sha256": "f511eea12b105544d60b8f080d4a1c448bef3966e548419c2bdccc0044ea210b",
+      "manifest_path": "D:\\humanoid_agent\\examples\\cold_start_candidates\\noop_candidate\\candidate_manifest.yaml",
+      "manifest_sha256": "75285263e204e93a1238b909d082b9f3609cae1d6ea2e7fd89cedc1fa5422ae7",
+      "path": "D:\\humanoid_agent\\examples\\cold_start_candidates\\noop_candidate",
+      "training_code_tree_sha256": "7097767f9fd0c72102d0c53a9460e79cd934b6097cd88dad65bcd242983d8eb4"
+    },
+    "manifest": {
+      "author": "human",
+      "candidate_id": "phase8a_noop_candidate",
+      "description": "Human-authored no-op demo candidate for Phase 8A loader and runner smoke.",
+      "entrypoint": "training_code.components:build_training_components",
+      "expected_behavior": "no training behavior changes",
+      "llm_authored": false,
+      "phase": "8A-min",
+      "schema_version": "humanoid_agent.cold_start.candidate.v1"
+    },
+    "operation_diff": null
+  },
+  "curriculum_lineage": {
+    "attribution": {
+      "capability_changed": true,
+      "curriculum_changed": true,
+      "diagnostics_changed": true,
+      "gain_attributable_to": "curriculum",
+      "pure_knob_candidate": false,
+      "reward_code_changed": false
+    },
+    "capabilities": [
+      "external_push_curriculum",
+      "train_only_dr_scale"
+    ],
+    "compiler_version": "phase8e-selftest",
+    "execution_mode": "env_step_progress",
+    "schema_version": "humanoid_agent.phase8e.curriculum_lineage.public.v1",
+    "stage_count": 2,
+    "status": "pass"
+  },
+  "decision": {
+    "accepted": true,
+    "candidate_dir": "D:\\humanoid_agent\\examples\\cold_start_candidates\\declarative_curriculum_candidate",
+    "created_at_utc": "2026-07-01T10:50:16.218570+00:00",
+    "decision": "accept",
+    "detail": {
+      "absolute_accept_success_floor": 0.05,
+      "candidate_public_accept_mean": 0.08,
+      "curriculum_lineage": {
+        "attribution": {
+          "capability_changed": true,
+          "curriculum_changed": true,
+          "diagnostics_changed": true,
+          "gain_attributable_to": "curriculum",
+          "pure_knob_candidate": false,
+          "reward_code_changed": false
+        },
+        "capabilities": [
+          "external_push_curriculum",
+          "train_only_dr_scale"
+        ],
+        "compiler_version": "phase8e-selftest",
+        "execution_mode": "env_step_progress",
+        "schema_version": "humanoid_agent.phase8e.curriculum_lineage.public.v1",
+        "stage_count": 2,
+        "status": "pass"
+      }
+    },
+    "feedback_safe": {
+      "eval_seed_config_included": false,
+      "private_eval_used": false,
+      "public_only": true
+    },
+    "public_result": {
+      "budget_accounting": {
+        "failures": [],
+        "status": "pass",
+        "summary": "within scaffold budget contract",
+        "violations": []
+      },
+      "motion_quality_gate": {
+        "failures": [],
+        "status": "pass",
+        "summary": "synthetic selftest gate",
+        "violations": []
+      },
+      "ood_stress_gate": {
+        "failures": [],
+        "status": "pass",
+        "summary": "synthetic selftest gate",
+        "violations": []
+      },
+      "public_accept": {
+        "seed_results": [
+          {
+            "condition_flag_breakdown": null,
+            "failure_breakdown": null,
+            "run_index": 1,
+            "success_rate": 0.08
+          },
+          {
+            "condition_flag_breakdown": null,
+            "failure_breakdown": null,
+            "run_index": 2,
+            "success_rate": 0.09
+          },
+          {
+            "condition_flag_breakdown": null,
+            "failure_breakdown": null,
+            "run_index": 3,
+            "success_rate": 0.1
+          }
+        ],
+        "success_rate_stats": {
+          "count": 3,
+          "max": 0.820012,
+          "mean": 0.08,
+          "standard_error": 0.01
+        }
+      },
+      "public_dev": {
+        "seed_results": [
+          {
+            "condition_flag_breakdown": null,
+            "failure_breakdown": {
+              "fall_forward": 0.5
+            },
+            "run_index": 1,
+            "success_rate": 0.08
+          },
+          {
+            "condition_flag_breakdown": null,
+            "failure_breakdown": {
+              "fall_forward": 0.4
+            },
+            "run_index": 2,
+            "success_rate": 0.09
+          },
+          {
+            "condition_flag_breakdown": null,
+            "failure_breakdown": {
+              "fall_forward": 0.8
+            },
+            "run_index": 3,
+            "success_rate": 0.0
+          }
+        ],
+        "success_rate_stats": {
+          "count": 3,
+          "mean": 0.08,
+          "standard_error": 0.01
+        }
+      },
+      "schema_version": "humanoid_agent.phase8e.public_result.v1",
+      "status": "pass"
+    },
+    "reason": "absolute_accept_floor",
+    "schema_version": "humanoid_agent.phase8e.public_decision.v1",
+    "verifier": {
+      "dynamic_status": "pass",
+      "fingerprint": {
+        "candidate_id": "phase8e_declarative_curriculum_candidate",
+        "entrypoint": "training_code.components:build_training_components",
+        "entrypoint_sha256": "a4d654e9e6c822f7f057c69b79763edc9e25d15b5464c2260daef24a6c4d14f1",
+        "manifest_sha256": "62789a3b70f190c716ce322ed2ea157c5c8260372f1d0e14aeaec00098d4aa64",
+        "training_code_tree_sha256": "ef394a80d960860a1fb27e881654bd995b9551959d5b2a60070e97f29905057c"
+      },
+      "issue_codes": {},
+      "phase8c_hard_isolation": false,
+      "static_status": "pass",
+      "status": "pass"
+    }
+  },
+  "formal_training_executed": false,
+  "inheritance": {
+    "accepted_recipe_snapshot_dir": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_final_review_probe_tu0yg1ey\\lab_valid_lineage\\accepted_recipes\\0000_phase8e_declarative_curriculum_candidate",
+    "lab_dir": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_final_review_probe_tu0yg1ey\\lab_valid_lineage",
+    "requested": true,
+    "snapshot_created": true
+  },
+  "ledger": {
+    "appended": true,
+    "path": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_final_review_probe_tu0yg1ey\\lab_valid_lineage\\phase8e_ledger.jsonl",
+    "records": 1
+  },
+  "phase": "8E-single-agent-code-level-cold-start-loop",
+  "prompt": {
+    "messages_file": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_final_review_probe_tu0yg1ey\\round_valid_lineage\\phase8e_prompt_messages.json",
+    "public_only": true,
+    "text_file": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_final_review_probe_tu0yg1ey\\round_valid_lineage\\phase8e_prompt.txt"
+  },
+  "public_result": {
+    "budget_accounting": {
+      "failures": [],
+      "status": "pass",
+      "summary": "within scaffold budget contract",
+      "violations": []
+    },
+    "motion_quality_gate": {
+      "failures": [],
+      "status": "pass",
+      "summary": "synthetic selftest gate",
+      "violations": []
+    },
+    "ood_stress_gate": {
+      "failures": [],
+      "status": "pass",
+      "summary": "synthetic selftest gate",
+      "violations": []
+    },
+    "public_accept": {
+      "seed_results": [
+        {
+          "condition_flag_breakdown": null,
+          "failure_breakdown": null,
+          "run_index": 1,
+          "success_rate": 0.08
+        },
+        {
+          "condition_flag_breakdown": null,
+          "failure_breakdown": null,
+          "run_index": 2,
+          "success_rate": 0.09
+        },
+        {
+          "condition_flag_breakdown": null,
+          "failure_breakdown": null,
+          "run_index": 3,
+          "success_rate": 0.1
+        }
+      ],
+      "success_rate_stats": {
+        "count": 3,
+        "max": 0.820012,
+        "mean": 0.08,
+        "standard_error": 0.01
+      }
+    },
+    "public_dev": {
+      "seed_results": [
+        {
+          "condition_flag_breakdown": null,
+          "failure_breakdown": {
+            "fall_forward": 0.5
+          },
+          "run_index": 1,
+          "success_rate": 0.08
+        },
+        {
+          "condition_flag_breakdown": null,
+          "failure_breakdown": {
+            "fall_forward": 0.4
+          },
+          "run_index": 2,
+          "success_rate": 0.09
+        },
+        {
+          "condition_flag_breakdown": null,
+          "failure_breakdown": {
+            "fall_forward": 0.8
+          },
+          "run_index": 3,
+          "success_rate": 0.0
+        }
+      ],
+      "success_rate_stats": {
+        "count": 3,
+        "mean": 0.08,
+        "standard_error": 0.01
+      }
+    },
+    "schema_version": "humanoid_agent.phase8e.public_result.v1",
+    "status": "pass"
+  },
+  "run_dir": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_final_review_probe_tu0yg1ey\\round_valid_lineage",
+  "schema_version": "humanoid_agent.phase8e.loop.summary.v1",
+  "status": "accept",
+  "verifier": {
+    "dynamic_status": "pass",
+    "fingerprint": {
+      "candidate_id": "phase8e_declarative_curriculum_candidate",
+      "entrypoint": "training_code.components:build_training_components",
+      "entrypoint_sha256": "a4d654e9e6c822f7f057c69b79763edc9e25d15b5464c2260daef24a6c4d14f1",
+      "manifest_sha256": "62789a3b70f190c716ce322ed2ea157c5c8260372f1d0e14aeaec00098d4aa64",
+      "training_code_tree_sha256": "ef394a80d960860a1fb27e881654bd995b9551959d5b2a60070e97f29905057c"
+    },
+    "issue_codes": {},
+    "phase8c_hard_isolation": false,
+    "static_status": "pass",
+    "status": "pass"
+  }
+}

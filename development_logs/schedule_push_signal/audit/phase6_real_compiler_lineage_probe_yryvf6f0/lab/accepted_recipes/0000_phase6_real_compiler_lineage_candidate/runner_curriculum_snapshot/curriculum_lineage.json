@@ -1,0 +1,453 @@
+{
+  "clamps": [
+    {
+      "added_capabilities": [],
+      "compiled_dr_scale": 0.0,
+      "compiled_progress_range": [
+        0.0,
+        0.3
+      ],
+      "compiled_push_scale": 0.0,
+      "effective_capabilities": [
+        "reward_weight_scale"
+      ],
+      "raw_capabilities": [
+        "reward_weight_scale"
+      ],
+      "raw_progress_range": [
+        0.0,
+        0.3
+      ],
+      "removed_capabilities": [],
+      "stage": "stand_balance_warmup"
+    },
+    {
+      "added_capabilities": [],
+      "compiled_dr_scale": 0.0,
+      "compiled_progress_range": [
+        0.3,
+        0.8
+      ],
+      "compiled_push_scale": 0.666667,
+      "effective_capabilities": [
+        "external_push_curriculum"
+      ],
+      "raw_capabilities": [
+        "external_push_curriculum"
+      ],
+      "raw_progress_range": [
+        0.3,
+        0.8
+      ],
+      "removed_capabilities": [],
+      "stage": "mild_push_recovery"
+    },
+    {
+      "added_capabilities": [],
+      "compiled_dr_scale": 1.0,
+      "compiled_progress_range": [
+        0.8,
+        1.0
+      ],
+      "compiled_push_scale": 1.0,
+      "effective_capabilities": [
+        "external_push_curriculum",
+        "train_only_dr_scale"
+      ],
+      "raw_capabilities": [
+        "external_push_curriculum",
+        "train_only_dr_scale"
+      ],
+      "raw_progress_range": [
+        0.8,
+        1.0
+      ],
+      "removed_capabilities": [],
+      "stage": "target_consolidation"
+    }
+  ],
+  "effective_curriculum": {
+    "capabilities": [
+      "reward_weight_scale",
+      "external_push_curriculum",
+      "train_only_dr_scale"
+    ],
+    "compiler_version": "v1-runner-owned-stage-push-static-dr",
+    "dr_execution": {
+      "mode": "train_only_static_observation_corruption",
+      "reason": "Current Isaac overlay supports observation corruption at env construction; per-stage DR scaling is recorded but not candidate-controlled."
+    },
+    "enabled": true,
+    "execution_mode": "env_step_progress",
+    "guards": {
+      "budget_changed": false,
+      "checkpoint_selector_changed": false,
+      "eval_config_changed": false,
+      "seed_changed": false,
+      "success_metric_changed": false
+    },
+    "planned_policy_iterations": 500,
+    "planned_training_steps": 12000,
+    "schema_version": "humanoid_agent.phase8e.compiled_curriculum.v1",
+    "source": "operation_diff.json.curriculum_design",
+    "stages": [
+      {
+        "capabilities": [
+          "reward_weight_scale"
+        ],
+        "name": "stand_balance_warmup",
+        "progress_range": [
+          0.0,
+          0.3
+        ],
+        "push": {
+          "enabled": false,
+          "interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "scale": 0.0,
+          "velocity_range_mps": {
+            "x": [
+              -0.0,
+              0.0
+            ],
+            "y": [
+              -0.0,
+              0.0
+            ]
+          }
+        },
+        "rationale": "stabilize standing before perturbation.",
+        "robustness": {
+          "enabled": false,
+          "mode": "train_only_static_observation_corruption",
+          "scale": 0.0
+        }
+      },
+      {
+        "capabilities": [
+          "external_push_curriculum"
+        ],
+        "name": "mild_push_recovery",
+        "progress_range": [
+          0.3,
+          0.8
+        ],
+        "push": {
+          "enabled": true,
+          "interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "scale": 0.666667,
+          "velocity_range_mps": {
+            "x": [
+              -0.166667,
+              0.166667
+            ],
+            "y": [
+              -0.166667,
+              0.166667
+            ]
+          }
+        },
+        "rationale": "introduce recoverable external pushes.",
+        "robustness": {
+          "enabled": false,
+          "mode": "train_only_static_observation_corruption",
+          "scale": 0.0
+        }
+      },
+      {
+        "capabilities": [
+          "external_push_curriculum",
+          "train_only_dr_scale"
+        ],
+        "name": "target_consolidation",
+        "progress_range": [
+          0.8,
+          1.0
+        ],
+        "push": {
+          "enabled": true,
+          "interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "scale": 1.0,
+          "velocity_range_mps": {
+            "x": [
+              -0.25,
+              0.25
+            ],
+            "y": [
+              -0.25,
+              0.25
+            ]
+          }
+        },
+        "rationale": "finish on the target push distribution with train-only robustness variation.",
+        "robustness": {
+          "enabled": true,
+          "mode": "train_only_static_observation_corruption",
+          "scale": 1.0
+        }
+      }
+    ],
+    "target_distribution": {
+      "final_consolidation_fraction": 0.2,
+      "push": {
+        "interval_range_s": [
+          1.0,
+          1.0
+        ],
+        "velocity_range_mps": {
+          "x": [
+            -0.25,
+            0.25
+          ],
+          "y": [
+            -0.25,
+            0.25
+          ]
+        }
+      }
+    },
+    "train_profile": "phase2_train"
+  },
+  "immutable_context": {
+    "capability_registry": {
+      "available": true,
+      "capability_count": 6,
+      "capability_ids": [
+        "external_push_curriculum",
+        "public_push_probe",
+        "recovery_window_diagnostic",
+        "reward_only_push_signal",
+        "reward_weight_scale",
+        "train_only_dr_scale"
+      ],
+      "schema_version": "humanoid_agent.phase8e.curriculum_capability_registry.v1",
+      "sha256": "288ccd4fadee137b51036f491d4850a4c3f8182d5cd532ff6f317783dfc80a26",
+      "source_path": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_real_compiler_lineage_probe_yryvf6f0\\prompt\\phase8e_prompt_payload.json"
+    },
+    "curriculum_compiler": {
+      "compiled_curriculum_schema": "humanoid_agent.phase8e.compiled_curriculum.v1",
+      "compiler_summary_schema": "humanoid_agent.phase8e.curriculum_compiler.summary.v1",
+      "sha256": "30fa8b5022fa8b2405c95c6731c970ab7933ada8e6deaba2ee83b1fd63ceb3bb",
+      "source_file": "D:\\humanoid_agent\\src\\humanoid_agent\\cold_start_lab\\curriculum_compiler.py",
+      "source_file_sha256": "99ea8003de23d3944f6ea95dbf4b913405f31aa97444f1b0ee2d36a62e5d7d4e",
+      "version": "v1-runner-owned-stage-push-static-dr"
+    },
+    "eval_config": {
+      "eval_config": {
+        "available": true,
+        "path": "D:\\humanoid_agent\\configs\\phase1_push_recovery.yaml",
+        "sha256": "b4c24e22eae8bf65c8d9ca82adce9c349673e4b67e4e7087066306edd02ff9e4"
+      },
+      "eval_script": {
+        "available": true,
+        "path": "D:\\humanoid_agent\\scripts\\phase1_push_recovery_eval.py",
+        "sha256": "30078aa4caa199521fa58641e93b622128d025e12d6b7b5682db55c1a3da5197"
+      },
+      "max_steps": 200,
+      "num_envs": 64,
+      "profile": "phase2_public",
+      "seed_counts": {
+        "public_accept": 3,
+        "public_dev": 3
+      },
+      "seed_hashes": {
+        "public_accept": "5361809f14c1c7808d9e6104a2bfdd830e43f221b54c628678fff85a2223fd12",
+        "public_dev": "2b2fa097bccf7f819111f56f9c72ddbbfde51b3d4c7bbbd6c212150ee80b6932"
+      },
+      "seed_visibility": "runner_owned_raw_rollout_only; public_result projects to run_index and aggregate success metrics before LLM feedback.",
+      "sha256": "54469958791eb2df66fee56e812eb9871d3cd02e8627cb0c97c17de1c7ac2f32"
+    },
+    "prompt_facing_contract": {
+      "available": true,
+      "sha256": "b01e0357831d75ce97053c16d7c793a90aed87e19c8259d3ffa07291c0d17572",
+      "source_path": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_real_compiler_lineage_probe_yryvf6f0\\prompt\\phase8e_prompt_payload.json",
+      "top_level_keys": [
+        "curriculum_design_contract",
+        "required_candidate_package"
+      ]
+    },
+    "prompt_payload": {
+      "available": true,
+      "path": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_real_compiler_lineage_probe_yryvf6f0\\prompt\\phase8e_prompt_payload.json",
+      "sha256": "11842506bea385d6e5f705e1714a0f2d9f87d34cc5678075760211d32cb154e2"
+    },
+    "public_evidence_bundle": {
+      "available": true,
+      "schema_version": "humanoid_agent.phase8e.public_curriculum_evidence.v1",
+      "sha256": "348c1e33ba284373222c0239470fe366be566e15a05d162a9c738a452c643301",
+      "source_path": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_real_compiler_lineage_probe_yryvf6f0\\prompt\\phase8e_prompt_payload.json",
+      "top_level_keys": [
+        "capability_registry",
+        "current_recipe_present",
+        "effective_schedule_keys",
+        "forbidden_evidence",
+        "objective_ref",
+        "probe_visibility_policy",
+        "prompt_visible_reward_inputs",
+        "public_feedback_summary",
+        "role",
+        "schema_version",
+        "task_ref"
+      ]
+    },
+    "schema_version": "humanoid_agent.phase8e.curriculum_immutable_context.v1",
+    "sha256": "2074f3b145f47f997aabdd947e5d8b89294d68d78163697afd7b89130cd8b020",
+    "training_config": {
+      "budget_config": {
+        "available": true,
+        "path": "D:\\humanoid_agent\\configs\\cold_start\\phase8b_budget.yaml",
+        "sha256": "62ad0e9ab7c3cbb9574cd6c2cc77d94aae6a27e07a7e83d8ac1e7196e27cd33a"
+      },
+      "compiled_phase1_config": {
+        "available": true,
+        "path": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_real_compiler_lineage_probe_yryvf6f0\\compile\\fixed_budget_training\\curriculum_compiler\\compiled_phase1_push_recovery.yaml",
+        "sha256": "1ce83eb911bd35098f40760a325e9870e97acf9e6408ec5747216819e245d6f7"
+      },
+      "compiled_phase2_config": {
+        "available": true,
+        "path": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_real_compiler_lineage_probe_yryvf6f0\\compile\\fixed_budget_training\\curriculum_compiler\\compiled_phase2_baseline.yaml",
+        "sha256": "7411563be8e58b109f9feec9cc141746455bff7d7939c5bbfc7d7fb2b4dd54da"
+      },
+      "loop_config": {
+        "available": true,
+        "path": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_real_compiler_lineage_probe_yryvf6f0\\phase8e_loop_for_selftest.json",
+        "sha256": "9ab32455901a9b6a633344ef4994974e38513df05ce080efdf2d82aa412966fa"
+      },
+      "original_phase1_config": {
+        "available": true,
+        "path": "D:\\humanoid_agent\\configs\\phase1_push_recovery.yaml",
+        "sha256": "b4c24e22eae8bf65c8d9ca82adce9c349673e4b67e4e7087066306edd02ff9e4"
+      },
+      "original_phase2_config": {
+        "available": true,
+        "path": "D:\\humanoid_agent\\configs\\phase2_baseline.yaml",
+        "sha256": "de3589cc3363e5e03a106c59a096c60d1fa9b446a1d5430fc51204612ba575cc"
+      },
+      "planned_policy_iterations": 500,
+      "planned_training_steps": 12000,
+      "sha256": "c8c73e7cbb249befd8dbbed5f717eeda18bc3810ad4a9fab2b51ad86f915ebe3",
+      "train_profile": "phase2_train",
+      "training_script": {
+        "available": true,
+        "path": "D:\\humanoid_agent\\scripts\\phase8e_minimal_rootfs_probe.py",
+        "sha256": "36a115a0a13225f60ae9fc509802889ae98e63ecfad24863701f41eb3d559b82"
+      }
+    }
+  },
+  "public_summary": {
+    "attribution": {
+      "absolute_curriculum_present": true,
+      "capability_changed": false,
+      "component_code_changed": true,
+      "curriculum_changed": true,
+      "diagnostics_changed": false,
+      "gain_attributable_to": "both",
+      "pure_knob_candidate": false,
+      "reward_code_changed": true
+    },
+    "capabilities": [
+      "reward_weight_scale",
+      "external_push_curriculum",
+      "train_only_dr_scale"
+    ],
+    "clamp_count": 3,
+    "compiler_version": "v1-runner-owned-stage-push-static-dr",
+    "execution_mode": "env_step_progress",
+    "immutable_context_hash": "2074f3b145f47f997aabdd947e5d8b89294d68d78163697afd7b89130cd8b020",
+    "relative_to_current_recipe": {
+      "candidate_candidate_id": "phase6_real_compiler_lineage_candidate",
+      "candidate_curriculum_effect_sha256": null,
+      "candidate_training_code_tree_sha256": "b6b658cc2ceb1a83c1c7994efa68682e604722942769fde2559f5a2386615348",
+      "comparison_basis": {
+        "component_code": "training_code_tree_sha256",
+        "curriculum": "normalized_curriculum_design_effect_signature",
+        "diagnostics": "diagnostics_json_sha256"
+      },
+      "reference": "current_recipe",
+      "reference_candidate_id": "phase8a_noop_candidate",
+      "reference_curriculum_effect_sha256": null,
+      "reference_training_code_tree_sha256": "7097767f9fd0c72102d0c53a9460e79cd934b6097cd88dad65bcd242983d8eb4",
+      "schema_version": "humanoid_agent.phase8e.curriculum_relative_attribution.v1"
+    },
+    "schema_version": "humanoid_agent.phase8e.curriculum_lineage.public.v1",
+    "stage_count": 3,
+    "status": "pass"
+  },
+  "raw_curriculum_design": {
+    "anti_tuning_rationale": "The design changes the training distribution by stage instead of only changing scalar weights.",
+    "final_consolidation": {
+      "distribution": "runner_owned_target_distribution",
+      "fraction": 0.2,
+      "includes_target_push": true,
+      "includes_target_robustness_variation": true
+    },
+    "improvement_attribution_intent": "Improvement should come from staged push recovery plus final target consolidation.",
+    "stage_list": [
+      {
+        "capabilities": [
+          "reward_weight_scale"
+        ],
+        "name": "stand_balance_warmup",
+        "progress_range": [
+          0.0,
+          0.3
+        ],
+        "rationale": "stabilize standing before perturbation."
+      },
+      {
+        "capabilities": [
+          "external_push_curriculum"
+        ],
+        "name": "mild_push_recovery",
+        "progress_range": [
+          0.3,
+          0.8
+        ],
+        "rationale": "introduce recoverable external pushes."
+      },
+      {
+        "capabilities": [
+          "external_push_curriculum",
+          "train_only_dr_scale"
+        ],
+        "name": "target_consolidation",
+        "progress_range": [
+          0.8,
+          1.0
+        ],
+        "rationale": "finish on the target push distribution with train-only robustness variation."
+      }
+    ]
+  },
+  "relative_to_current_recipe": {
+    "candidate_candidate_id": "phase6_real_compiler_lineage_candidate",
+    "candidate_curriculum_effect_sha256": null,
+    "candidate_training_code_tree_sha256": "b6b658cc2ceb1a83c1c7994efa68682e604722942769fde2559f5a2386615348",
+    "capability_changed": false,
+    "comparison_basis": {
+      "component_code": "training_code_tree_sha256",
+      "curriculum": "normalized_curriculum_design_effect_signature",
+      "diagnostics": "diagnostics_json_sha256"
+    },
+    "component_code_changed": true,
+    "curriculum_changed": true,
+    "diagnostics_changed": false,
+    "gain_attributable_to": "both",
+    "pure_knob_candidate": false,
+    "reference": "current_recipe",
+    "reference_candidate_id": "phase8a_noop_candidate",
+    "reference_curriculum_effect_sha256": null,
+    "reference_training_code_tree_sha256": "7097767f9fd0c72102d0c53a9460e79cd934b6097cd88dad65bcd242983d8eb4",
+    "reward_code_changed": true,
+    "schema_version": "humanoid_agent.phase8e.curriculum_relative_attribution.v1"
+  },
+  "schema_version": "humanoid_agent.phase8e.curriculum_lineage.v1"
+}

@@ -1,0 +1,128 @@
+schema_version: humanoid_agent.phase3.verifier.config.v1
+
+diff_policy:
+  # These paths are local/tooling noise and are not part of candidate patches.
+  ignored_globs:
+    - .claude/**
+    - .git/**
+    - runs/**
+    - __pycache__/**
+    - "**/__pycache__/**"
+    - "*.pyc"
+
+  # MVP candidate patches are config-level plus separate Agent reasoning output.
+  allowed_globs:
+    - configs/*.yaml
+    - configs/*.yml
+    - configs/*.json
+    - agent_outputs/**
+    - src/agent_notes.md
+
+  forbidden_globs:
+    - configs/phase3_verifier.yaml
+    - scripts/phase1_push_recovery_eval.py
+    - scripts/phase1_collect_smoke_summary.py
+    - scripts/phase1_push_recovery_smoke.sh
+    - scripts/phase1_push_recovery_train_smoke.py
+    - scripts/phase2_baseline_variance.sh
+    - scripts/phase2_collect_baseline_summary.py
+    - scripts/phase3_verifier_smoke.sh
+    - scripts/phase3_verify_candidate.py
+    - scripts/phase3_verifier_selftest.py
+    - src/humanoid_agent/phase1_push_recovery/failure_classifier.py
+    - src/humanoid_agent/phase1_push_recovery/diagnostics.py
+    - src/humanoid_agent/phase1_push_recovery/isaac_overlay.py
+    - src/humanoid_agent/phase2_baseline/overrides.py
+    - src/humanoid_agent/phase3_verifier/**
+    - setup/**
+    - "*.pdf"
+
+structured_files:
+  yaml_globs:
+    - configs/*.yaml
+    - configs/*.yml
+  json_globs:
+    - configs/*.json
+
+protected_keys:
+  configs/phase1_push_recovery.yaml:
+    - task
+    - environment.episode_length_s
+    - evaluation
+    - standing_command
+    - push.evidence
+    - success_thresholds
+    - metrics
+    - smoke_gates
+    - profiles.strong_push
+    - profiles.small_push
+    - profiles.no_push
+    - profiles.phase2_public
+    - profiles.phase2_iid_hidden
+  configs/phase2_baseline.yaml:
+    - training.task
+    - training.seeds
+    - training.num_envs
+    - training.max_iterations
+    - training.timeout_seconds_per_seed
+    - evaluation
+
+finite_numeric_globs:
+  - configs/*.yaml
+  - configs/*.yml
+  - configs/*.json
+
+python_imports:
+  - humanoid_agent.phase1_push_recovery.config
+  - humanoid_agent.phase1_push_recovery.failure_classifier
+  - humanoid_agent.phase1_push_recovery.diagnostics
+  - humanoid_agent.phase2_baseline.overrides
+  - humanoid_agent.phase3_verifier.verifier
+
+phase2_semantics:
+  allowed_ppo_keys:
+    empirical_normalization:
+      type: optional_bool
+    learning_rate:
+      type: finite_number
+      min: 1.0e-6
+      max: 1.0e-2
+    entropy_coef:
+      type: finite_number
+      min: 0.0
+      max: 0.1
+    clip_param:
+      type: finite_number
+      min: 0.05
+      max: 0.5
+    gamma:
+      type: finite_number
+      min: 0.90
+      max: 0.9999
+    lam:
+      type: finite_number
+      min: 0.80
+      max: 0.9999
+    lambda:
+      type: finite_number
+      min: 0.80
+      max: 0.9999
+    minibatch_size:
+      type: positive_int
+      min: 1
+      max: 1048576
+
+smoke:
+  enabled: true
+  script: scripts/phase1_push_recovery_eval.py
+  config: configs/phase1_push_recovery.yaml
+  profile: no_push
+  policy: random
+  seed: 303
+  num_envs: 16
+  max_steps: 220
+  device: cuda:0
+  timeout_seconds: 600
+  min_mean_episode_steps: 180
+  require_reward_finite: true
+  require_observation_finite: true
