@@ -46,7 +46,10 @@ class FakeBackendAdapter(BackendAdapter):
         candidate: CandidatePackageRef,
         policy_initialization: PolicyInitialization,
     ) -> BackendJobBundle:
-        metadata = {"fake_public_score": candidate.metadata["fake_public_score"]}
+        metadata = {
+            "fake_public_score": candidate.metadata["fake_public_score"],
+            "changed_components": sorted(candidate.change_set.changed_components),
+        }
         train_spec = TrainJobSpec(
             job_id=f"{round_id}-train",
             task_id=task_spec.task_id,
@@ -74,6 +77,24 @@ class FakeBackendAdapter(BackendAdapter):
 
 class FakeRunner(Runner):
     def run_train(self, train_spec: TrainJobSpec) -> TrainJobResult:
+        changed_components = set(train_spec.metadata.get("changed_components", ()))
+        runtime_activation_summary = {
+            "reward_term_calls": 3 if "reward_callable" in changed_components else 0,
+            "diagnostic_calls": 2 if "diagnostic" in changed_components else 0,
+            "nonzero_reward_contribution": "reward_callable" in changed_components,
+            "reward_output_stats": (
+                {"mean": 0.5, "finite_fraction": 1.0}
+                if "reward_callable" in changed_components
+                else {}
+            ),
+            "diagnostic_outputs": (
+                {"public_margin": 0.1}
+                if "diagnostic" in changed_components
+                else {}
+            ),
+            "feature_activation_records": ["fake_feature_projection"] if "recovery_logic" in changed_components else [],
+            "capability_activation_records": sorted(changed_components),
+        }
         raw_checkpoint = CheckpointRef(
             uri=f"artifact://{train_spec.job_id}/best.pt",
             checksum=f"sha256:{train_spec.candidate_id}",
@@ -86,7 +107,11 @@ class FakeRunner(Runner):
         return TrainJobResult(
             job_id=train_spec.job_id,
             checkpoint=checkpoint,
-            summary={"formal_training_executed": False, "budget_steps": train_spec.budget_steps},
+            summary={
+                "formal_training_executed": False,
+                "budget_steps": train_spec.budget_steps,
+                "runtime_activation_summary": runtime_activation_summary,
+            },
         )
 
     def run_eval(self, eval_spec: EvalJobSpec) -> PublicEvalResult:

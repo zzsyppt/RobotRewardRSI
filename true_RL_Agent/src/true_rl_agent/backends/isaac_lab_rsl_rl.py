@@ -55,6 +55,7 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
             backend_id="isaac_lab_rsl_rl",
             supported_tasks=frozenset({"unitree_push_recovery"}),
             supported_policy_initializations=frozenset({"random", "warm_start"}),
+            curriculum_capabilities=self.future_curriculum_capabilities,
         )
 
     def check_compatibility(self, *, task_spec: TaskSpec, policy_initialization: str) -> BackendCompatibilityReport:
@@ -169,4 +170,3 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
                 f"--public-seeds {self.config.public_seed_count}",
             ]
         )
-

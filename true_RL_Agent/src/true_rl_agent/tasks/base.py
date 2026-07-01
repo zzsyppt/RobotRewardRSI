@@ -6,6 +6,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Mapping
 
+from true_rl_agent.curriculum.schema import CurriculumPlan
+
 
 @dataclass(frozen=True)
 class TaskInvariantSpec:
@@ -26,6 +28,9 @@ class TaskSpec:
     name: str
     supported_policy_initializations: frozenset[str]
     invariants: TaskInvariantSpec
+    fixed_train_protocol: Mapping[str, Any] = field(default_factory=dict)
+    fixed_eval_protocol: Mapping[str, Any] = field(default_factory=dict)
+    default_curriculum: CurriculumPlan = field(default_factory=lambda: CurriculumPlan(mode="task_default"))
 
     def supports_policy_initialization(self, kind: str) -> bool:
         return kind in self.supported_policy_initializations

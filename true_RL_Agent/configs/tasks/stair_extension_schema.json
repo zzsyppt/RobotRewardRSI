@@ -1,0 +1,34 @@
+{
+  "schema_version": "true_rl_agent.task_extension_schema.v1",
+  "task_id": "future_stair_climbing",
+  "runtime_plugin_enabled": false,
+  "llm_stair_height_progression_enabled": false,
+  "fixed_baseline_train_distribution": {
+    "terrain_family": "stairs",
+    "distribution_owner": "task_plugin",
+    "progression_control": "runner_owned_future_extension",
+    "candidate_writable": false
+  },
+  "fixed_eval_bins": [
+    {
+      "bin_id": "low_stairs",
+      "height_m": [0.05, 0.10],
+      "candidate_writable": false
+    },
+    {
+      "bin_id": "target_stairs",
+      "height_m": [0.10, 0.20],
+      "candidate_writable": false
+    }
+  ],
+  "height_map_terrain_metadata": {
+    "height_map_projection_owner": "runner_owned_approved_extension",
+    "terrain_metadata_prompt_surface": "public_summary_only",
+    "candidate_may_change_obs_action_space": false
+  },
+  "acceptance_boundary": {
+    "pure_stair_height_range_change_is_parameter_only": true,
+    "reward_weight_only_is_parameter_only": true,
+    "schedule_only_is_parameter_only": true
+  }
+}

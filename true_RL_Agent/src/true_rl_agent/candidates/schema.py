@@ -58,11 +58,15 @@ class CandidateSurfacePolicy:
     PARAMETER_ONLY_COMPONENTS = frozenset(
         {
             "reward_weight",
+            "reward_weight_scale",
             "terrain_range",
+            "height_range",
             "ppo_hyperparameter",
             "eval_threshold",
             "budget",
             "seed",
+            "schedule",
+            "single_stage_numeric_schedule",
         }
     )
     DIAGNOSTIC_COMPONENTS = frozenset({"diagnostic"})
@@ -82,4 +86,3 @@ class CandidateSurfacePolicy:
         if components & self.CODE_LEVEL_COMPONENTS:
             return CandidateSurfaceAssessment("code_level", True, "code_level_candidate")
         return CandidateSurfaceAssessment("unsupported", False, "unsupported_candidate_surface")
-
