@@ -100,5 +100,5 @@ def _parse_simple_yaml_mapping(text: str) -> dict[str, str]:
         key, sep, value = line.partition(":")
         if not sep:
             raise ValueError(f"manifest line is not a key-value pair: {raw_line}")
-        values[key.strip()] = value.strip().strip("\"'")
+        values[key.strip().lstrip("\ufeff")] = value.strip().strip("\"'")
     return values

@@ -1,9 +1,17 @@
 schema_version: true_rl_agent.task.push_recovery.v1
-status: scaffold
+status: implemented
 task_id: unitree_push_recovery
 policy_initialization:
   default: random
+runtime:
+  first_version_train_start: random
+  backend_adapter: isaac_lab_rsl_rl
+  runner_boundary: subprocess
+  train_profile: strong_push
+  eval_profile: strong_push
+  train_candidate_code_loaded: true
+  eval_candidate_code_loaded: false
+  eval_seed_visibility: counts_only_no_raw_seed_ids
 candidate_scope:
   llm_controls_curriculum: false
   tuning_only_acceptance_allowed: false
-

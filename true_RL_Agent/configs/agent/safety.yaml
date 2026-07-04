@@ -1,8 +1,11 @@
 schema_version: true_rl_agent.agent.safety.v1
-status: scaffold
+status: implemented
 runtime_boundaries:
   parent_project_imports_allowed: false
   parent_project_scripts_allowed: false
   hidden_eval_feedback_allowed: false
   api_keys_in_prompt_allowed: false
-
+enforced_by:
+  - tests/unit/test_project_boundaries.py
+  - tests/unit/test_prompt_projection_and_mechanism.py
+  - tests/unit/test_candidate_package.py

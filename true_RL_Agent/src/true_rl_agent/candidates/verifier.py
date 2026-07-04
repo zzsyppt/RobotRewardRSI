@@ -52,7 +52,7 @@ class StaticCandidateVerifier:
     allowed_imports = {
         "__future__": frozenset({"annotations"}),
         "true_rl_agent.candidates.components": frozenset(
-            {"DiagnosticTerm", "RewardTerm", "ScheduleTerm", "TrainingComponents"}
+            {"DiagnosticTerm", "RewardInputs", "RewardTerm", "ScheduleTerm", "TrainingComponents"}
         ),
     }
     forbidden_names = frozenset(
@@ -81,17 +81,23 @@ class StaticCandidateVerifier:
     forbidden_call_roots = frozenset({"os", "pathlib", "shutil", "socket", "subprocess", "sys"})
     allowed_schedule_keys = frozenset({"reward_weight_scale"})
 
-    def verify(self, candidate_dir: Path) -> VerificationResult:
+    def verify(self, candidate: CandidatePackageRef | Path) -> VerificationResult:
         issues: list[str] = []
+        try:
+            candidate_dir = self._candidate_dir(candidate)
+        except ValueError as exc:
+            return VerificationResult("fail", "candidate_path_invalid", {"issues": [str(exc)]})
         for path in candidate_dir.rglob("*"):
             if not path.is_file():
                 continue
             rel = path.relative_to(candidate_dir).as_posix()
+            if "__pycache__" in path.parts or path.suffix == ".pyc":
+                continue
             if rel not in self.allowed_files:
                 issues.append(f"forbidden_file:{rel}")
                 continue
             if path.suffix == ".py":
-                text = path.read_text(encoding="utf-8")
+                text = path.read_text(encoding="utf-8").lstrip("\ufeff")
                 for token in self.forbidden_tokens:
                     if token in text:
                         issues.append(f"forbidden_token:{rel}:{token}")
@@ -119,7 +125,18 @@ class StaticCandidateVerifier:
             )
         if components.is_noop():
             return VerificationResult("fail", "candidate_has_no_effective_components")
-        return VerificationResult("pass", "static_candidate_verifier_passed")
+        return VerificationResult(
+            "pass",
+            "static_candidate_verifier_passed",
+            {"derived_change_set": sorted(components.to_change_set().changed_components)},
+        )
+
+    def _candidate_dir(self, candidate: CandidatePackageRef | Path) -> Path:
+        if isinstance(candidate, CandidatePackageRef):
+            if "://" in candidate.path:
+                raise ValueError("candidate_path_must_be_local_directory")
+            return Path(candidate.path)
+        return Path(candidate)
 
     def _audit_python_source(self, rel: str, text: str) -> list[str]:
         try:

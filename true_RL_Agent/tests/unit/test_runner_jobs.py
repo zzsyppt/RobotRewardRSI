@@ -13,7 +13,7 @@ if str(SRC_ROOT) not in sys.path:
 
 from true_rl_agent.policy import BaselinePolicyRef, PolicyInitialization
 from true_rl_agent.runner.artifacts import RunnerArtifactLayout
-from true_rl_agent.runner.budget import BudgetViolation, enforce_fixed_budget
+from true_rl_agent.runner.budget import BudgetViolation, build_budget_accounting, enforce_fixed_budget
 from true_rl_agent.runner.checkpoint import safe_load_checkpoint, seal_checkpoint
 from true_rl_agent.runner.isolation import IsolationPolicy
 from true_rl_agent.runner.jobs import dry_run_eval_command, dry_run_train_command
@@ -88,6 +88,26 @@ class RunnerJobTests(unittest.TestCase):
         with self.assertRaises(BudgetViolation):
             enforce_fixed_budget(spec, expected_budget_steps=256)
 
+    def test_budget_accounting_requires_planned_env_steps_to_match_budget(self) -> None:
+        accounting = build_budget_accounting(
+            budget_steps=49_152_000,
+            num_envs=4096,
+            num_steps_per_env=24,
+            max_iterations=500,
+        )
+
+        self.assertEqual(accounting["status"], "pass")
+        self.assertEqual(accounting["planned_env_steps"], 49_152_000)
+        self.assertEqual(accounting["config_derived_total_timesteps"], 49_152_000)
+
+        with self.assertRaisesRegex(BudgetViolation, "planned env steps mismatch"):
+            build_budget_accounting(
+                budget_steps=64,
+                num_envs=4096,
+                num_steps_per_env=24,
+                max_iterations=500,
+            )
+
     def test_artifact_layout_builds_session_round_train_and_eval_paths(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             layout = RunnerArtifactLayout(root=Path(tmp), session_id="session-001")
@@ -147,6 +167,49 @@ class RunnerJobTests(unittest.TestCase):
         self.assertEqual(seal.checkpoint_hash, "sha256:eval")
         self.assertEqual(len(seal.task_invariant_hash), 64)
         self.assertFalse(seal.candidate_code_loaded)
+
+    def test_trusted_eval_seal_hash_tracks_public_accept_and_eval_env_protocol(self) -> None:
+        invariants = TaskInvariantSpec({"fall_threshold": 0.30})
+        base_spec = EvalJobSpec(
+            job_id="eval-001",
+            task_id="unitree_push_recovery",
+            candidate_id="candidate-001",
+            checkpoint=CheckpointRef("artifact://round/best.pt", "sha256:eval", "eval", sealed=True),
+            public_seed_count=4,
+            trusted_seed_count=8,
+            public_accept_seed_count=1,
+            eval_num_envs=64,
+        )
+        changed_accept_spec = EvalJobSpec(
+            job_id="eval-001",
+            task_id="unitree_push_recovery",
+            candidate_id="candidate-001",
+            checkpoint=CheckpointRef("artifact://round/best.pt", "sha256:eval", "eval", sealed=True),
+            public_seed_count=4,
+            trusted_seed_count=8,
+            public_accept_seed_count=2,
+            eval_num_envs=64,
+        )
+        changed_env_spec = EvalJobSpec(
+            job_id="eval-001",
+            task_id="unitree_push_recovery",
+            candidate_id="candidate-001",
+            checkpoint=CheckpointRef("artifact://round/best.pt", "sha256:eval", "eval", sealed=True),
+            public_seed_count=4,
+            trusted_seed_count=8,
+            public_accept_seed_count=1,
+            eval_num_envs=128,
+        )
+
+        base_hash = build_trusted_eval_seal(eval_spec=base_spec, task_invariants=invariants).eval_config_hash
+        changed_accept_hash = build_trusted_eval_seal(
+            eval_spec=changed_accept_spec,
+            task_invariants=invariants,
+        ).eval_config_hash
+        changed_env_hash = build_trusted_eval_seal(eval_spec=changed_env_spec, task_invariants=invariants).eval_config_hash
+
+        self.assertNotEqual(base_hash, changed_accept_hash)
+        self.assertNotEqual(base_hash, changed_env_hash)
 
 
 if __name__ == "__main__":

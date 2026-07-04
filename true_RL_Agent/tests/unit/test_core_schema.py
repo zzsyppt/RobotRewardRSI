@@ -10,7 +10,7 @@ SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from true_rl_agent.agent_core.decision import DecisionOutcome
+from true_rl_agent.agent_core.decision import DecisionOutcome, decide_candidate
 from true_rl_agent.backends.specs import BackendSpec
 from true_rl_agent.candidates.schema import CandidateChangeSet, CandidatePackageRef, CandidateSurfacePolicy
 from true_rl_agent.curriculum.schema import CurriculumPlan
@@ -156,7 +156,95 @@ class CoreSchemaTests(unittest.TestCase):
         self.assertEqual(DecisionOutcome.ENGINEERING_IMPROVEMENT_RECORD.value, "engineering_improvement_record")
         self.assertEqual(DecisionOutcome.REJECT.value, "reject")
 
+    def test_policy_improvement_requires_strict_public_score_improvement(self) -> None:
+        surface = CandidateSurfacePolicy().classify(
+            CandidateChangeSet(changed_components=frozenset({"reward_callable"}))
+        )
+
+        equal_score = decide_candidate(
+            surface=surface,
+            public_result=PublicEvalResult(status="pass", public_score=0.0, metrics={}),
+            current_best_score=0.0,
+            policy_accept_delta=0.0,
+        )
+        improved_score = decide_candidate(
+            surface=surface,
+            public_result=PublicEvalResult(status="pass", public_score=0.01, metrics={}),
+            current_best_score=0.0,
+            policy_accept_delta=0.0,
+        )
+
+        self.assertEqual(equal_score.outcome, DecisionOutcome.REJECT)
+        self.assertFalse(equal_score.accepted)
+        self.assertEqual(improved_score.outcome, DecisionOutcome.POLICY_IMPROVEMENT_ACCEPT)
+        self.assertTrue(improved_score.accepted)
+
+    def test_policy_improvement_requires_public_result_gates_to_pass(self) -> None:
+        surface = CandidateSurfacePolicy().classify(
+            CandidateChangeSet(changed_components=frozenset({"reward_callable"}))
+        )
+
+        gated_result = decide_candidate(
+            surface=surface,
+            public_result=PublicEvalResult(
+                status="pass",
+                public_score=0.90,
+                metrics={
+                    "acceptance": {"required_pass_gates": ["motion_quality_gate"]},
+                    "motion_quality_gate": {"status": "fail", "reason": "unstable_motion"},
+                },
+            ),
+            current_best_score=0.10,
+            policy_accept_delta=0.0,
+        )
+
+        self.assertEqual(gated_result.outcome, DecisionOutcome.REJECT)
+        self.assertFalse(gated_result.accepted)
+        self.assertEqual(gated_result.reason, "required_gate_failed")
+
+    def test_policy_improvement_uses_noise_aware_public_score_delta(self) -> None:
+        surface = CandidateSurfacePolicy().classify(
+            CandidateChangeSet(changed_components=frozenset({"reward_callable"}))
+        )
+
+        noisy_small_delta = decide_candidate(
+            surface=surface,
+            public_result=PublicEvalResult(
+                status="pass",
+                public_score=0.53,
+                metrics={
+                    "acceptance": {
+                        "min_delta": 0.05,
+                        "score_stats": {"standard_error": 0.01},
+                        "best_score_stats": {"standard_error": 0.01},
+                    }
+                },
+            ),
+            current_best_score=0.50,
+            policy_accept_delta=0.0,
+        )
+        clear_delta = decide_candidate(
+            surface=surface,
+            public_result=PublicEvalResult(
+                status="pass",
+                public_score=0.57,
+                metrics={
+                    "acceptance": {
+                        "min_delta": 0.05,
+                        "score_stats": {"standard_error": 0.01},
+                        "best_score_stats": {"standard_error": 0.01},
+                    }
+                },
+            ),
+            current_best_score=0.50,
+            policy_accept_delta=0.0,
+        )
+
+        self.assertEqual(noisy_small_delta.outcome, DecisionOutcome.REJECT)
+        self.assertEqual(noisy_small_delta.reason, "noise_aware_delta_not_met")
+        self.assertEqual(clear_delta.outcome, DecisionOutcome.POLICY_IMPROVEMENT_ACCEPT)
+        self.assertEqual(clear_delta.reason, "noise_aware_delta")
+
 
 if __name__ == "__main__":
     unittest.main()
-

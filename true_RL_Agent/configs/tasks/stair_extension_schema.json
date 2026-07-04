@@ -2,24 +2,71 @@
   "schema_version": "true_rl_agent.task_extension_schema.v1",
   "task_id": "future_stair_climbing",
   "runtime_plugin_enabled": false,
+  "training_command_enabled": false,
   "llm_stair_height_progression_enabled": false,
+  "future_baseline": {
+    "description": "Isaac/Unitree G1 rough locomotion policy trained on stair_height 0.05-0.20 m",
+    "policy_initialization": "warm_start",
+    "baseline_manifest_required": true,
+    "candidate_writable": false
+  },
   "fixed_baseline_train_distribution": {
     "terrain_family": "stairs",
+    "stair_height_m": [0.05, 0.20],
     "distribution_owner": "task_plugin",
     "progression_control": "runner_owned_future_extension",
     "candidate_writable": false
   },
   "fixed_eval_bins": [
     {
-      "bin_id": "low_stairs",
-      "height_m": [0.05, 0.10],
+      "bin_id": "stair_010",
+      "height_m": 0.10,
       "candidate_writable": false
     },
     {
-      "bin_id": "target_stairs",
-      "height_m": [0.10, 0.20],
+      "bin_id": "stair_015",
+      "height_m": 0.15,
+      "candidate_writable": false
+    },
+    {
+      "bin_id": "stair_020",
+      "height_m": 0.20,
+      "candidate_writable": false
+    },
+    {
+      "bin_id": "stair_025",
+      "height_m": 0.25,
+      "candidate_writable": false
+    },
+    {
+      "bin_id": "stair_030",
+      "height_m": 0.30,
+      "candidate_writable": false
+    },
+    {
+      "bin_id": "stair_035",
+      "height_m": 0.35,
+      "candidate_writable": false
+    },
+    {
+      "bin_id": "stair_040",
+      "height_m": 0.40,
       "candidate_writable": false
     }
+  ],
+  "future_fixed_train_protocol": {
+    "baseline_train_distribution": "stair_height_0.05_to_0.20_m",
+    "terrain_metadata": "runner_owned_public_summary",
+    "height_map_available": true,
+    "foot_clearance_diagnostic_entry": "DiagnosticTerm",
+    "terrain_progress_diagnostic_entry": "DiagnosticTerm"
+  },
+  "future_failure_taxonomy": [
+    "toe_collision",
+    "insufficient_clearance",
+    "base_pitch_instability",
+    "slip",
+    "timeout"
   ],
   "height_map_terrain_metadata": {
     "height_map_projection_owner": "runner_owned_approved_extension",

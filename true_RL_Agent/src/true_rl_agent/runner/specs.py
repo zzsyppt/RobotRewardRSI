@@ -80,6 +80,8 @@ class EvalJobSpec:
     checkpoint: CheckpointRef
     public_seed_count: int
     trusted_seed_count: int
+    public_accept_seed_count: int = 1
+    eval_num_envs: int | None = None
     metadata: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -89,6 +91,10 @@ class EvalJobSpec:
             raise ValueError("public_seed_count must be positive")
         if self.trusted_seed_count <= 0:
             raise ValueError("trusted_seed_count must be positive")
+        if self.public_accept_seed_count <= 0:
+            raise ValueError("public_accept_seed_count must be positive")
+        if self.eval_num_envs is not None and self.eval_num_envs <= 0:
+            raise ValueError("eval_num_envs must be positive")
 
     def to_public_dict(self) -> dict[str, Any]:
         return {
@@ -97,4 +103,6 @@ class EvalJobSpec:
             "candidate_id": self.candidate_id,
             "checkpoint": self.checkpoint.to_public_dict(),
             "public_seed_count": self.public_seed_count,
+            "public_accept_seed_count": self.public_accept_seed_count,
+            "eval_num_envs": self.eval_num_envs,
         }

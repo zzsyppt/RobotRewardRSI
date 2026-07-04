@@ -15,14 +15,16 @@ from true_rl_agent.candidates.mechanism import (
     RuntimeActivationEvidence,
     build_knob_only_shadow_candidate,
 )
-from true_rl_agent.candidates.schema import CandidatePackageRef, CandidateSurfacePolicy
+from true_rl_agent.candidates.schema import CandidateChangeSet, CandidatePackageRef, CandidateSurfacePolicy
 from true_rl_agent.candidates.verifier import CandidateVerifier
 from true_rl_agent.curriculum.capabilities import CapabilityRegistry, build_default_curriculum_capability_registry
 from true_rl_agent.curriculum.compiler import CurriculumCompiler
 from true_rl_agent.curriculum.schema import CurriculumPlan
 from true_rl_agent.evaluation.public_result import PublicEvalResult
+from true_rl_agent.memory.records import PrivateArtifactRef, PromptPayloadRef
 from true_rl_agent.policy import PolicyInitialization
-from true_rl_agent.runner.base import Runner, TrainJobResult
+from true_rl_agent.runner.base import CandidateRuntimeError, Runner, TrainJobResult
+from true_rl_agent.runner.specs import CheckpointRef, EvalJobSpec
 from true_rl_agent.safety.invariants import enforce_task_invariants
 from true_rl_agent.tasks.base import TaskPlugin
 
@@ -40,10 +42,12 @@ class RoundInputs:
     public_context: Mapping[str, Any]
     current_best_score: float
     policy_accept_delta: float
+    prompt_payload_ref: PromptPayloadRef | None = None
     curriculum_plan: CurriculumPlan = field(default_factory=lambda: CurriculumPlan(mode="task_default"))
     curriculum_registry: CapabilityRegistry = field(default_factory=build_default_curriculum_capability_registry)
     curriculum_proposal: Mapping[str, Any] | None = None
     task_default_training_config: Mapping[str, Any] = field(default_factory=dict)
+    record_candidate_runtime_failures: bool = True
 
 
 @dataclass(frozen=True)
@@ -58,7 +62,14 @@ def run_candidate_round(inputs: RoundInputs) -> RoundResult:
     if not task_spec.supports_policy_initialization(inputs.policy_initialization.kind):
         raise ValueError(f"task does not support policy initialization: {inputs.policy_initialization.kind}")
 
-    surface = CandidateSurfacePolicy().classify(inputs.candidate.change_set)
+    verification = inputs.verifier.verify(inputs.candidate)
+    effective_change_set = _verified_change_set(
+        fallback=inputs.candidate.change_set,
+        details=verification.details,
+        verification_status=verification.status,
+    )
+    candidate = replace(inputs.candidate, change_set=effective_change_set)
+    surface = CandidateSurfacePolicy().classify(candidate.change_set)
     task_default_training_config = dict(inputs.task_default_training_config or task_spec.fixed_train_protocol)
     compiled_curriculum = CurriculumCompiler().compile(
         plan=inputs.curriculum_plan,
@@ -66,18 +77,18 @@ def run_candidate_round(inputs: RoundInputs) -> RoundResult:
         registry=inputs.curriculum_registry,
         llm_proposal=inputs.curriculum_proposal,
     )
-    verification = inputs.verifier.verify(inputs.candidate)
     jobs = None
     train_result = None
     public_result = None
     executed_eval_spec = None
+    runner_error = None
     runtime_evidence = RuntimeActivationEvidence()
     mechanism_decision = MechanismEvidenceGate().evaluate(
-        change_set=inputs.candidate.change_set,
+        change_set=candidate.change_set,
         evidence=runtime_evidence,
     )
     ablation_summary = _build_ablation_summary(
-        candidate=inputs.candidate,
+        candidate=candidate,
         triggered=False,
         reason="not_evaluated",
     )
@@ -90,7 +101,7 @@ def run_candidate_round(inputs: RoundInputs) -> RoundResult:
         jobs = inputs.backend_adapter.materialize_jobs(
             round_id=inputs.round_id,
             task_spec=task_spec,
-            candidate=inputs.candidate,
+            candidate=candidate,
             policy_initialization=inputs.policy_initialization,
         )
         try:
@@ -104,46 +115,70 @@ def run_candidate_round(inputs: RoundInputs) -> RoundResult:
                 surface_classification=surface.classification,
             )
         else:
-            train_result = inputs.runner.run_train(jobs.train_spec)
-            executed_eval_spec = replace(jobs.eval_spec, checkpoint=train_result.checkpoint)
-            public_result = inputs.runner.run_eval(executed_eval_spec)
-            runtime_evidence = RuntimeActivationEvidence.from_mapping(
-                train_result.summary.get("runtime_activation_summary")
-            )
-            mechanism_decision = MechanismEvidenceGate().evaluate(
-                change_set=inputs.candidate.change_set,
-                evidence=runtime_evidence,
-            )
-            preliminary_decision = decide_candidate(
-                surface=surface,
-                public_result=public_result,
-                current_best_score=inputs.current_best_score,
-                policy_accept_delta=inputs.policy_accept_delta,
-            )
-            potential_accept = preliminary_decision.outcome is DecisionOutcome.POLICY_IMPROVEMENT_ACCEPT
-            ablation_summary = _build_ablation_summary(
-                candidate=inputs.candidate,
-                triggered=potential_accept,
-                reason="potential_accept_shadow_check" if potential_accept else "not_potential_accept",
-            )
-            if potential_accept and mechanism_decision.status != "pass":
-                decision = DecisionRecord(
-                    DecisionOutcome.REJECT,
-                    False,
-                    mechanism_decision.reason,
-                    surface.classification,
-                    public_result.public_score,
+            try:
+                train_result = inputs.runner.run_train(jobs.train_spec)
+                executed_eval_spec = _bind_eval_spec_to_checkpoint(jobs.eval_spec, train_result.checkpoint)
+                public_result = inputs.task_plugin.project_public_result(
+                    public_result=inputs.runner.run_eval(executed_eval_spec),
+                    train_summary=train_result.summary,
                 )
-            else:
-                decision = preliminary_decision
+                runtime_evidence = RuntimeActivationEvidence.from_mapping(
+                    train_result.summary.get("runtime_activation_summary")
+                )
+                mechanism_decision = MechanismEvidenceGate().evaluate(
+                    change_set=candidate.change_set,
+                    evidence=runtime_evidence,
+                )
+                preliminary_decision = decide_candidate(
+                    surface=surface,
+                    public_result=public_result,
+                    current_best_score=inputs.current_best_score,
+                    policy_accept_delta=inputs.policy_accept_delta,
+                )
+                potential_accept = preliminary_decision.outcome is DecisionOutcome.POLICY_IMPROVEMENT_ACCEPT
+                ablation_summary = _build_ablation_summary(
+                    candidate=candidate,
+                    triggered=potential_accept,
+                    reason="potential_accept_shadow_check" if potential_accept else "not_potential_accept",
+                )
+                if potential_accept and mechanism_decision.status != "pass":
+                    decision = DecisionRecord(
+                        DecisionOutcome.REJECT,
+                        False,
+                        mechanism_decision.reason,
+                        surface.classification,
+                        public_result.public_score,
+                    )
+                else:
+                    decision = preliminary_decision
+            except CandidateRuntimeError as exc:
+                if not inputs.record_candidate_runtime_failures:
+                    raise
+                runner_error = exc.to_public_dict()
+                decision = reject_without_eval(
+                    reason="candidate_runtime_failed",
+                    surface_classification=surface.classification,
+                )
 
     record = {
         "schema_version": "true_rl_agent.ledger_record.v1",
         "round_id": inputs.round_id,
+        "prompt_payload": (
+            inputs.prompt_payload_ref.to_public_dict()
+            if inputs.prompt_payload_ref is not None
+            else None
+        ),
         "public_context": sanitize_public_context(inputs.public_context),
         "task": {"task_id": task_spec.task_id},
         "backend": {"backend_id": inputs.backend_adapter.backend_id},
-        "candidate": inputs.candidate.to_public_dict(),
+        "candidate": candidate.to_public_dict(),
+        "private_artifacts": [
+            PrivateArtifactRef(
+                kind="candidate_package",
+                uri=candidate.path,
+                reason="candidate_source_resolution",
+            ).to_private_dict()
+        ],
         "verifier": verification.to_public_dict(),
         "candidate_surface": surface.to_public_dict(),
         "curriculum": compiled_curriculum.to_public_dict(),
@@ -167,6 +202,7 @@ def run_candidate_round(inputs: RoundInputs) -> RoundResult:
         ),
         "train_result": train_result.to_public_dict() if train_result is not None else None,
         "public_result": public_result.to_public_dict() if public_result is not None else None,
+        "runner_error": runner_error,
         "decision": decision.to_public_dict(),
         "feedback_safe": {
             "public_only": True,
@@ -187,6 +223,33 @@ def _build_ablation_summary(*, candidate: CandidatePackageRef, triggered: bool, 
         "shadow_changed_components": sorted(shadow.changed_components),
         "status": "static_shadow_generated" if triggered else "not_triggered",
     }
+
+
+def _verified_change_set(
+    *,
+    fallback: CandidateChangeSet,
+    details: Mapping[str, Any],
+    verification_status: str,
+) -> CandidateChangeSet:
+    raw = details.get("derived_change_set")
+    if not isinstance(raw, list | tuple) or not all(isinstance(item, str) for item in raw):
+        if verification_status != "pass":
+            return CandidateChangeSet(frozenset())
+        return fallback
+    return CandidateChangeSet(frozenset(raw))
+
+
+def _bind_eval_spec_to_checkpoint(eval_spec: EvalJobSpec, checkpoint: CheckpointRef) -> EvalJobSpec:
+    old_uri = eval_spec.checkpoint.uri
+    cli_checkpoint = str(checkpoint.metadata.get("local_path") or checkpoint.uri)
+    metadata = dict(eval_spec.metadata)
+    cli_argv = metadata.get("cli_argv")
+    if isinstance(cli_argv, list):
+        metadata["cli_argv"] = [cli_checkpoint if item == old_uri else item for item in cli_argv]
+    cli_command = metadata.get("cli_command")
+    if isinstance(cli_command, str):
+        metadata["cli_command"] = cli_command.replace(old_uri, cli_checkpoint)
+    return replace(eval_spec, checkpoint=checkpoint, metadata=metadata)
 
 
 def _build_anti_tuning_decision(

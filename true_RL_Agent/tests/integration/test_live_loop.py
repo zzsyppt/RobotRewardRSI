@@ -1,0 +1,791 @@
+from __future__ import annotations
+
+import json
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+SRC_ROOT = PROJECT_ROOT / "src"
+if str(SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(SRC_ROOT))
+
+from true_rl_agent.agent_core.live_loop import run_live_loop  # noqa: E402
+from true_rl_agent.agent_core.ledger import load_ledger  # noqa: E402
+from true_rl_agent.agent_core.provider_errors import ProviderCandidateError  # noqa: E402
+from true_rl_agent.candidates.schema import CandidateChangeSet, CandidatePackageRef  # noqa: E402
+from true_rl_agent.policy import PolicyInitialization  # noqa: E402
+from true_rl_agent.prompting.source_catalog import MAX_PROMPT_SOURCE_INLINE_BYTES  # noqa: E402
+from true_rl_agent.runner.base import CandidateRuntimeError  # noqa: E402
+
+from tests.fakes.fake_components import FakeBackendAdapter, FakeRunner, FakeTaskPlugin, FakeVerifier  # noqa: E402
+
+
+class _SequenceProvider:
+    def __init__(self) -> None:
+        self.contexts: list[dict] = []
+
+    def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
+        public_context = prompt_payload["public_context"]
+        self.contexts.append(public_context)
+        index = len(self.contexts)
+        return CandidatePackageRef(
+            candidate_id=f"candidate-{index:03d}",
+            path=f"memory://candidate-{index:03d}",
+            change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+            metadata={"fake_public_score": 0.20 + 0.01 * index},
+        )
+
+
+class _RepairProvider:
+    def __init__(self) -> None:
+        self.contexts: list[dict] = []
+
+    def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
+        public_context = prompt_payload["public_context"]
+        self.contexts.append(public_context)
+        index = len(self.contexts)
+        verifier_status = "fail" if index == 1 else "pass"
+        return CandidatePackageRef(
+            candidate_id=f"candidate-{index:03d}",
+            path=f"memory://candidate-{index:03d}",
+            change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+            metadata={"fake_public_score": 0.25, "verifier_status": verifier_status},
+        )
+
+
+class _PathSourceRepairProvider:
+    def __init__(self, candidate_root: Path) -> None:
+        self.candidate_root = candidate_root
+        self.payloads: list[dict] = []
+
+    def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
+        self.payloads.append(prompt_payload)
+        index = len(self.payloads)
+        if index == 1:
+            candidate_dir = self.candidate_root / "candidate-001"
+            (candidate_dir / "training_code").mkdir(parents=True)
+            (candidate_dir / "training_code" / "components.py").write_text(
+                "\n".join(
+                    [
+                        "PATH_A = 'D:/humanoid_agent/private/raw.txt'",
+                        "PATH_B = '/data/yuyangliu/secrets/key.env'",
+                        "def build_training_components():",
+                        "    raise RuntimeError(PATH_A + PATH_B)",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            return CandidatePackageRef(
+                candidate_id="candidate-001",
+                path=str(candidate_dir),
+                change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+                metadata={"fake_public_score": 0.25, "verifier_status": "fail"},
+            )
+        return CandidatePackageRef(
+            candidate_id="candidate-002",
+            path="memory://candidate-002",
+            change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+            metadata={"fake_public_score": 0.25, "verifier_status": "pass"},
+        )
+
+
+class _RuntimeRepairProvider:
+    def __init__(self) -> None:
+        self.contexts: list[dict] = []
+
+    def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
+        public_context = prompt_payload["public_context"]
+        self.contexts.append(public_context)
+        index = len(self.contexts)
+        return CandidatePackageRef(
+            candidate_id=f"candidate-{index:03d}",
+            path=f"memory://candidate-{index:03d}",
+            change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+            metadata={"fake_public_score": 0.30},
+        )
+
+
+class _RuntimePathRepairProvider:
+    def __init__(self, candidate_root: Path) -> None:
+        self.candidate_root = candidate_root
+        self.payloads: list[dict] = []
+
+    def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
+        self.payloads.append(prompt_payload)
+        index = len(self.payloads)
+        if index == 1:
+            candidate_dir = self.candidate_root / "candidate-001"
+            (candidate_dir / "training_code").mkdir(parents=True)
+            (candidate_dir / "training_code" / "components.py").write_text(
+                "def runtime_failed_reward(inp):\n    return inp.base_height\n",
+                encoding="utf-8",
+            )
+            return CandidatePackageRef(
+                candidate_id="candidate-001",
+                path=str(candidate_dir),
+                change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+                metadata={"fake_public_score": 0.30},
+            )
+        return CandidatePackageRef(
+            candidate_id="candidate-002",
+            path="memory://candidate-002",
+            change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+            metadata={"fake_public_score": 0.30},
+        )
+
+
+class _RuntimeThenLocalSuccessProvider:
+    def __init__(self, candidate_root: Path) -> None:
+        self.candidate_root = candidate_root
+        self.payloads: list[dict] = []
+
+    def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
+        self.payloads.append(prompt_payload)
+        index = len(self.payloads)
+        candidate_dir = self.candidate_root / f"candidate-{index:03d}"
+        (candidate_dir / "training_code").mkdir(parents=True)
+        term_name = {
+            1: "runtime_failed_reward",
+            2: "accepted_success_reward",
+        }.get(index, "fresh_success_reward")
+        (candidate_dir / "training_code" / "components.py").write_text(
+            f"def {term_name}(inp):\n    return inp.base_height\n",
+            encoding="utf-8",
+        )
+        return CandidatePackageRef(
+            candidate_id=f"candidate-{index:03d}",
+            path=str(candidate_dir),
+            change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+            metadata={"fake_public_score": 0.30 + 0.10 * index},
+        )
+
+
+class _AlwaysVerifierFailProvider:
+    def __init__(self) -> None:
+        self.payloads: list[dict] = []
+
+    def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
+        self.payloads.append(prompt_payload)
+        index = len(self.payloads)
+        return CandidatePackageRef(
+            candidate_id=f"candidate-{index:03d}",
+            path=f"memory://candidate-{index:03d}",
+            change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+            metadata={"fake_public_score": 0.30, "verifier_status": "fail"},
+        )
+
+
+class _TrainCountingRunner(FakeRunner):
+    def __init__(self) -> None:
+        self.train_calls = 0
+
+    def run_train(self, train_spec):
+        self.train_calls += 1
+        return super().run_train(train_spec)
+
+
+class _PromptPayloadOnlyProvider:
+    def __init__(self) -> None:
+        self.payloads: list[dict] = []
+
+    def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
+        self.payloads.append(prompt_payload)
+        index = len(self.payloads)
+        return CandidatePackageRef(
+            candidate_id=f"payload-candidate-{index:03d}",
+            path=f"memory://payload-candidate-{index:03d}",
+            change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+            metadata={"fake_public_score": 0.20 + 0.01 * index},
+        )
+
+
+class _ProviderFailureThenSuccessProvider:
+    def __init__(self) -> None:
+        self.payloads: list[dict] = []
+
+    def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
+        self.payloads.append(prompt_payload)
+        index = len(self.payloads)
+        if index == 1:
+            raise ProviderCandidateError(
+                "json_parse_error",
+                "candidate proposal was not valid JSON",
+                details={"raw_excerpt": "sk-live-secret D:\\humanoid_agent\\private\\raw.txt"},
+            )
+        return CandidatePackageRef(
+            candidate_id=f"provider-repair-{index:03d}",
+            path=f"memory://provider-repair-{index:03d}",
+            change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+            metadata={"fake_public_score": 0.30},
+        )
+
+
+class _AlwaysProviderFailureProvider:
+    def __init__(self) -> None:
+        self.payloads: list[dict] = []
+
+    def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
+        self.payloads.append(prompt_payload)
+        raise ProviderCandidateError(
+            "schema_error",
+            "components_py failed at D:/humanoid_agent/private/raw.txt",
+            details={"raw_excerpt": "sk-live-secret D:/humanoid_agent/private/raw.txt"},
+        )
+
+
+class _VerifierFailThenProviderFailureProvider:
+    def __init__(self, candidate_root: Path) -> None:
+        self.candidate_root = candidate_root
+        self.payloads: list[dict] = []
+
+    def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
+        self.payloads.append(prompt_payload)
+        if len(self.payloads) == 1:
+            candidate_dir = self.candidate_root / "candidate-001"
+            (candidate_dir / "training_code").mkdir(parents=True)
+            (candidate_dir / "training_code" / "components.py").write_text(
+                "def failed_static_reward(inp):\n    return inp.base_height\n",
+                encoding="utf-8",
+            )
+            return CandidatePackageRef(
+                candidate_id="candidate-001",
+                path=str(candidate_dir),
+                change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+                metadata={"fake_public_score": 0.25, "verifier_status": "fail"},
+            )
+        raise ProviderCandidateError(
+            "schema_error",
+            "components_py failed at D:/humanoid_agent/private/raw.txt",
+            details={"raw_excerpt": "sk-live-secret /data/yuyangliu/secrets/key.env"},
+        )
+
+
+class _RuntimeFailOnceRunner(FakeRunner):
+    def run_train(self, train_spec):
+        if train_spec.candidate_id == "candidate-001":
+            raise CandidateRuntimeError(
+                "candidate runtime failed: Boolean value of Tensor with more than one value is ambiguous",
+                public_details={
+                    "status": "fail",
+                    "errors": [
+                        {
+                            "type": "RuntimeError",
+                            "message": "Boolean value of Tensor with more than one value is ambiguous",
+                        }
+                    ],
+                },
+            )
+        return super().run_train(train_spec)
+
+
+class LiveLoopTests(unittest.TestCase):
+    def test_live_loop_saves_prompt_payloads_and_ledger_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            provider = _SequenceProvider()
+            summary = run_live_loop(
+                output_dir=Path(tmp),
+                rounds=2,
+                session_id="live-test",
+                task_plugin=FakeTaskPlugin(),
+                backend_adapter=FakeBackendAdapter(),
+                runner=FakeRunner(),
+                verifier=FakeVerifier(),
+                provider=provider,
+                policy_initialization=PolicyInitialization.random(),
+                initial_best_score=0.10,
+                policy_accept_delta=0.05,
+            )
+            ledger = load_ledger(Path(tmp) / "ledger.jsonl")
+            payloads = [
+                json.loads(Path(path).read_text(encoding="utf-8"))
+                for path in summary["prompt_payload_paths"]
+            ]
+
+        self.assertEqual(summary["mode"], "live")
+        self.assertEqual(summary["rounds_completed"], 2)
+        self.assertEqual(len(summary["prompt_payload_paths"]), 2)
+        self.assertEqual(len(provider.contexts), 2)
+        self.assertEqual(len(ledger), 2)
+        self.assertTrue(all(Path(path).name == "prompt_payload.json" for path in summary["prompt_payload_paths"]))
+        for payload in payloads:
+            self.assertEqual(payload["schema_version"], "true_rl_agent.prompt_payload.v2")
+            self.assertNotIn("trusted_seed", json.dumps(payload, sort_keys=True))
+        self.assertEqual(summary["train_result_count"], 2)
+        self.assertEqual(summary["public_result_count"], 2)
+        self.assertTrue(summary["checks"]["at_least_one_train_result"])
+        self.assertTrue(summary["checks"]["at_least_one_public_result"])
+
+    def test_live_loop_passes_saved_prompt_payload_to_provider(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            provider = _PromptPayloadOnlyProvider()
+            summary = run_live_loop(
+                output_dir=Path(tmp),
+                rounds=1,
+                session_id="live-payload",
+                task_plugin=FakeTaskPlugin(),
+                backend_adapter=FakeBackendAdapter(),
+                runner=FakeRunner(),
+                verifier=FakeVerifier(),
+                provider=provider,
+                policy_initialization=PolicyInitialization.random(),
+                initial_best_score=0.10,
+                policy_accept_delta=0.05,
+            )
+            saved_payload = json.loads(Path(summary["prompt_payload_paths"][0]).read_text(encoding="utf-8"))
+            ledger = load_ledger(Path(tmp) / "ledger.jsonl")
+
+        self.assertEqual(len(provider.payloads), 1)
+        self.assertEqual(provider.payloads[0], saved_payload)
+        self.assertIn("schema_version", provider.payloads[0])
+        self.assertIn("candidate_component_contract", provider.payloads[0])
+        self.assertEqual(saved_payload["task"]["task_id"], "fake_push_recovery")
+        self.assertEqual(saved_payload["task"]["prompt_adapter"], "neutral_fallback")
+        self.assertEqual(saved_payload["reward_inputs_contract"]["status"], "not_available")
+        self.assertNotIn("task_prompt_sections", saved_payload["public_context"])
+        self.assertLess(list(saved_payload).index("task"), list(saved_payload).index("schema_version"))
+        self.assertEqual(ledger[0]["prompt_payload"]["path"], summary["prompt_payload_paths"][0])
+        self.assertEqual(ledger[0]["prompt_payload"]["visibility"], "public_prompt_payload")
+
+    def test_live_loop_repairs_provider_candidate_before_consuming_round(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            provider = _RepairProvider()
+            summary = run_live_loop(
+                output_dir=Path(tmp),
+                rounds=1,
+                session_id="live-repair",
+                task_plugin=FakeTaskPlugin(),
+                backend_adapter=FakeBackendAdapter(),
+                runner=FakeRunner(),
+                verifier=FakeVerifier(),
+                provider=provider,
+                policy_initialization=PolicyInitialization.random(),
+                initial_best_score=0.10,
+                policy_accept_delta=0.05,
+                max_provider_attempts=2,
+            )
+            ledger = load_ledger(Path(tmp) / "ledger.jsonl")
+
+        self.assertEqual(len(provider.contexts), 2)
+        repair_feedback = provider.contexts[1]["candidate_repair_feedback"]
+        self.assertEqual(repair_feedback["failure_category"], "verifier_error")
+        self.assertEqual(repair_feedback["previous_candidate_id"], "candidate-001")
+        self.assertIn("Do not use import torch", " ".join(repair_feedback["instructions"]))
+        self.assertEqual(len(ledger), 1)
+        self.assertEqual(ledger[0]["candidate"]["candidate_id"], "candidate-002")
+        self.assertEqual(ledger[0]["candidate_surface"]["classification"], "code_level")
+        self.assertEqual(summary["rounds_completed"], 1)
+        self.assertEqual(len(summary["provider_attempt_records"]), 2)
+        self.assertEqual(len(summary["provider_attempt_prompt_payload_paths"]), 2)
+        self.assertTrue(summary["prompt_payload_paths"][0].endswith("prompt_payload_attempt_002.json"))
+        self.assertEqual(ledger[0]["prompt_payload"]["path"], summary["prompt_payload_paths"][0])
+        self.assertEqual(ledger[0]["prompt_payload"]["visibility"], "public_prompt_payload")
+        self.assertTrue(summary["checks"]["at_least_one_train_result"])
+
+    def test_live_loop_scrubs_paths_from_previous_components_in_repair_prompt(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            provider = _PathSourceRepairProvider(root / "candidates")
+            run_live_loop(
+                output_dir=root / "run",
+                rounds=1,
+                session_id="live-path-source-repair",
+                task_plugin=FakeTaskPlugin(),
+                backend_adapter=FakeBackendAdapter(),
+                runner=FakeRunner(),
+                verifier=FakeVerifier(),
+                provider=provider,
+                policy_initialization=PolicyInitialization.random(),
+                initial_best_score=0.10,
+                policy_accept_delta=0.05,
+                max_provider_attempts=2,
+            )
+
+        self.assertEqual(len(provider.payloads), 2)
+        repair_feedback = provider.payloads[1]["provider_or_runtime_repair_feedback"]
+        source_payloads = provider.payloads[1]["source_payloads"]
+        failed_sources = [
+            item
+            for item in source_payloads
+            if item["logical_id"] == "attempt/latest_failed/training_code/components.py"
+        ]
+        repair_text = json.dumps(repair_feedback, sort_keys=True)
+        payload_text = json.dumps(provider.payloads[1], sort_keys=True)
+        self.assertNotIn("previous_components_py", repair_feedback)
+        self.assertEqual(
+            repair_feedback["previous_candidate_source_logical_id"],
+            "attempt/latest_failed/training_code/components.py",
+        )
+        self.assertEqual(len(failed_sources), 1)
+        self.assertIn("[path]", failed_sources[0]["content"])
+        self.assertNotIn("D:/humanoid_agent", repair_text)
+        self.assertNotIn("D:/humanoid_agent", payload_text)
+        self.assertNotIn("/data/yuyangliu", repair_text)
+        self.assertNotIn("/data/yuyangliu", payload_text)
+        self.assertNotIn("private/raw.txt", repair_text)
+        self.assertNotIn("private/raw.txt", payload_text)
+        self.assertNotIn("/secrets/", repair_text)
+        self.assertNotIn("/secrets/", payload_text)
+
+    def test_live_loop_omits_oversized_failed_source_from_repair_prompt(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            candidate_dir = root / "candidates" / "candidate-001"
+            (candidate_dir / "training_code").mkdir(parents=True)
+            oversized = "def oversized_reward(inp):\n    return inp.base_height\n" + (
+                "# filler\n" * (MAX_PROMPT_SOURCE_INLINE_BYTES // 4)
+            )
+
+            class _OversizedRepairProvider(_PathSourceRepairProvider):
+                def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
+                    self.payloads.append(prompt_payload)
+                    index = len(self.payloads)
+                    if index == 1:
+                        (candidate_dir / "training_code" / "components.py").write_text(oversized, encoding="utf-8")
+                        return CandidatePackageRef(
+                            candidate_id="candidate-001",
+                            path=str(candidate_dir),
+                            change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+                            metadata={"fake_public_score": 0.25, "verifier_status": "fail"},
+                        )
+                    return CandidatePackageRef(
+                        candidate_id="candidate-002",
+                        path="memory://candidate-002",
+                        change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+                        metadata={"fake_public_score": 0.25, "verifier_status": "pass"},
+                    )
+
+            provider = _OversizedRepairProvider(root / "candidates")
+            run_live_loop(
+                output_dir=root / "run",
+                rounds=1,
+                session_id="live-oversized-source-repair",
+                task_plugin=FakeTaskPlugin(),
+                backend_adapter=FakeBackendAdapter(),
+                runner=FakeRunner(),
+                verifier=FakeVerifier(),
+                provider=provider,
+                policy_initialization=PolicyInitialization.random(),
+                initial_best_score=0.10,
+                policy_accept_delta=0.05,
+                max_provider_attempts=2,
+            )
+
+        payload = provider.payloads[1]
+        failed_item = next(
+            item
+            for item in payload["source_catalog"]["items"]
+            if item["logical_id"] == "attempt/latest_failed/training_code/components.py"
+        )
+        payload_text = json.dumps(payload, sort_keys=True)
+
+        self.assertEqual(failed_item["status"], "omitted_over_budget")
+        self.assertIsNotNone(failed_item["content_sha256"])
+        self.assertGreater(failed_item["bytes"], MAX_PROMPT_SOURCE_INLINE_BYTES)
+        self.assertNotIn("# filler", payload_text)
+        self.assertEqual(payload["source_payloads"], [])
+
+    def test_live_loop_repairs_provider_parse_failure_before_consuming_round(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            provider = _ProviderFailureThenSuccessProvider()
+            summary = run_live_loop(
+                output_dir=Path(tmp),
+                rounds=1,
+                session_id="live-provider-repair",
+                task_plugin=FakeTaskPlugin(),
+                backend_adapter=FakeBackendAdapter(),
+                runner=FakeRunner(),
+                verifier=FakeVerifier(),
+                provider=provider,
+                policy_initialization=PolicyInitialization.random(),
+                initial_best_score=0.10,
+                policy_accept_delta=0.05,
+                max_provider_attempts=2,
+            )
+            ledger = load_ledger(Path(tmp) / "ledger.jsonl")
+
+        self.assertEqual(len(provider.payloads), 2)
+        repair_feedback = provider.payloads[1]["public_context"]["candidate_repair_feedback"]
+        repair_text = json.dumps(repair_feedback, sort_keys=True)
+        self.assertEqual(repair_feedback["failure_category"], "json_parse_error")
+        self.assertEqual(repair_feedback["provider_status"], "fail")
+        self.assertIn("Return one valid JSON object", " ".join(repair_feedback["instructions"]))
+        self.assertNotIn("sk-live-secret", repair_text)
+        self.assertNotIn("D:\\humanoid_agent", repair_text)
+        self.assertEqual(summary["provider_attempt_records"][0]["provider_status"], "fail")
+        self.assertEqual(summary["provider_attempt_records"][0]["provider_failure"]["category"], "json_parse_error")
+        self.assertEqual(summary["provider_attempt_records"][1]["provider_status"], "pass")
+        self.assertEqual(ledger[0]["candidate"]["candidate_id"], "provider-repair-002")
+        self.assertEqual(summary["rounds_completed"], 1)
+
+    def test_live_loop_records_provider_failure_when_all_attempts_fail_before_candidate(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            provider = _AlwaysProviderFailureProvider()
+            summary = run_live_loop(
+                output_dir=Path(tmp),
+                rounds=1,
+                session_id="live-provider-fail",
+                task_plugin=FakeTaskPlugin(),
+                backend_adapter=FakeBackendAdapter(),
+                runner=FakeRunner(),
+                verifier=FakeVerifier(),
+                provider=provider,
+                policy_initialization=PolicyInitialization.random(),
+                initial_best_score=0.10,
+                policy_accept_delta=0.05,
+                max_provider_attempts=2,
+            )
+            ledger = load_ledger(Path(tmp) / "ledger.jsonl")
+
+        self.assertEqual(len(provider.payloads), 2)
+        repair_feedback = provider.payloads[1]["public_context"]["candidate_repair_feedback"]
+        self.assertEqual(repair_feedback["failure_category"], "schema_error")
+        ledger_text = json.dumps(ledger, sort_keys=True)
+        self.assertNotIn("D:/humanoid_agent", ledger_text)
+        self.assertNotIn("private/raw.txt", ledger_text)
+        self.assertEqual(len(ledger), 1)
+        self.assertEqual(ledger[0]["decision"]["reason"], "provider_candidate_generation_failed")
+        self.assertEqual(ledger[0]["provider_failure"]["category"], "schema_error")
+        self.assertIsNone(ledger[0]["candidate"])
+        self.assertEqual(summary["rounds_completed"], 1)
+        self.assertEqual(summary["provider_failure_count"], 1)
+        self.assertEqual(summary["candidate_paths"], [])
+
+    def test_live_loop_mixed_verifier_then_provider_failure_keeps_ledger_attempt_records_public_safe(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            provider = _VerifierFailThenProviderFailureProvider(root / "candidates")
+            summary = run_live_loop(
+                output_dir=root / "run",
+                rounds=1,
+                session_id="live-mixed-provider-fail",
+                task_plugin=FakeTaskPlugin(),
+                backend_adapter=FakeBackendAdapter(),
+                runner=FakeRunner(),
+                verifier=FakeVerifier(),
+                provider=provider,
+                policy_initialization=PolicyInitialization.random(),
+                initial_best_score=0.10,
+                policy_accept_delta=0.05,
+                max_provider_attempts=2,
+            )
+            ledger = load_ledger(root / "run" / "ledger.jsonl")
+
+        self.assertEqual(len(provider.payloads), 2)
+        self.assertEqual(len(ledger), 1)
+        self.assertEqual(ledger[0]["decision"]["reason"], "provider_candidate_generation_failed")
+        self.assertEqual(ledger[0]["provider_failure"]["category"], "schema_error")
+        self.assertEqual(summary["provider_failure_count"], 1)
+        self.assertEqual(summary["candidate_paths"], [])
+        attempts = ledger[0]["provider_attempt_records"]
+        attempt_text = json.dumps(attempts, sort_keys=True)
+        summary_attempt_text = json.dumps(summary["provider_attempt_records"], sort_keys=True)
+        self.assertEqual(len(attempts), 2)
+        self.assertNotIn("candidate_path", summary["provider_attempt_records"][0])
+        self.assertEqual(attempts[0]["candidate_id"], "candidate-001")
+        self.assertEqual(attempts[0]["verifier_status"], "fail")
+        self.assertNotIn("candidate_path", attempts[0])
+        self.assertEqual(attempts[0]["candidate_source_visibility"], "private_non_prompt_artifact")
+        self.assertFalse(attempts[0]["candidate_source_included_in_prompt"])
+        self.assertNotIn(str(root / "candidates"), attempt_text)
+        self.assertNotIn(str(root / "candidates"), summary_attempt_text)
+        self.assertNotIn("training_code", attempt_text)
+        self.assertNotIn("components.py", attempt_text)
+        self.assertNotIn("D:/humanoid_agent", attempt_text)
+        self.assertNotIn("/data/yuyangliu", attempt_text)
+        self.assertNotIn("sk-live-secret", attempt_text)
+
+    def test_live_loop_records_max_attempt_verifier_failure_without_training(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            provider = _AlwaysVerifierFailProvider()
+            runner = _TrainCountingRunner()
+            summary = run_live_loop(
+                output_dir=Path(tmp),
+                rounds=1,
+                session_id="live-static-fail",
+                task_plugin=FakeTaskPlugin(),
+                backend_adapter=FakeBackendAdapter(),
+                runner=runner,
+                verifier=FakeVerifier(),
+                provider=provider,
+                policy_initialization=PolicyInitialization.random(),
+                initial_best_score=0.10,
+                policy_accept_delta=0.05,
+                max_provider_attempts=2,
+            )
+            ledger = load_ledger(Path(tmp) / "ledger.jsonl")
+
+        self.assertEqual(len(provider.payloads), 2)
+        self.assertEqual(provider.payloads[0]["authoring_context_frame"]["frame_kind"], "candidate_draft")
+        self.assertEqual(provider.payloads[1]["authoring_context_frame"]["frame_kind"], "static_repair")
+        self.assertEqual(runner.train_calls, 0)
+        self.assertEqual(ledger[0]["decision"]["reason"], "candidate_verifier_failed")
+        self.assertEqual(ledger[0]["candidate"]["candidate_id"], "candidate-002")
+        self.assertIsNone(ledger[0]["train_result"])
+        self.assertIsNone(ledger[0]["public_result"])
+        self.assertEqual(summary["provider_failure_count"], 0)
+        self.assertEqual(summary["train_result_count"], 0)
+        self.assertEqual(summary["public_result_count"], 0)
+        self.assertEqual(summary["provider_attempt_records"][0]["verifier_status"], "fail")
+        self.assertEqual(summary["provider_attempt_records"][1]["verifier_status"], "fail")
+        self.assertEqual(summary["provider_attempt_records"][1]["runner_status"], "not_run")
+
+    def test_live_loop_records_runtime_failure_without_same_round_repair(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            provider = _RuntimeRepairProvider()
+            summary = run_live_loop(
+                output_dir=Path(tmp),
+                rounds=1,
+                session_id="live-runtime-repair",
+                task_plugin=FakeTaskPlugin(),
+                backend_adapter=FakeBackendAdapter(),
+                runner=_RuntimeFailOnceRunner(),
+                verifier=FakeVerifier(),
+                provider=provider,
+                policy_initialization=PolicyInitialization.random(),
+                initial_best_score=0.10,
+                policy_accept_delta=0.05,
+                max_provider_attempts=2,
+            )
+            ledger = load_ledger(Path(tmp) / "ledger.jsonl")
+
+        self.assertEqual(len(provider.contexts), 1)
+        self.assertNotIn("candidate_repair_feedback", provider.contexts[0])
+        self.assertEqual(len(ledger), 1)
+        self.assertEqual(ledger[0]["candidate"]["candidate_id"], "candidate-001")
+        self.assertEqual(ledger[0]["decision"]["reason"], "candidate_runtime_failed")
+        self.assertEqual(ledger[0]["decision"]["outcome"], "reject")
+        self.assertIsNotNone(ledger[0]["runner_error"])
+        self.assertEqual(summary["provider_attempt_records"][0]["runner_status"], "fail")
+        self.assertEqual(len(summary["provider_attempt_records"]), 1)
+        self.assertEqual(len(summary["provider_attempt_prompt_payload_paths"]), 1)
+        self.assertEqual(summary["rounds_completed"], 1)
+        self.assertEqual(summary["train_result_count"], 0)
+        self.assertEqual(summary["public_result_count"], 0)
+
+    def test_next_round_prompt_uses_latest_runtime_failed_source_catalog(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            provider = _RuntimePathRepairProvider(root / "candidates")
+            summary = run_live_loop(
+                output_dir=root / "run",
+                rounds=2,
+                session_id="live-runtime-source-repair",
+                task_plugin=FakeTaskPlugin(),
+                backend_adapter=FakeBackendAdapter(),
+                runner=_RuntimeFailOnceRunner(),
+                verifier=FakeVerifier(),
+                provider=provider,
+                policy_initialization=PolicyInitialization.random(),
+                initial_best_score=0.10,
+                policy_accept_delta=0.05,
+                max_provider_attempts=2,
+            )
+            ledger = load_ledger(root / "run" / "ledger.jsonl")
+
+        self.assertEqual(len(provider.payloads), 2)
+        self.assertEqual(len(summary["provider_attempt_records"]), 2)
+        self.assertEqual(summary["provider_attempt_records"][0]["round_id"], "live-runtime-source-repair-round-001")
+        self.assertEqual(summary["provider_attempt_records"][0]["attempt"], 1)
+        self.assertEqual(summary["provider_attempt_records"][0]["runner_status"], "fail")
+        self.assertEqual(summary["provider_attempt_records"][1]["round_id"], "live-runtime-source-repair-round-002")
+        self.assertEqual(summary["provider_attempt_records"][1]["attempt"], 1)
+        self.assertEqual(summary["provider_attempt_records"][1]["runner_status"], "pass")
+        self.assertEqual(ledger[0]["candidate"]["candidate_id"], "candidate-001")
+        self.assertEqual(ledger[0]["decision"]["reason"], "candidate_runtime_failed")
+        self.assertEqual(ledger[1]["candidate"]["candidate_id"], "candidate-002")
+
+        next_payload = provider.payloads[1]
+        public_history_text = json.dumps(next_payload["public_history"], sort_keys=True)
+        payload_text = json.dumps(next_payload, sort_keys=True)
+        failed_sources = [
+            item
+            for item in next_payload["source_payloads"]
+            if item["logical_id"] == "attempt/latest_failed/training_code/components.py"
+        ]
+
+        self.assertNotIn("provider_or_runtime_repair_feedback", next_payload)
+        self.assertIn("candidate_runtime_failed", public_history_text)
+        self.assertIn("CandidateRuntimeError", public_history_text)
+        self.assertEqual(len(failed_sources), 1)
+        self.assertIn("runtime_failed_reward", failed_sources[0]["content"])
+        self.assertNotIn(str(root / "candidates"), payload_text)
+
+    def test_runtime_failed_source_does_not_persist_after_success_round(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            provider = _RuntimeThenLocalSuccessProvider(root / "candidates")
+            summary = run_live_loop(
+                output_dir=root / "run",
+                rounds=3,
+                session_id="live-runtime-source-drop",
+                task_plugin=FakeTaskPlugin(),
+                backend_adapter=FakeBackendAdapter(),
+                runner=_RuntimeFailOnceRunner(),
+                verifier=FakeVerifier(),
+                provider=provider,
+                policy_initialization=PolicyInitialization.random(),
+                initial_best_score=0.10,
+                policy_accept_delta=0.05,
+                max_provider_attempts=2,
+            )
+            ledger = load_ledger(root / "run" / "ledger.jsonl")
+
+        self.assertEqual(len(provider.payloads), 3)
+        self.assertEqual(summary["provider_attempt_records"][0]["runner_status"], "fail")
+        self.assertEqual(summary["provider_attempt_records"][1]["runner_status"], "pass")
+        self.assertEqual(summary["provider_attempt_records"][2]["runner_status"], "pass")
+        self.assertEqual(ledger[0]["decision"]["reason"], "candidate_runtime_failed")
+        self.assertTrue(ledger[1]["decision"]["accepted"])
+
+        round_2_payload = provider.payloads[1]
+        round_3_payload = provider.payloads[2]
+        round_2_failed_sources = [
+            item
+            for item in round_2_payload["source_payloads"]
+            if item["logical_id"] == "attempt/latest_failed/training_code/components.py"
+        ]
+        round_3_failed_sources = [
+            item
+            for item in round_3_payload["source_payloads"]
+            if item["logical_id"] == "attempt/latest_failed/training_code/components.py"
+        ]
+        round_3_failed_item = next(
+            item
+            for item in round_3_payload["source_catalog"]["items"]
+            if item["logical_id"] == "attempt/latest_failed/training_code/components.py"
+        )
+        round_3_text = json.dumps(round_3_payload, sort_keys=True)
+
+        self.assertEqual(len(round_2_failed_sources), 1)
+        self.assertIn("runtime_failed_reward", round_2_failed_sources[0]["content"])
+        self.assertEqual(round_3_failed_item["status"], "pending")
+        self.assertEqual(round_3_failed_item["pending_reason"], "no_latest_failed_candidate")
+        self.assertEqual(round_3_failed_sources, [])
+        self.assertIn("accepted_success_reward", round_3_text)
+        self.assertNotIn("runtime_failed_reward", round_3_text)
+
+    def test_live_loop_refuses_existing_ledger(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "ledger.jsonl").write_text("{}", encoding="utf-8")
+            with self.assertRaisesRegex(FileExistsError, "ledger"):
+                run_live_loop(
+                    output_dir=Path(tmp),
+                    rounds=1,
+                    session_id="live-test",
+                    task_plugin=FakeTaskPlugin(),
+                    backend_adapter=FakeBackendAdapter(),
+                    runner=FakeRunner(),
+                    verifier=FakeVerifier(),
+                    provider=_SequenceProvider(),
+                    policy_initialization=PolicyInitialization.random(),
+                    initial_best_score=0.10,
+                    policy_accept_delta=0.05,
+                )
+
+
+if __name__ == "__main__":
+    unittest.main()

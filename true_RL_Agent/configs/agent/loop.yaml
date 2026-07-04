@@ -1,8 +1,10 @@
 schema_version: true_rl_agent.agent.loop.v1
-status: scaffold
+status: implemented
 rounds:
   default_count: 15
+runner:
+  default_boundary: subprocess
+  dry_run_audit_available: true
 candidate_surface:
   llm_controls_curriculum: false
   tuning_only_acceptance_allowed: false
-

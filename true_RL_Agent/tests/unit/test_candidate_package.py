@@ -12,8 +12,9 @@ SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from true_rl_agent.candidates.components import DiagnosticTerm, RewardTerm, ScheduleTerm, TrainingComponents
+from true_rl_agent.candidates.components import DiagnosticTerm, RewardInputs, RewardTerm, ScheduleTerm, TrainingComponents
 from true_rl_agent.candidates.loader import load_candidate_manifest, load_training_components
+from true_rl_agent.candidates.schema import CandidateChangeSet, CandidatePackageRef
 from true_rl_agent.candidates.verifier import StaticCandidateVerifier
 
 
@@ -69,6 +70,17 @@ class CandidatePackageTests(unittest.TestCase):
             self.assertTrue(callable(components.reward_terms[0].fn))
             self.assertEqual(components.to_change_set().changed_components, frozenset({"reward_callable"}))
 
+    def test_loader_tolerates_utf8_bom_manifest_from_windows_tools(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            candidate = self._write_candidate(Path(tmp))
+            manifest_path = candidate / "candidate_manifest.yaml"
+            manifest_path.write_text("\ufeff" + manifest_path.read_text(encoding="utf-8"), encoding="utf-8")
+
+            manifest = load_candidate_manifest(candidate)
+
+            self.assertEqual(manifest.schema_version, "true_rl_agent.candidate.v1")
+            self.assertEqual(manifest.candidate_id, "candidate_reward")
+
     def test_training_components_support_only_currently_wired_hooks(self) -> None:
         components = TrainingComponents(
             name="mixed",
@@ -98,6 +110,61 @@ class CandidatePackageTests(unittest.TestCase):
             self.assertEqual(result.status, "fail")
             self.assertIn("forbidden_file:repo.patch", result.details["issues"])
             self.assertIn("forbidden_token:training_code/components.py:import os", result.details["issues"])
+
+    def test_static_verifier_accepts_candidate_package_ref_with_local_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            candidate_dir = self._write_candidate(Path(tmp))
+            candidate = CandidatePackageRef(
+                candidate_id="candidate_reward",
+                path=str(candidate_dir),
+                change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+            )
+
+            result = StaticCandidateVerifier().verify(candidate)
+
+        self.assertEqual(result.status, "pass")
+        self.assertEqual(result.reason, "static_candidate_verifier_passed")
+
+    def test_static_verifier_accepts_reward_inputs_type_import_exposed_in_prompt_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            candidate_dir = self._write_candidate(
+                Path(tmp),
+                components_source=textwrap.dedent(
+                    """
+                    from true_rl_agent.candidates.components import RewardInputs, RewardTerm, TrainingComponents
+
+
+                    def typed_reward(inputs: RewardInputs):
+                        return inputs.base_height
+
+
+                    def build_training_components():
+                        return TrainingComponents(
+                            name="typed_reward_candidate",
+                            reward_terms=[RewardTerm(name="typed_reward", weight=1.0, fn=typed_reward)],
+                        )
+                    """
+                ).strip(),
+            )
+
+            result = StaticCandidateVerifier().verify(candidate_dir)
+
+        self.assertEqual(RewardInputs.field_names()[0], "base_height")
+        self.assertEqual(result.status, "pass")
+        self.assertEqual(result.details["derived_change_set"], ["reward_callable"])
+
+    def test_static_verifier_tolerates_bom_components_and_ignores_pycache(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            candidate_dir = self._write_candidate(Path(tmp))
+            component_path = candidate_dir / "training_code" / "components.py"
+            component_path.write_text("\ufeff" + component_path.read_text(encoding="utf-8"), encoding="utf-8")
+            pycache = candidate_dir / "training_code" / "__pycache__"
+            pycache.mkdir()
+            (pycache / "components.cpython-312.pyc").write_bytes(b"cache")
+
+            result = StaticCandidateVerifier().verify(candidate_dir)
+
+            self.assertEqual(result.status, "pass")
 
     def test_static_verifier_rejects_entrypoint_escape_before_loading(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

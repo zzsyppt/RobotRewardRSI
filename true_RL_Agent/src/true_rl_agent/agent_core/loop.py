@@ -5,12 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from true_rl_agent.agent_core.context import build_public_context
 from true_rl_agent.agent_core.ledger import load_ledger
 from true_rl_agent.agent_core.provider import CandidateProvider
 from true_rl_agent.agent_core.round import RoundInputs, RoundResult, run_candidate_round
 from true_rl_agent.backends.base import BackendAdapter
 from true_rl_agent.candidates.verifier import CandidateVerifier
+from true_rl_agent.memory import ExperimentRecord, PublicContextBuilder
 from true_rl_agent.policy import PolicyInitialization
 from true_rl_agent.runner.base import Runner
 from true_rl_agent.tasks.base import TaskPlugin
@@ -38,10 +38,13 @@ class AgentLoop:
     def run(self) -> list[RoundResult]:
         results: list[RoundResult] = []
         current_best_score = self.inputs.initial_best_score
+        context_builder = PublicContextBuilder(task_prompt_adapter=self.inputs.task_plugin.prompt_adapter())
         for index in range(self.inputs.round_count):
             ledger = load_ledger(self.inputs.ledger_path)
-            public_context = build_public_context(ledger)
-            candidate = self.inputs.provider.next_candidate(public_context=public_context)
+            records = [ExperimentRecord.from_ledger_record(record) for record in ledger]
+            prompt_payload = context_builder.build_prompt_payload(records)
+            public_context = prompt_payload["public_context"]
+            candidate = self.inputs.provider.next_candidate(prompt_payload=prompt_payload)
             round_id = f"{self.inputs.session_id}-round-{index + 1:03d}"
             result = run_candidate_round(
                 RoundInputs(

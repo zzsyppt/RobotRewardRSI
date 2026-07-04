@@ -33,7 +33,6 @@ class CandidatePackageRef:
     def to_public_dict(self) -> dict[str, Any]:
         return {
             "candidate_id": self.candidate_id,
-            "path": self.path,
             "changed_components": sorted(self.change_set.changed_components),
         }
 
@@ -61,6 +60,7 @@ class CandidateSurfacePolicy:
             "reward_weight_scale",
             "terrain_range",
             "height_range",
+            "stair_height_range",
             "ppo_hyperparameter",
             "eval_threshold",
             "budget",

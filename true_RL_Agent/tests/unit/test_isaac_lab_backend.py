@@ -25,8 +25,8 @@ class IsaacLabBackendTests(unittest.TestCase):
         self.adapter = IsaacLabRslRlBackendAdapter(
             IsaacLabRslRlBackendConfig(
                 isaac_lab_python="python",
-                train_entrypoint="isaaclab/train.py",
-                eval_entrypoint="isaaclab/eval.py",
+                train_entrypoint="scripts/isaaclab_rsl_rl_train.py",
+                eval_entrypoint="scripts/isaaclab_rsl_rl_eval.py",
                 default_budget_steps=2048,
                 public_seed_count=4,
                 trusted_seed_count=8,
@@ -63,9 +63,33 @@ class IsaacLabBackendTests(unittest.TestCase):
 
         self.assertEqual(bundle.train_spec.policy_initialization.kind, "random")
         self.assertIsNone(bundle.train_spec.training_start_checkpoint())
+        self.assertEqual(
+            bundle.train_spec.metadata["cli_argv"][:2],
+            ["python", "scripts/isaaclab_rsl_rl_train.py"],
+        )
         self.assertIn("--init random", bundle.train_spec.metadata["cli_command"])
         self.assertIn("--candidate artifact://candidate-001", bundle.train_spec.metadata["cli_command"])
+        self.assertTrue(bundle.train_spec.metadata["summary_path"].endswith("round-001/train/summary.json"))
+        self.assertIn(bundle.train_spec.metadata["summary_path"], bundle.train_spec.metadata["cli_argv"])
+        self.assertEqual(bundle.train_spec.metadata["sealed_checkpoint_uri"], "artifact://round-001/checkpoints/best.pt")
+        self.assertTrue(bundle.train_spec.metadata["checkpoint_output_path"].endswith("round-001/checkpoints/best.pt"))
+        self.assertIn(bundle.train_spec.metadata["checkpoint_output_path"], bundle.train_spec.metadata["cli_argv"])
         self.assertIn("--checkpoint", bundle.eval_spec.metadata["cli_command"])
+        self.assertEqual(
+            bundle.eval_spec.metadata["cli_argv"][:2],
+            ["python", "scripts/isaaclab_rsl_rl_eval.py"],
+        )
+        self.assertIn("--public-accept-seeds", bundle.eval_spec.metadata["cli_argv"])
+        self.assertEqual(
+            bundle.eval_spec.metadata["cli_argv"][
+                bundle.eval_spec.metadata["cli_argv"].index("--public-accept-seeds") + 1
+            ],
+            "1",
+        )
+        self.assertEqual(bundle.eval_spec.public_accept_seed_count, 1)
+        self.assertEqual(bundle.eval_spec.eval_num_envs, 64)
+        self.assertTrue(bundle.eval_spec.metadata["summary_path"].endswith("round-001/eval/summary.json"))
+        self.assertIn(bundle.eval_spec.metadata["summary_path"], bundle.eval_spec.metadata["cli_argv"])
         self.assertEqual(bundle.task_invariants, self.task.invariants)
 
     def test_materializes_warm_start_train_with_explicit_init_checkpoint(self) -> None:
@@ -116,7 +140,70 @@ class IsaacLabBackendTests(unittest.TestCase):
         self.assertFalse(init_report.compatible)
         self.assertIn("unsupported_policy_initialization:unsupported_init", init_report.reasons)
 
+    def test_materializes_phase8b_full_budget_cli_with_explicit_max_iterations(self) -> None:
+        adapter = IsaacLabRslRlBackendAdapter(
+            IsaacLabRslRlBackendConfig(
+                isaac_lab_python="python",
+                train_entrypoint="scripts/isaaclab_rsl_rl_train.py",
+                eval_entrypoint="scripts/isaaclab_rsl_rl_eval.py",
+                default_budget_steps=49_152_000,
+                train_num_envs=4096,
+                train_max_iterations=500,
+                train_steps_per_iteration=24,
+                public_seed_count=4,
+                trusted_seed_count=8,
+            )
+        )
+        task = TaskSpec(
+            task_id="unitree_push_recovery",
+            name="Unitree Push Recovery",
+            supported_policy_initializations=frozenset({"random", "warm_start"}),
+            invariants=TaskInvariantSpec(
+                {
+                    "budget_steps": 49_152_000,
+                    "train_num_envs": 4096,
+                    "train_max_iterations": 500,
+                    "train_steps_per_iteration": 24,
+                }
+            ),
+        )
+
+        bundle = adapter.materialize_jobs(
+            round_id="round-full-budget",
+            task_spec=task,
+            candidate=self.candidate,
+            policy_initialization=PolicyInitialization.random(),
+        )
+
+        argv = bundle.train_spec.metadata["cli_argv"]
+        self.assertEqual(bundle.train_spec.budget_steps, 49_152_000)
+        self.assertIn("--budget-steps", argv)
+        self.assertEqual(argv[argv.index("--budget-steps") + 1], "49152000")
+        self.assertIn("--num-envs", argv)
+        self.assertEqual(argv[argv.index("--num-envs") + 1], "4096")
+        self.assertIn("--max-iterations", argv)
+        self.assertEqual(argv[argv.index("--max-iterations") + 1], "500")
+        self.assertIn("--num-steps-per-env", argv)
+        self.assertEqual(argv[argv.index("--num-steps-per-env") + 1], "24")
+        self.assertIn("--max-iterations 500", bundle.train_spec.metadata["cli_command"])
+        self.assertIn("--num-steps-per-env 24", bundle.train_spec.metadata["cli_command"])
+
+    def test_rejects_backend_budget_mismatch_against_task_invariant(self) -> None:
+        task = TaskSpec(
+            task_id="unitree_push_recovery",
+            name="Unitree Push Recovery",
+            supported_policy_initializations=frozenset({"random", "warm_start"}),
+            invariants=TaskInvariantSpec({"budget_steps": 49_152_000}),
+        )
+
+        with self.assertRaisesRegex(ValueError, "task_budget_mismatch"):
+            self.adapter.materialize_jobs(
+                round_id="round-budget-mismatch",
+                task_spec=task,
+                candidate=self.candidate,
+                policy_initialization=PolicyInitialization.random(),
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
-

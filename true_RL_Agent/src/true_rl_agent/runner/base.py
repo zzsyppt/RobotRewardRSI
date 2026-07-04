@@ -10,6 +10,25 @@ from true_rl_agent.evaluation.public_result import PublicEvalResult
 from true_rl_agent.runner.specs import CheckpointRef, EvalJobSpec, TrainJobSpec
 
 
+class RunnerExecutionError(RuntimeError):
+    """Raised when runner-owned execution cannot complete."""
+
+
+class CandidateRuntimeError(RunnerExecutionError):
+    """Raised when a verified candidate fails inside runner-owned execution."""
+
+    def __init__(self, message: str, *, public_details: Mapping[str, Any] | None = None) -> None:
+        super().__init__(message)
+        self.public_details = dict(public_details or {})
+
+    def to_public_dict(self) -> dict[str, Any]:
+        return {
+            "type": self.__class__.__name__,
+            "message": str(self),
+            "details": dict(self.public_details),
+        }
+
+
 @dataclass(frozen=True)
 class TrainJobResult:
     """Result of a runner-owned training job."""

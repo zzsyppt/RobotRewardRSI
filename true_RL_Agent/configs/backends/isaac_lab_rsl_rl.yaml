@@ -1,7 +1,23 @@
 schema_version: true_rl_agent.backend.isaac_lab_rsl_rl.v1
-status: scaffold
+status: implemented
 adapter: isaac_lab_rsl_rl
 execution:
-  materialization_only: true
+  materialization_only: false
+  runner_boundary: subprocess
+  requires_structured_cli_argv: true
+  requires_external_runtime: true
   imports_training_scripts: false
-
+runtime:
+  default_server_python: /data/yuyangliu/envs/isaaclab/bin/python
+  train_entrypoint: scripts/isaaclab_rsl_rl_train.py
+  eval_entrypoint: scripts/isaaclab_rsl_rl_eval.py
+  train_profile: strong_push
+  eval_profile: strong_push
+  train_num_envs: 4096
+  train_max_iterations: 500
+  train_steps_per_iteration: 24
+  env_step_budget: 49152000
+  eval_num_envs: 64
+  public_seed_count: 3
+  public_accept_seed_count: 1
+  trusted_seed_count: 7

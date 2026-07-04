@@ -29,6 +29,6 @@ def dry_run_eval_command(spec: EvalJobSpec) -> str:
             f"--candidate {spec.candidate_id}",
             f"--checkpoint {spec.checkpoint.uri}",
             f"--public-seeds {spec.public_seed_count}",
+            f"--public-accept-seeds {spec.public_accept_seed_count}",
         ]
     )
-

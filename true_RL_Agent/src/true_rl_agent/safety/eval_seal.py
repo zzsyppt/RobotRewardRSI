@@ -40,7 +40,9 @@ def build_trusted_eval_seal(*, eval_spec: EvalJobSpec, task_invariants: TaskInva
         "candidate_id": eval_spec.candidate_id,
         "checkpoint": eval_spec.checkpoint.to_public_dict(),
         "public_seed_count": eval_spec.public_seed_count,
+        "public_accept_seed_count": eval_spec.public_accept_seed_count,
         "trusted_seed_count": eval_spec.trusted_seed_count,
+        "eval_num_envs": eval_spec.eval_num_envs,
     }
     return TrustedEvalSeal(
         eval_config_hash=_stable_hash(eval_config),
@@ -54,4 +56,3 @@ def build_trusted_eval_seal(*, eval_spec: EvalJobSpec, task_invariants: TaskInva
 def _stable_hash(payload: dict[str, Any]) -> str:
     encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
-

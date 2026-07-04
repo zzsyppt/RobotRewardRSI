@@ -16,6 +16,7 @@ from true_rl_agent.agent_core.ledger import load_ledger
 from true_rl_agent.agent_core.round import RoundInputs, run_candidate_round
 from true_rl_agent.backends.base import BackendJobBundle
 from true_rl_agent.candidates.schema import CandidateChangeSet, CandidatePackageRef
+from true_rl_agent.memory import PromptPayloadRef
 from true_rl_agent.policy import PolicyInitialization
 from true_rl_agent.tasks.base import TaskInvariantSpec
 
@@ -76,6 +77,39 @@ class FakeRoundTests(unittest.TestCase):
         self.assertEqual(ledger[0]["public_context"]["previous_rounds"], 0)
         self.assertFalse(ledger[0]["feedback_safe"]["private_eval_used"])
 
+    def test_round_ledger_records_prompt_payload_ref(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            ledger_path = root / "ledger.jsonl"
+            prompt_ref = PromptPayloadRef(path=str(root / "round-001" / "prompt_payload.json"))
+            candidate = CandidatePackageRef(
+                candidate_id="candidate-reward_callable",
+                path="memory://candidate-reward_callable",
+                change_set=CandidateChangeSet(changed_components=frozenset({"reward_callable"})),
+                metadata={"fake_public_score": 0.20},
+            )
+
+            run_candidate_round(
+                RoundInputs(
+                    round_id="round-001",
+                    task_plugin=self.task,
+                    backend_adapter=self.backend,
+                    runner=self.runner,
+                    verifier=self.verifier,
+                    candidate=candidate,
+                    policy_initialization=PolicyInitialization.random(),
+                    ledger_path=ledger_path,
+                    public_context={"previous_rounds": 0, "public_only": True},
+                    current_best_score=0.10,
+                    policy_accept_delta=0.05,
+                    prompt_payload_ref=prompt_ref,
+                )
+            )
+            ledger = load_ledger(ledger_path)
+
+        self.assertEqual(ledger[0]["prompt_payload"], prompt_ref.to_public_dict())
+        self.assertEqual(ledger[0]["prompt_payload"]["visibility"], "public_prompt_payload")
+
     def test_parameter_only_candidate_rejects_even_with_high_score(self) -> None:
         outcome, ledger = self._run_candidate("reward_weight", public_score=0.95)
 
@@ -100,6 +134,8 @@ class FakeRoundTests(unittest.TestCase):
 
         self.assertIs(outcome, DecisionOutcome.REJECT)
         self.assertEqual(ledger[0]["decision"]["reason"], "candidate_verifier_failed")
+        self.assertEqual(ledger[0]["candidate"]["changed_components"], [])
+        self.assertEqual(ledger[0]["candidate_surface"]["classification"], "no_code_change")
         self.assertIsNone(ledger[0]["train_result"])
         self.assertIsNone(ledger[0]["public_result"])
 
