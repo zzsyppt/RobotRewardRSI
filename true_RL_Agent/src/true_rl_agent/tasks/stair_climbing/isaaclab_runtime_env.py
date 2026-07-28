@@ -18,6 +18,12 @@ from true_rl_agent.tasks.stair_climbing.isaaclab_env_cfg import (
     StairG1RoughEnvCfg,
     build_stair_env_cfg,
 )
+from true_rl_agent.tasks.stair_climbing.isaaclab_reward_runtime import (
+    StairCompleteRewardManagerCfg,
+)
+from true_rl_agent.tasks.stair_climbing.reward_program import (
+    QualifiedStairRewardProgram,
+)
 from true_rl_agent.tasks.stair_climbing.runtime_profile import (
     STAIR_EVAL_GYM_ID,
     STAIR_EVAL_TRANSITION_EXTRAS_KEY,
@@ -108,10 +114,20 @@ def build_stair_train_env_cfg(
     *,
     seed: int,
     device: str,
+    reward_program: QualifiedStairRewardProgram,
 ) -> StairG1RoughEnvCfg:
-    """Build production training without any recorder overhead."""
+    """Build training with one pre-reset complete-reward authority."""
 
+    if not isinstance(reward_program, QualifiedStairRewardProgram):
+        raise TypeError("Stair train env requires a qualified reward program")
     cfg = build_stair_env_cfg(protocol, mode="train", seed=seed, device=device)
+    install_stair_termination_capture(cfg.terminations)
+    rewards = StairCompleteRewardManagerCfg()
+    rewards.complete_reward.params = {
+        "qualified_program": reward_program,
+        "base_protocol": dict(protocol),
+    }
+    cfg.rewards = rewards
     cfg.recorders = None
     return cfg
 

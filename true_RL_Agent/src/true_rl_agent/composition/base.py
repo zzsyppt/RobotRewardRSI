@@ -15,7 +15,10 @@ from true_rl_agent.policy_baselines import BaselineManifest
 from true_rl_agent.runner.base import Runner
 from true_rl_agent.tasks.base import TaskPlugin
 from true_rl_agent.tasks.compatibility import check_task_backend_compatibility
-from true_rl_agent.training_programs import ReferenceProgramManifest
+from true_rl_agent.training_programs import (
+    ReferenceProgramManifest,
+    VerifiedReferenceProgramArtifact,
+)
 
 
 class TaskCompositionError(ValueError):
@@ -41,7 +44,7 @@ class ResolvedTaskComposition:
     genesis_anchor_kind: str
     task_defaults: Mapping[str, Any] = field(default_factory=dict)
     baseline_manifest: BaselineManifest | None = None
-    reference_program_manifest: ReferenceProgramManifest | None = None
+    reference_program_artifact: VerifiedReferenceProgramArtifact | None = None
 
     def __post_init__(self) -> None:
         if self.task_plugin.task_spec.task_id != self.task_id:
@@ -77,8 +80,15 @@ class ResolvedTaskComposition:
                 raise TaskCompositionError(
                     "composition backend does not support baseline eval"
                 )
-        if self.reference_program_manifest is not None:
-            manifest = self.reference_program_manifest
+        if self.reference_program_artifact is not None:
+            if not isinstance(
+                self.reference_program_artifact,
+                VerifiedReferenceProgramArtifact,
+            ):
+                raise TaskCompositionError(
+                    "composition reference program is not a verified artifact"
+                )
+            manifest = self.reference_program_artifact.manifest
             if manifest.task_id != self.task_id:
                 raise TaskCompositionError(
                     "composition reference program task_id mismatch"
@@ -118,7 +128,10 @@ class ResolvedTaskComposition:
                 raise TaskCompositionError(
                     "bootstrap composition requires random initialization"
                 )
-            if self.baseline_manifest is not None or self.reference_program_manifest is not None:
+            if (
+                self.baseline_manifest is not None
+                or self.reference_program_artifact is not None
+            ):
                 raise TaskCompositionError(
                     "bootstrap composition cannot carry a baseline or reference manifest"
                 )
@@ -131,7 +144,7 @@ class ResolvedTaskComposition:
                 raise TaskCompositionError(
                     "policy-baseline composition requires a baseline manifest"
                 )
-            if self.reference_program_manifest is not None:
+            if self.reference_program_artifact is not None:
                 raise TaskCompositionError(
                     "policy-baseline composition cannot carry a reference manifest"
                 )
@@ -140,9 +153,9 @@ class ResolvedTaskComposition:
                 raise TaskCompositionError(
                     "reference-program composition requires random initialization"
                 )
-            if self.reference_program_manifest is None:
+            if self.reference_program_artifact is None:
                 raise TaskCompositionError(
-                    "reference-program composition requires a reference manifest"
+                    "reference-program composition requires a verified reference artifact"
                 )
             if self.baseline_manifest is not None:
                 raise TaskCompositionError(
@@ -156,21 +169,36 @@ class ResolvedTaskComposition:
             MappingProxyType(dict(self.task_defaults)),
         )
 
+    @property
+    def reference_program_manifest(self) -> ReferenceProgramManifest | None:
+        artifact = self.reference_program_artifact
+        return artifact.manifest if artifact is not None else None
+
     def runtime_snapshot(self) -> Mapping[str, Any]:
-        return MappingProxyType(
-            {
-                "schema_version": "true_rl_agent.runtime_composition_snapshot.v1",
-                "task_id": self.task_id,
-                "task_protocol_hash": (
-                    self.task_plugin.task_spec.resolved_task_protocol_hash()
+        snapshot = {
+            "schema_version": "true_rl_agent.runtime_composition_snapshot.v1",
+            "task_id": self.task_id,
+            "task_protocol_hash": (
+                self.task_plugin.task_spec.resolved_task_protocol_hash()
+            ),
+            "genesis_anchor_kind": self.genesis_anchor_kind,
+            "candidate_capability_profile": (
+                self.task_plugin.task_spec.candidate_capability_profile.to_public_dict()
+            ),
+            "task_defaults": dict(self.task_defaults),
+        }
+        if self.reference_program_artifact is not None:
+            manifest = self.reference_program_artifact.manifest
+            snapshot["reference_program"] = {
+                "reference_id": manifest.reference_id,
+                "manifest_hash": manifest.manifest_hash,
+                "source_checksum": manifest.source_checksum,
+                "source_size_bytes": manifest.source_size_bytes,
+                "verification_hash": (
+                    self.reference_program_artifact.verification_hash
                 ),
-                "genesis_anchor_kind": self.genesis_anchor_kind,
-                "candidate_capability_profile": (
-                    self.task_plugin.task_spec.candidate_capability_profile.to_public_dict()
-                ),
-                "task_defaults": dict(self.task_defaults),
             }
-        )
+        return MappingProxyType(snapshot)
 
 
 class TaskCompositionProvider(ABC):

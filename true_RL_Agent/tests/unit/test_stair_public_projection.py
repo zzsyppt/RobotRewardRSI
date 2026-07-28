@@ -35,6 +35,9 @@ from true_rl_agent.tasks.stair_climbing.prompt_adapter import (  # noqa: E402
 from true_rl_agent.tasks.stair_climbing.public_projection import (  # noqa: E402
     project_stair_public_result,
 )
+from true_rl_agent.tasks.stair_climbing.runtime_profile import (  # noqa: E402
+    STAIR_REWARD_ACTIVATION_PREFLIGHT_SCHEMA_VERSION,
+)
 
 
 class StairPublicProjectionTests(unittest.TestCase):
@@ -157,7 +160,152 @@ class StairPublicProjectionTests(unittest.TestCase):
         )
         self.assertEqual(projected.metrics["budget_accounting"]["status"], "fail")
 
-    def test_prompt_memory_and_phase_b_smoke_remain_public_and_fail_closed(self) -> None:
+    def test_runtime_gate_requires_complete_execution_evidence(self) -> None:
+        train_summary = _train_summary(self.config)
+        source_checksum = "sha256:" + "1" * 64
+        subject_manifest_hash = "2" * 64
+        qualification_hash = "3" * 64
+        train_summary["program_source_checksum"] = source_checksum
+        train_summary["subject_kind"] = "candidate"
+        train_summary["subject_id"] = "candidate-runtime-test"
+        train_summary["subject_manifest_hash"] = subject_manifest_hash
+        train_summary["reward_program_qualification_hash"] = qualification_hash
+        term_names = [f"term_{index}" for index in range(15)]
+        expected_dispatcher_calls = (
+            self.config.train_steps_per_iteration * self.config.train_max_iterations
+        ) + 1
+        train_summary["runtime_activation_summary"] = {
+            "status": "pass",
+            "runtime_status": "active_pre_reset_complete_reward_v1",
+            "dispatcher_calls": expected_dispatcher_calls,
+            "term_calls": expected_dispatcher_calls * 15,
+            "declared_term_count": 15,
+            "input_guard": "pass",
+            "rng_guard": "pass",
+            "source_alias_guard": "pass",
+            "reward_manager_active_terms": ["complete_reward"],
+            "reward_manager_term_weight": 1.0,
+            "training_recorder_enabled": False,
+            "reward_term_calls": expected_dispatcher_calls * 15,
+            "diagnostic_calls": 0,
+            "nonzero_reward_contribution": True,
+            "component_activation_records": [
+                {"name": name} for name in term_names
+            ],
+            "capability_activation_records": ["complete_reward_program"],
+            "activation_preflight": {
+                "schema_version": STAIR_REWARD_ACTIVATION_PREFLIGHT_SCHEMA_VERSION,
+                "status": "pass",
+                "real_transition_dispatcher_calls": 1,
+                "transition_common_step": 1,
+                "repeat_count": 2,
+                "term_names": term_names,
+            },
+            "program": {
+                "program_source_checksum": source_checksum,
+                "subject_manifest_hash": subject_manifest_hash,
+                "qualification_hash": qualification_hash,
+                "subject": {
+                    "kind": "candidate",
+                    "id": "candidate-runtime-test",
+                },
+                "input_schema_hash": (
+                    self.config.protocol_v2.complete_reward_runtime.input_schema_hash
+                ),
+                "term_names": term_names,
+            },
+        }
+
+        projected = project_stair_public_result(
+            config=self.config,
+            public_result=PublicEvalResult(
+                status="pass",
+                public_score=0.5,
+                metrics={
+                    "stair_evaluation": {
+                        "public_dev": self.public_dev,
+                        "public_accept": self.public_accept,
+                    }
+                },
+            ),
+            train_summary=train_summary,
+        )
+
+        self.assertEqual(
+            projected.metrics["runtime_activation_gate"]["status"],
+            "pass",
+        )
+        forged = copy.deepcopy(train_summary)
+        forged["runtime_activation_summary"]["term_calls"] -= 1
+        projected = project_stair_public_result(
+            config=self.config,
+            public_result=PublicEvalResult(
+                status="pass",
+                public_score=0.5,
+                metrics={
+                    "stair_evaluation": {
+                        "public_dev": self.public_dev,
+                        "public_accept": self.public_accept,
+                    }
+                },
+            ),
+            train_summary=forged,
+        )
+        self.assertEqual(
+            projected.metrics["runtime_activation_gate"]["status"],
+            "fail",
+        )
+        self.assertIn(
+            "term_call_accounting",
+            projected.metrics["runtime_activation_gate"]["failed_checks"],
+        )
+
+        forged = copy.deepcopy(train_summary)
+        forged["runtime_activation_summary"]["activation_preflight"][
+            "real_transition_dispatcher_calls"
+        ] = 0
+        projected = project_stair_public_result(
+            config=self.config,
+            public_result=PublicEvalResult(
+                status="pass",
+                public_score=0.5,
+                metrics={
+                    "stair_evaluation": {
+                        "public_dev": self.public_dev,
+                        "public_accept": self.public_accept,
+                    }
+                },
+            ),
+            train_summary=forged,
+        )
+        self.assertIn(
+            "activation_preflight",
+            projected.metrics["runtime_activation_gate"]["failed_checks"],
+        )
+        forged = copy.deepcopy(train_summary)
+        forged["runtime_activation_summary"]["program"][
+            "subject_manifest_hash"
+        ] = "4" * 64
+        projected = project_stair_public_result(
+            config=self.config,
+            public_result=PublicEvalResult(
+                status="pass",
+                public_score=0.5,
+                metrics={
+                    "stair_evaluation": {
+                        "public_dev": self.public_dev,
+                        "public_accept": self.public_accept,
+                    }
+                },
+            ),
+            train_summary=forged,
+        )
+        self.assertIn(
+            "program_identity",
+            projected.metrics["runtime_activation_gate"]["failed_checks"],
+        )
+
+    def test_prompt_memory_exposes_only_the_phase_c_public_abi(self) -> None:
         projected = project_stair_public_result(
             config=self.config,
             public_result=PublicEvalResult(
@@ -183,7 +331,21 @@ class StairPublicProjectionTests(unittest.TestCase):
             public_records=[record],
             public_context={"task_public_summary": memory},
         )
-        self.assertEqual(sections["reward_inputs_contract"]["status"], "not_available")
+        self.assertEqual(sections["reward_inputs_contract"]["status"], "available")
+        self.assertEqual(
+            sections["task"]["candidate_authoring_status"],
+            "governed_by_shared_candidate_capabilities",
+        )
+        train_summary = sections["task"]["fixed_train_protocol_summary"]
+        self.assertTrue(train_summary["complete_reward_runtime_available"])
+        self.assertNotIn("candidate_can_change", train_summary)
+        self.assertEqual(
+            [
+                field["name"]
+                for field in sections["reward_inputs_contract"]["fields"]
+            ],
+            list(self.config.protocol_v2.complete_reward_runtime.field_names),
+        )
         self.assertNotIn("raw_seed", str(sections))
         self.assertNotIn("[redacted]", str(sections))
         self.assertIsNone(

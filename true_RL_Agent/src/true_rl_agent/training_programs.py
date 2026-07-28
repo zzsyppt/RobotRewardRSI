@@ -21,6 +21,9 @@ from true_rl_agent.evaluation.subject import validate_experiment_subject_id
 REFERENCE_PROGRAM_MANIFEST_SCHEMA_VERSION = (
     "true_rl_agent.reference_program_manifest.v1"
 )
+VERIFIED_REFERENCE_PROGRAM_SCHEMA_VERSION = (
+    "true_rl_agent.verified_reference_program.v1"
+)
 CANONICAL_TRAINING_COMPONENTS_PATH = "training_code/components.py"
 CANONICAL_TRAINING_COMPONENTS_ENTRYPOINT = (
     CONTROLLED_ENTRYPOINT
@@ -175,7 +178,11 @@ class ReferenceProgramManifest:
         path = Path(source_path).resolve(strict=True)
         if not path.is_file():
             raise ValueError("reference program source is not a file")
-        payload = path.read_bytes()
+        self.verify_source_bytes(path.read_bytes())
+
+    def verify_source_bytes(self, payload: bytes) -> None:
+        if not isinstance(payload, bytes) or not payload:
+            raise ValueError("reference program source bytes must be non-empty")
         if len(payload) != self.source_size_bytes:
             raise ValueError("reference program source size mismatch")
         checksum = "sha256:" + hashlib.sha256(payload).hexdigest()
@@ -204,13 +211,147 @@ class ReferenceProgramManifest:
         }
 
 
+@dataclass(frozen=True, init=False)
+class VerifiedReferenceProgramArtifact:
+    """Capability proving that one manifest is backed by exact source bytes."""
+
+    manifest: ReferenceProgramManifest
+    source_bytes: bytes
+    verification_hash: str
+
+    _TOKEN = object()
+
+    def __init__(
+        self,
+        *,
+        manifest: ReferenceProgramManifest,
+        source_bytes: bytes,
+        verification_hash: str,
+        _token: object | None = None,
+    ) -> None:
+        if _token is not self._TOKEN:
+            raise TypeError(
+                "verified reference programs must be created by the trusted resolver"
+            )
+        if not isinstance(manifest, ReferenceProgramManifest):
+            raise TypeError("verified reference program manifest is invalid")
+        manifest.verify_source_bytes(source_bytes)
+        expected_hash = _reference_program_verification_hash(manifest)
+        require_sha256_digest(
+            verification_hash,
+            "verified reference program verification hash",
+        )
+        if verification_hash != expected_hash:
+            raise ValueError("verified reference program verification hash mismatch")
+        object.__setattr__(self, "manifest", manifest)
+        object.__setattr__(self, "source_bytes", bytes(source_bytes))
+        object.__setattr__(self, "verification_hash", verification_hash)
+
+    @classmethod
+    def _validated(
+        cls,
+        *,
+        manifest: ReferenceProgramManifest,
+        source_bytes: bytes,
+    ) -> "VerifiedReferenceProgramArtifact":
+        return cls(
+            manifest=manifest,
+            source_bytes=source_bytes,
+            verification_hash=_reference_program_verification_hash(manifest),
+            _token=cls._TOKEN,
+        )
+
+    @property
+    def source_text(self) -> str:
+        return self.source_bytes.decode("utf-8")
+
+    def to_public_dict(self) -> dict[str, Any]:
+        return {
+            "schema_version": VERIFIED_REFERENCE_PROGRAM_SCHEMA_VERSION,
+            "manifest": self.manifest.to_public_dict(),
+            "verification": {
+                "status": "pass",
+                "verification_hash": self.verification_hash,
+            },
+        }
+
+
+def resolve_reference_program_artifact(
+    source_path: str | Path,
+    *,
+    reference_id: str,
+    task_id: str,
+    authorship_origin: str,
+    upstream_project: str,
+    upstream_revision: str,
+    upstream_source_path: str,
+    capability_profile_hash: str,
+) -> VerifiedReferenceProgramArtifact:
+    """Read one real source file and derive its complete trusted identity."""
+
+    unresolved = Path(source_path)
+    if unresolved.is_symlink():
+        raise ValueError("reference program source must not be a symlink")
+    resolved = unresolved.resolve(strict=True)
+    if not resolved.is_file():
+        raise ValueError("reference program source is not a file")
+    payload = resolved.read_bytes()
+    if not payload:
+        raise ValueError("reference program source bytes must be non-empty")
+    try:
+        payload.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ValueError("reference program source must be valid UTF-8") from exc
+    source_checksum = "sha256:" + hashlib.sha256(payload).hexdigest()
+    source_uri = (
+        "artifact://reference-program/"
+        + source_checksum.removeprefix("sha256:")
+        + "/"
+        + CANONICAL_TRAINING_COMPONENTS_PATH
+    )
+    manifest = ReferenceProgramManifest(
+        reference_id=reference_id,
+        task_id=task_id,
+        source_uri=source_uri,
+        source_checksum=source_checksum,
+        source_size_bytes=len(payload),
+        authorship_origin=authorship_origin,
+        upstream_project=upstream_project,
+        upstream_revision=upstream_revision,
+        upstream_source_path=upstream_source_path,
+        capability_profile_hash=capability_profile_hash,
+    )
+    return VerifiedReferenceProgramArtifact._validated(
+        manifest=manifest,
+        source_bytes=payload,
+    )
+
+
+def _reference_program_verification_hash(
+    manifest: ReferenceProgramManifest,
+) -> str:
+    if manifest.manifest_hash is None:
+        raise ValueError("reference program manifest hash is missing")
+    return canonical_json_hash(
+        {
+            "schema_version": VERIFIED_REFERENCE_PROGRAM_SCHEMA_VERSION,
+            "manifest_hash": manifest.manifest_hash,
+            "source_checksum": manifest.source_checksum,
+            "source_size_bytes": manifest.source_size_bytes,
+        }
+    )
+
+
 __all__ = [
     "CANDIDATE_PROGRAM_IDENTITY_SCHEMA_VERSION",
     "CANONICAL_TRAINING_COMPONENTS_ENTRYPOINT",
     "CANONICAL_TRAINING_COMPONENTS_PATH",
     "REFERENCE_PROGRAM_AUTHORSHIP_ORIGINS",
     "REFERENCE_PROGRAM_MANIFEST_SCHEMA_VERSION",
+    "VERIFIED_REFERENCE_PROGRAM_SCHEMA_VERSION",
     "CandidateProgramIdentity",
     "ReferenceProgramManifest",
+    "VerifiedReferenceProgramArtifact",
+    "resolve_reference_program_artifact",
     "resolve_candidate_program_identity",
 ]

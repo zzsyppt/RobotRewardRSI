@@ -792,6 +792,40 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         self.assertEqual(inactive_code.status, "attribution_unclear")
         self.assertEqual(active_code.status, "pass")
 
+    def test_runtime_activation_mapping_rejects_weak_type_coercion(self) -> None:
+        valid = RuntimeActivationEvidence.from_mapping(
+            {
+                "reward_term_calls": 3,
+                "diagnostic_calls": 0,
+                "nonzero_reward_contribution": True,
+                "reward_output_stats": {},
+                "diagnostic_outputs": {},
+                "component_activation_records": [{"name": "reward"}],
+                "feature_activation_records": [],
+                "capability_activation_records": ["reward_program"],
+            }
+        )
+        self.assertEqual(valid.reward_term_calls, 3)
+
+        for field_name, invalid in (
+            ("reward_term_calls", "3"),
+            ("diagnostic_calls", 0.0),
+            ("nonzero_reward_contribution", 1),
+            ("component_activation_records", ["not-an-object"]),
+            ("capability_activation_records", [1]),
+        ):
+            with self.subTest(field_name=field_name):
+                payload = {
+                    "reward_term_calls": 3,
+                    "diagnostic_calls": 0,
+                    "nonzero_reward_contribution": True,
+                    "component_activation_records": [],
+                    "capability_activation_records": [],
+                }
+                payload[field_name] = invalid
+                with self.assertRaises((TypeError, ValueError)):
+                    RuntimeActivationEvidence.from_mapping(payload)
+
     def test_knob_only_shadow_candidate_keeps_only_parameter_components(self) -> None:
         shadow = build_knob_only_shadow_candidate(
             CandidateChangeSet(frozenset({"reward_callable", "reward_weight", "terrain_range"})),

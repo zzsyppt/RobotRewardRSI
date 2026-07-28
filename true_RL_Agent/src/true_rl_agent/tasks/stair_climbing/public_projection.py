@@ -10,13 +10,16 @@ from true_rl_agent.evaluation.sealed_validation import (
     CANDIDATE_CONTAMINATION_FIELDS,
     SEALED_VALIDATION_EVIDENCE_KEY,
 )
+from true_rl_agent.prompting.capabilities import (
+    COMPLETE_REWARD_PROGRAM_CAPABILITY_ID,
+)
 from true_rl_agent.runner.budget import build_budget_accounting
 from true_rl_agent.tasks.stair_climbing.config import StairClimbingTaskConfig
 from true_rl_agent.tasks.stair_climbing.evaluation_contract import (
     validate_stair_split_summary,
 )
 from true_rl_agent.tasks.stair_climbing.runtime_profile import (
-    STAIR_COMPLETE_REWARD_RUNTIME_ACTIVE_STATUS,
+    STAIR_REWARD_ACTIVATION_PREFLIGHT_SCHEMA_VERSION,
 )
 
 _TASK_DERIVED_INPUT_KEYS = {
@@ -98,7 +101,7 @@ def project_stair_public_result(
         raise ValueError("stair public score differs from public_accept macro mean")
 
     budget_gate = _budget_accounting_gate(config, train_summary)
-    runtime_gate = _runtime_activation_gate(config)
+    runtime_gate = _runtime_activation_gate(config, train_summary)
     behavior_gate = {
         "status": "pass",
         "reason": "task_recorder_public_split_evidence_complete",
@@ -178,19 +181,128 @@ def _budget_accounting_gate(
     return dict(expected)
 
 
-def _runtime_activation_gate(config: StairClimbingTaskConfig) -> dict[str, Any]:
-    runtime_status = config.train_runtime_profile().to_public_dict()[
+def _runtime_activation_gate(
+    config: StairClimbingTaskConfig,
+    train_summary: Mapping[str, Any],
+) -> dict[str, Any]:
+    expected_status = config.train_runtime_profile().to_public_dict()[
         "complete_reward_runtime"
     ]
-    active = runtime_status == STAIR_COMPLETE_REWARD_RUNTIME_ACTIVE_STATUS
-    return {
-        "status": "pass" if active else "fail",
-        "reason": (
-            "pre_reset_complete_reward_runtime_active"
-            if active
-            else "complete_reward_runtime_not_activated"
+    runtime = train_summary.get("runtime_activation_summary")
+    if not isinstance(runtime, Mapping):
+        return {
+            "status": "fail",
+            "reason": "complete_reward_runtime_evidence_missing",
+            "runtime_status": expected_status,
+        }
+    calls = runtime.get("dispatcher_calls")
+    term_calls = runtime.get("term_calls")
+    term_count = runtime.get("declared_term_count")
+    program = runtime.get("program")
+    program_subject = program.get("subject") if isinstance(program, Mapping) else None
+    component_records = runtime.get("component_activation_records")
+    preflight = runtime.get("activation_preflight")
+    expected_control_calls = (
+        config.train_steps_per_iteration * config.train_max_iterations
+    )
+    preflight_calls = (
+        preflight.get("real_transition_dispatcher_calls")
+        if isinstance(preflight, Mapping)
+        else None
+    )
+    checks = {
+        "runtime_status": runtime.get("runtime_status") == expected_status,
+        "runtime_evidence_status": runtime.get("status") == "pass",
+        "dispatcher_calls": (
+            isinstance(calls, int) and not isinstance(calls, bool) and calls > 0
         ),
-        "runtime_status": runtime_status,
+        "activation_preflight": (
+            isinstance(preflight, Mapping)
+            and preflight.get("schema_version")
+            == STAIR_REWARD_ACTIVATION_PREFLIGHT_SCHEMA_VERSION
+            and preflight.get("status") == "pass"
+            and preflight_calls == 1
+            and preflight.get("transition_common_step") == 1
+            and preflight.get("repeat_count")
+            == config.protocol_v2.complete_reward_runtime.dispatcher_contract[
+                "determinism_preflight_repeats"
+            ]
+            and isinstance(program, Mapping)
+            and preflight.get("term_names") == program.get("term_names")
+        ),
+        "dispatcher_call_accounting": (
+            isinstance(calls, int)
+            and not isinstance(calls, bool)
+            and calls == expected_control_calls + 1
+        ),
+        "term_call_accounting": (
+            isinstance(term_calls, int)
+            and not isinstance(term_calls, bool)
+            and isinstance(term_count, int)
+            and not isinstance(term_count, bool)
+            and term_count > 0
+            and isinstance(calls, int)
+            and not isinstance(calls, bool)
+            and term_calls == calls * term_count
+        ),
+        "input_guard": runtime.get("input_guard") == "pass",
+        "rng_guard": runtime.get("rng_guard") == "pass",
+        "source_alias_guard": runtime.get("source_alias_guard") == "pass",
+        "single_reward_manager_term": runtime.get(
+            "reward_manager_active_terms"
+        )
+        == ["complete_reward"],
+        "manager_weight": runtime.get("reward_manager_term_weight") == 1.0,
+        "training_recorder_disabled": runtime.get("training_recorder_enabled")
+        is False,
+        "generic_reward_term_calls": runtime.get("reward_term_calls")
+        == term_calls,
+        "generic_diagnostic_calls": runtime.get("diagnostic_calls") == 0,
+        "generic_nonzero_flag": isinstance(
+            runtime.get("nonzero_reward_contribution"),
+            bool,
+        ),
+        "generic_component_records": (
+            isinstance(component_records, list)
+            and isinstance(program, Mapping)
+            and len(component_records) == term_count
+            and {
+                record.get("name")
+                for record in component_records
+                if isinstance(record, Mapping)
+            }
+            == set(program.get("term_names", ()))
+        ),
+        "generic_capability_record": runtime.get(
+            "capability_activation_records"
+        )
+        == [COMPLETE_REWARD_PROGRAM_CAPABILITY_ID],
+        "program_identity": (
+            isinstance(program, Mapping)
+            and program.get("program_source_checksum")
+            == train_summary.get("program_source_checksum")
+            and program.get("subject_manifest_hash")
+            == train_summary.get("subject_manifest_hash")
+            and program.get("qualification_hash")
+            == train_summary.get("reward_program_qualification_hash")
+            and program.get("input_schema_hash")
+            == config.protocol_v2.complete_reward_runtime.input_schema_hash
+            and isinstance(program_subject, Mapping)
+            and program_subject.get("kind") == train_summary.get("subject_kind")
+            and program_subject.get("id") == train_summary.get("subject_id")
+        ),
+    }
+    failed = sorted(name for name, passed in checks.items() if not passed)
+    return {
+        "status": "pass" if not failed else "fail",
+        "reason": (
+            "pre_reset_complete_reward_runtime_evidence_complete"
+            if not failed
+            else "complete_reward_runtime_evidence_incomplete"
+        ),
+        "runtime_status": expected_status,
+        "failed_checks": failed,
+        "dispatcher_calls": calls if checks["dispatcher_calls"] else None,
     }
 
 

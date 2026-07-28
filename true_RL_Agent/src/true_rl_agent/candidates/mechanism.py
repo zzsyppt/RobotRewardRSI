@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Any, Mapping
+from typing import Any
 
 from true_rl_agent.candidates.schema import (
     CandidateChangeSet,
@@ -23,6 +24,45 @@ class RuntimeActivationEvidence:
     feature_activation_records: tuple[str, ...] = ()
     capability_activation_records: tuple[str, ...] = ()
 
+    def __post_init__(self) -> None:
+        _nonnegative_integer(self.reward_term_calls, "reward_term_calls")
+        _nonnegative_integer(self.diagnostic_calls, "diagnostic_calls")
+        if not isinstance(self.nonzero_reward_contribution, bool):
+            raise ValueError("nonzero_reward_contribution must be a boolean")
+        if not isinstance(self.reward_output_stats, Mapping):
+            raise ValueError("reward_output_stats must be an object")
+        if not isinstance(self.diagnostic_outputs, Mapping):
+            raise ValueError("diagnostic_outputs must be an object")
+        _mapping_records(
+            self.component_activation_records,
+            "component_activation_records",
+        )
+        _string_records(
+            self.feature_activation_records,
+            "feature_activation_records",
+        )
+        _string_records(
+            self.capability_activation_records,
+            "capability_activation_records",
+        )
+        object.__setattr__(self, "reward_output_stats", dict(self.reward_output_stats))
+        object.__setattr__(self, "diagnostic_outputs", dict(self.diagnostic_outputs))
+        object.__setattr__(
+            self,
+            "component_activation_records",
+            tuple(dict(record) for record in self.component_activation_records),
+        )
+        object.__setattr__(
+            self,
+            "feature_activation_records",
+            tuple(self.feature_activation_records),
+        )
+        object.__setattr__(
+            self,
+            "capability_activation_records",
+            tuple(self.capability_activation_records),
+        )
+
     def to_public_dict(self) -> dict[str, Any]:
         return {
             "reward_term_calls": self.reward_term_calls,
@@ -41,25 +81,75 @@ class RuntimeActivationEvidence:
     def from_mapping(cls, value: Mapping[str, Any] | None) -> "RuntimeActivationEvidence":
         if value is None:
             return cls()
-        reward_output_stats = value.get("reward_output_stats") or {}
-        diagnostic_outputs = value.get("diagnostic_outputs") or {}
-        component_activation_records = value.get("component_activation_records") or ()
-        feature_activation_records = value.get("feature_activation_records") or ()
-        capability_activation_records = value.get("capability_activation_records") or ()
+        if not isinstance(value, Mapping):
+            raise TypeError("runtime activation evidence must be an object")
+        reward_output_stats = value.get("reward_output_stats", {})
+        diagnostic_outputs = value.get("diagnostic_outputs", {})
+        component_activation_records = value.get("component_activation_records", ())
+        feature_activation_records = value.get("feature_activation_records", ())
+        capability_activation_records = value.get("capability_activation_records", ())
         return cls(
-            reward_term_calls=int(value.get("reward_term_calls", 0)),
-            diagnostic_calls=int(value.get("diagnostic_calls", 0)),
-            nonzero_reward_contribution=bool(value.get("nonzero_reward_contribution", False)),
-            reward_output_stats=dict(reward_output_stats),
-            diagnostic_outputs=dict(diagnostic_outputs),
-            component_activation_records=tuple(
-                dict(record)
-                for record in component_activation_records
-                if isinstance(record, Mapping)
+            reward_term_calls=_nonnegative_integer(
+                value.get("reward_term_calls", 0),
+                "reward_term_calls",
             ),
-            feature_activation_records=tuple(feature_activation_records),
-            capability_activation_records=tuple(capability_activation_records),
+            diagnostic_calls=_nonnegative_integer(
+                value.get("diagnostic_calls", 0),
+                "diagnostic_calls",
+            ),
+            nonzero_reward_contribution=_boolean(
+                value.get("nonzero_reward_contribution", False),
+                "nonzero_reward_contribution",
+            ),
+            reward_output_stats=_mapping(reward_output_stats, "reward_output_stats"),
+            diagnostic_outputs=_mapping(diagnostic_outputs, "diagnostic_outputs"),
+            component_activation_records=_mapping_records(
+                component_activation_records,
+                "component_activation_records",
+            ),
+            feature_activation_records=_string_records(
+                feature_activation_records,
+                "feature_activation_records",
+            ),
+            capability_activation_records=_string_records(
+                capability_activation_records,
+                "capability_activation_records",
+            ),
         )
+
+
+def _nonnegative_integer(value: Any, field_name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise ValueError(f"{field_name} must be a non-negative integer")
+    return value
+
+
+def _boolean(value: Any, field_name: str) -> bool:
+    if not isinstance(value, bool):
+        raise ValueError(f"{field_name} must be a boolean")
+    return value
+
+
+def _mapping(value: Any, field_name: str) -> Mapping[str, Any]:
+    if not isinstance(value, Mapping):
+        raise ValueError(f"{field_name} must be an object")
+    return value
+
+
+def _mapping_records(value: Any, field_name: str) -> tuple[Mapping[str, Any], ...]:
+    if not isinstance(value, list | tuple) or any(
+        not isinstance(record, Mapping) for record in value
+    ):
+        raise ValueError(f"{field_name} must contain only objects")
+    return tuple(value)
+
+
+def _string_records(value: Any, field_name: str) -> tuple[str, ...]:
+    if not isinstance(value, list | tuple) or any(
+        not isinstance(record, str) or not record for record in value
+    ):
+        raise ValueError(f"{field_name} must contain only non-empty strings")
+    return tuple(value)
 
 
 @dataclass(frozen=True)

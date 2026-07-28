@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import importlib.util
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
@@ -46,29 +44,49 @@ def load_candidate_manifest(candidate_dir: Path) -> CandidateManifest:
 def load_training_components(candidate_dir: Path) -> TrainingComponents:
     manifest = load_candidate_manifest(candidate_dir)
     module_path, function_name = _resolve_entrypoint(candidate_dir, manifest)
-    module = _load_module(module_path, f"true_rl_candidate_{manifest.candidate_id}")
-    factory = getattr(module, function_name)
+    if module_path.is_symlink() or not module_path.is_file():
+        raise ValueError("candidate components source must be a regular file")
+    return load_training_components_source_bytes(
+        module_path.read_bytes(),
+        module_name=f"true_rl_candidate_{manifest.candidate_id}",
+        source_name=str(module_path),
+        function_name=function_name,
+    )
+
+
+def load_training_components_source_bytes(
+    payload: bytes,
+    *,
+    module_name: str,
+    source_name: str,
+    function_name: str = "build_training_components",
+) -> TrainingComponents:
+    """Execute the exact verified source bytes through the controlled factory."""
+
+    if not isinstance(payload, bytes) or not payload:
+        raise ValueError("training components source bytes must be non-empty")
+    for field_name, value in (
+        ("module_name", module_name),
+        ("source_name", source_name),
+        ("function_name", function_name),
+    ):
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f"training components {field_name} is required")
+    try:
+        source = payload.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise ValueError("training components source must be valid UTF-8") from exc
+    module = ModuleType(module_name)
+    module.__file__ = source_name
+    code = compile(source, source_name, "exec", dont_inherit=True)
+    exec(code, module.__dict__)  # noqa: S102 - exact bytes passed a prior verifier
+    factory = getattr(module, function_name, None)
+    if not callable(factory):
+        raise TypeError("candidate entrypoint factory must be callable")
     components = factory()
     if not isinstance(components, TrainingComponents):
         raise TypeError("candidate entrypoint must return TrainingComponents")
     return components
-
-
-def _load_module(module_path: Path, module_name: str) -> ModuleType:
-    spec = importlib.util.spec_from_file_location(module_name, module_path)
-    if spec is None or spec.loader is None:
-        raise ImportError(f"cannot load candidate module: {module_path}")
-    module = importlib.util.module_from_spec(spec)
-    old_path = list(sys.path)
-    old_dont_write_bytecode = sys.dont_write_bytecode
-    try:
-        sys.path.insert(0, str(module_path.parent.parent))
-        sys.dont_write_bytecode = True
-        spec.loader.exec_module(module)
-    finally:
-        sys.dont_write_bytecode = old_dont_write_bytecode
-        sys.path[:] = old_path
-    return module
 
 
 def _validate_manifest(manifest: CandidateManifest) -> None:

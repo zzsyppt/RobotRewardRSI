@@ -12,7 +12,7 @@ from true_rl_agent.tasks.stair_climbing.config import (
 
 @dataclass(frozen=True)
 class StairClimbingComponentSmokeAdapter:
-    """Do not fabricate complete-reward inputs before Phase C activates them."""
+    """Keep generic smoke disabled; Stair qualifies against real pre-reset inputs."""
 
     config: StairClimbingTaskConfig
     task_id: str = STAIR_TASK_ID

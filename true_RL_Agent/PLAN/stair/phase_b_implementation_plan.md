@@ -46,9 +46,9 @@ Phase B 的目标是让 `unitree_stair_climbing` 拥有自己的严格配置、�
 
 ### 3.2 Reference 尚未产生时 fail closed
 
-`StairClimbingCompositionProvider` 构造时必须显式接收 `ReferenceProgramManifest`。provider 不生成 planned manifest，也不把 warm-start baseline 当作 reference。
+`StairClimbingCompositionProvider` 构造时必须显式接收 runner-owned resolver 从真实源码字节生成的 `VerifiedReferenceProgramArtifact`。provider 不接受裸 `ReferenceProgramManifest`，不生成 planned manifest，也不把 warm-start baseline 当作 reference。provider 不用 `authorship_origin` 推断 session role 或 reference 资格；两者按总计划保持正交。
 
-新增 task-owned staging registry builder，只有传入合法 reference manifest 才注册同一个 provider。默认 `build_application_composition_registry()` 不变。阶段 C 产生 canonical R0 源码后，后续阶段向同一 provider 提供真实 manifest；不另建 D/E/F 专用 provider。
+新增 task-owned staging registry builder，只有传入已绑定源码 bytes/hash/size/upstream provenance 的 verified reference artifact 才注册同一个 provider。默认 `build_application_composition_registry()` 不变。阶段 C 产生 canonical R0 源码后，由同一个可信 resolver 生成 artifact 并交给同一 provider；不另建 D/E/F 专用 provider。
 
 ### 3.3 显式生命周期门
 
@@ -186,7 +186,7 @@ Phase0 recorder 改为复用同一逐 term capture helper，但保持 Phase0 ext
 Phase B 只有同时满足以下条件才可标记完成：
 
 1. 同一个 `StairClimbingCompositionProvider` 在显式 staging registry 中 resolve 一次并产生一致 snapshot/backend/argv；
-2. 没有真实 reference manifest 时 provider/registry fail closed，不生成 placeholder R0；
+2. 没有由真实源码解析出的 verified reference artifact 时 provider/registry fail closed，不接受裸 manifest，不生成 placeholder R0；
 3. 默认生产 registry 仍只有 Push；
 4. train/eval 预算和七桶关系在物化前严格成立；
 5. 每个完成 episode 恰好一个 primary outcome，所有计数闭合；
@@ -215,4 +215,6 @@ Phase B 只有同时满足以下条件才可标记完成：
 - 真实 Isaac Lab 2.3.0、56 env 的首 episode smoke 完整闭合，七桶各 8 个 episode；
 - 使用 Phase 0 官方 G1 checkpoint 跑通 3 个 public-dev、5 个 public-accept、7 个 sealed-validation seed：对应 168、280、392 个 episode，分类 warning 均为 0；
 - 该 checkpoint 在三组 split 的成功率均为 0，sealed gate 按协议返回 fail；它只用于验证评估执行链，不作为 R0、Genesis 或能力证据；
+- staging/provider 已拒绝裸 manifest；通用 resolver 从实际 UTF-8 源码字节原子派生 content-addressed URI、checksum 和 size，并将 upstream provenance 一并绑定到 manifest/verification hash；
+- 已增加 `run_all_stair_splits` 的 recorder-schema → decoder → tracker → 七桶聚合回归，以及服务器 Isaac Lab 下真实 recorder 和 train/eval env builder 的动态回归；
 - Phase B train entrypoint 在完整 preflight 后、PPO 启动前按设计 fail closed，等待 Phase C 激活 complete-reward dispatcher。

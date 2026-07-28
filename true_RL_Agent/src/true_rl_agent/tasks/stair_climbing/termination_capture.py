@@ -1,4 +1,4 @@
-"""Strict current-step termination capture for Stair evaluation."""
+"""Strict current-step termination capture for every Stair runtime."""
 
 from __future__ import annotations
 
@@ -8,9 +8,9 @@ from types import MappingProxyType
 from typing import Any
 
 STAIR_TERMINATION_CAPTURE_SCHEME_VERSION = (
-    "stair_eval_term_callable_capture_v1"
+    "stair_term_callable_current_step_capture_v2"
 )
-_CAPTURE_STORE_ATTRIBUTE = "_true_rl_agent_stair_termination_capture_v1"
+_CAPTURE_STORE_ATTRIBUTE = "_true_rl_agent_stair_termination_capture_v2"
 
 
 class StairTerminationCaptureError(RuntimeError):
@@ -20,8 +20,11 @@ class StairTerminationCaptureError(RuntimeError):
 @dataclass(frozen=True)
 class StairTerminationMaskSnapshot:
     term_order: tuple[str, ...]
+    timeout_term_names: tuple[str, ...]
     term_masks: Mapping[str, Any]
     done_mask: Any
+    time_out_mask: Any
+    terminated_non_timeout_mask: Any
 
     def __post_init__(self) -> None:
         if (
@@ -37,6 +40,15 @@ class StairTerminationMaskSnapshot:
             raise StairTerminationCaptureError(
                 "termination snapshot masks do not match the active term set"
             )
+        if (
+            not isinstance(self.timeout_term_names, tuple)
+            or not self.timeout_term_names
+            or len(self.timeout_term_names) != len(set(self.timeout_term_names))
+            or not set(self.timeout_term_names) < set(self.term_order)
+        ):
+            raise StairTerminationCaptureError(
+                "termination snapshot timeout classification is invalid"
+            )
         object.__setattr__(self, "term_masks", MappingProxyType(dict(self.term_masks)))
 
 
@@ -47,7 +59,7 @@ class _CapturedTerminationTerm:
 
 
 def install_stair_termination_capture(terminations_cfg: Any) -> tuple[str, ...]:
-    """Wrap every configured Stair eval termination term at its execution source."""
+    """Wrap every configured Stair termination term at its execution source."""
 
     try:
         config_items = tuple(vars(terminations_cfg).items())
@@ -92,7 +104,7 @@ def install_stair_termination_capture(terminations_cfg: Any) -> tuple[str, ...]:
 
     if not installed:
         raise StairTerminationCaptureError(
-            "Stair evaluation requires at least one configured termination term"
+            "Stair runtime requires at least one configured termination term"
         )
     if len(installed) != len(set(installed)):
         raise StairTerminationCaptureError(
@@ -154,6 +166,21 @@ def capture_current_termination_masks(env: Any) -> StairTerminationMaskSnapshot:
     if termination_manager is None:
         raise StairTerminationCaptureError("environment has no termination manager")
     term_order = _active_term_order(termination_manager)
+    get_term_cfg = getattr(termination_manager, "get_term_cfg", None)
+    if not callable(get_term_cfg):
+        raise StairTerminationCaptureError(
+            "termination manager does not expose term classifications"
+        )
+    timeout_term_names: list[str] = []
+    for term_name in term_order:
+        term_cfg = get_term_cfg(term_name)
+        is_time_out = getattr(term_cfg, "time_out", None)
+        if type(is_time_out) is not bool:
+            raise StairTerminationCaptureError(
+                f"termination term {term_name!r} has invalid timeout classification"
+            )
+        if is_time_out:
+            timeout_term_names.append(term_name)
     store = getattr(env, _CAPTURE_STORE_ATTRIBUTE, None)
     if not isinstance(store, dict) or set(store) != set(term_order):
         raise StairTerminationCaptureError(
@@ -175,6 +202,7 @@ def capture_current_termination_masks(env: Any) -> StairTerminationMaskSnapshot:
 
     return build_termination_mask_snapshot(
         term_order=term_order,
+        timeout_term_names=tuple(timeout_term_names),
         term_masks=term_masks,
         done_mask=getattr(termination_manager, "dones", None),
     )
@@ -183,6 +211,7 @@ def capture_current_termination_masks(env: Any) -> StairTerminationMaskSnapshot:
 def build_termination_mask_snapshot(
     *,
     term_order: tuple[str, ...],
+    timeout_term_names: tuple[str, ...],
     term_masks: Mapping[str, Any],
     done_mask: Any,
 ) -> StairTerminationMaskSnapshot:
@@ -201,6 +230,15 @@ def build_termination_mask_snapshot(
         raise StairTerminationCaptureError(
             "termination snapshot masks do not match the active term set"
         )
+    if (
+        not isinstance(timeout_term_names, tuple)
+        or not timeout_term_names
+        or len(timeout_term_names) != len(set(timeout_term_names))
+        or not set(timeout_term_names) < set(term_order)
+    ):
+        raise StairTerminationCaptureError(
+            "termination snapshot timeout classification is invalid"
+        )
     cloned_done = _clone_boolean_vector(
         done_mask,
         field_name="termination manager dones",
@@ -213,17 +251,30 @@ def build_termination_mask_snapshot(
         )
         for name in term_order
     }
-    union = cloned_terms[term_order[0]]
-    for name in term_order[1:]:
-        union = union | cloned_terms[name]
+    time_out_mask = cloned_terms[timeout_term_names[0]]
+    for name in timeout_term_names[1:]:
+        time_out_mask = time_out_mask | cloned_terms[name]
+    timeout_names = set(timeout_term_names)
+    terminated_term_names = tuple(
+        name for name in term_order if name not in timeout_names
+    )
+    terminated_non_timeout_mask = cloned_terms[terminated_term_names[0]]
+    for name in terminated_term_names[1:]:
+        terminated_non_timeout_mask = (
+            terminated_non_timeout_mask | cloned_terms[name]
+        )
+    union = time_out_mask | terminated_non_timeout_mask
     if not _mask_equal(union, cloned_done):
         raise StairTerminationCaptureError(
             "termination manager done mask does not equal OR(active term masks)"
         )
     return StairTerminationMaskSnapshot(
         term_order=term_order,
+        timeout_term_names=timeout_term_names,
         term_masks=cloned_terms,
         done_mask=cloned_done,
+        time_out_mask=time_out_mask,
+        terminated_non_timeout_mask=terminated_non_timeout_mask,
     )
 
 

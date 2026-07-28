@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any, Mapping
@@ -22,6 +23,9 @@ from true_rl_agent.runner.checkpoint import (  # noqa: E402
 )
 from true_rl_agent.runner.eval_isolation import (  # noqa: E402
     build_candidate_isolation_gate,
+)
+from true_rl_agent.runner.isaac_app_lifecycle import (  # noqa: E402
+    close_isaac_app_on_success,
 )
 from true_rl_agent.tasks.stair_climbing.entrypoint_contract import (  # noqa: E402
     StairEvalEntrypointContext,
@@ -98,40 +102,37 @@ def main(
     app_launcher = app_launcher_class(args)
     simulation_app = app_launcher.app
     try:
-        try:
-            summary = _run_eval(
-                args,
-                context=context,
-                checkpoint_report=checkpoint_report,
-            )
-            status_code = 0
-        except Exception as exc:  # noqa: BLE001
-            summary = _failure_summary(
-                context,
-                checkpoint_report=checkpoint_report,
-                error=exc,
-            )
-            status_code = 1
+        summary = _run_eval(
+            args,
+            context=context,
+            checkpoint_report=checkpoint_report,
+        )
+        status_code = 0
+    except Exception as exc:  # noqa: BLE001
+        summary = _failure_summary(
+            context,
+            checkpoint_report=checkpoint_report,
+            error=exc,
+        )
+        status_code = 1
 
-        summary_path = _local_output_path(args.summary_path, "summary_path")
-        summary_path.parent.mkdir(parents=True, exist_ok=True)
-        summary_path.write_text(
-            json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
-        print(
-            json.dumps(
-                {"status": summary["status"], "summary_path": str(summary_path)},
-                sort_keys=True,
-            ),
-            flush=True,
-        )
-        return status_code
-    finally:
-        try:
-            simulation_app.close()
-        except Exception:
-            pass
+    summary_path = _local_output_path(args.summary_path, "summary_path")
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    summary_path.write_text(
+        json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    print(
+        json.dumps(
+            {"status": summary["status"], "summary_path": str(summary_path)},
+            sort_keys=True,
+        ),
+        flush=True,
+    )
+    return close_isaac_app_on_success(
+        simulation_app,
+        exit_code=status_code,
+    )
 
 
 def _run_eval(
@@ -281,4 +282,7 @@ def _local_output_path(value: str, field_name: str) -> Path:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    exit_code = main()
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os._exit(exit_code)

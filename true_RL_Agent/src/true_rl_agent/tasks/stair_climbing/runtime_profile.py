@@ -12,15 +12,17 @@ from true_rl_agent.tasks.stair_climbing.termination_capture import (
 
 STAIR_TRAIN_PROFILE = "stair_v2_draft_train"
 STAIR_EVAL_PROFILE = "stair_v2_draft_eval"
-STAIR_ENV_BUILDER_VERSION = "stair_g1_rough_env_v2"
+STAIR_ENV_BUILDER_VERSION = "stair_g1_rough_env_v3"
 STAIR_TRANSITION_RECORDER_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.transition.v1"
 )
 STAIR_EVAL_TRANSITION_EXTRAS_KEY = "stair_eval_pre_reset_transition_v1"
 STAIR_TRAIN_GYM_ID = "TrueRL-Unitree-Stair-Climbing-G1-Train-v0"
 STAIR_EVAL_GYM_ID = "TrueRL-Unitree-Stair-Climbing-G1-Eval-v0"
-STAIR_COMPLETE_REWARD_RUNTIME_STATUS = "not_activated_until_phase_c"
-STAIR_COMPLETE_REWARD_RUNTIME_ACTIVE_STATUS = "active_pre_reset_complete_reward_v1"
+STAIR_COMPLETE_REWARD_RUNTIME_STATUS = "active_pre_reset_complete_reward_v1"
+STAIR_REWARD_ACTIVATION_PREFLIGHT_SCHEMA_VERSION = (
+    "true_rl_agent.task.stair_climbing.reward_activation_preflight.v2"
+)
 
 
 @dataclass(frozen=True)
@@ -75,20 +77,18 @@ class StairRuntimeProfile:
             "transition_recorder_enabled": self.mode == "eval",
             "termination_capture_scheme_version": (
                 STAIR_TERMINATION_CAPTURE_SCHEME_VERSION
-                if self.mode == "eval"
-                else None
             ),
             "complete_reward_runtime": STAIR_COMPLETE_REWARD_RUNTIME_STATUS,
         }
 
 
 __all__ = [
-    "STAIR_COMPLETE_REWARD_RUNTIME_ACTIVE_STATUS",
     "STAIR_COMPLETE_REWARD_RUNTIME_STATUS",
     "STAIR_ENV_BUILDER_VERSION",
     "STAIR_EVAL_GYM_ID",
     "STAIR_EVAL_PROFILE",
     "STAIR_EVAL_TRANSITION_EXTRAS_KEY",
+    "STAIR_REWARD_ACTIVATION_PREFLIGHT_SCHEMA_VERSION",
     "STAIR_TRAIN_GYM_ID",
     "STAIR_TRAIN_PROFILE",
     "STAIR_TRANSITION_RECORDER_SCHEMA_VERSION",

@@ -44,6 +44,8 @@ class StairTerminationCaptureTests(unittest.TestCase):
         )
         self.assertEqual(snapshot.term_masks["time_out"].values, (False, True))
         self.assertEqual(snapshot.done_mask.values, (True, True))
+        self.assertEqual(snapshot.time_out_mask.values, (False, True))
+        self.assertEqual(snapshot.terminated_non_timeout_mask.values, (True, True))
         self.assertIsNot(snapshot.term_masks["time_out"], current_masks["time_out"])
         self.assertEqual(
             env.termination_manager.get_term("time_out").values,
@@ -64,6 +66,45 @@ class StairTerminationCaptureTests(unittest.TestCase):
 
         self.assertTrue(snapshot.term_masks["time_out"].values[1])
         self.assertTrue(snapshot.term_masks["base_contact"].values[1])
+
+    def test_post_reset_step_replaces_historical_term_reason(self) -> None:
+        current_masks = {
+            "time_out": _FakeMask(False),
+            "base_contact": _FakeMask(True),
+        }
+        cfg = SimpleNamespace(
+            time_out=_term_cfg(
+                lambda env: current_masks["time_out"],
+                time_out=True,
+            ),
+            base_contact=_term_cfg(lambda env: current_masks["base_contact"]),
+        )
+        historical_masks = {
+            "time_out": _FakeMask(False),
+            "base_contact": _FakeMask(True),
+        }
+        manager = SimpleNamespace(
+            active_terms=["time_out", "base_contact"],
+            dones=_FakeMask(True),
+            get_term=lambda name: historical_masks[name],
+            get_term_cfg=lambda name: getattr(cfg, name),
+        )
+        env = SimpleNamespace(common_step_counter=7, termination_manager=manager)
+        install_stair_termination_capture(cfg)
+
+        _execute_terms(env, cfg)
+        terminal = capture_current_termination_masks(env)
+        self.assertEqual(terminal.term_masks["base_contact"].values, (True,))
+
+        env.common_step_counter += 1
+        current_masks["base_contact"] = _FakeMask(False)
+        manager.dones = _FakeMask(False)
+        _execute_terms(env, cfg)
+        post_reset = capture_current_termination_masks(env)
+
+        self.assertEqual(post_reset.term_masks["base_contact"].values, (False,))
+        self.assertEqual(post_reset.terminated_non_timeout_mask.values, (False,))
+        self.assertEqual(manager.get_term("base_contact").values, (True,))
 
     def test_done_union_mismatch_fails_at_capture_source(self) -> None:
         env, cfg = _instrumented_env(
@@ -130,14 +171,17 @@ class StairTerminationCaptureTests(unittest.TestCase):
             return expected
 
         cfg = SimpleNamespace(term=_term_cfg(source, {"threshold": 2.5}))
+        cfg.time_out = _term_cfg(lambda env: _FakeMask(False), time_out=True)
         manager = SimpleNamespace(
-            active_terms=["term"],
+            active_terms=["time_out", "term"],
             dones=_FakeMask(True),
             get_term=lambda name: _FakeMask(False),
+            get_term_cfg=lambda name: getattr(cfg, name),
         )
         env = SimpleNamespace(common_step_counter=3, termination_manager=manager)
         install_stair_termination_capture(cfg)
 
+        cfg.time_out.func(env, **cfg.time_out.params)
         actual = cfg.term.func(env, **cfg.term.params)
 
         self.assertIs(actual, expected)
@@ -151,14 +195,19 @@ class StairTerminationCaptureTests(unittest.TestCase):
         bad_dtype.dtype = "float32"
         with self.assertRaisesRegex(StairTerminationCaptureError, "boolean dtype"):
             build_termination_mask_snapshot(
-                term_order=("time_out",),
-                term_masks={"time_out": bad_dtype},
+                term_order=("time_out", "base_contact"),
+                timeout_term_names=("time_out",),
+                term_masks={
+                    "time_out": bad_dtype,
+                    "base_contact": _FakeMask(False),
+                },
                 done_mask=_FakeMask(False),
             )
 
         with self.assertRaisesRegex(StairTerminationCaptureError, "term set is invalid"):
             build_termination_mask_snapshot(
                 term_order=("time_out", "time_out"),
+                timeout_term_names=("time_out",),
                 term_masks={"time_out": _FakeMask(False)},
                 done_mask=_FakeMask(False),
             )
@@ -212,8 +261,13 @@ class _FakeMask:
         return _FakeScalar(all(self.values))
 
 
-def _term_cfg(source: object, params: dict[str, object] | None = None) -> SimpleNamespace:
-    return SimpleNamespace(func=source, params=params or {})
+def _term_cfg(
+    source: object,
+    params: dict[str, object] | None = None,
+    *,
+    time_out: bool = False,
+) -> SimpleNamespace:
+    return SimpleNamespace(func=source, params=params or {}, time_out=time_out)
 
 
 def _instrumented_env(
@@ -224,7 +278,10 @@ def _instrumented_env(
 ) -> tuple[SimpleNamespace, SimpleNamespace]:
     cfg = SimpleNamespace(
         **{
-            name: _term_cfg(lambda env, value=value: value)
+            name: _term_cfg(
+                lambda env, value=value: value,
+                time_out=name == "time_out",
+            )
             for name, value in masks.items()
         }
     )
@@ -233,6 +290,7 @@ def _instrumented_env(
         active_terms=list(masks),
         dones=dones,
         get_term=lambda name: manager_masks[name],
+        get_term_cfg=lambda name: getattr(cfg, name),
     )
     env = SimpleNamespace(common_step_counter=7, termination_manager=manager)
     install_stair_termination_capture(cfg)

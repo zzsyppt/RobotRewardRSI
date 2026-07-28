@@ -22,7 +22,11 @@ from true_rl_agent.training_binding import (
     initialization_seed_schedule_hash,
     validate_training_execution_argv,
 )
-from true_rl_agent.training_programs import ReferenceProgramManifest
+from true_rl_agent.training_programs import (
+    ReferenceProgramManifest,
+    VerifiedReferenceProgramArtifact,
+    resolve_reference_program_artifact,
+)
 
 
 def _digest(label: str) -> str:
@@ -249,6 +253,53 @@ class PhaseAContractTests(unittest.TestCase):
             drifted["upstream_revision"] = "revision-2"
             with self.assertRaisesRegex(ValueError, "manifest hash mismatch"):
                 ReferenceProgramManifest.from_mapping(drifted)
+
+    def test_verified_reference_capability_is_derived_from_real_source(self) -> None:
+        profile = _profile()
+        source = b"def build_training_components():\n    return None\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_path = root / "components.py"
+            source_path.write_bytes(source)
+
+            artifact = resolve_reference_program_artifact(
+                source_path,
+                reference_id="official-reference-r0",
+                task_id="fake-task",
+                authorship_origin="official_upstream",
+                upstream_project="official-project",
+                upstream_revision="revision-1",
+                upstream_source_path="upstream/rewards.py",
+                capability_profile_hash=str(profile.profile_hash),
+            )
+
+            self.assertEqual(artifact.source_bytes, source)
+            self.assertEqual(artifact.manifest.source_checksum, _checksum(source))
+            self.assertEqual(artifact.manifest.source_size_bytes, len(source))
+            self.assertIn(
+                artifact.manifest.source_checksum.removeprefix("sha256:"),
+                artifact.manifest.source_uri,
+            )
+            source_path.write_text("tampered\n", encoding="utf-8")
+            self.assertEqual(artifact.source_bytes, source)
+
+            with self.assertRaisesRegex(TypeError, "trusted resolver"):
+                VerifiedReferenceProgramArtifact(
+                    manifest=artifact.manifest,
+                    source_bytes=artifact.source_bytes,
+                    verification_hash=artifact.verification_hash,
+                )
+            with self.assertRaises(FileNotFoundError):
+                resolve_reference_program_artifact(
+                    root / "missing.py",
+                    reference_id="missing-reference",
+                    task_id="fake-task",
+                    authorship_origin="official_upstream",
+                    upstream_project="official-project",
+                    upstream_revision="revision-1",
+                    upstream_source_path="upstream/rewards.py",
+                    capability_profile_hash=str(profile.profile_hash),
+                )
 
 
 if __name__ == "__main__":

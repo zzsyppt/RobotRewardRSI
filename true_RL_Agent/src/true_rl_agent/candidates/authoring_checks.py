@@ -8,6 +8,7 @@ import json
 import math
 import multiprocessing as mp
 import queue as queue_module
+import time
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -30,6 +31,7 @@ COMPONENT_SMOKE_SCHEMA_VERSION = "true_rl_agent.component_smoke_result.v1"
 ANTI_DEGENERATE_SCHEMA_VERSION = "true_rl_agent.anti_degenerate_assessment.v1"
 STATIC_AUTHORING_FAILURE_SCHEMA_VERSION = "true_rl_agent.static_authoring_failure.v1"
 DEFAULT_COMPONENT_SMOKE_TIMEOUT_S = 2.0
+DEFAULT_COMPONENT_SMOKE_LOAD_TIMEOUT_S = 2.0
 _NON_MECHANISM_DELTA_CLASSIFICATIONS = frozenset(
     {
         "identical_or_format_only",
@@ -323,9 +325,33 @@ def _run_component_smoke_with_timeout(
     )
     process.daemon = True
     process.start()
-    process.join(timeout_s)
+    latest_progress: Mapping[str, Any] = {}
+    load_deadline = time.monotonic() + max(
+        DEFAULT_COMPONENT_SMOKE_LOAD_TIMEOUT_S,
+        timeout_s,
+    )
+    callable_deadline: float | None = None
+    while process.is_alive():
+        deadline = callable_deadline or load_deadline
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        try:
+            progress = progress_queue.get(timeout=min(0.05, remaining))
+        except queue_module.Empty:
+            continue
+        if not isinstance(progress, Mapping):
+            continue
+        latest_progress = dict(progress)
+        if (
+            callable_deadline is None
+            and latest_progress.get("phase") in {"reward", "diagnostic"}
+        ):
+            callable_deadline = time.monotonic() + timeout_s
     if process.is_alive():
-        latest_progress = _latest_queue_item(progress_queue)
+        queued_progress = _latest_queue_item(progress_queue)
+        if queued_progress:
+            latest_progress = queued_progress
         process.terminate()
         process.join(1.0)
         if process.is_alive() and hasattr(process, "kill"):
@@ -334,10 +360,15 @@ def _run_component_smoke_with_timeout(
         return _component_smoke_timeout_result(
             fixture=fixture,
             latest_progress=latest_progress,
-            timeout_s=timeout_s,
+            timeout_s=(
+                timeout_s
+                if callable_deadline is not None
+                else max(DEFAULT_COMPONENT_SMOKE_LOAD_TIMEOUT_S, timeout_s)
+            ),
         )
+    process.join()
     try:
-        result = result_queue.get_nowait()
+        result = result_queue.get(timeout=0.25)
     except queue_module.Empty:
         return _public_result(
             {

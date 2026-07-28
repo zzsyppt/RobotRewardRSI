@@ -37,6 +37,9 @@ from true_rl_agent.runner.eval_isolation import (  # noqa: E402
     reject_candidate_path_arguments,
 )
 from true_rl_agent.runner.evidence import evidence_artifact_from_json  # noqa: E402
+from true_rl_agent.runner.isaac_app_lifecycle import (  # noqa: E402
+    close_isaac_app_on_success,
+)
 from true_rl_agent.runner.job_identity import JobIdentity  # noqa: E402
 from true_rl_agent.tasks.push_recovery.seed_policy import (  # noqa: E402
     SEED_POLICY_NAME,
@@ -301,7 +304,6 @@ def main() -> int:
     if args_cli.status_file:
         Path(args_cli.status_file).write_text(str(summary.get("status", "fail")) + "\n", encoding="utf-8")
     print(json.dumps({"summary_path": str(summary_path), "status": summary.get("status")}, sort_keys=True))
-    simulation_app.close()
     return 0 if summary.get("status") == "pass" else 1
 
 
@@ -861,6 +863,8 @@ def has_nonzero_push(config: dict[str, Any]) -> bool:
 
 if __name__ == "__main__":
     exit_code = main()
-    sys.stdout.flush()
-    sys.stderr.flush()
+    exit_code = close_isaac_app_on_success(
+        simulation_app,
+        exit_code=exit_code,
+    )
     os._exit(exit_code)

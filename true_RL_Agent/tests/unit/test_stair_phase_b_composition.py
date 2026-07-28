@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import tempfile
 import unittest
 from dataclasses import replace
 from pathlib import Path
@@ -10,6 +11,7 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
+from tests.fakes.reference_programs import make_verified_stair_reference  # noqa: E402
 from true_rl_agent.composition.base import (  # noqa: E402
     TaskCompositionContext,
     resolve_task_composition,
@@ -35,14 +37,21 @@ from true_rl_agent.tasks.stair_climbing.seed_policy import (  # noqa: E402
 from true_rl_agent.tasks.stair_climbing.staging import (  # noqa: E402
     build_stair_staging_composition_registry,
 )
-from true_rl_agent.training_programs import ReferenceProgramManifest  # noqa: E402
 
 
 class StairPhaseBCompositionTests(unittest.TestCase):
     def setUp(self) -> None:
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
         self.protocol_path = ROOT / "configs" / "tasks" / "stair_protocol_v2_draft.json"
         self.task_config = StairClimbingTaskConfig.defaults(self.protocol_path)
-        self.reference = _reference_manifest(self.task_config)
+        self.reference = make_verified_stair_reference(
+            Path(self.temporary.name) / "reference",
+            task_id=STAIR_TASK_ID,
+            capability_profile_hash=(
+                self.task_config.protocol_v2.capability_profile.profile_hash
+            ),
+        )
 
     def test_default_registry_remains_push_only(self) -> None:
         registry = build_application_composition_registry()
@@ -51,17 +60,21 @@ class StairPhaseBCompositionTests(unittest.TestCase):
         self.assertEqual(registry.task_ids(), ("unitree_push_recovery",))
 
     def test_staging_registry_requires_real_reference_capability(self) -> None:
-        with self.assertRaisesRegex(TypeError, "ReferenceProgramManifest"):
+        with self.assertRaisesRegex(TypeError, "VerifiedReferenceProgramArtifact"):
             build_stair_staging_composition_registry(  # type: ignore[arg-type]
-                reference_program_manifest=None
+                reference_program_artifact=None
+            )
+        with self.assertRaisesRegex(TypeError, "VerifiedReferenceProgramArtifact"):
+            build_stair_staging_composition_registry(  # type: ignore[arg-type]
+                reference_program_artifact=self.reference.manifest
             )
 
-        wrong = replace(
-            self.reference,
+        wrong = make_verified_stair_reference(
+            Path(self.temporary.name) / "wrong-profile",
+            task_id=STAIR_TASK_ID,
             capability_profile_hash="2" * 64,
-            manifest_hash=None,
         )
-        provider = StairClimbingCompositionProvider(reference_program_manifest=wrong)
+        provider = StairClimbingCompositionProvider(reference_program_artifact=wrong)
         with self.assertRaisesRegex(ValueError, "capability profile mismatch"):
             resolve_task_composition(
                 provider=provider,
@@ -71,7 +84,7 @@ class StairPhaseBCompositionTests(unittest.TestCase):
 
     def test_composition_resolves_once_to_one_consistent_snapshot(self) -> None:
         registry = build_stair_staging_composition_registry(
-            reference_program_manifest=self.reference
+            reference_program_artifact=self.reference
         )
         provider = registry.get(STAIR_TASK_ID)
         values = provider.cli_defaults()
@@ -107,7 +120,39 @@ class StairPhaseBCompositionTests(unittest.TestCase):
             STAIR_COMPLETE_REWARD_RUNTIME_STATUS,
         )
         self.assertEqual(composition.genesis_anchor_kind, "reference_program")
-        self.assertIs(composition.reference_program_manifest, self.reference)
+        self.assertIs(composition.reference_program_artifact, self.reference)
+        self.assertIs(
+            composition.reference_program_manifest,
+            self.reference.manifest,
+        )
+        self.assertEqual(
+            snapshot["reference_program"]["verification_hash"],
+            self.reference.verification_hash,
+        )
+
+    def test_reference_role_does_not_rewrite_authorship_provenance(self) -> None:
+        inherited = make_verified_stair_reference(
+            Path(self.temporary.name) / "inherited-reference",
+            task_id=STAIR_TASK_ID,
+            capability_profile_hash=(
+                self.task_config.protocol_v2.capability_profile.profile_hash
+            ),
+            authorship_origin="llm_generated",
+        )
+        provider = StairClimbingCompositionProvider(
+            reference_program_artifact=inherited
+        )
+        composition = resolve_task_composition(
+            provider=provider,
+            values=provider.cli_defaults(),
+            context=_context(),
+        )
+
+        self.assertEqual(composition.genesis_anchor_kind, "reference_program")
+        self.assertEqual(
+            composition.reference_program_manifest.authorship_origin,
+            "llm_generated",
+        )
 
     def test_strict_config_rejects_coercion_and_relational_drift(self) -> None:
         defaults = StairClimbingCompositionConfig.defaults(project_root=ROOT)
@@ -146,7 +191,7 @@ class StairPhaseBCompositionTests(unittest.TestCase):
         self.assertEqual(agent.algorithm["entropy_coef"], 0.008)
         spec = resolve_task_composition(
             provider=StairClimbingCompositionProvider(
-                reference_program_manifest=self.reference
+                reference_program_artifact=self.reference
             ),
             values=StairClimbingCompositionConfig.defaults(
                 project_root=ROOT
@@ -188,22 +233,6 @@ class StairPhaseBCompositionTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "contains duplicates"):
             assert_seed_namespaces_disjoint(_CollidingResolver())
-
-
-def _reference_manifest(config: StairClimbingTaskConfig) -> ReferenceProgramManifest:
-    return ReferenceProgramManifest(
-        reference_id="stair-r0-phase-b-fixture",
-        task_id=STAIR_TASK_ID,
-        source_uri="artifact://phase-b-test/reference/components.py",
-        source_checksum="sha256:" + "1" * 64,
-        source_size_bytes=1,
-        authorship_origin="official_upstream",
-        upstream_project="IsaacLab",
-        upstream_revision="phase-b-test-only",
-        upstream_source_path="source/isaaclab_tasks/g1/rough_env_cfg.py",
-        capability_profile_hash=config.protocol_v2.capability_profile.profile_hash,
-    )
-
 
 def _context() -> TaskCompositionContext:
     return TaskCompositionContext(

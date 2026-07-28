@@ -14,6 +14,9 @@ from true_rl_agent.tasks.stair_climbing.config import (
     STAIR_TASK_ID,
     StairClimbingTaskConfig,
 )
+from true_rl_agent.tasks.stair_climbing.reward_inputs import (
+    stair_reward_input_prompt_contract,
+)
 
 _SCRUBBED_KEY_PARTS = (
     "raw_seed",
@@ -56,11 +59,9 @@ class StairClimbingPromptAdapter:
             safe_context = {}
         sections = {
             "task": self._task_section(),
-            "reward_inputs_contract": {
-                "schema_version": "true_rl_agent.reward_inputs_contract.stair.v1",
-                "status": "not_available",
-                "reason": "pre_reset_complete_reward_runtime_not_activated",
-            },
+            "reward_inputs_contract": stair_reward_input_prompt_contract(
+                self.config.protocol_v2.complete_reward_runtime
+            ),
             "public_eval_contract": self._public_eval_contract(),
             "public_feedback_summary": _latest_public_feedback(
                 safe_records,
@@ -69,12 +70,13 @@ class StairClimbingPromptAdapter:
             "runtime_feedback_summary": {
                 "schema_version": "true_rl_agent.runtime_feedback_summary.stair.v1",
                 "status": "not_available",
-                "reason": "complete_reward_runtime_not_activated",
+                "reason": "no_validated_runtime_feedback",
             },
             "known_good_examples": [],
             "selection_guidance": [
                 "Use only validated public failure, diagnostic, and progress summaries.",
-                "Do not author a Stair reward program until the reward input contract is available.",
+                "When the shared candidate_capabilities section marks complete_reward_program prompt-visible, return a complete replacement reward program, not an additive patch.",
+                "Use only fields declared by the StairRewardInputsV2 contract.",
                 "Do not change training budget, PPO, seeds, terrain bins, termination rules, or acceptance rules.",
             ],
         }
@@ -97,14 +99,14 @@ class StairClimbingPromptAdapter:
                 "Train from the fixed random initialization protocol to climb the "
                 "one-way staircase and hold the top platform without falling or base contact."
             ),
-            "candidate_authoring_status": "not_activated_until_complete_reward_runtime",
+            "candidate_authoring_status": "governed_by_shared_candidate_capabilities",
             "fixed_train_protocol_summary": {
                 "budget_steps": self.config.budget_steps,
                 "train_num_envs": self.config.train_num_envs,
                 "train_max_iterations": self.config.train_max_iterations,
                 "train_steps_per_iteration": self.config.train_steps_per_iteration,
                 "policy_initialization": "fixed_random_session_seed",
-                "candidate_can_change": False,
+                "complete_reward_runtime_available": True,
             },
             "fixed_eval_protocol_summary": {
                 **evaluation,

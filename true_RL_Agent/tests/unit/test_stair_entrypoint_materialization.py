@@ -22,9 +22,12 @@ from scripts.isaaclab_stair_rsl_rl_eval import main as stair_eval_main  # noqa: 
 from scripts.isaaclab_stair_rsl_rl_train import (  # noqa: E402
     _build_parser as build_train_parser,
 )
-from scripts.isaaclab_stair_rsl_rl_train import main as stair_train_main  # noqa: E402
+from scripts.isaaclab_stair_rsl_rl_train import (  # noqa: E402
+    _load_and_qualify_candidate,
+)
 
 from tests.fakes.evaluation import make_verified_candidate_artifact  # noqa: E402
+from tests.fakes.reference_programs import make_verified_stair_reference  # noqa: E402
 from true_rl_agent.composition.base import (  # noqa: E402
     TaskCompositionContext,
     resolve_task_composition,
@@ -41,13 +44,21 @@ from true_rl_agent.tasks.stair_climbing.entrypoint_contract import (  # noqa: E4
     validate_stair_eval_invocation,
     validate_stair_train_invocation,
 )
-from true_rl_agent.training_programs import ReferenceProgramManifest  # noqa: E402
 
 
 class StairEntrypointMaterializationTests(unittest.TestCase):
     def setUp(self) -> None:
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
         self.config = StairClimbingTaskConfig.defaults(
             ROOT / "configs" / "tasks" / "stair_protocol_v2_draft.json"
+        )
+        self.reference = make_verified_stair_reference(
+            Path(self.temporary.name) / "reference",
+            task_id=STAIR_TASK_ID,
+            capability_profile_hash=(
+                self.config.protocol_v2.capability_profile.profile_hash
+            ),
         )
 
     def test_materialized_jobs_use_stair_entrypoints_and_pass_pure_preflight(self) -> None:
@@ -102,24 +113,24 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
             )
             self.assertEqual(eval_context.checkpoint_hash, checkpoint_hash)
 
-    def test_phase_b_train_entrypoint_fails_closed_after_complete_preflight(self) -> None:
+    def test_phase_c_train_preflight_qualifies_exact_artifact_without_launch(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            _, jobs = self._materialize(Path(tmp), "stair-fail-closed")
+            _, jobs = self._materialize(Path(tmp), "stair-qualified")
             argv = jobs.train_spec.metadata["cli_argv"][2:]
+            args = build_train_parser().parse_args(argv)
+            context = validate_stair_train_invocation(args, project_root=ROOT)
+            program = _load_and_qualify_candidate(context)
 
-            self.assertEqual(stair_train_main(argv), 1)
-            summary_path = Path(jobs.train_spec.metadata["summary_path"])
-            summary = json.loads(summary_path.read_text(encoding="utf-8"))
-            self.assertEqual(summary["status"], "fail")
-            self.assertFalse(summary["formal_training_executed"])
             self.assertEqual(
-                summary["runtime_activation_summary"]["reason"],
-                "complete_reward_runtime_not_activated",
+                program.program_source_checksum,
+                jobs.train_spec.program_source_checksum,
             )
             self.assertEqual(
-                summary["training"]["budget_accounting"]["status"],
-                "pass",
+                program.subject_manifest_hash,
+                jobs.train_spec.subject_manifest_hash,
             )
+            self.assertGreater(len(program.term_names), 0)
+            self.assertFalse(Path(jobs.train_spec.metadata["summary_path"]).exists())
             self.assertFalse(
                 Path(jobs.train_spec.metadata["checkpoint_output_path"]).exists()
             )
@@ -234,7 +245,7 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
 
     def _materialize(self, output_dir: Path, candidate_id: str):
         provider = StairClimbingCompositionProvider(
-            reference_program_manifest=_reference_manifest(self.config)
+            reference_program_artifact=self.reference
         )
         composition = resolve_task_composition(
             provider=provider,
@@ -270,22 +281,6 @@ class _TerminatingFakeAppLauncher(_FakeAppLauncher):
 
     def close(self) -> None:
         raise SystemExit("simulation closed")
-
-
-def _reference_manifest(config: StairClimbingTaskConfig) -> ReferenceProgramManifest:
-    return ReferenceProgramManifest(
-        reference_id="stair-r0-phase-b-fixture",
-        task_id=STAIR_TASK_ID,
-        source_uri="artifact://phase-b-test/reference/components.py",
-        source_checksum="sha256:" + "1" * 64,
-        source_size_bytes=1,
-        authorship_origin="official_upstream",
-        upstream_project="IsaacLab",
-        upstream_revision="phase-b-test-only",
-        upstream_source_path="source/isaaclab_tasks/g1/rough_env_cfg.py",
-        capability_profile_hash=config.protocol_v2.capability_profile.profile_hash,
-    )
-
 
 if __name__ == "__main__":
     unittest.main()

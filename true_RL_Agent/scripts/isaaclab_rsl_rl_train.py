@@ -34,6 +34,9 @@ from true_rl_agent.evaluation.binding import (
     require_sha256_digest,  # noqa: E402
 )
 from true_rl_agent.evaluation.subject import ExperimentSubject  # noqa: E402
+from true_rl_agent.runner.isaac_app_lifecycle import (  # noqa: E402
+    close_isaac_app_on_success,
+)
 from true_rl_agent.runner.job_identity import JobIdentity  # noqa: E402
 from true_rl_agent.training_binding import (  # noqa: E402
     initialization_seed_schedule_hash,
@@ -375,10 +378,6 @@ def main() -> int:
 
     write_json(summary_path, summary)
     print(json.dumps({"summary_path": str(summary_path), "status": summary["status"]}, sort_keys=True))
-    try:
-        simulation_app.close()
-    except Exception:
-        pass
     return 0 if summary["status"] == "pass" else 1
 
 
@@ -422,6 +421,8 @@ def write_json(path: Path, payload: dict[str, Any]) -> None:
 
 if __name__ == "__main__":
     exit_code = main()
-    sys.stdout.flush()
-    sys.stderr.flush()
+    exit_code = close_isaac_app_on_success(
+        simulation_app,
+        exit_code=exit_code,
+    )
     os._exit(exit_code)

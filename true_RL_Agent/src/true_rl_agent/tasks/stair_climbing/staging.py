@@ -7,17 +7,17 @@ from true_rl_agent.composition.registry import TaskCompositionRegistry
 from true_rl_agent.tasks.stair_climbing.composition import (
     StairClimbingCompositionProvider,
 )
-from true_rl_agent.training_programs import ReferenceProgramManifest
+from true_rl_agent.training_programs import VerifiedReferenceProgramArtifact
 
 
 def build_stair_staging_composition_registry(
     *,
-    reference_program_manifest: ReferenceProgramManifest,
+    reference_program_artifact: VerifiedReferenceProgramArtifact,
 ) -> TaskCompositionRegistry:
     registry = build_application_composition_registry()
     registry.register(
         StairClimbingCompositionProvider(
-            reference_program_manifest=reference_program_manifest
+            reference_program_artifact=reference_program_artifact
         )
     )
     return registry

@@ -30,7 +30,7 @@ from true_rl_agent.tasks.stair_climbing.runtime_profile import (
     STAIR_EVAL_PROFILE,
     STAIR_TRAIN_PROFILE,
 )
-from true_rl_agent.training_programs import ReferenceProgramManifest
+from true_rl_agent.training_programs import VerifiedReferenceProgramArtifact
 
 DEFAULT_ISAAC_PYTHON = "/data/yuyangliu/envs/isaaclab/bin/python"
 DEFAULT_STAIR_TRAIN_ENTRYPOINT = "scripts/isaaclab_stair_rsl_rl_train.py"
@@ -165,14 +165,22 @@ class StairClimbingCompositionConfig:
 class StairClimbingCompositionProvider(TaskCompositionProvider):
     """The sole Stair provider; registration requires a real reference identity."""
 
-    def __init__(self, *, reference_program_manifest: ReferenceProgramManifest) -> None:
-        if not isinstance(reference_program_manifest, ReferenceProgramManifest):
-            raise TypeError("stair composition requires a ReferenceProgramManifest")
+    def __init__(
+        self,
+        *,
+        reference_program_artifact: VerifiedReferenceProgramArtifact,
+    ) -> None:
+        if not isinstance(
+            reference_program_artifact,
+            VerifiedReferenceProgramArtifact,
+        ):
+            raise TypeError(
+                "stair composition requires a VerifiedReferenceProgramArtifact"
+            )
+        reference_program_manifest = reference_program_artifact.manifest
         if reference_program_manifest.task_id != STAIR_TASK_ID:
             raise ValueError("stair reference program task_id mismatch")
-        if reference_program_manifest.authorship_origin != "official_upstream":
-            raise ValueError("stair reference program must be official_upstream")
-        self.reference_program_manifest = reference_program_manifest
+        self.reference_program_artifact = reference_program_artifact
         self._project_root = Path(__file__).resolve().parents[4]
 
     @property
@@ -196,7 +204,8 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
         )
         plugin = StairClimbingTaskPlugin(task_config)
         profile_hash = plugin.task_spec.candidate_capability_profile.profile_hash
-        if self.reference_program_manifest.capability_profile_hash != profile_hash:
+        manifest = self.reference_program_artifact.manifest
+        if manifest.capability_profile_hash != profile_hash:
             raise ValueError("stair reference capability profile mismatch")
         backend = _build_stair_backend_config(
             composition_config=composition_config,
@@ -217,7 +226,7 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
             policy_initialization=PolicyInitialization.random(),
             genesis_anchor_kind="reference_program",
             task_defaults=composition_config.to_task_defaults(),
-            reference_program_manifest=self.reference_program_manifest,
+            reference_program_artifact=self.reference_program_artifact,
         )
 
 

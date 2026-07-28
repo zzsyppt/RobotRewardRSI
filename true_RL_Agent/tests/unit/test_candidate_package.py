@@ -5,6 +5,7 @@ import tempfile
 import textwrap
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = PROJECT_ROOT / "src"
@@ -33,8 +34,12 @@ from true_rl_agent.candidates.package_contract import (
 )
 from true_rl_agent.candidates.schema import CandidateChangeSet, CandidatePackageRef
 from true_rl_agent.candidates.verifier import (
+    STATIC_CANDIDATE_VERIFIER_POLICY_ID,
     StaticCandidateVerifier,
+    audit_candidate_python_source,
     seal_and_verify_candidate,
+    static_verifier_policy_facts,
+    static_verifier_policy_hash,
     static_verifier_prompt_rules,
 )
 
@@ -195,7 +200,11 @@ class CandidatePackageTests(unittest.TestCase):
         self.assertIsInstance(artifact, VerifiedCandidateArtifactRef)
         self.assertEqual(
             artifact.verification_policy,
-            "static_candidate_verifier_passed",
+            STATIC_CANDIDATE_VERIFIER_POLICY_ID,
+        )
+        self.assertEqual(
+            verification.result.details["verification_policy_hash"],
+            static_verifier_policy_hash(),
         )
         with self.assertRaisesRegex(TypeError, "verification pipeline"):
             VerifiedCandidateArtifactRef(
@@ -484,6 +493,146 @@ class CandidatePackageTests(unittest.TestCase):
             self.assertEqual(result.status, "fail")
             self.assertEqual(result.reason, "training_components_invalid")
             self.assertIn("schedule_key_not_allowlisted:obs_schedule:obs_transform", result.details["issues"])
+
+    def test_static_verifier_rejects_mutation_and_process_state_surfaces(self) -> None:
+        cases = {
+            "tensor_in_place": "inputs.base_height.zero_()",
+            "subscript_write": "inputs.base_height[0] = 0.0",
+            "attribute_write": "inputs.base_height.data = inputs.base_height",
+            "dynamic_builtins": (
+                "def reward(inputs):\n"
+                "    return __builtins__['__import__']('os')"
+            ),
+            "dynamic_reflection": (
+                "def reward(inputs):\n"
+                "    return getattr(inputs, 'base_height')"
+            ),
+            "class_mutation": "setattr(TrainingComponents, 'leaked', True)",
+            "console_side_effect": "print('candidate side effect')",
+            "global_state": "global leaked",
+            "nonlocal_state": (
+                "def outer():\n"
+                "    leaked = 0\n"
+                "    def reward(inputs):\n"
+                "        nonlocal leaked\n"
+                "        return inputs.base_height\n"
+                "    return reward\n"
+            ),
+            "mutable_default": "def helper(values=[]):\n    return values",
+        }
+        for label, injected in cases.items():
+            with self.subTest(label=label):
+                source = (
+                    "from true_rl_agent.candidates.components import "
+                    "TrainingComponents\n\n"
+                    f"{injected}\n\n"
+                    "def build_training_components():\n"
+                    "    return TrainingComponents(name='candidate_reward')\n"
+                )
+                issues = audit_candidate_python_source(source)
+                self.assertTrue(issues, label)
+
+    def test_static_verifier_requires_exact_source_defined_stateless_callables(self) -> None:
+        cases = {
+            "builtin": (
+                "from true_rl_agent.candidates.components import RewardTerm, TrainingComponents\n\n"
+                "def build_training_components():\n"
+                "    return TrainingComponents(\n"
+                "        name='candidate_reward',\n"
+                "        reward_terms=[RewardTerm(name='bad', weight=1.0, fn=abs)],\n"
+                "    )\n"
+            ),
+            "closure": (
+                "from true_rl_agent.candidates.components import RewardTerm, TrainingComponents\n\n"
+                "def build_training_components():\n"
+                "    state = iter((0.0, 1.0))\n"
+                "    reward = lambda inputs: inputs.base_height + next(state)\n"
+                "    return TrainingComponents(\n"
+                "        name='candidate_reward',\n"
+                "        reward_terms=[RewardTerm(name='bad', weight=1.0, fn=reward)],\n"
+                "    )\n"
+            ),
+        }
+        for label, source in cases.items():
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as tmp:
+                candidate = self._write_candidate(
+                    Path(tmp),
+                    components_source=source,
+                )
+                result = StaticCandidateVerifier().verify(candidate)
+
+                self.assertEqual(result.status, "fail")
+                self.assertEqual(result.reason, "training_components_invalid")
+                self.assertTrue(
+                    any(
+                        issue.startswith(
+                            (
+                                "non_source_defined_reward_term:",
+                                "stateful_reward_term_closure:",
+                            )
+                        )
+                        for issue in result.details["issues"]
+                    ),
+                    result.details,
+                )
+
+    def test_static_verifier_rejects_random_api_variants(self) -> None:
+        sources = (
+            "def reward(inputs):\n    return random.random()\n",
+            "def reward(inputs):\n    return np.random.normal()\n",
+            "def reward(inputs):\n    return torch.randn(1)\n",
+            "def reward(inputs):\n    return inputs.base_height.bernoulli()\n",
+        )
+        for source in sources:
+            with self.subTest(source=source):
+                issues = audit_candidate_python_source(source)
+                self.assertTrue(
+                    any(issue.startswith("forbidden_random_call:") for issue in issues),
+                    issues,
+                )
+
+    def test_static_verifier_policy_is_exposed_from_one_source(self) -> None:
+        prompt_rules = static_verifier_prompt_rules()
+
+        self.assertEqual(
+            prompt_rules["verification_policy_id"],
+            STATIC_CANDIDATE_VERIFIER_POLICY_ID,
+        )
+        self.assertEqual(
+            prompt_rules["verification_policy_hash"],
+            static_verifier_policy_hash(),
+        )
+        facts = static_verifier_policy_facts()
+        self.assertEqual(
+            prompt_rules["blocked_ast_nodes"],
+            facts["forbidden_ast_nodes"],
+        )
+        self.assertEqual(
+            prompt_rules["blocked_assignment_target_nodes"],
+            facts["forbidden_assignment_target_nodes"],
+        )
+        self.assertEqual(
+            prompt_rules["blocked_name_prefixes"],
+            facts["forbidden_name_prefixes"],
+        )
+        self.assertEqual(
+            prompt_rules["component_callable_contract"],
+            facts["component_callable_contract"],
+        )
+        self.assertFalse(prompt_rules["function_decorators_allowed"])
+        self.assertFalse(prompt_rules["nested_functions_allowed"])
+        self.assertFalse(prompt_rules["mutable_or_dynamic_defaults_allowed"])
+        with patch.object(
+            StaticCandidateVerifier,
+            "nested_functions_allowed",
+            True,
+        ):
+            self.assertNotEqual(
+                static_verifier_policy_hash(),
+                prompt_rules["verification_policy_hash"],
+            )
+        self.assertIn("bernoulli", prompt_rules["blocked_random_calls"])
+        self.assertIn("zero_", audit_candidate_python_source("def f(x):\n    return x.zero_()\n")[0])
 
 
 if __name__ == "__main__":

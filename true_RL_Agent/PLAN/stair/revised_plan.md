@@ -128,6 +128,8 @@ entrypoint: training_code.components:build_training_components
 
 Stair 的具体 reward 输入、七桶和能力门仍由 task-owned protocol/profile 解释。
 
+`ReferenceProgramManifest` 只是可持久化的身份与 lineage 描述，不是生产注册 capability。进入 composition/staging 前，runner-owned resolver 必须读取真实 UTF-8 源码，并一次性派生 source URI、checksum、byte count、manifest hash 和 verification hash；生产边界只接收由此得到的 `VerifiedReferenceProgramArtifact`，不能凭 manifest 元数据自行声明“已验证”。该 capability 证明的是源码字节与 manifest 的一致绑定，不把 `authorship_origin` 字符串当作 reference 资格证明；首个官方 R0 的来源/数值等价和以后跨 session reference 的资格由 task-owned reference qualification 流程判定。
+
 现有 `CandidatePackageRef` 和 candidate materializer 继续用于 R1+。两者共享相同 canonical 源码布局和 source hash 算法，但不强行合并成新的通用 artifact map。
 
 ### 2.3 版本化 capability profile
@@ -434,12 +436,16 @@ pilot 只用于从预先允许的预算档位中选择最小可行训练预算�
 - 七桶在每个规定 seed 下覆盖完整，统计单位符合 V2；
 - private seed/bin 映射不进入 prompt/public result；
 - public failure/diagnostic evidence 只能由 task recorder 产生，candidate 返回的任何辅助量都不能满足 pass gate；
+- staging/provider 只接受可信 resolver 从真实源码字节生成的 verified reference artifact；裸 manifest、虚构 URI/hash/size 均 fail closed；
 - Push 的物化、dry-run、run-round 和 live-loop 行为保持一致；
 - 阶段 D–F 的真实作业使用同一个 production provider/config，仅由显式 staging registry 选择；生产默认 registry 仍只启用已验收任务，Stair 此阶段不可被误启动。
 
 **实施状态（2026-07-28）**
 
 - 已完成 task-owned config/plugin/provider、显式 staging registry、专用 train/eval entrypoint、private seed/bin resolver、七桶宏平均、pre-reset recorder、episode 闭合分类以及 prompt/memory/public projection；
+- reference staging 已改为接收源码绑定 capability：源码 bytes、content-addressed URI、checksum、size 和 upstream provenance 由单个 resolver 一次性绑定，裸 manifest 不再能进入 composition；
+- composition 不再把 `reference` session role 与 `official_upstream` authorship 混为一谈；`llm_generated` 的已接受源码可在新 session 保持原 provenance 并作为 reference，正式资格仍由 task-owned gate 决定；
+- 已持久化覆盖 `run_all_stair_splits`、transition decoder、episode tracker、七桶聚合、真实 recorder 及 train/eval env builder；服务器 Isaac Lab 动态回归通过；
 - 服务器 Isaac Lab 2.3.0 真实跑通 3/5/7 split seed，共闭合 168/280/392 个 episode，classification warning 为 0；
 - 官方 Phase 0 checkpoint 的成功率仍为 0，sealed gate 正确 fail；该运行只验收 Phase B 执行链，不进入 R0、Genesis 或 acceptance；
 - complete-reward runtime 仍按阶段边界 fail closed，留给阶段 C；默认生产 registry 仍只有 Push。
@@ -447,6 +453,8 @@ pilot 只用于从预先允许的预算档位中选择最小可行训练预算�
 **预计工作量：3–5 人日。**
 
 ### 阶段 C：pre-reset 完整奖励运行时、ABI 与 R0 等价性
+
+**实施状态：功能实现与真实服务器动态验收完成（2026-07-29），正式 Git 交付待完成。训练、Oracle、评估已统一使用 current-step termination capture，并增加跨 auto-reset 验收；详细设计、源头修复与证据见 `phase_c_implementation_plan.md` 及五份 `phase_c_*_report.json`。**
 
 **目标**
 
