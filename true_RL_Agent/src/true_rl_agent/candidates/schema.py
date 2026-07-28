@@ -51,38 +51,47 @@ class CandidateSurfaceAssessment:
         }
 
 
+@dataclass(frozen=True)
 class CandidateSurfacePolicy:
-    """Classify candidate changes before policy acceptance decisions."""
+    """Task-supplied component taxonomy with task-neutral classifications."""
 
-    PARAMETER_ONLY_COMPONENTS = frozenset(
-        {
-            "reward_weight",
-            "reward_weight_scale",
-            "terrain_range",
-            "height_range",
-            "stair_height_range",
-            "ppo_hyperparameter",
-            "eval_threshold",
-            "budget",
-            "seed",
-            "schedule",
-            "single_stage_numeric_schedule",
-        }
-    )
-    DIAGNOSTIC_COMPONENTS = frozenset({"diagnostic"})
-    ENGINEERING_COMPONENTS = frozenset({"failure_classifier", "logging", "public_projection"})
-    CODE_LEVEL_COMPONENTS = frozenset({"reward_callable", "control_logic", "recovery_logic"})
+    parameter_only_components: frozenset[str] = frozenset()
+    diagnostic_components: frozenset[str] = frozenset()
+    engineering_components: frozenset[str] = frozenset()
+    code_level_components: frozenset[str] = frozenset()
+
+    def __post_init__(self) -> None:
+        groups = (
+            self.parameter_only_components,
+            self.diagnostic_components,
+            self.engineering_components,
+            self.code_level_components,
+        )
+        for index, group in enumerate(groups):
+            if any(group & other for other in groups[index + 1 :]):
+                raise ValueError("candidate surface component groups must be disjoint")
 
     def classify(self, change_set: CandidateChangeSet) -> CandidateSurfaceAssessment:
         components = change_set.changed_components
         if not components:
             return CandidateSurfaceAssessment("no_code_change", False, "no_candidate_changes")
-        if components <= self.PARAMETER_ONLY_COMPONENTS:
+        if components <= self.parameter_only_components:
             return CandidateSurfaceAssessment("parameter_only", False, "parameter_only_candidate")
-        if components <= self.DIAGNOSTIC_COMPONENTS:
+        if components <= self.diagnostic_components:
             return CandidateSurfaceAssessment("diagnostic_only", False, "diagnostic_only_candidate")
-        if components <= self.ENGINEERING_COMPONENTS:
+        if components <= self.engineering_components:
             return CandidateSurfaceAssessment("engineering_only", False, "engineering_only_candidate")
-        if components & self.CODE_LEVEL_COMPONENTS:
+        supported_components = frozenset().union(
+            self.parameter_only_components,
+            self.diagnostic_components,
+            self.engineering_components,
+            self.code_level_components,
+        )
+        if components <= supported_components and components & self.code_level_components:
             return CandidateSurfaceAssessment("code_level", True, "code_level_candidate")
         return CandidateSurfaceAssessment("unsupported", False, "unsupported_candidate_surface")
+
+    def parameter_only_subset(self, change_set: CandidateChangeSet) -> CandidateChangeSet:
+        return CandidateChangeSet(
+            frozenset(change_set.changed_components & self.parameter_only_components)
+        )

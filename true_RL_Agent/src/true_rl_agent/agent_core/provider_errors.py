@@ -5,9 +5,9 @@ from __future__ import annotations
 import re
 from typing import Any, Mapping
 
-from true_rl_agent.agent_core.context import sanitize_public_context
-from true_rl_agent.candidates.prompt_projection import assert_public_only_prompt_payload
-
+from true_rl_agent.agent_core.context import sanitize_prompt_public_context
+from true_rl_agent.agent_core.public_safety import scrub_public_paths
+from true_rl_agent.prompting import assert_public_only_prompt_payload
 
 PROVIDER_FAILURE_CATEGORIES = frozenset(
     {
@@ -16,6 +16,7 @@ PROVIDER_FAILURE_CATEGORIES = frozenset(
         "candidate_materialize_error",
         "verifier_error",
         "runtime_error",
+        "source_request_denied",
     }
 )
 
@@ -71,7 +72,7 @@ def build_provider_repair_feedback(error: ProviderCandidateError) -> dict[str, A
 
 def _sanitize_provider_value(value: Any) -> Any:
     if isinstance(value, Mapping):
-        return sanitize_public_context(
+        return sanitize_prompt_public_context(
             {str(key): _sanitize_provider_value(item) for key, item in value.items()}
         )
     if isinstance(value, list):
@@ -86,7 +87,8 @@ def _sanitize_provider_value(value: Any) -> Any:
 def _public_string(value: str) -> str:
     compact = " ".join(str(value).split())
     compact = re.sub(r"sk-[A-Za-z0-9_-]+", "[redacted]", compact)
-    compact = re.sub(r"[A-Za-z]:\\[^\s\"']+", "[path]", compact)
-    compact = re.sub(r"[A-Za-z]:/[^\s\"']+", "[path]", compact)
-    compact = re.sub(r"/(?:data|home|mnt|tmp|Users|root|var|etc)/[^\s\"']+", "[path]", compact)
+    compact = scrub_public_paths(compact)
+    sanitized = sanitize_prompt_public_context(compact)
+    if isinstance(sanitized, str):
+        compact = sanitized
     return compact[:500]

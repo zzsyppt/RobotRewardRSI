@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Mapping
 
-
 ALLOWED_CURRICULUM_MODES = frozenset({"frozen", "runner_owned", "task_default"})
 
 

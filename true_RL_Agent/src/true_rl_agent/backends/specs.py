@@ -14,6 +14,7 @@ class BackendSpec:
     supported_tasks: frozenset[str]
     supported_policy_initializations: frozenset[str]
     curriculum_capabilities: Mapping[str, Mapping[str, Any]] = field(default_factory=dict)
+    supports_baseline_eval: bool = False
 
     def supports(self, *, task_id: str, policy_initialization: str) -> bool:
         return (

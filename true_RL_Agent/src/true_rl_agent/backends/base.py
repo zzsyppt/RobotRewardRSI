@@ -4,11 +4,14 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from pathlib import Path
 
-from true_rl_agent.candidates.schema import CandidatePackageRef
-from true_rl_agent.policy import PolicyInitialization
-from true_rl_agent.runner.specs import EvalJobSpec, TrainJobSpec
 from true_rl_agent.backends.specs import BackendSpec
+from true_rl_agent.candidates.artifact import VerifiedCandidateArtifactRef
+from true_rl_agent.evaluation.binding import EvaluationBindingV1
+from true_rl_agent.policy import PolicyInitialization
+from true_rl_agent.policy_baselines import BaselineManifest
+from true_rl_agent.runner.specs import BaselineEvalJobSpec, EvalJobSpec, TrainJobSpec
 from true_rl_agent.tasks.base import TaskInvariantSpec, TaskSpec
 
 
@@ -38,12 +41,61 @@ class BackendAdapter(ABC):
         return BackendJobBundle
 
     @abstractmethod
+    def evaluation_binding_for(self, task_spec: TaskSpec) -> EvaluationBindingV1:
+        """Return the backend's validated comparison domain for one task."""
+
+        raise NotImplementedError
+
+    def resolve_session_evaluation_binding(
+        self,
+        *,
+        session_id: str,
+        session_dir: Path,
+        task_spec: TaskSpec,
+        allow_create: bool,
+    ) -> EvaluationBindingV1:
+        """Create/load one task-owned session binding without exposing its internals.
+
+        Overrides must be read-only when ``allow_create`` is false and must use
+        create-once publication when it is true.
+        """
+
+        _ = session_id, session_dir, allow_create
+        return self.evaluation_binding_for(task_spec)
+
+    def validate_session_evaluation_binding(
+        self,
+        *,
+        task_spec: TaskSpec,
+        evaluation_binding: EvaluationBindingV1,
+    ) -> None:
+        """Validate a resolved binding before materializing runner jobs."""
+
+        if evaluation_binding != self.evaluation_binding_for(task_spec):
+            raise ValueError("backend session evaluation binding mismatch")
+
+    @abstractmethod
     def materialize_jobs(
         self,
         *,
         round_id: str,
         task_spec: TaskSpec,
-        candidate: CandidatePackageRef,
+        candidate: VerifiedCandidateArtifactRef,
         policy_initialization: PolicyInitialization,
+        evaluation_binding: EvaluationBindingV1 | None = None,
     ) -> BackendJobBundle:
         raise NotImplementedError
+
+    def materialize_baseline_eval(
+        self,
+        *,
+        session_id: str,
+        task_spec: TaskSpec,
+        baseline_manifest: BaselineManifest,
+        evaluation_binding: EvaluationBindingV1 | None = None,
+    ) -> BaselineEvalJobSpec:
+        """Materialize eval-only work without creating a candidate or train job."""
+
+        raise NotImplementedError(
+            f"backend {self.backend_id!r} does not support baseline eval"
+        )

@@ -5,7 +5,6 @@ from __future__ import annotations
 import re
 from typing import Any, Mapping
 
-
 FORBIDDEN_PUBLIC_KEY_PARTS = (
     "private",
     "hidden",
@@ -33,8 +32,8 @@ _FORBIDDEN_PUBLIC_VALUE_RE = (
     re.compile(r"\baccess[_\s-]+token(?:\b|_)"),
 )
 _WINDOWS_BACKSLASH_PATH_RE = re.compile(r"[A-Za-z]:\\[^\s\"']+")
-_WINDOWS_FORWARD_PATH_RE = re.compile(r"[A-Za-z]:/[^\s\"']+")
-_ABSOLUTE_PATH_RE = re.compile(r"/(?:data|home|mnt|tmp|Users|root|var|etc)/[^\s\"']+")
+_WINDOWS_FORWARD_PATH_RE = re.compile(r"(?<![A-Za-z0-9+.-])[A-Za-z]:/(?!/)[^\s\"']+")
+_POSIX_ABSOLUTE_PATH_RE = re.compile(r"(?<![:/A-Za-z0-9._-])/(?!/)(?:[A-Za-z0-9._-]+/)+[^\s\"']+")
 
 
 def sanitize_prompt_public_value(value: Any) -> Any:
@@ -47,11 +46,23 @@ def sanitize_prompt_public_value(value: Any) -> Any:
     if isinstance(value, tuple):
         return [sanitize_prompt_public_value(item) for item in value]
     if isinstance(value, str):
-        compact = _WINDOWS_BACKSLASH_PATH_RE.sub("[path]", value)
-        compact = _WINDOWS_FORWARD_PATH_RE.sub("[path]", compact)
-        compact = _ABSOLUTE_PATH_RE.sub("[path]", compact)
-        return compact
+        return scrub_public_paths(value)
     return value
+
+
+def contains_public_path_marker(value: str) -> bool:
+    return bool(
+        _WINDOWS_BACKSLASH_PATH_RE.search(value)
+        or _WINDOWS_FORWARD_PATH_RE.search(value)
+        or _POSIX_ABSOLUTE_PATH_RE.search(value)
+    )
+
+
+def scrub_public_paths(value: str) -> str:
+    compact = _WINDOWS_BACKSLASH_PATH_RE.sub("[path]", value)
+    compact = _WINDOWS_FORWARD_PATH_RE.sub("[path]", compact)
+    compact = _POSIX_ABSOLUTE_PATH_RE.sub("[path]", compact)
+    return compact
 
 
 def contains_forbidden_public_value_marker(value: str) -> bool:

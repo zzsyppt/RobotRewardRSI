@@ -2,15 +2,19 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
+
+from true_rl_agent.json_contract import (
+    canonical_json_text,
+    strict_json_object_loads,
+)
 
 
 def append_ledger_record(path: Path, record: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n")
+        handle.write(canonical_json_text(record) + "\n")
 
 
 def load_ledger(path: Path) -> list[dict[str, Any]]:
@@ -21,10 +25,11 @@ def load_ledger(path: Path) -> list[dict[str, Any]]:
         if not line.strip():
             continue
         try:
-            value = json.loads(line)
-        except json.JSONDecodeError as exc:
+            value = strict_json_object_loads(
+                line,
+                context=f"ledger line {line_number}",
+            )
+        except ValueError as exc:
             raise ValueError(f"invalid ledger JSON at line {line_number}: {path}") from exc
-        if not isinstance(value, dict):
-            raise ValueError(f"ledger line {line_number} is not an object: {path}")
         records.append(value)
     return records

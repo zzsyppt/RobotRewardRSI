@@ -11,18 +11,33 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, Protocol
 
+from true_rl_agent.agent_core.authoring_response import (
+    AuthoringProviderResponse,
+    CandidateDraftResponse,
+    SourceRequestResponse,
+    build_source_request_denied_error,
+)
 from true_rl_agent.agent_core.provider_contract import (
-    MATERIALIZER_DECLARED_COMPONENTS_ALLOWED_VALUES,
+    provider_authoring_response_mode,
     provider_json_output_contract,
+    validate_declared_changed_components,
     validate_provider_json_output_keys,
+    validate_source_request_json_output_keys,
 )
 from true_rl_agent.agent_core.provider_errors import ProviderCandidateError
-from true_rl_agent.candidates.prompt_projection import assert_public_only_prompt_payload, serialize_prompt_payload
+from true_rl_agent.candidates.loader import (
+    CANDIDATE_SCHEMA_VERSION,
+    CONTROLLED_ENTRYPOINT,
+)
 from true_rl_agent.candidates.schema import CandidateChangeSet, CandidatePackageRef
-
+from true_rl_agent.json_contract import strict_json_object_loads
+from true_rl_agent.prompting import (
+    assert_public_only_prompt_payload,
+    serialize_prompt_payload,
+)
+from true_rl_agent.prompting.source_catalog import prompt_source_catalog_logical_ids
 
 _CANDIDATE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$")
-_ALLOWED_DECLARED_COMPONENTS = frozenset(MATERIALIZER_DECLARED_COMPONENTS_ALLOWED_VALUES)
 
 
 class JsonTransport(Protocol):
@@ -62,7 +77,7 @@ class UrllibJsonTransport:
         except urllib.error.HTTPError as exc:
             raw_error = exc.read().decode("utf-8", errors="replace")
             raise RuntimeError(f"provider request failed with HTTP {exc.code}: {_safe_error(raw_error)}") from exc
-        return _json_object(json.loads(raw), "provider response")
+        return strict_json_object_loads(raw, context="provider response")
 
 
 class OpenAICompatibleCandidateProvider:
@@ -79,6 +94,12 @@ class OpenAICompatibleCandidateProvider:
         self._counter = 0
 
     def next_candidate(self, *, prompt_payload: dict[str, Any]) -> CandidatePackageRef:
+        response = self.next_authoring_response(prompt_payload=prompt_payload)
+        if isinstance(response, SourceRequestResponse):
+            raise build_source_request_denied_error(response)
+        return response.candidate
+
+    def next_authoring_response(self, *, prompt_payload: dict[str, Any]) -> AuthoringProviderResponse:
         self._counter += 1
         assert_public_only_prompt_payload(prompt_payload)
         request_payload = self._chat_completion_request(prompt_payload)
@@ -103,7 +124,10 @@ class OpenAICompatibleCandidateProvider:
                 "candidate proposal was not valid JSON object",
             ) from exc
         try:
-            return self._materialize_candidate(proposal)
+            mode = provider_authoring_response_mode(proposal)
+            if mode == "source_request":
+                return self._parse_source_request(proposal, prompt_payload=prompt_payload)
+            return CandidateDraftResponse(candidate=self._materialize_candidate(proposal))
         except ProviderCandidateError:
             raise
         except ValueError as exc:
@@ -160,9 +184,9 @@ class OpenAICompatibleCandidateProvider:
         (candidate_dir / "candidate_manifest.yaml").write_text(
             "\n".join(
                 [
-                    "schema_version: true_rl_agent.candidate.v1",
+                    f"schema_version: {CANDIDATE_SCHEMA_VERSION}",
                     f"candidate_id: {candidate_id}",
-                    "entrypoint: training_code.components:build_training_components",
+                    f"entrypoint: {CONTROLLED_ENTRYPOINT}",
                     "",
                 ]
             ),
@@ -176,7 +200,10 @@ class OpenAICompatibleCandidateProvider:
                     "schema_version": "true_rl_agent.provider.operation_diff.v1",
                     "candidate_id": candidate_id,
                     "declared_changed_components": sorted(changed_components),
-                    "provider": "openai_compatible_chat",
+                    "derived_from": ["declared_changed_components"],
+                    "materialized_by": "openai_compatible_candidate_materializer",
+                    "provider_backend": "openai_compatible_chat",
+                    "verifier_derived_change_set_is_authoritative": True,
                 },
                 indent=2,
                 sort_keys=True,
@@ -189,7 +216,8 @@ class OpenAICompatibleCandidateProvider:
                 {
                     "schema_version": "true_rl_agent.provider.diagnostics.v1",
                     "candidate_id": candidate_id,
-                    "provider": "openai_compatible_chat",
+                    "materialized_by": "openai_compatible_candidate_materializer",
+                    "provider_backend": "openai_compatible_chat",
                     "status": "provider_materialized",
                     "diagnostic_items": [],
                     "notes": [
@@ -210,6 +238,24 @@ class OpenAICompatibleCandidateProvider:
             metadata={"provider": "openai_compatible_chat", "declared_change_set_provisional": True},
         )
 
+    def _parse_source_request(
+        self,
+        proposal: Mapping[str, Any],
+        *,
+        prompt_payload: Mapping[str, Any],
+    ) -> SourceRequestResponse:
+        validate_source_request_json_output_keys(dict(proposal))
+        logical_ids = proposal.get("logical_ids")
+        if not isinstance(logical_ids, list) or not all(isinstance(item, str) for item in logical_ids):
+            raise ValueError("source_request logical_ids must be a JSON array of strings")
+        rationale = _require_text(proposal.get("rationale", ""), "rationale")
+        _reject_secret_markers(rationale)
+        return SourceRequestResponse(
+            logical_ids=tuple(logical_ids),
+            rationale=rationale,
+            source_catalog_logical_ids=tuple(sorted(prompt_source_catalog_logical_ids(prompt_payload))),
+        )
+
 
 def load_env_file(path: Path) -> dict[str, str]:
     values: dict[str, str] = {}
@@ -225,13 +271,17 @@ def load_env_file(path: Path) -> dict[str, str]:
 
 def _system_prompt() -> str:
     contract = provider_json_output_contract()
-    required_keys = ", ".join(contract["required_keys"])
+    draft_required = ", ".join(contract["one_of"]["candidate_draft"]["required_keys"])
+    source_request_required = ", ".join(contract["one_of"]["source_request"]["required_keys"])
     return (
         "You are an OpenAI-compatible candidate-package provider. "
         "The user payload is the only source of task-specific context, public evidence, component "
         "contract details, and output-field constraints. Return exactly one valid JSON object and "
-        "no prose outside JSON. The JSON object must contain only the keys required by the user "
-        f"payload provider_json_output contract, currently: {required_keys}. "
+        "no prose outside JSON. The JSON object must match exactly one response shape from "
+        "provider_json_output.one_of in the user payload. The default response mode is "
+        "candidate_draft; candidate_draft may omit response_mode and must include: "
+        f"{draft_required}. A source_request must set response_mode='source_request' and include: "
+        f"{source_request_required}. Do not mix candidate_draft and source_request fields. "
         "Use prompt-visible task/eval summaries only as read-only evidence; do not treat them as "
         "candidate-controllable targets. Do not read non-prompt files, environment variables, raw "
         "seeds, checkpoints, runner state, eval state, private budgets, private success metrics, "
@@ -271,22 +321,16 @@ def _response_text(response: Mapping[str, Any]) -> str:
     raise ValueError("provider response did not contain text output")
 
 
-def _json_object(value: Any, name: str) -> dict[str, Any]:
-    if not isinstance(value, dict):
-        raise ValueError(f"{name} must be a JSON object")
-    return value
-
-
 def _json_object_from_text(text: str, name: str) -> dict[str, Any]:
     try:
-        return _json_object(json.loads(text), name)
-    except json.JSONDecodeError as strict_error:
+        return strict_json_object_loads(text, context=name)
+    except ValueError as strict_error:
         extracted = _extract_first_json_object(text)
         if extracted is None:
             raise ValueError(f"{name} was not valid JSON: {_safe_error(text)}") from strict_error
         try:
-            return _json_object(json.loads(extracted), name)
-        except json.JSONDecodeError as extracted_error:
+            return strict_json_object_loads(extracted, context=name)
+        except ValueError as extracted_error:
             raise ValueError(f"{name} contained an invalid JSON object: {_safe_error(text)}") from extracted_error
 
 
@@ -331,14 +375,7 @@ def _require_text(value: Any, name: str) -> str:
 
 
 def _changed_components(value: Any) -> set[str]:
-    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
-        raise ValueError("declared_changed_components must be a JSON array of strings")
-    changed = set(value)
-    unsupported = sorted(changed - _ALLOWED_DECLARED_COMPONENTS)
-    if unsupported:
-        joined = ", ".join(unsupported)
-        raise ValueError(f"declared_changed_components contains unsupported values: {joined}")
-    return changed
+    return set(validate_declared_changed_components(value))
 
 
 def _reject_secret_markers(text: str) -> None:

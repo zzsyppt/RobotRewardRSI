@@ -7,7 +7,10 @@ from statistics import fmean
 from typing import Any, Mapping, Sequence
 
 from true_rl_agent.agent_core.context import sanitize_public_context
-from true_rl_agent.tasks.push_recovery.metrics import classify_push_failure, extract_push_failure_breakdown
+from true_rl_agent.tasks.push_recovery.metrics import (
+    classify_push_prompt_failure,
+    extract_push_prompt_failure_breakdown,
+)
 
 
 @dataclass(frozen=True)
@@ -16,26 +19,39 @@ class PushTaskMemoryAdapter:
 
     task_id: str = "unitree_push_recovery"
 
-    def build_public_summary(self, public_records: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:
+    def build_public_summary(
+        self,
+        public_records: Sequence[Mapping[str, Any]],
+    ) -> Mapping[str, Any]:
         push_records = [
             record
             for record in public_records
-            if _task_id(record) in (None, self.task_id) and record.get("public_result") is not None
+            if _task_id(record) in (None, self.task_id)
+            and isinstance(record.get("public_result"), Mapping)
+            and bool(record.get("public_result"))
         ]
-        metrics_by_round = [_metrics(record) for record in push_records]
-        metrics_by_round = [metrics for metrics in metrics_by_round if metrics]
-        if not metrics_by_round:
+        records_with_metrics = [
+            (record, metrics)
+            for record in push_records
+            for metrics in [_metrics(record)]
+            if metrics
+        ]
+        if not records_with_metrics:
             return {}
 
+        metrics_by_round = [metrics for _record, metrics in records_with_metrics]
         success_rates = [
-            float(metrics["success_rate"])
-            for metrics in metrics_by_round
-            if isinstance(metrics.get("success_rate"), int | float)
+            score
+            for record, _metrics_by_round in records_with_metrics
+            for score in [
+                _validated_public_score(record)
+            ]
+            if score is not None
         ]
         latest_metrics = metrics_by_round[-1]
-        latest_failure_breakdown = extract_push_failure_breakdown(latest_metrics)
+        latest_failure_breakdown = extract_push_prompt_failure_breakdown(latest_metrics)
         aggregate_failure_breakdown = _mean_numeric_mappings(
-            [extract_push_failure_breakdown(metrics) for metrics in metrics_by_round]
+            [extract_push_prompt_failure_breakdown(metrics) for metrics in metrics_by_round]
         )
 
         summary = {
@@ -47,7 +63,7 @@ class PushTaskMemoryAdapter:
                 "best": max(success_rates) if success_rates else None,
                 "mean": fmean(success_rates) if success_rates else None,
             },
-            "latest_failure_mode": classify_push_failure(latest_metrics),
+            "latest_failure_mode": classify_push_prompt_failure(latest_metrics),
             "latest_failure_breakdown": latest_failure_breakdown,
             "aggregate_failure_breakdown": aggregate_failure_breakdown,
             "latest_motion_quality": latest_metrics.get("motion_quality", {}),
@@ -61,6 +77,18 @@ def _metrics(record: Mapping[str, Any]) -> Mapping[str, Any]:
         return {}
     metrics = public_result.get("metrics", {})
     return metrics if isinstance(metrics, Mapping) else {}
+
+
+def _validated_public_score(
+    record: Mapping[str, Any],
+) -> float | None:
+    decision = record.get("decision")
+    if not isinstance(decision, Mapping):
+        return None
+    score = decision.get("public_score")
+    if isinstance(score, bool) or not isinstance(score, int | float):
+        return None
+    return float(score)
 
 
 def _task_id(record: Mapping[str, Any]) -> str | None:

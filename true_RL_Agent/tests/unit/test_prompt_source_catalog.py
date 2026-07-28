@@ -5,24 +5,126 @@ import json
 import sys
 import tempfile
 import unittest
+from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
-
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from true_rl_agent.candidates.schema import CandidateChangeSet, CandidatePackageRef
-from true_rl_agent.memory import ExperimentRecord, PublicContextBuilder
 from true_rl_agent.candidates.prompt_projection import build_prompt_payload
+from true_rl_agent.candidates.schema import CandidateChangeSet, CandidatePackageRef
+from true_rl_agent.evaluation.acceptance_protocol import (
+    PUBLIC_SCORE_BINDING_ACCEPTANCE_MEAN,
+    AcceptanceProtocol,
+)
+from true_rl_agent.evaluation.binding import EvaluationBindingV1
+from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
+from true_rl_agent.evaluation.protocol import EvaluationProtocol
+from true_rl_agent.memory import (
+    ExperimentRecord,
+)
+from true_rl_agent.memory import (
+    PublicContextBuilder as _PublicContextBuilder,
+)
 from true_rl_agent.prompting.public_safety import assert_public_only_prompt_payload
 from true_rl_agent.prompting.source_catalog import (
     MAX_PROMPT_SOURCE_INLINE_BYTES,
     MAX_PROMPT_SOURCE_READ_BYTES,
-    build_prompt_source_context,
 )
+from true_rl_agent.prompting.source_catalog import (
+    build_prompt_source_context as _build_prompt_source_context,
+)
+
+SOURCE_CATALOG_ACCEPTANCE_PROTOCOL = AcceptanceProtocol(
+    protocol_id="source_catalog_acceptance_v1",
+    score_source="public_accept.score_stats.mean",
+    min_score_count=1,
+    absolute_accept_floor=0.0,
+    min_delta=0.0,
+    public_score_binding=PUBLIC_SCORE_BINDING_ACCEPTANCE_MEAN,
+)
+SOURCE_CATALOG_EVALUATION_PROTOCOL = EvaluationProtocol(
+    eval_protocol_version="source_catalog_eval_v1",
+    public_seed_count=1,
+    public_accept_seed_count=1,
+    sealed_validation_seed_count=7,
+    eval_num_envs=64,
+)
+SOURCE_CATALOG_EVALUATION_BINDING = EvaluationBindingV1(
+    eval_protocol_hash=SOURCE_CATALOG_EVALUATION_PROTOCOL.protocol_hash,
+    acceptance_protocol_hash=SOURCE_CATALOG_ACCEPTANCE_PROTOCOL.protocol_hash,
+    task_protocol_hash="d" * 64,
+    seed_cohort_hash="e" * 64,
+)
+SOURCE_CATALOG_SESSION_GENESIS_HASH = "f" * 64
+SOURCE_CATALOG_TRAINING_BINDING_HASH = "1" * 64
+SOURCE_CATALOG_CAPABILITY_PROFILE_HASH = "2" * 64
+
+
+def _bootstrap_current_best() -> CurrentBestEvalStats:
+    return CurrentBestEvalStats.bootstrap(
+        initial_best_score=0.0,
+        acceptance_protocol=SOURCE_CATALOG_ACCEPTANCE_PROTOCOL,
+        evaluation_binding=SOURCE_CATALOG_EVALUATION_BINDING,
+        anchor_id="source-catalog-bootstrap",
+    )
+
+
+def _bind_source_records(records):
+    bound = []
+    for record in records:
+        if isinstance(record, ExperimentRecord):
+            public_record = record.ledger_public_record()
+            public_record["session_genesis_hash"] = (
+                SOURCE_CATALOG_SESSION_GENESIS_HASH
+            )
+            public_record["evaluation_binding"] = (
+                SOURCE_CATALOG_EVALUATION_BINDING.to_public_dict()
+            )
+            bound.append(replace(record, public_record=public_record))
+        else:
+            item = dict(record)
+            item["session_genesis_hash"] = SOURCE_CATALOG_SESSION_GENESIS_HASH
+            item["evaluation_binding"] = (
+                SOURCE_CATALOG_EVALUATION_BINDING.to_public_dict()
+            )
+            bound.append(item)
+    return bound
+
+
+class _BoundPublicContextBuilder(_PublicContextBuilder):
+    def _prepare_records(self, records):
+        return super()._prepare_records(_bind_source_records(records))
+
+
+def PublicContextBuilder(*args, **kwargs):
+    kwargs.setdefault(
+        "acceptance_protocol",
+        SOURCE_CATALOG_ACCEPTANCE_PROTOCOL,
+    )
+    kwargs.setdefault("initial_current_best", _bootstrap_current_best())
+    kwargs.setdefault(
+        "session_genesis_hash",
+        SOURCE_CATALOG_SESSION_GENESIS_HASH,
+    )
+    return _BoundPublicContextBuilder(*args, **kwargs)
+
+
+def build_prompt_source_context(*args, **kwargs):
+    args = (_bind_source_records(args[0]), *args[1:])
+    kwargs.setdefault(
+        "acceptance_protocol",
+        SOURCE_CATALOG_ACCEPTANCE_PROTOCOL,
+    )
+    kwargs.setdefault("initial_current_best", _bootstrap_current_best())
+    kwargs.setdefault(
+        "session_genesis_hash",
+        SOURCE_CATALOG_SESSION_GENESIS_HASH,
+    )
+    return _build_prompt_source_context(*args, **kwargs)
 
 
 class PromptSourceCatalogTests(unittest.TestCase):
@@ -33,12 +135,16 @@ class PromptSourceCatalogTests(unittest.TestCase):
         lineage = payload["candidate_lineage"]
         frame = payload["authoring_context_frame"]
 
+        self.assertTrue(catalog["policy"]["source_request_enabled"])
+        self.assertTrue(catalog["policy"]["ids_are_closed_allowlist"])
+        self.assertFalse(catalog["policy"]["provider_filesystem_access"])
         logical_ids = [item["logical_id"] for item in catalog["items"]]
         self.assertEqual(
             logical_ids,
             [
                 "api/candidate_components.py",
                 "current_best/training_code/components.py",
+                "memory/best_observed/training_code/components.py",
                 "examples/known_good_reward_terms.py",
                 "attempt/latest_failed/training_code/components.py",
             ],
@@ -47,6 +153,7 @@ class PromptSourceCatalogTests(unittest.TestCase):
             self.assertIn("role", item)
             self.assertIn("candidate_use", item)
             self.assertIn("max_bytes", item)
+            self.assertIn("requestable", item)
             self.assertTrue(item.get("content_sha256") or item.get("pending_reason"))
         self.assertEqual(lineage["status"], "none")
         self.assertIsNone(lineage["current_best"])
@@ -92,7 +199,15 @@ class PromptSourceCatalogTests(unittest.TestCase):
                         "changed_components": ["reward_callable"],
                     },
                 },
-                _accepted_record("round-003", "candidate-latest", latest_dir, 0.35),
+                _accepted_record(
+                    "round-003",
+                    "candidate-latest",
+                    latest_dir,
+                    0.35,
+                    current_best_score=0.20,
+                    current_best_round_id="round-001",
+                    current_best_candidate_id="candidate-old",
+                ),
             ]
 
             payload = PublicContextBuilder().build_prompt_payload(records)
@@ -124,6 +239,65 @@ class PromptSourceCatalogTests(unittest.TestCase):
         self.assertNotIn(str(old_dir), text)
         self.assertNotIn('"path"', json.dumps(payload["public_context"], sort_keys=True))
         assert_public_only_prompt_payload(payload)
+
+    def test_contradictory_accept_does_not_become_current_best_lineage(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            candidate_dir = Path(tmp) / "candidate-invalid-accept"
+            (candidate_dir / "training_code").mkdir(parents=True)
+            (candidate_dir / "training_code" / "components.py").write_text(
+                "def invalid_accept_source(inp):\n    return 0.0\n",
+                encoding="utf-8",
+            )
+            record = _accepted_record(
+                "round-invalid",
+                "candidate-invalid",
+                candidate_dir,
+                0.99,
+            )
+            record["decision"].update(
+                accepted=True,
+                outcome="reject",
+                reason="candidate_verifier_failed",
+            )
+
+            payload = PublicContextBuilder().build_prompt_payload([record])
+
+        self.assertEqual(payload["candidate_lineage"]["status"], "none")
+        self.assertEqual(payload["source_payloads"], [])
+
+    def test_sequence_invalid_accept_cannot_replace_lineage_source(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            first_dir = root / "candidate-first"
+            forged_dir = root / "candidate-forged"
+            for candidate_dir, function_name in (
+                (first_dir, "first_valid_source"),
+                (forged_dir, "forged_source"),
+            ):
+                (candidate_dir / "training_code").mkdir(parents=True)
+                (candidate_dir / "training_code" / "components.py").write_text(
+                    f"def {function_name}(inp):\n    return 0.0\n",
+                    encoding="utf-8",
+                )
+            records = [
+                _accepted_record(
+                    "round-001", "candidate-first", first_dir, 0.50
+                ),
+                _accepted_record(
+                    "round-002", "candidate-forged", forged_dir, 0.51
+                ),
+            ]
+
+            payload = PublicContextBuilder().build_prompt_payload(records)
+
+        lineage = payload["candidate_lineage"]
+        source_text = json.dumps(payload["source_payloads"], sort_keys=True)
+        self.assertEqual(lineage["current_best"]["round_id"], "round-001")
+        self.assertEqual(
+            lineage["current_best"]["candidate_id"], "candidate-first"
+        )
+        self.assertIn("first_valid_source", source_text)
+        self.assertNotIn("forged_source", source_text)
 
     def test_oversized_current_best_source_is_omitted_but_hash_and_summary_remain(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -288,11 +462,22 @@ class PromptSourceCatalogTests(unittest.TestCase):
                         "accepted": False,
                         "outcome": "reject",
                         "reason": "candidate_runtime_failed",
+                        "surface_classification": "code_level",
+                        "public_score": None,
+                        "comparison": {},
+                        "consumed_gates": [],
+                        "gate_statuses": {},
                     },
                     "candidate": {
                         "candidate_id": "candidate-runtime-failed",
                         "path": str(candidate_dir),
                         "changed_components": ["reward_callable"],
+                    },
+                    "candidate_surface": {"classification": "code_level"},
+                    "verifier": {"status": "pass"},
+                    "jobs": {
+                        "train": {"job_id": "round-001-train"},
+                        "eval": {"job_id": "round-001-eval"},
                     },
                     "runner_error": {
                         "type": "CandidateRuntimeError",
@@ -313,6 +498,156 @@ class PromptSourceCatalogTests(unittest.TestCase):
         self.assertIn("runtime_failed_reward", failed_payload["content"])
         self.assertNotIn(str(candidate_dir), text)
         self.assertNotIn('"path"', json.dumps(payload["public_context"], sort_keys=True))
+        assert_public_only_prompt_payload(payload)
+
+    def test_latest_evaluated_reject_exposes_source_for_next_round_repair(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            candidate_dir = Path(tmp) / "candidate-evaluated-reject"
+            (candidate_dir / "training_code").mkdir(parents=True)
+            (candidate_dir / "training_code" / "components.py").write_text(
+                "def evaluated_reward(inp):\n    return inp.base_height - 0.5 * inp.pitch * inp.pitch\n",
+                encoding="utf-8",
+            )
+            rejected = _accepted_record(
+                "round-001",
+                "candidate-evaluated-reject",
+                candidate_dir,
+                0.20,
+            )
+            required = rejected["public_result"]["metrics"]["acceptance"][
+                "required_pass_gates"
+            ]
+            required.append("behavior_quality_gate")
+            rejected["public_result"]["metrics"]["behavior_quality_gate"] = {
+                "status": "fail"
+            }
+            rejected["decision"].update(
+                accepted=False,
+                outcome="reject",
+                reason="required_gate_failed",
+            )
+            rejected["decision"]["consumed_gates"].append("behavior_quality_gate")
+            rejected["decision"]["gate_statuses"]["behavior_quality_gate"] = "fail"
+            record = ExperimentRecord.from_ledger_record(rejected)
+
+            payload = build_prompt_payload(
+                public_context=build_prompt_source_context([record])
+            )
+
+        failed_item = _catalog_item(
+            payload,
+            "attempt/latest_failed/training_code/components.py",
+        )
+        failed_payload = payload["source_payloads"][0]
+        payload_text = json.dumps(payload, sort_keys=True)
+
+        lineage = payload["candidate_lineage"]
+        observed = lineage["best_observed_experiment"]
+        best_item = _catalog_item(
+            payload,
+            "memory/best_observed/training_code/components.py",
+        )
+
+        self.assertEqual(lineage["status"], "bootstrap_observed_anchor")
+        self.assertIsNone(lineage["current_best"])
+        self.assertFalse(observed["accepted"])
+        self.assertEqual(
+            observed["authority"],
+            "authoring_anchor_only_not_policy_best",
+        )
+        self.assertEqual(observed["candidate_id"], "candidate-evaluated-reject")
+        self.assertEqual(observed["source_logical_id"], failed_payload["logical_id"])
+        self.assertEqual(best_item["status"], "alias")
+        self.assertEqual(best_item["alias_of"], failed_payload["logical_id"])
+        self.assertEqual(
+            payload["exploration_directive"]["mode"],
+            "bootstrap_refine",
+        )
+        self.assertEqual(failed_item["status"], "inline")
+        self.assertEqual(failed_item["role"], "latest_nonaccepted_candidate_source")
+        self.assertEqual(
+            failed_payload["role"],
+            "latest_nonaccepted_candidate_source",
+        )
+        self.assertIn("0.5 * inp.pitch", failed_payload["content"])
+        self.assertNotIn(str(candidate_dir), payload_text)
+        assert_public_only_prompt_payload(payload)
+
+    def test_bootstrap_anchor_keeps_best_observed_source_not_worse_latest_source(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            better_dir = root / "candidate-better"
+            worse_dir = root / "candidate-worse"
+            for candidate_dir, term_name in (
+                (better_dir, "better_reward"),
+                (worse_dir, "worse_reward"),
+            ):
+                (candidate_dir / "training_code").mkdir(parents=True)
+                (candidate_dir / "training_code" / "components.py").write_text(
+                    f"def {term_name}(inp):\n    return inp.base_height\n",
+                    encoding="utf-8",
+                )
+
+            better = _evaluated_reject_record(
+                "round-001",
+                "candidate-better",
+                better_dir,
+                0.40,
+            )
+            worse = _evaluated_reject_record(
+                "round-002",
+                "candidate-worse",
+                worse_dir,
+                0.10,
+            )
+            payload = PublicContextBuilder().build_prompt_payload(
+                [
+                    ExperimentRecord.from_ledger_record(better),
+                    ExperimentRecord.from_ledger_record(worse),
+                ]
+            )
+
+        lineage = payload["candidate_lineage"]
+        observed = lineage["best_observed_experiment"]
+        payloads = {
+            item["logical_id"]: item for item in payload["source_payloads"]
+        }
+
+        self.assertEqual(lineage["status"], "bootstrap_observed_anchor")
+        self.assertEqual(observed["round_id"], "round-001")
+        self.assertEqual(observed["candidate_id"], "candidate-better")
+        self.assertEqual(observed["public_score"], 0.40)
+        self.assertEqual(
+            observed["source_logical_id"],
+            "memory/best_observed/training_code/components.py",
+        )
+        self.assertEqual(
+            set(payloads),
+            {
+                "memory/best_observed/training_code/components.py",
+                "attempt/latest_failed/training_code/components.py",
+            },
+        )
+        self.assertIn(
+            "better_reward",
+            payloads[
+                "memory/best_observed/training_code/components.py"
+            ]["content"],
+        )
+        self.assertIn(
+            "worse_reward",
+            payloads[
+                "attempt/latest_failed/training_code/components.py"
+            ]["content"],
+        )
+        self.assertNotEqual(
+            payloads["memory/best_observed/training_code/components.py"][
+                "content_sha256"
+            ],
+            payloads["attempt/latest_failed/training_code/components.py"][
+                "content_sha256"
+            ],
+        )
         assert_public_only_prompt_payload(payload)
 
     def test_runtime_failed_source_is_dropped_after_intervening_accept(self) -> None:
@@ -365,6 +700,80 @@ class PromptSourceCatalogTests(unittest.TestCase):
         self.assertEqual(failed_sources, [])
         self.assertIn("accepted_success_reward", text)
         self.assertNotIn("stale_runtime_failed_reward", text)
+        assert_public_only_prompt_payload(payload)
+
+    def test_current_best_and_latest_evaluated_reject_sources_are_both_available(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            accepted_dir = root / "candidate-accepted"
+            rejected_dir = root / "candidate-rejected"
+            for candidate_dir, source in (
+                (
+                    accepted_dir,
+                    "def accepted_reward(inp):\n    return inp.base_height\n",
+                ),
+                (
+                    rejected_dir,
+                    "def rejected_reward(inp):\n    return inp.base_height - 0.5 * inp.pitch * inp.pitch\n",
+                ),
+            ):
+                (candidate_dir / "training_code").mkdir(parents=True)
+                (candidate_dir / "training_code" / "components.py").write_text(
+                    source,
+                    encoding="utf-8",
+                )
+            accepted = _accepted_record(
+                "round-001",
+                "candidate-accepted",
+                accepted_dir,
+                0.50,
+            )
+            rejected = _accepted_record(
+                "round-002",
+                "candidate-rejected",
+                rejected_dir,
+                0.40,
+                current_best_score=0.50,
+                current_best_round_id="round-001",
+                current_best_candidate_id="candidate-accepted",
+            )
+            rejected["decision"].update(
+                accepted=False,
+                outcome="reject",
+                reason="noise_aware_delta_not_met",
+            )
+
+            payload = PublicContextBuilder().build_prompt_payload(
+                [accepted, rejected]
+            )
+
+        payloads = {
+            item["logical_id"]: item for item in payload["source_payloads"]
+        }
+        lineage = payload["candidate_lineage"]
+
+        self.assertEqual(lineage["status"], "accepted_current_best")
+        self.assertEqual(
+            lineage["current_best"]["candidate_id"],
+            "candidate-accepted",
+        )
+        self.assertEqual(
+            set(payloads),
+            {
+                "current_best/training_code/components.py",
+                "attempt/latest_failed/training_code/components.py",
+            },
+        )
+        self.assertIn(
+            "accepted_reward",
+            payloads["current_best/training_code/components.py"]["content"],
+        )
+        self.assertIn(
+            "0.5 * inp.pitch",
+            payloads[
+                "attempt/latest_failed/training_code/components.py"
+            ]["content"],
+        )
         assert_public_only_prompt_payload(payload)
 
     def test_candidate_components_symlink_is_rejected_before_resolving_target(self) -> None:
@@ -483,8 +892,32 @@ class PromptSourceCatalogTests(unittest.TestCase):
             )
             sections["candidate_lineage"]["current_best"]["source_payload_ref"] = "attempt/latest_failed/training_code/components.py"
 
-            with self.assertRaises(ValueError):
-                build_prompt_payload(public_context=sections)
+        with self.assertRaises(ValueError):
+            build_prompt_payload(public_context=sections)
+
+    def test_prompt_payload_rejects_bootstrap_anchor_with_policy_best_authority(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            candidate_dir = Path(tmp) / "candidate-rejected"
+            (candidate_dir / "training_code").mkdir(parents=True)
+            (candidate_dir / "training_code" / "components.py").write_text(
+                "def rejected_reward(inp):\n    return inp.base_height\n",
+                encoding="utf-8",
+            )
+            record = ExperimentRecord.from_ledger_record(
+                _evaluated_reject_record(
+                    "round-001",
+                    "candidate-rejected",
+                    candidate_dir,
+                    0.2,
+                )
+            )
+            sections = build_prompt_source_context([record])
+
+        sections["candidate_lineage"]["best_observed_experiment"][
+            "authority"
+        ] = "accepted_policy_best"
+        with self.assertRaisesRegex(ValueError, "invalid authority"):
+            build_prompt_payload(public_context=sections)
 
     def test_over_read_budget_current_best_source_keeps_hash_bytes_and_summary(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -509,20 +942,276 @@ class PromptSourceCatalogTests(unittest.TestCase):
         self.assertIn("read budget", current_best["source_summary"])
         self.assertEqual(payload["source_payloads"], [])
 
-def _accepted_record(round_id: str, candidate_id: str, candidate_dir: Path, public_score: float) -> dict:
+def _accepted_record(
+    round_id: str,
+    candidate_id: str,
+    candidate_dir: Path,
+    public_score: float,
+    *,
+    current_best_score: float | None = None,
+    current_best_round_id: str | None = None,
+    current_best_candidate_id: str | None = None,
+) -> dict:
+    protocol_hash = SOURCE_CATALOG_EVALUATION_PROTOCOL.protocol_hash
+    checkpoint_hash = "sha256:" + "f" * 64
+    source_path = candidate_dir / "training_code" / "components.py"
+    source_checksum = "sha256:" + hashlib.sha256(source_path.read_bytes()).hexdigest()
+    subject_manifest_hash = hashlib.sha256(
+        f"candidate-manifest:{candidate_id}".encode("utf-8")
+    ).hexdigest()
+    sealed_seed_count = 7
+    score_stats = {
+        "count": 1,
+        "mean": public_score,
+        "std": 0.0,
+        "standard_error": 0.0,
+        "eval_protocol_hash": protocol_hash,
+    }
+    required_gates = [
+        "accept_evidence_gate",
+        "budget_accounting",
+        "sealed_validation_gate",
+    ]
+    if current_best_score is None:
+        current_best = _bootstrap_current_best()
+    else:
+        previous_candidate_dir = candidate_dir.parent / str(
+            current_best_candidate_id
+        )
+        if not previous_candidate_dir.is_dir():
+            previous_candidate_dir = candidate_dir
+        previous = _accepted_record(
+            str(current_best_round_id),
+            str(current_best_candidate_id),
+            previous_candidate_dir,
+            current_best_score,
+        )
+        current_best = CurrentBestEvalStats.from_public_result_mapping(
+            round_id=str(current_best_round_id),
+            candidate_id=str(current_best_candidate_id),
+            public_result=previous["public_result"],
+            acceptance_protocol=SOURCE_CATALOG_ACCEPTANCE_PROTOCOL,
+            subject_manifest_hash=previous["jobs"]["eval"][
+                "subject_manifest_hash"
+            ],
+            program_source_checksum=previous["jobs"]["eval"][
+                "program_source_checksum"
+            ],
+            training_binding_hash=previous["jobs"]["eval"][
+                "training_binding_hash"
+            ],
+            capability_profile_hash=previous["jobs"]["eval"][
+                "capability_profile_hash"
+            ],
+            checkpoint_hash=previous["jobs"]["eval"]["checkpoint"][
+                "checksum"
+            ],
+            expected_evaluation_binding=SOURCE_CATALOG_EVALUATION_BINDING,
+        )
     return {
         "round_id": round_id,
+        "session_genesis_hash": SOURCE_CATALOG_SESSION_GENESIS_HASH,
+        "evaluation_binding": (
+            SOURCE_CATALOG_EVALUATION_BINDING.to_public_dict()
+        ),
         "decision": {
             "accepted": True,
             "outcome": "policy_improvement_accept",
+            "reason": (
+                "absolute_accept_floor"
+                if current_best_score is None
+                else "noise_aware_delta"
+            ),
+            "surface_classification": "code_level",
             "public_score": public_score,
+            "comparison": {
+                "mode": "bootstrap" if current_best_score is None else "accepted",
+                "score_source": SOURCE_CATALOG_ACCEPTANCE_PROTOCOL.score_source,
+                "acceptance_protocol_hash": SOURCE_CATALOG_ACCEPTANCE_PROTOCOL.protocol_hash,
+                "candidate_score": public_score,
+                "current_best_score": current_best_score or 0.0,
+                "delta": public_score - (current_best_score or 0.0),
+                "threshold": 0.0,
+                "delta_met": public_score - (current_best_score or 0.0) > 0.0,
+                "absolute_accept_floor": 0.0,
+                "candidate_score_stats": dict(score_stats),
+                "best_score_stats": (
+                    {}
+                    if current_best_score is None
+                    else {
+                        "count": 1,
+                        "mean": current_best_score,
+                        "std": 0.0,
+                        "standard_error": 0.0,
+                        "eval_protocol_hash": protocol_hash,
+                    }
+                ),
+                "candidate_evaluation_binding_hash": (
+                    SOURCE_CATALOG_EVALUATION_BINDING.binding_hash
+                ),
+                "current_best": current_best.comparison_identity(),
+                "public_score": public_score,
+            },
+            "consumed_gates": list(required_gates),
+            "gate_statuses": {gate: "pass" for gate in required_gates},
         },
         "candidate": {
             "candidate_id": candidate_id,
             "path": str(candidate_dir),
             "changed_components": ["reward_callable"],
         },
+        "candidate_surface": {
+            "classification": "code_level",
+            "eligible_for_policy_accept": True,
+            "reason": "code_level_candidate",
+        },
+        "verifier": {"status": "pass"},
+        "jobs": {
+            "train": {
+                "job_id": f"{round_id}-train",
+                "subject": {
+                    "schema_version": "true_rl_agent.experiment.subject.v2",
+                    "kind": "candidate",
+                    "id": candidate_id,
+                },
+                "subject_manifest_hash": subject_manifest_hash,
+                "program_source_checksum": source_checksum,
+                "training_binding": {
+                    "binding_hash": SOURCE_CATALOG_TRAINING_BINDING_HASH,
+                    "capability_profile_hash": (
+                        SOURCE_CATALOG_CAPABILITY_PROFILE_HASH
+                    ),
+                },
+            },
+            "eval": {
+                "job_id": f"{round_id}-eval",
+                "subject": {
+                    "schema_version": "true_rl_agent.experiment.subject.v2",
+                    "kind": "candidate",
+                    "id": candidate_id,
+                },
+                "subject_manifest_hash": subject_manifest_hash,
+                "program_source_checksum": source_checksum,
+                "training_binding_hash": SOURCE_CATALOG_TRAINING_BINDING_HASH,
+                "capability_profile_hash": (
+                    SOURCE_CATALOG_CAPABILITY_PROFILE_HASH
+                ),
+                **SOURCE_CATALOG_EVALUATION_PROTOCOL.to_public_dict(),
+                "evaluation_binding": (
+                    SOURCE_CATALOG_EVALUATION_BINDING.to_public_dict()
+                ),
+                "checkpoint": {"checksum": checkpoint_hash},
+            },
+        },
+        "train_result": {"job_id": f"{round_id}-train"},
+        "public_result": {
+            "status": "pass",
+            "public_score": public_score,
+            "metrics": {
+                "evaluation_binding": (
+                    SOURCE_CATALOG_EVALUATION_BINDING.to_public_dict()
+                ),
+                "evaluation_subject": {
+                    "schema_version": "true_rl_agent.experiment.subject.v2",
+                    "kind": "candidate",
+                    "id": candidate_id,
+                },
+                "subject_manifest_hash": subject_manifest_hash,
+                "program_source_checksum": source_checksum,
+                "training_binding_hash": SOURCE_CATALOG_TRAINING_BINDING_HASH,
+                "capability_profile_hash": (
+                    SOURCE_CATALOG_CAPABILITY_PROFILE_HASH
+                ),
+                "public_accept": {"score_stats": dict(score_stats)},
+                "acceptance": {
+                    "score_source": SOURCE_CATALOG_ACCEPTANCE_PROTOCOL.score_source,
+                    "public_score_binding": SOURCE_CATALOG_ACCEPTANCE_PROTOCOL.public_score_binding,
+                    "score_stats": dict(score_stats),
+                    "min_score_count": 1,
+                    "absolute_accept_floor": SOURCE_CATALOG_ACCEPTANCE_PROTOCOL.absolute_accept_floor,
+                    "min_delta": SOURCE_CATALOG_ACCEPTANCE_PROTOCOL.min_delta,
+                    "acceptance_protocol_hash": SOURCE_CATALOG_ACCEPTANCE_PROTOCOL.protocol_hash,
+                    "required_pass_gates": list(required_gates),
+                },
+                "accept_evidence_gate": {"status": "pass"},
+                "budget_accounting": {"status": "pass"},
+                "sealed_validation": {
+                    "schema_version": "true_rl_agent.sealed_validation.evidence.v3",
+                    "status": "pass",
+                    "reason": "test_holdout_passed",
+                    "expected_seed_count": sealed_seed_count,
+                    "observed_seed_count": sealed_seed_count,
+                    "eval_protocol_hash": protocol_hash,
+                    "evaluation_binding_hash": (
+                        SOURCE_CATALOG_EVALUATION_BINDING.binding_hash
+                    ),
+                    "evaluation_subject": {
+                        "schema_version": "true_rl_agent.experiment.subject.v2",
+                        "kind": "candidate",
+                        "id": candidate_id,
+                    },
+                    "subject_manifest_hash": subject_manifest_hash,
+                    "program_source_checksum": source_checksum,
+                    "training_binding_hash": (
+                        SOURCE_CATALOG_TRAINING_BINDING_HASH
+                    ),
+                    "capability_profile_hash": (
+                        SOURCE_CATALOG_CAPABILITY_PROFILE_HASH
+                    ),
+                    "checkpoint_hash": checkpoint_hash,
+                    "score_stats": {
+                        "count": sealed_seed_count,
+                        "mean": public_score,
+                        "std": 0.0,
+                        "standard_error": 0.0,
+                        "eval_protocol_hash": protocol_hash,
+                    },
+                },
+                "sealed_validation_gate": {
+                    "status": "pass",
+                    "checkpoint_safety_status": "pass",
+                    "candidate_isolation_status": "pass",
+                    "candidate_code_loaded_in_eval": False,
+                    "candidate_package_loaded_in_eval": False,
+                    "candidate_path_argument_present": False,
+                    "eval_protocol_hash_match_status": "pass",
+                    "evaluation_binding_hash_match_status": "pass",
+                    "checkpoint_hash_match_status": "pass",
+                    "holdout_rollout_status": "pass",
+                    "reason": "sealed_validation_complete",
+                },
+            },
+        },
     }
+
+
+def _evaluated_reject_record(
+    round_id: str,
+    candidate_id: str,
+    candidate_dir: Path,
+    public_score: float,
+) -> dict:
+    record = _accepted_record(
+        round_id,
+        candidate_id,
+        candidate_dir,
+        public_score,
+    )
+    required = record["public_result"]["metrics"]["acceptance"][
+        "required_pass_gates"
+    ]
+    required.append("behavior_quality_gate")
+    record["public_result"]["metrics"]["behavior_quality_gate"] = {
+        "status": "fail"
+    }
+    record["decision"].update(
+        accepted=False,
+        outcome="reject",
+        reason="required_gate_failed",
+    )
+    record["decision"]["consumed_gates"].append("behavior_quality_gate")
+    record["decision"]["gate_statuses"]["behavior_quality_gate"] = "fail"
+    return record
 
 
 def _catalog_item(payload: dict, logical_id: str) -> dict:

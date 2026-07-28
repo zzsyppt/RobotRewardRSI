@@ -4,23 +4,66 @@ import json
 import sys
 import tempfile
 import unittest
+from dataclasses import replace
 from pathlib import Path
-
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from true_rl_agent.agent_core.live_loop import run_live_loop  # noqa: E402
+from tests.fakes.evaluation import make_test_candidate_package  # noqa: E402
+from tests.fakes.fake_components import (  # noqa: E402
+    FAKE_RSL_RL_AGENT_CONFIGURATION,
+    FakeBackendAdapter,
+    FakeRunner,
+    FakeTaskPlugin,
+    FakeVerifier,
+    prepare_fake_session_genesis,
+)
+from true_rl_agent.agent_core.authoring_response import (  # noqa: E402
+    CandidateDraftResponse,
+    SourceRequestResponse,
+)
 from true_rl_agent.agent_core.ledger import load_ledger  # noqa: E402
-from true_rl_agent.agent_core.provider_errors import ProviderCandidateError  # noqa: E402
-from true_rl_agent.candidates.schema import CandidateChangeSet, CandidatePackageRef  # noqa: E402
+from true_rl_agent.agent_core.live_loop import (
+    run_live_loop as _run_live_loop,  # noqa: E402
+)
+from true_rl_agent.agent_core.provider_errors import (
+    ProviderCandidateError,  # noqa: E402
+)
+from true_rl_agent.candidates.schema import (  # noqa: E402
+    CandidateChangeSet,
+    CandidatePackageRef,
+)
 from true_rl_agent.policy import PolicyInitialization  # noqa: E402
-from true_rl_agent.prompting.source_catalog import MAX_PROMPT_SOURCE_INLINE_BYTES  # noqa: E402
+from true_rl_agent.prompting.source_catalog import (  # noqa: E402
+    CURRENT_BEST_SOURCE_ID,
+    MAX_PROMPT_SOURCE_INLINE_BYTES,
+    prompt_source_catalog_logical_ids,
+)
 from true_rl_agent.runner.base import CandidateRuntimeError  # noqa: E402
+from true_rl_agent.runner.subprocess_runner import SubprocessRunner  # noqa: E402
+from true_rl_agent.tasks.component_smoke import (  # noqa: E402
+    ComponentSmokeFixture,
+    SmokeTensor,
+)
+from true_rl_agent.tasks.push_recovery.reward_inputs import (
+    PushRecoveryRewardInputs,  # noqa: E402
+)
 
-from tests.fakes.fake_components import FakeBackendAdapter, FakeRunner, FakeTaskPlugin, FakeVerifier  # noqa: E402
+
+def run_live_loop(**kwargs):
+    initial_best_score = kwargs.pop("initial_best_score")
+    kwargs["session_genesis"] = prepare_fake_session_genesis(
+        output_dir=kwargs["output_dir"],
+        session_id=kwargs["session_id"],
+        initial_best_score=initial_best_score,
+        task_plugin=kwargs["task_plugin"],
+        backend_adapter=kwargs["backend_adapter"],
+        runner=kwargs["runner"],
+    )
+    return _run_live_loop(**kwargs)
 
 
 class _SequenceProvider:
@@ -31,9 +74,8 @@ class _SequenceProvider:
         public_context = prompt_payload["public_context"]
         self.contexts.append(public_context)
         index = len(self.contexts)
-        return CandidatePackageRef(
-            candidate_id=f"candidate-{index:03d}",
-            path=f"memory://candidate-{index:03d}",
+        return make_test_candidate_package(
+            f"candidate-{index:03d}",
             change_set=CandidateChangeSet(frozenset({"reward_callable"})),
             metadata={"fake_public_score": 0.20 + 0.01 * index},
         )
@@ -42,15 +84,16 @@ class _SequenceProvider:
 class _RepairProvider:
     def __init__(self) -> None:
         self.contexts: list[dict] = []
+        self.payloads: list[dict] = []
 
     def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
+        self.payloads.append(prompt_payload)
         public_context = prompt_payload["public_context"]
         self.contexts.append(public_context)
         index = len(self.contexts)
         verifier_status = "fail" if index == 1 else "pass"
-        return CandidatePackageRef(
-            candidate_id=f"candidate-{index:03d}",
-            path=f"memory://candidate-{index:03d}",
+        return make_test_candidate_package(
+            f"candidate-{index:03d}",
             change_set=CandidateChangeSet(frozenset({"reward_callable"})),
             metadata={"fake_public_score": 0.25, "verifier_status": verifier_status},
         )
@@ -67,6 +110,12 @@ class _PathSourceRepairProvider:
         if index == 1:
             candidate_dir = self.candidate_root / "candidate-001"
             (candidate_dir / "training_code").mkdir(parents=True)
+            (candidate_dir / "candidate_manifest.yaml").write_text(
+                "schema_version: true_rl_agent.candidate.v1\n"
+                "candidate_id: candidate-001\n"
+                "entrypoint: training_code.components:build_training_components\n",
+                encoding="utf-8",
+            )
             (candidate_dir / "training_code" / "components.py").write_text(
                 "\n".join(
                     [
@@ -85,9 +134,8 @@ class _PathSourceRepairProvider:
                 change_set=CandidateChangeSet(frozenset({"reward_callable"})),
                 metadata={"fake_public_score": 0.25, "verifier_status": "fail"},
             )
-        return CandidatePackageRef(
-            candidate_id="candidate-002",
-            path="memory://candidate-002",
+        return make_test_candidate_package(
+            "candidate-002",
             change_set=CandidateChangeSet(frozenset({"reward_callable"})),
             metadata={"fake_public_score": 0.25, "verifier_status": "pass"},
         )
@@ -101,9 +149,8 @@ class _RuntimeRepairProvider:
         public_context = prompt_payload["public_context"]
         self.contexts.append(public_context)
         index = len(self.contexts)
-        return CandidatePackageRef(
-            candidate_id=f"candidate-{index:03d}",
-            path=f"memory://candidate-{index:03d}",
+        return make_test_candidate_package(
+            f"candidate-{index:03d}",
             change_set=CandidateChangeSet(frozenset({"reward_callable"})),
             metadata={"fake_public_score": 0.30},
         )
@@ -120,6 +167,12 @@ class _RuntimePathRepairProvider:
         if index == 1:
             candidate_dir = self.candidate_root / "candidate-001"
             (candidate_dir / "training_code").mkdir(parents=True)
+            (candidate_dir / "candidate_manifest.yaml").write_text(
+                "schema_version: true_rl_agent.candidate.v1\n"
+                "candidate_id: candidate-001\n"
+                "entrypoint: training_code.components:build_training_components\n",
+                encoding="utf-8",
+            )
             (candidate_dir / "training_code" / "components.py").write_text(
                 "def runtime_failed_reward(inp):\n    return inp.base_height\n",
                 encoding="utf-8",
@@ -130,9 +183,21 @@ class _RuntimePathRepairProvider:
                 change_set=CandidateChangeSet(frozenset({"reward_callable"})),
                 metadata={"fake_public_score": 0.30},
             )
+        candidate_dir = self.candidate_root / "candidate-002"
+        (candidate_dir / "training_code").mkdir(parents=True)
+        (candidate_dir / "candidate_manifest.yaml").write_text(
+            "schema_version: true_rl_agent.candidate.v1\n"
+            "candidate_id: candidate-002\n"
+            "entrypoint: training_code.components:build_training_components\n",
+            encoding="utf-8",
+        )
+        (candidate_dir / "training_code" / "components.py").write_text(
+            "def repaired_reward(inp):\n    return inp.base_height\n",
+            encoding="utf-8",
+        )
         return CandidatePackageRef(
             candidate_id="candidate-002",
-            path="memory://candidate-002",
+            path=str(candidate_dir),
             change_set=CandidateChangeSet(frozenset({"reward_callable"})),
             metadata={"fake_public_score": 0.30},
         )
@@ -146,21 +211,21 @@ class _RuntimeThenLocalSuccessProvider:
     def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
         self.payloads.append(prompt_payload)
         index = len(self.payloads)
-        candidate_dir = self.candidate_root / f"candidate-{index:03d}"
-        (candidate_dir / "training_code").mkdir(parents=True)
         term_name = {
             1: "runtime_failed_reward",
             2: "accepted_success_reward",
         }.get(index, "fresh_success_reward")
-        (candidate_dir / "training_code" / "components.py").write_text(
+        candidate = _write_candidate_package(
+            self.candidate_root,
+            f"candidate-{index:03d}",
             f"def {term_name}(inp):\n    return inp.base_height\n",
-            encoding="utf-8",
         )
-        return CandidatePackageRef(
-            candidate_id=f"candidate-{index:03d}",
-            path=str(candidate_dir),
-            change_set=CandidateChangeSet(frozenset({"reward_callable"})),
-            metadata={"fake_public_score": 0.30 + 0.10 * index},
+        return replace(
+            candidate,
+            metadata={
+                **dict(candidate.metadata),
+                "fake_public_score": 0.30 + 0.10 * index,
+            },
         )
 
 
@@ -171,12 +236,100 @@ class _AlwaysVerifierFailProvider:
     def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
         self.payloads.append(prompt_payload)
         index = len(self.payloads)
-        return CandidatePackageRef(
-            candidate_id=f"candidate-{index:03d}",
-            path=f"memory://candidate-{index:03d}",
+        return make_test_candidate_package(
+            f"candidate-{index:03d}",
             change_set=CandidateChangeSet(frozenset({"reward_callable"})),
             metadata={"fake_public_score": 0.30, "verifier_status": "fail"},
         )
+
+
+def _write_candidate_package(root: Path, candidate_id: str, components_py: str) -> CandidatePackageRef:
+    candidate_dir = root / candidate_id
+    (candidate_dir / "training_code").mkdir(parents=True)
+    (candidate_dir / "candidate_manifest.yaml").write_text(
+        "\n".join(
+            [
+                "schema_version: true_rl_agent.candidate.v1",
+                f"candidate_id: {candidate_id}",
+                "entrypoint: training_code.components:build_training_components",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (candidate_dir / "training_code" / "components.py").write_text(components_py, encoding="utf-8")
+    return CandidatePackageRef(
+        candidate_id=candidate_id,
+        path=str(candidate_dir),
+        change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+        metadata={"fake_public_score": 0.30, "verifier_status": "pass"},
+    )
+
+
+class _AlwaysSmokeFailProvider:
+    def __init__(self, candidate_root: Path) -> None:
+        self.candidate_root = candidate_root
+        self.payloads: list[dict] = []
+
+    def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
+        self.payloads.append(prompt_payload)
+        index = len(self.payloads)
+        return _write_candidate_package(
+            self.candidate_root,
+            f"candidate-smoke-fail-{index:03d}",
+            """
+from true_rl_agent.candidates.components import RewardTerm, TrainingComponents
+
+def broken_reward(inp):
+    raise RuntimeError("D:/humanoid_agent/private/raw.txt /data/yuyangliu/secrets/key.env")
+
+def build_training_components():
+    return TrainingComponents(
+        name="smoke_fail",
+        reward_terms=[RewardTerm(name="broken_reward", weight=1.0, fn=broken_reward)],
+        rationale="This candidate should fail component smoke.",
+    )
+""",
+        )
+
+
+class _SmokeAdapter:
+    task_id = "fake_push_recovery"
+
+    def build_component_smoke_fixture(self) -> ComponentSmokeFixture:
+        num_envs = 3
+        vector = SmokeTensor.vector([0.2, 0.3, 0.4])
+        matrix2 = SmokeTensor.matrix([[0.0, 0.0], [0.1, 0.0], [0.0, -0.1]])
+        matrix3 = SmokeTensor.matrix([[0.1, 0.0, 0.0], [0.0, 0.1, 0.0], [0.0, 0.0, 0.1]])
+        return ComponentSmokeFixture(
+            task_id=self.task_id,
+            reward_inputs=PushRecoveryRewardInputs(
+                base_height=vector,
+                roll=SmokeTensor.vector([0.01, 0.02, 0.03]),
+                pitch=SmokeTensor.vector([0.02, 0.01, 0.0]),
+                base_pos_xy=matrix2,
+                base_lin_vel=matrix3,
+                base_ang_vel=matrix3,
+                projected_gravity=matrix3,
+                commanded_base_vel=matrix3,
+                joint_pos=matrix3,
+                joint_vel=matrix3,
+                joint_pos_error=matrix3,
+                last_action=matrix3,
+                prev_action=matrix3,
+                action_delta=matrix3,
+                push_active=SmokeTensor.vector([0.0, 1.0, 0.0]),
+                push_vec_public=matrix2,
+                progress_fraction=SmokeTensor.vector([0.1, 0.4, 0.8]),
+            ),
+            expected_reward_output_shape=(num_envs,),
+            public_summary={"fixture_owner": "task_owned_test", "num_envs": num_envs},
+        )
+
+
+class _SmokeTaskPlugin(FakeTaskPlugin):
+    def component_smoke_adapter(self):
+        return _SmokeAdapter()
 
 
 class _TrainCountingRunner(FakeRunner):
@@ -195,12 +348,56 @@ class _PromptPayloadOnlyProvider:
     def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
         self.payloads.append(prompt_payload)
         index = len(self.payloads)
-        return CandidatePackageRef(
-            candidate_id=f"payload-candidate-{index:03d}",
-            path=f"memory://payload-candidate-{index:03d}",
+        return make_test_candidate_package(
+            f"payload-candidate-{index:03d}",
             change_set=CandidateChangeSet(frozenset({"reward_callable"})),
             metadata={"fake_public_score": 0.20 + 0.01 * index},
         )
+
+
+class _DeniedSourceThenSuccessProvider:
+    def __init__(self) -> None:
+        self.payloads: list[dict] = []
+
+    def next_authoring_response(
+        self,
+        *,
+        prompt_payload: dict,
+    ) -> SourceRequestResponse | CandidateDraftResponse:
+        self.payloads.append(prompt_payload)
+        if len(self.payloads) == 1:
+            return SourceRequestResponse(
+                logical_ids=(CURRENT_BEST_SOURCE_ID,),
+                rationale="Need unavailable current-best source.",
+                source_catalog_logical_ids=tuple(
+                    sorted(prompt_source_catalog_logical_ids(prompt_payload))
+                ),
+            )
+        index = len(self.payloads)
+        return CandidateDraftResponse(
+            candidate=make_test_candidate_package(
+                f"source-feedback-candidate-{index:03d}",
+                change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+                metadata={"fake_public_score": 0.20 + 0.01 * index},
+            )
+        )
+
+
+class _DeniedSourceThenStaticFailureProvider(_DeniedSourceThenSuccessProvider):
+    def next_authoring_response(
+        self,
+        *,
+        prompt_payload: dict,
+    ) -> SourceRequestResponse | CandidateDraftResponse:
+        response = super().next_authoring_response(prompt_payload=prompt_payload)
+        if isinstance(response, CandidateDraftResponse) and len(self.payloads) == 2:
+            return CandidateDraftResponse(
+                candidate=replace(
+                    response.candidate,
+                    metadata={**dict(response.candidate.metadata), "verifier_status": "fail"},
+                )
+            )
+        return response
 
 
 class _ProviderFailureThenSuccessProvider:
@@ -216,9 +413,8 @@ class _ProviderFailureThenSuccessProvider:
                 "candidate proposal was not valid JSON",
                 details={"raw_excerpt": "sk-live-secret D:\\humanoid_agent\\private\\raw.txt"},
             )
-        return CandidatePackageRef(
-            candidate_id=f"provider-repair-{index:03d}",
-            path=f"memory://provider-repair-{index:03d}",
+        return make_test_candidate_package(
+            f"provider-repair-{index:03d}",
             change_set=CandidateChangeSet(frozenset({"reward_callable"})),
             metadata={"fake_public_score": 0.30},
         )
@@ -245,17 +441,18 @@ class _VerifierFailThenProviderFailureProvider:
     def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
         self.payloads.append(prompt_payload)
         if len(self.payloads) == 1:
-            candidate_dir = self.candidate_root / "candidate-001"
-            (candidate_dir / "training_code").mkdir(parents=True)
-            (candidate_dir / "training_code" / "components.py").write_text(
+            candidate = _write_candidate_package(
+                self.candidate_root,
+                "candidate-001",
                 "def failed_static_reward(inp):\n    return inp.base_height\n",
-                encoding="utf-8",
             )
-            return CandidatePackageRef(
-                candidate_id="candidate-001",
-                path=str(candidate_dir),
-                change_set=CandidateChangeSet(frozenset({"reward_callable"})),
-                metadata={"fake_public_score": 0.25, "verifier_status": "fail"},
+            return replace(
+                candidate,
+                metadata={
+                    **dict(candidate.metadata),
+                    "fake_public_score": 0.25,
+                    "verifier_status": "fail",
+                },
             )
         raise ProviderCandidateError(
             "schema_error",
@@ -266,7 +463,7 @@ class _VerifierFailThenProviderFailureProvider:
 
 class _RuntimeFailOnceRunner(FakeRunner):
     def run_train(self, train_spec):
-        if train_spec.candidate_id == "candidate-001":
+        if train_spec.subject.subject_id == "candidate-001":
             raise CandidateRuntimeError(
                 "candidate runtime failed: Boolean value of Tensor with more than one value is ambiguous",
                 public_details={
@@ -282,7 +479,230 @@ class _RuntimeFailOnceRunner(FakeRunner):
         return super().run_train(train_spec)
 
 
+class _NonzeroFailSummaryBackend(FakeBackendAdapter):
+    """Run a real local subprocess that reports an identity-bound train failure."""
+
+    def __init__(self, output_root: Path) -> None:
+        self.output_root = output_root
+
+    def materialize_jobs(self, **kwargs):
+        jobs = super().materialize_jobs(**kwargs)
+        candidate = kwargs["candidate"]
+        train_spec = replace(
+            jobs.train_spec,
+            subject_manifest_hash=candidate.subject_manifest_hash,
+            program_source_checksum=candidate.program_source_checksum,
+            candidate_artifact=candidate,
+        )
+        round_dir = self.output_root / kwargs["round_id"]
+        summary_path = round_dir / "train-summary.json"
+        checkpoint_output_path = round_dir / "checkpoint.pt"
+        script = "\n".join(
+            (
+                "import json",
+                "import sys",
+                "from pathlib import Path",
+                "summary_path = Path(sys.argv[1])",
+                "summary_path.parent.mkdir(parents=True, exist_ok=True)",
+                "summary = {",
+                "    'job_id': sys.argv[2],",
+                "    'task_id': sys.argv[3],",
+                "    'subject_kind': sys.argv[4],",
+                "    'subject_id': sys.argv[5],",
+                "    'subject_manifest_hash': sys.argv[6],",
+                "    'training_binding_hash': sys.argv[7],",
+                "    'capability_profile_hash': sys.argv[8],",
+                "    'program_source_checksum': sys.argv[9],",
+                "    'policy_architecture_hash': sys.argv[10],",
+                "    'optimizer_training_profile_hash': sys.argv[11],",
+                "    'agent_configuration_hash': sys.argv[12],",
+                "    'initialization_seed_schedule_hash': sys.argv[13],",
+                "    'status': 'fail',",
+                "    'errors': [{'type': 'RuntimeError', 'message': 'candidate runtime failed'}],",
+                "}",
+                "summary_path.write_text(json.dumps(summary), encoding='utf-8')",
+                "raise SystemExit(1)",
+            )
+        )
+        metadata = {
+            **dict(train_spec.metadata),
+            "cli_argv": [
+                sys.executable,
+                "-c",
+                script,
+                str(summary_path),
+                train_spec.job_id,
+                train_spec.task_id,
+                train_spec.subject.kind,
+                train_spec.subject.subject_id,
+                train_spec.subject_manifest_hash,
+                train_spec.training_binding.binding_hash,
+                train_spec.training_binding.capability_profile_hash,
+                train_spec.program_source_checksum,
+                train_spec.training_binding.policy_architecture_hash,
+                train_spec.training_binding.optimizer_training_profile_hash,
+                train_spec.training_binding.agent_configuration_hash,
+                train_spec.training_binding.initialization_seed_schedule_hash,
+                "--job-id",
+                train_spec.job_id,
+                "--round",
+                kwargs["round_id"],
+                "--task-id",
+                train_spec.task_id,
+                "--subject-kind",
+                train_spec.subject.kind,
+                "--subject-id",
+                train_spec.subject.subject_id,
+                "--subject-manifest-hash",
+                train_spec.subject_manifest_hash,
+                "--program-source-checksum",
+                train_spec.program_source_checksum,
+                "--candidate",
+                candidate.path,
+                "--candidate-artifact-hash",
+                candidate.artifact_hash,
+                "--budget-steps",
+                str(train_spec.budget_steps),
+                "--init",
+                train_spec.policy_initialization.kind,
+                "--summary-path",
+                str(summary_path),
+                "--checkpoint-output",
+                str(checkpoint_output_path),
+                "--training-binding-hash",
+                str(train_spec.training_binding.binding_hash),
+                "--capability-profile-hash",
+                train_spec.training_binding.capability_profile_hash,
+                "--policy-architecture-hash",
+                train_spec.training_binding.policy_architecture_hash,
+                "--optimizer-training-profile-hash",
+                train_spec.training_binding.optimizer_training_profile_hash,
+                "--agent-configuration-hash",
+                train_spec.training_binding.agent_configuration_hash,
+                "--agent-configuration-json",
+                FAKE_RSL_RL_AGENT_CONFIGURATION.to_canonical_json(),
+                "--initialization-seed-schedule-hash",
+                train_spec.training_binding.initialization_seed_schedule_hash,
+                "--seed",
+                "42",
+            ],
+            "summary_path": str(summary_path),
+            "checkpoint_output_path": str(checkpoint_output_path),
+        }
+        metadata["cli_command"] = " ".join(metadata["cli_argv"])
+        return replace(
+            jobs,
+            train_spec=replace(train_spec, metadata=metadata),
+        )
+
+
 class LiveLoopTests(unittest.TestCase):
+    def test_denied_source_then_same_round_success_reaches_next_round_history(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            provider = _DeniedSourceThenSuccessProvider()
+            run_live_loop(
+                output_dir=output_dir,
+                rounds=2,
+                session_id="live-source-feedback",
+                task_plugin=FakeTaskPlugin(),
+                backend_adapter=FakeBackendAdapter(),
+                runner=FakeRunner(),
+                verifier=FakeVerifier(),
+                provider=provider,
+                policy_initialization=PolicyInitialization.random(),
+                initial_best_score=0.10,
+                policy_accept_delta=0.05,
+                max_provider_attempts=2,
+            )
+            ledger = load_ledger(output_dir / "ledger.jsonl")
+
+        feedback = ledger[0]["source_request_feedback"]
+        next_round_feedback = provider.payloads[2]["public_history"]["recent_outcomes"][-1][
+            "source_request_feedback"
+        ]
+
+        self.assertEqual(feedback["status"], "source_request_denied")
+        self.assertEqual(
+            feedback["denied_logical_ids"],
+            [{"logical_id": CURRENT_BEST_SOURCE_ID, "reason": "source_not_requestable"}],
+        )
+        self.assertEqual(feedback["budget"]["max_source_requests_per_round"], 2)
+        self.assertEqual(feedback["budget"]["max_source_ids_per_request"], 2)
+        self.assertEqual(feedback["budget"]["max_source_request_bytes_per_round"], 48 * 1024)
+        self.assertEqual(next_round_feedback, feedback)
+        self.assertNotIn("provider_attempt_records", ledger[0])
+        self.assertNotIn("source_request_feedback", ledger[0]["public_context"])
+        feedback_text = json.dumps(feedback, sort_keys=True)
+        for forbidden in ("rationale", "instructions", "content", "memory://"):
+            self.assertNotIn(forbidden, feedback_text)
+
+    def test_final_attempt_source_denial_uses_same_next_round_feedback_shape(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            provider = _DeniedSourceThenSuccessProvider()
+            run_live_loop(
+                output_dir=output_dir,
+                rounds=2,
+                session_id="live-final-source-denial",
+                task_plugin=FakeTaskPlugin(),
+                backend_adapter=FakeBackendAdapter(),
+                runner=FakeRunner(),
+                verifier=FakeVerifier(),
+                provider=provider,
+                policy_initialization=PolicyInitialization.random(),
+                initial_best_score=0.10,
+                policy_accept_delta=0.05,
+                max_provider_attempts=1,
+            )
+            ledger = load_ledger(output_dir / "ledger.jsonl")
+
+        feedback = ledger[0]["source_request_feedback"]
+        next_round_feedback = provider.payloads[1]["public_history"]["recent_outcomes"][-1][
+            "source_request_feedback"
+        ]
+
+        self.assertEqual(ledger[0]["provider_failure"]["category"], "source_request_denied")
+        self.assertIn("provider_attempt_records", ledger[0])
+        self.assertEqual(next_round_feedback, feedback)
+        self.assertEqual(feedback["status"], "source_request_denied")
+        self.assertEqual(
+            feedback["denied_logical_ids"][0]["reason"],
+            "source_not_requestable",
+        )
+
+    def test_source_feedback_is_persisted_on_static_authoring_failure_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            provider = _DeniedSourceThenStaticFailureProvider()
+            run_live_loop(
+                output_dir=output_dir,
+                rounds=2,
+                session_id="live-static-source-feedback",
+                task_plugin=FakeTaskPlugin(),
+                backend_adapter=FakeBackendAdapter(),
+                runner=FakeRunner(),
+                verifier=FakeVerifier(),
+                provider=provider,
+                policy_initialization=PolicyInitialization.random(),
+                initial_best_score=0.10,
+                policy_accept_delta=0.05,
+                max_provider_attempts=2,
+            )
+            ledger = load_ledger(output_dir / "ledger.jsonl")
+
+        feedback = ledger[0]["source_request_feedback"]
+
+        self.assertIsNotNone(ledger[0]["static_authoring_failure"])
+        self.assertIn("provider_attempt_records", ledger[0])
+        self.assertEqual(feedback["status"], "source_request_denied")
+        self.assertEqual(
+            provider.payloads[2]["public_history"]["recent_outcomes"][-1][
+                "source_request_feedback"
+            ],
+            feedback,
+        )
+
     def test_live_loop_saves_prompt_payloads_and_ledger_summary(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             provider = _SequenceProvider()
@@ -316,8 +736,27 @@ class LiveLoopTests(unittest.TestCase):
             self.assertNotIn("trusted_seed", json.dumps(payload, sort_keys=True))
         self.assertEqual(summary["train_result_count"], 2)
         self.assertEqual(summary["public_result_count"], 2)
+        self.assertEqual(summary["runner_candidate_count"], 2)
+        self.assertEqual(summary["trainable_round_count"], 2)
+        self.assertEqual(summary["authored_candidate_count"], 2)
+        self.assertEqual(summary["trained_candidate_count"], 2)
+        self.assertEqual(summary["full_eval_completed_count"], 2)
+        self.assertEqual(summary["sealed_validation_completed_count"], 2)
+        self.assertEqual(summary["accepted_count"], 1)
+        self.assertEqual(summary["eval_incomplete_count"], 0)
+        self.assertTrue(summary["checks"]["eval_run_audit_passed"])
+        self.assertEqual(summary["eval_run_audit"]["failure_buckets"]["accepted"], 1)
+        self.assertEqual(summary["eval_run_audit"]["failure_buckets"]["decision_threshold"], 1)
+        self.assertEqual(summary["authoring_failure_round_count"], 0)
+        self.assertNotIn("candidate_count_matches_rounds", summary["checks"])
+        self.assertTrue(summary["checks"]["runner_candidate_count_matches_trainable_rounds"])
+        self.assertTrue(summary["checks"]["authoring_failures_accounted_for"])
         self.assertTrue(summary["checks"]["at_least_one_train_result"])
         self.assertTrue(summary["checks"]["at_least_one_public_result"])
+        self.assertEqual(summary["final_best_eval_stats"]["mode"], "accepted")
+        self.assertEqual(ledger[1]["decision"]["comparison"]["current_best"]["accepted_round_id"], "live-test-round-001")
+        self.assertAlmostEqual(ledger[1]["decision"]["comparison"]["best_score_stats"]["mean"], 0.21)
+        self.assertIn("sealed_validation_gate", ledger[1]["decision"]["consumed_gates"])
 
     def test_live_loop_passes_saved_prompt_payload_to_provider(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -341,7 +780,8 @@ class LiveLoopTests(unittest.TestCase):
         self.assertEqual(len(provider.payloads), 1)
         self.assertEqual(provider.payloads[0], saved_payload)
         self.assertIn("schema_version", provider.payloads[0])
-        self.assertIn("candidate_component_contract", provider.payloads[0])
+        self.assertNotIn("candidate_component_contract", provider.payloads[0])
+        self.assertIn("component_contract", provider.payloads[0]["required_candidate_package"])
         self.assertEqual(saved_payload["task"]["task_id"], "fake_push_recovery")
         self.assertEqual(saved_payload["task"]["prompt_adapter"], "neutral_fallback")
         self.assertEqual(saved_payload["reward_inputs_contract"]["status"], "not_available")
@@ -370,10 +810,15 @@ class LiveLoopTests(unittest.TestCase):
             ledger = load_ledger(Path(tmp) / "ledger.jsonl")
 
         self.assertEqual(len(provider.contexts), 2)
-        repair_feedback = provider.contexts[1]["candidate_repair_feedback"]
+        repair_feedback = provider.payloads[1]["provider_or_runtime_repair_feedback"]
         self.assertEqual(repair_feedback["failure_category"], "verifier_error")
         self.assertEqual(repair_feedback["previous_candidate_id"], "candidate-001")
         self.assertIn("Do not use import torch", " ".join(repair_feedback["instructions"]))
+        self.assertNotIn("candidate_repair_feedback", provider.contexts[1])
+        self.assertEqual(
+            provider.contexts[1]["candidate_repair_feedback_ref"]["canonical_section"],
+            "provider_or_runtime_repair_feedback",
+        )
         self.assertEqual(len(ledger), 1)
         self.assertEqual(ledger[0]["candidate"]["candidate_id"], "candidate-002")
         self.assertEqual(ledger[0]["candidate_surface"]["classification"], "code_level")
@@ -434,7 +879,6 @@ class LiveLoopTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             candidate_dir = root / "candidates" / "candidate-001"
-            (candidate_dir / "training_code").mkdir(parents=True)
             oversized = "def oversized_reward(inp):\n    return inp.base_height\n" + (
                 "# filler\n" * (MAX_PROMPT_SOURCE_INLINE_BYTES // 4)
             )
@@ -444,16 +888,21 @@ class LiveLoopTests(unittest.TestCase):
                     self.payloads.append(prompt_payload)
                     index = len(self.payloads)
                     if index == 1:
-                        (candidate_dir / "training_code" / "components.py").write_text(oversized, encoding="utf-8")
-                        return CandidatePackageRef(
-                            candidate_id="candidate-001",
-                            path=str(candidate_dir),
-                            change_set=CandidateChangeSet(frozenset({"reward_callable"})),
-                            metadata={"fake_public_score": 0.25, "verifier_status": "fail"},
+                        candidate = _write_candidate_package(
+                            candidate_dir.parent,
+                            "candidate-001",
+                            oversized,
                         )
-                    return CandidatePackageRef(
-                        candidate_id="candidate-002",
-                        path="memory://candidate-002",
+                        return replace(
+                            candidate,
+                            metadata={
+                                **dict(candidate.metadata),
+                                "fake_public_score": 0.25,
+                                "verifier_status": "fail",
+                            },
+                        )
+                    return make_test_candidate_package(
+                        "candidate-002",
                         change_set=CandidateChangeSet(frozenset({"reward_callable"})),
                         metadata={"fake_public_score": 0.25, "verifier_status": "pass"},
                     )
@@ -508,7 +957,7 @@ class LiveLoopTests(unittest.TestCase):
             ledger = load_ledger(Path(tmp) / "ledger.jsonl")
 
         self.assertEqual(len(provider.payloads), 2)
-        repair_feedback = provider.payloads[1]["public_context"]["candidate_repair_feedback"]
+        repair_feedback = provider.payloads[1]["provider_or_runtime_repair_feedback"]
         repair_text = json.dumps(repair_feedback, sort_keys=True)
         self.assertEqual(repair_feedback["failure_category"], "json_parse_error")
         self.assertEqual(repair_feedback["provider_status"], "fail")
@@ -541,7 +990,7 @@ class LiveLoopTests(unittest.TestCase):
             ledger = load_ledger(Path(tmp) / "ledger.jsonl")
 
         self.assertEqual(len(provider.payloads), 2)
-        repair_feedback = provider.payloads[1]["public_context"]["candidate_repair_feedback"]
+        repair_feedback = provider.payloads[1]["provider_or_runtime_repair_feedback"]
         self.assertEqual(repair_feedback["failure_category"], "schema_error")
         ledger_text = json.dumps(ledger, sort_keys=True)
         self.assertNotIn("D:/humanoid_agent", ledger_text)
@@ -553,6 +1002,12 @@ class LiveLoopTests(unittest.TestCase):
         self.assertEqual(summary["rounds_completed"], 1)
         self.assertEqual(summary["provider_failure_count"], 1)
         self.assertEqual(summary["candidate_paths"], [])
+        self.assertEqual(summary["runner_candidate_count"], 0)
+        self.assertEqual(summary["trainable_round_count"], 0)
+        self.assertEqual(summary["authoring_failure_round_count"], 1)
+        self.assertNotIn("candidate_count_matches_rounds", summary["checks"])
+        self.assertTrue(summary["checks"]["runner_candidate_count_matches_trainable_rounds"])
+        self.assertTrue(summary["checks"]["authoring_failures_accounted_for"])
 
     def test_live_loop_mixed_verifier_then_provider_failure_keeps_ledger_attempt_records_public_safe(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -622,16 +1077,72 @@ class LiveLoopTests(unittest.TestCase):
         self.assertEqual(provider.payloads[0]["authoring_context_frame"]["frame_kind"], "candidate_draft")
         self.assertEqual(provider.payloads[1]["authoring_context_frame"]["frame_kind"], "static_repair")
         self.assertEqual(runner.train_calls, 0)
-        self.assertEqual(ledger[0]["decision"]["reason"], "candidate_verifier_failed")
+        self.assertEqual(ledger[0]["decision"]["reason"], "candidate_static_authoring_failed")
+        self.assertEqual(ledger[0]["candidate_surface"]["classification"], "static_authoring_failure")
+        self.assertEqual(ledger[0]["static_authoring_failure"]["failure_category"], "verifier_error")
         self.assertEqual(ledger[0]["candidate"]["candidate_id"], "candidate-002")
+        self.assertEqual(len(ledger[0]["provider_attempt_records"]), 2)
+        self.assertEqual(ledger[0]["provider_attempt_records"][0]["verifier_status"], "fail")
+        self.assertEqual(ledger[0]["provider_attempt_records"][1]["verifier_status"], "fail")
         self.assertIsNone(ledger[0]["train_result"])
         self.assertIsNone(ledger[0]["public_result"])
         self.assertEqual(summary["provider_failure_count"], 0)
+        self.assertEqual(summary["static_authoring_failure_count"], 1)
+        self.assertEqual(summary["authoring_failure_round_count"], 1)
         self.assertEqual(summary["train_result_count"], 0)
         self.assertEqual(summary["public_result_count"], 0)
+        self.assertEqual(summary["candidate_paths"], [])
+        self.assertEqual(summary["runner_candidate_count"], 0)
+        self.assertEqual(summary["trainable_round_count"], 0)
+        self.assertNotIn("candidate_count_matches_rounds", summary["checks"])
+        self.assertTrue(summary["checks"]["runner_candidate_count_matches_trainable_rounds"])
+        self.assertTrue(summary["checks"]["authoring_failures_accounted_for"])
         self.assertEqual(summary["provider_attempt_records"][0]["verifier_status"], "fail")
         self.assertEqual(summary["provider_attempt_records"][1]["verifier_status"], "fail")
-        self.assertEqual(summary["provider_attempt_records"][1]["runner_status"], "not_run")
+
+    def test_live_loop_records_max_attempt_smoke_failure_without_training(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            provider = _AlwaysSmokeFailProvider(root / "candidates")
+            runner = _TrainCountingRunner()
+            summary = run_live_loop(
+                output_dir=root / "run",
+                rounds=1,
+                session_id="live-smoke-static-fail",
+                task_plugin=_SmokeTaskPlugin(),
+                backend_adapter=FakeBackendAdapter(),
+                runner=runner,
+                verifier=FakeVerifier(),
+                provider=provider,
+                policy_initialization=PolicyInitialization.random(),
+                initial_best_score=0.10,
+                policy_accept_delta=0.05,
+                max_provider_attempts=1,
+            )
+            ledger = load_ledger(root / "run" / "ledger.jsonl")
+
+        ledger_text = json.dumps(ledger, sort_keys=True)
+        self.assertEqual(len(provider.payloads), 1)
+        self.assertEqual(runner.train_calls, 0)
+        self.assertEqual(len(ledger), 1)
+        self.assertEqual(ledger[0]["decision"]["reason"], "candidate_static_authoring_failed")
+        self.assertEqual(ledger[0]["static_authoring_failure"]["failure_category"], "component_smoke_error")
+        self.assertEqual(ledger[0]["provider_attempt_records"][0]["component_smoke"]["status"], "fail")
+        self.assertIsNone(ledger[0]["train_result"])
+        self.assertIsNone(ledger[0]["public_result"])
+        self.assertEqual(summary["static_authoring_failure_count"], 1)
+        self.assertEqual(summary["authoring_failure_round_count"], 1)
+        self.assertEqual(summary["train_result_count"], 0)
+        self.assertEqual(summary["public_result_count"], 0)
+        self.assertEqual(summary["candidate_paths"], [])
+        self.assertEqual(summary["runner_candidate_count"], 0)
+        self.assertEqual(summary["trainable_round_count"], 0)
+        self.assertNotIn("candidate_count_matches_rounds", summary["checks"])
+        self.assertTrue(summary["checks"]["runner_candidate_count_matches_trainable_rounds"])
+        self.assertTrue(summary["checks"]["authoring_failures_accounted_for"])
+        self.assertNotIn(str(root / "candidates"), ledger_text)
+        self.assertNotIn("D:/humanoid_agent", ledger_text)
+        self.assertNotIn("/data/yuyangliu", ledger_text)
 
     def test_live_loop_records_runtime_failure_without_same_round_repair(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -665,6 +1176,12 @@ class LiveLoopTests(unittest.TestCase):
         self.assertEqual(summary["rounds_completed"], 1)
         self.assertEqual(summary["train_result_count"], 0)
         self.assertEqual(summary["public_result_count"], 0)
+        self.assertEqual(summary["runner_candidate_count"], 1)
+        self.assertEqual(summary["trainable_round_count"], 1)
+        self.assertEqual(summary["authoring_failure_round_count"], 0)
+        self.assertNotIn("candidate_count_matches_rounds", summary["checks"])
+        self.assertTrue(summary["checks"]["runner_candidate_count_matches_trainable_rounds"])
+        self.assertTrue(summary["checks"]["authoring_failures_accounted_for"])
 
     def test_next_round_prompt_uses_latest_runtime_failed_source_catalog(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -713,6 +1230,64 @@ class LiveLoopTests(unittest.TestCase):
         self.assertEqual(len(failed_sources), 1)
         self.assertIn("runtime_failed_reward", failed_sources[0]["content"])
         self.assertNotIn(str(root / "candidates"), payload_text)
+
+    def test_nonzero_train_failure_summary_is_ledgered_and_next_round_continues(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            provider = _RuntimePathRepairProvider(root / "candidates")
+            summary = run_live_loop(
+                output_dir=root / "run",
+                rounds=2,
+                session_id="live-subprocess-train-failure",
+                task_plugin=FakeTaskPlugin(),
+                backend_adapter=_NonzeroFailSummaryBackend(root / "jobs"),
+                runner=SubprocessRunner(
+                    allowed_executables=(sys.executable,),
+                    timeout_s=10,
+                ),
+                verifier=FakeVerifier(),
+                provider=provider,
+                policy_initialization=PolicyInitialization.random(),
+                initial_best_score=0.10,
+                policy_accept_delta=0.05,
+                max_provider_attempts=2,
+            )
+            ledger = load_ledger(root / "run" / "ledger.jsonl")
+
+        first_error = ledger[0]["runner_error"]
+        next_history_text = json.dumps(
+            provider.payloads[1]["public_history"],
+            sort_keys=True,
+        )
+
+        self.assertEqual(summary["rounds_completed"], 2)
+        self.assertEqual(len(ledger), 2)
+        self.assertEqual(len(provider.payloads), 2)
+        self.assertEqual(ledger[0]["decision"]["reason"], "candidate_runtime_failed")
+        self.assertEqual(ledger[1]["decision"]["reason"], "candidate_runtime_failed")
+        self.assertEqual(ledger[1]["candidate"]["candidate_id"], "candidate-002")
+        self.assertIsNone(ledger[0]["train_result"])
+        self.assertIsNone(ledger[0]["public_result"])
+        self.assertEqual(first_error["type"], "CandidateRuntimeError")
+        self.assertEqual(first_error["details"]["status"], "fail")
+        self.assertEqual(first_error["details"]["subprocess_returncode"], 1)
+        self.assertEqual(
+            summary["eval_run_audit"]["rounds"][0]["round_stage"],
+            "train_failure",
+        )
+        self.assertTrue(
+            summary["eval_run_audit"]["rounds"][0]["round_stage_consistent"]
+        )
+        self.assertEqual(
+            summary["provider_attempt_records"][0]["runner_status"],
+            "fail",
+        )
+        self.assertEqual(
+            summary["provider_attempt_records"][1]["runner_status"],
+            "fail",
+        )
+        self.assertIn("candidate_runtime_failed", next_history_text)
+        self.assertIn("CandidateRuntimeError", next_history_text)
 
     def test_runtime_failed_source_does_not_persist_after_success_round(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -768,10 +1343,10 @@ class LiveLoopTests(unittest.TestCase):
         self.assertIn("accepted_success_reward", round_3_text)
         self.assertNotIn("runtime_failed_reward", round_3_text)
 
-    def test_live_loop_refuses_existing_ledger(self) -> None:
+    def test_live_loop_refuses_ledger_without_genesis(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             (Path(tmp) / "ledger.jsonl").write_text("{}", encoding="utf-8")
-            with self.assertRaisesRegex(FileExistsError, "ledger"):
+            with self.assertRaisesRegex(ValueError, "durable state but no Genesis"):
                 run_live_loop(
                     output_dir=Path(tmp),
                     rounds=1,

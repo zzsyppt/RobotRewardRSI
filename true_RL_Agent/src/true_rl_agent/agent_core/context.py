@@ -2,14 +2,28 @@
 
 from __future__ import annotations
 
-import json
-from typing import Any, Mapping
+import math
+from typing import Any, Mapping, Sequence
 
+from true_rl_agent.agent_core.experiment_memory import (
+    build_experiment_memory,
+    recompact_experiment_memory,
+)
 from true_rl_agent.agent_core.public_safety import (
     FORBIDDEN_PUBLIC_KEY_PARTS,
     contains_forbidden_public_value_marker,
     sanitize_prompt_public_value,
 )
+from true_rl_agent.agent_core.source_request_feedback import (
+    project_source_request_round_feedback,
+)
+from true_rl_agent.evaluation.acceptance_protocol import AcceptanceProtocol
+from true_rl_agent.evaluation.acceptance_replay import (
+    ProjectedPublicHistory,
+    project_public_history,
+)
+from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
+from true_rl_agent.prompt_serialization import canonical_prompt_json_bytes
 
 PUBLIC_HISTORY_MAX_RECENT_ROUNDS = 8
 PUBLIC_HISTORY_MAX_SERIALIZED_BYTES = 8192
@@ -17,32 +31,34 @@ _PUBLIC_HISTORY_MAX_LIST_ITEMS = 8
 _PUBLIC_HISTORY_TEXT_LIMIT = 500
 _PUBLIC_HISTORY_ENTRY_KEYS = (
     "round_id",
+    "candidate_id",
     "outcome",
     "accepted",
     "reason",
     "surface_classification",
     "public_score",
+    "comparison",
     "changed_components",
+    "dominant_failure",
+    "sealed_validation_gate",
     "candidate_package_loaded",
     "candidate_code_loaded_in_eval",
+    "failed_gates",
     "runtime_activation",
     "mechanism_attribution",
     "runner_error",
     "provider_failure",
     "repair_feedback",
+    "source_request_feedback",
 )
 _PUBLIC_HISTORY_BLOCKED_KEY_PARTS = (
     *FORBIDDEN_PUBLIC_KEY_PARTS,
     "seed_id",
     "seed_policy",
-    "push_active",
-    "push_vec_public",
 )
 _PUBLIC_HISTORY_BLOCKED_TEXT_PARTS = (
     "seed_id",
     "seed_policy",
-    "push_active",
-    "push_vec_public",
 )
 _PUBLIC_HISTORY_DETAIL_KEYS = (
     "status",
@@ -79,27 +95,135 @@ def sanitize_prompt_public_context(value: Any) -> Any:
     return sanitize_prompt_public_value(sanitize_public_context(value))
 
 
-def build_public_context(ledger_records: list[dict[str, Any]]) -> dict[str, Any]:
-    accepted_scores = [
-        record.get("decision", {}).get("public_score")
+def sanitize_public_value_with_policy(
+    value: Any,
+    *,
+    blocked_key_parts: Sequence[str] = (),
+    blocked_text_parts: Sequence[str] = (),
+) -> Any:
+    """Apply common plus task-owned scrub policy to a prompt-public value."""
+
+    return _sanitize_public_history_value(
+        value,
+        extra_key_parts=_normalized_block_parts(blocked_key_parts),
+        extra_text_parts=_normalized_block_parts(blocked_text_parts),
+    )
+
+
+def sanitize_public_records_with_policy(
+    ledger_records: Sequence[Mapping[str, Any]],
+    *,
+    blocked_key_parts: Sequence[str] = (),
+    blocked_text_parts: Sequence[str] = (),
+) -> list[dict[str, Any]]:
+    """Apply common plus task-owned scrub policy before prompt construction."""
+
+    extra_key_parts = _normalized_block_parts(blocked_key_parts)
+    extra_text_parts = _normalized_block_parts(blocked_text_parts)
+    return [
+        _sanitize_public_history_value(
+            record,
+            extra_key_parts=extra_key_parts,
+            extra_text_parts=extra_text_parts,
+        )
         for record in ledger_records
-        if record.get("decision", {}).get("accepted") is True
+        if isinstance(record, Mapping)
     ]
-    numeric_accepted_scores = [float(score) for score in accepted_scores if isinstance(score, int | float)]
-    last_record = ledger_records[-1] if ledger_records else {}
-    recent_outcomes, omitted_round_count = _bounded_recent_outcomes(ledger_records)
+
+
+def build_public_context(
+    ledger_records: Sequence[Mapping[str, Any]],
+    *,
+    acceptance_protocol: AcceptanceProtocol | None = None,
+    initial_current_best: CurrentBestEvalStats | None = None,
+    expected_session_genesis_hash: str | None = None,
+    history_blocked_key_parts: Sequence[str] = (),
+    history_blocked_text_parts: Sequence[str] = (),
+) -> dict[str, Any]:
+    """Validate and sequentially project raw ledger rows into public context."""
+
+    has_evaluated_history = any(
+        isinstance(record.get("public_result"), Mapping)
+        and bool(record.get("public_result"))
+        for record in ledger_records
+    )
+    if has_evaluated_history and (
+        acceptance_protocol is None
+        or initial_current_best is None
+        or expected_session_genesis_hash is None
+    ):
+        raise ValueError(
+            "acceptance_protocol, initial_current_best, and session Genesis are required to build "
+            "context from evaluated history"
+        )
+    history = project_public_history(
+        ledger_records,
+        initial_current_best=initial_current_best,
+        expected_session_genesis_hash=expected_session_genesis_hash,
+        acceptance_protocol=acceptance_protocol,
+    )
+    return build_public_context_from_projected(
+        history,
+        history_blocked_key_parts=history_blocked_key_parts,
+        history_blocked_text_parts=history_blocked_text_parts,
+    )
+
+
+def build_public_context_from_projected(
+    history: ProjectedPublicHistory,
+    *,
+    history_blocked_key_parts: Sequence[str] = (),
+    history_blocked_text_parts: Sequence[str] = (),
+) -> dict[str, Any]:
+    """Build public context from the shared sequential projection only."""
+
+    if not isinstance(history, ProjectedPublicHistory):
+        raise TypeError("history must be a ProjectedPublicHistory")
+    sanitized_records = sanitize_public_records_with_policy(
+        history.records,
+        blocked_key_parts=history_blocked_key_parts,
+        blocked_text_parts=history_blocked_text_parts,
+    )
+    decision_projections = [
+        _mapping(record.get("decision")) for record in sanitized_records
+    ]
+    accepted_scores = [
+        decision.get("public_score")
+        for decision in decision_projections
+        if decision.get("accepted") is True
+    ]
+    numeric_accepted_scores = [
+        float(score)
+        for score in accepted_scores
+        if isinstance(score, int | float) and not isinstance(score, bool)
+    ]
+    last_decision = decision_projections[-1] if decision_projections else {}
+    recent_outcomes, omitted_round_count = _bounded_recent_outcomes(
+        sanitized_records,
+    )
+    experiment_memory = build_experiment_memory(sanitized_records)
+    initial_accepted_score = (
+        history.initial_current_best.score_for_comparison()
+        if history.initial_current_best is not None
+        and history.initial_current_best.mode == "accepted"
+        else None
+    )
+    all_accepted_scores = list(numeric_accepted_scores)
+    if initial_accepted_score is not None:
+        all_accepted_scores.append(initial_accepted_score)
     context = {
         "public_only": True,
-        "previous_rounds": len(ledger_records),
-        "best_public_score": max(numeric_accepted_scores) if numeric_accepted_scores else None,
-        "last_outcome": last_record.get("decision", {}).get("outcome"),
-        "pure_knob_streak": _pure_knob_streak(ledger_records),
+        "previous_rounds": len(sanitized_records),
+        "best_public_score": max(all_accepted_scores) if all_accepted_scores else None,
+        "last_outcome": last_decision.get("outcome"),
+        "pure_knob_streak": _pure_knob_streak(sanitized_records),
         "public_history_limits": {
             "max_recent_rounds": PUBLIC_HISTORY_MAX_RECENT_ROUNDS,
             "max_serialized_bytes": PUBLIC_HISTORY_MAX_SERIALIZED_BYTES,
         },
         "public_history_omitted_round_count": omitted_round_count,
         "recent_outcomes": recent_outcomes,
+        "experiment_memory": experiment_memory,
     }
     return sanitize_prompt_public_context(context)
 
@@ -110,6 +234,9 @@ def build_public_history_section(public_context: Mapping[str, Any]) -> dict[str,
         recent_outcomes = []
     recent, extra_omitted = _bounded_history_entries(recent_outcomes)
     omitted_count = _nonnegative_int(public_context.get("public_history_omitted_round_count")) + extra_omitted
+    experiment_memory = recompact_experiment_memory(
+        public_context.get("experiment_memory")
+    )
     return sanitize_prompt_public_context(
         {
             "schema_version": "true_rl_agent.public_history.v1",
@@ -123,8 +250,53 @@ def build_public_history_section(public_context: Mapping[str, Any]) -> dict[str,
             },
             "omitted_round_count": omitted_count,
             "recent_outcomes": recent,
+            "experiment_memory": experiment_memory,
         }
     )
+
+
+def _sanitize_public_history_value(
+    value: Any,
+    *,
+    extra_key_parts: tuple[str, ...],
+    extra_text_parts: tuple[str, ...],
+) -> Any:
+    if isinstance(value, Mapping):
+        clean: dict[str, Any] = {}
+        for key, item in value.items():
+            key_text = str(key)
+            if _blocked_public_history_key(key_text, extra_key_parts=extra_key_parts):
+                continue
+            clean[key_text] = _sanitize_public_history_value(
+                item,
+                extra_key_parts=extra_key_parts,
+                extra_text_parts=extra_text_parts,
+            )
+        return clean
+    if isinstance(value, list):
+        return [
+            _sanitize_public_history_value(
+                item,
+                extra_key_parts=extra_key_parts,
+                extra_text_parts=extra_text_parts,
+            )
+            for item in value
+        ]
+    if isinstance(value, tuple):
+        return [
+            _sanitize_public_history_value(
+                item,
+                extra_key_parts=extra_key_parts,
+                extra_text_parts=extra_text_parts,
+            )
+            for item in value
+        ]
+    if isinstance(value, str):
+        compact = sanitize_prompt_public_value(value)
+        if _blocked_public_history_text(compact, extra_text_parts=extra_text_parts):
+            return "[redacted]"
+        return compact
+    return value
 
 
 def _pure_knob_streak(ledger_records: list[dict[str, Any]]) -> int:
@@ -136,8 +308,13 @@ def _pure_knob_streak(ledger_records: list[dict[str, Any]]) -> int:
     return streak
 
 
-def _bounded_recent_outcomes(ledger_records: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], int]:
-    entries = [_round_history_entry(record) for record in ledger_records]
+def _bounded_recent_outcomes(
+    ledger_records: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], int]:
+    entries = [
+        _round_history_entry(record)
+        for record in ledger_records
+    ]
     return _bounded_history_entries(entries)
 
 
@@ -169,16 +346,30 @@ def _compact_history_entry(entry: Mapping[str, Any]) -> dict[str, Any]:
 def _compact_history_field(key: str, value: Any) -> Any:
     if value is None:
         return None
-    if key in {"round_id", "outcome", "reason", "surface_classification"}:
+    if key in {
+        "round_id",
+        "candidate_id",
+        "outcome",
+        "reason",
+        "surface_classification",
+    }:
         return _optional_text(value)
     if key == "accepted":
         return value if isinstance(value, bool) else None
     if key == "public_score":
         return float(value) if isinstance(value, int | float) else None
+    if key == "comparison":
+        return _comparison_public_summary(value)
     if key == "changed_components":
         return sorted(_list_of_strings(value))
+    if key == "dominant_failure":
+        return _dominant_failure_public_summary(value)
+    if key == "sealed_validation_gate":
+        return _sealed_validation_gate_public_summary(value)
     if key in {"candidate_package_loaded", "candidate_code_loaded_in_eval"}:
         return value if isinstance(value, bool) else _optional_text(value)
+    if key == "failed_gates":
+        return _failed_gates_public_summary(value) or None
     if key == "runtime_activation":
         return _runtime_activation_public_summary(value)
     if key == "mechanism_attribution":
@@ -189,15 +380,22 @@ def _compact_history_field(key: str, value: Any) -> Any:
         return _provider_failure_summary(value)
     if key == "repair_feedback":
         return _repair_feedback_value_summary(value)
+    if key == "source_request_feedback":
+        return project_source_request_round_feedback(value)
     return _compact_value(value)
 
 
-def _round_history_entry(record: Mapping[str, Any]) -> dict[str, Any]:
+def _round_history_entry(
+    record: Mapping[str, Any],
+) -> dict[str, Any]:
     decision = _mapping(record.get("decision"))
     candidate_surface = _mapping(record.get("candidate_surface"))
     public_result = _mapping(record.get("public_result"))
+    public_metrics = _mapping(public_result.get("metrics"))
+    prompt_feedback = _mapping(public_metrics.get("prompt_feedback"))
     entry: dict[str, Any] = {
         "round_id": _optional_text(record.get("round_id")),
+        "candidate_id": _optional_text(_mapping(record.get("candidate")).get("candidate_id")),
         "outcome": _optional_text(decision.get("outcome")),
         "accepted": decision.get("accepted") if isinstance(decision.get("accepted"), bool) else None,
         "reason": _optional_text(decision.get("reason")),
@@ -205,12 +403,21 @@ def _round_history_entry(record: Mapping[str, Any]) -> dict[str, Any]:
             _optional_text(decision.get("surface_classification")),
             _optional_text(candidate_surface.get("classification")),
         ),
-        "public_score": _public_score(decision=decision, public_result=public_result),
+        "public_score": _public_score(decision),
+        "comparison": _comparison_public_summary(decision.get("comparison")),
         "changed_components": _changed_components(record),
+        "dominant_failure": _dominant_failure_public_summary(prompt_feedback.get("dominant_failure")),
+        "sealed_validation_gate": _sealed_validation_gate_public_summary(
+            public_metrics.get("sealed_validation_gate")
+        ),
         "candidate_package_loaded": _candidate_package_loaded(record),
         "candidate_code_loaded_in_eval": _candidate_code_loaded_in_eval(record),
+        "failed_gates": _failed_gate_summary(decision.get("gate_statuses")),
         "runtime_activation": _runtime_activation_summary(record),
         "mechanism_attribution": _mechanism_attribution(record),
+        "source_request_feedback": project_source_request_round_feedback(
+            record.get("source_request_feedback")
+        ),
     }
     runner_error = _error_summary(record.get("runner_error"))
     if runner_error is not None:
@@ -224,11 +431,12 @@ def _round_history_entry(record: Mapping[str, Any]) -> dict[str, Any]:
     return entry
 
 
-def _public_score(*, decision: Mapping[str, Any], public_result: Mapping[str, Any]) -> float | None:
-    for value in (decision.get("public_score"), public_result.get("public_score")):
-        if isinstance(value, int | float):
-            return float(value)
-    return None
+def _public_score(decision: Mapping[str, Any]) -> float | None:
+    value = decision.get("public_score")
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return None
+    parsed = float(value)
+    return parsed if math.isfinite(parsed) else None
 
 
 def _changed_components(record: Mapping[str, Any]) -> list[str]:
@@ -264,6 +472,126 @@ def _candidate_code_loaded_in_eval(record: Mapping[str, Any]) -> bool | str:
     return value if isinstance(value, bool) else "unknown"
 
 
+def _failed_gate_summary(value: Any) -> list[dict[str, str]]:
+    statuses = _mapping(value)
+    failed: list[dict[str, str]] = []
+    for raw_name, raw_status in statuses.items():
+        name = _optional_text(raw_name)
+        status = _optional_text(raw_status)
+        if not name or not status or status == "pass":
+            continue
+        failed.append({"name": name, "status": status})
+        if len(failed) >= _PUBLIC_HISTORY_MAX_LIST_ITEMS:
+            break
+    return failed
+
+
+def _failed_gates_public_summary(value: Any) -> list[dict[str, str]]:
+    if not isinstance(value, list | tuple):
+        return []
+    failed: list[dict[str, str]] = []
+    for item in value:
+        gate = _mapping(item)
+        name = _optional_text(gate.get("name"))
+        status = _optional_text(gate.get("status"))
+        if not name or not status:
+            continue
+        failed.append({"name": name, "status": status})
+        if len(failed) >= _PUBLIC_HISTORY_MAX_LIST_ITEMS:
+            break
+    return failed
+
+
+def _comparison_public_summary(value: Any) -> dict[str, Any] | None:
+    comparison = _mapping(value)
+    if not comparison:
+        return None
+    summary: dict[str, Any] = {}
+    for key in ("mode", "score_source"):
+        text = _optional_text(comparison.get(key))
+        if text is not None:
+            summary[key] = text
+    for key in ("candidate_score", "current_best_score", "delta", "threshold", "public_score"):
+        numeric = _optional_number(comparison.get(key))
+        if numeric is not None:
+            summary[key] = numeric
+    if isinstance(comparison.get("delta_met"), bool):
+        summary["delta_met"] = comparison["delta_met"]
+    candidate_stats = _score_stats_public_summary(comparison.get("candidate_score_stats"))
+    if candidate_stats:
+        summary["candidate_score_stats"] = candidate_stats
+    best_stats = _score_stats_public_summary(comparison.get("best_score_stats"))
+    if best_stats:
+        summary["best_score_stats"] = best_stats
+    current_best = _current_best_public_summary(comparison.get("current_best"))
+    if current_best:
+        summary["current_best"] = current_best
+    return summary or None
+
+
+def _score_stats_public_summary(value: Any) -> dict[str, Any]:
+    stats = _mapping(value)
+    if not stats:
+        return {}
+    summary: dict[str, Any] = {}
+    for key in ("count", "episode_count"):
+        count = _optional_int(stats.get(key))
+        if count is not None:
+            summary[key] = count
+    for key in ("mean", "std", "standard_error"):
+        numeric = _optional_number(stats.get(key))
+        if numeric is not None:
+            summary[key] = numeric
+    return summary
+
+
+def _current_best_public_summary(value: Any) -> dict[str, Any]:
+    current_best = _mapping(value)
+    if not current_best:
+        return {}
+    summary: dict[str, Any] = {}
+    for key in ("mode", "accepted_round_id", "accepted_candidate_id"):
+        text = _optional_text(current_best.get(key))
+        if text is not None:
+            summary[key] = text
+    return summary
+
+
+def _dominant_failure_public_summary(value: Any) -> dict[str, Any] | None:
+    failure = _mapping(value)
+    if not failure:
+        return None
+    summary: dict[str, Any] = {}
+    for key in ("status", "source_split", "label", "reason"):
+        text = _optional_text(failure.get(key))
+        if text is not None:
+            summary[key] = text
+    rate = _optional_number(failure.get("rate"))
+    if rate is not None:
+        summary["rate"] = rate
+    return summary or None
+
+
+def _sealed_validation_gate_public_summary(value: Any) -> dict[str, Any] | None:
+    gate = _mapping(value)
+    if not gate:
+        return None
+    summary: dict[str, Any] = {}
+    for key in (
+        "status",
+        "reason",
+        "checkpoint_safety_status",
+        "candidate_isolation_status",
+        "protocol_match_status",
+        "checkpoint_hash_match_status",
+        "eval_protocol_hash_match_status",
+    ):
+        text = _optional_text(gate.get(key))
+        if text is not None:
+            summary[key] = text
+    return summary or None
+
+
 def _runtime_activation_summary(record: Mapping[str, Any]) -> dict[str, Any]:
     runtime = _mapping(record.get("runtime_activation_summary"))
     if not runtime:
@@ -274,6 +602,8 @@ def _runtime_activation_summary(record: Mapping[str, Any]) -> dict[str, Any]:
 def _runtime_activation_public_summary(value: Any) -> dict[str, Any]:
     runtime = _mapping(value)
     if not runtime:
+        return {"status": "not_available"}
+    if runtime.get("status") == "not_available":
         return {"status": "not_available"}
     return {
         "status": "available",
@@ -325,7 +655,10 @@ def _provider_failure_summary(value: Any) -> dict[str, Any] | None:
 
 
 def _repair_feedback_summary(record: Mapping[str, Any]) -> dict[str, Any] | None:
-    feedback = _mapping(record.get("candidate_repair_feedback"))
+    static_failure = _mapping(record.get("static_authoring_failure"))
+    feedback = _mapping(static_failure.get("feedback"))
+    if not feedback:
+        feedback = _mapping(record.get("candidate_repair_feedback"))
     if not feedback:
         public_context = _mapping(record.get("public_context"))
         feedback = _mapping(public_context.get("candidate_repair_feedback"))
@@ -394,10 +727,21 @@ def _compact_detail_mapping(value: Any) -> dict[str, Any]:
     if not isinstance(value, Mapping):
         return {}
     compact: dict[str, Any] = {}
+    prior_omitted = value.get("omitted_detail_count")
+    if (
+        isinstance(prior_omitted, bool)
+        or not isinstance(prior_omitted, int)
+        or prior_omitted < 0
+    ):
+        prior_omitted = 0
     for key in _PUBLIC_HISTORY_DETAIL_KEYS:
         if key in value:
             compact[key] = _compact_value(value[key])
-    omitted = sum(1 for key in value if str(key) not in compact)
+    omitted = prior_omitted + sum(
+        1
+        for key in value
+        if str(key) not in compact and str(key) != "omitted_detail_count"
+    )
     if omitted:
         compact["omitted_detail_count"] = omitted
     return compact
@@ -451,6 +795,24 @@ def _optional_text(value: Any) -> str | None:
     return _bounded_text(str(value))
 
 
+def _optional_number(value: Any) -> float | int | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    return None
+
+
+def _optional_int(value: Any) -> int | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    return None
+
+
 def _bounded_text(value: str) -> str:
     compact = sanitize_prompt_public_value(" ".join(value.split()))
     if _blocked_public_history_text(compact):
@@ -471,16 +833,20 @@ def _first_present(*values: Any) -> Any:
     return None
 
 
-def _blocked_public_history_key(key: str) -> bool:
+def _normalized_block_parts(parts: Sequence[str]) -> tuple[str, ...]:
+    return tuple(str(part).lower() for part in parts if isinstance(part, str) and part)
+
+
+def _blocked_public_history_key(key: str, *, extra_key_parts: Sequence[str] = ()) -> bool:
     lowered = key.lower()
-    return any(part in lowered for part in _PUBLIC_HISTORY_BLOCKED_KEY_PARTS)
+    return any(part in lowered for part in (*_PUBLIC_HISTORY_BLOCKED_KEY_PARTS, *extra_key_parts))
 
 
-def _blocked_public_history_text(text: str) -> bool:
+def _blocked_public_history_text(text: str, *, extra_text_parts: Sequence[str] = ()) -> bool:
     lowered = text.lower()
-    return any(part in lowered for part in _PUBLIC_HISTORY_BLOCKED_TEXT_PARTS) or contains_forbidden_public_value_marker(
-        lowered
-    )
+    return any(
+        part in lowered for part in (*_PUBLIC_HISTORY_BLOCKED_TEXT_PARTS, *extra_text_parts)
+    ) or contains_forbidden_public_value_marker(lowered)
 
 
 def _nonnegative_int(value: Any) -> int:
@@ -490,4 +856,4 @@ def _nonnegative_int(value: Any) -> int:
 
 
 def _serialized_size(value: Any) -> int:
-    return len(json.dumps(value, ensure_ascii=False, sort_keys=True).encode("utf-8"))
+    return canonical_prompt_json_bytes(value)

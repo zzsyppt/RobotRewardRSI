@@ -1,0 +1,69 @@
+{
+  "schema_version": "true_rl_agent.task.stair_climbing.protocol_v2_draft.v1",
+  "protocol_id": "unitree_stair_climbing_v2_draft",
+  "task_id": "unitree_stair_climbing",
+  "status": "draft_frozen_before_reference_pilot",
+  "base_protocol": {
+    "schema_version": "true_rl_agent.task.stair_climbing.protocol.v1",
+    "protocol_id": "unitree_stair_climbing_v1",
+    "task_protocol_hash": "7732f94502b30cdd8524b1e9ad4a1dbb118bb8f6b7b2f60cd1d52e8901b61cde"
+  },
+  "genesis_anchor_policy": {
+    "random": "reference_program"
+  },
+  "reference_program": {
+    "canonical_source_path": "training_code/components.py",
+    "entrypoint": "training_code.components:build_training_components",
+    "session_role": "reference",
+    "required_authorship_origin": "official_upstream"
+  },
+  "candidate_capability_profile": {
+    "schema_version": "true_rl_agent.candidate_capability_profile.v1",
+    "profile_id": "unitree_stair_complete_reward_v1",
+    "capability_ids": [
+      "complete_reward_program"
+    ],
+    "profile_hash": "a5f96c0685e07b04929d5b92f1c8485d72e8e4e6025d7653933b557d5d2093a0"
+  },
+  "pilot_training": {
+    "allowed_budget_steps": [
+      49152000,
+      98304000,
+      147456000
+    ],
+    "maximum_budget_steps": 147456000,
+    "selection_rule": "smallest_budget_passing_frozen_reference_capability_gate",
+    "pilot_seed_domain": "disjoint_from_formal_reference_and_candidate_training",
+    "pilot_artifacts_enter_genesis": false,
+    "pilot_results_enter_acceptance_or_prompt": false
+  },
+  "reference_capability_gate": {
+    "schema_version": "true_rl_agent.task.stair_climbing.reference_capability_gate.v1",
+    "source_split": "public_accept",
+    "seed_count": 5,
+    "low_step_bin_ids": [
+      "stair_010",
+      "stair_015",
+      "stair_020"
+    ],
+    "bin_coverage": "every_seed_covers_every_declared_low_step_bin",
+    "aggregation": "per_seed_equal_weight_macro_over_declared_bins_then_cross_seed_mean",
+    "predicate": "success_and_progress_floors_both_required",
+    "minimum_macro_mean_success_rate": 0.05,
+    "minimum_macro_mean_max_progress_m": 0.5,
+    "threshold_relaxation_after_pilot_allowed": false
+  },
+  "formal_protocol": {
+    "evaluation_protocol_version": "stair_v2_formal_reference_and_candidate_v1",
+    "private_seed_resolver_version": "stair_v2_private_seed_and_bin_resolver_v1",
+    "pilot_seed_overlap_allowed": false,
+    "reference_candidate_training_binding_equal": true
+  },
+  "inheritance": {
+    "height_bins": "base_v1_by_task_protocol_hash",
+    "episode_outcomes": "base_v1_by_task_protocol_hash",
+    "evaluation_statistics": "base_v1_by_task_protocol_hash",
+    "episode_horizon_and_timeout": "base_v1_by_task_protocol_hash"
+  },
+  "draft_protocol_hash": "5074190752a3fed504e2c69b9e0c45efbde1dc185ab3ed56eefe69a3f242fd8f"
+}

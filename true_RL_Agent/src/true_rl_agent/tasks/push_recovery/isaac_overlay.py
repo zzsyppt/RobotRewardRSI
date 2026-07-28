@@ -5,6 +5,8 @@ from __future__ import annotations
 import argparse
 from typing import Any
 
+from true_rl_agent.tasks.push_recovery.isaac_config import public_runtime_dynamics
+
 
 def as_pair(value: Any) -> tuple[float, float]:
     if not isinstance(value, (list, tuple)) or len(value) != 2:
@@ -15,6 +17,7 @@ def as_pair(value: Any) -> tuple[float, float]:
 def apply_push_recovery_overlay(env_cfg: Any, config: dict[str, Any], args: argparse.Namespace) -> None:
     """Mutate the Unitree velocity task cfg into standing push recovery."""
 
+    public_runtime_dynamics(config)
     env_cfg.seed = args.seed
     env_cfg.scene.num_envs = args.num_envs
     if getattr(args, "device", None) is not None:
@@ -66,6 +69,7 @@ def apply_push_recovery_overlay(env_cfg: Any, config: dict[str, Any], args: argp
 
 
 def apply_eval_overrides(env_cfg: Any, config: dict[str, Any]) -> None:
+    public_runtime_dynamics(config)
     evaluation_cfg = config.get("evaluation", {})
     if bool(evaluation_cfg.get("disable_vendor_fall_terminations", False)):
         for name in ("base_height", "bad_orientation"):

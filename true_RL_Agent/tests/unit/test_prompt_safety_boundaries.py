@@ -5,19 +5,24 @@ import sys
 import unittest
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
+from tests.fakes.evaluation import TEST_CAPABILITY_PROFILE  # noqa: E402
+from true_rl_agent.agent_core import context as public_context_module  # noqa: E402
 from true_rl_agent.candidates.prompt_projection import (  # noqa: E402
     assert_public_only_prompt_payload,
     build_prompt_payload,
     serialize_prompt_payload,
 )
 from true_rl_agent.memory import PublicContextBuilder  # noqa: E402
-from true_rl_agent.tasks.base import TaskInvariantSpec, TaskPlugin, TaskSpec  # noqa: E402
+from true_rl_agent.tasks.base import (  # noqa: E402
+    TaskInvariantSpec,
+    TaskPlugin,
+    TaskSpec,
+)
 
 
 class NonPushTaskPlugin(TaskPlugin):
@@ -27,11 +32,22 @@ class NonPushTaskPlugin(TaskPlugin):
             task_id="stair_climbing",
             name="Stair Climbing",
             supported_policy_initializations=frozenset({"random"}),
+            genesis_anchor_policy={"random": "bootstrap"},
+            candidate_capability_profile=TEST_CAPABILITY_PROFILE,
             invariants=TaskInvariantSpec({"episode_length": 400}),
         )
 
 
 class PromptSafetyBoundaryTests(unittest.TestCase):
+    def test_shared_public_history_scrub_rules_are_task_agnostic(self) -> None:
+        shared_key_parts = set(public_context_module._PUBLIC_HISTORY_BLOCKED_KEY_PARTS)
+        shared_text_parts = set(public_context_module._PUBLIC_HISTORY_BLOCKED_TEXT_PARTS)
+
+        self.assertNotIn("push_active", shared_key_parts)
+        self.assertNotIn("push_vec_public", shared_key_parts)
+        self.assertNotIn("push_active", shared_text_parts)
+        self.assertNotIn("push_vec_public", shared_text_parts)
+
     def test_public_prompt_rejects_and_scrubs_private_hidden_trusted_and_raw_seed_data(self) -> None:
         with self.assertRaises(ValueError):
             assert_public_only_prompt_payload({"public_context": {"raw_seed_id": "public-dev-seed-001"}})
@@ -137,7 +153,7 @@ class PromptSafetyBoundaryTests(unittest.TestCase):
         text = serialize_prompt_payload(payload)
         history = payload["public_history"]["recent_outcomes"][-1]
 
-        self.assertEqual(history["reason"], "[redacted]")
+        self.assertEqual(history["reason"], "decision_record_invalid")
         self.assertEqual(history["runner_error"]["message"], "[redacted]")
         self.assertEqual(history["runner_error"]["details"]["status"], "[redacted]")
         self.assertEqual(history["runner_error"]["details"]["code"], "[redacted]")
@@ -180,7 +196,8 @@ class PromptSafetyBoundaryTests(unittest.TestCase):
         text = serialize_prompt_payload(payload).lower()
 
         self.assertEqual(payload["task"]["task_id"], "stair_climbing")
-        self.assertEqual(payload["reward_inputs"]["fields"], [])
+        self.assertEqual(payload["reward_inputs_contract"].get("fields", []), [])
+        self.assertNotIn("reward_inputs", payload)
         for forbidden in (
             "unitree_push_recovery",
             "push recovery",
@@ -199,7 +216,12 @@ class PromptSafetyBoundaryTests(unittest.TestCase):
         text = serialize_prompt_payload(payload)
         controls = payload["control_effectiveness_contract"]
 
-        self.assertEqual(payload["candidate_allowed_controls"], ["RewardTerm", "DiagnosticTerm", "ScheduleTerm"])
+        visible_controls = [
+            item["component_class"]
+            for item in payload["candidate_capabilities"]["prompt_visible_capabilities"]
+        ]
+        self.assertEqual(visible_controls, ["RewardTerm", "DiagnosticTerm", "ScheduleTerm"])
+        self.assertNotIn("candidate_allowed_controls", payload)
         self.assertEqual(controls["schedule_controls"]["effective_keys"], ["reward_weight_scale"])
         self.assertEqual(controls["runner_owned_extensions"]["curriculum"], "not_prompt_writable_in_this_prompt_upgrade")
         self.assertEqual(controls["runner_owned_extensions"]["observation_projection"], "not_prompt_writable")

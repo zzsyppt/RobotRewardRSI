@@ -7,13 +7,43 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Mapping
 
-from true_rl_agent.candidates.components import RewardInputs, TrainingComponents
-from true_rl_agent.candidates.loader import CandidateManifest, load_candidate_manifest, load_training_components
+from true_rl_agent.candidates.artifact import load_sealed_candidate_artifact
+from true_rl_agent.candidates.components import TrainingComponents
+from true_rl_agent.candidates.loader import (
+    CandidateManifest,
+    load_candidate_manifest,
+    load_training_components,
+)
+from true_rl_agent.candidates.schedule_contract import (
+    REWARD_WEIGHT_SCALE_KEY,
+    effective_schedule_keys,
+    schedule_bounds_for_key,
+    schedule_key_bounds,
+    schedule_runtime_activation_record,
+)
+from true_rl_agent.candidates.schema import CandidateChangeSet
+from true_rl_agent.tasks.push_recovery.reward_input_contract import (
+    prompt_effective_reward_input_fields,
+    public_push_signal_reward_input_fields,
+    push_recovery_reward_input_fields,
+    reserved_zero_fallback_reward_input_fields,
+)
+from true_rl_agent.tasks.push_recovery.reward_inputs import PushRecoveryRewardInputs
 
-
-REWARD_WEIGHT_SCALE_KEY = "reward_weight_scale"
-REWARD_WEIGHT_SCALE_MIN = 0.0
-REWARD_WEIGHT_SCALE_MAX = 10.0
+PUBLIC_PUSH_DELTA_THRESHOLD_MPS = 0.12
+PUBLIC_PUSH_ACTIVE_KEYS = (
+    "push_active",
+    "public_push_active",
+    "push_active_public",
+    "last_push_active",
+)
+PUBLIC_PUSH_VEC_KEYS = (
+    "push_vec_public",
+    "public_push_vec",
+    "public_push_vec_xy",
+    "last_push_velocity_delta_xy",
+    "push_velocity_delta_xy",
+)
 
 
 class RuntimeComponentError(ValueError):
@@ -26,6 +56,7 @@ class RuntimeActivationState:
     reward_term_calls: int = 0
     diagnostic_calls: int = 0
     last_reward_terms: list[dict[str, Any]] = field(default_factory=list)
+    reward_term_activation: dict[str, dict[str, Any]] = field(default_factory=dict)
     last_diagnostics: list[dict[str, Any]] = field(default_factory=list)
     last_candidate_reward_mean: float = 0.0
     max_abs_candidate_reward: float = 0.0
@@ -45,15 +76,23 @@ class CandidateRuntimeAdapter:
         planned_training_steps: int,
         diagnostic_interval_steps: int = 24,
     ) -> None:
-        if num_envs <= 0:
-            raise RuntimeComponentError("num_envs must be positive")
+        for field_name, value in (
+            ("num_envs", num_envs),
+            ("planned_training_steps", planned_training_steps),
+            ("diagnostic_interval_steps", diagnostic_interval_steps),
+        ):
+            if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+                raise RuntimeComponentError(
+                    f"{field_name} must be a positive integer"
+                )
         self.manifest = manifest
         self.components = components
-        self.num_envs = int(num_envs)
-        self.planned_training_steps = max(1, int(planned_training_steps))
-        self.diagnostic_interval_steps = max(1, int(diagnostic_interval_steps))
+        self.num_envs = num_envs
+        self.planned_training_steps = planned_training_steps
+        self.diagnostic_interval_steps = diagnostic_interval_steps
         self.runtime = RuntimeActivationState()
         self._previous_action: Any = None
+        self._previous_base_lin_vel_xy: Any = None
 
     @classmethod
     def from_candidate_dir(
@@ -63,11 +102,49 @@ class CandidateRuntimeAdapter:
         num_envs: int,
         planned_training_steps: int,
         diagnostic_interval_steps: int = 24,
+        expected_candidate_id: str | None = None,
+        expected_subject_manifest_hash: str | None = None,
+        expected_program_source_checksum: str | None = None,
+        expected_candidate_artifact_hash: str | None = None,
     ) -> "CandidateRuntimeAdapter":
         candidate_path = Path(candidate_dir)
+        expected_identity = (
+            expected_subject_manifest_hash,
+            expected_program_source_checksum,
+            expected_candidate_artifact_hash,
+        )
+        if any(value is not None for value in expected_identity):
+            if expected_candidate_id is None or any(
+                value is None for value in expected_identity
+            ):
+                raise ValueError(
+                    "candidate runtime artifact identity must be complete"
+                )
+            load_sealed_candidate_artifact(
+                candidate_path,
+                change_set=CandidateChangeSet(frozenset()),
+                expected_candidate_id=expected_candidate_id,
+                expected_artifact_hash=expected_candidate_artifact_hash,
+                expected_subject_manifest_hash=expected_subject_manifest_hash,
+                expected_program_source_checksum=expected_program_source_checksum,
+            )
         manifest = load_candidate_manifest(candidate_path)
+        if expected_candidate_id is not None and manifest.candidate_id != expected_candidate_id:
+            raise ValueError(
+                "candidate manifest identity mismatch: "
+                f"expected={expected_candidate_id!r} actual={manifest.candidate_id!r}"
+            )
         components = load_training_components(candidate_path)
         validate_training_components(components)
+        if expected_candidate_artifact_hash is not None:
+            load_sealed_candidate_artifact(
+                candidate_path,
+                change_set=CandidateChangeSet(frozenset()),
+                expected_candidate_id=expected_candidate_id,
+                expected_artifact_hash=expected_candidate_artifact_hash,
+                expected_subject_manifest_hash=expected_subject_manifest_hash,
+                expected_program_source_checksum=expected_program_source_checksum,
+            )
         return cls(
             manifest=manifest,
             components=components,
@@ -100,17 +177,33 @@ class CandidateRuntimeAdapter:
             "reward_output_stats": reward_stats,
             "diagnostic_outputs": diagnostic_outputs,
             "last_reward_terms": self.runtime.last_reward_terms,
+            "component_activation_records": self._component_activation_records(),
             "input_provenance": self.runtime.input_provenance or {},
             "feature_activation_records": [],
             "capability_activation_records": self._capability_activation_records(),
         }
 
-    def apply_step_rewards(self, *, env: Any, actions: Any, rewards: Any, reset_mask: Any = None) -> Any:
+    def apply_step_rewards(
+        self,
+        *,
+        env: Any,
+        actions: Any,
+        rewards: Any,
+        reset_mask: Any = None,
+        step_extras: Mapping[str, Any] | None = None,
+    ) -> Any:
         self.runtime.step_calls += 1
         progress = min(1.0, self.runtime.step_calls / self.planned_training_steps)
         reward_weight_scale = self._reward_weight_scale()
         self.runtime.last_reward_weight_scale = reward_weight_scale
-        inputs = self._build_inputs(env=env, actions=actions, rewards=rewards, reset_mask=reset_mask, progress=progress)
+        inputs = self._build_inputs(
+            env=env,
+            actions=actions,
+            rewards=rewards,
+            reset_mask=reset_mask,
+            progress=progress,
+            step_extras=step_extras,
+        )
 
         candidate_reward = None
         reward_summaries: list[dict[str, Any]] = []
@@ -133,6 +226,12 @@ class CandidateRuntimeAdapter:
                     "effective_weight": effective_weight,
                 }
             )
+            if self.runtime.step_calls % self.diagnostic_interval_steps == 0:
+                self._record_reward_term_activation(
+                    name=term.name,
+                    weighted_value=weighted,
+                    effective_weight=effective_weight,
+                )
             reward_summaries.append(summary)
 
         self.runtime.reward_term_calls += len(self.components.reward_terms)
@@ -156,6 +255,57 @@ class CandidateRuntimeAdapter:
         )
         return _add_like(rewards, candidate_reward)
 
+    def _record_reward_term_activation(
+        self,
+        *,
+        name: str,
+        weighted_value: Any,
+        effective_weight: float,
+    ) -> None:
+        record = self.runtime.reward_term_activation.setdefault(
+            name,
+            {
+                "name": name,
+                "observation_count": 0,
+                "nonzero_observation_count": 0,
+                "max_abs_weighted_contribution": 0.0,
+                "last_weighted_mean": 0.0,
+                "effective_weight": float(effective_weight),
+                "sampling_interval_steps": self.diagnostic_interval_steps,
+            },
+        )
+        max_abs = _vector_abs_max(weighted_value)
+        record["observation_count"] = int(record["observation_count"]) + 1
+        if max_abs > 1.0e-12:
+            record["nonzero_observation_count"] = int(record["nonzero_observation_count"]) + 1
+        record["max_abs_weighted_contribution"] = max(
+            float(record["max_abs_weighted_contribution"]),
+            float(max_abs),
+        )
+        record["last_weighted_mean"] = _round(_vector_mean(weighted_value))
+        record["effective_weight"] = float(effective_weight)
+
+    def _component_activation_records(self) -> list[dict[str, Any]]:
+        summary: list[dict[str, Any]] = []
+        for term in self.components.reward_terms:
+            record = self.runtime.reward_term_activation.get(term.name)
+            if record is None:
+                continue
+            observation_count = int(record["observation_count"])
+            nonzero_observation_count = int(record["nonzero_observation_count"])
+            summary.append(
+                {
+                    **record,
+                    "component_kind": "reward_term",
+                    "nonzero_observation_fraction": _round(
+                        nonzero_observation_count / observation_count
+                        if observation_count > 0
+                        else 0.0
+                    ),
+                }
+            )
+        return summary
+
     def _reward_weight_scale(self) -> float:
         scale = 1.0
         found = False
@@ -165,9 +315,22 @@ class CandidateRuntimeAdapter:
                 found = True
         if not found:
             return 1.0
-        return max(REWARD_WEIGHT_SCALE_MIN, min(REWARD_WEIGHT_SCALE_MAX, scale))
+        bounds = schedule_bounds_for_key(REWARD_WEIGHT_SCALE_KEY)
+        if bounds is None:
+            return scale
+        min_value, max_value = bounds
+        return max(min_value, min(max_value, scale))
 
-    def _build_inputs(self, *, env: Any, actions: Any, rewards: Any, reset_mask: Any, progress: float) -> RewardInputs:
+    def _build_inputs(
+        self,
+        *,
+        env: Any,
+        actions: Any,
+        rewards: Any,
+        reset_mask: Any,
+        progress: float,
+        step_extras: Mapping[str, Any] | None = None,
+    ) -> PushRecoveryRewardInputs:
         base = unwrap_env(env)
         robot_data = robot_data_from_env(base)
         height, height_obs = root_height(robot_data, rewards)
@@ -184,8 +347,21 @@ class CandidateRuntimeAdapter:
         prev_action, prev_obs = previous_action_or_zero(self._previous_action, actions, rewards)
         action_delta, delta_obs = action_delta_or_zero(actions, prev_action, rewards)
         self._previous_action = mask_reset_actions(clone_public_value(actions), reset_mask)
-        push_active = constant_like(rewards, 0.0)
-        push_vec = zero_matrix_like(rewards, width=2)
+        current_base_lin_vel_xy = matrix_columns(lin_vel, 2) if lin_obs else None
+        push_active, push_vec, push_obs = public_push_signal_from_env(
+            env=base,
+            step_extras=step_extras,
+            rewards=rewards,
+            current_base_lin_vel_xy=current_base_lin_vel_xy,
+            previous_base_lin_vel_xy=self._previous_base_lin_vel_xy,
+        )
+        if current_base_lin_vel_xy is not None:
+            self._previous_base_lin_vel_xy = mask_reset_actions(
+                clone_public_value(current_base_lin_vel_xy),
+                reset_mask,
+            )
+        else:
+            self._previous_base_lin_vel_xy = None
         mapping = {
             "base_height": height,
             "roll": roll,
@@ -205,27 +381,31 @@ class CandidateRuntimeAdapter:
             "push_vec_public": push_vec,
             "progress_fraction": constant_like(rewards, progress),
         }
+        provenance = {
+            "base_height": provenance_tag(height_obs),
+            "roll": provenance_tag(rp_obs),
+            "pitch": provenance_tag(rp_obs),
+            "base_pos_xy": provenance_tag(pos_obs),
+            "base_lin_vel": provenance_tag(lin_obs),
+            "base_ang_vel": provenance_tag(ang_obs),
+            "projected_gravity": provenance_tag(gravity_obs),
+            "commanded_base_vel": provenance_tag(command_obs),
+            "joint_pos": provenance_tag(jpos_obs),
+            "joint_vel": provenance_tag(jvel_obs),
+            "joint_pos_error": provenance_tag(jerr_obs),
+            "last_action": provenance_tag(action_obs),
+            "prev_action": provenance_tag(prev_obs),
+            "action_delta": provenance_tag(delta_obs),
+            "push_active": provenance_tag(push_obs),
+            "push_vec_public": provenance_tag(push_obs),
+            "progress_fraction": "runner_owned",
+        }
         if self.runtime.input_provenance is None:
-            self.runtime.input_provenance = {
-                "base_height": provenance_tag(height_obs),
-                "roll": provenance_tag(rp_obs),
-                "pitch": provenance_tag(rp_obs),
-                "base_pos_xy": provenance_tag(pos_obs),
-                "base_lin_vel": provenance_tag(lin_obs),
-                "base_ang_vel": provenance_tag(ang_obs),
-                "projected_gravity": provenance_tag(gravity_obs),
-                "commanded_base_vel": provenance_tag(command_obs),
-                "joint_pos": provenance_tag(jpos_obs),
-                "joint_vel": provenance_tag(jvel_obs),
-                "joint_pos_error": provenance_tag(jerr_obs),
-                "last_action": provenance_tag(action_obs),
-                "prev_action": provenance_tag(prev_obs),
-                "action_delta": provenance_tag(delta_obs),
-                "push_active": "zero_fallback",
-                "push_vec_public": "zero_fallback",
-                "progress_fraction": "runner_owned",
-            }
-        return RewardInputs(**mapping)
+            self.runtime.input_provenance = provenance
+        else:
+            self.runtime.input_provenance["push_active"] = provenance["push_active"]
+            self.runtime.input_provenance["push_vec_public"] = provenance["push_vec_public"]
+        return PushRecoveryRewardInputs(**mapping)
 
     def _capability_activation_records(self) -> list[str]:
         records = []
@@ -234,7 +414,9 @@ class CandidateRuntimeAdapter:
         if self.components.diagnostics:
             records.append("diagnostic")
         if any(schedule.key == REWARD_WEIGHT_SCALE_KEY for schedule in self.components.schedules):
-            records.append("reward_weight_scale")
+            record = schedule_runtime_activation_record(REWARD_WEIGHT_SCALE_KEY)
+            if record is not None:
+                records.append(record)
         return records
 
 
@@ -260,6 +442,7 @@ class CandidateRewardVecEnvWrapper:
             actions=actions,
             rewards=rewards,
             reset_mask=reset_mask,
+            step_extras=step_extras_from_step_result(result),
         )
         mutable = list(result)
         mutable[reward_index] = updated_rewards
@@ -267,14 +450,18 @@ class CandidateRewardVecEnvWrapper:
 
 
 def runtime_contract() -> dict[str, Any]:
+    reserved_zero_fallback_inputs = list(reserved_zero_fallback_reward_input_fields())
     return {
-        "candidate_receives": list(RewardInputs.field_names()),
+        "candidate_receives": list(push_recovery_reward_input_fields()),
+        "candidate_receives_prompt_effective": list(prompt_effective_reward_input_fields()),
+        "public_push_signal_inputs": list(public_push_signal_reward_input_fields()),
+        "reserved_zero_fallback_inputs": reserved_zero_fallback_inputs,
         "candidate_does_not_receive": ["env", "runner", "optimizer", "checkpoint_selector", "eval_config", "success_metric"],
         "reward_terms_added_to_env_reward": True,
         "diagnostics_public_numeric_summary_only": True,
         "schedule_controls": {
-            "effective_keys": [REWARD_WEIGHT_SCALE_KEY],
-            "bounds": {REWARD_WEIGHT_SCALE_KEY: [REWARD_WEIGHT_SCALE_MIN, REWARD_WEIGHT_SCALE_MAX]},
+            "effective_keys": list(effective_schedule_keys()),
+            "bounds": schedule_key_bounds(),
         },
     }
 
@@ -387,6 +574,12 @@ def reset_mask_from_step_result(result: tuple[Any, ...], num_envs: int) -> Any:
     return None
 
 
+def step_extras_from_step_result(result: tuple[Any, ...]) -> Mapping[str, Any] | None:
+    if result and isinstance(result[-1], Mapping):
+        return result[-1]
+    return None
+
+
 def combine_reset_masks(first: Any, second: Any, num_envs: int) -> Any:
     torch_mod = torch_for(first)
     if torch_mod is not None:
@@ -492,6 +685,130 @@ def commanded_base_vel_from_env(env: Any, rewards: Any) -> tuple[Any, bool]:
             if ok:
                 return observed, True
     return zero_matrix_like(rewards, width=3), False
+
+
+def public_push_signal_from_env(
+    *,
+    env: Any,
+    step_extras: Mapping[str, Any] | None,
+    rewards: Any,
+    current_base_lin_vel_xy: Any,
+    previous_base_lin_vel_xy: Any,
+) -> tuple[Any, Any, bool]:
+    sources = (step_extras, env)
+    explicit_vec = public_signal_value(sources, PUBLIC_PUSH_VEC_KEYS)
+    push_vec = public_push_vec_or_none(explicit_vec, rewards)
+    if push_vec is None:
+        push_vec = public_velocity_delta_or_none(current_base_lin_vel_xy, previous_base_lin_vel_xy)
+        if push_vec is not None:
+            push_vec = threshold_public_velocity_delta(push_vec)
+    if push_vec is not None:
+        explicit_active = public_signal_value(sources, PUBLIC_PUSH_ACTIVE_KEYS)
+        active = public_push_active_or_none(explicit_active, rewards)
+        if active is None:
+            active = push_active_from_public_delta(push_vec, rewards)
+        return active, push_vec, True
+
+    explicit_active = public_signal_value(sources, PUBLIC_PUSH_ACTIVE_KEYS)
+    active = public_push_active_or_none(explicit_active, rewards)
+    if active is not None:
+        return active, zero_matrix_like(rewards, width=2), True
+    return constant_like(rewards, 0.0), zero_matrix_like(rewards, width=2), False
+
+
+def public_signal_value(sources: tuple[Any, ...], names: tuple[str, ...]) -> Any | None:
+    nested_keys = ("push", "public_push", "push_signal", "events")
+    for source in sources:
+        if source is None:
+            continue
+        if isinstance(source, Mapping):
+            value = mapping_value(source, names)
+            if value is not None:
+                return value
+            for key in nested_keys:
+                nested = source.get(key)
+                if isinstance(nested, Mapping):
+                    value = mapping_value(nested, names)
+                    if value is not None:
+                        return value
+            continue
+        for name in names:
+            value = getattr(source, name, None)
+            if value is not None:
+                return value
+    return None
+
+
+def mapping_value(mapping: Mapping[str, Any], names: tuple[str, ...]) -> Any | None:
+    for name in names:
+        value = mapping.get(name)
+        if value is not None:
+            return value
+    return None
+
+
+def public_push_active_or_none(value: Any, rewards: Any) -> Any | None:
+    if value is None or shape_tuple(value) != (vector_length(rewards),):
+        return None
+    torch_mod = torch_for(value)
+    if torch_mod is not None:
+        reward_torch = torch_for(rewards)
+        dtype = rewards.dtype if reward_torch is not None else value.dtype
+        device = rewards.device if reward_torch is not None else value.device
+        return value.to(device=device, dtype=dtype)
+    return [1.0 if bool(item) else 0.0 for item in value]
+
+
+def public_push_vec_or_none(value: Any, rewards: Any) -> Any | None:
+    if value is None or shape_tuple(value) != (vector_length(rewards), 2):
+        return None
+    torch_mod = torch_for(value)
+    if torch_mod is not None:
+        reward_torch = torch_for(rewards)
+        dtype = rewards.dtype if reward_torch is not None else value.dtype
+        device = rewards.device if reward_torch is not None else value.device
+        return value.to(device=device, dtype=dtype)
+    return [[float(item) for item in row[:2]] for row in value]
+
+
+def public_velocity_delta_or_none(current_xy: Any, previous_xy: Any) -> Any | None:
+    if current_xy is None or previous_xy is None:
+        return None
+    if shape_tuple(current_xy) != shape_tuple(previous_xy) or shape_tuple(current_xy)[-1:] != (2,):
+        return None
+    return subtract_values(current_xy, previous_xy)
+
+
+def threshold_public_velocity_delta(push_vec: Any) -> Any:
+    torch_mod = torch_for(push_vec)
+    if torch_mod is not None:
+        active = torch_mod.linalg.vector_norm(push_vec, dim=1) >= PUBLIC_PUSH_DELTA_THRESHOLD_MPS
+        return push_vec * active.to(device=push_vec.device, dtype=push_vec.dtype).unsqueeze(-1)
+    rows = []
+    for row in push_vec:
+        x = float(row[0])
+        y = float(row[1])
+        if math.sqrt(x * x + y * y) >= PUBLIC_PUSH_DELTA_THRESHOLD_MPS:
+            rows.append([x, y])
+        else:
+            rows.append([0.0, 0.0])
+    return rows
+
+
+def push_active_from_public_delta(push_vec: Any, rewards: Any) -> Any:
+    torch_mod = torch_for(push_vec)
+    if torch_mod is not None:
+        active = torch_mod.linalg.vector_norm(push_vec, dim=1) >= PUBLIC_PUSH_DELTA_THRESHOLD_MPS
+        reward_torch = torch_for(rewards)
+        dtype = rewards.dtype if reward_torch is not None else push_vec.dtype
+        device = rewards.device if reward_torch is not None else push_vec.device
+        return active.to(device=device, dtype=dtype)
+    active_values = []
+    for row in push_vec:
+        x = float(row[0])
+        y = float(row[1])
+        active_values.append(1.0 if math.sqrt(x * x + y * y) >= PUBLIC_PUSH_DELTA_THRESHOLD_MPS else 0.0)
+    return active_values
 
 
 def joint_width(robot_data: Any) -> int | None:

@@ -1,22 +1,28 @@
 from __future__ import annotations
 
-import json
 import sys
 import unittest
 from pathlib import Path
-
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from true_rl_agent.backends.isaac_lab_rsl_rl import IsaacLabRslRlBackendAdapter, IsaacLabRslRlBackendConfig
-from true_rl_agent.candidates.schema import CandidateChangeSet, CandidateSurfacePolicy
-from true_rl_agent.curriculum.capabilities import build_default_curriculum_capability_registry
+from true_rl_agent.candidates.schema import CandidateChangeSet
+from true_rl_agent.composition.base import TaskCompositionContext
+from true_rl_agent.curriculum.capabilities import (
+    build_default_curriculum_capability_registry,
+)
 from true_rl_agent.curriculum.compiler import CurriculumCompiler
 from true_rl_agent.curriculum.schema import CurriculumPlan
-from true_rl_agent.tasks.base import TaskInvariantSpec, TaskSpec
+from true_rl_agent.tasks.push_recovery.candidate_surface import (
+    PUSH_RECOVERY_CANDIDATE_SURFACE_POLICY,
+)
+from true_rl_agent.tasks.push_recovery.composition import (
+    PushRecoveryCompositionProvider,
+)
+from true_rl_agent.tasks.stair_climbing.phase0_contract import StairPhase0Bundle
 
 
 class CurriculumPhase9Tests(unittest.TestCase):
@@ -95,24 +101,16 @@ class CurriculumPhase9Tests(unittest.TestCase):
             )
 
     def test_task_and_backend_expose_fixed_protocol_and_future_capability_status(self) -> None:
-        task = TaskSpec(
-            task_id="unitree_push_recovery",
-            name="Unitree Push Recovery",
-            supported_policy_initializations=frozenset({"random", "warm_start"}),
-            invariants=TaskInvariantSpec({"fall_threshold": 0.30}),
-            fixed_train_protocol={"baseline_train_distribution": "runner_owned_target_distribution"},
-            fixed_eval_protocol={"eval_bins": ["public_dev", "trusted_eval"]},
+        provider = PushRecoveryCompositionProvider()
+        composition = provider.resolve(
+            values=provider.cli_defaults(),
+            context=TaskCompositionContext(
+                project_root=PROJECT_ROOT,
+                output_dir=PROJECT_ROOT / "outputs" / "test-composition",
+            ),
         )
-        backend = IsaacLabRslRlBackendAdapter(
-            IsaacLabRslRlBackendConfig(
-                isaac_lab_python="/opt/isaac/python.sh",
-                train_entrypoint="train.py",
-                eval_entrypoint="eval.py",
-                default_budget_steps=1024,
-                public_seed_count=2,
-                trusted_seed_count=4,
-            )
-        )
+        task = composition.task_plugin.task_spec
+        backend = composition.backend_adapter
 
         self.assertEqual(task.default_curriculum.mode, "task_default")
         self.assertFalse(task.default_curriculum.llm_controlled)
@@ -120,17 +118,19 @@ class CurriculumPhase9Tests(unittest.TestCase):
         self.assertFalse(backend.backend_spec.curriculum_capability_effective_now("external_push_curriculum"))
 
     def test_stair_extension_schema_fixture_is_disabled_and_schema_only(self) -> None:
-        fixture_path = PROJECT_ROOT / "configs" / "tasks" / "stair_extension_schema.json"
-        fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+        bundle = StairPhase0Bundle.load(PROJECT_ROOT)
+        protocol = bundle.protocol.to_dict()
+        activation = protocol["activation"]
 
-        self.assertFalse(fixture["runtime_plugin_enabled"])
-        self.assertFalse(fixture["llm_stair_height_progression_enabled"])
-        self.assertIn("fixed_baseline_train_distribution", fixture)
-        self.assertIn("fixed_eval_bins", fixture)
-        self.assertIn("height_map_terrain_metadata", fixture)
+        self.assertFalse(activation["runtime_plugin_enabled"])
+        self.assertFalse(activation["training_command_enabled"])
+        self.assertFalse(activation["llm_stair_height_progression_enabled"])
+        self.assertIn("training_distribution", protocol["terrain"])
+        self.assertIn("evaluation_bins", protocol["terrain"])
+        self.assertEqual(bundle.descriptor.to_dict()["task_id"], "unitree_stair_climbing")
 
     def test_schedule_and_height_range_only_surfaces_are_parameter_only(self) -> None:
-        policy = CandidateSurfacePolicy()
+        policy = PUSH_RECOVERY_CANDIDATE_SURFACE_POLICY
 
         for component in ("reward_weight_scale", "height_range", "single_stage_numeric_schedule", "schedule"):
             assessment = policy.classify(CandidateChangeSet(frozenset({component})))

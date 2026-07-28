@@ -13,30 +13,106 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
+
+from true_rl_agent.evaluation.binding import (  # noqa: E402
+    EvaluationBindingV1,
+    require_sha256_checksum,
+    require_sha256_digest,
+)
+from true_rl_agent.evaluation.protocol import (  # noqa: E402
+    DEFAULT_EVAL_PROTOCOL_VERSION,
+    EvaluationProtocol,
+)
+from true_rl_agent.evaluation.sealed_validation import (  # noqa: E402
+    build_sealed_validation_gate,
+)
+from true_rl_agent.evaluation.subject import ExperimentSubject  # noqa: E402
+from true_rl_agent.runner.checkpoint import build_checkpoint_safety_report  # noqa: E402
+from true_rl_agent.runner.eval_isolation import (  # noqa: E402
+    build_candidate_isolation_gate,
+    reject_candidate_path_arguments,
+)
+from true_rl_agent.runner.evidence import evidence_artifact_from_json  # noqa: E402
+from true_rl_agent.runner.job_identity import JobIdentity  # noqa: E402
+from true_rl_agent.tasks.push_recovery.seed_policy import (  # noqa: E402
+    SEED_POLICY_NAME,
+    build_seed_cohort_hash,
+    derive_runner_seed,
+    public_seed_record,
+)
+
+
+def evaluation_protocol_from_args(args: argparse.Namespace) -> EvaluationProtocol:
+    return EvaluationProtocol(
+        eval_protocol_version=str(args.eval_protocol_version),
+        public_seed_count=int(args.public_seeds),
+        public_accept_seed_count=int(args.public_accept_seeds),
+        sealed_validation_seed_count=int(args.sealed_validation_seeds),
+        eval_num_envs=int(args.num_envs),
+    )
+
+
+def evaluation_binding_from_args(
+    args: argparse.Namespace,
+) -> EvaluationBindingV1:
+    binding = EvaluationBindingV1(
+        eval_protocol_hash=evaluation_protocol_from_args(args).protocol_hash,
+        acceptance_protocol_hash=str(args.acceptance_protocol_hash),
+        task_protocol_hash=str(args.task_protocol_hash),
+        seed_cohort_hash=str(args.seed_cohort_hash),
+    )
+    if binding.binding_hash != args.evaluation_binding_hash:
+        raise ValueError("evaluation binding hash mismatch")
+    return binding
+
+
+try:
+    reject_candidate_path_arguments(sys.argv[1:])
+except ValueError as exc:
+    print(str(exc), file=sys.stderr)
+    raise SystemExit(2) from exc
 
 from isaaclab.app import AppLauncher  # type: ignore[import-not-found]  # noqa: E402
 
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--job-id", required=True)
     parser.add_argument("--round", required=True)
-    parser.add_argument("--candidate", required=True)
+    parser.add_argument("--task-id", required=True)
+    parser.add_argument(
+        "--subject-kind",
+        required=True,
+        choices=("candidate", "baseline", "reference"),
+    )
+    parser.add_argument("--subject-id", required=True)
+    parser.add_argument("--subject-manifest-hash", default=None)
     parser.add_argument("--checkpoint", required=True)
+    parser.add_argument("--checkpoint-sha256", required=True)
     parser.add_argument("--public-seeds", type=int, required=True)
-    parser.add_argument("--public-accept-seeds", type=int, default=1)
+    parser.add_argument("--public-accept-seeds", type=int, default=3)
+    parser.add_argument("--sealed-validation-seeds", type=int, default=7)
+    parser.add_argument("--eval-protocol-version", default=DEFAULT_EVAL_PROTOCOL_VERSION)
+    parser.add_argument("--task-protocol-hash", required=True)
+    parser.add_argument("--acceptance-protocol-hash", required=True)
+    parser.add_argument("--seed-cohort-hash", required=True)
+    parser.add_argument("--evaluation-binding-hash", required=True)
+    parser.add_argument("--training-binding-hash", default=None)
+    parser.add_argument("--program-source-checksum", default=None)
+    parser.add_argument("--capability-profile-hash", required=True)
     parser.add_argument("--summary-path", required=True)
-    parser.add_argument("--config", default="configs/tasks/push_recovery.yaml")
+    parser.add_argument("--config", default=None)
     parser.add_argument("--profile", default="strong_push")
+    parser.add_argument("--runtime-dynamics-hash", required=True)
     parser.add_argument("--task", default=None)
     parser.add_argument("--policy", default="checkpoint", choices=("checkpoint", "random", "zero"))
     parser.add_argument("--num-envs", type=int, default=64)
     parser.add_argument("--max-steps", type=int, default=None)
-    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--action-scale", type=float, default=None)
     parser.add_argument("--status-file", default=None)
     AppLauncher.add_app_launcher_args(parser)
@@ -45,23 +121,76 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 args_cli = _build_parser().parse_args()
+try:
+    args_cli.evaluation_subject = ExperimentSubject(
+        kind=args_cli.subject_kind,
+        subject_id=args_cli.subject_id,
+    )
+    args_cli.evaluation_job_identity = JobIdentity(
+        job_id=args_cli.job_id,
+        task_id=args_cli.task_id,
+        subject=args_cli.evaluation_subject,
+        subject_manifest_hash=args_cli.subject_manifest_hash,
+    )
+    args_cli.capability_profile_hash = require_sha256_digest(
+        args_cli.capability_profile_hash,
+        "capability profile hash",
+    )
+    if args_cli.evaluation_subject.kind in {"candidate", "reference"}:
+        args_cli.program_source_checksum = require_sha256_checksum(
+            args_cli.program_source_checksum,
+            "program source checksum",
+        )
+        args_cli.training_binding_hash = require_sha256_digest(
+            args_cli.training_binding_hash,
+            "training binding hash",
+        )
+    elif (
+        args_cli.training_binding_hash is not None
+        or args_cli.program_source_checksum is not None
+    ):
+        raise ValueError("baseline eval cannot carry program lineage")
+    args_cli.evaluation_binding = evaluation_binding_from_args(args_cli)
+    actual_seed_cohort_hash = build_seed_cohort_hash(
+        base_seed=int(args_cli.seed),
+        evaluation_protocol=evaluation_protocol_from_args(args_cli),
+    )
+    if actual_seed_cohort_hash != args_cli.seed_cohort_hash:
+        raise ValueError("seed cohort hash does not match runtime seed policy")
+except ValueError as exc:
+    print(str(exc), file=sys.stderr)
+    raise SystemExit(2) from exc
 app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 
 import gymnasium as gym  # type: ignore[import-not-found]  # noqa: E402
-import torch  # type: ignore[import-not-found]  # noqa: E402
-
 import isaaclab_tasks  # type: ignore[import-not-found]  # noqa: F401,E402
+import torch  # type: ignore[import-not-found]  # noqa: E402
 import unitree_rl_lab.tasks  # type: ignore[import-not-found]  # noqa: F401,E402
-from isaaclab.envs import DirectMARLEnv, multi_agent_to_single_agent  # type: ignore[import-not-found]  # noqa: E402
-from isaaclab.utils.math import euler_xyz_from_quat  # type: ignore[import-not-found]  # noqa: E402
-from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper  # type: ignore[import-not-found]  # noqa: E402
-from isaaclab_tasks.utils.parse_cfg import load_cfg_from_registry  # type: ignore[import-not-found]  # noqa: E402
-from rsl_rl.runners import OnPolicyRunner  # type: ignore[import-not-found]  # noqa: E402
-from unitree_rl_lab.utils.parser_cfg import parse_env_cfg  # type: ignore[import-not-found]  # noqa: E402
+from isaaclab.envs import (  # type: ignore[import-not-found]  # noqa: E402
+    DirectMARLEnv,
+    multi_agent_to_single_agent,
+)
+from isaaclab.utils.math import (
+    euler_xyz_from_quat,  # type: ignore[import-not-found]  # noqa: E402
+)
+from isaaclab_rl.rsl_rl import (
+    RslRlVecEnvWrapper,  # type: ignore[import-not-found]  # noqa: E402
+)
+from isaaclab_tasks.utils.parse_cfg import (
+    load_cfg_from_registry,  # type: ignore[import-not-found]  # noqa: E402
+)
+from rsl_rl.runners import (
+    OnPolicyRunner,  # type: ignore[import-not-found]  # noqa: E402
+)
+from unitree_rl_lab.utils.parser_cfg import (
+    parse_env_cfg,  # type: ignore[import-not-found]  # noqa: E402
+)
 
-from true_rl_agent.tasks.push_recovery.diagnostics import build_diagnostic_hints  # noqa: E402
+from true_rl_agent.tasks.push_recovery.diagnostics import (
+    build_diagnostic_hints,  # noqa: E402
+)
 from true_rl_agent.tasks.push_recovery.failure_classifier import (  # noqa: E402
     classify_episode,
     summarize_condition_flags,
@@ -70,6 +199,7 @@ from true_rl_agent.tasks.push_recovery.failure_classifier import (  # noqa: E402
 from true_rl_agent.tasks.push_recovery.isaac_config import (  # noqa: E402
     config_for_profile,
     load_runtime_config,
+    public_runtime_dynamics,
     sha256_file,
 )
 from true_rl_agent.tasks.push_recovery.isaac_overlay import (  # noqa: E402
@@ -77,11 +207,9 @@ from true_rl_agent.tasks.push_recovery.isaac_overlay import (  # noqa: E402
     apply_push_recovery_overlay,
     as_pair,
 )
-from true_rl_agent.tasks.push_recovery.metrics import build_push_public_result_from_summaries  # noqa: E402
-from true_rl_agent.tasks.push_recovery.seed_policy import (  # noqa: E402
-    SEED_POLICY_NAME,
-    derive_runner_seed,
-    public_seed_record,
+from true_rl_agent.tasks.push_recovery.metrics import (  # noqa: E402
+    build_push_public_result_from_summaries,
+    build_push_sealed_rollout_evidence,
 )
 
 
@@ -92,12 +220,23 @@ def main() -> int:
         Path(args_cli.status_file).parent.mkdir(parents=True, exist_ok=True)
     env = None
     base_env = None
+    checkpoint_safety_report = build_checkpoint_safety_report(
+        Path(args_cli.checkpoint),
+        expected_checkpoint_hash=args_cli.checkpoint_sha256,
+    ).to_public_dict()
     try:
         config = config_for_profile(load_runtime_config(args_cli.config), args_cli.profile)
+        runtime_dynamics = public_runtime_dynamics(config)
+        if runtime_dynamics["runtime_dynamics_hash"] != args_cli.runtime_dynamics_hash:
+            raise ValueError(
+                "runtime dynamics hash mismatch: "
+                f"expected={args_cli.runtime_dynamics_hash!r} "
+                f"actual={runtime_dynamics['runtime_dynamics_hash']!r}"
+            )
         task = args_cli.task or config["task"]["gym_id"]
         args_cli.task = task
         if args_cli.policy == "checkpoint":
-            assert_safe_checkpoint(Path(args_cli.checkpoint))
+            assert_safe_checkpoint(Path(args_cli.checkpoint), checkpoint_safety_report=checkpoint_safety_report)
         env_cfg = parse_env_cfg(task, device=args_cli.device, num_envs=args_cli.num_envs, entry_point_key="env_cfg_entry_point")
         apply_push_recovery_overlay(env_cfg, config, args_cli)
         apply_eval_overrides(env_cfg, config)
@@ -117,22 +256,38 @@ def main() -> int:
         else:
             env = base_env
 
-        summary = run_public_eval(env, config, args_cli, inference_policy=inference_policy)
+        summary = run_public_eval(
+            env,
+            config,
+            args_cli,
+            inference_policy=inference_policy,
+            checkpoint_safety_report=checkpoint_safety_report,
+        )
     except Exception as exc:  # noqa: BLE001
         summary = {
             "schema_version": "true_rl_agent.push_recovery.eval_summary.v1",
+            **eval_summary_binding(args_cli),
             "status": "fail",
             "public_score": 0.0,
             "metrics": {"success_rate": 0.0, "failure_breakdown": {}, "motion_quality": {}},
             "created_at_utc": datetime.now(timezone.utc).isoformat(),
             "candidate_code_loaded_in_eval": False,
             "candidate_package_loaded": False,
+            "candidate_package_loaded_in_eval": False,
+            "checkpoint_safety_report": checkpoint_safety_report,
+            "checkpoint_safety_status": checkpoint_safety_report["status"],
+            "evidence_manifest": build_eval_evidence_manifest(checkpoint_safety_report),
             "run": {
                 "cwd": os.getcwd(),
                 "round_id": args_cli.round,
+                "task_id": args_cli.task_id,
+                "subject_kind": args_cli.evaluation_subject.kind,
+                "subject_id": args_cli.evaluation_subject.subject_id,
                 "seed_policy": SEED_POLICY_NAME,
                 "public_seed_count": args_cli.public_seeds,
                 "public_accept_seed_count": args_cli.public_accept_seeds,
+                "sealed_validation_seed_count": args_cli.sealed_validation_seeds,
+                "eval_num_envs": args_cli.num_envs,
             },
             "errors": [{"type": type(exc).__name__, "message": str(exc)}],
         }
@@ -150,37 +305,90 @@ def main() -> int:
     return 0 if summary.get("status") == "pass" else 1
 
 
-def run_public_eval(env: Any, config: dict[str, Any], args: argparse.Namespace, inference_policy: Any = None) -> dict[str, Any]:
+def run_public_eval(
+    env: Any,
+    config: dict[str, Any],
+    args: argparse.Namespace,
+    inference_policy: Any = None,
+    checkpoint_safety_report: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    if checkpoint_safety_report is None:
+        raise ValueError("checkpoint_safety_report is required")
+    evaluation_protocol = evaluation_protocol_from_args(args)
     public_dev_summaries = [
         run_rollout(env, config, args, inference_policy=inference_policy, split_name="public_dev", run_index=index + 1)
-        for index in range(max(1, int(args.public_seeds)))
+        for index in range(evaluation_protocol.public_seed_count)
     ]
     public_accept_summaries = [
         run_rollout(env, config, args, inference_policy=inference_policy, split_name="public_accept", run_index=index + 1)
-        for index in range(max(1, int(args.public_accept_seeds)))
+        for index in range(evaluation_protocol.public_accept_seed_count)
     ]
+    sealed_validation_summaries = [
+        run_rollout(
+            env,
+            config,
+            args,
+            inference_policy=inference_policy,
+            split_name="sealed_validation",
+            run_index=index + 1,
+        )
+        for index in range(evaluation_protocol.sealed_validation_seed_count)
+    ]
+    sealed_validation_evidence = build_push_sealed_rollout_evidence(
+        summaries=sealed_validation_summaries,
+        evaluation_protocol=evaluation_protocol,
+        checkpoint_hash=str(args.checkpoint_sha256),
+        evaluation_binding_hash=args.evaluation_binding.binding_hash,
+        evaluation_subject=args.evaluation_subject,
+        subject_manifest_hash=args.subject_manifest_hash,
+        program_source_checksum=args.program_source_checksum,
+        training_binding_hash=args.training_binding_hash,
+        capability_profile_hash=args.capability_profile_hash,
+    )
+    sealed_validation_gate = build_eval_sealed_validation_gate(
+        checkpoint_safety_report,
+        rollout_evidence=sealed_validation_evidence,
+        evaluation_protocol=evaluation_protocol,
+        evaluation_binding=args.evaluation_binding,
+    )
     projected = build_push_public_result_from_summaries(
         public_dev_summaries=public_dev_summaries,
         public_accept_summaries=public_accept_summaries,
         budget_summary=None,
+        min_public_accept_count=evaluation_protocol.public_accept_seed_count,
     )
     first_summary = public_accept_summaries[0] if public_accept_summaries else public_dev_summaries[0]
     summary = {
         "schema_version": "true_rl_agent.push_recovery.eval_summary.v1",
+        **eval_summary_binding(args),
         "status": projected.status,
         "public_score": projected.public_score,
         "metrics": dict(projected.metrics),
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "candidate_code_loaded_in_eval": False,
         "candidate_package_loaded": False,
+        "candidate_package_loaded_in_eval": False,
+        "checkpoint_safety_report": checkpoint_safety_report,
+        "checkpoint_safety_status": checkpoint_safety_report["status"],
+        "sealed_validation_evidence": sealed_validation_evidence,
+        "sealed_validation_gate": sealed_validation_gate,
+        "evidence_manifest": build_eval_evidence_manifest(
+            checkpoint_safety_report,
+            sealed_validation_evidence=sealed_validation_evidence,
+        ),
         "run": {
             "host": socket.gethostname(),
             "platform": platform.platform(),
             "cwd": os.getcwd(),
             "round_id": args.round,
+            "task_id": args.task_id,
+            "subject_kind": args.evaluation_subject.kind,
+            "subject_id": args.evaluation_subject.subject_id,
             "seed_policy": SEED_POLICY_NAME,
-            "public_seed_count": args.public_seeds,
-            "public_accept_seed_count": args.public_accept_seeds,
+            "public_seed_count": evaluation_protocol.public_seed_count,
+            "public_accept_seed_count": evaluation_protocol.public_accept_seed_count,
+            "sealed_validation_seed_count": evaluation_protocol.sealed_validation_seed_count,
+            "eval_num_envs": evaluation_protocol.eval_num_envs,
         },
         "task": first_summary.get("task", {}),
         "policy": first_summary.get("policy", {}),
@@ -190,6 +398,7 @@ def run_public_eval(env: Any, config: dict[str, Any], args: argparse.Namespace, 
         "aggregate": first_summary.get("aggregate", {}),
         "secondary_metrics": first_summary.get("secondary_metrics", {}),
         "per_episode": first_summary.get("per_episode", []),
+        "sealed_validation_rollouts": sealed_validation_summaries,
         "reset_extras_keys": first_summary.get("reset_extras_keys", []),
         "errors": projected.metrics.get("errors", []),
     }
@@ -212,7 +421,10 @@ def run_rollout(
     step_dt = float(unwrapped.step_dt)
     max_steps = args.max_steps if args.max_steps is not None else int(round(config["environment"]["episode_length_s"] / step_dt))
     max_steps = int(max_steps)
-    split_seed_count = args.public_accept_seeds if split_name == "public_accept" else args.public_seeds
+    split_seed_count = {
+        "public_accept": args.public_accept_seeds,
+        "sealed_validation": args.sealed_validation_seeds,
+    }.get(split_name, args.public_seeds)
     seed_record = public_seed_record(
         split_name=split_name,
         run_index=run_index,
@@ -243,6 +455,7 @@ def run_rollout(
     max_abs_pitch = torch.zeros(num_envs, device=device)
     max_abs_roll = torch.zeros(num_envs, device=device)
     final_xy_drift = torch.zeros(num_envs, device=device)
+    final_planar_speed = torch.zeros(num_envs, device=device)
     cumulative_reward = torch.zeros(num_envs, device=device)
     done_step = torch.full((num_envs,), max_steps, dtype=torch.long, device=device)
     terminated_once = torch.zeros(num_envs, dtype=torch.bool, device=device)
@@ -284,6 +497,7 @@ def run_rollout(
             max_abs_pitch[active_idx] = torch.maximum(max_abs_pitch[active_idx], torch.abs(pitch[active_idx]))
             max_abs_roll[active_idx] = torch.maximum(max_abs_roll[active_idx], torch.abs(roll[active_idx]))
             final_xy_drift[active_idx] = drift[active_idx]
+            final_planar_speed[active_idx] = planar_speed[active_idx]
             if time_s <= max(push_start_s, pre_window_s):
                 max_pre_push_speed[active_idx] = torch.maximum(max_pre_push_speed[active_idx], planar_speed[active_idx])
             if push_start_s <= time_s <= push_start_s + post_window_s:
@@ -334,16 +548,20 @@ def run_rollout(
     if len(active_idx) > 0:
         root_pos = robot.data.root_pos_w
         root_quat = robot.data.root_quat_w
+        root_vel = robot.data.root_lin_vel_w
         roll, pitch, _ = euler_xyz_from_quat(root_quat)
         drift = torch.linalg.vector_norm(root_pos[:, :2] - initial_xy, dim=1)
+        planar_speed = torch.linalg.vector_norm(root_vel[:, :2], dim=1)
         min_base_height[active_idx] = torch.minimum(min_base_height[active_idx], root_pos[active_idx, 2])
         max_pitch[active_idx] = torch.maximum(max_pitch[active_idx], pitch[active_idx])
         min_pitch[active_idx] = torch.minimum(min_pitch[active_idx], pitch[active_idx])
         max_abs_pitch[active_idx] = torch.maximum(max_abs_pitch[active_idx], torch.abs(pitch[active_idx]))
         max_abs_roll[active_idx] = torch.maximum(max_abs_roll[active_idx], torch.abs(roll[active_idx]))
         final_xy_drift[active_idx] = drift[active_idx]
+        final_planar_speed[active_idx] = planar_speed[active_idx]
 
     thresholds = config["success_thresholds"]
+    recovery_window_speed_limit = float(config.get("behavior_gate_thresholds", {}).get("max_final_planar_speed_mps", 5.0))
     max_records = int(config.get("metrics", {}).get("max_per_episode_records", 24))
     per_episode: list[dict[str, Any]] = []
     labels: list[str] = []
@@ -362,6 +580,8 @@ def run_rollout(
             "max_abs_pitch_rad": round_float(float_value(max_abs_pitch[env_id])),
             "max_abs_roll_rad": round_float(float_value(max_abs_roll[env_id])),
             "final_xy_drift_m": round_float(float_value(final_xy_drift[env_id])),
+            "final_planar_speed_mps": round_float(float_value(final_planar_speed[env_id])),
+            "recovery_window_success": bool(float_value(final_planar_speed[env_id]) <= recovery_window_speed_limit),
             "return": round_float(float_value(cumulative_reward[env_id])),
             "mean_action_l2": round_float(float_value(action_l2_sum[env_id]) / samples),
             "mean_action_rate_l2": round_float(float_value(action_rate_l2_sum[env_id]) / samples),
@@ -386,6 +606,7 @@ def run_rollout(
     min_single_step_fraction = float(push_evidence_cfg["min_env_fraction_with_single_step_delta"])
     single_step_fraction = float((single_step_deltas >= min_single_step_delta).to(dtype=torch.float32).mean().item())
     push_gate_pass = single_step_fraction >= min_single_step_fraction if nonzero_push_configured else None
+    recovery_window_success_rate = float((final_planar_speed <= recovery_window_speed_limit).to(dtype=torch.float32).mean().item())
 
     secondary_metrics = {
         "mean_episode_steps": round_float(mean([float(int(done_step[i].detach().cpu().item())) for i in range(num_envs)])),
@@ -396,6 +617,8 @@ def run_rollout(
         "mean_max_abs_pitch_rad": round_float(float(max_abs_pitch.mean().item())),
         "mean_max_abs_roll_rad": round_float(float(max_abs_roll.mean().item())),
         "mean_final_xy_drift_m": round_float(float(final_xy_drift.mean().item())),
+        "mean_final_planar_speed_mps": round_float(float(final_planar_speed.mean().item())),
+        "recovery_window_success_rate": round_float(recovery_window_success_rate),
     }
     summary = {
         "schema_version": "true_rl_agent.push_recovery.eval_summary.v1",
@@ -409,11 +632,14 @@ def run_rollout(
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "candidate_code_loaded_in_eval": False,
         "candidate_package_loaded": False,
+        "candidate_package_loaded_in_eval": False,
         "run": {
             "host": socket.gethostname(),
             "platform": platform.platform(),
             "cwd": os.getcwd(),
             "round_id": args.round,
+            "subject_kind": args.evaluation_subject.kind,
+            "subject_id": args.evaluation_subject.subject_id,
             "seed_policy": seed_record["seed_policy"],
             "public_seed_count": args.public_seeds,
             "public_accept_seed_count": args.public_accept_seeds,
@@ -429,9 +655,14 @@ def run_rollout(
         },
         "policy": {"kind": args.policy, "checkpoint": args.checkpoint, "action_scale": action_scale, "action_dim": action_dim},
         "configuration": {
-            "config_path": str(Path(args.config).resolve()),
-            "config_sha256": sha256_file(args.config) if Path(args.config).exists() else None,
+            "config_path": str(Path(args.config).resolve()) if args.config else None,
+            "config_sha256": (
+                sha256_file(args.config)
+                if args.config and Path(args.config).exists()
+                else None
+            ),
             "active_profile": config.get("active_profile"),
+            "runtime_dynamics_hash": public_runtime_dynamics(config)["runtime_dynamics_hash"],
             "standing_command": config["standing_command"],
             "push": config["push"],
             "success_thresholds": thresholds,
@@ -453,6 +684,10 @@ def run_rollout(
                 "min_env_fraction_with_single_step_delta": round_float(min_single_step_fraction),
                 "gate_pass": push_gate_pass,
             },
+            "recovery_window": {
+                "max_final_planar_speed_mps": round_float(recovery_window_speed_limit),
+                "success_rate": round_float(recovery_window_success_rate),
+            },
         },
         "aggregate": {
             "episodes": num_envs,
@@ -470,13 +705,65 @@ def run_rollout(
     return summary
 
 
-def assert_safe_checkpoint(path: Path) -> None:
+def build_eval_sealed_validation_gate(
+    checkpoint_safety_report: dict[str, Any],
+    *,
+    rollout_evidence: dict[str, Any],
+    evaluation_protocol: EvaluationProtocol,
+    evaluation_binding: EvaluationBindingV1,
+) -> dict[str, Any]:
+    return build_sealed_validation_gate(
+        rollout_evidence=rollout_evidence,
+        checkpoint_safety_status=str(checkpoint_safety_report["status"]),
+        checkpoint_hash_match_status=str(
+            checkpoint_safety_report["checkpoint_hash_match_status"]
+        ),
+        candidate_isolation_gate=build_candidate_isolation_gate(),
+        expected_eval_protocol_hash=evaluation_protocol.protocol_hash,
+        expected_evaluation_binding_hash=evaluation_binding.binding_hash,
+    )
+
+
+def eval_summary_binding(args: argparse.Namespace) -> dict[str, Any]:
+    return {
+        **args.evaluation_job_identity.to_public_dict(),
+        "evaluation_protocol": evaluation_protocol_from_args(args).to_public_dict(),
+        "evaluation_binding": evaluation_binding_from_args(args).to_public_dict(),
+    }
+
+
+def build_eval_evidence_manifest(
+    checkpoint_safety_report: dict[str, Any],
+    *,
+    sealed_validation_evidence: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    checkpoint_artifact = evidence_artifact_from_json(
+        artifact_id="checkpoint-safety-report",
+        kind="checkpoint_safety_report",
+        payload=checkpoint_safety_report,
+        producer="isaaclab_rsl_rl_eval",
+        visibility="public_projection_only",
+        public_projection_ref="metrics.checkpoint_safety_report",
+    )
+    artifacts = [checkpoint_artifact.to_public_dict()]
+    if sealed_validation_evidence is not None:
+        sealed_artifact = evidence_artifact_from_json(
+            artifact_id="sealed-validation-evidence",
+            kind="sealed_validation_rollout_evidence",
+            payload=sealed_validation_evidence,
+            producer="isaaclab_rsl_rl_eval",
+            visibility="public_projection_only",
+            public_projection_ref="metrics.sealed_validation",
+        )
+        artifacts.append(sealed_artifact.to_public_dict())
+    return artifacts
+
+
+def assert_safe_checkpoint(path: Path, *, checkpoint_safety_report: dict[str, Any]) -> None:
     if not path.is_file():
         raise FileNotFoundError(f"checkpoint not found: {path}")
-    try:
-        torch.load(path, map_location="cpu", weights_only=True)
-    except TypeError:
-        torch.load(path, map_location="cpu")
+    if checkpoint_safety_report["status"] != "pass":
+        raise RuntimeError(f"checkpoint safety failed: {checkpoint_safety_report['reason']}")
 
 
 def all_finite_tree(value: Any) -> bool:

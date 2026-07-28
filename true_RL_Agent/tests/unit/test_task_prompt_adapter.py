@@ -5,14 +5,18 @@ import sys
 import unittest
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
+from tests.fakes.evaluation import TEST_CAPABILITY_PROFILE
 from true_rl_agent.candidates.prompt_projection import assert_public_only_prompt_payload
-from true_rl_agent.memory import ExperimentRecord, PublicContextBuilder
+from true_rl_agent.memory import (
+    ExperimentRecord,
+    PublicContextBuilder,
+    TaskMemoryAdapter,
+)
 from true_rl_agent.tasks.base import TaskInvariantSpec, TaskPlugin, TaskSpec
 from true_rl_agent.tasks.prompt_adapter import (
     MAX_TASK_PROMPT_SECTIONS_BYTES,
@@ -28,11 +32,37 @@ class NonPushTaskPlugin(TaskPlugin):
             task_id="stair_climbing",
             name="Stair Climbing",
             supported_policy_initializations=frozenset({"random"}),
+            genesis_anchor_policy={"random": "bootstrap"},
+            candidate_capability_profile=TEST_CAPABILITY_PROFILE,
             invariants=TaskInvariantSpec({"episode_length": 400}),
         )
 
 
 class TaskPromptAdapterTests(unittest.TestCase):
+    def test_neutral_prompt_adapter_carries_task_memory_in_canonical_feedback_only(self) -> None:
+        class CustomTaskMemoryAdapter(TaskMemoryAdapter):
+            task_id = "stair_climbing"
+
+            def build_public_summary(self, public_records):
+                return {
+                    "schema_version": "custom.task_memory.v1",
+                    "opaque_public_metric": len(public_records) + 7,
+                }
+
+        payload = PublicContextBuilder(
+            task_memory_adapter=CustomTaskMemoryAdapter(),
+            task_prompt_adapter=NonPushTaskPlugin().prompt_adapter(),
+        ).build_prompt_payload([])
+
+        self.assertEqual(
+            payload["public_feedback_summary"]["task_public_summary"],
+            {
+                "schema_version": "custom.task_memory.v1",
+                "opaque_public_metric": 7,
+            },
+        )
+        self.assertNotIn("task_public_summary", payload["public_context"])
+
     def test_task_plugin_exposes_neutral_prompt_adapter_without_push_semantics(self) -> None:
         adapter = NonPushTaskPlugin().prompt_adapter()
 

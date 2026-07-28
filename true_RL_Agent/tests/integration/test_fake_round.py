@@ -5,22 +5,38 @@ import tempfile
 import unittest
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
+from tests.fakes.evaluation import (
+    TEST_CAPABILITY_PROFILE,
+    TEST_PROGRAM_SOURCE_CHECKSUM,
+    TEST_SUBJECT_MANIFEST_HASH,
+    make_evaluation_binding,
+    make_test_candidate_package,
+)
+from tests.fakes.fake_components import (
+    FAKE_ACCEPTANCE_PROTOCOL,
+    FakeBackendAdapter,
+    FakeRunner,
+    FakeTaskPlugin,
+    FakeVerifier,
+    fake_round_session_fields,
+)
 from true_rl_agent.agent_core.decision import DecisionOutcome
 from true_rl_agent.agent_core.ledger import load_ledger
 from true_rl_agent.agent_core.round import RoundInputs, run_candidate_round
 from true_rl_agent.backends.base import BackendJobBundle
-from true_rl_agent.candidates.schema import CandidateChangeSet, CandidatePackageRef
+from true_rl_agent.candidates.schema import CandidateChangeSet
+from true_rl_agent.evaluation.decision_record_contract import validate_decision_record
+from true_rl_agent.evaluation.public_result import PublicEvalResult
+from true_rl_agent.evaluation.subject import ExperimentSubject
 from true_rl_agent.memory import PromptPayloadRef
 from true_rl_agent.policy import PolicyInitialization
+from true_rl_agent.runner.specs import CheckpointRef, EvalJobSpec
 from true_rl_agent.tasks.base import TaskInvariantSpec
-
-from tests.fakes.fake_components import FakeBackendAdapter, FakeRunner, FakeTaskPlugin, FakeVerifier
 
 
 class FakeRoundTests(unittest.TestCase):
@@ -29,6 +45,89 @@ class FakeRoundTests(unittest.TestCase):
         self.backend = FakeBackendAdapter()
         self.runner = FakeRunner()
         self.verifier = FakeVerifier()
+
+    def test_malformed_eval_score_is_recorded_as_eval_incomplete(self) -> None:
+        class MalformedScoreRunner(FakeRunner):
+            def run_eval(self, eval_spec):
+                _ = eval_spec
+                raise ValueError(
+                    "public eval public_score must be a finite non-boolean number"
+                )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            ledger_path = Path(tmp) / "ledger.jsonl"
+            candidate = make_test_candidate_package(
+                "candidate-malformed-score",
+                change_set=CandidateChangeSet(
+                    changed_components=frozenset({"reward_callable"})
+                ),
+                metadata={"fake_public_score": 0.20},
+            )
+
+            result = run_candidate_round(
+                RoundInputs(
+                    round_id="round-malformed-score",
+                    task_plugin=self.task,
+                    backend_adapter=self.backend,
+                    runner=MalformedScoreRunner(),
+                    verifier=self.verifier,
+                    candidate=candidate,
+                    policy_initialization=PolicyInitialization.random(),
+                    ledger_path=ledger_path,
+                    public_context={"previous_rounds": 0, "public_only": True},
+                    **fake_round_session_fields(task_plugin=self.task),
+                )
+            )
+            ledger = load_ledger(ledger_path)
+
+        self.assertEqual(result.decision.reason, "eval_incomplete")
+        self.assertIsNone(result.public_result)
+        self.assertEqual(ledger[0]["decision"]["reason"], "eval_incomplete")
+        self.assertEqual(ledger[0]["runner_error"]["type"], "ValueError")
+
+    def test_public_eval_fail_status_is_recorded_without_entering_comparison(self) -> None:
+        class FailedPublicEvalRunner(FakeRunner):
+            def run_eval(self, eval_spec):
+                _ = eval_spec
+                return PublicEvalResult(
+                    status="fail",
+                    public_score=0.0,
+                    metrics={},
+                )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            ledger_path = Path(tmp) / "ledger.jsonl"
+            candidate = make_test_candidate_package(
+                "candidate-public-eval-fail",
+                change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+                metadata={"fake_public_score": 0.20},
+            )
+            result = run_candidate_round(
+                RoundInputs(
+                    round_id="round-public-eval-fail",
+                    task_plugin=self.task,
+                    backend_adapter=self.backend,
+                    runner=FailedPublicEvalRunner(),
+                    verifier=self.verifier,
+                    candidate=candidate,
+                    policy_initialization=PolicyInitialization.random(),
+                    ledger_path=ledger_path,
+                    public_context={"previous_rounds": 0, "public_only": True},
+                    **fake_round_session_fields(task_plugin=self.task),
+                )
+            )
+            ledger = load_ledger(ledger_path)
+
+        self.assertEqual(result.decision.reason, "public_result_status_not_pass")
+        self.assertEqual(len(ledger), 1)
+        self.assertEqual(ledger[0]["decision"]["comparison"], {})
+        self.assertEqual(ledger[0]["decision"]["consumed_gates"], [])
+        self.assertTrue(
+            validate_decision_record(
+                ledger[0],
+                acceptance_protocol=FAKE_ACCEPTANCE_PROTOCOL,
+            ).valid
+        )
 
     def _run_candidate(
         self,
@@ -39,9 +138,8 @@ class FakeRoundTests(unittest.TestCase):
     ) -> tuple[DecisionOutcome, list[dict]]:
         with tempfile.TemporaryDirectory() as tmp:
             ledger_path = Path(tmp) / "ledger.jsonl"
-            candidate = CandidatePackageRef(
-                candidate_id=f"candidate-{change_kind}",
-                path=f"memory://candidate-{change_kind}",
+            candidate = make_test_candidate_package(
+                f"candidate-{change_kind}",
                 change_set=CandidateChangeSet(changed_components=frozenset({change_kind})),
                 metadata={"fake_public_score": public_score, "verifier_status": verifier_status},
             )
@@ -56,8 +154,7 @@ class FakeRoundTests(unittest.TestCase):
                     policy_initialization=PolicyInitialization.random(),
                     ledger_path=ledger_path,
                     public_context={"previous_rounds": 0, "public_only": True},
-                    current_best_score=0.10,
-                    policy_accept_delta=0.05,
+                    **fake_round_session_fields(task_plugin=self.task),
                 )
             )
             return result.decision.outcome, load_ledger(ledger_path)
@@ -82,9 +179,8 @@ class FakeRoundTests(unittest.TestCase):
             root = Path(tmp)
             ledger_path = root / "ledger.jsonl"
             prompt_ref = PromptPayloadRef(path=str(root / "round-001" / "prompt_payload.json"))
-            candidate = CandidatePackageRef(
-                candidate_id="candidate-reward_callable",
-                path="memory://candidate-reward_callable",
+            candidate = make_test_candidate_package(
+                "candidate-reward_callable",
                 change_set=CandidateChangeSet(changed_components=frozenset({"reward_callable"})),
                 metadata={"fake_public_score": 0.20},
             )
@@ -100,8 +196,7 @@ class FakeRoundTests(unittest.TestCase):
                     policy_initialization=PolicyInitialization.random(),
                     ledger_path=ledger_path,
                     public_context={"previous_rounds": 0, "public_only": True},
-                    current_best_score=0.10,
-                    policy_accept_delta=0.05,
+                    **fake_round_session_fields(task_plugin=self.task),
                     prompt_payload_ref=prompt_ref,
                 )
             )
@@ -160,9 +255,8 @@ class FakeRoundTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             ledger_path = Path(tmp) / "ledger.jsonl"
             runner = TrackingRunner()
-            candidate = CandidatePackageRef(
-                candidate_id="candidate-reward_callable",
-                path="memory://candidate-reward_callable",
+            candidate = make_test_candidate_package(
+                "candidate-reward_callable",
                 change_set=CandidateChangeSet(changed_components=frozenset({"reward_callable"})),
                 metadata={"fake_public_score": 0.95},
             )
@@ -178,8 +272,7 @@ class FakeRoundTests(unittest.TestCase):
                     policy_initialization=PolicyInitialization.random(),
                     ledger_path=ledger_path,
                     public_context={"previous_rounds": 0, "public_only": True},
-                    current_best_score=0.10,
-                    policy_accept_delta=0.05,
+                    **fake_round_session_fields(task_plugin=self.task),
                 )
             )
 
@@ -188,6 +281,74 @@ class FakeRoundTests(unittest.TestCase):
             self.assertEqual(result.decision.reason, "task_invariant_violation")
             self.assertEqual(runner.train_calls, 0)
             self.assertIsNone(ledger[0]["train_result"])
+
+    def test_round_decision_records_comparison_and_consumed_eval_gates(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            ledger_path = Path(tmp) / "ledger.jsonl"
+            candidate = make_test_candidate_package(
+                "candidate-reward_callable",
+                change_set=CandidateChangeSet(changed_components=frozenset({"reward_callable"})),
+                metadata={"fake_public_score": 0.30},
+            )
+
+            result = run_candidate_round(
+                RoundInputs(
+                    round_id="round-001",
+                    task_plugin=self.task,
+                    backend_adapter=self.backend,
+                    runner=self.runner,
+                    verifier=self.verifier,
+                    candidate=candidate,
+                    policy_initialization=PolicyInitialization.random(),
+                    ledger_path=ledger_path,
+                    public_context={"previous_rounds": 0, "public_only": True},
+                    **fake_round_session_fields(task_plugin=self.task),
+                )
+            )
+            ledger = load_ledger(ledger_path)
+
+        self.assertIs(result.decision.outcome, DecisionOutcome.POLICY_IMPROVEMENT_ACCEPT)
+        self.assertIn("comparison", ledger[0]["decision"])
+        self.assertEqual(ledger[0]["decision"]["comparison"]["mode"], "bootstrap")
+        self.assertIn("sealed_validation_gate", ledger[0]["decision"]["consumed_gates"])
+        self.assertEqual(ledger[0]["decision"]["gate_statuses"]["sealed_validation_gate"], "pass")
+
+    def test_fake_runner_uses_eval_spec_public_accept_seed_count(self) -> None:
+        eval_spec = EvalJobSpec(
+            job_id="fake-eval",
+            task_id="fake_push_recovery",
+            subject=ExperimentSubject.candidate("candidate-reward_callable"),
+            subject_manifest_hash=TEST_SUBJECT_MANIFEST_HASH,
+            program_source_checksum=TEST_PROGRAM_SOURCE_CHECKSUM,
+            training_binding_hash="7" * 64,
+            capability_profile_hash=str(TEST_CAPABILITY_PROFILE.profile_hash),
+            checkpoint=CheckpointRef(
+                "artifact://fake/best.pt",
+                "sha256:" + "f" * 64,
+                "eval",
+                sealed=True,
+            ),
+            public_seed_count=4,
+            public_accept_seed_count=2,
+            sealed_validation_seed_count=8,
+            evaluation_binding=make_evaluation_binding(
+                public_seed_count=4,
+                public_accept_seed_count=2,
+                sealed_validation_seed_count=8,
+                acceptance_protocol_hash=FAKE_ACCEPTANCE_PROTOCOL.protocol_hash,
+            ),
+            metadata={"fake_public_score": 0.42, "changed_components": ["reward_callable"]},
+        )
+
+        result = self.runner.run_eval(eval_spec)
+
+        self.assertEqual(result.metrics["public_accept"]["score_stats"]["count"], 2)
+        self.assertEqual(
+            result.metrics["acceptance"]["min_score_count"],
+            FAKE_ACCEPTANCE_PROTOCOL.min_score_count,
+        )
+        self.assertEqual(result.metrics["accept_evidence_gate"]["observed_count"], 2)
+        self.assertEqual(len(result.metrics["public_accept"]["seed_results"]), 2)
 
 
 if __name__ == "__main__":

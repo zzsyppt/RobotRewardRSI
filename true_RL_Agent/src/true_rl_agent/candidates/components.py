@@ -5,12 +5,13 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
+from true_rl_agent.candidates.schedule_contract import schedule_change_component
 from true_rl_agent.candidates.schema import CandidateChangeSet
 
 
 @dataclass(frozen=True)
 class RewardInputs:
-    """Public tensors/vectors exposed to candidate training callables."""
+    """Task-neutral public tensors/vectors exposed to candidate training callables."""
 
     base_height: Any
     roll: Any
@@ -26,8 +27,6 @@ class RewardInputs:
     last_action: Any
     prev_action: Any
     action_delta: Any
-    push_active: Any
-    push_vec_public: Any
     progress_fraction: Any
 
     @classmethod
@@ -78,10 +77,7 @@ class TrainingComponents:
         if self.diagnostics:
             components.add("diagnostic")
         for schedule in self.schedules:
-            if schedule.key == "reward_weight_scale":
-                components.add("reward_weight")
-            else:
-                components.add("schedule")
+            components.add(schedule_change_component(schedule.key))
         return CandidateChangeSet(frozenset(components))
 
     def to_public_summary(self) -> dict[str, Any]:

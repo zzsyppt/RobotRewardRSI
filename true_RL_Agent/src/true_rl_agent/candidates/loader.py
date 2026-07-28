@@ -10,7 +10,6 @@ from types import ModuleType
 
 from true_rl_agent.candidates.components import TrainingComponents
 
-
 CANDIDATE_SCHEMA_VERSION = "true_rl_agent.candidate.v1"
 CONTROLLED_ENTRYPOINT = "training_code.components:build_training_components"
 
@@ -32,6 +31,9 @@ class CandidateManifest:
 def load_candidate_manifest(candidate_dir: Path) -> CandidateManifest:
     path = candidate_dir / "candidate_manifest.yaml"
     values = _parse_simple_yaml_mapping(path.read_text(encoding="utf-8"))
+    expected_fields = {"schema_version", "candidate_id", "entrypoint"}
+    if set(values) != expected_fields:
+        raise ValueError("candidate manifest fields mismatch")
     manifest = CandidateManifest(
         schema_version=values["schema_version"],
         candidate_id=values["candidate_id"],
@@ -58,10 +60,13 @@ def _load_module(module_path: Path, module_name: str) -> ModuleType:
         raise ImportError(f"cannot load candidate module: {module_path}")
     module = importlib.util.module_from_spec(spec)
     old_path = list(sys.path)
+    old_dont_write_bytecode = sys.dont_write_bytecode
     try:
         sys.path.insert(0, str(module_path.parent.parent))
+        sys.dont_write_bytecode = True
         spec.loader.exec_module(module)
     finally:
+        sys.dont_write_bytecode = old_dont_write_bytecode
         sys.path[:] = old_path
     return module
 
@@ -100,5 +105,8 @@ def _parse_simple_yaml_mapping(text: str) -> dict[str, str]:
         key, sep, value = line.partition(":")
         if not sep:
             raise ValueError(f"manifest line is not a key-value pair: {raw_line}")
-        values[key.strip().lstrip("\ufeff")] = value.strip().strip("\"'")
+        normalized_key = key.strip().lstrip("\ufeff")
+        if normalized_key in values:
+            raise ValueError(f"candidate manifest has duplicate key: {normalized_key}")
+        values[normalized_key] = value.strip().strip("\"'")
     return values

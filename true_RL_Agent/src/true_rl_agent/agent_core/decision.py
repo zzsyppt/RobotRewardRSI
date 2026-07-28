@@ -3,19 +3,36 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Mapping
 
 from true_rl_agent.candidates.schema import CandidateSurfaceAssessment
+from true_rl_agent.evaluation.acceptance_contract import (
+    AcceptanceEvidenceValidation,
+    validate_acceptance_evidence,
+)
+from true_rl_agent.evaluation.acceptance_phase import acceptance_comparison_entered
+from true_rl_agent.evaluation.acceptance_protocol import (
+    AcceptanceProtocol,
+    noise_aware_threshold,
+)
+from true_rl_agent.evaluation.binding import EvaluationBindingV1
+from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
+from true_rl_agent.evaluation.decision_record_contract import (
+    DIAGNOSTIC_IMPROVEMENT_RECORD_OUTCOME,
+    ENGINEERING_IMPROVEMENT_RECORD_OUTCOME,
+    POLICY_IMPROVEMENT_ACCEPT_OUTCOME,
+    REJECT_OUTCOME,
+)
 from true_rl_agent.evaluation.public_result import PublicEvalResult
 
 
 class DecisionOutcome(str, Enum):
-    POLICY_IMPROVEMENT_ACCEPT = "policy_improvement_accept"
-    DIAGNOSTIC_IMPROVEMENT_RECORD = "diagnostic_improvement_record"
-    ENGINEERING_IMPROVEMENT_RECORD = "engineering_improvement_record"
-    REJECT = "reject"
+    POLICY_IMPROVEMENT_ACCEPT = POLICY_IMPROVEMENT_ACCEPT_OUTCOME
+    DIAGNOSTIC_IMPROVEMENT_RECORD = DIAGNOSTIC_IMPROVEMENT_RECORD_OUTCOME
+    ENGINEERING_IMPROVEMENT_RECORD = ENGINEERING_IMPROVEMENT_RECORD_OUTCOME
+    REJECT = REJECT_OUTCOME
 
 
 @dataclass(frozen=True)
@@ -25,6 +42,9 @@ class DecisionRecord:
     reason: str
     surface_classification: str
     public_score: float | None
+    comparison: Mapping[str, Any] = field(default_factory=dict)
+    consumed_gates: tuple[str, ...] = ()
+    gate_statuses: Mapping[str, str] = field(default_factory=dict)
 
     def to_public_dict(self) -> dict[str, object]:
         return {
@@ -33,6 +53,9 @@ class DecisionRecord:
             "reason": self.reason,
             "surface_classification": self.surface_classification,
             "public_score": self.public_score,
+            "comparison": dict(self.comparison),
+            "consumed_gates": list(self.consumed_gates),
+            "gate_statuses": dict(self.gate_statuses),
         }
 
 
@@ -50,8 +73,8 @@ def decide_candidate(
     *,
     surface: CandidateSurfaceAssessment,
     public_result: PublicEvalResult,
-    current_best_score: float,
-    policy_accept_delta: float,
+    current_best: CurrentBestEvalStats,
+    acceptance_protocol: AcceptanceProtocol,
 ) -> DecisionRecord:
     if surface.classification == "parameter_only":
         return DecisionRecord(
@@ -86,7 +109,10 @@ def decide_candidate(
             public_result.public_score,
         )
 
-    if public_result.status != "pass":
+    if not acceptance_comparison_entered(
+        policy_eligible=surface.eligible_for_policy_accept,
+        public_result_status=public_result.status,
+    ):
         return DecisionRecord(
             DecisionOutcome.REJECT,
             False,
@@ -94,7 +120,7 @@ def decide_candidate(
             surface.classification,
             public_result.public_score,
         )
-    if not math.isfinite(float(public_result.public_score)):
+    if _optional_numeric(public_result.public_score) is None:
         return DecisionRecord(
             DecisionOutcome.REJECT,
             False,
@@ -103,34 +129,93 @@ def decide_candidate(
             public_result.public_score,
         )
 
-    acceptance = _acceptance_metadata(public_result.metrics)
-    failed_gates = _failed_required_gates(public_result.metrics, acceptance)
-    if failed_gates:
+    acceptance_validation = validate_acceptance_evidence(
+        public_result.metrics,
+        acceptance_protocol=acceptance_protocol,
+        public_score=public_result.public_score,
+    )
+    gate_statuses = dict(acceptance_validation.gate_statuses)
+    consumed_gates = tuple(gate_statuses)
+    comparison = _comparison_summary(
+        public_result=public_result,
+        acceptance_validation=acceptance_validation,
+        current_best=current_best,
+        acceptance_protocol=acceptance_protocol,
+    )
+    if acceptance_validation.reject_reason is not None:
         return DecisionRecord(
             DecisionOutcome.REJECT,
             False,
-            "required_gate_failed",
+            acceptance_validation.reject_reason,
             surface.classification,
             public_result.public_score,
+            comparison,
+            consumed_gates,
+            gate_statuses,
         )
-    if acceptance.get("missing_required_score") is True:
+    if current_best.mode == "incomplete":
         return DecisionRecord(
             DecisionOutcome.REJECT,
             False,
-            "required_score_missing",
+            "current_best_eval_stats_missing",
             surface.classification,
             public_result.public_score,
+            comparison,
+            consumed_gates,
+            gate_statuses,
+        )
+    try:
+        candidate_binding = EvaluationBindingV1.from_mapping(
+            public_result.metrics.get("evaluation_binding")
+        )
+        current_best_binding = current_best.evaluation_binding()
+    except (TypeError, ValueError):
+        return DecisionRecord(
+            DecisionOutcome.REJECT,
+            False,
+            "evaluation_binding_mismatch",
+            surface.classification,
+            public_result.public_score,
+            comparison,
+            consumed_gates,
+            gate_statuses,
+        )
+    if candidate_binding != current_best_binding:
+        return DecisionRecord(
+            DecisionOutcome.REJECT,
+            False,
+            "evaluation_binding_mismatch",
+            surface.classification,
+            public_result.public_score,
+            comparison,
+            consumed_gates,
+            gate_statuses,
         )
 
-    if _absolute_floor_mode(current_best_score, acceptance):
-        floor = _numeric(acceptance.get("absolute_accept_floor"), default=0.0)
-        if public_result.public_score >= floor:
+    if current_best.mode == "bootstrap":
+        candidate_score = acceptance_validation.score_mean
+        if candidate_score is None:
+            return DecisionRecord(
+                DecisionOutcome.REJECT,
+                False,
+                "candidate_eval_stats_missing",
+                surface.classification,
+                public_result.public_score,
+                comparison,
+                consumed_gates,
+                gate_statuses,
+            )
+        floor = acceptance_protocol.absolute_accept_floor
+        if candidate_score >= floor:
             return DecisionRecord(
                 DecisionOutcome.POLICY_IMPROVEMENT_ACCEPT,
                 True,
                 "absolute_accept_floor",
                 surface.classification,
                 public_result.public_score,
+                comparison,
+                consumed_gates,
+                gate_statuses,
             )
         return DecisionRecord(
             DecisionOutcome.REJECT,
@@ -138,69 +223,121 @@ def decide_candidate(
             "absolute_accept_floor_not_met",
             surface.classification,
             public_result.public_score,
+            comparison,
+            consumed_gates,
+            gate_statuses,
         )
 
-    delta = public_result.public_score - current_best_score
+    if not current_best.has_full_eval_stats():
+        return DecisionRecord(
+            DecisionOutcome.REJECT,
+            False,
+            "current_best_eval_stats_missing",
+            surface.classification,
+            public_result.public_score,
+            comparison,
+            consumed_gates,
+            gate_statuses,
+        )
+    candidate_score = acceptance_validation.score_mean
+    current_best_score = current_best.score_for_comparison()
+    if candidate_score is None or current_best_score is None:
+        return DecisionRecord(
+            DecisionOutcome.REJECT,
+            False,
+            "candidate_eval_stats_missing" if candidate_score is None else "current_best_eval_stats_missing",
+            surface.classification,
+            public_result.public_score,
+            comparison,
+            consumed_gates,
+            gate_statuses,
+        )
+    delta = candidate_score - current_best_score
     threshold = _acceptance_threshold(
-        policy_accept_delta=policy_accept_delta,
-        acceptance=acceptance,
+        acceptance_protocol=acceptance_protocol,
+        acceptance_validation=acceptance_validation,
+        current_best=current_best,
     )
     delta_met = delta > threshold
     if delta_met:
         return DecisionRecord(
             DecisionOutcome.POLICY_IMPROVEMENT_ACCEPT,
             True,
-            "noise_aware_delta" if acceptance else "public_score_delta_met",
+            "noise_aware_delta",
             surface.classification,
             public_result.public_score,
+            comparison,
+            consumed_gates,
+            gate_statuses,
         )
     return DecisionRecord(
         DecisionOutcome.REJECT,
         False,
-        "noise_aware_delta_not_met" if acceptance else "public_score_delta_not_met",
+        "noise_aware_delta_not_met",
         surface.classification,
         public_result.public_score,
+        comparison,
+        consumed_gates,
+        gate_statuses,
     )
 
 
-def _acceptance_metadata(metrics: Mapping[str, Any]) -> dict[str, Any]:
-    raw = metrics.get("acceptance")
-    return dict(raw) if isinstance(raw, Mapping) else {}
-
-
-def _failed_required_gates(metrics: Mapping[str, Any], acceptance: Mapping[str, Any]) -> list[str]:
-    raw_gate_names = acceptance.get("required_pass_gates", [])
-    if not isinstance(raw_gate_names, list | tuple):
-        return []
-    failed = []
-    for raw_name in raw_gate_names:
-        name = str(raw_name)
-        gate = metrics.get(name)
-        if not isinstance(gate, Mapping) or gate.get("status") != "pass":
-            failed.append(name)
-    return failed
-
-
-def _absolute_floor_mode(current_best_score: float, acceptance: Mapping[str, Any]) -> bool:
-    if "absolute_accept_floor" not in acceptance:
-        return False
-    near_zero = _numeric(acceptance.get("near_zero_success_threshold"), default=0.02)
-    return current_best_score <= near_zero
-
-
-def _acceptance_threshold(*, policy_accept_delta: float, acceptance: Mapping[str, Any]) -> float:
-    min_delta = max(
-        float(policy_accept_delta),
-        _numeric(acceptance.get("min_delta"), default=float(policy_accept_delta)),
+def _acceptance_threshold(
+    *,
+    acceptance_protocol: AcceptanceProtocol,
+    acceptance_validation: AcceptanceEvidenceValidation,
+    current_best: CurrentBestEvalStats,
+) -> float:
+    candidate_se = acceptance_validation.standard_error
+    best_se = _standard_error(current_best.public_accept_stats)
+    return noise_aware_threshold(
+        acceptance_protocol,
+        candidate_standard_error=candidate_se,
+        best_standard_error=best_se,
     )
-    candidate_se = _standard_error(acceptance.get("score_stats"))
-    best_se = _standard_error(acceptance.get("best_score_stats"))
-    pooled = None
-    if candidate_se is not None and best_se is not None:
-        pooled = math.sqrt(candidate_se**2 + best_se**2)
-    elif candidate_se is not None:
-        pooled = candidate_se
-    return max(min_delta, pooled if pooled is not None else min_delta)
+
+
+def _comparison_summary(
+    *,
+    public_result: PublicEvalResult,
+    acceptance_validation: AcceptanceEvidenceValidation,
+    current_best: CurrentBestEvalStats,
+    acceptance_protocol: AcceptanceProtocol,
+) -> dict[str, Any]:
+    candidate_score = acceptance_validation.score_mean
+    best_score = current_best.score_for_comparison()
+    threshold = _acceptance_threshold(
+        acceptance_protocol=acceptance_protocol,
+        acceptance_validation=acceptance_validation,
+        current_best=current_best,
+    )
+    delta = (
+        candidate_score - best_score
+        if candidate_score is not None and best_score is not None
+        else None
+    )
+    return {
+        "mode": current_best.mode,
+        "score_source": acceptance_validation.score_source,
+        "acceptance_protocol_hash": acceptance_protocol.protocol_hash,
+        "candidate_score": _round_optional(candidate_score),
+        "current_best_score": _round_optional(best_score),
+        "delta": _round_optional(delta),
+        "threshold": _round_optional(threshold),
+        "delta_met": None if delta is None else delta > threshold,
+        "absolute_accept_floor": _round_optional(
+            acceptance_validation.absolute_accept_floor
+        ),
+        "candidate_score_stats": dict(acceptance_validation.score_stats),
+        "best_score_stats": dict(current_best.public_accept_stats),
+        "candidate_evaluation_binding_hash": _candidate_binding_hash(public_result),
+        "current_best": current_best.comparison_identity(),
+        "public_score": public_result.public_score,
+    }
+
+
+def _round_optional(value: float | None) -> float | None:
+    return None if value is None else round(float(value), 6)
 
 
 def _standard_error(value: Any) -> float | None:
@@ -209,13 +346,17 @@ def _standard_error(value: Any) -> float | None:
     return _optional_numeric(value.get("standard_error"))
 
 
-def _numeric(value: Any, *, default: float) -> float:
-    parsed = _optional_numeric(value)
-    return default if parsed is None else parsed
-
-
 def _optional_numeric(value: Any) -> float | None:
     if not isinstance(value, int | float):
         return None
     parsed = float(value)
     return parsed if math.isfinite(parsed) else None
+
+
+def _candidate_binding_hash(public_result: PublicEvalResult) -> str | None:
+    try:
+        return EvaluationBindingV1.from_mapping(
+            public_result.metrics.get("evaluation_binding")
+        ).binding_hash
+    except (TypeError, ValueError):
+        return None

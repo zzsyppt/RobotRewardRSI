@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import json
 from typing import Any, Mapping
 
 from true_rl_agent.agent_core.context import sanitize_prompt_public_context
 from true_rl_agent.prompting.public_safety import assert_public_only_prompt_payload
-
+from true_rl_agent.prompting.serialization import canonical_prompt_json_bytes
 
 TASK_PROMPT_SECTION_KEYS = frozenset(
     {
@@ -18,6 +17,7 @@ TASK_PROMPT_SECTION_KEYS = frozenset(
         "runtime_feedback_summary",
         "known_good_examples",
         "selection_guidance",
+        "task_capability_metadata",
     }
 )
 DISALLOWED_TASK_PROMPT_KEY_PARTS = ("curriculum", "stage_list")
@@ -35,7 +35,7 @@ def sanitize_task_prompt_sections(sections: Mapping[str, Any]) -> dict[str, Any]
         raise ValueError(f"unknown task prompt section keys: {unknown_sections}")
     _reject_disallowed_task_prompt_keys(clean, path="$")
     assert_public_only_prompt_payload(clean)
-    size = len(json.dumps(clean, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
+    size = canonical_prompt_json_bytes(clean)
     if size > MAX_TASK_PROMPT_SECTIONS_BYTES:
         raise ValueError(
             "task prompt sections exceed "

@@ -6,11 +6,9 @@ from dataclasses import dataclass
 from typing import Any, Mapping, Protocol, Sequence
 
 from true_rl_agent.prompting.task_sections import (
-    DISALLOWED_TASK_PROMPT_KEY_PARTS,
-    MAX_TASK_PROMPT_SECTIONS_BYTES,
-    TASK_PROMPT_SECTION_KEYS,
-    sanitize_task_prompt_sections,
+    MAX_TASK_PROMPT_SECTIONS_BYTES as MAX_TASK_PROMPT_SECTIONS_BYTES,
 )
+from true_rl_agent.prompting.task_sections import sanitize_task_prompt_sections
 from true_rl_agent.tasks.base import TaskSpec
 
 
@@ -25,7 +23,11 @@ class TaskPromptAdapter(Protocol):
         public_records: Sequence[Mapping[str, Any]],
         public_context: Mapping[str, Any],
     ) -> Mapping[str, Any]:
-        """Return public-safe task prompt sections from public records only."""
+        """Return sections from shared, validated public records only."""
+        ...
+
+    def prompt_public_record_scrub_policy(self) -> Mapping[str, Sequence[str]]:
+        """Return task-owned extra public-record scrub terms before prompt construction."""
         ...
 
 
@@ -46,7 +48,14 @@ class NeutralTaskPromptAdapter:
         public_context: Mapping[str, Any],
     ) -> Mapping[str, Any]:
         _ = public_records
-        _ = public_context
+        public_feedback_summary: dict[str, Any] = {
+            "schema_version": "true_rl_agent.public_feedback_summary.neutral.v1",
+            "status": "not_available",
+            "reason": "no_task_specific_public_feedback_adapter",
+        }
+        task_public_summary = public_context.get("task_public_summary")
+        if isinstance(task_public_summary, Mapping):
+            public_feedback_summary["task_public_summary"] = dict(task_public_summary)
         sections = {
             "task": {
                 "schema_version": "true_rl_agent.task_prompt.neutral.v1",
@@ -76,11 +85,7 @@ class NeutralTaskPromptAdapter:
                 "status": "not_available",
                 "reason": "task_prompt_adapter_not_provided",
             },
-            "public_feedback_summary": {
-                "schema_version": "true_rl_agent.public_feedback_summary.neutral.v1",
-                "status": "not_available",
-                "reason": "no_task_specific_public_feedback_adapter",
-            },
+            "public_feedback_summary": public_feedback_summary,
             "runtime_feedback_summary": {
                 "schema_version": "true_rl_agent.runtime_feedback_summary.neutral.v1",
                 "status": "not_available",
@@ -94,3 +99,6 @@ class NeutralTaskPromptAdapter:
             ],
         }
         return sanitize_task_prompt_sections(sections)
+
+    def prompt_public_record_scrub_policy(self) -> Mapping[str, Sequence[str]]:
+        return {"blocked_key_parts": (), "blocked_text_parts": ()}

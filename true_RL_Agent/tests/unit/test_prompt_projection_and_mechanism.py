@@ -5,12 +5,15 @@ import sys
 import unittest
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
+from true_rl_agent.agent_core.authoring_response import SourceRequestResponse
+from true_rl_agent.agent_core.source_request_limits import (
+    MAX_SOURCE_REQUEST_BYTES_PER_ROUND,
+)
 from true_rl_agent.candidates.mechanism import (
     MechanismEvidenceGate,
     RuntimeActivationEvidence,
@@ -26,17 +29,64 @@ from true_rl_agent.candidates.prompt_projection import (
     serialize_prompt_payload,
 )
 from true_rl_agent.candidates.schema import CandidateChangeSet
-from true_rl_agent.candidates.source_policy import SourceAccessPolicy
 from true_rl_agent.prompting.authoring_frame import (
     AUTHORING_CONTEXT_FRAME_KINDS,
     MAX_AUTHORING_PROMPT_PAYLOAD_BYTES,
     MAX_AUTHORING_SECTION_BYTES,
     with_final_prompt_budget,
 )
+from true_rl_agent.prompting.capabilities import build_candidate_capability_profile
+from true_rl_agent.prompting.serialization import canonical_prompt_json_bytes
+from true_rl_agent.prompting.source_catalog import (
+    MAX_PROMPT_SOURCE_INLINE_BYTES,
+    prompt_source_catalog_logical_ids,
+)
 from true_rl_agent.tasks.prompt_adapter import MAX_TASK_PROMPT_SECTIONS_BYTES
+from true_rl_agent.tasks.push_recovery.candidate_surface import (
+    PUSH_RECOVERY_CANDIDATE_SURFACE_POLICY,
+)
 
 
 class PromptProjectionAndMechanismTests(unittest.TestCase):
+    def test_task_profile_hides_unready_and_unselected_capabilities(self) -> None:
+        profile = build_candidate_capability_profile(
+            profile_id="phase_a_hidden_profile",
+            capability_ids=("complete_reward_program",),
+        )
+
+        payload = build_prompt_payload(
+            public_context={"public_only": True},
+            candidate_capability_profile=profile,
+        )
+
+        capabilities = payload["candidate_capabilities"]
+        self.assertEqual(capabilities["prompt_visible_capabilities"], [])
+        self.assertEqual(capabilities["disabled_or_reserved_capabilities"], [])
+        self.assertEqual(
+            capabilities["provider_declared_components_prompt_advertised"],
+            [],
+        )
+        self.assertEqual(payload["loop_contract"]["candidate_may"], [])
+        component_contract = payload["required_candidate_package"][
+            "component_contract"
+        ]
+        self.assertEqual(component_contract["status"], "unavailable")
+        self.assertEqual(component_contract["classes"], {})
+        self.assertEqual(
+            payload["required_candidate_package"]["provider_json_output"][
+                "declared_changed_components_allowed_values"
+            ],
+            [],
+        )
+        text = json.dumps(payload, sort_keys=True)
+        for hidden_surface in (
+            "complete_reward_program",
+            "RewardTerm",
+            "DiagnosticTerm",
+            "ScheduleTerm",
+        ):
+            self.assertNotIn(hidden_surface, text)
+
     def test_prompt_projection_exposes_only_wired_controls_and_public_reward_inputs(self) -> None:
         payload = build_prompt_payload(public_context={"last_public_score": 0.1})
 
@@ -55,9 +105,133 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         self.assertEqual(contract["builder_signature"], "def build_training_components() -> TrainingComponents:")
         self.assertIn("RewardTerm(name: str, weight: float", contract["classes"]["RewardTerm"])
         self.assertEqual(contract["allowed_schedule_keys"], ["reward_weight_scale"])
+        reward_semantics = contract["reward_term_runtime_semantics"]
+        self.assertEqual(
+            reward_semantics["composition_order"],
+            [
+                "raw_output = fn(reward_inputs)",
+                "guarded_output = clip(raw_output, clip_min, clip_max)",
+                "weighted_contribution = weight * guarded_output",
+                "training_reward = training_reward + weighted_contribution",
+            ],
+        )
+        self.assertIn("positive weighted contributions reinforce", reward_semantics["optimization_direction"])
+        self.assertIn("positive cost rewards", reward_semantics["penalty_sign_rule"])
         self.assertIn("def stance_margin(inp: RewardInputs):", contract["minimal_components_py"])
-        self.assertEqual(payload["candidate_component_contract"], contract)
+        self.assertEqual(payload["required_candidate_package"]["component_contract"], contract)
+        self.assertIn("static_verifier_rules", contract)
+        verifier_rules = contract["static_verifier_rules"]
+        self.assertIn("true_rl_agent.candidates.components", verifier_rules["allowed_imports"])
+        self.assertIn("open", verifier_rules["blocked_calls"])
+        self.assertIn("subprocess", verifier_rules["blocked_call_roots"])
+        self.assertIn("checkpoint policy selector surface", verifier_rules["blocked_text_fragments"])
         self.assertNotIn("eval_config", str(payload))
+        assert_public_only_prompt_payload(payload)
+
+    def test_candidate_capabilities_are_canonical_prompt_authoring_surface(self) -> None:
+        payload = build_prompt_payload(public_context={"public_only": True})
+
+        capabilities = payload["candidate_capabilities"]
+        visible = capabilities["prompt_visible_capabilities"]
+        visible_classes = [item["component_class"] for item in visible]
+
+        self.assertEqual(
+            capabilities["schema_version"],
+            "true_rl_agent.candidate_authoring_capabilities.v1",
+        )
+        self.assertEqual(visible_classes, ["RewardTerm", "DiagnosticTerm", "ScheduleTerm"])
+        self.assertNotIn("candidate_allowed_controls", payload)
+
+        component_contract = payload["required_candidate_package"]["component_contract"]
+        effectiveness_contract = payload["control_effectiveness_contract"]
+        for capability in visible:
+            component_class = capability["component_class"]
+            self.assertEqual(
+                component_contract["classes"][component_class],
+                capability["component_signature"],
+            )
+            self.assertEqual(
+                effectiveness_contract["component_controls"][component_class]["effectiveness"],
+                capability["effectiveness"],
+            )
+            self.assertEqual(
+                effectiveness_contract["component_controls"][component_class]["training_effect"],
+                capability["runtime_effect"],
+            )
+
+        self.assertEqual(component_contract["allowed_schedule_keys"], ["reward_weight_scale"])
+        self.assertEqual(
+            effectiveness_contract["schedule_controls"]["effective_keys"],
+            ["reward_weight_scale"],
+        )
+        self.assertEqual(
+            payload["required_candidate_package"]["component_contract"],
+            component_contract,
+        )
+        self.assertIn("candidate_capabilities", payload["authoring_context_frame"]["included_sections"])
+        self.assertIn("candidate_capabilities", payload["authoring_context_frame"]["stable_contract_refs"])
+        assert_public_only_prompt_payload(payload)
+
+    def test_candidate_capabilities_keep_reserved_surfaces_non_writable(self) -> None:
+        payload = build_prompt_payload(public_context={"public_only": True})
+        capabilities = payload["candidate_capabilities"]
+        visible_ids = {item["capability_id"] for item in capabilities["prompt_visible_capabilities"]}
+        reserved = {item["capability_id"]: item for item in capabilities["disabled_or_reserved_capabilities"]}
+
+        self.assertNotIn("curriculum_design", visible_ids)
+        self.assertNotIn("train_environment_design", visible_ids)
+        for capability_id in ("curriculum_design", "train_environment_design"):
+            self.assertIn(capability_id, reserved)
+            self.assertFalse(reserved[capability_id]["prompt_visible"])
+            self.assertFalse(reserved[capability_id]["candidate_writable"])
+            self.assertFalse(reserved[capability_id]["effective_now"])
+            self.assertEqual(reserved[capability_id]["materializer_owner"], "runner")
+
+        capabilities_text = json.dumps(capabilities, sort_keys=True)
+        self.assertNotIn("push_active", capabilities_text)
+        self.assertNotIn("push_vec_public", capabilities_text)
+        self.assertNotIn("push recovery", capabilities_text.lower())
+
+    def test_task_capability_metadata_stays_task_namespaced(self) -> None:
+        payload = build_prompt_payload(
+            public_context={
+                "public_only": True,
+                "task_prompt_sections": {
+                    "task": {"schema_version": "custom.task.v1", "task_id": "custom_task"},
+                    "task_capability_metadata": {
+                        "schema_version": "custom.capability_metadata.v1",
+                        "task_id": "custom_task",
+                        "capability_notes": {
+                            "reward_term": {
+                                "task_namespace": "custom_task",
+                                "candidate_guidance": "Use custom public height evidence.",
+                            }
+                        },
+                        "debug_note": "scrub D:/humanoid_agent/private/raw.txt",
+                    },
+                },
+            }
+        )
+
+        capabilities = payload["candidate_capabilities"]
+        self.assertIn("task_specific_metadata", capabilities)
+        self.assertEqual(capabilities["task_specific_metadata"]["task_id"], "custom_task")
+        self.assertEqual(
+            capabilities["task_specific_metadata"]["capability_notes"]["reward_term"][
+                "candidate_guidance"
+            ],
+            "Use custom public height evidence.",
+        )
+        self.assertIn("[path]", capabilities["task_specific_metadata"]["debug_note"])
+        self.assertNotIn(
+            "Use custom public height evidence.",
+            json.dumps(capabilities["prompt_visible_capabilities"], sort_keys=True),
+        )
+        visible_classes = [
+            item["component_class"]
+            for item in payload["candidate_capabilities"]["prompt_visible_capabilities"]
+        ]
+        self.assertEqual(visible_classes, ["RewardTerm", "DiagnosticTerm", "ScheduleTerm"])
         assert_public_only_prompt_payload(payload)
 
     def test_prompt_payload_assembler_promotes_task_sections_to_stable_top_level_order(self) -> None:
@@ -93,13 +267,13 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         self.assertEqual(payload["reward_inputs_contract"]["fields"][0]["name"], "height")
         self.assertEqual(payload["public_feedback_summary"]["latest"], "reject")
         self.assertEqual(payload["public_history"]["previous_rounds"], 2)
+        guidance = " ".join(payload["selection_guidance"])
+        self.assertIn("public_history.experiment_memory", guidance)
+        self.assertIn("Use public custom evidence only.", payload["selection_guidance"])
         self.assertNotIn("task_prompt_sections", payload["public_context"])
-        self.assertEqual(
-            payload["required_candidate_package"]["component_contract"],
-            payload["candidate_component_contract"],
-        )
-        self.assertEqual(payload["reward_inputs"]["status"], "legacy_alias_deprecated")
-        self.assertEqual(payload["reward_inputs"]["fields"], [])
+        self.assertIn("component_contract", payload["required_candidate_package"])
+        self.assertNotIn("reward_inputs", payload)
+        self.assertNotIn("candidate_component_contract", payload)
         assert_public_only_prompt_payload(payload)
 
     def test_serialized_prompt_payload_front_loads_task_boundary_feedback_and_package(self) -> None:
@@ -133,6 +307,7 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
             '"task"',
             '"loop_contract"',
             '"required_candidate_package"',
+            '"candidate_capabilities"',
             '"reward_inputs_contract"',
             '"source_catalog"',
             '"candidate_lineage"',
@@ -143,7 +318,8 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
             self.assertIn(section, text)
         self.assertLess(text.index('"task"'), text.index('"loop_contract"'))
         self.assertLess(text.index('"loop_contract"'), text.index('"required_candidate_package"'))
-        self.assertLess(text.index('"required_candidate_package"'), text.index('"reward_inputs_contract"'))
+        self.assertLess(text.index('"required_candidate_package"'), text.index('"candidate_capabilities"'))
+        self.assertLess(text.index('"candidate_capabilities"'), text.index('"reward_inputs_contract"'))
         self.assertLess(text.index('"reward_inputs_contract"'), text.index('"source_catalog"'))
         self.assertLess(text.index('"source_catalog"'), text.index('"candidate_lineage"'))
         self.assertLess(text.index('"candidate_lineage"'), text.index('"public_feedback_summary"'))
@@ -151,12 +327,17 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         self.assertIn("Readable Custom Task", first_screen)
         self.assertNotIn('"public_context"', first_screen)
 
-    def test_legacy_reward_inputs_alias_never_reexports_task_owned_fields(self) -> None:
+    def test_provider_facing_payload_omits_legacy_alias_sections(self) -> None:
         generic_payload = build_prompt_payload(public_context={"public_only": True})
 
-        self.assertEqual(generic_payload["reward_inputs"]["status"], "legacy_alias_deprecated")
-        self.assertEqual(generic_payload["reward_inputs"]["canonical_section"], "reward_inputs_contract")
-        self.assertEqual(generic_payload["reward_inputs"]["fields"], [])
+        for alias in (
+            "reward_inputs",
+            "candidate_allowed_controls",
+            "candidate_component_contract",
+            "anti_tuning_notice",
+            "runner_owned_extensions",
+        ):
+            self.assertNotIn(alias, generic_payload)
 
         custom_payload = build_prompt_payload(
             public_context={
@@ -173,8 +354,15 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
             }
         )
 
-        self.assertEqual(custom_payload["reward_inputs"]["fields"], [])
         self.assertEqual(list(custom_payload["reward_inputs_contract"]["fields"]), ["height", "lateral_velocity"])
+        for alias in (
+            "reward_inputs",
+            "candidate_allowed_controls",
+            "candidate_component_contract",
+            "anti_tuning_notice",
+            "runner_owned_extensions",
+        ):
+            self.assertNotIn(alias, custom_payload)
 
     def test_prompt_payload_assembler_scrubs_paths_from_plain_public_context(self) -> None:
         payload = build_prompt_payload(
@@ -185,11 +373,11 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         )
 
         text = json.dumps(payload, sort_keys=True)
-        self.assertIn("[path]", text)
         self.assertNotIn("D:/humanoid_agent", text)
         self.assertNotIn("/data/yuyangliu", text)
         self.assertNotIn("private/raw.txt", text)
         self.assertNotIn("/secrets/", text)
+        self.assertNotIn("note", payload["public_context"])
 
     def test_prompt_payload_assembler_reuses_task_section_path_scrub(self) -> None:
         payload = build_prompt_payload(
@@ -222,6 +410,17 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "exceed"):
             build_prompt_payload(public_context=oversized)
 
+    def test_task_prompt_section_budget_uses_provider_serialization_bytes(self) -> None:
+        with self.assertRaisesRegex(ValueError, "task prompt sections exceed"):
+            build_prompt_payload(
+                public_context={
+                    "public_only": True,
+                    "task_prompt_sections": {
+                        "selection_guidance": ["x"] * 3638,
+                    },
+                }
+            )
+
     def test_prompt_payload_assembler_promotes_repair_feedback(self) -> None:
         payload = build_prompt_payload(
             public_context={
@@ -238,10 +437,29 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
             payload["provider_or_runtime_repair_feedback"]["failure_category"],
             "schema_error",
         )
+        self.assertNotIn("candidate_repair_feedback", payload["public_context"])
         self.assertEqual(
-            payload["provider_or_runtime_repair_feedback"],
-            payload["public_context"]["candidate_repair_feedback"],
+            payload["public_context"]["candidate_repair_feedback_ref"],
+            {
+                "available": True,
+                "canonical_section": "provider_or_runtime_repair_feedback",
+            },
         )
+        self.assertEqual(
+            set(payload["public_context"]),
+            {
+                "schema_version",
+                "deprecated",
+                "public_only",
+                "previous_rounds",
+                "best_public_score",
+                "last_outcome",
+                "pure_knob_streak",
+                "canonical_sections",
+                "candidate_repair_feedback_ref",
+            },
+        )
+        self.assertLess(canonical_prompt_json_bytes(payload["public_context"]), 1024)
         self.assertLess(
             list(payload).index("provider_or_runtime_repair_feedback"),
             list(payload).index("schema_version"),
@@ -276,20 +494,23 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         )
         self.assertEqual(
             frame["budget_metadata"]["actual_prompt_payload_bytes"],
-            len(json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8")),
+            len(serialize_prompt_payload(payload).encode("utf-8")),
         )
-        for alias_section in (
-            "public_context",
+        self.assertIn("public_context", frame["included_sections"])
+        self.assertIn("public_context", frame["legacy_alias_sections"])
+        self.assertIn("public_context", frame["budget_metadata"]["section_serialized_bytes"])
+        self.assertIn("public_context", frame["budget_metadata"]["legacy_alias_section_bytes"])
+        for removed_alias in (
             "reward_inputs",
             "candidate_allowed_controls",
             "candidate_component_contract",
             "anti_tuning_notice",
             "runner_owned_extensions",
         ):
-            self.assertIn(alias_section, frame["included_sections"])
-            self.assertIn(alias_section, frame["legacy_alias_sections"])
-            self.assertIn(alias_section, frame["budget_metadata"]["section_serialized_bytes"])
-            self.assertIn(alias_section, frame["budget_metadata"]["legacy_alias_section_bytes"])
+            self.assertNotIn(removed_alias, frame["included_sections"])
+            self.assertNotIn(removed_alias, frame["legacy_alias_sections"])
+            self.assertNotIn(removed_alias, frame["budget_metadata"]["section_serialized_bytes"])
+            self.assertNotIn(removed_alias, frame["budget_metadata"]["legacy_alias_section_bytes"])
         self.assertIn("public_history", frame["budget_metadata"]["section_serialized_bytes"])
         self.assertLess(
             list(payload).index("required_candidate_package"),
@@ -324,7 +545,7 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         self.assertEqual(frame["frame_kind"], "static_repair")
         self.assertIn("provider_or_runtime_repair_feedback", frame["included_sections"])
         self.assertEqual(payload["public_history"]["recent_outcomes"], [])
-        self.assertEqual(payload["public_context"]["recent_outcomes"], [])
+        self.assertNotIn("recent_outcomes", payload["public_context"])
         self.assertGreaterEqual(payload["public_history"]["omitted_round_count"], 3)
         self.assertEqual(omitted[0]["section"], "public_history.recent_outcomes")
         self.assertEqual(omitted[0]["reason"], "omitted_for_static_repair_frame")
@@ -333,11 +554,88 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         assert_public_only_prompt_payload(frame)
         assert_public_only_prompt_payload(payload)
 
-    def test_reserved_source_followup_frame_is_not_provider_constructible_in_phase0(self) -> None:
-        self.assertNotIn("source_followup", AUTHORING_CONTEXT_FRAME_KINDS)
+    def test_legacy_public_context_alias_is_fixed_and_does_not_duplicate_history(self) -> None:
+        payload = build_prompt_payload(
+            public_context={
+                "public_only": True,
+                "previous_rounds": 2,
+                "best_public_score": 0.42,
+                "last_outcome": "reject",
+                "pure_knob_streak": 1,
+                "public_history_limits": {"max_recent_rounds": 99},
+                "public_history_omitted_round_count": 7,
+                "recent_outcomes": [
+                    {"round_id": "round-001", "outcome": "reject"},
+                    {"round_id": "round-002", "outcome": "reject"},
+                ],
+                "task_public_summary": {"opaque": "task-owned"},
+            }
+        )
 
-        with self.assertRaisesRegex(ValueError, "disabled authoring frame kind: source_followup"):
-            build_prompt_payload(public_context={"public_only": True}, frame_kind="source_followup")
+        alias = payload["public_context"]
+
+        self.assertEqual(
+            alias,
+            {
+                "schema_version": "true_rl_agent.public_context_legacy_summary.v1",
+                "deprecated": True,
+                "public_only": True,
+                "previous_rounds": 2,
+                "best_public_score": 0.42,
+                "last_outcome": "reject",
+                "pure_knob_streak": 1,
+                "canonical_sections": {
+                    "history": "public_history",
+                    "public_feedback": "public_feedback_summary",
+                    "runtime_feedback": "runtime_feedback_summary",
+                },
+            },
+        )
+        self.assertEqual(len(payload["public_history"]["recent_outcomes"]), 2)
+        self.assertLess(canonical_prompt_json_bytes(alias), 1024)
+
+    def test_source_followup_frame_is_provider_constructible_and_omits_recent_history(self) -> None:
+        self.assertIn("source_followup", AUTHORING_CONTEXT_FRAME_KINDS)
+
+        payload = build_prompt_payload(
+            public_context={
+                "public_only": True,
+                "recent_outcomes": [{"round_id": "round-001", "outcome": "reject"}],
+                "candidate_repair_feedback": {
+                    "schema_version": "true_rl_agent.source_request_feedback.v1",
+                    "status": "source_payload_returned",
+                    "failure_category": "source_payload_returned",
+                    "returned_logical_ids": ["current_best/training_code/components.py"],
+                },
+            },
+            frame_kind="source_followup",
+        )
+
+        frame = payload["authoring_context_frame"]
+
+        self.assertEqual(frame["frame_kind"], "source_followup")
+        self.assertTrue(frame["frame_contract"]["source_followup_enabled"])
+        self.assertIn("candidate_capabilities", payload)
+        self.assertIn("candidate_capabilities", frame["included_sections"])
+        self.assertNotIn("candidate_allowed_controls", payload)
+        self.assertNotIn("candidate_component_contract", payload)
+        self.assertNotIn("runner_owned_extensions", payload)
+        self.assertEqual(payload["public_history"]["recent_outcomes"], [])
+        self.assertIn("provider_or_runtime_repair_feedback", frame["included_sections"])
+        self.assertEqual(frame["feedback_items"][0]["failure_category"], "source_payload_returned")
+        self.assertEqual(frame["omitted_sections"][0]["reason"], "omitted_for_source_followup_frame")
+
+    def test_authoring_frame_reports_current_source_budgets_not_phase0_placeholder(self) -> None:
+        payload = build_prompt_payload(public_context={"public_only": True})
+
+        hard_limits = payload["authoring_context_frame"]["budget_metadata"]["hard_limits"]
+
+        self.assertEqual(hard_limits["max_source_inline_payload_bytes"], MAX_PROMPT_SOURCE_INLINE_BYTES)
+        self.assertEqual(
+            hard_limits["max_source_request_bytes_per_round"],
+            MAX_SOURCE_REQUEST_BYTES_PER_ROUND,
+        )
+        self.assertNotIn("max_source_payload_bytes_phase0", hard_limits)
 
     def test_prompt_payload_enforces_authoring_frame_payload_budget(self) -> None:
         payload = build_prompt_payload(public_context={"public_only": True})
@@ -353,18 +651,20 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
                 prompt_payload=section_payload,
             )
 
-    def test_prompt_payload_enforces_legacy_alias_section_budget(self) -> None:
-        with self.assertRaisesRegex(ValueError, "authoring context section exceeds"):
-            build_prompt_payload(
-                public_context={
-                    "public_only": True,
-                    "note": "x" * (MAX_AUTHORING_SECTION_BYTES + 1),
-                }
-            )
+    def test_prompt_payload_does_not_copy_oversized_unprojected_context_into_legacy_alias(self) -> None:
+        payload = build_prompt_payload(
+            public_context={
+                "public_only": True,
+                "note": "x" * (MAX_AUTHORING_SECTION_BYTES + 1),
+            }
+        )
+
+        self.assertNotIn("note", payload["public_context"])
+        self.assertLess(canonical_prompt_json_bytes(payload["public_context"]), 1024)
 
     def test_required_candidate_package_advertises_only_currently_wired_declared_components(self) -> None:
         from true_rl_agent.agent_core.provider_contract import (
-            MATERIALIZER_DECLARED_COMPONENTS_ALLOWED_VALUES,
+            DECLARED_CHANGED_COMPONENTS_ALLOWED_VALUES,
             PROMPT_ADVERTISED_DECLARED_COMPONENTS,
         )
 
@@ -376,7 +676,7 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
             ]
         )
         self.assertEqual(prompt_values, PROMPT_ADVERTISED_DECLARED_COMPONENTS)
-        self.assertTrue(set(prompt_values).issubset(MATERIALIZER_DECLARED_COMPONENTS_ALLOWED_VALUES))
+        self.assertEqual(prompt_values, DECLARED_CHANGED_COMPONENTS_ALLOWED_VALUES)
         for legacy_value in (
             "control_logic",
             "recovery_logic",
@@ -395,11 +695,23 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         files = package["candidate_files"]
 
         self.assertEqual(package["candidate_role"], "candidate_package_only")
-        self.assertEqual(output["required_keys"], ["candidate_id", "rationale", "declared_changed_components", "components_py"])
-        self.assertEqual(output["allowed_keys"], output["required_keys"])
+        self.assertEqual(output["response_shape"], "one_of")
+        self.assertNotIn("required_keys", output)
+        self.assertNotIn("allowed_keys", output)
+        draft = output["one_of"]["candidate_draft"]
+        source_request = output["one_of"]["source_request"]
+        self.assertEqual(draft["required_keys"], ["candidate_id", "rationale", "declared_changed_components", "components_py"])
+        self.assertEqual(draft["allowed_keys"], ["response_mode", *draft["required_keys"]])
+        self.assertEqual(source_request["required_keys"], ["response_mode", "logical_ids", "rationale"])
+        self.assertEqual(source_request["allowed_keys"], ["response_mode", "logical_ids", "rationale"])
+        self.assertNotIn("candidate_id", source_request["allowed_keys"])
+        self.assertIn("logical_ids", source_request["allowed_keys"])
         self.assertFalse(output["additional_keys_allowed"])
         self.assertTrue(output["json_only"])
         self.assertTrue(output["no_prose_outside_json"])
+        self.assertEqual(output["authoring_response_protocol"]["default_response_mode"], "candidate_draft")
+        self.assertTrue(output["authoring_response_protocol"]["source_request_service_enabled"])
+        self.assertTrue(source_request["enabled"])
         self.assertIn("runner_patch", output["prohibited_keys"])
         self.assertIn("operation_diff", output["prohibited_keys"])
         self.assertEqual(output["field_contracts"]["components_py"]["materialized_file"], "training_code/components.py")
@@ -413,9 +725,11 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
             "diagnostics.json",
         }
         self.assertEqual(set(files["materialized_files"]), expected_files)
-        self.assertEqual(files["llm_writable_provider_json_fields"], output["required_keys"])
-        self.assertEqual(files["provider_materialized_files"]["operation_diff.json"]["source"], "provider")
-        self.assertEqual(files["provider_materialized_files"]["diagnostics.json"]["source"], "provider")
+        self.assertEqual(files["llm_writable_provider_json_fields"], draft["allowed_keys"])
+        self.assertNotIn("logical_ids", files["llm_writable_provider_json_fields"])
+        self.assertEqual(files["provider_materialized_files"]["operation_diff.json"]["source"], "candidate_materializer")
+        self.assertEqual(files["provider_materialized_files"]["operation_diff.json"]["derived_from"], ["declared_changed_components"])
+        self.assertEqual(files["provider_materialized_files"]["diagnostics.json"]["source"], "candidate_materializer")
         self.assertIn("success metric", package["candidate_must_not_change"])
         self.assertIn("runner code", package["candidate_must_not_change"])
 
@@ -427,26 +741,49 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             assert_public_only_prompt_payload({"api_key": "sk-secret"})
 
-    def test_source_policy_allows_only_logical_allowlist_ids(self) -> None:
-        policy = SourceAccessPolicy({"candidate_schema": "docs/candidate_schema.md"})
+    def test_source_request_response_allows_only_prompt_catalog_logical_ids(self) -> None:
+        payload = build_prompt_payload(public_context={"public_only": True})
+        source_catalog_ids = tuple(sorted(prompt_source_catalog_logical_ids(payload)))
 
-        self.assertEqual(policy.resolve("candidate_schema"), "docs/candidate_schema.md")
-        with self.assertRaises(KeyError):
-            policy.resolve("../secret")
+        response = SourceRequestResponse(
+            logical_ids=("current_best/training_code/components.py",),
+            rationale="Need current best source.",
+            source_catalog_logical_ids=source_catalog_ids,
+        )
+
+        self.assertEqual(response.logical_ids, ("current_best/training_code/components.py",))
+        with self.assertRaises(ValueError):
+            SourceRequestResponse(
+                logical_ids=("../secret",),
+                rationale="Need source.",
+                source_catalog_logical_ids=source_catalog_ids,
+            )
+        with self.assertRaises(ValueError):
+            SourceRequestResponse(
+                logical_ids=("unknown/source.py",),
+                rationale="Need source.",
+                source_catalog_logical_ids=source_catalog_ids,
+            )
 
     def test_mechanism_gate_rejects_parameter_only_and_requires_runner_activation(self) -> None:
         gate = MechanismEvidenceGate()
 
         parameter_only = gate.evaluate(
-            change_set=CandidateChangeSet(frozenset({"reward_weight"})),
+            surface=PUSH_RECOVERY_CANDIDATE_SURFACE_POLICY.classify(
+                CandidateChangeSet(frozenset({"reward_weight"}))
+            ),
             evidence=RuntimeActivationEvidence(reward_term_calls=10, nonzero_reward_contribution=True),
         )
         inactive_code = gate.evaluate(
-            change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+            surface=PUSH_RECOVERY_CANDIDATE_SURFACE_POLICY.classify(
+                CandidateChangeSet(frozenset({"reward_callable"}))
+            ),
             evidence=RuntimeActivationEvidence(reward_term_calls=0, nonzero_reward_contribution=False),
         )
         active_code = gate.evaluate(
-            change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+            surface=PUSH_RECOVERY_CANDIDATE_SURFACE_POLICY.classify(
+                CandidateChangeSet(frozenset({"reward_callable"}))
+            ),
             evidence=RuntimeActivationEvidence(reward_term_calls=3, nonzero_reward_contribution=True),
         )
 
@@ -457,7 +794,8 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
 
     def test_knob_only_shadow_candidate_keeps_only_parameter_components(self) -> None:
         shadow = build_knob_only_shadow_candidate(
-            CandidateChangeSet(frozenset({"reward_callable", "reward_weight", "terrain_range"}))
+            CandidateChangeSet(frozenset({"reward_callable", "reward_weight", "terrain_range"})),
+            surface_policy=PUSH_RECOVERY_CANDIDATE_SURFACE_POLICY,
         )
 
         self.assertEqual(shadow.changed_components, frozenset({"reward_weight", "terrain_range"}))

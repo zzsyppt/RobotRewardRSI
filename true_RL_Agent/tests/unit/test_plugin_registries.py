@@ -4,18 +4,29 @@ import sys
 import unittest
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
+from tests.fakes.evaluation import (
+    TEST_CAPABILITY_PROFILE,
+    make_evaluation_binding,
+    make_training_binding,
+    make_verified_candidate_artifact,
+)
 from true_rl_agent.backends.base import BackendAdapter
 from true_rl_agent.backends.registry import BackendRegistry
 from true_rl_agent.backends.specs import BackendSpec
-from true_rl_agent.candidates.schema import CandidateChangeSet, CandidatePackageRef
+from true_rl_agent.candidates.artifact import VerifiedCandidateArtifactRef
+from true_rl_agent.candidates.schema import CandidateChangeSet
+from true_rl_agent.evaluation.subject import ExperimentSubject
 from true_rl_agent.policy import PolicyInitialization
-from true_rl_agent.runner.specs import CheckpointRef, EvalJobSpec, TrainJobSpec
+from true_rl_agent.runner.specs import (
+    CheckpointOutputPlan,
+    EvalJobSpec,
+    TrainJobSpec,
+)
 from true_rl_agent.tasks.base import TaskInvariantSpec, TaskPlugin, TaskSpec
 from true_rl_agent.tasks.compatibility import check_task_backend_compatibility
 from true_rl_agent.tasks.registry import TaskRegistry
@@ -28,6 +39,11 @@ class MinimalTaskPlugin(TaskPlugin):
             task_id="unitree_push_recovery",
             name="Unitree Push Recovery",
             supported_policy_initializations=frozenset({"random", "warm_start"}),
+            genesis_anchor_policy={
+                "random": "bootstrap",
+                "warm_start": "policy_baseline",
+            },
+            candidate_capability_profile=TEST_CAPABILITY_PROFILE,
             invariants=TaskInvariantSpec({"fall_threshold": 0.30}),
         )
 
@@ -41,32 +57,53 @@ class MinimalBackendAdapter(BackendAdapter):
             supported_policy_initializations=frozenset({"random"}),
         )
 
+    def evaluation_binding_for(self, task_spec: TaskSpec):
+        _ = task_spec
+        return make_evaluation_binding(
+            public_seed_count=4,
+            sealed_validation_seed_count=8,
+        )
+
     def materialize_jobs(
         self,
         *,
         round_id: str,
         task_spec: TaskSpec,
-        candidate: CandidatePackageRef,
+        candidate: VerifiedCandidateArtifactRef,
         policy_initialization: PolicyInitialization,
+        evaluation_binding=None,
     ):
+        evaluation_binding = evaluation_binding or self.evaluation_binding_for(
+            task_spec
+        )
         train_spec = TrainJobSpec(
             job_id=f"{round_id}-train",
             task_id=task_spec.task_id,
-            candidate_id=candidate.candidate_id,
+            subject=ExperimentSubject.candidate(candidate.candidate_id),
+            subject_manifest_hash=candidate.subject_manifest_hash,
+            program_source_checksum=candidate.program_source_checksum,
             policy_initialization=policy_initialization,
+            training_binding=make_training_binding(policy_initialization),
             budget_steps=128,
+            candidate_artifact=candidate,
         )
         eval_spec = EvalJobSpec(
             job_id=f"{round_id}-eval",
             task_id=task_spec.task_id,
-            candidate_id=candidate.candidate_id,
-            checkpoint=CheckpointRef(
+            subject=ExperimentSubject.candidate(candidate.candidate_id),
+            subject_manifest_hash=candidate.subject_manifest_hash,
+            program_source_checksum=candidate.program_source_checksum,
+            training_binding_hash=str(
+                make_training_binding(policy_initialization).binding_hash
+            ),
+            capability_profile_hash=str(TEST_CAPABILITY_PROFILE.profile_hash),
+            checkpoint=None,
+            checkpoint_output_plan=CheckpointOutputPlan(
                 uri=f"artifact://{round_id}/planned-eval.pt",
-                checksum="sha256:planned",
-                role="eval",
             ),
             public_seed_count=4,
-            trusted_seed_count=8,
+            sealed_validation_seed_count=8,
+            evaluation_binding=evaluation_binding,
         )
         return self.job_bundle_type(train_spec=train_spec, eval_spec=eval_spec)
 
@@ -88,6 +125,9 @@ class PluginRegistryTests(unittest.TestCase):
         registry = BackendRegistry()
         adapter = MinimalBackendAdapter()
 
+        self.assertFalse(
+            hasattr(adapter, "requires_verified_candidate_artifact")
+        )
         registry.register(adapter)
 
         self.assertIs(registry.get("isaac_lab_rsl_rl"), adapter)
@@ -128,10 +168,11 @@ class PluginRegistryTests(unittest.TestCase):
     def test_backend_adapter_materializes_jobs_without_decision_authority(self) -> None:
         task = MinimalTaskPlugin()
         backend = MinimalBackendAdapter()
-        candidate = CandidatePackageRef(
-            candidate_id="candidate-001",
-            path="artifact://candidate-001",
-            change_set=CandidateChangeSet(changed_components=frozenset({"reward_callable"})),
+        candidate = make_verified_candidate_artifact(
+            "candidate-001",
+            change_set=CandidateChangeSet(
+                changed_components=frozenset({"reward_callable"})
+            ),
         )
 
         bundle = backend.materialize_jobs(
@@ -141,8 +182,13 @@ class PluginRegistryTests(unittest.TestCase):
             policy_initialization=PolicyInitialization.random(),
         )
 
-        self.assertEqual(bundle.train_spec.candidate_id, "candidate-001")
-        self.assertEqual(bundle.eval_spec.checkpoint.role, "eval")
+        self.assertEqual(bundle.train_spec.subject.kind, "candidate")
+        self.assertEqual(bundle.train_spec.subject.subject_id, "candidate-001")
+        self.assertIsNone(bundle.eval_spec.checkpoint)
+        self.assertEqual(
+            bundle.eval_spec.checkpoint_output_plan.uri,
+            "artifact://round-001/planned-eval.pt",
+        )
         self.assertFalse(hasattr(bundle, "decision"))
 
 

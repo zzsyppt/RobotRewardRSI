@@ -10,6 +10,9 @@ class TaskMemoryAdapter(Protocol):
 
     task_id: str
 
-    def build_public_summary(self, public_records: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:
-        """Return task-specific public context from public records only."""
+    def build_public_summary(
+        self,
+        public_records: Sequence[Mapping[str, Any]],
+    ) -> Mapping[str, Any]:
+        """Return task-specific context from shared, validated public records."""
         ...

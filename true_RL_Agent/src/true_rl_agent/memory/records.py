@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import Any, Mapping
 
 from true_rl_agent.agent_core.context import sanitize_public_context
+from true_rl_agent.evaluation.binding import require_sha256_checksum
 
 
 @dataclass(frozen=True)
@@ -16,6 +17,13 @@ class PrivateArtifactRef:
     uri: str
     checksum: str | None = None
     reason: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.checksum is not None:
+            require_sha256_checksum(
+                self.checksum,
+                "private artifact checksum",
+            )
 
     def to_private_dict(self) -> dict[str, Any]:
         data: dict[str, Any] = {

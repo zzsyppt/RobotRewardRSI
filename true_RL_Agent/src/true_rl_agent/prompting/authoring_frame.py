@@ -2,24 +2,28 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from typing import Any, Mapping, Sequence
 
+from true_rl_agent.agent_core.provider_contract import SOURCE_REQUEST_SERVICE_ENABLED
+from true_rl_agent.agent_core.source_request_limits import (
+    MAX_SOURCE_REQUEST_BYTES_PER_ROUND,
+)
 from true_rl_agent.prompting.public_safety import assert_public_only_prompt_payload
-
+from true_rl_agent.prompting.serialization import canonical_prompt_json_bytes
+from true_rl_agent.prompting.source_catalog import MAX_PROMPT_SOURCE_INLINE_BYTES
 
 AUTHORING_CONTEXT_FRAME_SCHEMA_VERSION = "true_rl_agent.authoring_context_frame.v1"
 AUTHORING_CONTEXT_FRAME_KINDS = (
     "initial_authoring",
     "candidate_draft",
     "static_repair",
+    "source_followup",
     "rewrite",
 )
-RESERVED_AUTHORING_CONTEXT_FRAME_KINDS = ("source_followup",)
+RESERVED_AUTHORING_CONTEXT_FRAME_KINDS: tuple[str, ...] = ()
 MAX_AUTHORING_PROMPT_PAYLOAD_BYTES = 256 * 1024
 MAX_AUTHORING_SECTION_BYTES = 96 * 1024
-SOURCE_PAYLOAD_BYTES_LIMIT_PHASE0 = 0
 _BYTES_PER_TOKEN_ESTIMATE = 4
 
 
@@ -36,6 +40,7 @@ _STABLE_CONTRACT_REFS = (
     "task",
     "loop_contract",
     "required_candidate_package",
+    "candidate_capabilities",
     "reward_inputs_contract",
     "public_eval_contract",
     "control_effectiveness_contract",
@@ -97,6 +102,27 @@ _FRAME_POLICIES = {
             "selection_guidance",
         ),
         omitted_recent_history_reason="omitted_for_static_repair_frame",
+    ),
+    "source_followup": AuthoringFramePolicy(
+        frame_kind="source_followup",
+        purpose="continue authoring after a bounded source_request using only returned prompt source payloads",
+        required_sections=(
+            *_STABLE_CONTRACT_REFS,
+            "source_catalog",
+            "candidate_lineage",
+            "source_payloads",
+            "provider_or_runtime_repair_feedback",
+            "schema_version",
+        ),
+        optional_sections=(
+            "public_feedback_summary",
+            "runtime_feedback_summary",
+            "public_history",
+            "known_good_examples",
+            "exploration_directive",
+            "selection_guidance",
+        ),
+        omitted_recent_history_reason="omitted_for_source_followup_frame",
     ),
     "rewrite": AuthoringFramePolicy(
         frame_kind="rewrite",
@@ -196,7 +222,7 @@ def build_authoring_context_frame(
         "frame_contract": {
             "required_sections": list(policy.required_sections),
             "optional_sections": list(policy.optional_sections),
-            "source_followup_enabled": False,
+            "source_followup_enabled": SOURCE_REQUEST_SERVICE_ENABLED,
         },
         "budget_metadata": {
             "section_serialized_bytes": section_bytes,
@@ -205,7 +231,8 @@ def build_authoring_context_frame(
             "hard_limits": {
                 "max_prompt_payload_bytes": MAX_AUTHORING_PROMPT_PAYLOAD_BYTES,
                 "max_section_bytes": MAX_AUTHORING_SECTION_BYTES,
-                "max_source_payload_bytes_phase0": SOURCE_PAYLOAD_BYTES_LIMIT_PHASE0,
+                "max_source_inline_payload_bytes": MAX_PROMPT_SOURCE_INLINE_BYTES,
+                "max_source_request_bytes_per_round": MAX_SOURCE_REQUEST_BYTES_PER_ROUND,
             },
         },
     }
@@ -285,7 +312,7 @@ def _raise_for_oversized_sections(section_bytes: Mapping[str, int]) -> None:
 
 def _feedback_items(frame_kind: str, section_values: Mapping[str, Any]) -> list[dict[str, str]]:
     feedback = section_values.get("provider_or_runtime_repair_feedback")
-    if frame_kind != "static_repair" or not isinstance(feedback, Mapping):
+    if frame_kind not in {"static_repair", "source_followup"} or not isinstance(feedback, Mapping):
         return []
     category = feedback.get("failure_category")
     if not isinstance(category, str):
@@ -346,4 +373,4 @@ def _estimate_context_units(serialized_bytes: int) -> int:
 
 
 def _serialized_size(value: Any) -> int:
-    return len(json.dumps(value, ensure_ascii=False, sort_keys=True).encode("utf-8"))
+    return canonical_prompt_json_bytes(value)

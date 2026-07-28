@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Literal
 
-
 PolicyInitializationKind = Literal["random", "warm_start"]
 
 
@@ -17,6 +16,7 @@ class BaselinePolicyRef:
     task_id: str
     checkpoint: Any
     compatibility_tags: frozenset[str] = frozenset()
+    baseline_manifest_hash: str | None = None
 
 
 @dataclass(frozen=True)
@@ -39,4 +39,3 @@ class PolicyInitialization:
             raise ValueError("random initialization cannot include a baseline")
         if self.kind == "warm_start" and self.baseline is None:
             raise ValueError("warm_start initialization requires a baseline")
-
