@@ -345,14 +345,14 @@ V2 采用“两次冻结、禁止事后放宽”的流程：
 
 ### 3.1 Pilot 前冻结 draft V2
 
-在任何 R0 convergence pilot 前，draft V2 必须固定：
+在任何 R0 capability pilot 前，draft V2 必须固定：
 
 - 七个高度桶和采样映射；
 - success、primary terminal reason、diagnostic flags 与优先级；
 - episode horizon/timeout；
 - 统计单位：先按 seed 计算七桶等权宏平均，再跨 seed 形成 mean/std/SE；
 - reference capability predicate 和精确数值阈值；
-- 允许测试的训练预算档位及最大 pilot 上限；
+- 操作者选择的唯一固定训练预算；
 - `StairRewardInputsV2` 和 capability profile；
 - formal evaluation 与 private seed resolver 的版本。
 
@@ -360,7 +360,7 @@ reference capability gate 必须体现“确实有些上楼能力”，例如预
 
 ### 3.2 Pilot 后冻结 final V2
 
-pilot 只用于从预先允许的预算档位中选择最小可行训练预算，并验证 runtime 性能/收敛。pilot seed、结果和 checkpoint：
+pilot 只用于在操作者固定预算下确认最终 checkpoint 的最低能力，并验证 runtime 与证据链。曲线统计仅为诊断，不选择或否决预算。pilot seed、结果和 checkpoint：
 
 - 与 formal R0 的 private seed/binding 分离；
 - 不进入 Genesis；
@@ -368,9 +368,9 @@ pilot 只用于从预先允许的预算档位中选择最小可行训练预算�
 - 不进入 prompt 或 acceptance；
 - 不允许改变 reference capability floor。
 
-选择预算后冻结 final V2。正式 R0、所有 candidate 和 replay 只接受 final V2 hash。
+能力确认通过后冻结 final V2。正式 R0、所有 candidate 和 replay 只接受 final V2 hash。
 
-若最大允许 pilot 预算仍不能通过已冻结能力门，结论是 R0/runtime/任务设计尚不可用；停止进入正式 session，不下调门槛掩盖问题。
+若固定 2000 的最终 checkpoint 不能通过已冻结能力门，结论是 R0/runtime/任务设计尚不可用；停止进入正式 session，不下调门槛掩盖问题。
 
 ---
 
@@ -394,7 +394,7 @@ pilot 只用于从预先允许的预算档位中选择最小可行训练预算�
 - composition 对不同 anchor kind 做互斥验证；
 - 扩展 current-best/source projection，使 `mode=reference`、program source hash 和 training binding hash 可经 Genesis/ledger 唯一恢复；
 - task-owned capability profile 进入 composition snapshot 和 job/eval binding；
-- 编写 draft `StairProtocolV2`，冻结能力门和 pilot 预算集合；
+- 编写 draft `StairProtocolV2`，冻结能力门和唯一 pilot 预算；
 - 为现有 Phase1B Genesis/ledger 文件提供明确的 schema migration 或 fail-closed 版本拒绝，不做隐式猜测。
 
 **严格验收**
@@ -454,7 +454,7 @@ pilot 只用于从预先允许的预算档位中选择最小可行训练预算�
 
 ### 阶段 C：pre-reset 完整奖励运行时、ABI 与 R0 等价性
 
-**实施状态：功能实现与真实服务器动态验收完成（2026-07-29），正式 Git 交付待完成。训练、Oracle、评估已统一使用 current-step termination capture，并增加跨 auto-reset 验收；详细设计、源头修复与证据见 `phase_c_implementation_plan.md` 及五份 `phase_c_*_report.json`。**
+**实施状态：已完成并交付（2026-07-29，提交 `481e380`）。训练、Oracle、评估已统一使用 current-step termination capture，并增加跨 auto-reset 验收；本地、origin 与服务器已同步，详细设计、源头修复与证据见 `phase_c_implementation_plan.md` 及五份 `phase_c_*_report.json`。**
 
 **目标**
 
@@ -487,25 +487,36 @@ pilot 只用于从预先允许的预算档位中选择最小可行训练预算�
 
 **预计工作量：4–6 人日。**
 
-### 阶段 D：R0 scratch convergence pilot 与 final V2
+### 阶段 D：固定 2000 的 R0 scratch capability pilot 与 final V2
+
+**实施状态：已完成（2026-07-30）。操作者固定 2000 iterations，不搜索预算或要求收敛证明；正式服务器 pilot 已从 clean committed source 随机初始化训练一次，最终 checkpoint 通过预冻结能力门，完整 artifact 已内容寻址重放，Final V2、trust anchor、伴随 manifest 和 Prompt/output preflight 已原子发布。旧 500/1000 结果只作历史诊断。Phase D 完成后其 train/eval/smoke 实跑入口已退役，历史链只保留内容寻址 artifact、报告和只读重放验证，不再维护第二套 evaluator。详细合同与证据见 `phase_d_implementation_plan.md`。**
 
 **目标**
 
-在真实运行时上证明 R0 从随机初始化可以在合理预算内达到预先冻结的最低能力，并选择正式固定预算。
+在真实运行时上确认 R0 从随机初始化训练固定 2000 iterations 后达到预先冻结的最低能力，并冻结正式协议。
 
 **工作**
 
 - 运行最小 smoke：少量 env/steps 验证数值、吞吐、终止与日志；
-- 按 draft V2 允许的预算档位运行 R0-only pilot；
-- 检查训练稳定性、七桶进度、低阶能力、失败分布和 seed 方差；
-- 从通过能力门的档位中选最小合理固定预算；
+- 按 draft V2 唯一固定的 2000 iterations 运行一次 R0-only pilot；
+- 记录训练曲线诊断，并对最终 checkpoint 检查七桶进度、低阶能力和失败分布；
+- 不使用曲线、成功率或其他指标重新选择预算；
 - 冻结 final `StairProtocolV2`、training profile、evaluation binding 和 capability profile hash；
 - 使用真实 R0/prompt builder 做 24 KiB、256 KiB、8192 token preflight。
+
+**交付证据**
+
+- 旧 `49,152,000` env-step 选择及其 Prompt/output 报告不得作为 final V2 证据；旧 500/1000 runs 仅保留为诊断样本；
+- 新 draft 只冻结 2000 iterations、一个与 formal 隔离的 pilot training seed 和最终 checkpoint 能力确认；
+- 正式 pilot 在提交 `9c2b926` 上从随机初始化训练 2000 iterations，最终 checkpoint 的五 seed、七桶宏平均成功率为 `0.2392857143`，平均最大进度为 `3.6171964735m`；
+- 内容寻址 artifact 为 `c786ed32...5816517e`，完整 manifest 已伴随 Final V2 入库；
+- Phase D 当时冻结的历史 Final V2 hash 为 `d08200cc...09bc009d`，对应 Prompt/output preflight 继续作为只读历史证据；当前正式协议已因训练目标对齐修订为 `97d9473e...e153f5`，runner-owned 训练范围为 `0.05-0.35 m`，并通过 revision provenance 指回该历史 hash，`0.40 m` 保留为唯一 OOD frontier；
+- 默认 registry 与 Push 行为保持不变，Phase E 的协议前置阻断已解除。
 
 **严格验收**
 
 - pilot 只在阶段 C runtime 上执行，不存在 mock/post-step reward 路径；
-- 至少一个允许预算档位通过预先冻结的 reference capability gate；
+- 固定 2000 的最终 checkpoint 通过预先冻结的 reference capability gate；
 - 不因 pilot 结果降低能力门或改变成功/失败定义；
 - final V2 的预算等式、七桶映射、seed 数、episode 数、timeout 和 acceptance 参数完整绑定到统一 hash；
 - pilot 与 formal seed/binding 可机器判定为不同命名空间；
@@ -549,26 +560,27 @@ pilot 只用于从预先允许的预算档位中选择最小可行训练预算�
 
 **目标**
 
-完成图片所示的真实两轮最小闭环，证明只继承 accepted 源码。
+完成图片所示的真实闭环并累计至少两次完整候选评估，证明只继承 accepted 源码；受控的 pre-eval denial 允许继续，但不冒充一次公平比较。
 
 **工作**
 
 - prompt 同时提供完整 current-head 源码和上一轮公开失败反馈；
-- provider 输出完整 R1；
-- 通过 verifier/materializer 和同一 TrainingBinding 从零训练 R1；
-- 使用 final V2 比较 R1 与 R0；
+- provider 按轮输出完整候选奖励程序；
+- 通过 verifier/materializer 和同一 TrainingBinding 从零训练每个可执行候选；
+- 使用 final V2 比较每个完成训练的候选与 current-best；
 - 分别覆盖 accepted 和 denied 路径；
-- accepted 后以 R1 完整源码生成 R2，denied 后仍以 R0/current-head 生成下一轮；
+- accepted 后以上一代 accepted 完整源码生成下一轮，denied 后仍以原 current-head 生成下一轮；
 - replay candidate ledger 并恢复 source head/current-best。
 
 **严格验收**
 
-- R0、R1 的 policy architecture、initialization schedule、预算和评估 binding 完全一致；
+- R0 与至少两个完成评估候选的 policy architecture、initialization schedule、预算和评估 binding 完全一致；
 - 训练 argv 不含 warm-start checkpoint；
 - R1 源码不 import/call R0，runtime 不含 base reward；
 - acceptance 使用冻结的 noise-aware 参数和 required gates；
 - accepted 记录同时绑定 candidate source hash 与 checkpoint/eval 证据；
 - denied 记录不能改变 current-best 或 current-head；
+- provider/static/candidate-runtime 的闭合拒绝可以继续下一轮，但不计入两次完整评估；
 - 下一轮 prompt 的源码 hash 与 replay 恢复的 source head 相同；
 - source lineage 无环、父节点存在且只由 accepted 决策推进；
 - prompt 只暴露已实现的 complete-reward capability，不出现 curriculum 等未来权限。
@@ -576,6 +588,38 @@ pilot 只用于从预先允许的预算档位中选择最小可行训练预算�
 **预计工作量：3–4 人日，加候选训练评估时间。**
 
 ### 阶段 G：全量回归与生产启用
+
+**实施状态：已完成。生产接入、prompt 证据边界修正、正式 ledger v5 闭环、Push 隔离和独立 15-round 正式实验均已通过。旧 Phase F v2 ledger 继续只读保留并明确标为 authoring provenance 不完整；修正后的新 epoch 完成 15 个固定 2000 iterations 候选训练及完整 public/sealed 评估，R9 与 R14 被接受，最终 current-best 为 R14 `stair_stable_progress_contact_v3`。详见 `phase_f_implementation_plan.md`、`phase_g_implementation_plan.md` 与 `phase_g_15round_experiment_audit.md`。**
+
+阶段 G 以当前 Phase D-F 的已验证结果为默认基座，但不把历史阶段冻结。真实运行或故障注入若证明既有执行、证据、反馈或信任边界有缺陷，应在对应源头修复并重跑受影响验收；候选学习效果不佳本身不能成为修改 Final V2、评估协议或固定 2000 iterations 预算的理由。
+
+截至 2026-08-04，修正后的正式 15-round epoch 已完整结束。15 个候选共享同一 TrainingBinding、随机初始化状态、`4096 x 24 x 2000` 预算和固定评估 binding；R9 以 `public_accept=0.589286` 被接受，R14 再以 `0.621429` 被接受，最终比 R0 `0.546429` 绝对提升 `0.075`。R14 sealed mean 为 `0.602041`，0.30 m 桶达到 `0.675`，但 0.40 m 仍为 0。15 轮 load-only replay、candidate/checkpoint/prompt 逐字节审计和进程清理全部通过；Final V2、评估协议、2000 iterations 预算和奖励 ABI 均未改动。
+
+**2026-08-07 接受协议修订：** 后续正式实验不再沿用 Stair 的固定
+`min_delta=0.03`。新一轮 R0-R9 实证显示 current-best 达到 `0.982143` 后，理论
+剩余空间仅 `0.017857`，旧门槛使任何后续候选都不可能被接受。生产 Stair 因此
+改为独立版本化的 paired-headroom 接受协议；历史 V1/V2、旧 ledger 和旧回放规则
+保持不变，新规则只通过新的 task/acceptance binding 和 Genesis 生效。该修改不
+改变训练分布、预算、PPO、奖励 ABI、成功定义或评估 seed cohort。
+
+**2026-08-10 评估协议修订：** 后续正式实验使用 `7` 个高度 × `5` 个踏深 × 每 cell
+`8` 个 episode 的 task-owned 冻结网格，每个 seed 以 `280` 个 GPU 并行环境一次覆盖。
+`0.40 m` 踏深七高度宏平均继续作为训练分布锚点，35-cell 等权宏平均成为接受目标；
+候选只有在 generalization 满足 paired-headroom 提升且锚点回退不超过 `0.02` 时才可接受。
+高度方向倒置只作诊断；固定速度不变，`0.40 m` anchor 仍为 12 秒，其他踏深按目标进度
+等比缩放为 `9.8/10.9/13.1/14.2` 秒并由 task-owned tracker 独立闭合。训练地形、PPO、
+2000 iterations 和奖励 ABI 均不改变。该协议使用新的 evaluation/task/acceptance hash，
+必须从 R0 建立新的 Genesis；
+旧 56-env 分数只作迁移证据，不能与新结果组成同一 current-best 链。
+
+**2026-08-10 v4 评估证据修订：** 35-cell 聚合矩阵现由 canonical task-owned
+generalization summary 直接发布，并以紧凑的 `7 x 5` 网格进入作者反馈，避免高度/踏深边缘值
+掩盖交互退化。sealed 门除绝对地板外，还要求同一候选 sealed 分数相对 public objective 的
+下降不超过预冻结 `0.05`，用于阻止固定 public cohort 的选择性过拟合。诊断视频改为使用当前
+280-env profile 的 cell、踏深、deadline、seed binding 与几何。主目标仍是 35-cell 等权宏
+平均，`0.40 m` 七格仍是训练分布 anchor guard；未增加逐 cell Pareto 硬门，也未修改共享
+acceptance 统计规则。该修订产生新的 evaluation/profile/task hash，必须再次从 R0 建立
+Genesis，不能续接 v3 ledger。
 
 **目标**
 

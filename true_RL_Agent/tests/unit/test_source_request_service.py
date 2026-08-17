@@ -14,15 +14,22 @@ if str(SRC_ROOT) not in sys.path:
 from tests.fakes.decision_records import (  # noqa: E402
     TEST_ACCEPTANCE_PROTOCOL,
     TEST_SESSION_GENESIS_HASH,
+    bind_verified_candidate_record,
     make_bootstrap_current_best,
     valid_accepted_ledger_record,
 )
+from tests.fakes.fake_components import FakeVerifier  # noqa: E402
 from true_rl_agent.agent_core.authoring_response import (
     SourceRequestResponse,  # noqa: E402
 )
 from true_rl_agent.agent_core.source_request_service import (
     resolve_source_request,  # noqa: E402
 )
+from true_rl_agent.candidates.schema import (  # noqa: E402
+    CandidateChangeSet,
+    CandidatePackageRef,
+)
+from true_rl_agent.candidates.verifier import seal_and_verify_candidate  # noqa: E402
 from true_rl_agent.memory import PublicContextBuilder  # noqa: E402
 from true_rl_agent.prompting.serialization import (
     canonical_prompt_json_bytes,  # noqa: E402
@@ -38,23 +45,45 @@ class SourceRequestServiceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             candidate_dir = Path(tmp) / "candidate-accepted"
             (candidate_dir / "training_code").mkdir(parents=True)
+            (candidate_dir / "candidate_manifest.yaml").write_text(
+                "schema_version: true_rl_agent.candidate.v1\n"
+                "candidate_id: candidate-accepted\n"
+                "entrypoint: training_code.components:build_training_components\n",
+                encoding="utf-8",
+            )
             (candidate_dir / "training_code" / "components.py").write_text(
                 "def current_best_reward(inp):\n    return inp.base_height\n",
                 encoding="utf-8",
+            )
+            (candidate_dir / "rationale.md").write_text("Accepted source.\n", encoding="utf-8")
+            (candidate_dir / "operation_diff.json").write_text("{}\n", encoding="utf-8")
+            (candidate_dir / "diagnostics.json").write_text("{}\n", encoding="utf-8")
+            verification = seal_and_verify_candidate(
+                CandidatePackageRef(
+                    candidate_id="candidate-accepted",
+                    path=str(candidate_dir),
+                    change_set=CandidateChangeSet(
+                        frozenset({"reward_callable"})
+                    ),
+                    metadata={"verifier_status": "pass"},
+                ),
+                artifact_root=Path(tmp) / "artifacts",
+                verifier=FakeVerifier(),
+            )
+            record = bind_verified_candidate_record(
+                valid_accepted_ledger_record(
+                    round_id="round-accepted",
+                    candidate_id="candidate-accepted",
+                    public_score=0.31,
+                ),
+                verification=verification,
             )
             payload = PublicContextBuilder(
                 acceptance_protocol=TEST_ACCEPTANCE_PROTOCOL,
                 initial_current_best=make_bootstrap_current_best(),
                 session_genesis_hash=TEST_SESSION_GENESIS_HASH,
             ).build_prompt_payload(
-                [
-                    valid_accepted_ledger_record(
-                        round_id="round-accepted",
-                        candidate_id="candidate-accepted",
-                        public_score=0.31,
-                        candidate_path=str(candidate_dir),
-                    )
-                ]
+                [record]
             )
 
         response = SourceRequestResponse(

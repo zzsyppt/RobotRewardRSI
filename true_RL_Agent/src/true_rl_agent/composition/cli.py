@@ -12,6 +12,7 @@ TASK_RUNTIME_DEFAULT_KEYS = (
     "isaac_python",
     "train_entrypoint",
     "eval_entrypoint",
+    "execution_device",
     "budget_steps",
     "public_seed_count",
     "public_accept_seed_count",
@@ -68,6 +69,10 @@ def add_task_runtime_arguments(
     parser.add_argument("--isaac-python", default=defaults["isaac_python"])
     parser.add_argument("--train-entrypoint", default=defaults["train_entrypoint"])
     parser.add_argument("--eval-entrypoint", default=defaults["eval_entrypoint"])
+    add_execution_device_argument(
+        parser,
+        default=defaults["execution_device"],
+    )
     parser.add_argument(
         "--budget-steps",
         type=int,
@@ -135,3 +140,11 @@ def add_task_runtime_arguments(
         type=int,
         default=defaults["runner_timeout_s"],
     )
+
+
+def add_execution_device_argument(
+    parser: argparse.ArgumentParser,
+    *,
+    default: Any,
+) -> None:
+    parser.add_argument("--execution-device", default=default)

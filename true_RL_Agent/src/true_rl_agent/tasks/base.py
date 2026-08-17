@@ -17,6 +17,9 @@ from true_rl_agent.evaluation.public_result import PublicEvalResult
 if TYPE_CHECKING:
     from true_rl_agent.tasks.component_smoke import ComponentSmokeAdapter
     from true_rl_agent.tasks.prompt_adapter import TaskPromptAdapter
+    from true_rl_agent.tasks.reference_qualification import (
+        ReferenceQualificationResult,
+    )
 
 
 @dataclass(frozen=True)
@@ -147,6 +150,17 @@ class TaskPlugin(ABC):
         _ = train_summary
         return public_result
 
+    def qualify_reference_result(
+        self,
+        *,
+        public_result: PublicEvalResult,
+        train_summary: Mapping[str, Any],
+    ) -> "ReferenceQualificationResult":
+        _ = public_result, train_summary
+        raise NotImplementedError(
+            f"task {self.task_spec.task_id!r} does not support reference qualification"
+        )
+
     def candidate_surface_policy(self) -> CandidateSurfacePolicy:
         """Return the task-owned taxonomy for candidate change components."""
 
@@ -165,3 +179,8 @@ class TaskPlugin(ABC):
         from true_rl_agent.tasks.component_smoke import NeutralComponentSmokeAdapter
 
         return NeutralComponentSmokeAdapter(self.task_spec.task_id)
+
+    def phased_evaluation_adapter(self) -> object | None:
+        """Return an optional task-owned phased-evaluation capability."""
+
+        return None

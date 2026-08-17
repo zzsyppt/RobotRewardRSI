@@ -38,7 +38,10 @@ class CandidateScheduleContractTests(unittest.TestCase):
             list(effective_schedule_keys()),
         )
 
-        self.assertEqual(StaticCandidateVerifier.allowed_schedule_keys, frozenset(allowed_schedule_keys()))
+        self.assertEqual(
+            StaticCandidateVerifier().policy.allowed_schedule_keys,
+            frozenset(allowed_schedule_keys()),
+        )
         components = TrainingComponents(
             name="schedule_contract",
             schedules=[ScheduleTerm(name="scale", key=REWARD_WEIGHT_SCALE_KEY, value=1.0)],

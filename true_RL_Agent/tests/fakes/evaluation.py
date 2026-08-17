@@ -16,11 +16,12 @@ from true_rl_agent.candidates.artifact import (
 from true_rl_agent.candidates.capability_profile import CandidateCapabilityProfile
 from true_rl_agent.candidates.schema import CandidateChangeSet, CandidatePackageRef
 from true_rl_agent.candidates.verifier import (
+    CandidateAdmissionPolicyDescriptor,
     CandidateVerifier,
     VerificationResult,
     seal_and_verify_candidate,
 )
-from true_rl_agent.evaluation.binding import EvaluationBindingV1
+from true_rl_agent.evaluation.binding import EvaluationBindingV1, canonical_json_hash
 from true_rl_agent.evaluation.protocol import (
     DEFAULT_EVAL_PROTOCOL_VERSION,
     EvaluationProtocol,
@@ -49,10 +50,26 @@ TEST_RSL_RL_AGENT_CONFIGURATION = RslRlAgentConfiguration(
 _TEST_CANDIDATE_ROOT = Path(
     tempfile.mkdtemp(prefix="true-rl-agent-verified-candidates-")
 )
+_TEST_ADMISSION_POLICY_ID = "true_rl_agent.tests.bound_identity_admission.v1"
+_TEST_ADMISSION_POLICY_HASH = canonical_json_hash(
+    {"schema_version": _TEST_ADMISSION_POLICY_ID}
+)
 
 
 class _BoundIdentityTestVerifier(CandidateVerifier):
     """Fast verifier used only to build non-executing test job specs."""
+
+    def __init__(
+        self,
+        descriptor: CandidateAdmissionPolicyDescriptor | None = None,
+    ) -> None:
+        self._descriptor = descriptor or CandidateAdmissionPolicyDescriptor(
+            policy_id=_TEST_ADMISSION_POLICY_ID,
+            policy_hash=_TEST_ADMISSION_POLICY_HASH,
+        )
+
+    def admission_policy_descriptor(self) -> CandidateAdmissionPolicyDescriptor:
+        return self._descriptor
 
     def verify(
         self,
@@ -66,7 +83,9 @@ class _BoundIdentityTestVerifier(CandidateVerifier):
             {
                 "derived_change_set": sorted(
                     candidate.change_set.changed_components
-                )
+                ),
+                "verification_policy_id": self._descriptor.policy_id,
+                "verification_policy_hash": self._descriptor.policy_hash,
             },
             program_identity=CandidateProgramIdentity(
                 candidate_id=candidate.candidate_id,
@@ -82,6 +101,7 @@ def make_verified_candidate_artifact(
     candidate_id: str = "test-candidate",
     *,
     change_set: CandidateChangeSet | None = None,
+    admission_policy_descriptor: CandidateAdmissionPolicyDescriptor | None = None,
 ) -> VerifiedCandidateArtifactRef:
     """Build a byte-bound execution capability for tests that do not run code."""
 
@@ -92,7 +112,7 @@ def make_verified_candidate_artifact(
     verification = seal_and_verify_candidate(
         candidate,
         artifact_root=_TEST_CANDIDATE_ROOT / "artifacts",
-        verifier=_BoundIdentityTestVerifier(),
+        verifier=_BoundIdentityTestVerifier(admission_policy_descriptor),
     )
     return verification.require_verified()
 
@@ -129,6 +149,12 @@ def make_test_candidate_package(
         "    )\n",
         encoding="utf-8",
     )
+    (provider_root / "rationale.md").write_text(
+        "Test candidate package.\n",
+        encoding="utf-8",
+    )
+    (provider_root / "operation_diff.json").write_text("{}\n", encoding="utf-8")
+    (provider_root / "diagnostics.json").write_text("{}\n", encoding="utf-8")
     return CandidatePackageRef(
         candidate_id=candidate_id,
         path=str(provider_root),

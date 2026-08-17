@@ -6,6 +6,8 @@ import re
 from dataclasses import dataclass
 from typing import Any, Mapping
 
+from true_rl_agent.candidates.schema import require_candidate_id
+
 EXPERIMENT_SUBJECT_SCHEMA_VERSION = "true_rl_agent.experiment.subject.v2"
 EXPERIMENT_SUBJECT_KINDS = frozenset({"baseline", "candidate", "reference"})
 _EVALUATION_SUBJECT_ID_PATTERN = re.compile(
@@ -40,7 +42,10 @@ class ExperimentSubject:
     def __post_init__(self) -> None:
         if self.kind not in EXPERIMENT_SUBJECT_KINDS:
             raise ValueError(f"unsupported experiment subject kind: {self.kind}")
-        validate_experiment_subject_id(self.subject_id)
+        if self.kind == "candidate":
+            require_candidate_id(self.subject_id, "candidate subject_id")
+        else:
+            validate_experiment_subject_id(self.subject_id)
 
     @classmethod
     def candidate(cls, candidate_id: str) -> "ExperimentSubject":

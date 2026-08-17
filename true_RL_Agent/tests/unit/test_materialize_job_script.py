@@ -19,6 +19,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from scripts.materialize_job import main
 
+from true_rl_agent.backends.isaac_lab_rsl_rl import IsaacLabRslRlBackendAdapter
 from true_rl_agent.composition import (
     ResolvedTaskComposition,
     TaskCompositionContext,
@@ -41,7 +42,20 @@ from true_rl_agent.tasks.push_recovery.composition import (
 )
 
 
-class _BaselinePushProvider(PushRecoveryCompositionProvider):
+class _FixturePushProvider(PushRecoveryCompositionProvider):
+    def resolve(
+        self,
+        *,
+        values: Mapping[str, Any],
+        context: TaskCompositionContext,
+    ) -> ResolvedTaskComposition:
+        base = super().resolve(values=values, context=context)
+        if not isinstance(base.backend_adapter, IsaacLabRslRlBackendAdapter):
+            raise TypeError("test provider requires the Isaac Lab backend")
+        return base
+
+
+class _BaselinePushProvider(_FixturePushProvider):
     def resolve(
         self,
         *,
@@ -110,6 +124,9 @@ class MaterializeJobScriptTests(unittest.TestCase):
             ),
             encoding="utf-8",
         )
+        (candidate / "rationale.md").write_text("Materialize candidate.\n", encoding="utf-8")
+        (candidate / "operation_diff.json").write_text("{}\n", encoding="utf-8")
+        (candidate / "diagnostics.json").write_text("{}\n", encoding="utf-8")
         return candidate
 
     def test_materialize_job_rejects_unsupported_candidate_manifest(self) -> None:
@@ -126,6 +143,9 @@ class MaterializeJobScriptTests(unittest.TestCase):
                 "def build_training_components():\n    return None\n",
                 encoding="utf-8",
             )
+            (candidate / "rationale.md").write_text("Invalid manifest.\n", encoding="utf-8")
+            (candidate / "operation_diff.json").write_text("{}\n", encoding="utf-8")
+            (candidate / "diagnostics.json").write_text("{}\n", encoding="utf-8")
 
             with redirect_stderr(io.StringIO()), self.assertRaises(
                 SystemExit
@@ -207,6 +227,9 @@ class MaterializeJobScriptTests(unittest.TestCase):
 
     def test_materialized_job_exports_runner_execution_argv(self) -> None:
         output = io.StringIO()
+        provider = _FixturePushProvider()
+        registry = TaskCompositionRegistry(default_task_id=provider.task_id)
+        registry.register(provider)
 
         with tempfile.TemporaryDirectory() as tmp, redirect_stdout(output):
             candidate = self._write_candidate(Path(tmp))
@@ -220,7 +243,8 @@ class MaterializeJobScriptTests(unittest.TestCase):
                     str(candidate),
                     "--output-dir",
                     tmp,
-                ]
+                ],
+                registry=registry,
             )
 
         payload = json.loads(output.getvalue())
@@ -265,6 +289,14 @@ class MaterializeJobScriptTests(unittest.TestCase):
         self.assertTrue(runner_execution["eval"]["summary_path"].endswith("round-001/eval/summary.json"))
         self.assertNotIn("trusted_seed_count", json.dumps(runner_execution))
         self.assertNotIn("trusted_seed_count", json.dumps(payload["eval"]))
+        self.assertNotIn(
+            "--backend-execution-environment-manifest-hash",
+            runner_execution["train"]["cli_argv"],
+        )
+        self.assertNotIn(
+            "--backend-execution-environment-manifest-hash",
+            runner_execution["eval"]["cli_argv"],
+        )
 
     def test_materialize_baseline_eval_emits_no_train_or_candidate_job(self) -> None:
         provider = _BaselinePushProvider()

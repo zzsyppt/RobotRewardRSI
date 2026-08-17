@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import sys
 import tempfile
 import unittest
+from contextlib import contextmanager
 from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
@@ -14,15 +16,33 @@ SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
+from tests.fakes.decision_records import TEST_CANDIDATE_FAILURE_CONTRACT
+from true_rl_agent.agent_core.ledger import (
+    LEDGER_RECORD_SCHEMA_V5,
+    NON_PROVIDER_AUTHORING_MODE,
+    primary_ledger_epoch_hash,
+)
+from true_rl_agent.candidates.artifact import (
+    CANDIDATE_ARTIFACT_MANIFEST_FILENAME,
+    load_sealed_candidate_artifact,
+    seal_candidate_package,
+)
+from true_rl_agent.candidates.package_contract import (
+    CANDIDATE_PACKAGE_FILE_MAX_BYTES,
+    CandidatePackageContractError,
+    open_preflighted_candidate_file,
+    preflight_candidate_package,
+)
 from true_rl_agent.candidates.prompt_projection import build_prompt_payload
 from true_rl_agent.candidates.schema import CandidateChangeSet, CandidatePackageRef
 from true_rl_agent.evaluation.acceptance_protocol import (
     PUBLIC_SCORE_BINDING_ACCEPTANCE_MEAN,
     AcceptanceProtocol,
 )
-from true_rl_agent.evaluation.binding import EvaluationBindingV1
+from true_rl_agent.evaluation.binding import EvaluationBindingV1, canonical_json_hash
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
 from true_rl_agent.evaluation.protocol import EvaluationProtocol
+from true_rl_agent.json_contract import canonical_json_bytes
 from true_rl_agent.memory import (
     ExperimentRecord,
 )
@@ -33,6 +53,11 @@ from true_rl_agent.prompting.public_safety import assert_public_only_prompt_payl
 from true_rl_agent.prompting.source_catalog import (
     MAX_PROMPT_SOURCE_INLINE_BYTES,
     MAX_PROMPT_SOURCE_READ_BYTES,
+    PRIOR_LEDGER_RECORD_SOURCE_OWNER,
+    _best_observed_nonaccepted_index,
+    _objective_score,
+    _read_candidate_components,
+    has_inline_current_authoring_failed_source,
 )
 from true_rl_agent.prompting.source_catalog import (
     build_prompt_source_context as _build_prompt_source_context,
@@ -81,6 +106,9 @@ def _bind_source_records(records):
             public_record["session_genesis_hash"] = (
                 SOURCE_CATALOG_SESSION_GENESIS_HASH
             )
+            public_record["ledger_epoch_hash"] = primary_ledger_epoch_hash(
+                SOURCE_CATALOG_SESSION_GENESIS_HASH
+            )
             public_record["evaluation_binding"] = (
                 SOURCE_CATALOG_EVALUATION_BINDING.to_public_dict()
             )
@@ -88,6 +116,9 @@ def _bind_source_records(records):
         else:
             item = dict(record)
             item["session_genesis_hash"] = SOURCE_CATALOG_SESSION_GENESIS_HASH
+            item["ledger_epoch_hash"] = primary_ledger_epoch_hash(
+                SOURCE_CATALOG_SESSION_GENESIS_HASH
+            )
             item["evaluation_binding"] = (
                 SOURCE_CATALOG_EVALUATION_BINDING.to_public_dict()
             )
@@ -113,6 +144,53 @@ def PublicContextBuilder(*args, **kwargs):
     return _BoundPublicContextBuilder(*args, **kwargs)
 
 
+def _write_unsealed_candidate_support_files(
+    candidate_dir: Path,
+    candidate_id: str,
+) -> None:
+    (candidate_dir / "training_code").mkdir(parents=True, exist_ok=True)
+    (candidate_dir / "candidate_manifest.yaml").write_text(
+        "\n".join(
+            (
+                "schema_version: true_rl_agent.candidate.v1",
+                f"candidate_id: {candidate_id}",
+                "entrypoint: training_code.components:build_training_components",
+                "",
+            )
+        ),
+        encoding="utf-8",
+    )
+    for relative_path, content in (
+        ("rationale.md", "Source catalog test candidate.\n"),
+        ("operation_diff.json", "{}\n"),
+        ("diagnostics.json", "{}\n"),
+    ):
+        (candidate_dir / relative_path).write_text(content, encoding="utf-8")
+
+
+class _PublicQualityPromptAdapter:
+    task_id = "test_public_quality"
+
+    def __init__(self, *, malformed: bool = False) -> None:
+        self.malformed = malformed
+
+    def build_prompt_sections(self, *, public_records, public_context):
+        _ = public_records, public_context
+        return {}
+
+    def prompt_public_record_scrub_policy(self):
+        return {"blocked_key_parts": (), "blocked_text_parts": ()}
+
+    def nonaccepted_authoring_tiebreak_key(self, public_record):
+        if self.malformed:
+            return ("not-a-number",)
+        return (
+            float(
+                public_record["public_result"]["metrics"]["authoring_quality"]
+            ),
+        )
+
+
 def build_prompt_source_context(*args, **kwargs):
     args = (_bind_source_records(args[0]), *args[1:])
     kwargs.setdefault(
@@ -128,6 +206,32 @@ def build_prompt_source_context(*args, **kwargs):
 
 
 class PromptSourceCatalogTests(unittest.TestCase):
+    def test_lineage_comparison_uses_validated_objective_not_guard_binding(
+        self,
+    ) -> None:
+        guard_high = {
+            "accepted": False,
+            "public_score": 0.91,
+            "comparison": {"candidate_score": 0.20},
+        }
+        objective_high = {
+            "accepted": False,
+            "public_score": 0.50,
+            "comparison": {"candidate_score": 0.73},
+        }
+        records = [
+            {
+                "decision": decision,
+                "public_result": {"status": "pass"},
+                "candidate_surface": {"classification": "code_level"},
+            }
+            for decision in (guard_high, objective_high)
+        ]
+
+        self.assertEqual(_objective_score(guard_high), 0.20)
+        self.assertEqual(_objective_score(objective_high), 0.73)
+        self.assertEqual(_best_observed_nonaccepted_index(records), 1)
+
     def test_no_accepted_records_exports_pending_source_catalog_and_none_lineage(self) -> None:
         payload = PublicContextBuilder().build_prompt_payload([])
 
@@ -164,7 +268,7 @@ class PromptSourceCatalogTests(unittest.TestCase):
         self.assertIn("exploration_directive", frame["included_sections"])
         assert_public_only_prompt_payload(payload)
 
-    def test_current_best_source_is_inlined_from_latest_accepted_without_path_leakage(self) -> None:
+    def test_current_best_source_is_inlined_from_replay_head_without_path_leakage(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             old_dir = root / "candidate-old"
@@ -222,9 +326,28 @@ class PromptSourceCatalogTests(unittest.TestCase):
         self.assertEqual(lineage["status"], "accepted_current_best")
         self.assertEqual(current_best["round_id"], "round-003")
         self.assertEqual(current_best["candidate_id"], "candidate-latest")
-        self.assertEqual(current_best["public_score"], 0.35)
+        self.assertEqual(current_best["objective_score"], 0.35)
+        self.assertEqual(
+            current_best["score_source"],
+            SOURCE_CATALOG_ACCEPTANCE_PROTOCOL.score_source,
+        )
         self.assertEqual(current_best["source_logical_id"], "current_best/training_code/components.py")
-        self.assertEqual(current_best["source_sha256"], expected_hash)
+        self.assertEqual(
+            current_best["current_head_prompt_content_sha256"],
+            expected_hash,
+        )
+        self.assertEqual(
+            current_best["current_head_program_source_checksum"],
+            records[-1]["jobs"]["eval"]["program_source_checksum"],
+        )
+        self.assertEqual(
+            lineage["parent_program_source_checksum"],
+            current_best["current_head_program_source_checksum"],
+        )
+        self.assertNotEqual(
+            current_best["current_head_program_source_checksum"],
+            "sha256:" + current_best["current_head_prompt_content_sha256"],
+        )
         self.assertEqual(current_best["source_delivery"], "inline")
         self.assertEqual(source_payload["logical_id"], "current_best/training_code/components.py")
         self.assertEqual(source_payload["content_sha256"], expected_hash)
@@ -279,14 +402,21 @@ class PromptSourceCatalogTests(unittest.TestCase):
                     f"def {function_name}(inp):\n    return 0.0\n",
                     encoding="utf-8",
                 )
-            records = [
-                _accepted_record(
-                    "round-001", "candidate-first", first_dir, 0.50
-                ),
-                _accepted_record(
-                    "round-002", "candidate-forged", forged_dir, 0.51
-                ),
-            ]
+            first = _accepted_record(
+                "round-001", "candidate-first", first_dir, 0.50
+            )
+            forged = _accepted_record(
+                "round-002",
+                "candidate-forged",
+                forged_dir,
+                0.51,
+                current_best_score=0.50,
+                current_best_round_id="round-001",
+                current_best_candidate_id="candidate-first",
+            )
+            forged["decision"]["comparison"]["current_best_score"] = 0.0
+            forged["decision"]["comparison"]["delta"] = 0.51
+            records = [first, forged]
 
             payload = PublicContextBuilder().build_prompt_payload(records)
 
@@ -298,6 +428,89 @@ class PromptSourceCatalogTests(unittest.TestCase):
         )
         self.assertIn("first_valid_source", source_text)
         self.assertNotIn("forged_source", source_text)
+
+    def test_accepted_current_best_rejects_artifact_and_verification_tampering(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            candidate_dir = Path(tmp) / "candidate-tamper"
+            (candidate_dir / "training_code").mkdir(parents=True)
+            (candidate_dir / "training_code" / "components.py").write_text(
+                "def candidate_reward(inp):\n    return inp.base_height\n",
+                encoding="utf-8",
+            )
+            accepted = _accepted_record(
+                "round-001",
+                "candidate-tamper",
+                candidate_dir,
+                0.40,
+            )
+
+            mutations: dict[str, dict] = {}
+            artifact_hash = copy.deepcopy(accepted)
+            artifact_hash["candidate"]["artifact_hash"] = "5" * 64
+            artifact_hash["jobs"]["train"]["candidate_artifact"] = copy.deepcopy(
+                artifact_hash["candidate"]
+            )
+            artifact_hash["jobs"]["train"]["candidate_artifact"].pop(
+                "path",
+                None,
+            )
+            mutations["artifact_hash"] = artifact_hash
+
+            verification_hash = copy.deepcopy(accepted)
+            verification_hash["candidate"]["verification"][
+                "verification_hash"
+            ] = "6" * 64
+            verification_hash["jobs"]["train"]["candidate_artifact"] = (
+                copy.deepcopy(verification_hash["candidate"])
+            )
+            verification_hash["jobs"]["train"]["candidate_artifact"].pop(
+                "path",
+                None,
+            )
+            mutations["verification_hash"] = verification_hash
+
+            verifier_evidence = copy.deepcopy(accepted)
+            verifier_evidence["verifier"]["reason"] = "forged_verifier_reason"
+            mutations["verifier_evidence"] = verifier_evidence
+
+            private_uri = copy.deepcopy(accepted)
+            private_uri["private_artifacts"][0]["uri"] = str(candidate_dir)
+            mutations["private_uri"] = private_uri
+
+            for label, record in mutations.items():
+                with self.subTest(label=label):
+                    with self.assertRaises(ValueError):
+                        PublicContextBuilder().build_prompt_payload([record])
+
+    def test_accepted_current_best_rejects_mutated_sealed_bytes(self) -> None:
+        for relative_path in (
+            Path("candidate_manifest.yaml"),
+            Path("training_code") / "components.py",
+        ):
+            with self.subTest(relative_path=str(relative_path)):
+                with tempfile.TemporaryDirectory() as tmp:
+                    candidate_dir = Path(tmp) / "candidate-byte-tamper"
+                    (candidate_dir / "training_code").mkdir(parents=True)
+                    (candidate_dir / "training_code" / "components.py").write_text(
+                        "def candidate_reward(inp):\n    return inp.base_height\n",
+                        encoding="utf-8",
+                    )
+                    accepted = _accepted_record(
+                        "round-001",
+                        "candidate-byte-tamper",
+                        candidate_dir,
+                        0.40,
+                    )
+                    sealed_root = Path(
+                        accepted["private_artifacts"][0]["uri"]
+                    )
+                    target = sealed_root / relative_path
+                    target.write_bytes(target.read_bytes() + b"\n# tampered\n")
+
+                    with self.assertRaises(ValueError):
+                        PublicContextBuilder().build_prompt_payload([accepted])
 
     def test_oversized_current_best_source_is_omitted_but_hash_and_summary_remain(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -379,19 +592,25 @@ class PromptSourceCatalogTests(unittest.TestCase):
                 "def leaked_public_path_source(inp):\n    return 0.0\n",
                 encoding="utf-8",
             )
+            ledger_record = _accepted_record(
+                "round-001",
+                "candidate-001",
+                candidate_dir,
+                0.2,
+            )
+            ledger_record["private_artifacts"] = []
+            ledger_record["candidate"]["path"] = str(candidate_dir)
 
-            context = build_prompt_source_context([_accepted_record("round-001", "candidate-001", candidate_dir, 0.2)])
-
-        self.assertEqual(context["candidate_lineage"]["status"], "accepted_current_best")
-        current_best = context["candidate_lineage"]["current_best"]
-        self.assertEqual(current_best["source_delivery"], "unavailable")
-        self.assertEqual(current_best["source_unavailable_reason"], "accepted_record_has_no_candidate_package_source_ref")
-        self.assertEqual(context["source_payloads"], [])
+            with self.assertRaises(ValueError):
+                build_prompt_source_context([ledger_record])
 
     def test_latest_failed_source_can_inline_without_accepted_lineage(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             candidate_dir = Path(tmp) / "candidate-failed"
-            (candidate_dir / "training_code").mkdir(parents=True)
+            _write_unsealed_candidate_support_files(
+                candidate_dir,
+                "candidate-failed",
+            )
             (candidate_dir / "training_code" / "components.py").write_text(
                 "\n".join(
                     [
@@ -428,7 +647,10 @@ class PromptSourceCatalogTests(unittest.TestCase):
     def test_non_utf8_latest_failed_source_is_unavailable_not_crashing_prompt_build(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             candidate_dir = Path(tmp) / "candidate-failed-bad-encoding"
-            (candidate_dir / "training_code").mkdir(parents=True)
+            _write_unsealed_candidate_support_files(
+                candidate_dir,
+                "candidate-failed-bad-encoding",
+            )
             (candidate_dir / "training_code" / "components.py").write_bytes(b"def bad(inp):\n    return \xff\n")
             failed_candidate = CandidatePackageRef(
                 candidate_id="candidate-failed-bad-encoding",
@@ -455,6 +677,12 @@ class PromptSourceCatalogTests(unittest.TestCase):
                 "def runtime_failed_reward(inp):\n    return inp.base_height\n",
                 encoding="utf-8",
             )
+            sealed_record = _accepted_record(
+                "artifact-fixture",
+                "candidate-runtime-failed",
+                candidate_dir,
+                0.1,
+            )
             record = ExperimentRecord.from_ledger_record(
                 {
                     "round_id": "round-001",
@@ -468,20 +696,36 @@ class PromptSourceCatalogTests(unittest.TestCase):
                         "consumed_gates": [],
                         "gate_statuses": {},
                     },
-                    "candidate": {
-                        "candidate_id": "candidate-runtime-failed",
-                        "path": str(candidate_dir),
-                        "changed_components": ["reward_callable"],
-                    },
+                    "candidate": sealed_record["candidate"],
+                    "private_artifacts": sealed_record["private_artifacts"],
                     "candidate_surface": {"classification": "code_level"},
                     "verifier": {"status": "pass"},
                     "jobs": {
-                        "train": {"job_id": "round-001-train"},
+                        "train": {
+                            "job_id": "round-001-train",
+                            "candidate_artifact": sealed_record["candidate"],
+                            "candidate_failure_contract_hash": (
+                                TEST_CANDIDATE_FAILURE_CONTRACT.contract_hash
+                            ),
+                        },
                         "eval": {"job_id": "round-001-eval"},
                     },
                     "runner_error": {
                         "type": "CandidateRuntimeError",
                         "message": "candidate failed inside runner",
+                        "details": {
+                            "status": "fail",
+                            "subprocess_returncode": 1,
+                            "candidate_failure_contract": (
+                                TEST_CANDIDATE_FAILURE_CONTRACT.to_public_dict()
+                            ),
+                            "candidate_failure": (
+                                TEST_CANDIDATE_FAILURE_CONTRACT.evidence(
+                                    stage="reward_execution",
+                                    reason_code="runtime_rejected",
+                                ).to_public_dict()
+                            ),
+                        },
                     },
                 }
             )
@@ -499,6 +743,47 @@ class PromptSourceCatalogTests(unittest.TestCase):
         self.assertNotIn(str(candidate_dir), text)
         self.assertNotIn('"path"', json.dumps(payload["public_context"], sort_keys=True))
         assert_public_only_prompt_payload(payload)
+
+    def test_cross_round_mutable_failed_directory_is_not_a_source_authority(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            candidate_dir = Path(tmp) / "mutable-failed-candidate"
+            (candidate_dir / "training_code").mkdir(parents=True)
+            (candidate_dir / "training_code" / "components.py").write_text(
+                "def mutable_failed_reward(inp):\n    return inp.base_height\n",
+                encoding="utf-8",
+            )
+            record = {
+                "schema_version": LEDGER_RECORD_SCHEMA_V5,
+                "authoring_mode": NON_PROVIDER_AUTHORING_MODE,
+                "round_id": "round-001",
+                "parent_program_source_checksum": None,
+                "candidate": {
+                    "candidate_id": "mutable-failed-candidate",
+                    "path": str(candidate_dir),
+                    "changed_components": ["reward_callable"],
+                },
+                "decision": {
+                    "accepted": False,
+                    "outcome": "reject",
+                    "reason": "candidate_verifier_failed",
+                    "public_score": None,
+                },
+                "verifier": {"status": "fail"},
+            }
+
+            payload = build_prompt_payload(
+                public_context=build_prompt_source_context([record])
+            )
+
+        failed_item = _catalog_item(
+            payload,
+            "attempt/latest_failed/training_code/components.py",
+        )
+        self.assertEqual(failed_item["status"], "pending")
+        self.assertEqual(payload["source_payloads"], [])
+        self.assertNotIn("mutable_failed_reward", json.dumps(payload, sort_keys=True))
 
     def test_latest_evaluated_reject_exposes_source_for_next_round_repair(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -573,6 +858,47 @@ class PromptSourceCatalogTests(unittest.TestCase):
         self.assertNotIn(str(candidate_dir), payload_text)
         assert_public_only_prompt_payload(payload)
 
+    def test_prior_ledger_reject_does_not_compact_a_new_truncation_repair(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            candidate_dir = Path(tmp) / "candidate-prior-reject"
+            (candidate_dir / "training_code").mkdir(parents=True)
+            (candidate_dir / "training_code" / "components.py").write_text(
+                "def prior_reward(inp):\n    return inp.base_height\n",
+                encoding="utf-8",
+            )
+            rejected = _evaluated_reject_record(
+                "round-001",
+                "candidate-prior-reject",
+                candidate_dir,
+                0.20,
+            )
+            record = ExperimentRecord.from_ledger_record(rejected)
+            prompt = PublicContextBuilder().build_prompt(
+                [record],
+                candidate_repair_feedback={
+                    "schema_version": (
+                        "true_rl_agent.provider_repair_feedback.v1"
+                    ),
+                    "failure_category": "response_truncated",
+                },
+                frame_kind="static_repair",
+            ).provider_payload
+
+        failed_item = _catalog_item(
+            prompt,
+            "attempt/latest_failed/training_code/components.py",
+        )
+        self.assertEqual(
+            failed_item["source_owner"],
+            PRIOR_LEDGER_RECORD_SOURCE_OWNER,
+        )
+        self.assertFalse(has_inline_current_authoring_failed_source(prompt))
+        self.assertEqual(prompt["authoring_context_frame"]["omitted_sections"], [])
+        self.assertIn("public_history", prompt)
+        self.assertIn("selection_guidance", prompt)
+
     def test_bootstrap_anchor_keeps_best_observed_source_not_worse_latest_source(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -616,7 +942,11 @@ class PromptSourceCatalogTests(unittest.TestCase):
         self.assertEqual(lineage["status"], "bootstrap_observed_anchor")
         self.assertEqual(observed["round_id"], "round-001")
         self.assertEqual(observed["candidate_id"], "candidate-better")
-        self.assertEqual(observed["public_score"], 0.40)
+        self.assertEqual(observed["objective_score"], 0.40)
+        self.assertEqual(
+            observed["score_source"],
+            SOURCE_CATALOG_ACCEPTANCE_PROTOCOL.score_source,
+        )
         self.assertEqual(
             observed["source_logical_id"],
             "memory/best_observed/training_code/components.py",
@@ -649,6 +979,125 @@ class PromptSourceCatalogTests(unittest.TestCase):
             ],
         )
         assert_public_only_prompt_payload(payload)
+
+    def test_task_public_tiebreak_selects_better_equal_score_bootstrap_source(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            better_dir = root / "candidate-better"
+            worse_dir = root / "candidate-worse"
+            for candidate_dir, term_name in (
+                (better_dir, "better_reward"),
+                (worse_dir, "worse_reward"),
+            ):
+                (candidate_dir / "training_code").mkdir(parents=True)
+                (candidate_dir / "training_code" / "components.py").write_text(
+                    f"def {term_name}(inp):\n    return inp.base_height\n",
+                    encoding="utf-8",
+                )
+
+            better = _evaluated_reject_record(
+                "round-001", "candidate-better", better_dir, 0.0
+            )
+            worse = _evaluated_reject_record(
+                "round-002", "candidate-worse", worse_dir, 0.0
+            )
+            better["public_result"]["metrics"]["authoring_quality"] = 0.64
+            worse["public_result"]["metrics"]["authoring_quality"] = 0.13
+            payload = PublicContextBuilder(
+                task_prompt_adapter=_PublicQualityPromptAdapter(),
+            ).build_prompt_payload(
+                [
+                    ExperimentRecord.from_ledger_record(better),
+                    ExperimentRecord.from_ledger_record(worse),
+                ]
+            )
+
+        observed = payload["candidate_lineage"]["best_observed_experiment"]
+        payloads = {
+            item["logical_id"]: item for item in payload["source_payloads"]
+        }
+        self.assertEqual(observed["round_id"], "round-001")
+        self.assertEqual(observed["candidate_id"], "candidate-better")
+        self.assertIn(
+            "better_reward",
+            payloads["memory/best_observed/training_code/components.py"][
+                "content"
+            ],
+        )
+        self.assertIn(
+            "worse_reward",
+            payloads["attempt/latest_failed/training_code/components.py"][
+                "content"
+            ],
+        )
+
+    def test_task_public_tiebreak_rejects_malformed_values(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            candidate_dir = Path(tmp) / "candidate"
+            (candidate_dir / "training_code").mkdir(parents=True)
+            (candidate_dir / "training_code" / "components.py").write_text(
+                "def reward(inp):\n    return inp.base_height\n",
+                encoding="utf-8",
+            )
+            record = _evaluated_reject_record(
+                "round-001", "candidate", candidate_dir, 0.0
+            )
+
+            with self.assertRaisesRegex(
+                TypeError,
+                "tiebreak values must be finite numbers",
+            ):
+                PublicContextBuilder(
+                    task_prompt_adapter=_PublicQualityPromptAdapter(
+                        malformed=True
+                    ),
+                ).build_prompt_payload(
+                    [ExperimentRecord.from_ledger_record(record)]
+                )
+
+    def test_task_public_tiebreak_cannot_override_higher_public_score(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            higher_score_dir = root / "candidate-higher-score"
+            higher_quality_dir = root / "candidate-higher-quality"
+            for candidate_dir, term_name in (
+                (higher_score_dir, "higher_score_reward"),
+                (higher_quality_dir, "higher_quality_reward"),
+            ):
+                (candidate_dir / "training_code").mkdir(parents=True)
+                (candidate_dir / "training_code" / "components.py").write_text(
+                    f"def {term_name}(inp):\n    return inp.base_height\n",
+                    encoding="utf-8",
+                )
+
+            higher_score = _evaluated_reject_record(
+                "round-001",
+                "candidate-higher-score",
+                higher_score_dir,
+                0.1,
+            )
+            higher_quality = _evaluated_reject_record(
+                "round-002",
+                "candidate-higher-quality",
+                higher_quality_dir,
+                0.0,
+            )
+            higher_score["public_result"]["metrics"]["authoring_quality"] = 0.0
+            higher_quality["public_result"]["metrics"][
+                "authoring_quality"
+            ] = 100.0
+            payload = PublicContextBuilder(
+                task_prompt_adapter=_PublicQualityPromptAdapter(),
+            ).build_prompt_payload(
+                [
+                    ExperimentRecord.from_ledger_record(higher_score),
+                    ExperimentRecord.from_ledger_record(higher_quality),
+                ]
+            )
+
+        observed = payload["candidate_lineage"]["best_observed_experiment"]
+        self.assertEqual(observed["candidate_id"], "candidate-higher-score")
+        self.assertEqual(observed["objective_score"], 0.1)
 
     def test_runtime_failed_source_is_dropped_after_intervening_accept(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -779,30 +1228,34 @@ class PromptSourceCatalogTests(unittest.TestCase):
     def test_candidate_components_symlink_is_rejected_before_resolving_target(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             candidate_dir = Path(tmp) / "candidate-symlink"
+            _write_unsealed_candidate_support_files(
+                candidate_dir,
+                "candidate-symlink",
+            )
             training_dir = candidate_dir / "training_code"
-            training_dir.mkdir(parents=True)
             link_path = training_dir / "components.py"
-            target_path = training_dir / "real_components.py"
+            target_path = Path(tmp) / "real_components.py"
             target_path.write_text("def symlink_target_reward(inp):\n    return inp.base_height\n", encoding="utf-8")
+            link_path.write_text("placeholder", encoding="utf-8")
             failed_candidate = CandidatePackageRef(
                 candidate_id="candidate-symlink",
                 path=str(candidate_dir),
                 change_set=CandidateChangeSet(frozenset({"reward_callable"})),
             )
 
-            original_resolve = Path.resolve
-
-            def fake_resolve(path: Path, *args, **kwargs) -> Path:
-                if path == link_path:
-                    return target_path
-                return original_resolve(path, *args, **kwargs)
-
-            def fake_is_symlink(path: Path) -> bool:
-                return path == link_path
-
-            with patch.object(Path, "resolve", fake_resolve), patch.object(Path, "is_symlink", fake_is_symlink):
+            with patch(
+                "true_rl_agent.prompting.source_catalog."
+                "preflight_candidate_package",
+                side_effect=CandidatePackageContractError(
+                    "candidate package does not allow symlinks",
+                    issue="symlink_path:training_code/components.py",
+                ),
+            ):
                 payload = build_prompt_payload(
-                    public_context=build_prompt_source_context([], latest_failed_candidate=failed_candidate)
+                    public_context=build_prompt_source_context(
+                        [],
+                        latest_failed_candidate=failed_candidate,
+                    )
                 )
 
         failed_item = _catalog_item(payload, "attempt/latest_failed/training_code/components.py")
@@ -814,10 +1267,13 @@ class PromptSourceCatalogTests(unittest.TestCase):
         self.assertNotIn("symlink_target_reward", text)
         assert_public_only_prompt_payload(payload)
 
-    def test_oversized_latest_failed_source_is_omitted_but_metadata_remains(self) -> None:
+    def test_oversized_latest_failed_source_is_rejected_by_package_boundary(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             candidate_dir = Path(tmp) / "candidate-failed-large"
-            (candidate_dir / "training_code").mkdir(parents=True)
+            _write_unsealed_candidate_support_files(
+                candidate_dir,
+                "candidate-failed-large",
+            )
             oversized = "def failed_large_reward(inp):\n    return inp.base_height\n" + (
                 "# filler\n" * (MAX_PROMPT_SOURCE_INLINE_BYTES // 4)
             )
@@ -828,17 +1284,31 @@ class PromptSourceCatalogTests(unittest.TestCase):
                 change_set=CandidateChangeSet(frozenset({"reward_callable"})),
             )
 
-            payload = build_prompt_payload(
-                public_context=build_prompt_source_context([], latest_failed_candidate=failed_candidate)
-            )
+            with patch(
+                "true_rl_agent.prompting.source_catalog."
+                "open_preflighted_candidate_file",
+                side_effect=AssertionError(
+                    "oversized unsealed source must fail before open"
+                ),
+            ):
+                payload = build_prompt_payload(
+                    public_context=build_prompt_source_context(
+                        [],
+                        latest_failed_candidate=failed_candidate,
+                    )
+                )
 
         failed_item = _catalog_item(payload, "attempt/latest_failed/training_code/components.py")
         text = json.dumps(payload, sort_keys=True)
 
         self.assertEqual(payload["candidate_lineage"]["status"], "none")
-        self.assertEqual(failed_item["status"], "omitted_over_budget")
-        self.assertIsNotNone(failed_item["content_sha256"])
-        self.assertGreater(failed_item["bytes"], MAX_PROMPT_SOURCE_INLINE_BYTES)
+        self.assertEqual(failed_item["status"], "pending")
+        self.assertEqual(
+            failed_item["pending_reason"],
+            "candidate_components_source_exceeds_package_limit",
+        )
+        self.assertNotIn("content_sha256", failed_item)
+        self.assertNotIn("bytes", failed_item)
         self.assertEqual(payload["source_payloads"], [])
         self.assertNotIn("# filler", text)
         assert_public_only_prompt_payload(payload)
@@ -895,6 +1365,31 @@ class PromptSourceCatalogTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             build_prompt_payload(public_context=sections)
 
+    def test_prompt_payload_requires_lineage_objective_score_source(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            candidate_dir = Path(tmp) / "candidate-inline"
+            (candidate_dir / "training_code").mkdir(parents=True)
+            (candidate_dir / "training_code" / "components.py").write_text(
+                "def stable_reward(inp):\n    return 0.0\n",
+                encoding="utf-8",
+            )
+            sections = build_prompt_source_context(
+                [
+                    ExperimentRecord.from_ledger_record(
+                        _accepted_record(
+                            "round-001",
+                            "candidate-001",
+                            candidate_dir,
+                            0.2,
+                        )
+                    )
+                ]
+            )
+            sections["candidate_lineage"]["current_best"].pop("score_source")
+
+        with self.assertRaisesRegex(ValueError, "score_source"):
+            build_prompt_payload(public_context=sections)
+
     def test_prompt_payload_rejects_bootstrap_anchor_with_policy_best_authority(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             candidate_dir = Path(tmp) / "candidate-rejected"
@@ -919,28 +1414,163 @@ class PromptSourceCatalogTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "invalid authority"):
             build_prompt_payload(public_context=sections)
 
-    def test_over_read_budget_current_best_source_keeps_hash_bytes_and_summary(self) -> None:
+    def test_over_read_budget_current_best_source_is_never_read_for_hashing(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             candidate_dir = Path(tmp) / "candidate-huge"
             (candidate_dir / "training_code").mkdir(parents=True)
             source = "def huge_reward(inp):\n    return 0.0\n" + ("# filler\n" * (MAX_PROMPT_SOURCE_READ_BYTES // 4))
             (candidate_dir / "training_code" / "components.py").write_text(source, encoding="utf-8")
 
-            payload = PublicContextBuilder().build_prompt_payload(
-                [_accepted_record("round-001", "candidate-huge", candidate_dir, 0.4)]
+            accepted = _accepted_record(
+                "round-001",
+                "candidate-huge",
+                candidate_dir,
+                0.4,
             )
+            with patch(
+                "true_rl_agent.prompting.source_catalog."
+                "open_preflighted_candidate_file",
+                side_effect=AssertionError(
+                    "over-read-budget source must not be opened"
+                ),
+            ):
+                payload = PublicContextBuilder().build_prompt_payload(
+                    [accepted]
+                )
 
         current_best = payload["candidate_lineage"]["current_best"]
         catalog_item = _catalog_item(payload, "current_best/training_code/components.py")
 
         self.assertEqual(current_best["source_delivery"], "omitted_over_budget")
         self.assertEqual(catalog_item["status"], "omitted_over_budget")
-        self.assertIsNotNone(catalog_item["content_sha256"])
-        self.assertIsNotNone(current_best["source_sha256"])
-        self.assertEqual(catalog_item["content_sha256"], current_best["source_sha256"])
+        self.assertNotIn("content_sha256", catalog_item)
+        self.assertIsNone(current_best["current_head_prompt_content_sha256"])
         self.assertGreater(catalog_item["bytes"], MAX_PROMPT_SOURCE_READ_BYTES)
         self.assertIn("read budget", current_best["source_summary"])
         self.assertEqual(payload["source_payloads"], [])
+
+    def test_source_reader_binds_swap_and_preserves_sparse_sealed_compatibility(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            current = root / "current"
+            _write_unsealed_candidate_support_files(current, "current")
+            source_path = current / "training_code" / "components.py"
+            source_path.write_text(
+                "def original(inputs):\n    return inputs.base_height\n",
+                encoding="utf-8",
+            )
+            replacement = root / "replacement.py"
+            replacement.write_text(
+                "def swapped(inputs):\n    return inputs.base_height\n",
+                encoding="utf-8",
+            )
+            swapped = False
+
+            @contextmanager
+            def swap_before_open(preflight, relative_path):
+                nonlocal swapped
+                if not swapped and relative_path == "training_code/components.py":
+                    replacement.replace(source_path)
+                    swapped = True
+                with open_preflighted_candidate_file(
+                    preflight,
+                    relative_path,
+                ) as handle:
+                    yield handle
+
+            with patch(
+                "true_rl_agent.prompting.source_catalog."
+                "open_preflighted_candidate_file",
+                side_effect=swap_before_open,
+            ):
+                changed = _read_candidate_components(
+                    current,
+                    sealed_artifact=False,
+                )
+
+            legacy_dir = root / "legacy-sparse"
+            (legacy_dir / "training_code").mkdir(parents=True)
+            (legacy_dir / "training_code" / "components.py").write_text(
+                "def legacy(inputs):\n    return inputs.base_height\n",
+                encoding="utf-8",
+            )
+            accepted = _accepted_record(
+                "round-001",
+                "legacy-sparse",
+                legacy_dir,
+                0.4,
+            )
+            sealed_root = Path(accepted["private_artifacts"][0]["uri"])
+            for relative_path in (
+                "rationale.md",
+                "operation_diff.json",
+                "diagnostics.json",
+            ):
+                (sealed_root / relative_path).unlink()
+            legacy = _read_candidate_components(
+                sealed_root,
+                sealed_artifact=True,
+            )
+
+        self.assertTrue(swapped)
+        self.assertEqual(
+            changed["pending_reason"],
+            "candidate_components_source_changed_during_read",
+        )
+        self.assertEqual(legacy["status"], "available")
+        self.assertIn("def legacy", legacy["content"])
+
+    def test_source_catalog_projects_legacy_sparse_sealed_sources(self) -> None:
+        for accepted in (True, False):
+            with self.subTest(accepted=accepted), tempfile.TemporaryDirectory() as tmp:
+                candidate_id = (
+                    "legacy-sparse-accepted"
+                    if accepted
+                    else "legacy-sparse-rejected"
+                )
+                candidate_dir = Path(tmp) / candidate_id
+                (candidate_dir / "training_code").mkdir(parents=True)
+                (candidate_dir / "training_code" / "components.py").write_text(
+                    f"def {candidate_id.replace('-', '_')}(inputs):\n"
+                    "    return inputs.base_height\n",
+                    encoding="utf-8",
+                )
+                if accepted:
+                    record = _accepted_record(
+                        "round-001",
+                        candidate_id,
+                        candidate_dir,
+                        0.4,
+                        legacy_sparse_sealed=True,
+                    )
+                    payload = PublicContextBuilder().build_prompt_payload(
+                        [record]
+                    )
+                    logical_id = "current_best/training_code/components.py"
+                else:
+                    record = _evaluated_reject_record(
+                        "round-001",
+                        candidate_id,
+                        candidate_dir,
+                        0.2,
+                        legacy_sparse_sealed=True,
+                    )
+                    payload = PublicContextBuilder().build_prompt_payload(
+                        [ExperimentRecord.from_ledger_record(record)]
+                    )
+                    logical_id = (
+                        "attempt/latest_failed/training_code/components.py"
+                    )
+
+                source = next(
+                    item
+                    for item in payload["source_payloads"]
+                    if item["logical_id"] == logical_id
+                )
+
+            self.assertIn(candidate_id.replace("-", "_"), source["content"])
 
 def _accepted_record(
     round_id: str,
@@ -951,14 +1581,104 @@ def _accepted_record(
     current_best_score: float | None = None,
     current_best_round_id: str | None = None,
     current_best_candidate_id: str | None = None,
+    legacy_sparse_sealed: bool = False,
 ) -> dict:
     protocol_hash = SOURCE_CATALOG_EVALUATION_PROTOCOL.protocol_hash
     checkpoint_hash = "sha256:" + "f" * 64
-    source_path = candidate_dir / "training_code" / "components.py"
-    source_checksum = "sha256:" + hashlib.sha256(source_path.read_bytes()).hexdigest()
-    subject_manifest_hash = hashlib.sha256(
-        f"candidate-manifest:{candidate_id}".encode("utf-8")
-    ).hexdigest()
+    _write_unsealed_candidate_support_files(candidate_dir, candidate_id)
+    candidate = CandidatePackageRef(
+        candidate_id=candidate_id,
+        path=str(candidate_dir),
+        change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+    )
+    source_size = (candidate_dir / "training_code" / "components.py").stat().st_size
+    if source_size > CANDIDATE_PACKAGE_FILE_MAX_BYTES["training_code/components.py"]:
+        def legacy_preflight(candidate_root, **kwargs):
+            return preflight_candidate_package(
+                candidate_root,
+                sealed_artifact=kwargs.get("sealed_artifact", False),
+                enforce_size_limits=False,
+            )
+
+        with patch(
+            "true_rl_agent.candidates.artifact.preflight_candidate_package",
+            side_effect=legacy_preflight,
+        ), patch(
+            "true_rl_agent.training_programs.preflight_candidate_package",
+            side_effect=legacy_preflight,
+        ):
+            sealed = seal_candidate_package(
+                candidate,
+                artifact_root=candidate_dir.parent / ".sealed-candidate-artifacts",
+            )
+    else:
+        sealed = seal_candidate_package(
+            candidate,
+            artifact_root=candidate_dir.parent / ".sealed-candidate-artifacts",
+        )
+    if legacy_sparse_sealed:
+        sealed_root = Path(sealed.path)
+        for relative_path in (
+            "rationale.md",
+            "operation_diff.json",
+            "diagnostics.json",
+        ):
+            (sealed_root / relative_path).unlink()
+        artifact_manifest_path = (
+            sealed_root / CANDIDATE_ARTIFACT_MANIFEST_FILENAME
+        )
+        artifact_manifest = json.loads(
+            artifact_manifest_path.read_text(encoding="utf-8")
+        )
+        artifact_manifest["files"] = [
+            item
+            for item in artifact_manifest["files"]
+            if item["path"]
+            in {"candidate_manifest.yaml", "training_code/components.py"}
+        ]
+        artifact_manifest["artifact_hash"] = canonical_json_hash(
+            {
+                key: value
+                for key, value in artifact_manifest.items()
+                if key != "artifact_hash"
+            }
+        )
+        artifact_manifest_path.write_bytes(
+            canonical_json_bytes(artifact_manifest, trailing_newline=True)
+        )
+        sealed = load_sealed_candidate_artifact(
+            sealed_root,
+            change_set=candidate.change_set,
+            expected_candidate_id=candidate_id,
+        )
+    source_checksum = sealed.program_source_checksum
+    subject_manifest_hash = sealed.subject_manifest_hash
+    verification_policy = "test.source_catalog.admission.v1"
+    verification_policy_hash = "3" * 64
+    verifier_evidence = {
+        "status": "pass",
+        "reason": "test_candidate_verified",
+        "details": {
+            "verification_policy_id": verification_policy,
+            "verification_policy_hash": verification_policy_hash,
+        },
+        "verified_program_identity": {
+            "candidate_id": candidate_id,
+            "subject_manifest_hash": sealed.subject_manifest_hash,
+            "program_source_checksum": sealed.program_source_checksum,
+            "program_source_size_bytes": sealed.program_source_size_bytes,
+            "candidate_artifact_hash": sealed.artifact_hash,
+        },
+    }
+    candidate_artifact = {
+        **sealed.to_public_dict(),
+        "verification": {
+            "status": "pass",
+            "policy": verification_policy,
+            "policy_hash": verification_policy_hash,
+            "verification_hash": canonical_json_hash(verifier_evidence),
+        },
+    }
     sealed_seed_count = 7
     score_stats = {
         "count": 1,
@@ -1009,7 +1729,12 @@ def _accepted_record(
             expected_evaluation_binding=SOURCE_CATALOG_EVALUATION_BINDING,
         )
     return {
+        "schema_version": LEDGER_RECORD_SCHEMA_V5,
+        "authoring_mode": NON_PROVIDER_AUTHORING_MODE,
         "round_id": round_id,
+        "parent_program_source_checksum": (
+            current_best.program_source_checksum
+        ),
         "session_genesis_hash": SOURCE_CATALOG_SESSION_GENESIS_HASH,
         "evaluation_binding": (
             SOURCE_CATALOG_EVALUATION_BINDING.to_public_dict()
@@ -1055,17 +1780,20 @@ def _accepted_record(
             "consumed_gates": list(required_gates),
             "gate_statuses": {gate: "pass" for gate in required_gates},
         },
-        "candidate": {
-            "candidate_id": candidate_id,
-            "path": str(candidate_dir),
-            "changed_components": ["reward_callable"],
-        },
+        "candidate": {**candidate_artifact, "path": sealed.path},
+        "private_artifacts": [
+            {
+                "kind": "candidate_artifact",
+                "uri": sealed.path,
+                "reason": "candidate_source_resolution",
+            }
+        ],
         "candidate_surface": {
             "classification": "code_level",
             "eligible_for_policy_accept": True,
             "reason": "code_level_candidate",
         },
-        "verifier": {"status": "pass"},
+        "verifier": verifier_evidence,
         "jobs": {
             "train": {
                 "job_id": f"{round_id}-train",
@@ -1082,6 +1810,7 @@ def _accepted_record(
                         SOURCE_CATALOG_CAPABILITY_PROFILE_HASH
                     ),
                 },
+                "candidate_artifact": candidate_artifact,
             },
             "eval": {
                 "job_id": f"{round_id}-eval",
@@ -1190,12 +1919,15 @@ def _evaluated_reject_record(
     candidate_id: str,
     candidate_dir: Path,
     public_score: float,
+    *,
+    legacy_sparse_sealed: bool = False,
 ) -> dict:
     record = _accepted_record(
         round_id,
         candidate_id,
         candidate_dir,
         public_score,
+        legacy_sparse_sealed=legacy_sparse_sealed,
     )
     required = record["public_result"]["metrics"]["acceptance"][
         "required_pass_gates"

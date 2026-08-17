@@ -7,6 +7,7 @@ from typing import Any, Mapping
 
 from true_rl_agent.agent_core.context import sanitize_public_context
 from true_rl_agent.evaluation.binding import require_sha256_checksum
+from true_rl_agent.prompt_artifacts import PromptPayloadRef
 
 
 @dataclass(frozen=True)
@@ -16,6 +17,7 @@ class PrivateArtifactRef:
     kind: str
     uri: str
     checksum: str | None = None
+    size_bytes: int | None = None
     reason: str | None = None
 
     def __post_init__(self) -> None:
@@ -24,6 +26,12 @@ class PrivateArtifactRef:
                 self.checksum,
                 "private artifact checksum",
             )
+        if self.size_bytes is not None and (
+            isinstance(self.size_bytes, bool)
+            or not isinstance(self.size_bytes, int)
+            or self.size_bytes <= 0
+        ):
+            raise ValueError("private artifact size_bytes must be positive")
 
     def to_private_dict(self) -> dict[str, Any]:
         data: dict[str, Any] = {
@@ -32,6 +40,8 @@ class PrivateArtifactRef:
         }
         if self.checksum is not None:
             data["checksum"] = self.checksum
+        if self.size_bytes is not None:
+            data["size_bytes"] = self.size_bytes
         if self.reason is not None:
             data["reason"] = self.reason
         return data
@@ -42,21 +52,6 @@ class PrivateArtifactRef:
             "visibility": "not_prompt_visible",
             "included_in_prompt": False,
         }
-
-
-@dataclass(frozen=True)
-class PromptPayloadRef:
-    """Public prompt payload artifact reference."""
-
-    path: str
-    visibility: str = "public_prompt_payload"
-
-    def to_public_dict(self) -> dict[str, str]:
-        return {
-            "path": self.path,
-            "visibility": self.visibility,
-        }
-
 
 @dataclass(frozen=True)
 class ExperimentRecord:
@@ -76,11 +71,17 @@ class ExperimentRecord:
         private_artifacts: tuple[PrivateArtifactRef, ...] = (),
         prompt_payload_ref: PromptPayloadRef | None = None,
     ) -> "ExperimentRecord":
+        from true_rl_agent.agent_core.ledger import dispatch_ledger_record_schema
+
+        descriptor = dispatch_ledger_record_schema(ledger_record)
+        identity_field = (
+            "generation_id" if descriptor.record_kind == "generation" else "round_id"
+        )
         artifacts = _dedupe_private_artifacts(
             (*private_artifacts, *_private_artifacts_from_ledger_record(ledger_record))
         )
         return cls(
-            round_id=str(ledger_record.get("round_id", "")),
+            round_id=str(ledger_record.get(identity_field, "")),
             public_record=sanitize_public_context(_prompt_public_ledger_record(ledger_record)),
             private_artifacts=artifacts,
             prompt_payload_ref=prompt_payload_ref,
@@ -88,6 +89,17 @@ class ExperimentRecord:
 
     def ledger_public_record(self) -> dict[str, Any]:
         return sanitize_public_context(dict(self.public_record))
+
+    def replay_record(self) -> dict[str, Any]:
+        """Restore private artifact refs only for trusted replay validation."""
+
+        record = dict(self.public_record)
+        if self.private_artifacts:
+            record["private_artifacts"] = [
+                artifact.to_private_dict()
+                for artifact in self.private_artifacts
+            ]
+        return record
 
     def to_public_dict(self) -> dict[str, Any]:
         data: dict[str, Any] = {
@@ -124,6 +136,12 @@ def _private_artifacts_from_ledger_record(ledger_record: Mapping[str, Any]) -> t
                         kind=kind,
                         uri=uri,
                         checksum=item.get("checksum") if isinstance(item.get("checksum"), str) else None,
+                        size_bytes=(
+                            item.get("size_bytes")
+                            if isinstance(item.get("size_bytes"), int)
+                            and not isinstance(item.get("size_bytes"), bool)
+                            else None
+                        ),
                         reason=item.get("reason") if isinstance(item.get("reason"), str) else None,
                     )
                 )

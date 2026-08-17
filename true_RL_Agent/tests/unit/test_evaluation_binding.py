@@ -75,6 +75,10 @@ class EvaluationBindingTests(unittest.TestCase):
             "x://y",
             "candidate id",
             "candidate:id",
+            "Candidate",
+            "a.",
+            "nul",
+            "con.txt",
             "a" * 129,
         ):
             with self.subTest(subject_id=subject_id):
@@ -89,6 +93,23 @@ class EvaluationBindingTests(unittest.TestCase):
                     "candidate_path": "forbidden",
                 }
             )
+
+    def test_candidate_subject_deserialization_uses_shared_candidate_id_contract(self) -> None:
+        for subject_id in ("Candidate", "a.", "nul", "con.txt"):
+            with self.subTest(subject_id=subject_id):
+                with self.assertRaises(ValueError):
+                    ExperimentSubject.from_mapping(
+                        {
+                            "schema_version": "true_rl_agent.experiment.subject.v2",
+                            "kind": "candidate",
+                            "id": subject_id,
+                        }
+                    )
+
+        self.assertEqual(
+            ExperimentSubject.baseline("Official-Baseline").subject_id,
+            "Official-Baseline",
+        )
 
     def test_binding_hash_covers_every_comparison_domain_constituent(self) -> None:
         binding = make_evaluation_binding()
@@ -138,6 +159,7 @@ class EvaluationBindingTests(unittest.TestCase):
             public_seed_count=3,
             sealed_validation_seed_count=7,
             evaluation_binding=binding,
+            execution_device="cuda:0",
         )
         baseline = BaselineEvalJobSpec(
             job_id="baseline-eval",
@@ -149,6 +171,7 @@ class EvaluationBindingTests(unittest.TestCase):
             public_seed_count=3,
             sealed_validation_seed_count=7,
             evaluation_binding=binding,
+            execution_device="cuda:0",
         )
         self.assertEqual(candidate.evaluation_subject().kind, "candidate")
         self.assertEqual(
@@ -230,6 +253,7 @@ class EvaluationBindingTests(unittest.TestCase):
             public_seed_count=3,
             sealed_validation_seed_count=7,
             evaluation_binding=binding,
+            execution_device="cuda:0",
         )
         baseline = BaselineEvalJobSpec(
             job_id="baseline-eval",
@@ -246,6 +270,7 @@ class EvaluationBindingTests(unittest.TestCase):
             public_seed_count=3,
             sealed_validation_seed_count=7,
             evaluation_binding=binding,
+            execution_device="cuda:0",
         )
         for spec in (candidate, baseline):
             for field_name in (
@@ -333,6 +358,7 @@ class EvaluationBindingTests(unittest.TestCase):
             public_seed_count=3,
             sealed_validation_seed_count=7,
             evaluation_binding=make_evaluation_binding(),
+            execution_device="cuda:0",
         )
 
         seal = build_trusted_eval_seal(

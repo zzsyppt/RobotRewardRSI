@@ -26,6 +26,7 @@ from true_rl_agent.runner.isaac_app_lifecycle import (  # noqa: E402
     close_isaac_app_on_success,
 )
 from true_rl_agent.tasks.stair_climbing.config import (  # noqa: E402
+    STAIR_PROTOCOL_V2_RELATIVE_PATH,
     StairClimbingTaskConfig,
 )
 from true_rl_agent.tasks.stair_climbing.reference_program import (  # noqa: E402
@@ -50,7 +51,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
 args = _build_parser().parse_args()
 config = StairClimbingTaskConfig.defaults(
-    PROJECT_ROOT / "configs" / "tasks" / "stair_protocol_v2_draft.json"
+    PROJECT_ROOT / STAIR_PROTOCOL_V2_RELATIVE_PATH
 )
 official = resolve_official_stair_reference_program(
     config,
@@ -80,6 +81,7 @@ from true_rl_agent.tasks.stair_climbing.isaaclab_runtime_env import (  # noqa: E
 )
 from true_rl_agent.tasks.stair_climbing.isaaclab_training import (  # noqa: E402
     configure_stair_rsl_rl_agent,
+    verify_stair_rsl_rl_observation_groups,
 )
 from true_rl_agent.tasks.stair_climbing.runtime_profile import (  # noqa: E402
     STAIR_TRAIN_GYM_ID,
@@ -112,6 +114,9 @@ def main() -> int:
             seed=config.train_seed,
             device=str(args.device),
             reward_program=official.reward_program,
+            runner_owned_training_distribution=(
+                config.protocol_v2.runner_owned_training_distribution
+            ),
         )
         env_cfg.scene.num_envs = SMOKE_NUM_ENVS
         if env_cfg.recorders is not None:
@@ -126,8 +131,9 @@ def main() -> int:
             num_steps_per_env=SMOKE_NUM_STEPS_PER_ENV,
             max_iterations=SMOKE_MAX_ITERATIONS,
             save_interval=1,
-            run_name="phase_c_smoke",
-            experiment_name="true_rl_agent_stair_phase_c_smoke",
+            run_name="phase_d_final_smoke",
+            experiment_name="true_rl_agent_stair_phase_d_final_smoke",
+            execution_contract=execution,
         )
 
         env = gym.make(STAIR_TRAIN_GYM_ID, cfg=env_cfg, render_mode=None)
@@ -144,7 +150,7 @@ def main() -> int:
             reward_program=official.reward_program,
         )
 
-        run_dir = output_path.parent / f"phase-c-rsl-smoke-{uuid.uuid4().hex}"
+        run_dir = output_path.parent / f"stair-rsl-smoke-{uuid.uuid4().hex}"
         log_dir = run_dir / "rsl_rl"
         wrapped_env = RslRlVecEnvWrapper(
             env,
@@ -155,6 +161,13 @@ def main() -> int:
             agent_cfg.to_dict(),
             log_dir=str(log_dir),
             device=agent_cfg.device,
+        )
+        resolved_observation_groups = verify_stair_rsl_rl_observation_groups(
+            runner,
+            execution_contract=execution,
+        )
+        effective_agent["resolved_observation_groups"] = (
+            resolved_observation_groups
         )
         runner.add_git_repo_to_log(__file__)
         ppo_evidence: dict[str, Any] = {
@@ -293,7 +306,7 @@ def main() -> int:
 
         report = {
             "schema_version": (
-                "true_rl_agent.task.stair_climbing.phase_c_rsl_rl_smoke.v1"
+                "true_rl_agent.task.stair_climbing.phase_d_final_rsl_rl_smoke.v1"
             ),
             "status": "pass",
             "protocol_v2_hash": config.protocol_v2.protocol_hash,
@@ -344,7 +357,7 @@ def main() -> int:
     except Exception as exc:  # noqa: BLE001 - probe must preserve one report
         report = {
             "schema_version": (
-                "true_rl_agent.task.stair_climbing.phase_c_rsl_rl_smoke.v1"
+                "true_rl_agent.task.stair_climbing.phase_d_final_rsl_rl_smoke.v1"
             ),
             "status": "fail",
             "protocol_v2_hash": config.protocol_v2.protocol_hash,

@@ -18,7 +18,12 @@ from true_rl_agent.candidates.artifact import (
 )
 from true_rl_agent.candidates.capability_profile import CandidateCapabilityProfile
 from true_rl_agent.candidates.schema import CandidatePackageRef, CandidateSurfacePolicy
-from true_rl_agent.candidates.verifier import CandidateVerifier, VerificationResult
+from true_rl_agent.candidates.verifier import (
+    CandidateAdmissionPolicyDescriptor,
+    CandidateVerifier,
+    VerificationResult,
+    static_verifier_prompt_rules,
+)
 from true_rl_agent.evaluation.acceptance_protocol import (
     PUBLIC_SCORE_BINDING_ACCEPTANCE_MEAN,
     AcceptanceProtocol,
@@ -40,6 +45,8 @@ from true_rl_agent.policy_baselines import BaselineManifest
 from true_rl_agent.runner.base import Runner, TrainJobResult
 from true_rl_agent.runner.checkpoint import CheckpointSafetyReport, seal_checkpoint
 from true_rl_agent.runner.eval_isolation import build_candidate_isolation_gate
+from true_rl_agent.runner.initial_policy import InitialPolicyStatePairing
+from true_rl_agent.runner.job_attempts import JobAttemptScope
 from true_rl_agent.runner.specs import (
     BaselineEvalJobSpec,
     CheckpointOutputPlan,
@@ -57,13 +64,19 @@ from true_rl_agent.training_programs import CandidateProgramIdentity
 
 FAKE_ACCEPTANCE_PROTOCOL = AcceptanceProtocol(
     protocol_id="fake_acceptance_v1",
-    score_source="fake.public_accept.score_stats.mean",
+    score_source="public_accept.score_stats.mean",
     min_score_count=3,
     absolute_accept_floor=0.05,
     min_delta=0.05,
     public_score_binding=PUBLIC_SCORE_BINDING_ACCEPTANCE_MEAN,
 )
 FAKE_SESSION_GENESIS_HASH = "f" * 64
+FAKE_CANDIDATE_ADMISSION_POLICY_ID = (
+    "true_rl_agent.tests.fake_candidate_admission.v1"
+)
+FAKE_CANDIDATE_ADMISSION_POLICY_HASH = canonical_json_hash(
+    {"schema_version": FAKE_CANDIDATE_ADMISSION_POLICY_ID}
+)
 FAKE_CAPABILITY_PROFILE = CandidateCapabilityProfile(
     profile_id="fake_candidate_capabilities_v1",
     capability_ids=(
@@ -182,7 +195,7 @@ def prepare_fake_session_genesis(
     task_plugin: TaskPlugin | None = None,
     backend_adapter: BackendAdapter | None = None,
     runner: Runner | None = None,
-    runtime_snapshot: dict[str, object] | None = None,
+    genesis_identity_snapshot: dict[str, object] | None = None,
 ) -> VerifiedSessionGenesis:
     plugin = task_plugin or FakeTaskPlugin()
     backend = backend_adapter or FakeBackendAdapter()
@@ -193,7 +206,9 @@ def prepare_fake_session_genesis(
         backend_adapter=backend,
         runner=runner or FakeRunner(),
         policy_initialization=PolicyInitialization.random(),
-        runtime_snapshot=runtime_snapshot or {"test_fixture": "fake_session_v1"},
+        genesis_identity_snapshot=(
+            genesis_identity_snapshot or {"test_fixture": "fake_session_v1"}
+        ),
         bootstrap_initial_best_score=initial_best_score,
     )
 class FakeTaskPlugin(TaskPlugin):
@@ -239,6 +254,13 @@ class FakeTaskPlugin(TaskPlugin):
 
 class FakeBackendAdapter(BackendAdapter):
     @property
+    def candidate_admission_policy_identity(self) -> tuple[str, str]:
+        return (
+            FAKE_CANDIDATE_ADMISSION_POLICY_ID,
+            FAKE_CANDIDATE_ADMISSION_POLICY_HASH,
+        )
+
+    @property
     def backend_spec(self) -> BackendSpec:
         return BackendSpec(
             backend_id="fake_backend",
@@ -258,7 +280,12 @@ class FakeBackendAdapter(BackendAdapter):
         candidate: VerifiedCandidateArtifactRef,
         policy_initialization: PolicyInitialization,
         evaluation_binding: EvaluationBindingV1 | None = None,
+        expected_initial_policy_state_hash: str | None = None,
+        backend_execution_environment_manifest_hash: str | None = None,
+        train_attempt_scope: JobAttemptScope | None = None,
+        eval_attempt_scope: JobAttemptScope | None = None,
     ) -> BackendJobBundle:
+        _ = backend_execution_environment_manifest_hash
         evaluation_binding = evaluation_binding or self.evaluation_binding_for(
             task_spec
         )
@@ -283,8 +310,13 @@ class FakeBackendAdapter(BackendAdapter):
             policy_initialization=policy_initialization,
             training_binding=training_binding,
             budget_steps=128,
+            execution_device="cuda:0",
             metadata=metadata,
             candidate_artifact=candidate,
+            expected_initial_policy_state_hash=(
+                expected_initial_policy_state_hash
+            ),
+            attempt_scope=train_attempt_scope,
         )
         planned_checkpoint = CheckpointOutputPlan(
             uri=f"artifact://{round_id}/{candidate.candidate_id}/planned.pt",
@@ -300,9 +332,11 @@ class FakeBackendAdapter(BackendAdapter):
             checkpoint=None,
             public_seed_count=4,
             evaluation_binding=evaluation_binding,
+            execution_device="cuda:0",
             sealed_validation_seed_count=8,
             checkpoint_output_plan=planned_checkpoint,
             metadata=metadata,
+            attempt_scope=eval_attempt_scope,
         )
         return BackendJobBundle(train_spec=train_spec, eval_spec=eval_spec)
 
@@ -330,6 +364,7 @@ class FakeBackendAdapter(BackendAdapter):
             checkpoint=baseline_manifest.checkpoint,
             public_seed_count=4,
             evaluation_binding=evaluation_binding,
+            execution_device="cuda:0",
             sealed_validation_seed_count=8,
             metadata={"fake_public_score": 0.25},
         )
@@ -355,6 +390,33 @@ class FakeRunner(Runner):
             "feature_activation_records": ["fake_feature_projection"] if "recovery_logic" in changed_components else [],
             "capability_activation_records": sorted(changed_components),
         }
+        initial_policy_state_pairing = (
+            InitialPolicyStatePairing(
+                expected_initial_policy_state_hash=(
+                    train_spec.expected_initial_policy_state_hash
+                ),
+                actual_initial_policy_state_hash=(
+                    train_spec.expected_initial_policy_state_hash
+                ),
+                match=True,
+            )
+            if train_spec.expected_initial_policy_state_hash is not None
+            else None
+        )
+        checkpoint_metadata = {
+            "training_subject": train_spec.subject.to_public_dict(),
+            "subject_manifest_hash": train_spec.subject_manifest_hash,
+            "program_source_checksum": train_spec.program_source_checksum,
+            "training_binding_hash": train_spec.training_binding.binding_hash,
+            "capability_profile_hash": (
+                train_spec.training_binding.capability_profile_hash
+            ),
+            "execution_device": train_spec.execution_device,
+        }
+        if initial_policy_state_pairing is not None:
+            checkpoint_metadata["initial_policy_state_pairing"] = (
+                initial_policy_state_pairing.to_public_dict()
+            )
         raw_checkpoint = CheckpointRef(
             uri=f"artifact://{train_spec.job_id}/best.pt",
             checksum=(
@@ -364,15 +426,7 @@ class FakeRunner(Runner):
                 ).hexdigest()
             ),
             role="train_output",
-            metadata={
-                "training_subject": train_spec.subject.to_public_dict(),
-                "subject_manifest_hash": train_spec.subject_manifest_hash,
-                "program_source_checksum": train_spec.program_source_checksum,
-                "training_binding_hash": train_spec.training_binding.binding_hash,
-                "capability_profile_hash": (
-                    train_spec.training_binding.capability_profile_hash
-                ),
-            },
+            metadata=checkpoint_metadata,
         )
         checkpoint = seal_checkpoint(
             raw_checkpoint,
@@ -387,7 +441,9 @@ class FakeRunner(Runner):
             capability_profile_hash=(
                 train_spec.training_binding.capability_profile_hash
             ),
+            execution_device=train_spec.execution_device,
             checkpoint=checkpoint,
+            initial_policy_state_pairing=initial_policy_state_pairing,
             summary={
                 "formal_training_executed": False,
                 "budget_steps": train_spec.budget_steps,
@@ -510,6 +566,7 @@ class FakeRunner(Runner):
             "evaluation_subject": eval_spec.evaluation_subject().to_public_dict(),
             "subject_manifest_hash": eval_spec.evaluation_manifest_hash(),
             "capability_profile_hash": eval_spec.capability_profile_hash,
+            "execution_device": eval_spec.execution_device,
             "acceptance": {
                 "score_source": FAKE_ACCEPTANCE_PROTOCOL.score_source,
                 "public_score_binding": FAKE_ACCEPTANCE_PROTOCOL.public_score_binding,
@@ -541,12 +598,29 @@ class FakeRunner(Runner):
 
 
 class FakeVerifier(CandidateVerifier):
+    def admission_policy_descriptor(self) -> CandidateAdmissionPolicyDescriptor:
+        return CandidateAdmissionPolicyDescriptor(
+            policy_id=FAKE_CANDIDATE_ADMISSION_POLICY_ID,
+            policy_hash=FAKE_CANDIDATE_ADMISSION_POLICY_HASH,
+        )
+
+    def authoring_prompt_rules(self):
+        return static_verifier_prompt_rules()
+
     def verify(self, candidate: CandidatePackageRef) -> VerificationResult:
         status = str(candidate.metadata.get("verifier_status", "pass"))
         if status == "pass" and isinstance(candidate, SealedCandidateArtifactRef):
             return VerificationResult(
                 status=status,
                 reason="fake_verifier",
+                details={
+                    "verification_policy_id": (
+                        FAKE_CANDIDATE_ADMISSION_POLICY_ID
+                    ),
+                    "verification_policy_hash": (
+                        FAKE_CANDIDATE_ADMISSION_POLICY_HASH
+                    ),
+                },
                 program_identity=CandidateProgramIdentity(
                     candidate_id=candidate.candidate_id,
                     source_checksum=candidate.program_source_checksum,

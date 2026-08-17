@@ -7,7 +7,11 @@ from dataclasses import dataclass, field
 from typing import Any, Mapping
 
 from true_rl_agent.agent_core.provider_contract import SOURCE_REQUEST_SERVICE_ENABLED
-from true_rl_agent.agent_core.provider_errors import ProviderCandidateError
+from true_rl_agent.agent_core.provider_errors import (
+    ProviderCandidateError,
+    normalize_provider_receipt,
+    normalize_provider_usage,
+)
 from true_rl_agent.agent_core.public_safety import (
     assert_public_only_prompt_payload,
     sanitize_prompt_public_value,
@@ -23,19 +27,35 @@ class CandidateDraftResponse:
     """A provider response that produced a materialized candidate draft."""
 
     candidate: CandidatePackageRef
+    provider_usage: Mapping[str, int] = field(default_factory=dict)
+    provider_receipt: Mapping[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "provider_usage",
+            normalize_provider_usage(self.provider_usage),
+        )
+        object.__setattr__(
+            self,
+            "provider_receipt",
+            normalize_provider_receipt(self.provider_receipt),
+        )
 
     @property
     def response_mode(self) -> str:
         return "candidate_draft"
 
     def to_public_dict(self) -> dict[str, Any]:
-        return {
+        public = {
             "schema_version": "true_rl_agent.authoring_provider_response.v1",
             "response_mode": self.response_mode,
             "candidate_id": self.candidate.candidate_id,
             "candidate_changed_components": sorted(self.candidate.change_set.changed_components),
             "candidate_source_visibility": "private_non_prompt_artifact",
         }
+        assert_public_only_prompt_payload(public)
+        return public
 
 
 @dataclass(frozen=True)
@@ -46,6 +66,8 @@ class SourceRequestResponse:
     rationale: str
     source_catalog_logical_ids: tuple[str, ...]
     raw_response_public: Mapping[str, Any] = field(default_factory=dict)
+    provider_usage: Mapping[str, int] = field(default_factory=dict)
+    provider_receipt: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         logical_ids = tuple(str(item) for item in self.logical_ids)
@@ -64,6 +86,16 @@ class SourceRequestResponse:
         object.__setattr__(self, "logical_ids", logical_ids)
         object.__setattr__(self, "source_catalog_logical_ids", source_catalog_logical_ids)
         object.__setattr__(self, "rationale", str(sanitize_prompt_public_value(str(self.rationale)))[:500])
+        object.__setattr__(
+            self,
+            "provider_usage",
+            normalize_provider_usage(self.provider_usage),
+        )
+        object.__setattr__(
+            self,
+            "provider_receipt",
+            normalize_provider_receipt(self.provider_receipt),
+        )
         assert_public_only_prompt_payload(self.to_public_dict())
 
     @property
@@ -123,6 +155,8 @@ def validate_source_request_response_against_prompt(
             "schema_error",
             "source_request source_catalog does not match prompt source_catalog",
             details={"response_mode": response.response_mode},
+            provider_usage=response.provider_usage,
+            provider_receipt=response.provider_receipt,
         )
     unknown = sorted(frozenset(response.logical_ids) - prompt_logical_ids)
     if unknown:
@@ -130,6 +164,8 @@ def validate_source_request_response_against_prompt(
             "schema_error",
             "source_request logical_id is not declared in prompt source_catalog",
             details={"response_mode": response.response_mode, "requested_logical_ids": unknown},
+            provider_usage=response.provider_usage,
+            provider_receipt=response.provider_receipt,
         )
 
 
@@ -142,6 +178,8 @@ def build_source_request_denied_error(response: SourceRequestResponse) -> Provid
             "source_request_service_enabled": SOURCE_REQUEST_SERVICE_ENABLED,
             "requested_logical_ids": list(response.logical_ids),
         },
+        provider_usage=response.provider_usage,
+        provider_receipt=response.provider_receipt,
     )
 
 

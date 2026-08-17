@@ -2,17 +2,30 @@
 
 from __future__ import annotations
 
+import hashlib
 import math
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Mapping
 
-from true_rl_agent.candidates.artifact import load_sealed_candidate_artifact
+from true_rl_agent.candidates.artifact import (
+    SealedCandidateArtifactRef,
+    load_sealed_candidate_artifact,
+)
+from true_rl_agent.candidates.authoring_policy import require_component_name
 from true_rl_agent.candidates.components import TrainingComponents
 from true_rl_agent.candidates.loader import (
+    MAX_CANDIDATE_EXECUTION_FILE_BYTES,
     CandidateManifest,
     load_candidate_manifest,
     load_training_components,
+    load_training_components_source_bytes,
+    parse_candidate_manifest_bytes,
+)
+from true_rl_agent.candidates.package_contract import (
+    CandidatePackagePreflight,
+    open_preflighted_candidate_file,
+    preflight_candidate_package,
 )
 from true_rl_agent.candidates.schedule_contract import (
     REWARD_WEIGHT_SCALE_KEY,
@@ -22,6 +35,12 @@ from true_rl_agent.candidates.schedule_contract import (
     schedule_runtime_activation_record,
 )
 from true_rl_agent.candidates.schema import CandidateChangeSet
+from true_rl_agent.runner.candidate_failure import (
+    is_infrastructure_runtime_exception,
+)
+from true_rl_agent.tasks.push_recovery.candidate_failure import (
+    PushCandidateProgramFailure,
+)
 from true_rl_agent.tasks.push_recovery.reward_input_contract import (
     prompt_effective_reward_input_fields,
     public_push_signal_reward_input_fields,
@@ -44,6 +63,64 @@ PUBLIC_PUSH_VEC_KEYS = (
     "last_push_velocity_delta_xy",
     "push_velocity_delta_xy",
 )
+_CANDIDATE_MANIFEST_PATH = "candidate_manifest.yaml"
+_CANDIDATE_COMPONENTS_PATH = "training_code/components.py"
+
+
+def _load_bound_sealed_components(
+    sealed_artifact: SealedCandidateArtifactRef,
+) -> tuple[CandidateManifest, TrainingComponents]:
+    """Load and execute the exact bytes bound to one verified sealed identity."""
+
+    preflight = preflight_candidate_package(
+        sealed_artifact.path,
+        sealed_artifact=True,
+        enforce_size_limits=False,
+    )
+    for relative_path in (_CANDIDATE_MANIFEST_PATH, _CANDIDATE_COMPONENTS_PATH):
+        state = preflight.file_state(relative_path)
+        if state.size_bytes > MAX_CANDIDATE_EXECUTION_FILE_BYTES:
+            raise ValueError(
+                "candidate execution file exceeds the absolute byte limit: "
+                f"{relative_path}"
+            )
+
+    manifest_payload = _read_preflighted_execution_file(
+        preflight,
+        _CANDIDATE_MANIFEST_PATH,
+    )
+    source_payload = _read_preflighted_execution_file(
+        preflight,
+        _CANDIDATE_COMPONENTS_PATH,
+    )
+    manifest = parse_candidate_manifest_bytes(manifest_payload)
+    if manifest.candidate_id != sealed_artifact.candidate_id:
+        raise ValueError("candidate manifest identity mismatch")
+    if len(source_payload) != sealed_artifact.program_source_size_bytes:
+        raise ValueError("sealed candidate program source size mismatch before execution")
+    source_checksum = "sha256:" + hashlib.sha256(source_payload).hexdigest()
+    if source_checksum != sealed_artifact.program_source_checksum:
+        raise ValueError(
+            "sealed candidate program source checksum mismatch before execution"
+        )
+    components = load_training_components_source_bytes(
+        source_payload,
+        module_name=f"true_rl_candidate_{manifest.candidate_id}",
+        source_name=str(preflight.file_state(_CANDIDATE_COMPONENTS_PATH).path),
+    )
+    return manifest, components
+
+
+def _read_preflighted_execution_file(
+    preflight: CandidatePackagePreflight,
+    relative_path: str,
+) -> bytes:
+    state = preflight.file_state(relative_path)
+    with open_preflighted_candidate_file(preflight, relative_path) as source:
+        payload = source.read(MAX_CANDIDATE_EXECUTION_FILE_BYTES + 1)
+    if len(payload) != state.size_bytes:
+        raise ValueError(f"candidate execution file size changed: {relative_path}")
+    return payload
 
 
 class RuntimeComponentError(ValueError):
@@ -120,7 +197,7 @@ class CandidateRuntimeAdapter:
                 raise ValueError(
                     "candidate runtime artifact identity must be complete"
                 )
-            load_sealed_candidate_artifact(
+            sealed_artifact = load_sealed_candidate_artifact(
                 candidate_path,
                 change_set=CandidateChangeSet(frozenset()),
                 expected_candidate_id=expected_candidate_id,
@@ -128,23 +205,16 @@ class CandidateRuntimeAdapter:
                 expected_subject_manifest_hash=expected_subject_manifest_hash,
                 expected_program_source_checksum=expected_program_source_checksum,
             )
-        manifest = load_candidate_manifest(candidate_path)
+            manifest, components = _load_bound_sealed_components(sealed_artifact)
+        else:
+            manifest = load_candidate_manifest(candidate_path)
+            components = load_training_components(candidate_path)
         if expected_candidate_id is not None and manifest.candidate_id != expected_candidate_id:
             raise ValueError(
                 "candidate manifest identity mismatch: "
                 f"expected={expected_candidate_id!r} actual={manifest.candidate_id!r}"
             )
-        components = load_training_components(candidate_path)
         validate_training_components(components)
-        if expected_candidate_artifact_hash is not None:
-            load_sealed_candidate_artifact(
-                candidate_path,
-                change_set=CandidateChangeSet(frozenset()),
-                expected_candidate_id=expected_candidate_id,
-                expected_artifact_hash=expected_candidate_artifact_hash,
-                expected_subject_manifest_hash=expected_subject_manifest_hash,
-                expected_program_source_checksum=expected_program_source_checksum,
-            )
         return cls(
             manifest=manifest,
             components=components,
@@ -208,17 +278,30 @@ class CandidateRuntimeAdapter:
         candidate_reward = None
         reward_summaries: list[dict[str, Any]] = []
         for term in self.components.reward_terms:
-            value, summary = guard_vector(
-                term.fn(inputs),
-                name=term.name,
-                kind="reward",
-                num_envs=self.num_envs,
-                clip_min=term.clip_min,
-                clip_max=term.clip_max,
-            )
+            try:
+                raw_value = term.fn(inputs)
+            except Exception as exc:
+                if is_infrastructure_runtime_exception(exc):
+                    raise
+                raise PushCandidateProgramFailure() from exc
+            try:
+                value, summary = guard_vector(
+                    raw_value,
+                    name=term.name,
+                    kind="reward",
+                    num_envs=self.num_envs,
+                    clip_min=term.clip_min,
+                    clip_max=term.clip_max,
+                )
+            except RuntimeComponentError as exc:
+                raise PushCandidateProgramFailure() from exc
             effective_weight = float(term.weight) * reward_weight_scale
             weighted = _scale_like(value, rewards, effective_weight)
-            candidate_reward = weighted if candidate_reward is None else _add_like(candidate_reward, weighted)
+            candidate_reward = (
+                weighted
+                if candidate_reward is None
+                else _add_like(candidate_reward, weighted)
+            )
             summary.update(
                 {
                     "weight": float(term.weight),
@@ -240,8 +323,15 @@ class CandidateRuntimeAdapter:
         if self.components.diagnostics and self.runtime.step_calls % self.diagnostic_interval_steps == 0:
             diagnostics = []
             for term in self.components.diagnostics:
-                payload = term.fn(inputs)
-                diagnostics.append(_summarize_diagnostic(term.name, payload, self.num_envs))
+                try:
+                    payload = term.fn(inputs)
+                except Exception as exc:
+                    if is_infrastructure_runtime_exception(exc):
+                        raise
+                    raise PushCandidateProgramFailure() from exc
+                diagnostics.append(
+                    _summarize_diagnostic(term.name, payload, self.num_envs)
+                )
             self.runtime.diagnostic_calls += len(self.components.diagnostics)
             self.runtime.last_diagnostics = diagnostics
 
@@ -469,8 +559,10 @@ def runtime_contract() -> dict[str, Any]:
 def validate_training_components(components: TrainingComponents) -> None:
     if not isinstance(components, TrainingComponents):
         raise RuntimeComponentError("candidate entrypoint must return TrainingComponents")
-    if not components.name:
-        raise RuntimeComponentError("TrainingComponents.name is required")
+    try:
+        require_component_name(components.name, "TrainingComponents.name")
+    except ValueError as exc:
+        raise RuntimeComponentError("TrainingComponents.name is invalid") from exc
     names: set[str] = set()
     for family, terms in (
         ("reward_terms", components.reward_terms),
@@ -479,8 +571,10 @@ def validate_training_components(components: TrainingComponents) -> None:
     ):
         for term in terms:
             name = getattr(term, "name", "")
-            if not isinstance(name, str) or not name:
-                raise RuntimeComponentError(f"{family} term name is required")
+            try:
+                require_component_name(name, f"{family} term name")
+            except ValueError as exc:
+                raise RuntimeComponentError(f"{family} term name is invalid") from exc
             if name in names:
                 raise RuntimeComponentError(f"duplicate component name: {name}")
             names.add(name)
@@ -532,7 +626,12 @@ def guard_vector(
             "mean": _round(_vector_mean(guarded)),
         }
 
-    values = to_float_list(value)
+    try:
+        values = to_float_list(value)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise RuntimeComponentError(
+            f"{kind} term {name} must return a numeric vector"
+        ) from exc
     if len(values) != num_envs:
         raise RuntimeComponentError(f"{kind} term {name} must return {num_envs} values")
     if any(not math.isfinite(item) for item in values):

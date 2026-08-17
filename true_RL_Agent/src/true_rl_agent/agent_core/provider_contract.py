@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 from true_rl_agent.candidates.package_contract import (
+    CANDIDATE_PACKAGE_CONTRACT_HASH,
     PROVIDER_AUTHORED_CANDIDATE_FILES,
+    candidate_package_contract_descriptor,
 )
+from true_rl_agent.candidates.schema import candidate_id_contract
 
 PROMPT_ADVERTISED_DECLARED_COMPONENTS = (
     "reward_callable",
@@ -19,7 +23,6 @@ DEFAULT_AUTHORING_RESPONSE_MODE = "candidate_draft"
 SOURCE_REQUEST_SERVICE_ENABLED = True
 PROVIDER_JSON_OUTPUT_REQUIRED_KEYS = (
     "candidate_id",
-    "rationale",
     "declared_changed_components",
     "components_py",
 )
@@ -79,7 +82,7 @@ def provider_json_output_contract(
         "additional_keys_allowed": False,
         "prohibited_keys": list(PROVIDER_JSON_OUTPUT_PROHIBITED_KEYS),
         "authoring_response_protocol": {
-            "schema_version": "true_rl_agent.authoring_provider_response_contract.v1",
+            "schema_version": "true_rl_agent.authoring_provider_response_contract.v2",
             "response_mode_field": "response_mode",
             "default_response_mode": DEFAULT_AUTHORING_RESPONSE_MODE,
             "supported_response_modes": list(AUTHORING_RESPONSE_MODES),
@@ -102,13 +105,14 @@ def provider_json_output_contract(
             },
             "candidate_id": {
                 "type": "string",
-                "format": "short identifier; no path separators",
+                **candidate_id_contract(),
                 "materialized_file": "candidate_manifest.yaml",
             },
             "rationale": {
                 "type": "string",
-                "purpose": "public explanation of the training-side mechanism",
-                "materialized_file": "rationale.md",
+                "available_in_response_modes": ["source_request"],
+                "purpose": "bounded justification for an allowlisted source request",
+                "candidate_hypothesis": False,
             },
             "declared_changed_components": {
                 "type": "array[string]",
@@ -118,8 +122,19 @@ def provider_json_output_contract(
             },
             "components_py": {
                 "type": "string",
-                "purpose": "complete training_code/components.py source",
+                "purpose": (
+                    "complete training_code/components.py source; the canonical "
+                    "experiment hypothesis must be a non-empty statically resolvable "
+                    "string literal in TrainingComponents.rationale"
+                ),
                 "materialized_file": "training_code/components.py",
+                "derived_materialized_files": {
+                    "rationale.md": "TrainingComponents.rationale",
+                },
+                "repair_provenance_rule": (
+                    "keep the embedded hypothesis focused on the experiment mechanism; "
+                    "mechanical repair notes remain in authoring attempt provenance"
+                ),
             },
         },
     }
@@ -154,7 +169,9 @@ def _advertised_declared_components(
 
 def candidate_package_files_contract() -> dict[str, Any]:
     return {
-        "schema_version": "true_rl_agent.candidate_package_files.v1",
+        "schema_version": "true_rl_agent.candidate_package_files.v2",
+        "package_contract_hash": CANDIDATE_PACKAGE_CONTRACT_HASH,
+        "package_contract": candidate_package_contract_descriptor(),
         "materialized_files": list(PROVIDER_MATERIALIZED_FILES),
         "llm_writable_provider_json_fields": list(PROVIDER_JSON_OUTPUT_ALLOWED_KEYS),
         "provider_materialized_files": {
@@ -172,6 +189,17 @@ def candidate_package_files_contract() -> dict[str, Any]:
                 "source": "candidate_materializer",
                 "derived_from": ["provider_response_parse", "candidate_materialization_status"],
                 "purpose": "public candidate-package diagnostics placeholder for future extensions",
+            },
+            "rationale.md": {
+                "source": "candidate_materializer",
+                "derived_from": [
+                    "training_code/components.py:TrainingComponents.rationale"
+                ],
+                "authority": (
+                    "the embedded TrainingComponents.rationale is the canonical "
+                    "experiment hypothesis for fresh provider candidates"
+                ),
+                "purpose": "derived human-readable view of the canonical hypothesis",
             },
         },
         "llm_must_not_output_files": [

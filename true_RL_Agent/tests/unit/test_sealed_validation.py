@@ -156,6 +156,57 @@ class SealedValidationTests(unittest.TestCase):
             ).valid
         )
 
+    def test_task_evidence_hash_is_versioned_optional_and_binding_checked(self) -> None:
+        protocol_hash = "1" * 64
+        binding_hash = "2" * 64
+        checkpoint_hash = "sha256:" + "3" * 64
+        task_evidence_hash = "4" * 64
+        evidence = build_sealed_rollout_evidence(
+            score_stats={
+                "count": 7,
+                "mean": 0.5,
+                "std": 0.0,
+                "standard_error": 0.0,
+                "eval_protocol_hash": protocol_hash,
+            },
+            expected_seed_count=7,
+            eval_protocol_hash=protocol_hash,
+            evaluation_binding_hash=binding_hash,
+            evaluation_subject=ExperimentSubject.candidate("candidate-001"),
+            program_source_checksum="sha256:" + "5" * 64,
+            training_binding_hash="6" * 64,
+            capability_profile_hash="7" * 64,
+            checkpoint_hash=checkpoint_hash,
+            task_validation_status="pass",
+            reason="task_holdout_passed",
+            task_evidence_hash=task_evidence_hash,
+        )
+
+        self.assertEqual(
+            evidence["schema_version"],
+            "true_rl_agent.sealed_validation.evidence.v4",
+        )
+        self.assertEqual(evidence["task_evidence_hash"], task_evidence_hash)
+        matched = validate_sealed_rollout_evidence(
+            evidence,
+            expected_task_evidence_hash=task_evidence_hash,
+        )
+        self.assertTrue(matched.complete, matched.reasons)
+        tampered = validate_sealed_rollout_evidence(
+            evidence,
+            expected_task_evidence_hash="8" * 64,
+        )
+        self.assertFalse(tampered.complete)
+        self.assertIn(
+            "sealed_validation task_evidence_hash binding mismatch",
+            tampered.reasons,
+        )
+
+        historical = copy.deepcopy(evidence)
+        historical["schema_version"] = "true_rl_agent.sealed_validation.evidence.v3"
+        historical.pop("task_evidence_hash")
+        self.assertTrue(validate_sealed_rollout_evidence(historical).complete)
+
     def test_sealed_evidence_rejects_noncanonical_actual_and_expected_hashes(
         self,
     ) -> None:
@@ -189,6 +240,7 @@ class SealedValidationTests(unittest.TestCase):
             "eval_protocol_hash",
             "evaluation_binding_hash",
             "checkpoint_hash",
+            "task_evidence_hash",
         ):
             with self.subTest(actual_field=field_name):
                 forged = copy.deepcopy(evidence)
@@ -212,6 +264,7 @@ class SealedValidationTests(unittest.TestCase):
             "expected_eval_protocol_hash": "not-a-sha256",
             "expected_evaluation_binding_hash": "not-a-sha256",
             "expected_checkpoint_hash": "not-a-sha256",
+            "expected_task_evidence_hash": "not-a-sha256",
         }
         expected_args = {
             "expected_seed_count": 7,

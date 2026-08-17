@@ -26,7 +26,7 @@ from true_rl_agent.tasks.stair_climbing.reference_program import (  # noqa: E402
 )
 from true_rl_agent.tasks.stair_climbing.termination_capture import (  # noqa: E402
     build_termination_mask_snapshot,
-    capture_stair_termination_term,
+    is_stair_termination_capture_callable,
 )
 from true_rl_agent.tasks.stair_climbing.transition_decoder import (  # noqa: E402
     decode_stair_transition_batch,
@@ -75,9 +75,11 @@ def tearDownModule() -> None:
 class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
     def setUp(self) -> None:
         self.config = StairClimbingTaskConfig.defaults(
-            ROOT / "configs" / "tasks" / "stair_protocol_v2_draft.json"
+            ROOT / "configs" / "tasks" / "stair_protocol_v2.json"
         )
         self.protocol = self.config.protocol_v1
+        assert self.config.evaluation_semantics is not None
+        self.semantics = self.config.evaluation_semantics
 
     def test_train_and_eval_builders_install_only_the_declared_runtime(self) -> None:
         reward_program = resolve_official_stair_reference_program(
@@ -89,6 +91,9 @@ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
             seed=11,
             device="cpu",
             reward_program=reward_program,
+            runner_owned_training_distribution=(
+                self.config.protocol_v2.runner_owned_training_distribution
+            ),
         )
         eval_cfg = isaac_runtime.build_stair_eval_env_cfg(
             self.protocol.to_dict(),
@@ -103,6 +108,37 @@ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
         )
 
         self.assertIsNone(train_cfg.recorders)
+        self.assertEqual(
+            tuple(
+                train_cfg.scene.terrain.terrain_generator.sub_terrains[
+                    "one_way_stairs"
+                ].step_height_range
+            ),
+            (0.05, 0.35),
+        )
+        runtime_distribution = (
+            isaac_runtime.stair_training_distribution_runtime_evidence(
+                train_cfg,
+                protocol=self.protocol.to_dict(),
+                contract=self.config.protocol_v2.runner_owned_training_distribution,
+            )
+        )
+        self.assertEqual(
+            runtime_distribution["terrain"]["step_height_range_m"],
+            [0.05, 0.35],
+        )
+        train_cfg.scene.terrain.terrain_generator.sub_terrains[
+            "one_way_stairs"
+        ].step_height_range = (0.05, 0.20)
+        with self.assertRaisesRegex(
+            RuntimeError,
+            "effective Stair runner-owned training distribution drifted",
+        ):
+            isaac_runtime.stair_training_distribution_runtime_evidence(
+                train_cfg,
+                protocol=self.protocol.to_dict(),
+                contract=self.config.protocol_v2.runner_owned_training_distribution,
+            )
         self.assertIsInstance(
             eval_cfg.recorders,
             isaac_runtime.StairEvalRecorderManagerCfg,
@@ -115,16 +151,22 @@ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
         for term_name in term_names:
             with self.subTest(term=term_name):
                 self.assertIs(
-                    getattr(train_cfg.terminations, term_name).func,
-                    capture_stair_termination_term,
+                    is_stair_termination_capture_callable(
+                        getattr(train_cfg.terminations, term_name).func
+                    ),
+                    True,
                 )
                 self.assertIs(
-                    getattr(eval_cfg.terminations, term_name).func,
-                    capture_stair_termination_term,
+                    is_stair_termination_capture_callable(
+                        getattr(eval_cfg.terminations, term_name).func
+                    ),
+                    True,
                 )
                 self.assertIs(
-                    getattr(oracle_cfg.terminations, term_name).func,
-                    capture_stair_termination_term,
+                    is_stair_termination_capture_callable(
+                        getattr(oracle_cfg.terminations, term_name).func
+                    ),
+                    True,
                 )
 
     def test_real_recorder_payload_decodes_tracks_and_aggregates(self) -> None:
@@ -160,6 +202,7 @@ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
         robot_data = SimpleNamespace(
             root_pos_w=root_pos,
             root_quat_w=root_quat,
+            joint_pos=torch.zeros((num_envs, 37), dtype=torch.float32),
             body_pos_w=foot_pos,
             body_lin_vel_w=torch.zeros_like(foot_pos),
         )
@@ -169,8 +212,21 @@ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
             terrain_types=terrain_types,
         )
         scene = _Scene(
-            robot=SimpleNamespace(data=robot_data),
-            contact_forces=SimpleNamespace(data=contact_data),
+            robot=_FakeAsset(
+                data=robot_data,
+                body_ids={
+                    "left_ankle_roll_link": 0,
+                    "right_ankle_roll_link": 1,
+                },
+            ),
+            contact_forces=_FakeAsset(
+                data=contact_data,
+                body_ids={
+                    "left_ankle_roll_link": 0,
+                    "right_ankle_roll_link": 1,
+                    "torso_link": 2,
+                },
+            ),
             terrain=terrain,
         )
         env = SimpleNamespace(
@@ -203,11 +259,10 @@ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
             done_mask=done,
         )
 
-        recorder = object.__new__(isaac_runtime.StairEvalTransitionRecorder)
-        recorder._env = env
-        recorder._robot_foot_ids = [0, 1]
-        recorder._contact_foot_ids = [0, 1]
-        recorder._contact_base_ids = [2]
+        recorder = isaac_runtime.StairEvalTransitionRecorder(
+            isaac_runtime.StairEvalTransitionRecorderCfg(),
+            env,
+        )
         with patch.object(
             isaac_runtime,
             "capture_current_termination_masks",
@@ -216,15 +271,20 @@ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
             recorder.record_post_step()
 
         raw = env.extras[isaac_runtime.STAIR_EVAL_TRANSITION_EXTRAS_KEY]
+        self.assertEqual(tuple(raw["joint_pos"].shape), (num_envs, 37))
+        self.assertTrue(torch.equal(raw["terrain_env_origins_w"], origins))
+        self.assertTrue(torch.equal(raw["terrain_types"], terrain_types))
         transitions = decode_stair_transition_batch(
             raw,
             wrapper_done_mask=done,
             protocol=self.protocol,
+            semantics=self.semantics,
             expected_bin_assignment=assignment,
         )
         outcomes = [
             StairEpisodeTracker(
                 self.protocol,
+                self.semantics,
                 env_index=index,
                 bin_id=bin_id,
             ).observe(transitions[index])
@@ -233,6 +293,7 @@ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
         self.assertTrue(all(outcome is not None for outcome in outcomes))
         summary = build_stair_split_summary(
             self.protocol,
+            semantics=self.semantics,
             evaluation_protocol=self.config.evaluation_protocol(),
             split="public_dev",
             per_seed_outcomes=[outcomes, outcomes, outcomes],
@@ -246,6 +307,17 @@ class _Scene(dict):
     def __init__(self, *, robot, contact_forces, terrain) -> None:
         super().__init__(robot=robot, contact_forces=contact_forces)
         self.terrain = terrain
+
+
+class _FakeAsset:
+    def __init__(self, *, data, body_ids) -> None:
+        self.data = data
+        self._body_ids = dict(body_ids)
+
+    def find_bodies(self, names, *, preserve_order):
+        if preserve_order is not True:
+            raise AssertionError("test asset requires ordered body resolution")
+        return [self._body_ids[name] for name in names], list(names)
 
 
 if __name__ == "__main__":

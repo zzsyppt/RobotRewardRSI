@@ -6,7 +6,11 @@ from collections import Counter
 from collections.abc import Mapping, Sequence
 from typing import Any
 
-from true_rl_agent.evaluation.acceptance_protocol import AcceptanceProtocol
+from true_rl_agent.agent_core.ledger import NON_PROVIDER_AUTHORING_MODE
+from true_rl_agent.evaluation.acceptance_protocol import (
+    ACCEPTANCE_DELTA_REJECT_REASONS,
+    AcceptanceProtocol,
+)
 from true_rl_agent.evaluation.acceptance_replay import (
     AcceptanceReplayEntry,
     replay_acceptance_ledger,
@@ -16,8 +20,26 @@ from true_rl_agent.evaluation.public_projection import assert_public_projection_
 from true_rl_agent.evaluation.round_stage_contract import (
     EVALUATED_STAGE,
     PRE_TRAIN_REJECTION_STAGE,
+    TRAIN_FAILURE_STAGE,
 )
 from true_rl_agent.evaluation.score_stats import validate_score_stats
+
+_DECISION_THRESHOLD_REJECT_REASONS = (
+    ACCEPTANCE_DELTA_REJECT_REASONS
+    | frozenset(
+        {
+            "absolute_accept_floor_not_met",
+            "public_score_delta_not_met",
+            "current_best_eval_stats_missing",
+            "candidate_eval_stats_missing",
+            "eval_protocol_hash_missing",
+            "eval_protocol_hash_mismatch",
+            "insufficient_accept_evidence",
+            "accept_score_stats_untrusted",
+            "required_score_missing",
+        }
+    )
+)
 
 
 def build_eval_run_audit(
@@ -26,6 +48,9 @@ def build_eval_run_audit(
     acceptance_protocol: AcceptanceProtocol,
     initial_current_best: CurrentBestEvalStats,
     expected_session_genesis_hash: str,
+    expected_initial_policy_state_hash: str | None = None,
+    expected_authoring_mode: str = NON_PROVIDER_AUTHORING_MODE,
+    expected_ledger_epoch_hash: str | None = None,
 ) -> dict[str, Any]:
     """Build a compact public-safe audit of train/eval/decision connectivity."""
 
@@ -34,6 +59,9 @@ def build_eval_run_audit(
         initial_current_best=initial_current_best,
         expected_session_genesis_hash=expected_session_genesis_hash,
         acceptance_protocol=acceptance_protocol,
+        expected_initial_policy_state_hash=expected_initial_policy_state_hash,
+        expected_authoring_mode=expected_authoring_mode,
+        expected_ledger_epoch_hash=expected_ledger_epoch_hash,
     )
     replay.raise_for_invalid_session_bindings()
     rows = [
@@ -61,12 +89,14 @@ def build_eval_run_audit(
         "trainable_rounds_without_train": [
             row["round_id"]
             for row in rows
-            if row["trainable_candidate"] and not row["train_executed"]
+            if row["trainable_candidate"]
+            and not row["train_executed"]
+            and not row["controlled_candidate_train_failure"]
         ],
         "trainable_rounds_without_full_eval": [
             row["round_id"]
             for row in rows
-            if row["trainable_candidate"] and not row["full_eval_completed"]
+            if row["train_executed"] and not row["full_eval_completed"]
         ],
         "public_projection_unsafe_rounds": [
             row["round_id"]
@@ -229,6 +259,16 @@ def _audit_record(
     )
     train_result_present = isinstance(record.get("train_result"), Mapping)
     train_executed = bool(stage_consistent and train_result_present)
+    # An admitted candidate may fail inside runner-owned execution before a
+    # TrainJobResult exists. Replay validation makes that a closed round, not
+    # a successfully trained candidate with missing evaluation evidence.
+    controlled_candidate_train_failure = bool(
+        stage_consistent
+        and round_stage.stage == TRAIN_FAILURE_STAGE
+        and not train_result_present
+        and decision.get("reason") == "candidate_runtime_failed"
+        and replay_entry.valid
+    )
     accepted_precondition_failures = list(
         decision_validation.accepted_precondition_failures
     )
@@ -257,6 +297,9 @@ def _audit_record(
         ),
         "train_result_present": train_result_present,
         "train_executed": train_executed,
+        "controlled_candidate_train_failure": (
+            controlled_candidate_train_failure
+        ),
         "public_result_present": bool(public_result),
         "public_result_status": public_result_status,
         "public_result_passed": public_result_passed,
@@ -293,7 +336,7 @@ def _audit_record(
         "policy_decision_needs_threshold": policy_decision_needs_threshold,
     }
     row["eval_incomplete"] = bool(
-        row["trainable_candidate"] and not full_eval_completed
+        train_executed and not full_eval_completed
     )
     row["decision_reason_consistent"] = bool(
         decision_validation.reason_consistent
@@ -310,6 +353,9 @@ def _public_round_row(row: Mapping[str, Any]) -> dict[str, Any]:
         "trainable_candidate": row["trainable_candidate"],
         "policy_eligible": row["policy_eligible"],
         "train_executed": row["train_executed"],
+        "controlled_candidate_train_failure": row[
+            "controlled_candidate_train_failure"
+        ],
         "full_eval_completed": row["full_eval_completed"],
         "public_result_status": row["public_result_status"],
         "public_dev_complete": row["public_dev_complete"],
@@ -365,6 +411,8 @@ def _failure_bucket(row: Mapping[str, Any], record: Mapping[str, Any]) -> str:
         if row["round_stage"] == PRE_TRAIN_REJECTION_STAGE:
             return "pre_train"
         return "none"
+    if row["controlled_candidate_train_failure"]:
+        return "candidate_runtime"
     if not row["train_executed"]:
         return "train"
     if (
@@ -408,18 +456,7 @@ def _failure_bucket(row: Mapping[str, Any], record: Mapping[str, Any]) -> str:
         ):
             return "required_gate"
         return "accepted"
-    if row["decision_reason"] in {
-        "absolute_accept_floor_not_met",
-        "noise_aware_delta_not_met",
-        "public_score_delta_not_met",
-        "current_best_eval_stats_missing",
-        "candidate_eval_stats_missing",
-        "eval_protocol_hash_missing",
-        "eval_protocol_hash_mismatch",
-        "insufficient_accept_evidence",
-        "accept_score_stats_untrusted",
-        "required_score_missing",
-    }:
+    if row["decision_reason"] in _DECISION_THRESHOLD_REJECT_REASONS:
         return "decision_threshold"
     return "other_decision_reject"
 

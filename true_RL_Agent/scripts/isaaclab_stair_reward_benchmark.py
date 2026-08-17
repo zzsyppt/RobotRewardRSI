@@ -46,7 +46,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
 args = _build_parser().parse_args()
 config = StairClimbingTaskConfig.defaults(
-    PROJECT_ROOT / "configs" / "tasks" / "stair_protocol_v2_draft.json"
+    PROJECT_ROOT / "configs" / "tasks" / "stair_protocol_v2.json"
 )
 official = resolve_official_stair_reference_program(
     config,

@@ -14,13 +14,19 @@ from true_rl_agent.agent_core.context import (
     sanitize_public_value_with_policy,
 )
 from true_rl_agent.agent_core.public_safety import (
-    FORBIDDEN_PUBLIC_KEY_PARTS,
+    contains_forbidden_public_key_marker,
     contains_forbidden_public_value_marker,
+    redact_authorization_credential_markers,
+    sanitize_untrusted_public_diagnostic,
     scrub_public_paths,
 )
 from true_rl_agent.candidates.schedule_contract import REWARD_WEIGHT_SCALE_KEY
 from true_rl_agent.prompting.serialization import canonical_prompt_json_bytes
-from true_rl_agent.tasks.prompt_adapter import sanitize_task_prompt_sections
+from true_rl_agent.prompting.capacity import build_prompt_capacity_receipt
+from true_rl_agent.tasks.prompt_adapter import (
+    MAX_TASK_PROMPT_SECTIONS_BYTES,
+    sanitize_task_prompt_sections,
+)
 from true_rl_agent.tasks.push_recovery.config import PushRecoveryTaskConfig
 from true_rl_agent.tasks.push_recovery.metrics import classify_push_prompt_failure
 from true_rl_agent.tasks.push_recovery.reward_input_contract import (
@@ -292,7 +298,25 @@ class PushRecoveryPromptAdapter:
             "known_good_examples": _known_good_examples() if not safe_public_records else [],
             "selection_guidance": _selection_guidance(),
         }
-        return sanitize_task_prompt_sections(sections)
+        try:
+            return sanitize_task_prompt_sections(sections)
+        except ValueError as exc:
+            if "task prompt sections exceed" not in str(exc):
+                raise
+        return sanitize_task_prompt_sections(
+            _minimum_core_push_prompt_sections(sections)
+        )
+
+    def build_prompt_capacity_preflight_sections(self) -> Mapping[str, Any]:
+        """Return Push's task-owned minimum shape for startup validation."""
+
+        sections = self.build_prompt_sections(
+            public_records=(),
+            public_context={},
+        )
+        return sanitize_task_prompt_sections(
+            _minimum_core_push_prompt_sections(sections)
+        )
 
     def prompt_public_record_scrub_policy(self) -> Mapping[str, Sequence[str]]:
         reserved_fields = reserved_zero_fallback_reward_input_fields()
@@ -300,6 +324,13 @@ class PushRecoveryPromptAdapter:
             "blocked_key_parts": reserved_fields,
             "blocked_text_parts": reserved_fields,
         }
+
+    def nonaccepted_authoring_tiebreak_key(
+        self,
+        public_record: Mapping[str, Any],
+    ) -> tuple[float, ...]:
+        _ = public_record
+        return ()
 
     def _task_section(self) -> dict[str, Any]:
         config = self.config
@@ -358,6 +389,56 @@ class PushRecoveryPromptAdapter:
                 "push distribution",
             ],
         }
+
+
+def _minimum_core_push_prompt_sections(
+    sections: Mapping[str, Any],
+) -> dict[str, Any]:
+    original = dict(sections)
+    feedback = _mapping(original.get("public_feedback_summary"))
+    minimum_feedback = {
+        key: feedback[key]
+        for key in (
+            "schema_version",
+            "status",
+            "round_count",
+            "accepted_count",
+            "rejected_count",
+            "latest_round",
+            "latest_public_score",
+            "best_accepted_public_score",
+            "latest_failure_mode",
+        )
+        if key in feedback
+    }
+    if not minimum_feedback.get("latest_round"):
+        minimum_feedback["latest_round"] = {"status": "no_closed_outcome"}
+    minimum_feedback["projection_level"] = "minimum_core"
+    minimum = {
+        "task": original.get("task"),
+        "reward_inputs_contract": original.get("reward_inputs_contract"),
+        "public_eval_contract": original.get("public_eval_contract"),
+        "public_feedback_summary": minimum_feedback,
+        "runtime_feedback_summary": {
+            "schema_version": (
+                "true_rl_agent.runtime_feedback_summary.push_recovery.minimum_core.v1"
+            ),
+            "status": "omitted_for_capacity",
+            "reason": "minimum_core_projection",
+        },
+        "known_good_examples": [],
+        "selection_guidance": original.get("selection_guidance", []),
+    }
+    receipt = build_prompt_capacity_receipt(
+        original=original,
+        projected_content=minimum,
+        projection_id="push_recovery.minimum_core.v1",
+        omitted=("aggregate_history_detail", "runtime_activation_detail"),
+    )
+    minimum_feedback["capacity_projection_receipt"] = receipt
+    if canonical_prompt_json_bytes(minimum) > MAX_TASK_PROMPT_SECTIONS_BYTES:
+        raise ValueError("Push minimum-core prompt sections exceed shared capacity")
+    return minimum
 
 
 def _runtime_dynamics_prompt_summary(
@@ -656,7 +737,9 @@ def _runtime_feedback_summary(public_records: Sequence[Mapping[str, Any]]) -> di
             },
             "runtime_activation_gate": _mapping(latest.get("runtime_activation_gate")),
             "mechanism_attribution": _mapping(latest.get("mechanism_attribution")),
-            "runner_error": latest.get("runner_error"),
+            "runner_error": sanitize_untrusted_public_diagnostic(
+                latest.get("runner_error")
+            ),
         }
     )
 
@@ -911,8 +994,11 @@ def _compact_runtime_diagnostic_key(
 
 def _safe_runtime_diagnostic_key_text(value: Any) -> str:
     text = scrub_public_paths(" ".join(str(value).split()))
-    lowered = text.lower()
-    if contains_forbidden_public_value_marker(text) or any(part in lowered for part in FORBIDDEN_PUBLIC_KEY_PARTS):
+    if redact_authorization_credential_markers(text) != text:
+        return "redacted_diagnostic_key"
+    if contains_forbidden_public_value_marker(
+        text
+    ) or contains_forbidden_public_key_marker(text):
         return "redacted_diagnostic_key"
     return text or "unnamed_diagnostic"
 
@@ -931,6 +1017,8 @@ def _safe_runtime_identifier_label(value: Any) -> str | None:
 
 def _bounded_runtime_diagnostic_text(value: str) -> str:
     text = scrub_public_paths(" ".join(str(value).split()))
+    if redact_authorization_credential_markers(text) != text:
+        return "[redacted]"
     if contains_forbidden_public_value_marker(text):
         return "[redacted]"
     if len(text) <= _RUNTIME_DIAGNOSTIC_OUTPUT_TEXT_LIMIT:

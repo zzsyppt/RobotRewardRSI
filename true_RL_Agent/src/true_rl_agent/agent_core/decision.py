@@ -14,8 +14,14 @@ from true_rl_agent.evaluation.acceptance_contract import (
 )
 from true_rl_agent.evaluation.acceptance_phase import acceptance_comparison_entered
 from true_rl_agent.evaluation.acceptance_protocol import (
+    NOISE_AWARE_DELTA_RULE,
     AcceptanceProtocol,
-    noise_aware_threshold,
+    AcceptanceThreshold,
+    GuardRegressionThreshold,
+    acceptance_delta_met,
+    acceptance_delta_reason,
+    acceptance_threshold,
+    guard_regression_threshold,
 )
 from true_rl_agent.evaluation.binding import EvaluationBindingV1
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
@@ -206,11 +212,31 @@ def decide_candidate(
                 gate_statuses,
             )
         floor = acceptance_protocol.absolute_accept_floor
-        if candidate_score >= floor:
+        guard_floor_met = True
+        if acceptance_protocol.uses_guard_score:
+            guard_score = acceptance_validation.guard_score_mean
+            guard_floor = acceptance_protocol.guard_absolute_accept_floor
+            if guard_score is None or guard_floor is None:
+                return DecisionRecord(
+                    DecisionOutcome.REJECT,
+                    False,
+                    "candidate_guard_stats_missing",
+                    surface.classification,
+                    public_result.public_score,
+                    comparison,
+                    consumed_gates,
+                    gate_statuses,
+                )
+            guard_floor_met = guard_score >= guard_floor
+        if candidate_score >= floor and guard_floor_met:
             return DecisionRecord(
                 DecisionOutcome.POLICY_IMPROVEMENT_ACCEPT,
                 True,
-                "absolute_accept_floor",
+                (
+                    "absolute_and_guard_accept_floors"
+                    if acceptance_protocol.uses_guard_score
+                    else "absolute_accept_floor"
+                ),
                 surface.classification,
                 public_result.public_score,
                 comparison,
@@ -220,7 +246,11 @@ def decide_candidate(
         return DecisionRecord(
             DecisionOutcome.REJECT,
             False,
-            "absolute_accept_floor_not_met",
+            (
+                "absolute_or_guard_accept_floor_not_met"
+                if acceptance_protocol.uses_guard_score
+                else "absolute_accept_floor_not_met"
+            ),
             surface.classification,
             public_result.public_score,
             comparison,
@@ -228,7 +258,7 @@ def decide_candidate(
             gate_statuses,
         )
 
-    if not current_best.has_full_eval_stats():
+    if not current_best.has_full_eval_stats(acceptance_protocol):
         return DecisionRecord(
             DecisionOutcome.REJECT,
             False,
@@ -252,18 +282,67 @@ def decide_candidate(
             consumed_gates,
             gate_statuses,
         )
+    if acceptance_protocol.uses_guard_score:
+        candidate_guard = acceptance_validation.guard_score_mean
+        current_best_guard = current_best.guard_score_for_comparison()
+        if (
+            candidate_guard is None
+            or current_best_guard is None
+        ):
+            return DecisionRecord(
+                DecisionOutcome.REJECT,
+                False,
+                "guard_eval_stats_missing",
+                surface.classification,
+                public_result.public_score,
+                comparison,
+                consumed_gates,
+                gate_statuses,
+            )
+        try:
+            guard_threshold = _guard_regression_threshold(
+                acceptance_protocol=acceptance_protocol,
+                acceptance_validation=acceptance_validation,
+                current_best=current_best,
+            )
+        except ValueError:
+            return DecisionRecord(
+                DecisionOutcome.REJECT,
+                False,
+                "guard_eval_stats_missing",
+                surface.classification,
+                public_result.public_score,
+                comparison,
+                consumed_gates,
+                gate_statuses,
+            )
+        if candidate_guard < current_best_guard - guard_threshold.threshold:
+            return DecisionRecord(
+                DecisionOutcome.REJECT,
+                False,
+                "guard_score_regression",
+                surface.classification,
+                public_result.public_score,
+                comparison,
+                consumed_gates,
+                gate_statuses,
+            )
     delta = candidate_score - current_best_score
-    threshold = _acceptance_threshold(
+    threshold_result = _acceptance_threshold(
         acceptance_protocol=acceptance_protocol,
         acceptance_validation=acceptance_validation,
         current_best=current_best,
     )
-    delta_met = delta > threshold
+    delta_met = acceptance_delta_met(
+        acceptance_protocol,
+        delta,
+        threshold_result.threshold,
+    )
     if delta_met:
         return DecisionRecord(
             DecisionOutcome.POLICY_IMPROVEMENT_ACCEPT,
             True,
-            "noise_aware_delta",
+            acceptance_delta_reason(acceptance_protocol, accepted=True),
             surface.classification,
             public_result.public_score,
             comparison,
@@ -273,7 +352,7 @@ def decide_candidate(
     return DecisionRecord(
         DecisionOutcome.REJECT,
         False,
-        "noise_aware_delta_not_met",
+        acceptance_delta_reason(acceptance_protocol, accepted=False),
         surface.classification,
         public_result.public_score,
         comparison,
@@ -287,13 +366,36 @@ def _acceptance_threshold(
     acceptance_protocol: AcceptanceProtocol,
     acceptance_validation: AcceptanceEvidenceValidation,
     current_best: CurrentBestEvalStats,
-) -> float:
+) -> AcceptanceThreshold:
     candidate_se = acceptance_validation.standard_error
     best_se = _standard_error(current_best.public_accept_stats)
-    return noise_aware_threshold(
+    return acceptance_threshold(
         acceptance_protocol,
+        candidate_score=acceptance_validation.score_mean,
+        best_score=current_best.score_for_comparison(),
+        candidate_score_samples=acceptance_validation.score_samples,
+        best_score_samples=current_best.score_samples_for_comparison(
+            acceptance_protocol
+        ),
         candidate_standard_error=candidate_se,
         best_standard_error=best_se,
+    )
+
+
+def _guard_regression_threshold(
+    *,
+    acceptance_protocol: AcceptanceProtocol,
+    acceptance_validation: AcceptanceEvidenceValidation,
+    current_best: CurrentBestEvalStats,
+) -> GuardRegressionThreshold:
+    return guard_regression_threshold(
+        acceptance_protocol,
+        candidate_guard_score=acceptance_validation.guard_score_mean,
+        best_guard_score=current_best.guard_score_for_comparison(),
+        candidate_guard_score_samples=acceptance_validation.guard_score_samples,
+        best_guard_score_samples=current_best.guard_score_samples_for_comparison(
+            acceptance_protocol
+        ),
     )
 
 
@@ -306,38 +408,113 @@ def _comparison_summary(
 ) -> dict[str, Any]:
     candidate_score = acceptance_validation.score_mean
     best_score = current_best.score_for_comparison()
-    threshold = _acceptance_threshold(
-        acceptance_protocol=acceptance_protocol,
-        acceptance_validation=acceptance_validation,
-        current_best=current_best,
-    )
     delta = (
         candidate_score - best_score
         if candidate_score is not None and best_score is not None
         else None
     )
-    return {
+    candidate_binding_hash = _candidate_binding_hash(public_result)
+    comparison = {
         "mode": current_best.mode,
         "score_source": acceptance_validation.score_source,
         "acceptance_protocol_hash": acceptance_protocol.protocol_hash,
-        "candidate_score": _round_optional(candidate_score),
-        "current_best_score": _round_optional(best_score),
-        "delta": _round_optional(delta),
-        "threshold": _round_optional(threshold),
-        "delta_met": None if delta is None else delta > threshold,
-        "absolute_accept_floor": _round_optional(
-            acceptance_validation.absolute_accept_floor
-        ),
+        "candidate_score": candidate_score,
+        "current_best_score": best_score,
+        "absolute_accept_floor": acceptance_validation.absolute_accept_floor,
         "candidate_score_stats": dict(acceptance_validation.score_stats),
-        "best_score_stats": dict(current_best.public_accept_stats),
-        "candidate_evaluation_binding_hash": _candidate_binding_hash(public_result),
+        "best_score_stats": current_best.to_public_dict()["public_accept_stats"],
+        "candidate_evaluation_binding_hash": candidate_binding_hash,
         "current_best": current_best.comparison_identity(),
         "public_score": public_result.public_score,
     }
-
-
-def _round_optional(value: float | None) -> float | None:
-    return None if value is None else round(float(value), 6)
+    if acceptance_protocol.uses_guard_score:
+        candidate_guard = acceptance_validation.guard_score_mean
+        best_guard = current_best.guard_score_for_comparison()
+        max_regression = acceptance_protocol.guard_max_regression
+        guard_threshold_result: GuardRegressionThreshold | None = None
+        if candidate_guard is not None and best_guard is not None:
+            try:
+                guard_threshold_result = _guard_regression_threshold(
+                    acceptance_protocol=acceptance_protocol,
+                    acceptance_validation=acceptance_validation,
+                    current_best=current_best,
+                )
+            except ValueError:
+                pass
+        effective_regression = (
+            guard_threshold_result.threshold
+            if guard_threshold_result is not None
+            else None
+        )
+        comparison.update(
+            {
+                "guard_score_source": acceptance_validation.guard_score_source,
+                "candidate_guard_score": candidate_guard,
+                "current_best_guard_score": best_guard,
+                "guard_max_regression": max_regression,
+                "guard_regression_threshold": effective_regression,
+                "guard_threshold_components": (
+                    guard_threshold_result.to_public_dict()
+                    if guard_threshold_result is not None
+                    else {}
+                ),
+                "guard_delta": (
+                    candidate_guard - best_guard
+                    if candidate_guard is not None and best_guard is not None
+                    else None
+                ),
+                "guard_met": (
+                    candidate_guard >= best_guard - effective_regression
+                    if candidate_guard is not None
+                    and best_guard is not None
+                    and effective_regression is not None
+                    else None
+                ),
+                "candidate_guard_score_stats": dict(
+                    acceptance_validation.guard_score_stats
+                ),
+                "best_guard_score_stats": current_best.to_public_dict()[
+                    "guard_score_stats"
+                ],
+                "guard_absolute_accept_floor": (
+                    acceptance_validation.guard_absolute_accept_floor
+                ),
+            }
+        )
+    threshold_result: AcceptanceThreshold | None = None
+    evaluation_binding_matches = bool(
+        candidate_binding_hash
+        and candidate_binding_hash == current_best.evaluation_binding_hash
+    )
+    if acceptance_protocol.decision_rule == NOISE_AWARE_DELTA_RULE or (
+        acceptance_validation.score_stats_binding_valid
+        and evaluation_binding_matches
+        and current_best.has_full_eval_stats(acceptance_protocol)
+    ):
+        threshold_result = _acceptance_threshold(
+            acceptance_protocol=acceptance_protocol,
+            acceptance_validation=acceptance_validation,
+            current_best=current_best,
+        )
+    if threshold_result is not None:
+        comparison.update(
+            {
+                "delta": delta,
+                "threshold": threshold_result.threshold,
+                "delta_met": (
+                    None
+                    if delta is None
+                    else acceptance_delta_met(
+                        acceptance_protocol,
+                        delta,
+                        threshold_result.threshold,
+                    )
+                ),
+            }
+        )
+        if acceptance_protocol.decision_rule != NOISE_AWARE_DELTA_RULE:
+            comparison["threshold_components"] = threshold_result.to_public_dict()
+    return comparison
 
 
 def _standard_error(value: Any) -> float | None:

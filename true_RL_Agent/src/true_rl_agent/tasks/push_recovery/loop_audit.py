@@ -4,33 +4,56 @@ from __future__ import annotations
 
 import json
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 from functools import partial
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from true_rl_agent.agent_core.eval_run_audit import build_eval_run_audit
-from true_rl_agent.agent_core.ledger import load_ledger
+from true_rl_agent.agent_core.ledger import (
+    PROVIDER_AUTHORING_MODE,
+    load_ledger,
+)
 from true_rl_agent.agent_core.round import RoundInputs, run_candidate_round
 from true_rl_agent.agent_core.session_genesis import prepare_session_genesis
+from true_rl_agent.agent_core.source_request_limits import (
+    MAX_SOURCE_IDS_PER_REQUEST,
+)
+from true_rl_agent.backends.isaac_lab_rsl_rl import IsaacLabRslRlBackendAdapter
 from true_rl_agent.candidates.artifact import (
     SealedCandidateArtifactRef,
     verify_sealed_candidate_artifact,
+)
+from true_rl_agent.candidates.authoring_checks import (
+    assess_anti_degenerate_candidate,
 )
 from true_rl_agent.candidates.loader import (
     CANDIDATE_SCHEMA_VERSION,
     CONTROLLED_ENTRYPOINT,
 )
 from true_rl_agent.candidates.schedule_contract import REWARD_WEIGHT_SCALE_KEY
-from true_rl_agent.candidates.schema import CandidateChangeSet, CandidatePackageRef
-from true_rl_agent.candidates.verifier import CandidateVerifier, VerificationResult
+from true_rl_agent.candidates.schema import (
+    CandidateChangeSet,
+    CandidatePackageRef,
+    require_candidate_id,
+)
+from true_rl_agent.candidates.verifier import (
+    CandidateAdmissionPolicyDescriptor,
+    CandidateVerifier,
+    VerificationResult,
+)
 from true_rl_agent.composition.base import ResolvedTaskComposition
 from true_rl_agent.evaluation.acceptance_protocol import AcceptanceProtocol
 from true_rl_agent.evaluation.acceptance_replay import replay_acceptance_ledger
+from true_rl_agent.evaluation.binding import canonical_json_hash
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
 from true_rl_agent.json_contract import load_strict_json_object
 from true_rl_agent.memory import ExperimentRecord, PublicContextBuilder
+from true_rl_agent.prompt_artifacts import (
+    RoundAuthoringJournal,
+    verify_prompt_payload,
+)
 from true_rl_agent.prompting import assert_public_only_prompt_payload
 from true_rl_agent.runner.dry_run import DryRunAuditRunner, DryRunCandidateMetadata
 from true_rl_agent.tasks.push_recovery.composition import PUSH_RECOVERY_TASK_ID
@@ -48,6 +71,9 @@ FORBIDDEN_PROMPT_TEXT = (
     "checkpoint_selector",
 )
 AUDIT_INITIAL_BEST_SCORE = 0.10
+AUDIT_CANDIDATE_ADMISSION_POLICY_ID = (
+    "true_rl_agent.push_recovery.audit_replay_admission.v1"
+)
 
 
 @dataclass(frozen=True)
@@ -57,6 +83,9 @@ class AuditCandidateSpec:
     public_score: float
     failure_breakdown: Mapping[str, float]
     task_eval_metadata: Mapping[str, Any]
+
+    def __post_init__(self) -> None:
+        require_candidate_id(self.candidate_id, "audit candidate_id")
 
     def to_candidate(self, *, package_root: Path | None = None) -> CandidatePackageRef:
         path = (
@@ -81,6 +110,18 @@ class AuditCandidateSpec:
 
 
 class AuditVerifier(CandidateVerifier):
+    def admission_policy_descriptor(self) -> CandidateAdmissionPolicyDescriptor:
+        return CandidateAdmissionPolicyDescriptor(
+            policy_id=AUDIT_CANDIDATE_ADMISSION_POLICY_ID,
+            policy_hash=canonical_json_hash(
+                {
+                    "schema_version": AUDIT_CANDIDATE_ADMISSION_POLICY_ID,
+                    "task_id": PUSH_RECOVERY_TASK_ID,
+                    "purpose": "deterministic_dry_run_replay",
+                }
+            ),
+        )
+
     def verify(
         self,
         candidate: CandidatePackageRef | SealedCandidateArtifactRef,
@@ -95,6 +136,8 @@ class AuditVerifier(CandidateVerifier):
             identity = resolve_candidate_program_identity(
                 candidate.path,
                 expected_candidate_id=candidate.candidate_id,
+                sealed_artifact=True,
+                enforce_package_size_limits=False,
             )
         except (OSError, TypeError, ValueError) as exc:
             return VerificationResult(
@@ -105,7 +148,15 @@ class AuditVerifier(CandidateVerifier):
         return VerificationResult(
             status="pass",
             reason="audit_replay_candidate_preverified",
-            details={"dry_run": True},
+            details={
+                "dry_run": True,
+                "verification_policy_id": (
+                    self.admission_policy_descriptor().policy_id
+                ),
+                "verification_policy_hash": (
+                    self.admission_policy_descriptor().policy_hash
+                ),
+            },
             program_identity=identity,
             candidate_artifact_hash=candidate.artifact_hash,
         )
@@ -140,9 +191,59 @@ def _materialize_audit_candidate_package(
         ),
         encoding="utf-8",
     )
+    try:
+        variant_index = int(candidate.candidate_id.split("-", 2)[1])
+    except (IndexError, ValueError) as exc:
+        raise ValueError("audit candidate id must contain a numeric variant") from exc
+    reward_expression = "inp.base_height" + ".square()" * variant_index
     (training_code / "components.py").write_text(
-        "def build_training_components():\n"
-        f"    return {{'audit_candidate': {candidate.candidate_id!r}}}\n",
+        "from true_rl_agent.candidates.components import "
+        "RewardInputs, RewardTerm, TrainingComponents\n\n"
+        "def audit_reward(inp: RewardInputs):\n"
+        f"    return {reward_expression}\n\n"
+        "def build_training_components() -> TrainingComponents:\n"
+        "    return TrainingComponents(\n"
+        "        name='deterministic_audit_candidate',\n"
+        "        reward_terms=[\n"
+        "            RewardTerm(name='audit_reward', weight=1.0, fn=audit_reward),\n"
+        "        ],\n"
+        "        rationale='Deterministic dry-run audit mechanism.',\n"
+        "    )\n",
+        encoding="utf-8",
+    )
+    (root / "rationale.md").write_text(
+        "Deterministic dry-run audit mechanism.\n",
+        encoding="utf-8",
+    )
+    (root / "operation_diff.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "true_rl_agent.provider.operation_diff.v1",
+                "candidate_id": candidate.candidate_id,
+                "declared_changed_components": sorted(candidate.changed_components),
+                "derived_from": ["declared_changed_components"],
+                "materialized_by": "push_recovery_audit_candidate_materializer",
+                "verifier_derived_change_set_is_authoritative": True,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (root / "diagnostics.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "true_rl_agent.provider.diagnostics.v1",
+                "candidate_id": candidate.candidate_id,
+                "materialized_by": "push_recovery_audit_candidate_materializer",
+                "status": "dry_run_materialized",
+                "diagnostic_items": [],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
         encoding="utf-8",
     )
     return str(root)
@@ -219,10 +320,11 @@ def run_push_recovery_loop_audit(
         backend_adapter=composition.backend_adapter,
         runner=composition.runner,
         policy_initialization=composition.policy_initialization,
-        runtime_snapshot=composition.runtime_snapshot(),
+        genesis_identity_snapshot=composition.genesis_identity_snapshot(),
         baseline_manifest=composition.baseline_manifest,
-        reference_program_manifest=composition.reference_program_manifest,
+        reference_program_artifact=composition.reference_program_artifact,
         bootstrap_initial_best_score=AUDIT_INITIAL_BEST_SCORE,
+        bind_backend_execution_environment=False,
     )
     candidates = default_audit_candidates(rounds)
     package_root = output_dir / "audit_candidates"
@@ -254,8 +356,21 @@ def run_push_recovery_loop_audit(
         candidate_capability_profile=(
             task.task_spec.candidate_capability_profile
         ),
+        ledger_authoring_mode=PROVIDER_AUTHORING_MODE,
     )
-    backend = composition.backend_adapter
+    if not isinstance(composition.backend_adapter, IsaacLabRslRlBackendAdapter):
+        raise TypeError(
+            "push recovery audit requires an IsaacLabRslRlBackendAdapter snapshot"
+        )
+    audit_verifier = AuditVerifier()
+    audit_policy = audit_verifier.admission_policy_descriptor()
+    backend = IsaacLabRslRlBackendAdapter(
+        replace(
+            composition.backend_adapter.config,
+            candidate_admission_policy_id=audit_policy.policy_id,
+            candidate_admission_policy_hash=audit_policy.policy_hash,
+        )
+    )
 
     prompt_payload_paths: list[str] = []
     for index in range(rounds):
@@ -266,24 +381,82 @@ def run_push_recovery_loop_audit(
             initial_current_best=session_genesis.initial_current_best,
             expected_session_genesis_hash=session_genesis.session_genesis_hash,
             acceptance_protocol=acceptance_protocol,
+            expected_authoring_mode=PROVIDER_AUTHORING_MODE,
         )
         replay.raise_for_continuation()
         current_best_eval_stats = replay.current_best
         records = [ExperimentRecord.from_ledger_record(record) for record in ledger]
         prompt_build = context_builder.build_prompt(records)
         prompt_payload = prompt_build.provider_payload
-        prompt_path = output_dir / "rounds" / round_id / "prompt_payload.json"
-        prompt_payload_ref = context_builder.save_prompt_payload(prompt_path, prompt_payload)
-        prompt_payload_paths.append(str(prompt_path))
+        journal = RoundAuthoringJournal(
+            output_dir / "rounds" / round_id,
+            round_id=round_id,
+        )
+        journal.bind_budget(
+            max_provider_attempts=1,
+            max_source_requests_per_round=0,
+            max_source_ids_per_request=MAX_SOURCE_IDS_PER_REQUEST,
+            max_source_request_bytes_per_round=0,
+        )
+        attempt_handle = journal.begin_attempt(prompt_payload)
+        prompt_payload_ref = attempt_handle.prompt_payload_ref
+        prompt_payload = verify_prompt_payload(prompt_payload_ref)
+        prompt_payload_paths.append(prompt_payload_ref.path)
 
         candidate = provider.next_candidate(prompt_payload=prompt_payload)
+        candidate_identity = resolve_candidate_program_identity(
+            candidate.path,
+            expected_candidate_id=candidate.candidate_id,
+        )
+        anti_degenerate_assessment = assess_anti_degenerate_candidate(
+            candidate,
+            prompt_payload,
+        )
+        if anti_degenerate_assessment.get("blocking") is True:
+            raise ValueError(
+                "audit replay candidate failed the shared authoring policy"
+            )
+        attempt_record = {
+            "round_id": round_id,
+            "attempt": 1,
+            "attempt_id": attempt_handle.attempt_id,
+            "provider_status": "pass",
+            "candidate_id": candidate.candidate_id,
+            "candidate_changed_components": sorted(
+                candidate.change_set.changed_components
+            ),
+            "candidate_subject_manifest_hash": (
+                candidate_identity.manifest_hash
+            ),
+            "candidate_program_source_checksum": (
+                candidate_identity.source_checksum
+            ),
+            "candidate_program_source_size_bytes": (
+                candidate_identity.source_size_bytes
+            ),
+            "anti_degenerate_assessment": anti_degenerate_assessment,
+        }
+        journal.complete_attempt(
+            attempt_handle,
+            attempt_record,
+            continuation_state={
+                "schema_version": (
+                    "true_rl_agent.push_recovery.audit_continuation.v1"
+                ),
+                "disposition": "terminal",
+            },
+        )
+        authoring_evidence_ref = journal.publish_evidence(
+            selected_attempt_id=attempt_handle.attempt_id,
+            stop_reason="candidate_verified",
+        )
         run_candidate_round(
             RoundInputs(
                 round_id=round_id,
                 task_plugin=task,
                 backend_adapter=backend,
                 runner=runner,
-                verifier=AuditVerifier(),
+                candidate_admission_policy=audit_verifier,
                 candidate=candidate,
                 policy_initialization=composition.policy_initialization,
                 ledger_path=ledger_path,
@@ -291,7 +464,15 @@ def run_push_recovery_loop_audit(
                 current_best_eval_stats=current_best_eval_stats,
                 session_genesis_hash=session_genesis.session_genesis_hash,
                 evaluation_binding=session_genesis.evaluation_binding,
+                authoring_mode=PROVIDER_AUTHORING_MODE,
                 prompt_payload_ref=prompt_payload_ref,
+                authoring_evidence_ref=authoring_evidence_ref,
+                parent_program_source_checksum=(
+                    prompt_build.parent_program_source_checksum
+                ),
+                backend_execution_environment_manifest_hash=(
+                    session_genesis.backend_execution_environment_manifest_hash
+                ),
             )
         )
 
@@ -328,6 +509,7 @@ def build_audit_summary(
         initial_current_best=initial_current_best,
         expected_session_genesis_hash=session_genesis_hash,
         acceptance_protocol=acceptance_protocol,
+        expected_authoring_mode=PROVIDER_AUTHORING_MODE,
     )
     replay.raise_for_continuation()
     outcome_counts = Counter(
@@ -339,6 +521,7 @@ def build_audit_summary(
         acceptance_protocol=acceptance_protocol,
         initial_current_best=initial_current_best,
         expected_session_genesis_hash=session_genesis_hash,
+        expected_authoring_mode=PROVIDER_AUTHORING_MODE,
     )
     eval_audit_counts = eval_run_audit["counts"]
     parameter_only_accepts = [

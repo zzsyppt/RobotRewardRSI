@@ -12,7 +12,6 @@ if str(SRC_ROOT) not in sys.path:
 from true_rl_agent.runner.eval_isolation import (
     build_candidate_isolation_gate,
     reject_candidate_path_arguments,
-    validate_candidate_id,
     validate_sealed_validation_gate,
 )
 
@@ -28,13 +27,6 @@ class EvalIsolationTests(unittest.TestCase):
             with self.subTest(argv=argv):
                 with self.assertRaisesRegex(ValueError, "candidate path argument is not allowed"):
                     reject_candidate_path_arguments(argv)
-
-    def test_allows_candidate_id_but_rejects_path_like_identity(self) -> None:
-        self.assertEqual(validate_candidate_id("candidate-001"), "candidate-001")
-        for value in ("", "   ", " candidate-001 ", True, None, "artifact://candidate-001", "dir/candidate", r"dir\candidate"):
-            with self.subTest(value=value):
-                with self.assertRaisesRegex(ValueError, "candidate_id"):
-                    validate_candidate_id(value)
 
     def test_builds_and_validates_candidate_isolation_gate(self) -> None:
         gate = _sealed_gate()

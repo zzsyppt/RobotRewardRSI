@@ -21,21 +21,6 @@ def reject_candidate_path_arguments(argv: Sequence[str]) -> None:
             raise ValueError(f"candidate path argument is not allowed in eval: {part}")
 
 
-def validate_candidate_id(candidate_id: str) -> str:
-    """Validate an exact candidate id, rejecting coercion and path-like values."""
-
-    if not isinstance(candidate_id, str):
-        raise ValueError("candidate_id must be a string")
-    value = candidate_id.strip()
-    if not value:
-        raise ValueError("candidate_id must be non-empty")
-    if value != candidate_id:
-        raise ValueError("candidate_id must not contain surrounding whitespace")
-    if "://" in value or "/" in value or "\\" in value:
-        raise ValueError("candidate_id must be an identifier, not a path")
-    return value
-
-
 def build_candidate_isolation_gate(
     *,
     candidate_code_loaded: bool = False,

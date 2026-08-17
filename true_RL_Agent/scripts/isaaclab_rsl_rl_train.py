@@ -22,6 +22,9 @@ if str(SRC_ROOT) not in sys.path:
 
 from isaaclab.app import AppLauncher  # type: ignore[import-not-found]  # noqa: E402
 
+from true_rl_agent.backends.isaac_lab_execution_environment import (  # noqa: E402
+    verify_current_isaac_lab_execution_environment,
+)
 from true_rl_agent.backends.rsl_rl_training_config import (  # noqa: E402
     RslRlAgentConfiguration,
 )
@@ -38,6 +41,11 @@ from true_rl_agent.runner.isaac_app_lifecycle import (  # noqa: E402
     close_isaac_app_on_success,
 )
 from true_rl_agent.runner.job_identity import JobIdentity  # noqa: E402
+from true_rl_agent.runner.specs import require_execution_device  # noqa: E402
+from true_rl_agent.tasks.push_recovery.candidate_failure import (  # noqa: E402
+    PUSH_CANDIDATE_FAILURE_CONTRACT,
+    PushCandidateProgramFailure,
+)
 from true_rl_agent.training_binding import (  # noqa: E402
     initialization_seed_schedule_hash,
 )
@@ -63,6 +71,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--agent-configuration-json", required=True)
     parser.add_argument("--initialization-seed-schedule-hash", required=True)
     parser.add_argument("--capability-profile-hash", required=True)
+    parser.add_argument("--candidate-failure-contract-hash", required=True)
     parser.add_argument("--init-checkpoint", default=None)
     parser.add_argument("--init-checkpoint-sha256", default=None)
     parser.add_argument("--summary-path", required=True)
@@ -70,6 +79,10 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--config", default=None)
     parser.add_argument("--profile", default="strong_push")
     parser.add_argument("--runtime-dynamics-hash", required=True)
+    parser.add_argument(
+        "--backend-execution-environment-manifest-hash",
+        default=None,
+    )
     parser.add_argument("--task", default=None)
     parser.add_argument("--num-envs", type=int, default=256)
     parser.add_argument("--max-iterations", type=int, default=None)
@@ -89,6 +102,10 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 args_cli = _build_parser().parse_args()
+args_cli.device = require_execution_device(
+    args_cli.device,
+    "push train execution device",
+)
 job_identity = JobIdentity(
     job_id=args_cli.job_id,
     task_id=args_cli.task_id,
@@ -110,6 +127,12 @@ capability_profile_hash = require_sha256_digest(
     args_cli.capability_profile_hash,
     "capability profile hash",
 )
+candidate_failure_contract_hash = require_sha256_digest(
+    args_cli.candidate_failure_contract_hash,
+    "push candidate failure contract hash",
+)
+if candidate_failure_contract_hash != PUSH_CANDIDATE_FAILURE_CONTRACT.contract_hash:
+    raise ValueError("push candidate failure contract hash mismatch")
 policy_architecture_hash = require_sha256_digest(
     args_cli.policy_architecture_hash,
     "policy architecture hash",
@@ -155,6 +178,13 @@ candidate_execution_artifact = load_sealed_candidate_artifact(
     ),
     expected_subject_manifest_hash=job_identity.subject_manifest_hash,
     expected_program_source_checksum=program_source_checksum,
+)
+backend_execution_environment_verification = (
+    verify_current_isaac_lab_execution_environment(
+        args_cli.backend_execution_environment_manifest_hash
+    )
+    if args_cli.backend_execution_environment_manifest_hash is not None
+    else None
 )
 train_attempt_id = uuid.uuid4().hex
 app_launcher = AppLauncher(args_cli)
@@ -279,6 +309,13 @@ def main() -> int:
         env = gym.make(task, cfg=env_cfg, render_mode=None)
         if isinstance(env.unwrapped, DirectMARLEnv):
             env = multi_agent_to_single_agent(env)
+        if (
+            str(env.unwrapped.device) != args_cli.device
+            or str(agent_cfg.device) != args_cli.device
+        ):
+            raise RuntimeError(
+                "push training device does not match the requested execution device"
+            )
         wrapped_env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
         planned_training_steps = int(agent_cfg.max_iterations) * num_steps_per_env
         candidate_adapter = CandidateRuntimeAdapter.from_candidate_dir(
@@ -362,6 +399,18 @@ def main() -> int:
             },
             errors=[],
         )
+    except PushCandidateProgramFailure as exc:
+        summary = status_summary(
+            "fail",
+            candidate=candidate_summary,
+            runtime_activation_summary=(
+                candidate_adapter.runtime_summary()
+                if candidate_adapter is not None
+                else None
+            ),
+            candidate_failure=exc.evidence.to_public_dict(),
+            errors=[],
+        )
     except Exception as exc:  # noqa: BLE001
         summary = status_summary(
             "fail",
@@ -392,11 +441,21 @@ def status_summary(status: str, **kwargs: Any) -> dict[str, Any]:
         "agent_configuration_hash": agent_configuration_hash,
         "initialization_seed_schedule_hash": seed_schedule_hash,
         "capability_profile_hash": capability_profile_hash,
+        "candidate_failure_contract_hash": candidate_failure_contract_hash,
         "program_source_checksum": program_source_checksum,
+        "execution_device": str(args_cli.device),
+        **(
+            {
+                "backend_execution_environment_verification": dict(
+                    backend_execution_environment_verification
+                )
+            }
+            if backend_execution_environment_verification is not None
+            else {}
+        ),
         "status": status,
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "run": {
-            "cwd": os.getcwd(),
             "round_id": args_cli.round,
             "train_attempt_id": train_attempt_id,
             "seed_policy": "runner_owned_not_public",

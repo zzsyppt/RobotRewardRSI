@@ -55,6 +55,7 @@ def _parse_args(
     parser.add_argument("--session-id", default=None)
     parser.add_argument("--output-dir", type=Path, default=None)
     add_task_runtime_arguments(parser, provider.cli_defaults())
+    provider.add_cli_arguments(parser)
     args = parser.parse_args(argv)
     args._composition_provider = provider
     args._composition_registry = registry

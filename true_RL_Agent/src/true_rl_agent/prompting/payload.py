@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from true_rl_agent.agent_core.context import (
     build_public_history_section,
@@ -12,11 +13,15 @@ from true_rl_agent.agent_core.provider_contract import (
     candidate_package_files_contract,
     provider_json_output_contract,
 )
+from true_rl_agent.candidates.authoring_policy import (
+    SINGLE_COMPONENT_DELTA_INSTRUCTION,
+)
 from true_rl_agent.candidates.capability_profile import CandidateCapabilityProfile
 from true_rl_agent.prompting.authoring_frame import (
     build_authoring_context_frame,
     compact_public_history_for_frame,
     normalize_authoring_frame_kind,
+    project_sections_for_authoring_frame,
     with_final_prompt_budget,
 )
 from true_rl_agent.prompting.capabilities import (
@@ -38,25 +43,25 @@ from true_rl_agent.prompting.source_catalog import (
 from true_rl_agent.prompting.task_sections import sanitize_task_prompt_sections
 
 PROMPT_PAYLOAD_SECTION_ORDER = (
+    "schema_version",
     "task",
     "loop_contract",
     "required_candidate_package",
     "candidate_capabilities",
-    "authoring_context_frame",
     "reward_inputs_contract",
     "public_eval_contract",
     "control_effectiveness_contract",
+    "known_good_examples",
+    "selection_guidance",
+    "authoring_context_frame",
     "source_catalog",
     "candidate_lineage",
     "source_payloads",
     "public_feedback_summary",
     "runtime_feedback_summary",
     "public_history",
-    "known_good_examples",
     "exploration_directive",
-    "selection_guidance",
     "provider_or_runtime_repair_feedback",
-    "schema_version",
 )
 LEGACY_PROMPT_PAYLOAD_ALIAS_SECTIONS = (
     "public_context",
@@ -86,13 +91,20 @@ def candidate_allowed_controls() -> list[str]:
 
 
 def candidate_component_contract(
-    *, candidate_capabilities: Mapping[str, Any] | None = None
+    *,
+    candidate_capabilities: Mapping[str, Any] | None = None,
+    verifier_prompt_rules: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    return candidate_component_contract_from_capabilities(candidate_capabilities)
+    return candidate_component_contract_from_capabilities(
+        candidate_capabilities,
+        verifier_prompt_rules=verifier_prompt_rules,
+    )
 
 
 def required_candidate_package(
-    *, candidate_capabilities: Mapping[str, Any] | None = None
+    *,
+    candidate_capabilities: Mapping[str, Any] | None = None,
+    verifier_prompt_rules: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     advertised_components = (
         list(
@@ -112,7 +124,8 @@ def required_candidate_package(
         ),
         "candidate_files": candidate_package_files_contract(),
         "component_contract": candidate_component_contract(
-            candidate_capabilities=candidate_capabilities
+            candidate_capabilities=candidate_capabilities,
+            verifier_prompt_rules=verifier_prompt_rules,
         ),
         "candidate_must_not_change": [
             "runner code",
@@ -151,8 +164,9 @@ def build_prompt_payload(
     *,
     public_context: dict[str, Any],
     frame_kind: str | None = None,
-    runner_capability_readiness: Mapping[str, Mapping[str, Any]] | None = None,
+    authoring_capability_readiness: Mapping[str, Mapping[str, Any]] | None = None,
     candidate_capability_profile: CandidateCapabilityProfile | None = None,
+    candidate_verifier_prompt_rules: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     safe_context = sanitize_prompt_public_context(dict(public_context))
     authoring_frame_kind = normalize_authoring_frame_kind(frame_kind, safe_context)
@@ -175,7 +189,7 @@ def build_prompt_payload(
     candidate_capabilities = candidate_authoring_capabilities(
         capability_profile=candidate_capability_profile,
         task_specific_metadata=task_sections.get("task_capability_metadata"),
-        runner_capability_readiness=runner_capability_readiness,
+        authoring_capability_readiness=authoring_capability_readiness,
     )
     section_values: dict[str, Any] = {
         "task": task_sections.get("task", _generic_task_section()),
@@ -187,7 +201,8 @@ def build_prompt_payload(
             "runtime_feedback_summary", _generic_runtime_feedback_summary(safe_context)
         ),
         "required_candidate_package": required_candidate_package(
-            candidate_capabilities=candidate_capabilities
+            candidate_capabilities=candidate_capabilities,
+            verifier_prompt_rules=candidate_verifier_prompt_rules,
         ),
         "candidate_capabilities": candidate_capabilities,
         "reward_inputs_contract": task_sections.get(
@@ -203,12 +218,34 @@ def build_prompt_payload(
         "public_history": public_history,
         "known_good_examples": task_sections.get("known_good_examples", []),
         "exploration_directive": source_sections["exploration_directive"],
-        "selection_guidance": _compose_selection_guidance(
+        "selection_guidance": _task_selection_guidance(
             task_sections.get("selection_guidance")
         ),
         "provider_or_runtime_repair_feedback": safe_context.get("candidate_repair_feedback"),
-        "schema_version": "true_rl_agent.prompt_payload.v2",
+        "schema_version": "true_rl_agent.prompt_payload.v3",
     }
+    section_values, frame_omissions = project_sections_for_authoring_frame(
+        section_values,
+        frame_kind=authoring_frame_kind,
+        section_order=PROMPT_PAYLOAD_SECTION_ORDER,
+    )
+    projected_source_sections = validate_prompt_source_sections(
+        {
+            key: section_values[key]
+            for key in PROMPT_SOURCE_SECTION_KEYS
+        },
+        require_inline_payloads=(
+            not (
+                authoring_frame_kind == "source_followup"
+                or (
+                    authoring_frame_kind == "static_repair"
+                    and bool(frame_omissions)
+                )
+            )
+        ),
+    )
+    section_values.update(projected_source_sections)
+    omitted_sections.extend(frame_omissions)
     section_values["authoring_context_frame"] = build_authoring_context_frame(
         frame_kind=authoring_frame_kind,
         section_values=section_values,
@@ -218,7 +255,11 @@ def build_prompt_payload(
     payload = {
         section: section_values[section]
         for section in PROMPT_PAYLOAD_SECTION_ORDER
-        if section != "provider_or_runtime_repair_feedback" or section_values[section] is not None
+        if section in section_values
+        and (
+            section != "provider_or_runtime_repair_feedback"
+            or section_values[section] is not None
+        )
     }
 
     # Compatibility ref for older provider/test adapters that still inspect the
@@ -309,7 +350,7 @@ def _loop_contract(candidate_capabilities: Mapping[str, Any]) -> dict[str, Any]:
                 if isinstance(action, str) and action not in candidate_may:
                     candidate_may.append(action)
     return {
-        "schema_version": "true_rl_agent.loop_contract.v1",
+        "schema_version": "true_rl_agent.loop_contract.v2",
         "candidate_role": "Return a candidate package only.",
         "candidate_may": candidate_may,
         "runner_owned": [
@@ -330,6 +371,7 @@ def _loop_contract(candidate_capabilities: Mapping[str, Any]) -> dict[str, Any]:
             "acceptance rules",
             "task invariants",
         ],
+        "evidence_discipline": _task_neutral_evidence_discipline(),
     }
 
 
@@ -386,19 +428,24 @@ def _generic_selection_guidance() -> list[str]:
     ]
 
 
-def _compose_selection_guidance(task_guidance: Any) -> list[str]:
-    """Combine task-owned semantics with task-neutral evidence discipline."""
+def _task_selection_guidance(task_guidance: Any) -> list[str]:
+    """Return task-owned guidance without merging common prompt sections into it."""
 
     if task_guidance is None:
-        extension = _generic_selection_guidance()
+        guidance = _generic_selection_guidance()
     elif isinstance(task_guidance, list | tuple) and all(
         isinstance(item, str) and item.strip() for item in task_guidance
     ):
-        extension = list(task_guidance)
+        guidance = list(task_guidance)
     else:
         raise TypeError("selection_guidance must be a sequence of non-empty strings")
+    return list(dict.fromkeys(guidance))
 
-    guidance = [
+
+def _task_neutral_evidence_discipline() -> list[str]:
+    """Return common evidence rules owned by the shared loop contract."""
+
+    return [
         (
             "Before authoring, compare the proposed mechanism with public_history.experiment_memory, "
             "recent_outcomes, and current-best evidence."
@@ -408,14 +455,23 @@ def _compose_selection_guidance(task_guidance: Any) -> list[str]:
             "contributions as negative evidence; do not silently repeat or combine those mechanisms."
         ),
         (
-            "If reusing a rejected mechanism, name the closest prior candidate in the rationale, "
-            "state the exact code-level difference, and explain how it addresses the observed failure."
+            "Treat last_mean only as the last sampled weighted-contribution snapshot; never infer "
+            "that a component is inactive or causally ineffective from last_mean alone. Compare "
+            "max_abs, repeated runtime evidence, and fixed evaluation outcomes."
         ),
         (
-            "Prefer the accepted current-best source, or when none exists the explicitly nonaccepted "
-            "best-observed bootstrap anchor, plus one bounded, attributable change; combine multiple "
-            "rejected mechanisms only when public evidence supports the combination."
+            "If reusing a rejected mechanism, the canonical hypothesis narrative embedded in "
+            "TrainingComponents.rationale must name the closest prior candidate, state the exact "
+            "code-level difference, and explain how it addresses the observed failure; keep "
+            "mechanical repair notes out of that hypothesis."
         ),
-        *extension,
+        (
+            "Do not submit numeric-only, string-only, or formatting-only variants of an evaluated "
+            "source; the historical-source gate rejects those variants before training."
+        ),
+        (
+            "Prefer the accepted current-best source, or when none exists the explicitly "
+            "nonaccepted best-observed bootstrap anchor."
+        ),
+        SINGLE_COMPONENT_DELTA_INSTRUCTION,
     ]
-    return list(dict.fromkeys(guidance))

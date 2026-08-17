@@ -7,9 +7,12 @@ from pathlib import Path
 from types import ModuleType
 
 from true_rl_agent.candidates.components import TrainingComponents
+from true_rl_agent.candidates.schema import require_candidate_id
 
 CANDIDATE_SCHEMA_VERSION = "true_rl_agent.candidate.v1"
 CONTROLLED_ENTRYPOINT = "training_code.components:build_training_components"
+MAX_CANDIDATE_EXECUTION_FILE_BYTES = 1024 * 1024
+"""Absolute in-memory bound for any candidate file parsed or executed."""
 
 
 @dataclass(frozen=True)
@@ -28,7 +31,21 @@ class CandidateManifest:
 
 def load_candidate_manifest(candidate_dir: Path) -> CandidateManifest:
     path = candidate_dir / "candidate_manifest.yaml"
-    values = _parse_simple_yaml_mapping(path.read_text(encoding="utf-8"))
+    return parse_candidate_manifest_bytes(
+        _read_execution_file_bytes(path, label="candidate manifest")
+    )
+
+
+def parse_candidate_manifest_bytes(payload: bytes) -> CandidateManifest:
+    """Parse exact manifest bytes already obtained through a trusted reader."""
+
+    if not isinstance(payload, bytes) or not payload:
+        raise ValueError("candidate manifest bytes must be non-empty")
+    try:
+        text = payload.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise ValueError("candidate manifest must be valid UTF-8") from exc
+    values = _parse_simple_yaml_mapping(text)
     expected_fields = {"schema_version", "candidate_id", "entrypoint"}
     if set(values) != expected_fields:
         raise ValueError("candidate manifest fields mismatch")
@@ -47,7 +64,7 @@ def load_training_components(candidate_dir: Path) -> TrainingComponents:
     if module_path.is_symlink() or not module_path.is_file():
         raise ValueError("candidate components source must be a regular file")
     return load_training_components_source_bytes(
-        module_path.read_bytes(),
+        _read_execution_file_bytes(module_path, label="training components source"),
         module_name=f"true_rl_candidate_{manifest.candidate_id}",
         source_name=str(module_path),
         function_name=function_name,
@@ -65,6 +82,10 @@ def load_training_components_source_bytes(
 
     if not isinstance(payload, bytes) or not payload:
         raise ValueError("training components source bytes must be non-empty")
+    if len(payload) > MAX_CANDIDATE_EXECUTION_FILE_BYTES:
+        raise ValueError(
+            "training components source exceeds the absolute execution byte limit"
+        )
     for field_name, value in (
         ("module_name", module_name),
         ("source_name", source_name),
@@ -89,16 +110,20 @@ def load_training_components_source_bytes(
     return components
 
 
+def _read_execution_file_bytes(path: Path, *, label: str) -> bytes:
+    with path.open("rb") as source:
+        payload = source.read(MAX_CANDIDATE_EXECUTION_FILE_BYTES + 1)
+    if len(payload) > MAX_CANDIDATE_EXECUTION_FILE_BYTES:
+        raise ValueError(f"{label} exceeds the absolute execution byte limit")
+    return payload
+
+
 def _validate_manifest(manifest: CandidateManifest) -> None:
     if manifest.schema_version != CANDIDATE_SCHEMA_VERSION:
         raise ValueError("candidate manifest schema_version is not supported")
     if manifest.entrypoint != CONTROLLED_ENTRYPOINT:
         raise ValueError("candidate manifest entrypoint is not allowlisted")
-    if not manifest.candidate_id:
-        raise ValueError("candidate manifest candidate_id is required")
-    allowed = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-")
-    if any(char not in allowed for char in manifest.candidate_id):
-        raise ValueError("candidate manifest candidate_id has invalid characters")
+    require_candidate_id(manifest.candidate_id, "candidate manifest candidate_id")
 
 
 def _resolve_entrypoint(candidate_dir: Path, manifest: CandidateManifest) -> tuple[Path, str]:

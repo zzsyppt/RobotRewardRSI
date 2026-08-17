@@ -3,21 +3,77 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from true_rl_agent.agent_core.context import sanitize_prompt_public_context
-from true_rl_agent.agent_core.public_safety import scrub_public_paths
+from true_rl_agent.agent_core.public_safety import (
+    redact_authorization_credential_markers,
+    redact_secret_key_markers,
+    sanitize_untrusted_public_diagnostic,
+    scrub_public_paths,
+)
 from true_rl_agent.prompting import assert_public_only_prompt_payload
 
 PROVIDER_FAILURE_CATEGORIES = frozenset(
     {
         "json_parse_error",
+        "response_truncated",
         "schema_error",
         "candidate_materialize_error",
         "verifier_error",
         "runtime_error",
         "source_request_denied",
     }
+)
+PROVIDER_USAGE_FIELDS = (
+    "request_units",
+    "response_units",
+    "total_units",
+    "request_cache_hit_units",
+    "request_cache_miss_units",
+    "reasoning_units",
+)
+_PROVIDER_USAGE_SOURCE_FIELDS = {
+    "request_units": ("request_units", "input_tokens", "prompt_tokens"),
+    "response_units": ("response_units", "output_tokens", "completion_tokens"),
+    "total_units": ("total_units", "total_tokens"),
+    "request_cache_hit_units": (
+        "request_cache_hit_units",
+        "input_cache_hit_tokens",
+        "prompt_cache_hit_tokens",
+    ),
+    "request_cache_miss_units": (
+        "request_cache_miss_units",
+        "input_cache_miss_tokens",
+        "prompt_cache_miss_tokens",
+    ),
+    "reasoning_units": ("reasoning_units", "reasoning_tokens"),
+}
+_MAX_PROVIDER_USAGE_COUNT = 1_000_000_000_000
+_PROVIDER_RECEIPT_SCHEMA_V1 = "true_rl_agent.provider_response_receipt.v1"
+_PROVIDER_RECEIPT_SCHEMA_V2 = "true_rl_agent.provider_response_receipt.v2"
+_PROVIDER_RECEIPT_SCHEMA_VERSION = "true_rl_agent.provider_response_receipt.v3"
+_PROVIDER_RECEIPT_OPTIONAL_STRINGS = (
+    "requested_model",
+    "response_model",
+    "system_fingerprint",
+    "finish_reason",
+    "transport_policy_id",
+)
+_PROVIDER_RECEIPT_PRESENCE_FIELDS = (
+    "response_text_present",
+    "reasoning_content_present",
+)
+_PROVIDER_RECEIPT_COUNT_FIELDS = (
+    "requested_output_units",
+    "response_max_bytes",
+    "response_text_utf8_bytes",
+    "reasoning_content_utf8_bytes",
+)
+_PROVIDER_RECEIPT_HASH_FIELDS = (
+    "response_text_sha256",
+    "reasoning_content_sha256",
 )
 
 
@@ -30,12 +86,16 @@ class ProviderCandidateError(RuntimeError):
         reason: str,
         *,
         details: Mapping[str, Any] | None = None,
+        provider_usage: Mapping[str, Any] | None = None,
+        provider_receipt: Mapping[str, Any] | None = None,
     ) -> None:
         if category not in PROVIDER_FAILURE_CATEGORIES:
             raise ValueError(f"unknown provider failure category: {category}")
         self.category = category
         self.reason = _public_string(reason)
         self.details = _sanitize_provider_value(dict(details or {}))
+        self.provider_usage = normalize_provider_usage(provider_usage)
+        self.provider_receipt = normalize_provider_receipt(provider_receipt)
         super().__init__(f"{self.category}: {self.reason}")
 
     def to_public_dict(self) -> dict[str, Any]:
@@ -51,6 +111,24 @@ class ProviderCandidateError(RuntimeError):
 
 def build_provider_repair_feedback(error: ProviderCandidateError) -> dict[str, Any]:
     failure = error.to_public_dict()
+    instructions = [
+        "Return one valid JSON object matching candidate_draft with candidate_id, declared_changed_components, and components_py.",
+        (
+            "Put the canonical experiment hypothesis in the non-empty literal "
+            "TrainingComponents.rationale inside components_py; do not return a "
+            "standalone candidate rationale field."
+        ),
+        "Fix only the candidate package response or training_code/components.py needed for this failure.",
+        "Do not ask to change runner, eval protocol, training budget, seed policy, checkpoints, PPO, or acceptance rules.",
+    ]
+    if error.category == "response_truncated":
+        instructions[0:0] = [
+            "Return a shorter response that closes the complete JSON object within the provider output limit.",
+            (
+                "Keep components_py complete; shorten comments and repeated explanation "
+                "while retaining the embedded TrainingComponents.rationale hypothesis."
+            ),
+        ]
     feedback = _sanitize_provider_value(
         {
             "schema_version": "true_rl_agent.provider_repair_feedback.v1",
@@ -59,19 +137,118 @@ def build_provider_repair_feedback(error: ProviderCandidateError) -> dict[str, A
             "failure_category": failure["category"],
             "reason": failure["reason"],
             "failure": failure,
-            "instructions": [
-                "Return one valid JSON object with candidate_id, rationale, declared_changed_components, and components_py.",
-                "Fix only the candidate package response or training_code/components.py needed for this failure.",
-                "Do not ask to change runner, eval protocol, training budget, seed policy, checkpoints, PPO, or acceptance rules.",
-            ],
+            "instructions": instructions,
         }
     )
     assert_public_only_prompt_payload(feedback)
     return feedback
 
 
+def normalize_provider_usage(value: Any) -> dict[str, int]:
+    """Retain bounded usage counters without provider response content."""
+
+    if not isinstance(value, Mapping):
+        return {}
+    usage: dict[str, int] = {}
+    for field_name in PROVIDER_USAGE_FIELDS:
+        count = next(
+            (
+                value[source_name]
+                for source_name in _PROVIDER_USAGE_SOURCE_FIELDS[field_name]
+                if source_name in value
+            ),
+            None,
+        )
+        if field_name == "reasoning_units" and count is None:
+            details = value.get("completion_tokens_details")
+            if isinstance(details, Mapping):
+                count = details.get("reasoning_tokens")
+        if (
+            isinstance(count, bool)
+            or not isinstance(count, int)
+            or count < 0
+            or count > _MAX_PROVIDER_USAGE_COUNT
+        ):
+            continue
+        usage[field_name] = count
+    return usage
+
+
+def normalize_provider_receipt(value: Any) -> dict[str, Any]:
+    """Retain bounded response identity and hashes without response content."""
+
+    if (
+        not isinstance(value, Mapping)
+        or value.get("schema_version")
+        not in {
+            _PROVIDER_RECEIPT_SCHEMA_V1,
+            _PROVIDER_RECEIPT_SCHEMA_V2,
+            _PROVIDER_RECEIPT_SCHEMA_VERSION,
+        }
+    ):
+        return {}
+    schema_version = str(value["schema_version"])
+    receipt: dict[str, Any] = {
+        "schema_version": schema_version,
+    }
+    for field_name in _PROVIDER_RECEIPT_OPTIONAL_STRINGS:
+        if schema_version == _PROVIDER_RECEIPT_SCHEMA_V1 and field_name == "transport_policy_id":
+            continue
+        item = value.get(field_name)
+        if field_name == "transport_policy_id" and schema_version != _PROVIDER_RECEIPT_SCHEMA_V1:
+            if isinstance(item, str) and item:
+                receipt[field_name] = _public_string(item)
+            else:
+                return {}
+        elif item is None:
+            receipt[field_name] = None
+        elif isinstance(item, str):
+            receipt[field_name] = _public_string(item)
+    thinking_mode = value.get("requested_thinking_mode")
+    if thinking_mode in {"enabled", "disabled", "provider_default"}:
+        receipt["requested_thinking_mode"] = thinking_mode
+    if schema_version == _PROVIDER_RECEIPT_SCHEMA_VERSION:
+        reasoning_effort = value.get("requested_reasoning_effort")
+        if reasoning_effort not in {"high", "max", "provider_default"}:
+            return {}
+        receipt["requested_reasoning_effort"] = reasoning_effort
+    for field_name in _PROVIDER_RECEIPT_PRESENCE_FIELDS:
+        item = value.get(field_name)
+        if isinstance(item, bool):
+            receipt[field_name] = item
+    for field_name in _PROVIDER_RECEIPT_COUNT_FIELDS:
+        if schema_version == _PROVIDER_RECEIPT_SCHEMA_V1 and field_name == "response_max_bytes":
+            continue
+        item = value.get(field_name)
+        if (
+            field_name == "response_max_bytes"
+            and schema_version != _PROVIDER_RECEIPT_SCHEMA_V1
+            and (
+                isinstance(item, bool)
+                or not isinstance(item, int)
+                or item <= 0
+                or item > _MAX_PROVIDER_USAGE_COUNT
+            )
+        ):
+            return {}
+        if (
+            not isinstance(item, bool)
+            and isinstance(item, int)
+            and 0 <= item <= _MAX_PROVIDER_USAGE_COUNT
+        ):
+            receipt[field_name] = item
+    for field_name in _PROVIDER_RECEIPT_HASH_FIELDS:
+        item = value.get(field_name)
+        if item is None:
+            receipt[field_name] = None
+        elif isinstance(item, str) and re.fullmatch(r"sha256:[0-9a-f]{64}", item):
+            receipt[field_name] = item
+    return receipt
+
+
 def _sanitize_provider_value(value: Any) -> Any:
     if isinstance(value, Mapping):
+        value = sanitize_untrusted_public_diagnostic(value)
         return sanitize_prompt_public_context(
             {str(key): _sanitize_provider_value(item) for key, item in value.items()}
         )
@@ -86,7 +263,8 @@ def _sanitize_provider_value(value: Any) -> Any:
 
 def _public_string(value: str) -> str:
     compact = " ".join(str(value).split())
-    compact = re.sub(r"sk-[A-Za-z0-9_-]+", "[redacted]", compact)
+    compact = redact_secret_key_markers(compact)
+    compact = redact_authorization_credential_markers(compact)
     compact = scrub_public_paths(compact)
     sanitized = sanitize_prompt_public_context(compact)
     if isinstance(sanitized, str):

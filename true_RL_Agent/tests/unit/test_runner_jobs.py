@@ -5,6 +5,7 @@ import json
 import sys
 import tempfile
 import unittest
+from dataclasses import replace
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -35,6 +36,8 @@ from true_rl_agent.runner.checkpoint import (
     validate_checkpoint_safety_report,
 )
 from true_rl_agent.runner.dry_run import DryRunAuditRunner, DryRunCandidateMetadata
+from true_rl_agent.runner.eval_binding import bind_eval_spec_to_checkpoint
+from true_rl_agent.runner.initial_policy import InitialPolicyStatePairing
 from true_rl_agent.runner.isolation import IsolationPolicy
 from true_rl_agent.runner.jobs import dry_run_eval_command, dry_run_train_command
 from true_rl_agent.runner.specs import (
@@ -58,6 +61,7 @@ def _train_job_spec(*, candidate_id: str, **kwargs) -> TrainJobSpec:
     initialization = kwargs["policy_initialization"]
     budget_steps = kwargs["budget_steps"]
     candidate_artifact = make_verified_candidate_artifact(candidate_id)
+    kwargs.setdefault("execution_device", "cuda:0")
     return TrainJobSpec(
         subject=ExperimentSubject.candidate(candidate_id),
         subject_manifest_hash=candidate_artifact.subject_manifest_hash,
@@ -72,6 +76,7 @@ def _train_job_spec(*, candidate_id: str, **kwargs) -> TrainJobSpec:
 
 
 def _eval_job_spec(*, candidate_id: str, **kwargs) -> EvalJobSpec:
+    kwargs.setdefault("execution_device", "cuda:0")
     return EvalJobSpec(
         subject=ExperimentSubject.candidate(candidate_id),
         subject_manifest_hash=TEST_SUBJECT_MANIFEST_HASH,
@@ -131,6 +136,7 @@ class RunnerJobTests(unittest.TestCase):
         warm_command = dry_run_train_command(warm_spec)
 
         self.assertIn("--init random", random_command)
+        self.assertIn("--device cuda:0", random_command)
         self.assertNotIn("--warm-start", random_command)
         self.assertIn("--init warm_start", warm_command)
         self.assertIn("--warm-start baseline://push/policy.pt", warm_command)
@@ -152,6 +158,7 @@ class RunnerJobTests(unittest.TestCase):
                 public_seed_count=4,
                 sealed_validation_seed_count=8,
             ),
+            execution_device="cuda:0",
         )
 
         command = dry_run_eval_command(eval_spec)
@@ -163,10 +170,95 @@ class RunnerJobTests(unittest.TestCase):
         self.assertNotIn("--candidate-id", command)
         self.assertNotIn("--candidate candidate-001", command)
         self.assertIn("--public-seeds 4", command)
+        self.assertIn("--device cuda:0", command)
         self.assertNotIn("trusted_seed_count", command)
         self.assertEqual(eval_spec.to_public_dict()["sealed_validation_seed_count"], 8)
         self.assertIn("eval_protocol_hash", eval_spec.to_public_dict())
         self.assertNotIn("trusted_seed_count", eval_spec.to_public_dict())
+
+    def test_eval_binding_rejects_checkpoint_execution_device_drift(self) -> None:
+        eval_spec = _eval_job_spec(
+            job_id="eval-device-lineage",
+            task_id="unitree_push_recovery",
+            candidate_id="candidate-001",
+            checkpoint=None,
+            checkpoint_output_plan=CheckpointOutputPlan(
+                "artifact://round/planned.pt"
+            ),
+            public_seed_count=4,
+            sealed_validation_seed_count=8,
+            execution_device="cuda:1",
+            evaluation_binding=make_evaluation_binding(
+                public_seed_count=4,
+                sealed_validation_seed_count=8,
+            ),
+        )
+        checkpoint = CheckpointRef(
+            uri="artifact://round/sealed.pt",
+            checksum=_EVAL_CHECKSUM,
+            role="eval",
+            sealed=True,
+            metadata={
+                "training_subject": eval_spec.subject.to_public_dict(),
+                "subject_manifest_hash": eval_spec.subject_manifest_hash,
+                "program_source_checksum": eval_spec.program_source_checksum,
+                "training_binding_hash": eval_spec.training_binding_hash,
+                "capability_profile_hash": eval_spec.capability_profile_hash,
+                "execution_device": "cuda:0",
+            },
+        )
+
+        with self.assertRaisesRegex(ValueError, "execution_device"):
+            bind_eval_spec_to_checkpoint(eval_spec, checkpoint)
+
+    def test_eval_binding_carries_verified_initial_policy_pairing_hash(self) -> None:
+        eval_spec = _eval_job_spec(
+            job_id="eval-initial-policy-lineage",
+            task_id="unitree_push_recovery",
+            candidate_id="candidate-001",
+            checkpoint=None,
+            checkpoint_output_plan=CheckpointOutputPlan(
+                "artifact://round/planned.pt"
+            ),
+            public_seed_count=4,
+            sealed_validation_seed_count=8,
+            execution_device="cuda:1",
+            evaluation_binding=make_evaluation_binding(
+                public_seed_count=4,
+                sealed_validation_seed_count=8,
+            ),
+        )
+        pairing = InitialPolicyStatePairing(
+            expected_initial_policy_state_hash="1" * 64,
+            actual_initial_policy_state_hash="1" * 64,
+            match=True,
+        )
+        checkpoint = CheckpointRef(
+            uri="artifact://round/sealed.pt",
+            checksum=_EVAL_CHECKSUM,
+            role="eval",
+            sealed=True,
+            metadata={
+                "training_subject": eval_spec.subject.to_public_dict(),
+                "subject_manifest_hash": eval_spec.subject_manifest_hash,
+                "program_source_checksum": eval_spec.program_source_checksum,
+                "training_binding_hash": eval_spec.training_binding_hash,
+                "capability_profile_hash": eval_spec.capability_profile_hash,
+                "execution_device": "cuda:1",
+                "initial_policy_state_pairing": pairing.to_public_dict(),
+            },
+        )
+
+        bound = bind_eval_spec_to_checkpoint(eval_spec, checkpoint)
+
+        self.assertEqual(
+            bound.initial_policy_state_pairing_hash,
+            pairing.pairing_hash,
+        )
+        self.assertEqual(
+            bound.to_public_dict()["initial_policy_state_pairing_hash"],
+            pairing.pairing_hash,
+        )
 
     def test_dry_run_runner_rejects_unbound_checkpoint_plan(self) -> None:
         eval_spec = _eval_job_spec(
@@ -220,6 +312,7 @@ class RunnerJobTests(unittest.TestCase):
                 public_seed_count=4,
                 sealed_validation_seed_count=8,
             ),
+            execution_device="cuda:0",
         )
         train_spec = _train_job_spec(
             job_id="train-warm",
@@ -780,6 +873,7 @@ class RunnerJobTests(unittest.TestCase):
                 eval_num_envs=64,
             ),
         )
+        changed_device_spec = replace(base_spec, execution_device="cuda:1")
 
         base_report = self._checkpoint_safety_report()
         base_hash = build_trusted_eval_seal(
@@ -806,6 +900,12 @@ class RunnerJobTests(unittest.TestCase):
             checkpoint_safety_report=base_report,
             candidate_isolation_status="pass",
         ).eval_config_hash
+        changed_device_hash = build_trusted_eval_seal(
+            eval_spec=changed_device_spec,
+            task_invariants=invariants,
+            checkpoint_safety_report=base_report,
+            candidate_isolation_status="pass",
+        ).eval_config_hash
         base_seal_hash = build_trusted_eval_seal(
             eval_spec=base_spec,
             task_invariants=invariants,
@@ -816,6 +916,16 @@ class RunnerJobTests(unittest.TestCase):
         self.assertNotEqual(base_hash, changed_accept_hash)
         self.assertNotEqual(base_hash, changed_env_hash)
         self.assertNotEqual(base_hash, changed_protocol_hash)
+        self.assertNotEqual(base_hash, changed_device_hash)
+        self.assertEqual(
+            build_trusted_eval_seal(
+                eval_spec=base_spec,
+                task_invariants=invariants,
+                checkpoint_safety_report=base_report,
+                candidate_isolation_status="pass",
+            ).to_public_dict()["execution_device"],
+            "cuda:0",
+        )
         changed_reason_report = dict(base_report)
         changed_reason_report["reason"] = "checkpoint_safe_to_load_after_retry"
         changed_report_hash = build_trusted_eval_seal(

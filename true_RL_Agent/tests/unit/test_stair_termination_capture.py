@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import sys
 import unittest
 from pathlib import Path
@@ -15,6 +16,8 @@ from true_rl_agent.tasks.stair_climbing.termination_capture import (
     build_termination_mask_snapshot,
     capture_current_termination_masks,
     install_stair_termination_capture,
+    stair_termination_manager_resolution_contract,
+    verify_stair_termination_manager_resolution,
 )
 
 
@@ -190,6 +193,83 @@ class StairTerminationCaptureTests(unittest.TestCase):
             (True,),
         )
 
+    def test_installer_preserves_manager_resolvable_params_at_top_level(self) -> None:
+        sensor_cfg = SimpleNamespace(body_ids=None)
+        expected = _FakeMask(True)
+
+        def source(env: object, *, sensor_cfg: object, threshold: float) -> _FakeMask:
+            self.assertEqual(getattr(sensor_cfg, "body_ids"), (4,))
+            self.assertEqual(threshold, 1.0)
+            return expected
+
+        cfg = SimpleNamespace(
+            time_out=_term_cfg(lambda env: _FakeMask(False), time_out=True),
+            base_contact=_term_cfg(
+                source,
+                {"sensor_cfg": sensor_cfg, "threshold": 1.0},
+            ),
+        )
+        install_stair_termination_capture(cfg)
+
+        self.assertEqual(
+            set(cfg.base_contact.params),
+            {"sensor_cfg", "threshold"},
+        )
+        self.assertIs(cfg.base_contact.params["sensor_cfg"], sensor_cfg)
+        self.assertEqual(
+            inspect.signature(cfg.base_contact.func),
+            inspect.signature(source),
+        )
+
+        # Mirrors Isaac Lab's deferred top-level SceneEntityCfg resolution.
+        sensor_cfg.body_ids = (4,)
+        env = SimpleNamespace(common_step_counter=0)
+        actual = cfg.base_contact.func(env, **cfg.base_contact.params)
+        self.assertIs(actual, expected)
+
+    def test_runtime_resolution_is_bound_to_protocol_and_scene(self) -> None:
+        protocol = _termination_protocol()
+        sensor_cfg = SimpleNamespace(
+            name="contact_forces",
+            body_names=["torso_link"],
+            body_ids=[14],
+        )
+        time_out = _term_cfg(lambda env: _FakeMask(False), time_out=True)
+        base_contact = _term_cfg(
+            lambda env, **params: _FakeMask(False),
+            {"sensor_cfg": sensor_cfg, "threshold": 1.0},
+        )
+        base_contact.time_out = False
+        install_stair_termination_capture(
+            SimpleNamespace(time_out=time_out, base_contact=base_contact)
+        )
+        manager = SimpleNamespace(
+            active_terms=["time_out", "base_contact"],
+            get_term_cfg=lambda name: {
+                "time_out": time_out,
+                "base_contact": base_contact,
+            }[name],
+        )
+        scene_sensor = SimpleNamespace(
+            find_bodies=lambda names, preserve_order: ([14], ["torso_link"])
+        )
+        env = SimpleNamespace(
+            termination_manager=manager,
+            scene={"contact_forces": scene_sensor},
+        )
+
+        expected = stair_termination_manager_resolution_contract(protocol)
+        self.assertEqual(
+            verify_stair_termination_manager_resolution(env, protocol=protocol),
+            expected,
+        )
+        sensor_cfg.body_ids = [0]
+        with self.assertRaisesRegex(
+            StairTerminationCaptureError,
+            "scene body resolution drifted",
+        ):
+            verify_stair_termination_manager_resolution(env, protocol=protocol)
+
     def test_shape_dtype_identity_and_duplicate_execution_are_strict(self) -> None:
         bad_dtype = _FakeMask(False)
         bad_dtype.dtype = "float32"
@@ -268,6 +348,34 @@ def _term_cfg(
     time_out: bool = False,
 ) -> SimpleNamespace:
     return SimpleNamespace(func=source, params=params or {}, time_out=time_out)
+
+
+def _termination_protocol() -> dict[str, object]:
+    return {
+        "phase0_probe": {
+            "termination_schema": {
+                "schema_hash": "1" * 64,
+                "terms": [
+                    {
+                        "manager_term": "time_out",
+                        "parameters": {},
+                        "time_out": True,
+                    },
+                    {
+                        "manager_term": "base_contact",
+                        "parameters": {
+                            "sensor_cfg": {
+                                "name": "contact_forces",
+                                "body_names": ["torso_link"],
+                            },
+                            "threshold": 1.0,
+                        },
+                        "time_out": False,
+                    },
+                ],
+            }
+        },
+    }
 
 
 def _instrumented_env(

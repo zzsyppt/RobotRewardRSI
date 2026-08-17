@@ -40,7 +40,7 @@ def main() -> int:
         raise RuntimeError("CUDA is required for the Stair reward fault probe")
     device = torch.device("cuda:0")
     config = StairClimbingTaskConfig.defaults(
-        PROJECT_ROOT / "configs" / "tasks" / "stair_protocol_v2_draft.json"
+        PROJECT_ROOT / "configs" / "tasks" / "stair_protocol_v2.json"
     )
     resolved = resolve_official_stair_reference_program(
         config,

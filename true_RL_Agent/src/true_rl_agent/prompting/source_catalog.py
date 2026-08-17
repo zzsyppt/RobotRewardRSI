@@ -5,8 +5,9 @@ from __future__ import annotations
 import hashlib
 import math
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
+from true_rl_agent.agent_core.ledger import is_strict_ledger_record
 from true_rl_agent.agent_core.provider_contract import SOURCE_REQUEST_SERVICE_ENABLED
 from true_rl_agent.agent_core.public_safety import sanitize_prompt_public_value
 from true_rl_agent.agent_core.source_request_limits import (
@@ -21,19 +22,37 @@ from true_rl_agent.agent_core.source_request_limits import (
 from true_rl_agent.agent_core.source_request_limits import (
     KNOWN_GOOD_SOURCE_ID as _KNOWN_GOOD_SOURCE_ID,
 )
+from true_rl_agent.candidates.artifact import (
+    CANDIDATE_EXECUTION_AUTHORIZATION_SCHEMA_VERSION,
+    SealedCandidateArtifactRef,
+    load_sealed_candidate_artifact,
+)
+from true_rl_agent.candidates.package_contract import (
+    CandidatePackageContractError,
+    open_preflighted_candidate_file,
+    preflight_candidate_package,
+)
+from true_rl_agent.candidates.schema import CandidateChangeSet
 from true_rl_agent.evaluation.acceptance_protocol import AcceptanceProtocol
 from true_rl_agent.evaluation.acceptance_replay import (
     ProjectedPublicHistory,
     project_public_history,
 )
-from true_rl_agent.evaluation.binding import require_sha256_checksum
+from true_rl_agent.evaluation.binding import (
+    canonical_json_hash,
+    require_sha256_checksum,
+    require_sha256_digest,
+)
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
 from true_rl_agent.prompting.public_safety import assert_public_only_prompt_payload
 
-SOURCE_CATALOG_SCHEMA_VERSION = "true_rl_agent.source_catalog.v2"
-CANDIDATE_LINEAGE_SCHEMA_VERSION = "true_rl_agent.candidate_lineage.v2"
+SOURCE_CATALOG_SCHEMA_VERSION = "true_rl_agent.source_catalog.v3"
+CANDIDATE_LINEAGE_SCHEMA_VERSION = "true_rl_agent.candidate_lineage.v4"
 SOURCE_PAYLOAD_SCHEMA_VERSION = "true_rl_agent.prompt_source_payload.v1"
 EXPLORATION_DIRECTIVE_SCHEMA_VERSION = "true_rl_agent.exploration_directive.v2"
+CURRENT_AUTHORING_ATTEMPT_SOURCE_OWNER = "current_authoring_attempt"
+PRIOR_LEDGER_RECORD_SOURCE_OWNER = "prior_ledger_record"
+NO_FAILED_SOURCE_OWNER = "none_available"
 MAX_PROMPT_SOURCE_INLINE_BYTES = 24 * 1024
 MAX_PROMPT_SOURCE_READ_BYTES = 256 * 1024
 _COMPONENTS_RELATIVE_PATH = Path("training_code") / "components.py"
@@ -55,6 +74,11 @@ def build_prompt_source_context(
     known_good_examples: Any = None,
     latest_failed_candidate: Any = None,
     initial_reference_program_source: str | None = None,
+    expected_ledger_epoch_hash: str | None = None,
+    nonaccepted_authoring_tiebreak_key: Callable[
+        [Mapping[str, Any]], Sequence[float]
+    ]
+    | None = None,
 ) -> dict[str, Any]:
     """Validate raw history, then build source sections from one shared projection."""
 
@@ -78,13 +102,16 @@ def build_prompt_source_context(
         initial_current_best=initial_current_best,
         expected_session_genesis_hash=session_genesis_hash,
         acceptance_protocol=acceptance_protocol,
+        expected_ledger_epoch_hash=expected_ledger_epoch_hash,
     )
     return build_prompt_source_context_from_projected(
         records,
         history,
+        acceptance_protocol=acceptance_protocol,
         known_good_examples=known_good_examples,
         latest_failed_candidate=latest_failed_candidate,
         initial_reference_program_source=initial_reference_program_source,
+        nonaccepted_authoring_tiebreak_key=nonaccepted_authoring_tiebreak_key,
     )
 
 
@@ -92,17 +119,30 @@ def build_prompt_source_context_from_projected(
     records: Sequence[Any],
     history: ProjectedPublicHistory,
     *,
+    acceptance_protocol: AcceptanceProtocol | None = None,
     known_good_examples: Any = None,
     latest_failed_candidate: Any = None,
     initial_reference_program_source: str | None = None,
+    nonaccepted_authoring_tiebreak_key: Callable[
+        [Mapping[str, Any]], Sequence[float]
+    ]
+    | None = None,
 ) -> dict[str, Any]:
     """Build source sections without reinterpreting validated decisions."""
 
     if not isinstance(history, ProjectedPublicHistory):
         raise TypeError("history must be a ProjectedPublicHistory")
+    objective_score_source = _objective_score_source(
+        history,
+        acceptance_protocol=acceptance_protocol,
+    )
     canonical_public_records = history.records
     _assert_projected_history_alignment(records, canonical_public_records)
-    accepted_index = _latest_accepted_index(canonical_public_records)
+    current_best_stats = history.current_best
+    accepted_index = _accepted_current_best_index(
+        canonical_public_records,
+        current_best=current_best_stats,
+    )
     accepted = records[accepted_index] if accepted_index is not None else None
     accepted_public = (
         canonical_public_records[accepted_index]
@@ -119,10 +159,23 @@ def build_prompt_source_context_from_projected(
         if accepted is None and reference_anchor is not None
         else _baseline_anchor_source(baseline_anchor)
         if accepted is None and baseline_anchor is not None
-        else _resolve_current_best_source(accepted)
+        else {
+            "status": "pending",
+            "source_delivery": "unavailable",
+            "pending_reason": "no_accepted_current_best",
+        }
+        if accepted is None
+        else _resolve_current_best_source(
+            accepted,
+            accepted_public=accepted_public,
+            current_best=current_best_stats,
+        )
     )
     best_observed_index = (
-        _best_observed_nonaccepted_index(canonical_public_records)
+        _best_observed_nonaccepted_index(
+            canonical_public_records,
+            tiebreak_key=nonaccepted_authoring_tiebreak_key,
+        )
         if accepted_index is None
         else None
     )
@@ -130,6 +183,7 @@ def build_prompt_source_context_from_projected(
         records=records,
         canonical_public_records=canonical_public_records,
         index=best_observed_index,
+        objective_score_source=objective_score_source,
     )
     if latest_failed_candidate is not None:
         latest_failed = _resolve_latest_failed_source(latest_failed_candidate)
@@ -172,6 +226,7 @@ def build_prompt_source_context_from_projected(
         reference_anchor=reference_anchor,
         best_observed=best_observed,
         best_observed_aliases_latest=best_observed_aliases_latest,
+        objective_score_source=objective_score_source,
     )
     directive = _exploration_directive(lineage)
     sections = {
@@ -250,6 +305,42 @@ def prompt_source_catalog_logical_ids(prompt_payload: Mapping[str, Any]) -> froz
     return frozenset(_validate_source_catalog(catalog))
 
 
+def has_inline_current_authoring_failed_source(
+    prompt_payload: Mapping[str, Any],
+) -> bool:
+    """Identify a real failed draft from this authoring round.
+
+    The latest-failed logical slot can also project a prior ledger record.  Only
+    the current-attempt owner is valid evidence for compact mechanical repair or
+    adaptive reasoning changes.
+    """
+
+    catalog = prompt_payload.get("source_catalog")
+    payloads = prompt_payload.get("source_payloads")
+    if not isinstance(catalog, Mapping) or not isinstance(payloads, list):
+        return False
+    items = catalog.get("items")
+    if not isinstance(items, list):
+        return False
+    current_attempt_declared = any(
+        isinstance(item, Mapping)
+        and item.get("logical_id") == LATEST_FAILED_SOURCE_ID
+        and item.get("source_owner") == CURRENT_AUTHORING_ATTEMPT_SOURCE_OWNER
+        and item.get("status") == "inline"
+        for item in items
+    )
+    if not current_attempt_declared:
+        return False
+    return any(
+        isinstance(item, Mapping)
+        and item.get("logical_id") == LATEST_FAILED_SOURCE_ID
+        and item.get("delivery") == "inline"
+        and isinstance(item.get("content"), str)
+        and bool(item.get("content"))
+        for item in payloads
+    )
+
+
 def is_known_prompt_source_logical_id(logical_id: Any) -> bool:
     """Return whether a value belongs to the closed prompt source catalog."""
 
@@ -301,6 +392,13 @@ def _validate_source_catalog(value: Any) -> dict[str, Mapping[str, Any]]:
         raise ValueError(f"source_catalog logical_ids must match closed allowlist; missing={missing}; extra={extra}")
     observed_item = by_id[BEST_OBSERVED_SOURCE_ID]
     current_item = by_id[CURRENT_BEST_SOURCE_ID]
+    latest_item = by_id[LATEST_FAILED_SOURCE_ID]
+    if latest_item.get("source_owner") not in {
+        CURRENT_AUTHORING_ATTEMPT_SOURCE_OWNER,
+        PRIOR_LEDGER_RECORD_SOURCE_OWNER,
+        NO_FAILED_SOURCE_OWNER,
+    }:
+        raise ValueError("latest-failed source owner is invalid")
     if current_item.get("status") == "baseline_anchor":
         if current_item.get("role") != "baseline_policy_anchor":
             raise ValueError("baseline current-best catalog item has invalid role")
@@ -321,7 +419,6 @@ def _validate_source_catalog(value: Any) -> dict[str, Mapping[str, Any]]:
         }:
             raise ValueError("reference current-best source must be available")
     if observed_item.get("status") == "alias":
-        latest_item = by_id[LATEST_FAILED_SOURCE_ID]
         if observed_item.get("content_sha256") != latest_item.get("content_sha256"):
             raise ValueError("best-observed alias hash must match latest-failed source")
         if observed_item.get("bytes") != latest_item.get("bytes"):
@@ -386,6 +483,8 @@ def _validate_candidate_lineage(
     _require_schema(lineage, CANDIDATE_LINEAGE_SCHEMA_VERSION, "candidate_lineage")
     status = lineage.get("status")
     if status == "none":
+        if lineage.get("parent_program_source_checksum") is not None:
+            raise ValueError("empty lineage cannot declare a parent program")
         if lineage.get("current_best") is not None:
             raise ValueError("candidate_lineage.current_best must be null when status is none")
         if lineage.get("best_observed_experiment") is not None:
@@ -401,6 +500,8 @@ def _validate_candidate_lineage(
             )
         return lineage
     if status == "bootstrap_observed_anchor":
+        if lineage.get("parent_program_source_checksum") is not None:
+            raise ValueError("bootstrap lineage cannot declare a parent program")
         if lineage.get("current_best") is not None:
             raise ValueError(
                 "candidate_lineage.current_best must be null for a bootstrap anchor"
@@ -415,9 +516,10 @@ def _validate_candidate_lineage(
             raise ValueError("bootstrap anchor has invalid authority")
         _require_string(observed.get("round_id"), "bootstrap anchor round_id")
         _require_string(observed.get("candidate_id"), "bootstrap anchor candidate_id")
-        score = _public_score(observed)
-        if score is None or not math.isfinite(score):
-            raise ValueError("bootstrap anchor public_score must be finite")
+        _validate_lineage_objective_score(
+            observed,
+            field_name="bootstrap anchor",
+        )
         if observed.get("source_logical_id") not in {
             BEST_OBSERVED_SOURCE_ID,
             LATEST_FAILED_SOURCE_ID,
@@ -434,6 +536,8 @@ def _validate_candidate_lineage(
             raise ValueError("bootstrap lineage must not expose a current-best source_payload")
         return lineage
     if status == "baseline_current_best":
+        if lineage.get("parent_program_source_checksum") is not None:
+            raise ValueError("baseline lineage cannot declare a parent program")
         current_best = _require_mapping(
             lineage.get("current_best"),
             "candidate_lineage.current_best",
@@ -444,9 +548,10 @@ def _validate_candidate_lineage(
             current_best.get("baseline_id"),
             "baseline lineage baseline_id",
         )
-        score = _public_score(current_best)
-        if score is None or not math.isfinite(score):
-            raise ValueError("baseline lineage public_score must be finite")
+        _validate_lineage_objective_score(
+            current_best,
+            field_name="baseline lineage",
+        )
         for field_name in (
             "task_protocol_hash",
             "eval_protocol_hash",
@@ -504,13 +609,16 @@ def _validate_candidate_lineage(
                 current_best.get(field_name),
                 f"reference lineage {field_name}",
             )
-        require_sha256_checksum(
-            current_best.get("program_source_checksum"),
-            "reference lineage program_source_checksum",
+        current_head_checksum = require_sha256_checksum(
+            current_best.get("current_head_program_source_checksum"),
+            "reference lineage current_head_program_source_checksum",
         )
-        score = _public_score(current_best)
-        if score is None or not math.isfinite(score):
-            raise ValueError("reference lineage public_score must be finite")
+        if lineage.get("parent_program_source_checksum") != current_head_checksum:
+            raise ValueError("reference lineage parent program checksum mismatch")
+        _validate_lineage_objective_score(
+            current_best,
+            field_name="reference lineage",
+        )
         _validate_lineage_source(
             current_best,
             catalog,
@@ -541,6 +649,10 @@ def _validate_candidate_lineage(
             "accepted lineage must not expose a bootstrap best-observed source_payload"
         )
     current_best = _require_mapping(lineage.get("current_best"), "candidate_lineage.current_best")
+    _validate_lineage_objective_score(
+        current_best,
+        field_name="accepted lineage",
+    )
     if current_best.get("source_logical_id") != CURRENT_BEST_SOURCE_ID:
         raise ValueError("accepted lineage must reference current-best source")
     _validate_lineage_source(
@@ -550,7 +662,24 @@ def _validate_candidate_lineage(
         require_inline_payloads=require_inline_payloads,
         field_name="candidate_lineage.current_best",
     )
+    current_head_checksum = require_sha256_checksum(
+        current_best.get("current_head_program_source_checksum"),
+        "accepted lineage current_head_program_source_checksum",
+    )
+    if lineage.get("parent_program_source_checksum") != current_head_checksum:
+        raise ValueError("accepted lineage parent program checksum mismatch")
     return lineage
+
+
+def _validate_lineage_objective_score(
+    value: Mapping[str, Any],
+    *,
+    field_name: str,
+) -> None:
+    score = _lineage_score(value)
+    if score is None or not math.isfinite(score):
+        raise ValueError(f"{field_name} objective_score must be finite")
+    _require_string(value.get("score_source"), f"{field_name} score_source")
 
 
 def _validate_lineage_source(
@@ -591,10 +720,24 @@ def _validate_lineage_source(
             raise ValueError("baseline lineage is not backed by baseline catalog state")
     else:
         raise ValueError(f"unsupported candidate_lineage source_delivery: {source_delivery}")
-    source_sha = source.get("source_sha256")
+    is_current_head = field_name == "candidate_lineage.current_best"
+    source_sha = source.get(
+        "current_head_prompt_content_sha256"
+        if is_current_head
+        else "source_sha256"
+    )
     catalog_sha = catalog_item.get("content_sha256")
     if source_sha is not None:
-        _require_sha256(source_sha, f"{field_name}.source_sha256")
+        _require_sha256(
+            source_sha,
+            (
+                f"{field_name}.current_head_prompt_content_sha256"
+                if is_current_head
+                else f"{field_name}.source_sha256"
+            ),
+        )
+    if is_current_head and source.get("source_sha256") is not None:
+        raise ValueError("current-head prompt hash must use its explicit field")
     if catalog_sha is not None and source_sha != catalog_sha:
         raise ValueError(f"candidate_lineage source hash differs from source_catalog: {logical_id}")
 
@@ -614,6 +757,46 @@ def _validate_exploration_directive(value: Any, lineage: Mapping[str, Any]) -> N
         raise ValueError("exploration_directive has unknown candidate lineage status")
     if directive.get("mode") != expected_mode:
         raise ValueError(f"exploration_directive.mode must be {expected_mode}")
+
+
+def _objective_score_source(
+    history: ProjectedPublicHistory,
+    *,
+    acceptance_protocol: AcceptanceProtocol | None,
+) -> str | None:
+    expected_hash = history.acceptance_protocol_hash
+    if expected_hash is None:
+        return None
+    if (
+        not history.records
+        and (
+            history.current_best is None
+            or history.current_best.mode == "bootstrap"
+        )
+    ):
+        return None
+    if acceptance_protocol is not None:
+        if acceptance_protocol.protocol_hash != expected_hash:
+            raise ValueError(
+                "prompt source acceptance protocol differs from projected history"
+            )
+        return acceptance_protocol.score_source
+
+    observed_sources = {
+        str(source)
+        for record in history.records
+        for source in [
+            _mapping(_mapping(record.get("decision")).get("comparison")).get(
+                "score_source"
+            )
+        ]
+        if isinstance(source, str) and source
+    }
+    if len(observed_sources) == 1:
+        return observed_sources.pop()
+    raise ValueError(
+        "prompt source objective score source requires the projected acceptance protocol"
+    )
 
 
 def _baseline_anchor_from_history(
@@ -697,6 +880,9 @@ def _reference_anchor_source(
 ) -> dict[str, Any]:
     return {
         **dict(_mapping(reference_anchor.get("source"))),
+        "current_head_program_source_checksum": reference_anchor[
+            "program_source_checksum"
+        ],
         "anchor_kind": "reference",
         "reference_anchor": {
             key: value
@@ -769,7 +955,10 @@ def _latest_failed_catalog_item(latest_failed: Mapping[str, Any]) -> dict[str, A
         "bytes": latest_failed.get("bytes"),
         "hash_scope": latest_failed.get("hash_scope"),
         "pending_reason": latest_failed.get("pending_reason"),
-        "source_owner": "latest_nonaccepted_candidate_attempt",
+        "source_owner": latest_failed.get(
+            "source_origin",
+            NO_FAILED_SOURCE_OWNER,
+        ),
         "scrub_policy": "path_secret_and_public_only_guard",
     }
     return {key: value for key, value in item.items() if value is not None}
@@ -951,6 +1140,27 @@ def _source_payload(*, logical_id: str, role: str, source: Mapping[str, Any]) ->
     return payload
 
 
+def _lineage_objective_score_semantics(
+    score_source: str | None,
+) -> dict[str, str]:
+    if not isinstance(score_source, str) or not score_source:
+        raise ValueError("candidate lineage objective score source is required")
+    return {
+        "score_source": score_source,
+    }
+
+
+def _lineage_score(value: Mapping[str, Any]) -> float | None:
+    score = value.get("objective_score")
+    if (
+        isinstance(score, int | float)
+        and not isinstance(score, bool)
+        and math.isfinite(float(score))
+    ):
+        return float(score)
+    return None
+
+
 def _candidate_lineage(
     *,
     accepted: Any,
@@ -960,6 +1170,7 @@ def _candidate_lineage(
     reference_anchor: Mapping[str, Any] | None,
     best_observed: Mapping[str, Any],
     best_observed_aliases_latest: bool,
+    objective_score_source: str | None,
 ) -> dict[str, Any]:
     if accepted is None and reference_anchor is not None:
         observed = _observed_lineage_entry(
@@ -973,11 +1184,12 @@ def _candidate_lineage(
         current = {
             "anchor_kind": "reference",
             "reference_id": reference_anchor["reference_id"],
-            "public_score": reference_anchor["public_score"],
+            "objective_score": reference_anchor["public_score"],
+            **_lineage_objective_score_semantics(objective_score_source),
             "subject_manifest_hash": reference_anchor[
                 "subject_manifest_hash"
             ],
-            "program_source_checksum": reference_anchor[
+            "current_head_program_source_checksum": reference_anchor[
                 "program_source_checksum"
             ],
             "training_binding_hash": reference_anchor[
@@ -995,7 +1207,9 @@ def _candidate_lineage(
                 "evaluation_binding_hash"
             ],
             "source_logical_id": CURRENT_BEST_SOURCE_ID,
-            "source_sha256": current_best.get("content_sha256"),
+            "current_head_prompt_content_sha256": current_best.get(
+                "content_sha256"
+            ),
             "source_hash_scope": current_best.get("hash_scope"),
             "source_summary": current_best.get("source_summary"),
             "source_delivery": source_delivery,
@@ -1010,6 +1224,9 @@ def _candidate_lineage(
         return {
             "schema_version": CANDIDATE_LINEAGE_SCHEMA_VERSION,
             "status": "reference_current_best",
+            "parent_program_source_checksum": reference_anchor[
+                "program_source_checksum"
+            ],
             "current_best": current,
             "best_observed_experiment": observed,
             "guidance": [
@@ -1026,10 +1243,12 @@ def _candidate_lineage(
         return {
             "schema_version": CANDIDATE_LINEAGE_SCHEMA_VERSION,
             "status": "baseline_current_best",
+            "parent_program_source_checksum": None,
             "current_best": {
                 "anchor_kind": "baseline",
                 "baseline_id": baseline_anchor["baseline_id"],
-                "public_score": baseline_anchor["public_score"],
+                "objective_score": baseline_anchor["public_score"],
+                **_lineage_objective_score_semantics(objective_score_source),
                 "task_protocol_hash": baseline_anchor["task_protocol_hash"],
                 "eval_protocol_hash": baseline_anchor["eval_protocol_hash"],
                 "acceptance_protocol_hash": baseline_anchor[
@@ -1055,6 +1274,7 @@ def _candidate_lineage(
         return {
             "schema_version": CANDIDATE_LINEAGE_SCHEMA_VERSION,
             "status": "none",
+            "parent_program_source_checksum": None,
             "current_best": None,
             "best_observed_experiment": None,
             "guidance": [
@@ -1070,6 +1290,7 @@ def _candidate_lineage(
         return {
             "schema_version": CANDIDATE_LINEAGE_SCHEMA_VERSION,
             "status": "bootstrap_observed_anchor",
+            "parent_program_source_checksum": None,
             "current_best": None,
             "best_observed_experiment": observed,
             "guidance": [
@@ -1086,10 +1307,16 @@ def _candidate_lineage(
     current = {
         "round_id": public_record.get("round_id"),
         "candidate_id": candidate.get("candidate_id"),
-        "public_score": _public_score(decision),
+        "objective_score": _objective_score(decision),
+        **_lineage_objective_score_semantics(objective_score_source),
         "changed_components": _changed_components(public_record),
         "source_logical_id": CURRENT_BEST_SOURCE_ID,
-        "source_sha256": current_best.get("content_sha256"),
+        "current_head_program_source_checksum": current_best.get(
+            "current_head_program_source_checksum"
+        ),
+        "current_head_prompt_content_sha256": current_best.get(
+            "content_sha256"
+        ),
         "source_hash_scope": current_best.get("hash_scope"),
         "source_summary": source_summary,
         "source_delivery": source_delivery,
@@ -1106,6 +1333,9 @@ def _candidate_lineage(
     return {
         "schema_version": CANDIDATE_LINEAGE_SCHEMA_VERSION,
         "status": "accepted_current_best",
+        "parent_program_source_checksum": current.get(
+            "current_head_program_source_checksum"
+        ),
         "current_best": current,
         "best_observed_experiment": None,
         "guidance": [
@@ -1130,7 +1360,8 @@ def _observed_lineage_entry(
     observed = {
         "round_id": best_observed.get("round_id"),
         "candidate_id": best_observed.get("candidate_id"),
-        "public_score": best_observed.get("public_score"),
+        "objective_score": best_observed.get("objective_score"),
+        "score_source": best_observed.get("score_source"),
         "accepted": False,
         "decision_reason": best_observed.get("decision_reason"),
         "failed_gates": best_observed.get("failed_gates", []),
@@ -1175,9 +1406,10 @@ def _validate_observed_lineage_entry(
         observed.get("candidate_id"),
         "best observed lineage candidate_id",
     )
-    score = _public_score(observed)
-    if score is None or not math.isfinite(score):
-        raise ValueError("best observed lineage public_score must be finite")
+    _validate_lineage_objective_score(
+        observed,
+        field_name="best observed lineage",
+    )
     if observed.get("source_logical_id") not in {
         BEST_OBSERVED_SOURCE_ID,
         LATEST_FAILED_SOURCE_ID,
@@ -1256,21 +1488,84 @@ def _exploration_directive(lineage: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def _resolve_current_best_source(accepted: Any) -> dict[str, Any]:
-    if accepted is None:
+def _resolve_current_best_source(
+    accepted: Any,
+    *,
+    accepted_public: Mapping[str, Any] | None,
+    current_best: CurrentBestEvalStats | None,
+) -> dict[str, Any]:
+    """Resolve exact sealed bytes selected by replay, never by record order."""
+
+    if (
+        accepted is None
+        or accepted_public is None
+        or current_best is None
+        or current_best.anchor_kind != "candidate"
+    ):
+        raise ValueError("replay candidate current-best source identity is incomplete")
+    if accepted_public.get("round_id") != current_best.accepted_round_id:
+        raise ValueError("replay current-best round does not match source record")
+    candidate = _mapping(accepted_public.get("candidate"))
+    if candidate.get("candidate_id") != current_best.accepted_candidate_id:
+        raise ValueError("replay current-best candidate does not match source record")
+    train_job = _mapping(_mapping(accepted_public.get("jobs")).get("train"))
+    train_artifact = _mapping(train_job.get("candidate_artifact"))
+    strict = is_strict_ledger_record(accepted_public)
+    complete_identity = {
+        "candidate_id",
+        "changed_components",
+        "subject_manifest_hash",
+        "program_source_checksum",
+        "program_source_size_bytes",
+        "artifact_hash",
+        "verification",
+    } <= set(candidate)
+    if not complete_identity or train_artifact != candidate:
+        if strict:
+            raise ValueError(
+                "accepted source identity differs from executed artifact"
+            )
         return {
             "status": "pending",
             "source_delivery": "unavailable",
-            "pending_reason": "no_accepted_current_best",
+            "pending_reason": "legacy_accepted_source_artifact_unavailable",
+            "current_head_program_source_checksum": (
+                current_best.program_source_checksum
+            ),
         }
-    root = _candidate_package_root(accepted)
-    if root is None:
-        return {
-            "status": "pending",
-            "source_delivery": "unavailable",
-            "pending_reason": "accepted_record_has_no_candidate_package_source_ref",
-        }
-    return _resolve_candidate_components_source(root)
+    if candidate.get("subject_manifest_hash") != current_best.subject_manifest_hash:
+        raise ValueError("replay current-best manifest does not match source record")
+    if (
+        candidate.get("program_source_checksum")
+        != current_best.program_source_checksum
+    ):
+        raise ValueError("replay current-best checksum does not match source record")
+
+    _validate_verified_candidate_public_identity(
+        candidate,
+        verifier=_mapping(accepted_public.get("verifier")),
+    )
+    root = _required_candidate_artifact_root(accepted)
+    sealed_before = _load_record_candidate_artifact(
+        root,
+        candidate=candidate,
+    )
+    source = _resolve_candidate_components_source(
+        root,
+        sealed_artifact=True,
+    )
+    sealed_after = _load_record_candidate_artifact(
+        root,
+        candidate=candidate,
+    )
+    if sealed_after != sealed_before:
+        raise ValueError("accepted source artifact changed while building prompt")
+    return {
+        **source,
+        "current_head_program_source_checksum": (
+            current_best.program_source_checksum
+        ),
+    }
 
 
 def _resolve_latest_failed_source(candidate: Any) -> dict[str, Any]:
@@ -1279,6 +1574,7 @@ def _resolve_latest_failed_source(candidate: Any) -> dict[str, Any]:
             "status": "pending",
             "source_delivery": "unavailable",
             "pending_reason": "no_latest_failed_candidate",
+            "source_origin": CURRENT_AUTHORING_ATTEMPT_SOURCE_OWNER,
         }
     root = _latest_failed_candidate_root(candidate)
     if root is None:
@@ -1286,8 +1582,15 @@ def _resolve_latest_failed_source(candidate: Any) -> dict[str, Any]:
             "status": "pending",
             "source_delivery": "unavailable",
             "pending_reason": "latest_failed_candidate_has_no_local_source_ref",
+            "source_origin": CURRENT_AUTHORING_ATTEMPT_SOURCE_OWNER,
         }
-    return _resolve_candidate_components_source(root)
+    return {
+        **_resolve_candidate_components_source(
+            root,
+            sealed_artifact=False,
+        ),
+        "source_origin": CURRENT_AUTHORING_ATTEMPT_SOURCE_OWNER,
+    }
 
 
 def _resolve_latest_failed_record_source(record: Any) -> dict[str, Any]:
@@ -1296,28 +1599,50 @@ def _resolve_latest_failed_record_source(record: Any) -> dict[str, Any]:
             "status": "pending",
             "source_delivery": "unavailable",
             "pending_reason": "no_latest_failed_candidate",
+            "source_origin": NO_FAILED_SOURCE_OWNER,
         }
+    public_record = _public_record(record)
+    candidate = _mapping(public_record.get("candidate"))
     root = _candidate_package_root(record)
-    if root is None:
+    if root is None or not candidate.get("artifact_hash"):
         return {
             "status": "pending",
             "source_delivery": "unavailable",
-            "pending_reason": "latest_failed_record_has_no_candidate_package_source_ref",
+            "pending_reason": "latest_failed_record_has_no_sealed_source_artifact",
+            "source_origin": PRIOR_LEDGER_RECORD_SOURCE_OWNER,
         }
-    return _resolve_candidate_components_source(root)
+    try:
+        sealed_before = _load_record_candidate_artifact(
+            root,
+            candidate=candidate,
+        )
+        source = _resolve_candidate_components_source(
+            root,
+            sealed_artifact=True,
+        )
+        sealed_after = _load_record_candidate_artifact(
+            root,
+            candidate=candidate,
+        )
+        if sealed_after != sealed_before:
+            raise ValueError("candidate source artifact changed during prompt read")
+        return {
+            **source,
+            "source_origin": PRIOR_LEDGER_RECORD_SOURCE_OWNER,
+        }
+    except (OSError, TypeError, ValueError):
+        return {
+            "status": "pending",
+            "source_delivery": "unavailable",
+            "pending_reason": "latest_failed_record_sealed_source_invalid",
+            "source_origin": PRIOR_LEDGER_RECORD_SOURCE_OWNER,
+        }
 
 
 def resolve_candidate_components_source_from_record(record: Any) -> dict[str, Any]:
     """Resolve one record's candidate source through the prompt-safe source boundary."""
 
-    root = _candidate_package_root(record)
-    if root is None:
-        return {
-            "status": "pending",
-            "source_delivery": "unavailable",
-            "pending_reason": "record_has_no_candidate_package_source_ref",
-        }
-    return _resolve_candidate_components_source(root)
+    return _resolve_latest_failed_record_source(record)
 
 
 def _best_observed_experiment(
@@ -1325,6 +1650,7 @@ def _best_observed_experiment(
     records: Sequence[Any],
     canonical_public_records: Sequence[Mapping[str, Any]],
     index: int | None,
+    objective_score_source: str | None,
 ) -> dict[str, Any]:
     if index is None:
         return {}
@@ -1334,7 +1660,8 @@ def _best_observed_experiment(
     return {
         "round_id": public_record.get("round_id"),
         "candidate_id": candidate.get("candidate_id"),
-        "public_score": _public_score(decision),
+        "objective_score": _objective_score(decision),
+        **_lineage_objective_score_semantics(objective_score_source),
         "decision_reason": decision.get("reason"),
         "failed_gates": sorted(
             str(name)
@@ -1345,8 +1672,15 @@ def _best_observed_experiment(
     }
 
 
-def _resolve_candidate_components_source(root: Path) -> dict[str, Any]:
-    source = _read_candidate_components(root)
+def _resolve_candidate_components_source(
+    root: Path,
+    *,
+    sealed_artifact: bool,
+) -> dict[str, Any]:
+    source = _read_candidate_components(
+        root,
+        sealed_artifact=sealed_artifact,
+    )
     if source.get("status") != "available":
         return source
     content = str(source["content"])
@@ -1405,53 +1739,42 @@ def _resolve_program_source_content(raw_source: str) -> dict[str, Any]:
     }
 
 
-def _read_candidate_components(root: Path) -> dict[str, Any]:
+def _read_candidate_components(
+    root: Path,
+    *,
+    sealed_artifact: bool,
+) -> dict[str, Any]:
     try:
-        root_resolved = root.resolve()
-    except OSError:
-        return {
-            "status": "pending",
-            "source_delivery": "unavailable",
-            "pending_reason": "candidate_package_source_ref_could_not_be_resolved",
-        }
-    path_unresolved = root_resolved / _COMPONENTS_RELATIVE_PATH
-    if path_unresolved.is_symlink():
-        return {
-            "status": "pending",
-            "source_delivery": "unavailable",
-            "pending_reason": "candidate_components_source_is_symlink",
-        }
-    try:
-        path = path_unresolved.resolve()
-    except OSError:
-        return {
-            "status": "pending",
-            "source_delivery": "unavailable",
-            "pending_reason": "candidate_package_source_ref_could_not_be_resolved",
-        }
-    if root_resolved != path and root_resolved not in path.parents:
-        return {
-            "status": "pending",
-            "source_delivery": "unavailable",
-            "pending_reason": "candidate_components_source_escaped_package_root",
-        }
-    if not path.is_file():
-        return {
-            "status": "pending",
-            "source_delivery": "unavailable",
-            "pending_reason": "candidate_components_source_not_found",
-        }
-    try:
-        size = int(path.stat().st_size)
-        if size > MAX_PROMPT_SOURCE_READ_BYTES:
-            metadata = _large_source_metadata(path, size)
+        preflight = preflight_candidate_package(
+            root,
+            sealed_artifact=sealed_artifact,
+            enforce_size_limits=not sealed_artifact,
+        )
+        state = preflight.file_state(_COMPONENTS_RELATIVE_PATH.as_posix())
+        if state.size_bytes > MAX_PROMPT_SOURCE_READ_BYTES:
             return {
                 "status": "omitted_over_budget",
                 "source_delivery": "omitted_over_budget",
                 "pending_reason": "candidate_components_source_exceeds_read_budget",
-                **metadata,
+                **_large_source_metadata(state.size_bytes),
             }
-        raw = path.read_text(encoding="utf-8")
+        with open_preflighted_candidate_file(
+            preflight,
+            _COMPONENTS_RELATIVE_PATH.as_posix(),
+        ) as source:
+            payload = source.read(MAX_PROMPT_SOURCE_READ_BYTES + 1)
+        if (
+            len(payload) > MAX_PROMPT_SOURCE_READ_BYTES
+            or len(payload) != state.size_bytes
+        ):
+            return {
+                "status": "pending",
+                "source_delivery": "unavailable",
+                "pending_reason": "candidate_components_source_changed_during_read",
+            }
+        raw = payload.decode("utf-8")
+    except CandidatePackageContractError as exc:
+        return _candidate_source_contract_failure(exc)
     except (OSError, UnicodeDecodeError):
         return {
             "status": "pending",
@@ -1472,47 +1795,225 @@ def _read_candidate_components(root: Path) -> dict[str, Any]:
     return {"status": "available", "content": content}
 
 
-def _large_source_metadata(path: Path, size: int) -> dict[str, Any]:
-    digest = hashlib.sha256()
-    line_count = 0
-    try:
-        with path.open("rb") as handle:
-            for chunk in iter(lambda: handle.read(64 * 1024), b""):
-                digest.update(chunk)
-                line_count += chunk.count(b"\n")
-    except OSError:
-        return {
-            "bytes": size,
-            "source_summary": f"source omitted because it exceeds read budget; {size} bytes",
-        }
+def _candidate_source_contract_failure(
+    error: CandidatePackageContractError,
+) -> dict[str, Any]:
+    issue = error.issue
+    if issue == "symlink_path:training_code/components.py":
+        reason = "candidate_components_source_is_symlink"
+    elif issue == "missing_file:training_code/components.py":
+        reason = "candidate_components_source_not_found"
+    elif issue.startswith("file_too_large:training_code/components.py:"):
+        reason = "candidate_components_source_exceeds_package_limit"
+    elif issue == "file_changed:training_code/components.py":
+        reason = "candidate_components_source_changed_during_read"
+    else:
+        reason = "candidate_package_source_contract_failed"
     return {
-        "content_sha256": digest.hexdigest(),
-        "bytes": size,
-        "source_summary": (
-            "source omitted because it exceeds read budget; "
-            f"{size} bytes; {line_count} lines; no inline content inspected"
-        ),
-        "hash_scope": "raw_source_bytes_no_prompt_content",
+        "status": "pending",
+        "source_delivery": "unavailable",
+        "pending_reason": reason,
     }
 
 
-def _latest_accepted_index(records: Sequence[Mapping[str, Any]]) -> int | None:
-    for index in range(len(records) - 1, -1, -1):
-        decision = _mapping(records[index].get("decision"))
-        if decision.get("accepted") is True:
-            return index
-    return None
+def _large_source_metadata(size: int) -> dict[str, Any]:
+    return {
+        "bytes": size,
+        "source_summary": (
+            "source omitted because it exceeds read budget; "
+            f"{size} bytes; content was not read"
+        ),
+    }
+
+
+def _accepted_current_best_index(
+    records: Sequence[Mapping[str, Any]],
+    *,
+    current_best: CurrentBestEvalStats | None,
+) -> int | None:
+    if current_best is None or current_best.anchor_kind != "candidate":
+        return None
+    matches = [
+        index
+        for index, record in enumerate(records)
+        if record.get("round_id") == current_best.accepted_round_id
+    ]
+    if len(matches) != 1:
+        raise ValueError("replay current-best round must identify one source record")
+    index = matches[0]
+    record = records[index]
+    candidate = _mapping(record.get("candidate"))
+    decision = _mapping(record.get("decision"))
+    if candidate.get("candidate_id") != current_best.accepted_candidate_id:
+        raise ValueError("replay current-best candidate identity drifted")
+    if decision.get("accepted") is not True:
+        raise ValueError("replay current-best source record is not accepted")
+    return index
+
+
+def _validate_verified_candidate_public_identity(
+    candidate: Mapping[str, Any],
+    *,
+    verifier: Mapping[str, Any],
+) -> None:
+    required = {
+        "candidate_id",
+        "changed_components",
+        "subject_manifest_hash",
+        "program_source_checksum",
+        "program_source_size_bytes",
+        "artifact_hash",
+        "verification",
+    }
+    optional = {"execution_authorization"}
+    if set(candidate) - required - optional or not required <= set(candidate):
+        raise ValueError("accepted candidate artifact identity fields mismatch")
+    candidate_id = candidate.get("candidate_id")
+    if not isinstance(candidate_id, str) or not candidate_id:
+        raise ValueError("accepted candidate ID is invalid")
+    components = candidate.get("changed_components")
+    if (
+        not isinstance(components, list)
+        or any(not isinstance(item, str) or not item for item in components)
+        or components != sorted(set(components))
+    ):
+        raise ValueError("accepted candidate changed_components are invalid")
+    require_sha256_digest(
+        candidate.get("subject_manifest_hash"),
+        "accepted candidate subject manifest hash",
+    )
+    require_sha256_checksum(
+        candidate.get("program_source_checksum"),
+        "accepted candidate program source checksum",
+    )
+    size = candidate.get("program_source_size_bytes")
+    if isinstance(size, bool) or not isinstance(size, int) or size <= 0:
+        raise ValueError("accepted candidate program source size is invalid")
+    require_sha256_digest(
+        candidate.get("artifact_hash"),
+        "accepted candidate artifact hash",
+    )
+    verification = _mapping(candidate.get("verification"))
+    if set(verification) != {
+        "status",
+        "policy",
+        "policy_hash",
+        "verification_hash",
+    }:
+        raise ValueError("accepted candidate verification fields mismatch")
+    policy_id = verification.get("policy")
+    if verification.get("status") != "pass" or not isinstance(
+        policy_id, str
+    ) or not policy_id:
+        raise ValueError("accepted candidate verification identity is invalid")
+    policy_hash = require_sha256_digest(
+        verification.get("policy_hash"),
+        "accepted candidate verification policy hash",
+    )
+    verification_hash = require_sha256_digest(
+        verification.get("verification_hash"),
+        "accepted candidate verification evidence hash",
+    )
+    authorization = candidate.get("execution_authorization")
+    if authorization is not None:
+        authorization = _mapping(authorization)
+        if set(authorization) != {
+            "schema_version",
+            "admission_policy_id",
+            "admission_policy_hash",
+            "payload_schema_version",
+            "authorization_hash",
+        }:
+            raise ValueError("candidate execution authorization fields mismatch")
+        if (
+            authorization.get("schema_version")
+            != CANDIDATE_EXECUTION_AUTHORIZATION_SCHEMA_VERSION
+            or authorization.get("admission_policy_id") != policy_id
+            or authorization.get("admission_policy_hash") != policy_hash
+        ):
+            raise ValueError("candidate execution authorization identity mismatch")
+        payload_schema = authorization.get("payload_schema_version")
+        if not isinstance(payload_schema, str) or not payload_schema:
+            raise ValueError("candidate execution authorization payload is invalid")
+        require_sha256_digest(
+            authorization.get("authorization_hash"),
+            "candidate execution authorization hash",
+        )
+
+    if verifier.get("status") != "pass":
+        raise ValueError("accepted candidate verifier evidence did not pass")
+    details = _mapping(verifier.get("details"))
+    if (
+        details.get("verification_policy_id") != policy_id
+        or details.get("verification_policy_hash") != policy_hash
+    ):
+        raise ValueError("accepted candidate verifier policy identity mismatch")
+    verified_identity = _mapping(verifier.get("verified_program_identity"))
+    expected_identity = {
+        "candidate_id": candidate_id,
+        "subject_manifest_hash": candidate.get("subject_manifest_hash"),
+        "program_source_checksum": candidate.get("program_source_checksum"),
+        "program_source_size_bytes": candidate.get("program_source_size_bytes"),
+        "candidate_artifact_hash": candidate.get("artifact_hash"),
+    }
+    if verified_identity != expected_identity:
+        raise ValueError("accepted candidate verified program identity mismatch")
+    verification_evidence = dict(verifier)
+    if authorization is not None:
+        verification_evidence["execution_authorization"] = dict(authorization)
+    if canonical_json_hash(verification_evidence) != verification_hash:
+        raise ValueError("accepted candidate verification evidence hash mismatch")
+
+
+def _load_record_candidate_artifact(
+    root: Path,
+    *,
+    candidate: Mapping[str, Any],
+) -> SealedCandidateArtifactRef:
+    components = candidate.get("changed_components")
+    if not isinstance(components, list):
+        raise ValueError("candidate changed_components are required")
+    change_set = CandidateChangeSet(frozenset(components))
+    sealed = load_sealed_candidate_artifact(
+        root,
+        change_set=change_set,
+        expected_candidate_id=str(candidate.get("candidate_id")),
+        expected_artifact_hash=str(candidate.get("artifact_hash")),
+        expected_subject_manifest_hash=str(
+            candidate.get("subject_manifest_hash")
+        ),
+        expected_program_source_checksum=str(
+            candidate.get("program_source_checksum")
+        ),
+    )
+    expected_public = {
+        key: candidate.get(key)
+        for key in (
+            "candidate_id",
+            "changed_components",
+            "subject_manifest_hash",
+            "program_source_checksum",
+            "program_source_size_bytes",
+            "artifact_hash",
+        )
+    }
+    if sealed.to_public_dict() != expected_public:
+        raise ValueError("sealed candidate artifact public identity mismatch")
+    return sealed
 
 
 def _best_observed_nonaccepted_index(
     records: Sequence[Mapping[str, Any]],
+    *,
+    tiebreak_key: Callable[[Mapping[str, Any]], Sequence[float]] | None = None,
 ) -> int | None:
-    best: tuple[float, int] | None = None
+    best: tuple[float, ...] | None = None
+    expected_tiebreak_width: int | None = None
     for index, record in enumerate(records):
         decision = _mapping(record.get("decision"))
         public_result = _mapping(record.get("public_result"))
         surface = _mapping(record.get("candidate_surface"))
-        score = _public_score(decision)
+        score = _objective_score(decision)
         if (
             decision.get("accepted") is not False
             or decision.get("reason") == "decision_record_invalid"
@@ -1522,10 +2023,42 @@ def _best_observed_nonaccepted_index(
             or not math.isfinite(score)
         ):
             continue
-        candidate = (score, index)
+        task_key = _validated_authoring_tiebreak_key(
+            tiebreak_key(record) if tiebreak_key is not None else (),
+        )
+        if expected_tiebreak_width is None:
+            expected_tiebreak_width = len(task_key)
+        elif len(task_key) != expected_tiebreak_width:
+            raise ValueError(
+                "nonaccepted authoring tiebreak keys must have a fixed width"
+            )
+        # The validated acceptance objective remains authoritative. Task-owned
+        # public metrics only choose an authoring source when objective scores
+        # tie; recency is last.
+        candidate = (score, *task_key, float(index))
         if best is None or candidate > best:
             best = candidate
-    return best[1] if best is not None else None
+    return int(best[-1]) if best is not None else None
+
+
+def _validated_authoring_tiebreak_key(value: Any) -> tuple[float, ...]:
+    if not isinstance(value, tuple):
+        raise TypeError("nonaccepted authoring tiebreak key must be a tuple")
+    if len(value) > 4:
+        raise ValueError("nonaccepted authoring tiebreak key exceeds four values")
+    clean: list[float] = []
+    for item in value:
+        if isinstance(item, bool) or not isinstance(item, int | float):
+            raise TypeError(
+                "nonaccepted authoring tiebreak values must be finite numbers"
+            )
+        number = float(item)
+        if not math.isfinite(number):
+            raise ValueError(
+                "nonaccepted authoring tiebreak values must be finite numbers"
+            )
+        clean.append(number)
+    return tuple(clean)
 
 
 def _immediate_previous_nonaccepted_index(
@@ -1543,12 +2076,39 @@ def _immediate_previous_nonaccepted_index(
 
 
 def _candidate_package_root(record: Any) -> Path | None:
+    roots = _candidate_artifact_roots(record)
+    return roots[0] if len(roots) == 1 else None
+
+
+def _required_candidate_artifact_root(record: Any) -> Path:
+    roots = _candidate_artifact_roots(record)
+    if len(roots) != 1:
+        raise ValueError(
+            "accepted source requires exactly one runner-owned candidate artifact"
+        )
+    return roots[0]
+
+
+def _candidate_artifact_roots(record: Any) -> list[Path]:
+    roots: list[Path] = []
+    seen: set[str] = set()
+    public_record = getattr(record, "public_record", None)
+    strict = is_strict_ledger_record(public_record)
     for artifact in getattr(record, "private_artifacts", ()) or ():
-        if getattr(artifact, "kind", None) == "candidate_package":
-            uri = getattr(artifact, "uri", None)
-            if isinstance(uri, str) and _looks_like_local_path(uri):
-                return Path(uri)
-    return None
+        kind = getattr(artifact, "kind", None)
+        if kind != "candidate_artifact" and (
+            strict or kind != "candidate_package"
+        ):
+            continue
+        uri = getattr(artifact, "uri", None)
+        if (
+            isinstance(uri, str)
+            and _looks_like_local_path(uri)
+            and uri not in seen
+        ):
+            seen.add(uri)
+            roots.append(Path(uri))
+    return roots
 
 
 def _latest_failed_candidate_root(candidate: Any) -> Path | None:
@@ -1569,6 +2129,18 @@ def _public_score(decision: Mapping[str, Any]) -> float | None:
     if isinstance(value, int | float) and not isinstance(value, bool):
         return float(value)
     return None
+
+
+def _objective_score(decision: Mapping[str, Any]) -> float | None:
+    comparison = _mapping(decision.get("comparison"))
+    value = comparison.get("candidate_score")
+    if (
+        isinstance(value, int | float)
+        and not isinstance(value, bool)
+        and math.isfinite(float(value))
+    ):
+        return float(value)
+    return _public_score(decision)
 
 
 def _changed_components(public_record: Mapping[str, Any]) -> list[str]:

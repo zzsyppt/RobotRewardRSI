@@ -10,17 +10,15 @@ from true_rl_agent.evaluation.binding import (
     is_sha256_checksum,
     is_sha256_digest,
 )
+from true_rl_agent.evaluation.public_metric_contract import (
+    CANDIDATE_CONTAMINATION_FIELDS,
+    SEALED_VALIDATION_EVIDENCE_KEY,
+)
 from true_rl_agent.evaluation.score_stats import validate_score_stats
 from true_rl_agent.evaluation.subject import ExperimentSubject
 
-SEALED_VALIDATION_EVIDENCE_SCHEMA_VERSION = "true_rl_agent.sealed_validation.evidence.v3"
-SEALED_VALIDATION_EVIDENCE_KEY = "sealed_validation"
-CANDIDATE_CONTAMINATION_FIELDS = (
-    "candidate_code_loaded_in_eval",
-    "candidate_package_loaded",
-    "candidate_package_loaded_in_eval",
-    "candidate_path_argument_present",
-)
+SEALED_VALIDATION_EVIDENCE_SCHEMA_V3 = "true_rl_agent.sealed_validation.evidence.v3"
+SEALED_VALIDATION_EVIDENCE_SCHEMA_VERSION = "true_rl_agent.sealed_validation.evidence.v4"
 SEALED_GATE_REQUIRED_CONTAMINATION_FIELDS = (
     "candidate_code_loaded_in_eval",
     "candidate_package_loaded_in_eval",
@@ -60,6 +58,7 @@ class SealedRolloutEvidenceValidation:
     training_binding_hash: str | None = None
     capability_profile_hash: str | None = None
     checkpoint_hash: str | None = None
+    task_evidence_hash: str | None = None
     score_stats: Mapping[str, Any] = field(default_factory=dict)
 
 
@@ -89,6 +88,7 @@ def build_sealed_rollout_evidence(
     program_source_checksum: str | None = None,
     training_binding_hash: str | None = None,
     capability_profile_hash: str,
+    task_evidence_hash: str | None = None,
 ) -> dict[str, Any]:
     """Bind a task-owned aggregate result to runner-owned eval inputs.
 
@@ -112,6 +112,8 @@ def build_sealed_rollout_evidence(
         "checkpoint_hash": checkpoint_hash,
         "score_stats": dict(score_stats),
     }
+    if task_evidence_hash is not None:
+        evidence["task_evidence_hash"] = task_evidence_hash
     if subject_manifest_hash is not None:
         evidence["subject_manifest_hash"] = subject_manifest_hash
     validation = validate_sealed_rollout_evidence(
@@ -125,6 +127,7 @@ def build_sealed_rollout_evidence(
         expected_training_binding_hash=training_binding_hash,
         expected_capability_profile_hash=capability_profile_hash,
         expected_checkpoint_hash=checkpoint_hash,
+        expected_task_evidence_hash=task_evidence_hash,
     )
     if not validation.complete:
         detail = ", ".join(validation.reasons) or "invalid sealed rollout evidence"
@@ -144,6 +147,7 @@ def validate_sealed_rollout_evidence(
     expected_training_binding_hash: str | None = None,
     expected_capability_profile_hash: str | None = None,
     expected_checkpoint_hash: str | None = None,
+    expected_task_evidence_hash: str | None = None,
 ) -> SealedRolloutEvidenceValidation:
     if not isinstance(evidence, Mapping) or not evidence:
         return SealedRolloutEvidenceValidation(
@@ -154,7 +158,7 @@ def validate_sealed_rollout_evidence(
         )
 
     reasons: list[str] = []
-    allowed_fields = {
+    base_allowed_fields = {
         "schema_version",
         "status",
         "reason",
@@ -170,7 +174,11 @@ def validate_sealed_rollout_evidence(
         "checkpoint_hash",
         "score_stats",
     }
-    required_fields = allowed_fields - {"subject_manifest_hash"}
+    schema_version = evidence.get("schema_version")
+    allowed_fields = set(base_allowed_fields)
+    if schema_version == SEALED_VALIDATION_EVIDENCE_SCHEMA_VERSION:
+        allowed_fields.add("task_evidence_hash")
+    required_fields = base_allowed_fields - {"subject_manifest_hash"}
     extra_fields = sorted(set(evidence) - allowed_fields)
     missing_fields = sorted(required_fields - set(evidence))
     if extra_fields:
@@ -181,8 +189,10 @@ def validate_sealed_rollout_evidence(
         reasons.append(
             "sealed_validation missing field(s): " + ", ".join(missing_fields)
         )
-    schema_version = evidence.get("schema_version")
-    if schema_version != SEALED_VALIDATION_EVIDENCE_SCHEMA_VERSION:
+    if schema_version not in {
+        SEALED_VALIDATION_EVIDENCE_SCHEMA_V3,
+        SEALED_VALIDATION_EVIDENCE_SCHEMA_VERSION,
+    }:
         reasons.append("sealed_validation schema_version mismatch")
     status = evidence.get("status")
     if status not in {"pass", "fail"}:
@@ -329,6 +339,20 @@ def validate_sealed_rollout_evidence(
         elif checkpoint_hash != expected_checkpoint_hash:
             reasons.append("sealed_validation checkpoint_hash binding mismatch")
 
+    task_evidence_hash = _nonempty_text(evidence.get("task_evidence_hash"))
+    if "task_evidence_hash" in evidence and not is_sha256_digest(task_evidence_hash):
+        reasons.append(
+            "sealed_validation task_evidence_hash must be a lowercase SHA-256 digest"
+        )
+    if expected_task_evidence_hash is not None:
+        if not is_sha256_digest(expected_task_evidence_hash):
+            reasons.append(
+                "expected sealed_validation task evidence hash must be a lowercase "
+                "SHA-256 digest"
+            )
+        elif task_evidence_hash != expected_task_evidence_hash:
+            reasons.append("sealed_validation task_evidence_hash binding mismatch")
+
     stats_validation = validate_score_stats(
         evidence.get("score_stats"),
         minimum_count=declared_expected or 1,
@@ -363,6 +387,7 @@ def validate_sealed_rollout_evidence(
         training_binding_hash=training_binding_hash,
         capability_profile_hash=capability_profile_hash,
         checkpoint_hash=checkpoint_hash,
+        task_evidence_hash=task_evidence_hash,
         score_stats=dict(stats_validation.canonical) if stats_validation.valid else {},
     )
 
@@ -586,6 +611,7 @@ __all__ = [
     "SEALED_GATE_REQUIRED_CONTAMINATION_FIELDS",
     "SEALED_GATE_REQUIRED_PASS_STATUS_FIELDS",
     "SEALED_VALIDATION_EVIDENCE_KEY",
+    "SEALED_VALIDATION_EVIDENCE_SCHEMA_V3",
     "SEALED_VALIDATION_EVIDENCE_SCHEMA_VERSION",
     "SealedRolloutEvidenceValidation",
     "SealedValidationGateValidation",

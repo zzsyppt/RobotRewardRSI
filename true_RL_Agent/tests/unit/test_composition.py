@@ -1,12 +1,17 @@
 from __future__ import annotations
 
 import argparse
+import os
+import subprocess
 import sys
 import tempfile
+import time
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, Mapping, Sequence
+from unittest.mock import patch
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = PROJECT_ROOT / "src"
@@ -17,8 +22,10 @@ from tests.fakes.fake_components import (
     FakeBackendAdapter,
     FakeRunner,
     FakeTaskPlugin,
+    FakeVerifier,
 )
 from true_rl_agent.composition import (
+    LazyTaskCompositionProvider,
     ResolvedTaskComposition,
     TaskCompositionContext,
     TaskCompositionError,
@@ -93,6 +100,7 @@ def _defaults(*, marker: str, budget_steps: int) -> dict[str, Any]:
         "isaac_python": f"/runtime/{marker}/python",
         "train_entrypoint": f"scripts/{marker}_train.py",
         "eval_entrypoint": f"scripts/{marker}_eval.py",
+        "execution_device": "cuda:0",
         "budget_steps": budget_steps,
         "public_seed_count": 2,
         "public_accept_seed_count": 3,
@@ -142,6 +150,7 @@ class CompositionTests(unittest.TestCase):
             task_memory_adapter=_MemoryAdapter(memory_task_id),
             backend_adapter=FakeBackendAdapter(),
             runner=FakeRunner(),
+            candidate_admission_policy=FakeVerifier(),
             policy_initialization=initialization,
             genesis_anchor_kind=(
                 "bootstrap"
@@ -252,6 +261,73 @@ class CompositionTests(unittest.TestCase):
                     context=context,
                 )
 
+    def test_lazy_provider_loads_once_and_validates_factory_identity(self) -> None:
+        calls: list[str] = []
+        concrete = _Provider(
+            "lazy-task",
+            _defaults(marker="lazy", budget_steps=128),
+        )
+
+        def factory() -> TaskCompositionProvider:
+            calls.append("load")
+            return concrete
+
+        provider = LazyTaskCompositionProvider(
+            task_id="lazy-task",
+            provider_factory=factory,
+        )
+        registry = TaskCompositionRegistry(default_task_id="lazy-task")
+        registry.register(provider)
+
+        self.assertEqual(registry.task_ids(), ("lazy-task",))
+        self.assertEqual(registry.default_provider().task_id, "lazy-task")
+        self.assertEqual(calls, [])
+        self.assertEqual(provider.cli_defaults()["budget_steps"], 128)
+        self.assertEqual(provider.cli_defaults()["budget_steps"], 128)
+        self.assertEqual(calls, ["load"])
+
+        for produced, message in (
+            (object(), "TaskCompositionProvider"),
+            (
+                _Provider(
+                    "different-task",
+                    _defaults(marker="other", budget_steps=128),
+                ),
+                "different task_id",
+            ),
+        ):
+            with self.subTest(message=message):
+                invalid = LazyTaskCompositionProvider(
+                    task_id="lazy-task",
+                    provider_factory=lambda produced=produced: produced,
+                )
+                with self.assertRaisesRegex(TaskCompositionError, message):
+                    invalid.cli_defaults()
+
+    def test_lazy_provider_factory_runs_once_under_concurrent_first_access(
+        self,
+    ) -> None:
+        calls: list[str] = []
+        concrete = _Provider(
+            "lazy-task",
+            _defaults(marker="lazy", budget_steps=128),
+        )
+
+        def factory() -> TaskCompositionProvider:
+            calls.append("load")
+            time.sleep(0.05)
+            return concrete
+
+        provider = LazyTaskCompositionProvider(
+            task_id="lazy-task",
+            provider_factory=factory,
+        )
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            budgets = list(pool.map(lambda _: provider.cli_defaults(), range(8)))
+
+        self.assertEqual(calls, ["load"])
+        self.assertTrue(all(item["budget_steps"] == 128 for item in budgets))
+
     def test_resolved_snapshot_binds_memory_and_is_immutable(self) -> None:
         composition = self._resolved_composition()
         with self.assertRaises(TypeError):
@@ -274,6 +350,7 @@ class CompositionTests(unittest.TestCase):
             ),
             ("isaac_python", None, "isaac_python"),
             ("train_entrypoint", 42, "train_entrypoint"),
+            ("execution_device", "cuda", "execution_device"),
         )
         with tempfile.TemporaryDirectory() as tmp:
             context = TaskCompositionContext(
@@ -342,6 +419,7 @@ class CompositionTests(unittest.TestCase):
                 "isaac_python": "/opt/isaac/python",
                 "train_entrypoint": "scripts/custom_train.py",
                 "eval_entrypoint": "scripts/custom_eval.py",
+                "execution_device": "cuda:1",
                 "budget_steps": 192,
                 "public_seed_count": 2,
                 "public_accept_seed_count": 2,
@@ -375,6 +453,10 @@ class CompositionTests(unittest.TestCase):
         self.assertEqual(backend_config.isaac_lab_python, values["isaac_python"])
         self.assertEqual(backend_config.train_entrypoint, values["train_entrypoint"])
         self.assertEqual(backend_config.eval_entrypoint, values["eval_entrypoint"])
+        self.assertEqual(
+            backend_config.execution_device,
+            values["execution_device"],
+        )
         for snapshot_key, task_field, backend_field in (
             ("budget_steps", "budget_steps", "default_budget_steps"),
             ("public_seed_count", "public_seed_count", "public_seed_count"),
@@ -466,6 +548,7 @@ class CompositionTests(unittest.TestCase):
         composition_root = SRC_ROOT / "true_rl_agent" / "composition"
         generic_files = (
             "base.py",
+            "lazy.py",
             "registry.py",
             "cli.py",
             "__init__.py",
@@ -483,11 +566,76 @@ class CompositionTests(unittest.TestCase):
                 for marker in forbidden:
                     self.assertNotIn(marker, source)
 
-    def test_phase1a_does_not_register_production_stair_task(self) -> None:
-        registry = build_application_composition_registry()
+    def test_production_stair_registration_is_lazy_and_push_stays_default(
+        self,
+    ) -> None:
+        stair = _Provider(
+            "unitree_stair_climbing",
+            _defaults(marker="stair", budget_steps=222),
+        )
+        with patch(
+            "true_rl_agent.composition.defaults._build_stair_composition_provider",
+            return_value=stair,
+        ) as factory:
+            registry = build_application_composition_registry()
+            self.assertEqual(
+                registry.task_ids(),
+                ("unitree_push_recovery", "unitree_stair_climbing"),
+            )
+            self.assertEqual(registry.default_task_id, "unitree_push_recovery")
+            self.assertEqual(
+                registry.default_provider().task_id,
+                "unitree_push_recovery",
+            )
+            self._parse([], registry)
+            factory.assert_not_called()
 
-        self.assertEqual(registry.task_ids(), ("unitree_push_recovery",))
-        self.assertNotIn("unitree_stair_climbing", registry.task_ids())
+            parsed = self._parse(
+                ["--task-id", "unitree_stair_climbing"],
+                registry,
+            )
+            self.assertEqual(parsed.budget_steps, 222)
+            factory.assert_called_once_with()
+            registry.get("unitree_stair_climbing").cli_defaults()
+            factory.assert_called_once_with()
+
+    def test_fresh_push_registry_path_does_not_import_stair_modules(self) -> None:
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(SRC_ROOT)
+        script = """
+import sys
+from true_rl_agent.composition.defaults import build_application_composition_registry
+
+registry = build_application_composition_registry()
+assert registry.task_ids() == ("unitree_push_recovery", "unitree_stair_climbing")
+registry.default_provider().cli_defaults()
+loaded = sorted(
+    name for name in sys.modules
+    if name.startswith("true_rl_agent.tasks.stair_climbing")
+)
+if loaded:
+    raise RuntimeError("eager Stair imports: " + ", ".join(loaded))
+"""
+        completed = subprocess.run(
+            [sys.executable, "-c", script],
+            cwd=PROJECT_ROOT,
+            env=env,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+
+    def test_broken_stair_factory_does_not_break_push_path(self) -> None:
+        with patch(
+            "true_rl_agent.composition.defaults._build_stair_composition_provider",
+            side_effect=ValueError("broken official Stair reference"),
+        ) as factory:
+            registry = build_application_composition_registry()
+            registry.default_provider().cli_defaults()
+            factory.assert_not_called()
+            with self.assertRaisesRegex(ValueError, "broken official Stair reference"):
+                registry.get("unitree_stair_climbing").cli_defaults()
 
 
 if __name__ == "__main__":

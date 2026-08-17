@@ -6,49 +6,41 @@ from collections.abc import Mapping
 from typing import Any
 
 from true_rl_agent.agent_core.public_safety import (
+    contains_forbidden_public_key_marker,
+    contains_forbidden_public_value_marker,
     contains_public_path_marker,
+    public_key_tokens,
+    redact_secret_key_markers,
     sanitize_prompt_public_value,
+    sanitize_untrusted_public_diagnostic,
 )
 
-_FORBIDDEN_PUBLIC_PROJECTION_KEY_PARTS = (
-    "private",
-    "hidden",
-    "secret",
-    "api_key",
-    "token",
-    "trusted_eval",
-    "trusted_seed",
-    "checkpoint_selector",
-    "raw_seed",
-    "local_path",
-    "source_latest_checkpoint",
-    "checkpoint_output",
-    "checkpoint_output_path",
-    "summary_path",
-    "work_dir",
-    "config_path",
-    "cwd",
-    "per_episode",
-    "log_dir",
-    "host",
+_FORBIDDEN_PUBLIC_PROJECTION_KEY_SEQUENCES = (
+    ("hostname",),
+    ("local", "path"),
+    ("source", "latest", "checkpoint"),
+    ("checkpoint", "output"),
+    ("summary", "path"),
+    ("work", "dir"),
+    ("config", "path"),
+    ("per", "episode"),
+    ("log", "dir"),
 )
-_FORBIDDEN_PUBLIC_VALUE_MARKERS = (
-    "private_seed",
-    "private seed",
-    "hidden_eval",
-    "hidden eval",
-    "iid_hidden",
-    "trusted_eval",
-    "trusted eval",
-    "trusted_seed",
-    "trusted seed",
-    "checkpoint_selector",
-    "checkpoint selector",
-    "api_key",
-    "api key",
-    "secret token",
-    "access token",
-)
+
+
+def _contains_forbidden_projection_key(value: Any) -> bool:
+    if contains_forbidden_public_key_marker(value):
+        return True
+    tokens = public_key_tokens(value)
+    if tokens in {("cwd",), ("host",)} or "host" in tokens:
+        return True
+    return any(
+        tokens[index : index + len(sequence)] == sequence
+        for sequence in _FORBIDDEN_PUBLIC_PROJECTION_KEY_SEQUENCES
+        for index in range(len(tokens) - len(sequence) + 1)
+    )
+
+
 def assert_public_projection_safe(payload: Any) -> None:
     """Reject projected public eval/runner payloads that still contain raw evidence."""
 
@@ -56,8 +48,7 @@ def assert_public_projection_safe(payload: Any) -> None:
         if isinstance(value, Mapping):
             for key, item in value.items():
                 key_text = str(key)
-                lowered = key_text.lower()
-                if any(part in lowered for part in _FORBIDDEN_PUBLIC_PROJECTION_KEY_PARTS):
+                if _contains_forbidden_projection_key(key_text):
                     raise ValueError(f"public projection contains forbidden key: {path}.{key_text}")
                 visit(item, f"{path}.{key_text}")
         elif isinstance(value, list | tuple):
@@ -66,7 +57,7 @@ def assert_public_projection_safe(payload: Any) -> None:
         elif isinstance(value, str):
             if _contains_raw_path(value):
                 raise ValueError(f"public projection contains raw path at: {path}")
-            if _contains_forbidden_value_marker(value):
+            if contains_forbidden_public_value_marker(value):
                 raise ValueError(f"public projection contains forbidden value at: {path}")
 
     visit(payload, "$")
@@ -94,7 +85,7 @@ def project_public_train_summary(summary: Mapping[str, Any]) -> dict[str, Any]:
 
     errors = summary.get("errors")
     if isinstance(errors, list | tuple):
-        public["errors"] = _public_value(errors)
+        public["errors"] = _public_diagnostic_value(errors)
 
     assert_public_projection_safe(public)
     return public
@@ -105,11 +96,11 @@ def project_public_runner_error(exc: BaseException) -> dict[str, Any]:
 
     projected = {
         "type": exc.__class__.__name__,
-        "message": sanitize_prompt_public_value(str(exc)),
+        "message": _public_diagnostic_value(str(exc)),
     }
     public_details = getattr(exc, "public_details", None)
     if isinstance(public_details, Mapping):
-        projected["details"] = _public_value(public_details)
+        projected["details"] = _public_diagnostic_value(public_details)
     assert_public_projection_safe(projected)
     return projected
 
@@ -153,20 +144,18 @@ def _project_candidate_summary(candidate: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def _public_value(value: Any) -> Any:
-    return sanitize_prompt_public_value(value)
+    if isinstance(value, Mapping):
+        return {str(key): _public_value(item) for key, item in value.items()}
+    if isinstance(value, list | tuple):
+        return [_public_value(item) for item in value]
+    if isinstance(value, str):
+        sanitized = sanitize_prompt_public_value(value)
+        return redact_secret_key_markers(sanitized)
+    return value
 
 
-def _contains_forbidden_value_marker(value: str) -> bool:
-    lowered = value.lower()
-    if any(marker in lowered for marker in _FORBIDDEN_PUBLIC_VALUE_MARKERS):
-        return True
-    if "raw_seed" in lowered and "no_raw_seed" not in lowered:
-        return True
-    if "raw-seed" in lowered:
-        return True
-    if "raw seed id" in lowered:
-        return True
-    return False
+def _public_diagnostic_value(value: Any) -> Any:
+    return _public_value(sanitize_untrusted_public_diagnostic(value))
 
 
 def _contains_raw_path(value: str) -> bool:

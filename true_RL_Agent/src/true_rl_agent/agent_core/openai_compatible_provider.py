@@ -2,14 +2,20 @@
 
 from __future__ import annotations
 
+import hashlib
+import http.client
+import ipaddress
 import json
 import os
-import re
+import socket
+import ssl
 import urllib.error
+import urllib.parse
 import urllib.request
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Mapping, Protocol
+from typing import Any, Protocol
 
 from true_rl_agent.agent_core.authoring_response import (
     AuthoringProviderResponse,
@@ -24,20 +30,47 @@ from true_rl_agent.agent_core.provider_contract import (
     validate_provider_json_output_keys,
     validate_source_request_json_output_keys,
 )
-from true_rl_agent.agent_core.provider_errors import ProviderCandidateError
+from true_rl_agent.agent_core.provider_errors import (
+    ProviderCandidateError,
+    normalize_provider_receipt,
+    normalize_provider_usage,
+)
+from true_rl_agent.agent_core.provider_limits import (
+    DEFAULT_PROVIDER_MAX_OUTPUT_TOKENS,
+    DEFAULT_PROVIDER_MAX_RESPONSE_BYTES,
+    DEFAULT_PROVIDER_REASONING_MODE,
+    PROVIDER_REASONING_EFFORTS,
+    PROVIDER_REASONING_MODES,
+    PROVIDER_TRANSPORT_POLICY_ID,
+)
+from true_rl_agent.agent_core.public_safety import (
+    contains_forbidden_public_value_marker,
+    redact_secret_key_markers,
+)
+from true_rl_agent.candidates.component_source_semantics import (
+    extract_training_components_rationale,
+)
 from true_rl_agent.candidates.loader import (
     CANDIDATE_SCHEMA_VERSION,
     CONTROLLED_ENTRYPOINT,
 )
-from true_rl_agent.candidates.schema import CandidateChangeSet, CandidatePackageRef
+from true_rl_agent.candidates.package_contract import (
+    CANDIDATE_PACKAGE_FILE_MAX_BYTES,
+)
+from true_rl_agent.candidates.schema import (
+    CandidateChangeSet,
+    CandidatePackageRef,
+    require_candidate_id,
+)
 from true_rl_agent.json_contract import strict_json_object_loads
 from true_rl_agent.prompting import (
     assert_public_only_prompt_payload,
     serialize_prompt_payload,
 )
-from true_rl_agent.prompting.source_catalog import prompt_source_catalog_logical_ids
-
-_CANDIDATE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$")
+from true_rl_agent.prompting.source_catalog import (
+    has_inline_current_authoring_failed_source,
+    prompt_source_catalog_logical_ids,
+)
 
 
 class JsonTransport(Protocol):
@@ -54,13 +87,109 @@ class OpenAICompatibleProviderConfig:
     api_key_env: str = "OPENAI_API_KEY"
     api_key: str | None = None
     env_file: Path | None = None
-    max_tokens: int = 8192
+    max_tokens: int = DEFAULT_PROVIDER_MAX_OUTPUT_TOKENS
     timeout_s: int = 180
     temperature: float = 0.2
+    max_response_bytes: int = DEFAULT_PROVIDER_MAX_RESPONSE_BYTES
+    reasoning_mode: str = DEFAULT_PROVIDER_REASONING_MODE
+    reasoning_effort: str | None = None
+
+    def __post_init__(self) -> None:
+        if (
+            isinstance(self.max_tokens, bool)
+            or not isinstance(self.max_tokens, int)
+            or self.max_tokens <= 0
+        ):
+            raise ValueError("provider max_tokens must be a positive integer")
+        if (
+            isinstance(self.max_response_bytes, bool)
+            or not isinstance(self.max_response_bytes, int)
+            or self.max_response_bytes <= 0
+        ):
+            raise ValueError("provider max_response_bytes must be a positive integer")
+        if self.reasoning_mode not in PROVIDER_REASONING_MODES:
+            raise ValueError("provider reasoning_mode is unsupported")
+        if (
+            self.reasoning_effort is not None
+            and self.reasoning_effort not in PROVIDER_REASONING_EFFORTS
+        ):
+            raise ValueError("provider reasoning_effort is unsupported")
+        _join_url(self.base_url, self.endpoint)
 
 
+class _RejectProviderRedirects(urllib.request.HTTPRedirectHandler):
+    """Keep bearer credentials on the operator-selected provider origin."""
+
+    def redirect_request(
+        self,
+        req: urllib.request.Request,
+        fp: Any,
+        code: int,
+        msg: str,
+        headers: Any,
+        newurl: str,
+    ) -> None:
+        return None
+
+
+@dataclass(frozen=True)
 class UrllibJsonTransport:
+    max_response_bytes: int = DEFAULT_PROVIDER_MAX_RESPONSE_BYTES
+    transport_policy_id: str = field(
+        default=PROVIDER_TRANSPORT_POLICY_ID,
+        init=False,
+    )
+
+    def __post_init__(self) -> None:
+        if (
+            isinstance(self.max_response_bytes, bool)
+            or not isinstance(self.max_response_bytes, int)
+            or self.max_response_bytes <= 0
+        ):
+            raise ValueError("provider response byte limit must be positive")
+
+    def _failure(
+        self,
+        reason: str,
+        *,
+        failure_kind: str,
+        retryable: bool,
+        http_status: int | None = None,
+    ) -> ProviderCandidateError:
+        details: dict[str, Any] = {
+            "failure_kind": failure_kind,
+            "retryable": retryable,
+            "transport_policy_id": self.transport_policy_id,
+            "response_max_bytes": self.max_response_bytes,
+        }
+        if http_status is not None:
+            details["http_status"] = http_status
+        return ProviderCandidateError(
+            "runtime_error",
+            reason,
+            details=details,
+            provider_receipt={
+                "schema_version": "true_rl_agent.provider_response_receipt.v2",
+                "transport_policy_id": self.transport_policy_id,
+                "response_max_bytes": self.max_response_bytes,
+            },
+        )
+
     def post_json(self, *, url: str, payload: dict[str, Any], api_key: str, timeout_s: int) -> dict[str, Any]:
+        try:
+            url = _validated_provider_url(url)
+        except (TypeError, ValueError) as exc:
+            raise self._failure(
+                "provider URL violates the configured transport policy",
+                failure_kind="url_policy_error",
+                retryable=False,
+            ) from exc
+        if not _is_safe_authorization_credential(api_key):
+            raise self._failure(
+                "provider credential cannot be encoded as a safe HTTP header",
+                failure_kind="credential_format_error",
+                retryable=False,
+            )
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         request = urllib.request.Request(
             url,
@@ -72,12 +201,78 @@ class UrllibJsonTransport:
             method="POST",
         )
         try:
-            with urllib.request.urlopen(request, timeout=timeout_s) as response:  # noqa: S310
-                raw = response.read().decode("utf-8")
+            opener = urllib.request.build_opener(_RejectProviderRedirects())
+            with opener.open(request, timeout=timeout_s) as response:
+                raw_bytes = response.read(self.max_response_bytes + 1)
+                if len(raw_bytes) > self.max_response_bytes:
+                    raise self._failure(
+                        "provider response exceeded the bounded JSON envelope",
+                        failure_kind="response_too_large",
+                        retryable=False,
+                    )
+                raw = raw_bytes.decode("utf-8")
         except urllib.error.HTTPError as exc:
-            raw_error = exc.read().decode("utf-8", errors="replace")
-            raise RuntimeError(f"provider request failed with HTTP {exc.code}: {_safe_error(raw_error)}") from exc
-        return strict_json_object_loads(raw, context="provider response")
+            try:
+                exc.close()
+            except AttributeError:
+                pass
+            status = int(exc.code)
+            redirected = 300 <= status < 400
+            raise self._failure(
+                (
+                    "provider redirect was rejected"
+                    if redirected
+                    else "provider request returned an HTTP error"
+                ),
+                failure_kind=(
+                    "redirect_rejected" if redirected else "http_error"
+                ),
+                http_status=status,
+                retryable=(
+                    False
+                    if redirected
+                    else status in {408, 429} or status >= 500
+                ),
+            ) from exc
+        except urllib.error.URLError as exc:
+            if isinstance(exc.reason, ssl.SSLCertVerificationError):
+                raise self._failure(
+                    "provider TLS certificate verification failed",
+                    failure_kind="tls_certificate_error",
+                    retryable=False,
+                ) from exc
+            timed_out = isinstance(exc.reason, (TimeoutError, socket.timeout))
+            raise self._failure(
+                "provider request timed out" if timed_out else "provider network request failed",
+                failure_kind="timeout" if timed_out else "network_error",
+                retryable=True,
+            ) from exc
+        except (TimeoutError, socket.timeout) as exc:
+            raise self._failure(
+                "provider request timed out",
+                failure_kind="timeout",
+                retryable=True,
+            ) from exc
+        except (OSError, http.client.HTTPException) as exc:
+            raise self._failure(
+                "provider network request failed",
+                failure_kind="network_error",
+                retryable=True,
+            ) from exc
+        except UnicodeDecodeError as exc:
+            raise self._failure(
+                "provider response was not valid UTF-8",
+                failure_kind="invalid_utf8",
+                retryable=False,
+            ) from exc
+        try:
+            return strict_json_object_loads(raw, context="provider response")
+        except ValueError as exc:
+            raise self._failure(
+                "provider response envelope was not a valid JSON object",
+                failure_kind="invalid_json",
+                retryable=False,
+            ) from exc
 
 
 class OpenAICompatibleCandidateProvider:
@@ -90,8 +285,10 @@ class OpenAICompatibleCandidateProvider:
         transport: JsonTransport | None = None,
     ) -> None:
         self.config = config
-        self.transport = transport or UrllibJsonTransport()
-        self._counter = 0
+        self.transport = transport or UrllibJsonTransport(
+            max_response_bytes=config.max_response_bytes
+        )
+        self._counter = _existing_candidate_counter(config.output_dir)
 
     def next_candidate(self, *, prompt_payload: dict[str, Any]) -> CandidatePackageRef:
         response = self.next_authoring_response(prompt_payload=prompt_payload)
@@ -109,38 +306,98 @@ class OpenAICompatibleCandidateProvider:
             api_key=self._api_key(),
             timeout_s=self.config.timeout_s,
         )
+        provider_usage = normalize_provider_usage(response.get("usage"))
+        finish_reason = _provider_finish_reason(response)
+        provider_receipt = _provider_response_receipt(
+            response,
+            request_payload=request_payload,
+            finish_reason=finish_reason,
+            transport_policy_id=_transport_policy_id(self.transport),
+            response_max_bytes=_transport_response_max_bytes(self.transport),
+        )
         try:
             response_text = _response_text(response)
         except ValueError as exc:
+            truncated = finish_reason == "length"
             raise ProviderCandidateError(
-                "schema_error",
-                "provider response did not contain candidate text output",
+                "response_truncated" if truncated else "schema_error",
+                (
+                    "provider response reached its output limit before candidate JSON completed"
+                    if truncated
+                    else "provider response did not contain candidate text output"
+                ),
+                details=(
+                    {"finish_reason": finish_reason}
+                    if finish_reason is not None
+                    else None
+                ),
+                provider_usage=provider_usage,
+                provider_receipt=provider_receipt,
             ) from exc
         try:
             proposal = _json_object_from_text(response_text, "candidate proposal")
         except ValueError as exc:
+            truncated = finish_reason == "length"
             raise ProviderCandidateError(
-                "json_parse_error",
-                "candidate proposal was not valid JSON object",
+                "response_truncated" if truncated else "json_parse_error",
+                (
+                    "provider response reached its output limit before candidate JSON completed"
+                    if truncated
+                    else "candidate proposal was not valid JSON object"
+                ),
+                details=(
+                    {"finish_reason": finish_reason}
+                    if finish_reason is not None
+                    else None
+                ),
+                provider_usage=provider_usage,
+                provider_receipt=provider_receipt,
             ) from exc
         try:
             mode = provider_authoring_response_mode(proposal)
             if mode == "source_request":
-                return self._parse_source_request(proposal, prompt_payload=prompt_payload)
-            return CandidateDraftResponse(candidate=self._materialize_candidate(proposal))
-        except ProviderCandidateError:
-            raise
+                return self._parse_source_request(
+                    proposal,
+                    prompt_payload=prompt_payload,
+                    provider_usage=provider_usage,
+                    provider_receipt=provider_receipt,
+                )
+            return CandidateDraftResponse(
+                candidate=self._materialize_candidate(proposal),
+                provider_usage=provider_usage,
+                provider_receipt=provider_receipt,
+            )
+        except ProviderCandidateError as exc:
+            if (
+                (not provider_usage or exc.provider_usage)
+                and (not provider_receipt or exc.provider_receipt)
+            ):
+                raise
+            raise ProviderCandidateError(
+                exc.category,
+                exc.reason,
+                details=exc.details,
+                provider_usage=exc.provider_usage or provider_usage,
+                provider_receipt=exc.provider_receipt or provider_receipt,
+            ) from exc
         except ValueError as exc:
-            raise ProviderCandidateError("schema_error", str(exc)) from exc
+            raise ProviderCandidateError(
+                "schema_error",
+                str(exc),
+                provider_usage=provider_usage,
+                provider_receipt=provider_receipt,
+            ) from exc
         except OSError as exc:
             raise ProviderCandidateError(
                 "candidate_materialize_error",
                 "candidate package could not be materialized",
                 details={"error_type": type(exc).__name__},
+                provider_usage=provider_usage,
+                provider_receipt=provider_receipt,
             ) from exc
 
     def _chat_completion_request(self, prompt_payload: Mapping[str, Any]) -> dict[str, Any]:
-        return {
+        request = {
             "model": self.config.model,
             "messages": [
                 {
@@ -154,9 +411,22 @@ class OpenAICompatibleCandidateProvider:
             ],
             "response_format": {"type": "json_object"},
             "stream": False,
-            "temperature": self.config.temperature,
             "max_tokens": self.config.max_tokens,
         }
+        thinking_mode = _resolved_thinking_mode(
+            self.config.reasoning_mode,
+            prompt_payload,
+        )
+        if thinking_mode != "provider_default":
+            request["thinking"] = {"type": thinking_mode}
+        if thinking_mode == "enabled":
+            if self.config.reasoning_effort is not None:
+                request["reasoning_effort"] = self.config.reasoning_effort
+            # DeepSeek ignores sampling controls in thinking mode.  Omitting the
+            # inert field keeps the immutable request receipt unambiguous.
+        else:
+            request["temperature"] = self.config.temperature
+        return request
 
     def _api_key(self) -> str:
         if self.config.api_key:
@@ -171,66 +441,84 @@ class OpenAICompatibleCandidateProvider:
 
     def _materialize_candidate(self, proposal: Mapping[str, Any]) -> CandidatePackageRef:
         validate_provider_json_output_keys(dict(proposal))
-        candidate_id = _require_candidate_id(proposal.get("candidate_id"))
+        candidate_id = require_candidate_id(proposal.get("candidate_id"))
         components_py = _require_text(proposal.get("components_py"), "components_py")
-        rationale = _require_text(proposal.get("rationale", ""), "rationale")
+        components_bytes = _bounded_candidate_file_bytes(
+            "training_code/components.py",
+            components_py,
+        )
         _reject_secret_markers(components_py)
-        _reject_secret_markers(rationale)
+        rationale = extract_training_components_rationale(components_py)
+        if rationale is None:
+            raise ValueError(
+                "components_py must set TrainingComponents.rationale to a "
+                "non-empty statically resolvable string literal"
+            )
+        rationale_bytes = _bounded_candidate_file_bytes(
+            "rationale.md",
+            rationale,
+        )
         changed_components = _changed_components(proposal.get("declared_changed_components"))
 
-        candidate_dir = self.config.output_dir / f"{self._counter:03d}_{candidate_id}"
-        training_dir = candidate_dir / "training_code"
-        training_dir.mkdir(parents=True, exist_ok=False)
-        (candidate_dir / "candidate_manifest.yaml").write_text(
-            "\n".join(
-                [
-                    f"schema_version: {CANDIDATE_SCHEMA_VERSION}",
-                    f"candidate_id: {candidate_id}",
-                    f"entrypoint: {CONTROLLED_ENTRYPOINT}",
-                    "",
-                ]
+        file_bytes = {
+            "candidate_manifest.yaml": _bounded_candidate_file_bytes(
+                "candidate_manifest.yaml",
+                "\n".join(
+                    [
+                        f"schema_version: {CANDIDATE_SCHEMA_VERSION}",
+                        f"candidate_id: {candidate_id}",
+                        f"entrypoint: {CONTROLLED_ENTRYPOINT}",
+                        "",
+                    ]
+                ),
             ),
-            encoding="utf-8",
-        )
-        (training_dir / "components.py").write_text(components_py.rstrip() + "\n", encoding="utf-8")
-        (candidate_dir / "rationale.md").write_text(rationale.rstrip() + "\n", encoding="utf-8")
-        (candidate_dir / "operation_diff.json").write_text(
-            json.dumps(
-                {
-                    "schema_version": "true_rl_agent.provider.operation_diff.v1",
-                    "candidate_id": candidate_id,
-                    "declared_changed_components": sorted(changed_components),
-                    "derived_from": ["declared_changed_components"],
-                    "materialized_by": "openai_compatible_candidate_materializer",
-                    "provider_backend": "openai_compatible_chat",
-                    "verifier_derived_change_set_is_authoritative": True,
-                },
-                indent=2,
-                sort_keys=True,
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-        (candidate_dir / "diagnostics.json").write_text(
-            json.dumps(
-                {
-                    "schema_version": "true_rl_agent.provider.diagnostics.v1",
-                    "candidate_id": candidate_id,
-                    "materialized_by": "openai_compatible_candidate_materializer",
-                    "provider_backend": "openai_compatible_chat",
-                    "status": "provider_materialized",
-                    "diagnostic_items": [],
-                    "notes": [
-                        "Provider JSON v1 does not accept LLM-authored diagnostics.",
-                        "Task runtime diagnostics must be declared through DiagnosticTerm in components.py.",
-                    ],
-                },
-                indent=2,
-                sort_keys=True,
-            )
-            + "\n",
-            encoding="utf-8",
-        )
+            "training_code/components.py": components_bytes,
+            "rationale.md": rationale_bytes,
+            "operation_diff.json": _bounded_candidate_file_bytes(
+                "operation_diff.json",
+                json.dumps(
+                    {
+                        "schema_version": "true_rl_agent.provider.operation_diff.v1",
+                        "candidate_id": candidate_id,
+                        "declared_changed_components": sorted(changed_components),
+                        "derived_from": ["declared_changed_components"],
+                        "materialized_by": "openai_compatible_candidate_materializer",
+                        "provider_backend": "openai_compatible_chat",
+                        "verifier_derived_change_set_is_authoritative": True,
+                    },
+                    indent=2,
+                    sort_keys=True,
+                )
+                + "\n",
+            ),
+            "diagnostics.json": _bounded_candidate_file_bytes(
+                "diagnostics.json",
+                json.dumps(
+                    {
+                        "schema_version": "true_rl_agent.provider.diagnostics.v1",
+                        "candidate_id": candidate_id,
+                        "materialized_by": "openai_compatible_candidate_materializer",
+                        "provider_backend": "openai_compatible_chat",
+                        "status": "provider_materialized",
+                        "diagnostic_items": [],
+                        "notes": [
+                            "Provider JSON v2 does not accept LLM-authored diagnostics.",
+                            "Task runtime diagnostics must be declared through DiagnosticTerm in components.py.",
+                        ],
+                    },
+                    indent=2,
+                    sort_keys=True,
+                )
+                + "\n",
+            ),
+        }
+
+        candidate_dir = self.config.output_dir / f"{self._counter:03d}_{candidate_id}"
+        candidate_dir.mkdir(parents=True, exist_ok=False)
+        for relative_path, content in file_bytes.items():
+            target = candidate_dir / relative_path
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(content)
         return CandidatePackageRef(
             candidate_id=candidate_id,
             path=str(candidate_dir),
@@ -243,6 +531,8 @@ class OpenAICompatibleCandidateProvider:
         proposal: Mapping[str, Any],
         *,
         prompt_payload: Mapping[str, Any],
+        provider_usage: Mapping[str, int],
+        provider_receipt: Mapping[str, Any],
     ) -> SourceRequestResponse:
         validate_source_request_json_output_keys(dict(proposal))
         logical_ids = proposal.get("logical_ids")
@@ -254,7 +544,20 @@ class OpenAICompatibleCandidateProvider:
             logical_ids=tuple(logical_ids),
             rationale=rationale,
             source_catalog_logical_ids=tuple(sorted(prompt_source_catalog_logical_ids(prompt_payload))),
+            provider_usage=provider_usage,
+            provider_receipt=provider_receipt,
         )
+
+
+def _bounded_candidate_file_bytes(relative_path: str, content: str) -> bytes:
+    maximum = CANDIDATE_PACKAGE_FILE_MAX_BYTES[relative_path]
+    encoded = content.encode("utf-8")
+    if len(encoded) > maximum:
+        raise ValueError(
+            "candidate package file exceeds its byte limit: "
+            f"{relative_path} ({len(encoded)} > {maximum})"
+        )
+    return encoded
 
 
 def load_env_file(path: Path) -> dict[str, str]:
@@ -267,6 +570,21 @@ def load_env_file(path: Path) -> dict[str, str]:
         key = key.removeprefix("export ").strip()
         values[key] = value.strip().strip("\"'")
     return values
+
+
+def _existing_candidate_counter(output_dir: Path) -> int:
+    if not output_dir.exists():
+        return 0
+    if not output_dir.is_dir():
+        raise NotADirectoryError(
+            f"provider candidate output is not a directory: {output_dir}"
+        )
+    indices = []
+    for child in output_dir.iterdir():
+        prefix, separator, _ = child.name.partition("_")
+        if child.is_dir() and separator and prefix.isdecimal():
+            indices.append(int(prefix))
+    return max(indices, default=0)
 
 
 def _system_prompt() -> str:
@@ -294,7 +612,80 @@ def _system_prompt() -> str:
 
 
 def _join_url(base_url: str, endpoint: str) -> str:
+    """Compose an opaque transport URL without imposing urllib policy.
+
+    ``JsonTransport`` is a public extension seam and may use a non-HTTP URI.
+    Scheme, TLS, credential, and redirect enforcement therefore belongs only
+    to the built-in :class:`UrllibJsonTransport` immediately before I/O.
+    """
+
+    if not isinstance(base_url, str) or not base_url:
+        raise ValueError("provider base_url must be non-empty")
+    if not isinstance(endpoint, str) or not endpoint:
+        raise ValueError("provider endpoint must be non-empty")
     return base_url.rstrip("/") + "/" + endpoint.lstrip("/")
+
+
+def _validated_provider_url(
+    url: str,
+    *,
+    require_secure_external: bool = True,
+) -> str:
+    try:
+        parsed = urllib.parse.urlsplit(url)
+        port = parsed.port
+    except (TypeError, ValueError) as exc:
+        raise ValueError("provider URL is invalid") from exc
+    scheme = parsed.scheme.lower()
+    if scheme not in {"http", "https"}:
+        raise ValueError("provider URL scheme must be http or https")
+    if (
+        not parsed.hostname
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.fragment
+    ):
+        raise ValueError(
+            "provider URL must contain a host and no credentials or fragment"
+        )
+    if port is not None and not (1 <= port <= 65535):
+        raise ValueError("provider URL port is invalid")
+    if (
+        require_secure_external
+        and scheme == "http"
+        and not _is_loopback_provider_host(parsed.hostname)
+    ):
+        raise ValueError("non-loopback provider URLs must use HTTPS")
+    if not parsed.path.startswith("/"):
+        raise ValueError("provider URL path must be absolute")
+    return urllib.parse.urlunsplit(
+        (scheme, parsed.netloc, parsed.path, parsed.query, "")
+    )
+
+
+def _is_loopback_provider_host(hostname: str) -> bool:
+    normalized = hostname.rstrip(".").lower()
+    if normalized == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(normalized).is_loopback
+    except ValueError:
+        return False
+
+
+def _is_safe_authorization_credential(value: Any) -> bool:
+    if not isinstance(value, str) or not value:
+        return False
+    try:
+        value.encode("latin-1")
+    except UnicodeEncodeError:
+        return False
+    return all(
+        character not in "\r\n"
+        and ord(character) >= 0x20
+        and not 0x7F <= ord(character) <= 0x9F
+        for character in value
+    )
 
 
 def _response_text(response: Mapping[str, Any]) -> str:
@@ -319,6 +710,146 @@ def _response_text(response: Mapping[str, Any]) -> str:
                     if isinstance(part, Mapping) and isinstance(part.get("text"), str):
                         return str(part["text"])
     raise ValueError("provider response did not contain text output")
+
+
+def _provider_finish_reason(response: Mapping[str, Any]) -> str | None:
+    """Normalize only bounded, non-content completion status metadata."""
+
+    choices = response.get("choices")
+    if isinstance(choices, list) and choices and isinstance(choices[0], Mapping):
+        value = choices[0].get("finish_reason")
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            if normalized in {
+                "content_filter",
+                "function_call",
+                "insufficient_system_resource",
+                "length",
+                "stop",
+                "tool_calls",
+            }:
+                return normalized
+            return "other"
+    if response.get("status") == "incomplete":
+        details = response.get("incomplete_details")
+        if isinstance(details, Mapping) and details.get("reason") in {
+            "max_output_tokens",
+            "max_tokens",
+        }:
+            return "length"
+    return None
+
+
+def _resolved_thinking_mode(
+    configured_mode: str,
+    prompt_payload: Mapping[str, Any],
+) -> str:
+    """Resolve reasoning without interpreting any task-owned semantics."""
+
+    if configured_mode != "adaptive":
+        return configured_mode
+    repair = prompt_payload.get("provider_or_runtime_repair_feedback")
+    if (
+        isinstance(repair, Mapping)
+        and repair.get("failure_category") == "response_truncated"
+        and has_inline_current_authoring_failed_source(prompt_payload)
+    ):
+        return "disabled"
+    return "enabled"
+
+
+def _provider_response_receipt(
+    response: Mapping[str, Any],
+    *,
+    request_payload: Mapping[str, Any],
+    finish_reason: str | None,
+    transport_policy_id: str | None,
+    response_max_bytes: int | None,
+) -> dict[str, Any]:
+    """Build content-free, bounded metadata for immutable attempt evidence."""
+
+    try:
+        response_text = _response_text(response)
+    except ValueError:
+        response_text = None
+    reasoning_text = _provider_reasoning_text(response)
+    thinking = request_payload.get("thinking")
+    requested_thinking_mode = (
+        thinking.get("type")
+        if isinstance(thinking, Mapping)
+        and thinking.get("type") in {"enabled", "disabled"}
+        else "provider_default"
+    )
+    transport_bound = (
+        isinstance(transport_policy_id, str)
+        and bool(transport_policy_id)
+        and isinstance(response_max_bytes, int)
+        and not isinstance(response_max_bytes, bool)
+        and response_max_bytes > 0
+    )
+    receipt: dict[str, Any] = {
+        "schema_version": (
+            "true_rl_agent.provider_response_receipt.v3"
+            if transport_bound
+            else "true_rl_agent.provider_response_receipt.v1"
+        ),
+        "requested_model": request_payload.get("model"),
+        "response_model": response.get("model"),
+        "system_fingerprint": response.get("system_fingerprint"),
+        "requested_output_units": request_payload.get("max_tokens"),
+        "requested_thinking_mode": requested_thinking_mode,
+        "requested_reasoning_effort": request_payload.get(
+            "reasoning_effort", "provider_default"
+        ),
+        "finish_reason": finish_reason,
+        **_text_receipt("response_text", response_text),
+        **_text_receipt("reasoning_content", reasoning_text),
+    }
+    if transport_bound:
+        receipt["transport_policy_id"] = transport_policy_id
+        receipt["response_max_bytes"] = response_max_bytes
+    return normalize_provider_receipt(receipt)
+
+
+def _transport_policy_id(transport: JsonTransport) -> str | None:
+    value = getattr(transport, "transport_policy_id", None)
+    return value if isinstance(value, str) and value else None
+
+
+def _transport_response_max_bytes(transport: JsonTransport) -> int | None:
+    value = getattr(transport, "max_response_bytes", None)
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        return None
+    return value
+
+
+def _provider_reasoning_text(response: Mapping[str, Any]) -> str | None:
+    choices = response.get("choices")
+    if not isinstance(choices, list) or not choices:
+        return None
+    first = choices[0]
+    if not isinstance(first, Mapping):
+        return None
+    message = first.get("message")
+    if not isinstance(message, Mapping):
+        return None
+    value = message.get("reasoning_content")
+    return value if isinstance(value, str) else None
+
+
+def _text_receipt(prefix: str, value: str | None) -> dict[str, Any]:
+    if value is None:
+        return {
+            f"{prefix}_present": False,
+            f"{prefix}_utf8_bytes": 0,
+            f"{prefix}_sha256": None,
+        }
+    payload = value.encode("utf-8")
+    return {
+        f"{prefix}_present": True,
+        f"{prefix}_utf8_bytes": len(payload),
+        f"{prefix}_sha256": "sha256:" + hashlib.sha256(payload).hexdigest(),
+    }
 
 
 def _json_object_from_text(text: str, name: str) -> dict[str, Any]:
@@ -362,12 +893,6 @@ def _extract_first_json_object(text: str) -> str | None:
     return None
 
 
-def _require_candidate_id(value: Any) -> str:
-    if not isinstance(value, str) or not _CANDIDATE_ID_RE.fullmatch(value):
-        raise ValueError("candidate_id must contain only letters, digits, dot, underscore, and dash")
-    return value
-
-
 def _require_text(value: Any, name: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"{name} must be a non-empty string")
@@ -379,10 +904,10 @@ def _changed_components(value: Any) -> set[str]:
 
 
 def _reject_secret_markers(text: str) -> None:
-    if "sk-" in text:
+    if contains_forbidden_public_value_marker(text):
         raise ValueError("candidate text contains a secret-looking marker")
 
 
 def _safe_error(text: str) -> str:
     compact = " ".join(text.split())
-    return re.sub(r"sk-[A-Za-z0-9_-]+", "sk-REDACTED", compact)[:1200]
+    return redact_secret_key_markers(compact)[:1200]

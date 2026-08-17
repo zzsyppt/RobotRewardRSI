@@ -9,7 +9,9 @@ from typing import Any
 
 from true_rl_agent.evaluation.acceptance_protocol import (
     PUBLIC_SCORE_BINDING_ACCEPTANCE_MEAN,
+    PUBLIC_SCORE_BINDING_GUARD_MEAN,
     AcceptanceProtocol,
+    validated_score_samples,
 )
 from true_rl_agent.evaluation.result_contract import validate_finite_number
 from true_rl_agent.evaluation.sealed_validation import (
@@ -50,6 +52,17 @@ class AcceptanceEvidenceValidation:
     min_score_count: int | None = None
     score_mean: float | None = None
     standard_error: float | None = None
+    score_samples: tuple[float, ...] = ()
+    guard_score_stats: Mapping[str, Any] = field(default_factory=dict)
+    guard_score_mean: float | None = None
+    guard_standard_error: float | None = None
+    guard_score_samples: tuple[float, ...] = ()
+    guard_score_source: str | None = None
+    guard_absolute_accept_floor: float | None = None
+    guard_max_regression: float | None = None
+    guard_regression_margin: float | None = None
+    max_public_to_sealed_score_drop: float | None = None
+    guard_score_binding_valid: bool = False
     score_source: str | None = None
     public_score_binding: str | None = None
     public_score_binding_valid: bool = False
@@ -109,7 +122,13 @@ def validate_acceptance_evidence(
     reasons = [f"missing_common_accept_gate:{gate}" for gate in missing_common]
     reasons.extend(_candidate_contamination_reasons(metrics))
 
-    public_accept = _mapping(metrics.get("public_accept"))
+    declared_score_source = _optional_text(acceptance.get("score_source"))
+    effective_score_source = (
+        acceptance_protocol.score_source
+        if acceptance_protocol is not None
+        else declared_score_source
+    )
+    public_accept = _score_summary_from_source(metrics, effective_score_source)
     public_accept_stats = _mapping(public_accept.get("score_stats"))
     score_stats = _mapping(acceptance.get("score_stats"))
     if not public_accept_stats:
@@ -195,7 +214,7 @@ def validate_acceptance_evidence(
     ):
         reasons.append("eval_protocol_hash_missing")
 
-    score_source = _optional_text(acceptance.get("score_source"))
+    score_source = declared_score_source
     public_score_binding = _optional_text(
         acceptance.get("public_score_binding")
     )
@@ -208,7 +227,11 @@ def validate_acceptance_evidence(
     )
     if score_source is None:
         reasons.append("acceptance_protocol_score_source_invalid")
-    if public_score_binding != PUBLIC_SCORE_BINDING_ACCEPTANCE_MEAN:
+    allowed_bindings = {
+        PUBLIC_SCORE_BINDING_ACCEPTANCE_MEAN,
+        PUBLIC_SCORE_BINDING_GUARD_MEAN,
+    }
+    if public_score_binding not in allowed_bindings:
         reasons.append("acceptance_protocol_public_score_binding_invalid")
     if absolute_accept_floor is None:
         reasons.append("acceptance_protocol_absolute_floor_invalid")
@@ -218,7 +241,7 @@ def validate_acceptance_evidence(
         reasons.append("acceptance_protocol_hash_missing")
     acceptance_protocol_binding_valid = bool(
         score_source is not None
-        and public_score_binding == PUBLIC_SCORE_BINDING_ACCEPTANCE_MEAN
+        and public_score_binding in allowed_bindings
         and min_score_count is not None
         and absolute_accept_floor is not None
         and min_delta is not None
@@ -244,11 +267,71 @@ def validate_acceptance_evidence(
             protocol_mismatches.append("min_delta")
         if acceptance_protocol_hash != acceptance_protocol.protocol_hash:
             protocol_mismatches.append("acceptance_protocol_hash")
+        if acceptance_protocol.uses_guard_score:
+            if acceptance.get("guard_score_source") != acceptance_protocol.guard_score_source:
+                protocol_mismatches.append("guard_score_source")
+            if not _numbers_close(
+                acceptance.get("guard_absolute_accept_floor"),
+                acceptance_protocol.guard_absolute_accept_floor,
+            ):
+                protocol_mismatches.append("guard_absolute_accept_floor")
+            if not _numbers_close(
+                acceptance.get("guard_max_regression"),
+                acceptance_protocol.guard_max_regression,
+            ):
+                protocol_mismatches.append("guard_max_regression")
+        if acceptance_protocol.requires_paired_guard_score_samples:
+            if not _numbers_close(
+                acceptance.get("guard_regression_margin"),
+                acceptance_protocol.guard_regression_margin,
+            ):
+                protocol_mismatches.append("guard_regression_margin")
+            if not _numbers_close(
+                acceptance.get("max_public_to_sealed_score_drop"),
+                acceptance_protocol.max_public_to_sealed_score_drop,
+            ):
+                protocol_mismatches.append("max_public_to_sealed_score_drop")
         reasons.extend(
             f"acceptance_protocol_mismatch:{field}"
             for field in protocol_mismatches
         )
         acceptance_protocol_binding_valid = not protocol_mismatches and acceptance_protocol_binding_valid
+
+    score_samples: tuple[float, ...] = ()
+    score_samples_valid = True
+    if (
+        acceptance_protocol is not None
+        and acceptance_protocol.requires_paired_score_samples
+    ):
+        try:
+            if public_mean is None:
+                raise ValueError("paired score mean is missing")
+            score_samples = validated_score_samples(
+                acceptance.get("score_samples"),
+                expected_mean=public_mean,
+                protocol=acceptance_protocol,
+                field_name="acceptance.score_samples",
+            )
+        except ValueError:
+            score_samples_valid = False
+        else:
+            score_samples_valid = (
+                public_accept_count == acceptance_protocol.min_score_count
+            )
+            if acceptance_protocol.requires_paired_guard_score_samples:
+                try:
+                    source_score_samples = validated_score_samples(
+                        public_accept.get("seed_macro_scores"),
+                        expected_mean=public_mean,
+                        protocol=acceptance_protocol,
+                        field_name="acceptance score source seed_macro_scores",
+                    )
+                except ValueError:
+                    score_samples_valid = False
+                else:
+                    score_samples_valid = score_samples == source_score_samples
+        if not score_samples_valid:
+            reasons.append("acceptance_score_samples_untrusted")
 
     score_stats_binding_valid = bool(
         public_accept_stats
@@ -259,6 +342,7 @@ def validate_acceptance_evidence(
         and public_mean is not None
         and acceptance_mean is not None
         and protocol_binding_valid
+        and score_samples_valid
         and (
             min_score_count is not None
             and (
@@ -282,6 +366,105 @@ def validate_acceptance_evidence(
             canonical_score_stats["std"] = public_std
         if public_standard_error is not None:
             canonical_score_stats["standard_error"] = public_standard_error
+        if score_samples:
+            canonical_score_stats["score_samples"] = list(score_samples)
+
+    guard_score_stats: dict[str, Any] = {}
+    guard_score_mean: float | None = None
+    guard_standard_error: float | None = None
+    guard_score_samples: tuple[float, ...] = ()
+    guard_score_source: str | None = None
+    guard_absolute_accept_floor: float | None = None
+    guard_max_regression: float | None = None
+    guard_regression_margin: float | None = None
+    max_public_to_sealed_score_drop: float | None = None
+    guard_score_binding_valid = not (
+        acceptance_protocol is not None and acceptance_protocol.uses_guard_score
+    )
+    if acceptance_protocol is not None and acceptance_protocol.uses_guard_score:
+        guard_score_source = _optional_text(acceptance.get("guard_score_source"))
+        guard_absolute_accept_floor = _nonnegative_number(
+            acceptance.get("guard_absolute_accept_floor")
+        )
+        guard_max_regression = _nonnegative_number(
+            acceptance.get("guard_max_regression")
+        )
+        guard_regression_margin = _nonnegative_number(
+            acceptance.get("guard_regression_margin")
+        )
+        max_public_to_sealed_score_drop = _nonnegative_number(
+            acceptance.get("max_public_to_sealed_score_drop")
+        )
+        guard_source_summary = _score_summary_from_source(
+            metrics,
+            guard_score_source,
+        )
+        guard_declared_stats = _mapping(acceptance.get("guard_score_stats"))
+        guard_validation = _validate_guard_score_evidence(
+            source_stats=_mapping(guard_source_summary.get("score_stats")),
+            declared_stats=guard_declared_stats,
+            minimum_count=acceptance_protocol.min_score_count,
+            expected_eval_protocol_hash=eval_protocol_hash,
+        )
+        reasons.extend(guard_validation["reasons"])
+        guard_score_stats = dict(guard_validation["score_stats"])
+        guard_score_mean = guard_validation["mean"]
+        guard_standard_error = guard_validation["standard_error"]
+        guard_samples_valid = not acceptance_protocol.requires_paired_guard_score_samples
+        if acceptance_protocol.requires_paired_guard_score_samples:
+            try:
+                if guard_score_mean is None:
+                    raise ValueError("paired guard score mean is missing")
+                guard_score_samples = validated_score_samples(
+                    acceptance.get("guard_score_samples"),
+                    expected_mean=guard_score_mean,
+                    protocol=acceptance_protocol,
+                    field_name="acceptance.guard_score_samples",
+                )
+                source_guard_samples = validated_score_samples(
+                    guard_source_summary.get("seed_macro_scores"),
+                    expected_mean=guard_score_mean,
+                    protocol=acceptance_protocol,
+                    field_name="guard score source seed_macro_scores",
+                )
+                guard_samples_valid = guard_score_samples == source_guard_samples
+            except ValueError:
+                guard_samples_valid = False
+            if not guard_samples_valid:
+                reasons.append("acceptance_guard_score_samples_untrusted")
+            elif guard_score_stats:
+                guard_score_stats["score_samples"] = list(guard_score_samples)
+        guard_score_binding_valid = bool(
+            guard_validation["valid"]
+            and guard_samples_valid
+            and guard_score_source == acceptance_protocol.guard_score_source
+            and _numbers_close(
+                guard_absolute_accept_floor,
+                acceptance_protocol.guard_absolute_accept_floor,
+            )
+            and _numbers_close(
+                guard_max_regression,
+                acceptance_protocol.guard_max_regression,
+            )
+            and (
+                not acceptance_protocol.requires_paired_guard_score_samples
+                or (
+                    _numbers_close(
+                        guard_regression_margin,
+                        acceptance_protocol.guard_regression_margin,
+                    )
+                    and _numbers_close(
+                        max_public_to_sealed_score_drop,
+                        acceptance_protocol.max_public_to_sealed_score_drop,
+                    )
+                )
+            )
+        )
+        if not guard_score_binding_valid:
+            reasons.append("acceptance_guard_score_untrusted")
+        acceptance_protocol_binding_valid = bool(
+            acceptance_protocol_binding_valid and guard_score_binding_valid
+        )
 
     public_score_binding_valid = False
     canonical_public_score: float | None = None
@@ -294,19 +477,25 @@ def validate_acceptance_evidence(
         except ValueError:
             reasons.append("public_score_invalid")
         else:
-            if (
-                public_score_binding == PUBLIC_SCORE_BINDING_ACCEPTANCE_MEAN
-                and score_stats_binding_valid
-                and public_mean is not None
-            ):
+            binding_mean = (
+                guard_score_mean
+                if public_score_binding == PUBLIC_SCORE_BINDING_GUARD_MEAN
+                else public_mean
+            )
+            binding_ready = (
+                guard_score_binding_valid
+                if public_score_binding == PUBLIC_SCORE_BINDING_GUARD_MEAN
+                else score_stats_binding_valid
+            )
+            if binding_ready and binding_mean is not None:
                 if math.isclose(
                     parsed_public_score,
-                    public_mean,
+                    binding_mean,
                     rel_tol=1e-9,
                     abs_tol=1e-9,
                 ):
                     public_score_binding_valid = True
-                    canonical_public_score = public_mean
+                    canonical_public_score = binding_mean
                 else:
                     reasons.append("public_score_binding_mismatch")
 
@@ -388,6 +577,19 @@ def validate_acceptance_evidence(
         standard_error=(
             public_standard_error if score_stats_binding_valid else None
         ),
+        score_samples=(score_samples if score_stats_binding_valid else ()),
+        guard_score_stats=guard_score_stats,
+        guard_score_mean=guard_score_mean,
+        guard_standard_error=guard_standard_error,
+        guard_score_samples=(
+            guard_score_samples if guard_score_binding_valid else ()
+        ),
+        guard_score_source=guard_score_source,
+        guard_absolute_accept_floor=guard_absolute_accept_floor,
+        guard_max_regression=guard_max_regression,
+        guard_regression_margin=guard_regression_margin,
+        max_public_to_sealed_score_drop=max_public_to_sealed_score_drop,
+        guard_score_binding_valid=guard_score_binding_valid,
         score_source=score_source,
         public_score_binding=public_score_binding,
         public_score_binding_valid=public_score_binding_valid,
@@ -419,6 +621,83 @@ def _common_required_gates(evidence_subject_kind: str) -> tuple[str, ...]:
 
 def _mapping(value: Any) -> Mapping[str, Any]:
     return value if isinstance(value, Mapping) else {}
+
+
+def _score_summary_from_source(
+    metrics: Mapping[str, Any],
+    source: str | None,
+) -> Mapping[str, Any]:
+    if not isinstance(source, str):
+        return {}
+    parts = source.split(".")
+    if (
+        len(parts) < 3
+        or parts[-2:] != ["score_stats", "mean"]
+        or any(not part for part in parts)
+    ):
+        return {}
+    current: Any = metrics
+    for part in parts[:-2]:
+        current = _mapping(current).get(part)
+        if not isinstance(current, Mapping):
+            return {}
+    return current
+
+
+def _validate_guard_score_evidence(
+    *,
+    source_stats: Mapping[str, Any],
+    declared_stats: Mapping[str, Any],
+    minimum_count: int,
+    expected_eval_protocol_hash: str | None,
+) -> dict[str, Any]:
+    reasons: list[str] = []
+    if not source_stats:
+        reasons.append("guard_score_stats_missing")
+    if not declared_stats:
+        reasons.append("acceptance_guard_score_stats_missing")
+    for key in ("count", "mean", "std", "standard_error", "eval_protocol_hash"):
+        if source_stats or declared_stats:
+            if not _values_match(source_stats.get(key), declared_stats.get(key)):
+                reasons.append(f"acceptance_guard_score_stats_mismatch:{key}")
+    count = _positive_int(source_stats.get("count"))
+    mean = _optional_number(source_stats.get("mean"))
+    std = _nonnegative_number(source_stats.get("std"))
+    standard_error = _nonnegative_number(source_stats.get("standard_error"))
+    protocol_hash = _protocol_hash(source_stats)
+    if count is None or count < minimum_count:
+        reasons.append("insufficient_guard_evidence")
+    if mean is None or std is None or standard_error is None:
+        reasons.append("guard_score_stats_untrusted")
+    if protocol_hash is None or protocol_hash != expected_eval_protocol_hash:
+        reasons.append("guard_eval_protocol_hash_mismatch")
+    valid = not reasons
+    canonical: dict[str, Any] = {}
+    if valid:
+        canonical = {
+            "count": count,
+            "mean": mean,
+            "std": std,
+            "standard_error": standard_error,
+            "eval_protocol_hash": protocol_hash,
+        }
+    return {
+        "valid": valid,
+        "reasons": reasons,
+        "score_stats": canonical,
+        "mean": mean if valid else None,
+        "standard_error": standard_error if valid else None,
+    }
+
+
+def _numbers_close(left: Any, right: Any) -> bool:
+    left_number = _optional_number(left)
+    right_number = _optional_number(right)
+    return bool(
+        left_number is not None
+        and right_number is not None
+        and math.isclose(left_number, right_number)
+    )
 
 
 def _candidate_contamination_reasons(metrics: Mapping[str, Any]) -> list[str]:
@@ -520,6 +799,8 @@ def _canonical_reject_reason(
     if missing_required_score or has(
         "public_accept_score_stats_missing",
         "acceptance_score_stats_missing",
+        "guard_score_stats_missing",
+        "acceptance_guard_score_stats_missing",
     ):
         return "required_score_missing"
     if has(
@@ -527,6 +808,7 @@ def _canonical_reject_reason(
         "accept_score_count_invalid",
         "acceptance_score_count_invalid",
         "insufficient_accept_evidence",
+        "insufficient_guard_evidence",
     ):
         return "insufficient_accept_evidence"
     if has("eval_protocol_hash_missing"):
@@ -535,6 +817,11 @@ def _canonical_reject_reason(
         "acceptance_score_stats_mismatch",
         "accept_score_stats_untrusted",
         "acceptance_score_stats_untrusted",
+        "acceptance_score_samples_untrusted",
+        "acceptance_guard_score_stats_mismatch",
+        "guard_score_stats_untrusted",
+        "guard_eval_protocol_hash_mismatch",
+        "acceptance_guard_score_untrusted",
     ):
         return "accept_score_stats_untrusted"
     if "sealed_validation_gate" in missing_common:

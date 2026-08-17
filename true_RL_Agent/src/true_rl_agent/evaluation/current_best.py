@@ -8,7 +8,10 @@ from types import MappingProxyType
 from typing import Any, Mapping, Sequence
 
 from true_rl_agent.evaluation.acceptance_contract import validate_acceptance_evidence
-from true_rl_agent.evaluation.acceptance_protocol import AcceptanceProtocol
+from true_rl_agent.evaluation.acceptance_protocol import (
+    AcceptanceProtocol,
+    validated_score_samples,
+)
 from true_rl_agent.evaluation.binding import (
     EvaluationBindingV1,
     is_sha256_checksum,
@@ -34,6 +37,7 @@ class CurrentBestEvalStats:
     anchor_id: str
     public_score: float | None = None
     public_accept_stats: Mapping[str, Any] = field(default_factory=dict)
+    guard_score_stats: Mapping[str, Any] = field(default_factory=dict)
     sealed_validation_evidence: Mapping[str, Any] = field(default_factory=dict)
     sealed_validation_gate: Mapping[str, Any] = field(default_factory=dict)
     gate_statuses: Mapping[str, str] = field(default_factory=dict)
@@ -72,6 +76,7 @@ class CurrentBestEvalStats:
         if self.mode == "reference" and self.anchor_kind != "reference":
             raise ValueError("reference current-best requires a reference anchor")
         if self.anchor_kind == "candidate":
+            ExperimentSubject.candidate(self.anchor_id)
             if self.accepted_candidate_id != self.anchor_id:
                 raise ValueError("candidate anchor_id must match accepted_candidate_id")
             if not self.accepted_round_id:
@@ -101,6 +106,7 @@ class CurrentBestEvalStats:
             self.evaluation_binding()
         for field_name in (
             "public_accept_stats",
+            "guard_score_stats",
             "sealed_validation_evidence",
             "sealed_validation_gate",
             "gate_statuses",
@@ -345,6 +351,7 @@ class CurrentBestEvalStats:
             anchor_id=anchor_id,
             public_score=acceptance_validation.canonical_public_score,
             public_accept_stats=dict(acceptance_validation.score_stats),
+            guard_score_stats=dict(acceptance_validation.guard_score_stats),
             sealed_validation_evidence=dict(
                 acceptance_validation.sealed_validation_evidence
             ),
@@ -375,6 +382,7 @@ class CurrentBestEvalStats:
         initial_current_best: "CurrentBestEvalStats",
         session_genesis_hash: str,
         acceptance_protocol: AcceptanceProtocol,
+        expected_ledger_epoch_hash: str | None = None,
     ) -> "CurrentBestEvalStats":
         from true_rl_agent.evaluation.acceptance_replay import (  # noqa: PLC0415
             replay_acceptance_ledger,
@@ -385,6 +393,7 @@ class CurrentBestEvalStats:
             initial_current_best=initial_current_best,
             expected_session_genesis_hash=session_genesis_hash,
             acceptance_protocol=acceptance_protocol,
+            expected_ledger_epoch_hash=expected_ledger_epoch_hash,
         ).current_best
 
     def evaluation_binding(self) -> EvaluationBindingV1:
@@ -410,7 +419,10 @@ class CurrentBestEvalStats:
             raise ValueError("current-best evaluation_binding_hash mismatch")
         return binding
 
-    def has_full_eval_stats(self) -> bool:
+    def has_full_eval_stats(
+        self,
+        acceptance_protocol: AcceptanceProtocol | None = None,
+    ) -> bool:
         if self.mode not in {"accepted", "reference"}:
             return False
         try:
@@ -446,8 +458,58 @@ class CurrentBestEvalStats:
             expected_seed_count=rollout.expected_seed_count,
             expected_checkpoint_hash=self.checkpoint_hash,
         )
+        score_samples_valid = True
+        guard_score_valid = not (
+            acceptance_protocol is not None and acceptance_protocol.uses_guard_score
+        )
+        if (
+            acceptance_protocol is not None
+            and acceptance_protocol.requires_paired_score_samples
+        ):
+            try:
+                if stats_validation.mean is None:
+                    raise ValueError("current-best score mean is missing")
+                validated_score_samples(
+                    self.public_accept_stats.get("score_samples"),
+                    expected_mean=stats_validation.mean,
+                    protocol=acceptance_protocol,
+                    field_name="current_best.public_accept_stats.score_samples",
+                )
+            except ValueError:
+                score_samples_valid = False
+        if acceptance_protocol is not None and acceptance_protocol.uses_guard_score:
+            guard_validation = validate_score_stats(
+                self.guard_score_stats,
+                minimum_count=self.min_score_count,
+                require_std=True,
+                require_standard_error=self.min_score_count >= 2,
+                require_protocol_hash=True,
+            )
+            guard_score_valid = bool(
+                guard_validation.valid
+                and guard_validation.eval_protocol_hash == binding.eval_protocol_hash
+            )
+            if (
+                guard_score_valid
+                and acceptance_protocol.requires_paired_guard_score_samples
+            ):
+                try:
+                    if guard_validation.mean is None:
+                        raise ValueError("current-best guard score mean is missing")
+                    validated_score_samples(
+                        self.guard_score_stats.get("score_samples"),
+                        expected_mean=guard_validation.mean,
+                        protocol=acceptance_protocol,
+                        field_name=(
+                            "current_best.guard_score_stats.score_samples"
+                        ),
+                    )
+                except ValueError:
+                    guard_score_valid = False
         return bool(
             stats_validation.valid
+            and score_samples_valid
+            and guard_score_valid
             and stats_validation.eval_protocol_hash == binding.eval_protocol_hash
             and rollout.passed
             and gate_validation.valid
@@ -460,6 +522,43 @@ class CurrentBestEvalStats:
         if mean is not None:
             return mean
         return _optional_number(self.public_score)
+
+    def score_samples_for_comparison(
+        self,
+        acceptance_protocol: AcceptanceProtocol,
+    ) -> tuple[float, ...]:
+        mean = self.score_for_comparison()
+        if mean is None:
+            return ()
+        try:
+            return validated_score_samples(
+                self.public_accept_stats.get("score_samples"),
+                expected_mean=mean,
+                protocol=acceptance_protocol,
+                field_name="current_best.public_accept_stats.score_samples",
+            )
+        except ValueError:
+            return ()
+
+    def guard_score_for_comparison(self) -> float | None:
+        return _optional_number(self.guard_score_stats.get("mean"))
+
+    def guard_score_samples_for_comparison(
+        self,
+        acceptance_protocol: AcceptanceProtocol,
+    ) -> tuple[float, ...]:
+        mean = self.guard_score_for_comparison()
+        if mean is None:
+            return ()
+        try:
+            return validated_score_samples(
+                self.guard_score_stats.get("score_samples"),
+                expected_mean=mean,
+                protocol=acceptance_protocol,
+                field_name="current_best.guard_score_stats.score_samples",
+            )
+        except ValueError:
+            return ()
 
     def comparison_identity(self) -> dict[str, Any]:
         return {
@@ -485,6 +584,7 @@ class CurrentBestEvalStats:
             **self.comparison_identity(),
             "public_score": self.public_score,
             "public_accept_stats": _thaw_json_value(self.public_accept_stats),
+            "guard_score_stats": _thaw_json_value(self.guard_score_stats),
             "sealed_validation_evidence": _thaw_json_value(
                 self.sealed_validation_evidence
             ),
@@ -494,6 +594,38 @@ class CurrentBestEvalStats:
             "gate_statuses": _thaw_json_value(self.gate_statuses),
             "min_score_count": self.min_score_count,
         }
+
+    @classmethod
+    def from_mapping(cls, value: Any) -> "CurrentBestEvalStats":
+        """Restore the exact public current-best state without reinterpreting it."""
+
+        expected_fields = {
+            "mode",
+            "anchor_kind",
+            "anchor_id",
+            "checkpoint_hash",
+            "subject_manifest_hash",
+            "program_source_checksum",
+            "training_binding_hash",
+            "capability_profile_hash",
+            "accepted_round_id",
+            "accepted_candidate_id",
+            "task_protocol_hash",
+            "eval_protocol_hash",
+            "acceptance_protocol_hash",
+            "seed_cohort_hash",
+            "evaluation_binding_hash",
+            "public_score",
+            "public_accept_stats",
+            "guard_score_stats",
+            "sealed_validation_evidence",
+            "sealed_validation_gate",
+            "gate_statuses",
+            "min_score_count",
+        }
+        if not isinstance(value, Mapping) or set(value) != expected_fields:
+            raise ValueError("current-best mapping fields mismatch")
+        return cls(**dict(value))
 
 
 def attach_eval_protocol_hash(

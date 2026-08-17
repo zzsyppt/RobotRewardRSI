@@ -39,6 +39,53 @@ class NonPushTaskPlugin(TaskPlugin):
 
 
 class PromptSafetyBoundaryTests(unittest.TestCase):
+    def test_public_key_policy_is_boundary_aware_and_task_neutral(self) -> None:
+        ordinary = {
+            "tokenizer": "v1",
+            "tokenizer_version": "v1",
+            "token_count": 12,
+            "secretary_score": 0.8,
+            "privateer_progress": 0.4,
+            "hostname": "public-worker-label",
+            "hostname_validated": True,
+            "authorization_status": "succeeded",
+            "proxyAuthorizationStatus": "not_configured",
+            "x_authorization": "public-diagnostic-label",
+            "auth_header": "omitted",
+        }
+        assert_public_only_prompt_payload(ordinary)
+        self.assertEqual(public_context_module.sanitize_public_context(ordinary), ordinary)
+
+        for key in (
+            "api_key",
+            "raw_seed_id",
+            "trusted_eval",
+            "private_seed",
+            "hidden_eval",
+            "secret_token",
+            "accessToken",
+            "APIKey",
+            "APIKEY",
+            "apikey",
+            "SECRETKEY",
+            "PRIVATESEED",
+            "authorization",
+            "Authorization",
+            "proxy_authorization",
+            "Proxy-Authorization",
+            "proxyauthorization",
+            "PROXYAUTHORIZATION",
+            "PROXYAuthorization",
+        ):
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                assert_public_only_prompt_payload({key: "must-not-pass"})
+            self.assertEqual(
+                public_context_module.sanitize_public_context(
+                    {key: "must-not-pass"}
+                ),
+                {},
+            )
+
     def test_shared_public_history_scrub_rules_are_task_agnostic(self) -> None:
         shared_key_parts = set(public_context_module._PUBLIC_HISTORY_BLOCKED_KEY_PARTS)
         shared_text_parts = set(public_context_module._PUBLIC_HISTORY_BLOCKED_TEXT_PARTS)
@@ -108,14 +155,46 @@ class PromptSafetyBoundaryTests(unittest.TestCase):
             "raw seed id public-dev-seed-001",
             "secret token leaked",
             "access token leaked",
+            "Bearer abc123",
+            "bEaReR AbC123+/=",
+            "Authorization: Bearer abc123",
+            "Proxy-Authorization: Bearer abc123",
+            "request failed: Authorization: Bearer abc123",
+            'request headers={"Authorization":"Basic abcdef"}',
+            r'request headers={\"Authorization\":\"Basic abcdef\"}',
         ):
             with self.subTest(marker=marker):
                 with self.assertRaises(ValueError):
                     assert_public_only_prompt_payload({"public_context": {"message": marker}})
 
         assert_public_only_prompt_payload({"public_context": {"message": "task-owned prompt adapter"}})
+        assert_public_only_prompt_payload(
+            {
+                "public_context": {
+                    "messages": [
+                        "bearer of good news; authorization succeeded",
+                        "bearer is ready",
+                        "the bearer status remains healthy",
+                        "Bearer protocol version is documented",
+                        "not a bearer credential",
+                        "the bond bearer presented proof",
+                        "upstream sent Bearer abc123",
+                        "upstream sent Bearer abcdef",
+                        "execution_authorization: state succeeded",
+                    ]
+                }
+            }
+        )
         with self.assertRaises(ValueError):
             assert_public_only_prompt_payload({"public_context": {"message": "provider key sk-live-secret"}})
+
+        for tuple_payload in (
+            ("Bearer abcdef",),
+            ({"Authorization": "Bearer abcdef"},),
+            {"messages": ("Bearer abcdef",)},
+        ):
+            with self.subTest(tuple_payload=tuple_payload), self.assertRaises(ValueError):
+                assert_public_only_prompt_payload(tuple_payload)
 
         assert_public_only_prompt_payload(
             {
@@ -223,13 +302,15 @@ class PromptSafetyBoundaryTests(unittest.TestCase):
         self.assertEqual(visible_controls, ["RewardTerm", "DiagnosticTerm", "ScheduleTerm"])
         self.assertNotIn("candidate_allowed_controls", payload)
         self.assertEqual(controls["schedule_controls"]["effective_keys"], ["reward_weight_scale"])
-        self.assertEqual(controls["runner_owned_extensions"]["curriculum"], "not_prompt_writable_in_this_prompt_upgrade")
-        self.assertEqual(controls["runner_owned_extensions"]["observation_projection"], "not_prompt_writable")
+        self.assertNotIn("runner_owned_extensions", controls)
         for unwired in (
             "LossTerm",
             "ObservationTransform",
             "train_observation_transforms",
             "not_instrumented",
+            "observation_projection",
+            "feature_projection",
+            "curriculum",
         ):
             self.assertNotIn(unwired, text)
         assert_public_only_prompt_payload(payload)

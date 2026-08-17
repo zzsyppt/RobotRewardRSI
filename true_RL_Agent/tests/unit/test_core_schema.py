@@ -28,6 +28,7 @@ from true_rl_agent.candidates.schema import (
 )
 from true_rl_agent.curriculum.schema import CurriculumPlan
 from true_rl_agent.evaluation.acceptance_protocol import (
+    PAIRED_HEADROOM_DELTA_RULE,
     PUBLIC_SCORE_BINDING_ACCEPTANCE_MEAN,
     AcceptanceProtocol,
 )
@@ -38,7 +39,12 @@ from true_rl_agent.evaluation.protocol import EvaluationProtocol
 from true_rl_agent.evaluation.public_result import PublicEvalResult
 from true_rl_agent.evaluation.subject import ExperimentSubject
 from true_rl_agent.policy import BaselinePolicyRef, PolicyInitialization
-from true_rl_agent.runner.specs import CheckpointRef, EvalJobSpec, TrainJobSpec
+from true_rl_agent.runner.specs import (
+    CheckpointRef,
+    EvalJobSpec,
+    TrainJobSpec,
+    require_execution_device,
+)
 from true_rl_agent.tasks.base import TaskInvariantSpec, TaskSpec
 from true_rl_agent.tasks.push_recovery.candidate_surface import (
     PUSH_RECOVERY_CANDIDATE_SURFACE_POLICY,
@@ -110,6 +116,16 @@ def decide_candidate(**kwargs):
 
 
 class CoreSchemaTests(unittest.TestCase):
+    def test_execution_device_requires_canonical_explicit_value(self) -> None:
+        for value in ("cpu", "cuda:0", "cuda:12"):
+            with self.subTest(valid=value):
+                self.assertEqual(require_execution_device(value), value)
+
+        for value in (None, True, 0, "", "cuda", "cuda:-1", "cuda:01", "CPU"):
+            with self.subTest(invalid=value):
+                with self.assertRaisesRegex(ValueError, "canonical"):
+                    require_execution_device(value)
+
     def _code_surface(self):
         return PUSH_RECOVERY_CANDIDATE_SURFACE_POLICY.classify(
             CandidateChangeSet(changed_components=frozenset({"reward_callable"}))
@@ -126,10 +142,12 @@ class CoreSchemaTests(unittest.TestCase):
         candidate_id: str = "candidate-001",
         checkpoint_hash: str = TEST_CHECKPOINT_HASH,
         evaluation_binding: EvaluationBindingV1 | None = None,
+        acceptance_protocol: AcceptanceProtocol = TEST_DECISION_PROTOCOL,
+        score_samples: list[float] | None = None,
     ) -> PublicEvalResult:
         binding = evaluation_binding or EvaluationBindingV1(
             eval_protocol_hash=protocol_hash,
-            acceptance_protocol_hash=TEST_DECISION_PROTOCOL.protocol_hash,
+            acceptance_protocol_hash=acceptance_protocol.protocol_hash,
             task_protocol_hash=TEST_EVALUATION_BINDING.task_protocol_hash,
             seed_cohort_hash=TEST_EVALUATION_BINDING.seed_cohort_hash,
         )
@@ -169,12 +187,12 @@ class CoreSchemaTests(unittest.TestCase):
                 ],
             },
             "acceptance": {
-                "min_delta": 0.05,
-                "absolute_accept_floor": 0.05,
-                "min_score_count": 3,
-                "score_source": TEST_DECISION_PROTOCOL.score_source,
-                "public_score_binding": TEST_DECISION_PROTOCOL.public_score_binding,
-                "acceptance_protocol_hash": TEST_DECISION_PROTOCOL.protocol_hash,
+                "min_delta": acceptance_protocol.min_delta,
+                "absolute_accept_floor": acceptance_protocol.absolute_accept_floor,
+                "min_score_count": acceptance_protocol.min_score_count,
+                "score_source": acceptance_protocol.score_source,
+                "public_score_binding": acceptance_protocol.public_score_binding,
+                "acceptance_protocol_hash": acceptance_protocol.protocol_hash,
                 "score_stats": dict(score_stats),
                 "required_pass_gates": gates,
             },
@@ -191,26 +209,39 @@ class CoreSchemaTests(unittest.TestCase):
             "motion_quality_gate": {"status": "pass"},
             "behavior_quality_gate": {"status": "pass"},
         }
+        if acceptance_protocol.requires_paired_score_samples:
+            metrics["acceptance"]["score_samples"] = list(score_samples or [])
         return PublicEvalResult(status="pass", public_score=public_score, metrics=metrics)
 
-    def _accepted_best(self, *, score: float = 0.50, standard_error: float = 0.01) -> CurrentBestEvalStats:
+    def _accepted_best(
+        self,
+        *,
+        score: float = 0.50,
+        standard_error: float = 0.01,
+        acceptance_protocol: AcceptanceProtocol = TEST_DECISION_PROTOCOL,
+        evaluation_binding: EvaluationBindingV1 = TEST_EVALUATION_BINDING,
+        score_samples: list[float] | None = None,
+    ) -> CurrentBestEvalStats:
         public_result = self._full_eval_result(
             public_score=score,
             score_mean=score,
             standard_error=standard_error,
             candidate_id="candidate-best",
+            acceptance_protocol=acceptance_protocol,
+            evaluation_binding=evaluation_binding,
+            score_samples=score_samples,
         )
         return CurrentBestEvalStats.from_public_result(
             round_id="round-best",
             candidate_id="candidate-best",
             public_result=public_result,
-            acceptance_protocol=TEST_DECISION_PROTOCOL,
+            acceptance_protocol=acceptance_protocol,
             subject_manifest_hash=TEST_SUBJECT_MANIFEST_HASH,
             program_source_checksum=TEST_PROGRAM_SOURCE_CHECKSUM,
             training_binding_hash=TEST_TRAINING_BINDING_HASH,
             capability_profile_hash=str(TEST_CAPABILITY_PROFILE.profile_hash),
             checkpoint_hash=TEST_CHECKPOINT_HASH,
-            expected_evaluation_binding=TEST_EVALUATION_BINDING,
+            expected_evaluation_binding=evaluation_binding,
         )
 
     def test_policy_initialization_supports_random_and_warm_start(self) -> None:
@@ -261,6 +292,7 @@ class CoreSchemaTests(unittest.TestCase):
                 budget_steps=1024,
             ),
             budget_steps=1024,
+            execution_device="cuda:0",
             candidate_artifact=candidate_artifact,
         )
 
@@ -290,6 +322,7 @@ class CoreSchemaTests(unittest.TestCase):
                 public_seed_count=8,
                 sealed_validation_seed_count=16,
             ),
+            execution_device="cuda:0",
         )
 
         self.assertEqual(train_spec.training_start_checkpoint().role, "warm_start")
@@ -307,6 +340,7 @@ class CoreSchemaTests(unittest.TestCase):
                 policy_initialization=PolicyInitialization.random(),
                 training_binding=make_training_binding(),
                 budget_steps=128,
+                execution_device="cuda:0",
                 metadata=None,  # type: ignore[arg-type]
             )
 
@@ -331,6 +365,7 @@ class CoreSchemaTests(unittest.TestCase):
                     public_seed_count=1,
                     sealed_validation_seed_count=1,
                 ),
+                execution_device="cuda:0",
                 metadata=None,  # type: ignore[arg-type]
             )
 
@@ -562,6 +597,83 @@ class CoreSchemaTests(unittest.TestCase):
         self.assertEqual(clear_delta.outcome, DecisionOutcome.POLICY_IMPROVEMENT_ACCEPT)
         self.assertEqual(clear_delta.reason, "noise_aware_delta")
 
+    def test_policy_improvement_uses_paired_headroom_delta(self) -> None:
+        protocol = AcceptanceProtocol(
+            protocol_id="core_schema_paired_acceptance_v1",
+            score_source="public_accept.score_stats.mean",
+            min_score_count=3,
+            absolute_accept_floor=0.05,
+            min_delta=0.0,
+            public_score_binding=PUBLIC_SCORE_BINDING_ACCEPTANCE_MEAN,
+            decision_rule=PAIRED_HEADROOM_DELTA_RULE,
+            score_ceiling=1.0,
+            headroom_reduction_fraction=0.2,
+            paired_standard_error_multiplier=1.5,
+        )
+        binding = EvaluationBindingV1(
+            eval_protocol_hash=TEST_EVALUATION_PROTOCOL.protocol_hash,
+            acceptance_protocol_hash=protocol.protocol_hash,
+            task_protocol_hash=TEST_EVALUATION_BINDING.task_protocol_hash,
+            seed_cohort_hash=TEST_EVALUATION_BINDING.seed_cohort_hash,
+        )
+        best_samples = [0.95, 0.95, 0.95]
+        candidate_samples = [1.0, 0.95, 1.0]
+        candidate_score = sum(candidate_samples) / len(candidate_samples)
+        current_best = self._accepted_best(
+            score=sum(best_samples) / len(best_samples),
+            acceptance_protocol=protocol,
+            evaluation_binding=binding,
+            score_samples=best_samples,
+        )
+        decision = _decide_candidate(
+            surface=self._code_surface(),
+            public_result=self._full_eval_result(
+                public_score=candidate_score,
+                score_mean=candidate_score,
+                acceptance_protocol=protocol,
+                evaluation_binding=binding,
+                score_samples=candidate_samples,
+            ),
+            current_best=current_best,
+            acceptance_protocol=protocol,
+        )
+
+        self.assertEqual(
+            decision.outcome,
+            DecisionOutcome.POLICY_IMPROVEMENT_ACCEPT,
+        )
+        self.assertEqual(decision.reason, "paired_headroom_delta")
+        self.assertEqual(
+            decision.comparison["threshold_components"]["decision_rule"],
+            PAIRED_HEADROOM_DELTA_RULE,
+        )
+        self.assertGreater(
+            decision.comparison["delta"],
+            decision.comparison["threshold"],
+        )
+
+        mismatched_binding = EvaluationBindingV1(
+            eval_protocol_hash=binding.eval_protocol_hash,
+            acceptance_protocol_hash=binding.acceptance_protocol_hash,
+            task_protocol_hash="e" * 64,
+            seed_cohort_hash=binding.seed_cohort_hash,
+        )
+        mismatched = _decide_candidate(
+            surface=self._code_surface(),
+            public_result=self._full_eval_result(
+                public_score=candidate_score,
+                score_mean=candidate_score,
+                acceptance_protocol=protocol,
+                evaluation_binding=mismatched_binding,
+                score_samples=candidate_samples,
+            ),
+            current_best=current_best,
+            acceptance_protocol=protocol,
+        )
+        self.assertEqual(mismatched.reason, "evaluation_binding_mismatch")
+        self.assertNotIn("threshold_components", mismatched.comparison)
+        self.assertNotIn("delta", mismatched.comparison)
+
     def test_policy_improvement_rejects_insufficient_accept_evidence_count(self) -> None:
         result = decide_candidate(
             surface=self._code_surface(),
@@ -754,7 +866,7 @@ class CoreSchemaTests(unittest.TestCase):
         self.assertIn("sealed_validation_gate", result.consumed_gates)
         self.assertEqual(result.gate_statuses["sealed_validation_gate"], "pass")
         self.assertEqual(public["comparison"]["threshold"], 0.05)
-        self.assertEqual(public["comparison"]["delta"], 0.08)
+        self.assertAlmostEqual(public["comparison"]["delta"], 0.08)
         self.assertEqual(public["comparison"]["best_score_stats"]["mean"], 0.50)
         self.assertEqual(
             public["consumed_gates"],

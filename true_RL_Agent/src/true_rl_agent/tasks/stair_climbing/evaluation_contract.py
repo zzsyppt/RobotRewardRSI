@@ -7,18 +7,83 @@ import statistics
 from collections import Counter
 from typing import Any, Mapping, Sequence
 
+from true_rl_agent.evaluation.acceptance_protocol import AcceptanceProtocol
+from true_rl_agent.evaluation.binding import canonical_json_hash
 from true_rl_agent.evaluation.protocol import EvaluationProtocol
 from true_rl_agent.evaluation.score_stats import validate_score_stats
 from true_rl_agent.evaluation.sealed_validation import build_sealed_rollout_evidence
 from true_rl_agent.evaluation.subject import ExperimentSubject
-from true_rl_agent.tasks.stair_climbing.episode_evidence import StairEpisodeOutcome
+from true_rl_agent.tasks.stair_climbing.episode_evidence import (
+    StairEpisodeOutcome,
+    validate_stair_success_diagnostic_relations,
+)
+from true_rl_agent.tasks.stair_climbing.evaluation_profile import StairEvaluationProfile
+from true_rl_agent.tasks.stair_climbing.evaluation_semantics import (
+    StairEvaluationSemantics,
+)
+from true_rl_agent.tasks.stair_climbing.generalization_contract import (
+    STAIR_GENERALIZATION_SUMMARY_SCHEMA_VERSION,
+    build_stair_generalization_summary,
+    validate_stair_generalization_summary,
+)
 from true_rl_agent.tasks.stair_climbing.phase0_contract import StairProtocolV1
 
 STAIR_SPLIT_SUMMARY_SCHEMA_VERSION = (
+    "true_rl_agent.task.stair_climbing.split_summary.v2"
+)
+
+
+def build_stair_evaluation_summary(
+    protocol: StairProtocolV1,
+    *,
+    semantics: StairEvaluationSemantics,
+    evaluation_protocol: EvaluationProtocol,
+    split: str,
+    per_seed_outcomes: Sequence[Sequence[StairEpisodeOutcome]],
+    evaluation_profile: StairEvaluationProfile | None = None,
+) -> dict[str, Any]:
+    """Build the canonical legacy summary or active anchor/objective pair."""
+
+    if evaluation_profile is None:
+        return build_stair_split_summary(
+            protocol,
+            semantics=semantics,
+            evaluation_protocol=evaluation_protocol,
+            split=split,
+            per_seed_outcomes=per_seed_outcomes,
+        )
+    anchor_ids = {cell.cell_id for cell in evaluation_profile.anchor_cells}
+    anchor_outcomes = [
+        [
+            outcome
+            for outcome in seed_outcomes
+            if outcome.evaluation_cell_id in anchor_ids
+        ]
+        for seed_outcomes in per_seed_outcomes
+    ]
+    return {
+        "anchor": build_stair_split_summary(
+            protocol,
+            semantics=semantics,
+            evaluation_protocol=evaluation_protocol,
+            split=split,
+            per_seed_outcomes=anchor_outcomes,
+        ),
+        "generalization": build_stair_generalization_summary(
+            profile=evaluation_profile,
+            semantics=semantics,
+            evaluation_protocol=evaluation_protocol,
+            split=split,
+            per_seed_outcomes=per_seed_outcomes,
+        ),
+    }
+
+
+_LEGACY_STAIR_SPLIT_SUMMARY_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.split_summary.v1"
 )
 
-_SPLIT_SUMMARY_FIELDS = {
+_LEGACY_SPLIT_SUMMARY_FIELDS = {
     "schema_version",
     "split",
     "seed_count",
@@ -34,6 +99,10 @@ _SPLIT_SUMMARY_FIELDS = {
     "progress_summary",
     "classification_warning_count",
     "total_episode_count",
+}
+_SPLIT_SUMMARY_FIELDS = {
+    *_LEGACY_SPLIT_SUMMARY_FIELDS,
+    "evaluation_semantics_hash",
 }
 _SEED_SUMMARY_FIELDS = {
     "seed_index",
@@ -115,6 +184,7 @@ def aggregate_stair_seed_scores(
 def build_stair_split_summary(
     protocol: StairProtocolV1,
     *,
+    semantics: StairEvaluationSemantics | None,
     evaluation_protocol: EvaluationProtocol,
     split: str,
     per_seed_outcomes: Sequence[Sequence[StairEpisodeOutcome]],
@@ -133,8 +203,9 @@ def build_stair_split_summary(
 
     bin_ids = tuple(str(item["bin_id"]) for item in protocol.eval_bins)
     episodes_per_bin = int(split_cfg["episodes_per_seed_per_bin"])
-    primary_reasons = tuple(payload["episode_outcomes"]["primary_reasons"])
-    diagnostic_flags = tuple(payload["episode_outcomes"]["diagnostic_flags"])
+    outcomes_contract = _outcomes_contract(protocol, semantics)
+    primary_reasons = tuple(outcomes_contract["primary_reasons"])
+    diagnostic_flags = tuple(outcomes_contract["diagnostic_flags"])
     per_seed_success_counts: list[dict[str, int]] = []
     all_outcomes: list[StairEpisodeOutcome] = []
     seed_summaries: list[dict[str, Any]] = []
@@ -162,6 +233,7 @@ def build_stair_split_summary(
         primary_counts = Counter(item.primary_reason for item in outcomes)
         assert_primary_outcome_counts(
             protocol,
+            semantics=semantics,
             total_episode_count=len(outcomes),
             primary_counts={
                 reason: int(primary_counts.get(reason, 0))
@@ -175,6 +247,10 @@ def build_stair_split_summary(
             for item in outcomes
         ):
             raise ValueError("stair outcome contains an undeclared diagnostic flag")
+        validate_stair_success_diagnostic_relations(
+            outcomes,
+            declared_diagnostic_flags=diagnostic_flags,
+        )
         success_counts = {
             bin_id: sum(
                 int(item.success) for item in outcomes if item.bin_id == bin_id
@@ -217,7 +293,12 @@ def build_stair_split_summary(
         for bin_id in bin_ids
     }
     return {
-        "schema_version": STAIR_SPLIT_SUMMARY_SCHEMA_VERSION,
+        "schema_version": _split_summary_schema_version(semantics),
+        **(
+            {"evaluation_semantics_hash": semantics.protocol_hash}
+            if semantics is not None
+            else {}
+        ),
         "split": split,
         "seed_count": expected_seed_count,
         "bin_count": len(bin_ids),
@@ -252,6 +333,7 @@ def build_stair_split_summary(
 def validate_stair_split_summary(
     protocol: StairProtocolV1,
     *,
+    semantics: StairEvaluationSemantics | None,
     evaluation_protocol: EvaluationProtocol,
     split: str,
     summary: Mapping[str, Any],
@@ -262,10 +344,20 @@ def validate_stair_split_summary(
         raise TypeError("stair summary validator requires StairProtocolV1")
     if not isinstance(evaluation_protocol, EvaluationProtocol):
         raise TypeError("stair summary validator requires EvaluationProtocol")
-    if not isinstance(summary, Mapping) or set(summary) != _SPLIT_SUMMARY_FIELDS:
+    expected_fields = (
+        _SPLIT_SUMMARY_FIELDS
+        if semantics is not None
+        else _LEGACY_SPLIT_SUMMARY_FIELDS
+    )
+    if not isinstance(summary, Mapping) or set(summary) != expected_fields:
         raise ValueError("stair split summary fields mismatch")
-    if summary.get("schema_version") != STAIR_SPLIT_SUMMARY_SCHEMA_VERSION:
+    if summary.get("schema_version") != _split_summary_schema_version(semantics):
         raise ValueError("stair split summary schema mismatch")
+    if (
+        semantics is not None
+        and summary.get("evaluation_semantics_hash") != semantics.protocol_hash
+    ):
+        raise ValueError("stair split summary evaluation semantics mismatch")
     if summary.get("split") != split:
         raise ValueError("stair split summary identity mismatch")
 
@@ -376,7 +468,8 @@ def validate_stair_split_summary(
         "stair score standard error",
     )
 
-    primary_reasons = tuple(payload["episode_outcomes"]["primary_reasons"])
+    outcomes_contract = _outcomes_contract(protocol, semantics)
+    primary_reasons = tuple(outcomes_contract["primary_reasons"])
     raw_primary = summary.get("primary_outcome_counts")
     if not isinstance(raw_primary, Mapping) or set(raw_primary) != set(primary_reasons):
         raise ValueError("stair primary outcome fields mismatch")
@@ -386,6 +479,7 @@ def validate_stair_split_summary(
     }
     assert_primary_outcome_counts(
         protocol,
+        semantics=semantics,
         total_episode_count=total_episode_count,
         primary_counts=primary_counts,
     )
@@ -406,7 +500,7 @@ def validate_stair_split_summary(
         )
         failure_breakdown[reason] = rate
 
-    diagnostic_flags = tuple(payload["episode_outcomes"]["diagnostic_flags"])
+    diagnostic_flags = tuple(outcomes_contract["diagnostic_flags"])
     raw_diagnostics = summary.get("diagnostic_flag_rates")
     if not isinstance(raw_diagnostics, Mapping) or set(raw_diagnostics) != set(
         diagnostic_flags
@@ -454,7 +548,12 @@ def validate_stair_split_summary(
     )
 
     return {
-        "schema_version": STAIR_SPLIT_SUMMARY_SCHEMA_VERSION,
+        "schema_version": _split_summary_schema_version(semantics),
+        **(
+            {"evaluation_semantics_hash": semantics.protocol_hash}
+            if semantics is not None
+            else {}
+        ),
         "split": split,
         "seed_count": seed_count,
         "bin_count": len(bin_ids),
@@ -484,6 +583,7 @@ def validate_stair_split_summary(
 def assert_primary_outcome_counts(
     protocol: StairProtocolV1,
     *,
+    semantics: StairEvaluationSemantics | None,
     total_episode_count: int,
     primary_counts: Mapping[str, int],
     classification_warning_count: int = 0,
@@ -502,7 +602,7 @@ def assert_primary_outcome_counts(
         or classification_warning_count < 0
     ):
         raise ValueError("classification_warning_count must be non-negative")
-    reasons = tuple(protocol.to_dict()["episode_outcomes"]["primary_reasons"])
+    reasons = tuple(_outcomes_contract(protocol, semantics)["primary_reasons"])
     if set(primary_counts) != set(reasons):
         raise ValueError("primary_counts must contain every primary reason exactly once")
     for reason in reasons:
@@ -518,6 +618,7 @@ def assert_primary_outcome_counts(
 def build_stair_sealed_rollout_evidence(
     protocol: StairProtocolV1,
     *,
+    semantics: StairEvaluationSemantics,
     evaluation_protocol: EvaluationProtocol,
     summary: Mapping[str, Any],
     checkpoint_hash: str,
@@ -527,17 +628,54 @@ def build_stair_sealed_rollout_evidence(
     program_source_checksum: str,
     training_binding_hash: str,
     capability_profile_hash: str,
+    acceptance_protocol: AcceptanceProtocol,
+    evaluation_profile: StairEvaluationProfile | None = None,
+    public_objective_summary: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Bind validated sealed Stair aggregates without exposing task details."""
 
-    canonical = validate_stair_split_summary(
+    if not isinstance(acceptance_protocol, AcceptanceProtocol):
+        raise TypeError("Stair sealed evidence requires active acceptance protocol")
+    canonical = canonical_stair_sealed_summary(
         protocol,
+        semantics=semantics,
         evaluation_protocol=evaluation_protocol,
-        split="sealed_validation",
         summary=summary,
+        evaluation_profile=evaluation_profile,
     )
+    if (
+        evaluation_profile is not None
+        and canonical.get("schema_version")
+        != STAIR_GENERALIZATION_SUMMARY_SCHEMA_VERSION
+    ):
+        raise ValueError(
+            "new Stair generalization sealed evidence requires current summary schema"
+        )
     score_stats = dict(canonical["score_stats"])
-    passed = float(score_stats["mean"]) >= protocol.acceptance_protocol.absolute_accept_floor
+    public_mean: float | None = None
+    if evaluation_profile is not None:
+        if public_objective_summary is None:
+            raise ValueError(
+                "Stair generalization sealed evidence requires public objective summary"
+            )
+        public_objective = validate_stair_generalization_summary(
+            profile=evaluation_profile,
+            semantics=semantics,
+            evaluation_protocol=evaluation_protocol,
+            split="public_accept",
+            summary=public_objective_summary,
+        )
+        public_mean = float(public_objective["score_stats"]["mean"])
+    elif public_objective_summary is not None:
+        raise ValueError(
+            "legacy Stair sealed evidence cannot accept a generalization objective"
+        )
+    passed, reason = evaluate_stair_sealed_score_gate(
+        sealed_mean=float(score_stats["mean"]),
+        public_mean=public_mean,
+        acceptance_protocol=acceptance_protocol,
+        evaluation_profile=evaluation_profile,
+    )
     return build_sealed_rollout_evidence(
         score_stats=score_stats,
         expected_seed_count=evaluation_protocol.sealed_validation_seed_count,
@@ -546,16 +684,106 @@ def build_stair_sealed_rollout_evidence(
         evaluation_subject=evaluation_subject,
         checkpoint_hash=checkpoint_hash,
         task_validation_status="pass" if passed else "fail",
-        reason=(
-            "stair_holdout_floor_met"
-            if passed
-            else "stair_holdout_floor_not_met"
-        ),
+        reason=reason,
         subject_manifest_hash=subject_manifest_hash,
         program_source_checksum=program_source_checksum,
         training_binding_hash=training_binding_hash,
         capability_profile_hash=capability_profile_hash,
+        task_evidence_hash=canonical_json_hash(canonical),
     )
+
+
+def canonical_stair_sealed_summary(
+    protocol: StairProtocolV1,
+    *,
+    semantics: StairEvaluationSemantics,
+    evaluation_protocol: EvaluationProtocol,
+    summary: Mapping[str, Any],
+    evaluation_profile: StairEvaluationProfile | None = None,
+) -> dict[str, Any]:
+    """Return the validated canonical summary persisted for sealed replay."""
+
+    if evaluation_profile is not None:
+        return validate_stair_generalization_summary(
+            profile=evaluation_profile,
+            semantics=semantics,
+            evaluation_protocol=evaluation_protocol,
+            split="sealed_validation",
+            summary=summary,
+        )
+    return validate_stair_split_summary(
+        protocol,
+        semantics=semantics,
+        evaluation_protocol=evaluation_protocol,
+        split="sealed_validation",
+        summary=summary,
+    )
+
+
+def evaluate_stair_sealed_score_gate(
+    *,
+    sealed_mean: float,
+    public_mean: float | None,
+    acceptance_protocol: AcceptanceProtocol,
+    evaluation_profile: StairEvaluationProfile | None,
+) -> tuple[bool, str]:
+    """Return the single task-owned verdict for Stair sealed aggregate scores."""
+
+    if not isinstance(acceptance_protocol, AcceptanceProtocol):
+        raise TypeError("Stair sealed score gate requires active acceptance protocol")
+    sealed_score = _finite_number(sealed_mean, "Stair sealed score mean")
+    floor_met = sealed_score >= acceptance_protocol.absolute_accept_floor
+    public_consistency_met = True
+    if evaluation_profile is not None:
+        if public_mean is None:
+            raise ValueError(
+                "Stair generalization sealed score gate requires public score mean"
+            )
+        public_score = _finite_number(public_mean, "Stair public score mean")
+        max_score_drop = acceptance_protocol.max_public_to_sealed_score_drop
+        if max_score_drop is None:
+            raise ValueError(
+                "Stair generalization sealed score gate requires an acceptance-owned "
+                "public-to-sealed tolerance"
+            )
+        public_consistency_met = sealed_score >= (
+            public_score - max_score_drop
+        )
+    elif public_mean is not None:
+        raise ValueError("legacy Stair sealed score gate cannot accept a public score")
+
+    reason_prefix = (
+        "stair_generalization_holdout"
+        if evaluation_profile is not None
+        else "stair_holdout"
+    )
+    if not floor_met:
+        reason = f"{reason_prefix}_floor_not_met"
+    elif not public_consistency_met:
+        reason = f"{reason_prefix}_public_score_regression"
+    elif evaluation_profile is not None:
+        reason = f"{reason_prefix}_public_consistency_met"
+    else:
+        reason = f"{reason_prefix}_floor_met"
+    return floor_met and public_consistency_met, reason
+
+
+def _outcomes_contract(
+    protocol: StairProtocolV1,
+    semantics: StairEvaluationSemantics | None,
+) -> Mapping[str, Any]:
+    # None is retained only for replaying pre-migration V1/V2 artifacts.
+    if semantics is None:
+        return protocol.to_dict()["episode_outcomes"]
+    return semantics.to_dict()["episode_outcomes"]
+
+
+def _split_summary_schema_version(
+    semantics: StairEvaluationSemantics | None,
+) -> str:
+    if semantics is None:
+        return _LEGACY_STAIR_SPLIT_SUMMARY_SCHEMA_VERSION
+    return STAIR_SPLIT_SUMMARY_SCHEMA_VERSION
 
 
 def _split_seed_count(protocol: EvaluationProtocol, split: str) -> int:
@@ -613,7 +841,10 @@ __all__ = [
     "STAIR_SPLIT_SUMMARY_SCHEMA_VERSION",
     "aggregate_stair_seed_scores",
     "assert_primary_outcome_counts",
+    "build_stair_evaluation_summary",
     "build_stair_sealed_rollout_evidence",
     "build_stair_split_summary",
+    "canonical_stair_sealed_summary",
+    "evaluate_stair_sealed_score_gate",
     "validate_stair_split_summary",
 ]

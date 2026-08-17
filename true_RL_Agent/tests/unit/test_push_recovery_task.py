@@ -30,8 +30,9 @@ from tests.fakes.evaluation import (
     make_training_binding,
     make_verified_candidate_artifact,
 )
+from true_rl_agent.agent_core.authoring_loop import build_verifier_repair_feedback
 from true_rl_agent.agent_core.decision import DecisionOutcome, decide_candidate
-from true_rl_agent.agent_core.ledger import load_ledger
+from true_rl_agent.agent_core.ledger import NON_PROVIDER_AUTHORING_MODE, load_ledger
 from true_rl_agent.agent_core.round import RoundInputs, run_candidate_round
 from true_rl_agent.backends.isaac_lab_rsl_rl import IsaacLabRslRlBackendAdapter
 from true_rl_agent.candidates.prompt_projection import assert_public_only_prompt_payload
@@ -75,6 +76,9 @@ from true_rl_agent.tasks.push_recovery import (
     build_push_public_result_from_summaries,
     classify_push_failure,
 )
+from true_rl_agent.tasks.push_recovery.candidate_failure import (
+    PUSH_CANDIDATE_FAILURE_CONTRACT,
+)
 from true_rl_agent.tasks.push_recovery.composition import (
     PushRecoveryCompositionProvider,
 )
@@ -90,6 +94,9 @@ from true_rl_agent.tasks.push_recovery.metrics import extract_push_failure_break
 
 
 class PassingVerifier(CandidateVerifier):
+    def admission_policy_descriptor(self):
+        return StaticCandidateVerifier().admission_policy_descriptor()
+
     def verify(self, candidate: CandidatePackageRef) -> VerificationResult:
         if Path(candidate.path).is_dir():
             return StaticCandidateVerifier().verify(candidate)
@@ -158,6 +165,7 @@ class PushDryRunRunner(Runner):
                 "capability_profile_hash": (
                     train_spec.training_binding.capability_profile_hash
                 ),
+                "execution_device": train_spec.execution_device,
             },
         )
         return TrainJobResult(
@@ -169,6 +177,7 @@ class PushDryRunRunner(Runner):
             capability_profile_hash=(
                 train_spec.training_binding.capability_profile_hash
             ),
+            execution_device=train_spec.execution_device,
             checkpoint=seal_checkpoint(raw_checkpoint, sealed_uri=f"artifact://{train_spec.job_id}/sealed/best.pt"),
             summary={
                 "formal_training_executed": False,
@@ -393,6 +402,7 @@ class PushRecoveryTaskTests(unittest.TestCase):
                 budget_steps=65,
             ),
             budget_steps=65,
+            execution_device="cuda:0",
             metadata={
                 "fixed_train_protocol": {
                     "budget_steps": 65,
@@ -435,6 +445,7 @@ class PushRecoveryTaskTests(unittest.TestCase):
                 public_accept_seed_count=3,
                 sealed_validation_seed_count=1,
             ),
+            execution_device="cuda:0",
         )
         for invalid_score in (True, "0.5", float("nan")):
             with self.subTest(public_score=invalid_score):
@@ -512,6 +523,9 @@ class PushRecoveryTaskTests(unittest.TestCase):
             + "\n",
             encoding="utf-8",
         )
+        (candidate / "rationale.md").write_text("Schedule candidate.\n", encoding="utf-8")
+        (candidate / "operation_diff.json").write_text("{}\n", encoding="utf-8")
+        (candidate / "diagnostics.json").write_text("{}\n", encoding="utf-8")
         return candidate
 
     def _write_reward_candidate(
@@ -553,6 +567,9 @@ class PushRecoveryTaskTests(unittest.TestCase):
             + "\n",
             encoding="utf-8",
         )
+        (candidate / "rationale.md").write_text("Reward candidate.\n", encoding="utf-8")
+        (candidate / "operation_diff.json").write_text("{}\n", encoding="utf-8")
+        (candidate / "diagnostics.json").write_text("{}\n", encoding="utf-8")
         return candidate
 
     def test_push_plugin_declares_fixed_invariants_and_no_backend_authority(self) -> None:
@@ -806,10 +823,79 @@ class PushRecoveryTaskTests(unittest.TestCase):
         self.assertNotIn("candidate_component_contract", payload)
         self.assertEqual(payload["public_eval_contract"]["public_score"]["direction"], "higher_is_better")
         self.assertEqual(payload["runtime_feedback_summary"]["status"], "no_prior_runtime_feedback")
-        guidance = " ".join(payload["selection_guidance"])
-        self.assertIn("public_history.experiment_memory", guidance)
-        self.assertIn("name the closest prior candidate", guidance)
-        self.assertIn("push_active", guidance)
+        common_guidance = " ".join(payload["loop_contract"]["evidence_discipline"])
+        task_guidance = " ".join(payload["selection_guidance"])
+        self.assertIn("public_history.experiment_memory", common_guidance)
+        self.assertIn("name the closest prior candidate", common_guidance)
+        self.assertIn("push_active", task_guidance)
+        reward_contract_text = json.dumps(
+            payload["reward_inputs_contract"],
+            sort_keys=True,
+        )
+        self.assertNotIn("upright_value_approx", reward_contract_text)
+        self.assertNotIn("inverted orientations", reward_contract_text)
+        self.assertNotIn("downward terrain scan", reward_contract_text)
+        self.assertNotIn("no overhead or torso", reward_contract_text)
+        assert_public_only_prompt_payload(payload)
+
+    def test_push_static_repair_keeps_task_contract_and_only_failed_source(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            candidate_dir = self._write_reward_candidate(
+                Path(tmp),
+                candidate_id="push-static-failed",
+            )
+            candidate = CandidatePackageRef(
+                candidate_id="push-static-failed",
+                path=str(candidate_dir),
+                change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+            )
+            verifier = StaticCandidateVerifier()
+            verifier_rules = verifier.authoring_prompt_rules()
+            feedback = build_verifier_repair_feedback(
+                candidate=candidate,
+                verification=VerificationResult(
+                    status="fail",
+                    reason="static_candidate_verifier_failed",
+                    details={"issues": ["invalid_training_components_name"]},
+                ),
+                verifier_prompt_rules=verifier_rules,
+            )
+            payload = PublicContextBuilder(
+                task_prompt_adapter=PushRecoveryTaskPlugin().prompt_adapter()
+            ).build_prompt(
+                [],
+                latest_failed_candidate=candidate,
+                candidate_repair_feedback=feedback,
+                frame_kind="static_repair",
+                candidate_verifier_prompt_rules=verifier_rules,
+            ).provider_payload
+
+        self.assertEqual(payload["task"]["task_id"], "unitree_push_recovery")
+        self.assertIn("push_active", payload["reward_inputs_contract"]["fields"])
+        self.assertIn("push_vec_public", payload["reward_inputs_contract"]["fields"])
+        self.assertEqual(
+            [item["logical_id"] for item in payload["source_payloads"]],
+            ["attempt/latest_failed/training_code/components.py"],
+        )
+        self.assertIn("def upright_reward", payload["source_payloads"][0]["content"])
+        self.assertEqual(
+            payload["provider_or_runtime_repair_feedback"]["verifier_policy_ref"],
+            {
+                "verification_policy_id": verifier_rules["verification_policy_id"],
+                "verification_policy_hash": verifier_rules[
+                    "verification_policy_hash"
+                ],
+            },
+        )
+        for omitted_section in (
+            "public_feedback_summary",
+            "runtime_feedback_summary",
+            "public_history",
+            "known_good_examples",
+            "selection_guidance",
+        ):
+            self.assertNotIn(omitted_section, payload)
+        self.assertIn("exploration_directive", payload)
         assert_public_only_prompt_payload(payload)
 
     def test_push_task_allows_public_push_signal_names_without_shared_layer_leakage(self) -> None:
@@ -1012,6 +1098,45 @@ class PushRecoveryTaskTests(unittest.TestCase):
         self.assertLess(len(json.dumps(sections, sort_keys=True).encode("utf-8")), 32 * 1024)
         assert_public_only_prompt_payload(sections)
 
+    def test_push_runtime_feedback_scrubs_standard_authorization_credentials(
+        self,
+    ) -> None:
+        record = {
+            "round_id": "push-round-authorization-safety",
+            "runtime_activation_summary": {
+                "reward_term_calls": 0,
+                "diagnostic_calls": 1,
+                "nonzero_reward_contribution": False,
+                "diagnostic_outputs": {
+                    "Authorization": {
+                        "note": "Bearer abc123",
+                        "authorization_status": "not_configured",
+                    },
+                    "worker_note": "upstream sent Bearer abcdef",
+                },
+            },
+            "runner_error": {
+                "message": "upstream sent Bearer abcdef",
+                'request headers={"Authorization":"Basic abcdef"}': (
+                    "must-not-survive"
+                ),
+            },
+            "decision": {"accepted": False, "outcome": "reject", "public_score": 0.0},
+        }
+
+        sections = PushRecoveryTaskPlugin().prompt_adapter().build_prompt_sections(
+            public_records=[record],
+            public_context={"previous_rounds": 1, "public_only": True},
+        )
+        serialized = json.dumps(sections, sort_keys=True)
+
+        self.assertNotIn("Authorization", serialized)
+        self.assertNotIn("Bearer abc123", serialized)
+        self.assertNotIn("Bearer abcdef", serialized)
+        self.assertNotIn("must-not-survive", serialized)
+        self.assertIn("[redacted]", serialized)
+        assert_public_only_prompt_payload(sections)
+
     def test_push_runtime_feedback_preserves_bounded_activation_evidence(self) -> None:
         record = {
             "round_id": "push-round-runtime-evidence",
@@ -1204,6 +1329,64 @@ class PushRecoveryTaskTests(unittest.TestCase):
         self.assertNotIn("push_recovery_margin", serialized)
         self.assertNotIn("candidate_specific_inner_metric", serialized)
         self.assertNotIn("custom_candidate_hint", serialized)
+        assert_public_only_prompt_payload(sections)
+
+    def test_push_runtime_feedback_uses_shared_flattened_key_policy(self) -> None:
+        forbidden_names = (
+            "APIKey",
+            "APIKEY",
+            "apikey",
+            "SECRETKEY",
+            "PRIVATESEED",
+        )
+        ordinary_names = (
+            "tokenizer",
+            "token_count",
+            "privateer",
+            "secretary",
+            "hostname",
+        )
+        sections = PushRecoveryTaskPlugin().prompt_adapter().build_prompt_sections(
+            public_records=[
+                {
+                    "round_id": "push-round-flattened-key-policy",
+                    "runtime_activation_summary": {
+                        "reward_term_calls": 10,
+                        "diagnostic_calls": 0,
+                        "nonzero_reward_contribution": True,
+                        "reward_output_stats": {
+                            "mean": 0.2,
+                            "finite_fraction": 1.0,
+                        },
+                        "component_activation_records": [
+                            {
+                                "component_kind": "reward_term",
+                                "name": name,
+                                "observation_count": 1,
+                            }
+                            for name in (*forbidden_names, *ordinary_names)
+                        ],
+                    },
+                    "decision": {
+                        "accepted": False,
+                        "outcome": "reject",
+                        "public_score": 0.1,
+                    },
+                }
+            ],
+            public_context={"previous_rounds": 1, "public_only": True},
+        )
+
+        terms = sections["runtime_feedback_summary"][
+            "latest_runtime_activation"
+        ]["reward_term_activation"]["terms"]
+        labels = {item.get("public_label") for item in terms}
+        serialized = json.dumps(sections, sort_keys=True)
+        for name in forbidden_names:
+            self.assertNotIn(name, labels)
+            self.assertNotIn(name, serialized)
+        for name in ordinary_names:
+            self.assertIn(name, labels)
         assert_public_only_prompt_payload(sections)
 
     def test_push_prompt_adapter_summarizes_full_eval_feedback_without_private_detail(self) -> None:
@@ -1765,6 +1948,18 @@ class PushRecoveryTaskTests(unittest.TestCase):
                         example["components_py_snippet"].strip() + "\n",
                         encoding="utf-8",
                     )
+                    (candidate / "rationale.md").write_text(
+                        "Known-good prompt example.\n",
+                        encoding="utf-8",
+                    )
+                    (candidate / "operation_diff.json").write_text(
+                        "{}\n",
+                        encoding="utf-8",
+                    )
+                    (candidate / "diagnostics.json").write_text(
+                        "{}\n",
+                        encoding="utf-8",
+                    )
 
                     result = StaticCandidateVerifier().verify(candidate)
 
@@ -2165,6 +2360,31 @@ class PushRecoveryTaskTests(unittest.TestCase):
         self.assertIn('"mean_final_planar_speed_mps"', source)
         self.assertIn('"recovery_window_success_rate"', source)
 
+    def test_push_entrypoints_verify_backend_identity_before_app_launch(self) -> None:
+        for script_name in (
+            "isaaclab_rsl_rl_train.py",
+            "isaaclab_rsl_rl_eval.py",
+        ):
+            source = (PROJECT_ROOT / "scripts" / script_name).read_text(
+                encoding="utf-8"
+            )
+            verify_index = source.find(
+                "verify_current_isaac_lab_execution_environment("
+            )
+            launch_index = source.find("AppLauncher(args_cli)")
+
+            self.assertGreaterEqual(verify_index, 0, script_name)
+            self.assertGreaterEqual(launch_index, 0, script_name)
+            self.assertLess(verify_index, launch_index, script_name)
+            self.assertIn(
+                '"--backend-execution-environment-manifest-hash"',
+                source,
+            )
+            self.assertIn(
+                '"backend_execution_environment_verification"',
+                source,
+            )
+
     def test_push_invariants_reject_task_weakening(self) -> None:
         invariants = PushRecoveryTaskPlugin().task_spec.invariants
         weakened = TaskInvariantSpec({**dict(invariants.values), "episode_length": 128})
@@ -2219,6 +2439,16 @@ class PushRecoveryTaskTests(unittest.TestCase):
         self.assertIn(f"--candidate {candidate.path}", bundle.train_spec.metadata["cli_command"])
         self.assertEqual(bundle.train_spec.metadata["cli_argv"][:2], ["/opt/isaac/python.sh", "train_push.py"])
         self.assertIn(candidate.path, bundle.train_spec.metadata["cli_argv"])
+        self.assertEqual(
+            bundle.train_spec.candidate_failure_contract,
+            PUSH_CANDIDATE_FAILURE_CONTRACT,
+        )
+        self.assertEqual(
+            bundle.train_spec.metadata["cli_argv"].count(
+                "--candidate-failure-contract-hash"
+            ),
+            1,
+        )
         self.assertEqual(bundle.eval_spec.metadata["cli_argv"][:2], ["/opt/isaac/python.sh", "eval_push.py"])
         self.assertIn("artifact://push-round-001/checkpoints/best.pt", bundle.eval_spec.metadata["cli_argv"])
         self.assertIn("--subject-kind", bundle.eval_spec.metadata["cli_argv"])
@@ -2229,6 +2459,14 @@ class PushRecoveryTaskTests(unittest.TestCase):
         )
         self.assertNotIn("--candidate-id", bundle.eval_spec.metadata["cli_argv"])
         self.assertNotIn(str(candidate_path), bundle.eval_spec.metadata["cli_argv"])
+        self.assertNotIn(
+            "--backend-execution-environment-manifest-hash",
+            bundle.train_spec.metadata["cli_argv"],
+        )
+        self.assertNotIn(
+            "--backend-execution-environment-manifest-hash",
+            bundle.eval_spec.metadata["cli_argv"],
+        )
 
     def test_push_backend_rejects_missing_sealed_validation_invariant(self) -> None:
         plugin = PushRecoveryTaskPlugin()
@@ -2348,10 +2586,11 @@ class PushRecoveryTaskTests(unittest.TestCase):
                     task_plugin=plugin,
                     backend_adapter=backend,
                     runner=PushDryRunRunner(),
-                    verifier=PassingVerifier(),
+                    candidate_admission_policy=PassingVerifier(),
                     candidate=schedule_only,
                     policy_initialization=PolicyInitialization.random(),
                     ledger_path=ledger_path,
+                    authoring_mode=NON_PROVIDER_AUTHORING_MODE,
                     public_context={"previous_rounds": 0, "public_only": True},
                     **self._round_session_fields(
                         plugin=plugin,
@@ -2366,10 +2605,11 @@ class PushRecoveryTaskTests(unittest.TestCase):
                     task_plugin=plugin,
                     backend_adapter=backend,
                     runner=PushDryRunRunner(),
-                    verifier=PassingVerifier(),
+                    candidate_admission_policy=PassingVerifier(),
                     candidate=code_level,
                     policy_initialization=PolicyInitialization.random(),
                     ledger_path=ledger_path,
+                    authoring_mode=NON_PROVIDER_AUTHORING_MODE,
                     public_context={"previous_rounds": 1, "public_only": True},
                     **self._round_session_fields(
                         plugin=plugin,
@@ -2427,10 +2667,11 @@ class PushRecoveryTaskTests(unittest.TestCase):
                     task_plugin=plugin,
                     backend_adapter=backend,
                     runner=runner,
-                    verifier=PassingVerifier(),
+                    candidate_admission_policy=PassingVerifier(),
                     candidate=candidate,
                     policy_initialization=PolicyInitialization.random(),
                     ledger_path=Path(tmp) / "ledger.jsonl",
+                    authoring_mode=NON_PROVIDER_AUTHORING_MODE,
                     public_context={"previous_rounds": 0, "public_only": True},
                     **self._round_session_fields(
                         plugin=plugin,
@@ -2449,6 +2690,10 @@ class PushRecoveryTaskTests(unittest.TestCase):
         self.assertIn(cli_checkpoint_path, executed_eval_spec.metadata["cli_argv"])
         self.assertIn(cli_checkpoint_path, executed_eval_spec.metadata["cli_command"])
         argv = executed_eval_spec.metadata["cli_argv"]
+        self.assertNotIn(
+            "--backend-execution-environment-manifest-hash",
+            argv,
+        )
         self.assertEqual(argv[argv.index("--checkpoint-sha256") + 1], executed_eval_spec.checkpoint.checksum)
         self.assertIn(f"--checkpoint-sha256 {executed_eval_spec.checkpoint.checksum}", executed_eval_spec.metadata["cli_command"])
         self.assertNotIn(executed_eval_spec.checkpoint.uri, executed_eval_spec.metadata["cli_argv"])
@@ -2477,10 +2722,11 @@ class PushRecoveryTaskTests(unittest.TestCase):
                     task_plugin=plugin,
                     backend_adapter=backend,
                     runner=EvalIncompletePushDryRunRunner(),
-                    verifier=PassingVerifier(),
+                    candidate_admission_policy=PassingVerifier(),
                     candidate=candidate,
                     policy_initialization=PolicyInitialization.random(),
                     ledger_path=ledger_path,
+                    authoring_mode=NON_PROVIDER_AUTHORING_MODE,
                     public_context={"previous_rounds": 0, "public_only": True},
                     **self._round_session_fields(
                         plugin=plugin,
@@ -2523,10 +2769,11 @@ class PushRecoveryTaskTests(unittest.TestCase):
                     task_plugin=plugin,
                     backend_adapter=backend,
                     runner=UnsafeEvalProjectionPushDryRunRunner(),
-                    verifier=PassingVerifier(),
+                    candidate_admission_policy=PassingVerifier(),
                     candidate=candidate,
                     policy_initialization=PolicyInitialization.random(),
                     ledger_path=ledger_path,
+                    authoring_mode=NON_PROVIDER_AUTHORING_MODE,
                     public_context={"previous_rounds": 0, "public_only": True},
                     **self._round_session_fields(
                         plugin=plugin,
@@ -2565,10 +2812,11 @@ class PushRecoveryTaskTests(unittest.TestCase):
                     task_plugin=plugin,
                     backend_adapter=backend,
                     runner=PushDryRunRunner(),
-                    verifier=StaticCandidateVerifier(),
+                    candidate_admission_policy=StaticCandidateVerifier(),
                     candidate=candidate,
                     policy_initialization=PolicyInitialization.random(),
                     ledger_path=Path(tmp) / "ledger.jsonl",
+                    authoring_mode=NON_PROVIDER_AUTHORING_MODE,
                     public_context={"previous_rounds": 0, "public_only": True},
                     **self._round_session_fields(
                         plugin=plugin,

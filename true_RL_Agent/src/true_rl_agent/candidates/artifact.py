@@ -10,7 +10,22 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Mapping
 
-from true_rl_agent.candidates.schema import CandidateChangeSet, CandidatePackageRef
+from true_rl_agent.candidates.package_contract import (
+    LEGACY_SEALED_REQUIRED_CANDIDATE_FILES,
+    PROVIDER_AUTHORED_CANDIDATE_FILES,
+    SEALED_CANDIDATE_ARTIFACT_MANIFEST_FILENAME,
+    SEALED_CANDIDATE_ARTIFACT_MANIFEST_MAX_BYTES,
+    CandidatePackageContractError,
+    CandidatePackagePreflight,
+    copy_preflighted_candidate_package,
+    open_preflighted_candidate_file,
+    preflight_candidate_package,
+)
+from true_rl_agent.candidates.schema import (
+    CandidateChangeSet,
+    CandidatePackageRef,
+    require_candidate_id,
+)
 from true_rl_agent.evaluation.binding import (
     canonical_json_hash,
     require_sha256_checksum,
@@ -18,7 +33,8 @@ from true_rl_agent.evaluation.binding import (
 )
 from true_rl_agent.json_contract import (
     canonical_json_bytes,
-    load_strict_json_object,
+    canonical_json_text,
+    strict_json_object_loads,
 )
 from true_rl_agent.training_programs import resolve_candidate_program_identity
 
@@ -26,7 +42,10 @@ CANDIDATE_ARTIFACT_SCHEMA_VERSION = (
     "true_rl_agent.sealed_candidate_artifact.v1"
 )
 CANDIDATE_ARTIFACT_MANIFEST_FILENAME = (
-    ".true_rl_agent_candidate_artifact.json"
+    SEALED_CANDIDATE_ARTIFACT_MANIFEST_FILENAME
+)
+CANDIDATE_EXECUTION_AUTHORIZATION_SCHEMA_VERSION = (
+    "true_rl_agent.candidate_execution_authorization.v1"
 )
 
 
@@ -44,8 +63,10 @@ class SealedCandidateArtifactRef:
     metadata: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        if not isinstance(self.candidate_id, str) or not self.candidate_id:
-            raise ValueError("sealed candidate artifact candidate_id is required")
+        require_candidate_id(
+            self.candidate_id,
+            "sealed candidate artifact candidate_id",
+        )
         if not isinstance(self.path, str) or not self.path or "://" in self.path:
             raise ValueError("sealed candidate artifact path must be a local path")
         if not Path(self.path).is_absolute():
@@ -85,12 +106,142 @@ class SealedCandidateArtifactRef:
 
 
 @dataclass(frozen=True, init=False)
+class CandidateExecutionAuthorization:
+    """Content-addressed task payload minted by the verification pipeline."""
+
+    admission_policy_id: str
+    admission_policy_hash: str
+    payload_schema_version: str
+    canonical_json: str
+    authorization_hash: str
+
+    _TOKEN = object()
+
+    def __init__(
+        self,
+        *,
+        admission_policy_id: str,
+        admission_policy_hash: str,
+        payload_schema_version: str,
+        canonical_json: str,
+        authorization_hash: str,
+        _token: object | None = None,
+    ) -> None:
+        if _token is not self._TOKEN:
+            raise TypeError(
+                "candidate execution authorizations must be created from canonical JSON"
+            )
+        object.__setattr__(self, "admission_policy_id", admission_policy_id)
+        object.__setattr__(self, "admission_policy_hash", admission_policy_hash)
+        object.__setattr__(self, "payload_schema_version", payload_schema_version)
+        object.__setattr__(self, "canonical_json", canonical_json)
+        object.__setattr__(self, "authorization_hash", authorization_hash)
+
+    @classmethod
+    def from_payload(
+        cls,
+        *,
+        admission_policy_id: str,
+        admission_policy_hash: str,
+        payload: Mapping[str, Any],
+    ) -> "CandidateExecutionAuthorization":
+        if not isinstance(payload, Mapping):
+            raise TypeError("candidate execution authorization payload must be an object")
+        envelope = {
+            "schema_version": CANDIDATE_EXECUTION_AUTHORIZATION_SCHEMA_VERSION,
+            "admission_policy_id": admission_policy_id,
+            "admission_policy_hash": admission_policy_hash,
+            "payload": dict(payload),
+        }
+        return cls.from_canonical_json(canonical_json_text(envelope))
+
+    @classmethod
+    def from_canonical_json(
+        cls,
+        value: str,
+        *,
+        expected_authorization_hash: str | None = None,
+    ) -> "CandidateExecutionAuthorization":
+        if not isinstance(value, str) or not value:
+            raise ValueError("candidate execution authorization JSON is required")
+        envelope = strict_json_object_loads(
+            value,
+            context="candidate execution authorization",
+        )
+        if canonical_json_text(envelope) != value:
+            raise ValueError("candidate execution authorization must be canonical JSON")
+        if set(envelope) != {
+            "schema_version",
+            "admission_policy_id",
+            "admission_policy_hash",
+            "payload",
+        }:
+            raise ValueError("candidate execution authorization fields mismatch")
+        if (
+            envelope.get("schema_version")
+            != CANDIDATE_EXECUTION_AUTHORIZATION_SCHEMA_VERSION
+        ):
+            raise ValueError("candidate execution authorization schema mismatch")
+        admission_policy_id = envelope.get("admission_policy_id")
+        if not isinstance(admission_policy_id, str) or not admission_policy_id:
+            raise ValueError("candidate execution authorization policy ID is required")
+        admission_policy_hash = require_sha256_digest(
+            envelope.get("admission_policy_hash"),
+            "candidate execution authorization policy hash",
+        )
+        payload = envelope.get("payload")
+        if not isinstance(payload, dict):
+            raise ValueError("candidate execution authorization payload must be an object")
+        payload_schema_version = payload.get("schema_version")
+        if not isinstance(payload_schema_version, str) or not payload_schema_version:
+            raise ValueError(
+                "candidate execution authorization payload schema is required"
+            )
+        authorization_hash = canonical_json_hash(envelope)
+        if expected_authorization_hash is not None:
+            if require_sha256_digest(
+                expected_authorization_hash,
+                "candidate execution authorization hash",
+            ) != authorization_hash:
+                raise ValueError("candidate execution authorization hash mismatch")
+        return cls(
+            admission_policy_id=admission_policy_id,
+            admission_policy_hash=admission_policy_hash,
+            payload_schema_version=payload_schema_version,
+            canonical_json=value,
+            authorization_hash=authorization_hash,
+            _token=cls._TOKEN,
+        )
+
+    @property
+    def payload(self) -> dict[str, Any]:
+        envelope = strict_json_object_loads(
+            self.canonical_json,
+            context="candidate execution authorization",
+        )
+        payload = envelope["payload"]
+        assert isinstance(payload, dict)
+        return payload
+
+    def to_public_dict(self) -> dict[str, Any]:
+        return {
+            "schema_version": CANDIDATE_EXECUTION_AUTHORIZATION_SCHEMA_VERSION,
+            "admission_policy_id": self.admission_policy_id,
+            "admission_policy_hash": self.admission_policy_hash,
+            "payload_schema_version": self.payload_schema_version,
+            "authorization_hash": self.authorization_hash,
+        }
+
+
+@dataclass(frozen=True, init=False)
 class VerifiedCandidateArtifactRef:
     """Capability proving that one sealed artifact passed a bound verifier."""
 
     sealed_artifact: SealedCandidateArtifactRef
     verification_policy: str
+    verification_policy_hash: str
     verification_hash: str
+    execution_authorization: CandidateExecutionAuthorization | None
 
     _TOKEN = object()
 
@@ -99,7 +250,9 @@ class VerifiedCandidateArtifactRef:
         *,
         sealed_artifact: SealedCandidateArtifactRef,
         verification_policy: str,
+        verification_policy_hash: str | None = None,
         verification_hash: str,
+        execution_authorization: CandidateExecutionAuthorization | None = None,
         _token: object | None = None,
     ) -> None:
         if _token is not self._TOKEN:
@@ -111,12 +264,41 @@ class VerifiedCandidateArtifactRef:
         if not isinstance(verification_policy, str) or not verification_policy:
             raise ValueError("verified candidate verification_policy is required")
         require_sha256_digest(
+            verification_policy_hash,
+            "verified candidate verification policy hash",
+        )
+        require_sha256_digest(
             verification_hash,
             "verified candidate verification hash",
         )
+        if execution_authorization is not None:
+            if not isinstance(
+                execution_authorization,
+                CandidateExecutionAuthorization,
+            ):
+                raise TypeError("verified candidate execution authorization is invalid")
+            if (
+                execution_authorization.admission_policy_id
+                != verification_policy
+                or execution_authorization.admission_policy_hash
+                != verification_policy_hash
+            ):
+                raise ValueError(
+                    "candidate execution authorization policy identity mismatch"
+                )
         object.__setattr__(self, "sealed_artifact", sealed_artifact)
         object.__setattr__(self, "verification_policy", verification_policy)
+        object.__setattr__(
+            self,
+            "verification_policy_hash",
+            verification_policy_hash,
+        )
         object.__setattr__(self, "verification_hash", verification_hash)
+        object.__setattr__(
+            self,
+            "execution_authorization",
+            execution_authorization,
+        )
 
     @classmethod
     def _validated(
@@ -124,12 +306,16 @@ class VerifiedCandidateArtifactRef:
         *,
         sealed_artifact: SealedCandidateArtifactRef,
         verification_policy: str,
+        verification_policy_hash: str,
         verification_hash: str,
+        execution_authorization: CandidateExecutionAuthorization | None = None,
     ) -> "VerifiedCandidateArtifactRef":
         return cls(
             sealed_artifact=sealed_artifact,
             verification_policy=verification_policy,
+            verification_policy_hash=verification_policy_hash,
             verification_hash=verification_hash,
+            execution_authorization=execution_authorization,
             _token=cls._TOKEN,
         )
 
@@ -166,14 +352,20 @@ class VerifiedCandidateArtifactRef:
         return self.sealed_artifact.metadata
 
     def to_public_dict(self) -> dict[str, Any]:
-        return {
+        result = {
             **self.sealed_artifact.to_public_dict(),
             "verification": {
                 "status": "pass",
                 "policy": self.verification_policy,
+                "policy_hash": self.verification_policy_hash,
                 "verification_hash": self.verification_hash,
             },
         }
+        if self.execution_authorization is not None:
+            result["execution_authorization"] = (
+                self.execution_authorization.to_public_dict()
+            )
+        return result
 
 
 def seal_candidate_package(
@@ -187,12 +379,8 @@ def seal_candidate_package(
         raise TypeError("candidate sealing requires a CandidatePackageRef")
     if "://" in candidate.path:
         raise ValueError("candidate sealing requires a local provider directory")
-    source_path = Path(candidate.path)
-    if source_path.is_symlink():
-        raise ValueError("candidate provider path must not be a symlink")
-    source_root = source_path.resolve(strict=True)
-    if not source_root.is_dir():
-        raise ValueError("candidate provider path must be a non-symlink directory")
+    source_preflight = preflight_candidate_package(candidate.path)
+    source_root = source_preflight.root
 
     destination_root = Path(artifact_root).resolve()
     destination_root.mkdir(parents=True, exist_ok=True)
@@ -200,12 +388,23 @@ def seal_candidate_package(
         tempfile.mkdtemp(prefix=".candidate-artifact-", dir=destination_root)
     )
     try:
-        _copy_candidate_snapshot(source_root, temporary)
+        copied_files = copy_preflighted_candidate_package(
+            source_preflight,
+            temporary,
+        )
+        if preflight_candidate_package(source_root) != source_preflight:
+            raise CandidatePackageContractError(
+                "candidate package changed while it was being sealed",
+                issue="package_changed_during_sealing",
+            )
+        copied_preflight = preflight_candidate_package(temporary)
+        files = _file_evidence(copied_preflight)
+        if files != copied_files:
+            raise ValueError("candidate artifact copy evidence mismatch")
         identity = resolve_candidate_program_identity(
             temporary,
             expected_candidate_id=candidate.candidate_id,
         )
-        files = _file_evidence(temporary)
         payload = {
             "schema_version": CANDIDATE_ARTIFACT_SCHEMA_VERSION,
             "candidate_id": candidate.candidate_id,
@@ -259,18 +458,35 @@ def load_sealed_candidate_artifact(
     expected_subject_manifest_hash: str | None = None,
     expected_program_source_checksum: str | None = None,
 ) -> SealedCandidateArtifactRef:
-    unresolved_root = Path(artifact_path)
-    if unresolved_root.is_symlink():
-        raise ValueError("sealed candidate artifact path must not be a symlink")
-    root = unresolved_root.resolve(strict=True)
-    if not root.is_dir():
-        raise ValueError("sealed candidate artifact must be a non-symlink directory")
-    manifest = load_strict_json_object(
-        root / CANDIDATE_ARTIFACT_MANIFEST_FILENAME,
-        context="sealed candidate artifact manifest",
-        require_canonical=True,
-        trailing_newline=True,
+    preflight = preflight_candidate_package(
+        artifact_path,
+        sealed_artifact=True,
+        enforce_size_limits=False,
     )
+    root = preflight.root
+    with open_preflighted_candidate_file(
+        preflight,
+        CANDIDATE_ARTIFACT_MANIFEST_FILENAME,
+    ) as manifest_source:
+        manifest_payload = manifest_source.read(
+            SEALED_CANDIDATE_ARTIFACT_MANIFEST_MAX_BYTES + 1
+        )
+    if len(manifest_payload) > SEALED_CANDIDATE_ARTIFACT_MANIFEST_MAX_BYTES:
+        raise CandidatePackageContractError(
+            "sealed candidate artifact manifest exceeds its byte limit",
+            issue=(
+                "file_too_large:"
+                f"{CANDIDATE_ARTIFACT_MANIFEST_FILENAME}:"
+                f"{len(manifest_payload)}>"
+                f"{SEALED_CANDIDATE_ARTIFACT_MANIFEST_MAX_BYTES}"
+            ),
+        )
+    manifest = strict_json_object_loads(
+        manifest_payload,
+        context="sealed candidate artifact manifest",
+    )
+    if manifest_payload != canonical_json_bytes(manifest, trailing_newline=True):
+        raise ValueError("sealed candidate artifact manifest is not canonical JSON")
     expected_fields = {
         "schema_version",
         "candidate_id",
@@ -296,18 +512,21 @@ def load_sealed_candidate_artifact(
     if expected_artifact_hash is not None and artifact_hash != expected_artifact_hash:
         raise ValueError("sealed candidate artifact does not match expected hash")
 
-    candidate_id = manifest.get("candidate_id")
-    if not isinstance(candidate_id, str) or not candidate_id:
-        raise ValueError("sealed candidate artifact candidate_id is invalid")
+    candidate_id = require_candidate_id(
+        manifest.get("candidate_id"),
+        "sealed candidate artifact candidate_id",
+    )
     if expected_candidate_id is not None and candidate_id != expected_candidate_id:
         raise ValueError("sealed candidate artifact candidate_id mismatch")
     declared_files = _validated_file_evidence(manifest.get("files"))
-    if _file_evidence(root) != declared_files:
+    if _file_evidence(preflight) != declared_files:
         raise ValueError("sealed candidate artifact file evidence mismatch")
 
     identity = resolve_candidate_program_identity(
         root,
         expected_candidate_id=candidate_id,
+        sealed_artifact=True,
+        enforce_package_size_limits=False,
     )
     declared_identity = (
         manifest.get("subject_manifest_hash"),
@@ -368,44 +587,42 @@ def verify_verified_candidate_artifact(
         artifact.sealed_artifact
     ):
         raise ValueError("verified candidate sealed artifact changed during verification")
+    authorization = artifact.execution_authorization
+    if authorization is not None:
+        verified_authorization = CandidateExecutionAuthorization.from_canonical_json(
+            authorization.canonical_json,
+            expected_authorization_hash=authorization.authorization_hash,
+        )
+        if verified_authorization != authorization:
+            raise ValueError("candidate execution authorization changed")
+        if (
+            authorization.admission_policy_id != artifact.verification_policy
+            or authorization.admission_policy_hash
+            != artifact.verification_policy_hash
+        ):
+            raise ValueError("candidate execution authorization policy mismatch")
     return artifact
 
 
-def _copy_candidate_snapshot(source_root: Path, destination_root: Path) -> None:
-    for source in sorted(source_root.rglob("*")):
-        relative = source.relative_to(source_root)
-        if source.is_symlink():
-            raise ValueError(f"candidate artifact does not allow symlinks: {relative}")
-        if not source.is_file():
-            continue
-        if _ignored_runtime_file(relative):
-            continue
-        if relative.as_posix() == CANDIDATE_ARTIFACT_MANIFEST_FILENAME:
-            raise ValueError("provider candidate contains reserved artifact manifest")
-        target = destination_root / relative
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(source.read_bytes())
-
-
-def _file_evidence(root: Path) -> list[dict[str, Any]]:
+def _file_evidence(
+    preflight: CandidatePackagePreflight,
+) -> list[dict[str, Any]]:
     result: list[dict[str, Any]] = []
-    for path in sorted(root.rglob("*")):
-        relative = path.relative_to(root)
-        if path.is_symlink():
-            raise ValueError(
-                f"sealed candidate artifact contains symlink: {relative}"
-            )
-        if not path.is_file() or _ignored_runtime_file(relative):
-            continue
-        relative_text = relative.as_posix()
-        if relative_text == CANDIDATE_ARTIFACT_MANIFEST_FILENAME:
-            continue
-        payload = path.read_bytes()
+    for state in sorted(preflight.files, key=lambda item: item.relative_path):
+        digest = hashlib.sha256()
+        size_bytes = 0
+        with open_preflighted_candidate_file(
+            preflight,
+            state.relative_path,
+        ) as source:
+            while chunk := source.read(64 * 1024):
+                digest.update(chunk)
+                size_bytes += len(chunk)
         result.append(
             {
-                "path": relative_text,
-                "checksum": "sha256:" + hashlib.sha256(payload).hexdigest(),
-                "size_bytes": len(payload),
+                "path": state.relative_path,
+                "checksum": "sha256:" + digest.hexdigest(),
+                "size_bytes": size_bytes,
             }
         )
     return result
@@ -446,16 +663,23 @@ def _validated_file_evidence(value: Any) -> list[dict[str, Any]]:
         )
     if normalized != sorted(normalized, key=lambda item: item["path"]):
         raise ValueError("sealed candidate file evidence must be sorted")
+    evidence_paths = {item["path"] for item in normalized}
+    allowed_paths = set(PROVIDER_AUTHORED_CANDIDATE_FILES)
+    if (
+        not LEGACY_SEALED_REQUIRED_CANDIDATE_FILES <= evidence_paths
+        or not evidence_paths <= allowed_paths
+    ):
+        raise ValueError(
+            "sealed candidate file evidence does not match a fixed-package subset"
+        )
     return normalized
-
-
-def _ignored_runtime_file(relative: Path) -> bool:
-    return "__pycache__" in relative.parts or relative.suffix == ".pyc"
 
 
 __all__ = [
     "CANDIDATE_ARTIFACT_MANIFEST_FILENAME",
     "CANDIDATE_ARTIFACT_SCHEMA_VERSION",
+    "CANDIDATE_EXECUTION_AUTHORIZATION_SCHEMA_VERSION",
+    "CandidateExecutionAuthorization",
     "SealedCandidateArtifactRef",
     "VerifiedCandidateArtifactRef",
     "load_sealed_candidate_artifact",

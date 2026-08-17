@@ -47,7 +47,7 @@ args = _build_parser().parse_args()
 if args.probe_num_envs < 4 or args.normal_steps <= 0:
     raise ValueError("oracle probe requires at least four envs and one normal step")
 config = StairClimbingTaskConfig.defaults(
-    PROJECT_ROOT / "configs" / "tasks" / "stair_protocol_v2_draft.json"
+    PROJECT_ROOT / "configs" / "tasks" / "stair_protocol_v2.json"
 )
 official = resolve_official_stair_reference_program(
     config,

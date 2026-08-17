@@ -549,18 +549,21 @@ class StairPhase0ContractTests(unittest.TestCase):
         counts["timeout"] = 3
         assert_primary_outcome_counts(
             protocol,
+            semantics=None,
             total_episode_count=8,
             primary_counts=counts,
         )
         with self.assertRaisesRegex(ValueError, "count invariant"):
             assert_primary_outcome_counts(
                 protocol,
+                semantics=None,
                 total_episode_count=9,
                 primary_counts=counts,
             )
         with self.assertRaisesRegex(ValueError, "warnings block"):
             assert_primary_outcome_counts(
                 protocol,
+                semantics=None,
                 total_episode_count=8,
                 primary_counts=counts,
                 classification_warning_count=1,

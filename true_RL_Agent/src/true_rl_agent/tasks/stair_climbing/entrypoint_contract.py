@@ -8,6 +8,7 @@ from typing import Any
 
 from true_rl_agent.backends.rsl_rl_training_config import RslRlAgentConfiguration
 from true_rl_agent.candidates.artifact import (
+    CandidateExecutionAuthorization,
     SealedCandidateArtifactRef,
     load_sealed_candidate_artifact,
 )
@@ -18,12 +19,27 @@ from true_rl_agent.evaluation.binding import (
     require_sha256_digest,
 )
 from true_rl_agent.evaluation.subject import ExperimentSubject
+from true_rl_agent.reference_artifact import (
+    VerifiedReferenceProgramArtifactRef,
+    load_reference_program_artifact,
+)
 from true_rl_agent.runner.budget import build_budget_accounting
 from true_rl_agent.runner.job_identity import JobIdentity
+from true_rl_agent.tasks.stair_climbing.candidate_admission import (
+    VerifiedStairCandidateExecutionAuthorization,
+    validate_stair_candidate_execution_authorization,
+)
+from true_rl_agent.tasks.stair_climbing.candidate_failure import (
+    STAIR_CANDIDATE_FAILURE_CONTRACT,
+)
 from true_rl_agent.tasks.stair_climbing.config import (
     STAIR_PROTOCOL_V2_RELATIVE_PATH,
     STAIR_TASK_ID,
     StairClimbingTaskConfig,
+)
+from true_rl_agent.tasks.stair_climbing.local_paths import resolve_existing_file
+from true_rl_agent.tasks.stair_climbing.seed_policy import (
+    STAIR_FORMAL_EVAL_NAMESPACE,
 )
 from true_rl_agent.training_binding import TrainingBinding
 
@@ -32,10 +48,18 @@ from true_rl_agent.training_binding import TrainingBinding
 class StairTrainEntrypointContext:
     config: StairClimbingTaskConfig
     identity: JobIdentity
-    candidate_artifact: SealedCandidateArtifactRef
+    program_source_checksum: str
+    candidate_artifact: SealedCandidateArtifactRef | None
+    candidate_verification_hash: str | None
+    candidate_execution_authorization: (
+        VerifiedStairCandidateExecutionAuthorization | None
+    )
+    reference_artifact: VerifiedReferenceProgramArtifactRef | None
     training_binding: TrainingBinding
     agent_configuration: RslRlAgentConfiguration
     budget_accounting: dict[str, int | str]
+    expected_initial_policy_state_hash: str | None
+    candidate_failure_contract_hash: str | None
 
 
 @dataclass(frozen=True)
@@ -82,8 +106,8 @@ def validate_stair_train_invocation(
     )
     if args.task_id != STAIR_TASK_ID:
         raise ValueError("stair train task_id mismatch")
-    if args.subject_kind != "candidate":
-        raise ValueError("stair Phase B train subject must be candidate")
+    if args.subject_kind not in {"candidate", "reference"}:
+        raise ValueError("stair train subject must be candidate or reference")
     if args.init != "random":
         raise ValueError("stair training requires random initialization")
     if getattr(args, "init_checkpoint", None) is not None or getattr(
@@ -95,10 +119,14 @@ def validate_stair_train_invocation(
     if args.runtime_dynamics_hash != config.train_runtime_profile().runtime_dynamics_hash:
         raise ValueError("stair train runtime dynamics hash mismatch")
 
+    subject = ExperimentSubject(
+        kind=args.subject_kind,
+        subject_id=_text(args.subject_id, "subject_id"),
+    )
     identity = JobIdentity(
         job_id=_text(args.job_id, "job_id"),
         task_id=STAIR_TASK_ID,
-        subject=ExperimentSubject.candidate(_text(args.subject_id, "subject_id")),
+        subject=subject,
         subject_manifest_hash=require_sha256_digest(
             args.subject_manifest_hash,
             "stair train subject manifest hash",
@@ -108,20 +136,106 @@ def validate_stair_train_invocation(
         args.program_source_checksum,
         "stair train program source checksum",
     )
-    artifact_path = Path(_text(args.candidate, "candidate"))
-    if not artifact_path.is_absolute() or artifact_path.is_symlink():
-        raise ValueError("stair train candidate artifact path must be absolute")
-    candidate_artifact = load_sealed_candidate_artifact(
-        artifact_path,
-        change_set=CandidateChangeSet(frozenset()),
-        expected_candidate_id=identity.subject.subject_id,
-        expected_artifact_hash=require_sha256_digest(
-            args.candidate_artifact_hash,
-            "stair train candidate artifact hash",
-        ),
-        expected_subject_manifest_hash=identity.subject_manifest_hash,
-        expected_program_source_checksum=source_checksum,
-    )
+    candidate_artifact: SealedCandidateArtifactRef | None = None
+    candidate_verification_hash: str | None = None
+    candidate_execution_authorization: (
+        VerifiedStairCandidateExecutionAuthorization | None
+    ) = None
+    reference_artifact: VerifiedReferenceProgramArtifactRef | None = None
+    if subject.kind == "candidate":
+        _require_absent(args.reference_artifact, "reference_artifact")
+        _require_absent(
+            args.reference_artifact_hash,
+            "reference_artifact_hash",
+        )
+        artifact_path = _absolute_artifact_path(args.candidate, "candidate")
+        candidate_artifact = load_sealed_candidate_artifact(
+            artifact_path,
+            change_set=CandidateChangeSet(frozenset()),
+            expected_candidate_id=identity.subject.subject_id,
+            expected_artifact_hash=require_sha256_digest(
+                args.candidate_artifact_hash,
+                "stair train candidate artifact hash",
+            ),
+            expected_subject_manifest_hash=identity.subject_manifest_hash,
+            expected_program_source_checksum=source_checksum,
+        )
+        candidate_verification_hash = require_sha256_digest(
+            args.candidate_verification_hash,
+            "stair train candidate verification hash",
+        )
+        authorization = CandidateExecutionAuthorization.from_canonical_json(
+            args.candidate_execution_authorization_json,
+            expected_authorization_hash=require_sha256_digest(
+                args.candidate_execution_authorization_hash,
+                "stair train candidate execution authorization hash",
+            ),
+        )
+        candidate_execution_authorization = (
+            validate_stair_candidate_execution_authorization(
+                authorization,
+                artifact=candidate_artifact,
+                config=config,
+            )
+        )
+        expected_initial_policy_state_hash = require_sha256_digest(
+            args.expected_initial_policy_state_hash,
+            "stair train expected initial policy state hash",
+        )
+        candidate_failure_contract_hash = require_sha256_digest(
+            args.candidate_failure_contract_hash,
+            "stair candidate failure contract hash",
+        )
+        if (
+            candidate_failure_contract_hash
+            != STAIR_CANDIDATE_FAILURE_CONTRACT.contract_hash
+        ):
+            raise ValueError("stair candidate failure contract hash mismatch")
+    else:
+        _require_absent(args.candidate, "candidate")
+        _require_absent(args.candidate_artifact_hash, "candidate_artifact_hash")
+        _require_absent(
+            args.candidate_verification_hash,
+            "candidate_verification_hash",
+        )
+        _require_absent(
+            args.candidate_execution_authorization_json,
+            "candidate_execution_authorization_json",
+        )
+        _require_absent(
+            args.candidate_execution_authorization_hash,
+            "candidate_execution_authorization_hash",
+        )
+        artifact_path = _absolute_artifact_path(
+            args.reference_artifact,
+            "reference_artifact",
+        )
+        reference_artifact = load_reference_program_artifact(
+            artifact_path,
+            expected_artifact_hash=require_sha256_digest(
+                args.reference_artifact_hash,
+                "stair train reference artifact hash",
+            ),
+            expected_reference_id=identity.subject.subject_id,
+            expected_task_id=STAIR_TASK_ID,
+            expected_subject_manifest_hash=identity.subject_manifest_hash,
+            expected_program_source_checksum=source_checksum,
+        )
+        if (
+            reference_artifact.program.manifest.capability_profile_hash
+            != config.protocol_v2.capability_profile.profile_hash
+        ):
+            raise ValueError("stair train reference capability profile mismatch")
+        _require_absent(
+            args.expected_initial_policy_state_hash,
+            "expected_initial_policy_state_hash",
+        )
+        expected_initial_policy_state_hash = None
+        _require_absent(
+            args.candidate_failure_contract_hash,
+            "candidate_failure_contract_hash",
+        )
+        candidate_failure_contract_hash = None
 
     agent_configuration = RslRlAgentConfiguration.from_json(
         _text(args.agent_configuration_json, "agent_configuration_json")
@@ -182,7 +296,11 @@ def validate_stair_train_invocation(
     return StairTrainEntrypointContext(
         config=config,
         identity=identity,
+        program_source_checksum=source_checksum,
         candidate_artifact=candidate_artifact,
+        candidate_verification_hash=candidate_verification_hash,
+        candidate_execution_authorization=candidate_execution_authorization,
+        reference_artifact=reference_artifact,
         training_binding=training_binding,
         agent_configuration=agent_configuration,
         budget_accounting=build_budget_accounting(
@@ -191,6 +309,10 @@ def validate_stair_train_invocation(
             num_steps_per_env=config.train_steps_per_iteration,
             max_iterations=config.train_max_iterations,
         ),
+        expected_initial_policy_state_hash=(
+            expected_initial_policy_state_hash
+        ),
+        candidate_failure_contract_hash=candidate_failure_contract_hash,
     )
 
 
@@ -255,9 +377,11 @@ def validate_stair_eval_invocation(
 
     expected_binding = EvaluationBindingV1(
         eval_protocol_hash=config.evaluation_protocol().protocol_hash,
-        acceptance_protocol_hash=config.protocol_v1.acceptance_protocol.protocol_hash,
-        task_protocol_hash=config.protocol_v2.protocol_hash,
-        seed_cohort_hash=config.seed_resolver().cohort_hash,
+        acceptance_protocol_hash=config.acceptance_protocol.protocol_hash,
+        task_protocol_hash=config.task_protocol_hash,
+        seed_cohort_hash=config.seed_resolver().namespace_cohort_hash(
+            STAIR_FORMAL_EVAL_NAMESPACE
+        ),
     )
     declared_binding = EvaluationBindingV1(
         eval_protocol_hash=config.evaluation_protocol().protocol_hash,
@@ -283,14 +407,17 @@ def validate_stair_eval_invocation(
     if declared_binding != expected_binding:
         raise ValueError("stair eval binding differs from task config")
 
-    checkpoint_path = Path(_text(args.checkpoint, "checkpoint"))
-    if "://" in str(checkpoint_path) or checkpoint_path.is_symlink():
+    declared_checkpoint = Path(_text(args.checkpoint, "checkpoint"))
+    if "://" in str(declared_checkpoint):
         raise ValueError("stair eval checkpoint must be a local non-symlink path")
-    if not checkpoint_path.is_absolute():
-        checkpoint_path = project_root / checkpoint_path
-    checkpoint_path = checkpoint_path.resolve(strict=True)
-    if not checkpoint_path.is_file():
-        raise ValueError("stair eval checkpoint must be a regular file")
+    checkpoint_path = resolve_existing_file(
+        (
+            declared_checkpoint
+            if declared_checkpoint.is_absolute()
+            else project_root / declared_checkpoint
+        ),
+        field_name="stair eval checkpoint",
+    )
     checkpoint_hash = require_sha256_checksum(
         args.checkpoint_sha256,
         "stair eval checkpoint hash",
@@ -314,16 +441,28 @@ def _canonical_config_path(value: Any, *, project_root: Path) -> Path:
         raise TypeError("project_root must be a Path")
     if value != STAIR_PROTOCOL_V2_RELATIVE_PATH:
         raise ValueError("stair entrypoint config path is not canonical")
-    expected = (project_root / STAIR_PROTOCOL_V2_RELATIVE_PATH).resolve(strict=True)
-    if expected.is_symlink() or not expected.is_file():
-        raise ValueError("stair entrypoint config must be a regular file")
-    return expected
+    return resolve_existing_file(
+        project_root / STAIR_PROTOCOL_V2_RELATIVE_PATH,
+        field_name="stair entrypoint config",
+    )
 
 
 def _text(value: Any, field_name: str) -> str:
     if not isinstance(value, str) or not value.strip() or value != value.strip():
         raise ValueError(f"{field_name} must be a non-empty canonical string")
     return value
+
+
+def _absolute_artifact_path(value: Any, field_name: str) -> Path:
+    path = Path(_text(value, field_name))
+    if not path.is_absolute() or path.is_symlink():
+        raise ValueError(f"stair train {field_name} path must be absolute")
+    return path
+
+
+def _require_absent(value: Any, field_name: str) -> None:
+    if value is not None:
+        raise ValueError(f"stair train {field_name} must be absent")
 
 
 def _positive_int(value: Any, field_name: str) -> int:

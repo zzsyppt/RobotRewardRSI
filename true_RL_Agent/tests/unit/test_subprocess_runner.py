@@ -8,12 +8,17 @@ import textwrap
 import unittest
 from dataclasses import replace
 from pathlib import Path
+from types import SimpleNamespace
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
+from tests.fakes.backend_environment import (
+    TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH,
+    TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_VERIFICATION,
+)
 from tests.fakes.evaluation import (
     TEST_CAPABILITY_PROFILE,
     TEST_PROGRAM_SOURCE_CHECKSUM,
@@ -23,16 +28,28 @@ from tests.fakes.evaluation import (
     make_training_binding,
     make_verified_candidate_artifact,
 )
+from true_rl_agent.evaluation.binding import canonical_json_hash
+from true_rl_agent.evaluation.phases import (
+    EVALUATION_PHASE_SUMMARY_SCHEMA_VERSION,
+    EvaluationPhase,
+)
 from true_rl_agent.evaluation.public_result import PublicEvalResult
 from true_rl_agent.evaluation.subject import ExperimentSubject
 from true_rl_agent.policy import BaselinePolicyRef, PolicyInitialization
 from true_rl_agent.runner.base import CandidateRuntimeError
+from true_rl_agent.runner.candidate_failure import (
+    CandidateFailureContract,
+    CandidateFailureRule,
+)
 from true_rl_agent.runner.evidence import evidence_artifact_from_json
+from true_rl_agent.runner.gpu_lease import GpuDeviceIdentity, GpuLeaseManager
+from true_rl_agent.runner.job_attempts import JobAttemptScope
 from true_rl_agent.runner.specs import (
     BaselineEvalJobSpec,
     CheckpointOutputPlan,
     CheckpointRef,
     EvalJobSpec,
+    EvalPhaseJobSpec,
     EvaluationJobSpec,
     TrainJobSpec,
 )
@@ -51,6 +68,22 @@ _OLD_CHECKPOINT_HASH = "sha256:" + "3" * 64
 _OTHER_CHECKPOINT_HASH = "sha256:" + "5" * 64
 _TRAIN_CHECKPOINT_HASH = "sha256:" + "1" * 64
 _WRONG_CHECKPOINT_HASH = "sha256:" + "4" * 64
+
+_TEST_CANDIDATE_FAILURE_CONTRACT = CandidateFailureContract(
+    contract_id="true_rl_agent.test.candidate_failure.v1",
+    rules=(
+        CandidateFailureRule(
+            stage="activation_preflight",
+            reason_codes=("activation_rejected",),
+            requires_initial_policy_state=False,
+        ),
+        CandidateFailureRule(
+            stage="ppo_reward_execution",
+            reason_codes=("runtime_rejected",),
+            requires_initial_policy_state=True,
+        ),
+    ),
+)
 
 
 def _expected_train_summary_binding(
@@ -81,6 +114,7 @@ def _expected_train_summary_binding(
         ),
         "capability_profile_hash": training_binding.capability_profile_hash,
         "program_source_checksum": artifact.program_source_checksum,
+        "execution_device": "cuda:0",
     }
 
 
@@ -92,6 +126,7 @@ def _train_job_spec(*, candidate_id: str, **kwargs) -> TrainJobSpec:
     )
     metadata = dict(kwargs.get("metadata", {}))
     artifact = _verified_test_candidate(candidate_id)
+    candidate_failure_contract = kwargs.get("candidate_failure_contract")
     argv = metadata.get("cli_argv")
     if isinstance(argv, list):
         metadata["cli_argv"] = _bound_train_argv(
@@ -104,8 +139,13 @@ def _train_job_spec(*, candidate_id: str, **kwargs) -> TrainJobSpec:
             budget_steps=kwargs["budget_steps"],
             initialization=initialization,
             metadata=metadata,
+            expected_initial_policy_state_hash=kwargs.get(
+                "expected_initial_policy_state_hash"
+            ),
+            candidate_failure_contract=candidate_failure_contract,
         )
     kwargs["metadata"] = metadata
+    kwargs.setdefault("execution_device", "cuda:0")
     return TrainJobSpec(
         subject=ExperimentSubject.candidate(candidate_id),
         subject_manifest_hash=artifact.subject_manifest_hash,
@@ -131,8 +171,10 @@ def _bound_train_argv(
     budget_steps: int,
     initialization: PolicyInitialization,
     metadata: dict,
+    expected_initial_policy_state_hash: str | None = None,
+    candidate_failure_contract: CandidateFailureContract | None = None,
 ) -> list[str]:
-    return [
+    result = [
         *argv,
         "--job-id",
         job_id,
@@ -176,7 +218,24 @@ def _bound_train_argv(
         binding.initialization_seed_schedule_hash,
         "--seed",
         "42",
+        "--device",
+        "cuda:0",
     ]
+    if expected_initial_policy_state_hash is not None:
+        result.extend(
+            [
+                "--expected-initial-policy-state-hash",
+                expected_initial_policy_state_hash,
+            ]
+        )
+    if candidate_failure_contract is not None:
+        result.extend(
+            [
+                "--candidate-failure-contract-hash",
+                candidate_failure_contract.contract_hash,
+            ]
+        )
+    return result
 
 
 def _with_train_argv(spec: TrainJobSpec, argv: list[str]) -> TrainJobSpec:
@@ -191,11 +250,16 @@ def _with_train_argv(spec: TrainJobSpec, argv: list[str]) -> TrainJobSpec:
         budget_steps=spec.budget_steps,
         initialization=spec.policy_initialization,
         metadata=metadata,
+        expected_initial_policy_state_hash=(
+            spec.expected_initial_policy_state_hash
+        ),
+        candidate_failure_contract=spec.candidate_failure_contract,
     )
     return replace(spec, metadata=metadata)
 
 
 def _eval_job_spec(*, candidate_id: str, **kwargs) -> EvalJobSpec:
+    kwargs.setdefault("execution_device", "cuda:0")
     spec = EvalJobSpec(
         subject=ExperimentSubject.candidate(candidate_id),
         subject_manifest_hash=TEST_SUBJECT_MANIFEST_HASH,
@@ -213,6 +277,7 @@ def _baseline_eval_job_spec(
     baseline_manifest_hash: str,
     **kwargs,
 ) -> BaselineEvalJobSpec:
+    kwargs.setdefault("execution_device", "cuda:0")
     spec = BaselineEvalJobSpec(
         subject=ExperimentSubject.baseline(baseline_id),
         subject_manifest_hash=baseline_manifest_hash,
@@ -267,8 +332,33 @@ def _bind_eval_spec_argv(spec: EvaluationJobSpec) -> EvaluationJobSpec:
         str(protocol.eval_num_envs),
         "--seed",
         "0",
+        "--device",
+        spec.execution_device,
     ]
-    if isinstance(spec, EvalJobSpec):
+    execution_environment_hash = metadata.get(
+        "backend_execution_environment_manifest_hash"
+    )
+    if execution_environment_hash is not None:
+        argv.extend(
+            [
+                "--backend-execution-environment-manifest-hash",
+                str(execution_environment_hash),
+            ]
+        )
+    if isinstance(spec, EvalPhaseJobSpec):
+        argv.extend(
+            [
+                "--program-source-checksum",
+                spec.program_source_checksum,
+                "--training-binding-hash",
+                spec.training_binding_hash,
+                "--evaluation-phase",
+                spec.phase.value,
+                "--evaluation-plan-hash",
+                spec.evaluation_plan_hash,
+            ]
+        )
+    elif isinstance(spec, EvalJobSpec):
         argv.extend(
             [
                 "--program-source-checksum",
@@ -291,6 +381,146 @@ def _with_eval_argv(
 
 
 class SubprocessRunnerTests(unittest.TestCase):
+    def test_subprocess_runner_executes_and_validates_one_eval_phase(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            phase_summary = root / "phase-summary.json"
+            plan = _eval_job_spec(
+                job_id="eval-phase-plan",
+                task_id="unitree_push_recovery",
+                candidate_id="candidate-phase",
+                checkpoint=self._eval_checkpoint(root),
+                public_seed_count=3,
+                public_accept_seed_count=5,
+                sealed_validation_seed_count=7,
+                evaluation_binding=make_evaluation_binding(
+                    public_seed_count=3,
+                    public_accept_seed_count=5,
+                    sealed_validation_seed_count=7,
+                ),
+                metadata={
+                    "summary_path": str(root / "full-summary.json"),
+                    "backend_id": "isaac_lab_rsl_rl",
+                    "backend_execution_environment_manifest_hash": (
+                        TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH
+                    ),
+                },
+            )
+            phase_spec = EvalPhaseJobSpec(
+                job_id="eval-phase-public-dev",
+                evaluation_plan=plan,
+                phase=EvaluationPhase.PUBLIC_DEV,
+                metadata={
+                    "summary_path": str(phase_summary),
+                    "backend_id": "isaac_lab_rsl_rl",
+                    "backend_execution_environment_manifest_hash": (
+                        TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH
+                    ),
+                },
+            )
+            task_evidence = {
+                "schema_version": "test.task.phase_evidence.v1",
+                "phase": "public_dev",
+                "score": 0.4,
+            }
+            summary = {
+                **self._eval_summary_binding(phase_spec),
+                "schema_version": EVALUATION_PHASE_SUMMARY_SCHEMA_VERSION,
+                "evaluation_phase": "public_dev",
+                "evaluation_plan_hash": phase_spec.evaluation_plan_hash,
+                "status": "pass",
+                "task_evidence": task_evidence,
+                "task_evidence_hash": canonical_json_hash(task_evidence),
+                "evaluation_execution_cost": {
+                    "schema_version": "test.phase_cost.v1",
+                    "splits": {"public_dev": {"seed_count": 3}},
+                },
+                "environment_source_preflight": {"status": "pass"},
+                "backend_execution_environment_verification": dict(
+                    TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_VERIFICATION
+                ),
+                "checkpoint_safety_report": self._checkpoint_safety_report(),
+                "candidate_code_loaded_in_eval": False,
+                "candidate_package_loaded": False,
+                "candidate_package_loaded_in_eval": False,
+                "candidate_path_argument_present": False,
+                "errors": [],
+            }
+            code = textwrap.dedent(
+                f"""
+                import json
+                from pathlib import Path
+                Path({str(phase_summary)!r}).write_text({json.dumps(summary)!r})
+                """
+            )
+            phase_spec = _with_eval_argv(
+                phase_spec,
+                self._checkpoint_cli_argv(
+                    plan.execution_checkpoint(),
+                    code,
+                ),
+            )
+            runner = SubprocessRunner(
+                allowed_executables=(sys.executable,),
+                timeout_s=10,
+            )
+
+            result = runner.run_eval_phase(phase_spec)
+
+        self.assertEqual(result.phase, EvaluationPhase.PUBLIC_DEV)
+        self.assertEqual(result.evaluation_plan_hash, phase_spec.evaluation_plan_hash)
+        self.assertEqual(result.task_evidence, task_evidence)
+        self.assertFalse(result.to_private_dict()["acceptance_authority"])
+
+    def test_backend_environment_summary_receipt_is_exact_and_hash_bound(self) -> None:
+        spec = SimpleNamespace(
+            job_id="isaac-job",
+            metadata={
+                "backend_id": "isaac_lab_rsl_rl",
+                "backend_execution_environment_manifest_hash": (
+                    TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH
+                ),
+            },
+        )
+        SubprocessRunner._validate_backend_execution_environment_summary(
+            {
+                "backend_execution_environment_verification": dict(
+                    TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_VERIFICATION
+                )
+            },
+            spec,
+        )
+
+        drifted = dict(TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_VERIFICATION)
+        drifted["actual_manifest_hash"] = "0" * 64
+        with self.assertRaisesRegex(
+            RunnerExecutionError,
+            "backend environment verification mismatch",
+        ):
+            SubprocessRunner._validate_backend_execution_environment_summary(
+                {"backend_execution_environment_verification": drifted},
+                spec,
+            )
+
+    def test_fake_backend_remains_neutral_to_environment_receipts(self) -> None:
+        spec = SimpleNamespace(
+            job_id="fake-job",
+            metadata={"backend_id": "fake_backend"},
+        )
+        SubprocessRunner._validate_backend_execution_environment_summary({}, spec)
+        with self.assertRaisesRegex(
+            RunnerExecutionError,
+            "unexpected backend environment verification",
+        ):
+            SubprocessRunner._validate_backend_execution_environment_summary(
+                {
+                    "backend_execution_environment_verification": dict(
+                        TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_VERIFICATION
+                    )
+                },
+                spec,
+            )
+
     def test_runner_constructor_rejects_invalid_execution_config(self) -> None:
         for kwargs, error in (
             ({"allowed_executables": ()}, "allowed_executables"),
@@ -311,6 +541,69 @@ class SubprocessRunnerTests(unittest.TestCase):
             with self.subTest(kwargs=kwargs):
                 with self.assertRaisesRegex((TypeError, ValueError), error):
                     SubprocessRunner(**kwargs)
+
+    def test_summary_missing_uses_exactly_one_reserved_infrastructure_retry(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            counter_path = root / "launch-count.txt"
+            identity = GpuDeviceIdentity("cuda:0", "test-machine", "GPU-TEST")
+            scope = JobAttemptScope(
+                journal_root=root / "attempts",
+                session_genesis_hash="a" * 64,
+                session_contract_hash="b" * 64,
+                generation_id="generation-001",
+                lane_id="lane-a",
+                invocation_segment_id="segment-000",
+                budget_contract_hash="c" * 64,
+                attempt_budget_units=2,
+                max_infrastructure_retries=1,
+                resource_binding_hash=identity.identity_hash,
+            )
+            code = textwrap.dedent(
+                f"""
+                from pathlib import Path
+                path = Path({str(counter_path)!r})
+                count = int(path.read_text()) if path.exists() else 0
+                path.write_text(str(count + 1))
+                """
+            )
+            spec = _train_job_spec(
+                job_id="summary-missing-retry",
+                task_id="unitree_push_recovery",
+                candidate_id="candidate-code",
+                policy_initialization=PolicyInitialization.random(),
+                budget_steps=128,
+                attempt_scope=scope,
+                metadata={
+                    "cli_argv": [sys.executable, "-c", code],
+                    "summary_path": str(root / "missing-summary.json"),
+                    "checkpoint_output_path": str(root / "missing-checkpoint.pt"),
+                },
+            )
+            runner = SubprocessRunner(
+                allowed_executables=(sys.executable,),
+                timeout_s=10,
+                gpu_lease_manager=GpuLeaseManager(
+                    lease_root=root / "leases",
+                    devices={"cuda:0": identity},
+                ),
+            )
+            self.assertNotIn("attempt_scope", spec.to_public_dict())
+
+            with self.assertRaises(RunnerExecutionError) as raised:
+                runner.run_train(spec)
+
+            self.assertEqual(
+                raised.exception.failure_kind.value,
+                "summary_missing",
+            )
+            self.assertEqual(counter_path.read_text(), "2")
+            results = sorted((root / "attempts").rglob("attempt_*.result.json"))
+            self.assertEqual(len(results), 2)
+            payloads = [json.loads(path.read_text()) for path in results]
+            self.assertEqual([item["retryable"] for item in payloads], [True, False])
 
     def _checkpoint_safety_report(
         self,
@@ -438,6 +731,7 @@ class SubprocessRunnerTests(unittest.TestCase):
         *,
         exit_code: int = 0,
         include_sealed_validation_evidence: bool = True,
+        task_evidence_hash_override: str | None = None,
     ) -> PublicEvalResult:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -455,9 +749,23 @@ class SubprocessRunnerTests(unittest.TestCase):
             )
             bound_summary = {**self._eval_summary_binding(eval_spec), **summary}
             if include_sealed_validation_evidence:
+                sealed_evidence = self._sealed_validation_evidence(eval_spec)
+                raw_sealed_summary = bound_summary.get("sealed_validation_summary")
+                if isinstance(raw_sealed_summary, dict):
+                    raw_sealed_summary.setdefault(
+                        "score_stats",
+                        dict(sealed_evidence["score_stats"]),
+                    )
+                    sealed_evidence["schema_version"] = (
+                        "true_rl_agent.sealed_validation.evidence.v4"
+                    )
+                    sealed_evidence["task_evidence_hash"] = (
+                        task_evidence_hash_override
+                        or canonical_json_hash(raw_sealed_summary)
+                    )
                 bound_summary.setdefault(
                     "sealed_validation_evidence",
-                    self._sealed_validation_evidence(eval_spec),
+                    sealed_evidence,
                 )
             eval_code = textwrap.dedent(
                 f"""
@@ -595,6 +903,95 @@ class SubprocessRunnerTests(unittest.TestCase):
 
             self.assertFalse(marker.exists())
 
+    def test_train_rejects_execution_device_drift_before_launch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            marker = root / "train-device-drift-launched.marker"
+            spec = _train_job_spec(
+                job_id="train-device-drift",
+                task_id="unitree_push_recovery",
+                candidate_id="candidate-device-drift",
+                policy_initialization=PolicyInitialization.random(),
+                budget_steps=128,
+                execution_device="cuda:1",
+                metadata={
+                    "cli_argv": [
+                        sys.executable,
+                        "-c",
+                        f"from pathlib import Path; Path({str(marker)!r}).write_text('launched')",
+                    ],
+                    "summary_path": str(root / "summary.json"),
+                    "checkpoint_output_path": str(root / "trained.pt"),
+                },
+            )
+            metadata = dict(spec.metadata)
+            argv = list(metadata["cli_argv"])
+            argv[argv.index("--device") + 1] = "cuda:0"
+            metadata["cli_argv"] = argv
+            spec = replace(spec, metadata=metadata)
+
+            with self.assertRaisesRegex(
+                RunnerExecutionError,
+                "--device does not match",
+            ):
+                SubprocessRunner((sys.executable,), timeout_s=10).run_train(spec)
+            self.assertFalse(marker.exists())
+
+    def test_eval_rejects_duplicate_execution_device_before_launch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            runner = SubprocessRunner((sys.executable,), timeout_s=10)
+            cases = (
+                _eval_job_spec(
+                    job_id="candidate-eval-device-duplicate",
+                    task_id="unitree_push_recovery",
+                    candidate_id="candidate-device-duplicate",
+                    checkpoint=self._eval_checkpoint(root),
+                    public_seed_count=3,
+                    sealed_validation_seed_count=7,
+                    evaluation_binding=make_evaluation_binding(),
+                    metadata={
+                        "cli_argv": [sys.executable, "-c", "pass"],
+                        "summary_path": str(root / "candidate-summary.json"),
+                    },
+                ),
+                _baseline_eval_job_spec(
+                    job_id="baseline-eval-device-duplicate",
+                    task_id="unitree_push_recovery",
+                    baseline_id="official-g1-rough",
+                    baseline_manifest_hash="c" * 64,
+                    checkpoint=self._eval_checkpoint(
+                        root,
+                        role="warm_start",
+                        name="baseline-device-input.pt",
+                    ),
+                    public_seed_count=3,
+                    sealed_validation_seed_count=7,
+                    evaluation_binding=make_evaluation_binding(),
+                    metadata={
+                        "cli_argv": [sys.executable, "-c", "pass"],
+                        "summary_path": str(root / "baseline-summary.json"),
+                    },
+                ),
+            )
+            for spec in cases:
+                with self.subTest(subject_kind=spec.subject.kind):
+                    metadata = dict(spec.metadata)
+                    metadata["cli_argv"] = [
+                        *metadata["cli_argv"],
+                        "--device",
+                        spec.execution_device,
+                    ]
+                    drifted = replace(spec, metadata=metadata)
+                    with self.assertRaisesRegex(
+                        RunnerExecutionError,
+                        "--device must appear exactly once",
+                    ):
+                        if isinstance(drifted, EvalJobSpec):
+                            runner.run_eval(drifted)
+                        else:
+                            runner.run_baseline_eval(drifted)
+
     def test_train_rejects_mutated_candidate_artifact_before_launch(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -712,6 +1109,8 @@ class SubprocessRunnerTests(unittest.TestCase):
         *,
         checkpoint_bytes: bytes | None = None,
         exit_code: int = 0,
+        expected_initial_policy_state_hash: str | None = None,
+        candidate_failure_contract: CandidateFailureContract | None = None,
     ):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -727,6 +1126,10 @@ class SubprocessRunnerTests(unittest.TestCase):
                 candidate_id="candidate-code",
                 policy_initialization=PolicyInitialization.random(),
                 budget_steps=128,
+                expected_initial_policy_state_hash=(
+                    expected_initial_policy_state_hash
+                ),
+                candidate_failure_contract=candidate_failure_contract,
                 metadata={
                     "summary_path": str(train_summary),
                     "sealed_checkpoint_uri": "artifact://train/sealed/best.pt",
@@ -762,19 +1165,25 @@ class SubprocessRunnerTests(unittest.TestCase):
             return runner.run_train(train_spec)
 
     def _train_summary_binding(self, train_spec: TrainJobSpec) -> dict:
-        return {
+        result = {
             **_expected_train_summary_binding(
                 job_id=train_spec.job_id,
                 candidate_id=train_spec.subject.subject_id,
                 budget_steps=train_spec.budget_steps,
             ),
         }
+        if train_spec.candidate_failure_contract is not None:
+            result["candidate_failure_contract_hash"] = (
+                train_spec.candidate_failure_contract.contract_hash
+            )
+        return result
 
     def _eval_summary_binding(self, eval_spec: EvaluationJobSpec) -> dict:
         return {
             **eval_spec.job_identity().to_public_dict(),
             "evaluation_protocol": eval_spec.evaluation_protocol().to_public_dict(),
             "evaluation_binding": eval_spec.evaluation_binding.to_public_dict(),
+            "execution_device": eval_spec.execution_device,
         }
 
     def test_subprocess_runner_executes_baseline_eval_without_candidate_identity(
@@ -802,6 +1211,48 @@ class SubprocessRunnerTests(unittest.TestCase):
         )
         self.assertEqual(result.metrics["subject_manifest_hash"], "c" * 64)
         self.assertNotIn("candidate_id", result.to_public_dict())
+
+    def test_subprocess_runner_preserves_task_owned_eval_metrics(self) -> None:
+        source_preflight = {
+            "status": "pass",
+            "opaque_task_evidence": "preserved",
+        }
+        result = self._run_baseline_eval_summary(
+            {
+                "status": "pass",
+                "public_score": 0.42,
+                "metrics": {
+                    "environment_source_preflight": source_preflight,
+                },
+                "candidate_code_loaded_in_eval": False,
+                "candidate_package_loaded_in_eval": False,
+                "checkpoint_safety_report": self._checkpoint_safety_report(),
+                "sealed_validation_gate": self._sealed_validation_gate(),
+            }
+        )
+
+        self.assertEqual(
+            result.metrics["environment_source_preflight"],
+            source_preflight,
+        )
+
+    def test_subprocess_runner_accepts_existing_summary_without_optional_diagnostics(
+        self,
+    ) -> None:
+        """Task-local additive artifacts must not become a shared summary requirement."""
+
+        result = self._run_eval_summary(
+            {
+                "status": "pass",
+                "public_score": 0.42,
+                "metrics": {"success_rate": 0.42},
+                "checkpoint_safety_report": self._checkpoint_safety_report(),
+                "sealed_validation_gate": self._sealed_validation_gate(),
+            }
+        )
+
+        self.assertEqual(result.public_score, 0.42)
+        self.assertEqual(result.metrics["success_rate"], 0.42)
 
     def test_subprocess_runner_rejects_baseline_manifest_or_subject_drift(
         self,
@@ -1301,6 +1752,7 @@ class SubprocessRunnerTests(unittest.TestCase):
         self.assertIs(public_result.metrics["candidate_code_loaded_in_eval"], False)
         self.assertIs(public_result.metrics["candidate_package_loaded"], False)
         self.assertEqual(public_result.metrics["checkpoint_safety_status"], "pass")
+        self.assertEqual(public_result.metrics["execution_device"], "cuda:0")
 
     def test_subprocess_runner_wraps_malformed_eval_scalar_and_status_fields(self) -> None:
         cases = {
@@ -1401,6 +1853,74 @@ class SubprocessRunnerTests(unittest.TestCase):
             7,
         )
 
+    def test_initial_policy_state_pairing_is_bound_to_train_result(self) -> None:
+        expected = "a" * 64
+        result = self._run_train_summary(
+            {
+                "status": "pass",
+                "training": {
+                    "expected_initial_policy_state_hash": expected,
+                    "initial_policy_state_hash": expected,
+                    "initial_policy_state_match": True,
+                },
+            },
+            checkpoint_bytes=b"paired-checkpoint",
+            expected_initial_policy_state_hash=expected,
+        )
+
+        self.assertEqual(
+            result.initial_policy_state_pairing.expected_initial_policy_state_hash,
+            expected,
+        )
+        self.assertEqual(
+            result.checkpoint.metadata["initial_policy_state_pairing"],
+            result.initial_policy_state_pairing.to_public_dict(),
+        )
+
+    def test_initial_policy_state_pairing_rejects_missing_or_mismatched_summary(
+        self,
+    ) -> None:
+        expected = "a" * 64
+        cases = {
+            "missing": None,
+            "mismatch": {
+                "expected_initial_policy_state_hash": expected,
+                "initial_policy_state_hash": "b" * 64,
+                "initial_policy_state_match": False,
+            },
+            "forged_match": {
+                "expected_initial_policy_state_hash": expected,
+                "initial_policy_state_hash": "b" * 64,
+                "initial_policy_state_match": True,
+            },
+        }
+        for label, training in cases.items():
+            with self.subTest(label=label):
+                payload = {
+                    "status": "fail",
+                    "candidate_failure": (
+                        _TEST_CANDIDATE_FAILURE_CONTRACT.evidence(
+                            stage="ppo_reward_execution",
+                            reason_code="runtime_rejected",
+                        ).to_public_dict()
+                    ),
+                    "errors": [],
+                }
+                if training is not None:
+                    payload["training"] = training
+                with self.assertRaisesRegex(
+                    RunnerExecutionError,
+                    "initial policy state pairing failed",
+                ):
+                    self._run_train_summary(
+                        payload,
+                        exit_code=2,
+                        expected_initial_policy_state_hash=expected,
+                        candidate_failure_contract=(
+                            _TEST_CANDIDATE_FAILURE_CONTRACT
+                        ),
+                    )
+
     def test_subprocess_runner_rejects_train_summary_identity_mismatch_before_checkpoint_parse(self) -> None:
         mismatches = {
             "job_id": "stale-train-job",
@@ -1427,6 +1947,31 @@ class SubprocessRunnerTests(unittest.TestCase):
                     )
 
                 self.assertNotIn("checkpoint", str(context.exception).lower())
+
+    def test_subprocess_runner_rejects_execution_device_summary_drift(self) -> None:
+        with self.assertRaisesRegex(
+            RunnerExecutionError,
+            "execution_device",
+        ):
+            self._run_train_summary(
+                {
+                    "execution_device": "cuda:1",
+                    "status": "fail",
+                }
+            )
+
+        with self.assertRaisesRegex(
+            RunnerExecutionError,
+            "execution_device",
+        ):
+            self._run_eval_summary(
+                {
+                    "execution_device": "cuda:1",
+                    "status": "fail",
+                    "public_score": 0.0,
+                    "metrics": {},
+                }
+            )
 
     def test_subprocess_runner_deletes_stale_train_summary_before_execution(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -2072,54 +2617,181 @@ class SubprocessRunnerTests(unittest.TestCase):
             with self.assertRaisesRegex(RunnerExecutionError, "summary file was not created"):
                 runner.run_train(train_spec)
 
-    def test_subprocess_runner_reports_failed_train_summary_before_checkpoint_parse(self) -> None:
-        runner = SubprocessRunner(allowed_executables=(sys.executable,), timeout_s=10)
-        with tempfile.TemporaryDirectory() as tmp:
-            summary = Path(tmp) / "summary.json"
-            failure_code = textwrap.dedent(
-                f"""
-                import json
-                from pathlib import Path
-                Path({str(summary)!r}).write_text(json.dumps({{
-                    **{_expected_train_summary_binding(job_id="train-runtime-fail", candidate_id="candidate")!r},
-                    "status": "fail",
-                    "errors": [{{"type": "RuntimeError", "message": "Boolean value of Tensor with more than one value is ambiguous"}}]
-                }}))
-                raise SystemExit(1)
-                """
-            )
-            train_spec = _train_job_spec(
-                job_id="train-runtime-fail",
-                task_id="unitree_push_recovery",
-                candidate_id="candidate",
-                policy_initialization=PolicyInitialization.random(),
-                budget_steps=128,
-                metadata={
-                    "cli_argv": [sys.executable, "-c", failure_code],
-                    "summary_path": str(summary),
-                    "checkpoint_output_path": str(Path(tmp) / "best.pt"),
-                },
-            )
-
-            with self.assertRaises(CandidateRuntimeError) as context:
-                runner.run_train(train_spec)
-
-        message = str(context.exception)
-        self.assertIn("train summary status fail", message)
-        self.assertIn("Boolean value of Tensor", message)
-        self.assertNotIn("missing checkpoint", message)
-
-    def test_structured_train_failure_is_authoritative_for_zero_exit_too(self) -> None:
-        with self.assertRaises(CandidateRuntimeError) as context:
+    def test_unclassified_train_failure_is_infrastructure_owned(self) -> None:
+        with self.assertRaisesRegex(
+            RunnerExecutionError,
+            "not bound to a candidate failure contract",
+        ):
             self._run_train_summary(
                 {
                     "status": "fail",
                     "errors": [{"type": "RuntimeError", "message": "runtime failure"}],
                 },
-                exit_code=0,
+                exit_code=1,
             )
 
-        self.assertEqual(context.exception.public_details["subprocess_returncode"], 0)
+    def test_closed_candidate_failure_is_projected_without_raw_error(self) -> None:
+        evidence = _TEST_CANDIDATE_FAILURE_CONTRACT.evidence(
+            stage="activation_preflight",
+            reason_code="activation_rejected",
+        )
+        with self.assertRaises(CandidateRuntimeError) as context:
+            self._run_train_summary(
+                {
+                    "status": "fail",
+                    "candidate_failure": evidence.to_public_dict(),
+                    "errors": [],
+                },
+                exit_code=1,
+                candidate_failure_contract=_TEST_CANDIDATE_FAILURE_CONTRACT,
+            )
+
+        self.assertEqual(
+            context.exception.public_details,
+            {
+                "status": "fail",
+                "subprocess_returncode": 1,
+                "candidate_failure_contract": (
+                    _TEST_CANDIDATE_FAILURE_CONTRACT.to_public_dict()
+                ),
+                "candidate_failure": evidence.to_public_dict(),
+            },
+        )
+        self.assertNotIn("errors", context.exception.to_public_dict()["details"])
+
+    def test_candidate_failure_rejects_raw_errors(self) -> None:
+        with self.assertRaisesRegex(
+            RunnerExecutionError,
+            "cannot contain raw errors",
+        ):
+            self._run_train_summary(
+                {
+                    "status": "fail",
+                    "candidate_failure": (
+                        _TEST_CANDIDATE_FAILURE_CONTRACT.evidence(
+                            stage="activation_preflight",
+                            reason_code="activation_rejected",
+                        ).to_public_dict()
+                    ),
+                    "errors": [
+                        {"type": "RuntimeError", "message": "private path"}
+                    ],
+                },
+                exit_code=1,
+                candidate_failure_contract=_TEST_CANDIDATE_FAILURE_CONTRACT,
+            )
+
+    def test_candidate_failure_contract_rejects_unknown_or_forged_evidence(self) -> None:
+        valid = _TEST_CANDIDATE_FAILURE_CONTRACT.evidence(
+            stage="activation_preflight",
+            reason_code="activation_rejected",
+        ).to_public_dict()
+        cases = {
+            "owner": {**valid, "failure_owner": "infrastructure"},
+            "stage": {**valid, "failure_stage": "unknown_stage"},
+            "reason": {**valid, "reason_code": "unknown_reason"},
+            "contract": {**valid, "contract_hash": "f" * 64},
+            "extra": {**valid, "private_error": "D:/private/path"},
+        }
+        for label, candidate_failure in cases.items():
+            with self.subTest(label=label):
+                with self.assertRaisesRegex(
+                    RunnerExecutionError,
+                    "invalid candidate failure evidence",
+                ):
+                    self._run_train_summary(
+                        {
+                            "status": "fail",
+                            "candidate_failure": candidate_failure,
+                            "errors": [],
+                        },
+                        exit_code=1,
+                        candidate_failure_contract=(
+                            _TEST_CANDIDATE_FAILURE_CONTRACT
+                        ),
+                    )
+
+    def test_candidate_failure_policy_pairing_depends_on_declared_stage(self) -> None:
+        expected = "a" * 64
+        activation = _TEST_CANDIDATE_FAILURE_CONTRACT.evidence(
+            stage="activation_preflight",
+            reason_code="activation_rejected",
+        )
+        with self.assertRaises(CandidateRuntimeError):
+            self._run_train_summary(
+                {
+                    "status": "fail",
+                    "candidate_failure": activation.to_public_dict(),
+                    "training": {
+                        "expected_initial_policy_state_hash": expected,
+                    },
+                    "errors": [],
+                },
+                exit_code=1,
+                expected_initial_policy_state_hash=expected,
+                candidate_failure_contract=_TEST_CANDIDATE_FAILURE_CONTRACT,
+            )
+
+        with self.assertRaisesRegex(
+            RunnerExecutionError,
+            "cannot claim actual policy state",
+        ):
+            self._run_train_summary(
+                {
+                    "status": "fail",
+                    "candidate_failure": activation.to_public_dict(),
+                    "training": {
+                        "expected_initial_policy_state_hash": expected,
+                        "initial_policy_state_hash": expected,
+                        "initial_policy_state_match": True,
+                    },
+                    "errors": [],
+                },
+                exit_code=1,
+                expected_initial_policy_state_hash=expected,
+                candidate_failure_contract=_TEST_CANDIDATE_FAILURE_CONTRACT,
+            )
+
+        ppo = _TEST_CANDIDATE_FAILURE_CONTRACT.evidence(
+            stage="ppo_reward_execution",
+            reason_code="runtime_rejected",
+        )
+        with self.assertRaises(CandidateRuntimeError):
+            self._run_train_summary(
+                {
+                    "status": "fail",
+                    "candidate_failure": ppo.to_public_dict(),
+                    "training": {
+                        "expected_initial_policy_state_hash": expected,
+                        "initial_policy_state_hash": expected,
+                        "initial_policy_state_match": True,
+                    },
+                    "errors": [],
+                },
+                exit_code=1,
+                expected_initial_policy_state_hash=expected,
+                candidate_failure_contract=_TEST_CANDIDATE_FAILURE_CONTRACT,
+            )
+
+    def test_failed_train_summary_rejects_zero_exit(self) -> None:
+        with self.assertRaisesRegex(
+            RunnerExecutionError,
+            "requires a nonzero subprocess exit",
+        ):
+            self._run_train_summary(
+                {
+                    "status": "fail",
+                    "candidate_failure": (
+                        _TEST_CANDIDATE_FAILURE_CONTRACT.evidence(
+                            stage="activation_preflight",
+                            reason_code="activation_rejected",
+                        ).to_public_dict()
+                    ),
+                    "errors": [],
+                },
+                exit_code=0,
+                candidate_failure_contract=_TEST_CANDIDATE_FAILURE_CONTRACT,
+            )
 
     def test_nonzero_exit_rejects_a_pass_summary_as_inconsistent(self) -> None:
         with self.assertRaisesRegex(
@@ -2146,6 +2818,68 @@ class SubprocessRunnerTests(unittest.TestCase):
 
         self.assertEqual(result.status, "fail")
         self.assertEqual(result.public_score, 0.0)
+
+    def test_sealed_summary_hash_is_checked_and_raw_summary_stays_private(self) -> None:
+        raw_summary = {
+            "schema_version": "test.task.sealed_summary.v1",
+            "seed_macro_scores": [0.42] * 7,
+        }
+        result = self._run_eval_summary(
+            {
+                "status": "pass",
+                "public_score": 0.42,
+                "metrics": {"success_rate": 0.42},
+                "checkpoint_safety_report": self._checkpoint_safety_report(),
+                "sealed_validation_summary": raw_summary,
+                "sealed_validation_gate": self._sealed_validation_gate(),
+            },
+        )
+
+        self.assertEqual(
+            result.metrics["sealed_validation"]["task_evidence_hash"],
+            canonical_json_hash(raw_summary),
+        )
+        self.assertNotIn("sealed_validation_summary", result.metrics)
+
+    def test_sealed_summary_tamper_rejects_hash_mismatch(self) -> None:
+        with self.assertRaisesRegex(
+            RunnerExecutionError,
+            "task_evidence_hash binding mismatch",
+        ):
+            self._run_eval_summary(
+                {
+                    "status": "pass",
+                    "public_score": 0.42,
+                    "metrics": {"success_rate": 0.42},
+                    "checkpoint_safety_report": self._checkpoint_safety_report(),
+                    "sealed_validation_summary": {
+                        "schema_version": "test.task.sealed_summary.v1",
+                        "seed_macro_scores": [0.42] * 7,
+                    },
+                    "sealed_validation_gate": self._sealed_validation_gate(),
+                },
+                task_evidence_hash_override="0" * 64,
+            )
+
+    def test_sealed_summary_score_stats_must_match_public_evidence(self) -> None:
+        with self.assertRaisesRegex(
+            RunnerExecutionError,
+            "task summary score_stats differ from public evidence",
+        ):
+            self._run_eval_summary(
+                {
+                    "status": "pass",
+                    "public_score": 0.42,
+                    "metrics": {"success_rate": 0.42},
+                    "checkpoint_safety_report": self._checkpoint_safety_report(),
+                    "sealed_validation_summary": {
+                        "schema_version": "test.task.sealed_summary.v1",
+                        "seed_macro_scores": [0.9] * 7,
+                        "score_stats": {"mean": 0.9},
+                    },
+                    "sealed_validation_gate": self._sealed_validation_gate(),
+                },
+            )
 
     def test_nonzero_eval_exit_does_not_hide_incomplete_fail_evidence(self) -> None:
         with self.assertRaisesRegex(
@@ -2304,8 +3038,16 @@ class SubprocessRunnerTests(unittest.TestCase):
             failure_code = textwrap.dedent(
                 """
                 import sys
+                print("Task-neutral task-specific risk-free disk-usage")
+                print("sk-lower123 SK-UPPER456")
                 print("TOKEN=plainsecretvalue")
+                print("MY_TOKEN = namespacedsecretvalue")
+                print("NOTOKEN=ordinaryvalue")
                 print("Authorization: Bearer plainbearer", file=sys.stderr)
+                print("Authorization : Bearer spacedbearer", file=sys.stderr)
+                print("XAuthorization: Bearer ordinarybearer", file=sys.stderr)
+                print(r'request headers={\"Authorization\":\"Basic escapedbasic\"}', file=sys.stderr)
+                print("upstream sent Bearer embeddedbearer", file=sys.stderr)
                 raise SystemExit(2)
                 """
             )
@@ -2327,9 +3069,19 @@ class SubprocessRunnerTests(unittest.TestCase):
 
         message = str(context.exception)
         self.assertNotIn("plainsecretvalue", message)
+        self.assertNotIn("namespacedsecretvalue", message)
         self.assertNotIn("plainbearer", message)
+        self.assertNotIn("spacedbearer", message)
+        self.assertNotIn("ordinarybearer", message)
+        self.assertNotIn("escapedbasic", message)
+        self.assertNotIn("embeddedbearer", message)
+        self.assertNotIn("sk-lower123", message)
+        self.assertNotIn("SK-UPPER456", message)
+        self.assertIn("Task-neutral task-specific risk-free disk-usage", message)
+        self.assertIn("NOTOKEN=ordinaryvalue", message)
+        self.assertEqual(message.count("[redacted]"), 3)
         self.assertIn("TOKEN=REDACTED", message)
-        self.assertIn("Authorization: Bearer REDACTED", message)
+        self.assertIn("MY_TOKEN=REDACTED", message)
 
 
 if __name__ == "__main__":

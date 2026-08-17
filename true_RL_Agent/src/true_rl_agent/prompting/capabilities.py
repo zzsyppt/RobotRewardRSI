@@ -10,6 +10,11 @@ from true_rl_agent.agent_core.provider_contract import (
     PROMPT_ADVERTISED_DECLARED_COMPONENTS,
 )
 from true_rl_agent.candidates.capability_profile import CandidateCapabilityProfile
+from true_rl_agent.candidates.capability_readiness import (
+    COMPLETE_REWARD_PROGRAM_CAPABILITY_ID,
+    READINESS_REQUIRED_CAPABILITY_IDS,
+    require_readiness_entry,
+)
 from true_rl_agent.candidates.schedule_contract import (
     REWARD_WEIGHT_CHANGE_COMPONENT,
     REWARD_WEIGHT_SCALE_KEY,
@@ -28,7 +33,6 @@ from true_rl_agent.prompting.runner_capability_schemas import (
 )
 
 CANDIDATE_AUTHORING_CAPABILITIES_SCHEMA_VERSION = "true_rl_agent.candidate_authoring_capabilities.v1"
-COMPLETE_REWARD_PROGRAM_CAPABILITY_ID = "complete_reward_program"
 TRAINING_COMPONENTS_SIGNATURE = (
     "TrainingComponents(name: str, reward_terms: list[RewardTerm] = [], "
     "diagnostics: list[DiagnosticTerm] = [], schedules: list[ScheduleTerm] = [], "
@@ -49,11 +53,6 @@ COMPONENT_CONTRACT_FORBIDDEN_SURFACES = (
     "checkpoints",
     "filesystem",
 )
-RUNNER_OWNED_EXTENSIONS = {
-    "observation_projection": "not_prompt_writable",
-    "feature_projection": "not_prompt_writable",
-    "curriculum": "not_prompt_writable_in_this_prompt_upgrade",
-}
 MINIMAL_COMPONENTS_PY = (
     "from __future__ import annotations\n\n"
     "from true_rl_agent.candidates.components import RewardInputs, RewardTerm, TrainingComponents\n\n\n"
@@ -145,23 +144,19 @@ class CandidateAuthoringCapabilityRegistry:
             capability for capability in self._capabilities if capability.prompt_visible
         )
 
-    def disabled_or_reserved_capabilities(self) -> tuple[CandidateAuthoringCapability, ...]:
-        return tuple(
-            capability for capability in self._capabilities if not capability.prompt_visible
-        )
-
     def to_prompt_section(
         self,
         *,
         capability_profile: CandidateCapabilityProfile | None = None,
         task_specific_metadata: Mapping[str, Any] | None = None,
-        runner_capability_readiness: Mapping[str, Mapping[str, Any]] | None = None,
+        authoring_capability_readiness: Mapping[str, Mapping[str, Any]] | None = None,
     ) -> dict[str, Any]:
         selected_ids = self._selected_ids(capability_profile)
         projected_capabilities = [
             self._project_capability(
                 capability,
-                runner_capability_readiness=runner_capability_readiness,
+                capability_profile=capability_profile,
+                authoring_capability_readiness=authoring_capability_readiness,
             )
             for capability in self._capabilities
             if capability.capability_id in selected_ids
@@ -171,21 +166,12 @@ class CandidateAuthoringCapabilityRegistry:
             for capability in projected_capabilities
             if capability.get("prompt_visible") is True
         ]
-        disabled_capabilities = (
-            []
-            if capability_profile is not None
-            else [
-                capability
-                for capability in projected_capabilities
-                if capability.get("prompt_visible") is not True
-            ]
-        )
         section = {
             "schema_version": CANDIDATE_AUTHORING_CAPABILITIES_SCHEMA_VERSION,
             "registry_owner": "agent_core",
             "registry_model": "closed_registry_with_prompt_visibility",
             "prompt_visible_capabilities": visible_capabilities,
-            "disabled_or_reserved_capabilities": disabled_capabilities,
+            "disabled_or_reserved_capabilities": [],
             "provider_declared_components_prompt_advertised": (
                 _declared_components(visible_capabilities)
             ),
@@ -230,15 +216,47 @@ class CandidateAuthoringCapabilityRegistry:
         self,
         capability: CandidateAuthoringCapability,
         *,
-        runner_capability_readiness: Mapping[str, Mapping[str, Any]] | None,
+        capability_profile: CandidateCapabilityProfile | None,
+        authoring_capability_readiness: Mapping[str, Mapping[str, Any]] | None,
     ) -> dict[str, Any]:
         value = capability.to_public_dict()
+        if capability.capability_id in READINESS_REQUIRED_CAPABILITY_IDS:
+            if capability_profile is None:
+                return value
+            assert capability_profile.profile_hash is not None
+            readiness_value = None
+            if isinstance(authoring_capability_readiness, Mapping):
+                readiness_value = authoring_capability_readiness.get(
+                    capability.capability_id
+                )
+            if readiness_value is None:
+                return value
+            readiness = require_readiness_entry(
+                capability.capability_id,
+                readiness_value,
+                expected_profile_hash=capability_profile.profile_hash,
+            )
+            value.update(
+                {
+                    "prompt_visible": True,
+                    "candidate_writable": True,
+                    "effective_now": True,
+                    "effectiveness": "effective_now",
+                    "activation_mode": "complete_replacement",
+                    "readiness": readiness,
+                }
+            )
+            value.pop("disabled_reason", None)
+            assert_public_only_prompt_payload(value)
+            return value
         if capability.capability_id not in runner_capability_schema_ids():
             return value
 
         readiness_values: Mapping[str, Any] | None = None
-        if isinstance(runner_capability_readiness, Mapping):
-            candidate_values = runner_capability_readiness.get(capability.capability_id)
+        if isinstance(authoring_capability_readiness, Mapping):
+            candidate_values = authoring_capability_readiness.get(
+                capability.capability_id
+            )
             if isinstance(candidate_values, Mapping):
                 readiness_values = candidate_values
 
@@ -289,9 +307,31 @@ def default_candidate_authoring_registry() -> CandidateAuthoringCapabilityRegist
                 candidate_writable=False,
                 effective_now=False,
                 materializer_owner="provider_candidate_package",
-                verifier_owner="static_candidate_verifier",
-                runtime_effect="reserved until complete reward replacement runtime is verified",
-                public_feedback_projection="none",
+                verifier_owner="composition_candidate_admission_policy",
+                runtime_effect=(
+                    "all weighted RewardTerm outputs replace the complete training reward"
+                ),
+                public_feedback_projection=(
+                    "task-owned complete reward activation and bounded term summaries"
+                ),
+                component_class="RewardTerm",
+                component_signature=(
+                    "RewardTerm(name: str, weight: float, "
+                    "fn: Callable[[task RewardInputs], Any], "
+                    "clip_min: float | None = None, "
+                    "clip_max: float | None = None, description: str = '')"
+                ),
+                declared_changed_component="reward_callable",
+                derived_change_components=("reward_callable",),
+                candidate_allowed_actions=(
+                    "replace the complete reward with pure RewardTerm callables",
+                    "use only fields declared by the task reward input contract",
+                    "set finite weights and optional bounded output clips",
+                ),
+                source_items=(
+                    "current_best/training_code/components.py",
+                    "api/candidate_components.py",
+                ),
                 disabled_reason="complete_reward_runtime_not_ready",
             ),
             CandidateAuthoringCapability(
@@ -430,12 +470,12 @@ def candidate_authoring_capabilities(
     *,
     capability_profile: CandidateCapabilityProfile | None = None,
     task_specific_metadata: Mapping[str, Any] | None = None,
-    runner_capability_readiness: Mapping[str, Mapping[str, Any]] | None = None,
+    authoring_capability_readiness: Mapping[str, Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
     return default_candidate_authoring_registry().to_prompt_section(
         capability_profile=capability_profile,
         task_specific_metadata=task_specific_metadata,
-        runner_capability_readiness=runner_capability_readiness,
+        authoring_capability_readiness=authoring_capability_readiness,
     )
 
 
@@ -466,6 +506,8 @@ def prompt_visible_component_classes(capabilities: Mapping[str, Any] | None = No
 
 def candidate_component_contract_from_capabilities(
     capabilities: Mapping[str, Any] | None = None,
+    *,
+    verifier_prompt_rules: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     section = _capability_section(capabilities)
     visible = _prompt_visible_capabilities(section)
@@ -493,7 +535,28 @@ def candidate_component_contract_from_capabilities(
     if any(name in classes for name in ("RewardTerm", "DiagnosticTerm")):
         allowed_names.append("RewardInputs")
         allowed_names.sort()
-    verifier_rules = static_verifier_prompt_rules()
+    if verifier_prompt_rules is None:
+        verifier_rules = static_verifier_prompt_rules()
+    elif not isinstance(verifier_prompt_rules, Mapping):
+        raise TypeError("candidate verifier prompt rules must be an object")
+    else:
+        verifier_rules = dict(verifier_prompt_rules)
+    verifier_allowed_imports = verifier_rules.get("allowed_imports")
+    if not isinstance(verifier_allowed_imports, Mapping):
+        raise ValueError("candidate verifier prompt rules omit allowed imports")
+    verifier_component_names = verifier_allowed_imports.get(
+        "true_rl_agent.candidates.components"
+    )
+    if not isinstance(verifier_component_names, list | tuple):
+        raise ValueError(
+            "candidate verifier prompt rules omit the component import allowlist"
+        )
+    missing_imports = set(allowed_names) - set(verifier_component_names)
+    if missing_imports:
+        raise ValueError(
+            "candidate verifier blocks prompt-visible component imports: "
+            + ", ".join(sorted(missing_imports))
+        )
     verifier_rules["allowed_imports"] = {
         "true_rl_agent.candidates.components": allowed_names,
     }
@@ -513,7 +576,30 @@ def candidate_component_contract_from_capabilities(
         "forbidden_surfaces": list(COMPONENT_CONTRACT_FORBIDDEN_SURFACES),
         "static_verifier_rules": verifier_rules,
     }
-    if "RewardTerm" in classes:
+    complete_replacement = any(
+        capability.get("capability_id")
+        == COMPLETE_REWARD_PROGRAM_CAPABILITY_ID
+        for capability in visible
+    )
+    if complete_replacement:
+        contract["complete_reward_runtime_semantics"] = {
+            "composition_order": [
+                "raw_term = fn(task_reward_inputs)",
+                "guarded_term = clip(raw_term, clip_min, clip_max)",
+                "weighted_term = weight * guarded_term",
+                "training_reward = sum(all weighted terms)",
+            ],
+            "activation_mode": "complete_replacement",
+            "base_reward_included": False,
+            "reference_reward_called": False,
+            "optimization_direction": (
+                "Training maximizes the sum of candidate-defined weighted terms."
+            ),
+            "source_requirement": (
+                "Return one complete training_code/components.py program."
+            ),
+        }
+    elif "RewardTerm" in classes:
         contract["reward_term_runtime_semantics"] = {
             "composition_order": [
                 "raw_output = fn(reward_inputs)",
@@ -557,7 +643,6 @@ def control_effectiveness_contract_from_capabilities(
             "allowed_keys": _allowed_schedule_keys(section),
             "effective_keys": _effective_schedule_keys(section),
         },
-        "runner_owned_extensions": dict(RUNNER_OWNED_EXTENSIONS),
     }
     assert_public_only_prompt_payload(contract)
     return contract

@@ -10,6 +10,7 @@ from typing import Any, Mapping
 from true_rl_agent.evaluation.public_result import PublicEvalResult
 from true_rl_agent.runner.base import Runner, RunnerExecutionError, TrainJobResult
 from true_rl_agent.runner.checkpoint import seal_checkpoint
+from true_rl_agent.runner.initial_policy import InitialPolicyStatePairing
 from true_rl_agent.runner.specs import (
     BaselineEvalJobSpec,
     CheckpointRef,
@@ -50,6 +51,19 @@ class DryRunAuditRunner(Runner):
     def run_train(self, train_spec: TrainJobSpec) -> TrainJobResult:
         train_spec.training_start_checkpoint()
         metadata = self._metadata_for(train_spec.subject.subject_id)
+        pairing = (
+            InitialPolicyStatePairing(
+                expected_initial_policy_state_hash=(
+                    train_spec.expected_initial_policy_state_hash
+                ),
+                actual_initial_policy_state_hash=(
+                    train_spec.expected_initial_policy_state_hash
+                ),
+                match=True,
+            )
+            if train_spec.expected_initial_policy_state_hash is not None
+            else None
+        )
         raw_checkpoint = CheckpointRef(
             uri=f"artifact://{train_spec.job_id}/best.pt",
             checksum=(
@@ -67,6 +81,12 @@ class DryRunAuditRunner(Runner):
                 "capability_profile_hash": (
                     train_spec.training_binding.capability_profile_hash
                 ),
+                "execution_device": train_spec.execution_device,
+                **(
+                    {"initial_policy_state_pairing": pairing.to_public_dict()}
+                    if pairing is not None
+                    else {}
+                ),
             },
         )
         return TrainJobResult(
@@ -78,7 +98,9 @@ class DryRunAuditRunner(Runner):
             capability_profile_hash=(
                 train_spec.training_binding.capability_profile_hash
             ),
+            execution_device=train_spec.execution_device,
             checkpoint=seal_checkpoint(raw_checkpoint, sealed_uri=f"artifact://{train_spec.job_id}/sealed/best.pt"),
+            initial_policy_state_pairing=pairing,
             summary=dict(self.train_summary_builder(train_spec, metadata)),
         )
 

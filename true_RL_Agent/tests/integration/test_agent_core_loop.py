@@ -26,7 +26,11 @@ from true_rl_agent.agent_core.context import (
     build_public_context,
     sanitize_public_context,
 )
-from true_rl_agent.agent_core.ledger import append_ledger_record, load_ledger
+from true_rl_agent.agent_core.ledger import (
+    NON_PROVIDER_AUTHORING_MODE,
+    append_ledger_record,
+    load_ledger,
+)
 from true_rl_agent.agent_core.loop import AgentLoop, LoopInputs
 from true_rl_agent.agent_core.round import RoundInputs, run_candidate_round
 from true_rl_agent.agent_core.session import AgentSession
@@ -100,7 +104,7 @@ class AgentCoreLoopTests(unittest.TestCase):
                     task_plugin=task,
                     backend_adapter=backend,
                     runner=runner,
-                    verifier=FakeVerifier(),
+                    candidate_admission_policy=FakeVerifier(),
                     provider=provider,
                     policy_initialization=PolicyInitialization.random(),
                     ledger_path=ledger_path,
@@ -155,7 +159,7 @@ class AgentCoreLoopTests(unittest.TestCase):
                         task_plugin=FakeTaskPlugin(),
                         backend_adapter=FakeBackendAdapter(),
                         runner=FakeRunner(),
-                        verifier=FakeVerifier(),
+                        candidate_admission_policy=FakeVerifier(),
                         provider=_AuthoringCapableProvider(),
                         policy_initialization=PolicyInitialization.random(),
                         ledger_path=output_dir / "ledger.jsonl",
@@ -183,12 +187,13 @@ class AgentCoreLoopTests(unittest.TestCase):
                     task_plugin=task,
                     backend_adapter=backend,
                     runner=runner,
-                    verifier=FakeVerifier(),
+                    candidate_admission_policy=FakeVerifier(),
                     candidate=self._candidate(
                         "candidate-valid", "reward_callable", 0.25
                     ),
                     policy_initialization=PolicyInitialization.random(),
                     ledger_path=ledger_path,
+                    authoring_mode=NON_PROVIDER_AUTHORING_MODE,
                     public_context={"previous_rounds": 0, "public_only": True},
                     current_best_eval_stats=genesis.initial_current_best,
                     session_genesis_hash=genesis.session_genesis_hash,
@@ -207,7 +212,7 @@ class AgentCoreLoopTests(unittest.TestCase):
                     task_plugin=task,
                     backend_adapter=backend,
                     runner=runner,
-                    verifier=FakeVerifier(),
+                    candidate_admission_policy=FakeVerifier(),
                     provider=provider,
                     policy_initialization=PolicyInitialization.random(),
                     ledger_path=ledger_path,
@@ -266,10 +271,11 @@ class AgentCoreLoopTests(unittest.TestCase):
                     task_plugin=FakeTaskPlugin(),
                     backend_adapter=FakeBackendAdapter(),
                     runner=NoActivationRunner(),
-                    verifier=FakeVerifier(),
+                    candidate_admission_policy=FakeVerifier(),
                     candidate=self._candidate("activation-missing", "reward_callable", 0.95),
                     policy_initialization=PolicyInitialization.random(),
                     ledger_path=ledger_path,
+                    authoring_mode=NON_PROVIDER_AUTHORING_MODE,
                     public_context={"previous_rounds": 0, "public_only": True, "private_seed": 999},
                     **fake_round_session_fields(),
                 )

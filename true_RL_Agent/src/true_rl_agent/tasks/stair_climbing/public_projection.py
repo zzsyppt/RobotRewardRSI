@@ -3,29 +3,46 @@
 from __future__ import annotations
 
 import math
+import statistics
 from typing import Any, Mapping
 
-from true_rl_agent.evaluation.public_result import PublicEvalResult
-from true_rl_agent.evaluation.sealed_validation import (
-    CANDIDATE_CONTAMINATION_FIELDS,
+from true_rl_agent.evaluation.acceptance_protocol import AcceptanceProtocol
+from true_rl_agent.evaluation.binding import is_sha256_digest
+from true_rl_agent.evaluation.public_metric_contract import (
+    RUNNER_OWNED_PUBLIC_EVAL_METRIC_KEYS,
     SEALED_VALIDATION_EVIDENCE_KEY,
 )
+from true_rl_agent.evaluation.public_result import PublicEvalResult
 from true_rl_agent.prompting.capabilities import (
     COMPLETE_REWARD_PROGRAM_CAPABILITY_ID,
 )
 from true_rl_agent.runner.budget import build_budget_accounting
 from true_rl_agent.tasks.stair_climbing.config import StairClimbingTaskConfig
 from true_rl_agent.tasks.stair_climbing.evaluation_contract import (
+    evaluate_stair_sealed_score_gate,
     validate_stair_split_summary,
+)
+from true_rl_agent.tasks.stair_climbing.evaluation_profile import (
+    StairEvaluationProfile,
+)
+from true_rl_agent.tasks.stair_climbing.generalization_contract import (
+    validate_stair_generalization_summary,
 )
 from true_rl_agent.tasks.stair_climbing.runtime_profile import (
     STAIR_REWARD_ACTIVATION_PREFLIGHT_SCHEMA_VERSION,
 )
+from true_rl_agent.tasks.stair_climbing.training_distribution import (
+    build_stair_execution_source_preflight_summary,
+    stair_training_distribution_upstream_source_evidence,
+)
 
 _TASK_DERIVED_INPUT_KEYS = {
+    "environment_source_preflight",
     "stair_evaluation",
     "public_dev",
     "public_accept",
+    "acceptance_objective",
+    "generalization_public_dev",
     "prompt_feedback",
     "accept_evidence_gate",
     "budget_accounting",
@@ -33,20 +50,10 @@ _TASK_DERIVED_INPUT_KEYS = {
     "stair_behavior_gate",
     "acceptance",
 }
-_RUNNER_PASSTHROUGH_KEYS = {
-    "evaluation_binding",
-    "evaluation_subject",
-    "subject_manifest_hash",
-    "program_source_checksum",
-    "training_binding_hash",
-    "capability_profile_hash",
-    "checkpoint_safety_status",
-    "checkpoint_safety_report",
-    "evidence_manifest",
-    SEALED_VALIDATION_EVIDENCE_KEY,
-    "sealed_validation_gate",
-    *CANDIDATE_CONTAMINATION_FIELDS,
-}
+
+_PUBLIC_DEV_OBJECTIVE_SCORE_SOURCE = (
+    "generalization_public_dev.score_stats.mean"
+)
 
 
 def project_stair_public_result(
@@ -65,12 +72,21 @@ def project_stair_public_result(
         raise TypeError("stair public projection train_summary must be an object")
 
     incoming = dict(public_result.metrics)
-    unsupported = set(incoming) - _TASK_DERIVED_INPUT_KEYS - _RUNNER_PASSTHROUGH_KEYS
+    unsupported = (
+        set(incoming)
+        - _TASK_DERIVED_INPUT_KEYS
+        - RUNNER_OWNED_PUBLIC_EVAL_METRIC_KEYS
+    )
     if unsupported:
         raise ValueError(
             "stair eval metrics contain unsupported field(s): "
             + ", ".join(sorted(unsupported))
         )
+    source_preflight = _validate_environment_source_preflight_pair(
+        config,
+        train_summary=train_summary,
+        eval_preflight=incoming.get("environment_source_preflight"),
+    )
     raw_splits = incoming.get("stair_evaluation")
     if not isinstance(raw_splits, Mapping) or set(raw_splits) != {
         "public_dev",
@@ -79,17 +95,65 @@ def project_stair_public_result(
         raise ValueError("stair evaluation must contain exactly the two public splits")
 
     evaluation_protocol = config.evaluation_protocol()
+    if config.evaluation_profile_config is None:
+        raise ValueError("production Stair projection requires evaluation profile")
+    profile = config.evaluation_profile
+    for split_name in ("public_dev", "public_accept"):
+        split_payload = raw_splits.get(split_name)
+        if not isinstance(split_payload, Mapping) or set(split_payload) != {
+            "anchor",
+            "generalization",
+        }:
+            raise ValueError(
+                f"stair {split_name} must contain anchor and generalization summaries"
+            )
+
+    public_dev_raw = _mapping(raw_splits["public_dev"], "stair public_dev pair")
+    public_accept_raw = _mapping(
+        raw_splits["public_accept"],
+        "stair public_accept pair",
+    )
     public_dev = validate_stair_split_summary(
         config.protocol_v1,
+        semantics=config.evaluation_semantics,
         evaluation_protocol=evaluation_protocol,
         split="public_dev",
-        summary=_mapping(raw_splits["public_dev"], "stair public_dev summary"),
+        summary=_mapping(public_dev_raw["anchor"], "stair public_dev anchor"),
     )
     public_accept = validate_stair_split_summary(
         config.protocol_v1,
+        semantics=config.evaluation_semantics,
         evaluation_protocol=evaluation_protocol,
         split="public_accept",
-        summary=_mapping(raw_splits["public_accept"], "stair public_accept summary"),
+        summary=_mapping(
+            public_accept_raw["anchor"],
+            "stair public_accept anchor",
+        ),
+    )
+    objective_dev = validate_stair_generalization_summary(
+        profile=profile,
+        semantics=config.evaluation_semantics,
+        evaluation_protocol=evaluation_protocol,
+        split="public_dev",
+        summary=_mapping(
+            public_dev_raw["generalization"],
+            "stair public_dev generalization",
+        ),
+    )
+    objective_accept = validate_stair_generalization_summary(
+        profile=profile,
+        semantics=config.evaluation_semantics,
+        evaluation_protocol=evaluation_protocol,
+        split="public_accept",
+        summary=_mapping(
+            public_accept_raw["generalization"],
+            "stair public_accept generalization",
+        ),
+    )
+    _validate_sealed_score_verdict(
+        config,
+        incoming.get(SEALED_VALIDATION_EVIDENCE_KEY),
+        public_mean=float(objective_accept["score_stats"]["mean"]),
     )
     canonical_score = float(public_accept["score_stats"]["mean"])
     if not math.isclose(
@@ -101,30 +165,37 @@ def project_stair_public_result(
         raise ValueError("stair public score differs from public_accept macro mean")
 
     budget_gate = _budget_accounting_gate(config, train_summary)
-    runtime_gate = _runtime_activation_gate(config, train_summary)
+    runtime_gate = build_stair_runtime_activation_gate(config, train_summary)
     behavior_gate = {
         "status": "pass",
         "reason": "task_recorder_public_split_evidence_complete",
         "source": "runner_owned_stair_transition_recorder",
         "validated_splits": ["public_dev", "public_accept"],
         "complete_seven_bin_coverage": True,
+        "complete_height_tread_coverage": True,
         "classification_warning_count": 0,
     }
     accept_gate = {
         "status": "pass",
         "reason": "sufficient_recomputed_public_accept_evidence",
-        "observed_count": public_accept["score_stats"]["count"],
-        "required_count": config.protocol_v1.acceptance_protocol.min_score_count,
-        "statistics_unit": "one_seven_bin_macro_score_per_seed",
+        "observed_count": objective_accept["score_stats"]["count"],
+        "required_count": config.acceptance_protocol.min_score_count,
+        "statistics_unit": "one_equal_height_tread_cell_macro_score_per_seed",
     }
-    acceptance_protocol = config.protocol_v1.acceptance_protocol
+    acceptance_protocol = config.acceptance_protocol
     required_gates = tuple(
         config.protocol_v1.to_dict()["acceptance"]["required_pass_gates"]
     )
     acceptance = {
         "score_source": acceptance_protocol.score_source,
         "public_score_binding": acceptance_protocol.public_score_binding,
-        "score_stats": dict(public_accept["score_stats"]),
+        "score_stats": dict(objective_accept["score_stats"]),
+        "guard_score_source": acceptance_protocol.guard_score_source,
+        "guard_score_stats": dict(public_accept["score_stats"]),
+        "guard_absolute_accept_floor": (
+            acceptance_protocol.guard_absolute_accept_floor
+        ),
+        "guard_max_regression": acceptance_protocol.guard_max_regression,
         "min_score_count": acceptance_protocol.min_score_count,
         "missing_required_score": False,
         "required_pass_gates": list(required_gates),
@@ -132,17 +203,38 @@ def project_stair_public_result(
         "absolute_accept_floor": acceptance_protocol.absolute_accept_floor,
         "min_delta": acceptance_protocol.min_delta,
     }
+    if acceptance_protocol.requires_paired_score_samples:
+        acceptance["score_samples"] = list(objective_accept["seed_macro_scores"])
+    if acceptance_protocol.requires_paired_guard_score_samples:
+        acceptance.update(
+            {
+                "guard_score_samples": list(public_accept["seed_macro_scores"]),
+                "guard_regression_margin": (
+                    acceptance_protocol.guard_regression_margin
+                ),
+                "max_public_to_sealed_score_drop": (
+                    acceptance_protocol.max_public_to_sealed_score_drop
+                ),
+            }
+        )
 
     metrics = {
         key: incoming[key]
-        for key in _RUNNER_PASSTHROUGH_KEYS
+        for key in RUNNER_OWNED_PUBLIC_EVAL_METRIC_KEYS
         if key in incoming
     }
     metrics.update(
         {
+            "environment_source_preflight": source_preflight,
             "public_dev": public_dev,
             "public_accept": public_accept,
-            "prompt_feedback": _prompt_feedback(public_dev),
+            "generalization_public_dev": objective_dev,
+            "acceptance_objective": objective_accept,
+            "prompt_feedback": build_stair_prompt_feedback(
+                public_dev,
+                generalization_public_dev=objective_dev,
+                evaluation_profile=profile,
+            ),
             "accept_evidence_gate": accept_gate,
             "budget_accounting": budget_gate,
             "runtime_activation_gate": runtime_gate,
@@ -155,6 +247,61 @@ def project_stair_public_result(
         public_score=canonical_score,
         metrics=metrics,
     )
+
+
+def _validate_sealed_score_verdict(
+    config: StairClimbingTaskConfig,
+    evidence: Any,
+    *,
+    public_mean: float,
+) -> None:
+    if evidence is None:
+        return
+    if not isinstance(evidence, Mapping):
+        raise ValueError("Stair sealed validation evidence must be an object")
+    if not is_sha256_digest(evidence.get("task_evidence_hash")):
+        raise ValueError(
+            "Stair sealed validation evidence requires a canonical task evidence hash"
+        )
+    score_stats = evidence.get("score_stats")
+    if not isinstance(score_stats, Mapping):
+        raise ValueError("Stair sealed validation score_stats must be an object")
+    expected_passed, expected_reason = evaluate_stair_sealed_score_gate(
+        sealed_mean=score_stats.get("mean"),
+        public_mean=public_mean,
+        acceptance_protocol=config.acceptance_protocol,
+        evaluation_profile=config.evaluation_profile,
+    )
+    if evidence.get("status") != ("pass" if expected_passed else "fail"):
+        raise ValueError("Stair sealed validation status differs from task score gate")
+    if evidence.get("reason") != expected_reason:
+        raise ValueError("Stair sealed validation reason differs from task score gate")
+
+
+def _validate_environment_source_preflight_pair(
+    config: StairClimbingTaskConfig,
+    *,
+    train_summary: Mapping[str, Any],
+    eval_preflight: Any,
+) -> dict[str, str]:
+    contract = config.protocol_v2.runner_owned_training_distribution
+    if contract is None:
+        raise ValueError("Stair Final V2 training distribution contract is missing")
+    upstream_evidence = stair_training_distribution_upstream_source_evidence(contract)
+    expected = build_stair_execution_source_preflight_summary(
+        task_protocol_hash=config.task_protocol_hash,
+        source_manifest_hash=str(upstream_evidence["source_manifest_hash"]),
+    )
+    observed = {
+        "train": train_summary.get("environment_source_preflight"),
+        "eval": eval_preflight,
+    }
+    for stage, value in observed.items():
+        if not isinstance(value, Mapping) or dict(value) != expected:
+            raise ValueError(
+                f"Stair {stage} environment source preflight does not match Final V2"
+            )
+    return expected
 
 
 def _budget_accounting_gate(
@@ -181,10 +328,22 @@ def _budget_accounting_gate(
     return dict(expected)
 
 
-def _runtime_activation_gate(
+def build_stair_runtime_activation_gate(
     config: StairClimbingTaskConfig,
     train_summary: Mapping[str, Any],
+    *,
+    expected_control_calls: int | None = None,
 ) -> dict[str, Any]:
+    if expected_control_calls is None:
+        expected_control_calls = (
+            config.train_steps_per_iteration * config.train_max_iterations
+        )
+    elif (
+        isinstance(expected_control_calls, bool)
+        or not isinstance(expected_control_calls, int)
+        or expected_control_calls <= 0
+    ):
+        raise ValueError("stair expected_control_calls must be a positive integer")
     expected_status = config.train_runtime_profile().to_public_dict()[
         "complete_reward_runtime"
     ]
@@ -202,9 +361,6 @@ def _runtime_activation_gate(
     program_subject = program.get("subject") if isinstance(program, Mapping) else None
     component_records = runtime.get("component_activation_records")
     preflight = runtime.get("activation_preflight")
-    expected_control_calls = (
-        config.train_steps_per_iteration * config.train_max_iterations
-    )
     preflight_calls = (
         preflight.get("real_transition_dispatcher_calls")
         if isinstance(preflight, Mapping)
@@ -306,34 +462,233 @@ def _runtime_activation_gate(
     }
 
 
-def _prompt_feedback(public_dev: Mapping[str, Any]) -> dict[str, Any]:
+def build_stair_prompt_feedback(
+    public_dev: Mapping[str, Any],
+    *,
+    generalization_public_dev: Mapping[str, Any] | None = None,
+    evaluation_profile: StairEvaluationProfile | None = None,
+) -> dict[str, Any]:
+    """Build the bounded prompt projection from one validated public-dev split."""
+
+    feedback_source = (
+        generalization_public_dev
+        if generalization_public_dev is not None
+        else public_dev
+    )
     failures = _mapping(
-        public_dev.get("primary_failure_breakdown"),
+        feedback_source.get("primary_failure_breakdown"),
         "stair public failure breakdown",
     )
+    failure_rates = {
+        str(reason): float(rate) for reason, rate in failures.items()
+    }
+    diagnostic_rates = dict(
+        _mapping(
+            feedback_source.get("diagnostic_flag_rates"),
+            "stair public diagnostic rates",
+        )
+    )
+    failure_rate = min(1.0, max(0.0, sum(failure_rates.values())))
+    climb_completion_rate = max(0.0, 1.0 - failure_rate)
+    first_valid_top_arrival_rate = float(
+        diagnostic_rates.get("first_valid_top_arrival_achieved", 0.0)
+    )
     dominant_reason, dominant_rate = max(
-        failures.items(),
+        failure_rates.items(),
         key=lambda item: (float(item[1]), str(item[0])),
     )
     return {
-        "schema_version": "true_rl_agent.task.stair_climbing.prompt_feedback.v1",
+        "schema_version": "true_rl_agent.task.stair_climbing.prompt_feedback.v9",
         "source_split": "public_dev",
-        "dominant_primary_failure": {
+        "mean_success_rate_by_bin": _mean_success_rate_by_bin(public_dev),
+        "generalization_summary": (
+            {
+                "public_dev_objective_score": float(
+                    generalization_public_dev["score_stats"]["mean"]
+                ),
+                "success_rate_by_height": dict(
+                    generalization_public_dev[
+                        "aggregate_success_rate_by_height"
+                    ]
+                ),
+                "success_rate_by_tread": dict(
+                    generalization_public_dev[
+                        "aggregate_success_rate_by_tread"
+                    ]
+                ),
+                "difficulty_diagnostics": dict(
+                    generalization_public_dev["difficulty_diagnostics"]
+                ),
+                **_generalization_count_grid_projection(
+                    evaluation_profile,
+                    generalization_public_dev,
+                ),
+            }
+            if generalization_public_dev is not None
+            else {"status": "not_available"}
+        ),
+        "primary_failure_breakdown": failure_rates,
+        "dominant_failure": {
             "reason": dominant_reason,
             "rate": float(dominant_rate),
         },
-        "diagnostic_flag_rates": dict(
-            _mapping(
-                public_dev.get("diagnostic_flag_rates"),
-                "stair public diagnostic rates",
-            )
-        ),
+        "diagnostic_flag_rates": diagnostic_rates,
+        "stable_success_summary": {
+            "stable_top_success_rate": climb_completion_rate,
+            "valid_top_arrival_rate": first_valid_top_arrival_rate,
+            "top_arrival_without_stable_success_rate": max(
+                0.0,
+                first_valid_top_arrival_rate - climb_completion_rate,
+            ),
+        },
         "progress_summary": dict(
             _mapping(
-                public_dev.get("progress_summary"),
+                feedback_source.get("progress_summary"),
                 "stair public progress summary",
             )
         ),
+    }
+
+
+def build_stair_prompt_score_semantics(
+    acceptance_protocol: AcceptanceProtocol,
+) -> dict[str, Any]:
+    """Name the three Stair score roles exposed to candidate authoring."""
+
+    if not isinstance(acceptance_protocol, AcceptanceProtocol):
+        raise TypeError(
+            "stair prompt score semantics requires an AcceptanceProtocol"
+        )
+    sources = {
+        "objective_score": acceptance_protocol.score_source,
+        "public_dev_objective_score": _PUBLIC_DEV_OBJECTIVE_SCORE_SOURCE,
+    }
+    if acceptance_protocol.uses_guard_score:
+        sources["guard_score"] = str(acceptance_protocol.guard_score_source)
+    return {
+        "score_sources_by_role": sources,
+        "diagnostic_only_roles": ["public_dev_objective_score"],
+    }
+
+
+def _generalization_count_grid_projection(
+    profile: StairEvaluationProfile | None,
+    summary: Mapping[str, Any],
+) -> dict[str, Any]:
+    if profile is None:
+        raise ValueError(
+            "Stair generalization prompt feedback requires an evaluation profile"
+        )
+    success_rates = _mapping(
+        summary.get("aggregate_success_rate_by_cell"),
+        "stair aggregate success rates by cell",
+    )
+    outcomes_by_cell = _mapping(
+        summary.get("primary_outcome_counts_by_cell"),
+        "stair primary outcomes by cell",
+    )
+    expected_cell_ids = {cell.cell_id for cell in profile.cells}
+    if set(success_rates) != expected_cell_ids or set(outcomes_by_cell) != expected_cell_ids:
+        raise ValueError("Stair generalization prompt cell coverage is incomplete")
+    cell_by_coordinates = {
+        (cell.bin_id, cell.tread_depth_m): cell for cell in profile.cells
+    }
+    denominator = (
+        int(summary["seed_count"]) * profile.episodes_per_seed_per_cell
+    )
+    first_counts = _mapping(
+        outcomes_by_cell[profile.cells[0].cell_id],
+        "stair primary outcome counts",
+    )
+    reasons = tuple(str(reason) for reason in first_counts)
+    if not reasons:
+        raise ValueError("Stair generalization prompt outcome reasons are empty")
+    failure_reasons = tuple(reason for reason in reasons if reason != "success")
+    if len(failure_reasons) != len(reasons) - 1:
+        raise ValueError("Stair generalization prompt outcomes require one success reason")
+
+    canonical_counts: dict[str, dict[str, int]] = {}
+    success_counts: dict[str, int] = {}
+    for cell_id in expected_cell_ids:
+        raw_counts = _mapping(
+            outcomes_by_cell[cell_id],
+            f"stair primary outcome counts {cell_id}",
+        )
+        if set(raw_counts) != set(reasons):
+            raise ValueError("Stair generalization prompt outcome reasons mismatch")
+        cell_counts: dict[str, int] = {}
+        for reason in reasons:
+            count = raw_counts[reason]
+            if isinstance(count, bool) or not isinstance(count, int) or count < 0:
+                raise ValueError("Stair generalization prompt outcome count is invalid")
+            cell_counts[reason] = count
+        if sum(cell_counts.values()) != denominator:
+            raise ValueError("Stair generalization prompt outcome total mismatch")
+        rate_count = round(float(success_rates[cell_id]) * denominator)
+        if rate_count != cell_counts.get("success"):
+            raise ValueError("Stair generalization prompt success count mismatch")
+        canonical_counts[cell_id] = cell_counts
+        success_counts[cell_id] = rate_count
+
+    def grid_for(values: Mapping[str, int]) -> list[list[int]]:
+        return [
+            [
+                values[cell_by_coordinates[(anchor.bin_id, tread)].cell_id]
+                for tread in profile.tread_depths_m
+            ]
+            for anchor in profile.anchor_cells
+        ]
+
+    return {
+        "grid_axes": {
+            "layout": "height_rows_x_tread_columns",
+            "height_bin_ids": [cell.bin_id for cell in profile.anchor_cells],
+            "tread_depths_m": list(profile.tread_depths_m),
+            "value_encoding": "episode_count",
+            "count_denominator": denominator,
+        },
+        "success_count_grid": grid_for(success_counts),
+        "primary_failure_reasons": list(failure_reasons),
+        "zero_count_grids_omitted": True,
+        "primary_failure_count_grids": {
+            reason: grid_for(
+                {
+                    cell_id: counts[reason]
+                    for cell_id, counts in canonical_counts.items()
+                }
+            )
+            for reason in failure_reasons
+            if any(counts[reason] > 0 for counts in canonical_counts.values())
+        },
+    }
+
+
+def _mean_success_rate_by_bin(
+    public_dev: Mapping[str, Any],
+) -> dict[str, float]:
+    raw_seeds = public_dev.get("seed_summaries")
+    if not isinstance(raw_seeds, list | tuple) or not raw_seeds:
+        raise ValueError("stair public seed summaries must be a non-empty list")
+    rates_by_seed: list[dict[str, float]] = []
+    expected_bins: set[str] | None = None
+    for index, raw_seed in enumerate(raw_seeds):
+        seed = _mapping(raw_seed, f"stair public seed summary {index}")
+        raw_rates = _mapping(
+            seed.get("bin_success_rates"),
+            f"stair public seed summary {index} bin success rates",
+        )
+        rates = {str(bin_id): float(rate) for bin_id, rate in raw_rates.items()}
+        observed_bins = set(rates)
+        if expected_bins is None:
+            expected_bins = observed_bins
+        elif observed_bins != expected_bins:
+            raise ValueError("stair public seed summaries disagree on bin coverage")
+        rates_by_seed.append(rates)
+    if not expected_bins:
+        raise ValueError("stair public seed summaries contain no bins")
+    return {
+        bin_id: statistics.fmean(seed[bin_id] for seed in rates_by_seed)
+        for bin_id in sorted(expected_bins)
     }
 
 
@@ -343,4 +698,9 @@ def _mapping(value: Any, field_name: str) -> Mapping[str, Any]:
     return value
 
 
-__all__ = ["project_stair_public_result"]
+__all__ = [
+    "build_stair_prompt_feedback",
+    "build_stair_prompt_score_semantics",
+    "build_stair_runtime_activation_gate",
+    "project_stair_public_result",
+]

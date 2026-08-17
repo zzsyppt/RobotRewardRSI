@@ -1,0 +1,687 @@
+"""Task-owned public-dev screening for two Stair sibling trials."""
+
+from __future__ import annotations
+
+import math
+import statistics
+from dataclasses import dataclass
+from typing import Any, Mapping, Sequence
+
+from true_rl_agent.evaluation.binding import (
+    canonical_json_hash,
+    require_sha256_checksum,
+    require_sha256_digest,
+)
+from true_rl_agent.evaluation.phases import EvaluationPhase, EvaluationPhaseResult
+from true_rl_agent.evaluation.subject import ExperimentSubject
+from true_rl_agent.tasks.stair_climbing.config import (
+    STAIR_TASK_ID,
+    StairClimbingTaskConfig,
+)
+from true_rl_agent.tasks.stair_climbing.evaluation_contract import (
+    validate_stair_split_summary,
+)
+from true_rl_agent.tasks.stair_climbing.generalization_contract import (
+    validate_stair_generalization_summary,
+)
+from true_rl_agent.tasks.stair_climbing.phase_contract import (
+    STAIR_PHASE_EVIDENCE_SCHEMA_VERSION,
+)
+from true_rl_agent.tasks.stair_climbing.seed_policy import (
+    STAIR_FORMAL_EVAL_NAMESPACE,
+)
+
+
+STAIR_SCREEN_EVIDENCE_SCHEMA_VERSION = (
+    "true_rl_agent.task.stair_climbing.public_dev_screen_evidence.v2"
+)
+STAIR_SELECTION_CONTRACT_SCHEMA_VERSION = (
+    "true_rl_agent.task.stair_climbing.selection_contract.v3"
+)
+STAIR_SELECTION_RESULT_SCHEMA_VERSION = (
+    "true_rl_agent.task.stair_climbing.selection_result.v3"
+)
+
+
+@dataclass(frozen=True)
+class StairPublicDevScreenEvidence:
+    """Validated public-dev evidence with no acceptance authority."""
+
+    trial_id: str
+    phase_result_hash: str
+    evaluation_plan_hash: str
+    task_id: str
+    subject: ExperimentSubject
+    checkpoint_hash: str
+    eval_protocol_hash: str
+    evaluation_binding_hash: str
+    training_binding_hash: str
+    capability_profile_hash: str
+    execution_environment_hash: str
+    execution_device: str
+    resource_binding_hash: str | None
+    anchor_score_stats: Mapping[str, Any]
+    anchor_seed_macro_scores: tuple[float, ...]
+    generalization_score_stats: Mapping[str, Any]
+    generalization_seed_macro_scores: tuple[float, ...]
+
+    def __post_init__(self) -> None:
+        for field_name in ("trial_id", "task_id", "execution_device"):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value:
+                raise ValueError(f"Stair screen {field_name} is required")
+        if not isinstance(self.subject, ExperimentSubject):
+            raise TypeError("Stair screen subject is invalid")
+        require_sha256_checksum(self.checkpoint_hash, "Stair screen checkpoint_hash")
+        for field_name in (
+            "phase_result_hash",
+            "evaluation_plan_hash",
+            "eval_protocol_hash",
+            "evaluation_binding_hash",
+            "training_binding_hash",
+            "capability_profile_hash",
+            "execution_environment_hash",
+        ):
+            require_sha256_digest(getattr(self, field_name), f"Stair screen {field_name}")
+        if self.resource_binding_hash is not None:
+            require_sha256_digest(
+                self.resource_binding_hash,
+                "Stair screen resource_binding_hash",
+            )
+        for field_name in ("anchor_score_stats", "generalization_score_stats"):
+            if not isinstance(getattr(self, field_name), Mapping):
+                raise TypeError(f"Stair screen {field_name} must be an object")
+        for field_name in (
+            "anchor_seed_macro_scores",
+            "generalization_seed_macro_scores",
+        ):
+            scores = getattr(self, field_name)
+            if not scores:
+                raise ValueError(f"Stair screen {field_name} cannot be empty")
+            for score in scores:
+                _finite_score(score, f"Stair screen {field_name}")
+
+    @property
+    def evidence_hash(self) -> str:
+        return canonical_json_hash(self.to_selector_dict())
+
+    @property
+    def comparison_domain(self) -> tuple[str, ...]:
+        return (
+            self.task_id,
+            self.eval_protocol_hash,
+            self.evaluation_binding_hash,
+            self.training_binding_hash,
+            self.capability_profile_hash,
+            self.execution_environment_hash,
+        )
+
+    def to_selector_dict(self) -> dict[str, Any]:
+        """Serialize selector evidence; this is not a prompt-memory projection."""
+
+        return {
+            "schema_version": STAIR_SCREEN_EVIDENCE_SCHEMA_VERSION,
+            "trial_id": self.trial_id,
+            "phase_result_hash": self.phase_result_hash,
+            "evaluation_plan_hash": self.evaluation_plan_hash,
+            "task_id": self.task_id,
+            "subject": self.subject.to_public_dict(),
+            "checkpoint_hash": self.checkpoint_hash,
+            "eval_protocol_hash": self.eval_protocol_hash,
+            "evaluation_binding_hash": self.evaluation_binding_hash,
+            "training_binding_hash": self.training_binding_hash,
+            "capability_profile_hash": self.capability_profile_hash,
+            "execution_environment_hash": self.execution_environment_hash,
+            "execution_device": self.execution_device,
+            "resource_binding_hash": self.resource_binding_hash,
+            "anchor_score_stats": dict(self.anchor_score_stats),
+            "anchor_seed_macro_scores": list(self.anchor_seed_macro_scores),
+            "generalization_score_stats": dict(self.generalization_score_stats),
+            "generalization_seed_macro_scores": list(
+                self.generalization_seed_macro_scores
+            ),
+            "acceptance_authority": False,
+        }
+
+    @classmethod
+    def from_mapping(cls, value: Any) -> "StairPublicDevScreenEvidence":
+        expected_fields = {
+            "schema_version",
+            "trial_id",
+            "phase_result_hash",
+            "evaluation_plan_hash",
+            "task_id",
+            "subject",
+            "checkpoint_hash",
+            "eval_protocol_hash",
+            "evaluation_binding_hash",
+            "training_binding_hash",
+            "capability_profile_hash",
+            "execution_environment_hash",
+            "execution_device",
+            "resource_binding_hash",
+            "anchor_score_stats",
+            "anchor_seed_macro_scores",
+            "generalization_score_stats",
+            "generalization_seed_macro_scores",
+            "acceptance_authority",
+        }
+        if not isinstance(value, Mapping) or set(value) != expected_fields:
+            raise ValueError("Stair screen evidence fields mismatch")
+        if (
+            value.get("schema_version") != STAIR_SCREEN_EVIDENCE_SCHEMA_VERSION
+            or value.get("acceptance_authority") is not False
+        ):
+            raise ValueError("Stair screen evidence contract mismatch")
+        anchor_scores = value.get("anchor_seed_macro_scores")
+        generalization_scores = value.get("generalization_seed_macro_scores")
+        if not isinstance(anchor_scores, list) or not isinstance(
+            generalization_scores, list
+        ):
+            raise ValueError("Stair screen seed scores must be lists")
+        anchor_stats = value.get("anchor_score_stats")
+        generalization_stats = value.get("generalization_score_stats")
+        if not isinstance(anchor_stats, Mapping) or not isinstance(
+            generalization_stats, Mapping
+        ):
+            raise ValueError("Stair screen score stats must be objects")
+        return cls(
+            trial_id=value.get("trial_id"),
+            phase_result_hash=value.get("phase_result_hash"),
+            evaluation_plan_hash=value.get("evaluation_plan_hash"),
+            task_id=value.get("task_id"),
+            subject=ExperimentSubject.from_mapping(value.get("subject")),
+            checkpoint_hash=value.get("checkpoint_hash"),
+            eval_protocol_hash=value.get("eval_protocol_hash"),
+            evaluation_binding_hash=value.get("evaluation_binding_hash"),
+            training_binding_hash=value.get("training_binding_hash"),
+            capability_profile_hash=value.get("capability_profile_hash"),
+            execution_environment_hash=value.get("execution_environment_hash"),
+            execution_device=value.get("execution_device"),
+            resource_binding_hash=value.get("resource_binding_hash"),
+            anchor_score_stats=dict(anchor_stats),
+            anchor_seed_macro_scores=tuple(anchor_scores),
+            generalization_score_stats=dict(generalization_stats),
+            generalization_seed_macro_scores=tuple(generalization_scores),
+        )
+
+
+@dataclass(frozen=True)
+class StairSelectionResult:
+    """Deterministic screen decision; never an acceptance decision."""
+
+    contract_hash: str
+    screen_evidence_hashes: tuple[str, str]
+    guard_reference_evidence_hash: str
+    selected_trial_id: str | None
+    reason: str
+    ranking_confidence: str
+    paired_mean_delta: float
+    paired_standard_error: float
+    uncertainty_threshold: float
+    guard_regression_by_trial: Mapping[str, float]
+    guard_eligible_trial_ids: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        require_sha256_digest(self.contract_hash, "Stair selection contract_hash")
+        if (
+            not isinstance(self.screen_evidence_hashes, tuple)
+            or len(self.screen_evidence_hashes) != 2
+            or len(set(self.screen_evidence_hashes)) != 2
+        ):
+            raise ValueError("Stair selection requires two unique evidence hashes")
+        for value in self.screen_evidence_hashes:
+            require_sha256_digest(value, "Stair selection evidence hash")
+        require_sha256_digest(
+            self.guard_reference_evidence_hash,
+            "Stair selection guard reference evidence hash",
+        )
+        if self.reason not in {
+            "public_dev_objective_rank",
+            "public_dev_guard_filter",
+            "public_dev_guard_tiebreak",
+            "inconclusive_exact_tie",
+            "no_guard_eligible_candidate",
+        }:
+            raise ValueError("Stair selection reason is invalid")
+        if self.ranking_confidence not in {
+            "outside_estimated_noise_band",
+            "within_estimated_noise_band",
+            "deterministic_paired_gap",
+            "guard_filtered",
+            "guard_tiebreak",
+            "not_applicable",
+        }:
+            raise ValueError("Stair selection ranking_confidence is invalid")
+        if self.selected_trial_id is None:
+            if self.reason not in {
+                "inconclusive_exact_tie",
+                "no_guard_eligible_candidate",
+            } or self.ranking_confidence != "not_applicable":
+                raise ValueError("Stair no-selection reason mismatch")
+        elif (
+            not isinstance(self.selected_trial_id, str)
+            or not self.selected_trial_id
+            or self.reason
+            not in {
+                "public_dev_objective_rank",
+                "public_dev_guard_filter",
+                "public_dev_guard_tiebreak",
+            }
+        ):
+            raise ValueError("Stair selected trial identity mismatch")
+        expected_confidences = {
+            "public_dev_objective_rank": {
+                "outside_estimated_noise_band",
+                "within_estimated_noise_band",
+                "deterministic_paired_gap",
+            },
+            "public_dev_guard_filter": {"guard_filtered"},
+            "public_dev_guard_tiebreak": {"guard_tiebreak"},
+            "inconclusive_exact_tie": {"not_applicable"},
+            "no_guard_eligible_candidate": {"not_applicable"},
+        }
+        if self.ranking_confidence not in expected_confidences[self.reason]:
+            raise ValueError("Stair selection reason/confidence mismatch")
+        _finite_score(self.paired_mean_delta, "Stair paired mean delta")
+        for name in ("paired_standard_error", "uncertainty_threshold"):
+            value = _finite_score(getattr(self, name), f"Stair {name}")
+            if value < 0.0:
+                raise ValueError(f"Stair {name} must be non-negative")
+        if not isinstance(self.guard_regression_by_trial, Mapping):
+            raise TypeError("Stair guard regression evidence must be an object")
+        if len(self.guard_regression_by_trial) != 2:
+            raise ValueError("Stair selection requires two guard regressions")
+        for trial_id, regression in self.guard_regression_by_trial.items():
+            if not isinstance(trial_id, str) or not trial_id:
+                raise ValueError("Stair guard regression trial ID is invalid")
+            _finite_score(regression, "Stair guard regression")
+        if (
+            not isinstance(self.guard_eligible_trial_ids, tuple)
+            or len(set(self.guard_eligible_trial_ids))
+            != len(self.guard_eligible_trial_ids)
+            or any(
+                not isinstance(trial_id, str) or not trial_id
+                for trial_id in self.guard_eligible_trial_ids
+            )
+            or not set(self.guard_eligible_trial_ids).issubset(
+                self.guard_regression_by_trial
+            )
+        ):
+            raise ValueError("Stair guard-eligible trial IDs are invalid")
+        if (
+            self.selected_trial_id is not None
+            and self.selected_trial_id not in self.guard_eligible_trial_ids
+        ):
+            raise ValueError("Stair selected trial failed the guard precheck")
+        object.__setattr__(
+            self,
+            "guard_regression_by_trial",
+            dict(self.guard_regression_by_trial),
+        )
+
+    @property
+    def selection_hash(self) -> str:
+        return canonical_json_hash(self.to_public_dict())
+
+    def to_public_dict(self) -> dict[str, Any]:
+        return {
+            "schema_version": STAIR_SELECTION_RESULT_SCHEMA_VERSION,
+            "contract_hash": self.contract_hash,
+            "screen_evidence_hashes": list(self.screen_evidence_hashes),
+            "guard_reference_evidence_hash": self.guard_reference_evidence_hash,
+            "selected_trial_id": self.selected_trial_id,
+            "reason": self.reason,
+            "ranking_confidence": self.ranking_confidence,
+            "paired_mean_delta": self.paired_mean_delta,
+            "paired_standard_error": self.paired_standard_error,
+            "uncertainty_threshold": self.uncertainty_threshold,
+            "guard_regression_by_trial": dict(self.guard_regression_by_trial),
+            "guard_eligible_trial_ids": list(self.guard_eligible_trial_ids),
+            "evidence_tier": "public_dev_screen_only",
+            "acceptance_authority": False,
+        }
+
+    @classmethod
+    def from_mapping(cls, value: Any) -> "StairSelectionResult":
+        if not isinstance(value, Mapping) or set(value) != {
+            "schema_version",
+            "contract_hash",
+            "screen_evidence_hashes",
+            "guard_reference_evidence_hash",
+            "selected_trial_id",
+            "reason",
+            "ranking_confidence",
+            "paired_mean_delta",
+            "paired_standard_error",
+            "uncertainty_threshold",
+            "guard_regression_by_trial",
+            "guard_eligible_trial_ids",
+            "evidence_tier",
+            "acceptance_authority",
+        }:
+            raise ValueError("Stair selection result fields mismatch")
+        hashes = value.get("screen_evidence_hashes")
+        if not isinstance(hashes, list) or len(hashes) != 2:
+            raise ValueError("Stair selection evidence hashes are invalid")
+        guard_regressions = value.get("guard_regression_by_trial")
+        eligible = value.get("guard_eligible_trial_ids")
+        if not isinstance(guard_regressions, Mapping) or not isinstance(eligible, list):
+            raise ValueError("Stair selection guard evidence is invalid")
+        if any(
+            not isinstance(trial_id, str) or not trial_id
+            for trial_id in guard_regressions
+        ):
+            raise ValueError("Stair selection guard trial IDs are invalid")
+        if (
+            value.get("schema_version") != STAIR_SELECTION_RESULT_SCHEMA_VERSION
+            or value.get("evidence_tier") != "public_dev_screen_only"
+            or value.get("acceptance_authority") is not False
+        ):
+            raise ValueError("Stair selection result contract mismatch")
+        return cls(
+            contract_hash=require_sha256_digest(
+                value.get("contract_hash"), "contract_hash"
+            ),
+            screen_evidence_hashes=(
+                require_sha256_digest(hashes[0], "screen evidence hash"),
+                require_sha256_digest(hashes[1], "screen evidence hash"),
+            ),
+            guard_reference_evidence_hash=require_sha256_digest(
+                value.get("guard_reference_evidence_hash"),
+                "guard_reference_evidence_hash",
+            ),
+            selected_trial_id=value.get("selected_trial_id"),
+            reason=value.get("reason"),
+            ranking_confidence=value.get("ranking_confidence"),
+            paired_mean_delta=_finite_score(
+                value.get("paired_mean_delta"), "paired_mean_delta"
+            ),
+            paired_standard_error=_finite_score(
+                value.get("paired_standard_error"), "paired_standard_error"
+            ),
+            uncertainty_threshold=_finite_score(
+                value.get("uncertainty_threshold"), "uncertainty_threshold"
+            ),
+            guard_regression_by_trial={
+                trial_id: _finite_score(regression, "guard_regression")
+                for trial_id, regression in guard_regressions.items()
+            },
+            guard_eligible_trial_ids=tuple(eligible),
+        )
+
+
+def build_stair_public_dev_screen_evidence(
+    *,
+    config: StairClimbingTaskConfig,
+    trial_id: str,
+    phase_result: EvaluationPhaseResult,
+) -> StairPublicDevScreenEvidence:
+    """Project one validated public-dev phase into selector-safe evidence."""
+
+    if phase_result.phase is not EvaluationPhase.PUBLIC_DEV:
+        raise ValueError("Stair selector accepts public-dev phase results only")
+    raw_evidence = phase_result.task_evidence
+    if (
+        set(raw_evidence)
+        != {"schema_version", "phase", "execution_identity", "summary"}
+        or raw_evidence.get("schema_version")
+        != STAIR_PHASE_EVIDENCE_SCHEMA_VERSION
+        or raw_evidence.get("phase") != EvaluationPhase.PUBLIC_DEV.value
+    ):
+        raise ValueError("Stair public-dev phase evidence contract mismatch")
+    execution_identity = raw_evidence.get("execution_identity")
+    if not isinstance(execution_identity, Mapping) or (
+        execution_identity.get("checkpoint_hash") != phase_result.checkpoint_hash
+        or execution_identity.get("seed_namespace")
+        != STAIR_FORMAL_EVAL_NAMESPACE
+        or execution_identity.get("seed_cohort_hash")
+        != config.seed_resolver().namespace_cohort_hash(
+            STAIR_FORMAL_EVAL_NAMESPACE
+        )
+        or execution_identity.get("splits")
+        != [EvaluationPhase.PUBLIC_DEV.value]
+        or execution_identity.get("execution_device")
+        != phase_result.execution_device
+        or execution_identity.get("environment_source_preflight")
+        != dict(phase_result.environment_source_preflight)
+        or execution_identity.get("backend_execution_environment_verification")
+        != dict(phase_result.backend_execution_environment_verification)
+    ):
+        raise ValueError("Stair public-dev execution identity mismatch")
+    raw_summary = raw_evidence.get("summary")
+    if not isinstance(raw_summary, Mapping) or set(raw_summary) != {
+        "anchor",
+        "generalization",
+    }:
+        raise ValueError("Stair public-dev summary fields mismatch")
+    anchor = validate_stair_split_summary(
+        config.protocol_v1,
+        semantics=config.evaluation_semantics,
+        evaluation_protocol=config.evaluation_protocol(),
+        split=EvaluationPhase.PUBLIC_DEV.value,
+        summary=raw_summary["anchor"],
+    )
+    generalization = validate_stair_generalization_summary(
+        profile=config.evaluation_profile,
+        semantics=config.evaluation_semantics,
+        evaluation_protocol=config.evaluation_protocol(),
+        split=EvaluationPhase.PUBLIC_DEV.value,
+        summary=raw_summary["generalization"],
+    )
+    anchor_scores = tuple(float(value) for value in anchor["seed_macro_scores"])
+    scores = tuple(float(value) for value in generalization["seed_macro_scores"])
+    if (
+        len(anchor_scores) != config.public_seed_count
+        or len(scores) != config.public_seed_count
+    ):
+        raise ValueError("Stair screen public-dev seed count mismatch")
+    return StairPublicDevScreenEvidence(
+        trial_id=trial_id,
+        phase_result_hash=canonical_json_hash(phase_result.to_private_dict()),
+        evaluation_plan_hash=phase_result.evaluation_plan_hash,
+        task_id=phase_result.task_id,
+        subject=phase_result.subject,
+        checkpoint_hash=phase_result.checkpoint_hash,
+        eval_protocol_hash=phase_result.eval_protocol_hash,
+        evaluation_binding_hash=phase_result.evaluation_binding_hash,
+        training_binding_hash=phase_result.training_binding_hash,
+        capability_profile_hash=phase_result.capability_profile_hash,
+        execution_environment_hash=canonical_json_hash(
+            {
+                "environment_source_preflight": dict(
+                    phase_result.environment_source_preflight
+                ),
+                "backend_execution_environment_verification": dict(
+                    phase_result.backend_execution_environment_verification
+                ),
+            }
+        ),
+        execution_device=phase_result.execution_device,
+        resource_binding_hash=phase_result.resource_binding_hash,
+        anchor_score_stats=dict(anchor["score_stats"]),
+        anchor_seed_macro_scores=anchor_scores,
+        generalization_score_stats=dict(generalization["score_stats"]),
+        generalization_seed_macro_scores=scores,
+    )
+
+
+def stair_selection_contract(config: StairClimbingTaskConfig) -> dict[str, Any]:
+    multiplier = config.acceptance_protocol.paired_standard_error_multiplier
+    guard_max_regression = config.acceptance_protocol.guard_max_regression
+    if multiplier is None:
+        raise ValueError("Stair selector requires a paired-noise acceptance protocol")
+    if guard_max_regression is None:
+        raise ValueError("Stair selector requires a guarded acceptance protocol")
+    return {
+        "schema_version": STAIR_SELECTION_CONTRACT_SCHEMA_VERSION,
+        "task_id": STAIR_TASK_ID,
+        "task_protocol_hash": config.task_protocol_hash,
+        "acceptance_protocol_hash": config.acceptance_protocol.protocol_hash,
+        "rule": "guard_eligible_public_dev_generalization_rank_v2",
+        "primary_score_source": "public_dev.generalization.seed_macro_scores",
+        "guard_score_source": "public_dev.anchor.seed_macro_scores",
+        "guard_rule": "parent_relative_hard_regression_cap_only",
+        "guard_max_regression": float(guard_max_regression),
+        "paired_standard_error_multiplier": float(multiplier),
+        "screen_seed_count": config.public_seed_count,
+        "candidate_count": 2,
+        "outcomes": ["selected", "no_selection"],
+        "reason_codes": [
+            "public_dev_objective_rank",
+            "public_dev_guard_filter",
+            "public_dev_guard_tiebreak",
+            "inconclusive_exact_tie",
+            "no_guard_eligible_candidate",
+        ],
+        "ranking_policy": (
+            "always_rank_guard_eligible_candidates; paired noise is evidence only"
+        ),
+        "acceptance_headroom_role": "not_evaluated_by_selector",
+        "allowed_execution_differences": [
+            "trial_id",
+            "phase_result_hash",
+            "evaluation_plan_hash",
+            "execution_device",
+            "resource_binding_hash",
+            "subject",
+            "checkpoint_hash",
+        ],
+        "acceptance_authority": False,
+    }
+
+
+def select_stair_public_dev_winner(
+    *,
+    config: StairClimbingTaskConfig,
+    screens: Sequence[StairPublicDevScreenEvidence],
+    guard_reference: StairPublicDevScreenEvidence,
+) -> StairSelectionResult:
+    """Allocate formal evaluation to the best guard-eligible public-dev trial."""
+
+    if len(screens) != 2 or any(
+        not isinstance(item, StairPublicDevScreenEvidence) for item in screens
+    ):
+        raise ValueError("Stair selection requires exactly two screen evidences")
+    ordered = tuple(sorted(screens, key=lambda item: item.trial_id))
+    if ordered[0].trial_id == ordered[1].trial_id:
+        raise ValueError("Stair selection trial IDs must be unique")
+    if ordered[0].comparison_domain != ordered[1].comparison_domain:
+        raise ValueError("Stair screen evidences are not comparable")
+    if not isinstance(guard_reference, StairPublicDevScreenEvidence):
+        raise TypeError("Stair selection requires a public-dev guard reference")
+    if guard_reference.comparison_domain != ordered[0].comparison_domain:
+        raise ValueError("Stair guard reference is not comparable")
+    if (
+        guard_reference.evidence_hash
+        in {item.evidence_hash for item in ordered}
+        or guard_reference.subject in {item.subject for item in ordered}
+    ):
+        raise ValueError("Stair guard reference must identify the frozen parent")
+    for evidence in (*ordered, guard_reference):
+        if (
+            len(evidence.anchor_seed_macro_scores) != config.public_seed_count
+            or len(evidence.generalization_seed_macro_scores)
+            != config.public_seed_count
+        ):
+            raise ValueError("Stair screen paired seed evidence is incomplete")
+    left_scores = ordered[0].generalization_seed_macro_scores
+    right_scores = ordered[1].generalization_seed_macro_scores
+    if len(left_scores) != len(right_scores) or len(left_scores) != config.public_seed_count:
+        raise ValueError("Stair screen paired seed evidence is incomplete")
+
+    paired = tuple(left - right for left, right in zip(left_scores, right_scores))
+    mean_delta = statistics.fmean(paired)
+    standard_error = (
+        statistics.stdev(paired) / math.sqrt(len(paired))
+        if len(paired) > 1
+        else 0.0
+    )
+    contract = stair_selection_contract(config)
+    threshold = float(contract["paired_standard_error_multiplier"]) * standard_error
+    magnitude = abs(mean_delta)
+    outside_noise = magnitude > threshold and not math.isclose(
+        magnitude, threshold, rel_tol=1.0e-12, abs_tol=1.0e-12
+    )
+    reference_guard = statistics.fmean(guard_reference.anchor_seed_macro_scores)
+    hard_guard_cap = float(contract["guard_max_regression"])
+    guard_regressions = {
+        item.trial_id: reference_guard
+        - statistics.fmean(item.anchor_seed_macro_scores)
+        for item in ordered
+    }
+    eligible = tuple(
+        item.trial_id
+        for item in ordered
+        if guard_regressions[item.trial_id] <= hard_guard_cap
+    )
+    selected = None
+    reason = "no_guard_eligible_candidate"
+    confidence = "not_applicable"
+    if len(eligible) == 1:
+        selected = eligible[0]
+        reason = "public_dev_guard_filter"
+        confidence = "guard_filtered"
+    elif len(eligible) == 2 and not math.isclose(
+        mean_delta, 0.0, rel_tol=1.0e-12, abs_tol=1.0e-12
+    ):
+        selected = ordered[0].trial_id if mean_delta > 0.0 else ordered[1].trial_id
+        reason = "public_dev_objective_rank"
+        confidence = (
+            "deterministic_paired_gap"
+            if math.isclose(standard_error, 0.0, rel_tol=0.0, abs_tol=1.0e-15)
+            else (
+                "outside_estimated_noise_band"
+                if outside_noise
+                else "within_estimated_noise_band"
+            )
+        )
+    elif len(eligible) == 2:
+        guard_delta = statistics.fmean(ordered[0].anchor_seed_macro_scores) - (
+            statistics.fmean(ordered[1].anchor_seed_macro_scores)
+        )
+        if not math.isclose(
+            guard_delta, 0.0, rel_tol=1.0e-12, abs_tol=1.0e-12
+        ):
+            selected = (
+                ordered[0].trial_id if guard_delta > 0.0 else ordered[1].trial_id
+            )
+            reason = "public_dev_guard_tiebreak"
+            confidence = "guard_tiebreak"
+        else:
+            reason = "inconclusive_exact_tie"
+    return StairSelectionResult(
+        contract_hash=canonical_json_hash(contract),
+        screen_evidence_hashes=tuple(item.evidence_hash for item in ordered),
+        guard_reference_evidence_hash=guard_reference.evidence_hash,
+        selected_trial_id=selected,
+        reason=reason,
+        ranking_confidence=confidence,
+        paired_mean_delta=mean_delta,
+        paired_standard_error=standard_error,
+        uncertainty_threshold=threshold,
+        guard_regression_by_trial=guard_regressions,
+        guard_eligible_trial_ids=eligible,
+    )
+
+
+def _finite_score(value: Any, field_name: str) -> float:
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, int | float)
+        or not math.isfinite(float(value))
+    ):
+        raise ValueError(f"{field_name} must be finite")
+    return float(value)
+
+
+__all__ = [
+    "STAIR_SCREEN_EVIDENCE_SCHEMA_VERSION",
+    "STAIR_SELECTION_CONTRACT_SCHEMA_VERSION",
+    "STAIR_SELECTION_RESULT_SCHEMA_VERSION",
+    "StairPublicDevScreenEvidence",
+    "StairSelectionResult",
+    "build_stair_public_dev_screen_evidence",
+    "select_stair_public_dev_winner",
+    "stair_selection_contract",
+]

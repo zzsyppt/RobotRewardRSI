@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from pathlib import Path
-from threading import Barrier, Lock
+from threading import Event
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = PROJECT_ROOT / "src"
@@ -15,9 +16,18 @@ if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
 from tests.fakes.fake_components import FakeBackendAdapter, FakeRunner, FakeTaskPlugin
+from true_rl_agent.agent_core.generation_contract import (
+    GenerationSessionContract,
+    publish_generation_session_contract,
+)
 from true_rl_agent.agent_core.session_genesis import (
     BASELINE_EVAL_ARTIFACT_FILENAME,
+    GENERATION_SESSION_GENESIS_SCHEMA_VERSION,
+    LEGACY_SESSION_GENESIS_SCHEMA_VERSION,
+    SESSION_GENESIS_CREATION_LEASE_FILENAME,
     SESSION_GENESIS_FILENAME,
+    SessionGenesisArtifact,
+    SessionGenesisCreationInProgressError,
     prepare_session_genesis,
 )
 from true_rl_agent.evaluation.binding import EvaluationBindingV1, canonical_json_hash
@@ -57,17 +67,18 @@ class CountingFakeRunner(FakeRunner):
         return super().run_train(train_spec)
 
 
-class BarrierBaselineRunner(CountingFakeRunner):
-    def __init__(self, parties: int) -> None:
+class BlockingBaselineRunner(CountingFakeRunner):
+    def __init__(self) -> None:
         super().__init__()
-        self._barrier = Barrier(parties)
-        self._lock = Lock()
+        self.eval_started = Event()
+        self.allow_eval = Event()
 
     def run_baseline_eval(self, eval_spec):
-        with self._lock:
-            self.baseline_eval_calls += 1
+        self.baseline_eval_calls += 1
+        self.eval_started.set()
+        if not self.allow_eval.wait(timeout=5):
+            raise TimeoutError("test baseline evaluation was not released")
         result = FakeRunner.run_baseline_eval(self, eval_spec)
-        self._barrier.wait(timeout=5)
         return result
 
 
@@ -108,6 +119,73 @@ def _manifest(task_id: str) -> BaselineManifest:
 
 
 class SessionGenesisTests(unittest.TestCase):
+    def test_generation_contract_is_create_once_bound_by_genesis_v4(self) -> None:
+        task = FakeTaskPlugin()
+        backend = FakeBackendAdapter()
+        contract = GenerationSessionContract(
+            session_id="generation-session",
+            task_id=task.task_spec.task_id,
+            backend_id=backend.backend_id,
+            max_generations=2,
+            max_trials=4,
+            max_train_jobs=4,
+            bound_contract_hashes={
+                "authoring_policy": "1" * 64,
+                "continuation_policy": "2" * 64,
+                "evaluation_cost": "3" * 64,
+                "evaluation_protocol": "4" * 64,
+                "final_confirmation_plan": "5" * 64,
+                "provider_policy": "6" * 64,
+                "resource_plan": "7" * 64,
+                "retry_policy": "8" * 64,
+                "selector": "9" * 64,
+            },
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            ref = publish_generation_session_contract(output_dir, contract)
+            created = prepare_session_genesis(
+                output_dir=output_dir,
+                session_id="generation-session",
+                task_plugin=task,
+                backend_adapter=backend,
+                runner=FakeRunner(),
+                policy_initialization=PolicyInitialization.random(),
+                genesis_identity_snapshot={"fixed": True},
+                generation_session_contract_ref=ref,
+                bootstrap_initial_best_score=0.10,
+            )
+            loaded = prepare_session_genesis(
+                output_dir=output_dir,
+                session_id="generation-session",
+                task_plugin=task,
+                backend_adapter=backend,
+                runner=FakeRunner(),
+                policy_initialization=PolicyInitialization.random(),
+                genesis_identity_snapshot={"fixed": True},
+                generation_session_contract_ref=ref,
+                require_existing=True,
+                bootstrap_initial_best_score=0.10,
+            )
+
+            self.assertEqual(
+                created.artifact.schema_version,
+                GENERATION_SESSION_GENESIS_SCHEMA_VERSION,
+            )
+            self.assertEqual(loaded.generation_session_contract_ref, ref)
+            with self.assertRaisesRegex(ValueError, "capability/schema"):
+                prepare_session_genesis(
+                    output_dir=output_dir,
+                    session_id="generation-session",
+                    task_plugin=task,
+                    backend_adapter=backend,
+                    runner=FakeRunner(),
+                    policy_initialization=PolicyInitialization.random(),
+                    genesis_identity_snapshot={"fixed": True},
+                    require_existing=True,
+                    bootstrap_initial_best_score=0.10,
+                )
+
     def test_baseline_genesis_is_full_current_best_and_resume_does_not_rerun(self) -> None:
         task = BaselineRequiredFakeTask()
         manifest = _manifest(task.task_spec.task_id)
@@ -121,7 +199,7 @@ class SessionGenesisTests(unittest.TestCase):
                 backend_adapter=FakeBackendAdapter(),
                 runner=runner,
                 policy_initialization=manifest.to_policy_initialization(),
-                runtime_snapshot={"fixed": True},
+                genesis_identity_snapshot={"fixed": True},
                 baseline_manifest=manifest,
             )
             first_bytes = (output_dir / SESSION_GENESIS_FILENAME).read_bytes()
@@ -132,7 +210,7 @@ class SessionGenesisTests(unittest.TestCase):
                 backend_adapter=FakeBackendAdapter(),
                 runner=runner,
                 policy_initialization=manifest.to_policy_initialization(),
-                runtime_snapshot={"fixed": True},
+                genesis_identity_snapshot={"fixed": True},
                 baseline_manifest=manifest,
             )
 
@@ -189,7 +267,7 @@ class SessionGenesisTests(unittest.TestCase):
                     backend_adapter=FakeBackendAdapter(),
                     runner=CountingFakeRunner(),
                     policy_initialization=PolicyInitialization.random(),
-                    runtime_snapshot={"fixed": True},
+                    genesis_identity_snapshot={"fixed": True},
                     bootstrap_initial_best_score=0.0,
                 )
 
@@ -202,7 +280,7 @@ class SessionGenesisTests(unittest.TestCase):
                 backend_adapter=FakeBackendAdapter(),
                 runner=CountingFakeRunner(),
                 policy_initialization=PolicyInitialization.random(),
-                runtime_snapshot={"fixed": True},
+                genesis_identity_snapshot={"fixed": True},
                 bootstrap_initial_best_score=0.1,
             )
 
@@ -210,7 +288,52 @@ class SessionGenesisTests(unittest.TestCase):
             self.assertEqual(genesis.initial_current_best.mode, "bootstrap")
             self.assertEqual(genesis.initial_current_best.public_score, 0.1)
 
-    def test_runtime_snapshot_drift_fails_without_overwrite(self) -> None:
+    def test_bootstrap_genesis_can_bind_initial_policy_state(self) -> None:
+        expected = "a" * 64
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            genesis = prepare_session_genesis(
+                output_dir=output_dir,
+                session_id="session-bootstrap-paired",
+                task_plugin=FakeTaskPlugin(),
+                backend_adapter=FakeBackendAdapter(),
+                runner=CountingFakeRunner(),
+                policy_initialization=PolicyInitialization.random(),
+                genesis_identity_snapshot={
+                    "fixed": True,
+                    "bootstrap_initial_policy_state_hash": expected,
+                },
+                bootstrap_initial_best_score=0.0,
+                bootstrap_initial_policy_state_hash=expected,
+            )
+
+            self.assertEqual(genesis.expected_initial_policy_state_hash, expected)
+            self.assertEqual(
+                genesis.artifact.anchor.to_dict()["initial_policy_state_hash"],
+                expected,
+            )
+            original = (output_dir / SESSION_GENESIS_FILENAME).read_bytes()
+            with self.assertRaisesRegex(ValueError, "initial policy hash drift"):
+                prepare_session_genesis(
+                    output_dir=output_dir,
+                    session_id="session-bootstrap-paired",
+                    task_plugin=FakeTaskPlugin(),
+                    backend_adapter=FakeBackendAdapter(),
+                    runner=CountingFakeRunner(),
+                    policy_initialization=PolicyInitialization.random(),
+                    genesis_identity_snapshot={
+                        "fixed": True,
+                        "bootstrap_initial_policy_state_hash": expected,
+                    },
+                    bootstrap_initial_best_score=0.0,
+                    bootstrap_initial_policy_state_hash="b" * 64,
+                )
+            self.assertEqual(
+                (output_dir / SESSION_GENESIS_FILENAME).read_bytes(),
+                original,
+            )
+
+    def test_genesis_identity_drift_fails_without_overwrite(self) -> None:
         task = FakeTaskPlugin()
         runner = CountingFakeRunner()
         with tempfile.TemporaryDirectory() as tmp:
@@ -222,12 +345,12 @@ class SessionGenesisTests(unittest.TestCase):
                 backend_adapter=FakeBackendAdapter(),
                 runner=runner,
                 policy_initialization=PolicyInitialization.random(),
-                runtime_snapshot={"budget": 128},
+                genesis_identity_snapshot={"budget": 128},
                 bootstrap_initial_best_score=0.1,
             )
             original = (output_dir / SESSION_GENESIS_FILENAME).read_bytes()
 
-            with self.assertRaisesRegex(ValueError, "runtime snapshot drift"):
+            with self.assertRaisesRegex(ValueError, "Genesis identity drift"):
                 prepare_session_genesis(
                     output_dir=output_dir,
                     session_id="session-drift",
@@ -235,7 +358,7 @@ class SessionGenesisTests(unittest.TestCase):
                     backend_adapter=FakeBackendAdapter(),
                     runner=runner,
                     policy_initialization=PolicyInitialization.random(),
-                    runtime_snapshot={"budget": 129},
+                    genesis_identity_snapshot={"budget": 129},
                     bootstrap_initial_best_score=0.1,
                 )
 
@@ -254,7 +377,7 @@ class SessionGenesisTests(unittest.TestCase):
                 backend_adapter=FakeBackendAdapter(),
                 runner=CountingFakeRunner(),
                 policy_initialization=PolicyInitialization.random(),
-                runtime_snapshot={"fixed": True},
+                genesis_identity_snapshot={"fixed": True},
                 bootstrap_initial_best_score=0.1,
             )
             original = (output_dir / SESSION_GENESIS_FILENAME).read_bytes()
@@ -267,7 +390,7 @@ class SessionGenesisTests(unittest.TestCase):
                     backend_adapter=FakeBackendAdapter(),
                     runner=CountingFakeRunner(),
                     policy_initialization=PolicyInitialization.random(),
-                    runtime_snapshot={"fixed": True},
+                    genesis_identity_snapshot={"fixed": True},
                     bootstrap_initial_best_score=0.2,
                 )
 
@@ -288,7 +411,7 @@ class SessionGenesisTests(unittest.TestCase):
                     backend_adapter=FakeBackendAdapter(),
                     runner=CountingFakeRunner(),
                     policy_initialization=manifest.to_policy_initialization(),
-                    runtime_snapshot={"fixed": True},
+                    genesis_identity_snapshot={"fixed": True},
                     baseline_manifest=manifest,
                     bootstrap_initial_best_score=0.0,
                 )
@@ -304,7 +427,7 @@ class SessionGenesisTests(unittest.TestCase):
                 backend_adapter=FakeBackendAdapter(),
                 runner=CountingFakeRunner(),
                 policy_initialization=PolicyInitialization.random(),
-                runtime_snapshot={"fixed": True},
+                genesis_identity_snapshot={"fixed": True},
                 bootstrap_initial_best_score=0.1,
             )
             path = output_dir / SESSION_GENESIS_FILENAME
@@ -320,7 +443,7 @@ class SessionGenesisTests(unittest.TestCase):
                     backend_adapter=FakeBackendAdapter(),
                     runner=CountingFakeRunner(),
                     policy_initialization=PolicyInitialization.random(),
-                    runtime_snapshot={"fixed": True},
+                    genesis_identity_snapshot={"fixed": True},
                     bootstrap_initial_best_score=0.1,
                 )
 
@@ -337,7 +460,7 @@ class SessionGenesisTests(unittest.TestCase):
                 backend_adapter=FakeBackendAdapter(),
                 runner=runner,
                 policy_initialization=manifest.to_policy_initialization(),
-                runtime_snapshot={"fixed": True},
+                genesis_identity_snapshot={"fixed": True},
                 baseline_manifest=manifest,
             )
             artifact_path = output_dir / BASELINE_EVAL_ARTIFACT_FILENAME
@@ -351,12 +474,53 @@ class SessionGenesisTests(unittest.TestCase):
                     backend_adapter=FakeBackendAdapter(),
                     runner=runner,
                     policy_initialization=manifest.to_policy_initialization(),
-                    runtime_snapshot={"fixed": True},
+                    genesis_identity_snapshot={"fixed": True},
                     baseline_manifest=manifest,
                 )
 
             self.assertEqual(runner.baseline_eval_calls, 1)
             self.assertEqual(artifact_path.read_text(encoding="utf-8"), "{}\n")
+
+    def test_legacy_baseline_genesis_reads_posix_private_uri_on_any_host(self) -> None:
+        task = BaselineRequiredFakeTask()
+        manifest = _manifest(task.task_spec.task_id)
+        with tempfile.TemporaryDirectory() as tmp:
+            current = prepare_session_genesis(
+                output_dir=Path(tmp),
+                session_id="legacy-baseline-posix-uri",
+                task_plugin=task,
+                backend_adapter=FakeBackendAdapter(),
+                runner=CountingFakeRunner(),
+                policy_initialization=manifest.to_policy_initialization(),
+                genesis_identity_snapshot={"fixed": True},
+                baseline_manifest=manifest,
+            )
+            payload = current.artifact.to_dict()
+
+        payload["schema_version"] = LEGACY_SESSION_GENESIS_SCHEMA_VERSION
+        payload.pop("backend_execution_environment")
+        payload["anchor"]["private_eval_artifact"]["uri"] = (
+            "/data/yuyangliu/history/baseline_eval_artifact.json"
+        )
+        payload["session_genesis_hash"] = canonical_json_hash(
+            {
+                key: value
+                for key, value in payload.items()
+                if key != "session_genesis_hash"
+            }
+        )
+
+        historical = SessionGenesisArtifact.from_mapping(payload)
+        self.assertEqual(
+            historical.anchor.private_eval_artifact.uri,
+            "/data/yuyangliu/history/baseline_eval_artifact.json",
+        )
+        relative = json.loads(json.dumps(payload))
+        relative["anchor"]["private_eval_artifact"]["uri"] = (
+            "history/baseline_eval_artifact.json"
+        )
+        with self.assertRaisesRegex(ValueError, "uri must be absolute"):
+            SessionGenesisArtifact.from_mapping(relative)
 
     def test_private_baseline_artifact_cannot_be_relocated_with_rehashed_genesis(self) -> None:
         task = BaselineRequiredFakeTask()
@@ -370,7 +534,7 @@ class SessionGenesisTests(unittest.TestCase):
                 backend_adapter=FakeBackendAdapter(),
                 runner=CountingFakeRunner(),
                 policy_initialization=manifest.to_policy_initialization(),
-                runtime_snapshot={"fixed": True},
+                genesis_identity_snapshot={"fixed": True},
                 baseline_manifest=manifest,
             )
             original_artifact = output_dir / BASELINE_EVAL_ARTIFACT_FILENAME
@@ -400,55 +564,140 @@ class SessionGenesisTests(unittest.TestCase):
                     backend_adapter=FakeBackendAdapter(),
                     runner=CountingFakeRunner(),
                     policy_initialization=manifest.to_policy_initialization(),
-                    runtime_snapshot={"fixed": True},
+                    genesis_identity_snapshot={"fixed": True},
                     baseline_manifest=manifest,
                 )
 
-    def test_concurrent_baseline_genesis_publish_has_one_canonical_winner(self) -> None:
+    def test_concurrent_baseline_genesis_has_one_writer_before_eval(self) -> None:
         task = BaselineRequiredFakeTask()
         manifest = _manifest(task.task_spec.task_id)
-        runner = BarrierBaselineRunner(parties=2)
+        winner_runner = BlockingBaselineRunner()
+        loser_runner = CountingFakeRunner()
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = Path(tmp)
 
-            def prepare():
+            def prepare_winner():
                 return prepare_session_genesis(
                     output_dir=output_dir,
                     session_id="session-concurrent",
                     task_plugin=task,
                     backend_adapter=FakeBackendAdapter(),
-                    runner=runner,
+                    runner=winner_runner,
                     policy_initialization=manifest.to_policy_initialization(),
-                    runtime_snapshot={"fixed": True},
+                    genesis_identity_snapshot={"fixed": True},
                     baseline_manifest=manifest,
                 )
 
-            with ThreadPoolExecutor(max_workers=2) as executor:
-                futures = [executor.submit(prepare) for _ in range(2)]
-                outcomes = []
-                for future in futures:
-                    try:
-                        outcomes.append(future.result(timeout=10))
-                    except FileExistsError as exc:
-                        outcomes.append(exc)
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(prepare_winner)
+                self.assertTrue(winner_runner.eval_started.wait(timeout=5))
+                with self.assertRaises(SessionGenesisCreationInProgressError):
+                    prepare_session_genesis(
+                        output_dir=output_dir,
+                        session_id="session-concurrent",
+                        task_plugin=task,
+                        backend_adapter=FakeBackendAdapter(),
+                        runner=loser_runner,
+                        policy_initialization=manifest.to_policy_initialization(),
+                        genesis_identity_snapshot={"fixed": True},
+                        baseline_manifest=manifest,
+                    )
+                self.assertEqual(loser_runner.baseline_eval_calls, 0)
+                self.assertFalse(
+                    (output_dir / SESSION_GENESIS_FILENAME).exists()
+                )
+                winner_runner.allow_eval.set()
+                winner = future.result(timeout=10)
 
-            winners = [item for item in outcomes if not isinstance(item, Exception)]
-            self.assertEqual(len(winners), 1)
-            self.assertEqual(runner.baseline_eval_calls, 2)
+            self.assertEqual(winner_runner.baseline_eval_calls, 1)
+            self.assertTrue(
+                (output_dir / SESSION_GENESIS_CREATION_LEASE_FILENAME).exists()
+            )
             loaded = prepare_session_genesis(
                 output_dir=output_dir,
                 session_id="session-concurrent",
                 task_plugin=task,
                 backend_adapter=FakeBackendAdapter(),
-                runner=runner,
+                runner=loser_runner,
                 policy_initialization=manifest.to_policy_initialization(),
-                runtime_snapshot={"fixed": True},
+                genesis_identity_snapshot={"fixed": True},
                 baseline_manifest=manifest,
             )
             self.assertEqual(
                 loaded.session_genesis_hash,
-                winners[0].session_genesis_hash,
+                winner.session_genesis_hash,
             )
+            self.assertEqual(loser_runner.baseline_eval_calls, 0)
+
+    def test_hard_crash_releases_os_creation_lock(self) -> None:
+        task = BaselineRequiredFakeTask()
+        manifest = _manifest(task.task_spec.task_id)
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            code = (
+                "import os, sys\n"
+                "from pathlib import Path\n"
+                f"sys.path.insert(0, {str(SRC_ROOT)!r})\n"
+                "from true_rl_agent.agent_core.session_genesis import "
+                "_acquire_session_genesis_creation_lease\n"
+                "_lease = _acquire_session_genesis_creation_lease("
+                "output_dir=Path(sys.argv[1]), session_id='session-crash')\n"
+                "os._exit(0)\n"
+            )
+            completed = subprocess.run(
+                [sys.executable, "-c", code, str(output_dir)],
+                cwd=PROJECT_ROOT,
+                capture_output=True,
+                text=True,
+                timeout=10,
+                check=False,
+            )
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            self.assertTrue(
+                (output_dir / SESSION_GENESIS_CREATION_LEASE_FILENAME).is_file()
+            )
+
+            recovered = prepare_session_genesis(
+                output_dir=output_dir,
+                session_id="session-crash",
+                task_plugin=task,
+                backend_adapter=FakeBackendAdapter(),
+                runner=CountingFakeRunner(),
+                policy_initialization=manifest.to_policy_initialization(),
+                genesis_identity_snapshot={"fixed": True},
+                baseline_manifest=manifest,
+            )
+
+            self.assertEqual(recovered.artifact.session_id, "session-crash")
+
+    def test_crash_recovery_rejects_partial_runner_state(self) -> None:
+        task = BaselineRequiredFakeTask()
+        manifest = _manifest(task.task_spec.task_id)
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            lease_path = output_dir / SESSION_GENESIS_CREATION_LEASE_FILENAME
+            lease_path.write_text('{"process_id":999999}\n', encoding="utf-8")
+            partial_path = (
+                output_dir
+                / "runner"
+                / "session-partial"
+                / "train"
+                / "summary.json"
+            )
+            partial_path.parent.mkdir(parents=True)
+            partial_path.write_text("{}\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(ValueError, "runner state"):
+                prepare_session_genesis(
+                    output_dir=output_dir,
+                    session_id="session-partial",
+                    task_plugin=task,
+                    backend_adapter=FakeBackendAdapter(),
+                    runner=CountingFakeRunner(),
+                    policy_initialization=manifest.to_policy_initialization(),
+                    genesis_identity_snapshot={"fixed": True},
+                    baseline_manifest=manifest,
+                )
 
     def test_resume_rejects_manifest_or_evaluation_binding_drift(self) -> None:
         task = BaselineRequiredFakeTask()
@@ -462,7 +711,7 @@ class SessionGenesisTests(unittest.TestCase):
                 backend_adapter=FakeBackendAdapter(),
                 runner=CountingFakeRunner(),
                 policy_initialization=manifest.to_policy_initialization(),
-                runtime_snapshot={"fixed": True},
+                genesis_identity_snapshot={"fixed": True},
                 baseline_manifest=manifest,
             )
             drifted_manifest = replace(
@@ -486,7 +735,7 @@ class SessionGenesisTests(unittest.TestCase):
                     backend_adapter=FakeBackendAdapter(),
                     runner=CountingFakeRunner(),
                     policy_initialization=drifted_manifest.to_policy_initialization(),
-                    runtime_snapshot={"fixed": True},
+                    genesis_identity_snapshot={"fixed": True},
                     baseline_manifest=drifted_manifest,
                 )
             with self.assertRaisesRegex(ValueError, "evaluation binding drift"):
@@ -497,7 +746,7 @@ class SessionGenesisTests(unittest.TestCase):
                     backend_adapter=DriftedBindingBackend(),
                     runner=CountingFakeRunner(),
                     policy_initialization=manifest.to_policy_initialization(),
-                    runtime_snapshot={"fixed": True},
+                    genesis_identity_snapshot={"fixed": True},
                     baseline_manifest=manifest,
                 )
 
@@ -513,7 +762,7 @@ class SessionGenesisTests(unittest.TestCase):
                 backend_adapter=FakeBackendAdapter(),
                 runner=CountingFakeRunner(),
                 policy_initialization=manifest.to_policy_initialization(),
-                runtime_snapshot={"fixed": True},
+                genesis_identity_snapshot={"fixed": True},
                 baseline_manifest=manifest,
             )
             genesis_path = output_dir / SESSION_GENESIS_FILENAME
@@ -538,7 +787,7 @@ class SessionGenesisTests(unittest.TestCase):
                     backend_adapter=FakeBackendAdapter(),
                     runner=CountingFakeRunner(),
                     policy_initialization=manifest.to_policy_initialization(),
-                    runtime_snapshot={"fixed": True},
+                    genesis_identity_snapshot={"fixed": True},
                     baseline_manifest=manifest,
                 )
 
@@ -553,7 +802,7 @@ class SessionGenesisTests(unittest.TestCase):
                 backend_adapter=FakeBackendAdapter(),
                 runner=CountingFakeRunner(),
                 policy_initialization=PolicyInitialization.random(),
-                runtime_snapshot={"fixed": True},
+                genesis_identity_snapshot={"fixed": True},
                 bootstrap_initial_best_score=0.1,
             )
             path = output_dir / SESSION_GENESIS_FILENAME
@@ -573,7 +822,7 @@ class SessionGenesisTests(unittest.TestCase):
                     backend_adapter=FakeBackendAdapter(),
                     runner=CountingFakeRunner(),
                     policy_initialization=PolicyInitialization.random(),
-                    runtime_snapshot={"fixed": True},
+                    genesis_identity_snapshot={"fixed": True},
                     bootstrap_initial_best_score=0.1,
                 )
 

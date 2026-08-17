@@ -12,10 +12,14 @@ from true_rl_agent.evaluation.binding import (
     require_sha256_digest,
 )
 from true_rl_agent.runner.checkpoint import validate_checkpoint_safety_report
-from true_rl_agent.runner.specs import EvalJobSpec, EvaluationJobSpec
+from true_rl_agent.runner.specs import (
+    EvalJobSpec,
+    EvaluationJobSpec,
+    require_execution_device,
+)
 from true_rl_agent.tasks.base import TaskInvariantSpec
 
-TRUSTED_EVAL_SEAL_SCHEMA_VERSION = "true_rl_agent.sealed_eval_seal.v3"
+TRUSTED_EVAL_SEAL_SCHEMA_VERSION = "true_rl_agent.sealed_eval_seal.v4"
 
 
 @dataclass(frozen=True)
@@ -26,6 +30,7 @@ class TrustedEvalSeal:
     program_source_checksum: str | None
     training_binding_hash: str | None
     capability_profile_hash: str
+    execution_device: str
     eval_config_hash: str
     evaluation_binding_hash: str
     checkpoint_hash: str
@@ -60,6 +65,10 @@ class TrustedEvalSeal:
             self.capability_profile_hash,
             "capability_profile_hash",
         )
+        require_execution_device(
+            self.execution_device,
+            "trusted eval seal execution_device",
+        )
         for field_name in (
             "eval_config_hash",
             "evaluation_binding_hash",
@@ -75,6 +84,7 @@ class TrustedEvalSeal:
             "schema_version": TRUSTED_EVAL_SEAL_SCHEMA_VERSION,
             "subject_kind": self.subject_kind,
             "subject_id": self.subject_id,
+            "execution_device": self.execution_device,
             "eval_config_hash": self.eval_config_hash,
             "evaluation_binding_hash": self.evaluation_binding_hash,
             "checkpoint_hash": self.checkpoint_hash,
@@ -135,6 +145,7 @@ def build_trusted_eval_seal(
         "program_source_checksum": program_source_checksum,
         "training_binding_hash": training_binding_hash,
         "capability_profile_hash": capability_profile_hash,
+        "execution_device": eval_spec.execution_device,
         "checkpoint": checkpoint.to_public_dict(),
         "evaluation_protocol": eval_protocol,
         "evaluation_binding": evaluation_binding,
@@ -149,6 +160,7 @@ def build_trusted_eval_seal(
         "program_source_checksum": program_source_checksum,
         "training_binding_hash": training_binding_hash,
         "capability_profile_hash": capability_profile_hash,
+        "execution_device": eval_spec.execution_device,
         "eval_config_hash": eval_config_hash,
         "evaluation_binding_hash": eval_spec.evaluation_binding.binding_hash,
         "checkpoint_hash": checkpoint.checksum,
@@ -166,6 +178,7 @@ def build_trusted_eval_seal(
         program_source_checksum=program_source_checksum,
         training_binding_hash=training_binding_hash,
         capability_profile_hash=capability_profile_hash,
+        execution_device=eval_spec.execution_device,
         eval_config_hash=eval_config_hash,
         evaluation_binding_hash=eval_spec.evaluation_binding.binding_hash,
         checkpoint_hash=checkpoint.checksum,

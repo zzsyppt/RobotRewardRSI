@@ -16,6 +16,12 @@ class PushRecoveryComponentSmokeAdapter:
     config: PushRecoveryTaskConfig
     task_id: str = "unitree_push_recovery"
 
+    @property
+    def candidate_capability_ids(self) -> frozenset[str]:
+        # Existing Push authoring remains governed by its static component ABI;
+        # it does not opt into composition-gated complete replacement.
+        return frozenset()
+
     def build_component_smoke_fixture(self) -> ComponentSmokeFixture:
         num_envs = 4
         num_joints = 6

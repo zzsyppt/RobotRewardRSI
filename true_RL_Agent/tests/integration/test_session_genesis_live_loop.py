@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 import tempfile
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from pathlib import Path
+from threading import Event
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = PROJECT_ROOT / "src"
@@ -18,10 +21,22 @@ from tests.fakes.fake_components import (  # noqa: E402
     FakeTaskPlugin,
     FakeVerifier,
 )
-from true_rl_agent.agent_core.ledger import load_ledger  # noqa: E402
+from true_rl_agent.agent_core.ledger import (  # noqa: E402
+    LEDGER_RECORD_SCHEMA_V4,
+    LEDGER_RECORD_SCHEMA_VERSION,
+    PROVIDER_AUTHORING_MODE,
+    load_ledger,
+)
 from true_rl_agent.agent_core.live_loop import run_live_loop  # noqa: E402
+from true_rl_agent.agent_core.session_epoch import (  # noqa: E402
+    LEDGER_EPOCH_FILENAME,
+    LiveSessionInProgressError,
+    prepare_ledger_epoch,
+)
 from true_rl_agent.agent_core.session_genesis import (  # noqa: E402
+    LEGACY_SESSION_GENESIS_SCHEMA_VERSION,
     SESSION_GENESIS_FILENAME,
+    SessionGenesisArtifact,
     prepare_session_genesis,
 )
 from true_rl_agent.candidates.schema import (  # noqa: E402
@@ -31,11 +46,19 @@ from true_rl_agent.candidates.schema import (  # noqa: E402
 from true_rl_agent.evaluation.acceptance_replay import (  # noqa: E402
     replay_acceptance_ledger,
 )
-from true_rl_agent.evaluation.binding import EvaluationBindingV1  # noqa: E402
+from true_rl_agent.evaluation.binding import (  # noqa: E402
+    EvaluationBindingV1,
+    canonical_json_hash,
+)
+from true_rl_agent.json_contract import canonical_json_bytes  # noqa: E402
+from true_rl_agent.policy import PolicyInitialization  # noqa: E402
 from true_rl_agent.policy_baselines import (  # noqa: E402
     BaselineCompatibilitySpec,
     BaselineManifest,
     CheckpointProvenance,
+)
+from true_rl_agent.prompt_artifacts import (  # noqa: E402
+    AUTHORING_EVIDENCE_SCHEMA_V2,
 )
 from true_rl_agent.runner.specs import CheckpointRef  # noqa: E402
 from true_rl_agent.tasks.base import TaskSpec  # noqa: E402
@@ -49,6 +72,17 @@ class _BaselineRequiredTask(FakeTaskPlugin):
             supported_policy_initializations=frozenset({"warm_start"}),
             genesis_anchor_policy={"warm_start": "policy_baseline"},
         )
+
+
+def _denied_predecessor_bytes(session_genesis_hash: str) -> bytes:
+    return canonical_json_bytes(
+        {
+            "schema_version": "true_rl_agent.ledger_record.v2",
+            "session_genesis_hash": session_genesis_hash,
+            "decision": {"accepted": False},
+        },
+        trailing_newline=True,
+    )
 
 
 class _CountingRunner(FakeRunner):
@@ -100,6 +134,17 @@ class _SessionBoundBackend(FakeBackendAdapter):
             raise ValueError("test session evaluation binding mismatch")
 
 
+class _DriftedSessionBoundBackend(_SessionBoundBackend):
+    def _session_binding(self, task_spec: TaskSpec) -> EvaluationBindingV1:
+        fixed = super()._session_binding(task_spec)
+        return EvaluationBindingV1(
+            eval_protocol_hash=fixed.eval_protocol_hash,
+            acceptance_protocol_hash=fixed.acceptance_protocol_hash,
+            task_protocol_hash=fixed.task_protocol_hash,
+            seed_cohort_hash="8" * 64,
+        )
+
+
 class _ScoreProvider:
     def __init__(self, root: Path, scores: tuple[float, ...]) -> None:
         self.root = root
@@ -109,6 +154,11 @@ class _ScoreProvider:
     def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
         self.payloads.append(prompt_payload)
         round_number = int(prompt_payload["public_context"]["previous_rounds"]) + 1
+        reward_expression = {
+            1: "inputs.base_height + inputs.roll",
+            2: "inputs.base_height - inputs.roll",
+            3: "inputs.base_height + inputs.roll.square()",
+        }[round_number]
         candidate_id = f"candidate-{round_number:03d}"
         candidate_dir = self.root / candidate_id
         source_dir = candidate_dir / "training_code"
@@ -122,7 +172,7 @@ class _ScoreProvider:
         (source_dir / "components.py").write_text(
             "from true_rl_agent.candidates.components import RewardTerm, TrainingComponents\n\n"
             f"def reward_{round_number}(inputs):\n"
-            f"    return inputs.base_height + {round_number}.0 * inputs.roll\n\n"
+            f"    return {reward_expression}\n\n"
             "def build_training_components():\n"
             "    return TrainingComponents(\n"
             f"        name={candidate_id!r},\n"
@@ -134,6 +184,9 @@ class _ScoreProvider:
             "    )\n",
             encoding="utf-8",
         )
+        (candidate_dir / "rationale.md").write_text("Session candidate.\n", encoding="utf-8")
+        (candidate_dir / "operation_diff.json").write_text("{}\n", encoding="utf-8")
+        (candidate_dir / "diagnostics.json").write_text("{}\n", encoding="utf-8")
         return CandidatePackageRef(
             candidate_id=candidate_id,
             path=str(candidate_dir),
@@ -150,6 +203,19 @@ class _FailIfCalledProvider:
         _ = prompt_payload
         self.calls += 1
         raise AssertionError("provider must not run when target round count is complete")
+
+
+class _BlockingScoreProvider(_ScoreProvider):
+    def __init__(self, root: Path, scores: tuple[float, ...]) -> None:
+        super().__init__(root, scores)
+        self.started = Event()
+        self.release = Event()
+
+    def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
+        self.started.set()
+        if not self.release.wait(timeout=10):
+            raise RuntimeError("test provider release timed out")
+        return super().next_candidate(prompt_payload=prompt_payload)
 
 
 def _manifest(task_id: str) -> BaselineManifest:
@@ -186,13 +252,533 @@ def _catalog_item(payload: dict, logical_id: str) -> dict:
 
 
 class SessionGenesisLiveLoopTests(unittest.TestCase):
+    def test_legacy_genesis_is_readable_but_cannot_resume_formal_runtime(self) -> None:
+        task = FakeTaskPlugin()
+        backend = FakeBackendAdapter()
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            current = prepare_session_genesis(
+                output_dir=output_dir,
+                session_id="legacy-genesis-session",
+                task_plugin=task,
+                backend_adapter=backend,
+                runner=FakeRunner(),
+                policy_initialization=PolicyInitialization.random(),
+                genesis_identity_snapshot={"fixture": "legacy-read"},
+                bootstrap_initial_best_score=0.0,
+            )
+            self.assertEqual(
+                current.artifact.schema_version,
+                "true_rl_agent.session_genesis.v3",
+            )
+            self.assertIsNone(
+                current.artifact.backend_execution_environment
+            )
+            payload = current.artifact.to_dict()
+            payload["schema_version"] = LEGACY_SESSION_GENESIS_SCHEMA_VERSION
+            payload.pop("backend_execution_environment")
+            payload["session_genesis_hash"] = canonical_json_hash(
+                {
+                    key: value
+                    for key, value in payload.items()
+                    if key != "session_genesis_hash"
+                }
+            )
+            genesis_path = output_dir / SESSION_GENESIS_FILENAME
+            genesis_path.write_bytes(
+                canonical_json_bytes(payload, trailing_newline=True)
+            )
+
+            historical = SessionGenesisArtifact.from_mapping(payload)
+            self.assertEqual(
+                historical.schema_version,
+                LEGACY_SESSION_GENESIS_SCHEMA_VERSION,
+            )
+            self.assertIsNone(historical.backend_execution_environment)
+            with self.assertRaisesRegex(ValueError, "historical-only"):
+                prepare_session_genesis(
+                    output_dir=output_dir,
+                    session_id="legacy-genesis-session",
+                    task_plugin=task,
+                    backend_adapter=backend,
+                    runner=FakeRunner(),
+                    policy_initialization=PolicyInitialization.random(),
+                    genesis_identity_snapshot={"fixture": "legacy-read"},
+                    bootstrap_initial_best_score=0.0,
+                    require_existing=True,
+                )
+
+    def test_live_start_rejects_genesis_binding_drift_before_work(self) -> None:
+        task = FakeTaskPlugin()
+        genesis_backend = _SessionBoundBackend()
+        runner = _CountingRunner()
+        provider = _FailIfCalledProvider()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            genesis = prepare_session_genesis(
+                output_dir=output_dir,
+                session_id="binding-preflight",
+                task_plugin=task,
+                backend_adapter=genesis_backend,
+                runner=runner,
+                policy_initialization=PolicyInitialization.random(),
+                genesis_identity_snapshot={"fixture": "binding_preflight_v1"},
+                bootstrap_initial_best_score=0.10,
+            )
+
+            with self.assertRaisesRegex(
+                ValueError,
+                "evaluation binding mismatch",
+            ):
+                run_live_loop(
+                    output_dir=output_dir,
+                    rounds=1,
+                    session_id="binding-preflight",
+                    task_plugin=task,
+                    backend_adapter=_DriftedSessionBoundBackend(),
+                    runner=runner,
+                    candidate_admission_policy=FakeVerifier(),
+                    provider=provider,
+                    policy_initialization=PolicyInitialization.random(),
+                    session_genesis=genesis,
+                )
+
+        self.assertEqual(provider.calls, 0)
+        self.assertEqual(runner.train_specs, [])
+
+    def test_existing_v4_v2_evidence_history_resumes_with_current(self) -> None:
+        task = FakeTaskPlugin()
+        backend = FakeBackendAdapter()
+        runner = FakeRunner()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            genesis = prepare_session_genesis(
+                output_dir=output_dir,
+                session_id="push-v4-resume",
+                task_plugin=task,
+                backend_adapter=backend,
+                runner=runner,
+                policy_initialization=PolicyInitialization.random(),
+                genesis_identity_snapshot={"fixture": "push_v4_resume"},
+                bootstrap_initial_best_score=0.10,
+            )
+            run_live_loop(
+                output_dir=output_dir,
+                rounds=1,
+                session_id="push-v4-resume",
+                task_plugin=task,
+                backend_adapter=backend,
+                runner=runner,
+                candidate_admission_policy=FakeVerifier(),
+                provider=_ScoreProvider(output_dir / "candidates", (0.25,)),
+                policy_initialization=PolicyInitialization.random(),
+                session_genesis=genesis,
+            )
+
+            ledger_path = output_dir / "ledger.jsonl"
+            historical = load_ledger(ledger_path)[0]
+            evidence_ref = next(
+                item
+                for item in historical["private_artifacts"]
+                if item.get("kind") == "provider_authoring_evidence"
+            )
+            evidence = json.loads(
+                Path(evidence_ref["uri"]).read_text(encoding="utf-8")
+            )
+            evidence["schema_version"] = AUTHORING_EVIDENCE_SCHEMA_V2
+            evidence.pop("budget_contract")
+            evidence.pop("terminal_outcome")
+            evidence.pop("round_authoring_anchor")
+            evidence_path = Path(evidence_ref["uri"]).with_name(
+                "authoring_evidence_v2.json"
+            )
+            evidence_bytes = canonical_json_bytes(
+                evidence,
+                trailing_newline=True,
+            )
+            evidence_path.write_bytes(evidence_bytes)
+            evidence_ref["uri"] = str(evidence_path)
+            evidence_ref["checksum"] = (
+                "sha256:" + hashlib.sha256(evidence_bytes).hexdigest()
+            )
+            evidence_ref["size_bytes"] = len(evidence_bytes)
+            historical["schema_version"] = LEDGER_RECORD_SCHEMA_V4
+            historical.pop("ledger_epoch_hash")
+            ledger_path.write_bytes(
+                canonical_json_bytes(historical, trailing_newline=True)
+            )
+
+            summary = run_live_loop(
+                output_dir=output_dir,
+                rounds=2,
+                session_id="push-v4-resume",
+                task_plugin=task,
+                backend_adapter=backend,
+                runner=runner,
+                candidate_admission_policy=FakeVerifier(),
+                provider=_ScoreProvider(
+                    output_dir / "resume-candidates",
+                    (0.0, 0.35),
+                ),
+                policy_initialization=PolicyInitialization.random(),
+                session_genesis=genesis,
+            )
+            records = load_ledger(ledger_path)
+
+        self.assertEqual(summary["resumed_from_round_count"], 1)
+        self.assertEqual(
+            [record["schema_version"] for record in records],
+            [LEDGER_RECORD_SCHEMA_V4, LEDGER_RECORD_SCHEMA_VERSION],
+        )
+
+    def test_separate_ledger_epoch_preserves_legacy_genesis_root(self) -> None:
+        task = FakeTaskPlugin()
+        backend = FakeBackendAdapter()
+        runner = FakeRunner()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            genesis_root = root / "formal-v2"
+            epoch_root = root / "verified-v5"
+            genesis = prepare_session_genesis(
+                output_dir=genesis_root,
+                session_id="ledger-epoch-session",
+                task_plugin=task,
+                backend_adapter=backend,
+                runner=runner,
+                policy_initialization=PolicyInitialization.random(),
+                genesis_identity_snapshot={"fixture": "ledger_epoch_v1"},
+                bootstrap_initial_best_score=0.10,
+            )
+            genesis_path = genesis_root / SESSION_GENESIS_FILENAME
+            genesis_bytes = genesis_path.read_bytes()
+            legacy_ledger = genesis_root / "ledger.jsonl"
+            legacy_bytes = _denied_predecessor_bytes(
+                genesis.session_genesis_hash
+            )
+            legacy_ledger.write_bytes(legacy_bytes)
+
+            summary = run_live_loop(
+                output_dir=epoch_root,
+                rounds=2,
+                session_id="ledger-epoch-session",
+                task_plugin=task,
+                backend_adapter=backend,
+                runner=runner,
+                candidate_admission_policy=FakeVerifier(),
+                provider=_ScoreProvider(
+                    epoch_root / "candidates",
+                    (0.25, 0.35),
+                ),
+                policy_initialization=PolicyInitialization.random(),
+                session_genesis=genesis,
+                session_genesis_dir=genesis_root,
+                ledger_epoch_id="phase-f-v5-rerun",
+            )
+            epoch_manifest_bytes = (
+                epoch_root / LEDGER_EPOCH_FILENAME
+            ).read_bytes()
+            resumed = run_live_loop(
+                output_dir=epoch_root,
+                rounds=2,
+                session_id="ledger-epoch-session",
+                task_plugin=task,
+                backend_adapter=backend,
+                runner=runner,
+                candidate_admission_policy=FakeVerifier(),
+                provider=_FailIfCalledProvider(),
+                policy_initialization=PolicyInitialization.random(),
+                session_genesis=genesis,
+                session_genesis_dir=genesis_root,
+                ledger_epoch_id="phase-f-v5-rerun",
+            )
+
+            new_ledger = load_ledger(epoch_root / "ledger.jsonl")
+            final_genesis_bytes = genesis_path.read_bytes()
+            final_legacy_bytes = legacy_ledger.read_bytes()
+            final_epoch_manifest_bytes = (
+                epoch_root / LEDGER_EPOCH_FILENAME
+            ).read_bytes()
+
+        self.assertEqual(genesis_bytes, final_genesis_bytes)
+        self.assertEqual(legacy_bytes, final_legacy_bytes)
+        self.assertEqual(epoch_manifest_bytes, final_epoch_manifest_bytes)
+        self.assertEqual(len(new_ledger), 2)
+        self.assertTrue(
+            all(
+                record["schema_version"] == LEDGER_RECORD_SCHEMA_VERSION
+                and record["ledger_epoch_hash"]
+                == summary["ledger_epoch"]["manifest_hash"]
+                for record in new_ledger
+            )
+        )
+        self.assertEqual(summary["session_genesis_dir"], str(genesis_root))
+        self.assertEqual(
+            summary["ledger_epoch"]["epoch_id"],
+            "phase-f-v5-rerun",
+        )
+        self.assertEqual(
+            summary["ledger_epoch"]["predecessor_ledger_status"],
+            "bound",
+        )
+        self.assertEqual(resumed["rounds_executed_this_invocation"], 0)
+
+    def test_ledger_epoch_rejects_predecessor_drift_before_provider(self) -> None:
+        task = FakeTaskPlugin()
+        backend = FakeBackendAdapter()
+        runner = FakeRunner()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            genesis_root = root / "formal-v2"
+            epoch_root = root / "verified-v5"
+            genesis = prepare_session_genesis(
+                output_dir=genesis_root,
+                session_id="ledger-epoch-drift",
+                task_plugin=task,
+                backend_adapter=backend,
+                runner=runner,
+                policy_initialization=PolicyInitialization.random(),
+                genesis_identity_snapshot={"fixture": "ledger_epoch_v1"},
+                bootstrap_initial_best_score=0.10,
+            )
+            predecessor = genesis_root / "ledger.jsonl"
+            predecessor.write_bytes(
+                _denied_predecessor_bytes(genesis.session_genesis_hash)
+            )
+            run_live_loop(
+                output_dir=epoch_root,
+                rounds=1,
+                session_id="ledger-epoch-drift",
+                task_plugin=task,
+                backend_adapter=backend,
+                runner=runner,
+                candidate_admission_policy=FakeVerifier(),
+                provider=_ScoreProvider(epoch_root / "candidates", (0.25,)),
+                policy_initialization=PolicyInitialization.random(),
+                session_genesis=genesis,
+                session_genesis_dir=genesis_root,
+                ledger_epoch_id="phase-f-v5-rerun",
+            )
+            predecessor.write_bytes(predecessor.read_bytes() + b"{}\n")
+            provider = _FailIfCalledProvider()
+            with self.assertRaisesRegex(
+                ValueError,
+                "ledger epoch differs|predecessor ledger|invalid ledger schema",
+            ):
+                run_live_loop(
+                    output_dir=epoch_root,
+                    rounds=2,
+                    session_id="ledger-epoch-drift",
+                    task_plugin=task,
+                    backend_adapter=backend,
+                    runner=runner,
+                    candidate_admission_policy=FakeVerifier(),
+                    provider=provider,
+                    policy_initialization=PolicyInitialization.random(),
+                    session_genesis=genesis,
+                    session_genesis_dir=genesis_root,
+                    ledger_epoch_id="phase-f-v5-rerun",
+                )
+
+        self.assertEqual(provider.calls, 0)
+
+    def test_ledger_epoch_rejects_predecessor_that_advanced_genesis(self) -> None:
+        task = FakeTaskPlugin()
+        backend = FakeBackendAdapter()
+        runner = FakeRunner()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            genesis_root = root / "formal-v2"
+            genesis = prepare_session_genesis(
+                output_dir=genesis_root,
+                session_id="accepted-predecessor",
+                task_plugin=task,
+                backend_adapter=backend,
+                runner=runner,
+                policy_initialization=PolicyInitialization.random(),
+                genesis_identity_snapshot={"fixture": "ledger_epoch_v1"},
+                bootstrap_initial_best_score=0.10,
+            )
+            predecessor_record = json.loads(
+                _denied_predecessor_bytes(
+                    genesis.session_genesis_hash
+                )
+            )
+            predecessor_record["decision"]["accepted"] = True
+            (genesis_root / "ledger.jsonl").write_bytes(
+                canonical_json_bytes(
+                    predecessor_record,
+                    trailing_newline=True,
+                )
+            )
+
+            with self.assertRaisesRegex(
+                ValueError,
+                "advanced the Genesis current-best",
+            ):
+                prepare_ledger_epoch(
+                    output_dir=root / "verified-v5",
+                    genesis_dir=genesis_root,
+                    epoch_id="phase-f-v5-rerun",
+                    session_id="accepted-predecessor",
+                    genesis=genesis,
+                )
+
+            predecessor_record["decision"]["accepted"] = False
+            predecessor_record["session_genesis_hash"] = "0" * 64
+            (genesis_root / "ledger.jsonl").write_bytes(
+                canonical_json_bytes(
+                    predecessor_record,
+                    trailing_newline=True,
+                )
+            )
+            with self.assertRaisesRegex(
+                ValueError,
+                "different session Genesis",
+            ):
+                prepare_ledger_epoch(
+                    output_dir=root / "foreign-predecessor-v5",
+                    genesis_dir=genesis_root,
+                    epoch_id="phase-f-v5-foreign",
+                    session_id="accepted-predecessor",
+                    genesis=genesis,
+                )
+
+    def test_ledger_epoch_rejects_foreign_ledger_before_provider(self) -> None:
+        task = FakeTaskPlugin()
+        backend = FakeBackendAdapter()
+        runner = FakeRunner()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            genesis_root = root / "genesis"
+            epoch_a_root = root / "epoch-a"
+            epoch_b_root = root / "epoch-b"
+            genesis = prepare_session_genesis(
+                output_dir=genesis_root,
+                session_id="foreign-ledger",
+                task_plugin=task,
+                backend_adapter=backend,
+                runner=runner,
+                policy_initialization=PolicyInitialization.random(),
+                genesis_identity_snapshot={"fixture": "ledger_epoch_v1"},
+                bootstrap_initial_best_score=0.10,
+            )
+            summary_a = run_live_loop(
+                output_dir=epoch_a_root,
+                rounds=1,
+                session_id="foreign-ledger",
+                task_plugin=task,
+                backend_adapter=backend,
+                runner=runner,
+                candidate_admission_policy=FakeVerifier(),
+                provider=_ScoreProvider(epoch_a_root / "candidates", (0.25,)),
+                policy_initialization=PolicyInitialization.random(),
+                session_genesis=genesis,
+                session_genesis_dir=genesis_root,
+                ledger_epoch_id="epoch-a",
+            )
+            epoch_b = prepare_ledger_epoch(
+                output_dir=epoch_b_root,
+                genesis_dir=genesis_root,
+                epoch_id="epoch-b",
+                session_id="foreign-ledger",
+                genesis=genesis,
+            )
+            assert epoch_b is not None
+            self.assertNotEqual(
+                summary_a["ledger_epoch"]["manifest_hash"],
+                epoch_b.manifest_hash,
+            )
+            (epoch_b_root / "ledger.jsonl").write_bytes(
+                (epoch_a_root / "ledger.jsonl").read_bytes()
+            )
+
+            provider = _FailIfCalledProvider()
+            with self.assertRaisesRegex(
+                ValueError,
+                "ledger_epoch_hash_mismatch",
+            ):
+                run_live_loop(
+                    output_dir=epoch_b_root,
+                    rounds=1,
+                    session_id="foreign-ledger",
+                    task_plugin=task,
+                    backend_adapter=backend,
+                    runner=runner,
+                    candidate_admission_policy=FakeVerifier(),
+                    provider=provider,
+                    policy_initialization=PolicyInitialization.random(),
+                    session_genesis=genesis,
+                    session_genesis_dir=genesis_root,
+                    ledger_epoch_id="epoch-b",
+                )
+
+        self.assertEqual(provider.calls, 0)
+
+    def test_live_session_lock_rejects_second_loop_before_provider(self) -> None:
+        task = FakeTaskPlugin()
+        backend = FakeBackendAdapter()
+        runner = FakeRunner()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            genesis = prepare_session_genesis(
+                output_dir=output_dir,
+                session_id="exclusive-live-session",
+                task_plugin=task,
+                backend_adapter=backend,
+                runner=runner,
+                policy_initialization=PolicyInitialization.random(),
+                genesis_identity_snapshot={"fixture": "live_lock_v1"},
+                bootstrap_initial_best_score=0.10,
+            )
+            first_provider = _BlockingScoreProvider(
+                output_dir / "candidates",
+                (0.25,),
+            )
+            second_provider = _FailIfCalledProvider()
+            common = {
+                "output_dir": output_dir,
+                "rounds": 1,
+                "session_id": "exclusive-live-session",
+                "task_plugin": task,
+                "backend_adapter": backend,
+                "runner": runner,
+                "candidate_admission_policy": FakeVerifier(),
+                "policy_initialization": PolicyInitialization.random(),
+                "session_genesis": genesis,
+            }
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                future = pool.submit(
+                    run_live_loop,
+                    provider=first_provider,
+                    **common,
+                )
+                self.assertTrue(first_provider.started.wait(timeout=5))
+                try:
+                    with self.assertRaises(LiveSessionInProgressError):
+                        run_live_loop(provider=second_provider, **common)
+                finally:
+                    first_provider.release.set()
+                first_summary = future.result(timeout=10)
+            ledger = load_ledger(output_dir / "ledger.jsonl")
+
+        self.assertEqual(second_provider.calls, 0)
+        self.assertEqual(first_summary["rounds_completed"], 1)
+        self.assertEqual(len(ledger), 1)
+
     def test_baseline_live_resume_replay_and_prompt_authority_transition(self) -> None:
         task = _BaselineRequiredTask()
         backend = _SessionBoundBackend()
         runner = _CountingRunner()
         manifest = _manifest(task.task_spec.task_id)
         initialization = manifest.to_policy_initialization()
-        runtime_snapshot = {"fixture": "warm_start_session_v1"}
+        genesis_identity_snapshot = {"fixture": "warm_start_session_v1"}
         scores = (0.28, 0.31, 0.30)
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -204,7 +790,7 @@ class SessionGenesisLiveLoopTests(unittest.TestCase):
                 backend_adapter=backend,
                 runner=runner,
                 policy_initialization=initialization,
-                runtime_snapshot=runtime_snapshot,
+                genesis_identity_snapshot=genesis_identity_snapshot,
                 baseline_manifest=manifest,
             )
             genesis_bytes = (output_dir / SESSION_GENESIS_FILENAME).read_bytes()
@@ -216,7 +802,7 @@ class SessionGenesisLiveLoopTests(unittest.TestCase):
                 task_plugin=task,
                 backend_adapter=backend,
                 runner=runner,
-                verifier=FakeVerifier(),
+                candidate_admission_policy=FakeVerifier(),
                 provider=first_provider,
                 policy_initialization=initialization,
                 session_genesis=genesis,
@@ -229,7 +815,7 @@ class SessionGenesisLiveLoopTests(unittest.TestCase):
                 backend_adapter=backend,
                 runner=runner,
                 policy_initialization=initialization,
-                runtime_snapshot=runtime_snapshot,
+                genesis_identity_snapshot=genesis_identity_snapshot,
                 baseline_manifest=manifest,
             )
             no_op_provider = _FailIfCalledProvider()
@@ -240,10 +826,13 @@ class SessionGenesisLiveLoopTests(unittest.TestCase):
                 task_plugin=task,
                 backend_adapter=backend,
                 runner=runner,
-                verifier=FakeVerifier(),
+                candidate_admission_policy=FakeVerifier(),
                 provider=no_op_provider,
                 policy_initialization=initialization,
                 session_genesis=resumed_genesis,
+            )
+            no_op_summary_file = json.loads(
+                (output_dir / "live_summary.json").read_text(encoding="utf-8")
             )
             resume_provider = _ScoreProvider(output_dir / "candidates", scores)
             final_summary = run_live_loop(
@@ -253,7 +842,7 @@ class SessionGenesisLiveLoopTests(unittest.TestCase):
                 task_plugin=task,
                 backend_adapter=backend,
                 runner=runner,
-                verifier=FakeVerifier(),
+                candidate_admission_policy=FakeVerifier(),
                 provider=resume_provider,
                 policy_initialization=initialization,
                 session_genesis=resumed_genesis,
@@ -264,6 +853,7 @@ class SessionGenesisLiveLoopTests(unittest.TestCase):
                 initial_current_best=resumed_genesis.initial_current_best,
                 expected_session_genesis_hash=resumed_genesis.session_genesis_hash,
                 acceptance_protocol=task.task_spec.acceptance_protocol,
+                expected_authoring_mode=PROVIDER_AUTHORING_MODE,
             )
             final_genesis_bytes = (
                 output_dir / SESSION_GENESIS_FILENAME
@@ -278,8 +868,28 @@ class SessionGenesisLiveLoopTests(unittest.TestCase):
         self.assertEqual(first_summary["decision_outcome_counts"], {"reject": 1})
         self.assertEqual(no_op_provider.calls, 0)
         self.assertEqual(no_op_summary["rounds_executed_this_invocation"], 0)
+        self.assertEqual(no_op_summary["provider_attempt_count"], 1)
+        self.assertEqual(
+            no_op_summary[
+                "provider_attempt_count_for_rounds_closed_this_invocation"
+            ],
+            0,
+        )
+        self.assertEqual(
+            no_op_summary_file["provider_attempt_count"],
+            no_op_summary["provider_attempt_count"],
+        )
+        self.assertEqual(len(no_op_summary["authoring_evidence_paths"]), 1)
         self.assertEqual(final_summary["resumed_from_round_count"], 1)
         self.assertEqual(final_summary["rounds_executed_this_invocation"], 2)
+        self.assertEqual(final_summary["provider_attempt_count"], 3)
+        self.assertEqual(
+            final_summary[
+                "provider_attempt_count_for_rounds_closed_this_invocation"
+            ],
+            2,
+        )
+        self.assertEqual(len(final_summary["authoring_evidence_paths"]), 3)
         self.assertEqual(
             [record["round_id"] for record in ledger],
             [
@@ -360,7 +970,7 @@ class SessionGenesisLiveLoopTests(unittest.TestCase):
                 backend_adapter=backend,
                 runner=runner,
                 policy_initialization=initialization,
-                runtime_snapshot={"fixture": "identity_drift_v1"},
+                genesis_identity_snapshot={"fixture": "identity_drift_v1"},
                 baseline_manifest=manifest,
             )
             run_live_loop(
@@ -370,7 +980,7 @@ class SessionGenesisLiveLoopTests(unittest.TestCase):
                 task_plugin=task,
                 backend_adapter=backend,
                 runner=runner,
-                verifier=FakeVerifier(),
+                candidate_admission_policy=FakeVerifier(),
                 provider=_ScoreProvider(output_dir / "candidates", (0.28,)),
                 policy_initialization=initialization,
                 session_genesis=genesis,
@@ -392,7 +1002,7 @@ class SessionGenesisLiveLoopTests(unittest.TestCase):
                     task_plugin=task,
                     backend_adapter=backend,
                     runner=runner,
-                    verifier=FakeVerifier(),
+                    candidate_admission_policy=FakeVerifier(),
                     provider=provider,
                     policy_initialization=initialization,
                     session_genesis=genesis,

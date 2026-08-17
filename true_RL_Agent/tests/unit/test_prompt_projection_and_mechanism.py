@@ -14,6 +14,10 @@ from true_rl_agent.agent_core.authoring_response import SourceRequestResponse
 from true_rl_agent.agent_core.source_request_limits import (
     MAX_SOURCE_REQUEST_BYTES_PER_ROUND,
 )
+from true_rl_agent.candidates.authoring_policy import (
+    MAX_CANONICAL_COMPONENT_NAME_CHARS,
+    MAX_CANONICAL_COMPONENT_NAME_UTF8_BYTES,
+)
 from true_rl_agent.candidates.mechanism import (
     MechanismEvidenceGate,
     RuntimeActivationEvidence,
@@ -28,7 +32,12 @@ from true_rl_agent.candidates.prompt_projection import (
     reward_inputs_projection,
     serialize_prompt_payload,
 )
-from true_rl_agent.candidates.schema import CandidateChangeSet
+from true_rl_agent.candidates.schema import (
+    CANDIDATE_ID_ALLOWED_CHARACTERS,
+    MAX_CANDIDATE_ID_CHARS,
+    CandidateChangeSet,
+    candidate_id_contract,
+)
 from true_rl_agent.prompting.authoring_frame import (
     AUTHORING_CONTEXT_FRAME_KINDS,
     MAX_AUTHORING_PROMPT_PAYLOAD_BYTES,
@@ -121,6 +130,18 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         self.assertEqual(payload["required_candidate_package"]["component_contract"], contract)
         self.assertIn("static_verifier_rules", contract)
         verifier_rules = contract["static_verifier_rules"]
+        self.assertEqual(
+            verifier_rules["component_callable_contract"][
+                "component_name_contract"
+            ]["max_chars"],
+            MAX_CANONICAL_COMPONENT_NAME_CHARS,
+        )
+        self.assertEqual(
+            verifier_rules["component_callable_contract"][
+                "component_name_contract"
+            ]["max_utf8_bytes"],
+            MAX_CANONICAL_COMPONENT_NAME_UTF8_BYTES,
+        )
         self.assertIn("true_rl_agent.candidates.components", verifier_rules["allowed_imports"])
         self.assertIn("open", verifier_rules["blocked_calls"])
         self.assertIn("subprocess", verifier_rules["blocked_call_roots"])
@@ -172,22 +193,20 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         self.assertIn("candidate_capabilities", payload["authoring_context_frame"]["stable_contract_refs"])
         assert_public_only_prompt_payload(payload)
 
-    def test_candidate_capabilities_keep_reserved_surfaces_non_writable(self) -> None:
+    def test_candidate_capabilities_do_not_expose_reserved_surfaces(self) -> None:
         payload = build_prompt_payload(public_context={"public_only": True})
         capabilities = payload["candidate_capabilities"]
         visible_ids = {item["capability_id"] for item in capabilities["prompt_visible_capabilities"]}
-        reserved = {item["capability_id"]: item for item in capabilities["disabled_or_reserved_capabilities"]}
 
         self.assertNotIn("curriculum_design", visible_ids)
         self.assertNotIn("train_environment_design", visible_ids)
-        for capability_id in ("curriculum_design", "train_environment_design"):
-            self.assertIn(capability_id, reserved)
-            self.assertFalse(reserved[capability_id]["prompt_visible"])
-            self.assertFalse(reserved[capability_id]["candidate_writable"])
-            self.assertFalse(reserved[capability_id]["effective_now"])
-            self.assertEqual(reserved[capability_id]["materializer_owner"], "runner")
+        self.assertEqual(capabilities["disabled_or_reserved_capabilities"], [])
 
         capabilities_text = json.dumps(capabilities, sort_keys=True)
+        self.assertNotIn("curriculum_design", capabilities_text)
+        self.assertNotIn("train_environment_design", capabilities_text)
+        self.assertNotIn("observation_projection", capabilities_text)
+        self.assertNotIn("feature_projection", capabilities_text)
         self.assertNotIn("push_active", capabilities_text)
         self.assertNotIn("push_vec_public", capabilities_text)
         self.assertNotIn("push recovery", capabilities_text.lower())
@@ -267,8 +286,8 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         self.assertEqual(payload["reward_inputs_contract"]["fields"][0]["name"], "height")
         self.assertEqual(payload["public_feedback_summary"]["latest"], "reject")
         self.assertEqual(payload["public_history"]["previous_rounds"], 2)
-        guidance = " ".join(payload["selection_guidance"])
-        self.assertIn("public_history.experiment_memory", guidance)
+        common_guidance = " ".join(payload["loop_contract"]["evidence_discipline"])
+        self.assertIn("public_history.experiment_memory", common_guidance)
         self.assertIn("Use public custom evidence only.", payload["selection_guidance"])
         self.assertNotIn("task_prompt_sections", payload["public_context"])
         self.assertIn("component_contract", payload["required_candidate_package"])
@@ -316,10 +335,12 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         self.assertEqual(json.loads(text), payload)
         for section in early_sections:
             self.assertIn(section, text)
+        self.assertLess(text.index('"schema_version"'), text.index('"task"'))
         self.assertLess(text.index('"task"'), text.index('"loop_contract"'))
         self.assertLess(text.index('"loop_contract"'), text.index('"required_candidate_package"'))
         self.assertLess(text.index('"required_candidate_package"'), text.index('"candidate_capabilities"'))
         self.assertLess(text.index('"candidate_capabilities"'), text.index('"reward_inputs_contract"'))
+        self.assertLess(text.index('"selection_guidance"'), text.index('"authoring_context_frame"'))
         self.assertLess(text.index('"reward_inputs_contract"'), text.index('"source_catalog"'))
         self.assertLess(text.index('"source_catalog"'), text.index('"candidate_lineage"'))
         self.assertLess(text.index('"candidate_lineage"'), text.index('"public_feedback_summary"'))
@@ -461,8 +482,8 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         )
         self.assertLess(canonical_prompt_json_bytes(payload["public_context"]), 1024)
         self.assertLess(
-            list(payload).index("provider_or_runtime_repair_feedback"),
             list(payload).index("schema_version"),
+            list(payload).index("provider_or_runtime_repair_feedback"),
         )
 
     def test_prompt_payload_records_candidate_draft_authoring_context_frame(self) -> None:
@@ -479,7 +500,7 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         frame = payload["authoring_context_frame"]
 
         self.assertIn("candidate_draft", AUTHORING_CONTEXT_FRAME_KINDS)
-        self.assertEqual(frame["schema_version"], "true_rl_agent.authoring_context_frame.v1")
+        self.assertEqual(frame["schema_version"], "true_rl_agent.authoring_context_frame.v2")
         self.assertEqual(frame["frame_kind"], "candidate_draft")
         self.assertIn("task", frame["included_sections"])
         self.assertIn("public_history", frame["included_sections"])
@@ -514,13 +535,28 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         self.assertIn("public_history", frame["budget_metadata"]["section_serialized_bytes"])
         self.assertLess(
             list(payload).index("required_candidate_package"),
+            list(payload).index("reward_inputs_contract"),
+        )
+        self.assertLess(
+            list(payload).index("selection_guidance"),
             list(payload).index("authoring_context_frame"),
         )
-        self.assertLess(list(payload).index("authoring_context_frame"), list(payload).index("reward_inputs_contract"))
+        self.assertLess(
+            list(payload).index("authoring_context_frame"),
+            list(payload).index("source_catalog"),
+        )
+        common_guidance = " ".join(payload["loop_contract"]["evidence_discipline"])
+        self.assertIn("numeric-only", common_guidance)
+        self.assertIn("historical-source gate", common_guidance)
+        self.assertIn(
+            "change exactly one named canonical prompt-visible",
+            common_guidance,
+        )
+        self.assertNotIn("combine multiple rejected mechanisms", common_guidance)
         assert_public_only_prompt_payload(frame)
         assert_public_only_prompt_payload(payload)
 
-    def test_static_repair_frame_omits_recent_history_and_records_omission(self) -> None:
+    def test_static_repair_without_failed_source_keeps_draft_context(self) -> None:
         payload = build_prompt_payload(
             public_context={
                 "public_only": True,
@@ -544,13 +580,29 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
 
         self.assertEqual(frame["frame_kind"], "static_repair")
         self.assertIn("provider_or_runtime_repair_feedback", frame["included_sections"])
-        self.assertEqual(payload["public_history"]["recent_outcomes"], [])
-        self.assertNotIn("recent_outcomes", payload["public_context"])
-        self.assertGreaterEqual(payload["public_history"]["omitted_round_count"], 3)
-        self.assertEqual(omitted[0]["section"], "public_history.recent_outcomes")
-        self.assertEqual(omitted[0]["reason"], "omitted_for_static_repair_frame")
-        self.assertEqual(omitted[0]["omitted_item_count"], 3)
-        self.assertEqual(omitted[0]["recoverable_from"], "prior ledger public records")
+        self.assertEqual(len(payload["public_history"]["recent_outcomes"]), 3)
+        self.assertIn("public_feedback_summary", payload)
+        self.assertIn("runtime_feedback_summary", payload)
+        self.assertIn("known_good_examples", payload)
+        self.assertIn("selection_guidance", payload)
+        self.assertIn("exploration_directive", payload)
+        self.assertEqual(omitted, [])
+        self.assertEqual(payload["source_payloads"], [])
+        self.assertIn("source_payloads", frame["frame_contract"]["required_sections"])
+        self.assertIn(
+            "public_history",
+            frame["frame_contract"]["optional_sections"],
+        )
+        for stable_contract in (
+            "task",
+            "loop_contract",
+            "required_candidate_package",
+            "candidate_capabilities",
+            "reward_inputs_contract",
+            "public_eval_contract",
+            "control_effectiveness_contract",
+        ):
+            self.assertIn(stable_contract, frame["stable_contract_refs"])
         assert_public_only_prompt_payload(frame)
         assert_public_only_prompt_payload(payload)
 
@@ -700,7 +752,10 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         self.assertNotIn("allowed_keys", output)
         draft = output["one_of"]["candidate_draft"]
         source_request = output["one_of"]["source_request"]
-        self.assertEqual(draft["required_keys"], ["candidate_id", "rationale", "declared_changed_components", "components_py"])
+        self.assertEqual(
+            draft["required_keys"],
+            ["candidate_id", "declared_changed_components", "components_py"],
+        )
         self.assertEqual(draft["allowed_keys"], ["response_mode", *draft["required_keys"]])
         self.assertEqual(source_request["required_keys"], ["response_mode", "logical_ids", "rationale"])
         self.assertEqual(source_request["allowed_keys"], ["response_mode", "logical_ids", "rationale"])
@@ -710,12 +765,40 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         self.assertTrue(output["json_only"])
         self.assertTrue(output["no_prose_outside_json"])
         self.assertEqual(output["authoring_response_protocol"]["default_response_mode"], "candidate_draft")
+        self.assertEqual(
+            output["authoring_response_protocol"]["schema_version"],
+            "true_rl_agent.authoring_provider_response_contract.v2",
+        )
         self.assertTrue(output["authoring_response_protocol"]["source_request_service_enabled"])
         self.assertTrue(source_request["enabled"])
         self.assertIn("runner_patch", output["prohibited_keys"])
         self.assertIn("operation_diff", output["prohibited_keys"])
         self.assertEqual(output["field_contracts"]["components_py"]["materialized_file"], "training_code/components.py")
+        self.assertEqual(
+            output["field_contracts"]["components_py"]["derived_materialized_files"],
+            {"rationale.md": "TrainingComponents.rationale"},
+        )
+        self.assertNotIn("rationale", draft["allowed_keys"])
+        self.assertEqual(
+            output["field_contracts"]["rationale"]["available_in_response_modes"],
+            ["source_request"],
+        )
         self.assertEqual(output["field_contracts"]["candidate_id"]["materialized_file"], "candidate_manifest.yaml")
+        self.assertEqual(
+            output["field_contracts"]["candidate_id"]["max_chars"],
+            MAX_CANDIDATE_ID_CHARS,
+        )
+        self.assertEqual(
+            output["field_contracts"]["candidate_id"]["allowed_characters"],
+            CANDIDATE_ID_ALLOWED_CHARACTERS,
+        )
+        self.assertEqual(
+            {
+                key: output["field_contracts"]["candidate_id"][key]
+                for key in candidate_id_contract()
+            },
+            candidate_id_contract(),
+        )
 
         expected_files = {
             "candidate_manifest.yaml",
@@ -730,6 +813,10 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         self.assertEqual(files["provider_materialized_files"]["operation_diff.json"]["source"], "candidate_materializer")
         self.assertEqual(files["provider_materialized_files"]["operation_diff.json"]["derived_from"], ["declared_changed_components"])
         self.assertEqual(files["provider_materialized_files"]["diagnostics.json"]["source"], "candidate_materializer")
+        self.assertEqual(
+            files["provider_materialized_files"]["rationale.md"]["derived_from"],
+            ["training_code/components.py:TrainingComponents.rationale"],
+        )
         self.assertIn("success metric", package["candidate_must_not_change"])
         self.assertIn("runner code", package["candidate_must_not_change"])
 

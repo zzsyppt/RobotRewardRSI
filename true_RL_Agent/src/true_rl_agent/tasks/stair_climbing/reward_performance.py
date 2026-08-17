@@ -7,7 +7,10 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 from true_rl_agent.evaluation.binding import canonical_json_hash
-from true_rl_agent.tasks.stair_climbing.protocol_v2 import StairProtocolV2Draft
+from true_rl_agent.tasks.stair_climbing.protocol_v2 import (
+    StairProtocolV2,
+    StairProtocolV2Draft,
+)
 from true_rl_agent.tasks.stair_climbing.reward_program import (
     QualifiedStairRewardProgram,
 )
@@ -28,12 +31,12 @@ STAIR_REWARD_BENCHMARK_CASES = (
 def compile_stair_reward_performance_report(
     case_reports: Sequence[Mapping[str, Any]],
     *,
-    protocol: StairProtocolV2Draft,
+    protocol: StairProtocolV2 | StairProtocolV2Draft,
     reference_program: QualifiedStairRewardProgram,
 ) -> dict[str, Any]:
     """Validate three isolated measurements and calculate the canonical gate."""
 
-    if not isinstance(protocol, StairProtocolV2Draft):
+    if not isinstance(protocol, (StairProtocolV2, StairProtocolV2Draft)):
         raise TypeError("Stair reward benchmark protocol is invalid")
     if not isinstance(reference_program, QualifiedStairRewardProgram):
         raise TypeError("Stair reward benchmark reference program is invalid")

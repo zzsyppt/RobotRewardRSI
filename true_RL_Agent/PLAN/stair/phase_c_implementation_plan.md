@@ -306,7 +306,7 @@ Phase B 的 fail-closed entrypoint 原地升级为真实 Stair trainer：
 
 ## 12. 实施与验收结果（2026-07-29）
 
-Phase C 的功能实现与当前服务器动态验收已按上述边界完成。实际实现保留 Phase B 的 reference/artifact/composition 基座，并在其上增加 task-owned complete-reward 执行能力；未回滚 Phase B 修复，也未提前实现 Phase D–F。当前 Phase C 变更尚未进入 Git HEAD，因此在本地/origin/server 形成同一提交前，不满足第 11 节的正式交付条件，也不得进入 Phase D。
+Phase C 已按上述边界完成并由提交 `481e380` 正式交付。实际实现以 Phase B 的 reference/artifact/composition 合同为可信基座，在其上增加 task-owned complete-reward 执行能力；没有回滚 Phase B 修复，也未提前实现 Phase D–F。提交后已在服务器当前 HEAD 复跑完整回归和全部关键动态探针，本地、origin 与服务器三方 HEAD 一致，满足第 11 节完成条件，可以进入 Phase D。
 
 ### 12.1 动态证据
 

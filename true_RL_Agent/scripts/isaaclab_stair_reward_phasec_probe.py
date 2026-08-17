@@ -44,7 +44,7 @@ args = _build_parser().parse_args()
 if args.probe_num_envs <= 0 or args.probe_steps <= 0:
     raise ValueError("probe envs and steps must be positive")
 config = StairClimbingTaskConfig.defaults(
-    PROJECT_ROOT / "configs" / "tasks" / "stair_protocol_v2_draft.json"
+    PROJECT_ROOT / "configs" / "tasks" / "stair_protocol_v2.json"
 )
 official = resolve_official_stair_reference_program(
     config,

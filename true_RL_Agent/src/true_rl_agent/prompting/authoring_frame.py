@@ -2,18 +2,27 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from true_rl_agent.agent_core.provider_contract import SOURCE_REQUEST_SERVICE_ENABLED
 from true_rl_agent.agent_core.source_request_limits import (
+    LATEST_FAILED_SOURCE_ID,
     MAX_SOURCE_REQUEST_BYTES_PER_ROUND,
 )
+from true_rl_agent.prompt_serialization import MAX_AUTHORING_PROMPT_PAYLOAD_BYTES
 from true_rl_agent.prompting.public_safety import assert_public_only_prompt_payload
 from true_rl_agent.prompting.serialization import canonical_prompt_json_bytes
-from true_rl_agent.prompting.source_catalog import MAX_PROMPT_SOURCE_INLINE_BYTES
+from true_rl_agent.prompting.source_catalog import (
+    MAX_PROMPT_SOURCE_INLINE_BYTES,
+    has_inline_current_authoring_failed_source,
+)
+from true_rl_agent.prompting.task_sections import (
+    build_provider_task_prompt_receipt,
+)
 
-AUTHORING_CONTEXT_FRAME_SCHEMA_VERSION = "true_rl_agent.authoring_context_frame.v1"
+AUTHORING_CONTEXT_FRAME_SCHEMA_VERSION = "true_rl_agent.authoring_context_frame.v2"
 AUTHORING_CONTEXT_FRAME_KINDS = (
     "initial_authoring",
     "candidate_draft",
@@ -22,7 +31,6 @@ AUTHORING_CONTEXT_FRAME_KINDS = (
     "rewrite",
 )
 RESERVED_AUTHORING_CONTEXT_FRAME_KINDS: tuple[str, ...] = ()
-MAX_AUTHORING_PROMPT_PAYLOAD_BYTES = 256 * 1024
 MAX_AUTHORING_SECTION_BYTES = 96 * 1024
 _BYTES_PER_TOKEN_ESTIMATE = 4
 
@@ -59,6 +67,7 @@ _COMMON_OPTIONAL_SECTIONS = (
     "selection_guidance",
     "provider_or_runtime_repair_feedback",
 )
+_STATIC_REPAIR_OMISSION_REASON = "omitted_for_minimal_static_repair_frame"
 _FRAME_POLICIES = {
     "initial_authoring": AuthoringFramePolicy(
         frame_kind="initial_authoring",
@@ -84,11 +93,17 @@ _FRAME_POLICIES = {
     ),
     "static_repair": AuthoringFramePolicy(
         frame_kind="static_repair",
-        purpose="repair provider, schema, verifier, or static authoring feedback without replaying full history",
+        purpose=(
+            "repair from exact feedback under stable contracts; use the latest "
+            "failed source when available, otherwise retain draft context for "
+            "pre-materialization provider failures"
+        ),
         required_sections=(
             *_STABLE_CONTRACT_REFS,
             "source_catalog",
             "candidate_lineage",
+            "source_payloads",
+            "exploration_directive",
             "provider_or_runtime_repair_feedback",
             "schema_version",
         ),
@@ -97,11 +112,8 @@ _FRAME_POLICIES = {
             "runtime_feedback_summary",
             "public_history",
             "known_good_examples",
-            "source_payloads",
-            "exploration_directive",
             "selection_guidance",
         ),
-        omitted_recent_history_reason="omitted_for_static_repair_frame",
     ),
     "source_followup": AuthoringFramePolicy(
         frame_kind="source_followup",
@@ -188,6 +200,84 @@ def compact_public_history_for_frame(
     return history, omitted
 
 
+def project_sections_for_authoring_frame(
+    section_values: Mapping[str, Any],
+    *,
+    frame_kind: str,
+    section_order: Sequence[str],
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Apply the frame's provider-visible section boundary.
+
+    Static repair deliberately keeps the exact failed source and stable contract/
+    lineage anchors, while excluding hypothesis-selection context that cannot help
+    repair the current static failure.
+    """
+
+    if frame_kind != "static_repair":
+        return dict(section_values), []
+
+    source_payloads = section_values.get("source_payloads")
+    if not isinstance(source_payloads, list):
+        raise TypeError("static repair source_payloads must be a list")
+    if not has_inline_current_authoring_failed_source(section_values):
+        return dict(section_values), []
+    retained_payloads = [
+        dict(item)
+        for item in source_payloads
+        if isinstance(item, Mapping)
+        and item.get("logical_id") == LATEST_FAILED_SOURCE_ID
+    ]
+    allowed = frozenset(_FRAME_POLICIES[frame_kind].required_sections)
+    projected = {
+        section: value
+        for section, value in section_values.items()
+        if section in allowed
+    }
+    projected["source_payloads"] = retained_payloads
+
+    omitted: list[dict[str, Any]] = []
+    omitted_section_names = [
+        section
+        for section in section_order
+        if section in section_values
+        and section_values[section] is not None
+        and section not in allowed
+        and section != "authoring_context_frame"
+    ]
+    if omitted_section_names:
+        omitted.append(
+            {
+                "section": "static_repair_nonessential_context",
+                "reason": _STATIC_REPAIR_OMISSION_REASON,
+                "omitted_sections": omitted_section_names,
+                "recoverable_from": "initial authoring prompt and prior public ledger records",
+            }
+        )
+
+    retained_ids = [item["logical_id"] for item in retained_payloads]
+    omitted_source_ids = [
+        item.get("logical_id")
+        for item in source_payloads
+        if isinstance(item, Mapping)
+        and item.get("logical_id") not in retained_ids
+    ]
+    omitted_source_ids = [
+        logical_id
+        for logical_id in omitted_source_ids
+        if isinstance(logical_id, str) and logical_id
+    ]
+    if omitted_source_ids:
+        omitted.append(
+            {
+                "section": "source_payloads",
+                "reason": "omitted_nonfailed_sources_for_static_repair",
+                "omitted_logical_ids": omitted_source_ids,
+                "retained_logical_ids": retained_ids,
+            }
+        )
+    return projected, omitted
+
+
 def build_authoring_context_frame(
     *,
     frame_kind: str,
@@ -267,6 +357,9 @@ def with_final_prompt_budget(
         estimated_prompt_bytes = sum(section_bytes.values())
         budget["estimated_prompt_bytes"] = estimated_prompt_bytes
         budget["estimated_prompt_context_units"] = _estimate_context_units(estimated_prompt_bytes)
+        budget["provider_task_sections"] = build_provider_task_prompt_receipt(
+            prompt_payload
+        )
 
         updated_frame = dict(final_frame)
         updated_frame["included_sections"] = visible_sections

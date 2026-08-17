@@ -10,6 +10,7 @@ from true_rl_agent.backends.isaac_lab_rsl_rl import (
     IsaacLabRslRlBackendAdapter,
     IsaacLabRslRlBackendConfig,
 )
+from true_rl_agent.candidates.verifier import StaticCandidateVerifier
 from true_rl_agent.composition.base import (
     ResolvedTaskComposition,
     TaskCompositionContext,
@@ -17,7 +18,11 @@ from true_rl_agent.composition.base import (
 )
 from true_rl_agent.evaluation.binding import EvaluationBindingV1
 from true_rl_agent.policy import PolicyInitialization
+from true_rl_agent.runner.specs import require_execution_device
 from true_rl_agent.runner.subprocess_runner import SubprocessRunner
+from true_rl_agent.tasks.push_recovery.candidate_failure import (
+    PUSH_CANDIDATE_FAILURE_CONTRACT,
+)
 from true_rl_agent.tasks.push_recovery.config import PushRecoveryTaskConfig
 from true_rl_agent.tasks.push_recovery.memory import PushTaskMemoryAdapter
 from true_rl_agent.tasks.push_recovery.plugin import PushRecoveryTaskPlugin
@@ -31,6 +36,7 @@ PUSH_RECOVERY_POLICY_ARCHITECTURE = "rsl_rl_ppo_mlp"
 DEFAULT_ISAAC_PYTHON = "/data/yuyangliu/envs/isaaclab/bin/python"
 DEFAULT_TRAIN_ENTRYPOINT = "scripts/isaaclab_rsl_rl_train.py"
 DEFAULT_EVAL_ENTRYPOINT = "scripts/isaaclab_rsl_rl_eval.py"
+DEFAULT_EXECUTION_DEVICE = "cuda:0"
 
 
 @dataclass(frozen=True)
@@ -40,6 +46,7 @@ class PushRecoveryCompositionConfig:
     isaac_python: str
     train_entrypoint: str
     eval_entrypoint: str
+    execution_device: str
     budget_steps: int
     public_seed_count: int
     public_accept_seed_count: int
@@ -60,10 +67,15 @@ class PushRecoveryCompositionConfig:
             "isaac_python",
             "train_entrypoint",
             "eval_entrypoint",
+            "execution_device",
         ):
             value = getattr(self, field_name)
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"{field_name} must be a non-empty string")
+        require_execution_device(
+            self.execution_device,
+            "push composition execution_device",
+        )
         if self.runtime_config is not None and (
             not isinstance(self.runtime_config, str)
             or not self.runtime_config.strip()
@@ -78,6 +90,7 @@ class PushRecoveryCompositionConfig:
             isaac_python=DEFAULT_ISAAC_PYTHON,
             train_entrypoint=DEFAULT_TRAIN_ENTRYPOINT,
             eval_entrypoint=DEFAULT_EVAL_ENTRYPOINT,
+            execution_device=DEFAULT_EXECUTION_DEVICE,
             budget_steps=task_config.budget_steps,
             public_seed_count=task_config.public_seed_count,
             public_accept_seed_count=task_config.public_accept_seed_count,
@@ -151,11 +164,13 @@ class PushRecoveryCompositionProvider(TaskCompositionProvider):
         composition_config = PushRecoveryCompositionConfig.from_values(values)
         task_config = composition_config.to_task_config()
         task_plugin = PushRecoveryTaskPlugin(task_config)
+        candidate_admission_policy = StaticCandidateVerifier()
         backend_config = _build_push_backend_config(
             composition_config=composition_config,
             context=context,
             task_config=task_config,
             task_plugin=task_plugin,
+            candidate_admission_policy=candidate_admission_policy,
         )
         return ResolvedTaskComposition(
             task_id=self.task_id,
@@ -167,6 +182,7 @@ class PushRecoveryCompositionProvider(TaskCompositionProvider):
                 timeout_s=composition_config.runner_timeout_s,
                 cwd=context.project_root,
             ),
+            candidate_admission_policy=candidate_admission_policy,
             policy_initialization=PolicyInitialization.random(),
             genesis_anchor_kind="bootstrap",
             task_defaults=composition_config.to_task_defaults(),
@@ -198,6 +214,7 @@ def _build_push_backend_config(
     context: TaskCompositionContext,
     task_config: PushRecoveryTaskConfig,
     task_plugin: PushRecoveryTaskPlugin,
+    candidate_admission_policy: StaticCandidateVerifier,
 ) -> IsaacLabRslRlBackendConfig:
     if task_config != composition_config.to_task_config():
         raise ValueError(
@@ -215,6 +232,7 @@ def _build_push_backend_config(
         task_protocol_hash=task_plugin.task_spec.resolved_task_protocol_hash(),
         seed_cohort_hash=task_config.seed_cohort_hash(),
     )
+    admission = candidate_admission_policy.admission_policy_descriptor()
     return IsaacLabRslRlBackendConfig(
         isaac_lab_python=composition_config.isaac_python,
         train_entrypoint=composition_config.train_entrypoint,
@@ -241,6 +259,11 @@ def _build_push_backend_config(
         train_max_iterations=task_config.train_max_iterations,
         train_steps_per_iteration=task_config.train_steps_per_iteration,
         eval_base_seed=task_config.eval_base_seed,
+        execution_device=composition_config.execution_device,
+        candidate_admission_policy_id=admission.policy_id,
+        candidate_admission_policy_hash=admission.policy_hash,
+        candidate_execution_capability_ids=frozenset(),
+        candidate_failure_contract=PUSH_CANDIDATE_FAILURE_CONTRACT,
         train_seed=task_config.train_seed,
         runtime_config_path=task_config.runtime_config_path,
         train_runtime_dynamics_hash=train_runtime_dynamics[

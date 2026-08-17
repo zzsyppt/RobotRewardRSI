@@ -72,7 +72,15 @@ class MinimalBackendAdapter(BackendAdapter):
         candidate: VerifiedCandidateArtifactRef,
         policy_initialization: PolicyInitialization,
         evaluation_binding=None,
+        expected_initial_policy_state_hash=None,
+        backend_execution_environment_manifest_hash=None,
+        train_attempt_scope=None,
+        eval_attempt_scope=None,
     ):
+        _ = (
+            expected_initial_policy_state_hash,
+            backend_execution_environment_manifest_hash,
+        )
         evaluation_binding = evaluation_binding or self.evaluation_binding_for(
             task_spec
         )
@@ -85,7 +93,9 @@ class MinimalBackendAdapter(BackendAdapter):
             policy_initialization=policy_initialization,
             training_binding=make_training_binding(policy_initialization),
             budget_steps=128,
+            execution_device="cuda:0",
             candidate_artifact=candidate,
+            attempt_scope=train_attempt_scope,
         )
         eval_spec = EvalJobSpec(
             job_id=f"{round_id}-eval",
@@ -104,6 +114,8 @@ class MinimalBackendAdapter(BackendAdapter):
             public_seed_count=4,
             sealed_validation_seed_count=8,
             evaluation_binding=evaluation_binding,
+            execution_device="cuda:0",
+            attempt_scope=eval_attempt_scope,
         )
         return self.job_bundle_type(train_spec=train_spec, eval_spec=eval_spec)
 

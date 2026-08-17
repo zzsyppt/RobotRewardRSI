@@ -14,6 +14,7 @@ def dry_run_train_command(spec: TrainJobSpec) -> str:
         f"--subject-id {spec.subject.subject_id}",
         f"--budget-steps {spec.budget_steps}",
         f"--init {spec.policy_initialization.kind}",
+        f"--device {spec.execution_device}",
         f"--training-binding-hash {spec.training_binding.binding_hash}",
         f"--capability-profile-hash {spec.training_binding.capability_profile_hash}",
     ]
@@ -39,6 +40,7 @@ def dry_run_eval_command(spec: EvaluationJobSpec) -> str:
         f"--public-accept-seeds {spec.public_accept_seed_count}",
         f"--sealed-validation-seeds {spec.sealed_validation_seed_count}",
         f"--num-envs {spec.eval_num_envs}",
+        f"--device {spec.execution_device}",
         f"--eval-protocol-version {spec.eval_protocol_version}",
         f"--task-protocol-hash {binding.task_protocol_hash}",
         f"--acceptance-protocol-hash {binding.acceptance_protocol_hash}",

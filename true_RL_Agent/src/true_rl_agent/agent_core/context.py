@@ -10,7 +10,7 @@ from true_rl_agent.agent_core.experiment_memory import (
     recompact_experiment_memory,
 )
 from true_rl_agent.agent_core.public_safety import (
-    FORBIDDEN_PUBLIC_KEY_PARTS,
+    contains_forbidden_public_key_marker,
     contains_forbidden_public_value_marker,
     sanitize_prompt_public_value,
 )
@@ -37,11 +37,12 @@ _PUBLIC_HISTORY_ENTRY_KEYS = (
     "reason",
     "surface_classification",
     "public_score",
+    "public_score_source",
     "comparison",
     "changed_components",
     "dominant_failure",
     "sealed_validation_gate",
-    "candidate_package_loaded",
+    "candidate_runtime_activated_in_training",
     "candidate_code_loaded_in_eval",
     "failed_gates",
     "runtime_activation",
@@ -52,7 +53,6 @@ _PUBLIC_HISTORY_ENTRY_KEYS = (
     "source_request_feedback",
 )
 _PUBLIC_HISTORY_BLOCKED_KEY_PARTS = (
-    *FORBIDDEN_PUBLIC_KEY_PARTS,
     "seed_id",
     "seed_policy",
 )
@@ -74,8 +74,7 @@ def sanitize_public_context(value: Any) -> Any:
     if isinstance(value, Mapping):
         clean: dict[str, Any] = {}
         for key, item in value.items():
-            lowered = str(key).lower()
-            if any(part in lowered for part in FORBIDDEN_PUBLIC_KEY_PARTS):
+            if contains_forbidden_public_key_marker(key):
                 continue
             clean[str(key)] = sanitize_public_context(item)
         return clean
@@ -200,6 +199,7 @@ def build_public_context_from_projected(
     last_decision = decision_projections[-1] if decision_projections else {}
     recent_outcomes, omitted_round_count = _bounded_recent_outcomes(
         sanitized_records,
+        public_score_source=history.public_score_source,
     )
     experiment_memory = build_experiment_memory(sanitized_records)
     initial_accepted_score = (
@@ -215,6 +215,7 @@ def build_public_context_from_projected(
         "public_only": True,
         "previous_rounds": len(sanitized_records),
         "best_public_score": max(all_accepted_scores) if all_accepted_scores else None,
+        "public_score_source": history.public_score_source,
         "last_outcome": last_decision.get("outcome"),
         "pure_knob_streak": _pure_knob_streak(sanitized_records),
         "public_history_limits": {
@@ -239,9 +240,10 @@ def build_public_history_section(public_context: Mapping[str, Any]) -> dict[str,
     )
     return sanitize_prompt_public_context(
         {
-            "schema_version": "true_rl_agent.public_history.v1",
+            "schema_version": "true_rl_agent.public_history.v3",
             "previous_rounds": public_context.get("previous_rounds", 0),
             "best_public_score": public_context.get("best_public_score"),
+            "public_score_source": public_context.get("public_score_source"),
             "last_outcome": public_context.get("last_outcome"),
             "pure_knob_streak": public_context.get("pure_knob_streak", 0),
             "limits": {
@@ -310,9 +312,11 @@ def _pure_knob_streak(ledger_records: list[dict[str, Any]]) -> int:
 
 def _bounded_recent_outcomes(
     ledger_records: list[dict[str, Any]],
+    *,
+    public_score_source: str | None = None,
 ) -> tuple[list[dict[str, Any]], int]:
     entries = [
-        _round_history_entry(record)
+        _round_history_entry(record, public_score_source=public_score_source)
         for record in ledger_records
     ]
     return _bounded_history_entries(entries)
@@ -358,6 +362,8 @@ def _compact_history_field(key: str, value: Any) -> Any:
         return value if isinstance(value, bool) else None
     if key == "public_score":
         return float(value) if isinstance(value, int | float) else None
+    if key == "public_score_source":
+        return _optional_text(value)
     if key == "comparison":
         return _comparison_public_summary(value)
     if key == "changed_components":
@@ -366,7 +372,10 @@ def _compact_history_field(key: str, value: Any) -> Any:
         return _dominant_failure_public_summary(value)
     if key == "sealed_validation_gate":
         return _sealed_validation_gate_public_summary(value)
-    if key in {"candidate_package_loaded", "candidate_code_loaded_in_eval"}:
+    if key in {
+        "candidate_runtime_activated_in_training",
+        "candidate_code_loaded_in_eval",
+    }:
         return value if isinstance(value, bool) else _optional_text(value)
     if key == "failed_gates":
         return _failed_gates_public_summary(value) or None
@@ -387,12 +396,15 @@ def _compact_history_field(key: str, value: Any) -> Any:
 
 def _round_history_entry(
     record: Mapping[str, Any],
+    *,
+    public_score_source: str | None = None,
 ) -> dict[str, Any]:
     decision = _mapping(record.get("decision"))
     candidate_surface = _mapping(record.get("candidate_surface"))
     public_result = _mapping(record.get("public_result"))
     public_metrics = _mapping(public_result.get("metrics"))
     prompt_feedback = _mapping(public_metrics.get("prompt_feedback"))
+    public_score = _public_score(decision)
     entry: dict[str, Any] = {
         "round_id": _optional_text(record.get("round_id")),
         "candidate_id": _optional_text(_mapping(record.get("candidate")).get("candidate_id")),
@@ -403,14 +415,24 @@ def _round_history_entry(
             _optional_text(decision.get("surface_classification")),
             _optional_text(candidate_surface.get("classification")),
         ),
-        "public_score": _public_score(decision),
-        "comparison": _comparison_public_summary(decision.get("comparison")),
+        "public_score": public_score,
+        "public_score_source": (
+            _optional_text(public_score_source)
+            if public_score is not None
+            else None
+        ),
+        "comparison": _comparison_public_summary(
+            decision.get("comparison"),
+            public_score_source=public_score_source,
+        ),
         "changed_components": _changed_components(record),
         "dominant_failure": _dominant_failure_public_summary(prompt_feedback.get("dominant_failure")),
         "sealed_validation_gate": _sealed_validation_gate_public_summary(
             public_metrics.get("sealed_validation_gate")
         ),
-        "candidate_package_loaded": _candidate_package_loaded(record),
+        "candidate_runtime_activated_in_training": (
+            _candidate_runtime_activated_in_training(record)
+        ),
         "candidate_code_loaded_in_eval": _candidate_code_loaded_in_eval(record),
         "failed_gates": _failed_gate_summary(decision.get("gate_statuses")),
         "runtime_activation": _runtime_activation_summary(record),
@@ -449,17 +471,39 @@ def _changed_components(record: Mapping[str, Any]) -> list[str]:
     return sorted(_list_of_strings(raw))
 
 
-def _candidate_package_loaded(record: Mapping[str, Any]) -> bool | str:
+def _candidate_runtime_activated_in_training(
+    record: Mapping[str, Any],
+) -> bool | str:
     train_summary = _train_summary(record)
     candidate_summary = _mapping(train_summary.get("candidate"))
-    metrics = _public_metrics(record)
-    value = _first_present(
+    declared = _first_present(
         train_summary.get("candidate_package_loaded"),
         train_summary.get("candidate_runtime_enabled"),
         candidate_summary.get("enabled"),
-        metrics.get("candidate_package_loaded"),
     )
-    return value if isinstance(value, bool) else "unknown"
+    activation_gate = _mapping(record.get("runtime_activation_gate"))
+    gate_proves_activation = activation_gate.get("status") == "pass"
+    if isinstance(declared, bool):
+        if declared is False and gate_proves_activation:
+            return "inconsistent_evidence"
+        return declared
+    if gate_proves_activation:
+        return True
+
+    runtime = _mapping(record.get("runtime_activation_summary"))
+    for key in ("reward_term_calls", "diagnostic_calls"):
+        value = runtime.get(key)
+        if isinstance(value, int) and not isinstance(value, bool) and value > 0:
+            return True
+    for key in (
+        "component_activation_records",
+        "feature_activation_records",
+        "capability_activation_records",
+    ):
+        value = runtime.get(key)
+        if isinstance(value, list | tuple) and value:
+            return True
+    return "unknown"
 
 
 def _candidate_code_loaded_in_eval(record: Mapping[str, Any]) -> bool | str:
@@ -502,12 +546,16 @@ def _failed_gates_public_summary(value: Any) -> list[dict[str, str]]:
     return failed
 
 
-def _comparison_public_summary(value: Any) -> dict[str, Any] | None:
+def _comparison_public_summary(
+    value: Any,
+    *,
+    public_score_source: str | None = None,
+) -> dict[str, Any] | None:
     comparison = _mapping(value)
     if not comparison:
         return None
     summary: dict[str, Any] = {}
-    for key in ("mode", "score_source"):
+    for key in ("mode", "score_source", "public_score_source"):
         text = _optional_text(comparison.get(key))
         if text is not None:
             summary[key] = text
@@ -515,6 +563,10 @@ def _comparison_public_summary(value: Any) -> dict[str, Any] | None:
         numeric = _optional_number(comparison.get(key))
         if numeric is not None:
             summary[key] = numeric
+    if "public_score" in summary:
+        source = _optional_text(public_score_source)
+        if source is not None:
+            summary["public_score_source"] = source
     if isinstance(comparison.get("delta_met"), bool):
         summary["delta_met"] = comparison["delta_met"]
     candidate_stats = _score_stats_public_summary(comparison.get("candidate_score_stats"))
@@ -839,7 +891,10 @@ def _normalized_block_parts(parts: Sequence[str]) -> tuple[str, ...]:
 
 def _blocked_public_history_key(key: str, *, extra_key_parts: Sequence[str] = ()) -> bool:
     lowered = key.lower()
-    return any(part in lowered for part in (*_PUBLIC_HISTORY_BLOCKED_KEY_PARTS, *extra_key_parts))
+    return contains_forbidden_public_key_marker(key) or any(
+        part in lowered
+        for part in (*_PUBLIC_HISTORY_BLOCKED_KEY_PARTS, *extra_key_parts)
+    )
 
 
 def _blocked_public_history_text(text: str, *, extra_text_parts: Sequence[str] = ()) -> bool:

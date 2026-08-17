@@ -1,8 +1,8 @@
 """Prompt payload assembly helpers."""
 
+from true_rl_agent.prompt_serialization import MAX_AUTHORING_PROMPT_PAYLOAD_BYTES
 from true_rl_agent.prompting.authoring_frame import (
     AUTHORING_CONTEXT_FRAME_KINDS,
-    MAX_AUTHORING_PROMPT_PAYLOAD_BYTES,
 )
 from true_rl_agent.prompting.payload import (
     PROMPT_PAYLOAD_SECTION_ORDER,

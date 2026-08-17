@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 import unittest
+from dataclasses import replace
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -49,6 +50,18 @@ class CurrentBestEvalStatsTests(unittest.TestCase):
         self.assertEqual(stats.sealed_validation_gate["status"], "pass")
         self.assertEqual(stats.gate_statuses["sealed_validation_gate"], "pass")
         self.assertEqual(stats.score_for_comparison(), 0.62)
+
+    def test_candidate_anchor_uses_shared_candidate_id_contract(self) -> None:
+        stats = _restore([_accepted_record()])
+
+        for candidate_id in ("Candidate", "a.", "nul", "con.txt"):
+            with self.subTest(candidate_id=candidate_id):
+                with self.assertRaises(ValueError):
+                    replace(
+                        stats,
+                        anchor_id=candidate_id,
+                        accepted_candidate_id=candidate_id,
+                    )
 
     def test_no_accepted_record_returns_bootstrap_stats(self) -> None:
         stats = _restore(

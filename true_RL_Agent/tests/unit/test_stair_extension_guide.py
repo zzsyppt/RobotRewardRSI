@@ -19,7 +19,7 @@ from true_rl_agent.tasks.stair_climbing.phase0_contract import StairPhase0Bundle
 
 
 class StairExtensionGuideTests(unittest.TestCase):
-    def test_stair_phase_b_is_staged_without_changing_default_runtime(self) -> None:
+    def test_stair_is_lazy_production_task_without_changing_default(self) -> None:
         guide = PROJECT_ROOT / "docs" / "task_extension_guides" / "stair_climbing.md"
         fixture = PROJECT_ROOT / "configs" / "tasks" / "stair_extension_schema.json"
         text = guide.read_text(encoding="utf-8")
@@ -35,7 +35,10 @@ class StairExtensionGuideTests(unittest.TestCase):
         self.assertFalse(activation["training_command_enabled"])
         registry = build_application_composition_registry()
         self.assertEqual(registry.default_task_id, "unitree_push_recovery")
-        self.assertEqual(registry.task_ids(), ("unitree_push_recovery",))
+        self.assertEqual(
+            registry.task_ids(),
+            ("unitree_push_recovery", "unitree_stair_climbing"),
+        )
         self.assertEqual(payload["task_id"], "unitree_stair_climbing")
         self.assertEqual(bundle.protocol.protocol_id, "unitree_stair_climbing_v1")
         for required in (

@@ -11,7 +11,10 @@ import math
 from dataclasses import dataclass
 from pathlib import Path
 
-from true_rl_agent.agent_core.ledger import load_ledger
+from true_rl_agent.agent_core.ledger import (
+    NON_PROVIDER_AUTHORING_MODE,
+    load_ledger,
+)
 from true_rl_agent.agent_core.provider import CandidateProvider
 from true_rl_agent.agent_core.round import RoundInputs, RoundResult, run_candidate_round
 from true_rl_agent.agent_core.session_genesis import (
@@ -34,7 +37,7 @@ class LoopInputs:
     task_plugin: TaskPlugin
     backend_adapter: BackendAdapter
     runner: Runner
-    verifier: CandidateVerifier
+    candidate_admission_policy: CandidateVerifier
     provider: CandidateProvider
     policy_initialization: PolicyInitialization
     ledger_path: Path
@@ -69,6 +72,9 @@ class AgentLoop:
         )
         initial_current_best = self.inputs.session_genesis.initial_current_best
         session_genesis_hash = self.inputs.session_genesis.session_genesis_hash
+        backend_execution_environment_manifest_hash = (
+            self.inputs.session_genesis.backend_execution_environment_manifest_hash
+        )
         evaluation_binding = self.inputs.session_genesis.evaluation_binding
         context_builder = PublicContextBuilder(
             task_prompt_adapter=self.inputs.task_plugin.prompt_adapter(),
@@ -81,6 +87,7 @@ class AgentLoop:
             initial_reference_program_source=(
                 self.inputs.session_genesis.reference_program_source()
             ),
+            ledger_authoring_mode=NON_PROVIDER_AUTHORING_MODE,
         )
         for index in range(self.inputs.round_count):
             ledger = load_ledger(self.inputs.ledger_path)
@@ -103,7 +110,9 @@ class AgentLoop:
                     task_plugin=self.inputs.task_plugin,
                     backend_adapter=self.inputs.backend_adapter,
                     runner=self.inputs.runner,
-                    verifier=self.inputs.verifier,
+                    candidate_admission_policy=(
+                        self.inputs.candidate_admission_policy
+                    ),
                     candidate=candidate,
                     policy_initialization=self.inputs.policy_initialization,
                     ledger_path=self.inputs.ledger_path,
@@ -111,6 +120,13 @@ class AgentLoop:
                     current_best_eval_stats=current_best_eval_stats,
                     session_genesis_hash=session_genesis_hash,
                     evaluation_binding=evaluation_binding,
+                    authoring_mode=NON_PROVIDER_AUTHORING_MODE,
+                    backend_execution_environment_manifest_hash=(
+                        backend_execution_environment_manifest_hash
+                    ),
+                    parent_program_source_checksum=(
+                        prompt_build.parent_program_source_checksum
+                    ),
                 )
             )
             results.append(result)

@@ -12,6 +12,10 @@ from true_rl_agent.candidates.schema import (
     CandidateSurfacePolicy,
 )
 
+MECHANISM_ATTRIBUTION_SCHEMA_VERSION = (
+    "true_rl_agent.mechanism_attribution.v2"
+)
+
 
 @dataclass(frozen=True)
 class RuntimeActivationEvidence:
@@ -183,6 +187,7 @@ def build_mechanism_attribution_summary(
     *,
     runtime_activation_gate: MechanismDecision,
     ablation_summary: Mapping[str, Any],
+    authoring_mechanism_delta: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     if runtime_activation_gate.status != "pass":
         reason = runtime_activation_gate.reason
@@ -190,8 +195,8 @@ def build_mechanism_attribution_summary(
     else:
         reason = "shadow_ablation_not_run"
         method = str(ablation_summary.get("method") or "none")
-    return {
-        "schema_version": "true_rl_agent.mechanism_attribution.v1",
+    result = {
+        "schema_version": MECHANISM_ATTRIBUTION_SCHEMA_VERSION,
         "status": "not_attributed",
         "reason": reason,
         "causal_claim": False,
@@ -199,6 +204,9 @@ def build_mechanism_attribution_summary(
         "attribution_method": method,
         "shadow_ablation_status": str(ablation_summary.get("status") or "not_run"),
     }
+    if authoring_mechanism_delta is not None:
+        result["authoring_mechanism_delta"] = dict(authoring_mechanism_delta)
+    return result
 
 
 def build_knob_only_shadow_candidate(

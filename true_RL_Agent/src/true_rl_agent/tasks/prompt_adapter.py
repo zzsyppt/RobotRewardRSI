@@ -26,8 +26,19 @@ class TaskPromptAdapter(Protocol):
         """Return sections from shared, validated public records only."""
         ...
 
+    def build_prompt_capacity_preflight_sections(self) -> Mapping[str, Any]:
+        """Return the task-owned maximum minimum-core shape for startup checks."""
+        ...
+
     def prompt_public_record_scrub_policy(self) -> Mapping[str, Sequence[str]]:
         """Return task-owned extra public-record scrub terms before prompt construction."""
+        ...
+
+    def nonaccepted_authoring_tiebreak_key(
+        self,
+        public_record: Mapping[str, Any],
+    ) -> tuple[float, ...]:
+        """Return public task metrics used only when nonaccepted scores tie."""
         ...
 
 
@@ -100,5 +111,15 @@ class NeutralTaskPromptAdapter:
         }
         return sanitize_task_prompt_sections(sections)
 
+    def build_prompt_capacity_preflight_sections(self) -> Mapping[str, Any]:
+        return self.build_prompt_sections(public_records=(), public_context={})
+
     def prompt_public_record_scrub_policy(self) -> Mapping[str, Sequence[str]]:
         return {"blocked_key_parts": (), "blocked_text_parts": ()}
+
+    def nonaccepted_authoring_tiebreak_key(
+        self,
+        public_record: Mapping[str, Any],
+    ) -> tuple[float, ...]:
+        _ = public_record
+        return ()

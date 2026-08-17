@@ -18,6 +18,9 @@ SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
+from true_rl_agent.backends.isaac_lab_execution_environment import (  # noqa: E402
+    verify_current_isaac_lab_execution_environment,
+)
 from true_rl_agent.evaluation.binding import (  # noqa: E402
     EvaluationBindingV1,
     require_sha256_checksum,
@@ -41,6 +44,7 @@ from true_rl_agent.runner.isaac_app_lifecycle import (  # noqa: E402
     close_isaac_app_on_success,
 )
 from true_rl_agent.runner.job_identity import JobIdentity  # noqa: E402
+from true_rl_agent.runner.specs import require_execution_device  # noqa: E402
 from true_rl_agent.tasks.push_recovery.seed_policy import (  # noqa: E402
     SEED_POLICY_NAME,
     build_seed_cohort_hash,
@@ -111,6 +115,10 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--config", default=None)
     parser.add_argument("--profile", default="strong_push")
     parser.add_argument("--runtime-dynamics-hash", required=True)
+    parser.add_argument(
+        "--backend-execution-environment-manifest-hash",
+        default=None,
+    )
     parser.add_argument("--task", default=None)
     parser.add_argument("--policy", default="checkpoint", choices=("checkpoint", "random", "zero"))
     parser.add_argument("--num-envs", type=int, default=64)
@@ -125,6 +133,10 @@ def _build_parser() -> argparse.ArgumentParser:
 
 args_cli = _build_parser().parse_args()
 try:
+    args_cli.device = require_execution_device(
+        args_cli.device,
+        "push eval execution device",
+    )
     args_cli.evaluation_subject = ExperimentSubject(
         kind=args_cli.subject_kind,
         subject_id=args_cli.subject_id,
@@ -160,6 +172,13 @@ try:
     )
     if actual_seed_cohort_hash != args_cli.seed_cohort_hash:
         raise ValueError("seed cohort hash does not match runtime seed policy")
+    args_cli.backend_execution_environment_verification = (
+        verify_current_isaac_lab_execution_environment(
+            args_cli.backend_execution_environment_manifest_hash
+        )
+        if args_cli.backend_execution_environment_manifest_hash is not None
+        else None
+    )
 except ValueError as exc:
     print(str(exc), file=sys.stderr)
     raise SystemExit(2) from exc
@@ -246,12 +265,20 @@ def main() -> int:
         base_env = gym.make(task, cfg=env_cfg, render_mode=None)
         if isinstance(base_env.unwrapped, DirectMARLEnv):
             base_env = multi_agent_to_single_agent(base_env)
+        if str(base_env.unwrapped.device) != args_cli.device:
+            raise RuntimeError(
+                "push evaluation device does not match the requested execution device"
+            )
 
         inference_policy = None
         if args_cli.policy == "checkpoint":
             agent_cfg = load_cfg_from_registry(task, "rsl_rl_cfg_entry_point")
             if hasattr(agent_cfg, "device") and args_cli.device is not None:
                 agent_cfg.device = args_cli.device
+            if str(agent_cfg.device) != args_cli.device:
+                raise RuntimeError(
+                    "push policy device does not match the requested execution device"
+                )
             env = RslRlVecEnvWrapper(base_env, clip_actions=agent_cfg.clip_actions)
             runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=None, device=agent_cfg.device)
             runner.load(args_cli.checkpoint)
@@ -270,6 +297,7 @@ def main() -> int:
         summary = {
             "schema_version": "true_rl_agent.push_recovery.eval_summary.v1",
             **eval_summary_binding(args_cli),
+            "execution_device": str(args_cli.device),
             "status": "fail",
             "public_score": 0.0,
             "metrics": {"success_rate": 0.0, "failure_breakdown": {}, "motion_quality": {}},
@@ -363,6 +391,7 @@ def run_public_eval(
     summary = {
         "schema_version": "true_rl_agent.push_recovery.eval_summary.v1",
         **eval_summary_binding(args),
+        "execution_device": str(args.device),
         "status": projected.status,
         "public_score": projected.public_score,
         "metrics": dict(projected.metrics),
@@ -731,6 +760,15 @@ def eval_summary_binding(args: argparse.Namespace) -> dict[str, Any]:
         **args.evaluation_job_identity.to_public_dict(),
         "evaluation_protocol": evaluation_protocol_from_args(args).to_public_dict(),
         "evaluation_binding": evaluation_binding_from_args(args).to_public_dict(),
+        **(
+            {
+                "backend_execution_environment_verification": dict(
+                    args.backend_execution_environment_verification
+                )
+            }
+            if args.backend_execution_environment_verification is not None
+            else {}
+        ),
     }
 
 

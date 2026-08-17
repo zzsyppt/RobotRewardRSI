@@ -15,6 +15,14 @@ from true_rl_agent.tasks.stair_climbing.config import (
     STAIR_TASK_ID,
     StairClimbingTaskConfig,
 )
+from true_rl_agent.tasks.stair_climbing.seed_policy import (
+    STAIR_FORMAL_EVAL_NAMESPACE,
+)
+from true_rl_agent.tasks.stair_climbing.session_start import (
+    STAIR_DEFAULT_START_MODE,
+    StairSessionStartProfile,
+    resolve_stair_session_start_profile,
+)
 
 if TYPE_CHECKING:
     from true_rl_agent.tasks.component_smoke import ComponentSmokeAdapter
@@ -26,18 +34,43 @@ class StairClimbingTaskPlugin(TaskPlugin):
 
     curriculum_capabilities: Mapping[str, Mapping[str, Any]] = {}
 
-    def __init__(self, config: StairClimbingTaskConfig) -> None:
+    def __init__(
+        self,
+        config: StairClimbingTaskConfig,
+        *,
+        session_start_profile: StairSessionStartProfile | None = None,
+    ) -> None:
         if not isinstance(config, StairClimbingTaskConfig):
             raise TypeError("stair plugin config must be StairClimbingTaskConfig")
         self.config = config
+        production_training = config.protocol_v2.to_public_dict()[
+            "production_training"
+        ]
+        if session_start_profile is None:
+            session_start_profile = resolve_stair_session_start_profile(
+                STAIR_DEFAULT_START_MODE,
+                task_protocol_hash=config.task_protocol_hash,
+                training_binding_hash=production_training[
+                    "formal_training_binding_hash"
+                ],
+            )
+        if not isinstance(session_start_profile, StairSessionStartProfile):
+            raise TypeError("stair session start profile is invalid")
+        if session_start_profile.task_protocol_hash != config.task_protocol_hash:
+            raise ValueError("stair start profile task protocol mismatch")
+        if session_start_profile.training_binding_hash != production_training[
+            "formal_training_binding_hash"
+        ]:
+            raise ValueError("stair start profile training binding mismatch")
+        self.session_start_profile = session_start_profile
 
     @property
     def task_spec(self) -> TaskSpec:
         config = self.config
         base = config.protocol_v1.to_dict()
-        draft = config.protocol_v2.to_public_dict()
+        protocol_v2 = config.protocol_v2.to_public_dict()
         evaluation_protocol = config.evaluation_protocol()
-        acceptance_protocol = config.protocol_v1.acceptance_protocol
+        acceptance_protocol = config.acceptance_protocol
         agent = config.training_agent_configuration()
         train_runtime = config.train_runtime_profile()
         eval_runtime = config.eval_runtime_profile()
@@ -70,17 +103,28 @@ class StairClimbingTaskPlugin(TaskPlugin):
             "agent_configuration_hash": agent.agent_configuration_hash,
         }
         fixed_eval_protocol = {
-            "evaluation_protocol": "fixed_stair_seven_bin_macro_seed",
+            "evaluation_protocol": "fixed_stair_anchor_and_tread_generalization",
             **evaluation_protocol.to_public_dict(),
             "acceptance_protocol": acceptance_protocol.to_public_dict(),
             "seed_visibility": "counts_and_commitment_only_no_raw_seed_ids",
-            "seed_cohort_hash": seed_resolver.cohort_hash,
+            "seed_namespace": STAIR_FORMAL_EVAL_NAMESPACE,
+            "seed_cohort_hash": seed_resolver.namespace_cohort_hash(
+                STAIR_FORMAL_EVAL_NAMESPACE
+            ),
             "private_seed_resolver_version": seed_resolver.resolver_version,
             "height_bin_ids": list(bin_ids),
-            "episodes_per_seed_per_bin": (
-                seed_resolver.episodes_per_seed_per_bin
+            "evaluation_profile_hash": config.evaluation_profile.profile_hash,
+            "tread_depths_m": list(config.evaluation_profile.tread_depths_m),
+            "evaluation_cell_ids": [
+                cell.cell_id for cell in config.evaluation_profile.cells
+            ],
+            "episodes_per_seed_per_cell": (
+                config.evaluation_profile.episodes_per_seed_per_cell
             ),
-            "score_statistics_unit": "one_seven_bin_macro_score_per_seed",
+            "score_statistics_unit": (
+                "one_equal_height_tread_cell_macro_score_per_seed"
+            ),
+            "anchor_score_role": "fixed_tread_nonregression_guard",
             "runtime_profile": config.eval_profile,
             "runtime_dynamics_hash": eval_runtime.runtime_dynamics_hash,
             "required_pass_gates": list(required_gates),
@@ -88,35 +132,57 @@ class StairClimbingTaskPlugin(TaskPlugin):
         invariants = {
             **fixed_train_protocol,
             **evaluation_protocol.to_public_dict(),
-            "task_protocol_hash": config.protocol_v2.protocol_hash,
+            "task_protocol_hash": config.task_protocol_hash,
             "base_task_protocol_hash": config.protocol_v1.protocol_hash,
+            "evaluation_semantics_hash": (
+                config.evaluation_semantics.protocol_hash
+                if config.evaluation_semantics is not None
+                else None
+            ),
             "candidate_capability_profile_hash": (
                 config.protocol_v2.capability_profile.profile_hash
             ),
-            "seed_cohort_hash": seed_resolver.cohort_hash,
+            "seed_namespace": STAIR_FORMAL_EVAL_NAMESPACE,
+            "seed_cohort_hash": seed_resolver.namespace_cohort_hash(
+                STAIR_FORMAL_EVAL_NAMESPACE
+            ),
             "eval_runtime_profile": config.eval_profile,
             "eval_runtime_dynamics_hash": eval_runtime.runtime_dynamics_hash,
             "train_runtime_profile": config.train_profile,
             "train_runtime_dynamics_hash": train_runtime.runtime_dynamics_hash,
             "height_bin_ids": list(bin_ids),
-            "episodes_per_seed_per_bin": seed_resolver.episodes_per_seed_per_bin,
-            "episode_length_s": float(base["evaluation"]["episode_length_s"]),
-            "episode_outcomes": base["episode_outcomes"],
+            "evaluation_profile_hash": config.evaluation_profile.profile_hash,
+            "tread_depths_m": list(config.evaluation_profile.tread_depths_m),
+            "episodes_per_seed_per_cell": (
+                config.evaluation_profile.episodes_per_seed_per_cell
+            ),
+            "anchor_episode_horizon_s": float(
+                base["evaluation"]["episode_length_s"]
+            ),
+            "episode_horizon_policy": (
+                config.evaluation_profile.episode_horizon_policy
+            ),
+            "episode_horizons_s_by_tread_m": (
+                config.evaluation_profile.episode_horizons_by_tread_m
+            ),
+            "episode_outcomes": config.episode_outcomes(),
             "required_pass_gates": list(required_gates),
-            "draft_status": draft["status"],
+            "protocol_status": protocol_v2["status"],
         }
         return TaskSpec(
             task_id=STAIR_TASK_ID,
             name="Unitree G1 Stair Climbing",
             supported_policy_initializations=frozenset({"random"}),
-            genesis_anchor_policy={"random": "reference_program"},
+            genesis_anchor_policy={
+                "random": self.session_start_profile.genesis_anchor_kind
+            },
             candidate_capability_profile=config.protocol_v2.capability_profile,
             invariants=TaskInvariantSpec(invariants),
             acceptance_protocol=acceptance_protocol,
             fixed_train_protocol=fixed_train_protocol,
             fixed_eval_protocol=fixed_eval_protocol,
             default_curriculum=CurriculumPlan(mode="task_default"),
-            task_protocol_hash=config.protocol_v2.protocol_hash,
+            task_protocol_hash=config.task_protocol_hash,
         )
 
     def project_public_result(
@@ -135,6 +201,25 @@ class StairClimbingTaskPlugin(TaskPlugin):
             train_summary=train_summary,
         )
 
+    def qualify_reference_result(
+        self,
+        *,
+        public_result: PublicEvalResult,
+        train_summary: Mapping[str, Any],
+    ):
+        from true_rl_agent.tasks.stair_climbing.reference_qualification import (
+            qualify_stair_reference_public_result,
+        )
+
+        projected = self.project_public_result(
+            public_result=public_result,
+            train_summary=train_summary,
+        )
+        return qualify_stair_reference_public_result(
+            config=self.config,
+            public_result=projected,
+        )
+
     def candidate_surface_policy(self) -> CandidateSurfacePolicy:
         return build_stair_candidate_surface_policy(self.config.protocol_v1)
 
@@ -143,7 +228,10 @@ class StairClimbingTaskPlugin(TaskPlugin):
             StairClimbingPromptAdapter,
         )
 
-        return StairClimbingPromptAdapter(self.config)
+        return StairClimbingPromptAdapter(
+            self.config,
+            self.session_start_profile,
+        )
 
     def component_smoke_adapter(self) -> "ComponentSmokeAdapter":
         from true_rl_agent.tasks.stair_climbing.component_smoke import (
@@ -151,6 +239,13 @@ class StairClimbingTaskPlugin(TaskPlugin):
         )
 
         return StairClimbingComponentSmokeAdapter(self.config)
+
+    def phased_evaluation_adapter(self) -> object:
+        from true_rl_agent.tasks.stair_climbing.phased_adapter import (
+            StairPhasedEvaluationAdapter,
+        )
+
+        return StairPhasedEvaluationAdapter(self.config)
 
 
 __all__ = ["StairClimbingTaskPlugin"]

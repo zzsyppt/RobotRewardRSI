@@ -3,6 +3,13 @@ from __future__ import annotations
 import copy
 from typing import Any
 
+from true_rl_agent.agent_core.ledger import (
+    LEDGER_RECORD_SCHEMA_VERSION,
+    NON_PROVIDER_AUTHORING_MODE,
+    primary_ledger_epoch_hash,
+)
+from true_rl_agent.candidates.mechanism import MECHANISM_ATTRIBUTION_SCHEMA_VERSION
+from true_rl_agent.candidates.verifier import CandidateArtifactVerification
 from true_rl_agent.evaluation.acceptance_protocol import (
     PUBLIC_SCORE_BINDING_ACCEPTANCE_MEAN,
     AcceptanceProtocol,
@@ -10,6 +17,10 @@ from true_rl_agent.evaluation.acceptance_protocol import (
 from true_rl_agent.evaluation.binding import EvaluationBindingV1
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
 from true_rl_agent.evaluation.protocol import EvaluationProtocol
+from true_rl_agent.runner.candidate_failure import (
+    CandidateFailureContract,
+    CandidateFailureRule,
+)
 
 TEST_ACCEPTANCE_PROTOCOL = AcceptanceProtocol(
     protocol_id="test_acceptance_v1",
@@ -37,6 +48,16 @@ TEST_SUBJECT_MANIFEST_HASH = "f" * 64
 TEST_PROGRAM_SOURCE_CHECKSUM = "sha256:" + "1" * 64
 TEST_TRAINING_BINDING_HASH = "2" * 64
 TEST_CAPABILITY_PROFILE_HASH = "3" * 64
+TEST_CANDIDATE_FAILURE_CONTRACT = CandidateFailureContract(
+    contract_id="true_rl_agent.test.decision_candidate_failure.v1",
+    rules=(
+        CandidateFailureRule(
+            stage="reward_execution",
+            reason_codes=("runtime_rejected",),
+            requires_initial_policy_state=False,
+        ),
+    ),
+)
 
 
 def _candidate_subject(candidate_id: str) -> dict[str, str]:
@@ -131,6 +152,10 @@ def bind_test_ledger_record(record: dict[str, Any]) -> dict[str, Any]:
 
     bound = copy.deepcopy(record)
     bound.setdefault("session_genesis_hash", TEST_SESSION_GENESIS_HASH)
+    bound.setdefault(
+        "ledger_epoch_hash",
+        primary_ledger_epoch_hash(TEST_SESSION_GENESIS_HASH),
+    )
     bound.setdefault("evaluation_binding", TEST_EVALUATION_BINDING.to_public_dict())
     public_result = bound.get("public_result")
     if isinstance(public_result, dict) and public_result:
@@ -194,6 +219,9 @@ def valid_accepted_ledger_record(
     record = {
         "round_id": round_id,
         "session_genesis_hash": TEST_SESSION_GENESIS_HASH,
+        "ledger_epoch_hash": primary_ledger_epoch_hash(
+            TEST_SESSION_GENESIS_HASH
+        ),
         "evaluation_binding": TEST_EVALUATION_BINDING.to_public_dict(),
         "candidate": candidate,
         "verifier": {"status": "pass"},
@@ -334,6 +362,62 @@ def valid_accepted_ledger_record(
     return record
 
 
+def bind_verified_candidate_record(
+    record: dict[str, Any],
+    *,
+    verification: CandidateArtifactVerification,
+    parent_program_source_checksum: str | None = None,
+) -> dict[str, Any]:
+    """Bind a decision-record fixture to one real sealed verification result."""
+
+    artifact = verification.require_verified()
+    bound = copy.deepcopy(record)
+    artifact_public = artifact.to_public_dict()
+    bound["schema_version"] = LEDGER_RECORD_SCHEMA_VERSION
+    bound["authoring_mode"] = NON_PROVIDER_AUTHORING_MODE
+    bound["mechanism_attribution"] = {
+        "schema_version": MECHANISM_ATTRIBUTION_SCHEMA_VERSION,
+        "status": "not_attributed",
+        "reason": "runner_activation_missing",
+        "causal_claim": False,
+        "runtime_activation_gate": {
+            "status": "attribution_unclear",
+            "reason": "runner_activation_missing",
+        },
+        "attribution_method": "runtime_activation_gate",
+        "shadow_ablation_status": "not_run",
+    }
+    bound["runtime_activation_gate"] = {
+        "status": "attribution_unclear",
+        "reason": "runner_activation_missing",
+    }
+    bound["ablation_summary"] = {"status": "not_run"}
+    bound["parent_program_source_checksum"] = parent_program_source_checksum
+    bound["candidate"] = {**artifact_public, "path": artifact.path}
+    bound["private_artifacts"] = [
+        {
+            "kind": "candidate_artifact",
+            "uri": artifact.path,
+            "reason": "candidate_source_resolution",
+        }
+    ]
+    bound["verifier"] = verification.result.to_public_dict()
+    train_job = bound["jobs"]["train"]
+    train_job["candidate_artifact"] = artifact_public
+    train_job["subject_manifest_hash"] = artifact.subject_manifest_hash
+    train_job["program_source_checksum"] = artifact.program_source_checksum
+    eval_job = bound["jobs"]["eval"]
+    eval_job["subject_manifest_hash"] = artifact.subject_manifest_hash
+    eval_job["program_source_checksum"] = artifact.program_source_checksum
+    metrics = bound["public_result"]["metrics"]
+    metrics["subject_manifest_hash"] = artifact.subject_manifest_hash
+    metrics["program_source_checksum"] = artifact.program_source_checksum
+    sealed = metrics["sealed_validation"]
+    sealed["subject_manifest_hash"] = artifact.subject_manifest_hash
+    sealed["program_source_checksum"] = artifact.program_source_checksum
+    return bound
+
+
 def valid_runtime_failed_ledger_record(
     *,
     round_id: str,
@@ -347,8 +431,13 @@ def valid_runtime_failed_ledger_record(
     if candidate_path is not None:
         candidate["path"] = candidate_path
     return {
+        "schema_version": LEDGER_RECORD_SCHEMA_VERSION,
+        "authoring_mode": NON_PROVIDER_AUTHORING_MODE,
         "round_id": round_id,
         "session_genesis_hash": TEST_SESSION_GENESIS_HASH,
+        "ledger_epoch_hash": primary_ledger_epoch_hash(
+            TEST_SESSION_GENESIS_HASH
+        ),
         "evaluation_binding": TEST_EVALUATION_BINDING.to_public_dict(),
         "candidate": candidate,
         "candidate_surface": {
@@ -357,13 +446,48 @@ def valid_runtime_failed_ledger_record(
             "reason": "code_level_candidate",
         },
         "verifier": {"status": "pass"},
+        "mechanism_attribution": {
+            "schema_version": MECHANISM_ATTRIBUTION_SCHEMA_VERSION,
+            "status": "not_attributed",
+            "reason": "runner_activation_missing",
+            "causal_claim": False,
+            "runtime_activation_gate": {
+                "status": "attribution_unclear",
+                "reason": "runner_activation_missing",
+            },
+            "attribution_method": "runtime_activation_gate",
+            "shadow_ablation_status": "not_run",
+        },
+        "runtime_activation_gate": {
+            "status": "attribution_unclear",
+            "reason": "runner_activation_missing",
+        },
+        "ablation_summary": {"status": "not_run"},
         "jobs": {
-            "train": {"job_id": f"{round_id}-train"},
+            "train": {
+                "job_id": f"{round_id}-train",
+                "candidate_failure_contract_hash": (
+                    TEST_CANDIDATE_FAILURE_CONTRACT.contract_hash
+                ),
+            },
             "eval": {"job_id": f"{round_id}-eval"},
         },
         "runner_error": {
             "type": "CandidateRuntimeError",
             "message": "candidate failed inside runner",
+            "details": {
+                "status": "fail",
+                "subprocess_returncode": 1,
+                "candidate_failure_contract": (
+                    TEST_CANDIDATE_FAILURE_CONTRACT.to_public_dict()
+                ),
+                "candidate_failure": (
+                    TEST_CANDIDATE_FAILURE_CONTRACT.evidence(
+                        stage="reward_execution",
+                        reason_code="runtime_rejected",
+                    ).to_public_dict()
+                ),
+            },
         },
         "decision": {
             "outcome": "reject",
@@ -380,6 +504,7 @@ def valid_runtime_failed_ledger_record(
 
 __all__ = [
     "TEST_ACCEPTANCE_PROTOCOL",
+    "TEST_CANDIDATE_FAILURE_CONTRACT",
     "TEST_EVALUATION_BINDING",
     "TEST_EVALUATION_PROTOCOL",
     "TEST_SESSION_GENESIS_HASH",

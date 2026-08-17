@@ -2,17 +2,40 @@
 
 from __future__ import annotations
 
-import json
+import hashlib
 import os
 import re
-import subprocess
 from collections.abc import Mapping
+from contextlib import nullcontext
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, TypeVar
 
-from true_rl_agent.evaluation.binding import EvaluationBindingV1
+from true_rl_agent.agent_core.public_safety import (
+    redact_secret_key_markers,
+    sanitize_untrusted_public_diagnostic,
+)
+from true_rl_agent.backends.base import (
+    BACKEND_EXECUTION_ENVIRONMENT_VERIFICATION_SCHEMA_VERSION,
+)
+from true_rl_agent.evaluation.binding import (
+    EvaluationBindingV1,
+    canonical_json_hash,
+    require_sha256_digest,
+)
+from true_rl_agent.evaluation.public_metric_contract import (
+    RUNNER_OWNED_PUBLIC_EVAL_METRIC_KEYS,
+)
 from true_rl_agent.evaluation.public_result import PublicEvalResult
+from true_rl_agent.evaluation.phases import (
+    EVALUATION_PHASE_RECEIPT_REF_SCHEMA_VERSION,
+    EVALUATION_PHASE_RECEIPT_SCHEMA_VERSION,
+    EVALUATION_PHASE_SUMMARY_SCHEMA_VERSION,
+    MAX_EVALUATION_PHASE_RECEIPT_BYTES,
+    EvaluationAssembly,
+    EvaluationPhase,
+    EvaluationPhaseResult,
+)
 from true_rl_agent.evaluation.result_contract import (
     validate_public_eval_result_fields,
     validate_result_status,
@@ -23,11 +46,13 @@ from true_rl_agent.evaluation.sealed_validation import (
     validate_sealed_rollout_evidence,
 )
 from true_rl_agent.evaluation.subject import ExperimentSubject
-from true_rl_agent.json_contract import strict_json_object_loads
+from true_rl_agent.fs_contract import read_bounded_regular_file
+from true_rl_agent.json_contract import canonical_json_bytes, strict_json_object_loads
 from true_rl_agent.runner.base import (
     CandidateRuntimeError,
     Runner,
     RunnerExecutionError,
+    RunnerFailureKind,
     TrainJobResult,
 )
 from true_rl_agent.runner.checkpoint import (
@@ -45,6 +70,13 @@ from true_rl_agent.runner.eval_isolation import (
     reject_candidate_path_arguments,
 )
 from true_rl_agent.runner.evidence import validate_evidence_projection_bindings
+from true_rl_agent.runner.initial_policy import InitialPolicyStatePairing
+from true_rl_agent.runner.gpu_lease import (
+    GpuLeaseHolder,
+    GpuLeaseManager,
+    GpuLeaseUnavailableError,
+)
+from true_rl_agent.runner.job_attempts import JobAttemptJournal, JobAttemptScope
 from true_rl_agent.runner.job_argv import (
     validate_eval_job_argv,
     validate_train_job_argv,
@@ -58,9 +90,17 @@ from true_rl_agent.runner.specs import (
     BaselineEvalJobSpec,
     CheckpointRef,
     EvalJobSpec,
+    EvalPhaseJobSpec,
     EvaluationJobSpec,
     TrainJobSpec,
+    require_eval_phase_result_matches_spec,
     require_positive_integer,
+)
+from true_rl_agent.runner.process_handle import (
+    OwnedProcessLaunchError,
+    OwnedProcessResult,
+    OwnedProcessTimeout,
+    run_owned_process,
 )
 
 
@@ -78,6 +118,12 @@ _TRAIN_CHECKPOINT_OPTIONS = (
     "--init-checkpoint",
     "--init-checkpoint-sha256",
 )
+_ExecutionResultT = TypeVar(
+    "_ExecutionResultT",
+    TrainJobResult,
+    PublicEvalResult,
+    EvaluationPhaseResult,
+)
 
 
 @dataclass(frozen=True)
@@ -87,6 +133,8 @@ class SubprocessRunner(Runner):
     allowed_executables: tuple[str, ...]
     timeout_s: int = 3600
     cwd: Path | None = None
+    termination_grace_s: int = 5
+    gpu_lease_manager: GpuLeaseManager | None = None
 
     def __post_init__(self) -> None:
         if (
@@ -101,10 +149,34 @@ class SubprocessRunner(Runner):
                 "allowed_executables must be a non-empty tuple of strings"
             )
         require_positive_integer(self.timeout_s, "runner timeout_s")
+        require_positive_integer(
+            self.termination_grace_s,
+            "runner termination_grace_s",
+        )
         if self.cwd is not None and not isinstance(self.cwd, Path):
             raise TypeError("runner cwd must be a Path when provided")
+        if self.gpu_lease_manager is not None and not isinstance(
+            self.gpu_lease_manager,
+            GpuLeaseManager,
+        ):
+            raise TypeError("gpu_lease_manager must be a GpuLeaseManager")
 
     def run_train(self, train_spec: TrainJobSpec) -> TrainJobResult:
+        return self._execute_with_attempts(
+            train_spec,
+            job_kind="train",
+            operation=lambda log_dir: self._run_train_once(
+                train_spec,
+                process_log_dir=log_dir,
+            ),
+        )
+
+    def _run_train_once(
+        self,
+        train_spec: TrainJobSpec,
+        *,
+        process_log_dir: Path | None,
+    ) -> TrainJobResult:
         argv = self._validated_argv(
             train_spec.metadata,
             job_id=train_spec.job_id,
@@ -130,10 +202,21 @@ class SubprocessRunner(Runner):
             checkpoint=training_start_checkpoint,
             checkpoint_path_option=_TRAIN_CHECKPOINT_OPTIONS[0],
             checkpoint_checksum_option=_TRAIN_CHECKPOINT_OPTIONS[1],
+            process_log_dir=process_log_dir,
         )
         summary = completion.summary
+        self._validate_backend_execution_environment_summary(summary, train_spec)
+        self._validate_execution_device_summary(summary, train_spec)
         self._validate_train_binding_summary(summary, train_spec)
-        self._raise_failed_train_summary(completion, job_id=train_spec.job_id)
+        if completion.status == "fail":
+            self._raise_failed_train_summary(
+                completion,
+                train_spec=train_spec,
+            )
+        initial_policy_state_pairing = self._initial_policy_state_pairing(
+            summary,
+            train_spec=train_spec,
+        )
         checkpoint = self._checkpoint_from_summary(summary, job_id=train_spec.job_id)
         checkpoint = self._validate_train_checkpoint_output(
             checkpoint,
@@ -155,6 +238,16 @@ class SubprocessRunner(Runner):
                 "capability_profile_hash": (
                     train_spec.training_binding.capability_profile_hash
                 ),
+                "execution_device": train_spec.execution_device,
+                **(
+                    {
+                        "initial_policy_state_pairing": (
+                            initial_policy_state_pairing.to_public_dict()
+                        )
+                    }
+                    if initial_policy_state_pairing is not None
+                    else {}
+                ),
             },
         )
         sealed_uri = train_spec.metadata.get("sealed_checkpoint_uri", checkpoint.uri)
@@ -171,22 +264,191 @@ class SubprocessRunner(Runner):
             capability_profile_hash=(
                 train_spec.training_binding.capability_profile_hash
             ),
+            execution_device=train_spec.execution_device,
             checkpoint=seal_checkpoint(checkpoint, sealed_uri=sealed_uri),
+            initial_policy_state_pairing=initial_policy_state_pairing,
             summary=summary,
         )
 
     def run_eval(self, eval_spec: EvalJobSpec) -> PublicEvalResult:
-        return self._run_evaluation(eval_spec)
+        return self._execute_with_attempts(
+            eval_spec,
+            job_kind="eval",
+            operation=lambda log_dir: self._run_evaluation(
+                eval_spec,
+                process_log_dir=log_dir,
+            ),
+        )
+
+    def run_eval_phase(
+        self,
+        eval_spec: EvalPhaseJobSpec,
+    ) -> EvaluationPhaseResult:
+        return self._execute_with_attempts(
+            eval_spec,
+            job_kind="eval_phase",
+            operation=lambda log_dir: self._run_evaluation_phase(
+                eval_spec,
+                process_log_dir=log_dir,
+            ),
+        )
+
+    def project_assembled_eval_summary(
+        self,
+        eval_spec: EvalJobSpec,
+        assembly: EvaluationAssembly,
+    ) -> PublicEvalResult:
+        """Project a selection- and receipt-bound task assembly."""
+
+        if not isinstance(eval_spec, EvalJobSpec):
+            raise TypeError("assembled eval summary requires an EvalJobSpec")
+        if not isinstance(assembly, EvaluationAssembly):
+            raise TypeError(
+                "assembled eval summary requires an EvaluationAssembly"
+            )
+        expected_plan_hash = canonical_json_hash(eval_spec.to_public_dict())
+        if assembly.evaluation_plan_hash != expected_plan_hash:
+            raise RunnerExecutionError(
+                f"{eval_spec.job_id}: assembled eval plan binding mismatch"
+            )
+        self._validate_assembled_phase_receipts(
+            eval_spec=eval_spec,
+            assembly=assembly,
+        )
+        summary = assembly.summary
+        checkpoint = eval_spec.execution_checkpoint()
+        try:
+            validate_job_summary_identity(
+                summary,
+                expected=eval_spec.job_identity(),
+                summary_name="assembled eval summary",
+            )
+            validate_result_status(
+                summary.get("status"),
+                field_name="assembled eval summary status",
+            )
+        except ValueError as exc:
+            raise RunnerExecutionError(f"{eval_spec.job_id}: {exc}") from exc
+        self._validate_backend_execution_environment_summary(summary, eval_spec)
+        self._validate_execution_device_summary(summary, eval_spec)
+        self._validate_eval_protocol_binding(summary, eval_spec)
+        return self._public_result_from_summary(
+            summary,
+            job_id=eval_spec.job_id,
+            expected_checkpoint_hash=checkpoint.checksum,
+            expected_eval_protocol_hash=eval_spec.evaluation_protocol().protocol_hash,
+            expected_evaluation_binding_hash=eval_spec.evaluation_binding.binding_hash,
+            expected_sealed_seed_count=eval_spec.sealed_validation_seed_count,
+            evaluation_binding=eval_spec.evaluation_binding,
+            evaluation_subject=eval_spec.subject.to_public_dict(),
+            subject_manifest_hash=eval_spec.subject_manifest_hash,
+            program_source_checksum=eval_spec.program_source_checksum,
+            training_binding_hash=eval_spec.training_binding_hash,
+            capability_profile_hash=eval_spec.capability_profile_hash,
+            expected_execution_device=eval_spec.execution_device,
+        )
+
+    def _validate_assembled_phase_receipts(
+        self,
+        *,
+        eval_spec: EvalJobSpec,
+        assembly: EvaluationAssembly,
+    ) -> None:
+        """Recheck the three immutable receipts named by the assembly token."""
+
+        contract_hash: str | None = None
+        try:
+            for binding in assembly.phase_receipts:
+                if (
+                    binding.ref_schema_version
+                    != EVALUATION_PHASE_RECEIPT_REF_SCHEMA_VERSION
+                ):
+                    raise ValueError("eval phase receipt ref schema mismatch")
+                payload_bytes = read_bounded_regular_file(
+                    Path(binding.path),
+                    max_bytes=MAX_EVALUATION_PHASE_RECEIPT_BYTES,
+                    label="assembled eval phase receipt",
+                )
+                if len(payload_bytes) != binding.size_bytes:
+                    raise ValueError("eval phase receipt size mismatch")
+                checksum = "sha256:" + hashlib.sha256(payload_bytes).hexdigest()
+                if checksum != binding.checksum:
+                    raise ValueError("eval phase receipt checksum mismatch")
+                payload = strict_json_object_loads(
+                    payload_bytes,
+                    context="assembled eval phase receipt",
+                )
+                if payload_bytes != canonical_json_bytes(
+                    payload,
+                    trailing_newline=True,
+                ):
+                    raise ValueError("eval phase receipt is not canonical JSON")
+                if set(payload) != {
+                    "schema_version",
+                    "contract_hash",
+                    "job_spec_hash",
+                    "phase_result",
+                    "phase_result_hash",
+                } or payload.get("schema_version") != (
+                    EVALUATION_PHASE_RECEIPT_SCHEMA_VERSION
+                ):
+                    raise ValueError("eval phase receipt contract mismatch")
+                if contract_hash is None:
+                    contract_hash = require_sha256_digest(
+                        payload.get("contract_hash"),
+                        "eval phase receipt contract_hash",
+                    )
+                elif payload.get("contract_hash") != contract_hash:
+                    raise ValueError("assembled eval phase receipts mix contracts")
+                phase_spec = EvalPhaseJobSpec(
+                    job_id=binding.job_id,
+                    evaluation_plan=eval_spec,
+                    phase=binding.phase,
+                )
+                expected_job_spec_hash = canonical_json_hash(
+                    phase_spec.to_public_dict()
+                )
+                if (
+                    binding.job_spec_hash != expected_job_spec_hash
+                    or payload.get("job_spec_hash") != expected_job_spec_hash
+                ):
+                    raise ValueError("eval phase receipt job spec mismatch")
+                phase_payload = payload.get("phase_result")
+                phase_result_hash = canonical_json_hash(phase_payload)
+                if (
+                    binding.phase_result_hash != phase_result_hash
+                    or payload.get("phase_result_hash") != phase_result_hash
+                ):
+                    raise ValueError("eval phase receipt result hash mismatch")
+                result = EvaluationPhaseResult.from_private_mapping(phase_payload)
+                require_eval_phase_result_matches_spec(
+                    result,
+                    phase_spec,
+                    expected_resource_binding_hash=binding.resource_binding_hash,
+                )
+        except (OSError, TypeError, ValueError) as exc:
+            raise RunnerExecutionError(
+                f"{eval_spec.job_id}: assembled eval receipt binding failed: {exc}"
+            ) from exc
 
     def run_baseline_eval(
         self,
         eval_spec: BaselineEvalJobSpec,
     ) -> PublicEvalResult:
-        return self._run_evaluation(eval_spec)
+        return self._execute_with_attempts(
+            eval_spec,
+            job_kind="baseline_eval",
+            operation=lambda log_dir: self._run_evaluation(
+                eval_spec,
+                process_log_dir=log_dir,
+            ),
+        )
 
     def _run_evaluation(
         self,
         eval_spec: EvaluationJobSpec,
+        *,
+        process_log_dir: Path | None,
     ) -> PublicEvalResult:
         try:
             checkpoint = eval_spec.execution_checkpoint()
@@ -213,8 +475,11 @@ class SubprocessRunner(Runner):
             checkpoint=checkpoint,
             checkpoint_path_option=_EVAL_CHECKPOINT_OPTIONS[0],
             checkpoint_checksum_option=_EVAL_CHECKPOINT_OPTIONS[1],
+            process_log_dir=process_log_dir,
         )
         summary = completion.summary
+        self._validate_backend_execution_environment_summary(summary, eval_spec)
+        self._validate_execution_device_summary(summary, eval_spec)
         self._validate_eval_protocol_binding(summary, eval_spec)
         return self._public_result_from_summary(
             summary,
@@ -237,6 +502,267 @@ class SubprocessRunner(Runner):
                 else None
             ),
             capability_profile_hash=eval_spec.capability_profile_hash,
+            expected_execution_device=eval_spec.execution_device,
+        )
+
+    def _run_evaluation_phase(
+        self,
+        eval_spec: EvalPhaseJobSpec,
+        *,
+        process_log_dir: Path | None,
+    ) -> EvaluationPhaseResult:
+        try:
+            checkpoint = eval_spec.execution_checkpoint()
+        except (TypeError, ValueError) as exc:
+            raise RunnerExecutionError(
+                f"{eval_spec.job_id}: eval checkpoint is not executable: {exc}"
+            ) from exc
+        argv = self._validated_argv(eval_spec.metadata, job_id=eval_spec.job_id)
+        try:
+            validate_eval_job_argv(eval_spec, argv)
+        except (TypeError, ValueError) as exc:
+            raise RunnerExecutionError(
+                f"{eval_spec.job_id}: eval phase argv binding failed: {exc}"
+            ) from exc
+        completion = self._execute_summary_job(
+            eval_spec.metadata,
+            argv=argv,
+            identity=eval_spec.job_identity(),
+            summary_name="eval phase summary",
+            reject_eval_candidate_paths=True,
+            checkpoint=checkpoint,
+            checkpoint_path_option=_EVAL_CHECKPOINT_OPTIONS[0],
+            checkpoint_checksum_option=_EVAL_CHECKPOINT_OPTIONS[1],
+            process_log_dir=process_log_dir,
+        )
+        summary = completion.summary
+        self._validate_backend_execution_environment_summary(summary, eval_spec)
+        self._validate_execution_device_summary(summary, eval_spec)
+        self._validate_eval_protocol_binding(summary, eval_spec)
+        return self._phase_result_from_summary(
+            summary,
+            eval_spec=eval_spec,
+            expected_checkpoint_hash=checkpoint.checksum,
+        )
+
+    def _execute_with_attempts(
+        self,
+        spec: TrainJobSpec | EvaluationJobSpec,
+        *,
+        job_kind: str,
+        operation: Callable[[Path | None], _ExecutionResultT],
+    ) -> _ExecutionResultT:
+        scope = spec.attempt_scope
+        if scope is None:
+            return operation(None)
+        if not isinstance(scope, JobAttemptScope):
+            raise TypeError("job attempt scope is invalid")
+
+        resource_binding_hash: str | None = None
+        if spec.execution_device.startswith("cuda:"):
+            if self.gpu_lease_manager is None:
+                raise RunnerExecutionError(
+                    f"{spec.job_id}: CUDA attempt scope requires a GPU lease manager",
+                    failure_kind=RunnerFailureKind.CONTRACT_INVALID,
+                )
+            try:
+                identity = self.gpu_lease_manager.identity_for(
+                    spec.execution_device
+                )
+            except ValueError as exc:
+                raise RunnerExecutionError(
+                    f"{spec.job_id}: GPU resource binding is invalid",
+                    failure_kind=RunnerFailureKind.CONTRACT_INVALID,
+                ) from exc
+            assert identity is not None
+            resource_binding_hash = identity.identity_hash
+        elif scope.resource_binding_hash is not None:
+            raise RunnerExecutionError(
+                f"{spec.job_id}: CPU job cannot declare a GPU resource binding",
+                failure_kind=RunnerFailureKind.CONTRACT_INVALID,
+            )
+
+        try:
+            journal = JobAttemptJournal(
+                scope=scope,
+                logical_job_id=spec.job_id,
+                job_kind=job_kind,
+                job_input_hash=self._job_input_hash(spec, job_kind=job_kind),
+                environment_hash=self._job_environment_hash(spec),
+                execution_device=spec.execution_device,
+                resource_binding_hash=resource_binding_hash,
+            )
+            reservation = journal.reserve(0, previous_result=None)
+        except (OSError, TypeError, ValueError) as exc:
+            raise RunnerExecutionError(
+                f"{spec.job_id}: attempt evidence contract is invalid",
+                failure_kind=RunnerFailureKind.CONTRACT_INVALID,
+            ) from exc
+        if not reservation.created:
+            raise RunnerExecutionError(
+                f"{spec.job_id}: existing attempt requires recovery inspection",
+                failure_kind=RunnerFailureKind.CONTRACT_INVALID,
+            )
+        lease_context = nullcontext(None)
+        if resource_binding_hash is not None:
+            assert self.gpu_lease_manager is not None
+            holder = GpuLeaseHolder(
+                session_genesis_hash=scope.session_genesis_hash,
+                generation_id=scope.generation_id,
+                lane_id=scope.lane_id,
+                invocation_segment_id=scope.invocation_segment_id,
+                logical_job_id=spec.job_id,
+            )
+            try:
+                lease_context = self.gpu_lease_manager.acquire(
+                    spec.execution_device,
+                    holder=holder,
+                )
+            except GpuLeaseUnavailableError as exc:
+                journal.finish(
+                    reservation,
+                    outcome="infrastructure_failure",
+                    failure_kind=RunnerFailureKind.RESOURCE_UNAVAILABLE.value,
+                    retryable=False,
+                    output_hash=None,
+                    returncode=None,
+                )
+                raise RunnerExecutionError(
+                    f"{spec.job_id}: GPU resource is unavailable",
+                    failure_kind=RunnerFailureKind.RESOURCE_UNAVAILABLE,
+                ) from exc
+
+        previous_result = None
+        with lease_context:
+            for attempt_index in range(scope.max_infrastructure_retries + 1):
+                if attempt_index > 0:
+                    assert previous_result is not None
+                    try:
+                        reservation = journal.reserve(
+                            attempt_index,
+                            previous_result=previous_result,
+                        )
+                    except (OSError, TypeError, ValueError) as exc:
+                        raise RunnerExecutionError(
+                            f"{spec.job_id}: retry evidence contract is invalid",
+                            failure_kind=RunnerFailureKind.CONTRACT_INVALID,
+                        ) from exc
+                    if not reservation.created:
+                        raise RunnerExecutionError(
+                            f"{spec.job_id}: existing retry requires recovery inspection",
+                            failure_kind=RunnerFailureKind.CONTRACT_INVALID,
+                        )
+                log_dir = journal.root / f"attempt_{attempt_index:02d}.logs"
+                try:
+                    result = operation(log_dir)
+                except CandidateRuntimeError as exc:
+                    journal.finish(
+                        reservation,
+                        outcome="candidate_failure",
+                        failure_kind=type(exc).__name__,
+                        retryable=False,
+                        output_hash=None,
+                        returncode=None,
+                    )
+                    raise
+                except RunnerExecutionError as exc:
+                    retryable = (
+                        exc.retryable_infrastructure_failure
+                        and attempt_index < scope.max_infrastructure_retries
+                    )
+                    outcome = self._attempt_error_outcome(exc)
+                    previous_result = journal.finish(
+                        reservation,
+                        outcome=outcome,
+                        failure_kind=exc.failure_kind.value,
+                        retryable=retryable,
+                        output_hash=None,
+                        returncode=None,
+                    )
+                    if retryable:
+                        continue
+                    raise
+                except KeyboardInterrupt:
+                    journal.finish(
+                        reservation,
+                        outcome="interrupted",
+                        failure_kind=RunnerFailureKind.INTERRUPTED.value,
+                        retryable=False,
+                        output_hash=None,
+                        returncode=None,
+                    )
+                    raise
+                except BaseException as exc:
+                    journal.finish(
+                        reservation,
+                        outcome="unclassified_failure",
+                        failure_kind=type(exc).__name__,
+                        retryable=False,
+                        output_hash=None,
+                        returncode=None,
+                    )
+                    raise
+                outcome = (
+                    "scientific_failure"
+                    if isinstance(result, PublicEvalResult) and result.status == "fail"
+                    else "completed"
+                )
+                journal.finish(
+                    reservation,
+                    outcome=outcome,
+                    failure_kind=None,
+                    retryable=False,
+                    output_hash=canonical_json_hash(
+                        result.to_private_dict()
+                        if isinstance(result, EvaluationPhaseResult)
+                        else result.to_public_dict()
+                    ),
+                    returncode=None,
+                )
+                return result
+        raise RuntimeError("attempt loop exited without a terminal result")
+
+    @staticmethod
+    def _attempt_error_outcome(error: RunnerExecutionError) -> str:
+        if error.failure_kind in {
+            RunnerFailureKind.EXECUTABLE_NOT_FOUND,
+            RunnerFailureKind.CONTRACT_INVALID,
+            RunnerFailureKind.SUMMARY_INVALID,
+        }:
+            return "contract_failure"
+        if error.failure_kind == RunnerFailureKind.INTERRUPTED:
+            return "interrupted"
+        return "infrastructure_failure"
+
+    @staticmethod
+    def _job_input_hash(
+        spec: TrainJobSpec | EvaluationJobSpec,
+        *,
+        job_kind: str,
+    ) -> str:
+        metadata = spec.metadata
+        return canonical_json_hash(
+            {
+                "schema_version": "true_rl_agent.runner.logical_job_input.v1",
+                "job_kind": job_kind,
+                "job_spec": spec.to_public_dict(),
+                "cli_argv": metadata.get("cli_argv"),
+                "summary_path": metadata.get("summary_path"),
+                "checkpoint_output_path": metadata.get("checkpoint_output_path"),
+                "work_dir": metadata.get("work_dir"),
+            }
+        )
+
+    @staticmethod
+    def _job_environment_hash(spec: TrainJobSpec | EvaluationJobSpec) -> str:
+        return canonical_json_hash(
+            {
+                "schema_version": "true_rl_agent.runner.job_environment.v1",
+                "backend_id": spec.metadata.get("backend_id"),
+                "backend_execution_environment_manifest_hash": spec.metadata.get(
+                    "backend_execution_environment_manifest_hash"
+                ),
+            }
         )
 
     def _validate_checkpoint_before_launch(
@@ -284,6 +810,7 @@ class SubprocessRunner(Runner):
         checkpoint: CheckpointRef | None,
         checkpoint_path_option: str,
         checkpoint_checksum_option: str,
+        process_log_dir: Path | None,
     ) -> _SummaryJobCompletion:
         """Interpret process exit and a fresh structured summary as one contract."""
 
@@ -311,6 +838,7 @@ class SubprocessRunner(Runner):
             argv,
             metadata,
             job_id=identity.job_id,
+            process_log_dir=process_log_dir,
         )
         try:
             summary = self._read_summary(metadata, job_id=identity.job_id)
@@ -324,10 +852,16 @@ class SubprocessRunner(Runner):
                 field_name=f"{summary_name} status",
             )
         except (RunnerExecutionError, ValueError) as exc:
+            failure_kind = (
+                exc.failure_kind
+                if isinstance(exc, RunnerExecutionError)
+                else RunnerFailureKind.SUMMARY_INVALID
+            )
             error = self._summary_contract_error(
                 job_id=identity.job_id,
                 completed=completed,
                 summary_error=str(exc),
+                failure_kind=failure_kind,
             )
             raise error from exc
         if completed.returncode != 0 and status != "fail":
@@ -337,6 +871,7 @@ class SubprocessRunner(Runner):
                 summary_error=(
                     f"{summary_name} status is pass but subprocess exited nonzero"
                 ),
+                failure_kind=RunnerFailureKind.SUMMARY_INVALID,
             )
         return _SummaryJobCompletion(
             summary=summary,
@@ -350,25 +885,43 @@ class SubprocessRunner(Runner):
         metadata: Mapping[str, Any],
         *,
         job_id: str,
-    ) -> subprocess.CompletedProcess[str]:
+        process_log_dir: Path | None,
+    ) -> OwnedProcessResult:
         work_dir = self._work_dir(metadata)
+        if process_log_dir is None:
+            process_log_dir = (
+                self._summary_path(metadata, job_id=job_id).parent
+                / "runner_process"
+            )
         try:
-            completed = subprocess.run(
+            completed = run_owned_process(
                 argv,
                 cwd=work_dir,
-                shell=False,
-                check=False,
-                capture_output=True,
-                text=True,
-                timeout=self.timeout_s,
+                timeout_s=self.timeout_s,
+                log_dir=process_log_dir,
+                termination_grace_s=self.termination_grace_s,
             )
-        except FileNotFoundError as exc:
-            raise RunnerExecutionError(f"{job_id}: executable not found: {argv[0]}") from exc
-        except subprocess.TimeoutExpired as exc:
-            raise RunnerExecutionError(f"{job_id}: subprocess timed out after {self.timeout_s}s") from exc
-        except OSError as exc:
+        except OwnedProcessTimeout as exc:
             raise RunnerExecutionError(
-                f"{job_id}: subprocess launch failed: {type(exc).__name__}"
+                f"{job_id}: subprocess timed out after {self.timeout_s}s",
+                failure_kind=RunnerFailureKind.TIMEOUT,
+            ) from exc
+        except OwnedProcessLaunchError as exc:
+            cause = exc.__cause__
+            if isinstance(cause, FileNotFoundError):
+                raise RunnerExecutionError(
+                    f"{job_id}: executable not found: {argv[0]}",
+                    failure_kind=RunnerFailureKind.EXECUTABLE_NOT_FOUND,
+                ) from exc
+            failure_kind = (
+                RunnerFailureKind.LAUNCH_TRANSIENT
+                if self._is_transient_launch_error(cause)
+                else RunnerFailureKind.LAUNCH_FAILED
+            )
+            raise RunnerExecutionError(
+                f"{job_id}: subprocess launch failed: "
+                f"{type(cause).__name__ if cause is not None else type(exc).__name__}",
+                failure_kind=failure_kind,
             ) from exc
         return completed
 
@@ -376,8 +929,9 @@ class SubprocessRunner(Runner):
         self,
         *,
         job_id: str,
-        completed: subprocess.CompletedProcess[str],
+        completed: OwnedProcessResult,
         summary_error: str,
+        failure_kind: RunnerFailureKind,
     ) -> RunnerExecutionError:
         job_prefix = f"{job_id}: "
         if summary_error.startswith(job_prefix):
@@ -386,12 +940,25 @@ class SubprocessRunner(Runner):
         if completed.returncode != 0:
             process_context = (
                 f"subprocess exited {completed.returncode}; "
-                f"stdout={self._safe_output(completed.stdout)}; "
-                f"stderr={self._safe_output(completed.stderr)}; "
+                f"stdout={self._safe_output(completed.stdout_tail)}; "
+                f"stderr={self._safe_output(completed.stderr_tail)}; "
             )
         return RunnerExecutionError(
-            f"{job_id}: {process_context}structured summary invalid: {summary_error}"
+            f"{job_id}: {process_context}structured summary invalid: {summary_error}",
+            failure_kind=failure_kind,
         )
+
+    @staticmethod
+    def _is_transient_launch_error(error: BaseException | None) -> bool:
+        if not isinstance(error, OSError):
+            return False
+        transient_errno = {11, 12, 16, 26}
+        transient_winerror = {8, 14, 1450}
+        return error.errno in transient_errno or getattr(
+            error,
+            "winerror",
+            None,
+        ) in transient_winerror
 
     def _validated_argv(self, metadata: Mapping[str, Any], *, job_id: str) -> list[str]:
         argv = metadata.get("cli_argv")
@@ -438,18 +1005,26 @@ class SubprocessRunner(Runner):
     def _read_summary(self, metadata: Mapping[str, Any], *, job_id: str) -> dict[str, Any]:
         summary_path = self._summary_path(metadata, job_id=job_id)
         if summary_path.is_symlink():
-            raise RunnerExecutionError(f"{job_id}: summary_path must not be a symlink: {summary_path}")
+            raise RunnerExecutionError(
+                f"{job_id}: summary_path must not be a symlink: {summary_path}",
+                failure_kind=RunnerFailureKind.SUMMARY_INVALID,
+            )
         if not summary_path.exists():
-            raise RunnerExecutionError(f"{job_id}: summary file was not created: {summary_path}")
+            raise RunnerExecutionError(
+                f"{job_id}: summary file was not created: {summary_path}",
+                failure_kind=RunnerFailureKind.SUMMARY_MISSING,
+            )
         try:
             summary_text = summary_path.read_text(encoding="utf-8")
         except UnicodeError as exc:
             raise RunnerExecutionError(
-                f"{job_id}: summary file is not valid UTF-8: {summary_path}"
+                f"{job_id}: summary file is not valid UTF-8: {summary_path}",
+                failure_kind=RunnerFailureKind.SUMMARY_INVALID,
             ) from exc
         except OSError as exc:
             raise RunnerExecutionError(
-                f"{job_id}: summary file could not be read: {summary_path}"
+                f"{job_id}: summary file could not be read: {summary_path}",
+                failure_kind=RunnerFailureKind.SUMMARY_INVALID,
             ) from exc
         try:
             return strict_json_object_loads(
@@ -458,7 +1033,8 @@ class SubprocessRunner(Runner):
             )
         except ValueError as exc:
             raise RunnerExecutionError(
-                f"{job_id}: summary file is not valid JSON: {summary_path}"
+                f"{job_id}: summary file is not valid JSON: {summary_path}",
+                failure_kind=RunnerFailureKind.SUMMARY_INVALID,
             ) from exc
 
     def _summary_path(self, metadata: Mapping[str, Any], *, job_id: str) -> Path:
@@ -582,24 +1158,97 @@ class SubprocessRunner(Runner):
         self,
         completion: _SummaryJobCompletion,
         *,
-        job_id: str,
+        train_spec: TrainJobSpec,
     ) -> None:
         if completion.status != "fail":
             return
+        job_id = train_spec.job_id
         summary = completion.summary
-        errors = self._public_errors(summary.get("errors"))
+        if completion.returncode == 0:
+            raise RunnerExecutionError(
+                f"{job_id}: failed train summary requires a nonzero subprocess exit"
+            )
+        if train_spec.subject.kind != "candidate":
+            raise RunnerExecutionError(
+                f"{job_id}: reference training failure is infrastructure-owned"
+            )
+        contract = train_spec.candidate_failure_contract
+        if contract is None:
+            raise RunnerExecutionError(
+                f"{job_id}: train failure is not bound to a candidate failure contract"
+            )
+        if summary.get("errors") not in (None, []):
+            raise RunnerExecutionError(
+                f"{job_id}: candidate failure summary cannot contain raw errors"
+            )
+        if summary.get("checkpoint") is not None:
+            raise RunnerExecutionError(
+                f"{job_id}: candidate failure summary cannot contain a checkpoint"
+            )
+        try:
+            evidence = contract.validate_evidence(summary.get("candidate_failure"))
+            rule = contract.rule_for(
+                stage=evidence.failure_stage,
+                reason_code=evidence.reason_code,
+            )
+            if rule.requires_initial_policy_state:
+                self._initial_policy_state_pairing(
+                    summary,
+                    train_spec=train_spec,
+                )
+            else:
+                self._validate_preinitial_policy_failure(
+                    summary,
+                    train_spec=train_spec,
+                )
+        except (TypeError, ValueError) as exc:
+            raise RunnerExecutionError(
+                f"{job_id}: invalid candidate failure evidence: {exc}"
+            ) from exc
         details: dict[str, Any] = {
             "status": "fail",
             "subprocess_returncode": completion.returncode,
+            "candidate_failure_contract": contract.to_public_dict(),
+            "candidate_failure": evidence.to_public_dict(),
         }
-        if errors:
-            details["errors"] = errors
-        error_text = self._safe_output(json.dumps(errors, sort_keys=True))
         raise CandidateRuntimeError(
-            f"{job_id}: train summary status fail; "
-            f"subprocess_returncode={completion.returncode}; errors={error_text}",
+            f"{job_id}: candidate program failed during "
+            f"{evidence.failure_stage} ({evidence.reason_code})",
             public_details=details,
         )
+
+    @staticmethod
+    def _validate_preinitial_policy_failure(
+        summary: Mapping[str, Any],
+        *,
+        train_spec: TrainJobSpec,
+    ) -> None:
+        training = summary.get("training")
+        policy_fields = {
+            "initial_policy_state_hash",
+            "initial_policy_state_match",
+        }
+        if isinstance(training, Mapping) and policy_fields.intersection(training):
+            raise ValueError(
+                "pre-initialization candidate failure cannot claim actual policy state"
+            )
+        expected = train_spec.expected_initial_policy_state_hash
+        if expected is None:
+            if isinstance(training, Mapping) and (
+                "expected_initial_policy_state_hash" in training
+            ):
+                raise ValueError(
+                    "candidate failure unexpectedly declares an initial policy anchor"
+                )
+            return
+        if not isinstance(training, Mapping):
+            raise ValueError(
+                "candidate failure is missing the expected initial policy anchor"
+            )
+        if training.get("expected_initial_policy_state_hash") != expected:
+            raise ValueError(
+                "candidate failure expected initial policy state hash mismatch"
+            )
 
     def _checkpoint_from_summary(self, summary: Mapping[str, Any], *, job_id: str) -> CheckpointRef:
         checkpoint = summary.get("checkpoint")
@@ -625,6 +1274,90 @@ class SubprocessRunner(Runner):
                 f"{job_id}: invalid train summary checkpoint: {exc}"
             ) from exc
 
+    def _phase_result_from_summary(
+        self,
+        summary: Mapping[str, Any],
+        *,
+        eval_spec: EvalPhaseJobSpec,
+        expected_checkpoint_hash: str,
+    ) -> EvaluationPhaseResult:
+        job_id = eval_spec.job_id
+        if summary.get("schema_version") != EVALUATION_PHASE_SUMMARY_SCHEMA_VERSION:
+            raise RunnerExecutionError(
+                f"{job_id}: eval phase summary schema mismatch"
+            )
+        if summary.get("status") != "pass" or summary.get("errors") != []:
+            raise RunnerExecutionError(
+                f"{job_id}: eval phase did not produce complete evidence"
+            )
+        if summary.get("evaluation_phase") != eval_spec.phase.value:
+            raise RunnerExecutionError(
+                f"{job_id}: eval phase summary identity mismatch"
+            )
+        if summary.get("evaluation_plan_hash") != eval_spec.evaluation_plan_hash:
+            raise RunnerExecutionError(
+                f"{job_id}: eval phase plan binding mismatch"
+            )
+        task_evidence = summary.get("task_evidence")
+        if not isinstance(task_evidence, Mapping):
+            raise RunnerExecutionError(
+                f"{job_id}: eval phase task evidence must be an object"
+            )
+        if canonical_json_hash(task_evidence) != summary.get("task_evidence_hash"):
+            raise RunnerExecutionError(
+                f"{job_id}: eval phase task evidence hash mismatch"
+            )
+        execution_cost = summary.get("evaluation_execution_cost")
+        source_preflight = summary.get("environment_source_preflight")
+        environment_verification = summary.get(
+            "backend_execution_environment_verification"
+        )
+        for field_name, value in (
+            ("evaluation_execution_cost", execution_cost),
+            ("environment_source_preflight", source_preflight),
+            (
+                "backend_execution_environment_verification",
+                environment_verification,
+            ),
+        ):
+            if not isinstance(value, Mapping):
+                raise RunnerExecutionError(
+                    f"{job_id}: eval phase {field_name} must be an object"
+                )
+        try:
+            reject_candidate_contamination_flags(summary, source="eval phase summary")
+            checkpoint_safety_report = validate_checkpoint_safety_report(
+                summary.get("checkpoint_safety_report"),
+                expected_checkpoint_hash=expected_checkpoint_hash,
+            )
+        except ValueError as exc:
+            raise RunnerExecutionError(f"{job_id}: {exc}") from exc
+        return EvaluationPhaseResult(
+            job_id=job_id,
+            task_id=eval_spec.task_id,
+            phase=eval_spec.phase,
+            evaluation_plan_hash=eval_spec.evaluation_plan_hash,
+            subject=eval_spec.subject,
+            subject_manifest_hash=eval_spec.subject_manifest_hash,
+            program_source_checksum=eval_spec.program_source_checksum,
+            training_binding_hash=eval_spec.training_binding_hash,
+            capability_profile_hash=eval_spec.capability_profile_hash,
+            checkpoint_hash=expected_checkpoint_hash,
+            eval_protocol_hash=eval_spec.evaluation_protocol().protocol_hash,
+            evaluation_binding_hash=eval_spec.evaluation_binding.binding_hash,
+            execution_device=eval_spec.execution_device,
+            resource_binding_hash=(
+                eval_spec.attempt_scope.resource_binding_hash
+                if eval_spec.attempt_scope is not None
+                else None
+            ),
+            task_evidence=task_evidence,
+            execution_cost=execution_cost,
+            environment_source_preflight=source_preflight,
+            backend_execution_environment_verification=environment_verification,
+            checkpoint_safety_report=checkpoint_safety_report,
+        )
+
     def _public_result_from_summary(
         self,
         summary: Mapping[str, Any],
@@ -640,6 +1373,7 @@ class SubprocessRunner(Runner):
         program_source_checksum: str | None,
         training_binding_hash: str | None,
         capability_profile_hash: str,
+        expected_execution_device: str,
     ) -> PublicEvalResult:
         try:
             fields = validate_public_eval_result_fields(
@@ -653,21 +1387,21 @@ class SubprocessRunner(Runner):
         status = fields.status
         public_score = fields.public_score
         metrics = fields.metrics
-        for reserved_key in (
-            "checkpoint_safety_report",
-            "checkpoint_safety_status",
-            "evidence_manifest",
-            SEALED_VALIDATION_EVIDENCE_KEY,
-            "sealed_validation_gate",
-            "evaluation_binding",
-            "subject_manifest_hash",
-            "program_source_checksum",
-            "training_binding_hash",
-            "capability_profile_hash",
-            *ALTERNATE_JOB_IDENTITY_FIELDS,
-        ):
-            if reserved_key in metrics:
-                raise RunnerExecutionError(f"{job_id}: eval summary metrics must not contain {reserved_key}")
+        reserved_metric_collisions = sorted(
+            set(metrics)
+            & (
+                (
+                    RUNNER_OWNED_PUBLIC_EVAL_METRIC_KEYS
+                    - frozenset(CANDIDATE_CONTAMINATION_FIELDS)
+                )
+                | frozenset(ALTERNATE_JOB_IDENTITY_FIELDS)
+            )
+        )
+        if reserved_metric_collisions:
+            raise RunnerExecutionError(
+                f"{job_id}: eval summary metrics must not contain "
+                f"{reserved_metric_collisions[0]}"
+            )
         try:
             reject_candidate_contamination_flags(metrics, source="eval summary metrics")
             reject_candidate_contamination_flags(summary, source="eval summary")
@@ -687,6 +1421,7 @@ class SubprocessRunner(Runner):
         if training_binding_hash is not None:
             public_metrics["training_binding_hash"] = training_binding_hash
         public_metrics["capability_profile_hash"] = capability_profile_hash
+        public_metrics["execution_device"] = expected_execution_device
         public_metrics["checkpoint_safety_status"] = checkpoint_safety_report["status"]
         public_metrics["checkpoint_safety_report"] = checkpoint_safety_report
         for key in CANDIDATE_CONTAMINATION_FIELDS:
@@ -694,6 +1429,42 @@ class SubprocessRunner(Runner):
                 value = summary[key]
                 public_metrics[key] = value
         rollout_evidence = summary.get("sealed_validation_evidence")
+        raw_task_evidence = summary.get("sealed_validation_summary")
+        if raw_task_evidence is not None and not isinstance(raw_task_evidence, Mapping):
+            raise RunnerExecutionError(
+                f"{job_id}: eval summary sealed_validation_summary must be an object"
+            )
+        declared_task_evidence_hash = (
+            rollout_evidence.get("task_evidence_hash")
+            if isinstance(rollout_evidence, Mapping)
+            else None
+        )
+        if (declared_task_evidence_hash is not None) != (
+            raw_task_evidence is not None
+        ):
+            raise RunnerExecutionError(
+                f"{job_id}: sealed task evidence hash and summary must be present together"
+            )
+        if raw_task_evidence is not None:
+            raw_task_score_stats = raw_task_evidence.get("score_stats")
+            declared_score_stats = (
+                rollout_evidence.get("score_stats")
+                if isinstance(rollout_evidence, Mapping)
+                else None
+            )
+            if (
+                not isinstance(raw_task_score_stats, Mapping)
+                or not isinstance(declared_score_stats, Mapping)
+                or dict(raw_task_score_stats) != dict(declared_score_stats)
+            ):
+                raise RunnerExecutionError(
+                    f"{job_id}: sealed task summary score_stats differ from public evidence"
+                )
+        expected_task_evidence_hash = (
+            canonical_json_hash(raw_task_evidence)
+            if raw_task_evidence is not None
+            else None
+        )
         rollout_validation = validate_sealed_rollout_evidence(
             rollout_evidence,
             expected_seed_count=expected_sealed_seed_count,
@@ -707,6 +1478,7 @@ class SubprocessRunner(Runner):
             expected_training_binding_hash=training_binding_hash,
             expected_capability_profile_hash=capability_profile_hash,
             expected_checkpoint_hash=expected_checkpoint_hash,
+            expected_task_evidence_hash=expected_task_evidence_hash,
         )
         if not rollout_validation.complete:
             detail = ", ".join(rollout_validation.reasons)
@@ -751,6 +1523,14 @@ class SubprocessRunner(Runner):
             )
         public_metrics[SEALED_VALIDATION_EVIDENCE_KEY] = dict(rollout_evidence)
         public_metrics["sealed_validation_gate"] = canonical_gate
+        unexpected_runner_metrics = (
+            set(public_metrics) - set(metrics) - RUNNER_OWNED_PUBLIC_EVAL_METRIC_KEYS
+        )
+        if unexpected_runner_metrics:
+            raise RunnerExecutionError(
+                f"{job_id}: runner projected undeclared public metric(s): "
+                + ", ".join(sorted(unexpected_runner_metrics))
+            )
         try:
             return PublicEvalResult(
                 status=status,
@@ -759,6 +1539,63 @@ class SubprocessRunner(Runner):
             )
         except ValueError as exc:
             raise RunnerExecutionError(f"{job_id}: invalid public eval result: {exc}") from exc
+
+    @staticmethod
+    def _validate_backend_execution_environment_summary(
+        summary: Mapping[str, Any],
+        spec: TrainJobSpec | EvaluationJobSpec,
+    ) -> None:
+        expected_hash = spec.metadata.get(
+            "backend_execution_environment_manifest_hash"
+        )
+        receipt = summary.get("backend_execution_environment_verification")
+        if expected_hash is None:
+            if receipt is not None:
+                raise RunnerExecutionError(
+                    f"{spec.job_id}: unexpected backend environment verification"
+                )
+            return
+        expected_hash = require_sha256_digest(
+            expected_hash,
+            "job backend execution environment manifest hash",
+        )
+        if not isinstance(receipt, Mapping):
+            raise RunnerExecutionError(
+                f"{spec.job_id}: backend environment verification is missing"
+            )
+        expected_fields = {
+            "schema_version",
+            "backend_id",
+            "status",
+            "expected_manifest_hash",
+            "actual_manifest_hash",
+        }
+        if set(receipt) != expected_fields:
+            raise RunnerExecutionError(
+                f"{spec.job_id}: backend environment verification fields mismatch"
+            )
+        expected_backend_id = spec.metadata.get("backend_id")
+        if (
+            receipt.get("schema_version")
+            != BACKEND_EXECUTION_ENVIRONMENT_VERIFICATION_SCHEMA_VERSION
+            or receipt.get("backend_id") != expected_backend_id
+            or receipt.get("status") != "pass"
+            or receipt.get("expected_manifest_hash") != expected_hash
+            or receipt.get("actual_manifest_hash") != expected_hash
+        ):
+            raise RunnerExecutionError(
+                f"{spec.job_id}: backend environment verification mismatch"
+            )
+
+    @staticmethod
+    def _validate_execution_device_summary(
+        summary: Mapping[str, Any],
+        spec: TrainJobSpec | EvaluationJobSpec,
+    ) -> None:
+        if summary.get("execution_device") != spec.execution_device:
+            raise RunnerExecutionError(
+                f"{spec.job_id}: summary execution_device does not match job spec"
+            )
 
     @staticmethod
     def _validate_train_binding_summary(
@@ -784,6 +1621,36 @@ class SubprocessRunner(Runner):
             ),
             "program_source_checksum": train_spec.program_source_checksum,
         }
+        candidate = train_spec.candidate_artifact
+        if candidate is not None and candidate.execution_authorization is not None:
+            authorization = candidate.execution_authorization
+            expected.update(
+                {
+                    "candidate_verification_hash": candidate.verification_hash,
+                    "candidate_admission_policy_id": (
+                        authorization.admission_policy_id
+                    ),
+                    "candidate_admission_policy_hash": (
+                        authorization.admission_policy_hash
+                    ),
+                    "candidate_execution_authorization_schema_version": (
+                        authorization.payload_schema_version
+                    ),
+                    "candidate_execution_authorization_hash": (
+                        authorization.authorization_hash
+                    ),
+                }
+            )
+        failure_contract = train_spec.candidate_failure_contract
+        if failure_contract is None:
+            if "candidate_failure_contract_hash" in summary:
+                raise RunnerExecutionError(
+                    f"{train_spec.job_id}: unexpected candidate failure contract hash"
+                )
+        else:
+            expected["candidate_failure_contract_hash"] = (
+                failure_contract.contract_hash
+            )
         for field_name, expected_value in expected.items():
             if summary.get(field_name) != expected_value:
                 raise RunnerExecutionError(
@@ -791,29 +1658,39 @@ class SubprocessRunner(Runner):
                     f"{field_name}"
                 )
 
-    @classmethod
-    def _public_errors(cls, errors: Any) -> list[dict[str, str]]:
-        if not isinstance(errors, list):
-            return []
-        public_errors: list[dict[str, str]] = []
-        for raw in errors[:5]:
-            if not isinstance(raw, Mapping):
-                continue
-            item: dict[str, str] = {}
-            if "type" in raw:
-                item["type"] = cls._safe_output(str(raw["type"]))
-            if "message" in raw:
-                item["message"] = cls._safe_output(str(raw["message"]))
-            if item:
-                public_errors.append(item)
-        return public_errors
+    @staticmethod
+    def _initial_policy_state_pairing(
+        summary: Mapping[str, Any],
+        *,
+        train_spec: TrainJobSpec,
+    ) -> InitialPolicyStatePairing | None:
+        expected = train_spec.expected_initial_policy_state_hash
+        if expected is None:
+            return None
+        try:
+            pairing = InitialPolicyStatePairing.from_training_summary(
+                summary,
+                expected_initial_policy_state_hash=expected,
+            )
+            pairing.require_match()
+        except (TypeError, ValueError) as exc:
+            raise RunnerExecutionError(
+                f"{train_spec.job_id}: initial policy state pairing failed: {exc}"
+            ) from exc
+        return pairing
 
     @staticmethod
     def _safe_output(output: str | None) -> str:
         if not output:
             return ""
-        redacted = re.sub(r"sk-[A-Za-z0-9_-]+", "sk-REDACTED", output)
-        redacted = re.sub(r"(?i)(OPENAI_API_KEY|API_KEY|TOKEN|SECRET)=\S+", r"\1=REDACTED", redacted)
-        redacted = re.sub(r"(?i)(Authorization:\s*Bearer\s+)\S+", r"\1REDACTED", redacted)
+        redacted = redact_secret_key_markers(output)
+        redacted = re.sub(
+            r"(?i)(?<![A-Za-z0-9])(OPENAI_API_KEY|API_KEY|TOKEN|SECRET)\s*=\s*\S+",
+            r"\1=REDACTED",
+            redacted,
+        )
         compact = " ".join(redacted.split())
+        compact = sanitize_untrusted_public_diagnostic(compact)
+        if not isinstance(compact, str):
+            raise TypeError("subprocess diagnostic sanitizer must return text")
         return compact[:1200]

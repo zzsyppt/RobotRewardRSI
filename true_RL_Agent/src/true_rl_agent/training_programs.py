@@ -9,7 +9,11 @@ from typing import Any, Mapping
 
 from true_rl_agent.candidates.loader import (
     CONTROLLED_ENTRYPOINT,
-    load_candidate_manifest,
+    parse_candidate_manifest_bytes,
+)
+from true_rl_agent.candidates.package_contract import (
+    open_preflighted_candidate_file,
+    preflight_candidate_package,
 )
 from true_rl_agent.evaluation.binding import (
     canonical_json_hash,
@@ -48,19 +52,34 @@ def resolve_candidate_program_identity(
     candidate_root: str | Path,
     *,
     expected_candidate_id: str,
+    sealed_artifact: bool = False,
+    enforce_package_size_limits: bool = True,
 ) -> CandidateProgramIdentity:
-    root = Path(candidate_root).resolve(strict=True)
-    manifest_path = root / "candidate_manifest.yaml"
-    source_path = root / CANONICAL_TRAINING_COMPONENTS_PATH
-    if manifest_path.is_symlink() or source_path.is_symlink():
-        raise ValueError("candidate program identity does not allow symlinks")
-    manifest = load_candidate_manifest(root)
+    preflight = preflight_candidate_package(
+        candidate_root,
+        sealed_artifact=sealed_artifact,
+        enforce_size_limits=enforce_package_size_limits,
+    )
+    with open_preflighted_candidate_file(
+        preflight,
+        "candidate_manifest.yaml",
+    ) as manifest_source:
+        manifest_bytes = manifest_source.read()
+    manifest = parse_candidate_manifest_bytes(manifest_bytes)
     if manifest.candidate_id != expected_candidate_id:
         raise ValueError("candidate program identity candidate_id mismatch")
-    payload = source_path.read_bytes()
-    if not payload:
+    digest = hashlib.sha256()
+    source_size_bytes = 0
+    with open_preflighted_candidate_file(
+        preflight,
+        CANONICAL_TRAINING_COMPONENTS_PATH,
+    ) as source:
+        while chunk := source.read(64 * 1024):
+            digest.update(chunk)
+            source_size_bytes += len(chunk)
+    if source_size_bytes == 0:
         raise ValueError("candidate components source must be non-empty")
-    source_checksum = "sha256:" + hashlib.sha256(payload).hexdigest()
+    source_checksum = "sha256:" + digest.hexdigest()
     manifest_hash = canonical_json_hash(
         {
             "schema_version": CANDIDATE_PROGRAM_IDENTITY_SCHEMA_VERSION,
@@ -69,13 +88,13 @@ def resolve_candidate_program_identity(
             "source_path": CANONICAL_TRAINING_COMPONENTS_PATH,
             "entrypoint": CANONICAL_TRAINING_COMPONENTS_ENTRYPOINT,
             "source_checksum": source_checksum,
-            "source_size_bytes": len(payload),
+            "source_size_bytes": source_size_bytes,
         }
     )
     return CandidateProgramIdentity(
         candidate_id=expected_candidate_id,
         source_checksum=source_checksum,
-        source_size_bytes=len(payload),
+        source_size_bytes=source_size_bytes,
         manifest_hash=manifest_hash,
     )
 
@@ -327,6 +346,36 @@ def resolve_reference_program_artifact(
     )
 
 
+def verify_reference_program_artifact_bytes(
+    *,
+    manifest: ReferenceProgramManifest,
+    source_bytes: bytes,
+    expected_verification_hash: str | None = None,
+) -> VerifiedReferenceProgramArtifact:
+    """Rebuild a verified capability from bytes already bound by a manifest."""
+
+    if not isinstance(manifest, ReferenceProgramManifest):
+        raise TypeError("reference program manifest is invalid")
+    if not isinstance(source_bytes, bytes) or not source_bytes:
+        raise ValueError("reference program source bytes must be non-empty")
+    try:
+        source_bytes.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ValueError("reference program source must be valid UTF-8") from exc
+    verification_hash = _reference_program_verification_hash(manifest)
+    if expected_verification_hash is not None:
+        require_sha256_digest(
+            expected_verification_hash,
+            "expected reference program verification hash",
+        )
+        if expected_verification_hash != verification_hash:
+            raise ValueError("reference program verification hash mismatch")
+    return VerifiedReferenceProgramArtifact._validated(
+        manifest=manifest,
+        source_bytes=source_bytes,
+    )
+
+
 def _reference_program_verification_hash(
     manifest: ReferenceProgramManifest,
 ) -> str:
@@ -354,4 +403,5 @@ __all__ = [
     "VerifiedReferenceProgramArtifact",
     "resolve_reference_program_artifact",
     "resolve_candidate_program_identity",
+    "verify_reference_program_artifact_bytes",
 ]

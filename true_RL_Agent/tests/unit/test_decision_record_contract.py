@@ -4,7 +4,6 @@ import copy
 import sys
 import unittest
 from pathlib import Path
-from types import SimpleNamespace
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = PROJECT_ROOT / "src"
@@ -13,25 +12,22 @@ if str(SRC_ROOT) not in sys.path:
 
 from tests.fakes.decision_records import (
     TEST_ACCEPTANCE_PROTOCOL,
+    TEST_CANDIDATE_FAILURE_CONTRACT,
     TEST_SESSION_GENESIS_HASH,
     make_bootstrap_current_best,
     valid_accepted_ledger_record,
 )
 from true_rl_agent.agent_core.eval_run_audit import build_eval_run_audit
-from true_rl_agent.agent_core.live_loop import _runner_status
+from true_rl_agent.evaluation.acceptance_protocol import (
+    ACCEPTANCE_DELTA_ACCEPT_REASONS,
+    ACCEPTANCE_DELTA_REJECT_REASONS,
+)
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
 from true_rl_agent.evaluation.decision_record_contract import (
     project_validated_decision as _project_validated_decision,
 )
 from true_rl_agent.evaluation.decision_record_contract import (
     validate_decision_record as _validate_decision_record,
-)
-from true_rl_agent.evaluation.round_stage_contract import (
-    EVALUATED_STAGE,
-    POST_TRAIN_FAILURE_STAGE,
-    PRE_TRAIN_REJECTION_STAGE,
-    TRAIN_FAILURE_STAGE,
-    VERIFIER_FAILURE_STAGE,
 )
 
 
@@ -146,6 +142,46 @@ class DecisionRecordContractTests(unittest.TestCase):
         self.assertFalse(validation.valid)
         self.assertIn("decision_reason_not_allowed_for_outcome", validation.reasons)
 
+    def test_all_canonical_delta_reasons_are_allowed_for_their_outcome(self) -> None:
+        for reason in ACCEPTANCE_DELTA_ACCEPT_REASONS:
+            with self.subTest(reason=reason):
+                record = _accepted_record()
+                record["decision"]["reason"] = reason
+
+                validation = validate_decision_record(record)
+
+                self.assertNotIn(
+                    "decision_reason_not_allowed_for_outcome",
+                    validation.reasons,
+                )
+        for reason in ACCEPTANCE_DELTA_REJECT_REASONS:
+            with self.subTest(reason=reason):
+                record = _accepted_record()
+                record["decision"].update(
+                    accepted=False,
+                    outcome="reject",
+                    reason=reason,
+                )
+
+                validation = validate_decision_record(record)
+
+                self.assertNotIn(
+                    "decision_reason_not_allowed_for_outcome",
+                    validation.reasons,
+                )
+
+    def test_delta_reason_must_match_the_bound_acceptance_rule(self) -> None:
+        record = _accepted_record()
+        record["decision"]["reason"] = "bounded_paired_guard_headroom_delta"
+
+        validation = validate_decision_record(record)
+
+        self.assertFalse(validation.valid)
+        self.assertIn(
+            "bounded_paired_guard_headroom_delta_reason_evidence_mismatch",
+            validation.reasons,
+        )
+
     def test_delta_reason_requires_self_consistent_comparison(self) -> None:
         record = _accepted_record()
         record["decision"].update(
@@ -230,8 +266,32 @@ class DecisionRecordContractTests(unittest.TestCase):
             "training_runtime_failure": {
                 "candidate": {"candidate_id": "candidate-train-failure"},
                 "verifier": {"status": "pass"},
-                "jobs": {"train": {"job_id": "train"}, "eval": {"job_id": "eval"}},
-                "runner_error": {"category": "candidate_runtime_error"},
+                "jobs": {
+                    "train": {
+                        "job_id": "train",
+                        "candidate_failure_contract_hash": (
+                            TEST_CANDIDATE_FAILURE_CONTRACT.contract_hash
+                        ),
+                    },
+                    "eval": {"job_id": "eval"},
+                },
+                "runner_error": {
+                    "type": "CandidateRuntimeError",
+                    "message": "candidate failed inside runner",
+                    "details": {
+                        "status": "fail",
+                        "subprocess_returncode": 1,
+                        "candidate_failure_contract": (
+                            TEST_CANDIDATE_FAILURE_CONTRACT.to_public_dict()
+                        ),
+                        "candidate_failure": (
+                            TEST_CANDIDATE_FAILURE_CONTRACT.evidence(
+                                stage="reward_execution",
+                                reason_code="runtime_rejected",
+                            ).to_public_dict()
+                        ),
+                    },
+                },
                 "decision": _reject_decision("candidate_runtime_failed"),
             },
             "post_train_eval_failure": {
@@ -262,21 +322,6 @@ class DecisionRecordContractTests(unittest.TestCase):
         self.assertIn("round_stage_empty_evidence:public_result", validation.reasons)
         self.assertFalse(validation.round_stage.train_result_present)
         self.assertFalse(validation.round_stage.public_result_present)
-
-    def test_runner_status_is_derived_from_round_stage(self) -> None:
-        expected = {
-            VERIFIER_FAILURE_STAGE: "not_run",
-            PRE_TRAIN_REJECTION_STAGE: "not_run",
-            TRAIN_FAILURE_STAGE: "fail",
-            POST_TRAIN_FAILURE_STAGE: "fail",
-            EVALUATED_STAGE: "pass",
-        }
-        for stage, status in expected.items():
-            with self.subTest(stage=stage):
-                self.assertEqual(
-                    _runner_status(SimpleNamespace(round_stage=stage)),
-                    status,
-                )
 
     def test_accepted_decision_binds_surface_and_public_score(self) -> None:
         cases = {

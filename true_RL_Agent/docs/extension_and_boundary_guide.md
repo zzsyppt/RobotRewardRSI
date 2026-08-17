@@ -89,6 +89,30 @@ Runner-owned fields include:
 
 Public prompt context may include public eval scores, public failure breakdowns, public diagnostic summaries, public runtime activation summaries, public curriculum lineage, and task-specific public summaries produced by `TaskMemoryAdapter`.
 
+## Evaluation And Acceptance Extension Contract
+
+New tasks should keep three authorities separate:
+
+- A task-owned evaluation profile defines geometry, episode horizons, cell coverage, aggregation, and task-specific diagnostics.
+- A task-owned public projector validates raw task outcomes and emits generic objective/guard score statistics plus ordered samples.
+- The shared `AcceptanceProtocol` defines task-neutral floors, materiality rules, bounded guard regression, and optional public-to-sealed consistency tolerances. Shared decision code must not infer task geometry or failure semantics.
+
+Generalization summaries should preserve exact per-cell counts in artifacts. Prompt adapters may provide a bounded matrix projection with one declared axis and sparse all-zero omission, but must not recompute a second success or failure classifier.
+
+Field impact reference:
+
+| Change | Evaluation profile/cohort | Acceptance hash | Task/evaluation binding | Required action |
+| --- | --- | --- | --- | --- |
+| Geometry, cell coverage, or per-cell horizon | Changes | Unchanged unless acceptance also changes | Changes | Version the profile and start a new evaluation session |
+| Eval seed counts, eval version, or seed policy | Changes | Unchanged | Changes | Regenerate Genesis evaluation evidence |
+| Objective, guard, or public-to-sealed threshold | Unchanged | Changes | Changes | Restart acceptance-bound evaluation; do not regenerate geometry seeds |
+| Success/failure semantics | Profile unchanged; task semantics change | Usually unchanged | Changes | Version task semantics and regenerate all affected evidence |
+| Prompt-only compact projection | Unchanged | Unchanged | Unchanged | Rebuild prompt payload tests; no rollout is required |
+
+If a task has a hash-pinned historical descriptor, keep it immutable. Document active
+extensions in the task guide and live task config instead of turning the historical
+descriptor into a second current schema.
+
 ## Redirection And Reach Task Path
 
 Future redirection or reach tasks should follow the same task path:

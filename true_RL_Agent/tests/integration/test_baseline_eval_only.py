@@ -12,6 +12,9 @@ SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
+from tests.fakes.backend_environment import (
+    make_test_isaac_lab_execution_environment_manifest,
+)
 from true_rl_agent.backends.isaac_lab_rsl_rl import IsaacLabRslRlBackendAdapter
 from true_rl_agent.composition import (
     TaskCompositionContext,
@@ -64,12 +67,23 @@ class BaselineEvalOnlyIntegrationTests(unittest.TestCase):
 
     def _composition(self, output_dir: Path):
         provider = PushRecoveryCompositionProvider()
-        return resolve_task_composition(
+        composition = resolve_task_composition(
             provider=provider,
             values=dict(provider.cli_defaults()),
             context=TaskCompositionContext(
                 project_root=PROJECT_ROOT,
                 output_dir=output_dir,
+            ),
+        )
+        adapter = composition.backend_adapter
+        assert isinstance(adapter, IsaacLabRslRlBackendAdapter)
+        return replace(
+            composition,
+            backend_adapter=IsaacLabRslRlBackendAdapter(
+                adapter.config,
+                execution_environment_resolver=(
+                    make_test_isaac_lab_execution_environment_manifest
+                ),
             ),
         )
 

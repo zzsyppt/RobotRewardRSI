@@ -22,22 +22,17 @@ from true_rl_agent.prompting.runner_capability_schemas import (
 
 
 class Phase9RunnerCapabilitySchemaTests(unittest.TestCase):
-    def test_runner_owned_capability_schemas_default_to_non_prompt_writable_refs(self) -> None:
+    def test_runner_owned_capability_schemas_are_hidden_until_ready(self) -> None:
         payload = build_prompt_payload(public_context={"public_only": True})
         capabilities = payload["candidate_capabilities"]
         visible_ids = {item["capability_id"] for item in capabilities["prompt_visible_capabilities"]}
-        reserved = {item["capability_id"]: item for item in capabilities["disabled_or_reserved_capabilities"]}
 
         self.assertNotIn(CURRICULUM_DESIGN_CAPABILITY_ID, visible_ids)
         self.assertNotIn(TRAIN_ENVIRONMENT_DESIGN_CAPABILITY_ID, visible_ids)
-        for capability_id in (CURRICULUM_DESIGN_CAPABILITY_ID, TRAIN_ENVIRONMENT_DESIGN_CAPABILITY_ID):
-            capability = reserved[capability_id]
-            self.assertFalse(capability["prompt_visible"])
-            self.assertFalse(capability["candidate_writable"])
-            self.assertFalse(capability["effective_now"])
-            self.assertEqual(capability["schema_status"], "schema_draft_hidden_until_ready")
-            self.assertNotIn("output_schema", capability)
-            self.assertEqual(capability["readiness_gate"]["status"], "not_ready")
+        self.assertEqual(capabilities["disabled_or_reserved_capabilities"], [])
+        capabilities_text = json.dumps(capabilities, sort_keys=True)
+        self.assertNotIn(CURRICULUM_DESIGN_CAPABILITY_ID, capabilities_text)
+        self.assertNotIn(TRAIN_ENVIRONMENT_DESIGN_CAPABILITY_ID, capabilities_text)
 
         visible_classes = [
             item["component_class"]
@@ -49,7 +44,7 @@ class Phase9RunnerCapabilitySchemaTests(unittest.TestCase):
     def test_runner_owned_readiness_requires_strict_boolean_true(self) -> None:
         payload = build_prompt_payload(
             public_context={"public_only": True},
-            runner_capability_readiness={
+            authoring_capability_readiness={
                 CURRICULUM_DESIGN_CAPABILITY_ID: {
                     "task_enabled": "true",
                     "compiler_ready": "yes",
@@ -61,21 +56,16 @@ class Phase9RunnerCapabilitySchemaTests(unittest.TestCase):
             item["capability_id"]
             for item in payload["candidate_capabilities"]["prompt_visible_capabilities"]
         }
-        reserved = {
-            item["capability_id"]: item
-            for item in payload["candidate_capabilities"]["disabled_or_reserved_capabilities"]
-        }
         self.assertNotIn(CURRICULUM_DESIGN_CAPABILITY_ID, visible_ids)
-        self.assertEqual(reserved[CURRICULUM_DESIGN_CAPABILITY_ID]["readiness_gate"]["status"], "not_ready")
-        self.assertEqual(
-            reserved[CURRICULUM_DESIGN_CAPABILITY_ID]["readiness_gate"]["missing_requirements"],
-            ["task_enabled", "compiler_ready", "verifier_ready"],
+        self.assertNotIn(
+            CURRICULUM_DESIGN_CAPABILITY_ID,
+            json.dumps(payload["candidate_capabilities"], sort_keys=True),
         )
 
     def test_runner_owned_schema_preview_requires_task_compiler_and_verifier_readiness(self) -> None:
         partial_payload = build_prompt_payload(
             public_context={"public_only": True},
-            runner_capability_readiness={
+            authoring_capability_readiness={
                 CURRICULUM_DESIGN_CAPABILITY_ID: {
                     "task_enabled": True,
                     "compiler_ready": True,
@@ -83,18 +73,17 @@ class Phase9RunnerCapabilitySchemaTests(unittest.TestCase):
                 },
             },
         )
-        partial_reserved = {
-            item["capability_id"]: item
-            for item in partial_payload["candidate_capabilities"]["disabled_or_reserved_capabilities"]
-        }
-        self.assertEqual(
-            partial_reserved[CURRICULUM_DESIGN_CAPABILITY_ID]["readiness_gate"]["missing_requirements"],
-            ["verifier_ready"],
+        self.assertNotIn(
+            CURRICULUM_DESIGN_CAPABILITY_ID,
+            json.dumps(
+                partial_payload["candidate_capabilities"],
+                sort_keys=True,
+            ),
         )
 
         ready_payload = build_prompt_payload(
             public_context={"public_only": True},
-            runner_capability_readiness={
+            authoring_capability_readiness={
                 CURRICULUM_DESIGN_CAPABILITY_ID: {
                     "task_enabled": True,
                     "compiler_ready": True,
@@ -320,14 +309,14 @@ class Phase9RunnerCapabilitySchemaTests(unittest.TestCase):
         }
         builder_payload = PublicContextBuilder().build_prompt_payload(
             [],
-            runner_capability_readiness=readiness,
+            authoring_capability_readiness=readiness,
         )
         authoring_payload = build_authoring_prompt_payload(
             context_builder=PublicContextBuilder(),
             records=[],
             repair_feedback=None,
             latest_failed_candidate=None,
-            runner_capability_readiness=readiness,
+            authoring_capability_readiness=readiness,
         )
 
         for payload in (builder_payload, authoring_payload):

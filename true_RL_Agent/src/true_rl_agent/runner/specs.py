@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from dataclasses import InitVar, dataclass, field
 from typing import Any
@@ -9,15 +10,23 @@ from typing import Any
 from true_rl_agent.candidates.artifact import VerifiedCandidateArtifactRef
 from true_rl_agent.evaluation.binding import (
     EvaluationBindingV1,
+    canonical_json_hash,
     require_sha256_checksum,
     require_sha256_digest,
 )
+from true_rl_agent.evaluation.phases import EvaluationPhase, EvaluationPhaseResult
 from true_rl_agent.evaluation.protocol import (
     DEFAULT_EVAL_PROTOCOL_VERSION,
     EvaluationProtocol,
 )
 from true_rl_agent.evaluation.subject import ExperimentSubject
 from true_rl_agent.policy import PolicyInitialization
+from true_rl_agent.reference_artifact import VerifiedReferenceProgramArtifactRef
+from true_rl_agent.runner.candidate_failure import CandidateFailureContract
+from true_rl_agent.runner.initial_policy import (
+    verified_initial_policy_state_pairing_hash,
+)
+from true_rl_agent.runner.job_attempts import JobAttemptScope
 from true_rl_agent.runner.job_identity import JobIdentity
 from true_rl_agent.training_binding import TrainingBinding
 
@@ -25,6 +34,19 @@ from true_rl_agent.training_binding import TrainingBinding
 def require_positive_integer(value: Any, field_name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
         raise ValueError(f"{field_name} must be a positive integer")
+    return value
+
+
+_EXECUTION_DEVICE_PATTERN = re.compile(r"(?:cpu|cuda:(?:0|[1-9][0-9]*))\Z")
+
+
+def require_execution_device(value: Any, field_name: str = "execution_device") -> str:
+    """Require an explicit canonical CPU or indexed CUDA device."""
+
+    if not isinstance(value, str) or _EXECUTION_DEVICE_PATTERN.fullmatch(value) is None:
+        raise ValueError(
+            f"{field_name} must be canonical 'cpu' or 'cuda:<non-negative index>'"
+        )
     return value
 
 
@@ -114,8 +136,13 @@ class TrainJobSpec:
     policy_initialization: PolicyInitialization
     training_binding: TrainingBinding
     budget_steps: int
+    execution_device: str
+    expected_initial_policy_state_hash: str | None = None
+    candidate_failure_contract: CandidateFailureContract | None = None
     metadata: Mapping[str, Any] = field(default_factory=dict)
     candidate_artifact: VerifiedCandidateArtifactRef | None = None
+    reference_artifact: VerifiedReferenceProgramArtifactRef | None = None
+    attempt_scope: JobAttemptScope | None = None
 
     def __post_init__(self) -> None:
         self.job_identity()
@@ -131,8 +158,27 @@ class TrainJobSpec:
             raise ValueError("train job policy initialization does not match training binding")
         if self.training_binding.budget_steps != self.budget_steps:
             raise ValueError("train job budget does not match training binding")
+        require_execution_device(self.execution_device, "train job execution_device")
+        if self.expected_initial_policy_state_hash is not None:
+            require_sha256_digest(
+                self.expected_initial_policy_state_hash,
+                "train job expected initial policy state hash",
+            )
+            if self.subject.kind != "candidate":
+                raise ValueError(
+                    "only candidate train jobs may carry an expected initial policy state"
+                )
+            if self.policy_initialization.kind != "random":
+                raise ValueError(
+                    "initial policy state pairing requires random initialization"
+                )
         if not isinstance(self.metadata, Mapping):
             raise ValueError("train job metadata must be an object")
+        if self.attempt_scope is not None and not isinstance(
+            self.attempt_scope,
+            JobAttemptScope,
+        ):
+            raise TypeError("train job attempt_scope must be a JobAttemptScope")
         if self.subject.kind == "candidate":
             if not isinstance(
                 self.candidate_artifact,
@@ -153,10 +199,53 @@ class TrainJobSpec:
                 != self.program_source_checksum
             ):
                 raise ValueError("train job candidate artifact source mismatch")
-        elif self.candidate_artifact is not None:
-            raise ValueError(
-                "only candidate train jobs may carry candidate_artifact"
-            )
+            if self.reference_artifact is not None:
+                raise ValueError(
+                    "candidate train job cannot carry a reference_artifact"
+                )
+            if self.candidate_failure_contract is not None and not isinstance(
+                self.candidate_failure_contract,
+                CandidateFailureContract,
+            ):
+                raise TypeError(
+                    "candidate train job failure contract must be a "
+                    "CandidateFailureContract"
+                )
+        else:
+            if self.candidate_failure_contract is not None:
+                raise ValueError(
+                    "reference train job cannot carry a candidate failure contract"
+                )
+            if self.candidate_artifact is not None:
+                raise ValueError(
+                    "reference train job cannot carry a candidate_artifact"
+                )
+            if not isinstance(
+                self.reference_artifact,
+                VerifiedReferenceProgramArtifactRef,
+            ):
+                raise TypeError(
+                    "reference train job requires a verified reference_artifact"
+                )
+            if self.reference_artifact.reference_id != self.subject.subject_id:
+                raise ValueError("train job reference artifact subject mismatch")
+            if self.reference_artifact.task_id != self.task_id:
+                raise ValueError("train job reference artifact task mismatch")
+            if (
+                self.reference_artifact.subject_manifest_hash
+                != self.subject_manifest_hash
+            ):
+                raise ValueError("train job reference artifact manifest mismatch")
+            if (
+                self.reference_artifact.program_source_checksum
+                != self.program_source_checksum
+            ):
+                raise ValueError("train job reference artifact source mismatch")
+            if (
+                self.reference_artifact.program.manifest.capability_profile_hash
+                != self.training_binding.capability_profile_hash
+            ):
+                raise ValueError("train job reference artifact capability mismatch")
         require_positive_integer(self.budget_steps, "budget_steps")
 
     def job_identity(self) -> JobIdentity:
@@ -189,7 +278,7 @@ class TrainJobSpec:
         return checkpoint
 
     def to_public_dict(self) -> dict[str, Any]:
-        return {
+        result = {
             "job_id": self.job_id,
             "task_id": self.task_id,
             "subject": self.subject.to_public_dict(),
@@ -198,9 +287,15 @@ class TrainJobSpec:
             "policy_initialization": self.policy_initialization.kind,
             "training_binding": self.training_binding.to_public_dict(),
             "budget_steps": self.budget_steps,
+            "execution_device": self.execution_device,
             "candidate_artifact": (
                 self.candidate_artifact.to_public_dict()
                 if self.candidate_artifact is not None
+                else None
+            ),
+            "reference_artifact": (
+                self.reference_artifact.to_public_dict()
+                if self.reference_artifact is not None
                 else None
             ),
             "training_start_checkpoint": (
@@ -209,6 +304,15 @@ class TrainJobSpec:
                 else None
             ),
         }
+        if self.expected_initial_policy_state_hash is not None:
+            result["expected_initial_policy_state_hash"] = (
+                self.expected_initial_policy_state_hash
+            )
+        if self.candidate_failure_contract is not None:
+            result["candidate_failure_contract_hash"] = (
+                self.candidate_failure_contract.contract_hash
+            )
+        return result
 
 
 @dataclass(frozen=True)
@@ -225,12 +329,15 @@ class EvalJobSpec:
     checkpoint: CheckpointRef | None
     public_seed_count: int
     evaluation_binding: EvaluationBindingV1
+    execution_device: str
+    initial_policy_state_pairing_hash: str | None = None
     sealed_validation_seed_count: int | None = None
     public_accept_seed_count: int = 3
     eval_num_envs: int = 64
     eval_protocol_version: str = DEFAULT_EVAL_PROTOCOL_VERSION
     metadata: Mapping[str, Any] = field(default_factory=dict)
     checkpoint_output_plan: CheckpointOutputPlan | None = None
+    attempt_scope: JobAttemptScope | None = None
     trusted_seed_count: InitVar[int | None] = None
 
     def __post_init__(self, trusted_seed_count: int | None = None) -> None:
@@ -266,10 +373,42 @@ class EvalJobSpec:
                 "EvalJobSpec requires exactly one of checkpoint or "
                 "checkpoint_output_plan"
             )
+        if self.checkpoint is None:
+            if self.initial_policy_state_pairing_hash is not None:
+                raise ValueError(
+                    "planned eval job cannot declare an initial policy pairing"
+                )
+        else:
+            checkpoint_pairing_hash = (
+                verified_initial_policy_state_pairing_hash(
+                    self.checkpoint.metadata.get(
+                        "initial_policy_state_pairing"
+                    )
+                )
+            )
+            if checkpoint_pairing_hash is None:
+                if self.initial_policy_state_pairing_hash is not None:
+                    raise ValueError(
+                        "eval job initial policy pairing is not present in checkpoint lineage"
+                    )
+            else:
+                require_sha256_digest(
+                    self.initial_policy_state_pairing_hash,
+                    "eval job initial_policy_state_pairing_hash",
+                )
+                if self.initial_policy_state_pairing_hash != checkpoint_pairing_hash:
+                    raise ValueError(
+                        "eval job initial policy pairing does not match checkpoint lineage"
+                    )
         if not isinstance(self.evaluation_binding, EvaluationBindingV1):
             raise TypeError("eval job evaluation_binding must be EvaluationBindingV1")
         if not isinstance(self.metadata, Mapping):
             raise ValueError("eval job metadata must be an object")
+        if self.attempt_scope is not None and not isinstance(
+            self.attempt_scope,
+            JobAttemptScope,
+        ):
+            raise TypeError("eval job attempt_scope must be a JobAttemptScope")
         sealed_validation_seed_count = _resolved_sealed_validation_seed_count(
             self.sealed_validation_seed_count,
             trusted_seed_count,
@@ -295,6 +434,7 @@ class EvalJobSpec:
             "public_accept_seed_count",
         )
         require_positive_integer(self.eval_num_envs, "eval_num_envs")
+        require_execution_device(self.execution_device, "eval job execution_device")
         if not self.eval_protocol_version:
             raise ValueError("eval_protocol_version must be non-empty")
         if self.evaluation_binding.eval_protocol_hash != self.evaluation_protocol().protocol_hash:
@@ -345,6 +485,7 @@ class EvalJobSpec:
             "program_source_checksum": self.program_source_checksum,
             "training_binding_hash": self.training_binding_hash,
             "capability_profile_hash": self.capability_profile_hash,
+            "execution_device": self.execution_device,
             **self.evaluation_protocol().to_public_dict(),
             "evaluation_binding": self.evaluation_binding.to_public_dict(),
         }
@@ -357,7 +498,144 @@ class EvalJobSpec:
             result["checkpoint_plan"] = (
                 self.checkpoint_output_plan.to_public_dict()
             )
+        if self.initial_policy_state_pairing_hash is not None:
+            result["initial_policy_state_pairing_hash"] = (
+                self.initial_policy_state_pairing_hash
+            )
         return result
+
+
+@dataclass(frozen=True)
+class EvalPhaseJobSpec:
+    """One split execution bound to a complete immutable candidate eval plan."""
+
+    job_id: str
+    evaluation_plan: EvalJobSpec
+    phase: EvaluationPhase
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+    attempt_scope: JobAttemptScope | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.evaluation_plan, EvalJobSpec):
+            raise TypeError("phase eval job requires an EvalJobSpec plan")
+        self.evaluation_plan.execution_checkpoint()
+        if not isinstance(self.phase, EvaluationPhase):
+            raise TypeError("phase eval job phase is invalid")
+        if not isinstance(self.metadata, Mapping):
+            raise TypeError("phase eval job metadata must be an object")
+        if self.attempt_scope is not None and not isinstance(
+            self.attempt_scope,
+            JobAttemptScope,
+        ):
+            raise TypeError("phase eval job attempt_scope must be a JobAttemptScope")
+        self.job_identity()
+
+    @property
+    def task_id(self) -> str:
+        return self.evaluation_plan.task_id
+
+    @property
+    def subject(self) -> ExperimentSubject:
+        return self.evaluation_plan.subject
+
+    @property
+    def subject_manifest_hash(self) -> str | None:
+        return self.evaluation_plan.subject_manifest_hash
+
+    @property
+    def program_source_checksum(self) -> str:
+        return self.evaluation_plan.program_source_checksum
+
+    @property
+    def training_binding_hash(self) -> str:
+        return self.evaluation_plan.training_binding_hash
+
+    @property
+    def capability_profile_hash(self) -> str:
+        return self.evaluation_plan.capability_profile_hash
+
+    @property
+    def evaluation_binding(self) -> EvaluationBindingV1:
+        return self.evaluation_plan.evaluation_binding
+
+    @property
+    def execution_device(self) -> str:
+        return self.evaluation_plan.execution_device
+
+    @property
+    def sealed_validation_seed_count(self) -> int:
+        return require_positive_integer(
+            self.evaluation_plan.sealed_validation_seed_count,
+            "sealed_validation_seed_count",
+        )
+
+    @property
+    def evaluation_plan_hash(self) -> str:
+        return canonical_json_hash(self.evaluation_plan.to_public_dict())
+
+    def evaluation_subject(self) -> ExperimentSubject:
+        return self.subject
+
+    def evaluation_manifest_hash(self) -> str | None:
+        return self.subject_manifest_hash
+
+    def execution_checkpoint(self) -> CheckpointRef:
+        return self.evaluation_plan.execution_checkpoint()
+
+    def evaluation_protocol(self) -> EvaluationProtocol:
+        return self.evaluation_plan.evaluation_protocol()
+
+    def job_identity(self) -> JobIdentity:
+        return JobIdentity(
+            job_id=self.job_id,
+            task_id=self.task_id,
+            subject=self.subject,
+            subject_manifest_hash=self.subject_manifest_hash,
+        )
+
+    def to_public_dict(self) -> dict[str, Any]:
+        return {
+            "schema_version": "true_rl_agent.eval_phase_job_spec.v1",
+            "job_id": self.job_id,
+            "phase": self.phase.value,
+            "evaluation_plan_hash": self.evaluation_plan_hash,
+            "evaluation_plan": self.evaluation_plan.to_public_dict(),
+        }
+
+
+def require_eval_phase_result_matches_spec(
+    result: EvaluationPhaseResult,
+    spec: EvalPhaseJobSpec,
+    *,
+    expected_resource_binding_hash: str | None = None,
+) -> None:
+    """Validate the sole task-neutral phase-result/job-spec identity contract."""
+
+    if not isinstance(result, EvaluationPhaseResult):
+        raise TypeError("eval phase result is invalid")
+    if not isinstance(spec, EvalPhaseJobSpec):
+        raise TypeError("eval phase job spec is invalid")
+    if expected_resource_binding_hash is None and spec.attempt_scope is not None:
+        expected_resource_binding_hash = spec.attempt_scope.resource_binding_hash
+    checkpoint = spec.execution_checkpoint()
+    expected = {
+        "job_id": spec.job_id,
+        "task_id": spec.task_id,
+        "phase": spec.phase,
+        "evaluation_plan_hash": spec.evaluation_plan_hash,
+        "subject": spec.subject,
+        "subject_manifest_hash": spec.subject_manifest_hash,
+        "program_source_checksum": spec.program_source_checksum,
+        "training_binding_hash": spec.training_binding_hash,
+        "capability_profile_hash": spec.capability_profile_hash,
+        "checkpoint_hash": checkpoint.checksum,
+        "eval_protocol_hash": spec.evaluation_protocol().protocol_hash,
+        "evaluation_binding_hash": spec.evaluation_binding.binding_hash,
+        "execution_device": spec.execution_device,
+        "resource_binding_hash": expected_resource_binding_hash,
+    }
+    if any(getattr(result, name) != value for name, value in expected.items()):
+        raise ValueError("eval phase result does not match its job spec")
 
 
 @dataclass(frozen=True)
@@ -372,11 +650,13 @@ class BaselineEvalJobSpec:
     checkpoint: CheckpointRef
     public_seed_count: int
     evaluation_binding: EvaluationBindingV1
+    execution_device: str
     sealed_validation_seed_count: int | None = None
     public_accept_seed_count: int = 3
     eval_num_envs: int = 64
     eval_protocol_version: str = DEFAULT_EVAL_PROTOCOL_VERSION
     metadata: Mapping[str, Any] = field(default_factory=dict)
+    attempt_scope: JobAttemptScope | None = None
     trusted_seed_count: InitVar[int | None] = None
 
     def __post_init__(self, trusted_seed_count: int | None = None) -> None:
@@ -397,6 +677,13 @@ class BaselineEvalJobSpec:
             )
         if not isinstance(self.metadata, Mapping):
             raise ValueError("baseline eval job metadata must be an object")
+        if self.attempt_scope is not None and not isinstance(
+            self.attempt_scope,
+            JobAttemptScope,
+        ):
+            raise TypeError(
+                "baseline eval job attempt_scope must be a JobAttemptScope"
+            )
         sealed_validation_seed_count = _resolved_sealed_validation_seed_count(
             self.sealed_validation_seed_count,
             trusted_seed_count,
@@ -418,6 +705,10 @@ class BaselineEvalJobSpec:
             "public_accept_seed_count",
         )
         require_positive_integer(self.eval_num_envs, "eval_num_envs")
+        require_execution_device(
+            self.execution_device,
+            "baseline eval job execution_device",
+        )
         if not self.eval_protocol_version:
             raise ValueError("eval_protocol_version must be non-empty")
         if (
@@ -466,10 +757,11 @@ class BaselineEvalJobSpec:
             "subject": self.evaluation_subject().to_public_dict(),
             "subject_manifest_hash": self.subject_manifest_hash,
             "capability_profile_hash": self.capability_profile_hash,
+            "execution_device": self.execution_device,
             "checkpoint": self.checkpoint.to_public_dict(include_metadata=False),
             **self.evaluation_protocol().to_public_dict(),
             "evaluation_binding": self.evaluation_binding.to_public_dict(),
         }
 
 
-EvaluationJobSpec = EvalJobSpec | BaselineEvalJobSpec
+EvaluationJobSpec = EvalJobSpec | EvalPhaseJobSpec | BaselineEvalJobSpec

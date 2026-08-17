@@ -5,12 +5,17 @@ import tempfile
 import unittest
 from dataclasses import replace
 from pathlib import Path
+from unittest.mock import patch
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
+from tests.fakes.backend_environment import (
+    TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH,
+    make_test_isaac_lab_execution_environment_manifest,
+)
 from tests.fakes.evaluation import TEST_CAPABILITY_PROFILE, make_evaluation_binding
 from true_rl_agent.backends.isaac_lab_rsl_rl import (
     IsaacLabRslRlBackendAdapter,
@@ -30,8 +35,10 @@ from true_rl_agent.evaluation.acceptance_protocol import (
 )
 from true_rl_agent.evaluation.binding import EvaluationBindingV1
 from true_rl_agent.evaluation.protocol import EvaluationProtocol
+from true_rl_agent.evaluation.phases import EvaluationPhase
 from true_rl_agent.policy import BaselinePolicyRef, PolicyInitialization
 from true_rl_agent.runner.specs import CheckpointRef
+from true_rl_agent.runner.job_argv import validate_eval_job_argv
 from true_rl_agent.tasks.base import TaskInvariantSpec, TaskSpec
 
 TEST_ACCEPTANCE_PROTOCOL = AcceptanceProtocol(
@@ -45,6 +52,43 @@ TEST_ACCEPTANCE_PROTOCOL = AcceptanceProtocol(
 
 
 class IsaacLabBackendTests(unittest.TestCase):
+    def test_materialize_eval_phase_reuses_the_complete_bound_plan(self) -> None:
+        jobs = self.adapter.materialize_jobs(
+            round_id="round-phased-eval",
+            task_spec=self.task,
+            candidate=self.candidate,
+            policy_initialization=PolicyInitialization.random(),
+        )
+        bound_plan = replace(
+            jobs.eval_spec,
+            checkpoint=CheckpointRef(
+                uri="artifact://round-phased-eval/best.pt",
+                checksum="sha256:" + "8" * 64,
+                role="eval",
+                sealed=True,
+            ),
+            checkpoint_output_plan=None,
+        )
+
+        phase_spec = self.adapter.materialize_eval_phase(
+            eval_plan=bound_plan,
+            phase=EvaluationPhase.PUBLIC_DEV,
+        )
+        argv = phase_spec.metadata["cli_argv"]
+
+        validate_eval_job_argv(phase_spec, argv)
+        self.assertIs(phase_spec.evaluation_plan, bound_plan)
+        self.assertEqual(phase_spec.phase, EvaluationPhase.PUBLIC_DEV)
+        self.assertEqual(
+            argv[argv.index("--evaluation-phase") + 1],
+            "public_dev",
+        )
+        self.assertEqual(
+            argv[argv.index("--evaluation-plan-hash") + 1],
+            phase_spec.evaluation_plan_hash,
+        )
+        self.assertNotIn("--evaluation-phase", bound_plan.metadata["cli_argv"])
+
     def test_materialized_eval_argv_uses_validated_session_binding(self) -> None:
         fixed = self.adapter.evaluation_binding_for(self.task)
         session_binding = EvaluationBindingV1(
@@ -65,7 +109,12 @@ class IsaacLabBackendTests(unittest.TestCase):
                 if evaluation_binding != session_binding:
                     raise ValueError("session binding mismatch")
 
-        adapter = SessionBoundAdapter(self.adapter.config)
+        adapter = SessionBoundAdapter(
+            self.adapter.config,
+            execution_environment_resolver=(
+                make_test_isaac_lab_execution_environment_manifest
+            ),
+        )
         jobs = adapter.materialize_jobs(
             round_id="round-session-binding",
             task_spec=self.task,
@@ -132,6 +181,11 @@ class IsaacLabBackendTests(unittest.TestCase):
             "    )\n",
             encoding="utf-8",
         )
+        (candidate_root / "rationale.md").write_text(
+            "Backend candidate.\n", encoding="utf-8"
+        )
+        (candidate_root / "operation_diff.json").write_text("{}\n", encoding="utf-8")
+        (candidate_root / "diagnostics.json").write_text("{}\n", encoding="utf-8")
         self.train_runtime_hash = f"sha256:{'a' * 64}"
         self.eval_runtime_hash = f"sha256:{'b' * 64}"
         self.agent_configuration = RslRlAgentConfiguration(
@@ -140,12 +194,17 @@ class IsaacLabBackendTests(unittest.TestCase):
         )
         self.task = self._task()
         self.adapter = IsaacLabRslRlBackendAdapter(
-            IsaacLabRslRlBackendConfig(**self._config_kwargs(self.task))
+            IsaacLabRslRlBackendConfig(**self._config_kwargs(self.task)),
+            execution_environment_resolver=(
+                make_test_isaac_lab_execution_environment_manifest
+            ),
         )
         provider_candidate = CandidatePackageRef(
             candidate_id="candidate-001",
             path=str(candidate_root),
-            change_set=CandidateChangeSet(changed_components=frozenset({"reward_callable"})),
+            change_set=CandidateChangeSet(
+                changed_components=frozenset({"reward_callable"})
+            ),
         )
         self.candidate = seal_and_verify_candidate(
             provider_candidate,
@@ -199,6 +258,7 @@ class IsaacLabBackendTests(unittest.TestCase):
         task: TaskSpec,
         **overrides,
     ) -> dict:
+        admission = StaticCandidateVerifier().admission_policy_descriptor()
         values = {
             "isaac_lab_python": "python",
             "train_entrypoint": "scripts/isaaclab_rsl_rl_train.py",
@@ -228,6 +288,10 @@ class IsaacLabBackendTests(unittest.TestCase):
             "train_num_envs": 64,
             "training_agent_configuration": self.agent_configuration,
             "eval_base_seed": 42,
+            "execution_device": "cuda:0",
+            "candidate_admission_policy_id": admission.policy_id,
+            "candidate_admission_policy_hash": admission.policy_hash,
+            "candidate_execution_capability_ids": frozenset(),
             "runtime_config_path": "configs/tasks/push_recovery.yaml",
             "train_runtime_dynamics_hash": self.train_runtime_hash,
             "eval_runtime_dynamics_hash": self.eval_runtime_hash,
@@ -238,16 +302,22 @@ class IsaacLabBackendTests(unittest.TestCase):
         values.update(overrides)
         return values
 
-    def test_backend_declares_external_dependencies_and_future_capabilities(self) -> None:
+    def test_backend_declares_external_dependencies_and_future_capabilities(
+        self,
+    ) -> None:
         dependencies = self.adapter.external_dependencies
-        capability = self.adapter.future_curriculum_capabilities["external_push_curriculum"]
+        capability = self.adapter.future_curriculum_capabilities[
+            "external_push_curriculum"
+        ]
 
         self.assertIn("Isaac Lab", dependencies)
         self.assertIn("RSL-RL", dependencies)
         self.assertEqual(self.adapter.backend_spec.backend_id, "isaac_lab_rsl_rl")
         self.assertFalse(capability["effective_now"])
 
-    def test_backend_config_accepts_trusted_seed_count_only_as_legacy_constructor_alias(self) -> None:
+    def test_backend_config_accepts_trusted_seed_count_only_as_legacy_constructor_alias(
+        self,
+    ) -> None:
         kwargs = self._config_kwargs(self.task)
         del kwargs["sealed_validation_seed_count"]
         config = IsaacLabRslRlBackendConfig(**kwargs, trusted_seed_count=8)
@@ -305,12 +375,113 @@ class IsaacLabBackendTests(unittest.TestCase):
                 )
             )
 
+    def test_production_manifest_is_sampled_only_by_configured_python(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            other_python = Path(tmp) / "python"
+            other_python.write_bytes(b"not the controller interpreter")
+            adapter = IsaacLabRslRlBackendAdapter(
+                IsaacLabRslRlBackendConfig(
+                    **self._config_kwargs(
+                        self.task,
+                        isaac_lab_python=str(other_python),
+                    )
+                )
+            )
+
+            with self.assertRaisesRegex(
+                ValueError,
+                "must be sampled by config.isaac_lab_python",
+            ):
+                adapter.resolve_session_execution_environment(
+                    session_id="python-mismatch",
+                    session_dir=Path(tmp),
+                    allow_create=True,
+                )
+
+    def test_production_manifest_accepts_the_controller_interpreter(self) -> None:
+        with patch(
+            "true_rl_agent.backends.isaac_lab_rsl_rl."
+            "build_current_isaac_lab_execution_environment_manifest",
+            return_value=make_test_isaac_lab_execution_environment_manifest(),
+        ) as resolver:
+            adapter = IsaacLabRslRlBackendAdapter(
+                IsaacLabRslRlBackendConfig(
+                    **self._config_kwargs(
+                        self.task,
+                        isaac_lab_python=sys.executable,
+                    )
+                )
+            )
+            manifest = adapter.resolve_session_execution_environment(
+                session_id="same-python",
+                session_dir=PROJECT_ROOT,
+                allow_create=True,
+            )
+
+        self.assertEqual(
+            manifest["manifest_hash"],
+            TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH,
+        )
+        resolver.assert_called_once_with()
+
+    def test_materialization_without_genesis_binding_does_not_sample_environment(
+        self,
+    ) -> None:
+        with patch(
+            "true_rl_agent.backends.isaac_lab_rsl_rl."
+            "build_current_isaac_lab_execution_environment_manifest",
+            side_effect=AssertionError("materialization must not sample Isaac"),
+        ) as resolver:
+            adapter = IsaacLabRslRlBackendAdapter(self.adapter.config)
+            bundle = adapter.materialize_jobs(
+                round_id="round-unbound-environment",
+                task_spec=self.task,
+                candidate=self.candidate,
+                policy_initialization=PolicyInitialization.random(),
+            )
+
+        resolver.assert_not_called()
+        for spec in (bundle.train_spec, bundle.eval_spec):
+            self.assertNotIn(
+                "backend_execution_environment_manifest_hash",
+                spec.metadata,
+            )
+            self.assertNotIn(
+                "--backend-execution-environment-manifest-hash",
+                spec.metadata["cli_argv"],
+            )
+
+    def test_formal_runtime_requires_genesis_environment_binding(self) -> None:
+        with self.assertRaisesRegex(
+            ValueError,
+            "formal Isaac Lab execution requires a Genesis-bound",
+        ):
+            self.adapter.validate_runtime_session_execution_environment(
+                execution_environment=None
+            )
+
+        self.adapter.validate_runtime_session_execution_environment(
+            execution_environment=(
+                make_test_isaac_lab_execution_environment_manifest().to_dict()
+            )
+        )
+
+        drifted = make_test_isaac_lab_execution_environment_manifest().to_dict()
+        drifted["manifest_hash"] = "0" * 64
+        with self.assertRaises(ValueError):
+            self.adapter.validate_runtime_session_execution_environment(
+                execution_environment=drifted
+            )
+
     def test_materializes_random_train_and_checkpoint_eval_cli_specs(self) -> None:
         bundle = self.adapter.materialize_jobs(
             round_id="round-001",
             task_spec=self.task,
             candidate=self.candidate,
             policy_initialization=PolicyInitialization.random(),
+            backend_execution_environment_manifest_hash=(
+                TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH
+            ),
         )
 
         self.assertEqual(bundle.train_spec.policy_initialization.kind, "random")
@@ -325,10 +496,23 @@ class IsaacLabBackendTests(unittest.TestCase):
             bundle.train_spec.metadata["cli_command"],
         )
         train_argv = bundle.train_spec.metadata["cli_argv"]
-        self.assertEqual(train_argv[train_argv.index("--config") + 1], "configs/tasks/push_recovery.yaml")
+        self.assertEqual(
+            train_argv[train_argv.index("--config") + 1],
+            "configs/tasks/push_recovery.yaml",
+        )
         self.assertEqual(
             train_argv[train_argv.index("--runtime-dynamics-hash") + 1],
             self.train_runtime_hash,
+        )
+        self.assertEqual(
+            train_argv[
+                train_argv.index("--backend-execution-environment-manifest-hash") + 1
+            ],
+            TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH,
+        )
+        self.assertEqual(
+            bundle.train_spec.metadata["backend_execution_environment_manifest_hash"],
+            TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH,
         )
         for flag, expected in (
             ("--job-id", bundle.train_spec.job_id),
@@ -370,21 +554,51 @@ class IsaacLabBackendTests(unittest.TestCase):
         ):
             self.assertIn(flag, train_argv)
             self.assertEqual(train_argv[train_argv.index(flag) + 1], expected)
-        self.assertTrue(bundle.train_spec.metadata["summary_path"].endswith("round-001/train/summary.json"))
-        self.assertIn(bundle.train_spec.metadata["summary_path"], bundle.train_spec.metadata["cli_argv"])
-        self.assertEqual(bundle.train_spec.metadata["sealed_checkpoint_uri"], "artifact://round-001/checkpoints/best.pt")
-        self.assertTrue(bundle.train_spec.metadata["checkpoint_output_path"].endswith("round-001/checkpoints/best.pt"))
-        self.assertIn(bundle.train_spec.metadata["checkpoint_output_path"], bundle.train_spec.metadata["cli_argv"])
+        self.assertTrue(
+            bundle.train_spec.metadata["summary_path"].endswith(
+                "round-001/train/summary.json"
+            )
+        )
+        self.assertIn(
+            bundle.train_spec.metadata["summary_path"],
+            bundle.train_spec.metadata["cli_argv"],
+        )
+        self.assertEqual(
+            bundle.train_spec.metadata["sealed_checkpoint_uri"],
+            "artifact://round-001/checkpoints/best.pt",
+        )
+        self.assertTrue(
+            bundle.train_spec.metadata["checkpoint_output_path"].endswith(
+                "round-001/checkpoints/best.pt"
+            )
+        )
+        self.assertIn(
+            bundle.train_spec.metadata["checkpoint_output_path"],
+            bundle.train_spec.metadata["cli_argv"],
+        )
         self.assertIn("--checkpoint", bundle.eval_spec.metadata["cli_command"])
         self.assertEqual(
             bundle.eval_spec.metadata["cli_argv"][:2],
             ["python", "scripts/isaaclab_rsl_rl_eval.py"],
         )
         eval_argv = bundle.eval_spec.metadata["cli_argv"]
-        self.assertEqual(eval_argv[eval_argv.index("--config") + 1], "configs/tasks/push_recovery.yaml")
+        self.assertEqual(
+            eval_argv[eval_argv.index("--config") + 1],
+            "configs/tasks/push_recovery.yaml",
+        )
         self.assertEqual(
             eval_argv[eval_argv.index("--runtime-dynamics-hash") + 1],
             self.eval_runtime_hash,
+        )
+        self.assertEqual(
+            eval_argv[
+                eval_argv.index("--backend-execution-environment-manifest-hash") + 1
+            ],
+            TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH,
+        )
+        self.assertEqual(
+            bundle.eval_spec.metadata["backend_execution_environment_manifest_hash"],
+            TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH,
         )
         self.assertEqual(
             eval_argv[eval_argv.index("--subject-kind") + 1],
@@ -397,7 +611,10 @@ class IsaacLabBackendTests(unittest.TestCase):
         self.assertNotIn("--candidate-id", eval_argv)
         self.assertNotIn("--candidate", eval_argv)
         self.assertNotIn("artifact://candidate-001", eval_argv)
-        self.assertNotIn("--candidate artifact://candidate-001", bundle.eval_spec.metadata["cli_command"])
+        self.assertNotIn(
+            "--candidate artifact://candidate-001",
+            bundle.eval_spec.metadata["cli_command"],
+        )
         self.assertEqual(
             bundle.eval_spec.metadata["evaluation_subject"],
             {
@@ -430,8 +647,15 @@ class IsaacLabBackendTests(unittest.TestCase):
         )
         self.assertEqual(bundle.eval_spec.public_accept_seed_count, 3)
         self.assertEqual(bundle.eval_spec.eval_num_envs, 64)
-        self.assertTrue(bundle.eval_spec.metadata["summary_path"].endswith("round-001/eval/summary.json"))
-        self.assertIn(bundle.eval_spec.metadata["summary_path"], bundle.eval_spec.metadata["cli_argv"])
+        self.assertTrue(
+            bundle.eval_spec.metadata["summary_path"].endswith(
+                "round-001/eval/summary.json"
+            )
+        )
+        self.assertIn(
+            bundle.eval_spec.metadata["summary_path"],
+            bundle.eval_spec.metadata["cli_argv"],
+        )
         self.assertEqual(bundle.task_invariants, self.task.invariants)
 
     def test_real_backend_rejects_unverified_provider_candidate(self) -> None:
@@ -477,7 +701,10 @@ class IsaacLabBackendTests(unittest.TestCase):
                     self.task,
                     training_agent_configuration=drifted,
                 )
-            )
+            ),
+            execution_environment_resolver=(
+                make_test_isaac_lab_execution_environment_manifest
+            ),
         )
 
         with self.assertRaisesRegex(
@@ -497,10 +724,15 @@ class IsaacLabBackendTests(unittest.TestCase):
                 self.adapter.config,
                 train_runtime_dynamics_hash=None,
                 eval_runtime_dynamics_hash=None,
-            )
+            ),
+            execution_environment_resolver=(
+                make_test_isaac_lab_execution_environment_manifest
+            ),
         )
 
-        with self.assertRaisesRegex(ValueError, "backend_runtime_dynamics_hash_missing:train"):
+        with self.assertRaisesRegex(
+            ValueError, "backend_runtime_dynamics_hash_missing:train"
+        ):
             adapter.materialize_jobs(
                 round_id="round-unbound",
                 task_spec=self.task,
@@ -531,15 +763,23 @@ class IsaacLabBackendTests(unittest.TestCase):
             policy_initialization=init,
         )
 
-        self.assertEqual(bundle.train_spec.training_start_checkpoint().uri, "baseline://push/policy.pt")
+        self.assertEqual(
+            bundle.train_spec.training_start_checkpoint().uri,
+            "baseline://push/policy.pt",
+        )
         self.assertIn("--init warm_start", bundle.train_spec.metadata["cli_command"])
-        self.assertIn("--init-checkpoint baseline://push/policy.pt", bundle.train_spec.metadata["cli_command"])
+        self.assertIn(
+            "--init-checkpoint baseline://push/policy.pt",
+            bundle.train_spec.metadata["cli_command"],
+        )
         self.assertIn(
             f"--init-checkpoint-sha256 {baseline_checksum}",
             bundle.train_spec.metadata["cli_command"],
         )
 
-    def test_structured_compatibility_failure_for_unsupported_task_or_initialization(self) -> None:
+    def test_structured_compatibility_failure_for_unsupported_task_or_initialization(
+        self,
+    ) -> None:
         unsupported_task = TaskSpec(
             task_id="stair_climbing",
             name="Stair Climbing",
@@ -561,9 +801,13 @@ class IsaacLabBackendTests(unittest.TestCase):
         self.assertFalse(task_report.compatible)
         self.assertIn("unsupported_task:stair_climbing", task_report.reasons)
         self.assertFalse(init_report.compatible)
-        self.assertIn("unsupported_policy_initialization:unsupported_init", init_report.reasons)
+        self.assertIn(
+            "unsupported_policy_initialization:unsupported_init", init_report.reasons
+        )
 
-    def test_materializes_phase8b_full_budget_cli_with_explicit_max_iterations(self) -> None:
+    def test_materializes_phase8b_full_budget_cli_with_explicit_max_iterations(
+        self,
+    ) -> None:
         task = self._task(
             extra_invariants={
                 "budget_steps": 49_152_000,
@@ -581,7 +825,10 @@ class IsaacLabBackendTests(unittest.TestCase):
                     train_max_iterations=500,
                     train_steps_per_iteration=24,
                 )
-            )
+            ),
+            execution_environment_resolver=(
+                make_test_isaac_lab_execution_environment_manifest
+            ),
         )
 
         bundle = adapter.materialize_jobs(
@@ -602,7 +849,9 @@ class IsaacLabBackendTests(unittest.TestCase):
         self.assertIn("--num-steps-per-env", argv)
         self.assertEqual(argv[argv.index("--num-steps-per-env") + 1], "24")
         self.assertIn("--max-iterations 500", bundle.train_spec.metadata["cli_command"])
-        self.assertIn("--num-steps-per-env 24", bundle.train_spec.metadata["cli_command"])
+        self.assertIn(
+            "--num-steps-per-env 24", bundle.train_spec.metadata["cli_command"]
+        )
 
     def test_rejects_backend_budget_mismatch_against_task_invariant(self) -> None:
         task = self._task(

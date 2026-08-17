@@ -203,6 +203,7 @@ class BaselineManagementTests(unittest.TestCase):
             policy_initialization=init,
             training_binding=make_training_binding(init),
             budget_steps=128,
+            execution_device="cuda:0",
             candidate_artifact=candidate_artifact,
         )
         eval_spec = EvalJobSpec(
@@ -225,6 +226,7 @@ class BaselineManagementTests(unittest.TestCase):
                 public_seed_count=4,
                 sealed_validation_seed_count=8,
             ),
+            execution_device="cuda:0",
         )
 
         command = dry_run_train_command(train_spec)

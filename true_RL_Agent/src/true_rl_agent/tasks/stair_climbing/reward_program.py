@@ -12,11 +12,13 @@ from true_rl_agent.candidates.artifact import (
     SealedCandidateArtifactRef,
     load_sealed_candidate_artifact,
 )
+from true_rl_agent.candidates.authoring_policy import require_component_name
 from true_rl_agent.candidates.components import RewardTerm, TrainingComponents
 from true_rl_agent.candidates.loader import load_training_components_source_bytes
 from true_rl_agent.candidates.verifier import (
+    StaticCandidateVerifierPolicy,
     audit_candidate_python_source,
-    static_verifier_policy_hash,
+    static_verifier_source_policy_hash,
     training_component_purity_issues,
 )
 from true_rl_agent.evaluation.binding import (
@@ -28,12 +30,18 @@ from true_rl_agent.evaluation.subject import ExperimentSubject
 from true_rl_agent.prompting.capabilities import (
     COMPLETE_REWARD_PROGRAM_CAPABILITY_ID,
 )
+from true_rl_agent.runner.candidate_failure import (
+    is_infrastructure_runtime_exception,
+)
 from true_rl_agent.tasks.stair_climbing.protocol_v2 import (
     StairCompleteRewardRuntimeContract,
 )
 from true_rl_agent.tasks.stair_climbing.reward_inputs import (
     StairRewardInputsV2,
     stair_reward_input_values,
+)
+from true_rl_agent.tasks.stair_climbing.reward_source_semantics import (
+    audit_stair_reward_source_semantics,
 )
 from true_rl_agent.training_programs import (
     CANONICAL_TRAINING_COMPONENTS_PATH,
@@ -50,6 +58,14 @@ STAIR_REWARD_RUNTIME_EVIDENCE_SCHEMA_VERSION = (
 
 class StairRewardProgramError(ValueError):
     """Raised before a malformed or impure complete reward reaches PPO."""
+
+
+class StairRewardOutputContractError(StairRewardProgramError):
+    """Raised when a candidate reward output violates the frozen runtime ABI."""
+
+
+class StairRewardArtifactIntegrityError(RuntimeError):
+    """Raised when sealed source identity changes outside candidate execution."""
 
 
 @dataclass(frozen=True, init=False)
@@ -182,6 +198,8 @@ def qualify_stair_reference_reward_program(
         expected_source_checksum=artifact.manifest.source_checksum,
         source_name=artifact.manifest.source_uri,
         require_reference_term_set=True,
+        static_verifier_policy=StaticCandidateVerifierPolicy(),
+        trusted_reference_source_text=artifact.source_text,
     )
 
 
@@ -189,11 +207,19 @@ def qualify_stair_candidate_reward_program(
     *,
     artifact: SealedCandidateArtifactRef,
     contract: StairCompleteRewardRuntimeContract,
+    static_verifier_policy: StaticCandidateVerifierPolicy,
+    trusted_reference_artifact: VerifiedReferenceProgramArtifact,
 ) -> QualifiedStairRewardProgram:
     """Revalidate one sealed snapshot and qualify only its canonical bytes."""
 
     if not isinstance(artifact, SealedCandidateArtifactRef):
         raise TypeError("Stair candidate qualification requires a sealed artifact")
+    if not isinstance(static_verifier_policy, StaticCandidateVerifierPolicy):
+        raise TypeError("Stair candidate qualification requires a static verifier policy")
+    if not isinstance(trusted_reference_artifact, VerifiedReferenceProgramArtifact):
+        raise TypeError(
+            "Stair candidate qualification requires a trusted reference artifact"
+        )
     verified_before = load_sealed_candidate_artifact(
         artifact.path,
         change_set=artifact.change_set,
@@ -204,7 +230,7 @@ def qualify_stair_candidate_reward_program(
     )
     source_path = Path(verified_before.path) / CANONICAL_TRAINING_COMPONENTS_PATH
     if source_path.is_symlink() or not source_path.is_file():
-        raise StairRewardProgramError(
+        raise StairRewardArtifactIntegrityError(
             "Stair candidate source must be a regular artifact file"
         )
     source_bytes = source_path.read_bytes()
@@ -217,7 +243,7 @@ def qualify_stair_candidate_reward_program(
         expected_program_source_checksum=artifact.program_source_checksum,
     )
     if verified_before != verified_after:
-        raise StairRewardProgramError(
+        raise StairRewardArtifactIntegrityError(
             "Stair candidate artifact changed during qualification"
         )
     return _qualify_exact_stair_reward_source(
@@ -228,6 +254,8 @@ def qualify_stair_candidate_reward_program(
         expected_source_checksum=artifact.program_source_checksum,
         source_name=str(source_path),
         require_reference_term_set=False,
+        static_verifier_policy=static_verifier_policy,
+        trusted_reference_source_text=trusted_reference_artifact.source_text,
     )
 
 
@@ -240,6 +268,8 @@ def _qualify_exact_stair_reward_source(
     expected_source_checksum: str,
     source_name: str,
     require_reference_term_set: bool,
+    static_verifier_policy: StaticCandidateVerifierPolicy,
+    trusted_reference_source_text: str,
 ) -> QualifiedStairRewardProgram:
     """Mint the capability after a role-specific artifact factory binds bytes."""
 
@@ -253,28 +283,52 @@ def _qualify_exact_stair_reward_source(
 
     actual_checksum = "sha256:" + hashlib.sha256(source_bytes).hexdigest()
     if actual_checksum != expected_source_checksum:
-        raise StairRewardProgramError("Stair reward source checksum mismatch")
+        raise StairRewardArtifactIntegrityError(
+            "Stair reward source checksum mismatch"
+        )
     try:
         source_text = source_bytes.decode("utf-8-sig")
     except UnicodeDecodeError as exc:
         raise StairRewardProgramError(
             "Stair reward source must be valid UTF-8"
         ) from exc
-    issues = audit_candidate_python_source(source_text)
+    if not isinstance(static_verifier_policy, StaticCandidateVerifierPolicy):
+        raise TypeError("Stair reward qualification static verifier policy is invalid")
+    issues = audit_candidate_python_source(
+        source_text,
+        policy=static_verifier_policy,
+    )
     if issues:
         raise StairRewardProgramError(
             "Stair reward source violates the pure-function policy: "
             + ", ".join(issues)
         )
+    task_semantics_issues = audit_stair_reward_source_semantics(
+        source_text,
+        contract=contract,
+        trusted_reference_source_text=trusted_reference_source_text,
+    )
+    if task_semantics_issues:
+        raise StairRewardProgramError(
+            "Stair reward source violates the task input semantics: "
+            + ", ".join(task_semantics_issues)
+        )
     module_name = (
         "true_rl_agent_stair_reward_"
         + actual_checksum.removeprefix("sha256:")[:16]
     )
-    components = load_training_components_source_bytes(
-        source_bytes,
-        module_name=module_name,
-        source_name=source_name,
-    )
+    try:
+        components = load_training_components_source_bytes(
+            source_bytes,
+            module_name=module_name,
+            source_name=source_name,
+        )
+    except Exception as exc:
+        if is_infrastructure_runtime_exception(exc):
+            raise
+        raise StairRewardProgramError(
+            "Stair reward source could not produce valid training components"
+        ) from exc
     component_issues = training_component_purity_issues(
         components,
         expected_module_name=module_name,
@@ -304,7 +358,11 @@ def _qualify_exact_stair_reward_source(
         "reference",
     }:
         raise TypeError("Stair reward subject must be candidate or reference")
-    policy_hash = static_verifier_policy_hash()
+    # Reward qualification binds source-purity semantics, not mutable worker
+    # timing used by the later authoring/admission infrastructure.
+    policy_hash = static_verifier_source_policy_hash(
+        policy=static_verifier_policy,
+    )
     term_contract = [
         {
             "name": term.name,
@@ -380,9 +438,9 @@ class StairCompleteRewardDispatcher:
         common_step: int,
     ) -> Any:
         if isinstance(common_step, bool) or not isinstance(common_step, int):
-            raise StairRewardProgramError("Stair common step must be an integer")
+            raise RuntimeError("Stair common step must be an integer")
         if self.last_common_step is not None and common_step != self.last_common_step + 1:
-            raise StairRewardProgramError(
+            raise RuntimeError(
                 "Stair reward dispatcher was not called exactly once per common step"
             )
         evaluation = evaluate_stair_reward_program(
@@ -518,7 +576,7 @@ def evaluate_stair_reward_program(
     if type(inputs) is not StairRewardInputsV2:
         raise TypeError("Stair reward evaluation received invalid inputs")
     if inputs.schema_hash != program.contract.input_schema_hash:
-        raise StairRewardProgramError("Stair reward input schema hash mismatch")
+        raise RuntimeError("Stair reward input schema hash mismatch")
     import torch
 
     values = stair_reward_input_values(inputs)
@@ -533,7 +591,7 @@ def evaluate_stair_reward_program(
     raw_terms: dict[str, Any] = {}
     weighted_terms: dict[str, Any] = {}
     total = None
-    caught: BaseException | None = None
+    caught: Exception | None = None
     try:
         output = program.contract.output_contract
         term_bound = float(output["maximum_absolute_term_rate"])
@@ -560,7 +618,9 @@ def evaluate_stair_reward_program(
             weighted_terms[term.name] = weighted
             total = weighted if total is None else total + weighted
         if total is None:
-            raise StairRewardProgramError("Stair complete reward has no active terms")
+            raise StairRewardOutputContractError(
+                "Stair complete reward has no active terms"
+            )
         total = _guard_reward_vector(
             total,
             name="complete_reward",
@@ -579,7 +639,9 @@ def evaluate_stair_reward_program(
             ),
             torch=torch,
         )
-    except BaseException as exc:  # preserve guard cleanup before projection
+    except Exception as exc:  # preserve guard cleanup before projection
+        if is_infrastructure_runtime_exception(exc):
+            raise
         caught = exc
     versions_after = _tensor_versions(values, torch=torch)
     rng_after = _capture_rng_state(torch=torch)
@@ -672,11 +734,11 @@ def _validate_complete_training_components(
     for term in terms:
         if type(term) is not RewardTerm:
             raise StairRewardProgramError("Stair complete reward term type is invalid")
-        if (
-            not isinstance(term.name, str)
-            or not term.name.isidentifier()
-            or term.name.startswith("_")
-        ):
+        try:
+            require_component_name(term.name, "Stair reward term name")
+        except ValueError as exc:
+            raise StairRewardProgramError("Stair reward term name is invalid") from exc
+        if not term.name.isidentifier() or term.name.startswith("_"):
             raise StairRewardProgramError("Stair reward term name is invalid")
         if not callable(term.fn):
             raise StairRewardProgramError(
@@ -726,15 +788,21 @@ def _guard_reward_vector(
     torch: Any,
 ) -> Any:
     if not torch.is_tensor(value):
-        raise StairRewardProgramError(f"Stair reward term is not a tensor: {name}")
+        raise StairRewardOutputContractError(
+            f"Stair reward term is not a tensor: {name}"
+        )
     if tuple(value.shape) != (num_envs,):
-        raise StairRewardProgramError(
+        raise StairRewardOutputContractError(
             f"Stair reward term shape mismatch: {name}: {tuple(value.shape)!r}"
         )
     if value.device != reference_tensor.device:
-        raise StairRewardProgramError(f"Stair reward term device mismatch: {name}")
+        raise StairRewardOutputContractError(
+            f"Stair reward term device mismatch: {name}"
+        )
     if not value.dtype.is_floating_point:
-        raise StairRewardProgramError(f"Stair reward term dtype mismatch: {name}")
+        raise StairRewardOutputContractError(
+            f"Stair reward term dtype mismatch: {name}"
+        )
     return value
 
 
@@ -746,50 +814,52 @@ def _validate_reward_inputs(
     torch: Any,
 ) -> tuple[Any, list[tuple[str, Any]]]:
     if isinstance(num_envs, bool) or not isinstance(num_envs, int) or num_envs <= 0:
-        raise StairRewardProgramError("Stair reward num_envs must be positive")
+        raise RuntimeError("Stair reward num_envs must be positive")
     if len(values) != len(contract.input_fields):
-        raise StairRewardProgramError("Stair reward input value count mismatch")
+        raise RuntimeError("Stair reward input value count mismatch")
     reference_tensor = None
     float_tensors: list[tuple[str, Any]] = []
     for field, value in zip(contract.input_fields, values, strict=True):
         if not torch.is_tensor(value):
-            raise StairRewardProgramError(
+            raise RuntimeError(
                 f"Stair reward input is not a tensor: {field.name}"
             )
         if value.is_inference():
-            raise StairRewardProgramError(
+            raise RuntimeError(
                 f"Stair reward input lacks version tracking: {field.name}"
             )
         expected_shape = (num_envs, *field.trailing_shape)
         if tuple(value.shape) != expected_shape:
-            raise StairRewardProgramError(
+            raise RuntimeError(
                 f"Stair reward input shape mismatch: {field.name}: "
                 f"expected={expected_shape!r} actual={tuple(value.shape)!r}"
             )
         if field.dtype == "bool":
             if value.dtype != torch.bool:
-                raise StairRewardProgramError(
+                raise RuntimeError(
                     f"Stair reward input dtype mismatch: {field.name}"
                 )
             continue
         if not value.dtype.is_floating_point:
-            raise StairRewardProgramError(
+            raise RuntimeError(
                 f"Stair reward input dtype mismatch: {field.name}"
             )
         if reference_tensor is None:
             reference_tensor = value
         elif value.device != reference_tensor.device:
-            raise StairRewardProgramError(
+            raise RuntimeError(
                 f"Stair reward input device mismatch: {field.name}"
             )
         float_tensors.append((field.name, value))
     if reference_tensor is None:
-        raise StairRewardProgramError("Stair reward inputs contain no floating tensors")
+        raise RuntimeError("Stair reward inputs contain no floating tensors")
     for field, value in zip(contract.input_fields, values, strict=True):
         if value.device != reference_tensor.device:
-            raise StairRewardProgramError(
+            raise RuntimeError(
                 f"Stair reward input device mismatch: {field.name}"
             )
+        if value.dtype.is_floating_point and not bool(torch.isfinite(value).all().item()):
+            raise RuntimeError(f"Stair reward input is non-finite: {field.name}")
     return reference_tensor, float_tensors
 
 
@@ -804,7 +874,7 @@ def _require_reward_tensor_batches(
     torch: Any,
 ) -> None:
     if not input_float_tensors or not raw_terms or not weighted_terms:
-        raise StairRewardProgramError("Stair reward runtime guard is empty")
+        raise StairRewardOutputContractError("Stair reward runtime guard is empty")
     input_batch = torch.cat(
         tuple(value.reshape(value.shape[0], -1) for _, value in input_float_tensors),
         dim=1,
@@ -839,7 +909,7 @@ def _require_reward_tensor_batches(
     )
     if not bool(total_valid.item()):
         failed.append("reward_total:complete_reward")
-    raise StairRewardProgramError(
+    raise StairRewardOutputContractError(
         "Stair reward input/output is non-finite or out of bounds: "
         + ", ".join(failed)
     )
@@ -921,6 +991,8 @@ __all__ = [
     "STAIR_REWARD_RUNTIME_EVIDENCE_SCHEMA_VERSION",
     "StairCompleteRewardDispatcher",
     "StairRewardEvaluation",
+    "StairRewardArtifactIntegrityError",
+    "StairRewardOutputContractError",
     "StairRewardProgramError",
     "assert_stair_reward_program_deterministic",
     "evaluate_stair_reward_program",

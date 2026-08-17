@@ -6,37 +6,43 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import re
-import shutil
 import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from true_rl_agent.runner.checkpoint import file_sha256  # noqa: E402
+from true_rl_agent.backends.isaac_lab_execution_environment import (  # noqa: E402
+    verify_current_isaac_lab_execution_environment,
+)
 from true_rl_agent.runner.isaac_app_lifecycle import (  # noqa: E402
     close_isaac_app_on_success,
+)
+from true_rl_agent.runner.specs import require_execution_device  # noqa: E402
+from true_rl_agent.tasks.stair_climbing.candidate_failure import (  # noqa: E402
+    StairCandidateProgramFailure,
 )
 from true_rl_agent.tasks.stair_climbing.entrypoint_contract import (  # noqa: E402
     StairTrainEntrypointContext,
     validate_stair_train_invocation,
 )
-from true_rl_agent.tasks.stair_climbing.isaaclab_training import (  # noqa: E402
-    configure_stair_rsl_rl_agent,
+from true_rl_agent.tasks.stair_climbing.isaaclab_execution import (  # noqa: E402
+    VerifiedStairExecutionSourceManifest,
+    execute_stair_training,
+    preflight_stair_execution_source_manifest,
+)
+from true_rl_agent.tasks.stair_climbing.reference_program import (  # noqa: E402
+    resolve_official_stair_reference_artifact,
 )
 from true_rl_agent.tasks.stair_climbing.reward_program import (  # noqa: E402
     QualifiedStairRewardProgram,
+    StairRewardProgramError,
     qualify_stair_candidate_reward_program,
-)
-from true_rl_agent.tasks.stair_climbing.runtime_profile import (  # noqa: E402
-    STAIR_COMPLETE_REWARD_RUNTIME_STATUS,
-    STAIR_TRAIN_GYM_ID,
 )
 
 
@@ -51,8 +57,6 @@ def _build_parser() -> argparse.ArgumentParser:
         "--subject-id",
         "--subject-manifest-hash",
         "--program-source-checksum",
-        "--candidate",
-        "--candidate-artifact-hash",
         "--init",
         "--training-binding-hash",
         "--policy-architecture-hash",
@@ -65,9 +69,29 @@ def _build_parser() -> argparse.ArgumentParser:
         "--checkpoint-output",
         "--profile",
         "--runtime-dynamics-hash",
+        "--backend-execution-environment-manifest-hash",
         "--config",
     ):
         required_actions.append(parser.add_argument(option))
+    artifact_group = parser.add_mutually_exclusive_group()
+    artifact_group.add_argument("--candidate")
+    artifact_group.add_argument("--reference-artifact")
+    parser.add_argument("--candidate-artifact-hash", default=None)
+    parser.add_argument("--candidate-verification-hash", default=None)
+    parser.add_argument(
+        "--candidate-execution-authorization-json",
+        default=None,
+    )
+    parser.add_argument(
+        "--candidate-execution-authorization-hash",
+        default=None,
+    )
+    parser.add_argument("--reference-artifact-hash", default=None)
+    parser.add_argument(
+        "--expected-initial-policy-state-hash",
+        default=None,
+    )
+    parser.add_argument("--candidate-failure-contract-hash", default=None)
     for option in (
         "--budget-steps",
         "--num-envs",
@@ -82,11 +106,12 @@ def _build_parser() -> argparse.ArgumentParser:
         from isaaclab.app import AppLauncher
     except ModuleNotFoundError:
         parser.add_argument("--headless", action="store_true")
-        parser.add_argument("--device", default="cuda:0")
+        parser.add_argument("--device", required=True)
     else:
         AppLauncher.add_app_launcher_args(parser)
     for action in required_actions:
         action.required = True
+    artifact_group.required = True
     parser.set_defaults(headless=True)
     return parser
 
@@ -94,18 +119,44 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     try:
+        args.device = require_execution_device(
+            args.device,
+            "stair train execution device",
+        )
         context = validate_stair_train_invocation(args, project_root=PROJECT_ROOT)
         if args.headless is not True:
             raise ValueError("stair production train must be headless")
-        reward_program = _load_and_qualify_candidate(context)
         summary_path = _local_output_path(args.summary_path, "summary_path")
         checkpoint_output = _local_output_path(
             args.checkpoint_output,
             "checkpoint_output",
         )
+        source_manifest_preflight = preflight_stair_execution_source_manifest(
+            context.config
+        )
+        execution_environment_verification = (
+            verify_current_isaac_lab_execution_environment(
+                args.backend_execution_environment_manifest_hash
+            )
+        )
     except (TypeError, ValueError, OSError) as exc:
         print(str(exc), file=sys.stderr)
         return 2
+
+    try:
+        reward_program = _load_and_qualify_program(context)
+    except StairCandidateProgramFailure as exc:
+        _write_candidate_failure_summary(
+            args=args,
+            context=context,
+            source_manifest_preflight=source_manifest_preflight,
+            execution_environment_verification=(
+                execution_environment_verification
+            ),
+            failure=exc,
+            summary_path=summary_path,
+        )
+        return 1
 
     from isaaclab.app import AppLauncher
 
@@ -113,6 +164,8 @@ def main(argv: list[str] | None = None) -> int:
     exit_code = _run_training(
         args=args,
         context=context,
+        source_manifest_preflight=source_manifest_preflight,
+        execution_environment_verification=execution_environment_verification,
         reward_program=reward_program,
         summary_path=summary_path,
         checkpoint_output=checkpoint_output,
@@ -123,12 +176,42 @@ def main(argv: list[str] | None = None) -> int:
     )
 
 
-def _load_and_qualify_candidate(
+def _load_and_qualify_program(
     context: StairTrainEntrypointContext,
 ) -> QualifiedStairRewardProgram:
-    return qualify_stair_candidate_reward_program(
-        artifact=context.candidate_artifact,
-        contract=context.config.protocol_v2.complete_reward_runtime,
+    contract = context.config.protocol_v2.complete_reward_runtime
+    if context.identity.subject.kind == "candidate":
+        authorization = context.candidate_execution_authorization
+        if (
+            context.candidate_artifact is None
+            or context.candidate_verification_hash is None
+            or authorization is None
+            or context.reference_artifact is not None
+        ):
+            raise ValueError("stair candidate train context artifact mismatch")
+        try:
+            trusted_reference, _ = resolve_official_stair_reference_artifact(
+                context.config,
+                project_root=PROJECT_ROOT,
+            )
+            program = qualify_stair_candidate_reward_program(
+                artifact=context.candidate_artifact,
+                contract=contract,
+                static_verifier_policy=authorization.static_verifier_policy,
+                trusted_reference_artifact=trusted_reference,
+            )
+        except StairRewardProgramError as exc:
+            raise StairCandidateProgramFailure.qualification() from exc
+        return authorization.verify_program(program)
+    if context.reference_artifact is None or context.candidate_artifact is not None:
+        raise ValueError("stair reference train context artifact mismatch")
+    from true_rl_agent.tasks.stair_climbing.reward_program import (
+        qualify_stair_reference_reward_program,
+    )
+
+    return qualify_stair_reference_reward_program(
+        artifact=context.reference_artifact.program,
+        contract=contract,
     )
 
 
@@ -136,188 +219,51 @@ def _run_training(
     *,
     args: argparse.Namespace,
     context: StairTrainEntrypointContext,
+    source_manifest_preflight: VerifiedStairExecutionSourceManifest,
+    execution_environment_verification: Mapping[str, str],
     reward_program: QualifiedStairRewardProgram,
     summary_path: Path,
     checkpoint_output: Path,
 ) -> int:
-    import gymnasium as gym
-    import torch
-    from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
-    from isaaclab_tasks.manager_based.locomotion.velocity.config.g1.agents.rsl_rl_ppo_cfg import (
-        G1RoughPPORunnerCfg,
-    )
-    from rsl_rl.runners import OnPolicyRunner
-
-    from true_rl_agent.tasks.stair_climbing.isaaclab_reward_runtime import (
-        get_stair_complete_reward_term,
-        run_stair_reward_activation_preflight,
-    )
-    from true_rl_agent.tasks.stair_climbing.isaaclab_runtime_env import (
-        build_stair_train_env_cfg,
-        register_production_stair_envs,
-    )
-
     attempt_id = uuid.uuid4().hex
     run_dir = summary_path.parent / "run" / f"attempt-{attempt_id}"
     summary_path.parent.mkdir(parents=True, exist_ok=True)
-    checkpoint_output.parent.mkdir(parents=True, exist_ok=True)
-    run_dir.mkdir(parents=True, exist_ok=False)
-    env = None
-    complete_term = None
-    formal_training_executed = False
-    activation_preflight: dict[str, Any] | None = None
-    try:
-        if checkpoint_output.exists():
-            raise FileExistsError(
-                "checkpoint output must be fresh for this Stair training attempt"
-            )
-        draft = context.config.protocol_v2.to_public_dict()
-        execution = draft["training_execution"]
-        torch.backends.cuda.matmul.allow_tf32 = bool(
-            execution["torch_matmul_allow_tf32"]
-        )
-        torch.backends.cudnn.allow_tf32 = bool(execution["cudnn_allow_tf32"])
-        torch.backends.cudnn.deterministic = bool(
-            execution["cudnn_deterministic"]
-        )
-        torch.backends.cudnn.benchmark = bool(execution["cudnn_benchmark"])
-
-        register_production_stair_envs()
-        env_cfg = build_stair_train_env_cfg(
-            context.config.protocol_v1.to_dict(),
-            seed=context.config.train_seed,
-            device=str(args.device),
-            reward_program=reward_program,
-        )
-        if env_cfg.recorders is not None:
-            raise RuntimeError("Stair training must not install a recorder")
-        agent_cfg = G1RoughPPORunnerCfg()
-        effective_agent_execution = configure_stair_rsl_rl_agent(
-            agent_cfg,
-            configuration=context.agent_configuration,
-            seed=context.config.train_seed,
-            device=str(args.device),
-            num_steps_per_env=context.config.train_steps_per_iteration,
-            max_iterations=context.config.train_max_iterations,
-            save_interval=int(
-                execution["checkpoint_save_interval_iterations"]
-            ),
-            run_name=f"true_rl_agent_{args.round}",
-            experiment_name="true_rl_agent_stair",
-        )
-
-        env = gym.make(STAIR_TRAIN_GYM_ID, cfg=env_cfg, render_mode=None)
-        env.reset()
-        base_env = env.unwrapped
-        if list(base_env.reward_manager.active_terms) != ["complete_reward"]:
-            raise RuntimeError("Stair RewardManager contains non-authoritative terms")
-        term_cfg = base_env.reward_manager.get_term_cfg("complete_reward")
-        if float(term_cfg.weight) != 1.0:
-            raise RuntimeError("Stair complete reward manager weight drifted")
-        complete_term = get_stair_complete_reward_term(base_env)
-        activation_preflight = run_stair_reward_activation_preflight(
-            env,
-            reward_program=reward_program,
-        )
-
-        wrapped_env = RslRlVecEnvWrapper(
-            env,
-            clip_actions=agent_cfg.clip_actions,
-        )
-        log_dir = run_dir / "rsl_rl"
-        runner = OnPolicyRunner(
-            wrapped_env,
-            agent_cfg.to_dict(),
-            log_dir=str(log_dir),
-            device=agent_cfg.device,
-        )
-        runner.add_git_repo_to_log(__file__)
-        formal_training_executed = True
-        runner.learn(
-            num_learning_iterations=agent_cfg.max_iterations,
-            init_at_random_ep_len=bool(
-                execution["init_at_random_episode_length"]
-            ),
-        )
-        latest_checkpoint = _find_latest_checkpoint(log_dir)
-        if latest_checkpoint is None:
-            raise RuntimeError("Stair RSL-RL training produced no checkpoint")
-        if execution["checkpoint_selector"] != "final_iteration":
-            raise RuntimeError("unsupported Stair checkpoint selector")
-        shutil.copy2(latest_checkpoint, checkpoint_output)
-        source_hash = file_sha256(latest_checkpoint)
-        checkpoint_hash = file_sha256(checkpoint_output)
-        if source_hash is None or checkpoint_hash is None:
-            raise RuntimeError("Stair checkpoint bytes could not be hashed")
-        if source_hash != checkpoint_hash:
-            raise RuntimeError("Stair checkpoint copy hash mismatch")
-        runtime_activation = complete_term.runtime_summary()
-        if runtime_activation["dispatcher_calls"] <= 0:
-            raise RuntimeError("Stair complete reward dispatcher never executed")
-        summary = _status_summary(
-            "pass",
-            args=args,
-            context=context,
-            reward_program=reward_program,
-            attempt_id=attempt_id,
-            formal_training_executed=True,
-            checkpoint={
-                "uri": str(checkpoint_output),
-                "checksum": checkpoint_hash,
-                "role": "train_output",
-                "metadata": {
-                    "local_path": str(checkpoint_output),
-                    "source_latest_checkpoint": str(latest_checkpoint),
-                    "source_latest_checkpoint_sha256": source_hash,
-                },
-            },
-            runtime_activation_summary={
-                **runtime_activation,
-                "runtime_status": STAIR_COMPLETE_REWARD_RUNTIME_STATUS,
-                "activation_preflight": activation_preflight,
-                "reward_manager_active_terms": list(
-                    base_env.reward_manager.active_terms
-                ),
-                "reward_manager_term_weight": float(term_cfg.weight),
-                "training_recorder_enabled": False,
-            },
-            training={
-                "budget_accounting": dict(context.budget_accounting),
-                "num_envs": context.config.train_num_envs,
-                "num_steps_per_env": context.config.train_steps_per_iteration,
-                "max_iterations": context.config.train_max_iterations,
-                "budget_steps": context.config.budget_steps,
-                "device": str(agent_cfg.device),
-                "log_dir": str(log_dir),
-                "latest_checkpoint_iteration": _checkpoint_iteration(
-                    latest_checkpoint
-                ),
-                "execution_contract": dict(execution),
-                "effective_agent_execution": effective_agent_execution,
-            },
-            errors=[],
-        )
-    except Exception as exc:  # noqa: BLE001 - one failed guard fails the job
-        runtime_summary = (
-            complete_term.runtime_summary() if complete_term is not None else None
-        )
-        summary = _status_summary(
-            "fail",
-            args=args,
-            context=context,
-            reward_program=reward_program,
-            attempt_id=attempt_id,
-            formal_training_executed=formal_training_executed,
-            runtime_activation_summary=runtime_summary,
-            activation_preflight=activation_preflight,
-            errors=[{"type": type(exc).__name__, "message": str(exc)}],
-        )
-    finally:
-        if env is not None:
-            try:
-                env.close()
-            except Exception:
-                pass
+    result = execute_stair_training(
+        config=context.config,
+        source_manifest_preflight=source_manifest_preflight,
+        agent_configuration=context.agent_configuration,
+        reward_program=reward_program,
+        device=str(args.device),
+        run_dir=run_dir,
+        checkpoint_output=checkpoint_output,
+        run_name=f"true_rl_agent_{args.round}",
+        expected_initial_policy_state_hash=(
+            context.expected_initial_policy_state_hash
+        ),
+    )
+    fields = result.to_summary_fields()
+    status = str(fields.pop("status"))
+    formal_training_executed = bool(fields.pop("training_executed"))
+    training = fields.get("training")
+    execution_device = (
+        str(training.get("device"))
+        if isinstance(training, Mapping) and training.get("device") is not None
+        else str(args.device)
+    )
+    if status == "pass":
+        fields.pop("activation_preflight", None)
+    summary = _status_summary(
+        status,
+        args=args,
+        context=context,
+        source_manifest_preflight=source_manifest_preflight,
+        execution_environment_verification=execution_environment_verification,
+        reward_program=reward_program,
+        attempt_id=attempt_id,
+        formal_training_executed=formal_training_executed,
+        execution_device=execution_device,
+        **fields,
+    )
 
     _write_json(summary_path, summary)
     print(
@@ -334,13 +280,16 @@ def _status_summary(
     *,
     args: argparse.Namespace,
     context: StairTrainEntrypointContext,
-    reward_program: QualifiedStairRewardProgram,
+    source_manifest_preflight: VerifiedStairExecutionSourceManifest,
+    execution_environment_verification: Mapping[str, str],
+    reward_program: QualifiedStairRewardProgram | None,
     attempt_id: str,
     formal_training_executed: bool,
+    execution_device: str,
     **payload: Any,
 ) -> dict[str, Any]:
     binding = context.training_binding
-    return {
+    summary = {
         **payload,
         "schema_version": "true_rl_agent.task.stair_climbing.train_summary.v1",
         **context.identity.to_public_dict(),
@@ -354,34 +303,88 @@ def _status_summary(
             binding.initialization_seed_schedule_hash
         ),
         "capability_profile_hash": binding.capability_profile_hash,
-        "program_source_checksum": reward_program.program_source_checksum,
-        "reward_program_qualification_hash": reward_program.qualification_hash,
+        "program_source_checksum": context.program_source_checksum,
+        "environment_source_preflight": source_manifest_preflight.to_summary_dict(),
+        "backend_execution_environment_verification": dict(
+            execution_environment_verification
+        ),
+        "execution_device": execution_device,
         "status": status,
         "formal_training_executed": formal_training_executed,
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "run": {
-            "cwd": os.getcwd(),
             "round_id": args.round,
             "train_attempt_id": attempt_id,
             "seed_policy": "runner_owned_not_public",
         },
     }
+    if reward_program is not None:
+        if reward_program.program_source_checksum != context.program_source_checksum:
+            raise ValueError("Stair reward program source changed before summary")
+        summary["reward_program_qualification_hash"] = (
+            reward_program.qualification_hash
+        )
+    if context.candidate_failure_contract_hash is not None:
+        summary["candidate_failure_contract_hash"] = (
+            context.candidate_failure_contract_hash
+        )
+    authorization = context.candidate_execution_authorization
+    if authorization is not None:
+        generic = authorization.authorization
+        summary.update(
+            {
+                "candidate_verification_hash": (
+                    context.candidate_verification_hash
+                ),
+                "candidate_admission_policy_id": generic.admission_policy_id,
+                "candidate_admission_policy_hash": (
+                    generic.admission_policy_hash
+                ),
+                "candidate_execution_authorization_schema_version": (
+                    generic.payload_schema_version
+                ),
+                "candidate_execution_authorization_hash": (
+                    generic.authorization_hash
+                ),
+            }
+        )
+    return summary
 
 
-def _find_latest_checkpoint(log_dir: Path) -> Path | None:
-    checkpoints = sorted(
-        log_dir.rglob("model_*.pt"),
-        key=lambda path: (
-            _checkpoint_iteration(path),
-            path.stat().st_mtime,
-        ),
+def _write_candidate_failure_summary(
+    *,
+    args: argparse.Namespace,
+    context: StairTrainEntrypointContext,
+    source_manifest_preflight: VerifiedStairExecutionSourceManifest,
+    execution_environment_verification: Mapping[str, str],
+    failure: StairCandidateProgramFailure,
+    summary_path: Path,
+) -> None:
+    summary = _status_summary(
+        "fail",
+        args=args,
+        context=context,
+        source_manifest_preflight=source_manifest_preflight,
+        execution_environment_verification=execution_environment_verification,
+        reward_program=None,
+        attempt_id=uuid.uuid4().hex,
+        formal_training_executed=False,
+        execution_device=str(args.device),
+        candidate_failure=failure.evidence.to_public_dict(),
+        training={
+            "expected_initial_policy_state_hash": (
+                context.expected_initial_policy_state_hash
+            )
+        },
+        errors=[],
     )
-    return checkpoints[-1] if checkpoints else None
-
-
-def _checkpoint_iteration(path: Path) -> int:
-    match = re.search(r"model_(\d+)\.pt$", path.name)
-    return int(match.group(1)) if match else -1
+    _write_json(summary_path, summary)
+    print(
+        json.dumps(
+            {"summary_path": str(summary_path), "status": summary["status"]},
+            sort_keys=True,
+        )
+    )
 
 
 def _local_output_path(value: str, field_name: str) -> Path:

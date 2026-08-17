@@ -1,6 +1,10 @@
 """Public-only records used to construct future round context."""
 
-from true_rl_agent.memory.context_builder import PublicContextBuilder, PublicPromptBuild
+from true_rl_agent.memory.context_builder import (
+    PublicContextBuilder,
+    PublicPromptBuild,
+    preflight_task_prompt_capacity,
+)
 from true_rl_agent.memory.records import (
     ExperimentRecord,
     PrivateArtifactRef,
@@ -15,4 +19,5 @@ __all__ = [
     "PublicContextBuilder",
     "PublicPromptBuild",
     "TaskMemoryAdapter",
+    "preflight_task_prompt_capacity",
 ]

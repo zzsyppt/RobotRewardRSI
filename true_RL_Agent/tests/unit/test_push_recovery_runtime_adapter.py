@@ -1,25 +1,59 @@
 from __future__ import annotations
 
+import hashlib
+import json
+import shutil
 import sys
 import tempfile
 import textwrap
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from true_rl_agent.candidates.components import TrainingComponents  # noqa: E402
+from true_rl_agent.candidates.artifact import (  # noqa: E402
+    CANDIDATE_ARTIFACT_MANIFEST_FILENAME,
+    seal_candidate_package,
+)
+from true_rl_agent.candidates.authoring_policy import (  # noqa: E402
+    MAX_CANONICAL_COMPONENT_NAME_CHARS,
+)
+from true_rl_agent.candidates.components import (  # noqa: E402
+    RewardTerm,
+    TrainingComponents,
+)
+from true_rl_agent.candidates.loader import (  # noqa: E402
+    MAX_CANDIDATE_EXECUTION_FILE_BYTES,
+)
 from true_rl_agent.candidates.mechanism import RuntimeActivationEvidence  # noqa: E402
+from true_rl_agent.candidates.package_contract import (  # noqa: E402
+    CANDIDATE_PACKAGE_FILE_MAX_BYTES,
+    preflight_candidate_package,
+)
+from true_rl_agent.candidates.schema import (  # noqa: E402
+    CandidateChangeSet,
+    CandidatePackageRef,
+)
+from true_rl_agent.evaluation.binding import canonical_json_hash  # noqa: E402
+from true_rl_agent.json_contract import canonical_json_bytes  # noqa: E402
 from true_rl_agent.tasks.push_recovery import PushRecoveryTaskPlugin  # noqa: E402
+from true_rl_agent.tasks.push_recovery.candidate_failure import (  # noqa: E402
+    PushCandidateProgramFailure,
+)
 from true_rl_agent.tasks.push_recovery.runtime_adapter import (  # noqa: E402
     CandidateRewardVecEnvWrapper,
     CandidateRuntimeAdapter,
     RuntimeComponentError,
     guard_vector,
     runtime_contract,
+    validate_training_components,
+)
+from true_rl_agent.training_programs import (  # noqa: E402
+    resolve_candidate_program_identity,
 )
 
 
@@ -54,6 +88,88 @@ class _VelocityDeltaVecEnv:
 
 
 class PushRecoveryRuntimeAdapterTests(unittest.TestCase):
+    def test_runtime_reuses_shared_component_name_bound(self) -> None:
+        def reward(_inputs):
+            return [0.0, 0.0]
+
+        valid = "n" * MAX_CANONICAL_COMPONENT_NAME_CHARS
+        validate_training_components(
+            TrainingComponents(
+                name=valid,
+                reward_terms=[RewardTerm(name=valid, weight=1.0, fn=reward)],
+            )
+        )
+        for components in (
+            TrainingComponents(name=valid + "n"),
+            TrainingComponents(
+                name=valid,
+                reward_terms=[
+                    RewardTerm(name=valid + "n", weight=1.0, fn=reward)
+                ],
+            ),
+        ):
+            with self.subTest(program_name=components.name):
+                with self.assertRaisesRegex(RuntimeComponentError, "name is invalid"):
+                    validate_training_components(components)
+
+    def test_candidate_callable_failure_is_typed_but_os_failure_is_not(self) -> None:
+        def adapter_for(error: Exception) -> CandidateRuntimeAdapter:
+            def fail(_inputs):
+                raise error
+
+            return CandidateRuntimeAdapter(
+                manifest=None,
+                components=TrainingComponents(
+                    name="failure-probe",
+                    reward_terms=(
+                        RewardTerm(name="failure", weight=1.0, fn=fail),
+                    ),
+                ),
+                num_envs=2,
+                planned_training_steps=8,
+                diagnostic_interval_steps=1,
+            )
+
+        with self.assertRaises(PushCandidateProgramFailure) as context:
+            CandidateRewardVecEnvWrapper(
+                _FakeVecEnv(),
+                adapter_for(ValueError("private candidate error")),
+            ).step([[0.0], [0.0]])
+        self.assertNotIn("private candidate error", str(context.exception))
+
+        with self.assertRaisesRegex(OSError, "filesystem unavailable"):
+            CandidateRewardVecEnvWrapper(
+                _FakeVecEnv(),
+                adapter_for(OSError("filesystem unavailable")),
+            ).step([[0.0], [0.0]])
+
+    def test_shared_reward_adapter_failure_is_infrastructure_owned(self) -> None:
+        adapter = CandidateRuntimeAdapter(
+            manifest=None,
+            components=TrainingComponents(
+                name="adapter-failure-probe",
+                reward_terms=(
+                    RewardTerm(
+                        name="valid-candidate-output",
+                        weight=1.0,
+                        fn=lambda _inputs: [0.0, 0.0],
+                    ),
+                ),
+            ),
+            num_envs=2,
+            planned_training_steps=8,
+            diagnostic_interval_steps=1,
+        )
+
+        with patch(
+            "true_rl_agent.tasks.push_recovery.runtime_adapter._scale_like",
+            side_effect=RuntimeError("shared adapter failed"),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "shared adapter failed"):
+                CandidateRewardVecEnvWrapper(_FakeVecEnv(), adapter).step(
+                    [[0.0], [0.0]]
+                )
+
     def test_runtime_adapter_rejects_noncanonical_integer_inputs(self) -> None:
         components = TrainingComponents(name="strict-runtime-inputs")
         valid = {
@@ -117,6 +233,70 @@ class PushRecoveryRuntimeAdapterTests(unittest.TestCase):
             encoding="utf-8",
         )
         return candidate
+
+    def _seal_candidate(self, root: Path):
+        candidate = self._write_candidate(root)
+        (candidate / "rationale.md").write_text(
+            "runtime reward\n",
+            encoding="utf-8",
+        )
+        for filename in ("operation_diff.json", "diagnostics.json"):
+            (candidate / filename).write_text("{}\n", encoding="utf-8")
+        return seal_candidate_package(
+            CandidatePackageRef(
+                candidate_id="runtime_reward",
+                path=str(candidate),
+                change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+            ),
+            artifact_root=root / "artifacts",
+        )
+
+    def _rewrite_legacy_artifact(
+        self,
+        artifact_path: Path,
+        *,
+        source_payload: bytes,
+        sparse: bool = False,
+    ) -> dict[str, object]:
+        source_path = artifact_path / "training_code" / "components.py"
+        source_path.write_bytes(source_payload)
+        if sparse:
+            for relative_path in (
+                "rationale.md",
+                "operation_diff.json",
+                "diagnostics.json",
+            ):
+                (artifact_path / relative_path).unlink()
+
+        identity = resolve_candidate_program_identity(
+            artifact_path,
+            expected_candidate_id="runtime_reward",
+            sealed_artifact=True,
+            enforce_package_size_limits=False,
+        )
+        manifest_path = artifact_path / CANDIDATE_ARTIFACT_MANIFEST_FILENAME
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if sparse:
+            manifest["files"] = [
+                item
+                for item in manifest["files"]
+                if item["path"]
+                in {"candidate_manifest.yaml", "training_code/components.py"}
+            ]
+        for item in manifest["files"]:
+            if item["path"] == "training_code/components.py":
+                item["checksum"] = (
+                    "sha256:" + hashlib.sha256(source_payload).hexdigest()
+                )
+                item["size_bytes"] = len(source_payload)
+        manifest["subject_manifest_hash"] = identity.manifest_hash
+        manifest["program_source_checksum"] = identity.source_checksum
+        manifest["program_source_size_bytes"] = identity.source_size_bytes
+        manifest["artifact_hash"] = canonical_json_hash(
+            {key: value for key, value in manifest.items() if key != "artifact_hash"}
+        )
+        manifest_path.write_bytes(canonical_json_bytes(manifest, trailing_newline=True))
+        return manifest
 
     def _write_push_signal_candidate(self, root: Path) -> Path:
         candidate = root / "candidate"
@@ -211,6 +391,130 @@ class PushRecoveryRuntimeAdapterTests(unittest.TestCase):
                     num_envs=2,
                     planned_training_steps=8,
                     expected_candidate_id="different_candidate",
+                )
+
+    def test_sealed_runtime_executes_bound_bytes_not_post_verification_swap(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            artifact = self._seal_candidate(root)
+            artifact_path = Path(artifact.path)
+            source_path = artifact_path / "training_code" / "components.py"
+            marker_path = root / "malicious-source-executed"
+            replacement = root / "replacement-components.py"
+            replacement.write_text(
+                textwrap.dedent(
+                    f"""
+                    from pathlib import Path
+                    Path({str(marker_path)!r}).write_text("executed", encoding="utf-8")
+                    raise RuntimeError("malicious source executed")
+                    """
+                ).strip()
+                + "\n",
+                encoding="utf-8",
+            )
+            real_preflight = preflight_candidate_package
+            swapped = False
+
+            def swap_then_preflight(candidate_root, **kwargs):
+                nonlocal swapped
+                if not swapped:
+                    source_path.unlink()
+                    replacement.replace(source_path)
+                    swapped = True
+                return real_preflight(candidate_root, **kwargs)
+
+            with patch(
+                "true_rl_agent.tasks.push_recovery.runtime_adapter."
+                "preflight_candidate_package",
+                side_effect=swap_then_preflight,
+            ), self.assertRaisesRegex(
+                ValueError,
+                "source (size|checksum) mismatch before execution",
+            ):
+                CandidateRuntimeAdapter.from_candidate_dir(
+                    artifact_path,
+                    num_envs=2,
+                    planned_training_steps=8,
+                    expected_candidate_id=artifact.candidate_id,
+                    expected_subject_manifest_hash=artifact.subject_manifest_hash,
+                    expected_program_source_checksum=artifact.program_source_checksum,
+                    expected_candidate_artifact_hash=artifact.artifact_hash,
+                )
+
+        self.assertTrue(swapped)
+        self.assertFalse(marker_path.exists())
+
+    def test_sparse_legacy_sealed_runtime_keeps_source_over_new_provider_limit(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            artifact = self._seal_candidate(root)
+            legacy_path = root / "legacy-sparse-artifact"
+            shutil.copytree(artifact.path, legacy_path)
+            source_path = legacy_path / "training_code" / "components.py"
+            source_payload = source_path.read_bytes()
+            target_size = (
+                CANDIDATE_PACKAGE_FILE_MAX_BYTES["training_code/components.py"] + 1
+            )
+            source_payload += b"\n#" + b"x" * (target_size - len(source_payload) - 2)
+            manifest = self._rewrite_legacy_artifact(
+                legacy_path,
+                source_payload=source_payload,
+                sparse=True,
+            )
+
+            adapter = CandidateRuntimeAdapter.from_candidate_dir(
+                legacy_path,
+                num_envs=2,
+                planned_training_steps=8,
+                expected_candidate_id="runtime_reward",
+                expected_subject_manifest_hash=manifest["subject_manifest_hash"],
+                expected_program_source_checksum=manifest[
+                    "program_source_checksum"
+                ],
+                expected_candidate_artifact_hash=manifest["artifact_hash"],
+            )
+
+        self.assertEqual(adapter.manifest.candidate_id, "runtime_reward")
+        self.assertEqual(adapter.components.name, "runtime_reward")
+        self.assertGreater(
+            len(source_payload),
+            CANDIDATE_PACKAGE_FILE_MAX_BYTES["training_code/components.py"],
+        )
+
+    def test_sealed_runtime_rejects_source_above_absolute_execution_bound_before_read(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            artifact = self._seal_candidate(root)
+            legacy_path = root / "oversized-legacy-artifact"
+            shutil.copytree(artifact.path, legacy_path)
+            source_path = legacy_path / "training_code" / "components.py"
+            source_payload = source_path.read_bytes()
+            target_size = MAX_CANDIDATE_EXECUTION_FILE_BYTES + 1
+            source_payload += b"\n#" + b"x" * (target_size - len(source_payload) - 2)
+            manifest = self._rewrite_legacy_artifact(
+                legacy_path,
+                source_payload=source_payload,
+            )
+
+            with patch(
+                "true_rl_agent.tasks.push_recovery.runtime_adapter."
+                "open_preflighted_candidate_file",
+                side_effect=AssertionError("oversized execution file must not be read"),
+            ), self.assertRaisesRegex(ValueError, "absolute byte limit"):
+                CandidateRuntimeAdapter.from_candidate_dir(
+                    legacy_path,
+                    num_envs=2,
+                    planned_training_steps=8,
+                    expected_candidate_id="runtime_reward",
+                    expected_subject_manifest_hash=manifest[
+                        "subject_manifest_hash"
+                    ],
+                    expected_program_source_checksum=manifest[
+                        "program_source_checksum"
+                    ],
+                    expected_candidate_artifact_hash=manifest["artifact_hash"],
                 )
 
     def test_guard_vector_rejects_wrong_length_and_nonfinite_outputs(self) -> None:

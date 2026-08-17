@@ -20,35 +20,53 @@ class StairTaskMemoryAdapter:
         self,
         public_records: Sequence[Mapping[str, Any]],
     ) -> Mapping[str, Any]:
-        summaries: list[dict[str, Any]] = []
+        objective_summaries: list[dict[str, Any]] = []
         for record in public_records:
             if _record_task_id(record) not in (None, self.task_id):
                 continue
             metrics = _metrics(record)
-            public_accept = _mapping(metrics.get("public_accept"))
-            public_dev = _mapping(metrics.get("public_dev"))
-            score = _score(public_accept)
-            if score is None or not public_dev:
-                continue
-            summaries.append(
-                {
-                    "score": score,
-                    "dominant_failure": _dominant_failure(public_dev),
-                    "mean_max_progress_m": _mean_progress(public_dev),
-                }
-            )
-        if not summaries:
+            objective_accept = _mapping(metrics.get("acceptance_objective"))
+            objective_dev = _mapping(metrics.get("generalization_public_dev"))
+            objective_score = _score(objective_accept)
+            if objective_score is not None and objective_dev:
+                arrival_rate = _diagnostic_rate(
+                    objective_dev,
+                    "first_valid_top_arrival_achieved",
+                )
+                objective_summaries.append(
+                    {
+                        "stable_top_success_rate": objective_score,
+                        "valid_top_arrival_rate": arrival_rate,
+                        "top_arrival_without_stable_success_rate": (
+                            max(0.0, arrival_rate - objective_score)
+                            if arrival_rate is not None
+                            else None
+                        ),
+                        "dominant_failure": _dominant_failure(objective_dev),
+                        "mean_max_progress_m": _mean_progress(objective_dev),
+                    }
+                )
+        if not objective_summaries:
             return {}
 
-        bounded = summaries[-_MAX_TREND_ROUNDS:]
-        scores = [float(item["score"]) for item in summaries]
-        latest = summaries[-1]
+        bounded = objective_summaries[-_MAX_TREND_ROUNDS:]
+        scores = [
+            float(item["stable_top_success_rate"])
+            for item in objective_summaries
+        ]
+        latest = objective_summaries[-1]
         return sanitize_public_context(
             {
-                "schema_version": "true_rl_agent.stair_memory.public.v1",
+                "schema_version": "true_rl_agent.stair_memory.public.v3",
                 "task_id": self.task_id,
-                "rounds_with_validated_public_stair_metrics": len(summaries),
-                "macro_success": {
+                "metric_scope": "stable_top_generalization_objective",
+                "score_source": "acceptance_objective.score_stats.mean",
+                "diagnostic_source": "generalization_public_dev",
+                "failure_summary_source": "generalization_public_dev",
+                "rounds_with_validated_public_stair_metrics": len(
+                    objective_summaries
+                ),
+                "stable_top_success": {
                     "latest": scores[-1],
                     "best": max(scores),
                     "mean": fmean(scores),
@@ -97,6 +115,14 @@ def _dominant_failure(public_dev: Mapping[str, Any]) -> Mapping[str, Any]:
 def _mean_progress(public_dev: Mapping[str, Any]) -> float | None:
     progress = _mapping(public_dev.get("progress_summary"))
     value = progress.get("mean_max_progress_m")
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return None
+    return float(value)
+
+
+def _diagnostic_rate(public_dev: Mapping[str, Any], name: str) -> float | None:
+    rates = _mapping(public_dev.get("diagnostic_flag_rates"))
+    value = rates.get(name)
     if isinstance(value, bool) or not isinstance(value, int | float):
         return None
     return float(value)

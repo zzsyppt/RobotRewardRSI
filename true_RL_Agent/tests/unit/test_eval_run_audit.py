@@ -21,11 +21,16 @@ from tests.fakes.decision_records import (
     TEST_TRAINING_BINDING_HASH,
     bind_test_ledger_record,
     make_bootstrap_current_best,
+    valid_runtime_failed_ledger_record,
 )
+from true_rl_agent.agent_core.eval_run_audit import _failure_bucket
 from true_rl_agent.agent_core.eval_run_audit import (
     build_eval_run_audit as _build_eval_run_audit,
 )
 from true_rl_agent.evaluation.acceptance_contract import validate_acceptance_evidence
+from true_rl_agent.evaluation.acceptance_protocol import (
+    ACCEPTANCE_DELTA_REJECT_REASONS,
+)
 from true_rl_agent.evaluation.decision_record_contract import validate_decision_record
 
 
@@ -48,6 +53,67 @@ def build_eval_run_audit(ledger: list[dict[str, object]]) -> dict[str, object]:
 
 
 class EvalRunAuditTests(unittest.TestCase):
+    def test_all_canonical_delta_rejects_are_threshold_failures(self) -> None:
+        healthy_reject = {
+            "round_stage_consistent": True,
+            "verifier_failed": False,
+            "trainable_candidate": True,
+            "round_stage": "evaluated",
+            "controlled_candidate_train_failure": False,
+            "train_executed": True,
+            "public_result_present": True,
+            "public_result_passed": True,
+            "public_dev_complete": True,
+            "public_accept_complete": True,
+            "eval_protocol_bound": True,
+            "policy_eligible": True,
+            "acceptance_evidence_reasons": [],
+            "sealed_validation_status": "pass",
+            "actual_gate_statuses": {},
+            "missing_required_accept_gates": [],
+            "missing_consumed_accept_gates": [],
+            "gate_status_mismatches": [],
+            "decision_record_valid": True,
+            "accepted": False,
+        }
+        for reason in ACCEPTANCE_DELTA_REJECT_REASONS:
+            with self.subTest(reason=reason):
+                row = {**healthy_reject, "decision_reason": reason}
+                self.assertEqual(_failure_bucket(row, {}), "decision_threshold")
+
+    def test_valid_candidate_runtime_failure_is_a_closed_non_eval_round(self) -> None:
+        record = valid_runtime_failed_ledger_record(
+            round_id="round-001",
+            candidate_id="candidate-runtime-failure",
+        )
+
+        audit = build_eval_run_audit([record])
+
+        self.assertTrue(all(audit["checks"].values()), audit)
+        self.assertEqual(audit["counts"]["trainable_candidate_count"], 1)
+        self.assertEqual(audit["counts"]["trained_candidate_count"], 0)
+        self.assertEqual(audit["counts"]["full_eval_completed_count"], 0)
+        self.assertEqual(audit["counts"]["eval_incomplete_count"], 0)
+        self.assertEqual(audit["failure_buckets"], {"candidate_runtime": 1})
+        self.assertTrue(
+            audit["rounds"][0]["controlled_candidate_train_failure"]
+        )
+
+    def test_invalid_candidate_runtime_failure_is_not_exempted(self) -> None:
+        record = valid_runtime_failed_ledger_record(
+            round_id="round-001",
+            candidate_id="forged-runtime-failure",
+        )
+        record["runner_error"]["details"]["candidate_failure"][
+            "failure_owner"
+        ] = "infrastructure"
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "candidate_runtime_error_details_invalid",
+        ):
+            build_eval_run_audit([record])
+
     def test_public_dev_count_without_distribution_stats_is_not_full_eval(self) -> None:
         record = _accepted_record()
         record["public_result"]["metrics"]["public_dev"] = {

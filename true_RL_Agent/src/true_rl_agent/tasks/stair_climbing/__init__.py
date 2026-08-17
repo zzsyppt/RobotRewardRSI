@@ -19,7 +19,10 @@ from true_rl_agent.tasks.stair_climbing.phase0_contract import (
     StairProtocolV1,
     verify_checkpoint_file,
 )
-from true_rl_agent.tasks.stair_climbing.protocol_v2 import StairProtocolV2Draft
+from true_rl_agent.tasks.stair_climbing.protocol_v2 import (
+    StairProtocolV2,
+    StairProtocolV2Draft,
+)
 
 __all__ = [
     "DEFAULT_STAIR_EXTENSION_DESCRIPTOR_REF",
@@ -28,6 +31,7 @@ __all__ = [
     "StairPhase0Bundle",
     "StairPhase0ReportV1",
     "StairProtocolV1",
+    "StairProtocolV2",
     "StairProtocolV2Draft",
     "aggregate_stair_seed_scores",
     "assert_primary_outcome_counts",

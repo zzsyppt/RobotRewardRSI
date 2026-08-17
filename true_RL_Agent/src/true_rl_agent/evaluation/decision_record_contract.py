@@ -7,12 +7,21 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
+from true_rl_agent.agent_core.ledger import is_strict_ledger_record
 from true_rl_agent.evaluation.acceptance_contract import (
     AcceptanceEvidenceValidation,
     validate_acceptance_evidence,
 )
 from true_rl_agent.evaluation.acceptance_phase import acceptance_comparison_entered
-from true_rl_agent.evaluation.acceptance_protocol import AcceptanceProtocol
+from true_rl_agent.evaluation.acceptance_protocol import (
+    ACCEPTANCE_DELTA_ACCEPT_REASONS,
+    ACCEPTANCE_DELTA_REJECT_REASONS,
+    AcceptanceProtocol,
+    acceptance_delta_met,
+    acceptance_delta_reason,
+    guard_regression_threshold,
+    threshold_components_match,
+)
 from true_rl_agent.evaluation.binding import (
     EvaluationBindingV1,
     is_sha256_checksum,
@@ -33,6 +42,11 @@ from true_rl_agent.evaluation.round_stage_contract import (
     validate_round_stage,
 )
 from true_rl_agent.evaluation.subject import ExperimentSubject
+from true_rl_agent.runner.candidate_failure import (
+    validate_candidate_runtime_failure_details,
+)
+from true_rl_agent.runner.initial_policy import InitialPolicyStatePairing
+from true_rl_agent.runner.specs import CheckpointRef
 
 POLICY_IMPROVEMENT_ACCEPT_OUTCOME = "policy_improvement_accept"
 DIAGNOSTIC_IMPROVEMENT_RECORD_OUTCOME = "diagnostic_improvement_record"
@@ -41,8 +55,13 @@ REJECT_OUTCOME = "reject"
 
 _ALLOWED_REASONS_BY_OUTCOME = {
     POLICY_IMPROVEMENT_ACCEPT_OUTCOME: frozenset(
-        {"absolute_accept_floor", "noise_aware_delta", "public_score_delta_met"}
-    ),
+        {
+            "absolute_accept_floor",
+            "absolute_and_guard_accept_floors",
+            "public_score_delta_met",
+        }
+    )
+    | ACCEPTANCE_DELTA_ACCEPT_REASONS,
     DIAGNOSTIC_IMPROVEMENT_RECORD_OUTCOME: frozenset({"diagnostic_only_candidate"}),
     ENGINEERING_IMPROVEMENT_RECORD_OUTCOME: frozenset({"engineering_only_candidate"}),
     REJECT_OUTCOME: frozenset(
@@ -50,9 +69,11 @@ _ALLOWED_REASONS_BY_OUTCOME = {
             "accept_score_stats_untrusted",
             "acceptance_protocol_mismatch",
             "absolute_accept_floor_not_met",
+            "absolute_or_guard_accept_floor_not_met",
             "baseline_accept_gate_not_required",
             "candidate_contamination_detected",
             "candidate_eval_stats_missing",
+            "candidate_guard_stats_missing",
             "candidate_runtime_failed",
             "candidate_static_authoring_failed",
             "candidate_verifier_failed",
@@ -61,9 +82,10 @@ _ALLOWED_REASONS_BY_OUTCOME = {
             "eval_protocol_hash_mismatch",
             "eval_protocol_hash_missing",
             "evaluation_binding_mismatch",
+            "guard_eval_stats_missing",
+            "guard_score_regression",
             "insufficient_accept_evidence",
             "no_candidate_changes",
-            "noise_aware_delta_not_met",
             "parameter_only_candidate",
             "provider_candidate_generation_failed",
             "public_result_status_not_pass",
@@ -77,11 +99,14 @@ _ALLOWED_REASONS_BY_OUTCOME = {
             "task_invariant_violation",
             "unsupported_candidate_surface",
         }
-    ),
+    )
+    | ACCEPTANCE_DELTA_REJECT_REASONS,
 }
-_DELTA_ACCEPT_REASONS = frozenset({"noise_aware_delta", "public_score_delta_met"})
-_DELTA_REJECT_REASONS = frozenset(
-    {"noise_aware_delta_not_met", "public_score_delta_not_met"}
+_DELTA_ACCEPT_REASONS = ACCEPTANCE_DELTA_ACCEPT_REASONS | frozenset(
+    {"public_score_delta_met"}
+)
+_DELTA_REJECT_REASONS = ACCEPTANCE_DELTA_REJECT_REASONS | frozenset(
+    {"public_score_delta_not_met"}
 )
 _SURFACE_REASONS = frozenset(
     {
@@ -150,6 +175,7 @@ def validate_decision_record(
     acceptance_protocol: AcceptanceProtocol | None = None,
     expected_session_genesis_hash: str | None = None,
     expected_evaluation_binding: EvaluationBindingV1 | None = None,
+    expected_initial_policy_state_hash: str | None = None,
 ) -> DecisionRecordValidation:
     """Validate decision shape, semantics, comparison, and acceptance evidence."""
 
@@ -196,6 +222,17 @@ def validate_decision_record(
     round_stage = validate_round_stage(record)
     reasons: list[str] = []
     reasons.extend(round_stage.reasons)
+    reasons.extend(_candidate_runtime_failure_reasons(record))
+    reasons.extend(
+        _initial_policy_state_pairing_reasons(
+            record,
+            round_stage=round_stage,
+            eval_job=eval_job,
+            expected_initial_policy_state_hash=(
+                expected_initial_policy_state_hash
+            ),
+        )
+    )
     reasons.extend(
         _session_binding_reasons(
             record,
@@ -318,6 +355,7 @@ def validate_decision_record(
             metrics=metrics,
             comparison=comparison,
             acceptance_evidence=acceptance_evidence,
+            acceptance_protocol=acceptance_protocol,
         )
     )
 
@@ -466,6 +504,148 @@ def _session_binding_reasons(
             ):
                 reasons.append(f"{source}_expected_evaluation_binding_mismatch")
     return reasons
+
+
+def _initial_policy_state_pairing_reasons(
+    record: Mapping[str, Any],
+    *,
+    round_stage: RoundStageValidation,
+    eval_job: Mapping[str, Any],
+    expected_initial_policy_state_hash: str | None,
+) -> list[str]:
+    """Validate pairing only after a reference-anchored job is materialized."""
+
+    if expected_initial_policy_state_hash is None:
+        return []
+    expected = require_sha256_digest(
+        expected_initial_policy_state_hash,
+        "expected_initial_policy_state_hash",
+    )
+    reasons: list[str] = []
+    train_job = _mapping(_mapping(record.get("jobs")).get("train"))
+    if train_job:
+        declared = train_job.get("expected_initial_policy_state_hash")
+        if not is_sha256_digest(declared):
+            reasons.append("train_job_expected_initial_policy_state_hash_missing")
+        elif declared != expected:
+            reasons.append("train_job_expected_initial_policy_state_hash_mismatch")
+
+    train_result = record.get("train_result")
+    pairing: InitialPolicyStatePairing | None = None
+    if isinstance(train_result, Mapping):
+        try:
+            pairing = InitialPolicyStatePairing.from_mapping(
+                train_result.get("initial_policy_state_pairing")
+            )
+        except (TypeError, ValueError):
+            reasons.append("train_result_initial_policy_state_pairing_invalid")
+        else:
+            if pairing.expected_initial_policy_state_hash != expected:
+                reasons.append(
+                    "train_result_expected_initial_policy_state_hash_mismatch"
+                )
+            if not pairing.match:
+                reasons.append("train_result_initial_policy_state_mismatch")
+        if round_stage.stage == EVALUATED_STAGE:
+            train_checkpoint = _public_checkpoint_ref(
+                train_result.get("checkpoint")
+            )
+            eval_checkpoint = _public_checkpoint_ref(eval_job.get("checkpoint"))
+            if train_checkpoint is None:
+                reasons.append(
+                    "initial_policy_state_train_result_checkpoint_invalid"
+                )
+            if eval_checkpoint is None:
+                reasons.append("initial_policy_state_eval_job_checkpoint_invalid")
+            if (
+                train_checkpoint is not None
+                and eval_checkpoint is not None
+                and train_checkpoint != eval_checkpoint
+            ):
+                reasons.append("initial_policy_state_checkpoint_lineage_mismatch")
+            declared_pairing_hash = eval_job.get(
+                "initial_policy_state_pairing_hash"
+            )
+            if not is_sha256_digest(declared_pairing_hash):
+                reasons.append("eval_job_initial_policy_state_pairing_hash_missing")
+            elif pairing is not None and declared_pairing_hash != pairing.pairing_hash:
+                reasons.append("eval_job_initial_policy_state_pairing_hash_mismatch")
+    elif round_stage.stage == EVALUATED_STAGE:
+        reasons.append("evaluated_train_result_initial_policy_state_missing")
+    return reasons
+
+
+def _public_checkpoint_ref(value: Any) -> CheckpointRef | None:
+    if not isinstance(value, Mapping) or set(value) != {
+        "uri",
+        "checksum",
+        "role",
+        "sealed",
+    }:
+        return None
+    try:
+        checkpoint = CheckpointRef(
+            uri=value.get("uri"),
+            checksum=value.get("checksum"),
+            role=value.get("role"),
+            sealed=value.get("sealed"),
+        )
+    except (TypeError, ValueError):
+        return None
+    if checkpoint.role != "eval" or not checkpoint.sealed:
+        return None
+    return checkpoint
+
+
+def _candidate_runtime_failure_reasons(
+    record: Mapping[str, Any],
+) -> list[str]:
+    strict = is_strict_ledger_record(record)
+    decision = _mapping(record.get("decision"))
+    decision_reason = decision.get("reason")
+    runner_error = _mapping(record.get("runner_error"))
+    error_type = runner_error.get("type")
+    if (
+        decision_reason != "candidate_runtime_failed"
+        and error_type != "CandidateRuntimeError"
+    ):
+        return []
+    reasons: list[str] = []
+    if decision_reason != "candidate_runtime_failed":
+        reasons.append("candidate_runtime_error_decision_reason_mismatch")
+    if set(runner_error) != {"type", "message", "details"}:
+        reasons.append("candidate_runtime_error_fields_invalid")
+    if error_type != "CandidateRuntimeError":
+        reasons.append("candidate_runtime_error_type_invalid")
+    if not _nonempty_string(runner_error.get("message")):
+        reasons.append("candidate_runtime_error_message_missing")
+    try:
+        details = validate_candidate_runtime_failure_details(
+            runner_error.get("details")
+        )
+    except (TypeError, ValueError):
+        reasons.append("candidate_runtime_error_details_invalid")
+        return _versioned_candidate_runtime_reasons(reasons, strict=strict)
+    train_job = _mapping(_mapping(record.get("jobs")).get("train"))
+    contract_hash = train_job.get("candidate_failure_contract_hash")
+    if not is_sha256_digest(contract_hash):
+        reasons.append("candidate_failure_contract_hash_missing")
+    elif (
+        details["candidate_failure_contract"]["contract_hash"]
+        != contract_hash
+    ):
+        reasons.append("candidate_failure_contract_hash_mismatch")
+    return _versioned_candidate_runtime_reasons(reasons, strict=strict)
+
+
+def _versioned_candidate_runtime_reasons(
+    reasons: list[str],
+    *,
+    strict: bool,
+) -> list[str]:
+    if strict:
+        return reasons
+    return [f"legacy_{reason}" for reason in reasons]
 
 
 def _program_lineage_reasons(
@@ -678,6 +858,92 @@ def _comparison_reasons(
         != acceptance_protocol.protocol_hash
     ):
         reasons.append("decision_comparison_expected_protocol_mismatch")
+    if acceptance_protocol is not None and acceptance_protocol.uses_guard_score:
+        candidate_guard = _finite_number(comparison.get("candidate_guard_score"))
+        if (
+            acceptance_evidence.guard_score_mean is None
+            or candidate_guard is None
+            or not _numbers_match(
+                candidate_guard,
+                acceptance_evidence.guard_score_mean,
+            )
+        ):
+            reasons.append("decision_comparison_candidate_guard_score_mismatch")
+        if comparison.get("guard_score_source") != acceptance_evidence.guard_score_source:
+            reasons.append("decision_comparison_guard_score_source_mismatch")
+        candidate_guard_stats = _mapping(
+            comparison.get("candidate_guard_score_stats")
+        )
+        if dict(candidate_guard_stats) != dict(
+            acceptance_evidence.guard_score_stats
+        ):
+            reasons.append("decision_comparison_candidate_guard_stats_mismatch")
+        max_regression = _finite_number(comparison.get("guard_max_regression"))
+        best_guard = _finite_number(comparison.get("current_best_guard_score"))
+        guard_delta = _finite_number(comparison.get("guard_delta"))
+        effective_regression = _finite_number(
+            comparison.get("guard_regression_threshold")
+        )
+        guard_met = comparison.get("guard_met")
+        if (
+            max_regression is None
+            or acceptance_protocol.guard_max_regression is None
+            or not _numbers_match(
+                max_regression,
+                acceptance_protocol.guard_max_regression,
+            )
+        ):
+            reasons.append("decision_comparison_guard_regression_mismatch")
+        if (
+            candidate_guard is not None
+            and best_guard is not None
+            and max_regression is not None
+        ):
+            expected_guard_delta = candidate_guard - best_guard
+            if guard_delta is None or not _numbers_match(
+                guard_delta,
+                expected_guard_delta,
+            ):
+                reasons.append("decision_comparison_guard_delta_mismatch")
+            try:
+                threshold_result = guard_regression_threshold(
+                    acceptance_protocol,
+                    candidate_guard_score=candidate_guard,
+                    best_guard_score=best_guard,
+                    candidate_guard_score_samples=(
+                        acceptance_evidence.guard_score_samples
+                    ),
+                    best_guard_score_samples=_mapping(
+                        comparison.get("best_guard_score_stats")
+                    ).get("score_samples"),
+                )
+            except ValueError:
+                reasons.append("decision_comparison_guard_threshold_invalid")
+            else:
+                if effective_regression is None or not _numbers_match(
+                    effective_regression,
+                    threshold_result.threshold,
+                ):
+                    reasons.append("decision_comparison_guard_threshold_mismatch")
+                if not threshold_components_match(
+                    comparison.get("guard_threshold_components"),
+                    threshold_result.to_public_dict(),
+                ):
+                    reasons.append(
+                        "decision_comparison_guard_threshold_components_mismatch"
+                    )
+                expected_guard_met = (
+                    candidate_guard >= best_guard - threshold_result.threshold
+                )
+                if guard_met is not expected_guard_met:
+                    reasons.append("decision_comparison_guard_met_mismatch")
+        elif (
+            guard_delta is not None
+            or effective_regression is not None
+            or bool(_mapping(comparison.get("guard_threshold_components")))
+            or guard_met is not None
+        ):
+            reasons.append("decision_comparison_guard_fields_without_bound_scores")
 
     delta_fields_present = any(
         key in comparison for key in ("delta", "threshold", "delta_met")
@@ -693,7 +959,13 @@ def _comparison_reasons(
                 reasons.append("decision_comparison_delta_fields_invalid")
         elif not isinstance(delta_met, bool):
             reasons.append("decision_comparison_delta_fields_invalid")
-        elif delta_met != (delta > threshold):
+        elif (
+            acceptance_protocol is not None
+            and delta_met
+            != acceptance_delta_met(acceptance_protocol, delta, threshold)
+        ):
+            reasons.append("decision_comparison_delta_met_mismatch")
+        elif acceptance_protocol is None and delta_met != (delta > threshold):
             reasons.append("decision_comparison_delta_met_mismatch")
         current_best_score = _finite_number(comparison.get("current_best_score"))
         if candidate_score is not None and current_best_score is not None:
@@ -713,12 +985,37 @@ def _reason_evidence_reasons(
     metrics: Mapping[str, Any],
     comparison: Mapping[str, Any],
     acceptance_evidence: AcceptanceEvidenceValidation,
+    acceptance_protocol: AcceptanceProtocol | None,
 ) -> list[str]:
     consistent = True
     if reason == "absolute_accept_floor":
         consistent = _absolute_floor_consistent(comparison, accepted=True)
+    elif reason == "absolute_and_guard_accept_floors":
+        consistent = _guarded_absolute_floor_consistent(comparison, accepted=True)
     elif reason == "absolute_accept_floor_not_met":
         consistent = _absolute_floor_consistent(comparison, accepted=False)
+    elif reason == "absolute_or_guard_accept_floor_not_met":
+        consistent = _guarded_absolute_floor_consistent(comparison, accepted=False)
+    elif reason in ACCEPTANCE_DELTA_ACCEPT_REASONS:
+        consistent = (
+            comparison.get("mode") in {"accepted", "reference"}
+            and comparison.get("delta_met") is True
+            and (
+                acceptance_protocol is None
+                or reason
+                == acceptance_delta_reason(acceptance_protocol, accepted=True)
+            )
+        )
+    elif reason in ACCEPTANCE_DELTA_REJECT_REASONS:
+        consistent = (
+            comparison.get("mode") in {"accepted", "reference"}
+            and comparison.get("delta_met") is False
+            and (
+                acceptance_protocol is None
+                or reason
+                == acceptance_delta_reason(acceptance_protocol, accepted=False)
+            )
+        )
     elif reason in _DELTA_ACCEPT_REASONS:
         consistent = (
             comparison.get("mode") in {"accepted", "reference"}
@@ -728,6 +1025,11 @@ def _reason_evidence_reasons(
         consistent = (
             comparison.get("mode") in {"accepted", "reference"}
             and comparison.get("delta_met") is False
+        )
+    elif reason == "guard_score_regression":
+        consistent = (
+            comparison.get("mode") in {"accepted", "reference"}
+            and comparison.get("guard_met") is False
         )
     elif reason in _ACCEPTANCE_REJECT_REASONS:
         consistent = acceptance_evidence.reject_reason == reason
@@ -782,6 +1084,27 @@ def _absolute_floor_consistent(
     if comparison.get("mode") != "bootstrap" or candidate_score is None or floor is None:
         return False
     return candidate_score >= floor if accepted else candidate_score < floor
+
+
+def _guarded_absolute_floor_consistent(
+    comparison: Mapping[str, Any],
+    *,
+    accepted: bool,
+) -> bool:
+    candidate_score = _finite_number(comparison.get("candidate_score"))
+    score_floor = _finite_number(comparison.get("absolute_accept_floor"))
+    candidate_guard = _finite_number(comparison.get("candidate_guard_score"))
+    guard_floor = _finite_number(comparison.get("guard_absolute_accept_floor"))
+    if (
+        comparison.get("mode") != "bootstrap"
+        or candidate_score is None
+        or score_floor is None
+        or candidate_guard is None
+        or guard_floor is None
+    ):
+        return False
+    both_met = candidate_score >= score_floor and candidate_guard >= guard_floor
+    return both_met if accepted else not both_met
 
 
 def _mapping(value: Any) -> Mapping[str, Any]:

@@ -2,15 +2,17 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
+from functools import wraps
 from types import MappingProxyType
 from typing import Any
 
 STAIR_TERMINATION_CAPTURE_SCHEME_VERSION = (
-    "stair_term_callable_current_step_capture_v2"
+    "stair_term_callable_current_step_capture_v3"
 )
-_CAPTURE_STORE_ATTRIBUTE = "_true_rl_agent_stair_termination_capture_v2"
+_CAPTURE_STORE_ATTRIBUTE = "_true_rl_agent_stair_termination_capture_v3"
+_CAPTURE_CALLABLE_MARKER = "_true_rl_agent_stair_termination_capture_v3"
 
 
 class StairTerminationCaptureError(RuntimeError):
@@ -77,7 +79,7 @@ def install_stair_termination_capture(terminations_cfg: Any) -> tuple[str, ...]:
                 "Stair termination config contains an invalid term name"
             )
         source_func = getattr(term_cfg, "func", None)
-        if source_func is capture_stair_termination_term:
+        if getattr(source_func, _CAPTURE_CALLABLE_MARKER, False) is True:
             raise StairTerminationCaptureError(
                 f"Stair termination term {term_name!r} is already instrumented"
             )
@@ -94,12 +96,13 @@ def install_stair_termination_capture(terminations_cfg: Any) -> tuple[str, ...]:
             raise StairTerminationCaptureError(
                 f"Stair termination term {term_name!r} params must be a mapping"
             )
-        term_cfg.func = capture_stair_termination_term
-        term_cfg.params = {
-            "term_name": term_name,
-            "source_func": source_func,
-            "source_params": source_params,
-        }
+        term_cfg.func = _build_captured_termination_callable(
+            term_name=term_name,
+            source_func=source_func,
+        )
+        # Isaac Lab resolves SceneEntityCfg values only at the top level of
+        # term_cfg.params. Keep the original parameter shape intact.
+        term_cfg.params = source_params
         installed.append(term_name)
 
     if not installed:
@@ -111,6 +114,179 @@ def install_stair_termination_capture(terminations_cfg: Any) -> tuple[str, ...]:
             "Stair termination config contains duplicate term names"
         )
     return tuple(installed)
+
+
+def is_stair_termination_capture_callable(value: Any) -> bool:
+    """Return whether a termination callable has task-owned capture installed."""
+
+    return callable(value) and getattr(value, _CAPTURE_CALLABLE_MARKER, False) is True
+
+
+def stair_termination_manager_resolution_contract(
+    protocol: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Derive the expected resolved V1 base-contact shape from the protocol."""
+
+    try:
+        termination_schema = protocol["phase0_probe"]["termination_schema"]
+        terms = termination_schema["terms"]
+    except (KeyError, TypeError) as exc:
+        raise StairTerminationCaptureError(
+            "Stair protocol termination contract is incomplete"
+        ) from exc
+    if not isinstance(termination_schema, Mapping) or not isinstance(terms, list):
+        raise StairTerminationCaptureError("Stair protocol termination schema is invalid")
+    active_terms = [term.get("manager_term") for term in terms]
+    if active_terms != ["time_out", "base_contact"]:
+        raise StairTerminationCaptureError(
+            "Stair V1 termination terms must be time_out and base_contact"
+        )
+    base_term = terms[1]
+    base_params = base_term.get("parameters")
+    if not isinstance(base_params, Mapping) or set(base_params) != {
+        "sensor_cfg",
+        "threshold",
+    }:
+        raise StairTerminationCaptureError(
+            "Stair V1 base_contact parameters are invalid"
+        )
+    sensor = base_params["sensor_cfg"]
+    if not isinstance(sensor, Mapping) or set(sensor) != {"name", "body_names"}:
+        raise StairTerminationCaptureError(
+            "Stair V1 base_contact sensor declaration is invalid"
+        )
+    body_names = _canonical_string_sequence(
+        sensor.get("body_names"),
+        "Stair V1 base_contact body_names",
+    )
+    return {
+        "schema_version": (
+            "true_rl_agent.task.stair_climbing."
+            "termination_manager_resolution.v1"
+        ),
+        "status": "pass",
+        "termination_schema_hash": _canonical_text(
+            termination_schema.get("schema_hash"),
+            "termination schema_hash",
+        ),
+        "active_terms": active_terms,
+        "base_contact": {
+            "scene_entity_name": _canonical_text(
+                sensor.get("name"),
+                "base_contact sensor name",
+            ),
+            "body_names": list(body_names),
+            "manager_scene_body_resolution": "match",
+        },
+    }
+
+
+def verify_stair_termination_manager_resolution(
+    env: Any,
+    *,
+    protocol: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Verify Isaac resolved every task termination parameter as declared."""
+
+    expected = stair_termination_manager_resolution_contract(protocol)
+    manager = getattr(env, "termination_manager", None)
+    if manager is None:
+        raise StairTerminationCaptureError("Stair environment has no termination manager")
+    if list(_active_term_order(manager)) != expected["active_terms"]:
+        raise StairTerminationCaptureError(
+            "Stair termination manager active term order drifted"
+        )
+    get_term_cfg = getattr(manager, "get_term_cfg", None)
+    if not callable(get_term_cfg):
+        raise StairTerminationCaptureError(
+            "Stair termination manager does not expose term configs"
+        )
+    scene = getattr(env, "scene", None)
+    if scene is None:
+        raise StairTerminationCaptureError("Stair environment has no scene")
+    declared_terms = protocol["phase0_probe"]["termination_schema"]["terms"]
+    for declared in declared_terms:
+        term_name = declared["manager_term"]
+        term_cfg = get_term_cfg(term_name)
+        if not is_stair_termination_capture_callable(getattr(term_cfg, "func", None)):
+            raise StairTerminationCaptureError(
+                f"Stair termination term {term_name!r} is not capture-instrumented"
+            )
+        if getattr(term_cfg, "time_out", None) is not declared["time_out"]:
+            raise StairTerminationCaptureError(
+                "Stair termination manager timeout classification drifted"
+            )
+        runtime_params = getattr(term_cfg, "params", None)
+        if not isinstance(runtime_params, Mapping):
+            raise StairTerminationCaptureError(
+                "Stair termination manager params are not a top-level mapping"
+            )
+        declared_params = declared["parameters"]
+        if set(runtime_params) != set(declared_params):
+            raise StairTerminationCaptureError(
+                "Stair termination manager top-level parameter shape drifted"
+            )
+        if term_name == "time_out" and runtime_params:
+            raise StairTerminationCaptureError("Stair time_out parameters drifted")
+    base_cfg = get_term_cfg("base_contact")
+    if base_cfg.params["threshold"] != declared_terms[1]["parameters"]["threshold"]:
+        raise StairTerminationCaptureError("Stair base_contact threshold drifted")
+    sensor_cfg = base_cfg.params["sensor_cfg"]
+    resolved = expected["base_contact"]
+    runtime_name = getattr(sensor_cfg, "name", None)
+    runtime_body_names = _canonical_string_sequence(
+        getattr(sensor_cfg, "body_names", None),
+        "runtime base_contact body_names",
+    )
+    runtime_body_ids = _canonical_int_sequence(
+        getattr(sensor_cfg, "body_ids", None),
+        "runtime base_contact body_ids",
+    )
+    if (
+        runtime_name != resolved["scene_entity_name"]
+        or list(runtime_body_names) != resolved["body_names"]
+    ):
+        raise StairTerminationCaptureError(
+            "Stair termination SceneEntityCfg resolution drifted"
+        )
+    try:
+        scene_entity = scene[runtime_name]
+    except (KeyError, TypeError) as exc:
+        raise StairTerminationCaptureError(
+            "Stair termination SceneEntityCfg scene entity is missing"
+        ) from exc
+    resolved_ids, resolved_names = scene_entity.find_bodies(
+        list(runtime_body_names),
+        preserve_order=True,
+    )
+    if (
+        list(_canonical_string_sequence(resolved_names, "resolved body names"))
+        != resolved["body_names"]
+        or _canonical_int_sequence(resolved_ids, "resolved body ids")
+        != runtime_body_ids
+    ):
+        raise StairTerminationCaptureError(
+            "Stair termination scene body resolution drifted"
+        )
+    return expected
+
+
+def _build_captured_termination_callable(
+    *,
+    term_name: str,
+    source_func: Callable[..., Any],
+) -> Callable[..., Any]:
+    @wraps(source_func)
+    def captured(env: Any, **source_params: Any) -> Any:
+        return capture_stair_termination_term(
+            env,
+            term_name=term_name,
+            source_func=source_func,
+            source_params=source_params,
+        )
+
+    setattr(captured, _CAPTURE_CALLABLE_MARKER, True)
+    return captured
 
 
 def capture_stair_termination_term(
@@ -343,6 +519,29 @@ def _mask_equal(left: Any, right: Any) -> bool:
         ) from exc
 
 
+def _canonical_text(value: Any, field_name: str) -> str:
+    if not isinstance(value, str) or not value or value != value.strip():
+        raise StairTerminationCaptureError(f"Stair {field_name} must be canonical text")
+    return value
+
+
+def _canonical_string_sequence(value: Any, field_name: str) -> tuple[str, ...]:
+    if isinstance(value, str) or not isinstance(value, Sequence) or not value:
+        raise StairTerminationCaptureError(f"{field_name} must be a string sequence")
+    result = tuple(_canonical_text(item, field_name) for item in value)
+    if len(result) != len(set(result)):
+        raise StairTerminationCaptureError(f"{field_name} must be unique")
+    return result
+
+
+def _canonical_int_sequence(value: Any, field_name: str) -> tuple[int, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence) or not value:
+        raise StairTerminationCaptureError(f"{field_name} must be an integer sequence")
+    if any(isinstance(item, bool) or not isinstance(item, int) for item in value):
+        raise StairTerminationCaptureError(f"{field_name} must contain integers")
+    return tuple(value)
+
+
 __all__ = [
     "STAIR_TERMINATION_CAPTURE_SCHEME_VERSION",
     "StairTerminationCaptureError",
@@ -351,4 +550,7 @@ __all__ = [
     "capture_current_termination_masks",
     "capture_stair_termination_term",
     "install_stair_termination_capture",
+    "is_stair_termination_capture_callable",
+    "stair_termination_manager_resolution_contract",
+    "verify_stair_termination_manager_resolution",
 ]

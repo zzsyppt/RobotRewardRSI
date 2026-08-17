@@ -27,6 +27,19 @@ from tests.fakes.decision_records import (
     valid_accepted_ledger_record,
     valid_runtime_failed_ledger_record,
 )
+from true_rl_agent.agent_core.experiment_memory import (
+    build_experiment_memory,
+    recompact_experiment_memory,
+)
+from true_rl_agent.agent_core.ledger import (
+    LEDGER_RECORD_SCHEMA_VERSION,
+    PROVIDER_AUTHORING_MODE,
+)
+from true_rl_agent.candidates.authoring_policy import (
+    CANDIDATE_MECHANISM_DELTA_SCHEMA_VERSION,
+    MAX_CANONICAL_COMPONENT_NAME_CHARS,
+)
+from true_rl_agent.candidates.mechanism import MECHANISM_ATTRIBUTION_SCHEMA_VERSION
 from true_rl_agent.candidates.prompt_projection import assert_public_only_prompt_payload
 from true_rl_agent.evaluation.acceptance_replay import project_public_history
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
@@ -364,13 +377,42 @@ class MemoryContextPhase13Tests(unittest.TestCase):
 
         builder = PublicContextBuilder()
         context = builder.build([valid, forged])
-        history = builder.build_prompt_payload([valid, forged])["public_history"][
-            "recent_outcomes"
-        ][-1]
+        public_history = builder.build_prompt_payload([valid, forged])["public_history"]
+        history = public_history["recent_outcomes"][-1]
 
         self.assertEqual(context["best_public_score"], 0.25)
+        self.assertEqual(
+            public_history["public_score_source"],
+            TEST_ACCEPTANCE_PROTOCOL.public_score_source,
+        )
         self.assertIsNone(history.get("public_score"))
+        self.assertNotIn("public_score_source", history)
         self.assertNotIn("0.99", json.dumps(history, sort_keys=True))
+
+    def test_public_history_labels_bound_score_source(self) -> None:
+        record = valid_accepted_ledger_record(
+            round_id="round-score-source",
+            candidate_id="candidate-score-source",
+            public_score=0.25,
+        )
+
+        public_history = PublicContextBuilder().build_prompt_payload([record])[
+            "public_history"
+        ]
+        entry = public_history["recent_outcomes"][-1]
+
+        self.assertEqual(
+            public_history["public_score_source"],
+            TEST_ACCEPTANCE_PROTOCOL.public_score_source,
+        )
+        self.assertEqual(
+            entry["public_score_source"],
+            TEST_ACCEPTANCE_PROTOCOL.public_score_source,
+        )
+        self.assertEqual(
+            entry["comparison"]["public_score_source"],
+            TEST_ACCEPTANCE_PROTOCOL.public_score_source,
+        )
 
     def test_invalid_declared_accept_is_fail_closed_in_public_history(self) -> None:
         record = valid_accepted_ledger_record(
@@ -452,7 +494,10 @@ class MemoryContextPhase13Tests(unittest.TestCase):
             saved_text = prompt_path.read_text(encoding="utf-8")
 
         self.assertEqual(saved, payload)
-        self.assertTrue(saved_text.startswith('{\n  "task":'), saved_text[:80])
+        self.assertTrue(
+            saved_text.startswith('{\n  "schema_version":'),
+            saved_text[:80],
+        )
         self.assertEqual(ref.visibility, "public_prompt_payload")
         self.assertEqual(ref.to_public_dict()["path"], str(prompt_path))
 
@@ -506,10 +551,9 @@ class MemoryContextPhase13Tests(unittest.TestCase):
             round_id="round-raw-mapping",
             candidate_id="candidate-raw-mapping",
         )
-        record["runner_error"] = {
-            "type": "CandidateRuntimeError",
-            "message": "failed at D:/humanoid_agent/private/raw.txt",
-        }
+        record["runner_error"]["message"] = (
+            "failed at D:/humanoid_agent/private/raw.txt"
+        )
         record["raw_seed_id"] = "public-dev-seed-001"
         payload = PublicContextBuilder().build_prompt_payload(
             [record]
@@ -590,9 +634,8 @@ class MemoryContextPhase13Tests(unittest.TestCase):
                     }
                 },
                 "runner_error": {
-                    "type": "CandidateRuntimeError",
+                    "type": "RunnerExecutionError",
                     "message": "failed at /data/yuyangliu/secrets/raw.txt and D:/humanoid_agent/private/raw.txt",
-                    "details": {"status": "fail"},
                 },
             }
         )
@@ -607,13 +650,16 @@ class MemoryContextPhase13Tests(unittest.TestCase):
         self.assertEqual(entry["surface_classification"], "code_level")
         self.assertNotIn("public_score", entry)
         self.assertEqual(entry["changed_components"], ["diagnostic", "reward_callable"])
-        self.assertIs(entry["candidate_package_loaded"], True)
+        self.assertIs(
+            entry["candidate_runtime_activated_in_training"],
+            True,
+        )
         self.assertIs(entry["candidate_code_loaded_in_eval"], False)
         self.assertEqual(entry["runtime_activation"]["reward_term_calls"], 3)
         self.assertEqual(entry["runtime_activation"]["diagnostic_calls"], 1)
         self.assertIs(entry["runtime_activation"]["nonzero_reward_contribution"], False)
         self.assertEqual(entry["mechanism_attribution"]["status"], "attribution_unclear")
-        self.assertEqual(entry["runner_error"]["type"], "CandidateRuntimeError")
+        self.assertEqual(entry["runner_error"]["type"], "RunnerExecutionError")
         self.assertIn("[path]", entry["runner_error"]["message"])
         self.assertNotIn("/data/yuyangliu", payload_text)
         self.assertNotIn("D:/humanoid_agent", payload_text)
@@ -677,6 +723,12 @@ class MemoryContextPhase13Tests(unittest.TestCase):
                     "metrics": {
                         "candidate_package_loaded": False,
                         "candidate_code_loaded_in_eval": False,
+                        "prompt_feedback": {
+                            "dominant_failure": {
+                                "reason": "base_contact",
+                                "rate": 1.0,
+                            }
+                        },
                     },
                 },
             }
@@ -685,7 +737,98 @@ class MemoryContextPhase13Tests(unittest.TestCase):
         payload = PublicContextBuilder().build_prompt_payload([record])
         entry = payload["public_history"]["recent_outcomes"][-1]
 
-        self.assertIs(entry["candidate_package_loaded"], True)
+        self.assertIs(
+            entry["candidate_runtime_activated_in_training"],
+            True,
+        )
+        self.assertIs(entry["candidate_code_loaded_in_eval"], False)
+        self.assertEqual(
+            entry["dominant_failure"],
+            {"reason": "base_contact", "rate": 1.0},
+        )
+
+    def test_prompt_public_history_uses_runtime_gate_not_eval_isolation_for_training_activation(
+        self,
+    ) -> None:
+        record = ExperimentRecord.from_ledger_record(
+            {
+                "round_id": "stair-runtime-round",
+                "task": {"task_id": "unitree_stair_climbing"},
+                "decision": {
+                    "accepted": False,
+                    "outcome": "reject",
+                    "reason": "required_gate_failed",
+                },
+                "candidate": {"candidate_id": "stair-runtime-candidate"},
+                "train_result": {"summary": {}},
+                "runtime_activation_gate": {
+                    "status": "pass",
+                    "reason": "mechanism_observed",
+                },
+                "runtime_activation_summary": {
+                    "reward_term_calls": 864018,
+                    "diagnostic_calls": 0,
+                    "nonzero_reward_contribution": True,
+                    "capability_activation_records": [
+                        "complete_reward_program"
+                    ],
+                },
+                "public_result": {
+                    "status": "pass",
+                    "public_score": 0.25,
+                    "metrics": {
+                        "candidate_package_loaded": False,
+                        "candidate_code_loaded_in_eval": False,
+                    },
+                },
+            }
+        )
+
+        payload = PublicContextBuilder().build_prompt_payload([record])
+        entry = payload["public_history"]["recent_outcomes"][-1]
+
+        self.assertEqual(
+            payload["public_history"]["schema_version"],
+            "true_rl_agent.public_history.v3",
+        )
+        self.assertNotIn("candidate_package_loaded", entry)
+        self.assertIs(
+            entry["candidate_runtime_activated_in_training"],
+            True,
+        )
+        self.assertIs(entry["candidate_code_loaded_in_eval"], False)
+
+    def test_prompt_public_history_does_not_relabel_eval_isolation_as_training_failure(
+        self,
+    ) -> None:
+        record = ExperimentRecord.from_ledger_record(
+            {
+                "round_id": "eval-only-isolation",
+                "candidate": {"candidate_id": "candidate"},
+                "decision": {
+                    "accepted": False,
+                    "outcome": "reject",
+                    "reason": "eval_incomplete",
+                },
+                "public_result": {
+                    "status": "pass",
+                    "public_score": 0.1,
+                    "metrics": {
+                        "candidate_package_loaded": False,
+                        "candidate_code_loaded_in_eval": False,
+                    },
+                },
+            }
+        )
+
+        entry = PublicContextBuilder().build_prompt_payload([record])[
+            "public_history"
+        ]["recent_outcomes"][-1]
+
+        self.assertEqual(
+            entry["candidate_runtime_activated_in_training"],
+            "unknown",
+        )
         self.assertIs(entry["candidate_code_loaded_in_eval"], False)
 
     def test_prompt_public_history_projects_provider_repair_failure(self) -> None:
@@ -991,11 +1134,420 @@ class MemoryContextPhase13Tests(unittest.TestCase):
         )
         self.assertLessEqual(len(experiments), memory["limits"]["max_rounds"])
         self.assertLessEqual(
-            canonical_prompt_json_bytes(experiments),
+            canonical_prompt_json_bytes(memory),
             memory["limits"]["max_serialized_bytes"],
         )
         self.assertNotIn("raw_seed", payload_text)
         self.assertNotIn("must_not_leak", payload_text)
+
+    def test_runtime_component_projection_drops_invalid_oversized_identity(self) -> None:
+        valid_name = "n" * MAX_CANONICAL_COMPONENT_NAME_CHARS
+        memory = build_experiment_memory(
+            [
+                {
+                    "round_id": "round-name-boundary",
+                    "candidate": {"candidate_id": "candidate-name-boundary"},
+                    "decision": {"accepted": False, "reason": "test"},
+                    "runtime_activation_summary": {
+                        "component_activation_records": [
+                            {
+                                "component_kind": "reward_term",
+                                "name": valid_name,
+                                "max_abs_weighted_contribution": 2.0,
+                            },
+                            {
+                                "component_kind": "reward_term",
+                                "name": valid_name + "n",
+                                "max_abs_weighted_contribution": 3.0,
+                            },
+                        ]
+                    },
+                }
+            ]
+        )
+
+        self.assertEqual(
+            memory["experiments"][0]["activated_components"],
+            [{"kind": "reward_term", "name": valid_name, "max_abs": 2.0}],
+        )
+
+    def test_experiment_memory_keeps_objective_and_guard_scores_unambiguous(
+        self,
+    ) -> None:
+        memory = build_experiment_memory(
+            [
+                {
+                    "candidate": {"candidate_id": "guarded-candidate"},
+                    "decision": {
+                        "accepted": False,
+                        "reason": "guard_score_regression",
+                        "public_score": 0.91,
+                        "comparison": {
+                            "score_source": "acceptance_objective.score_stats.mean",
+                            "candidate_score": 0.73,
+                            "current_best_score": 0.70,
+                            "delta": 0.03,
+                            "guard_score_source": "public_accept.score_stats.mean",
+                            "candidate_guard_score": 0.91,
+                            "current_best_guard_score": 0.95,
+                            "guard_delta": -0.04,
+                        },
+                    },
+                }
+            ]
+        )
+
+        entry = memory["experiments"][0]
+        self.assertEqual(
+            memory["schema_version"],
+            "true_rl_agent.experiment_memory.v3",
+        )
+        self.assertEqual(entry["objective_score"], 0.73)
+        self.assertEqual(
+            entry["objective_score_source"],
+            "acceptance_objective.score_stats.mean",
+        )
+        self.assertEqual(entry["objective_current_best_score"], 0.70)
+        self.assertEqual(entry["objective_delta"], 0.03)
+        self.assertEqual(entry["guard_score"], 0.91)
+        self.assertEqual(
+            entry["guard_score_source"],
+            "public_accept.score_stats.mean",
+        )
+        self.assertEqual(entry["guard_current_best_score"], 0.95)
+        self.assertEqual(entry["guard_delta"], -0.04)
+        self.assertNotIn("score", entry)
+        self.assertNotIn("delta", entry)
+        self.assertIn(
+            "not evidence of inactivity",
+            memory["component_value_semantics"]["last_mean"],
+        )
+
+        payload = PublicContextBuilder().build_prompt_payload([])
+        guidance = " ".join(payload["loop_contract"]["evidence_discipline"])
+        self.assertIn("never infer", guidance)
+        self.assertIn("last_mean", guidance)
+
+    def test_experiment_memory_keeps_salient_late_components(self) -> None:
+        components = [
+            {
+                "component_kind": "reward_term",
+                "name": f"source_order_{index}",
+                "last_weighted_mean": 0.01 * index,
+                "max_abs_weighted_contribution": 0.1 * index,
+            }
+            for index in range(10)
+        ]
+        components.append(
+            {
+                "component_kind": "reward_term",
+                "name": "late_dominant_term",
+                "last_weighted_mean": -4.0,
+                "max_abs_weighted_contribution": 100.0,
+            }
+        )
+        record = ExperimentRecord.from_ledger_record(
+            {
+                "round_id": "round-salience",
+                "candidate": {"candidate_id": "candidate-salience"},
+                "decision": {
+                    "accepted": False,
+                    "outcome": "reject",
+                    "reason": "noise_aware_delta_not_met",
+                    "surface_classification": "code_level",
+                },
+                "runtime_activation_summary": {
+                    "component_activation_records": components,
+                },
+            }
+        )
+
+        payload = PublicContextBuilder().build_prompt_payload([record])
+        memory = payload["public_history"]["experiment_memory"]
+        selected = memory["experiments"][0]["activated_components"]
+
+        self.assertEqual(
+            len(selected),
+            memory["limits"]["max_components_per_round"],
+        )
+        self.assertEqual(selected[0]["name"], "late_dominant_term")
+        self.assertNotIn(
+            "source_order_0",
+            {component["name"] for component in selected},
+        )
+
+    def test_experiment_memory_preserves_candidate_runtime_name_delta(self) -> None:
+        def record(
+            round_id: str,
+            candidate_id: str,
+            *,
+            accepted: bool,
+            extra_name: str,
+            extra_max_abs: float,
+        ) -> dict:
+            return {
+                "round_id": round_id,
+                "candidate": {"candidate_id": candidate_id},
+                "decision": {
+                    "accepted": accepted,
+                    "outcome": "accept" if accepted else "reject",
+                    "reason": "test",
+                    "surface_classification": "code_level",
+                },
+                "runtime_activation_summary": {
+                    "component_activation_records": [
+                        {
+                            "component_kind": "reward_term",
+                            "name": f"baseline_{index}",
+                            "max_abs_weighted_contribution": 100.0 - index,
+                        }
+                        for index in range(10)
+                    ]
+                    + [
+                        {
+                            "component_kind": "reward_term",
+                            "name": extra_name,
+                            "last_weighted_mean": 0.0,
+                            "max_abs_weighted_contribution": extra_max_abs,
+                        }
+                    ]
+                },
+            }
+
+        memory = build_experiment_memory(
+            [
+                record(
+                    "round-001",
+                    "first-rejected",
+                    accepted=False,
+                    extra_name="first_attempt_term",
+                    extra_max_abs=0.5,
+                ),
+                record(
+                    "round-002",
+                    "accepted-head",
+                    accepted=True,
+                    extra_name="accepted_term",
+                    extra_max_abs=0.2,
+                ),
+                record(
+                    "round-003",
+                    "tiny-rejected-delta",
+                    accepted=False,
+                    extra_name="tiny_candidate_term",
+                    extra_max_abs=0.01,
+                ),
+            ]
+        )
+
+        experiments = memory["experiments"]
+        self.assertEqual(
+            experiments[1]["candidate_components"],
+            [
+                {
+                    "kind": "reward_term",
+                    "name": "accepted_term",
+                    "last_mean": 0.0,
+                    "max_abs": 0.2,
+                }
+            ],
+        )
+        self.assertEqual(
+            experiments[2]["candidate_components"],
+            [
+                {
+                    "kind": "reward_term",
+                    "name": "tiny_candidate_term",
+                    "last_mean": 0.0,
+                    "max_abs": 0.01,
+                }
+            ],
+        )
+        self.assertNotIn(
+            "tiny_candidate_term",
+            {
+                component["name"]
+                for component in experiments[2]["activated_components"]
+            },
+        )
+
+    def test_first_accepted_authoring_delta_survives_runtime_salience_limit(self) -> None:
+        runtime_components = [
+            {
+                "component_kind": "reward_term",
+                "name": f"baseline_{index}",
+                "max_abs_weighted_contribution": 100.0 - index,
+            }
+            for index in range(10)
+        ] + [
+            {
+                "component_kind": "reward_term",
+                "name": "progress_reward",
+                "last_weighted_mean": 0.08,
+                "max_abs_weighted_contribution": 0.2,
+            }
+        ]
+        first_record = {
+                    "schema_version": LEDGER_RECORD_SCHEMA_VERSION,
+                    "authoring_mode": PROVIDER_AUTHORING_MODE,
+                    "round_id": "round-001",
+                    "candidate": {"candidate_id": "first-accepted"},
+                    "decision": {
+                        "accepted": True,
+                        "reason": "test",
+                        "surface_classification": "code_level",
+                    },
+                    "mechanism_attribution": {
+                        "schema_version": MECHANISM_ATTRIBUTION_SCHEMA_VERSION,
+                        "authoring_mechanism_delta": {
+                            "schema_version": CANDIDATE_MECHANISM_DELTA_SCHEMA_VERSION,
+                            "changed_mechanisms": [
+                                "RewardTerm:progress_reward"
+                            ],
+                        }
+                    },
+                    "runtime_activation_summary": {
+                        "component_activation_records": runtime_components,
+                    },
+                }
+        memory = build_experiment_memory([first_record])
+
+        entry = memory["experiments"][0]
+        self.assertEqual(
+            entry["candidate_components"],
+            [
+                {
+                    "mechanism": "RewardTerm:progress_reward",
+                    "last_mean": 0.08,
+                    "max_abs": 0.2,
+                }
+            ],
+        )
+        self.assertEqual(len(entry["activated_components"]), 8)
+        self.assertNotIn(
+            "progress_reward",
+            {
+                component["name"]
+                for component in entry["activated_components"]
+            },
+        )
+
+        stressed_records = [first_record]
+        for index in range(2, 21):
+            stressed_records.append(
+                {
+                    "round_id": f"round-{index:03d}",
+                    "candidate": {"candidate_id": f"candidate-{index:03d}"},
+                    "decision": {
+                        "accepted": False,
+                        "reason": "x" * 500,
+                        "surface_classification": "code_level",
+                        "gate_statuses": {
+                            f"gate-{gate}-" + ("y" * 490): "fail"
+                            for gate in range(8)
+                        },
+                    },
+                    "runtime_activation_summary": {
+                        "component_activation_records": [
+                            {
+                                "component_kind": "reward_term",
+                                "name": f"stress_{component}_" + ("z" * 470),
+                                "max_abs_weighted_contribution": component + 1.0,
+                            }
+                            for component in range(8)
+                        ]
+                    },
+                }
+            )
+        stressed_memory = build_experiment_memory(stressed_records)
+        accepted_entry = next(
+            item
+            for item in stressed_memory["experiments"]
+            if item.get("candidate_id") == "first-accepted"
+        )
+        self.assertEqual(
+            accepted_entry["candidate_components"][0]["mechanism"],
+            "RewardTerm:progress_reward",
+        )
+
+    def test_recompact_uses_canonical_mechanism_as_candidate_identity(self) -> None:
+        memory = {
+            "schema_version": "true_rl_agent.experiment_memory.v3",
+            "experiments": [
+                {
+                    "round_index": 1,
+                    "candidate_components": [
+                        {
+                            "mechanism": "RewardTerm:progress_reward",
+                            "kind": "reward_term",
+                            "name": "forged_name",
+                            "last_mean": 0.08,
+                        }
+                    ],
+                }
+            ],
+        }
+        compact = recompact_experiment_memory(memory)
+        self.assertEqual(
+            compact["experiments"][0]["candidate_components"],
+            [
+                {
+                    "mechanism": "RewardTerm:progress_reward",
+                    "last_mean": 0.08,
+                }
+            ],
+        )
+
+        memory["experiments"][0]["candidate_components"][0][
+            "mechanism"
+        ] = "not-canonical"
+        with self.assertRaisesRegex(ValueError, "not canonical"):
+            recompact_experiment_memory(memory)
+
+    def test_experiment_memory_full_byte_limit_preserves_latest_accepted_and_latest(self) -> None:
+        records = []
+        for index in range(20):
+            records.append(
+                {
+                    "candidate": {"candidate_id": f"candidate-{index:03d}"},
+                    "decision": {
+                        "accepted": index == 1,
+                        "reason": f"reason-{index}-" + ("x" * 490),
+                        "public_score": index / 100,
+                        "surface_classification": "code_level",
+                        "gate_statuses": {
+                            f"gate-{gate_index}-" + ("y" * 120): "fail"
+                            for gate_index in range(8)
+                        },
+                    },
+                    "runtime_activation_summary": {
+                        "component_activation_records": [
+                            {
+                                "component_kind": "reward_term",
+                                "name": f"term-{index}-{component_index}-" + ("z" * 480),
+                                "effective_weight": 1.0,
+                                "last_weighted_mean": 0.1,
+                                "max_abs_weighted_contribution": 1.0,
+                            }
+                            for component_index in range(8)
+                        ]
+                    },
+                }
+            )
+
+        memory = build_experiment_memory(records)
+        candidate_ids = [
+            experiment["candidate_id"]
+            for experiment in memory["experiments"]
+        ]
+
+        self.assertLessEqual(
+            canonical_prompt_json_bytes(memory),
+            memory["limits"]["max_serialized_bytes"],
+        )
+        self.assertIn("candidate-001", candidate_ids)
+        self.assertEqual(candidate_ids[-1], "candidate-019")
+        self.assertGreater(memory["omitted_experiment_count"], 0)
 
     def test_direct_prompt_payload_public_history_uses_fixed_allowlist(self) -> None:
         payload = assemble_prompt_payload(

@@ -22,10 +22,27 @@ from true_rl_agent.composition import (
 from true_rl_agent.tasks.push_recovery.composition import (
     PushRecoveryCompositionProvider,
 )
-from true_rl_agent.tasks.push_recovery.loop_audit import run_push_recovery_loop_audit
+from true_rl_agent.tasks.push_recovery.loop_audit import (
+    AuditCandidateSpec,
+    run_push_recovery_loop_audit,
+)
 
 
 class DryRunAuditLoopTests(unittest.TestCase):
+    def test_audit_candidate_identity_is_validated_before_materialization(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            package_root = Path(tmp)
+            with self.assertRaisesRegex(ValueError, "audit candidate_id"):
+                AuditCandidateSpec(
+                    candidate_id="../escape",
+                    changed_components=("reward_callable",),
+                    public_score=0.1,
+                    failure_breakdown={},
+                    task_eval_metadata={},
+                )
+
+            self.assertEqual(list(package_root.iterdir()), [])
+
     def test_fifteen_round_audit_saves_public_prompts_and_blocks_tuning_accepts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = Path(tmp)
@@ -209,7 +226,7 @@ class DryRunAuditLoopTests(unittest.TestCase):
                     "--provider-base-url",
                     "https://api.deepseek.com",
                     "--provider-model",
-                    "deepseek-v4-pro",
+                    "deepseek-v4-flash",
                     "--provider-api-key-env",
                     "DEEPSEEK_API_KEY",
                     "--provider-env-file",
@@ -233,11 +250,13 @@ class DryRunAuditLoopTests(unittest.TestCase):
             backend_config = composition.backend_adapter.config
             runner = composition.runner
 
-        self.assertEqual(provider_config.model, "deepseek-v4-pro")
+        self.assertEqual(provider_config.model, "deepseek-v4-flash")
         self.assertEqual(provider_config.api_key_env, "DEEPSEEK_API_KEY")
         self.assertEqual(provider_config.env_file, env_file)
         self.assertEqual(provider_config.output_dir, output_dir / "candidates")
-        self.assertEqual(provider_config.max_tokens, 8192)
+        self.assertEqual(provider_config.max_tokens, 32_768)
+        self.assertEqual(provider_config.reasoning_mode, "adaptive")
+        self.assertEqual(provider_config.reasoning_effort, "max")
         self.assertEqual(args.provider_max_attempts, run_loop.DEFAULT_MAX_PROVIDER_ATTEMPTS)
         self.assertEqual(args.provider_max_attempts, 5)
         self.assertEqual(backend_config.default_budget_steps, 192)
@@ -246,6 +265,56 @@ class DryRunAuditLoopTests(unittest.TestCase):
         self.assertEqual(backend_config.eval_num_envs, 8)
         self.assertEqual(backend_config.artifact_root, str(output_dir / "runner"))
         self.assertEqual(runner.allowed_executables, ("/data/yuyangliu/envs/isaaclab/bin/python",))
+
+    def test_cli_reasoning_default_is_provider_capability_aware(self) -> None:
+        run_loop = _load_script("run_loop.py")
+
+        defaults = run_loop._parse_args([])
+        self.assertEqual(defaults.provider_model, "deepseek-v4-flash")
+        self.assertEqual(defaults.provider_reasoning_effort, "max")
+
+        for model in ("deepseek-v4-pro", "deepseek-v4-flash"):
+            with self.subTest(model=model):
+                args = run_loop._parse_args(["--provider-model", model])
+                self.assertEqual(args.provider_reasoning_mode, "adaptive")
+
+        normalized = run_loop._parse_args(
+            [
+                "--provider-base-url",
+                "https://api.deepseek.com/",
+                "--provider-endpoint",
+                "chat/completions",
+                "--provider-model",
+                "deepseek-v4-pro",
+            ]
+        )
+        self.assertEqual(normalized.provider_reasoning_mode, "adaptive")
+
+        for argv in (
+            [
+                "--provider-base-url",
+                "https://provider.example.com",
+                "--provider-model",
+                "deepseek-v4-pro",
+            ],
+            ["--provider-model", "unknown-model"],
+            ["--provider-endpoint", "/responses"],
+            ["--provider-base-url", "http://api.deepseek.com"],
+        ):
+            with self.subTest(argv=argv):
+                args = run_loop._parse_args(argv)
+                self.assertEqual(args.provider_reasoning_mode, "provider_default")
+
+        explicit = run_loop._parse_args(
+            [
+                "--provider-reasoning-mode",
+                "disabled",
+                "--provider-reasoning-effort",
+                "high",
+            ]
+        )
+        self.assertEqual(explicit.provider_reasoning_mode, "disabled")
+        self.assertEqual(explicit.provider_reasoning_effort, "high")
 
     def test_live_loop_cli_defaults_to_phase8b_full_training_budget(self) -> None:
         run_loop = _load_script("run_loop.py")
@@ -439,6 +508,9 @@ def _write_materialize_candidate(
             "    )\n"
         )
     (training_code / "components.py").write_text(source, encoding="utf-8")
+    (candidate / "rationale.md").write_text("CLI materialize candidate.\n", encoding="utf-8")
+    (candidate / "operation_diff.json").write_text("{}\n", encoding="utf-8")
+    (candidate / "diagnostics.json").write_text("{}\n", encoding="utf-8")
     return candidate
 
 
