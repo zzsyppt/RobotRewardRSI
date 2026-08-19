@@ -10,6 +10,7 @@ from true_rl_agent.agent_core.generation_contract import (
     GENERATION_LANE_IDS,
     GENERATION_LEDGER_RECORD_SCHEMA_VERSION,
     GENERATION_WIDTH,
+    GenerationLaneAssignment,
     GenerationManifest,
     require_generation_lane_intent,
     require_generation_trial_status,
@@ -65,7 +66,7 @@ GENERATION_FORMAL_PROJECTION_SCHEMA_VERSION = (
     "true_rl_agent.generation_formal_projection.v1"
 )
 GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION = (
-    "true_rl_agent.generation_public_history_projection.v1"
+    "true_rl_agent.generation_public_history_projection.v2"
 )
 GENERATION_OUTCOMES = frozenset(
     {
@@ -259,6 +260,17 @@ def validate_generation_ledger_record(
                 trial,
                 private_artifacts=record.get("private_artifacts"),
             )
+        assignment = assignments[trial["lane_id"]]
+        for projection_name in ("train", "public_dev", "public_accept"):
+            projection = trial.get(projection_name)
+            if projection is not None and (
+                projection.get("execution_device") != assignment.execution_device
+                or projection.get("resource_binding_hash")
+                != assignment.resource_binding_hash
+            ):
+                raise ValueError(
+                    "generation trial resource projection differs from manifest"
+                )
         if trial["execution_record_hash"] is not None:
             _load_bound_trial_execution(
                 trial,
@@ -268,6 +280,7 @@ def validate_generation_ledger_record(
             )
         _load_bound_train_projection(
             trial,
+            assignment=assignment,
             private_artifacts=record.get("private_artifacts"),
         )
         for phase in (
@@ -277,6 +290,7 @@ def validate_generation_ledger_record(
             if trial[phase.value] is not None:
                 _load_bound_phase_projection(
                     trial,
+                    assignment=assignment,
                     phase=phase,
                     private_artifacts=record.get("private_artifacts"),
                 )
@@ -354,6 +368,7 @@ def validate_generation_ledger_record(
             raise ValueError("generation formal result requires one sealed phase receipt")
         formal_round = _load_and_validate_formal(
             formal,
+            manifest=manifest,
             private_artifacts=private_artifacts,
             selected_trial_id=selected_trial_id,
             trials=trials,
@@ -431,6 +446,7 @@ def project_generation_formal_round_record(
     trials = [_validate_trial(item) for item in record["trials"]]
     return _load_and_validate_formal(
         formal,
+        manifest=GenerationManifest.from_mapping(record.get("manifest")),
         private_artifacts=record.get("private_artifacts"),
         selected_trial_id=record["selection"]["selected_trial_id"],
         trials=trials,
@@ -463,15 +479,42 @@ def project_generation_public_history_record(
         acceptance_protocol=acceptance_protocol,
         expected_parent=expected_parent,
     )
+    public_trials: list[dict[str, Any]] = []
+    for raw_trial in record["trials"]:
+        trial = _public_copy(raw_trial)
+        if trial.get("trial_status") != "not_started":
+            _evidence, lane_intent = _load_bound_authoring_evidence(
+                raw_trial,
+                private_artifacts=record.get("private_artifacts"),
+            )
+            trial["lane_intent"] = lane_intent
+        else:
+            trial["lane_intent"] = None
+        public_trials.append(trial)
+    guard_reference = None
+    if record.get("selection") is not None:
+        selection_ref = _find_private_generation_receipt(
+            record.get("private_artifacts"),
+            artifact_kind="generation_selection_receipt",
+            receipt_kind="selection",
+            checksum=record.get("selection_receipt_checksum"),
+        )
+        loaded_selection = load_generation_selection_receipt(
+            selection_ref,
+            manifest=GenerationManifest.from_mapping(record["manifest"]),
+        )
+        guard_reference = _public_copy(loaded_selection.guard_reference)
     generation_summary = {
         "schema_version": GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION,
         "generation_id": record["generation_id"],
         "generation_index": record["generation_index"],
         "generation_outcome": record["generation_outcome"],
         "parent_current_best_hash": record["parent_current_best_hash"],
+        "parent_current_best": _public_copy(record["parent_current_best"]),
         "resulting_current_best_hash": record["resulting_current_best_hash"],
-        "trials": _public_copy(record["trials"]),
+        "trials": public_trials,
         "selection": _public_copy(record["selection"]),
+        "guard_reference": guard_reference,
         "formal": _public_copy(record["formal"]),
     }
     if formal is None:
@@ -621,8 +664,12 @@ def load_bound_generation_trial_phase_receipt(
     ]
     if len(matches) != 1:
         raise ValueError("generation phase trial is not uniquely identified")
+    manifest = GenerationManifest.from_mapping(record.get("manifest"))
+    assignments = {item.lane_id: item for item in manifest.lanes}
+    assignment = assignments[matches[0]["lane_id"]]
     return _load_bound_phase_projection(
         matches[0],
+        assignment=assignment,
         phase=phase,
         private_artifacts=record.get("private_artifacts"),
     )
@@ -742,6 +789,7 @@ def _validate_phase_projection(value: Any, *, expected_phase: str) -> None:
 def _load_and_validate_formal(
     value: Any,
     *,
+    manifest: GenerationManifest,
     private_artifacts: Any,
     selected_trial_id: Any,
     trials: Sequence[Mapping[str, Any]],
@@ -773,6 +821,14 @@ def _load_and_validate_formal(
     )
     if selected_trial is None or selected_trial["trial_id"] != selected_trial_id:
         raise ValueError("generation formal trial binding mismatch")
+    selected_assignment = next(
+        item for item in manifest.lanes if item.lane_id == selected_lane_id
+    )
+    expected_gpu_process_binding = (
+        selected_assignment.gpu_process_binding.to_dict()
+        if selected_assignment.gpu_process_binding is not None
+        else None
+    )
     checksum = require_sha256_checksum(
         value.get("trial_execution_receipt_checksum"),
         "generation formal execution receipt checksum",
@@ -807,6 +863,12 @@ def _load_and_validate_formal(
         or round_record.get("session_genesis_hash") != session_genesis_hash
         or round_record.get("ledger_epoch_hash") != ledger_epoch_hash
         or loaded_sealed.result.phase is not EvaluationPhase.SEALED_VALIDATION
+        or loaded_sealed.result.execution_device
+        != selected_trial["train"]["execution_device"]
+        or loaded_sealed.result.resource_binding_hash
+        != selected_trial["train"]["resource_binding_hash"]
+        or loaded_sealed.result.gpu_process_binding
+        != expected_gpu_process_binding
         or canonical_json_hash(loaded_sealed.contract)
         != selected_trial.get("trial_contract_hash")
     ):
@@ -853,6 +915,7 @@ def _load_bound_trial_execution(
 def _load_bound_train_projection(
     trial: Mapping[str, Any],
     *,
+    assignment: GenerationLaneAssignment,
     private_artifacts: Any,
 ) -> None:
     projection = trial.get("train")
@@ -873,6 +936,12 @@ def _load_bound_train_projection(
         != projection.get("train_result_hash")
         or result.checkpoint.checksum != projection.get("checkpoint_hash")
         or result.execution_device != projection.get("execution_device")
+        or result.gpu_process_binding != assignment.gpu_process_binding
+        or (
+            result.gpu_process_binding is not None
+            and result.gpu_process_binding.resource_binding_hash
+            != projection.get("resource_binding_hash")
+        )
     ):
         raise ValueError("generation train projection/receipt binding mismatch")
 
@@ -880,6 +949,7 @@ def _load_bound_train_projection(
 def _load_bound_phase_projection(
     trial: Mapping[str, Any],
     *,
+    assignment: GenerationLaneAssignment,
     phase: EvaluationPhase,
     private_artifacts: Any,
 ) -> LoadedTrialEvalPhaseReceipt:
@@ -894,6 +964,11 @@ def _load_bound_phase_projection(
     )
     loaded = load_trial_eval_phase_receipt(ref)
     result = loaded.result
+    expected_gpu_process_binding = (
+        assignment.gpu_process_binding.to_dict()
+        if assignment.gpu_process_binding is not None
+        else None
+    )
     if (
         canonical_json_hash(loaded.contract) != trial.get("trial_contract_hash")
         or loaded.job_spec_hash != projection.get("job_spec_hash")
@@ -904,6 +979,7 @@ def _load_bound_phase_projection(
         or result.checkpoint_hash != projection.get("checkpoint_hash")
         or result.execution_device != projection.get("execution_device")
         or result.resource_binding_hash != projection.get("resource_binding_hash")
+        or result.gpu_process_binding != expected_gpu_process_binding
         or result.task_evidence_hash != projection.get("task_evidence_hash")
     ):
         raise ValueError("generation phase projection/receipt binding mismatch")
@@ -969,7 +1045,7 @@ def _load_bound_authoring_evidence(
     trial: Mapping[str, Any],
     *,
     private_artifacts: Any,
-) -> Mapping[str, Any]:
+) -> tuple[Mapping[str, Any], dict[str, Any]]:
     """Verify both authoring artifacts named by one public trial projection."""
 
     authoring = trial.get("authoring")
@@ -1025,7 +1101,7 @@ def _load_bound_authoring_evidence(
     )
     if candidate_verified != expected_verified:
         raise ValueError("generation trial status/authoring outcome mismatch")
-    return evidence
+    return evidence, lane_intent
 
 
 def _provider_verifier_rules(prompt_payload: Mapping[str, Any]) -> Mapping[str, Any]:

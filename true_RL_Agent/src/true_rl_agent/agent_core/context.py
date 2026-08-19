@@ -173,6 +173,7 @@ def build_public_context_from_projected(
     *,
     history_blocked_key_parts: Sequence[str] = (),
     history_blocked_text_parts: Sequence[str] = (),
+    exploration_projection: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build public context from the shared sequential projection only."""
 
@@ -201,7 +202,10 @@ def build_public_context_from_projected(
         sanitized_records,
         public_score_source=history.public_score_source,
     )
-    experiment_memory = build_experiment_memory(sanitized_records)
+    experiment_memory = build_experiment_memory(
+        sanitized_records,
+        exploration_projection=exploration_projection,
+    )
     initial_accepted_score = (
         history.initial_current_best.score_for_comparison()
         if history.initial_current_best is not None

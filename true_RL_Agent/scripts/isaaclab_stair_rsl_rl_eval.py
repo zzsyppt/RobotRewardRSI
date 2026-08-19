@@ -34,6 +34,13 @@ from true_rl_agent.tasks.stair_climbing.entrypoint_contract import (  # noqa: E4
     StairEvalEntrypointContext,
     validate_stair_eval_invocation,
 )
+from true_rl_agent.tasks.stair_climbing.gpu_process_binding import (  # noqa: E402
+    StairGpuRuntimeBinding,
+    add_stair_gpu_process_binding_arguments,
+    attach_stair_gpu_runtime_evidence,
+    capture_stair_gpu_compute_context,
+    validate_stair_gpu_process_binding_invocation,
+)
 from true_rl_agent.tasks.stair_climbing.phased_evaluation import (  # noqa: E402
     STAIR_FULL_EVAL_SUMMARY_SCHEMA_VERSION,
     build_stair_eval_phase_summary,
@@ -85,6 +92,7 @@ def _build_parser(app_launcher_class: Any) -> argparse.ArgumentParser:
     ):
         required_actions.append(parser.add_argument(option, type=int))
     app_launcher_class.add_app_launcher_args(parser)
+    add_stair_gpu_process_binding_arguments(parser)
     for action in required_actions:
         action.required = True
     parser.set_defaults(headless=True)
@@ -115,6 +123,10 @@ def main(
             args.device,
             "stair eval execution device",
         )
+        gpu_runtime_binding = validate_stair_gpu_process_binding_invocation(
+            args,
+            environment=os.environ,
+        )
         context = validate_stair_eval_invocation(args, project_root=PROJECT_ROOT)
         phase = _optional_evaluation_phase(args)
         source_manifest_preflight = preflight_stair_execution_source_manifest(
@@ -137,7 +149,11 @@ def main(
         print(str(checkpoint_report["reason"]), file=sys.stderr)
         return 2
 
-    app_launcher = app_launcher_class(args)
+    app_launcher = (
+        app_launcher_class(args, multi_gpu=False)
+        if gpu_runtime_binding is not None
+        else app_launcher_class(args)
+    )
     simulation_app = app_launcher.app
     runtime_lease = StairEvaluationRuntimeLease()
     status_code = 1
@@ -167,7 +183,18 @@ def main(
                 error=exc,
                 phase=phase,
                 evaluation_plan_hash=args.evaluation_plan_hash,
+                gpu_runtime_binding=gpu_runtime_binding,
             )
+        compute_context_observation = (
+            capture_stair_gpu_compute_context(gpu_runtime_binding)
+            if gpu_runtime_binding is not None
+            else None
+        )
+        summary = attach_stair_gpu_runtime_evidence(
+            summary,
+            gpu_runtime_binding,
+            compute_context_observation=compute_context_observation,
+        )
 
         summary_path = _local_output_path(args.summary_path, "summary_path")
         summary_path.parent.mkdir(parents=True, exist_ok=True)
@@ -271,6 +298,7 @@ def _failure_summary(
     error: BaseException,
     phase: EvaluationPhase | None = None,
     evaluation_plan_hash: str | None = None,
+    gpu_runtime_binding: StairGpuRuntimeBinding | None = None,
 ) -> dict[str, Any]:
     result = {
         "schema_version": (

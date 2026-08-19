@@ -22,13 +22,17 @@ from true_rl_agent.agent_core.round import (
     RoundInputs,
     commit_candidate_trial,
     execute_candidate_trial,
+    prepare_candidate_trial,
 )
 from true_rl_agent.agent_core.trial_receipts import (
     TrialReceiptJournal,
     load_trial_execution_receipt,
+    load_trial_train_receipt,
 )
 from true_rl_agent.candidates.schema import CandidateChangeSet
+from true_rl_agent.json_contract import strict_json_object_loads
 from true_rl_agent.policy import PolicyInitialization
+from true_rl_agent.runner.specs import GpuProcessBinding
 
 
 class TrialExecutorTests(unittest.TestCase):
@@ -120,6 +124,82 @@ class TrialExecutorTests(unittest.TestCase):
             self.assertFalse(execution.reused_receipt)
             commit_candidate_trial(replace(inputs, runner=resumed), execution)
             self.assertEqual(len(load_ledger(inputs.ledger_path)), 1)
+
+    def test_train_receipt_preserves_optional_gpu_process_binding(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            runner = FakeRunner()
+
+            legacy = prepare_candidate_trial(
+                self._inputs(root / "legacy", runner=runner)
+            )
+            assert legacy.jobs is not None
+            legacy_spec = legacy.jobs.train_spec
+            legacy_ref = legacy.trial_journal.publish_train(
+                legacy_spec,
+                runner.run_train(legacy_spec),
+            )
+            legacy_payload = strict_json_object_loads(
+                Path(legacy_ref.path).read_bytes(),
+                context="legacy trial train receipt",
+            )
+            self.assertNotIn(
+                "gpu_process_binding",
+                legacy_payload["train_result"],
+            )
+            self.assertIsNotNone(legacy.trial_journal.load_train(legacy_spec))
+
+            bound = prepare_candidate_trial(
+                self._inputs(root / "bound", runner=runner)
+            )
+            assert bound.jobs is not None
+            binding = GpuProcessBinding(
+                host_execution_device="cuda:1",
+                process_execution_device="cuda:0",
+                resource_binding_hash="9" * 64,
+            )
+            bound_spec = replace(
+                bound.jobs.train_spec,
+                gpu_process_binding=binding,
+            )
+            unbound_result = runner.run_train(bound.jobs.train_spec)
+            checkpoint = replace(
+                unbound_result.checkpoint,
+                metadata={
+                    **unbound_result.checkpoint.metadata,
+                    "gpu_process_binding": binding.to_dict(),
+                },
+            )
+            bound_result = replace(
+                unbound_result,
+                checkpoint=checkpoint,
+                gpu_process_binding=binding,
+            )
+            bound_ref = bound.trial_journal.publish_train(
+                bound_spec,
+                bound_result,
+            )
+
+            loaded = bound.trial_journal.load_train(bound_spec)
+            standalone = load_trial_train_receipt(bound_ref)
+            self.assertIsNotNone(loaded)
+            assert loaded is not None
+            self.assertEqual(loaded[0], bound_result)
+            self.assertEqual(standalone.result, bound_result)
+            bound_payload = strict_json_object_loads(
+                Path(bound_ref.path).read_bytes(),
+                context="bound trial train receipt",
+            )
+            self.assertEqual(
+                bound_payload["train_result"]["gpu_process_binding"],
+                binding.to_dict(),
+            )
+
+            with self.assertRaisesRegex(ValueError, "does not match"):
+                bound.trial_journal.publish_train(
+                    replace(bound_spec, gpu_process_binding=None),
+                    bound_result,
+                )
 
     def test_complete_receipt_skips_runner_on_reexecution(self) -> None:
         class NoRunnerCalls(FakeRunner):

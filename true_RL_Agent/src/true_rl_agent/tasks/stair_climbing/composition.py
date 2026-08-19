@@ -369,7 +369,7 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
         return ResolvedTaskComposition(
             task_id=self.task_id,
             task_plugin=plugin,
-            task_memory_adapter=StairTaskMemoryAdapter(),
+            task_memory_adapter=StairTaskMemoryAdapter(config=task_config),
             backend_adapter=IsaacLabRslRlBackendAdapter(backend),
             runner=SubprocessRunner(
                 allowed_executables=(composition_config.isaac_python,),

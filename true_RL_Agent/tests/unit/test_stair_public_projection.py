@@ -14,6 +14,7 @@ from true_rl_agent.candidates.authoring_policy import (  # noqa: E402
     MAX_CANONICAL_COMPONENT_NAME_CHARS,
 )
 from true_rl_agent.evaluation.binding import canonical_json_hash  # noqa: E402
+from true_rl_agent.evaluation.current_best import CurrentBestEvalStats  # noqa: E402
 from true_rl_agent.evaluation.public_result import PublicEvalResult  # noqa: E402
 from true_rl_agent.evaluation.subject import ExperimentSubject  # noqa: E402
 from true_rl_agent.prompting.serialization import (  # noqa: E402
@@ -43,6 +44,9 @@ from true_rl_agent.tasks.stair_climbing.generalization_contract import (  # noqa
 )
 from true_rl_agent.tasks.stair_climbing.memory import (  # noqa: E402
     StairTaskMemoryAdapter,
+)
+from true_rl_agent.tasks.stair_climbing.exploration import (  # noqa: E402
+    StairExplorationProjector,
 )
 from true_rl_agent.tasks.stair_climbing.prompt_adapter import (  # noqa: E402
     StairClimbingPromptAdapter,
@@ -121,6 +125,79 @@ class StairPublicProjectionTests(unittest.TestCase):
                 split="public_accept",
                 summary=changed,
             )
+
+    def test_exploration_value_uses_stair_owned_public_objective_and_guard(self) -> None:
+        projector = StairExplorationProjector(self.config)
+        parent = CurrentBestEvalStats(
+            mode="incomplete",
+            anchor_kind="bootstrap",
+            anchor_id="stair-exploration-parent",
+            public_accept_stats={"mean": 0.2, "score_samples": [0.2] * 5},
+            guard_score_stats={"mean": 0.5, "score_samples": [0.5] * 5},
+        )
+        trial = {
+            "trial_status": "qualified_not_selected",
+            "public_dev": {"public_summary": self.public_dev},
+            "public_accept": {"public_summary": self.public_accept},
+        }
+        generation = {
+            "guard_reference": {
+                "generalization_score_stats": {"mean": 0.2},
+                "anchor_score_stats": {"mean": 0.5},
+            }
+        }
+        positive = projector.assess_trial(
+            generation=generation,
+            trial=trial,
+            parent=parent,
+        )
+        self.assertEqual(positive.observed_effect, "strong_positive")
+        self.assertEqual(positive.value_label, "high")
+        self.assertTrue(positive.public_evidence_summary["guard"]["guard_met"])
+        self.assertGreater(positive.revisit_rank_key[0], 0)
+
+        missing_reference = projector.assess_trial(
+            generation={"guard_reference": None},
+            trial=trial,
+            parent=parent,
+        )
+        self.assertEqual(missing_reference.observed_effect, "unknown")
+        self.assertEqual(missing_reference.value_label, "unknown")
+        self.assertEqual(
+            missing_reference.reason_codes,
+            ("parent_public_dev_reference_missing",),
+        )
+
+        conflicting = projector.assess_trial(
+            generation={
+                "guard_reference": {
+                    "generalization_score_stats": {"mean": 0.6},
+                    "anchor_score_stats": {"mean": 0.5},
+                }
+            },
+            trial=trial,
+            parent=parent,
+        )
+        self.assertEqual(conflicting.observed_effect, "mixed")
+        self.assertEqual(
+            conflicting.reason_codes,
+            ("public_dev_accept_direction_conflict",),
+        )
+
+        guard_parent = CurrentBestEvalStats(
+            mode="incomplete",
+            anchor_kind="bootstrap",
+            anchor_id="stair-exploration-guard-parent",
+            public_accept_stats={"mean": 0.2, "score_samples": [0.2] * 5},
+            guard_score_stats={"mean": 0.6, "score_samples": [0.6] * 5},
+        )
+        unsafe = projector.assess_trial(
+            generation=generation,
+            trial=trial,
+            parent=guard_parent,
+        )
+        self.assertEqual(unsafe.observed_effect, "negative")
+        self.assertEqual(unsafe.value_label, "low")
 
     def test_projection_overwrites_forged_task_gates(self) -> None:
         raw = PublicEvalResult(

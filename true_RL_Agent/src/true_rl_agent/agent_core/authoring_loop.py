@@ -33,11 +33,15 @@ from true_rl_agent.candidates.authoring_checks import (
     build_static_authoring_failure,
     run_component_smoke_check,
 )
-from true_rl_agent.candidates.authoring_policy import select_authoring_anchor_source
+from true_rl_agent.candidates.authoring_policy import (
+    select_authoring_anchor_source,
+    verifier_equivalence_exclusion_set_hash,
+)
 from true_rl_agent.candidates.schema import CandidateChangeSet, CandidatePackageRef
 from true_rl_agent.candidates.sibling_exclusion import (
     SingleComponentDeltaComparisonUnavailable,
     SingleComponentSemanticExclusion,
+    candidate_single_component_verifier_equivalence_key,
 )
 from true_rl_agent.candidates.verifier import CandidateVerifier, VerificationResult
 from true_rl_agent.evaluation.binding import require_sha256_checksum
@@ -168,6 +172,7 @@ class CandidateAuthoringLoop:
         authoring_capability_readiness: Mapping[str, Mapping[str, Any]] | None = None,
         sibling_semantic_exclusion: SingleComponentSemanticExclusion | None = None,
         generation_lane_intent: Mapping[str, Any] | None = None,
+        blocked_verifier_equivalence_keys: Sequence[str] = (),
     ) -> None:
         require_authoring_attempt_count(max_attempts)
         if max_source_requests_per_round < 0:
@@ -209,6 +214,24 @@ class CandidateAuthoringLoop:
             if generation_lane_intent is not None
             else None
         )
+        blocked_keys = tuple(blocked_verifier_equivalence_keys)
+        blocked_set_hash = verifier_equivalence_exclusion_set_hash(blocked_keys)
+        intent_set_hash = (
+            self.generation_lane_intent.get(
+                "verifier_equivalence_exclusion_set_hash"
+            )
+            if self.generation_lane_intent is not None
+            else None
+        )
+        if intent_set_hash is not None and intent_set_hash != blocked_set_hash:
+            raise ValueError(
+                "generation lane intent verifier exclusion set does not match authoring gate"
+            )
+        if blocked_keys and intent_set_hash is None:
+            raise ValueError(
+                "historical verifier exclusions require a bound generation lane intent"
+            )
+        self.blocked_verifier_equivalence_keys = blocked_keys
 
     def run_round(
         self,
@@ -777,6 +800,66 @@ class CandidateAuthoringLoop:
                         exclusion=self.sibling_semantic_exclusion,
                     )
 
+            if (
+                blocking_assessment is None
+                and self.blocked_verifier_equivalence_keys
+            ):
+                try:
+                    equivalence_key = (
+                        candidate_single_component_verifier_equivalence_key(
+                            candidate=candidate,
+                            prompt_payload=round_authoring_anchor_prompt,
+                        )
+                    )
+                except SingleComponentDeltaComparisonUnavailable:
+                    historical_assessment = {
+                        "schema_version": (
+                            "true_rl_agent.historical_verifier_exclusion_assessment.v1"
+                        ),
+                        "status": "fail",
+                        "blocking": True,
+                        "reason": "single_component_delta_comparison_unavailable",
+                        "verifier_equivalence_key": None,
+                        "exclusion_set_hash": (
+                            verifier_equivalence_exclusion_set_hash(
+                                self.blocked_verifier_equivalence_keys
+                            )
+                        ),
+                    }
+                else:
+                    repeated = (
+                        equivalence_key in self.blocked_verifier_equivalence_keys
+                    )
+                    historical_assessment = {
+                        "schema_version": (
+                            "true_rl_agent.historical_verifier_exclusion_assessment.v1"
+                        ),
+                        "status": "fail" if repeated else "pass",
+                        "blocking": repeated,
+                        "reason": (
+                            "historical_verifier_equivalent_repeat"
+                            if repeated
+                            else "historical_verifier_equivalent_distinct"
+                        ),
+                        "verifier_equivalence_key": equivalence_key,
+                        "exclusion_set_hash": (
+                            verifier_equivalence_exclusion_set_hash(
+                                self.blocked_verifier_equivalence_keys
+                            )
+                        ),
+                    }
+                attempt_record[
+                    "historical_verifier_exclusion_assessment"
+                ] = historical_assessment
+                if historical_assessment["blocking"] is True:
+                    blocking_assessment = historical_assessment
+                    blocking_feedback = (
+                        _build_historical_verifier_exclusion_repair_feedback(
+                            candidate=candidate,
+                            assessment=historical_assessment,
+                        )
+                    )
+
             if blocking_assessment is not None:
                 assert blocking_feedback is not None
                 repair_feedback = blocking_feedback
@@ -1280,6 +1363,35 @@ def _build_sibling_exclusion_repair_feedback(
                 "Replace the proposed single component mechanism with one whose normalized callable, input dependencies, and clip structure are substantively different from the excluded sibling.",
                 "Changing only a component/function name or numeric parameter is not a distinct sibling mechanism.",
                 "If the prior draft produced a compound or unclassifiable delta, return exactly one attributable component delta.",
+            ],
+        }
+    )
+
+
+def _build_historical_verifier_exclusion_repair_feedback(
+    *,
+    candidate: CandidatePackageRef,
+    assessment: Mapping[str, Any],
+) -> dict[str, Any]:
+    return _sanitize_repair_feedback(
+        {
+            "schema_version": "true_rl_agent.provider_repair_feedback.v1",
+            "previous_candidate_id": candidate.candidate_id,
+            "previous_candidate_changed_components": sorted(
+                candidate.change_set.changed_components
+            ),
+            "previous_candidate_source_logical_id": LATEST_FAILED_SOURCE_ID,
+            "previous_candidate_source_delivery": "see_source_catalog",
+            "failure_category": "historical_verifier_equivalent_repeat",
+            "reason": assessment.get("reason"),
+            "verifier_equivalence_key": assessment.get(
+                "verifier_equivalence_key"
+            ),
+            "exclusion_set_hash": assessment.get("exclusion_set_hash"),
+            "instructions": [
+                "Replace the proposal with one structurally different single-component mechanism.",
+                "Renaming a component/function or changing only numeric parameters does not create new evidence.",
+                "Tensor indices, slices, reduction axes, input dependencies, callable structure, and clip structure remain semantic identity and may be changed when scientifically justified.",
             ],
         }
     )

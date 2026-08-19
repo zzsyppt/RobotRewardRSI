@@ -12,6 +12,7 @@ from true_rl_agent.agent_core.source_request_limits import (
     LATEST_FAILED_SOURCE_ID,
 )
 from true_rl_agent.evaluation.binding import (
+    canonical_json_hash,
     require_sha256_checksum,
     require_sha256_digest,
 )
@@ -26,6 +27,12 @@ CANDIDATE_MECHANISM_OPERATION_DELTA_SCHEMA_VERSION = (
     "true_rl_agent.candidate_mechanism_operation_delta.v2"
 )
 CANONICAL_MECHANISM_OPERATIONS = ("add", "remove", "modify", "rename")
+SINGLE_COMPONENT_VERIFIER_EQUIVALENCE_SCHEMA_VERSION = (
+    "true_rl_agent.single_component_verifier_equivalence.v1"
+)
+VERIFIER_EQUIVALENCE_EXCLUSION_SET_SCHEMA_VERSION = (
+    "true_rl_agent.verifier_equivalence_exclusion_set.v1"
+)
 ANTI_DEGENERATE_ASSESSMENT_SCHEMA_VERSION = (
     "true_rl_agent.anti_degenerate_assessment.v4"
 )
@@ -176,6 +183,53 @@ def require_mechanism_operation_delta(value: Any) -> dict[str, Any]:
     }
 
 
+def single_component_verifier_equivalence_key(value: Any) -> str:
+    """Hash the verifier-owned, name-insensitive meaning of one component delta.
+
+    The operation, component kind, public input dependencies, and parameter-
+    normalized structure are identity.  Parent/source hashes and component names
+    deliberately are not: they describe a particular trial, not whether another
+    trial is an identical or parameter-only mechanism implementation.
+    """
+
+    delta = require_mechanism_operation_delta(value)
+    component = delta["after_component"] or delta["before_component"]
+    if component is None:  # pragma: no cover - guarded by the delta validator
+        raise ValueError("mechanism operation delta has no changed component")
+    parsed = parse_canonical_mechanism_id(component["mechanism_id"])
+    if parsed is None:  # pragma: no cover - guarded by the delta validator
+        raise ValueError("mechanism operation component identity is invalid")
+    return canonical_json_hash(
+        {
+            "schema_version": SINGLE_COMPONENT_VERIFIER_EQUIVALENCE_SCHEMA_VERSION,
+            "operation": delta["operation"],
+            "component_kind": parsed[0],
+            "parameter_normalized_structure_hash": component[
+                "parameter_normalized_structure_hash"
+            ],
+            "input_fields": list(component["input_fields"]),
+        }
+    )
+
+
+def verifier_equivalence_exclusion_set_hash(value: Any) -> str:
+    """Bind the sorted verifier-equivalence keys used by an authoring lane."""
+
+    if not isinstance(value, list | tuple):
+        raise ValueError("verifier equivalence exclusions must be a sequence")
+    keys = tuple(value)
+    for item in keys:
+        require_sha256_digest(item, "verifier equivalence exclusion")
+    if keys != tuple(sorted(set(keys))):
+        raise ValueError("verifier equivalence exclusions must be sorted and unique")
+    return canonical_json_hash(
+        {
+            "schema_version": VERIFIER_EQUIVALENCE_EXCLUSION_SET_SCHEMA_VERSION,
+            "keys": list(keys),
+        }
+    )
+
+
 def _component_operation_projection(
     value: Any,
     *,
@@ -318,6 +372,8 @@ __all__ = [
     "MAX_CANONICAL_COMPONENT_NAME_UTF8_BYTES",
     "MAX_CANONICAL_COMPONENT_DELTAS",
     "SINGLE_COMPONENT_DELTA_INSTRUCTION",
+    "SINGLE_COMPONENT_VERIFIER_EQUIVALENCE_SCHEMA_VERSION",
+    "VERIFIER_EQUIVALENCE_EXCLUSION_SET_SCHEMA_VERSION",
     "canonical_mechanism_runtime_identity",
     "component_name_contract",
     "format_canonical_mechanism_id",
@@ -326,4 +382,6 @@ __all__ = [
     "require_mechanism_operation_delta",
     "require_component_name",
     "select_authoring_anchor_source",
+    "single_component_verifier_equivalence_key",
+    "verifier_equivalence_exclusion_set_hash",
 ]

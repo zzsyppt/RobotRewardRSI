@@ -1,6 +1,9 @@
-# Author-only paired-ready 探针报告
+# Author-only paired-ready 探针报告（历史高信息上界，已废止为正式门证据）
 
 > **2026-08-17 纠偏：** 本报告的 86.7% 使用的是试验性、信息更充分且违反最终 A→B 最小信息流的 exclusion（包含 A candidate/round ID 与逐轮手写语义），不是 P4 最终生产 payload。它只能作为上界，不能再作为生产 paired-ready 实测或 GPU 授权依据。生产 8 字段复测见 `PLAN/2-GPUS/P4/PRODUCTION_EXCLUSION_RECHECK_REPORT_ZH.md`。
+>
+> 2026-08-20 正式 production-path P6-A2 已闭合，权威结果见
+> `P6A2_ACCEPTANCE_REPORT_ZH.md`；本文件仅保留历史审计用途。
 
 ## 1. 结论
 
@@ -13,12 +16,10 @@
 
 因此，本样本的首请求 paired-ready 率为：
 
-```text
-13 / 15 = 86.7%
-Wilson 95% 区间约为 [62.1%, 96.3%]
-```
-
-它通过了主计划预注册的工程门：`valid_structurally_distinct >= 10/15` 且等价漏放为 0。
+历史描述值为 `13 / 15 = 86.7%`。这些 round 不是独立同分布样本，且 exclusion
+信息面违反最终生产合同，因此不再报告可用于决策的置信区间，也**不判定其通过今天的
+正式 P6-A2 门**。正式门只认 2026-08-20 后由生产 8 字段 request、当前
+`CandidateAuthoringLoop` 与 create-once plan 产生的全新 15 个结果。
 
 更精确地说：
 
@@ -128,10 +129,13 @@ R02 的传输失败没有返回 usage receipt，因此总成本不能写成一�
 ## 8. 结论状态
 
 ```text
-authoring feasibility: GO
-pre-registered numeric gate: PASS (13/15, equivalent leaks=0)
+historical status as of 2026-08-17:
+historical high-information feasibility: OBSERVED (13/15 upper bound)
+current production numeric gate: NOT EVALUATED BY THIS RUN
 formal production P6-A2 gate: OPEN
 P6-B GPU authorization: NOT GRANTED
 ```
 
-下一步应先完成 P4 的生产 exclusion/receipt/coordinator 接线及 fake/golden 验收，再用本结果作为“该设计值得接线”的实测依据；不能把一次性探针代码直接搬进生产路径。
+当时的下一步是先完成 P4 的生产 exclusion/receipt/coordinator 接线及 fake/golden 验收，再用
+本结果作为“该设计值得接线”的实测依据；不能把一次性探针代码直接搬进生产路径。当前正式
+状态以文件顶部链接的 2026-08-20 P6-A2 验收报告为准。

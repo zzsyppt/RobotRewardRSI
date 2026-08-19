@@ -24,6 +24,7 @@ from true_rl_agent.runner.specs import (
     CheckpointRef,
     EvalJobSpec,
     EvalPhaseJobSpec,
+    GpuProcessBinding,
     TrainJobSpec,
     require_execution_device,
 )
@@ -104,6 +105,7 @@ class TrainJobResult:
     capability_profile_hash: str
     execution_device: str
     checkpoint: CheckpointRef
+    gpu_process_binding: GpuProcessBinding | None = None
     initial_policy_state_pairing: InitialPolicyStatePairing | None = None
     summary: Mapping[str, Any] = field(default_factory=dict)
 
@@ -131,6 +133,20 @@ class TrainJobResult:
             self.execution_device,
             "train job result execution_device",
         )
+        if self.gpu_process_binding is not None:
+            if not isinstance(self.gpu_process_binding, GpuProcessBinding):
+                raise TypeError(
+                    "train job result gpu_process_binding must be a "
+                    "GpuProcessBinding"
+                )
+            if (
+                self.execution_device
+                != self.gpu_process_binding.process_execution_device
+            ):
+                raise ValueError(
+                    "train job result execution device does not match GPU "
+                    "process binding"
+                )
         if not isinstance(self.checkpoint, CheckpointRef):
             raise TypeError("train job result checkpoint must be a CheckpointRef")
         if self.checkpoint.role != "eval" or not self.checkpoint.sealed:
@@ -160,6 +176,14 @@ class TrainJobResult:
             raise ValueError("train job result checkpoint capability lineage mismatch")
         if metadata.get("execution_device") != self.execution_device:
             raise ValueError("train job result checkpoint execution device mismatch")
+        if (
+            self.gpu_process_binding is not None
+            and metadata.get("gpu_process_binding")
+            != self.gpu_process_binding.to_dict()
+        ):
+            raise ValueError(
+                "train job result checkpoint GPU process binding mismatch"
+            )
         declared_pairing = metadata.get("initial_policy_state_pairing")
         if self.initial_policy_state_pairing is None:
             if declared_pairing is not None:
@@ -187,6 +211,8 @@ class TrainJobResult:
             result["initial_policy_state_pairing"] = (
                 self.initial_policy_state_pairing.to_public_dict()
             )
+        if self.gpu_process_binding is not None:
+            result["gpu_process_binding"] = self.gpu_process_binding.to_dict()
         return result
 
 

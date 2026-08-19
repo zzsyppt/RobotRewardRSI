@@ -26,7 +26,7 @@ from true_rl_agent.runner.candidate_failure import CandidateFailureContract
 from true_rl_agent.runner.initial_policy import (
     verified_initial_policy_state_pairing_hash,
 )
-from true_rl_agent.runner.job_attempts import JobAttemptScope
+from true_rl_agent.runner.job_attempts import JobAttemptExecutionScope
 from true_rl_agent.runner.job_identity import JobIdentity
 from true_rl_agent.training_binding import TrainingBinding
 
@@ -48,6 +48,51 @@ def require_execution_device(value: Any, field_name: str = "execution_device") -
             f"{field_name} must be canonical 'cpu' or 'cuda:<non-negative index>'"
         )
     return value
+
+
+@dataclass(frozen=True)
+class GpuProcessBinding:
+    """Bind one host GPU allocation to the device visible inside its child."""
+
+    host_execution_device: str
+    process_execution_device: str
+    resource_binding_hash: str
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "host_execution_device",
+            "process_execution_device",
+        ):
+            value = require_execution_device(
+                getattr(self, field_name),
+                f"GPU process binding {field_name}",
+            )
+            if not value.startswith("cuda:"):
+                raise ValueError(
+                    f"GPU process binding {field_name} must be a CUDA device"
+                )
+        require_sha256_digest(
+            self.resource_binding_hash,
+            "GPU process binding resource_binding_hash",
+        )
+
+    def to_dict(self) -> dict[str, str]:
+        return {
+            "host_execution_device": self.host_execution_device,
+            "process_execution_device": self.process_execution_device,
+            "resource_binding_hash": self.resource_binding_hash,
+        }
+
+    @classmethod
+    def from_mapping(cls, value: Any) -> "GpuProcessBinding":
+        fields = {
+            "host_execution_device",
+            "process_execution_device",
+            "resource_binding_hash",
+        }
+        if not isinstance(value, Mapping) or set(value) != fields:
+            raise ValueError("GPU process binding fields mismatch")
+        return cls(**dict(value))
 
 
 def _resolved_sealed_validation_seed_count(
@@ -142,7 +187,8 @@ class TrainJobSpec:
     metadata: Mapping[str, Any] = field(default_factory=dict)
     candidate_artifact: VerifiedCandidateArtifactRef | None = None
     reference_artifact: VerifiedReferenceProgramArtifactRef | None = None
-    attempt_scope: JobAttemptScope | None = None
+    attempt_scope: JobAttemptExecutionScope | None = None
+    gpu_process_binding: GpuProcessBinding | None = None
 
     def __post_init__(self) -> None:
         self.job_identity()
@@ -159,6 +205,18 @@ class TrainJobSpec:
         if self.training_binding.budget_steps != self.budget_steps:
             raise ValueError("train job budget does not match training binding")
         require_execution_device(self.execution_device, "train job execution_device")
+        if self.gpu_process_binding is not None:
+            if not isinstance(self.gpu_process_binding, GpuProcessBinding):
+                raise TypeError(
+                    "train job gpu_process_binding must be a GpuProcessBinding"
+                )
+            if (
+                self.execution_device
+                != self.gpu_process_binding.process_execution_device
+            ):
+                raise ValueError(
+                    "train job execution_device does not match GPU process binding"
+                )
         if self.expected_initial_policy_state_hash is not None:
             require_sha256_digest(
                 self.expected_initial_policy_state_hash,
@@ -176,9 +234,9 @@ class TrainJobSpec:
             raise ValueError("train job metadata must be an object")
         if self.attempt_scope is not None and not isinstance(
             self.attempt_scope,
-            JobAttemptScope,
+            JobAttemptExecutionScope,
         ):
-            raise TypeError("train job attempt_scope must be a JobAttemptScope")
+            raise TypeError("train job attempt_scope is invalid")
         if self.subject.kind == "candidate":
             if not isinstance(
                 self.candidate_artifact,
@@ -312,6 +370,8 @@ class TrainJobSpec:
             result["candidate_failure_contract_hash"] = (
                 self.candidate_failure_contract.contract_hash
             )
+        if self.gpu_process_binding is not None:
+            result["gpu_process_binding"] = self.gpu_process_binding.to_dict()
         return result
 
 
@@ -337,8 +397,9 @@ class EvalJobSpec:
     eval_protocol_version: str = DEFAULT_EVAL_PROTOCOL_VERSION
     metadata: Mapping[str, Any] = field(default_factory=dict)
     checkpoint_output_plan: CheckpointOutputPlan | None = None
-    attempt_scope: JobAttemptScope | None = None
+    attempt_scope: JobAttemptExecutionScope | None = None
     trusted_seed_count: InitVar[int | None] = None
+    gpu_process_binding: GpuProcessBinding | None = None
 
     def __post_init__(self, trusted_seed_count: int | None = None) -> None:
         self.job_identity()
@@ -406,9 +467,9 @@ class EvalJobSpec:
             raise ValueError("eval job metadata must be an object")
         if self.attempt_scope is not None and not isinstance(
             self.attempt_scope,
-            JobAttemptScope,
+            JobAttemptExecutionScope,
         ):
-            raise TypeError("eval job attempt_scope must be a JobAttemptScope")
+            raise TypeError("eval job attempt_scope is invalid")
         sealed_validation_seed_count = _resolved_sealed_validation_seed_count(
             self.sealed_validation_seed_count,
             trusted_seed_count,
@@ -435,6 +496,18 @@ class EvalJobSpec:
         )
         require_positive_integer(self.eval_num_envs, "eval_num_envs")
         require_execution_device(self.execution_device, "eval job execution_device")
+        if self.gpu_process_binding is not None:
+            if not isinstance(self.gpu_process_binding, GpuProcessBinding):
+                raise TypeError(
+                    "eval job gpu_process_binding must be a GpuProcessBinding"
+                )
+            if (
+                self.execution_device
+                != self.gpu_process_binding.process_execution_device
+            ):
+                raise ValueError(
+                    "eval job execution_device does not match GPU process binding"
+                )
         if not self.eval_protocol_version:
             raise ValueError("eval_protocol_version must be non-empty")
         if self.evaluation_binding.eval_protocol_hash != self.evaluation_protocol().protocol_hash:
@@ -502,6 +575,8 @@ class EvalJobSpec:
             result["initial_policy_state_pairing_hash"] = (
                 self.initial_policy_state_pairing_hash
             )
+        if self.gpu_process_binding is not None:
+            result["gpu_process_binding"] = self.gpu_process_binding.to_dict()
         return result
 
 
@@ -513,7 +588,7 @@ class EvalPhaseJobSpec:
     evaluation_plan: EvalJobSpec
     phase: EvaluationPhase
     metadata: Mapping[str, Any] = field(default_factory=dict)
-    attempt_scope: JobAttemptScope | None = None
+    attempt_scope: JobAttemptExecutionScope | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.evaluation_plan, EvalJobSpec):
@@ -525,9 +600,9 @@ class EvalPhaseJobSpec:
             raise TypeError("phase eval job metadata must be an object")
         if self.attempt_scope is not None and not isinstance(
             self.attempt_scope,
-            JobAttemptScope,
+            JobAttemptExecutionScope,
         ):
-            raise TypeError("phase eval job attempt_scope must be a JobAttemptScope")
+            raise TypeError("phase eval job attempt_scope is invalid")
         self.job_identity()
 
     @property
@@ -561,6 +636,10 @@ class EvalPhaseJobSpec:
     @property
     def execution_device(self) -> str:
         return self.evaluation_plan.execution_device
+
+    @property
+    def gpu_process_binding(self) -> GpuProcessBinding | None:
+        return self.evaluation_plan.gpu_process_binding
 
     @property
     def sealed_validation_seed_count(self) -> int:
@@ -636,6 +715,13 @@ def require_eval_phase_result_matches_spec(
     }
     if any(getattr(result, name) != value for name, value in expected.items()):
         raise ValueError("eval phase result does not match its job spec")
+    expected_gpu_process_binding = (
+        spec.gpu_process_binding.to_dict()
+        if spec.gpu_process_binding is not None
+        else None
+    )
+    if result.gpu_process_binding != expected_gpu_process_binding:
+        raise ValueError("eval phase result GPU process binding mismatch")
 
 
 @dataclass(frozen=True)
@@ -656,7 +742,8 @@ class BaselineEvalJobSpec:
     eval_num_envs: int = 64
     eval_protocol_version: str = DEFAULT_EVAL_PROTOCOL_VERSION
     metadata: Mapping[str, Any] = field(default_factory=dict)
-    attempt_scope: JobAttemptScope | None = None
+    attempt_scope: JobAttemptExecutionScope | None = None
+    gpu_process_binding: GpuProcessBinding | None = None
     trusted_seed_count: InitVar[int | None] = None
 
     def __post_init__(self, trusted_seed_count: int | None = None) -> None:
@@ -679,10 +766,10 @@ class BaselineEvalJobSpec:
             raise ValueError("baseline eval job metadata must be an object")
         if self.attempt_scope is not None and not isinstance(
             self.attempt_scope,
-            JobAttemptScope,
+            JobAttemptExecutionScope,
         ):
             raise TypeError(
-                "baseline eval job attempt_scope must be a JobAttemptScope"
+                "baseline eval job attempt_scope is invalid"
             )
         sealed_validation_seed_count = _resolved_sealed_validation_seed_count(
             self.sealed_validation_seed_count,
@@ -709,6 +796,20 @@ class BaselineEvalJobSpec:
             self.execution_device,
             "baseline eval job execution_device",
         )
+        if self.gpu_process_binding is not None:
+            if not isinstance(self.gpu_process_binding, GpuProcessBinding):
+                raise TypeError(
+                    "baseline eval job gpu_process_binding must be a "
+                    "GpuProcessBinding"
+                )
+            if (
+                self.execution_device
+                != self.gpu_process_binding.process_execution_device
+            ):
+                raise ValueError(
+                    "baseline eval job execution_device does not match GPU "
+                    "process binding"
+                )
         if not self.eval_protocol_version:
             raise ValueError("eval_protocol_version must be non-empty")
         if (
@@ -751,7 +852,7 @@ class BaselineEvalJobSpec:
         )
 
     def to_public_dict(self) -> dict[str, Any]:
-        return {
+        result = {
             "job_id": self.job_id,
             "task_id": self.task_id,
             "subject": self.evaluation_subject().to_public_dict(),
@@ -762,6 +863,9 @@ class BaselineEvalJobSpec:
             **self.evaluation_protocol().to_public_dict(),
             "evaluation_binding": self.evaluation_binding.to_public_dict(),
         }
+        if self.gpu_process_binding is not None:
+            result["gpu_process_binding"] = self.gpu_process_binding.to_dict()
+        return result
 
 
 EvaluationJobSpec = EvalJobSpec | EvalPhaseJobSpec | BaselineEvalJobSpec

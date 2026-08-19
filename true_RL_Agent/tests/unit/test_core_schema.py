@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import sys
 import unittest
+from dataclasses import replace
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -42,6 +43,7 @@ from true_rl_agent.policy import BaselinePolicyRef, PolicyInitialization
 from true_rl_agent.runner.specs import (
     CheckpointRef,
     EvalJobSpec,
+    GpuProcessBinding,
     TrainJobSpec,
     require_execution_device,
 )
@@ -266,6 +268,11 @@ class CoreSchemaTests(unittest.TestCase):
         self.assertIs(warm_start.baseline, baseline)
 
     def test_train_job_start_checkpoint_is_separate_from_eval_checkpoint(self) -> None:
+        gpu_process_binding = GpuProcessBinding(
+            host_execution_device="cuda:1",
+            process_execution_device="cuda:0",
+            resource_binding_hash="9" * 64,
+        )
         train_start = CheckpointRef(
             uri="baseline://push/random_recovery_seed",
             checksum=TEST_CHECKPOINT_HASH,
@@ -294,6 +301,7 @@ class CoreSchemaTests(unittest.TestCase):
             budget_steps=1024,
             execution_device="cuda:0",
             candidate_artifact=candidate_artifact,
+            gpu_process_binding=gpu_process_binding,
         )
 
         eval_checkpoint = CheckpointRef(
@@ -323,11 +331,32 @@ class CoreSchemaTests(unittest.TestCase):
                 sealed_validation_seed_count=16,
             ),
             execution_device="cuda:0",
+            gpu_process_binding=gpu_process_binding,
         )
 
         self.assertEqual(train_spec.training_start_checkpoint().role, "warm_start")
         self.assertEqual(eval_spec.checkpoint.role, "eval")
         self.assertNotEqual(train_spec.training_start_checkpoint(), eval_spec.checkpoint)
+        self.assertEqual(
+            train_spec.to_public_dict()["gpu_process_binding"],
+            gpu_process_binding.to_dict(),
+        )
+        self.assertEqual(
+            eval_spec.to_public_dict()["gpu_process_binding"],
+            gpu_process_binding.to_dict(),
+        )
+        self.assertNotIn(
+            "gpu_process_binding",
+            replace(train_spec, gpu_process_binding=None).to_public_dict(),
+        )
+        self.assertNotIn(
+            "gpu_process_binding",
+            replace(eval_spec, gpu_process_binding=None).to_public_dict(),
+        )
+        with self.assertRaisesRegex(ValueError, "does not match"):
+            replace(train_spec, execution_device="cuda:1")
+        with self.assertRaisesRegex(ValueError, "does not match"):
+            replace(eval_spec, execution_device="cuda:1")
 
     def test_job_specs_reject_non_object_metadata_at_ingestion(self) -> None:
         with self.assertRaisesRegex(ValueError, "train job metadata must be an object"):

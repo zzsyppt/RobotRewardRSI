@@ -97,7 +97,7 @@ from true_rl_agent.runner.base import (
 )
 from true_rl_agent.runner.eval_binding import bind_eval_spec_to_checkpoint
 from true_rl_agent.runner.job_attempts import JobAttemptScope
-from true_rl_agent.runner.specs import CheckpointRef, EvalJobSpec
+from true_rl_agent.runner.specs import CheckpointRef, EvalJobSpec, GpuProcessBinding
 from true_rl_agent.fs_contract import read_bounded_regular_file
 from true_rl_agent.safety.invariants import enforce_task_invariants
 from true_rl_agent.tasks.base import TaskPlugin
@@ -134,6 +134,7 @@ class RoundInputs:
     trial_receipt_root: Path | None = None
     train_attempt_scope: JobAttemptScope | None = None
     eval_attempt_scope: JobAttemptScope | None = None
+    gpu_process_binding: GpuProcessBinding | None = None
 
 
 @dataclass(frozen=True)
@@ -356,6 +357,12 @@ def prepare_candidate_trial(inputs: RoundInputs) -> PreparedCandidateTrial:
             materialization_kwargs["train_attempt_scope"] = inputs.train_attempt_scope
         if inputs.eval_attempt_scope is not None:
             materialization_kwargs["eval_attempt_scope"] = inputs.eval_attempt_scope
+        if inputs.gpu_process_binding is not None:
+            if not isinstance(inputs.gpu_process_binding, GpuProcessBinding):
+                raise TypeError("RoundInputs.gpu_process_binding is invalid")
+            materialization_kwargs["gpu_process_binding"] = (
+                inputs.gpu_process_binding
+            )
         jobs = inputs.backend_adapter.materialize_jobs(
             round_id=inputs.round_id,
             task_spec=task_spec,

@@ -250,6 +250,7 @@ def _validate_common_identity(
     }
     for option, expected in exact_options.items():
         require_exact_option_value(argv, option, expected=expected)
+    _validate_gpu_process_binding_argv(spec, argv)
     execution_environment_hash = spec.metadata.get(
         "backend_execution_environment_manifest_hash"
     )
@@ -275,6 +276,28 @@ def _validate_common_identity(
             argv,
             "--subject-manifest-hash",
             expected=manifest_hash,
+        )
+
+
+def _validate_gpu_process_binding_argv(
+    spec: TrainJobSpec | EvaluationJobSpec,
+    argv: Sequence[str],
+) -> None:
+    options = {
+        "--gpu-host-execution-device": "host_execution_device",
+        "--gpu-process-execution-device": "process_execution_device",
+        "--gpu-resource-binding-hash": "resource_binding_hash",
+    }
+    binding = getattr(spec, "gpu_process_binding", None)
+    if binding is None:
+        for option in options:
+            require_option_absent(argv, option)
+        return
+    for option, field_name in options.items():
+        require_exact_option_value(
+            argv,
+            option,
+            expected=getattr(binding, field_name),
         )
 
 

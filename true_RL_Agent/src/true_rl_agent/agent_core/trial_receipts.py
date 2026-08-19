@@ -33,6 +33,7 @@ from true_rl_agent.runner.specs import (
     CheckpointRef,
     EvalJobSpec,
     EvalPhaseJobSpec,
+    GpuProcessBinding,
     TrainJobSpec,
     require_eval_phase_result_matches_spec,
 )
@@ -799,7 +800,7 @@ def _require_receipt_identity(
 
 
 def _train_result_to_private_mapping(result: TrainJobResult) -> dict[str, Any]:
-    return {
+    payload = {
         "job_id": result.job_id,
         "subject": result.subject.to_public_dict(),
         "subject_manifest_hash": result.subject_manifest_hash,
@@ -815,10 +816,13 @@ def _train_result_to_private_mapping(result: TrainJobResult) -> dict[str, Any]:
         ),
         "summary": dict(result.summary),
     }
+    if result.gpu_process_binding is not None:
+        payload["gpu_process_binding"] = result.gpu_process_binding.to_dict()
+    return payload
 
 
 def _train_result_from_private_mapping(value: Any) -> TrainJobResult:
-    if not isinstance(value, Mapping) or set(value) != {
+    expected_fields = {
         "job_id",
         "subject",
         "subject_manifest_hash",
@@ -829,7 +833,11 @@ def _train_result_from_private_mapping(value: Any) -> TrainJobResult:
         "checkpoint",
         "initial_policy_state_pairing",
         "summary",
-    }:
+    }
+    if not isinstance(value, Mapping) or set(value) not in (
+        expected_fields,
+        expected_fields | {"gpu_process_binding"},
+    ):
         raise ValueError("trial train result fields mismatch")
     checkpoint = value.get("checkpoint")
     if not isinstance(checkpoint, Mapping) or set(checkpoint) != {
@@ -861,6 +869,11 @@ def _train_result_from_private_mapping(value: Any) -> TrainJobResult:
             if pairing is not None
             else None
         ),
+        gpu_process_binding=(
+            GpuProcessBinding.from_mapping(value.get("gpu_process_binding"))
+            if "gpu_process_binding" in value
+            else None
+        ),
         summary=value.get("summary"),
     )
 
@@ -879,6 +892,7 @@ def _require_train_result_matches_spec(
             spec.training_binding.capability_profile_hash
         ),
         "execution_device": spec.execution_device,
+        "gpu_process_binding": spec.gpu_process_binding,
     }
     actual = {
         "job_id": result.job_id,
@@ -888,6 +902,7 @@ def _require_train_result_matches_spec(
         "training_binding_hash": result.training_binding_hash,
         "capability_profile_hash": result.capability_profile_hash,
         "execution_device": result.execution_device,
+        "gpu_process_binding": result.gpu_process_binding,
     }
     if actual != expected:
         raise ValueError("trial train result does not match its job spec")

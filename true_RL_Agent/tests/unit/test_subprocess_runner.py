@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import sys
 import tempfile
 import textwrap
@@ -9,6 +10,7 @@ import unittest
 from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = PROJECT_ROOT / "src"
@@ -32,18 +34,23 @@ from true_rl_agent.evaluation.binding import canonical_json_hash
 from true_rl_agent.evaluation.phases import (
     EVALUATION_PHASE_SUMMARY_SCHEMA_VERSION,
     EvaluationPhase,
+    EvaluationPhaseResult,
 )
 from true_rl_agent.evaluation.public_result import PublicEvalResult
 from true_rl_agent.evaluation.subject import ExperimentSubject
 from true_rl_agent.policy import BaselinePolicyRef, PolicyInitialization
-from true_rl_agent.runner.base import CandidateRuntimeError
+from true_rl_agent.runner.base import CandidateRuntimeError, RunnerFailureKind
 from true_rl_agent.runner.candidate_failure import (
     CandidateFailureContract,
     CandidateFailureRule,
 )
 from true_rl_agent.runner.evidence import evidence_artifact_from_json
 from true_rl_agent.runner.gpu_lease import GpuDeviceIdentity, GpuLeaseManager
-from true_rl_agent.runner.job_attempts import JobAttemptScope
+from true_rl_agent.runner.job_attempts import (
+    RESOURCE_LEASE_ATTEMPT_RESULT_SCHEMA_VERSION,
+    JobAttemptScope,
+)
+from true_rl_agent.runner.job_argv import validate_train_job_argv
 from true_rl_agent.runner.specs import (
     BaselineEvalJobSpec,
     CheckpointOutputPlan,
@@ -51,6 +58,7 @@ from true_rl_agent.runner.specs import (
     EvalJobSpec,
     EvalPhaseJobSpec,
     EvaluationJobSpec,
+    GpuProcessBinding,
     TrainJobSpec,
 )
 from true_rl_agent.runner.subprocess_runner import (
@@ -143,6 +151,7 @@ def _train_job_spec(*, candidate_id: str, **kwargs) -> TrainJobSpec:
                 "expected_initial_policy_state_hash"
             ),
             candidate_failure_contract=candidate_failure_contract,
+            gpu_process_binding=kwargs.get("gpu_process_binding"),
         )
     kwargs["metadata"] = metadata
     kwargs.setdefault("execution_device", "cuda:0")
@@ -173,6 +182,7 @@ def _bound_train_argv(
     metadata: dict,
     expected_initial_policy_state_hash: str | None = None,
     candidate_failure_contract: CandidateFailureContract | None = None,
+    gpu_process_binding: GpuProcessBinding | None = None,
 ) -> list[str]:
     result = [
         *argv,
@@ -235,6 +245,17 @@ def _bound_train_argv(
                 candidate_failure_contract.contract_hash,
             ]
         )
+    if gpu_process_binding is not None:
+        result.extend(
+            [
+                "--gpu-host-execution-device",
+                gpu_process_binding.host_execution_device,
+                "--gpu-process-execution-device",
+                gpu_process_binding.process_execution_device,
+                "--gpu-resource-binding-hash",
+                gpu_process_binding.resource_binding_hash,
+            ]
+        )
     return result
 
 
@@ -254,6 +275,7 @@ def _with_train_argv(spec: TrainJobSpec, argv: list[str]) -> TrainJobSpec:
             spec.expected_initial_policy_state_hash
         ),
         candidate_failure_contract=spec.candidate_failure_contract,
+        gpu_process_binding=spec.gpu_process_binding,
     )
     return replace(spec, metadata=metadata)
 
@@ -367,6 +389,18 @@ def _bind_eval_spec_argv(spec: EvaluationJobSpec) -> EvaluationJobSpec:
                 spec.training_binding_hash,
             ]
         )
+    gpu_process_binding = getattr(spec, "gpu_process_binding", None)
+    if gpu_process_binding is not None:
+        argv.extend(
+            [
+                "--gpu-host-execution-device",
+                gpu_process_binding.host_execution_device,
+                "--gpu-process-execution-device",
+                gpu_process_binding.process_execution_device,
+                "--gpu-resource-binding-hash",
+                gpu_process_binding.resource_binding_hash,
+            ]
+        )
     metadata["cli_argv"] = argv
     return replace(spec, metadata=metadata)
 
@@ -472,6 +506,139 @@ class SubprocessRunnerTests(unittest.TestCase):
         self.assertEqual(result.task_evidence, task_evidence)
         self.assertFalse(result.to_private_dict()["acceptance_authority"])
 
+    def test_bound_eval_phase_receipt_uses_validated_summary_binding(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            phase_summary = root / "bound-phase-summary.json"
+            identity = GpuDeviceIdentity("cuda:1", "machine", "GPU-BBB")
+            binding = GpuProcessBinding(
+                host_execution_device="cuda:1",
+                process_execution_device="cuda:0",
+                resource_binding_hash=identity.identity_hash,
+            )
+            scope = JobAttemptScope(
+                journal_root=root / "attempts",
+                session_genesis_hash="a" * 64,
+                session_contract_hash="b" * 64,
+                generation_id="generation-001",
+                lane_id="lane-b",
+                invocation_segment_id="segment-000",
+                budget_contract_hash="c" * 64,
+                attempt_budget_units=1,
+                max_infrastructure_retries=0,
+                resource_binding_hash=identity.identity_hash,
+            )
+            plan = _eval_job_spec(
+                job_id="bound-eval-phase-plan",
+                task_id="unitree_push_recovery",
+                candidate_id="candidate-phase",
+                checkpoint=self._eval_checkpoint(root),
+                public_seed_count=3,
+                public_accept_seed_count=5,
+                sealed_validation_seed_count=7,
+                evaluation_binding=make_evaluation_binding(
+                    public_seed_count=3,
+                    public_accept_seed_count=5,
+                    sealed_validation_seed_count=7,
+                ),
+                gpu_process_binding=binding,
+                metadata={
+                    "summary_path": str(root / "full-summary.json"),
+                    "backend_id": "isaac_lab_rsl_rl",
+                    "backend_execution_environment_manifest_hash": (
+                        TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH
+                    ),
+                },
+            )
+            phase_spec = EvalPhaseJobSpec(
+                job_id="bound-eval-phase-public-dev",
+                evaluation_plan=plan,
+                phase=EvaluationPhase.PUBLIC_DEV,
+                attempt_scope=scope,
+                metadata={
+                    "summary_path": str(phase_summary),
+                    "backend_id": "isaac_lab_rsl_rl",
+                    "backend_execution_environment_manifest_hash": (
+                        TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH
+                    ),
+                },
+            )
+            task_evidence = {
+                "schema_version": "test.task.phase_evidence.v1",
+                "phase": "public_dev",
+                "score": 0.4,
+            }
+            summary = {
+                **self._eval_summary_binding(phase_spec),
+                "schema_version": EVALUATION_PHASE_SUMMARY_SCHEMA_VERSION,
+                "evaluation_phase": "public_dev",
+                "evaluation_plan_hash": phase_spec.evaluation_plan_hash,
+                "status": "pass",
+                "gpu_process_binding": binding.to_dict(),
+                "task_evidence": task_evidence,
+                "task_evidence_hash": canonical_json_hash(task_evidence),
+                "evaluation_execution_cost": {
+                    "schema_version": "test.phase_cost.v1",
+                    "splits": {"public_dev": {"seed_count": 3}},
+                },
+                "environment_source_preflight": {"status": "pass"},
+                "backend_execution_environment_verification": dict(
+                    TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_VERIFICATION
+                ),
+                "checkpoint_safety_report": self._checkpoint_safety_report(),
+                "candidate_code_loaded_in_eval": False,
+                "candidate_package_loaded": False,
+                "candidate_package_loaded_in_eval": False,
+                "candidate_path_argument_present": False,
+                "errors": [],
+            }
+            code = textwrap.dedent(
+                f"""
+                import json
+                import os
+                from pathlib import Path
+                summary = json.loads({json.dumps(summary)!r})
+                pid = os.getpid()
+                summary["owned_process_identity"] = {{
+                    "schema_version": "true_rl_agent.runner.owned_process_identity.v1",
+                    "process_id": pid,
+                    "process_group_id": getattr(os, "getpgrp", lambda: pid)(),
+                }}
+                Path({str(phase_summary)!r}).write_text(json.dumps(summary))
+                """
+            )
+            phase_spec = _with_eval_argv(
+                phase_spec,
+                self._checkpoint_cli_argv(
+                    plan.execution_checkpoint(),
+                    code,
+                ),
+            )
+            runner = SubprocessRunner(
+                allowed_executables=(sys.executable,),
+                timeout_s=10,
+                gpu_lease_manager=GpuLeaseManager(
+                    lease_root=root / "leases",
+                    devices={"cuda:1": identity},
+                ),
+            )
+
+            result = runner.run_eval_phase(phase_spec)
+
+        self.assertEqual(result.execution_device, "cuda:0")
+        self.assertEqual(result.resource_binding_hash, identity.identity_hash)
+        self.assertEqual(result.gpu_process_binding, binding.to_dict())
+        self.assertEqual(
+            result.to_private_dict()["gpu_process_binding"],
+            binding.to_dict(),
+        )
+        self.assertEqual(
+            EvaluationPhaseResult.from_private_mapping(
+                result.to_private_dict()
+            ).to_private_dict(),
+            result.to_private_dict(),
+        )
+
     def test_backend_environment_summary_receipt_is_exact_and_hash_bound(self) -> None:
         spec = SimpleNamespace(
             job_id="isaac-job",
@@ -542,6 +709,216 @@ class SubprocessRunnerTests(unittest.TestCase):
                 with self.assertRaisesRegex((TypeError, ValueError), error):
                     SubprocessRunner(**kwargs)
 
+    def test_bound_train_uses_host_lease_and_child_only_uuid_mapping(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            summary_path = root / "train-summary.json"
+            checkpoint_path = root / "trained.pt"
+            environment_path = root / "child-environment.json"
+            checkpoint_bytes = b"bound-train-checkpoint"
+            checkpoint_hash = (
+                "sha256:" + hashlib.sha256(checkpoint_bytes).hexdigest()
+            )
+            identity = GpuDeviceIdentity(
+                "cuda:1",
+                "test-machine",
+                "GPU-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+            )
+            binding = GpuProcessBinding(
+                host_execution_device="cuda:1",
+                process_execution_device="cuda:0",
+                resource_binding_hash=identity.identity_hash,
+            )
+            scope = JobAttemptScope(
+                journal_root=root / "attempts",
+                session_genesis_hash="a" * 64,
+                session_contract_hash="b" * 64,
+                generation_id="generation-001",
+                lane_id="lane-b",
+                invocation_segment_id="segment-000",
+                budget_contract_hash="c" * 64,
+                attempt_budget_units=1,
+                max_infrastructure_retries=0,
+                resource_binding_hash=identity.identity_hash,
+            )
+            summary = {
+                **_expected_train_summary_binding(
+                    job_id="bound-train",
+                    candidate_id="candidate-code",
+                ),
+                "status": "pass",
+                "gpu_process_binding": binding.to_dict(),
+                "checkpoint": {
+                    "uri": str(checkpoint_path),
+                    "checksum": checkpoint_hash,
+                    "role": "train_output",
+                    "metadata": {"local_path": str(checkpoint_path)},
+                },
+            }
+            code = textwrap.dedent(
+                f"""
+                import json
+                import os
+                from pathlib import Path
+                Path({str(environment_path)!r}).write_text(json.dumps({{
+                    "CUDA_VISIBLE_DEVICES": os.environ.get("CUDA_VISIBLE_DEVICES"),
+                    "NVIDIA_VISIBLE_DEVICES": os.environ.get("NVIDIA_VISIBLE_DEVICES"),
+                }}))
+                Path({str(checkpoint_path)!r}).write_bytes({checkpoint_bytes!r})
+                summary = json.loads({json.dumps(summary)!r})
+                pid = os.getpid()
+                summary["owned_process_identity"] = {{
+                    "schema_version": "true_rl_agent.runner.owned_process_identity.v1",
+                    "process_id": pid,
+                    "process_group_id": getattr(os, "getpgrp", lambda: pid)(),
+                }}
+                Path({str(summary_path)!r}).write_text(json.dumps(summary))
+                """
+            )
+            spec = _train_job_spec(
+                job_id="bound-train",
+                task_id="unitree_push_recovery",
+                candidate_id="candidate-code",
+                policy_initialization=PolicyInitialization.random(),
+                budget_steps=128,
+                execution_device="cuda:0",
+                gpu_process_binding=binding,
+                attempt_scope=scope,
+                metadata={
+                    "cli_argv": [sys.executable, "-c", code],
+                    "summary_path": str(summary_path),
+                    "checkpoint_output_path": str(checkpoint_path),
+                    "sealed_checkpoint_uri": "artifact://bound/sealed/best.pt",
+                },
+            )
+            runner = SubprocessRunner(
+                allowed_executables=(sys.executable,),
+                timeout_s=10,
+                gpu_lease_manager=GpuLeaseManager(
+                    lease_root=root / "leases",
+                    devices={"cuda:1": identity},
+                ),
+            )
+
+            with patch.dict(
+                os.environ,
+                {
+                    "CUDA_VISIBLE_DEVICES": "PARENT-CUDA",
+                    "NVIDIA_VISIBLE_DEVICES": "PARENT-NVIDIA",
+                },
+            ):
+                result = runner.run_train(spec)
+                self.assertEqual(
+                    os.environ["CUDA_VISIBLE_DEVICES"],
+                    "PARENT-CUDA",
+                )
+                self.assertEqual(
+                    os.environ["NVIDIA_VISIBLE_DEVICES"],
+                    "PARENT-NVIDIA",
+                )
+
+            child_environment = json.loads(environment_path.read_text())
+            self.assertEqual(
+                child_environment,
+                {
+                    "CUDA_VISIBLE_DEVICES": identity.physical_id,
+                    "NVIDIA_VISIBLE_DEVICES": None,
+                },
+            )
+            self.assertEqual(result.gpu_process_binding, binding)
+            self.assertEqual(
+                result.checkpoint.metadata["gpu_process_binding"],
+                binding.to_dict(),
+            )
+            self.assertEqual(
+                result.to_public_dict()["gpu_process_binding"],
+                binding.to_dict(),
+            )
+            attempt_results = list(
+                (root / "attempts").rglob("attempt_00.result.json")
+            )
+            self.assertEqual(len(attempt_results), 1)
+            attempt_result = json.loads(attempt_results[0].read_text())
+            self.assertEqual(
+                attempt_result["schema_version"],
+                RESOURCE_LEASE_ATTEMPT_RESULT_SCHEMA_VERSION,
+            )
+            self.assertGreater(
+                attempt_result["resource_lease_wall_duration_ns"],
+                0,
+            )
+            with self.assertRaisesRegex(ValueError, "must be absent"):
+                validate_train_job_argv(
+                    replace(spec, gpu_process_binding=None),
+                    spec.metadata["cli_argv"],
+                )
+
+            untrusted_hash = "d" * 64
+            with self.assertRaisesRegex(
+                RunnerExecutionError,
+                "GPU resource binding is invalid",
+            ):
+                runner.run_train(
+                    replace(
+                        spec,
+                        job_id="untrusted-bound-train",
+                        gpu_process_binding=replace(
+                            binding,
+                            resource_binding_hash=untrusted_hash,
+                        ),
+                        attempt_scope=replace(
+                            scope,
+                            journal_root=root / "untrusted-attempts",
+                            resource_binding_hash=untrusted_hash,
+                        ),
+                    )
+                )
+
+            missing_binding_summary = dict(summary)
+            missing_binding_summary.pop("gpu_process_binding")
+            summary_path.write_text(json.dumps(missing_binding_summary))
+            with self.assertRaises(RunnerExecutionError) as raised:
+                runner.run_train(spec)
+            self.assertEqual(
+                raised.exception.failure_kind,
+                RunnerFailureKind.SUMMARY_INVALID,
+            )
+
+    def test_baseline_eval_optional_gpu_binding_omits_legacy_field(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            identity = GpuDeviceIdentity("cuda:1", "machine", "GPU-BBB")
+            binding = GpuProcessBinding(
+                host_execution_device="cuda:1",
+                process_execution_device="cuda:0",
+                resource_binding_hash=identity.identity_hash,
+            )
+            bound = _baseline_eval_job_spec(
+                job_id="bound-baseline",
+                task_id="unitree_push_recovery",
+                baseline_id="baseline-policy",
+                baseline_manifest_hash="e" * 64,
+                checkpoint=self._eval_checkpoint(root, role="warm_start"),
+                public_seed_count=3,
+                public_accept_seed_count=5,
+                sealed_validation_seed_count=7,
+                evaluation_binding=make_evaluation_binding(
+                    public_seed_count=3,
+                    public_accept_seed_count=5,
+                    sealed_validation_seed_count=7,
+                ),
+                gpu_process_binding=binding,
+            )
+
+            self.assertEqual(
+                bound.to_public_dict()["gpu_process_binding"],
+                binding.to_dict(),
+            )
+            self.assertNotIn(
+                "gpu_process_binding",
+                replace(bound, gpu_process_binding=None).to_public_dict(),
+            )
+
     def test_summary_missing_uses_exactly_one_reserved_infrastructure_retry(
         self,
     ) -> None:
@@ -604,6 +981,88 @@ class SubprocessRunnerTests(unittest.TestCase):
             self.assertEqual(len(results), 2)
             payloads = [json.loads(path.read_text()) for path in results]
             self.assertEqual([item["retryable"] for item in payloads], [True, False])
+
+    def test_completed_train_attempt_is_revalidated_without_relaunch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            summary_path = root / "train-summary.json"
+            checkpoint_path = root / "trained.pt"
+            launch_count_path = root / "launch-count.txt"
+            checkpoint_bytes = b"completed-attempt-checkpoint"
+            checkpoint_hash = "sha256:" + hashlib.sha256(checkpoint_bytes).hexdigest()
+            identity = GpuDeviceIdentity("cuda:0", "test-machine", "GPU-TEST")
+            scope = JobAttemptScope(
+                journal_root=root / "attempts",
+                session_genesis_hash="a" * 64,
+                session_contract_hash="b" * 64,
+                generation_id="generation-001",
+                lane_id="lane-a",
+                invocation_segment_id="segment-000",
+                budget_contract_hash="c" * 64,
+                attempt_budget_units=2,
+                max_infrastructure_retries=1,
+                resource_binding_hash=identity.identity_hash,
+            )
+            summary = {
+                **_expected_train_summary_binding(
+                    job_id="completed-attempt-train",
+                    candidate_id="candidate-code",
+                ),
+                "status": "pass",
+                "checkpoint": {
+                    "uri": str(checkpoint_path),
+                    "checksum": checkpoint_hash,
+                    "role": "train_output",
+                    "metadata": {"local_path": str(checkpoint_path)},
+                },
+            }
+            code = textwrap.dedent(
+                f"""
+                import json
+                from pathlib import Path
+                counter = Path({str(launch_count_path)!r})
+                count = int(counter.read_text()) if counter.exists() else 0
+                counter.write_text(str(count + 1))
+                Path({str(checkpoint_path)!r}).write_bytes({checkpoint_bytes!r})
+                Path({str(summary_path)!r}).write_text({json.dumps(summary)!r})
+                """
+            )
+            spec = _train_job_spec(
+                job_id="completed-attempt-train",
+                task_id="unitree_push_recovery",
+                candidate_id="candidate-code",
+                policy_initialization=PolicyInitialization.random(),
+                budget_steps=128,
+                attempt_scope=scope,
+                metadata={
+                    "cli_argv": [sys.executable, "-c", code],
+                    "summary_path": str(summary_path),
+                    "checkpoint_output_path": str(checkpoint_path),
+                    "sealed_checkpoint_uri": "artifact://train/sealed/best.pt",
+                },
+            )
+            runner = SubprocessRunner(
+                allowed_executables=(sys.executable,),
+                timeout_s=10,
+                gpu_lease_manager=GpuLeaseManager(
+                    lease_root=root / "leases",
+                    devices={"cuda:0": identity},
+                ),
+            )
+
+            first = runner.run_train(spec)
+            second = runner.run_train(spec)
+
+            self.assertEqual(launch_count_path.read_text(), "1")
+            self.assertEqual(first.to_public_dict(), second.to_public_dict())
+            summary_path.unlink()
+            with self.assertRaises(RunnerExecutionError) as raised:
+                runner.run_train(spec)
+            self.assertEqual(
+                raised.exception.failure_kind,
+                RunnerFailureKind.SUMMARY_INVALID,
+            )
+            self.assertEqual(launch_count_path.read_text(), "1")
 
     def _checkpoint_safety_report(
         self,
@@ -1254,6 +1713,30 @@ class SubprocessRunnerTests(unittest.TestCase):
         self.assertEqual(result.public_score, 0.42)
         self.assertEqual(result.metrics["success_rate"], 0.42)
 
+    def test_unbound_eval_rejects_summary_gpu_process_binding_claim(self) -> None:
+        with self.assertRaisesRegex(
+            RunnerExecutionError,
+            "unbound summary cannot claim a GPU process binding",
+        ) as raised:
+            self._run_eval_summary(
+                {
+                    "status": "pass",
+                    "public_score": 0.42,
+                    "metrics": {"success_rate": 0.42},
+                    "gpu_process_binding": {
+                        "host_execution_device": "cuda:1",
+                        "process_execution_device": "cuda:0",
+                        "resource_binding_hash": "a" * 64,
+                    },
+                    "checkpoint_safety_report": self._checkpoint_safety_report(),
+                    "sealed_validation_gate": self._sealed_validation_gate(),
+                }
+            )
+        self.assertEqual(
+            raised.exception.failure_kind,
+            RunnerFailureKind.SUMMARY_INVALID,
+        )
+
     def test_subprocess_runner_rejects_baseline_manifest_or_subject_drift(
         self,
     ) -> None:
@@ -1851,6 +2334,27 @@ class SubprocessRunnerTests(unittest.TestCase):
         self.assertEqual(
             result.summary["runtime_activation_summary"]["reward_term_calls"],
             7,
+        )
+
+    def test_unbound_train_rejects_summary_gpu_process_binding_claim(self) -> None:
+        with self.assertRaisesRegex(
+            RunnerExecutionError,
+            "unbound summary cannot claim a GPU process binding",
+        ) as raised:
+            self._run_train_summary(
+                {
+                    "status": "pass",
+                    "gpu_process_binding": {
+                        "host_execution_device": "cuda:1",
+                        "process_execution_device": "cuda:0",
+                        "resource_binding_hash": "a" * 64,
+                    },
+                },
+                checkpoint_bytes=b"reverse-bound-drift",
+            )
+        self.assertEqual(
+            raised.exception.failure_kind,
+            RunnerFailureKind.SUMMARY_INVALID,
         )
 
     def test_initial_policy_state_pairing_is_bound_to_train_result(self) -> None:

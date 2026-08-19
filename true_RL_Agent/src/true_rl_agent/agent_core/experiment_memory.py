@@ -9,6 +9,10 @@ from true_rl_agent.agent_core.ledger import (
     PROVIDER_AUTHORING_MODE,
     dispatch_ledger_record_schema,
 )
+from true_rl_agent.agent_core.exploration_projection import (
+    compact_exploration_prompt_projection,
+    degrade_exploration_prompt_projection,
+)
 from true_rl_agent.agent_core.public_safety import sanitize_prompt_public_value
 from true_rl_agent.candidates.authoring_policy import (
     CANDIDATE_MECHANISM_DELTA_SCHEMA_VERSION,
@@ -26,10 +30,14 @@ EXPERIMENT_MEMORY_MAX_COMPONENTS = 8
 EXPERIMENT_MEMORY_MAX_CANDIDATE_COMPONENTS = MAX_CANONICAL_COMPONENT_DELTAS
 _MAX_FAILED_GATES = 8
 _TEXT_LIMIT = 500
+_EXPERIMENT_MEMORY_SCHEMA_V3 = "true_rl_agent.experiment_memory.v3"
+_EXPERIMENT_MEMORY_SCHEMA_V4 = "true_rl_agent.experiment_memory.v4"
 
 
 def build_experiment_memory(
     records: Sequence[Mapping[str, Any]],
+    *,
+    exploration_projection: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Project validated public records into a compact cross-round index."""
 
@@ -70,7 +78,10 @@ def build_experiment_memory(
             previous_component_ids = component_ids
             if decision.get("accepted") is True:
                 accepted_component_ids = component_ids
-    return _bounded_memory(entries)
+    return _bounded_memory(
+        entries,
+        exploration_projection=exploration_projection,
+    )
 
 
 def recompact_experiment_memory(value: Any) -> dict[str, Any]:
@@ -79,9 +90,16 @@ def recompact_experiment_memory(value: Any) -> dict[str, Any]:
     memory = _mapping(value)
     raw_entries = memory.get("experiments")
     entries = list(raw_entries) if isinstance(raw_entries, list | tuple) else []
+    exploration_projection = (
+        memory.get("exploration")
+        if memory.get("schema_version") == _EXPERIMENT_MEMORY_SCHEMA_V4
+        and isinstance(memory.get("exploration"), Mapping)
+        else None
+    )
     return _bounded_memory(
         entries,
         prior_omitted_count=_nonnegative_int(memory.get("omitted_experiment_count")),
+        exploration_projection=exploration_projection,
     )
 
 
@@ -89,7 +107,13 @@ def _bounded_memory(
     entries: Sequence[Any],
     *,
     prior_omitted_count: int = 0,
+    exploration_projection: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
+    exploration = (
+        compact_exploration_prompt_projection(exploration_projection)
+        if exploration_projection is not None
+        else None
+    )
     compact_entries = [
         compact
         for entry in entries
@@ -121,11 +145,11 @@ def _bounded_memory(
     memory = _memory_payload(
         [entry for _, entry in shown],
         omitted_count=omitted_count,
+        exploration_projection=exploration,
     )
+    protected_summaries_applied = False
     while (
-        shown
-        and canonical_prompt_json_bytes(memory)
-        > EXPERIMENT_MEMORY_MAX_SERIALIZED_BYTES
+        canonical_prompt_json_bytes(memory) > EXPERIMENT_MEMORY_MAX_SERIALIZED_BYTES
     ):
         drop_position = next(
             (
@@ -135,20 +159,24 @@ def _bounded_memory(
             ),
             None,
         )
-        if drop_position is None:
+        if drop_position is not None:
+            shown.pop(drop_position)
+            omitted_count += 1
+        elif shown and not protected_summaries_applied:
             shown = [
                 (index, _protected_entry_summary(entry))
                 for index, entry in shown
             ]
+            protected_summaries_applied = True
+        elif exploration is not None:
+            exploration = degrade_exploration_prompt_projection(exploration)
         else:
-            shown.pop(drop_position)
-            omitted_count += 1
+            break
         memory = _memory_payload(
             [entry for _, entry in shown],
             omitted_count=omitted_count,
+            exploration_projection=exploration,
         )
-        if drop_position is None:
-            break
     if (
         canonical_prompt_json_bytes(memory)
         > EXPERIMENT_MEMORY_MAX_SERIALIZED_BYTES
@@ -204,10 +232,14 @@ def _memory_payload(
     shown: Sequence[Mapping[str, Any]],
     *,
     omitted_count: int,
+    exploration_projection: Mapping[str, Any] | None,
 ) -> dict[str, Any]:
-    return _sanitize_mapping(
-        {
-            "schema_version": "true_rl_agent.experiment_memory.v3",
+    payload = {
+            "schema_version": (
+                _EXPERIMENT_MEMORY_SCHEMA_V4
+                if exploration_projection is not None
+                else _EXPERIMENT_MEMORY_SCHEMA_V3
+            ),
             "purpose": (
                 "bounded cross-round component/outcome index; consult it before proposing "
                 "a candidate so previously evaluated mechanisms are not repeated blindly"
@@ -241,7 +273,13 @@ def _memory_payload(
             "omitted_experiment_count": omitted_count,
             "experiments": list(shown),
         }
-    )
+    if exploration_projection is not None:
+        payload["exploration_semantics"] = (
+            "ledger-derived, task-owned public hypotheses for bounded revisit; "
+            "no acceptance authority and no checkpoint/source reuse authority"
+        )
+        payload["exploration"] = dict(exploration_projection)
+    return _sanitize_mapping(payload)
 
 
 def _record_entry(

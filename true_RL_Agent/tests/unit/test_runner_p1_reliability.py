@@ -23,17 +23,23 @@ from true_rl_agent.runner.base import (  # noqa: E402
     RunnerFailureKind,
 )
 from true_rl_agent.runner.gpu_lease import (  # noqa: E402
+    GPU_LEASE_SCHEMA_VERSION,
+    PRE_GENESIS_GPU_LEASE_SCHEMA_VERSION,
     GpuDeviceIdentity,
     GpuLeaseHolder,
     GpuLeaseManager,
     GpuLeaseUnavailableError,
+    PreGenesisGpuLeaseHolder,
 )
 from true_rl_agent.runner.job_argv import (  # noqa: E402
     validate_single_device_job_argv,
 )
 from true_rl_agent.runner.job_attempts import (  # noqa: E402
+    PRE_GENESIS_EXECUTION_SCOPE_SCHEMA_VERSION,
+    RESOURCE_LEASE_ATTEMPT_RESULT_SCHEMA_VERSION,
     JobAttemptJournal,
     JobAttemptScope,
+    PreGenesisExecutionScope,
 )
 from true_rl_agent.runner.process_handle import (  # noqa: E402
     OwnedProcessLaunchError,
@@ -100,6 +106,20 @@ def _journal(root: Path, *, generation_id: str = "generation-001") -> JobAttempt
     )
 
 
+def _pre_genesis_scope(root: Path) -> PreGenesisExecutionScope:
+    return PreGenesisExecutionScope(
+        journal_root=root,
+        session_id="fresh-session",
+        genesis_identity_hash=_DIGEST_A,
+        session_contract_hash=_DIGEST_B,
+        lane_id="lane-a",
+        invocation_segment_id="session-genesis",
+        budget_contract_hash=_DIGEST_C,
+        attempt_budget_units=2,
+        max_infrastructure_retries=1,
+    )
+
+
 def _holder(*, logical_job_id: str = "logical-job") -> GpuLeaseHolder:
     return GpuLeaseHolder(
         session_genesis_hash=_DIGEST_A,
@@ -133,6 +153,41 @@ def _pid_is_alive(pid: int) -> bool:
 
 
 class RunnerProcessHandleTests(unittest.TestCase):
+    def test_environment_overrides_are_scoped_to_owned_child(self) -> None:
+        override_key = "TRUE_RL_AGENT_TEST_PROCESS_OVERRIDE"
+        removed_key = "TRUE_RL_AGENT_TEST_PROCESS_REMOVED"
+        overrides = {override_key: "child-value", removed_key: None}
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.dict(
+            os.environ,
+            {override_key: "parent-value", removed_key: "parent-value"},
+        ):
+            result = run_owned_process(
+                [
+                    sys.executable,
+                    "-c",
+                    (
+                        "import json, os; "
+                        f"print(json.dumps({{{override_key!r}: os.environ.get({override_key!r}), "
+                        f"{removed_key!r}: os.environ.get({removed_key!r})}}))"
+                    ),
+                ],
+                cwd=ROOT,
+                timeout_s=10,
+                log_dir=Path(tmp),
+                environment_overrides=overrides,
+            )
+
+            self.assertEqual(
+                json.loads(result.stdout_tail),
+                {override_key: "child-value", removed_key: None},
+            )
+            self.assertEqual(os.environ[override_key], "parent-value")
+            self.assertEqual(os.environ[removed_key], "parent-value")
+            self.assertEqual(
+                overrides,
+                {override_key: "child-value", removed_key: None},
+            )
+
     def test_normal_process_streams_to_logs_and_returns_bounded_tails(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             result = run_owned_process(
@@ -252,6 +307,51 @@ run_owned_process(
 
 
 class JobAttemptJournalTests(unittest.TestCase):
+    def test_pre_genesis_scope_round_trips_without_changing_legacy_projection(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            legacy = _scope(root)
+            self.assertEqual(
+                legacy.binding_payload(),
+                {
+                    "session_genesis_hash": _DIGEST_A,
+                    "session_contract_hash": _DIGEST_B,
+                    "generation_id": "generation-001",
+                    "lane_id": "lane-a",
+                    "invocation_segment_id": "segment-000",
+                    "budget_contract_hash": _DIGEST_C,
+                    "attempt_budget_units": 2,
+                    "max_infrastructure_retries": 1,
+                    "resource_binding_hash": None,
+                },
+            )
+
+            scope = _pre_genesis_scope(root)
+            journal = JobAttemptJournal(
+                scope=scope,
+                logical_job_id="reference-train",
+                job_kind="train",
+                job_input_hash=_DIGEST_D,
+                environment_hash=_DIGEST_A,
+                execution_device="cpu",
+                resource_binding_hash=None,
+            )
+            reservation = journal.reserve(0, previous_result=None)
+            reconstructed, loaded = JobAttemptJournal.from_reservation_path(
+                reservation.path
+            )
+
+            self.assertEqual(reconstructed.scope, scope)
+            self.assertEqual(loaded.payload_hash, reservation.payload_hash)
+            self.assertEqual(
+                reservation.payload["scope"]["schema_version"],
+                PRE_GENESIS_EXECUTION_SCOPE_SCHEMA_VERSION,
+            )
+            self.assertNotIn("session_genesis_hash", reservation.payload["scope"])
+            self.assertNotIn("generation_id", reservation.payload["scope"])
+
     def test_retry_chain_is_create_once_and_hash_bound(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             journal = _journal(Path(tmp))
@@ -284,10 +384,58 @@ class JobAttemptJournalTests(unittest.TestCase):
                 canonical_json_hash(reservation0.payload),
             )
             self.assertEqual(
+                journal.load_reusable_output_result().payload_hash,
+                result1.payload_hash,
+            )
+            self.assertEqual(
                 journal.reserve(0, previous_result=None).payload_hash,
                 reservation0.payload_hash,
             )
             self.assertFalse(journal.reserve(0, previous_result=None).created)
+
+    def test_bound_gpu_attempt_records_validated_lease_wall_duration(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            scope = JobAttemptScope(
+                journal_root=root,
+                session_genesis_hash=_DIGEST_A,
+                session_contract_hash=_DIGEST_B,
+                generation_id="generation-001",
+                lane_id="lane-a",
+                invocation_segment_id="segment-000",
+                budget_contract_hash=_DIGEST_C,
+                attempt_budget_units=1,
+                max_infrastructure_retries=0,
+                resource_binding_hash=_DIGEST_D,
+            )
+            journal = JobAttemptJournal(
+                scope=scope,
+                logical_job_id="gpu-job",
+                job_kind="train",
+                job_input_hash=_DIGEST_A,
+                environment_hash=_DIGEST_B,
+                execution_device="cuda:0",
+                resource_binding_hash=_DIGEST_D,
+            )
+            reservation = journal.reserve(0, previous_result=None)
+            result = journal.finish(
+                reservation,
+                outcome="completed",
+                failure_kind=None,
+                retryable=False,
+                output_hash=_DIGEST_C,
+                returncode=0,
+                resource_lease_wall_duration_ns=123,
+            )
+
+            self.assertEqual(
+                result.payload["schema_version"],
+                RESOURCE_LEASE_ATTEMPT_RESULT_SCHEMA_VERSION,
+            )
+            self.assertEqual(
+                journal.load_result(0).payload["resource_lease_wall_duration_ns"],
+                123,
+            )
 
     def test_non_retryable_result_and_open_reservation_cannot_authorize_retry(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -349,9 +497,10 @@ class JobAttemptJournalTests(unittest.TestCase):
             runner = SubprocessRunner((sys.executable,), timeout_s=10)
             calls = 0
 
-            def operation(log_dir: Path | None) -> _FakeResult:
+            def operation(log_dir: Path | None, execution_context) -> _FakeResult:
                 nonlocal calls
                 self.assertIsNotNone(log_dir)
+                self.assertIsNone(execution_context)
                 calls += 1
                 if calls == 1:
                     raise RunnerExecutionError(
@@ -375,14 +524,65 @@ class JobAttemptJournalTests(unittest.TestCase):
                 ["infrastructure_failure", "completed"],
             )
 
+    def test_runner_derives_pre_genesis_gpu_lease_holder_from_attempt_scope(
+        self,
+    ) -> None:
+        class RecordingGpuLeaseManager(GpuLeaseManager):
+            last_holder = None
+
+            def acquire(self, execution_device, *, holder):
+                self.last_holder = holder
+                return super().acquire(execution_device, holder=holder)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            identity = GpuDeviceIdentity("cuda:0", "machine", "GPU-AAA")
+            manager = RecordingGpuLeaseManager(
+                lease_root=root / "leases",
+                devices={"cuda:0": identity},
+            )
+            scope = PreGenesisExecutionScope(
+                journal_root=root / "attempts",
+                session_id="fresh-session",
+                genesis_identity_hash=_DIGEST_A,
+                session_contract_hash=_DIGEST_B,
+                lane_id="lane-a",
+                invocation_segment_id="session-genesis",
+                budget_contract_hash=_DIGEST_C,
+                attempt_budget_units=1,
+                max_infrastructure_retries=0,
+                resource_binding_hash=identity.identity_hash,
+            )
+            spec = _FakeSpec(scope, execution_device="cuda:0")
+            runner = SubprocessRunner(
+                (sys.executable,),
+                timeout_s=10,
+                gpu_lease_manager=manager,
+            )
+
+            result = runner._execute_with_attempts(
+                spec,
+                job_kind="train",
+                operation=lambda log_dir, execution_context: _FakeResult("ok"),
+            )
+
+            self.assertEqual(result.to_public_dict(), {"value": "ok"})
+            self.assertIsInstance(manager.last_holder, PreGenesisGpuLeaseHolder)
+            self.assertEqual(manager.last_holder.session_id, "fresh-session")
+            self.assertEqual(
+                manager.last_holder.genesis_identity_hash,
+                _DIGEST_A,
+            )
+
     def test_runner_does_not_retry_contract_failure(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             spec = _FakeSpec(_scope(Path(tmp)))
             runner = SubprocessRunner((sys.executable,), timeout_s=10)
             calls = 0
 
-            def operation(log_dir: Path | None) -> _FakeResult:
+            def operation(log_dir: Path | None, execution_context) -> _FakeResult:
                 nonlocal calls
+                self.assertIsNone(execution_context)
                 calls += 1
                 raise RunnerExecutionError(
                     "bad binding",
@@ -414,8 +614,9 @@ class JobAttemptJournalTests(unittest.TestCase):
             journal.reserve(0, previous_result=None)
             calls = 0
 
-            def operation(log_dir: Path | None) -> _FakeResult:
+            def operation(log_dir: Path | None, execution_context) -> _FakeResult:
                 nonlocal calls
+                self.assertIsNone(execution_context)
                 calls += 1
                 return _FakeResult("should-not-run")
 
@@ -430,8 +631,114 @@ class JobAttemptJournalTests(unittest.TestCase):
                 )
             self.assertEqual(calls, 0)
 
+    def test_runner_reuses_a_hash_bound_completed_output_without_reexecution(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            spec = _FakeSpec(_scope(Path(tmp)))
+            runner = SubprocessRunner((sys.executable,), timeout_s=10)
+            execution_calls = 0
+            recovery_calls = 0
+
+            def operation(log_dir: Path | None, execution_context) -> _FakeResult:
+                nonlocal execution_calls
+                self.assertIsNotNone(log_dir)
+                self.assertIsNone(execution_context)
+                execution_calls += 1
+                return _FakeResult("sealed-output")
+
+            def recover(execution_context) -> _FakeResult:
+                nonlocal recovery_calls
+                self.assertIsNone(execution_context)
+                recovery_calls += 1
+                return _FakeResult("sealed-output")
+
+            first = runner._execute_with_attempts(
+                spec,
+                job_kind="train",
+                operation=operation,
+                recover_completed=recover,
+            )
+            second = runner._execute_with_attempts(
+                spec,
+                job_kind="train",
+                operation=operation,
+                recover_completed=recover,
+            )
+
+            self.assertEqual(first.to_public_dict(), second.to_public_dict())
+            self.assertEqual(execution_calls, 1)
+            self.assertEqual(recovery_calls, 1)
+            with self.assertRaises(RunnerExecutionError) as raised:
+                runner._execute_with_attempts(
+                    spec,
+                    job_kind="train",
+                    operation=operation,
+                    recover_completed=lambda execution_context: _FakeResult(
+                        "tampered-output"
+                    ),
+                )
+            self.assertEqual(
+                raised.exception.failure_kind,
+                RunnerFailureKind.CONTRACT_INVALID,
+            )
+            self.assertEqual(execution_calls, 1)
+
 
 class GpuLeaseTests(unittest.TestCase):
+    def test_pre_genesis_holder_uses_v2_without_changing_v1_holder_bytes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            identity = GpuDeviceIdentity("cuda:0", "machine", "GPU-AAA")
+            manager = GpuLeaseManager(
+                lease_root=Path(tmp),
+                devices={"cuda:0": identity},
+            )
+            legacy = manager.acquire("cuda:0", holder=_holder())
+            try:
+                self.assertEqual(
+                    legacy.receipt["schema_version"],
+                    GPU_LEASE_SCHEMA_VERSION,
+                )
+                self.assertEqual(
+                    legacy.receipt["holder"],
+                    {
+                        "session_genesis_hash": _DIGEST_A,
+                        "generation_id": "generation-001",
+                        "lane_id": "lane-a",
+                        "invocation_segment_id": "segment-000",
+                        "logical_job_id": "logical-job",
+                    },
+                )
+            finally:
+                legacy.release()
+
+            pre_genesis = manager.acquire(
+                "cuda:0",
+                holder=PreGenesisGpuLeaseHolder(
+                    session_id="fresh-session",
+                    genesis_identity_hash=_DIGEST_A,
+                    session_contract_hash=_DIGEST_B,
+                    lane_id="lane-a",
+                    invocation_segment_id="session-genesis",
+                    logical_job_id="reference-train",
+                ),
+            )
+            try:
+                self.assertEqual(
+                    pre_genesis.receipt["schema_version"],
+                    PRE_GENESIS_GPU_LEASE_SCHEMA_VERSION,
+                )
+                self.assertNotIn(
+                    "session_genesis_hash",
+                    pre_genesis.receipt["holder"],
+                )
+                self.assertEqual(
+                    pre_genesis.receipt["holder"]["genesis_identity_hash"],
+                    _DIGEST_A,
+                )
+            finally:
+                pre_genesis.release()
+
     def test_same_physical_gpu_aliases_conflict_but_distinct_gpus_do_not(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -543,8 +850,9 @@ time.sleep(60)
             spec = _FakeSpec(mismatched_scope, execution_device="cuda:0")
             calls = 0
 
-            def operation(log_dir: Path | None) -> _FakeResult:
+            def operation(log_dir: Path | None, execution_context) -> _FakeResult:
                 nonlocal calls
+                self.assertIsNone(execution_context)
                 calls += 1
                 return _FakeResult("should-not-run")
 

@@ -30,16 +30,27 @@ from true_rl_agent.agent_core.generation import (
     execute_fixed_width_generation,
 )
 from true_rl_agent.agent_core.generation_record import (
+    _load_and_validate_formal,
+    _load_bound_phase_projection,
+    _load_bound_train_projection,
     commit_generation_record,
     load_bound_generation_trial_phase_receipt,
     validate_generation_ledger_record,
 )
 from true_rl_agent.agent_core.generation_contract import (
+    GENERATION_MANIFEST_V2_SCHEMA_VERSION,
     GenerationLaneAssignment,
     GenerationManifest,
     GenerationSessionContract,
     generation_resource_plan_hash,
     generation_training_initialization_hash,
+)
+from true_rl_agent.agent_core.generation_lifecycle import (
+    GenerationContinuationPolicy,
+    GenerationLifecycleIdentity,
+    GenerationSegmentJournal,
+    audit_generation_lifecycle,
+    build_generation_terminal_binding,
 )
 from true_rl_agent.agent_core.ledger import (
     NON_PROVIDER_AUTHORING_MODE,
@@ -61,7 +72,8 @@ from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
 from true_rl_agent.evaluation.phases import EvaluationPhase, EvaluationPhaseResult
 from true_rl_agent.memory import ExperimentRecord, PublicContextBuilder
 from true_rl_agent.policy import PolicyInitialization
-from true_rl_agent.runner.specs import EvalPhaseJobSpec
+from true_rl_agent.runner.job_attempts import JobAttemptScope
+from true_rl_agent.runner.specs import EvalPhaseJobSpec, GpuProcessBinding
 
 
 def _write_candidate(
@@ -207,6 +219,7 @@ class _PhasedRunner(FakeRunner):
             EvaluationPhase.PUBLIC_ACCEPT: threading.Barrier(2, timeout=5.0),
         }
         self.phase_calls: list[tuple[str, EvaluationPhase]] = []
+        self.phase_scopes: list[tuple[EvaluationPhase, JobAttemptScope | None]] = []
 
     def _event(self, value: str) -> None:
         with self._lock:
@@ -227,6 +240,7 @@ class _PhasedRunner(FakeRunner):
         if eval_spec.phase is EvaluationPhase.PUBLIC_ACCEPT:
             self.assert_selection_precedes_public_accept()
         self.phase_calls.append((subject_id, eval_spec.phase))
+        self.phase_scopes.append((eval_spec.phase, eval_spec.attempt_scope))
         plan = eval_spec.evaluation_plan
         score = float(plan.metadata["fake_public_score"])
         result = EvaluationPhaseResult(
@@ -503,21 +517,24 @@ class FixedWidthGenerationTests(unittest.TestCase):
                 events: list[str],
                 runner: _PhasedRunner,
                 adapter: _PhasedAdapter,
+                max_generations: int = 15,
+                continuation_policy_hash: str = "2" * 64,
             ) -> FixedWidthGenerationInputs:
                 contract = GenerationSessionContract(
                     session_id="generation-session",
                     task_id=task.task_spec.task_id,
                     backend_id=backend.backend_id,
-                    max_generations=15,
-                    max_trials=30,
-                    max_train_jobs=30,
+                    max_generations=max_generations,
+                    max_trials=max_generations * 2,
+                    max_train_jobs=max_generations * 2,
                     bound_contract_hashes={
                         "authoring_policy": "1" * 64,
-                        "continuation_policy": "2" * 64,
+                        "continuation_policy": continuation_policy_hash,
                         "evaluation_cost": canonical_json_hash(
                             dict(adapter.cost_contract())
                         ),
                         "evaluation_protocol": binding.eval_protocol_hash,
+                        "exploration_projector": "e" * 64,
                         "final_confirmation_plan": "3" * 64,
                         "provider_policy": "4" * 64,
                         "resource_plan": generation_resource_plan_hash(
@@ -586,6 +603,8 @@ class FixedWidthGenerationTests(unittest.TestCase):
                         ),
                         prompt_payload_ref=authored.prompt_payload_ref,
                         authoring_evidence_ref=authored.authoring_evidence_ref,
+                        train_attempt_scope=lane_scopes[lane_id],
+                        eval_attempt_scope=lane_scopes[lane_id],
                     )
 
                 manifest = GenerationManifest(
@@ -618,6 +637,30 @@ class FixedWidthGenerationTests(unittest.TestCase):
                     ),
                     lanes=lane_assignments,
                 )
+                lane_scopes = {
+                    lane_id: JobAttemptScope(
+                        journal_root=root / "job-attempts" / case_id,
+                        session_genesis_hash=FAKE_SESSION_GENESIS_HASH,
+                        session_contract_hash=contract.contract_hash,
+                        generation_id=manifest.generation_id,
+                        lane_id=lane_id,
+                        invocation_segment_id=f"{case_id}-segment",
+                        budget_contract_hash=canonical_json_hash(
+                            {"case_id": case_id, "kind": "test-budget"}
+                        ),
+                        attempt_budget_units=1,
+                        max_infrastructure_retries=0,
+                    )
+                    for lane_id in ("lane-a", "lane-b")
+                }
+                sealed_scopes = {
+                    lane_id: replace(
+                        scope,
+                        attempt_budget_units=2,
+                        max_infrastructure_retries=1,
+                    )
+                    for lane_id, scope in lane_scopes.items()
+                }
                 lanes = tuple(
                     GenerationLaneRuntime(
                         lane_id=lane_id,
@@ -639,6 +682,8 @@ class FixedWidthGenerationTests(unittest.TestCase):
                                 lane_id, authored
                             )
                         ),
+                        attempt_scope=lane_scopes[lane_id],
+                        sealed_attempt_scope=sealed_scopes[lane_id],
                     )
                     for lane_id, provider in (
                         ("lane-a", provider_a),
@@ -737,6 +782,23 @@ class FixedWidthGenerationTests(unittest.TestCase):
                     ],
                     ["candidate-generation-b"],
                 )
+                self.assertTrue(
+                    all(
+                        scope is not None
+                        and scope.max_infrastructure_retries == 0
+                        for phase, scope in runner.phase_scopes
+                        if phase is not EvaluationPhase.SEALED_VALIDATION
+                    )
+                )
+                self.assertEqual(
+                    [
+                        scope.max_infrastructure_retries
+                        for phase, scope in runner.phase_scopes
+                        if phase is EvaluationPhase.SEALED_VALIDATION
+                        and scope is not None
+                    ],
+                    [1],
+                )
                 next_guard_phase = load_bound_generation_trial_phase_receipt(
                     ledger[0],
                     trial_id="accepted-lane-b",
@@ -757,6 +819,93 @@ class FixedWidthGenerationTests(unittest.TestCase):
                     "inputs.base_height + inputs.roll", provider_b_text
                 )
 
+            with self.subTest(
+                scenario="bound_manifest_rejects_legacy_unbound_receipts"
+            ):
+                gpu_bindings = (
+                    GpuProcessBinding(
+                        host_execution_device="cuda:1",
+                        process_execution_device="cuda:0",
+                        resource_binding_hash="8" * 64,
+                    ),
+                    GpuProcessBinding(
+                        host_execution_device="cuda:2",
+                        process_execution_device="cuda:0",
+                        resource_binding_hash="9" * 64,
+                    ),
+                )
+                bound_manifest = replace(
+                    generation_inputs.manifest,
+                    schema_version=GENERATION_MANIFEST_V2_SCHEMA_VERSION,
+                    lanes=tuple(
+                        replace(
+                            assignment,
+                            execution_device=binding.process_execution_device,
+                            resource_binding_hash=binding.resource_binding_hash,
+                            gpu_process_binding=binding,
+                        )
+                        for assignment, binding in zip(
+                            generation_inputs.manifest.lanes,
+                            gpu_bindings,
+                            strict=True,
+                        )
+                    ),
+                )
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "versioned session cost contract",
+                ):
+                    execute_fixed_width_generation(
+                        replace(generation_inputs, manifest=bound_manifest)
+                    )
+                legacy_trial = ledger[0]["trials"][0]
+                legacy_assignment = generation_inputs.manifest.lanes[0]
+                _load_bound_train_projection(
+                    legacy_trial,
+                    assignment=legacy_assignment,
+                    private_artifacts=ledger[0]["private_artifacts"],
+                )
+                _load_bound_phase_projection(
+                    legacy_trial,
+                    assignment=legacy_assignment,
+                    phase=EvaluationPhase.PUBLIC_DEV,
+                    private_artifacts=ledger[0]["private_artifacts"],
+                )
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "train projection/receipt binding mismatch",
+                ):
+                    _load_bound_train_projection(
+                        legacy_trial,
+                        assignment=bound_manifest.lanes[0],
+                        private_artifacts=ledger[0]["private_artifacts"],
+                    )
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "phase projection/receipt binding mismatch",
+                ):
+                    _load_bound_phase_projection(
+                        legacy_trial,
+                        assignment=bound_manifest.lanes[0],
+                        phase=EvaluationPhase.PUBLIC_DEV,
+                        private_artifacts=ledger[0]["private_artifacts"],
+                    )
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "formal round receipt binding mismatch",
+                ):
+                    _load_and_validate_formal(
+                        ledger[0]["formal"],
+                        manifest=bound_manifest,
+                        private_artifacts=ledger[0]["private_artifacts"],
+                        selected_trial_id=ledger[0]["selection"][
+                            "selected_trial_id"
+                        ],
+                        trials=ledger[0]["trials"],
+                        session_genesis_hash=ledger[0]["session_genesis_hash"],
+                        ledger_epoch_hash=ledger[0]["ledger_epoch_hash"],
+                    )
+
             replay = replay_acceptance_ledger(
                 ledger,
                 initial_current_best=parent,
@@ -771,6 +920,83 @@ class FixedWidthGenerationTests(unittest.TestCase):
                 self.assertEqual(
                     replay.current_best.anchor_id,
                     "candidate-generation-b",
+                )
+
+            with self.subTest(
+                scenario="one_generation_lifecycle_closes_terminal_binding"
+            ):
+                continuation_policy = GenerationContinuationPolicy(
+                    max_segments=2,
+                    allowed_continuation_reasons=(
+                        "operator_pause",
+                        "typed_infrastructure_failure",
+                        "exception",
+                    ),
+                )
+                terminal_events: list[str] = []
+                terminal_inputs = _build_inputs(
+                    case_id="terminal-one",
+                    provider_a=_OneCandidateProvider(candidate_a),
+                    provider_b=_OneCandidateProvider(candidate_b),
+                    events=terminal_events,
+                    runner=_PhasedRunner(terminal_events),
+                    adapter=_PhasedAdapter(terminal_events),
+                    max_generations=1,
+                    continuation_policy_hash=continuation_policy.policy_hash,
+                )
+                lifecycle_root = (root / "generation-lifecycle" / "terminal-one").resolve()
+                attempt_root = root / "job-attempts" / "terminal-one"
+                lifecycle_identity = GenerationLifecycleIdentity(
+                    session_id=terminal_inputs.session_contract.session_id,
+                    session_genesis_hash=FAKE_SESSION_GENESIS_HASH,
+                    generation_session_contract_hash=(
+                        terminal_inputs.session_contract.contract_hash
+                    ),
+                    final_confirmation_plan_hash=(
+                        terminal_inputs.session_contract.bound_contract_hashes[
+                            "final_confirmation_plan"
+                        ]
+                    ),
+                    ledger_epoch_hash=primary_ledger_epoch_hash(
+                        FAKE_SESSION_GENESIS_HASH
+                    ),
+                    output_root=str(lifecycle_root),
+                )
+                segment = GenerationSegmentJournal.start(
+                    output_dir=lifecycle_root,
+                    identity=lifecycle_identity,
+                    policy=continuation_policy,
+                    session_contract=terminal_inputs.session_contract,
+                    closed_generation_count=0,
+                    cost_chain_head_hash="a" * 64,
+                    attempt_journal_root=attempt_root,
+                )
+                terminal_result = execute_fixed_width_generation(terminal_inputs)
+                self.assertEqual(
+                    terminal_result.record["generation_outcome"], "accepted"
+                )
+                segment.finish(
+                    status="completed",
+                    reason="normal",
+                    closed_generation_count=1,
+                    cost_chain_head_hash="a" * 64,
+                )
+                terminal_binding = build_generation_terminal_binding(
+                    ledger_path=terminal_inputs.ledger_path,
+                    output_dir=lifecycle_root,
+                    attempt_journal_root=attempt_root,
+                    identity=lifecycle_identity,
+                    policy=continuation_policy,
+                    session_contract=terminal_inputs.session_contract,
+                    initial_current_best=parent,
+                    acceptance_protocol=FAKE_ACCEPTANCE_PROTOCOL,
+                )
+                self.assertEqual(terminal_binding.closed_generation_count, 1)
+                self.assertEqual(
+                    terminal_binding.current_head_hash,
+                    canonical_json_hash(
+                        terminal_result.resulting_current_best.to_public_dict()
+                    ),
                 )
 
             with self.subTest(scenario="session_contract_drift_is_rejected"):
@@ -1016,6 +1242,14 @@ class FixedWidthGenerationTests(unittest.TestCase):
                 )
 
             with self.subTest(scenario="lane_a_receipt_is_reused_after_b_interrupt"):
+                resume_policy = GenerationContinuationPolicy(
+                    max_segments=3,
+                    allowed_continuation_reasons=(
+                        "operator_pause",
+                        "typed_infrastructure_failure",
+                        "exception",
+                    ),
+                )
                 resume_events: list[str] = []
                 resume_runner = _PhasedRunner(resume_events)
                 resume_provider_a = _OneCandidateProvider(candidate_a)
@@ -1027,6 +1261,36 @@ class FixedWidthGenerationTests(unittest.TestCase):
                     events=resume_events,
                     runner=resume_runner,
                     adapter=_PhasedAdapter(resume_events),
+                    continuation_policy_hash=resume_policy.policy_hash,
+                )
+                resume_lifecycle_root = (
+                    root / "generation-lifecycle" / "author-resume"
+                ).resolve()
+                resume_attempt_root = root / "job-attempts" / "author-resume"
+                resume_identity = GenerationLifecycleIdentity(
+                    session_id=resume_inputs.session_contract.session_id,
+                    session_genesis_hash=FAKE_SESSION_GENESIS_HASH,
+                    generation_session_contract_hash=(
+                        resume_inputs.session_contract.contract_hash
+                    ),
+                    final_confirmation_plan_hash=(
+                        resume_inputs.session_contract.bound_contract_hashes[
+                            "final_confirmation_plan"
+                        ]
+                    ),
+                    ledger_epoch_hash=primary_ledger_epoch_hash(
+                        FAKE_SESSION_GENESIS_HASH
+                    ),
+                    output_root=str(resume_lifecycle_root),
+                )
+                first_segment = GenerationSegmentJournal.start(
+                    output_dir=resume_lifecycle_root,
+                    identity=resume_identity,
+                    policy=resume_policy,
+                    session_contract=resume_inputs.session_contract,
+                    closed_generation_count=0,
+                    cost_chain_head_hash="a" * 64,
+                    attempt_journal_root=resume_attempt_root,
                 )
                 original_b = resume_inputs.lanes[1]
                 b_calls = 0
@@ -1049,8 +1313,20 @@ class FixedWidthGenerationTests(unittest.TestCase):
                 )
                 with self.assertRaisesRegex(RuntimeError, "injected interruption"):
                     execute_fixed_width_generation(resume_inputs)
+                first_segment.release_unclean_for_test()
                 self.assertEqual(len(resume_provider_a.payloads), 1)
                 self.assertEqual(resume_provider_b.payloads, [])
+                second_segment = GenerationSegmentJournal.start(
+                    output_dir=resume_lifecycle_root,
+                    identity=resume_identity,
+                    policy=resume_policy,
+                    session_contract=resume_inputs.session_contract,
+                    closed_generation_count=0,
+                    cost_chain_head_hash="a" * 64,
+                    attempt_journal_root=resume_attempt_root,
+                    recovery_process_incarnation=lambda _pid: None,
+                    process_group_alive=lambda _group: False,
+                )
                 resumed = execute_fixed_width_generation(resume_inputs)
                 self.assertEqual(len(resume_provider_a.payloads), 1)
                 self.assertEqual(len(resume_provider_b.payloads), 1)
@@ -1060,6 +1336,21 @@ class FixedWidthGenerationTests(unittest.TestCase):
                 self.assertEqual(
                     len(load_ledger(resume_inputs.ledger_path)), 1
                 )
+                second_segment.finish(
+                    status="paused",
+                    reason="operator_pause",
+                    closed_generation_count=1,
+                    cost_chain_head_hash=second_segment.cost_chain_head_hash,
+                )
+                resume_audit = audit_generation_lifecycle(
+                    output_dir=resume_lifecycle_root,
+                    identity=resume_identity,
+                    policy=resume_policy,
+                    require_closed=True,
+                )
+                self.assertEqual(resume_audit.segment_count, 2)
+                self.assertEqual(resume_audit.closed_generation_count, 1)
+                self.assertTrue(resume_audit.continuation_eligible)
 
             with self.subTest(scenario="lane_b_prompt_must_bind_exclusion"):
                 unbound_events: list[str] = []

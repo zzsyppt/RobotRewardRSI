@@ -13,7 +13,10 @@ from tests.fakes.backend_environment import (
     TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_VERIFICATION,
 )
 from tests.fakes.fake_components import FakeTaskPlugin
-from true_rl_agent.agent_core.trial_receipts import TrialReceiptJournal
+from true_rl_agent.agent_core.trial_receipts import (
+    TrialReceiptJournal,
+    load_trial_eval_phase_receipt,
+)
 from true_rl_agent.agent_core.session_genesis import VerifiedSessionGenesis
 from true_rl_agent.backends.base import BackendAdapter
 from true_rl_agent.evaluation.binding import EvaluationBindingV1, canonical_json_hash
@@ -24,7 +27,13 @@ from true_rl_agent.evaluation.phases import (
     EvaluationPhaseResult,
 )
 from true_rl_agent.evaluation.subject import ExperimentSubject
-from true_rl_agent.runner.specs import CheckpointRef, EvalJobSpec, EvalPhaseJobSpec
+from true_rl_agent.runner.job_attempts import JobAttemptScope
+from true_rl_agent.runner.specs import (
+    CheckpointRef,
+    EvalJobSpec,
+    EvalPhaseJobSpec,
+    GpuProcessBinding,
+)
 from true_rl_agent.runner.base import Runner
 from true_rl_agent.runner.subprocess_runner import SubprocessRunner
 from true_rl_agent.tasks.stair_climbing.config import (
@@ -537,7 +546,15 @@ class StairPhasedEvaluationTests(unittest.TestCase):
             )
 
     def test_runner_parser_and_phase_receipt_preserve_plan_binding(self) -> None:
-        plan = self._eval_plan("candidate-receipt")
+        binding = GpuProcessBinding(
+            host_execution_device="cuda:1",
+            process_execution_device="cuda:0",
+            resource_binding_hash="9" * 64,
+        )
+        plan = replace(
+            self._eval_plan("candidate-receipt"),
+            gpu_process_binding=binding,
+        )
         phase = EvaluationPhase.PUBLIC_DEV
         execution = self._execution(
             {phase: [4] * self.config.public_seed_count}
@@ -546,6 +563,18 @@ class StairPhasedEvaluationTests(unittest.TestCase):
             job_id=f"{plan.job_id}-public-dev",
             evaluation_plan=plan,
             phase=phase,
+            attempt_scope=JobAttemptScope(
+                journal_root=Path("unused-attempts"),
+                session_genesis_hash="a" * 64,
+                session_contract_hash="b" * 64,
+                generation_id="generation-001",
+                lane_id="lane-b",
+                invocation_segment_id="segment-000",
+                budget_contract_hash="c" * 64,
+                attempt_budget_units=1,
+                max_infrastructure_retries=0,
+                resource_binding_hash=binding.resource_binding_hash,
+            ),
         )
         summary = build_stair_eval_phase_summary(
             config=self.config,
@@ -561,6 +590,7 @@ class StairPhasedEvaluationTests(unittest.TestCase):
             summary,
             eval_spec=phase_spec,
             expected_checkpoint_hash=CHECKPOINT_HASH,
+            actual_gpu_process_binding=binding,
         )
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -576,11 +606,14 @@ class StairPhasedEvaluationTests(unittest.TestCase):
             journal.bind_contract()
             ref = journal.publish_eval_phase(phase_spec, parsed)
             loaded = journal.load_eval_phase(phase_spec)
+            standalone = load_trial_eval_phase_receipt(ref)
 
         self.assertEqual(ref.kind, "eval_phase")
         self.assertIsNotNone(loaded)
         assert loaded is not None
         self.assertEqual(loaded[0], parsed)
+        self.assertEqual(loaded[0].gpu_process_binding, binding.to_dict())
+        self.assertEqual(standalone.result, parsed)
 
         tampered = dict(summary)
         tampered["task_evidence_hash"] = "9" * 64
@@ -589,6 +622,7 @@ class StairPhasedEvaluationTests(unittest.TestCase):
                 tampered,
                 eval_spec=phase_spec,
                 expected_checkpoint_hash=CHECKPOINT_HASH,
+                actual_gpu_process_binding=binding,
             )
 
     def _screen(self, trial_id: str, successes: list[int]):

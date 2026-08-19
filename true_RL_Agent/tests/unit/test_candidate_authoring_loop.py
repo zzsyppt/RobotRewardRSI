@@ -41,6 +41,13 @@ from true_rl_agent.candidates.schema import (  # noqa: E402
     CandidateChangeSet,
     CandidatePackageRef,
 )
+from true_rl_agent.candidates.authoring_policy import (  # noqa: E402
+    single_component_verifier_equivalence_key,
+    verifier_equivalence_exclusion_set_hash,
+)
+from true_rl_agent.candidates.component_source_semantics import (  # noqa: E402
+    project_single_component_operation_delta,
+)
 from true_rl_agent.candidates.verifier import (  # noqa: E402
     StaticCandidateVerifier,
     StaticCandidateVerifierPolicy,
@@ -232,6 +239,16 @@ class _ImmediateSuccessProvider:
             change_set=CandidateChangeSet(frozenset({"reward_callable"})),
             metadata={"fake_public_score": 0.30, "verifier_status": "pass"},
         )
+
+
+class _SingleDraftProvider:
+    def __init__(self, candidate: CandidatePackageRef) -> None:
+        self.candidate = candidate
+        self.payloads: list[dict] = []
+
+    def next_authoring_response(self, *, prompt_payload: dict) -> CandidateDraftResponse:
+        self.payloads.append(prompt_payload)
+        return CandidateDraftResponse(candidate=self.candidate)
 
 
 class _InterruptingProvider:
@@ -703,6 +720,89 @@ def build_training_components():
 
 
 class CandidateAuthoringLoopTests(unittest.TestCase):
+    def test_ledger_negative_verifier_equivalence_blocks_renamed_parameter_variant(self) -> None:
+        anchor_source = _r10_components_source(
+            component_name="anchor_components",
+            include_support=False,
+        )
+        first_source = _r10_components_source(
+            component_name="first_components",
+            include_support=True,
+        )
+        renamed_source = first_source.replace(
+            "foot_contact_support_reward",
+            "renamed_support_reward",
+        ).replace("weight=1.0,\n                fn=renamed", "weight=0.25,\n                fn=renamed")
+        first_delta = project_single_component_operation_delta(
+            candidate_source=first_source,
+            anchor_source=anchor_source,
+        )
+        blocked_key = single_component_verifier_equivalence_key(first_delta)
+        exclusion_set_hash = verifier_equivalence_exclusion_set_hash((blocked_key,))
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            anchor_candidate = _write_candidate_package(
+                root / "anchor",
+                "candidate-anchor",
+                anchor_source,
+            )
+            records = [_accepted_record("round-anchor", anchor_candidate, 0.31)]
+            candidate = _write_candidate_package(
+                root / "candidates",
+                "candidate-renamed-parameter-repeat",
+                renamed_source,
+            )
+            provider = _SingleDraftProvider(candidate)
+            lane_intent = {
+                "schema_version": "test.generation_lane_intent.v1",
+                "lane_id": "lane-a",
+                "intent": "novel",
+                "verifier_equivalence_exclusion_set_hash": exclusion_set_hash,
+            }
+            with self.assertRaisesRegex(
+                ValueError,
+                "exclusion set does not match authoring gate",
+            ):
+                CandidateAuthoringLoop(
+                    context_builder=PublicContextBuilder(
+                        task_prompt_adapter=FakeTaskPlugin().prompt_adapter(),
+                        acceptance_protocol=TEST_ACCEPTANCE_PROTOCOL,
+                    ),
+                    provider=provider,
+                    candidate_admission_policy=FakeVerifier(),
+                    round_dir=root / "unbound-round",
+                    max_attempts=1,
+                    generation_lane_intent=lane_intent,
+                )
+            with patch(
+                "true_rl_agent.agent_core.authoring_loop._evaluated_candidate_sources",
+                return_value=(),
+            ):
+                result = CandidateAuthoringLoop(
+                    context_builder=PublicContextBuilder(
+                        task_prompt_adapter=FakeTaskPlugin().prompt_adapter(),
+                        acceptance_protocol=TEST_ACCEPTANCE_PROTOCOL,
+                    ),
+                    provider=provider,
+                    candidate_admission_policy=FakeVerifier(),
+                    round_dir=root / "round-repeat",
+                    max_attempts=1,
+                    generation_lane_intent=lane_intent,
+                    blocked_verifier_equivalence_keys=(blocked_key,),
+                ).run_round(round_id="round-repeat", records=records)
+
+        self.assertEqual(result.stop_reason, "static_failed")
+        assessment = result.attempt_records[0][
+            "historical_verifier_exclusion_assessment"
+        ]
+        self.assertTrue(assessment["blocking"])
+        self.assertEqual(
+            assessment["reason"],
+            "historical_verifier_equivalent_repeat",
+        )
+        self.assertEqual(assessment["verifier_equivalence_key"], blocked_key)
+
     def test_terminal_resume_preserves_candidate_metadata_without_provider_call(
         self,
     ) -> None:

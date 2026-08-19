@@ -13,6 +13,8 @@ from true_rl_agent.agent_core.context import sanitize_public_context
 from true_rl_agent.agent_core.generation_contract import (
     GENERATION_LANE_IDS,
     GENERATION_LEDGER_RECORD_SCHEMA_VERSION,
+    GENERATION_MANIFEST_V2_SCHEMA_VERSION,
+    GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION,
     GenerationManifest,
     GenerationSessionContract,
     generation_resource_plan_hash,
@@ -115,6 +117,7 @@ class GenerationLaneRuntime:
     lane_intent: Mapping[str, Any]
     lane_intent_hash: str
     attempt_scope: JobAttemptScope | None = None
+    sealed_attempt_scope: JobAttemptScope | None = None
 
     def __post_init__(self) -> None:
         if self.lane_id not in GENERATION_LANE_IDS:
@@ -130,10 +133,12 @@ class GenerationLaneRuntime:
             "generation lane runtime intent hash",
         ):
             raise ValueError("generation lane runtime intent hash mismatch")
-        if self.attempt_scope is not None and not isinstance(
-            self.attempt_scope, JobAttemptScope
+        for field_name, scope in (
+            ("attempt_scope", self.attempt_scope),
+            ("sealed_attempt_scope", self.sealed_attempt_scope),
         ):
-            raise TypeError("generation lane attempt_scope is invalid")
+            if scope is not None and not isinstance(scope, JobAttemptScope):
+                raise TypeError(f"generation lane {field_name} is invalid")
 
 
 @dataclass(frozen=True)
@@ -407,6 +412,14 @@ def _validate_manifest_inputs(inputs: FixedWidthGenerationInputs) -> None:
     manifest = inputs.manifest
     session_contract = inputs.session_contract
     if (
+        manifest.schema_version == GENERATION_MANIFEST_V2_SCHEMA_VERSION
+        and session_contract.schema_version
+        != GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION
+    ):
+        raise ValueError(
+            "bound generation manifest requires the versioned session cost contract"
+        )
+    if (
         manifest.generation_session_contract_hash != session_contract.contract_hash
         or manifest.generation_index > session_contract.max_generations
     ):
@@ -445,8 +458,9 @@ def _validate_manifest_inputs(inputs: FixedWidthGenerationInputs) -> None:
         assignment = assignments[lane.lane_id]
         if lane.lane_intent_hash != assignment.lane_intent_hash:
             raise ValueError("generation lane intent differs from manifest")
-        if lane.attempt_scope is not None:
-            scope = lane.attempt_scope
+        for scope in (lane.attempt_scope, lane.sealed_attempt_scope):
+            if scope is None:
+                continue
             if (
                 scope.session_genesis_hash != manifest.session_genesis_hash
                 or scope.session_contract_hash
@@ -454,8 +468,14 @@ def _validate_manifest_inputs(inputs: FixedWidthGenerationInputs) -> None:
                 or scope.generation_id != manifest.generation_id
                 or scope.lane_id != lane.lane_id
                 or scope.resource_binding_hash != assignment.resource_binding_hash
+                or (
+                    "session_cost" in bound_hashes
+                    and scope.budget_contract_hash != bound_hashes["session_cost"]
+                )
             ):
                 raise ValueError("generation lane attempt scope differs from manifest")
+        if assignment.gpu_process_binding is not None and lane.attempt_scope is None:
+            raise ValueError("bound generation lane requires an attempt scope")
 
 def _validate_authoring_result(
     inputs: FixedWidthGenerationInputs,
@@ -541,6 +561,7 @@ def _validate_round_inputs(
         != manifest.evaluation_binding_hash
         or canonical_json_hash(sanitize_public_context(round_inputs.public_context))
         != manifest.base_public_context_hash
+        or round_inputs.gpu_process_binding != assignment.gpu_process_binding
     ):
         raise ValueError("generation lane RoundInputs differ from manifest")
     if round_inputs.candidate != _require_authored_candidate(state.authoring):
@@ -584,6 +605,8 @@ def _validate_prepared_pair(
         if (
             train_spec.execution_device != assignment.execution_device
             or eval_spec.execution_device != assignment.execution_device
+            or train_spec.gpu_process_binding != assignment.gpu_process_binding
+            or eval_spec.gpu_process_binding != assignment.gpu_process_binding
             or train_spec.attempt_scope != state.runtime.attempt_scope
             or eval_spec.attempt_scope != state.runtime.attempt_scope
             or eval_spec.evaluation_binding.binding_hash
@@ -676,7 +699,12 @@ def _run_phase(
         return
     assert state.prepared is not None and state.train_execution is not None
     prepared = state.prepared
-    attempt_scope = state.runtime.attempt_scope
+    attempt_scope = (
+        state.runtime.sealed_attempt_scope
+        if phase is EvaluationPhase.SEALED_VALIDATION
+        and state.runtime.sealed_attempt_scope is not None
+        else state.runtime.attempt_scope
+    )
     phase_spec = prepared.inputs.backend_adapter.materialize_eval_phase(
         eval_plan=state.train_execution.eval_plan,
         phase=phase,
@@ -687,6 +715,7 @@ def _run_phase(
     )
     if (
         phase_spec.execution_device != assignment.execution_device
+        or phase_spec.gpu_process_binding != assignment.gpu_process_binding
         or phase_spec.attempt_scope != attempt_scope
     ):
         raise ValueError("generation phase resource assignment mismatch")
@@ -1042,7 +1071,7 @@ def _project_train(state: _LaneState) -> dict[str, Any] | None:
         return None
     spec = execution.prepared.jobs.train_spec
     result = execution.train_result
-    scope = spec.attempt_scope
+    binding = result.gpu_process_binding
     return {
         "job_spec_hash": canonical_json_hash(spec.to_public_dict()),
         "train_result_hash": canonical_json_hash(result.to_public_dict()),
@@ -1050,7 +1079,13 @@ def _project_train(state: _LaneState) -> dict[str, Any] | None:
         "checkpoint_hash": result.checkpoint.checksum,
         "execution_device": result.execution_device,
         "resource_binding_hash": (
-            scope.resource_binding_hash if scope is not None else None
+            binding.resource_binding_hash
+            if binding is not None
+            else (
+                spec.attempt_scope.resource_binding_hash
+                if spec.attempt_scope is not None
+                else None
+            )
         ),
     }
 

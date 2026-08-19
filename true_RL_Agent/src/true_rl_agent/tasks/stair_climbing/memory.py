@@ -7,14 +7,73 @@ from statistics import fmean
 from typing import Any, Mapping, Sequence
 
 from true_rl_agent.agent_core.context import sanitize_public_context
-from true_rl_agent.tasks.stair_climbing.config import STAIR_TASK_ID
+from true_rl_agent.agent_core.exploration import (
+    GenerationExplorationPlan,
+    build_generation_exploration_plan,
+)
+from true_rl_agent.agent_core.generation_contract import GenerationSessionContract
+from true_rl_agent.evaluation.acceptance_replay import ProjectedPublicHistory
+from true_rl_agent.tasks.stair_climbing.config import (
+    STAIR_TASK_ID,
+    StairClimbingTaskConfig,
+)
+from true_rl_agent.tasks.stair_climbing.exploration import StairExplorationProjector
 
 _MAX_TREND_ROUNDS = 8
 
 
 @dataclass(frozen=True)
 class StairTaskMemoryAdapter:
+    config: StairClimbingTaskConfig | None = None
     task_id: str = STAIR_TASK_ID
+
+    def build_exploration_projection(
+        self,
+        history: ProjectedPublicHistory,
+        *,
+        generation_session_contract: GenerationSessionContract | None,
+    ) -> Mapping[str, Any]:
+        has_generation = any(
+            isinstance(record.get("generation"), Mapping)
+            for record in history.records
+        )
+        if not has_generation:
+            return {}
+        plan = self.build_generation_exploration_plan(
+            history,
+            generation_session_contract=generation_session_contract,
+        )
+        if not plan.index.cards:
+            return {}
+        return plan.prompt_projection
+
+    def build_generation_exploration_plan(
+        self,
+        history: ProjectedPublicHistory,
+        *,
+        generation_session_contract: GenerationSessionContract | None,
+    ) -> GenerationExplorationPlan:
+        if self.config is None:
+            raise ValueError(
+                "Stair generation history requires the resolved task configuration"
+            )
+        if (
+            generation_session_contract is None
+            or generation_session_contract.task_id != self.task_id
+        ):
+            raise ValueError(
+                "Stair generation history requires its bound generation session contract"
+            )
+        projector = StairExplorationProjector(self.config)
+        return build_generation_exploration_plan(
+            history,
+            task_projector=projector,
+            expected_projector_contract_hash=(
+                generation_session_contract.bound_contract_hashes[
+                    "exploration_projector"
+                ]
+            ),
+        )
 
     def build_public_summary(
         self,

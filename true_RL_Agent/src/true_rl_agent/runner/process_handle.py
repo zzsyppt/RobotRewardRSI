@@ -10,10 +10,13 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import BinaryIO, Sequence
+from typing import Any, BinaryIO, Mapping, Sequence
 
 
 _LOG_TAIL_BYTES = 16 * 1024
+OWNED_PROCESS_IDENTITY_SCHEMA_VERSION = (
+    "true_rl_agent.runner.owned_process_identity.v1"
+)
 
 
 class OwnedProcessLaunchError(OSError):
@@ -34,6 +37,63 @@ class OwnedProcessResult:
     stderr_log: Path
 
 
+def current_owned_process_identity() -> dict[str, Any]:
+    """Project the current process identity used by runner-owned summaries."""
+
+    process_id = int(os.getpid())
+    get_process_group = getattr(os, "getpgrp", None)
+    process_group_id = (
+        int(get_process_group()) if callable(get_process_group) else process_id
+    )
+    return {
+        "schema_version": OWNED_PROCESS_IDENTITY_SCHEMA_VERSION,
+        "process_id": process_id,
+        "process_group_id": process_group_id,
+    }
+
+
+def validate_owned_process_identity(
+    value: Mapping[str, Any] | None,
+    *,
+    expected_process_id: int | None = None,
+    require_process_group_leader: bool = False,
+) -> dict[str, Any]:
+    """Validate task-neutral child identity without interpreting task evidence."""
+
+    if not isinstance(value, Mapping) or set(value) != {
+        "schema_version",
+        "process_id",
+        "process_group_id",
+    }:
+        raise ValueError("owned process identity fields mismatch")
+    if value.get("schema_version") != OWNED_PROCESS_IDENTITY_SCHEMA_VERSION:
+        raise ValueError("owned process identity schema mismatch")
+    process_id = value.get("process_id")
+    process_group_id = value.get("process_group_id")
+    for raw, field_name in (
+        (process_id, "process_id"),
+        (process_group_id, "process_group_id"),
+    ):
+        if isinstance(raw, bool) or not isinstance(raw, int) or raw <= 0:
+            raise ValueError(f"owned process identity {field_name} is invalid")
+    if expected_process_id is not None:
+        if (
+            isinstance(expected_process_id, bool)
+            or not isinstance(expected_process_id, int)
+            or expected_process_id <= 0
+        ):
+            raise ValueError("expected owned process id is invalid")
+        if process_id != expected_process_id:
+            raise ValueError("summary process id does not match runner-owned child")
+    if require_process_group_leader and process_group_id != process_id:
+        raise ValueError("runner-owned child is not its process-group leader")
+    return {
+        "schema_version": OWNED_PROCESS_IDENTITY_SCHEMA_VERSION,
+        "process_id": process_id,
+        "process_group_id": process_group_id,
+    }
+
+
 def run_owned_process(
     argv: Sequence[str],
     *,
@@ -41,6 +101,7 @@ def run_owned_process(
     timeout_s: int,
     log_dir: Path,
     termination_grace_s: float = 5.0,
+    environment_overrides: Mapping[str, str | None] | None = None,
 ) -> OwnedProcessResult:
     """Run one argv job and retain ownership of its process tree until reaped."""
 
@@ -70,6 +131,7 @@ def run_owned_process(
                 cwd=cwd,
                 stdout_handle=stdout_handle,
                 stderr_handle=stderr_handle,
+                environment_overrides=environment_overrides,
             )
             if os.name == "nt":
                 windows_job = _WindowsJobObject.create_and_assign(process)
@@ -122,6 +184,7 @@ def _spawn(
     cwd: Path | None,
     stdout_handle: BinaryIO,
     stderr_handle: BinaryIO,
+    environment_overrides: Mapping[str, str | None] | None,
 ) -> subprocess.Popen[bytes]:
     creationflags = 0
     kwargs: dict[str, object] = {}
@@ -131,6 +194,14 @@ def _spawn(
     else:
         kwargs["start_new_session"] = True
         spawn_argv = _linux_parent_death_guard_argv(argv)
+    if environment_overrides is not None:
+        environment = dict(os.environ)
+        for name, value in environment_overrides.items():
+            if value is None:
+                environment.pop(name, None)
+            else:
+                environment[name] = value
+        kwargs["env"] = environment
     try:
         return subprocess.Popen(
             spawn_argv,

@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import os
 import re
+import time
 from collections.abc import Mapping
 from contextlib import nullcontext
 from dataclasses import dataclass
@@ -75,8 +76,15 @@ from true_rl_agent.runner.gpu_lease import (
     GpuLeaseHolder,
     GpuLeaseManager,
     GpuLeaseUnavailableError,
+    PreGenesisGpuLeaseHolder,
 )
-from true_rl_agent.runner.job_attempts import JobAttemptJournal, JobAttemptScope
+from true_rl_agent.runner.job_attempts import (
+    JobAttemptExecutionScope,
+    JobAttemptJournal,
+    JobAttemptRecoveryRequiredError,
+    JobAttemptScope,
+    PreGenesisExecutionScope,
+)
 from true_rl_agent.runner.job_argv import (
     validate_eval_job_argv,
     validate_train_job_argv,
@@ -92,6 +100,7 @@ from true_rl_agent.runner.specs import (
     EvalJobSpec,
     EvalPhaseJobSpec,
     EvaluationJobSpec,
+    GpuProcessBinding,
     TrainJobSpec,
     require_eval_phase_result_matches_spec,
     require_positive_integer,
@@ -101,6 +110,7 @@ from true_rl_agent.runner.process_handle import (
     OwnedProcessResult,
     OwnedProcessTimeout,
     run_owned_process,
+    validate_owned_process_identity,
 )
 
 
@@ -111,6 +121,23 @@ class _SummaryJobCompletion:
     summary: dict[str, Any]
     status: str
     returncode: int
+    gpu_process_binding: GpuProcessBinding | None = None
+    owned_process_identity: Mapping[str, Any] | None = None
+
+
+@dataclass(frozen=True)
+class _GpuJobExecutionContext:
+    """Trusted, immutable host-to-child mapping for one owned GPU process."""
+
+    gpu_process_binding: GpuProcessBinding
+    physical_id: str
+
+    @property
+    def environment_overrides(self) -> dict[str, str | None]:
+        return {
+            "CUDA_VISIBLE_DEVICES": self.physical_id,
+            "NVIDIA_VISIBLE_DEVICES": None,
+        }
 
 
 _EVAL_CHECKPOINT_OPTIONS = ("--checkpoint", "--checkpoint-sha256")
@@ -165,9 +192,16 @@ class SubprocessRunner(Runner):
         return self._execute_with_attempts(
             train_spec,
             job_kind="train",
-            operation=lambda log_dir: self._run_train_once(
+            operation=lambda log_dir, execution_context: self._run_train_once(
                 train_spec,
                 process_log_dir=log_dir,
+                execution_context=execution_context,
+            ),
+            recover_completed=lambda execution_context: self._run_train_once(
+                train_spec,
+                process_log_dir=None,
+                reuse_existing_summary=True,
+                execution_context=execution_context,
             ),
         )
 
@@ -176,6 +210,8 @@ class SubprocessRunner(Runner):
         train_spec: TrainJobSpec,
         *,
         process_log_dir: Path | None,
+        reuse_existing_summary: bool = False,
+        execution_context: _GpuJobExecutionContext | None = None,
     ) -> TrainJobResult:
         argv = self._validated_argv(
             train_spec.metadata,
@@ -203,8 +239,11 @@ class SubprocessRunner(Runner):
             checkpoint_path_option=_TRAIN_CHECKPOINT_OPTIONS[0],
             checkpoint_checksum_option=_TRAIN_CHECKPOINT_OPTIONS[1],
             process_log_dir=process_log_dir,
+            reuse_existing_summary=reuse_existing_summary,
+            execution_context=execution_context,
         )
         summary = completion.summary
+        actual_gpu_process_binding = completion.gpu_process_binding
         self._validate_backend_execution_environment_summary(summary, train_spec)
         self._validate_execution_device_summary(summary, train_spec)
         self._validate_train_binding_summary(summary, train_spec)
@@ -238,7 +277,20 @@ class SubprocessRunner(Runner):
                 "capability_profile_hash": (
                     train_spec.training_binding.capability_profile_hash
                 ),
-                "execution_device": train_spec.execution_device,
+                "execution_device": (
+                    actual_gpu_process_binding.process_execution_device
+                    if actual_gpu_process_binding is not None
+                    else train_spec.execution_device
+                ),
+                **(
+                    {
+                        "gpu_process_binding": (
+                            actual_gpu_process_binding.to_dict()
+                        )
+                    }
+                    if actual_gpu_process_binding is not None
+                    else {}
+                ),
                 **(
                     {
                         "initial_policy_state_pairing": (
@@ -264,8 +316,13 @@ class SubprocessRunner(Runner):
             capability_profile_hash=(
                 train_spec.training_binding.capability_profile_hash
             ),
-            execution_device=train_spec.execution_device,
+            execution_device=(
+                actual_gpu_process_binding.process_execution_device
+                if actual_gpu_process_binding is not None
+                else train_spec.execution_device
+            ),
             checkpoint=seal_checkpoint(checkpoint, sealed_uri=sealed_uri),
+            gpu_process_binding=actual_gpu_process_binding,
             initial_policy_state_pairing=initial_policy_state_pairing,
             summary=summary,
         )
@@ -274,9 +331,16 @@ class SubprocessRunner(Runner):
         return self._execute_with_attempts(
             eval_spec,
             job_kind="eval",
-            operation=lambda log_dir: self._run_evaluation(
+            operation=lambda log_dir, execution_context: self._run_evaluation(
                 eval_spec,
                 process_log_dir=log_dir,
+                execution_context=execution_context,
+            ),
+            recover_completed=lambda execution_context: self._run_evaluation(
+                eval_spec,
+                process_log_dir=None,
+                reuse_existing_summary=True,
+                execution_context=execution_context,
             ),
         )
 
@@ -287,9 +351,16 @@ class SubprocessRunner(Runner):
         return self._execute_with_attempts(
             eval_spec,
             job_kind="eval_phase",
-            operation=lambda log_dir: self._run_evaluation_phase(
+            operation=lambda log_dir, execution_context: self._run_evaluation_phase(
                 eval_spec,
                 process_log_dir=log_dir,
+                execution_context=execution_context,
+            ),
+            recover_completed=lambda execution_context: self._run_evaluation_phase(
+                eval_spec,
+                process_log_dir=None,
+                reuse_existing_summary=True,
+                execution_context=execution_context,
             ),
         )
 
@@ -438,9 +509,16 @@ class SubprocessRunner(Runner):
         return self._execute_with_attempts(
             eval_spec,
             job_kind="baseline_eval",
-            operation=lambda log_dir: self._run_evaluation(
+            operation=lambda log_dir, execution_context: self._run_evaluation(
                 eval_spec,
                 process_log_dir=log_dir,
+                execution_context=execution_context,
+            ),
+            recover_completed=lambda execution_context: self._run_evaluation(
+                eval_spec,
+                process_log_dir=None,
+                reuse_existing_summary=True,
+                execution_context=execution_context,
             ),
         )
 
@@ -449,6 +527,8 @@ class SubprocessRunner(Runner):
         eval_spec: EvaluationJobSpec,
         *,
         process_log_dir: Path | None,
+        reuse_existing_summary: bool = False,
+        execution_context: _GpuJobExecutionContext | None = None,
     ) -> PublicEvalResult:
         try:
             checkpoint = eval_spec.execution_checkpoint()
@@ -476,6 +556,8 @@ class SubprocessRunner(Runner):
             checkpoint_path_option=_EVAL_CHECKPOINT_OPTIONS[0],
             checkpoint_checksum_option=_EVAL_CHECKPOINT_OPTIONS[1],
             process_log_dir=process_log_dir,
+            reuse_existing_summary=reuse_existing_summary,
+            execution_context=execution_context,
         )
         summary = completion.summary
         self._validate_backend_execution_environment_summary(summary, eval_spec)
@@ -510,6 +592,8 @@ class SubprocessRunner(Runner):
         eval_spec: EvalPhaseJobSpec,
         *,
         process_log_dir: Path | None,
+        reuse_existing_summary: bool = False,
+        execution_context: _GpuJobExecutionContext | None = None,
     ) -> EvaluationPhaseResult:
         try:
             checkpoint = eval_spec.execution_checkpoint()
@@ -534,6 +618,8 @@ class SubprocessRunner(Runner):
             checkpoint_path_option=_EVAL_CHECKPOINT_OPTIONS[0],
             checkpoint_checksum_option=_EVAL_CHECKPOINT_OPTIONS[1],
             process_log_dir=process_log_dir,
+            reuse_existing_summary=reuse_existing_summary,
+            execution_context=execution_context,
         )
         summary = completion.summary
         self._validate_backend_execution_environment_summary(summary, eval_spec)
@@ -543,6 +629,7 @@ class SubprocessRunner(Runner):
             summary,
             eval_spec=eval_spec,
             expected_checkpoint_hash=checkpoint.checksum,
+            actual_gpu_process_binding=completion.gpu_process_binding,
         )
 
     def _execute_with_attempts(
@@ -550,15 +637,31 @@ class SubprocessRunner(Runner):
         spec: TrainJobSpec | EvaluationJobSpec,
         *,
         job_kind: str,
-        operation: Callable[[Path | None], _ExecutionResultT],
+        operation: Callable[
+            [Path | None, _GpuJobExecutionContext | None],
+            _ExecutionResultT,
+        ],
+        recover_completed: Callable[
+            [_GpuJobExecutionContext | None],
+            _ExecutionResultT,
+        ]
+        | None = None,
     ) -> _ExecutionResultT:
         scope = spec.attempt_scope
+        gpu_process_binding = getattr(spec, "gpu_process_binding", None)
         if scope is None:
-            return operation(None)
-        if not isinstance(scope, JobAttemptScope):
+            if gpu_process_binding is not None:
+                raise RunnerExecutionError(
+                    f"{spec.job_id}: GPU process binding requires an attempt scope",
+                    failure_kind=RunnerFailureKind.CONTRACT_INVALID,
+                )
+            return operation(None, None)
+        if not isinstance(scope, JobAttemptExecutionScope):
             raise TypeError("job attempt scope is invalid")
 
         resource_binding_hash: str | None = None
+        lease_execution_device: str | None = None
+        execution_context: _GpuJobExecutionContext | None = None
         if spec.execution_device.startswith("cuda:"):
             if self.gpu_lease_manager is None:
                 raise RunnerExecutionError(
@@ -566,9 +669,32 @@ class SubprocessRunner(Runner):
                     failure_kind=RunnerFailureKind.CONTRACT_INVALID,
                 )
             try:
+                if gpu_process_binding is not None:
+                    if not isinstance(gpu_process_binding, GpuProcessBinding):
+                        raise ValueError("GPU process binding type is invalid")
+                    if (
+                        spec.execution_device
+                        != gpu_process_binding.process_execution_device
+                    ):
+                        raise ValueError(
+                            "process execution device does not match job spec"
+                        )
+                    lease_execution_device = (
+                        gpu_process_binding.host_execution_device
+                    )
+                else:
+                    lease_execution_device = spec.execution_device
                 identity = self.gpu_lease_manager.identity_for(
-                    spec.execution_device
+                    lease_execution_device
                 )
+                if (
+                    gpu_process_binding is not None
+                    and identity.identity_hash
+                    != gpu_process_binding.resource_binding_hash
+                ):
+                    raise ValueError(
+                        "GPU process binding does not match trusted device identity"
+                    )
             except ValueError as exc:
                 raise RunnerExecutionError(
                     f"{spec.job_id}: GPU resource binding is invalid",
@@ -576,6 +702,22 @@ class SubprocessRunner(Runner):
                 ) from exc
             assert identity is not None
             resource_binding_hash = identity.identity_hash
+            if gpu_process_binding is not None:
+                if scope.resource_binding_hash != resource_binding_hash:
+                    raise RunnerExecutionError(
+                        f"{spec.job_id}: attempt scope GPU binding does not match "
+                        "the trusted process binding",
+                        failure_kind=RunnerFailureKind.CONTRACT_INVALID,
+                    )
+                execution_context = _GpuJobExecutionContext(
+                    gpu_process_binding=gpu_process_binding,
+                    physical_id=identity.physical_id,
+                )
+        elif gpu_process_binding is not None:
+            raise RunnerExecutionError(
+                f"{spec.job_id}: CPU job cannot declare a GPU process binding",
+                failure_kind=RunnerFailureKind.CONTRACT_INVALID,
+            )
         elif scope.resource_binding_hash is not None:
             raise RunnerExecutionError(
                 f"{spec.job_id}: CPU job cannot declare a GPU resource binding",
@@ -592,30 +734,54 @@ class SubprocessRunner(Runner):
                 execution_device=spec.execution_device,
                 resource_binding_hash=resource_binding_hash,
             )
-            reservation = journal.reserve(0, previous_result=None)
+            reusable_result = journal.load_reusable_output_result()
+            if reusable_result is not None:
+                if recover_completed is None:
+                    raise ValueError(
+                        "completed attempt output has no typed recovery projector"
+                    )
+                recovered = recover_completed(execution_context)
+                if self._attempt_output_hash(recovered) != reusable_result.payload.get(
+                    "output_hash"
+                ):
+                    raise ValueError("completed attempt output hash mismatch")
+                return recovered
+            attempt_index, reservation, previous_result = journal.begin_or_resume()
+        except JobAttemptRecoveryRequiredError as exc:
+            raise RunnerExecutionError(
+                f"{spec.job_id}: requires recovery inspection",
+                failure_kind=RunnerFailureKind.CONTRACT_INVALID,
+            ) from exc
         except (OSError, TypeError, ValueError) as exc:
             raise RunnerExecutionError(
                 f"{spec.job_id}: attempt evidence contract is invalid",
                 failure_kind=RunnerFailureKind.CONTRACT_INVALID,
             ) from exc
-        if not reservation.created:
-            raise RunnerExecutionError(
-                f"{spec.job_id}: existing attempt requires recovery inspection",
-                failure_kind=RunnerFailureKind.CONTRACT_INVALID,
-            )
         lease_context = nullcontext(None)
         if resource_binding_hash is not None:
             assert self.gpu_lease_manager is not None
-            holder = GpuLeaseHolder(
-                session_genesis_hash=scope.session_genesis_hash,
-                generation_id=scope.generation_id,
-                lane_id=scope.lane_id,
-                invocation_segment_id=scope.invocation_segment_id,
-                logical_job_id=spec.job_id,
-            )
+            assert lease_execution_device is not None
+            if isinstance(scope, PreGenesisExecutionScope):
+                holder = PreGenesisGpuLeaseHolder(
+                    session_id=scope.session_id,
+                    genesis_identity_hash=scope.genesis_identity_hash,
+                    session_contract_hash=scope.session_contract_hash,
+                    lane_id=scope.lane_id,
+                    invocation_segment_id=scope.invocation_segment_id,
+                    logical_job_id=spec.job_id,
+                )
+            else:
+                assert isinstance(scope, JobAttemptScope)
+                holder = GpuLeaseHolder(
+                    session_genesis_hash=scope.session_genesis_hash,
+                    generation_id=scope.generation_id,
+                    lane_id=scope.lane_id,
+                    invocation_segment_id=scope.invocation_segment_id,
+                    logical_job_id=spec.job_id,
+                )
             try:
                 lease_context = self.gpu_lease_manager.acquire(
-                    spec.execution_device,
+                    lease_execution_device,
                     holder=holder,
                 )
             except GpuLeaseUnavailableError as exc:
@@ -632,14 +798,16 @@ class SubprocessRunner(Runner):
                     failure_kind=RunnerFailureKind.RESOURCE_UNAVAILABLE,
                 ) from exc
 
-        previous_result = None
         with lease_context:
-            for attempt_index in range(scope.max_infrastructure_retries + 1):
-                if attempt_index > 0:
+            for current_attempt_index in range(
+                attempt_index,
+                scope.max_infrastructure_retries + 1,
+            ):
+                if current_attempt_index > attempt_index:
                     assert previous_result is not None
                     try:
                         reservation = journal.reserve(
-                            attempt_index,
+                            current_attempt_index,
                             previous_result=previous_result,
                         )
                     except (OSError, TypeError, ValueError) as exc:
@@ -652,9 +820,14 @@ class SubprocessRunner(Runner):
                             f"{spec.job_id}: existing retry requires recovery inspection",
                             failure_kind=RunnerFailureKind.CONTRACT_INVALID,
                         )
-                log_dir = journal.root / f"attempt_{attempt_index:02d}.logs"
+                log_dir = journal.root / f"attempt_{current_attempt_index:02d}.logs"
+                lease_wall_started_ns = (
+                    time.perf_counter_ns()
+                    if resource_binding_hash is not None
+                    else None
+                )
                 try:
-                    result = operation(log_dir)
+                    result = operation(log_dir, execution_context)
                 except CandidateRuntimeError as exc:
                     journal.finish(
                         reservation,
@@ -663,12 +836,18 @@ class SubprocessRunner(Runner):
                         retryable=False,
                         output_hash=None,
                         returncode=None,
+                        resource_lease_wall_duration_ns=(
+                            self._resource_lease_wall_duration_ns(
+                                lease_wall_started_ns
+                            )
+                        ),
                     )
                     raise
                 except RunnerExecutionError as exc:
                     retryable = (
                         exc.retryable_infrastructure_failure
-                        and attempt_index < scope.max_infrastructure_retries
+                        and current_attempt_index
+                        < scope.max_infrastructure_retries
                     )
                     outcome = self._attempt_error_outcome(exc)
                     previous_result = journal.finish(
@@ -678,6 +857,11 @@ class SubprocessRunner(Runner):
                         retryable=retryable,
                         output_hash=None,
                         returncode=None,
+                        resource_lease_wall_duration_ns=(
+                            self._resource_lease_wall_duration_ns(
+                                lease_wall_started_ns
+                            )
+                        ),
                     )
                     if retryable:
                         continue
@@ -690,6 +874,11 @@ class SubprocessRunner(Runner):
                         retryable=False,
                         output_hash=None,
                         returncode=None,
+                        resource_lease_wall_duration_ns=(
+                            self._resource_lease_wall_duration_ns(
+                                lease_wall_started_ns
+                            )
+                        ),
                     )
                     raise
                 except BaseException as exc:
@@ -700,6 +889,11 @@ class SubprocessRunner(Runner):
                         retryable=False,
                         output_hash=None,
                         returncode=None,
+                        resource_lease_wall_duration_ns=(
+                            self._resource_lease_wall_duration_ns(
+                                lease_wall_started_ns
+                            )
+                        ),
                     )
                     raise
                 outcome = (
@@ -712,15 +906,30 @@ class SubprocessRunner(Runner):
                     outcome=outcome,
                     failure_kind=None,
                     retryable=False,
-                    output_hash=canonical_json_hash(
-                        result.to_private_dict()
-                        if isinstance(result, EvaluationPhaseResult)
-                        else result.to_public_dict()
-                    ),
+                    output_hash=self._attempt_output_hash(result),
                     returncode=None,
+                    resource_lease_wall_duration_ns=(
+                        self._resource_lease_wall_duration_ns(
+                            lease_wall_started_ns
+                        )
+                    ),
                 )
                 return result
         raise RuntimeError("attempt loop exited without a terminal result")
+
+    @staticmethod
+    def _attempt_output_hash(result: _ExecutionResultT) -> str:
+        return canonical_json_hash(
+            result.to_private_dict()
+            if isinstance(result, EvaluationPhaseResult)
+            else result.to_public_dict()
+        )
+
+    @staticmethod
+    def _resource_lease_wall_duration_ns(started_ns: int | None) -> int | None:
+        if started_ns is None:
+            return None
+        return max(1, time.perf_counter_ns() - started_ns)
 
     @staticmethod
     def _attempt_error_outcome(error: RunnerExecutionError) -> str:
@@ -811,6 +1020,8 @@ class SubprocessRunner(Runner):
         checkpoint_path_option: str,
         checkpoint_checksum_option: str,
         process_log_dir: Path | None,
+        reuse_existing_summary: bool = False,
+        execution_context: _GpuJobExecutionContext | None = None,
     ) -> _SummaryJobCompletion:
         """Interpret process exit and a fresh structured summary as one contract."""
 
@@ -827,6 +1038,43 @@ class SubprocessRunner(Runner):
                 reject_candidate_path_arguments(argv)
             except ValueError as exc:
                 raise RunnerExecutionError(f"{identity.job_id}: {exc}") from exc
+        if reuse_existing_summary:
+            try:
+                summary = self._read_summary(metadata, job_id=identity.job_id)
+                validate_job_summary_identity(
+                    summary,
+                    expected=identity,
+                    summary_name=summary_name,
+                )
+                status = validate_result_status(
+                    summary.get("status"),
+                    field_name=f"{summary_name} status",
+                )
+                actual_gpu_process_binding = (
+                    self._validated_gpu_process_binding_from_summary(
+                        summary,
+                        execution_context=execution_context,
+                    )
+                )
+                owned_process_identity = (
+                    self._validated_owned_process_identity_from_summary(
+                        summary,
+                        execution_context=execution_context,
+                        expected_process_id=None,
+                    )
+                )
+            except (RunnerExecutionError, ValueError) as exc:
+                raise RunnerExecutionError(
+                    f"{identity.job_id}: reusable {summary_name} is invalid: {exc}",
+                    failure_kind=RunnerFailureKind.SUMMARY_INVALID,
+                ) from exc
+            return _SummaryJobCompletion(
+                summary=summary,
+                status=status,
+                returncode=0,
+                gpu_process_binding=actual_gpu_process_binding,
+                owned_process_identity=owned_process_identity,
+            )
         self._clear_existing_summary(metadata, job_id=identity.job_id)
         for output_name, output_path in stale_output_paths:
             self._clear_existing_output(
@@ -839,6 +1087,7 @@ class SubprocessRunner(Runner):
             metadata,
             job_id=identity.job_id,
             process_log_dir=process_log_dir,
+            execution_context=execution_context,
         )
         try:
             summary = self._read_summary(metadata, job_id=identity.job_id)
@@ -850,6 +1099,21 @@ class SubprocessRunner(Runner):
             status = validate_result_status(
                 summary.get("status"),
                 field_name=f"{summary_name} status",
+            )
+            actual_gpu_process_binding = (
+                self._validated_gpu_process_binding_from_summary(
+                    summary,
+                    execution_context=execution_context,
+                )
+            )
+            owned_process_identity = (
+                    self._validated_owned_process_identity_from_summary(
+                        summary,
+                        execution_context=execution_context,
+                        expected_process_id=(
+                            completed.pid if os.name != "nt" else None
+                        ),
+                    )
             )
         except (RunnerExecutionError, ValueError) as exc:
             failure_kind = (
@@ -877,6 +1141,49 @@ class SubprocessRunner(Runner):
             summary=summary,
             status=status,
             returncode=int(completed.returncode),
+            gpu_process_binding=actual_gpu_process_binding,
+            owned_process_identity=owned_process_identity,
+        )
+
+    @staticmethod
+    def _validated_gpu_process_binding_from_summary(
+        summary: Mapping[str, Any],
+        *,
+        execution_context: _GpuJobExecutionContext | None,
+    ) -> GpuProcessBinding | None:
+        if execution_context is None:
+            if summary.get("gpu_process_binding") is not None:
+                raise ValueError(
+                    "unbound summary cannot claim a GPU process binding"
+                )
+            return None
+        actual = GpuProcessBinding.from_mapping(
+            summary.get("gpu_process_binding")
+        )
+        if actual != execution_context.gpu_process_binding:
+            raise ValueError(
+                "summary GPU process binding does not match trusted launch context"
+            )
+        return actual
+
+    @staticmethod
+    def _validated_owned_process_identity_from_summary(
+        summary: Mapping[str, Any],
+        *,
+        execution_context: _GpuJobExecutionContext | None,
+        expected_process_id: int | None,
+    ) -> Mapping[str, Any] | None:
+        raw = summary.get("owned_process_identity")
+        if execution_context is None:
+            if raw is not None:
+                raise ValueError(
+                    "unbound summary cannot claim a runner-owned process identity"
+                )
+            return None
+        return validate_owned_process_identity(
+            raw,
+            expected_process_id=expected_process_id,
+            require_process_group_leader=True,
         )
 
     def _run_job(
@@ -886,6 +1193,7 @@ class SubprocessRunner(Runner):
         *,
         job_id: str,
         process_log_dir: Path | None,
+        execution_context: _GpuJobExecutionContext | None,
     ) -> OwnedProcessResult:
         work_dir = self._work_dir(metadata)
         if process_log_dir is None:
@@ -900,6 +1208,11 @@ class SubprocessRunner(Runner):
                 timeout_s=self.timeout_s,
                 log_dir=process_log_dir,
                 termination_grace_s=self.termination_grace_s,
+                environment_overrides=(
+                    execution_context.environment_overrides
+                    if execution_context is not None
+                    else None
+                ),
             )
         except OwnedProcessTimeout as exc:
             raise RunnerExecutionError(
@@ -1280,6 +1593,7 @@ class SubprocessRunner(Runner):
         *,
         eval_spec: EvalPhaseJobSpec,
         expected_checkpoint_hash: str,
+        actual_gpu_process_binding: GpuProcessBinding | None = None,
     ) -> EvaluationPhaseResult:
         job_id = eval_spec.job_id
         if summary.get("schema_version") != EVALUATION_PHASE_SUMMARY_SCHEMA_VERSION:
@@ -1345,17 +1659,30 @@ class SubprocessRunner(Runner):
             checkpoint_hash=expected_checkpoint_hash,
             eval_protocol_hash=eval_spec.evaluation_protocol().protocol_hash,
             evaluation_binding_hash=eval_spec.evaluation_binding.binding_hash,
-            execution_device=eval_spec.execution_device,
+            execution_device=(
+                actual_gpu_process_binding.process_execution_device
+                if actual_gpu_process_binding is not None
+                else eval_spec.execution_device
+            ),
             resource_binding_hash=(
-                eval_spec.attempt_scope.resource_binding_hash
-                if eval_spec.attempt_scope is not None
-                else None
+                actual_gpu_process_binding.resource_binding_hash
+                if actual_gpu_process_binding is not None
+                else (
+                    eval_spec.attempt_scope.resource_binding_hash
+                    if eval_spec.attempt_scope is not None
+                    else None
+                )
             ),
             task_evidence=task_evidence,
             execution_cost=execution_cost,
             environment_source_preflight=source_preflight,
             backend_execution_environment_verification=environment_verification,
             checkpoint_safety_report=checkpoint_safety_report,
+            gpu_process_binding=(
+                actual_gpu_process_binding.to_dict()
+                if actual_gpu_process_binding is not None
+                else None
+            ),
         )
 
     def _public_result_from_summary(

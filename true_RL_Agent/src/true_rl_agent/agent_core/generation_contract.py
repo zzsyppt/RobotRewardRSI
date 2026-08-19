@@ -19,22 +19,33 @@ from true_rl_agent.evaluation.binding import (
 )
 from true_rl_agent.fs_contract import create_once_bytes, read_bounded_regular_file
 from true_rl_agent.json_contract import canonical_json_bytes, strict_json_object_loads
-from true_rl_agent.runner.specs import require_execution_device
+from true_rl_agent.runner.specs import GpuProcessBinding, require_execution_device
 
 
 GENERATION_SESSION_CONTRACT_SCHEMA_VERSION = (
-    "true_rl_agent.generation_session_contract.v1"
+    "true_rl_agent.generation_session_contract.v2"
+)
+GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION = (
+    "true_rl_agent.generation_session_contract.v3"
 )
 GENERATION_SESSION_CONTRACT_REF_SCHEMA_VERSION = (
     "true_rl_agent.generation_session_contract_ref.v1"
 )
 GENERATION_MANIFEST_SCHEMA_VERSION = "true_rl_agent.generation_manifest.v1"
+GENERATION_MANIFEST_V2_SCHEMA_VERSION = "true_rl_agent.generation_manifest.v2"
 GENERATION_LEDGER_RECORD_SCHEMA_VERSION = (
     "true_rl_agent.generation_ledger_record.v1"
 )
 GENERATION_SESSION_CONTRACT_FILENAME = "generation_session_contract.json"
 GENERATION_WIDTH = 2
 GENERATION_LANE_IDS = ("lane-a", "lane-b")
+GENERATION_SESSION_MODES = frozenset(
+    {
+        "development_generation_pilot",
+        "development_generation_validation",
+        "formal_generation_session",
+    }
+)
 MAX_GENERATION_LANE_INTENT_BYTES = 2 * 1024
 
 
@@ -78,6 +89,42 @@ def generation_resource_plan_hash(
         or tuple(item.lane_id for item in lanes) != GENERATION_LANE_IDS
     ):
         raise ValueError("generation resource plan requires ordered lane-a/lane-b")
+    bindings = tuple(item.gpu_process_binding for item in lanes)
+    if any(binding is not None for binding in bindings):
+        if not all(binding is not None for binding in bindings):
+            raise ValueError(
+                "generation resource plan cannot mix bound and unbound lanes"
+            )
+        bound_lanes = tuple(
+            binding for binding in bindings if isinstance(binding, GpuProcessBinding)
+        )
+        if (
+            len({binding.host_execution_device for binding in bound_lanes})
+            != GENERATION_WIDTH
+        ):
+            raise ValueError(
+                "generation resource plan requires distinct host devices"
+            )
+        if (
+            len({binding.resource_binding_hash for binding in bound_lanes})
+            != GENERATION_WIDTH
+        ):
+            raise ValueError(
+                "generation resource plan requires distinct GPU bindings"
+            )
+        return canonical_json_hash(
+            {
+                "schema_version": "true_rl_agent.generation_resource_plan.v2",
+                "lanes": [
+                    {
+                        "lane_id": item.lane_id,
+                        "gpu_process_binding": item.gpu_process_binding.to_dict(),
+                    }
+                    for item in lanes
+                    if item.gpu_process_binding is not None
+                ],
+            }
+        )
     return canonical_json_hash(
         {
             "schema_version": "true_rl_agent.generation_resource_plan.v1",
@@ -112,6 +159,7 @@ _BOUND_CONTRACT_KEYS = frozenset(
         "continuation_policy",
         "evaluation_cost",
         "evaluation_protocol",
+        "exploration_projector",
         "final_confirmation_plan",
         "provider_policy",
         "resource_plan",
@@ -119,6 +167,7 @@ _BOUND_CONTRACT_KEYS = frozenset(
         "selector",
     }
 )
+_V3_BOUND_CONTRACT_KEYS = _BOUND_CONTRACT_KEYS | {"session_cost"}
 
 
 @dataclass(frozen=True)
@@ -178,10 +227,24 @@ class GenerationSessionContract:
     width: int = GENERATION_WIDTH
     ledger_record_schema: str = GENERATION_LEDGER_RECORD_SCHEMA_VERSION
     schema_version: str = GENERATION_SESSION_CONTRACT_SCHEMA_VERSION
+    session_mode: str | None = None
 
     def __post_init__(self) -> None:
-        if self.schema_version != GENERATION_SESSION_CONTRACT_SCHEMA_VERSION:
+        if self.schema_version not in {
+            GENERATION_SESSION_CONTRACT_SCHEMA_VERSION,
+            GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION,
+        }:
             raise ValueError("generation session contract schema mismatch")
+        if self.schema_version == GENERATION_SESSION_CONTRACT_SCHEMA_VERSION:
+            if self.session_mode is not None:
+                raise ValueError(
+                    "legacy generation session contract cannot carry session_mode"
+                )
+            expected_bound_contract_keys = _BOUND_CONTRACT_KEYS
+        else:
+            if self.session_mode not in GENERATION_SESSION_MODES:
+                raise ValueError("generation session contract v3 session_mode is invalid")
+            expected_bound_contract_keys = _V3_BOUND_CONTRACT_KEYS
         for field_name in ("session_id", "task_id", "backend_id"):
             _bounded_text(getattr(self, field_name), f"generation contract {field_name}")
         if self.width != GENERATION_WIDTH:
@@ -197,7 +260,7 @@ class GenerationSessionContract:
         if self.max_train_jobs != self.max_trials:
             raise ValueError("generation max_train_jobs must equal max_trials")
         hashes = dict(self.bound_contract_hashes)
-        if set(hashes) != _BOUND_CONTRACT_KEYS:
+        if set(hashes) != expected_bound_contract_keys:
             raise ValueError("generation bound contract hash fields mismatch")
         for field_name, value in hashes.items():
             require_sha256_digest(value, f"generation {field_name} contract hash")
@@ -208,7 +271,7 @@ class GenerationSessionContract:
         return canonical_json_hash(self._hash_payload())
 
     def _hash_payload(self) -> dict[str, Any]:
-        return {
+        result = {
             "schema_version": self.schema_version,
             "session_id": self.session_id,
             "task_id": self.task_id,
@@ -221,28 +284,36 @@ class GenerationSessionContract:
             "max_train_jobs": self.max_train_jobs,
             "bound_contract_hashes": dict(self.bound_contract_hashes),
         }
+        if self.schema_version == GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION:
+            result["session_mode"] = self.session_mode
+        return result
 
     def to_dict(self) -> dict[str, Any]:
         return {**self._hash_payload(), "contract_hash": self.contract_hash}
 
     @classmethod
     def from_mapping(cls, value: Any) -> "GenerationSessionContract":
+        if not isinstance(value, Mapping):
+            raise ValueError("generation session contract fields mismatch")
+        fields = {
+            "schema_version",
+            "session_id",
+            "task_id",
+            "backend_id",
+            "width",
+            "authoring_order",
+            "ledger_record_schema",
+            "max_generations",
+            "max_trials",
+            "max_train_jobs",
+            "bound_contract_hashes",
+            "contract_hash",
+        }
+        if value.get("schema_version") == GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION:
+            fields.add("session_mode")
         mapping = _exact_mapping(
             value,
-            {
-                "schema_version",
-                "session_id",
-                "task_id",
-                "backend_id",
-                "width",
-                "authoring_order",
-                "ledger_record_schema",
-                "max_generations",
-                "max_trials",
-                "max_train_jobs",
-                "bound_contract_hashes",
-                "contract_hash",
-            },
+            fields,
             "generation session contract",
         )
         order = mapping["authoring_order"]
@@ -263,6 +334,7 @@ class GenerationSessionContract:
             max_trials=mapping["max_trials"],
             max_train_jobs=mapping["max_train_jobs"],
             bound_contract_hashes=dict(bound),
+            session_mode=mapping.get("session_mode"),
         )
         if mapping["contract_hash"] != contract.contract_hash:
             raise ValueError("generation session contract hash mismatch")
@@ -327,6 +399,7 @@ class GenerationLaneAssignment:
     execution_device: str
     resource_binding_hash: str | None
     lane_intent_hash: str
+    gpu_process_binding: GpuProcessBinding | None = None
 
     def __post_init__(self) -> None:
         if self.lane_id not in GENERATION_LANE_IDS:
@@ -338,28 +411,56 @@ class GenerationLaneAssignment:
                 "generation lane resource_binding_hash",
             )
         require_sha256_digest(self.lane_intent_hash, "generation lane_intent_hash")
+        if self.gpu_process_binding is not None:
+            if not isinstance(self.gpu_process_binding, GpuProcessBinding):
+                raise TypeError(
+                    "generation lane gpu_process_binding must be a GpuProcessBinding"
+                )
+            if (
+                self.execution_device
+                != self.gpu_process_binding.process_execution_device
+            ):
+                raise ValueError(
+                    "generation lane execution_device does not match GPU process binding"
+                )
+            if (
+                self.resource_binding_hash
+                != self.gpu_process_binding.resource_binding_hash
+            ):
+                raise ValueError(
+                    "generation lane resource hash does not match GPU process binding"
+                )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        result = {
             "lane_id": self.lane_id,
             "execution_device": self.execution_device,
             "resource_binding_hash": self.resource_binding_hash,
             "lane_intent_hash": self.lane_intent_hash,
         }
+        if self.gpu_process_binding is not None:
+            result["gpu_process_binding"] = self.gpu_process_binding.to_dict()
+        return result
 
     @classmethod
     def from_mapping(cls, value: Any) -> "GenerationLaneAssignment":
-        mapping = _exact_mapping(
-            value,
-            {
-                "lane_id",
-                "execution_device",
-                "resource_binding_hash",
-                "lane_intent_hash",
-            },
-            "generation lane assignment",
+        fields = {
+            "lane_id",
+            "execution_device",
+            "resource_binding_hash",
+            "lane_intent_hash",
+        }
+        if not isinstance(value, Mapping):
+            raise ValueError("generation lane assignment fields mismatch")
+        raw = dict(value)
+        if set(raw) == fields:
+            return cls(**raw)
+        if set(raw) != fields | {"gpu_process_binding"}:
+            raise ValueError("generation lane assignment fields mismatch")
+        raw["gpu_process_binding"] = GpuProcessBinding.from_mapping(
+            raw["gpu_process_binding"]
         )
-        return cls(**mapping)
+        return cls(**raw)
 
 
 @dataclass(frozen=True)
@@ -381,7 +482,10 @@ class GenerationManifest:
     schema_version: str = GENERATION_MANIFEST_SCHEMA_VERSION
 
     def __post_init__(self) -> None:
-        if self.schema_version != GENERATION_MANIFEST_SCHEMA_VERSION:
+        if self.schema_version not in {
+            GENERATION_MANIFEST_SCHEMA_VERSION,
+            GENERATION_MANIFEST_V2_SCHEMA_VERSION,
+        }:
             raise ValueError("generation manifest schema mismatch")
         _bounded_text(self.generation_id, "generation_id")
         _positive_int(self.generation_index, "generation_index")
@@ -411,17 +515,41 @@ class GenerationManifest:
             or tuple(item.lane_id for item in self.lanes) != GENERATION_LANE_IDS
         ):
             raise ValueError("generation manifest lanes must be ordered lane-a/lane-b")
-        cuda_lanes = [
-            item for item in self.lanes if item.execution_device.startswith("cuda:")
-        ]
-        if cuda_lanes:
-            if len(cuda_lanes) != GENERATION_WIDTH:
-                raise ValueError("generation GPU lanes cannot mix CUDA and non-CUDA")
-            if any(item.resource_binding_hash is None for item in cuda_lanes):
-                raise ValueError("generation CUDA lanes require resource bindings")
-            if len({item.execution_device for item in cuda_lanes}) != GENERATION_WIDTH:
-                raise ValueError("generation CUDA lanes must use distinct devices")
-            if len({item.resource_binding_hash for item in cuda_lanes}) != GENERATION_WIDTH:
+        if self.schema_version == GENERATION_MANIFEST_SCHEMA_VERSION:
+            if any(item.gpu_process_binding is not None for item in self.lanes):
+                raise ValueError("generation manifest v1 cannot carry GPU process bindings")
+            cuda_lanes = [
+                item for item in self.lanes if item.execution_device.startswith("cuda:")
+            ]
+            if cuda_lanes:
+                if len(cuda_lanes) != GENERATION_WIDTH:
+                    raise ValueError("generation GPU lanes cannot mix CUDA and non-CUDA")
+                if any(item.resource_binding_hash is None for item in cuda_lanes):
+                    raise ValueError("generation CUDA lanes require resource bindings")
+                if len({item.execution_device for item in cuda_lanes}) != GENERATION_WIDTH:
+                    raise ValueError("generation CUDA lanes must use distinct devices")
+                if len({item.resource_binding_hash for item in cuda_lanes}) != GENERATION_WIDTH:
+                    raise ValueError("generation CUDA lanes must bind distinct GPUs")
+        else:
+            bindings = tuple(item.gpu_process_binding for item in self.lanes)
+            if not all(isinstance(item, GpuProcessBinding) for item in bindings):
+                raise ValueError(
+                    "generation manifest v2 requires every lane GPU process binding"
+                )
+            bound_lanes = tuple(
+                item for item in bindings if isinstance(item, GpuProcessBinding)
+            )
+            if (
+                len({item.host_execution_device for item in bound_lanes})
+                != GENERATION_WIDTH
+            ):
+                raise ValueError(
+                    "generation CUDA lanes must use distinct host devices"
+                )
+            if (
+                len({item.resource_binding_hash for item in bound_lanes})
+                != GENERATION_WIDTH
+            ):
                 raise ValueError("generation CUDA lanes must bind distinct GPUs")
 
     @property
@@ -551,10 +679,13 @@ __all__ = [
     "GENERATION_LANE_IDS",
     "GENERATION_LEDGER_RECORD_SCHEMA_VERSION",
     "GENERATION_MANIFEST_SCHEMA_VERSION",
+    "GENERATION_MANIFEST_V2_SCHEMA_VERSION",
     "MAX_GENERATION_LANE_INTENT_BYTES",
     "GENERATION_SESSION_CONTRACT_FILENAME",
     "GENERATION_SESSION_CONTRACT_REF_SCHEMA_VERSION",
     "GENERATION_SESSION_CONTRACT_SCHEMA_VERSION",
+    "GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION",
+    "GENERATION_SESSION_MODES",
     "GENERATION_TRIAL_STATUSES",
     "GENERATION_WIDTH",
     "GenerationLaneAssignment",

@@ -13,11 +13,12 @@ from true_rl_agent.evaluation.binding import EvaluationBindingV1
 from true_rl_agent.policy import PolicyInitialization
 from true_rl_agent.policy_baselines import BaselineManifest
 from true_rl_agent.evaluation.phases import EvaluationPhase
-from true_rl_agent.runner.job_attempts import JobAttemptScope
+from true_rl_agent.runner.job_attempts import JobAttemptExecutionScope
 from true_rl_agent.runner.specs import (
     BaselineEvalJobSpec,
     EvalJobSpec,
     EvalPhaseJobSpec,
+    GpuProcessBinding,
     TrainJobSpec,
 )
 from true_rl_agent.tasks.base import TaskInvariantSpec, TaskSpec
@@ -156,8 +157,9 @@ class BackendAdapter(ABC):
         evaluation_binding: EvaluationBindingV1 | None = None,
         expected_initial_policy_state_hash: str | None = None,
         backend_execution_environment_manifest_hash: str | None = None,
-        train_attempt_scope: JobAttemptScope | None = None,
-        eval_attempt_scope: JobAttemptScope | None = None,
+        train_attempt_scope: JobAttemptExecutionScope | None = None,
+        eval_attempt_scope: JobAttemptExecutionScope | None = None,
+        gpu_process_binding: GpuProcessBinding | None = None,
     ) -> BackendJobBundle:
         raise NotImplementedError
 
@@ -169,6 +171,8 @@ class BackendAdapter(ABC):
         baseline_manifest: BaselineManifest,
         evaluation_binding: EvaluationBindingV1 | None = None,
         backend_execution_environment_manifest_hash: str | None = None,
+        eval_attempt_scope: JobAttemptExecutionScope | None = None,
+        gpu_process_binding: GpuProcessBinding | None = None,
     ) -> BaselineEvalJobSpec:
         """Materialize eval-only work without creating a candidate or train job."""
 
@@ -181,7 +185,7 @@ class BackendAdapter(ABC):
         *,
         eval_plan: EvalJobSpec,
         phase: EvaluationPhase,
-        attempt_scope: JobAttemptScope | None = None,
+        attempt_scope: JobAttemptExecutionScope | None = None,
     ) -> EvalPhaseJobSpec:
         """Materialize one split from an already checkpoint-bound eval plan."""
 
@@ -200,6 +204,9 @@ class BackendAdapter(ABC):
         policy_initialization: PolicyInitialization,
         evaluation_binding: EvaluationBindingV1 | None = None,
         backend_execution_environment_manifest_hash: str | None = None,
+        train_attempt_scope: JobAttemptExecutionScope | None = None,
+        eval_attempt_scope: JobAttemptExecutionScope | None = None,
+        gpu_process_binding: GpuProcessBinding | None = None,
     ) -> BackendJobBundle:
         """Materialize formal reference train/eval work through the normal runner."""
 
@@ -211,6 +218,9 @@ class BackendAdapter(ABC):
             policy_initialization,
             evaluation_binding,
             backend_execution_environment_manifest_hash,
+            train_attempt_scope,
+            eval_attempt_scope,
+            gpu_process_binding,
         )
         raise NotImplementedError(
             f"backend {self.backend_id!r} does not support reference training"

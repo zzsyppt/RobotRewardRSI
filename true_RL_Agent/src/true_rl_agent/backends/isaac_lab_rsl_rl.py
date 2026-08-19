@@ -47,13 +47,14 @@ from true_rl_agent.reference_artifact import (
 from true_rl_agent.runner.budget import build_budget_accounting
 from true_rl_agent.runner.candidate_failure import CandidateFailureContract
 from true_rl_agent.runner.job_identity import JobIdentity
-from true_rl_agent.runner.job_attempts import JobAttemptScope
+from true_rl_agent.runner.job_attempts import JobAttemptExecutionScope
 from true_rl_agent.runner.specs import (
     BaselineEvalJobSpec,
     CheckpointOutputPlan,
     CheckpointRef,
     EvalJobSpec,
     EvalPhaseJobSpec,
+    GpuProcessBinding,
     TrainJobSpec,
     require_execution_device,
     require_positive_integer,
@@ -412,8 +413,9 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
         evaluation_binding: EvaluationBindingV1 | None = None,
         expected_initial_policy_state_hash: str | None = None,
         backend_execution_environment_manifest_hash: str | None = None,
-        train_attempt_scope: JobAttemptScope | None = None,
-        eval_attempt_scope: JobAttemptScope | None = None,
+        train_attempt_scope: JobAttemptExecutionScope | None = None,
+        eval_attempt_scope: JobAttemptExecutionScope | None = None,
+        gpu_process_binding: GpuProcessBinding | None = None,
     ) -> BackendJobBundle:
         candidate = verify_verified_candidate_artifact(candidate)
         self._assert_candidate_admission_policy(candidate)
@@ -430,6 +432,7 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
             ),
             train_attempt_scope=train_attempt_scope,
             eval_attempt_scope=eval_attempt_scope,
+            gpu_process_binding=gpu_process_binding,
         )
 
     def _assert_candidate_admission_policy(
@@ -469,6 +472,9 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
         policy_initialization: PolicyInitialization,
         evaluation_binding: EvaluationBindingV1 | None = None,
         backend_execution_environment_manifest_hash: str | None = None,
+        train_attempt_scope: JobAttemptExecutionScope | None = None,
+        eval_attempt_scope: JobAttemptExecutionScope | None = None,
+        gpu_process_binding: GpuProcessBinding | None = None,
     ) -> BackendJobBundle:
         session_id = validate_experiment_subject_id(session_id)
         if not isinstance(reference, VerifiedReferenceProgramArtifact):
@@ -498,6 +504,9 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
             execution_environment_manifest_hash=(
                 backend_execution_environment_manifest_hash
             ),
+            train_attempt_scope=train_attempt_scope,
+            eval_attempt_scope=eval_attempt_scope,
+            gpu_process_binding=gpu_process_binding,
         )
 
     def _materialize_program_jobs(
@@ -511,8 +520,9 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
         reference: VerifiedReferenceProgramArtifactRef | None,
         expected_initial_policy_state_hash: str | None,
         execution_environment_manifest_hash: str | None,
-        train_attempt_scope: JobAttemptScope | None = None,
-        eval_attempt_scope: JobAttemptScope | None = None,
+        train_attempt_scope: JobAttemptExecutionScope | None = None,
+        eval_attempt_scope: JobAttemptExecutionScope | None = None,
+        gpu_process_binding: GpuProcessBinding | None = None,
     ) -> BackendJobBundle:
         if (candidate is None) == (reference is None):
             raise ValueError(
@@ -554,6 +564,7 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
                 execution_environment_manifest_hash,
                 "backend execution environment manifest hash",
             )
+        execution_device = self._process_execution_device(gpu_process_binding)
 
         planned_checkpoint = CheckpointOutputPlan(
             uri=f"artifact://{run_id}/checkpoints/best.pt",
@@ -592,6 +603,7 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
             summary_path=train_summary_path,
             checkpoint_output_path=checkpoint_output_path,
             execution_environment_manifest_hash=(execution_environment_manifest_hash),
+            gpu_process_binding=gpu_process_binding,
         )
         train_spec = TrainJobSpec(
             job_id=train_job_id,
@@ -602,7 +614,7 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
             policy_initialization=policy_initialization,
             training_binding=training_binding,
             budget_steps=self.config.default_budget_steps,
-            execution_device=self.config.execution_device,
+            execution_device=execution_device,
             expected_initial_policy_state_hash=(expected_initial_policy_state_hash),
             candidate_failure_contract=(
                 self.config.candidate_failure_contract
@@ -612,6 +624,7 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
             candidate_artifact=candidate,
             reference_artifact=reference,
             attempt_scope=train_attempt_scope,
+            gpu_process_binding=gpu_process_binding,
             metadata={
                 "backend_id": self.backend_id,
                 **(
@@ -659,6 +672,7 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
             ),
             evaluation_binding=evaluation_binding,
             execution_environment_manifest_hash=(execution_environment_manifest_hash),
+            gpu_process_binding=gpu_process_binding,
         )
         eval_spec = EvalJobSpec(
             job_id=eval_job_id,
@@ -680,9 +694,10 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
             public_accept_seed_count=self.config.public_accept_seed_count,
             eval_num_envs=self.config.eval_num_envs,
             eval_protocol_version=self.config.eval_protocol_version,
-            execution_device=self.config.execution_device,
+            execution_device=execution_device,
             checkpoint_output_plan=planned_checkpoint,
             attempt_scope=eval_attempt_scope,
+            gpu_process_binding=gpu_process_binding,
             metadata={
                 "backend_id": self.backend_id,
                 **(
@@ -723,7 +738,7 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
         *,
         eval_plan: EvalJobSpec,
         phase: EvaluationPhase,
-        attempt_scope: JobAttemptScope | None = None,
+        attempt_scope: JobAttemptExecutionScope | None = None,
     ) -> EvalPhaseJobSpec:
         """Bind one explicit split to the same full Stair evaluation plan."""
 
@@ -793,6 +808,8 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
         baseline_manifest: BaselineManifest,
         evaluation_binding: EvaluationBindingV1 | None = None,
         backend_execution_environment_manifest_hash: str | None = None,
+        eval_attempt_scope: JobAttemptExecutionScope | None = None,
+        gpu_process_binding: GpuProcessBinding | None = None,
     ) -> BaselineEvalJobSpec:
         session_id = validate_experiment_subject_id(session_id)
         report = self.check_compatibility(
@@ -832,6 +849,7 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
             if backend_execution_environment_manifest_hash is not None
             else None
         )
+        execution_device = self._process_execution_device(gpu_process_binding)
 
         subject = ExperimentSubject.baseline(baseline_manifest.baseline_id)
         phase = posixpath.join(
@@ -856,6 +874,7 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
             ),
             evaluation_binding=evaluation_binding,
             execution_environment_manifest_hash=(execution_environment_manifest_hash),
+            gpu_process_binding=gpu_process_binding,
         )
         metadata = {
             "backend_id": self.backend_id,
@@ -901,8 +920,10 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
             public_accept_seed_count=self.config.public_accept_seed_count,
             eval_num_envs=self.config.eval_num_envs,
             eval_protocol_version=self.config.eval_protocol_version,
-            execution_device=self.config.execution_device,
+            execution_device=execution_device,
             metadata=metadata,
+            attempt_scope=eval_attempt_scope,
+            gpu_process_binding=gpu_process_binding,
         )
 
     def _train_argv(
@@ -922,6 +943,7 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
         summary_path: str | None = None,
         checkpoint_output_path: str | None = None,
         execution_environment_manifest_hash: str | None,
+        gpu_process_binding: GpuProcessBinding | None = None,
     ) -> list[str]:
         summary_path = summary_path or self._summary_path(
             round_id=round_id, phase="train"
@@ -1049,9 +1071,10 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
                 "--seed",
                 str(self.config.train_seed),
                 "--device",
-                self.config.execution_device,
+                self._process_execution_device(gpu_process_binding),
             ]
         )
+        parts.extend(_gpu_process_binding_argv(gpu_process_binding))
         if execution_environment_manifest_hash is not None:
             parts.extend(
                 [
@@ -1299,6 +1322,7 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
         training_binding_hash: str | None = None,
         capability_profile_hash: str,
         execution_environment_manifest_hash: str | None,
+        gpu_process_binding: GpuProcessBinding | None = None,
     ) -> list[str]:
         summary_path = summary_path or self._summary_path(
             round_id=round_id, phase="eval"
@@ -1379,9 +1403,10 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
                 "--seed",
                 str(self.config.eval_base_seed),
                 "--device",
-                self.config.execution_device,
+                self._process_execution_device(gpu_process_binding),
             ]
         )
+        parts.extend(_gpu_process_binding_argv(gpu_process_binding))
         if execution_environment_manifest_hash is not None:
             parts.extend(
                 [
@@ -1399,6 +1424,16 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
             parts.extend(["--config", self.config.runtime_config_path])
         parts.append("--headless")
         return parts
+
+    def _process_execution_device(
+        self,
+        gpu_process_binding: GpuProcessBinding | None,
+    ) -> str:
+        if gpu_process_binding is None:
+            return self.config.execution_device
+        if not isinstance(gpu_process_binding, GpuProcessBinding):
+            raise TypeError("gpu_process_binding must be a GpuProcessBinding")
+        return gpu_process_binding.process_execution_device
 
     def _training_binding(
         self,
@@ -1449,6 +1484,23 @@ def _cli_metadata(argv: list[str]) -> dict[str, Any]:
         "cli_argv": list(argv),
         "cli_command": " ".join(argv),
     }
+
+
+def _gpu_process_binding_argv(
+    binding: GpuProcessBinding | None,
+) -> list[str]:
+    if binding is None:
+        return []
+    if not isinstance(binding, GpuProcessBinding):
+        raise TypeError("gpu_process_binding must be a GpuProcessBinding")
+    return [
+        "--gpu-host-execution-device",
+        binding.host_execution_device,
+        "--gpu-process-execution-device",
+        binding.process_execution_device,
+        "--gpu-resource-binding-hash",
+        binding.resource_binding_hash,
+    ]
 
 
 def _replace_separate_cli_option(

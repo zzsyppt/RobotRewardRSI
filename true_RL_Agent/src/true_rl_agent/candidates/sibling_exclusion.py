@@ -7,7 +7,10 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Mapping
 
-from true_rl_agent.candidates.authoring_policy import select_authoring_anchor_source
+from true_rl_agent.candidates.authoring_policy import (
+    select_authoring_anchor_source,
+    single_component_verifier_equivalence_key,
+)
 from true_rl_agent.candidates.component_source_semantics import (
     SingleComponentDeltaComparisonUnavailable,
     compare_single_component_deltas,
@@ -67,15 +70,11 @@ class SingleComponentSemanticExclusion:
     ) -> "SingleComponentSemanticExclusion":
         if not isinstance(candidate, CandidatePackageRef):
             raise TypeError("sibling exclusion candidate must be a CandidatePackageRef")
-        anchor_source, _, _ = select_authoring_anchor_source(prompt_payload)
-        if anchor_source is None:
-            raise SingleComponentDeltaComparisonUnavailable(
-                "sibling exclusion requires an inline authoring anchor"
+        candidate_source, anchor_source, operation_delta = (
+            project_candidate_single_component_operation_delta(
+                candidate=candidate,
+                prompt_payload=prompt_payload,
             )
-        candidate_source = _candidate_source(candidate)
-        operation_delta = project_single_component_operation_delta(
-            candidate_source=candidate_source,
-            anchor_source=anchor_source,
         )
         payload = build_single_component_semantic_exclusion_projection(
             operation_delta
@@ -106,6 +105,42 @@ class SingleComponentSemanticExclusion:
             comparison_source=self.comparison_source,
             comparison_anchor_source=self.comparison_anchor_source,
         )
+
+
+def project_candidate_single_component_operation_delta(
+    *,
+    candidate: CandidatePackageRef,
+    prompt_payload: Mapping[str, Any],
+) -> tuple[str, str, dict[str, Any]]:
+    """Project one candidate through the existing verifier-owned delta analyzer."""
+
+    if not isinstance(candidate, CandidatePackageRef):
+        raise TypeError("single-component projection requires a CandidatePackageRef")
+    anchor_source, _, _ = select_authoring_anchor_source(prompt_payload)
+    if anchor_source is None:
+        raise SingleComponentDeltaComparisonUnavailable(
+            "single-component projection requires an inline authoring anchor"
+        )
+    candidate_source = _candidate_source(candidate)
+    operation_delta = project_single_component_operation_delta(
+        candidate_source=candidate_source,
+        anchor_source=anchor_source,
+    )
+    return candidate_source, anchor_source, operation_delta
+
+
+def candidate_single_component_verifier_equivalence_key(
+    *,
+    candidate: CandidatePackageRef,
+    prompt_payload: Mapping[str, Any],
+) -> str:
+    """Return the cross-parent, name-insensitive verifier equivalence key."""
+
+    _, _, operation_delta = project_candidate_single_component_operation_delta(
+        candidate=candidate,
+        prompt_payload=prompt_payload,
+    )
+    return single_component_verifier_equivalence_key(operation_delta)
 
 
 def _candidate_source(candidate: CandidatePackageRef) -> str:
@@ -222,5 +257,7 @@ __all__ = [
     "SingleComponentDeltaComparisonUnavailable",
     "SingleComponentSemanticExclusion",
     "build_single_component_semantic_exclusion_projection",
+    "candidate_single_component_verifier_equivalence_key",
+    "project_candidate_single_component_operation_delta",
     "validate_single_component_semantic_exclusion_projection",
 ]

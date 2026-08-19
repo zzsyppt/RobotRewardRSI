@@ -8,7 +8,7 @@ from true_rl_agent.runner.argv_contract import option_occurrences
 from true_rl_agent.runner.initial_policy import (
     verified_initial_policy_state_pairing_hash,
 )
-from true_rl_agent.runner.specs import CheckpointRef, EvalJobSpec
+from true_rl_agent.runner.specs import CheckpointRef, EvalJobSpec, GpuProcessBinding
 
 
 def bind_eval_spec_to_checkpoint(
@@ -38,6 +38,17 @@ def bind_eval_spec_to_checkpoint(
             raise ValueError(
                 f"eval checkpoint lineage mismatch for {field_name}"
             )
+    expected_gpu_process_binding = eval_spec.gpu_process_binding
+    declared_gpu_process_binding = lineage.get("gpu_process_binding")
+    if expected_gpu_process_binding is None:
+        if declared_gpu_process_binding is not None:
+            raise ValueError("eval checkpoint GPU process binding mismatch")
+    else:
+        checkpoint_gpu_process_binding = GpuProcessBinding.from_mapping(
+            declared_gpu_process_binding
+        )
+        if checkpoint_gpu_process_binding != expected_gpu_process_binding:
+            raise ValueError("eval checkpoint GPU process binding mismatch")
     old_uri = checkpoint_output_plan.uri
     cli_checkpoint = str(checkpoint.metadata.get("local_path") or checkpoint.uri)
     metadata = dict(eval_spec.metadata)

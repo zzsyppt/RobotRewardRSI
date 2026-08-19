@@ -19,6 +19,7 @@ from true_rl_agent.runner.specs import require_execution_device
 
 
 GPU_LEASE_SCHEMA_VERSION = "true_rl_agent.runner.gpu_lease.v1"
+PRE_GENESIS_GPU_LEASE_SCHEMA_VERSION = "true_rl_agent.runner.gpu_lease.v2"
 
 
 @dataclass(frozen=True)
@@ -94,6 +95,48 @@ class GpuLeaseHolder:
         }
 
 
+@dataclass(frozen=True)
+class PreGenesisGpuLeaseHolder:
+    """Lease identity for work that establishes, but cannot yet cite, Genesis."""
+
+    session_id: str
+    genesis_identity_hash: str
+    session_contract_hash: str
+    lane_id: str
+    invocation_segment_id: str
+    logical_job_id: str
+
+    def __post_init__(self) -> None:
+        _require_bounded_text(self.session_id, "pre-Genesis GPU lease session_id")
+        for field_name in ("genesis_identity_hash", "session_contract_hash"):
+            require_sha256_digest(
+                getattr(self, field_name),
+                f"pre-Genesis GPU lease {field_name}",
+            )
+        for field_name in (
+            "lane_id",
+            "invocation_segment_id",
+            "logical_job_id",
+        ):
+            _require_bounded_text(
+                getattr(self, field_name),
+                f"pre-Genesis GPU lease {field_name}",
+            )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "session_id": self.session_id,
+            "genesis_identity_hash": self.genesis_identity_hash,
+            "session_contract_hash": self.session_contract_hash,
+            "lane_id": self.lane_id,
+            "invocation_segment_id": self.invocation_segment_id,
+            "logical_job_id": self.logical_job_id,
+        }
+
+
+GpuLeaseExecutionHolder = GpuLeaseHolder | PreGenesisGpuLeaseHolder
+
+
 class GpuLease:
     """One held GPU lock whose metadata never acts as lock authority."""
 
@@ -101,7 +144,7 @@ class GpuLease:
         self,
         *,
         identity: GpuDeviceIdentity,
-        holder: GpuLeaseHolder,
+        holder: GpuLeaseExecutionHolder,
         lock: ProcessFileLock,
         receipt: Mapping[str, Any],
     ) -> None:
@@ -168,13 +211,19 @@ class GpuLeaseManager:
         self,
         execution_device: str,
         *,
-        holder: GpuLeaseHolder,
+        holder: GpuLeaseExecutionHolder,
     ) -> GpuLease | _CpuLease:
+        if isinstance(holder, PreGenesisGpuLeaseHolder):
+            schema_version = PRE_GENESIS_GPU_LEASE_SCHEMA_VERSION
+        elif isinstance(holder, GpuLeaseHolder):
+            schema_version = GPU_LEASE_SCHEMA_VERSION
+        else:
+            raise TypeError("GPU lease holder is invalid")
         identity = self.identity_for(execution_device)
         if identity is None:
             return _CpuLease()
         receipt = {
-            "schema_version": GPU_LEASE_SCHEMA_VERSION,
+            "schema_version": schema_version,
             "identity": {
                 "execution_device": identity.execution_device,
                 "machine_id": identity.machine_id,
@@ -234,9 +283,12 @@ def _require_bounded_text(value: Any, field_name: str) -> str:
 
 __all__ = [
     "GPU_LEASE_SCHEMA_VERSION",
+    "PRE_GENESIS_GPU_LEASE_SCHEMA_VERSION",
     "GpuDeviceIdentity",
     "GpuLease",
+    "GpuLeaseExecutionHolder",
     "GpuLeaseHolder",
     "GpuLeaseManager",
     "GpuLeaseUnavailableError",
+    "PreGenesisGpuLeaseHolder",
 ]

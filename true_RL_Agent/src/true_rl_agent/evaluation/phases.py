@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import re
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Mapping
@@ -18,6 +19,9 @@ from true_rl_agent.evaluation.subject import ExperimentSubject
 EVALUATION_PHASE_RESULT_SCHEMA_VERSION = (
     "true_rl_agent.evaluation_phase_result.v1"
 )
+EVALUATION_PHASE_RESULT_GPU_BINDING_SCHEMA_VERSION = (
+    "true_rl_agent.evaluation_phase_result.v2"
+)
 EVALUATION_PHASE_SUMMARY_SCHEMA_VERSION = (
     "true_rl_agent.evaluation_phase_summary.v1"
 )
@@ -31,6 +35,7 @@ EVALUATION_PHASE_RECEIPT_REF_SCHEMA_VERSION = (
     "true_rl_agent.trial_receipt_ref.v1"
 )
 MAX_EVALUATION_PHASE_RECEIPT_BYTES = 8 * 1024 * 1024
+_CUDA_EXECUTION_DEVICE_PATTERN = re.compile(r"cuda:(?:0|[1-9][0-9]*)\Z")
 
 
 class EvaluationPhase(str, Enum):
@@ -75,6 +80,7 @@ class EvaluationPhaseResult:
     environment_source_preflight: Mapping[str, Any]
     backend_execution_environment_verification: Mapping[str, Any]
     checkpoint_safety_report: Mapping[str, Any]
+    gpu_process_binding: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
         for field_name in ("job_id", "task_id", "execution_device"):
@@ -125,6 +131,19 @@ class EvaluationPhaseResult:
             if not isinstance(value, Mapping):
                 raise TypeError(f"evaluation phase result {field_name} must be an object")
             object.__setattr__(self, field_name, copy.deepcopy(dict(value)))
+        if self.gpu_process_binding is not None:
+            binding = _validated_gpu_process_binding_mapping(
+                self.gpu_process_binding
+            )
+            if binding["process_execution_device"] != self.execution_device:
+                raise ValueError(
+                    "evaluation phase GPU process binding execution device mismatch"
+                )
+            if binding["resource_binding_hash"] != self.resource_binding_hash:
+                raise ValueError(
+                    "evaluation phase GPU process binding resource hash mismatch"
+                )
+            object.__setattr__(self, "gpu_process_binding", binding)
 
     @property
     def task_evidence_hash(self) -> str:
@@ -133,8 +152,12 @@ class EvaluationPhaseResult:
     def to_private_dict(self) -> dict[str, Any]:
         """Serialize the complete result for a private create-once receipt."""
 
-        return {
-            "schema_version": EVALUATION_PHASE_RESULT_SCHEMA_VERSION,
+        result = {
+            "schema_version": (
+                EVALUATION_PHASE_RESULT_GPU_BINDING_SCHEMA_VERSION
+                if self.gpu_process_binding is not None
+                else EVALUATION_PHASE_RESULT_SCHEMA_VERSION
+            ),
             "job_id": self.job_id,
             "task_id": self.task_id,
             "phase": self.phase.value,
@@ -163,6 +186,11 @@ class EvaluationPhaseResult:
             ),
             "acceptance_authority": False,
         }
+        if self.gpu_process_binding is not None:
+            result["gpu_process_binding"] = copy.deepcopy(
+                dict(self.gpu_process_binding)
+            )
+        return result
 
     @classmethod
     def from_private_mapping(cls, value: Any) -> "EvaluationPhaseResult":
@@ -192,12 +220,19 @@ class EvaluationPhaseResult:
             "checkpoint_safety_report",
             "acceptance_authority",
         }
-        if set(value) != expected_fields:
+        actual_fields = set(value)
+        schema_version = value.get("schema_version")
+        expected_schema_fields = (
+            expected_fields
+            if schema_version == EVALUATION_PHASE_RESULT_SCHEMA_VERSION
+            else expected_fields | {"gpu_process_binding"}
+            if schema_version
+            == EVALUATION_PHASE_RESULT_GPU_BINDING_SCHEMA_VERSION
+            else None
+        )
+        if expected_schema_fields is None or actual_fields != expected_schema_fields:
             raise ValueError("evaluation phase result fields mismatch")
-        if (
-            value.get("schema_version") != EVALUATION_PHASE_RESULT_SCHEMA_VERSION
-            or value.get("acceptance_authority") is not False
-        ):
+        if value.get("acceptance_authority") is not False:
             raise ValueError("evaluation phase result contract mismatch")
         task_evidence = value.get("task_evidence")
         if canonical_json_hash(task_evidence) != value.get("task_evidence_hash"):
@@ -248,6 +283,15 @@ class EvaluationPhaseResult:
             checkpoint_safety_report=_required_mapping(
                 value.get("checkpoint_safety_report"),
                 "checkpoint_safety_report",
+            ),
+            gpu_process_binding=(
+                _required_mapping(
+                    value.get("gpu_process_binding"),
+                    "gpu_process_binding",
+                )
+                if schema_version
+                == EVALUATION_PHASE_RESULT_GPU_BINDING_SCHEMA_VERSION
+                else None
             ),
         )
 
@@ -406,9 +450,38 @@ def _required_mapping(value: Any, field_name: str) -> Mapping[str, Any]:
     return value
 
 
+def _validated_gpu_process_binding_mapping(value: Any) -> dict[str, str]:
+    expected_fields = {
+        "host_execution_device",
+        "process_execution_device",
+        "resource_binding_hash",
+    }
+    if not isinstance(value, Mapping) or set(value) != expected_fields:
+        raise ValueError("evaluation phase GPU process binding fields mismatch")
+    result = dict(value)
+    for field_name in (
+        "host_execution_device",
+        "process_execution_device",
+    ):
+        field_value = result.get(field_name)
+        if (
+            not isinstance(field_value, str)
+            or _CUDA_EXECUTION_DEVICE_PATTERN.fullmatch(field_value) is None
+        ):
+            raise ValueError(
+                f"evaluation phase GPU process binding {field_name} is invalid"
+            )
+    result["resource_binding_hash"] = require_sha256_digest(
+        result.get("resource_binding_hash"),
+        "evaluation phase GPU process binding resource_binding_hash",
+    )
+    return result
+
+
 __all__ = [
     "EVALUATION_ASSEMBLY_SCHEMA_VERSION",
     "EVALUATION_PHASE_RESULT_SCHEMA_VERSION",
+    "EVALUATION_PHASE_RESULT_GPU_BINDING_SCHEMA_VERSION",
     "EVALUATION_PHASE_RECEIPT_SCHEMA_VERSION",
     "EVALUATION_PHASE_RECEIPT_REF_SCHEMA_VERSION",
     "EVALUATION_PHASE_SUMMARY_SCHEMA_VERSION",

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -17,6 +18,7 @@ if str(SRC_ROOT) not in sys.path:
 
 from tests.fakes.fake_components import FakeBackendAdapter, FakeRunner, FakeTaskPlugin
 from true_rl_agent.agent_core.generation_contract import (
+    GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION,
     GenerationSessionContract,
     publish_generation_session_contract,
 )
@@ -28,6 +30,12 @@ from true_rl_agent.agent_core.session_genesis import (
     SESSION_GENESIS_FILENAME,
     SessionGenesisArtifact,
     SessionGenesisCreationInProgressError,
+    _acquire_session_genesis_creation_lease,
+    _parse_pre_genesis_creation_lease,
+    _pre_genesis_creation_identity,
+    _publish_or_load_pre_genesis_recovery,
+    _recover_pre_genesis_execution,
+    _scan_pre_genesis_attempts,
     prepare_session_genesis,
 )
 from true_rl_agent.evaluation.binding import EvaluationBindingV1, canonical_json_hash
@@ -39,7 +47,12 @@ from true_rl_agent.policy_baselines import (
     BaselineManifest,
     CheckpointProvenance,
 )
-from true_rl_agent.runner.specs import CheckpointRef
+from true_rl_agent.runner.job_attempts import (
+    RECOVERED_ATTEMPT_RESULT_SCHEMA_VERSION,
+    JobAttemptJournal,
+    PreGenesisExecutionScope,
+)
+from true_rl_agent.runner.specs import CheckpointRef, GpuProcessBinding
 from true_rl_agent.tasks.base import TaskSpec
 
 
@@ -118,6 +131,88 @@ def _manifest(task_id: str) -> BaselineManifest:
     )
 
 
+def _pre_genesis_recovery_fixture(
+    output_dir: Path,
+    *,
+    role: str,
+) -> tuple[PreGenesisExecutionScope, dict, JobAttemptJournal]:
+    if role == "reference_train":
+        job_kind = "train"
+        max_retries = 1
+    elif role == "reference_eval":
+        job_kind = "eval"
+        max_retries = 0
+    else:
+        raise ValueError("test pre-Genesis role is invalid")
+    scope = PreGenesisExecutionScope(
+        journal_root=output_dir / "job_attempts",
+        session_id="pre-genesis-recovery-session",
+        genesis_identity_hash="a" * 64,
+        session_contract_hash="b" * 64,
+        lane_id="lane-a",
+        invocation_segment_id="session-genesis",
+        budget_contract_hash="c" * 64,
+        attempt_budget_units=max_retries + 1,
+        max_infrastructure_retries=max_retries,
+        resource_binding_hash="d" * 64,
+    )
+    identity = _pre_genesis_creation_identity(
+        session_id=scope.session_id,
+        genesis_identity_hash=scope.genesis_identity_hash,
+        session_contract_hash=scope.session_contract_hash,
+        budget_contract_hash=scope.budget_contract_hash,
+        resource_binding_hash=scope.resource_binding_hash,
+        scopes={role: scope},
+    )
+    journal = JobAttemptJournal(
+        scope=scope,
+        logical_job_id=f"{role}-job",
+        job_kind=job_kind,
+        job_input_hash="e" * 64,
+        environment_hash="f" * 64,
+        execution_device="cuda:0",
+        resource_binding_hash=scope.resource_binding_hash,
+    )
+    return scope, identity, journal
+
+
+def _leave_unclean_pre_genesis_reservation(output_dir_text: str, role: str) -> None:
+    output_dir = Path(output_dir_text)
+    scope, identity, journal = _pre_genesis_recovery_fixture(
+        output_dir,
+        role=role,
+    )
+    del scope
+    lease = _acquire_session_genesis_creation_lease(
+        output_dir=output_dir,
+        session_id=identity["session_id"],
+        pre_genesis_identity=identity,
+    )
+    lease.activate()
+    journal.reserve(0, previous_result=None)
+    os._exit(0)
+
+
+def _spawn_unclean_pre_genesis_reservation(output_dir: Path, role: str) -> None:
+    code = (
+        "import sys\n"
+        "from tests.unit.test_session_genesis import "
+        "_leave_unclean_pre_genesis_reservation\n"
+        "_leave_unclean_pre_genesis_reservation(sys.argv[1], sys.argv[2])\n"
+    )
+    completed = subprocess.run(
+        [sys.executable, "-c", code, str(output_dir), role],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+        timeout=10,
+        check=False,
+        start_new_session=(os.name != "nt"),
+    )
+    if completed.returncode != 0:
+        raise AssertionError(completed.stderr)
+
+
 class SessionGenesisTests(unittest.TestCase):
     def test_generation_contract_is_create_once_bound_by_genesis_v4(self) -> None:
         task = FakeTaskPlugin()
@@ -134,6 +229,7 @@ class SessionGenesisTests(unittest.TestCase):
                 "continuation_policy": "2" * 64,
                 "evaluation_cost": "3" * 64,
                 "evaluation_protocol": "4" * 64,
+                "exploration_projector": "e" * 64,
                 "final_confirmation_plan": "5" * 64,
                 "provider_policy": "6" * 64,
                 "resource_plan": "7" * 64,
@@ -173,6 +269,27 @@ class SessionGenesisTests(unittest.TestCase):
                 GENERATION_SESSION_GENESIS_SCHEMA_VERSION,
             )
             self.assertEqual(loaded.generation_session_contract_ref, ref)
+            with self.assertRaisesRegex(
+                ValueError,
+                "contract v3 with session_cost",
+            ):
+                prepare_session_genesis(
+                    output_dir=output_dir,
+                    session_id="generation-session",
+                    task_plugin=task,
+                    backend_adapter=backend,
+                    runner=FakeRunner(),
+                    policy_initialization=PolicyInitialization.random(),
+                    genesis_identity_snapshot={"fixed": True},
+                    generation_session_contract_ref=ref,
+                    gpu_process_binding=GpuProcessBinding(
+                        host_execution_device="cuda:0",
+                        process_execution_device="cuda:0",
+                        resource_binding_hash="f" * 64,
+                    ),
+                    require_existing=True,
+                    bootstrap_initial_best_score=0.10,
+                )
             with self.assertRaisesRegex(ValueError, "capability/schema"):
                 prepare_session_genesis(
                     output_dir=output_dir,
@@ -184,6 +301,66 @@ class SessionGenesisTests(unittest.TestCase):
                     genesis_identity_snapshot={"fixed": True},
                     require_existing=True,
                     bootstrap_initial_best_score=0.10,
+                )
+
+    def test_pre_genesis_scope_cannot_drift_from_session_cost_contract(self) -> None:
+        task = BaselineRequiredFakeTask()
+        backend = FakeBackendAdapter()
+        manifest = _manifest(task.task_spec.task_id)
+        snapshot = {"fixed": True}
+        contract = GenerationSessionContract(
+            session_id="generation-session",
+            task_id=task.task_spec.task_id,
+            backend_id=backend.backend_id,
+            max_generations=2,
+            max_trials=4,
+            max_train_jobs=4,
+            bound_contract_hashes={
+                "authoring_policy": "1" * 64,
+                "continuation_policy": "2" * 64,
+                "evaluation_cost": "3" * 64,
+                "evaluation_protocol": "4" * 64,
+                "exploration_projector": "e" * 64,
+                "final_confirmation_plan": "5" * 64,
+                "provider_policy": "6" * 64,
+                "resource_plan": "7" * 64,
+                "retry_policy": "8" * 64,
+                "selector": "9" * 64,
+                "session_cost": "a" * 64,
+            },
+            schema_version=GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION,
+            session_mode="development_generation_pilot",
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            ref = publish_generation_session_contract(output_dir, contract)
+            scope = PreGenesisExecutionScope(
+                journal_root=output_dir / "job_attempts",
+                session_id="generation-session",
+                genesis_identity_hash=canonical_json_hash(snapshot),
+                session_contract_hash=contract.contract_hash,
+                lane_id="lane-a",
+                invocation_segment_id="session-genesis",
+                budget_contract_hash="b" * 64,
+                attempt_budget_units=1,
+                max_infrastructure_retries=0,
+            )
+
+            with self.assertRaisesRegex(
+                ValueError,
+                "baseline_eval_attempt_scope identity mismatch",
+            ):
+                prepare_session_genesis(
+                    output_dir=output_dir,
+                    session_id="generation-session",
+                    task_plugin=task,
+                    backend_adapter=backend,
+                    runner=FakeRunner(),
+                    policy_initialization=manifest.to_policy_initialization(),
+                    genesis_identity_snapshot=snapshot,
+                    baseline_manifest=manifest,
+                    generation_session_contract_ref=ref,
+                    baseline_eval_attempt_scope=scope,
                 )
 
     def test_baseline_genesis_is_full_current_best_and_resume_does_not_rerun(self) -> None:
@@ -656,6 +833,28 @@ class SessionGenesisTests(unittest.TestCase):
             self.assertTrue(
                 (output_dir / SESSION_GENESIS_CREATION_LEASE_FILENAME).is_file()
             )
+            lease_bytes = (
+                output_dir / SESSION_GENESIS_CREATION_LEASE_FILENAME
+            ).read_bytes()
+            lease_payload = json.loads(lease_bytes)
+            self.assertEqual(
+                set(lease_payload),
+                {
+                    "schema_version",
+                    "session_id",
+                    "process_id",
+                    "owner_token",
+                    "ownership_model",
+                },
+            )
+            self.assertEqual(
+                lease_payload["schema_version"],
+                "true_rl_agent.session_genesis.creation_lease.v2",
+            )
+            self.assertEqual(
+                lease_bytes,
+                canonical_json_bytes(lease_payload, trailing_newline=True),
+            )
 
             recovered = prepare_session_genesis(
                 output_dir=output_dir,
@@ -669,6 +868,194 @@ class SessionGenesisTests(unittest.TestCase):
             )
 
             self.assertEqual(recovered.artifact.session_id, "session-crash")
+
+    def test_dead_pre_genesis_train_attempt_uses_only_reserved_retry(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            _spawn_unclean_pre_genesis_reservation(
+                output_dir,
+                "reference_train",
+            )
+            scope, identity, journal = _pre_genesis_recovery_fixture(
+                output_dir,
+                role="reference_train",
+            )
+            lease = _acquire_session_genesis_creation_lease(
+                output_dir=output_dir,
+                session_id=scope.session_id,
+                pre_genesis_identity=identity,
+            )
+            try:
+                self.assertTrue(
+                    _recover_pre_genesis_execution(
+                        output_dir=output_dir,
+                        identity=identity,
+                        scopes={"reference_train": scope},
+                        previous_lease_payload=lease.previous_payload,
+                    )
+                )
+                lease.activate()
+                recovered = journal.load_result(0)
+                self.assertEqual(
+                    recovered.payload["schema_version"],
+                    RECOVERED_ATTEMPT_RESULT_SCHEMA_VERSION,
+                )
+                self.assertEqual(
+                    (
+                        recovered.payload["outcome"],
+                        recovered.payload["failure_kind"],
+                        recovered.payload["retryable"],
+                    ),
+                    ("infrastructure_failure", "abandoned_unclean", True),
+                )
+                attempt_index, retry, previous = journal.begin_or_resume()
+                self.assertEqual(attempt_index, 1)
+                self.assertEqual(previous.payload_hash, recovered.payload_hash)
+                journal.finish(
+                    retry,
+                    outcome="infrastructure_failure",
+                    failure_kind="test_terminal",
+                    retryable=False,
+                    output_hash=None,
+                    returncode=None,
+                )
+                with self.assertRaisesRegex(ValueError, "exhausted its retry"):
+                    journal.begin_or_resume()
+            finally:
+                lease.release()
+
+    def test_dead_pre_genesis_eval_attempt_is_terminal_without_retry(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            _spawn_unclean_pre_genesis_reservation(
+                output_dir,
+                "reference_eval",
+            )
+            scope, identity, journal = _pre_genesis_recovery_fixture(
+                output_dir,
+                role="reference_eval",
+            )
+            lease = _acquire_session_genesis_creation_lease(
+                output_dir=output_dir,
+                session_id=scope.session_id,
+                pre_genesis_identity=identity,
+            )
+            try:
+                self.assertTrue(
+                    _recover_pre_genesis_execution(
+                        output_dir=output_dir,
+                        identity=identity,
+                        scopes={"reference_eval": scope},
+                        previous_lease_payload=lease.previous_payload,
+                    )
+                )
+                lease.activate()
+                recovered = journal.load_result(0)
+                self.assertFalse(recovered.payload["retryable"])
+                with self.assertRaisesRegex(ValueError, "terminal result"):
+                    journal.begin_or_resume()
+                self.assertFalse(
+                    (journal.root / "attempt_01.reservation.json").exists()
+                )
+            finally:
+                lease.release()
+
+    def test_published_pre_genesis_recovery_reconciles_missing_result(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            _spawn_unclean_pre_genesis_reservation(
+                output_dir,
+                "reference_train",
+            )
+            scope, identity, journal = _pre_genesis_recovery_fixture(
+                output_dir,
+                role="reference_train",
+            )
+            first_lease = _acquire_session_genesis_creation_lease(
+                output_dir=output_dir,
+                session_id=scope.session_id,
+                pre_genesis_identity=identity,
+            )
+            try:
+                unclean_lease = _parse_pre_genesis_creation_lease(
+                    first_lease.previous_payload
+                )
+                self.assertIsNotNone(unclean_lease)
+                scan = _scan_pre_genesis_attempts(
+                    identity=identity,
+                    scopes={"reference_train": scope},
+                    recovery_bindings={},
+                )
+                recovery = _publish_or_load_pre_genesis_recovery(
+                    output_dir=output_dir,
+                    identity=identity,
+                    scopes={"reference_train": scope},
+                    unclean_lease=unclean_lease,
+                    observed_incarnation=None,
+                    process_id_reused=False,
+                    reservations=scan["open_reservations"],
+                )
+                recovery_hash = canonical_json_hash(recovery)
+                self.assertFalse(
+                    (journal.root / "attempt_00.result.json").exists()
+                )
+            finally:
+                # Leave the prior active bytes in place, exactly as a crash
+                # between receipt publication and result closure would do.
+                first_lease.release()
+
+            second_lease = _acquire_session_genesis_creation_lease(
+                output_dir=output_dir,
+                session_id=scope.session_id,
+                pre_genesis_identity=identity,
+            )
+            try:
+                self.assertTrue(
+                    _recover_pre_genesis_execution(
+                        output_dir=output_dir,
+                        identity=identity,
+                        scopes={"reference_train": scope},
+                        previous_lease_payload=second_lease.previous_payload,
+                    )
+                )
+                result = journal.load_result(0)
+                self.assertEqual(
+                    result.payload["recovery_receipt_hash"],
+                    recovery_hash,
+                )
+                second_lease.activate()
+            finally:
+                second_lease.release()
+
+    def test_active_pre_genesis_owner_cannot_be_recovered(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            scope, identity, _ = _pre_genesis_recovery_fixture(
+                output_dir,
+                role="reference_train",
+            )
+            owner = _acquire_session_genesis_creation_lease(
+                output_dir=output_dir,
+                session_id=scope.session_id,
+                pre_genesis_identity=identity,
+            )
+            owner.activate()
+            owner.lock.release()
+            inspector = _acquire_session_genesis_creation_lease(
+                output_dir=output_dir,
+                session_id=scope.session_id,
+                pre_genesis_identity=identity,
+            )
+            try:
+                with self.assertRaisesRegex(ValueError, "process is still alive"):
+                    _recover_pre_genesis_execution(
+                        output_dir=output_dir,
+                        identity=identity,
+                        scopes={"reference_train": scope},
+                        previous_lease_payload=inspector.previous_payload,
+                    )
+            finally:
+                inspector.release()
 
     def test_crash_recovery_rejects_partial_runner_state(self) -> None:
         task = BaselineRequiredFakeTask()

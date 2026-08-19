@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import uuid
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from types import MappingProxyType
 from typing import Any, Mapping
@@ -15,8 +16,21 @@ from true_rl_agent.agent_core.process_lock import (
     acquire_process_file_lock,
 )
 from true_rl_agent.agent_core.generation_contract import (
+    GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION,
     GenerationSessionContractRef,
     load_generation_session_contract,
+)
+from true_rl_agent.agent_core.generation_lifecycle import (
+    _canonical_uuid_hex,
+    _current_process_group_id,
+    _load_json as _load_generation_json,
+    _positive_int,
+    _process_group_is_alive,
+    _process_incarnation_token,
+    _publish_json_once as _publish_generation_json_once,
+    _reservation_ref as _generation_reservation_ref,
+    _timestamp,
+    _validate_reservation_ref as _validate_generation_reservation_ref,
 )
 from true_rl_agent.backends.base import BackendAdapter
 from true_rl_agent.evaluation.acceptance_protocol import AcceptanceProtocol
@@ -55,10 +69,15 @@ from true_rl_agent.runner.job_argv import (
     validate_eval_job_argv,
     validate_train_job_argv,
 )
+from true_rl_agent.runner.job_attempts import (
+    JobAttemptJournal,
+    PreGenesisExecutionScope,
+)
 from true_rl_agent.runner.specs import (
     BaselineEvalJobSpec,
     CheckpointRef,
     EvalJobSpec,
+    GpuProcessBinding,
     TrainJobSpec,
     require_execution_device,
 )
@@ -83,6 +102,9 @@ BASELINE_EVAL_ARTIFACT_SCHEMA_VERSION = (
 REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION = (
     "true_rl_agent.session_genesis.reference_eval_artifact.v2"
 )
+GPU_BOUND_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION = (
+    "true_rl_agent.session_genesis.reference_eval_artifact.v3"
+)
 SESSION_GENESIS_FILENAME = "session_genesis.json"
 BASELINE_EVAL_ARTIFACT_FILENAME = "baseline_eval_artifact.json"
 REFERENCE_EVAL_ARTIFACT_FILENAME = "reference_eval_artifact.json"
@@ -90,22 +112,45 @@ SESSION_GENESIS_CREATION_LEASE_FILENAME = ".session_genesis.create.lease"
 _SESSION_GENESIS_CREATION_LEASE_SCHEMA_VERSION = (
     "true_rl_agent.session_genesis.creation_lease.v2"
 )
+_PRE_GENESIS_CREATION_LEASE_SCHEMA_VERSION = (
+    "true_rl_agent.session_genesis.creation_lease.v3"
+)
+_PRE_GENESIS_UNCLEAN_RECOVERY_SCHEMA_VERSION = (
+    "true_rl_agent.session_genesis.unclean_recovery.v1"
+)
+_PRE_GENESIS_RECOVERY_DIRNAME = "session_genesis_recoveries"
+_SESSION_GENESIS_RECOVERY_MAX_BYTES = 128 * 1024
 
 
 class SessionGenesisCreationInProgressError(RuntimeError):
     """Raised when another writer owns creation of the same session Genesis."""
 
 
-@dataclass(frozen=True)
+@dataclass
 class _SessionGenesisCreationLease:
     payload: bytes
     lock: ProcessFileLock
+    previous_payload: bytes | None = None
+    closed_payload: bytes | None = None
+    active: bool = True
 
     def assert_owned(self) -> None:
         self.lock.assert_owned()
 
+    def activate(self) -> None:
+        if self.active:
+            self.assert_owned()
+            return
+        self.lock.replace_payload(self.payload)
+        self.active = True
+
     def release(self) -> None:
-        self.lock.release()
+        try:
+            if self.active and self.closed_payload is not None:
+                self.lock.replace_payload(self.closed_payload)
+        finally:
+            self.lock.release()
+            self.active = False
 
 
 @dataclass(frozen=True)
@@ -929,6 +974,10 @@ def prepare_session_genesis(
     require_existing: bool = False,
     bind_backend_execution_environment: bool = False,
     generation_session_contract_ref: GenerationSessionContractRef | None = None,
+    gpu_process_binding: GpuProcessBinding | None = None,
+    reference_train_attempt_scope: PreGenesisExecutionScope | None = None,
+    reference_eval_attempt_scope: PreGenesisExecutionScope | None = None,
+    baseline_eval_attempt_scope: PreGenesisExecutionScope | None = None,
 ) -> VerifiedSessionGenesis:
     """Create a Genesis once, or validate the existing one without rerunning eval."""
 
@@ -985,6 +1034,35 @@ def prepare_session_genesis(
         raise TypeError("require_existing must be boolean")
     if not isinstance(bind_backend_execution_environment, bool):
         raise TypeError("bind_backend_execution_environment must be boolean")
+    if gpu_process_binding is not None and not isinstance(
+        gpu_process_binding,
+        GpuProcessBinding,
+    ):
+        raise TypeError("gpu_process_binding must be a GpuProcessBinding")
+    if gpu_process_binding is not None and generation_session_contract_ref is None:
+        raise ValueError(
+            "GPU-bound Genesis requires a generation session contract"
+        )
+    for field_name, scope in (
+        ("reference_train_attempt_scope", reference_train_attempt_scope),
+        ("reference_eval_attempt_scope", reference_eval_attempt_scope),
+        ("baseline_eval_attempt_scope", baseline_eval_attempt_scope),
+    ):
+        if scope is not None and not isinstance(scope, PreGenesisExecutionScope):
+            raise TypeError(
+                f"{field_name} must be a PreGenesisExecutionScope"
+            )
+    if (
+        reference_train_attempt_scope is not None
+        or reference_eval_attempt_scope is not None
+    ) and reference_program_artifact is None:
+        raise ValueError(
+            "reference pre-Genesis attempt scopes require a reference artifact"
+        )
+    if baseline_eval_attempt_scope is not None and baseline_manifest is None:
+        raise ValueError(
+            "baseline pre-Genesis attempt scope requires a baseline manifest"
+        )
     output_dir = output_dir.resolve()
     genesis_path = output_dir / SESSION_GENESIS_FILENAME
     if require_existing and not genesis_path.is_file():
@@ -1017,8 +1095,74 @@ def prepare_session_genesis(
         }
         if actual_generation_identity != expected_generation_identity:
             raise ValueError("generation session contract identity mismatch")
+        if (
+            gpu_process_binding is not None
+            or reference_train_attempt_scope is not None
+            or reference_eval_attempt_scope is not None
+            or baseline_eval_attempt_scope is not None
+        ) and (
+            generation_contract.schema_version
+            != GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION
+            or "session_cost" not in generation_contract.bound_contract_hashes
+        ):
+            raise ValueError(
+                "GPU-bound/pre-Genesis execution requires a generation session "
+                "contract v3 with session_cost"
+            )
     genesis_identity_hash = canonical_json_hash(
         _json_copy(genesis_identity_snapshot)
+    )
+    for field_name, scope in (
+        ("reference_train_attempt_scope", reference_train_attempt_scope),
+        ("reference_eval_attempt_scope", reference_eval_attempt_scope),
+        ("baseline_eval_attempt_scope", baseline_eval_attempt_scope),
+    ):
+        if scope is not None:
+            if generation_contract is None:
+                raise ValueError(
+                    f"{field_name} requires a generation session contract"
+                )
+            _validate_pre_genesis_execution_scope(
+                scope,
+                field_name=field_name,
+                session_id=session_id,
+                genesis_identity_hash=genesis_identity_hash,
+                session_contract_hash=generation_contract.contract_hash,
+                budget_contract_hash=(
+                    generation_contract.bound_contract_hashes["session_cost"]
+                ),
+                resource_binding_hash=(
+                    gpu_process_binding.resource_binding_hash
+                    if gpu_process_binding is not None
+                    else None
+                ),
+            )
+    pre_genesis_scopes = {
+        role: scope
+        for role, scope in (
+            ("reference_train", reference_train_attempt_scope),
+            ("reference_eval", reference_eval_attempt_scope),
+            ("baseline_eval", baseline_eval_attempt_scope),
+        )
+        if scope is not None
+    }
+    pre_genesis_creation_identity = (
+        _pre_genesis_creation_identity(
+            session_id=session_id,
+            genesis_identity_hash=genesis_identity_hash,
+            session_contract_hash=generation_contract.contract_hash,
+            budget_contract_hash=(
+                generation_contract.bound_contract_hashes["session_cost"]
+            ),
+            resource_binding_hash=(
+                gpu_process_binding.resource_binding_hash
+                if gpu_process_binding is not None
+                else None
+            ),
+            scopes=pre_genesis_scopes,
+        )
+        if pre_genesis_scopes and generation_contract is not None
+        else None
     )
 
     def resolve_context(*, allow_create: bool) -> _GenesisContext:
@@ -1075,6 +1219,10 @@ def prepare_session_genesis(
                 else None
             ),
             generation_session_contract_ref=generation_session_contract_ref,
+            gpu_process_binding=gpu_process_binding,
+            reference_train_attempt_scope=reference_train_attempt_scope,
+            reference_eval_attempt_scope=reference_eval_attempt_scope,
+            baseline_eval_attempt_scope=baseline_eval_attempt_scope,
         )
 
     if genesis_path.exists():
@@ -1092,6 +1240,7 @@ def prepare_session_genesis(
         creation_lease = _acquire_session_genesis_creation_lease(
             output_dir=output_dir,
             session_id=session_id,
+            pre_genesis_identity=pre_genesis_creation_identity,
         )
     except SessionGenesisCreationInProgressError:
         if genesis_path.exists():
@@ -1107,9 +1256,19 @@ def prepare_session_genesis(
                 genesis_path,
                 context=resolve_context(allow_create=False),
             )
+        allow_pre_genesis_state = False
+        if pre_genesis_creation_identity is not None:
+            allow_pre_genesis_state = _recover_pre_genesis_execution(
+                output_dir=output_dir,
+                identity=pre_genesis_creation_identity,
+                scopes=pre_genesis_scopes,
+                previous_lease_payload=creation_lease.previous_payload,
+            )
+            creation_lease.activate()
         _reject_partial_session_without_genesis(
             output_dir,
             session_id=session_id,
+            allow_pre_genesis_state=allow_pre_genesis_state,
         )
         context = resolve_context(allow_create=True)
         if context.genesis_anchor_kind == "reference_program":
@@ -1213,8 +1372,35 @@ class _GenesisContext:
     evaluation_binding: EvaluationBindingV1
     backend_execution_environment: Mapping[str, Any] | None
     generation_session_contract_ref: GenerationSessionContractRef | None
+    gpu_process_binding: GpuProcessBinding | None
+    reference_train_attempt_scope: PreGenesisExecutionScope | None
+    reference_eval_attempt_scope: PreGenesisExecutionScope | None
+    baseline_eval_attempt_scope: PreGenesisExecutionScope | None
 
     def __post_init__(self) -> None:
+        if self.gpu_process_binding is not None and not isinstance(
+            self.gpu_process_binding,
+            GpuProcessBinding,
+        ):
+            raise TypeError("Genesis GPU process binding is invalid")
+        for field_name in (
+            "reference_train_attempt_scope",
+            "reference_eval_attempt_scope",
+            "baseline_eval_attempt_scope",
+        ):
+            scope = getattr(self, field_name)
+            if scope is not None and not isinstance(
+                scope,
+                PreGenesisExecutionScope,
+            ):
+                raise TypeError(f"Genesis {field_name} is invalid")
+        if (
+            self.gpu_process_binding is not None
+            and self.generation_session_contract_ref is None
+        ):
+            raise ValueError(
+                "Genesis GPU process binding requires a generation contract"
+            )
         binding = self.evaluation_binding
         if binding.task_protocol_hash != self.task_spec.resolved_task_protocol_hash():
             raise ValueError("Genesis binding task protocol mismatch")
@@ -1392,6 +1578,25 @@ def _create_reference_genesis(
         materialization_kwargs[
             "backend_execution_environment_manifest_hash"
         ] = environment_hash
+    if context.gpu_process_binding is not None:
+        if (
+            context.reference_train_attempt_scope is None
+            or context.reference_eval_attempt_scope is None
+        ):
+            raise ValueError(
+                "GPU-bound reference Genesis requires train and eval attempt scopes"
+            )
+        materialization_kwargs["gpu_process_binding"] = (
+            context.gpu_process_binding
+        )
+    if context.reference_train_attempt_scope is not None:
+        materialization_kwargs["train_attempt_scope"] = (
+            context.reference_train_attempt_scope
+        )
+    if context.reference_eval_attempt_scope is not None:
+        materialization_kwargs["eval_attempt_scope"] = (
+            context.reference_eval_attempt_scope
+        )
     jobs = context.backend_adapter.materialize_reference_jobs(
         session_id=context.session_id,
         task_spec=context.task_spec,
@@ -1547,6 +1752,16 @@ def _validate_reference_job_bundle(*, context: _GenesisContext, jobs: Any) -> No
         raise ValueError("reference eval TrainingBinding mismatch")
     if eval_spec.evaluation_binding != context.evaluation_binding:
         raise ValueError("reference eval binding mismatch")
+    if (
+        train_spec.gpu_process_binding != context.gpu_process_binding
+        or eval_spec.gpu_process_binding != context.gpu_process_binding
+    ):
+        raise ValueError("reference job GPU process binding mismatch")
+    if (
+        train_spec.attempt_scope != context.reference_train_attempt_scope
+        or eval_spec.attempt_scope != context.reference_eval_attempt_scope
+    ):
+        raise ValueError("reference job attempt scope mismatch")
     if jobs.task_invariants is not None:
         context.task_spec.invariants.assert_compatible_with(jobs.task_invariants)
 
@@ -1565,6 +1780,7 @@ def _validate_reference_train_result(
         "training_binding_hash": train_spec.training_binding.binding_hash,
         "capability_profile_hash": train_spec.training_binding.capability_profile_hash,
         "execution_device": train_spec.execution_device,
+        "gpu_process_binding": train_spec.gpu_process_binding,
     }
     actual = {
         "job_id": train_result.job_id,
@@ -1574,6 +1790,7 @@ def _validate_reference_train_result(
         "training_binding_hash": train_result.training_binding_hash,
         "capability_profile_hash": train_result.capability_profile_hash,
         "execution_device": train_result.execution_device,
+        "gpu_process_binding": train_result.gpu_process_binding,
     }
     if actual != expected:
         raise ValueError("reference train result identity chain mismatch")
@@ -1753,6 +1970,8 @@ def _load_verified_session_genesis(
             anchor=anchor,
             evaluation_binding=context.evaluation_binding,
         )
+        if eval_spec.gpu_process_binding != context.gpu_process_binding:
+            raise ValueError("reference private eval GPU process binding mismatch")
         if (
             private_payload["train_result"].get("execution_device")
             != eval_spec.execution_device
@@ -1802,6 +2021,18 @@ def _materialize_baseline_eval(
         materialization_kwargs[
             "backend_execution_environment_manifest_hash"
         ] = environment_hash
+    if context.gpu_process_binding is not None:
+        if context.baseline_eval_attempt_scope is None:
+            raise ValueError(
+                "GPU-bound baseline Genesis requires an eval attempt scope"
+            )
+        materialization_kwargs["gpu_process_binding"] = (
+            context.gpu_process_binding
+        )
+    if context.baseline_eval_attempt_scope is not None:
+        materialization_kwargs["eval_attempt_scope"] = (
+            context.baseline_eval_attempt_scope
+        )
     spec = context.backend_adapter.materialize_baseline_eval(
         session_id=context.session_id,
         task_spec=context.task_spec,
@@ -1813,6 +2044,10 @@ def _materialize_baseline_eval(
         raise ValueError("baseline eval spec evaluation binding drift")
     if spec.checkpoint != manifest.checkpoint:
         raise ValueError("baseline eval spec checkpoint drift")
+    if spec.gpu_process_binding != context.gpu_process_binding:
+        raise ValueError("baseline eval spec GPU process binding drift")
+    if spec.attempt_scope != context.baseline_eval_attempt_scope:
+        raise ValueError("baseline eval spec attempt scope drift")
     return spec
 
 
@@ -1826,6 +2061,34 @@ def _context_backend_execution_environment_manifest_hash(
         environment.get("manifest_hash"),
         "Genesis backend execution environment manifest hash",
     )
+
+
+def _validate_pre_genesis_execution_scope(
+    scope: PreGenesisExecutionScope,
+    *,
+    field_name: str,
+    session_id: str,
+    genesis_identity_hash: str,
+    session_contract_hash: str,
+    budget_contract_hash: str,
+    resource_binding_hash: str | None,
+) -> None:
+    expected = {
+        "session_id": session_id,
+        "genesis_identity_hash": genesis_identity_hash,
+        "session_contract_hash": session_contract_hash,
+        "budget_contract_hash": budget_contract_hash,
+        "resource_binding_hash": resource_binding_hash,
+    }
+    actual = {
+        "session_id": scope.session_id,
+        "genesis_identity_hash": scope.genesis_identity_hash,
+        "session_contract_hash": scope.session_contract_hash,
+        "budget_contract_hash": scope.budget_contract_hash,
+        "resource_binding_hash": scope.resource_binding_hash,
+    }
+    if actual != expected:
+        raise ValueError(f"{field_name} identity mismatch")
 
 
 def _build_baseline_seal(
@@ -2017,8 +2280,34 @@ def _reference_eval_artifact_payload(
 ) -> dict[str, Any]:
     if reference_artifact is None:
         raise ValueError("reference private evidence requires a materialized artifact")
+    gpu_process_binding = train_result.gpu_process_binding
+    if gpu_process_binding != train_spec.gpu_process_binding:
+        raise ValueError("reference train result GPU process binding mismatch")
+    if eval_spec.gpu_process_binding != gpu_process_binding:
+        raise ValueError("reference eval GPU process binding mismatch")
+    train_result_payload = {
+        "job_id": train_result.job_id,
+        "subject": train_result.subject.to_public_dict(),
+        "subject_manifest_hash": train_result.subject_manifest_hash,
+        "program_source_checksum": train_result.program_source_checksum,
+        "training_binding_hash": train_result.training_binding_hash,
+        "capability_profile_hash": train_result.capability_profile_hash,
+        "execution_device": train_result.execution_device,
+        "checkpoint": train_result.checkpoint.to_public_dict(
+            include_metadata=True
+        ),
+        "summary": _json_copy(train_result.summary),
+    }
+    if gpu_process_binding is not None:
+        train_result_payload["gpu_process_binding"] = (
+            gpu_process_binding.to_dict()
+        )
     return {
-        "schema_version": REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION,
+        "schema_version": (
+            GPU_BOUND_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION
+            if gpu_process_binding is not None
+            else REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION
+        ),
         "session_id": session_id,
         "task_id": train_spec.task_id,
         "backend_id": backend_id,
@@ -2032,19 +2321,7 @@ def _reference_eval_artifact_payload(
             "spec": train_spec.to_public_dict(),
             "metadata": _json_copy(train_spec.metadata),
         },
-        "train_result": {
-            "job_id": train_result.job_id,
-            "subject": train_result.subject.to_public_dict(),
-            "subject_manifest_hash": train_result.subject_manifest_hash,
-            "program_source_checksum": train_result.program_source_checksum,
-            "training_binding_hash": train_result.training_binding_hash,
-            "capability_profile_hash": train_result.capability_profile_hash,
-            "execution_device": train_result.execution_device,
-            "checkpoint": train_result.checkpoint.to_public_dict(
-                include_metadata=True
-            ),
-            "summary": _json_copy(train_result.summary),
-        },
+        "train_result": train_result_payload,
         "eval_job": {
             "spec": eval_spec.to_public_dict(),
             "metadata": _json_copy(eval_spec.metadata),
@@ -2116,7 +2393,10 @@ def _read_bound_reference_private_artifact(
         },
         "reference Genesis private artifact",
     )
-    if payload.get("schema_version") != REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION:
+    if payload.get("schema_version") not in {
+        REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION,
+        GPU_BOUND_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION,
+    }:
         raise ValueError("reference private artifact schema_version mismatch")
     return dict(payload)
 
@@ -2160,6 +2440,8 @@ def _validate_private_reference_artifact(
         anchor=anchor,
         reference_artifact=reference_artifact,
     )
+    if train_spec.gpu_process_binding != context.gpu_process_binding:
+        raise ValueError("reference private train GPU process binding mismatch")
     train_result = _reference_train_result_from_private_artifact(
         payload,
         anchor=anchor,
@@ -2283,6 +2565,11 @@ def _reference_train_spec_from_private_artifact(
             raw.get("execution_device"),
             "reference train execution_device",
         ),
+        gpu_process_binding=(
+            GpuProcessBinding.from_mapping(raw.get("gpu_process_binding"))
+            if "gpu_process_binding" in raw
+            else None
+        ),
         metadata=metadata,
         reference_artifact=reference_artifact,
     )
@@ -2301,19 +2588,22 @@ def _reference_train_result_from_private_artifact(
     anchor: ReferenceProgramGenesisAnchor,
     train_spec: TrainJobSpec,
 ) -> TrainJobResult:
+    expected_result_fields = {
+        "job_id",
+        "subject",
+        "subject_manifest_hash",
+        "program_source_checksum",
+        "training_binding_hash",
+        "capability_profile_hash",
+        "execution_device",
+        "checkpoint",
+        "summary",
+    }
+    if train_spec.gpu_process_binding is not None:
+        expected_result_fields.add("gpu_process_binding")
     raw = _exact_mapping(
         payload.get("train_result"),
-        {
-            "job_id",
-            "subject",
-            "subject_manifest_hash",
-            "program_source_checksum",
-            "training_binding_hash",
-            "capability_profile_hash",
-            "execution_device",
-            "checkpoint",
-            "summary",
-        },
+        expected_result_fields,
         "reference private train result",
     )
     checkpoint = _exact_mapping(
@@ -2343,6 +2633,11 @@ def _reference_train_result_from_private_artifact(
         execution_device=_nonempty_text(
             raw.get("execution_device"),
             "reference train result execution device",
+        ),
+        gpu_process_binding=(
+            GpuProcessBinding.from_mapping(raw.get("gpu_process_binding"))
+            if "gpu_process_binding" in raw
+            else None
         ),
         checkpoint=CheckpointRef(
             uri=_nonempty_text(checkpoint.get("uri"), "reference checkpoint uri"),
@@ -2376,27 +2671,32 @@ def _reference_eval_spec_from_private_artifact(
         {"spec", "metadata"},
         "reference private eval job",
     )
+    expected_eval_fields = {
+        "job_id",
+        "task_id",
+        "subject",
+        "subject_manifest_hash",
+        "program_source_checksum",
+        "training_binding_hash",
+        "capability_profile_hash",
+        "execution_device",
+        "schema_version",
+        "eval_protocol_version",
+        "public_seed_count",
+        "public_accept_seed_count",
+        "sealed_validation_seed_count",
+        "eval_num_envs",
+        "eval_protocol_hash",
+        "evaluation_binding",
+        "checkpoint",
+    }
+    if payload.get("schema_version") == (
+        GPU_BOUND_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION
+    ):
+        expected_eval_fields.add("gpu_process_binding")
     raw = _exact_mapping(
         wrapper.get("spec"),
-        {
-            "job_id",
-            "task_id",
-            "subject",
-            "subject_manifest_hash",
-            "program_source_checksum",
-            "training_binding_hash",
-            "capability_profile_hash",
-            "execution_device",
-            "schema_version",
-            "eval_protocol_version",
-            "public_seed_count",
-            "public_accept_seed_count",
-            "sealed_validation_seed_count",
-            "eval_num_envs",
-            "eval_protocol_hash",
-            "evaluation_binding",
-            "checkpoint",
-        },
+        expected_eval_fields,
         "reference private eval job",
     )
     metadata = _json_object(
@@ -2469,6 +2769,11 @@ def _reference_eval_spec_from_private_artifact(
         execution_device=_nonempty_text(
             raw.get("execution_device"),
             "reference eval execution_device",
+        ),
+        gpu_process_binding=(
+            GpuProcessBinding.from_mapping(raw.get("gpu_process_binding"))
+            if "gpu_process_binding" in raw
+            else None
         ),
         evaluation_binding=evaluation_binding,
         metadata=metadata,
@@ -2583,19 +2888,24 @@ def _reject_partial_session_without_genesis(
     output_dir: Path,
     *,
     session_id: str,
+    allow_pre_genesis_state: bool = False,
 ) -> None:
-    for partial_path in (
-        output_dir / "ledger.jsonl",
-        output_dir / BASELINE_EVAL_ARTIFACT_FILENAME,
-        output_dir / REFERENCE_EVAL_ARTIFACT_FILENAME,
-    ):
+    partial_paths = [output_dir / "ledger.jsonl"]
+    if not allow_pre_genesis_state:
+        partial_paths.extend(
+            (
+                output_dir / BASELINE_EVAL_ARTIFACT_FILENAME,
+                output_dir / REFERENCE_EVAL_ARTIFACT_FILENAME,
+            )
+        )
+    for partial_path in partial_paths:
         if partial_path.exists():
             raise ValueError(
                 "session has durable state but no Genesis; refusing implicit rebuild: "
                 + str(partial_path)
             )
     runner_session_dir = output_dir / "runner" / session_id
-    if runner_session_dir.is_dir():
+    if runner_session_dir.is_dir() and not allow_pre_genesis_state:
         partial_runner_file = next(
             (path for path in runner_session_dir.rglob("*") if path.is_file()),
             None,
@@ -2607,12 +2917,573 @@ def _reject_partial_session_without_genesis(
             )
 
 
+def _pre_genesis_creation_identity(
+    *,
+    session_id: str,
+    genesis_identity_hash: str,
+    session_contract_hash: str,
+    budget_contract_hash: str,
+    resource_binding_hash: str | None,
+    scopes: Mapping[str, PreGenesisExecutionScope],
+) -> dict[str, Any]:
+    return _validate_pre_genesis_creation_identity({
+        "session_id": session_id,
+        "genesis_identity_hash": genesis_identity_hash,
+        "session_contract_hash": session_contract_hash,
+        "budget_contract_hash": budget_contract_hash,
+        "resource_binding_hash": resource_binding_hash,
+        "attempt_scope_hashes": {
+            role: canonical_json_hash(scope.binding_payload())
+            for role, scope in sorted(scopes.items())
+        },
+    })
+
+
+def _validate_pre_genesis_creation_identity(value: Any) -> dict[str, Any]:
+    mapping = _exact_mapping(
+        value,
+        {
+            "session_id",
+            "genesis_identity_hash",
+            "session_contract_hash",
+            "budget_contract_hash",
+            "resource_binding_hash",
+            "attempt_scope_hashes",
+        },
+        "pre-Genesis creation identity",
+    )
+    _nonempty_text(mapping["session_id"], "pre-Genesis creation session_id")
+    for field_name in ("genesis_identity_hash", "session_contract_hash", "budget_contract_hash"):
+        require_sha256_digest(mapping[field_name], f"pre-Genesis {field_name}")
+    resource_binding_hash = mapping.get("resource_binding_hash")
+    if resource_binding_hash is not None:
+        require_sha256_digest(resource_binding_hash, "pre-Genesis resource binding")
+    scope_hashes = mapping["attempt_scope_hashes"]
+    allowed_roles = {"reference_train", "reference_eval", "baseline_eval"}
+    if (
+        not isinstance(scope_hashes, Mapping)
+        or not scope_hashes
+        or not set(scope_hashes).issubset(allowed_roles)
+        or len(set(scope_hashes.values())) != len(scope_hashes)
+    ):
+        raise ValueError("pre-Genesis creation attempt scope roles mismatch")
+    for role, scope_hash in scope_hashes.items():
+        require_sha256_digest(scope_hash, f"pre-Genesis {role} scope hash")
+    return _json_copy(mapping)
+
+
+def _recover_pre_genesis_execution(
+    *,
+    output_dir: Path,
+    identity: Mapping[str, Any],
+    scopes: Mapping[str, PreGenesisExecutionScope],
+    previous_lease_payload: bytes | None,
+) -> bool:
+    """Recover only exact pre-Genesis reservations from a dead creation owner."""
+
+    expected_identity = _validate_pre_genesis_creation_identity(identity)
+    _validate_pre_genesis_scope_set(expected_identity, scopes=scopes)
+    if previous_lease_payload is None:
+        return False
+    previous_lease = _parse_pre_genesis_creation_lease(previous_lease_payload)
+    if previous_lease is None:
+        return False
+    if previous_lease["identity"] != expected_identity:
+        raise ValueError("pre-Genesis creation lease identity mismatch")
+
+    observed_incarnation: str | None = None
+    process_id_reused = False
+    if previous_lease["state"] == "active":
+        process_id = previous_lease["process_id"]
+        observed_incarnation = _process_incarnation_token(process_id)
+        if observed_incarnation == previous_lease["process_incarnation_token"]:
+            if os.name != "nt" or _process_group_is_alive(
+                previous_lease["process_group_id"]
+            ):
+                raise ValueError("pre-Genesis creation process is still alive")
+            # Windows may keep a terminated process object queryable briefly;
+            # the zero-time wait used by the group probe is the liveness gate.
+            observed_incarnation = None
+        if observed_incarnation is not None:
+            require_sha256_digest(
+                observed_incarnation,
+                "observed pre-Genesis creation process incarnation",
+            )
+        process_id_reused = observed_incarnation is not None
+        if (
+            not process_id_reused
+            and _process_group_is_alive(previous_lease["process_group_id"])
+        ):
+            raise ValueError("pre-Genesis creation process group is still alive")
+
+    recoveries = _load_pre_genesis_recoveries(
+        output_dir=output_dir,
+        identity=expected_identity,
+        scopes=scopes,
+    )
+    recovery_bindings = _pre_genesis_recovery_bindings(recoveries)
+    scan = _scan_pre_genesis_attempts(
+        identity=expected_identity,
+        scopes=scopes,
+        recovery_bindings=recovery_bindings,
+    )
+    if previous_lease["state"] == "closed":
+        if scan["open_reservations"]:
+            raise ValueError(
+                "closed pre-Genesis creation lease has an open attempt reservation"
+            )
+        return scan["reservation_count"] > 0
+
+    for recovery in recoveries:
+        _finish_pre_genesis_recovery(
+            recovery,
+            recovery_hash=canonical_json_hash(recovery),
+        )
+    recovered_paths = {
+        path for paths in recovery_bindings.values() for path in paths
+    }
+    open_reservations = [
+        path for path in scan["open_reservations"] if path not in recovered_paths
+    ]
+    if open_reservations:
+        recovery = _publish_or_load_pre_genesis_recovery(
+            output_dir=output_dir,
+            identity=expected_identity,
+            scopes=scopes,
+            unclean_lease=previous_lease,
+            observed_incarnation=observed_incarnation,
+            process_id_reused=process_id_reused,
+            reservations=open_reservations,
+        )
+        recovery_hash = canonical_json_hash(recovery)
+        _finish_pre_genesis_recovery(recovery, recovery_hash=recovery_hash)
+    return scan["reservation_count"] > 0
+
+
+def _validate_pre_genesis_scope_set(
+    identity: Mapping[str, Any],
+    *,
+    scopes: Mapping[str, PreGenesisExecutionScope],
+) -> None:
+    if not all(isinstance(scope, PreGenesisExecutionScope) for scope in scopes.values()):
+        raise TypeError("pre-Genesis recovery scope is invalid")
+    actual_hashes = {
+        role: canonical_json_hash(scope.binding_payload())
+        for role, scope in sorted(scopes.items())
+    }
+    if actual_hashes != identity["attempt_scope_hashes"]:
+        raise ValueError("pre-Genesis recovery attempt scope set mismatch")
+    for scope in scopes.values():
+        if any(
+            getattr(scope, field_name) != identity[field_name]
+            for field_name in (
+                "session_id",
+                "genesis_identity_hash",
+                "session_contract_hash",
+                "budget_contract_hash",
+                "resource_binding_hash",
+            )
+        ):
+            raise ValueError("pre-Genesis recovery scope identity mismatch")
+
+
+def _parse_pre_genesis_creation_lease(payload: bytes) -> dict[str, Any] | None:
+    try:
+        parsed = strict_json_loads(
+            payload,
+            context="session Genesis creation lease",
+        )
+    except ValueError as exc:
+        raise ValueError("session Genesis creation lease is invalid") from exc
+    if parsed == {}:
+        return None
+    if not isinstance(parsed, Mapping):
+        raise ValueError("session Genesis creation lease must be an object")
+    schema = parsed.get("schema_version")
+    if schema == _SESSION_GENESIS_CREATION_LEASE_SCHEMA_VERSION:
+        return None
+    if schema != _PRE_GENESIS_CREATION_LEASE_SCHEMA_VERSION:
+        raise ValueError("session Genesis creation lease schema mismatch")
+    if payload != canonical_json_bytes(parsed, trailing_newline=True):
+        raise ValueError("session Genesis creation lease is not canonical JSON")
+    return _validate_pre_genesis_creation_lease_mapping(parsed)
+
+
+def _validate_pre_genesis_creation_lease_mapping(value: Any) -> dict[str, Any]:
+    mapping = _exact_mapping(
+        value,
+        {
+            "schema_version",
+            "identity",
+            "owner_token",
+            "process_id",
+            "process_group_id",
+            "process_incarnation_token",
+            "ownership_model",
+            "state",
+        },
+        "pre-Genesis creation lease",
+    )
+    if (
+        mapping.get("schema_version") != _PRE_GENESIS_CREATION_LEASE_SCHEMA_VERSION
+        or mapping.get("ownership_model") != "process_held_os_file_lock"
+        or mapping.get("state") not in {"active", "closed"}
+    ):
+        raise ValueError("pre-Genesis creation lease binding mismatch")
+    mapping["identity"] = _validate_pre_genesis_creation_identity(mapping["identity"])
+    _canonical_uuid_hex(mapping["owner_token"], "pre-Genesis creation owner token")
+    for field_name in ("process_id", "process_group_id"):
+        _positive_int(mapping[field_name], f"pre-Genesis creation {field_name}")
+    require_sha256_digest(
+        mapping["process_incarnation_token"],
+        "pre-Genesis creation process_incarnation_token",
+    )
+    return _json_copy(mapping)
+
+
+def _load_pre_genesis_recoveries(
+    *,
+    output_dir: Path,
+    identity: Mapping[str, Any],
+    scopes: Mapping[str, PreGenesisExecutionScope],
+) -> list[dict[str, Any]]:
+    root = output_dir / _PRE_GENESIS_RECOVERY_DIRNAME
+    if not root.exists():
+        return []
+    if root.is_symlink() or not root.is_dir():
+        raise ValueError("pre-Genesis recovery root must be a regular directory")
+    recoveries: list[dict[str, Any]] = []
+    for path in sorted(root.glob("recovery-*.json")):
+        parsed = _load_generation_json(
+            path,
+            max_bytes=_SESSION_GENESIS_RECOVERY_MAX_BYTES,
+            label="pre-Genesis recovery receipt",
+        )
+        recovery = _validate_pre_genesis_recovery(
+            parsed,
+            identity=identity,
+            scopes=scopes,
+        )
+        expected_name = (
+            "recovery-"
+            + canonical_json_hash(recovery["unclean_creation_lease"])[:24]
+            + ".json"
+        )
+        if path.name != expected_name:
+            raise ValueError("pre-Genesis recovery receipt filename mismatch")
+        recoveries.append(recovery)
+    return recoveries
+
+
+def _validate_pre_genesis_recovery(
+    value: Any,
+    *,
+    identity: Mapping[str, Any],
+    scopes: Mapping[str, PreGenesisExecutionScope],
+) -> dict[str, Any]:
+    mapping = _exact_mapping(
+        value,
+        {
+            "schema_version",
+            "unclean_creation_lease",
+            "observed_process_incarnation_token",
+            "process_id_reused",
+            "recovered_at_utc",
+            "abandoned_attempt_reservations",
+            "ledger_authority",
+        },
+        "pre-Genesis recovery receipt",
+    )
+    lease = _validate_pre_genesis_creation_lease_mapping(
+        mapping.get("unclean_creation_lease")
+    )
+    if (
+        mapping.get("schema_version")
+        != _PRE_GENESIS_UNCLEAN_RECOVERY_SCHEMA_VERSION
+        or mapping.get("ledger_authority") is not False
+        or lease["identity"] != identity
+        or lease["state"] != "active"
+    ):
+        raise ValueError("pre-Genesis recovery receipt binding mismatch")
+    observed_incarnation = mapping.get("observed_process_incarnation_token")
+    if observed_incarnation is not None:
+        require_sha256_digest(
+            observed_incarnation,
+            "observed pre-Genesis recovery process incarnation",
+        )
+    expected_reused = (
+        observed_incarnation is not None
+        and observed_incarnation != lease["process_incarnation_token"]
+    )
+    if (
+        mapping.get("process_id_reused") is not expected_reused
+        or observed_incarnation == lease["process_incarnation_token"]
+    ):
+        raise ValueError("pre-Genesis recovery process incarnation mismatch")
+    _timestamp(mapping["recovered_at_utc"], "pre-Genesis recovered_at_utc")
+    refs = mapping.get("abandoned_attempt_reservations")
+    if not isinstance(refs, list) or not refs:
+        raise ValueError("pre-Genesis abandoned reservation refs must be non-empty")
+    seen_paths: set[Path] = set()
+    for ref in refs:
+        _validate_generation_reservation_ref(ref)
+        _, reservation = _validate_pre_genesis_reservation(
+            Path(ref["path"]),
+            identity=identity,
+            scopes=scopes,
+        )
+        path = reservation.path.resolve(strict=True)
+        if reservation.payload_hash != ref["reservation_hash"]:
+            raise ValueError("pre-Genesis recovery reservation hash mismatch")
+        if path in seen_paths:
+            raise ValueError("pre-Genesis recovery repeats an attempt reservation")
+        seen_paths.add(path)
+    return _json_copy(mapping)
+
+
+def _pre_genesis_recovery_bindings(
+    recoveries: list[dict[str, Any]],
+) -> dict[str, set[Path]]:
+    bindings: dict[str, set[Path]] = {}
+    seen_paths: set[Path] = set()
+    for recovery in recoveries:
+        paths = {
+            Path(ref["path"]).resolve(strict=True)
+            for ref in recovery["abandoned_attempt_reservations"]
+        }
+        if seen_paths.intersection(paths):
+            raise ValueError(
+                "pre-Genesis reservation appears in multiple recovery receipts"
+            )
+        seen_paths.update(paths)
+        bindings[canonical_json_hash(recovery)] = paths
+    return bindings
+
+
+def _scan_pre_genesis_attempts(
+    *,
+    identity: Mapping[str, Any],
+    scopes: Mapping[str, PreGenesisExecutionScope],
+    recovery_bindings: Mapping[str, set[Path]],
+) -> dict[str, Any]:
+    roots: set[Path] = set()
+    for scope in scopes.values():
+        if scope.journal_root.is_symlink():
+            raise ValueError("pre-Genesis attempt journal root cannot be a symlink")
+        roots.add(scope.journal_root.resolve(strict=False))
+    reservations: list[Path] = []
+    result_paths: set[Path] = set()
+    for root in sorted(roots, key=str):
+        if not root.exists():
+            continue
+        if root.is_symlink() or not root.is_dir():
+            raise ValueError("pre-Genesis attempt journal root must be a directory")
+        for path in sorted(root.glob("*/attempt_*.reservation.json")):
+            if path.is_symlink() or path.parent.is_symlink():
+                raise ValueError("pre-Genesis attempt reservation cannot be a symlink")
+            resolved = path.resolve(strict=True)
+            if resolved.parent.parent != root:
+                raise ValueError("pre-Genesis attempt reservation escapes its root")
+            reservations.append(resolved)
+        for path in sorted(root.glob("*/attempt_*.result.json")):
+            if path.is_symlink() or path.parent.is_symlink():
+                raise ValueError("pre-Genesis attempt result cannot be a symlink")
+            result_paths.add(path.resolve(strict=True))
+
+    expected_result_paths = {_attempt_result_path(path) for path in reservations}
+    if not result_paths.issubset(expected_result_paths):
+        raise ValueError("pre-Genesis attempt result has no reservation")
+
+    open_reservations: list[Path] = []
+    logical_jobs: dict[str, set[str]] = {}
+    for path in reservations:
+        journal, reservation = _validate_pre_genesis_reservation(
+            path,
+            identity=identity,
+            scopes=scopes,
+        )
+        scope_hash = canonical_json_hash(journal.scope.binding_payload())
+        logical_jobs.setdefault(scope_hash, set()).add(journal.logical_job_id)
+        attempt_index = reservation.payload["attempt_index"]
+        if attempt_index > 0:
+            previous = journal.load_result(attempt_index - 1)
+            verified = journal.reserve(attempt_index, previous_result=previous)
+            if verified.payload_hash != reservation.payload_hash:
+                raise ValueError("pre-Genesis retry reservation chain mismatch")
+        result_path = _attempt_result_path(path)
+        if not result_path.exists():
+            open_reservations.append(path)
+            continue
+        result = journal.load_result(attempt_index)
+        recovery_hash = result.payload.get("recovery_receipt_hash")
+        if (
+            recovery_hash is not None
+            and path not in recovery_bindings.get(recovery_hash, set())
+        ):
+            raise ValueError("pre-Genesis recovered result has no bound recovery receipt")
+    if any(len(job_ids) != 1 for job_ids in logical_jobs.values()):
+        raise ValueError("pre-Genesis attempt scope contains multiple logical jobs")
+    return {
+        "reservation_count": len(reservations),
+        "open_reservations": open_reservations,
+    }
+
+
+def _publish_or_load_pre_genesis_recovery(
+    *,
+    output_dir: Path,
+    identity: Mapping[str, Any],
+    scopes: Mapping[str, PreGenesisExecutionScope],
+    unclean_lease: Mapping[str, Any],
+    observed_incarnation: str | None,
+    process_id_reused: bool,
+    reservations: list[Path],
+) -> dict[str, Any]:
+    lease_hash = canonical_json_hash(unclean_lease)
+    path = output_dir / _PRE_GENESIS_RECOVERY_DIRNAME / (
+        f"recovery-{lease_hash[:24]}.json"
+    )
+    recovery = {
+        "schema_version": _PRE_GENESIS_UNCLEAN_RECOVERY_SCHEMA_VERSION,
+        "unclean_creation_lease": _json_copy(unclean_lease),
+        "observed_process_incarnation_token": observed_incarnation,
+        "process_id_reused": process_id_reused,
+        "recovered_at_utc": datetime.now(timezone.utc).isoformat(),
+        "abandoned_attempt_reservations": [
+            _generation_reservation_ref(path) for path in reservations
+        ],
+        "ledger_authority": False,
+    }
+    _publish_generation_json_once(path, recovery)
+    return _validate_pre_genesis_recovery(
+        recovery,
+        identity=identity,
+        scopes=scopes,
+    )
+
+
+def _finish_pre_genesis_recovery(
+    recovery: Mapping[str, Any],
+    *,
+    recovery_hash: str,
+) -> None:
+    for ref in recovery["abandoned_attempt_reservations"]:
+        journal, reservation = JobAttemptJournal.from_reservation_path(
+            Path(ref["path"])
+        )
+        result_path = _attempt_result_path(reservation.path)
+        if result_path.exists():
+            result = journal.load_result(reservation.payload["attempt_index"])
+            if result.payload.get("recovery_receipt_hash") != recovery_hash:
+                raise ValueError("pre-Genesis recovered result binding mismatch")
+            continue
+        journal.finish(
+            reservation,
+            outcome="infrastructure_failure",
+            failure_kind="abandoned_unclean",
+            retryable=(
+                reservation.payload["attempt_index"]
+                < journal.scope.max_infrastructure_retries
+            ),
+            output_hash=None,
+            returncode=None,
+            recovery_receipt_hash=recovery_hash,
+        )
+
+
+def _validate_pre_genesis_reservation(
+    path: Path,
+    *,
+    identity: Mapping[str, Any],
+    scopes: Mapping[str, PreGenesisExecutionScope],
+) -> tuple[JobAttemptJournal, Any]:
+    path = path.resolve(strict=True)
+    journal, reservation = JobAttemptJournal.from_reservation_path(path)
+    scope_hash = canonical_json_hash(journal.scope.binding_payload())
+    role_by_hash = {
+        scope_hash: role
+        for role, scope_hash in identity["attempt_scope_hashes"].items()
+    }
+    role = role_by_hash.get(scope_hash)
+    if not isinstance(journal.scope, PreGenesisExecutionScope) or role is None:
+        raise ValueError("abandoned reservation is outside pre-Genesis authority")
+    expected_kind = {
+        "reference_train": "train",
+        "reference_eval": "eval",
+        "baseline_eval": "baseline_eval",
+    }[role]
+    if journal.job_kind != expected_kind:
+        raise ValueError("pre-Genesis abandoned reservation job kind mismatch")
+    approved_root = scopes[role].journal_root.resolve(strict=False)
+    if path.parent.parent != approved_root:
+        raise ValueError("pre-Genesis abandoned reservation root mismatch")
+    return journal, reservation
+
+
+def _attempt_result_path(reservation_path: Path) -> Path:
+    return reservation_path.with_name(
+        reservation_path.name.replace(".reservation.", ".result.")
+    )
+
+
 def _acquire_session_genesis_creation_lease(
     *,
     output_dir: Path,
     session_id: str,
+    pre_genesis_identity: Mapping[str, Any] | None = None,
 ) -> _SessionGenesisCreationLease:
     path = output_dir / SESSION_GENESIS_CREATION_LEASE_FILENAME
+    if pre_genesis_identity is not None:
+        identity = _validate_pre_genesis_creation_identity(pre_genesis_identity)
+        process_id = os.getpid()
+        process_group_id = _current_process_group_id()
+        process_incarnation_token = _process_incarnation_token(process_id)
+        if process_incarnation_token is None:
+            raise RuntimeError("current process incarnation is unavailable")
+        require_sha256_digest(
+            process_incarnation_token,
+            "pre-Genesis creation process incarnation",
+        )
+        owner_token = uuid.uuid4().hex
+        ownership = {
+            "schema_version": _PRE_GENESIS_CREATION_LEASE_SCHEMA_VERSION,
+            "identity": identity,
+            "owner_token": owner_token,
+            "process_id": process_id,
+            "process_group_id": process_group_id,
+            "process_incarnation_token": process_incarnation_token,
+            "ownership_model": "process_held_os_file_lock",
+        }
+        active_payload = canonical_json_bytes(
+            {**ownership, "state": "active"},
+            trailing_newline=True,
+        )
+        closed_payload = canonical_json_bytes(
+            {**ownership, "state": "closed"},
+            trailing_newline=True,
+        )
+        try:
+            lock = acquire_process_file_lock(
+                path,
+                blocking=False,
+                payload=None,
+            )
+        except ProcessFileLockUnavailableError as exc:
+            raise SessionGenesisCreationInProgressError(
+                f"session Genesis creation already in progress: {session_id}"
+            ) from exc
+        try:
+            previous_payload = _read_owned_creation_lease_payload(lock)
+            return _SessionGenesisCreationLease(
+                payload=active_payload,
+                lock=lock,
+                previous_payload=previous_payload,
+                closed_payload=closed_payload,
+                active=False,
+            )
+        except BaseException:
+            lock.release()
+            raise
     payload = canonical_json_bytes(
         {
             "schema_version": _SESSION_GENESIS_CREATION_LEASE_SCHEMA_VERSION,
@@ -2637,6 +3508,25 @@ def _acquire_session_genesis_creation_lease(
         payload=payload,
         lock=lock,
     )
+
+
+def _read_owned_creation_lease_payload(lock: ProcessFileLock) -> bytes:
+    """Read stale metadata through the descriptor that owns the byte lock.
+
+    Windows denies a second handle access to the locked byte, so the task-owned
+    recovery transaction must inspect the prior bytes through the owner handle.
+    """
+
+    lock.assert_owned()
+    handle = lock._handle
+    size = os.fstat(handle.fileno()).st_size
+    if size > _SESSION_GENESIS_RECOVERY_MAX_BYTES:
+        raise ValueError("session Genesis creation lease exceeds byte limit")
+    handle.seek(0)
+    payload = handle.read(_SESSION_GENESIS_RECOVERY_MAX_BYTES + 1)
+    if len(payload) > _SESSION_GENESIS_RECOVERY_MAX_BYTES:
+        raise ValueError("session Genesis creation lease exceeds byte limit")
+    return payload
 
 
 def _atomic_create_json(path: Path, value: Mapping[str, Any]) -> None:
@@ -2732,6 +3622,7 @@ __all__ = [
     "GENERATION_SESSION_GENESIS_SCHEMA_VERSION",
     "REFERENCE_EVAL_ARTIFACT_FILENAME",
     "REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION",
+    "GPU_BOUND_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION",
     "REFERENCE_QUALIFICATION_GATE_SCHEMA_VERSION",
     "SESSION_GENESIS_CREATION_LEASE_FILENAME",
     "SESSION_GENESIS_FILENAME",

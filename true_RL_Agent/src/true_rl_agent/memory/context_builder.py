@@ -11,6 +11,7 @@ from true_rl_agent.agent_core.context import (
     sanitize_prompt_public_context,
     sanitize_public_records_with_policy,
 )
+from true_rl_agent.agent_core.generation_contract import GenerationSessionContract
 from true_rl_agent.agent_core.ledger import (
     NON_PROVIDER_AUTHORING_MODE,
     require_ledger_authoring_mode,
@@ -119,6 +120,7 @@ class PublicContextBuilder:
         expected_initial_policy_state_hash: str | None = None,
         ledger_authoring_mode: str = NON_PROVIDER_AUTHORING_MODE,
         expected_ledger_epoch_hash: str | None = None,
+        generation_session_contract: GenerationSessionContract | None = None,
     ) -> None:
         self.task_memory_adapter = task_memory_adapter
         self.task_prompt_adapter = task_prompt_adapter
@@ -139,6 +141,12 @@ class PublicContextBuilder:
             ledger_authoring_mode
         )
         self.expected_ledger_epoch_hash = expected_ledger_epoch_hash
+        if generation_session_contract is not None and not isinstance(
+            generation_session_contract,
+            GenerationSessionContract,
+        ):
+            raise TypeError("generation_session_contract is invalid")
+        self.generation_session_contract = generation_session_contract
 
     def build(
         self,
@@ -264,7 +272,28 @@ class PublicContextBuilder:
         self,
         history: ProjectedPublicHistory,
     ) -> dict[str, Any]:
-        context = build_public_context_from_projected(history)
+        exploration_projection: Mapping[str, Any] | None = None
+        if self.task_memory_adapter is not None:
+            exploration_builder = getattr(
+                self.task_memory_adapter,
+                "build_exploration_projection",
+                None,
+            )
+            if callable(exploration_builder):
+                projected = exploration_builder(
+                    history,
+                    generation_session_contract=self.generation_session_contract,
+                )
+                if projected:
+                    if not isinstance(projected, Mapping):
+                        raise TypeError(
+                            "task exploration projection must be a mapping"
+                        )
+                    exploration_projection = projected
+        context = build_public_context_from_projected(
+            history,
+            exploration_projection=exploration_projection,
+        )
         if self.task_memory_adapter is not None:
             task_summary = self.task_memory_adapter.build_public_summary(
                 history.records,

@@ -38,6 +38,20 @@ class ProcessFileLock:
         if self._handle.read() != self._payload:
             raise RuntimeError("process file lock ownership payload changed")
 
+    def replace_payload(self, payload: bytes) -> None:
+        """Replace metadata through the descriptor that owns the OS lock."""
+
+        if self._handle.closed:
+            raise RuntimeError("process file lock is closed")
+        if not isinstance(payload, bytes) or not payload:
+            raise TypeError("process file lock payload must be non-empty bytes")
+        self.assert_owned()
+        self._handle.seek(0)
+        self._handle.write(payload)
+        self._handle.truncate()
+        os.fsync(self._handle.fileno())
+        self._payload = payload
+
     def release(self) -> None:
         if self._handle.closed:
             return

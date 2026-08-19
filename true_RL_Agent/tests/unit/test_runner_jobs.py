@@ -45,6 +45,7 @@ from true_rl_agent.runner.specs import (
     CheckpointOutputPlan,
     CheckpointRef,
     EvalJobSpec,
+    GpuProcessBinding,
     TrainJobSpec,
 )
 from true_rl_agent.safety.eval_seal import build_trusted_eval_seal
@@ -210,6 +211,80 @@ class RunnerJobTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "execution_device"):
             bind_eval_spec_to_checkpoint(eval_spec, checkpoint)
+
+    def test_bound_eval_requires_exact_checkpoint_gpu_process_binding(self) -> None:
+        binding = GpuProcessBinding(
+            host_execution_device="cuda:1",
+            process_execution_device="cuda:0",
+            resource_binding_hash="9" * 64,
+        )
+        eval_spec = _eval_job_spec(
+            job_id="eval-gpu-lineage",
+            task_id="unitree_push_recovery",
+            candidate_id="candidate-001",
+            checkpoint=None,
+            checkpoint_output_plan=CheckpointOutputPlan(
+                "artifact://round/planned.pt"
+            ),
+            public_seed_count=4,
+            sealed_validation_seed_count=8,
+            execution_device="cuda:0",
+            evaluation_binding=make_evaluation_binding(
+                public_seed_count=4,
+                sealed_validation_seed_count=8,
+            ),
+            gpu_process_binding=binding,
+        )
+        lineage = {
+            "training_subject": eval_spec.subject.to_public_dict(),
+            "subject_manifest_hash": eval_spec.subject_manifest_hash,
+            "program_source_checksum": eval_spec.program_source_checksum,
+            "training_binding_hash": eval_spec.training_binding_hash,
+            "capability_profile_hash": eval_spec.capability_profile_hash,
+            "execution_device": eval_spec.execution_device,
+        }
+        checkpoint = CheckpointRef(
+            uri="artifact://round/sealed.pt",
+            checksum=_EVAL_CHECKSUM,
+            role="eval",
+            sealed=True,
+            metadata={**lineage, "gpu_process_binding": binding.to_dict()},
+        )
+
+        bound = bind_eval_spec_to_checkpoint(eval_spec, checkpoint)
+        self.assertEqual(bound.gpu_process_binding, binding)
+
+        with self.assertRaisesRegex(ValueError, "GPU process binding"):
+            bind_eval_spec_to_checkpoint(
+                replace(eval_spec, gpu_process_binding=None),
+                checkpoint,
+            )
+
+        invalid_bindings = (
+            None,
+            {
+                **binding.to_dict(),
+                "unexpected": "field",
+            },
+            GpuProcessBinding(
+                host_execution_device="cuda:2",
+                process_execution_device="cuda:0",
+                resource_binding_hash=binding.resource_binding_hash,
+            ).to_dict(),
+        )
+        for checkpoint_binding in invalid_bindings:
+            with self.subTest(checkpoint_binding=checkpoint_binding):
+                with self.assertRaisesRegex(ValueError, "GPU process binding"):
+                    bind_eval_spec_to_checkpoint(
+                        eval_spec,
+                        replace(
+                            checkpoint,
+                            metadata={
+                                **lineage,
+                                "gpu_process_binding": checkpoint_binding,
+                            },
+                        ),
+                    )
 
     def test_eval_binding_carries_verified_initial_policy_pairing_hash(self) -> None:
         eval_spec = _eval_job_spec(
