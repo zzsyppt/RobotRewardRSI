@@ -14,6 +14,7 @@ from true_rl_agent.candidates.capability_readiness import (
     AuthoringCapabilityReadiness,
 )
 from true_rl_agent.candidates.verifier import CandidateVerifier
+from true_rl_agent.composition.cell_manifest import ResolvedCellManifestV1
 from true_rl_agent.evaluation.binding import require_sha256_digest
 from true_rl_agent.memory.task_adapter import TaskMemoryAdapter
 from true_rl_agent.policy import PolicyInitialization
@@ -54,6 +55,7 @@ class ResolvedTaskComposition:
     reference_program_artifact: VerifiedReferenceProgramArtifact | None = None
     bootstrap_initial_best_score: float | None = None
     bootstrap_initial_policy_state_hash: str | None = None
+    resolved_cell_manifest: ResolvedCellManifestV1 | None = None
     authoring_capability_readiness: AuthoringCapabilityReadiness = field(
         init=False,
     )
@@ -67,6 +69,18 @@ class ResolvedTaskComposition:
             raise TaskCompositionError(
                 "composition task_id does not match task memory adapter"
             )
+        if self.resolved_cell_manifest is not None:
+            manifest = self.resolved_cell_manifest
+            if not isinstance(manifest, ResolvedCellManifestV1):
+                raise TaskCompositionError("composition cell manifest is invalid")
+            if manifest.task_id != self.task_id:
+                raise TaskCompositionError("composition cell manifest task_id mismatch")
+            if manifest.base_task_protocol_hash != (
+                self.task_plugin.task_spec.resolved_task_protocol_hash()
+            ):
+                raise TaskCompositionError(
+                    "composition cell manifest base task protocol mismatch"
+                )
         expected_anchor_kind = self.task_plugin.task_spec.genesis_anchor_kind_for(
             self.policy_initialization.kind
         )
@@ -270,7 +284,11 @@ class ResolvedTaskComposition:
         """
 
         snapshot = {
-            "schema_version": "true_rl_agent.runtime_composition_snapshot.v1",
+            "schema_version": (
+                "true_rl_agent.runtime_composition_snapshot.v2"
+                if self.resolved_cell_manifest is not None
+                else "true_rl_agent.runtime_composition_snapshot.v1"
+            ),
             "task_id": self.task_id,
             "task_protocol_hash": (
                 self.task_plugin.task_spec.resolved_task_protocol_hash()
@@ -281,6 +299,15 @@ class ResolvedTaskComposition:
             ),
             "task_defaults": dict(self.task_defaults),
         }
+        if self.resolved_cell_manifest is not None:
+            manifest = self.resolved_cell_manifest
+            snapshot["resolved_cell"] = {
+                "manifest_hash": manifest.manifest_hash,
+                "identity": manifest.summary_identity(),
+                "resolved_cell_task_protocol_hash": (
+                    manifest.resolved_cell_task_protocol_hash
+                ),
+            }
         if self.reference_program_artifact is not None:
             manifest = self.reference_program_artifact.manifest
             snapshot["reference_program"] = {

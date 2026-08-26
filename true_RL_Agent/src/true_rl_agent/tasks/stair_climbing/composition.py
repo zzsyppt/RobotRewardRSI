@@ -19,6 +19,10 @@ from true_rl_agent.composition.base import (
     TaskCompositionContext,
     TaskCompositionProvider,
 )
+from true_rl_agent.composition.cell_manifest import (
+    ResolvedCellManifestV1,
+    materialize_resolved_cell_manifest,
+)
 from true_rl_agent.evaluation.binding import EvaluationBindingV1
 from true_rl_agent.policy import PolicyInitialization
 from true_rl_agent.runner.budget import build_budget_accounting
@@ -36,7 +40,10 @@ from true_rl_agent.tasks.stair_climbing.config import (
     StairClimbingTaskConfig,
 )
 from true_rl_agent.tasks.stair_climbing.final_confirmation import (
+    STAIR_FINAL_CONFIRMATION_FORMAL_SESSION_MODE,
+    STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS,
     STAIR_FINAL_CONFIRMATION_REQUIRED_ROUNDS,
+    load_stair_generation_final_confirmation_plan,
     load_stair_final_confirmation_plan,
     stair_final_confirmation_plan_path,
 )
@@ -45,6 +52,10 @@ from true_rl_agent.tasks.stair_climbing.plugin import StairClimbingTaskPlugin
 from true_rl_agent.tasks.stair_climbing.runtime_profile import (
     STAIR_EVAL_PROFILE,
     STAIR_TRAIN_PROFILE,
+)
+from true_rl_agent.tasks.stair_climbing.robot_binding import (
+    STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID,
+    resolve_stair_cell_manifest,
 )
 from true_rl_agent.tasks.stair_climbing.seed_policy import (
     STAIR_FORMAL_EVAL_NAMESPACE,
@@ -241,11 +252,18 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
         return STAIR_TASK_ID
 
     def cli_defaults(self) -> Mapping[str, Any]:
-        return StairClimbingCompositionConfig.defaults(
+        defaults = StairClimbingCompositionConfig.defaults(
             project_root=self._project_root
         ).to_task_defaults()
+        defaults["cell_variant_id"] = STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID
+        return defaults
 
     def add_cli_arguments(self, parser: Any) -> None:
+        parser.add_argument(
+            "--cell-variant-id",
+            choices=(STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID,),
+            default=STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID,
+        )
         parser.add_argument(
             "--start-mode",
             choices=(STAIR_REFERENCE_START_MODE, STAIR_REWARD_COLD_START_MODE),
@@ -282,23 +300,32 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
             ],
         )
         confirmation_commitment: Mapping[str, Any] | None = None
-        if (
-            values.get("mode") == "live"
-            and start_profile.genesis_anchor_kind == "reference_program"
-        ):
+        mode = values.get("mode")
+        if mode in {
+            "live",
+            STAIR_FINAL_CONFIRMATION_FORMAL_SESSION_MODE,
+        } and start_profile.genesis_anchor_kind == "reference_program":
             session_id = values.get("session_id")
             if not isinstance(session_id, str) or not session_id:
                 raise ValueError(
-                    "live Stair final confirmation requires an explicit session_id"
+                    "Stair final confirmation requires an explicit session_id"
                 )
-            if values.get("rounds") != STAIR_FINAL_CONFIRMATION_REQUIRED_ROUNDS:
+            if mode == "live":
+                if values.get("rounds") != STAIR_FINAL_CONFIRMATION_REQUIRED_ROUNDS:
+                    raise ValueError(
+                        "live Stair final confirmation requires exactly 15 rounds"
+                    )
+            elif (
+                values.get("max_generations")
+                != STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS
+            ):
                 raise ValueError(
-                    "live Stair final confirmation requires exactly 15 rounds"
+                    "formal Stair final confirmation requires exactly 15 generations"
                 )
             raw_plan_path = values.get("final_confirmation_plan")
             if not isinstance(raw_plan_path, Path):
                 raise ValueError(
-                    "live Stair requires --final-confirmation-plan before Genesis"
+                    "Stair requires --final-confirmation-plan before Genesis"
                 )
             plan_path = Path(
                 os.path.abspath(
@@ -316,11 +343,18 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
                 raise ValueError(
                     "Stair final confirmation plan must belong to the live output_dir"
                 )
-            confirmation_plan = load_stair_final_confirmation_plan(
-                plan_path,
-                expected_session_id=session_id,
-                expected_config=task_config,
-            )
+            if mode == "live":
+                confirmation_plan = load_stair_final_confirmation_plan(
+                    plan_path,
+                    expected_session_id=session_id,
+                    expected_config=task_config,
+                )
+            else:
+                confirmation_plan = load_stair_generation_final_confirmation_plan(
+                    plan_path,
+                    expected_session_id=session_id,
+                    expected_config=task_config,
+                )
             confirmation_commitment = confirmation_plan.genesis_commitment()
         elif values.get("final_confirmation_plan") is not None:
             raise ValueError(
@@ -329,6 +363,20 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
         plugin = StairClimbingTaskPlugin(
             task_config,
             session_start_profile=start_profile,
+        )
+        resolved_cell_manifest = resolve_stair_cell_manifest(
+            cell_variant_id=str(
+                values.get(
+                    "cell_variant_id",
+                    STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID,
+                )
+            ),
+            config=task_config,
+            plugin=plugin,
+        )
+        resolved_cell_manifest_path = materialize_resolved_cell_manifest(
+            resolved_cell_manifest,
+            output_dir=context.output_dir,
         )
         candidate_admission_policy = StairCandidateAdmissionPolicy(task_config)
         profile_hash = plugin.task_spec.candidate_capability_profile.profile_hash
@@ -358,9 +406,14 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
             task_config=task_config,
             plugin=plugin,
             candidate_admission_policy=candidate_admission_policy,
+            resolved_cell_manifest=resolved_cell_manifest,
+            resolved_cell_manifest_path=resolved_cell_manifest_path,
         )
         resolved_task_defaults = composition_config.to_resolved_task_defaults(
             start_profile=start_profile
+        )
+        resolved_task_defaults["cell_variant_id"] = (
+            resolved_cell_manifest.cell_variant_id
         )
         if confirmation_commitment is not None:
             resolved_task_defaults["final_confirmation_precommit"] = dict(
@@ -387,6 +440,7 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
             bootstrap_initial_policy_state_hash=(
                 start_profile.initial_policy_state_hash
             ),
+            resolved_cell_manifest=resolved_cell_manifest,
         )
 
     def _resolve_reference_program_artifact(
@@ -422,6 +476,8 @@ def _build_stair_backend_config(
     task_config: StairClimbingTaskConfig,
     plugin: StairClimbingTaskPlugin,
     candidate_admission_policy: StairCandidateAdmissionPolicy,
+    resolved_cell_manifest: ResolvedCellManifestV1,
+    resolved_cell_manifest_path: Path,
 ) -> IsaacLabRslRlBackendConfig:
     if plugin.config is not task_config:
         raise ValueError("stair plugin config does not match composition config")
@@ -482,6 +538,8 @@ def _build_stair_backend_config(
         ),
         work_dir=str(context.project_root),
         curriculum_capabilities=StairClimbingTaskPlugin.curriculum_capabilities,
+        resolved_cell_manifest_path=str(resolved_cell_manifest_path),
+        resolved_cell_manifest_hash=resolved_cell_manifest.manifest_hash,
     )
 
 

@@ -226,6 +226,10 @@ class GenerationContractTests(unittest.TestCase):
         )
         self.assertNotIn("gpu_process_binding", self._manifest(lanes).to_dict()["lanes"][0])
         self.assertEqual(
+            self._manifest(lanes).to_public_dict(),
+            self._manifest(lanes).to_dict(),
+        )
+        self.assertEqual(
             generation_resource_plan_hash(lanes),
             "6243db4a5fea2696901bbd64534d51fe7b938a04fe5fd91f8e4f0756d01db6fc",
         )
@@ -246,6 +250,18 @@ class GenerationContractTests(unittest.TestCase):
             {"cuda:0", "cuda:1"},
         )
         self.assertEqual(GenerationManifest.from_mapping(manifest.to_dict()), manifest)
+        self.assertEqual(
+            manifest.to_public_dict()["lanes"][0]["gpu_process_binding"],
+            lanes[0].gpu_process_binding.to_public_dict(),
+        )
+        self.assertNotIn(
+            "host_execution_device",
+            manifest.to_public_dict()["lanes"][0]["gpu_process_binding"],
+        )
+        self.assertEqual(
+            manifest.to_dict()["lanes"][0]["gpu_process_binding"],
+            lanes[0].gpu_process_binding.to_dict(),
+        )
         self.assertNotEqual(
             generation_resource_plan_hash(lanes),
             generation_resource_plan_hash(self._lanes()),
@@ -304,6 +320,13 @@ class GenerationContractTests(unittest.TestCase):
             resource_binding_hash="a" * 64,
         )
         self.assertEqual(GpuProcessBinding.from_mapping(binding.to_dict()), binding)
+        self.assertEqual(
+            binding.to_public_dict(),
+            {
+                "process_execution_device": "cuda:0",
+                "resource_binding_hash": "a" * 64,
+            },
+        )
         with self.assertRaisesRegex(ValueError, "must be a CUDA device"):
             replace(binding, host_execution_device="cpu")
         with self.assertRaisesRegex(ValueError, "fields mismatch"):

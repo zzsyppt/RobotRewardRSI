@@ -20,6 +20,7 @@ from true_rl_agent.backends.isaac_lab_execution_environment import (
     ISAAC_LAB_RSL_RL_BACKEND_ID,
 )
 from true_rl_agent.backends.rsl_rl_training_config import RslRlAgentConfiguration
+from true_rl_agent.composition.cell_manifest import ResolvedCellManifestV1
 from true_rl_agent.evaluation.binding import (
     require_sha256_checksum,
     require_sha256_digest,
@@ -46,6 +47,13 @@ from true_rl_agent.tasks.stair_climbing.runtime_profile import (
     STAIR_COMPLETE_REWARD_RUNTIME_STATUS,
     STAIR_EVAL_GYM_ID,
     STAIR_TRAIN_GYM_ID,
+)
+from true_rl_agent.tasks.stair_climbing.legacy_runtime_projection import (
+    build_legacy_stair_runtime_projection,
+)
+from true_rl_agent.tasks.stair_climbing.runtime_projection import (
+    StairRuntimeProjection,
+    stair_runtime_projection_from_manifest,
 )
 from true_rl_agent.tasks.stair_climbing.termination_capture import (
     verify_stair_termination_manager_resolution,
@@ -489,6 +497,7 @@ def execute_stair_training(
     checkpoint_output: Path,
     run_name: str,
     expected_initial_policy_state_hash: str | None = None,
+    resolved_cell_manifest: ResolvedCellManifestV1 | None = None,
 ) -> StairTrainingExecutionResult:
     """Run the only authoritative Stair train path and return closed evidence."""
 
@@ -508,6 +517,7 @@ def execute_stair_training(
         checkpoint_output=checkpoint_output,
         run_name=run_name,
         expected_initial_policy_state_hash=expected_initial_policy_state_hash,
+        resolved_cell_manifest=resolved_cell_manifest,
         workload=_StairTrainingWorkload(
             kind="production",
             num_envs=config.train_num_envs,
@@ -531,6 +541,7 @@ def execute_stair_training_smoke(
     run_dir: Path,
     checkpoint_output: Path,
     run_name: str,
+    resolved_cell_manifest: ResolvedCellManifestV1 | None = None,
 ) -> StairTrainingExecutionResult:
     """Run one fixed, non-eligible smoke through the production execution body."""
 
@@ -547,6 +558,7 @@ def execute_stair_training_smoke(
         checkpoint_output=checkpoint_output,
         run_name=run_name,
         expected_initial_policy_state_hash=None,
+        resolved_cell_manifest=resolved_cell_manifest,
         workload=_StairTrainingWorkload(
             kind="phase_d_smoke",
             num_envs=16,
@@ -568,6 +580,7 @@ def _execute_stair_training(
     checkpoint_output: Path,
     run_name: str,
     expected_initial_policy_state_hash: str | None,
+    resolved_cell_manifest: ResolvedCellManifestV1 | None,
     workload: _StairTrainingWorkload,
 ) -> StairTrainingExecutionResult:
 
@@ -581,6 +594,7 @@ def _execute_stair_training(
         run_name=run_name,
         expected_initial_policy_state_hash=expected_initial_policy_state_hash,
     )
+    runtime_projection = _stair_runtime_projection_for_execution(resolved_cell_manifest)
     import gymnasium as gym
     import torch
     from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
@@ -631,6 +645,7 @@ def _execute_stair_training(
             device=device,
             reward_program=reward_program,
             runner_owned_training_distribution=training_distribution_contract,
+            runtime_projection=runtime_projection,
         )
         training_distribution_evidence = (
             stair_training_distribution_runtime_evidence(
@@ -948,6 +963,7 @@ def execute_stair_evaluation(
     seed_namespace: str,
     splits: tuple[str, ...],
     runtime_lease: StairEvaluationRuntimeLease | None = None,
+    resolved_cell_manifest: ResolvedCellManifestV1 | None = None,
 ) -> StairEvaluationExecutionResult:
     """Load one policy and evaluate explicit splits in one isolated runtime."""
 
@@ -985,6 +1001,7 @@ def execute_stair_evaluation(
         raise TypeError(
             "multi-split Stair evaluation requires a subprocess runtime lease"
         )
+    runtime_projection = _stair_runtime_projection_for_execution(resolved_cell_manifest)
 
     import gymnasium as gym
     from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
@@ -1012,6 +1029,7 @@ def execute_stair_evaluation(
         seed=resolver.base_seed,
         device=device,
         evaluation_profile=config.evaluation_profile_config,
+        runtime_projection=runtime_projection,
     )
     base_env = gym.make(STAIR_EVAL_GYM_ID, cfg=env_cfg, render_mode=None)
     if requires_runtime_lease:
@@ -1072,6 +1090,7 @@ def execute_stair_evaluation(
                 split=split,
                 seed_count=split_counts[split],
                 seed_namespace=seed_namespace,
+                runtime_projection=runtime_projection,
                 progress_callback=lambda completed, total, split=split: print(
                     "stair evaluation "
                     f"split={split} seed={completed}/{total}",
@@ -1166,6 +1185,14 @@ def _validate_source_manifest_preflight(
             "Stair execution requires a verified source manifest preflight"
         )
     source_manifest_preflight.validate_for(config)
+
+
+def _stair_runtime_projection_for_execution(
+    manifest: ResolvedCellManifestV1 | None,
+) -> StairRuntimeProjection:
+    if manifest is None:
+        return build_legacy_stair_runtime_projection()
+    return stair_runtime_projection_from_manifest(manifest)
 
 
 def _validated_source_manifest_preflight_summary(

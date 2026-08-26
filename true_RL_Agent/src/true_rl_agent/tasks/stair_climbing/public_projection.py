@@ -4,8 +4,13 @@ from __future__ import annotations
 
 import math
 import statistics
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
+from true_rl_agent.candidates.authoring_policy import (
+    canonical_mechanism_runtime_identity,
+    require_mechanism_operation_delta,
+)
 from true_rl_agent.evaluation.acceptance_protocol import AcceptanceProtocol
 from true_rl_agent.evaluation.binding import is_sha256_digest
 from true_rl_agent.evaluation.public_metric_contract import (
@@ -55,12 +60,17 @@ _PUBLIC_DEV_OBJECTIVE_SCORE_SOURCE = (
     "generalization_public_dev.score_stats.mean"
 )
 
+STAIR_CANDIDATE_RUNTIME_EFFECT_EVIDENCE_SCHEMA_VERSION = (
+    "true_rl_agent.task.stair_climbing.candidate_runtime_effect_evidence.v1"
+)
+
 
 def project_stair_public_result(
     *,
     config: StairClimbingTaskConfig,
     public_result: PublicEvalResult,
     train_summary: Mapping[str, Any],
+    mechanism_operation_delta: Mapping[str, Any] | None = None,
 ) -> PublicEvalResult:
     """Validate recorder summaries and derive every Stair acceptance input."""
 
@@ -165,7 +175,11 @@ def project_stair_public_result(
         raise ValueError("stair public score differs from public_accept macro mean")
 
     budget_gate = _budget_accounting_gate(config, train_summary)
-    runtime_gate = build_stair_runtime_activation_gate(config, train_summary)
+    runtime_gate = build_stair_runtime_activation_gate(
+        config,
+        train_summary,
+        mechanism_operation_delta=mechanism_operation_delta,
+    )
     behavior_gate = {
         "status": "pass",
         "reason": "task_recorder_public_split_evidence_complete",
@@ -333,6 +347,7 @@ def build_stair_runtime_activation_gate(
     train_summary: Mapping[str, Any],
     *,
     expected_control_calls: int | None = None,
+    mechanism_operation_delta: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     if expected_control_calls is None:
         expected_control_calls = (
@@ -365,6 +380,10 @@ def build_stair_runtime_activation_gate(
         preflight.get("real_transition_dispatcher_calls")
         if isinstance(preflight, Mapping)
         else None
+    )
+    runtime_effect = build_stair_candidate_runtime_effect_evidence(
+        train_summary,
+        mechanism_operation_delta=mechanism_operation_delta,
     )
     checks = {
         "runtime_status": runtime.get("runtime_status") == expected_status,
@@ -429,6 +448,9 @@ def build_stair_runtime_activation_gate(
             }
             == set(program.get("term_names", ()))
         ),
+        "candidate_reward_operation_runtime_effect": (
+            runtime_effect["status"] == "pass"
+        ),
         "generic_capability_record": runtime.get(
             "capability_activation_records"
         )
@@ -460,6 +482,140 @@ def build_stair_runtime_activation_gate(
         "failed_checks": failed,
         "dispatcher_calls": calls if checks["dispatcher_calls"] else None,
     }
+
+
+def build_stair_candidate_runtime_effect_evidence(
+    train_summary: Mapping[str, Any],
+    *,
+    mechanism_operation_delta: Mapping[str, Any] | None,
+) -> dict[str, Any]:
+    """Evaluate the candidate-owned reward delta's observed training effect.
+
+    This is the single Stair-owned evaluator used by both public-dev screening
+    and the later formal runtime gate.  It deliberately carries no acceptance
+    authority.
+    """
+
+    if not isinstance(train_summary, Mapping):
+        raise TypeError("Stair runtime-effect train summary must be an object")
+    runtime = train_summary.get("runtime_activation_summary")
+    program = runtime.get("program") if isinstance(runtime, Mapping) else None
+    component_records = (
+        runtime.get("component_activation_records")
+        if isinstance(runtime, Mapping)
+        else None
+    )
+    observed = _candidate_reward_operation_runtime_effect_is_observed(
+        mechanism_operation_delta,
+        program,
+        component_records,
+    )
+    return {
+        "schema_version": (
+            STAIR_CANDIDATE_RUNTIME_EFFECT_EVIDENCE_SCHEMA_VERSION
+        ),
+        "status": "pass" if observed else "fail",
+        "reason": (
+            "candidate_reward_operation_runtime_effect_observed"
+            if observed
+            else "candidate_reward_operation_runtime_effect_not_observed"
+        ),
+        "acceptance_authority": False,
+    }
+
+
+def require_stair_candidate_runtime_effect_evidence(
+    value: Any,
+) -> dict[str, Any]:
+    expected_fields = {
+        "schema_version",
+        "status",
+        "reason",
+        "acceptance_authority",
+    }
+    if not isinstance(value, Mapping) or set(value) != expected_fields:
+        raise ValueError("Stair candidate runtime-effect evidence fields mismatch")
+    status = value.get("status")
+    expected_reason = {
+        "pass": "candidate_reward_operation_runtime_effect_observed",
+        "fail": "candidate_reward_operation_runtime_effect_not_observed",
+    }.get(status)
+    if (
+        value.get("schema_version")
+        != STAIR_CANDIDATE_RUNTIME_EFFECT_EVIDENCE_SCHEMA_VERSION
+        or value.get("reason") != expected_reason
+        or value.get("acceptance_authority") is not False
+    ):
+        raise ValueError("Stair candidate runtime-effect evidence contract mismatch")
+    return dict(value)
+
+
+def _candidate_reward_operation_runtime_effect_is_observed(
+    mechanism_operation_delta: Mapping[str, Any] | None,
+    program: Any,
+    component_records: Any,
+) -> bool:
+    if mechanism_operation_delta is None:
+        return True
+    try:
+        delta = require_mechanism_operation_delta(mechanism_operation_delta)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            "Stair runtime-effect gate received an invalid verifier-owned "
+            "mechanism operation delta"
+        ) from exc
+    if not isinstance(program, Mapping):
+        return False
+    term_names = program.get("term_names")
+    if not isinstance(term_names, list):
+        return False
+    if not isinstance(component_records, list):
+        return False
+
+    operation = delta["operation"]
+    component = (
+        delta["before_component"]
+        if operation == "remove"
+        else delta["after_component"]
+    )
+    if not isinstance(component, Mapping):  # guarded by the strict delta validator
+        raise ValueError("validated Stair mechanism operation lost its component")
+    runtime_identity = canonical_mechanism_runtime_identity(
+        component.get("mechanism_id")
+    )
+    if runtime_identity is None:  # guarded by the strict delta validator
+        raise ValueError("validated Stair mechanism operation has no runtime identity")
+    if runtime_identity[0] != "reward_term":
+        raise ValueError(
+            "Stair candidate runtime-effect gate supports RewardTerm deltas only"
+        )
+
+    if operation == "remove":
+        return runtime_identity[1] not in term_names and not any(
+            isinstance(record, Mapping)
+            and record.get("component_kind") == runtime_identity[0]
+            and record.get("name") == runtime_identity[1]
+            for record in component_records
+        )
+
+    if runtime_identity[1] not in term_names:
+        return False
+    matches = [
+        record
+        for record in component_records
+        if isinstance(record, Mapping)
+        and record.get("component_kind") == runtime_identity[0]
+        and record.get("name") == runtime_identity[1]
+    ]
+    if len(matches) != 1:
+        return False
+    contribution = matches[0].get("max_abs_weighted_contribution")
+    return (
+        isinstance(contribution, int | float)
+        and not isinstance(contribution, bool)
+        and math.isfinite(contribution)
+        and contribution > 1.0e-12
+    )
 
 
 def build_stair_prompt_feedback(
@@ -699,8 +855,11 @@ def _mapping(value: Any, field_name: str) -> Mapping[str, Any]:
 
 
 __all__ = [
+    "STAIR_CANDIDATE_RUNTIME_EFFECT_EVIDENCE_SCHEMA_VERSION",
+    "build_stair_candidate_runtime_effect_evidence",
     "build_stair_prompt_feedback",
     "build_stair_prompt_score_semantics",
     "build_stair_runtime_activation_gate",
     "project_stair_public_result",
+    "require_stair_candidate_runtime_effect_evidence",
 ]

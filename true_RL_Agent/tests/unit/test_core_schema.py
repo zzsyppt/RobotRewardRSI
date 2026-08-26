@@ -339,11 +339,19 @@ class CoreSchemaTests(unittest.TestCase):
         self.assertNotEqual(train_spec.training_start_checkpoint(), eval_spec.checkpoint)
         self.assertEqual(
             train_spec.to_public_dict()["gpu_process_binding"],
-            gpu_process_binding.to_dict(),
+            gpu_process_binding.to_public_dict(),
         )
         self.assertEqual(
             eval_spec.to_public_dict()["gpu_process_binding"],
-            gpu_process_binding.to_dict(),
+            gpu_process_binding.to_public_dict(),
+        )
+        self.assertNotIn(
+            "host_execution_device",
+            train_spec.to_public_dict()["gpu_process_binding"],
+        )
+        self.assertEqual(
+            GpuProcessBinding.from_mapping(gpu_process_binding.to_dict()),
+            gpu_process_binding,
         )
         self.assertNotIn(
             "gpu_process_binding",

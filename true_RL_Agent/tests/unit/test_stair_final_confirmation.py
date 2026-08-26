@@ -11,6 +11,7 @@ from true_rl_agent.composition.base import (
     TaskCompositionContext,
     resolve_task_composition,
 )
+from true_rl_agent.agent_core.generation_lifecycle import GenerationTerminalBinding
 from true_rl_agent.evaluation.binding import canonical_json_hash
 from true_rl_agent.tasks.stair_climbing.composition import (
     StairClimbingCompositionProvider,
@@ -23,21 +24,35 @@ from true_rl_agent.tasks.stair_climbing.final_confirmation import (
     MAX_STAIR_FINAL_CONFIRMATION_PLAN_BYTES,
     MAX_STAIR_FINAL_CONFIRMATION_RESERVATION_BYTES,
     MAX_STAIR_FINAL_CONFIRMATION_RESULT_BYTES,
+    STAIR_FINAL_CONFIRMATION_PLAN_V2_SCHEMA_VERSION,
+    STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS,
     STAIR_FINAL_CONFIRMATION_REQUIRED_ROUNDS,
     STAIR_FINAL_CONFIRMATION_SPLIT,
     StairFinalConfirmationPlan,
+    StairFinalConfirmationPlanV2,
+    StairFinalConfirmationPhaseExecution,
     StairFinalConfirmationReservation,
+    StairFinalConfirmationReservationV2,
     StairFinalConfirmationResult,
+    StairFinalConfirmationResultV2,
     build_stair_final_confirmation_plan,
+    build_stair_generation_final_confirmation_plan,
+    build_stair_generation_final_confirmation_result,
     build_stair_final_confirmation_result,
     create_stair_final_confirmation_plan,
+    create_stair_generation_final_confirmation_plan,
     create_stair_final_confirmation_reservation,
+    create_stair_generation_final_confirmation_reservation,
     load_stair_final_confirmation_plan,
+    load_stair_generation_final_confirmation_plan,
+    load_stair_generation_final_confirmation_result,
     load_stair_final_confirmation_reservation,
+    load_stair_generation_final_confirmation_reservation,
     load_stair_final_confirmation_result,
     stair_final_confirmation_plan_path,
     stair_final_confirmation_result_path,
     write_stair_final_confirmation_result,
+    write_stair_generation_final_confirmation_result,
 )
 from true_rl_agent.tasks.stair_climbing.generalization_contract import (
     build_stair_generalization_summary,
@@ -58,6 +73,7 @@ from true_rl_agent.tasks.stair_climbing.training_distribution import (
     STAIR_EXECUTION_SOURCE_PREFLIGHT_SCHEMA_VERSION,
     stair_training_distribution_upstream_source_evidence,
 )
+from true_rl_agent.runner.specs import GpuProcessBinding
 
 ROOT = Path(__file__).resolve().parents[2]
 SHA = "a" * 64
@@ -111,6 +127,271 @@ class StairFinalConfirmationTests(unittest.TestCase):
         tampered["cohort"]["seed_count"] += 1
         with self.assertRaisesRegex(ValueError, "plan hash mismatch"):
             StairFinalConfirmationPlan.from_mapping(tampered)
+
+    def test_generation_plan_v2_is_pre_genesis_exact_and_diagnostic_only(self) -> None:
+        plan = build_stair_generation_final_confirmation_plan(
+            session_id="stair-generation-final-plan-test",
+            config=self.config,
+        )
+        restored = StairFinalConfirmationPlanV2.from_mapping(plan.to_dict())
+
+        self.assertEqual(restored, plan)
+        self.assertEqual(
+            plan.to_dict()["schema_version"],
+            STAIR_FINAL_CONFIRMATION_PLAN_V2_SCHEMA_VERSION,
+        )
+        self.assertEqual(
+            plan.to_dict()["required_closed_generations"],
+            STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS,
+        )
+        self.assertNotIn("required_closed_rounds", plan.to_dict())
+        self.assertEqual(
+            plan.to_dict()["comparison"]["final_role"],
+            "formal_final_current_best_after_generation_15",
+        )
+        self.assertEqual(
+            plan.to_dict()["comparison"]["execution_order"],
+            ["genesis", "final"],
+        )
+        self.assertFalse(plan.to_dict()["information_flow"]["feedback_allowed"])
+        self.assertFalse(
+            plan.to_dict()["information_flow"]["acceptance_authority"]
+        )
+        self.assertEqual(plan.seed_count, 7)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp) / "fresh-generation"
+            created, path = create_stair_generation_final_confirmation_plan(
+                output_dir=output_dir,
+                session_id=plan.session_id,
+                config=self.config,
+            )
+            self.assertEqual(created, plan)
+            self.assertEqual(
+                load_stair_generation_final_confirmation_plan(
+                    path,
+                    expected_session_id=plan.session_id,
+                    expected_config=self.config,
+                ),
+                plan,
+            )
+            with self.assertRaisesRegex(ValueError, "mismatch"):
+                load_stair_final_confirmation_plan(path)
+
+        tampered = copy.deepcopy(plan.to_dict())
+        tampered["information_flow"]["feedback_allowed"] = True
+        with self.assertRaisesRegex(ValueError, "information-flow mismatch"):
+            StairFinalConfirmationPlanV2.from_mapping(tampered)
+
+    def test_generation_reservation_v2_binds_terminal_specs_and_private_gpu(self) -> None:
+        plan = build_stair_generation_final_confirmation_plan(
+            session_id="stair-generation-reservation-test",
+            config=self.config,
+        )
+        terminal = GenerationTerminalBinding(
+            identity_hash="1" * 64,
+            required_generation_count=15,
+            closed_generation_count=15,
+            ledger_snapshot_hash="2" * 64,
+            current_head_hash="3" * 64,
+            lifecycle_head_hash="4" * 64,
+            cost_chain_head_hash="5" * 64,
+            segment_count=5,
+        )
+        reservation = StairFinalConfirmationReservationV2(
+            plan_hash=plan.plan_hash,
+            session_id=plan.session_id,
+            session_genesis_hash="6" * 64,
+            generation_session_contract_hash="7" * 64,
+            generation_cost_contract_hash="8" * 64,
+            ledger_checksum="sha256:" + "9" * 64,
+            terminal_binding=terminal.to_dict(),
+            source_checkout_hash="a" * 64,
+            backend_execution_environment_manifest_hash="b" * 64,
+            gpu_process_binding=GpuProcessBinding(
+                host_execution_device="cuda:0",
+                process_execution_device="cuda:0",
+                resource_binding_hash="c" * 64,
+            ),
+            genesis_job_id="generation-final-genesis-eval-sealed-validation",
+            final_job_id="generation-final-current-eval-sealed-validation",
+            genesis_eval_phase_spec_hash="d" * 64,
+            final_eval_phase_spec_hash="e" * 64,
+            genesis_evaluation_plan_hash="f" * 64,
+            final_evaluation_plan_hash="0" * 64,
+            genesis_checkpoint_hash="sha256:" + "1" * 64,
+            final_checkpoint_hash="sha256:" + "2" * 64,
+            genesis_source_manifest_hash="3" * 64,
+            final_source_manifest_hash="4" * 64,
+            genesis_training_binding_hash="5" * 64,
+            final_training_binding_hash="6" * 64,
+            genesis_capability_profile_hash="7" * 64,
+            final_capability_profile_hash="8" * 64,
+            final_anchor={"terminal_head_hash": terminal.current_head_hash},
+        )
+        restored = StairFinalConfirmationReservationV2.from_mapping(
+            reservation.to_dict(),
+            expected_plan=plan,
+        )
+        self.assertEqual(restored, reservation)
+        self.assertEqual(
+            restored.gpu_process_binding.to_dict(),
+            {
+                "host_execution_device": "cuda:0",
+                "process_execution_device": "cuda:0",
+                "resource_binding_hash": "c" * 64,
+            },
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp) / "formal"
+            created_plan, _ = create_stair_generation_final_confirmation_plan(
+                output_dir=output_dir,
+                session_id=plan.session_id,
+                config=self.config,
+            )
+            self.assertEqual(created_plan, plan)
+            created, path = (
+                create_stair_generation_final_confirmation_reservation(
+                    output_dir=output_dir,
+                    plan=plan,
+                    reservation=reservation,
+                )
+            )
+            self.assertEqual(created, reservation)
+            self.assertEqual(
+                load_stair_generation_final_confirmation_reservation(
+                    path,
+                    expected_plan=plan,
+                ),
+                reservation,
+            )
+            replayed, replayed_path = (
+                create_stair_generation_final_confirmation_reservation(
+                    output_dir=output_dir,
+                    plan=plan,
+                    reservation=reservation,
+                )
+            )
+            self.assertEqual((replayed, replayed_path), (reservation, path))
+
+        tampered = copy.deepcopy(reservation.to_dict())
+        del tampered["gpu_process_binding"]["host_execution_device"]
+        with self.assertRaisesRegex(ValueError, "fields mismatch"):
+            StairFinalConfirmationReservationV2.from_mapping(
+                tampered,
+                expected_plan=plan,
+            )
+
+    def test_generation_result_v2_binds_runner_receipts_and_is_diagnostic(self) -> None:
+        plan = build_stair_generation_final_confirmation_plan(
+            session_id="stair-generation-result-test",
+            config=self.config,
+        )
+        reservation = self._generation_reservation_v2(plan)
+        genesis_summary = self._uniform_summary(successes_per_cell=2)
+        final_summary = self._uniform_summary(successes_per_cell=3)
+        genesis_execution = StairFinalConfirmationPhaseExecution(
+            role="genesis",
+            job_id=reservation.genesis_job_id,
+            eval_phase_spec_hash=reservation.genesis_eval_phase_spec_hash,
+            evaluation_plan_hash=reservation.genesis_evaluation_plan_hash,
+            attempt_result_payload_hash="1" * 64,
+            receipt_checksum="sha256:" + "2" * 64,
+            resource_binding_hash=(
+                reservation.gpu_process_binding.resource_binding_hash
+            ),
+            checkpoint_hash=reservation.genesis_checkpoint_hash,
+            generalization_summary_hash=canonical_json_hash(genesis_summary),
+        )
+        final_execution = StairFinalConfirmationPhaseExecution(
+            role="final",
+            job_id=reservation.final_job_id,
+            eval_phase_spec_hash=reservation.final_eval_phase_spec_hash,
+            evaluation_plan_hash=reservation.final_evaluation_plan_hash,
+            attempt_result_payload_hash="3" * 64,
+            receipt_checksum="sha256:" + "4" * 64,
+            resource_binding_hash=(
+                reservation.gpu_process_binding.resource_binding_hash
+            ),
+            checkpoint_hash=reservation.final_checkpoint_hash,
+            generalization_summary_hash=canonical_json_hash(final_summary),
+        )
+        result = build_stair_generation_final_confirmation_result(
+            plan=plan,
+            reservation=reservation,
+            config=self.config,
+            genesis_execution=genesis_execution,
+            final_execution=final_execution,
+            genesis_summary=genesis_summary,
+            final_summary=final_summary,
+        )
+        self.assertEqual(len(result.paired_seed_deltas), 7)
+        self.assertNotIn("accepted", result.to_dict())
+        self.assertNotIn("passed", result.to_dict())
+        self.assertFalse(
+            result.to_dict()["information_flow"]["acceptance_authority"]
+        )
+        self.assertEqual(
+            StairFinalConfirmationResultV2.from_mapping(
+                result.to_dict(),
+                plan=plan,
+                reservation=reservation,
+                config=self.config,
+            ),
+            result,
+        )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp) / "formal"
+            create_stair_generation_final_confirmation_plan(
+                output_dir=output_dir,
+                session_id=plan.session_id,
+                config=self.config,
+            )
+            create_stair_generation_final_confirmation_reservation(
+                output_dir=output_dir,
+                plan=plan,
+                reservation=reservation,
+            )
+            path = write_stair_generation_final_confirmation_result(
+                output_dir=output_dir,
+                result=result,
+                plan=plan,
+                reservation=reservation,
+                config=self.config,
+            )
+            self.assertEqual(
+                load_stair_generation_final_confirmation_result(
+                    path,
+                    plan=plan,
+                    reservation=reservation,
+                    config=self.config,
+                ),
+                result,
+            )
+            with self.assertRaises(FileExistsError):
+                write_stair_generation_final_confirmation_result(
+                    output_dir=output_dir,
+                    result=result,
+                    plan=plan,
+                    reservation=reservation,
+                    config=self.config,
+                )
+
+        wrong = copy.deepcopy(genesis_execution.to_dict())
+        wrong["eval_phase_spec_hash"] = "0" * 64
+        with self.assertRaisesRegex(ValueError, "execution binding mismatch"):
+            build_stair_generation_final_confirmation_result(
+                plan=plan,
+                reservation=reservation,
+                config=self.config,
+                genesis_execution=(
+                    StairFinalConfirmationPhaseExecution.from_mapping(wrong)
+                ),
+                final_execution=final_execution,
+                genesis_summary=genesis_summary,
+                final_summary=final_summary,
+            )
 
     def test_plan_is_create_once_and_must_precede_genesis_state(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -233,6 +514,60 @@ class StairFinalConfirmationTests(unittest.TestCase):
 
             values["rounds"] = 16
             with self.assertRaisesRegex(ValueError, "exactly 15 rounds"):
+                provider.resolve(
+                    values=values,
+                    context=TaskCompositionContext(
+                        project_root=ROOT,
+                        output_dir=output_dir,
+                    ),
+                )
+
+    def test_formal_generation_composition_binds_v2_plan_only(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp) / "formal-generation"
+            session_id = "stair-formal-generation-plan-binding"
+            plan, path = create_stair_generation_final_confirmation_plan(
+                output_dir=output_dir,
+                session_id=session_id,
+                config=self.config,
+            )
+            provider = StairClimbingCompositionProvider()
+            values = dict(provider.cli_defaults())
+            values.update(
+                {
+                    "mode": "formal_generation_session",
+                    "max_generations": 15,
+                    "session_id": session_id,
+                    "start_mode": STAIR_REFERENCE_START_MODE,
+                    "final_confirmation_plan": path,
+                }
+            )
+
+            composition = provider.resolve(
+                values=values,
+                context=TaskCompositionContext(
+                    project_root=ROOT,
+                    output_dir=output_dir,
+                ),
+            )
+
+            self.assertEqual(
+                composition.task_defaults["final_confirmation_precommit"],
+                plan.genesis_commitment(),
+            )
+            self.assertEqual(
+                composition.task_defaults["final_confirmation_precommit"][
+                    "required_closed_generations"
+                ],
+                15,
+            )
+            self.assertNotIn(
+                "required_closed_rounds",
+                composition.task_defaults["final_confirmation_precommit"],
+            )
+
+            values["max_generations"] = 14
+            with self.assertRaisesRegex(ValueError, "exactly 15 generations"):
                 provider.resolve(
                     values=values,
                     context=TaskCompositionContext(
@@ -613,6 +948,52 @@ class StairFinalConfirmationTests(unittest.TestCase):
                 "actual_manifest_hash": backend_manifest_hash,
             },
             execution_device=execution_device,
+        )
+
+    def _generation_reservation_v2(
+        self,
+        plan: StairFinalConfirmationPlanV2,
+    ) -> StairFinalConfirmationReservationV2:
+        terminal = GenerationTerminalBinding(
+            identity_hash="1" * 64,
+            required_generation_count=15,
+            closed_generation_count=15,
+            ledger_snapshot_hash="2" * 64,
+            current_head_hash="3" * 64,
+            lifecycle_head_hash="4" * 64,
+            cost_chain_head_hash="5" * 64,
+            segment_count=5,
+        )
+        return StairFinalConfirmationReservationV2(
+            plan_hash=plan.plan_hash,
+            session_id=plan.session_id,
+            session_genesis_hash="6" * 64,
+            generation_session_contract_hash="7" * 64,
+            generation_cost_contract_hash="8" * 64,
+            ledger_checksum="sha256:" + "9" * 64,
+            terminal_binding=terminal.to_dict(),
+            source_checkout_hash="a" * 64,
+            backend_execution_environment_manifest_hash="b" * 64,
+            gpu_process_binding=GpuProcessBinding(
+                host_execution_device="cuda:0",
+                process_execution_device="cuda:0",
+                resource_binding_hash="c" * 64,
+            ),
+            genesis_job_id="generation-final-genesis-eval-sealed-validation",
+            final_job_id="generation-final-current-eval-sealed-validation",
+            genesis_eval_phase_spec_hash="d" * 64,
+            final_eval_phase_spec_hash="e" * 64,
+            genesis_evaluation_plan_hash="f" * 64,
+            final_evaluation_plan_hash="0" * 64,
+            genesis_checkpoint_hash="sha256:" + "1" * 64,
+            final_checkpoint_hash="sha256:" + "2" * 64,
+            genesis_source_manifest_hash="3" * 64,
+            final_source_manifest_hash="4" * 64,
+            genesis_training_binding_hash="5" * 64,
+            final_training_binding_hash="6" * 64,
+            genesis_capability_profile_hash="7" * 64,
+            final_capability_profile_hash="8" * 64,
+            final_anchor={"terminal_head_hash": terminal.current_head_hash},
         )
 
     def _uniform_summary(self, *, successes_per_cell: int) -> dict[str, object]:

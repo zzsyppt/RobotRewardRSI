@@ -15,14 +15,20 @@ from true_rl_agent.tasks.stair_climbing.config import (  # noqa: E402
 
 
 class StairEvaluationSemanticsTests(unittest.TestCase):
-    def test_active_config_directory_contains_only_loadable_semantics(self) -> None:
+    def test_active_and_historical_semantics_are_both_preserved(self) -> None:
         semantics_files = sorted(
             path.name
             for path in (ROOT / "configs" / "tasks").glob(
                 "stair_evaluation_semantics_v*.json"
             )
         )
-        self.assertEqual(semantics_files, ["stair_evaluation_semantics_v6.json"])
+        self.assertEqual(
+            semantics_files,
+            [
+                "stair_evaluation_semantics_v6.json",
+                "stair_evaluation_semantics_v7.json",
+            ],
+        )
 
     def test_active_semantics_are_bound_without_rewriting_historical_protocols(
         self,
@@ -42,11 +48,11 @@ class StairEvaluationSemanticsTests(unittest.TestCase):
         assert active.evaluation_semantics is not None
         self.assertEqual(
             active.evaluation_semantics.protocol_hash,
-            "21591e47c38d15e5742a9592761add3339b1b90002d28e3c4e825a9602322e92",
+            "df35aa0fb8c24983570e2c634fd0cc40f8d39beefc191d400c37f099aa8cb766",
         )
         self.assertEqual(
             active.task_protocol_hash,
-            "e19eae3dc21025953a62fbc1dd147e00dc60aab90f8f2b8ab3a45e1a7bf8c5e5",
+            "d82aae04f46d98b02cbd4848f4692f370bb419af5b6ee16aa34e108b954a56c9",
         )
         self.assertEqual(
             active.acceptance_protocol.protocol_hash,
@@ -93,7 +99,7 @@ class StairEvaluationSemanticsTests(unittest.TestCase):
         )
 
         self.assertIn(
-            "torso_contact",
+            "forbidden_contact",
             active.episode_outcomes()["primary_reasons"],
         )
         self.assertIn(

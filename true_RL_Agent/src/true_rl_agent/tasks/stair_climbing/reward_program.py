@@ -54,6 +54,9 @@ STAIR_REWARD_PROGRAM_QUALIFICATION_SCHEMA_VERSION = (
 STAIR_REWARD_RUNTIME_EVIDENCE_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.complete_reward_runtime_evidence.v1"
 )
+STAIR_REWARD_ENVIRONMENT_AXIS_EVIDENCE_SCHEMA_VERSION = (
+    "true_rl_agent.task.stair_climbing.reward_environment_axis.v1"
+)
 
 
 class StairRewardProgramError(ValueError):
@@ -62,6 +65,10 @@ class StairRewardProgramError(ValueError):
 
 class StairRewardOutputContractError(StairRewardProgramError):
     """Raised when a candidate reward output violates the frozen runtime ABI."""
+
+
+class StairRewardEnvironmentAxisError(StairRewardProgramError):
+    """Raised when one environment's reward depends on another environment."""
 
 
 class StairRewardArtifactIntegrityError(RuntimeError):
@@ -709,6 +716,86 @@ def assert_stair_reward_program_deterministic(
     }
 
 
+def assert_stair_reward_program_environment_independent(
+    program: QualifiedStairRewardProgram,
+    inputs_factory: Callable[[], StairRewardInputsV2],
+) -> dict[str, Any]:
+    """Check batch-axis equivariance and single-row locality once per reward term."""
+
+    import torch
+
+    inputs = inputs_factory()
+    num_envs = _input_num_envs(inputs)
+    if num_envs < 3:
+        raise StairRewardProgramError(
+            "Stair environment-axis fixture requires at least three environments"
+        )
+    baseline = evaluate_stair_reward_program(
+        program,
+        inputs,
+        num_envs=num_envs,
+    )
+    reverse_order = torch.arange(num_envs - 1, -1, -1, dtype=torch.long)
+    reversed_evaluation = evaluate_stair_reward_program(
+        program,
+        _transform_environment_rows(
+            inputs,
+            contract=program.contract,
+            row_order=reverse_order,
+        ),
+        num_envs=num_envs,
+    )
+    perturbed_row = num_envs // 2
+    perturbed_evaluation = evaluate_stair_reward_program(
+        program,
+        _transform_environment_rows(
+            inputs,
+            contract=program.contract,
+            perturbed_row=perturbed_row,
+        ),
+        num_envs=num_envs,
+    )
+    other_rows = torch.tensor(
+        [row for row in range(num_envs) if row != perturbed_row],
+        dtype=torch.long,
+    )
+    for name in program.term_names:
+        baseline_term = baseline.raw_terms[name]
+        expected_reversed = baseline_term.index_select(
+            0,
+            reverse_order.to(device=baseline_term.device),
+        )
+        if not torch.equal(
+            expected_reversed,
+            reversed_evaluation.raw_terms[name],
+        ):
+            raise StairRewardEnvironmentAxisError(
+                "reward_environment_axis_reverse_permutation_failed:"
+                + require_component_name(name)
+            )
+        comparison_rows = other_rows.to(device=baseline_term.device)
+        if not torch.equal(
+            baseline_term.index_select(0, comparison_rows),
+            perturbed_evaluation.raw_terms[name].index_select(
+                0,
+                comparison_rows,
+            ),
+        ):
+            raise StairRewardEnvironmentAxisError(
+                "reward_environment_axis_single_row_locality_failed:"
+                + require_component_name(name)
+            )
+    return {
+        "schema_version": (
+            STAIR_REWARD_ENVIRONMENT_AXIS_EVIDENCE_SCHEMA_VERSION
+        ),
+        "status": "pass",
+        "reverse_permutation_checks": len(program.term_names),
+        "single_row_locality_checks": len(program.term_names),
+        "term_names": list(program.term_names),
+    }
+
+
 def _input_num_envs(inputs: StairRewardInputsV2) -> int:
     values = stair_reward_input_values(inputs)
     for value in values:
@@ -716,6 +803,50 @@ def _input_num_envs(inputs: StairRewardInputsV2) -> int:
         if shape is not None and len(shape) >= 1:
             return int(shape[0])
     raise StairRewardProgramError("Stair reward fixture has no batch dimension")
+
+
+def _transform_environment_rows(
+    inputs: StairRewardInputsV2,
+    *,
+    contract: StairCompleteRewardRuntimeContract,
+    row_order: Any | None = None,
+    perturbed_row: int | None = None,
+) -> StairRewardInputsV2:
+    import torch
+
+    if (row_order is None) == (perturbed_row is None):
+        raise ValueError("exactly one Stair environment-row transform is required")
+    transformed: dict[str, Any] = {}
+    for name, value in zip(
+        contract.field_names,
+        stair_reward_input_values(inputs),
+        strict=True,
+    ):
+        if not isinstance(value, torch.Tensor) or value.ndim < 1:
+            raise StairRewardProgramError(
+                "Stair environment-axis fixture tensors are invalid"
+            )
+        if row_order is not None:
+            transformed[name] = value.index_select(
+                0,
+                row_order.to(device=value.device),
+            ).clone()
+            continue
+        assert perturbed_row is not None
+        changed = value.clone()
+        if changed.dtype == torch.bool:
+            changed[perturbed_row] = ~changed[perturbed_row]
+        elif changed.is_floating_point():
+            changed[perturbed_row] = changed[perturbed_row] + 1.0
+        else:
+            raise StairRewardProgramError(
+                "Stair environment-axis fixture tensor dtype is invalid"
+            )
+        transformed[name] = changed
+    return StairRewardInputsV2._validated(
+        contract=contract,
+        values=transformed,
+    )
 
 
 def _validate_complete_training_components(
@@ -987,14 +1118,17 @@ def _tensor_scalar(value: Any) -> float | None:
 
 __all__ = [
     "QualifiedStairRewardProgram",
+    "STAIR_REWARD_ENVIRONMENT_AXIS_EVIDENCE_SCHEMA_VERSION",
     "STAIR_REWARD_PROGRAM_QUALIFICATION_SCHEMA_VERSION",
     "STAIR_REWARD_RUNTIME_EVIDENCE_SCHEMA_VERSION",
     "StairCompleteRewardDispatcher",
     "StairRewardEvaluation",
     "StairRewardArtifactIntegrityError",
+    "StairRewardEnvironmentAxisError",
     "StairRewardOutputContractError",
     "StairRewardProgramError",
     "assert_stair_reward_program_deterministic",
+    "assert_stair_reward_program_environment_independent",
     "evaluate_stair_reward_program",
     "qualify_stair_candidate_reward_program",
     "qualify_stair_reference_reward_program",

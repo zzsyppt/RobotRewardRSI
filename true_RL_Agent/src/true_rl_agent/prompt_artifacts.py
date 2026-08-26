@@ -1506,6 +1506,57 @@ def verify_authoring_candidate_binding(
             )
 
 
+def verify_authoring_anchor_prompt(
+    evidence: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Verify and load the prompt that freezes one round's comparison anchor."""
+
+    descriptor = dispatch_authoring_evidence_schema(evidence)
+    attempts = evidence.get("attempts")
+    selected_attempt_id = evidence.get("selected_attempt_id")
+    if not isinstance(attempts, list) or not isinstance(selected_attempt_id, str):
+        raise ValueError("authoring evidence prompt anchor is invalid")
+    selected = next(
+        (
+            item
+            for item in attempts
+            if isinstance(item, Mapping)
+            and item.get("attempt_id") == selected_attempt_id
+        ),
+        None,
+    )
+    if not isinstance(selected, Mapping):
+        raise ValueError("selected authoring attempt is missing")
+    if descriptor.round_authoring_anchor_bound:
+        anchor_ref = RoundAuthoringAnchorRef.from_mapping(
+            evidence.get("round_authoring_anchor")
+        )
+        round_authoring_anchor = verify_round_authoring_anchor(
+            anchor_ref,
+            expected_round_id=_required_text(
+                evidence.get("round_id"),
+                "authoring evidence round_id",
+            ),
+        )
+        raw_prompt_ref = round_authoring_anchor.get("prompt_payload")
+    else:
+        raw_prompt_ref = selected.get("prompt_payload")
+    prompt_ref = PromptPayloadRef.from_mapping(raw_prompt_ref)
+    if descriptor.round_authoring_anchor_bound:
+        first_prompt_ref = next(
+            (
+                PromptPayloadRef.from_mapping(item.get("prompt_payload"))
+                for item in attempts
+                if isinstance(item, Mapping)
+                and item.get("prompt_payload") is not None
+            ),
+            None,
+        )
+        if first_prompt_ref is None or prompt_ref != first_prompt_ref:
+            raise ValueError("round authoring prompt anchor mismatch")
+    return verify_prompt_payload(prompt_ref)
+
+
 def project_selected_authoring_mechanism_delta(
     evidence: Mapping[str, Any],
 ) -> dict[str, Any] | None:
@@ -1547,34 +1598,7 @@ def project_selected_authoring_mechanism_delta(
     ):
         raise ValueError("selected authoring mechanism assessment schema is invalid")
     try:
-        if descriptor.round_authoring_anchor_bound:
-            anchor_ref = RoundAuthoringAnchorRef.from_mapping(
-                evidence.get("round_authoring_anchor")
-            )
-            round_authoring_anchor = verify_round_authoring_anchor(
-                anchor_ref,
-                expected_round_id=_required_text(
-                    evidence.get("round_id"),
-                    "authoring evidence round_id",
-                ),
-            )
-            raw_prompt_ref = round_authoring_anchor.get("prompt_payload")
-        else:
-            raw_prompt_ref = selected.get("prompt_payload")
-        prompt_ref = PromptPayloadRef.from_mapping(raw_prompt_ref)
-        if descriptor.round_authoring_anchor_bound:
-            first_prompt_ref = next(
-                (
-                    PromptPayloadRef.from_mapping(item.get("prompt_payload"))
-                    for item in attempts
-                    if isinstance(item, Mapping)
-                    and item.get("prompt_payload") is not None
-                ),
-                None,
-            )
-            if first_prompt_ref is None or prompt_ref != first_prompt_ref:
-                raise ValueError("round authoring prompt anchor mismatch")
-        anchor_prompt = verify_prompt_payload(prompt_ref)
+        anchor_prompt = verify_authoring_anchor_prompt(evidence)
         _, expected_anchor_hash, expected_anchor_role = (
             select_authoring_anchor_source(anchor_prompt)
         )
@@ -2181,6 +2205,7 @@ __all__ = [
     "publish_prompt_payload",
     "validate_authoring_budget_usage",
     "validate_ledger_prompt_artifacts",
+    "verify_authoring_anchor_prompt",
     "verify_authoring_candidate_binding",
     "verify_authoring_evidence",
     "verify_prompt_payload",

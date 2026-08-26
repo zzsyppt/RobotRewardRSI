@@ -26,6 +26,10 @@ from true_rl_agent.tasks.stair_climbing.isaaclab_evaluation_terrain import (
 )
 from true_rl_agent.tasks.stair_climbing.isaaclab_reward_runtime import (
     StairCompleteRewardManagerCfg,
+    stair_kinematic_base_state,
+)
+from true_rl_agent.tasks.stair_climbing.legacy_runtime_projection import (
+    build_legacy_stair_runtime_projection,
 )
 from true_rl_agent.tasks.stair_climbing.reward_program import (
     QualifiedStairRewardProgram,
@@ -36,6 +40,11 @@ from true_rl_agent.tasks.stair_climbing.runtime_profile import (
     STAIR_TRAIN_GYM_ID,
     STAIR_TRANSITION_RECORDER_SCHEMA_VERSION,
 )
+from true_rl_agent.tasks.stair_climbing.runtime_projection import (
+    STAIR_TRANSITION_VNEXT_SCHEMA_VERSION,
+    StairRuntimeProjection,
+    resolve_stair_runtime_projection,
+)
 from true_rl_agent.tasks.stair_climbing.termination_capture import (
     capture_current_termination_masks,
     install_stair_termination_capture,
@@ -44,27 +53,24 @@ from true_rl_agent.tasks.stair_climbing.training_distribution import (
     resolved_stair_training_distribution,
 )
 
-_FOOT_BODY_NAMES = ("left_ankle_roll_link", "right_ankle_roll_link")
-_BASE_CONTACT_BODY_NAMES = ("torso_link",)
-
 
 class StairEvalTransitionRecorder(RecorderTerm):
     """Capture runner-owned task state before done environments are reset."""
 
     def __init__(self, cfg: RecorderTermCfg, env: Any) -> None:
         super().__init__(cfg, env)
+        projection = cfg.runtime_projection
+        if projection is None:
+            projection = build_legacy_stair_runtime_projection()
+        if not isinstance(projection, StairRuntimeProjection):
+            raise TypeError("Stair recorder runtime projection is invalid")
+        self.runtime_projection = projection
         robot = env.scene["robot"]
-        contact_sensor = env.scene["contact_forces"]
-        self._robot_foot_ids = _resolve_body_ids(robot, _FOOT_BODY_NAMES, "robot")
-        self._contact_foot_ids = _resolve_body_ids(
-            contact_sensor,
-            _FOOT_BODY_NAMES,
-            "contact sensor feet",
-        )
-        self._contact_base_ids = _resolve_body_ids(
-            contact_sensor,
-            _BASE_CONTACT_BODY_NAMES,
-            "contact sensor base",
+        contact_sensor = env.scene[projection.contact_sensor_name]
+        self._resolved_projection = resolve_stair_runtime_projection(
+            projection,
+            robot=robot,
+            contact_sensor=contact_sensor,
         )
         terrain = env.scene.terrain
         terrain_types = getattr(terrain, "terrain_types", None)
@@ -77,28 +83,21 @@ class StairEvalTransitionRecorder(RecorderTerm):
         termination = capture_current_termination_masks(self._env)
         scene = self._env.scene
         robot_data = scene["robot"].data
-        contact_data = scene["contact_forces"].data
+        contact_data = scene[self.runtime_projection.contact_sensor_name].data
         contact_forces = contact_data.net_forces_w
         if contact_forces is None:
             raise RuntimeError("Stair eval recorder requires current contact forces")
 
-        self._env.extras[STAIR_EVAL_TRANSITION_EXTRAS_KEY] = {
-            "schema_version": STAIR_TRANSITION_RECORDER_SCHEMA_VERSION,
-            "root_pos_w": robot_data.root_pos_w.detach().clone(),
-            "root_quat_w": robot_data.root_quat_w.detach().clone(),
-            "joint_pos": robot_data.joint_pos.detach().clone(),
-            "foot_pos_w": robot_data.body_pos_w[:, self._robot_foot_ids, :]
-            .detach()
-            .clone(),
-            "foot_lin_vel_w": robot_data.body_lin_vel_w[:, self._robot_foot_ids, :]
-            .detach()
-            .clone(),
-            "foot_contact_forces_w": contact_forces[:, self._contact_foot_ids, :]
-            .detach()
-            .clone(),
-            "base_contact_forces_w": contact_forces[:, self._contact_base_ids, :]
-            .detach()
-            .clone(),
+        resolved = self._resolved_projection
+        kinematic_base = stair_kinematic_base_state(
+            robot_data,
+            runtime_projection=self.runtime_projection,
+            resolved_projection=resolved,
+        )
+        base_pos_w = kinematic_base.pos_w
+        base_quat_w = kinematic_base.quat_w
+        common = {
+            "joint_pos": robot_data.joint_pos[:, resolved.joint_ids].detach().clone(),
             "episode_length": self._env.episode_length_buf.detach().clone(),
             "terrain_env_origins_w": self._terrain_env_origins_w,
             "terrain_types": self._terrain_types,
@@ -106,12 +105,64 @@ class StairEvalTransitionRecorder(RecorderTerm):
             "termination_masks": dict(termination.term_masks),
             "done_mask": termination.done_mask,
         }
+        support = {
+            "support_pos_w": robot_data.body_pos_w[:, resolved.support_body_ids, :]
+            .detach()
+            .clone(),
+            "support_lin_vel_w": robot_data.body_lin_vel_w[
+                :, resolved.support_body_ids, :
+            ]
+            .detach()
+            .clone(),
+            "support_contact_forces_w": contact_forces[
+                :, resolved.contact_support_body_ids, :
+            ]
+            .detach()
+            .clone(),
+            "forbidden_contact_forces_w": contact_forces[
+                :, resolved.contact_forbidden_body_ids, :
+            ]
+            .detach()
+            .clone(),
+        }
+        if self.runtime_projection.legacy_reward_adapter_id is not None:
+            payload = {
+                **common,
+                "schema_version": STAIR_TRANSITION_RECORDER_SCHEMA_VERSION,
+                "root_pos_w": base_pos_w.detach().clone(),
+                "root_quat_w": base_quat_w.detach().clone(),
+                "foot_pos_w": support["support_pos_w"],
+                "foot_lin_vel_w": support["support_lin_vel_w"],
+                "foot_contact_forces_w": support["support_contact_forces_w"],
+                "base_contact_forces_w": support["forbidden_contact_forces_w"],
+            }
+        else:
+            payload = {
+                **common,
+                **support,
+                "schema_version": STAIR_TRANSITION_VNEXT_SCHEMA_VERSION,
+                "base_pos_w": base_pos_w.detach().clone(),
+                "base_quat_w": base_quat_w.detach().clone(),
+                "runtime_projection_hash": self.runtime_projection.projection_hash,
+                "reward_input_schema_hash_vnext": (
+                    self.runtime_projection.reward_input_schema_hash_vnext
+                ),
+                "support_count": self.runtime_projection.support_count,
+                "forbidden_contact_count": (
+                    self.runtime_projection.forbidden_contact_count
+                ),
+            }
+        self._env.extras[STAIR_EVAL_TRANSITION_EXTRAS_KEY] = payload
         return None, None
+
+    def runtime_summary(self) -> dict[str, Any]:
+        return self._resolved_projection.to_summary_dict()
 
 
 @configclass
 class StairEvalTransitionRecorderCfg(RecorderTermCfg):
     class_type: type[RecorderTerm] = StairEvalTransitionRecorder
+    runtime_projection: StairRuntimeProjection | None = None
 
 
 @configclass
@@ -128,6 +179,7 @@ def build_stair_train_env_cfg(
     device: str,
     reward_program: QualifiedStairRewardProgram,
     runner_owned_training_distribution: Mapping[str, Any] | None = None,
+    runtime_projection: StairRuntimeProjection | None = None,
 ) -> StairG1RoughEnvCfg:
     """Build training with one pre-reset complete-reward authority."""
 
@@ -149,6 +201,7 @@ def build_stair_train_env_cfg(
     rewards.complete_reward.params = {
         "qualified_program": reward_program,
         "base_protocol": dict(protocol),
+        "runtime_projection": runtime_projection,
     }
     cfg.rewards = rewards
     cfg.recorders = None
@@ -179,9 +232,7 @@ def stair_training_distribution_runtime_evidence(
     sub_terrains = terrain_generator.sub_terrains
     if set(sub_terrains) != {"one_way_stairs"}:
         raise RuntimeError("Stair training terrain source set drifted")
-    effective_height_range = list(
-        sub_terrains["one_way_stairs"].step_height_range
-    )
+    effective_height_range = list(sub_terrains["one_way_stairs"].step_height_range)
     command = cfg.commands.base_velocity
     curriculum_term = cfg.curriculum.terrain_levels
     if curriculum_term is None:
@@ -193,9 +244,7 @@ def stair_training_distribution_runtime_evidence(
             "step_height_range_m": effective_height_range,
             "generator_curriculum": bool(terrain_generator.curriculum),
             "runtime_level_curriculum_enabled": curriculum_term is not None,
-            "initial_max_terrain_level": int(
-                cfg.scene.terrain.max_init_terrain_level
-            ),
+            "initial_max_terrain_level": int(cfg.scene.terrain.max_init_terrain_level),
             "level_update_term": _callable_identity(curriculum_term.func),
         },
         "command": {
@@ -233,9 +282,7 @@ def _apply_runner_owned_training_distribution(
         terrain["step_height_range_m"]
     )
     terrain_generator.curriculum = bool(terrain["generator_curriculum"])
-    cfg.scene.terrain.max_init_terrain_level = int(
-        terrain["initial_max_terrain_level"]
-    )
+    cfg.scene.terrain.max_init_terrain_level = int(terrain["initial_max_terrain_level"])
     default_curriculum = type(cfg.curriculum)()
     if default_curriculum.terrain_levels is None:
         raise RuntimeError("official G1 terrain-level curriculum is unavailable")
@@ -243,17 +290,11 @@ def _apply_runner_owned_training_distribution(
 
     command = cfg.commands.base_velocity
     resolved_command = resolved["command"]
-    command.rel_standing_envs = float(
-        resolved_command["standing_env_fraction"]
-    )
+    command.rel_standing_envs = float(resolved_command["standing_env_fraction"])
     command.ranges.lin_vel_x = tuple(resolved_command["lin_vel_x_range_mps"])
     command.ranges.lin_vel_y = tuple(resolved_command["lin_vel_y_range_mps"])
-    command.ranges.ang_vel_z = tuple(
-        resolved_command["ang_vel_z_range_radps"]
-    )
-    command.heading_command = bool(
-        resolved_command["heading_command_enabled"]
-    )
+    command.ranges.ang_vel_z = tuple(resolved_command["ang_vel_z_range_radps"])
+    command.heading_command = bool(resolved_command["heading_command_enabled"])
     stair_training_distribution_runtime_evidence(
         cfg,
         protocol=protocol,
@@ -264,7 +305,12 @@ def _apply_runner_owned_training_distribution(
 def _callable_identity(value: Any) -> str:
     module = getattr(value, "__module__", None)
     name = getattr(value, "__name__", None)
-    if not isinstance(module, str) or not module or not isinstance(name, str) or not name:
+    if (
+        not isinstance(module, str)
+        or not module
+        or not isinstance(name, str)
+        or not name
+    ):
         raise RuntimeError("Stair training curriculum callable identity is invalid")
     return f"{module}.{name}"
 
@@ -275,6 +321,7 @@ def build_stair_eval_env_cfg(
     seed: int,
     device: str,
     evaluation_profile: StairEvaluationProfile | None = None,
+    runtime_projection: StairRuntimeProjection | None = None,
 ) -> StairG1RoughEnvCfg:
     """Build production evaluation with pre-reset task evidence."""
 
@@ -293,6 +340,7 @@ def build_stair_eval_env_cfg(
         )
     install_stair_termination_capture(cfg.terminations)
     cfg.recorders = StairEvalRecorderManagerCfg()
+    cfg.recorders.transition.runtime_projection = runtime_projection
     return cfg
 
 
@@ -307,13 +355,6 @@ def register_production_stair_envs() -> None:
             entry_point="isaaclab.envs:ManagerBasedRLEnv",
             disable_env_checker=True,
         )
-
-
-def _resolve_body_ids(asset: Any, names: tuple[str, ...], context: str) -> list[int]:
-    body_ids, resolved_names = asset.find_bodies(list(names), preserve_order=True)
-    if tuple(resolved_names) != names or len(body_ids) != len(names):
-        raise RuntimeError(f"Stair {context} body schema drifted")
-    return [int(body_id) for body_id in body_ids]
 
 
 __all__ = [

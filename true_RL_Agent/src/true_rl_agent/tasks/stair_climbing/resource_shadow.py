@@ -661,6 +661,7 @@ def execute_stair_resource_shadow_training(
         checkpoint_output=checkpoint_output,
         run_name=run_name,
         expected_initial_policy_state_hash=expected_initial_policy_state_hash,
+        resolved_cell_manifest=None,
         workload=_StairTrainingWorkload(
             # Keep the authoritative training module unchanged while selecting
             # its existing full-size production-shape branch.

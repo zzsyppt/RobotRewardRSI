@@ -43,6 +43,11 @@ from true_rl_agent.tasks.stair_climbing.isaaclab_execution import (  # noqa: E40
     execute_stair_training,
     preflight_stair_execution_source_manifest,
 )
+from true_rl_agent.composition.cell_manifest import (  # noqa: E402
+    add_resolved_cell_manifest_arguments,
+    load_optional_resolved_cell_manifest_from_args,
+    resolved_cell_summary_fields,
+)
 from true_rl_agent.tasks.stair_climbing.reference_program import (  # noqa: E402
     resolve_official_stair_reference_artifact,
 )
@@ -99,6 +104,9 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
     )
     parser.add_argument("--candidate-failure-contract-hash", default=None)
+    parser.add_argument("--task-protocol-hash", default=None)
+    parser.add_argument("--base-task-protocol-hash", default=None)
+    add_resolved_cell_manifest_arguments(parser)
     for option in (
         "--budget-steps",
         "--num-envs",
@@ -136,6 +144,23 @@ def main(argv: list[str] | None = None) -> int:
             environment=os.environ,
         )
         context = validate_stair_train_invocation(args, project_root=PROJECT_ROOT)
+        if (
+            args.resolved_cell_manifest_path is not None
+            or args.resolved_cell_manifest_hash is not None
+        ):
+            if args.base_task_protocol_hash is None:
+                raise ValueError(
+                    "resolved cell manifest requires --base-task-protocol-hash"
+                )
+            args.resolved_cell_manifest = (
+                load_optional_resolved_cell_manifest_from_args(
+                    args,
+                    expected_task_id=args.task_id,
+                    expected_base_task_protocol_hash=(args.base_task_protocol_hash),
+                )
+            )
+        else:
+            args.resolved_cell_manifest = None
         if args.headless is not True:
             raise ValueError("stair production train must be headless")
         summary_path = _local_output_path(args.summary_path, "summary_path")
@@ -259,6 +284,7 @@ def _run_training(
         expected_initial_policy_state_hash=(
             context.expected_initial_policy_state_hash
         ),
+        resolved_cell_manifest=getattr(args, "resolved_cell_manifest", None),
     )
     fields = result.to_summary_fields()
     compute_context_observation = (
@@ -345,6 +371,9 @@ def _status_summary(
             "train_attempt_id": attempt_id,
             "seed_policy": "runner_owned_not_public",
         },
+        **resolved_cell_summary_fields(
+            getattr(args, "resolved_cell_manifest", None)
+        ),
     }
     if reward_program is not None:
         if reward_program.program_source_checksum != context.program_source_checksum:

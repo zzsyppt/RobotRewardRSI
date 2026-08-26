@@ -162,7 +162,7 @@ class StairEvaluationProfileTests(unittest.TestCase):
             "primary_outcome_counts_by_cell"
         ][first_cell]
         seed_counts["timeout"] -= 1
-        seed_counts["torso_contact"] += 1
+        seed_counts["forbidden_contact"] += 1
         with self.assertRaisesRegex(ValueError, "per-seed primary outcomes"):
             validate_stair_generalization_summary(
                 profile=self.profile,
@@ -295,12 +295,12 @@ class StairEvaluationProfileTests(unittest.TestCase):
         )
         first[1][failure_index] = replace(
             first[1][failure_index],
-            primary_reason="torso_contact",
+            primary_reason="forbidden_contact",
             active_terminal_terms=("base_contact",),
         )
         second[0][failure_index] = replace(
             second[0][failure_index],
-            primary_reason="torso_contact",
+            primary_reason="forbidden_contact",
             active_terminal_terms=("base_contact",),
         )
         second[1][failure_index] = replace(
@@ -385,7 +385,7 @@ class StairEvaluationProfileTests(unittest.TestCase):
         )
         self.assertEqual(
             canonical_json_hash(canonical),
-            "0a7a3c61a9ed285b639f048100f3561cd9ddc4727081a312f10908531377c40b",
+            "a280d21ba4b393a061bbf22fb736b2e145f819569b1dd54e618e337dde8e7dd5",
         )
 
         public_summary = self._uniform_summary(

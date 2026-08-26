@@ -64,7 +64,6 @@ from true_rl_agent.evaluation.acceptance_protocol import AcceptanceProtocol
 from true_rl_agent.evaluation.binding import (
     EvaluationBindingV1,
     attach_evaluation_binding,
-    canonical_json_hash,
     require_sha256_checksum,
     require_sha256_digest,
 )
@@ -85,9 +84,9 @@ from true_rl_agent.prompt_artifacts import (
     authoring_outcome_from_evidence,
     project_selected_authoring_mechanism_delta,
     validate_ledger_prompt_artifacts,
+    verify_authoring_anchor_prompt,
     verify_authoring_candidate_binding,
     verify_authoring_evidence,
-    verify_prompt_payload,
 )
 from true_rl_agent.runner.base import (
     CandidateRuntimeError,
@@ -328,7 +327,9 @@ def prepare_candidate_trial(inputs: RoundInputs) -> PreparedCandidateTrial:
         )
         authoring_mechanism_operation_delta = (
             _project_authoring_mechanism_operation_delta(
-                prompt_payload_ref=inputs.prompt_payload_ref,
+                anchor_prompt_payload=verify_authoring_anchor_prompt(
+                    authoring_evidence
+                ),
                 candidate=record_candidate,
             )
         )
@@ -470,9 +471,12 @@ def project_candidate_full_eval_result(
     prepared = train_execution.prepared
     eval_plan = train_execution.eval_plan
     projected_result = attach_eval_protocol_hash(
-        prepared.inputs.task_plugin.project_public_result(
+        prepared.inputs.task_plugin.project_candidate_public_result(
             public_result=raw_eval_result,
             train_summary=train_execution.train_result.summary,
+            mechanism_operation_delta=(
+                prepared.authoring_mechanism_operation_delta
+            ),
         ),
         eval_protocol_hash=eval_plan.evaluation_protocol().protocol_hash,
     )
@@ -837,16 +841,15 @@ def _validate_trial_contract_for_commit(
 
 def _project_authoring_mechanism_operation_delta(
     *,
-    prompt_payload_ref: PromptPayloadRef,
+    anchor_prompt_payload: Mapping[str, Any],
     candidate: (
         CandidatePackageRef
         | SealedCandidateArtifactRef
         | VerifiedCandidateArtifactRef
     ),
 ) -> Mapping[str, Any] | None:
-    prompt_payload = verify_prompt_payload(prompt_payload_ref)
     anchor_source, anchor_hash, _ = select_authoring_anchor_source(
-        prompt_payload
+        anchor_prompt_payload
     )
     if anchor_source is None:
         return None

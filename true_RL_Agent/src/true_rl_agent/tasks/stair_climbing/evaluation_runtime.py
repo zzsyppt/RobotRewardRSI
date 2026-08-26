@@ -20,6 +20,9 @@ from true_rl_agent.tasks.stair_climbing.phase0_contract import StairProtocolV1
 from true_rl_agent.tasks.stair_climbing.runtime_profile import (
     STAIR_EVAL_TRANSITION_EXTRAS_KEY,
 )
+from true_rl_agent.tasks.stair_climbing.runtime_projection import (
+    StairRuntimeProjection,
+)
 from true_rl_agent.tasks.stair_climbing.seed_policy import (
     StairEvaluationSeedResolver,
     StairPrivateSeedResolver,
@@ -140,6 +143,7 @@ def run_stair_split_outcomes(
     seed_count: int,
     seed_namespace: str,
     progress_callback: Callable[[int, int], None] | None = None,
+    runtime_projection: StairRuntimeProjection | None = None,
 ) -> list[list[StairEpisodeOutcome]]:
     """Collect one closed outcome cohort for an explicit seed domain."""
 
@@ -153,6 +157,7 @@ def run_stair_split_outcomes(
         seed_count=seed_count,
         seed_namespace=seed_namespace,
         progress_callback=progress_callback,
+        runtime_projection=runtime_projection,
     )
     return [list(seed_outcomes) for seed_outcomes in execution.per_seed_outcomes]
 
@@ -168,6 +173,7 @@ def run_stair_split_execution(
     seed_count: int,
     seed_namespace: str,
     progress_callback: Callable[[int, int], None] | None = None,
+    runtime_projection: StairRuntimeProjection | None = None,
 ) -> StairSplitRolloutExecution:
     """Collect outcomes and exact runner-owned control-step cost for one split."""
 
@@ -185,6 +191,7 @@ def run_stair_split_execution(
             split=split,
             run_index=run_index,
             seed_namespace=seed_namespace,
+            runtime_projection=runtime_projection,
         )
         outcomes.append(seed_execution.outcomes)
         vector_env_step_calls += seed_execution.vector_env_step_calls
@@ -206,6 +213,7 @@ def run_stair_seed_rollout(
     split: str,
     run_index: int,
     seed_namespace: str,
+    runtime_projection: StairRuntimeProjection | None = None,
 ) -> list[StairEpisodeOutcome]:
     """Collect exactly the first complete episode for every evaluation env."""
 
@@ -218,6 +226,7 @@ def run_stair_seed_rollout(
         split=split,
         run_index=run_index,
         seed_namespace=seed_namespace,
+        runtime_projection=runtime_projection,
     )
     return list(execution.outcomes)
 
@@ -232,6 +241,7 @@ def _execute_stair_seed_rollout(
     split: str,
     run_index: int,
     seed_namespace: str,
+    runtime_projection: StairRuntimeProjection | None = None,
 ) -> _StairSeedRolloutExecution:
     """Collect one seed and retain the exact number of env.step invocations."""
 
@@ -352,6 +362,7 @@ def _execute_stair_seed_rollout(
             semantics=semantics,
             expected_bin_assignment=assignment,
             expected_cell_assignment=cell_assignment,
+            runtime_projection=runtime_projection,
         )
         for env_index, transition in enumerate(transitions):
             if not active[env_index]:

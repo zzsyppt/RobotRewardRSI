@@ -122,23 +122,29 @@ def make_test_candidate_package(
     *,
     change_set: CandidateChangeSet | None = None,
     metadata: Mapping[str, Any] | None = None,
+    provider_root: Path | None = None,
+    components_source: str | None = None,
 ) -> CandidatePackageRef:
     """Materialize a local provider package for round and authoring tests."""
 
-    provider_root = _TEST_CANDIDATE_ROOT / "providers" / uuid.uuid4().hex
-    training_code = provider_root / "training_code"
+    package_root = (
+        provider_root
+        if provider_root is not None
+        else _TEST_CANDIDATE_ROOT / "providers" / uuid.uuid4().hex
+    )
+    training_code = package_root / "training_code"
     training_code.mkdir(parents=True)
     mechanism_depth = 1 + sum(candidate_id.encode("utf-8")) % 16
     reward_expression = " + ".join(
         ["inputs.base_height", *(["inputs.roll"] * mechanism_depth)]
     )
-    (provider_root / "candidate_manifest.yaml").write_text(
+    (package_root / "candidate_manifest.yaml").write_text(
         "schema_version: true_rl_agent.candidate.v1\n"
         f"candidate_id: {json.dumps(candidate_id)}\n"
         "entrypoint: training_code.components:build_training_components\n",
         encoding="utf-8",
     )
-    (training_code / "components.py").write_text(
+    default_source = (
         "from true_rl_agent.candidates.components import RewardTerm, TrainingComponents\n\n"
         "def test_reward(inputs):\n"
         f"    return {reward_expression}\n\n"
@@ -146,18 +152,21 @@ def make_test_candidate_package(
         "    return TrainingComponents(\n"
         f"        name={candidate_id!r},\n"
         "        reward_terms=[RewardTerm(name='test_reward', weight=1.0, fn=test_reward)],\n"
-        "    )\n",
+        "    )\n"
+    )
+    (training_code / "components.py").write_text(
+        components_source if components_source is not None else default_source,
         encoding="utf-8",
     )
-    (provider_root / "rationale.md").write_text(
+    (package_root / "rationale.md").write_text(
         "Test candidate package.\n",
         encoding="utf-8",
     )
-    (provider_root / "operation_diff.json").write_text("{}\n", encoding="utf-8")
-    (provider_root / "diagnostics.json").write_text("{}\n", encoding="utf-8")
+    (package_root / "operation_diff.json").write_text("{}\n", encoding="utf-8")
+    (package_root / "diagnostics.json").write_text("{}\n", encoding="utf-8")
     return CandidatePackageRef(
         candidate_id=candidate_id,
-        path=str(provider_root),
+        path=str(package_root),
         change_set=(
             change_set
             if change_set is not None

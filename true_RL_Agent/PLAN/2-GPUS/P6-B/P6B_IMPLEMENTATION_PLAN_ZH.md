@@ -1,6 +1,9 @@
 # P6-B 实施计划：生产 GPU Binding 与单代 Generation Pilot
 
-> 状态：实施中；基线 `e063741366e9ea037b279eb58026b1acb4c56767`
+> 状态：已闭合（2026-08-22）；工程与证据 GO、科学结果 rejected。正式科学运行提交
+> `5f2d7557ca51b73f1f16911e117a9401a103c171`，未来正式启动治理根修基线
+> `ba71c5d308f5b498196d53164411f6d7fc0cd542`；历史 prelaunch readiness waiver 保持明示，
+> 不补造也不要求重跑约 3.7 GPU-hour 科学链。
 > 授权：用户已批准按 P6-B → P6-C → P6-D 顺序推进；后续阶段只在前一阶段严格 GO、提交/同步和独立审计闭合后生效。
 > 边界：本阶段只完成生产接线和一个 fresh development generation；不拼接 P6-A/P6-A2 结果，不运行终局 confirmation，不扩大到同卡 width=4。
 
@@ -25,7 +28,7 @@ P6-B 必须用真实生产链回答：
 - P4 A-first/B-second exclusion、fixed-width generation 和 single commit；
 - P5 lifecycle、continuation、cost chain、exploration cards/frontier；
 - P6-A full UUID child visibility 与双卡资源实证；
-- P6-A2 `deepseek-v4-flash + thinking enabled + reasoning_effort=max + max_tokens=32768` author-only GO。
+- P6-A2 `deepseek-v4-flash + thinking enabled + reasoning_effort=max + max_tokens=32768` author-only GO；其 raw receipt 同时暴露出 `2/15` 次 final content 为空而 reasoning 非空的 channel-routing 失败，reasoning 草稿不具候选权威性。
 
 当前真实缺口是：没有 production generation CLI；host GPU 与 child device 仍共用一个 `execution_device`；正式 runner 未注入 UUID 环境；实际 result 多处从 spec/scope 回抄；reference/private artifact 和 phase 链尚不能携带新 binding；正式 Stair 入口未复用 P6-A 的 renderer/env 约束。
 
@@ -82,6 +85,43 @@ Unbound legacy 入口不自动 remap、不强制 lease、不改变 argv/summary�
 ### 3.4 Codex 思想的适用边界
 
 只借鉴：副作用前 reservation、单一 owner、整组取消后等待清理、恢复必须沿原身份追加。现有 process/attempt/lifecycle 已经比 Codex 的通用会话语义更适合科学实验，不引入 Tokio/RPC/event bus、TTL、Agent tree、通用 GPU scheduler、DAG 或 rollout DB。
+
+### 3.5 离线 preflight 与私有 manifest 依赖
+
+正式 output 创建前必须先以同一 commit、参数、UUID 和 provider env 边界运行
+`--preflight-only`。它只允许读 source/inventory/compute-idle/credential，并在自动删除的
+隔离 scratch 中构造真实 Stair composition/合同并计算 Genesis identity hash；materialize bound
+reference train/eval spec 与合成 checkpoint/result，让 exact reference-v3 private payload、
+manifest v2、trial train 和 phase receipt 分别完成 canonical 落盘、严格重载及
+hash/argv/checkpoint byte 比对。相邻 baseline/checkpoint 与全部 public/private binding 字段集合
+由同 commit 的 S2 projection contract 回归覆盖。preflight 不得取得 GPU lease、启动
+runner/Isaac job、发 provider 请求，亦不得创建正式 output、Genesis、attempt、segment、ledger、
+cost reservation 或 report；source/GPU 只读探测进程除外。通过只证明装配边界可执行，不是 scientific GO。
+
+当前 `GenerationManifest.manifest_hash` 有意绑定 private lane `to_dict()`，因此包含
+`host_execution_device`；public ledger 只保存安全的 `to_public_dict()`。所以 public ledger
+本身不能重算该 hash，`validate_generation_ledger_record` 必须加载 ledger 中 checksum-bound
+private manifest receipt。P6-B 不改既有承诺，也不把 host topology 泄入 public record；归档、
+迁移和纯回放必须把该 private receipt 与 checksum 作为同一证据包保存。若未来需要 public-only
+自证，应新增独立 public-projection hash，不能重定义当前 `manifest_hash`。
+
+### 3.6 Provider 账户 readiness 与离线回放边界
+
+`--preflight-only` 的零 API 承诺保持不变；credential 格式正确不能证明账户当前可用。正式
+fresh run 在 source checkout 校验之后、任何正式 output/foundation/cost reservation/lease/Genesis
+或 runner job 之前，必须通过 task-owned DeepSeek 账户门：使用同一固定 secret 边界向官方
+`GET /user/balance` 发一次 authenticated、bounded、拒绝 redirect 的非生成请求，并严格要求
+`is_available is true`。HTTP 401、402、redirect、TLS/network/timeout、无效 JSON/schema 或
+`is_available=false` 全部 fail closed，不在正式进程内自动重试；其中 402 按 DeepSeek 官方语义
+归为余额不足。该 GET 不计 authoring attempt/provider token/cost reservation，不保存 credential、
+原始响应或任何余额数值，也不进入公共 ledger、prompt、provider policy 或 acceptance。
+
+CLI 另提供 `--provider-readiness-only`，让同 commit/参数在正式 output 不存在时独立保存脱敏
+启动证据；正式入口仍会再次强制检查，不能用旧 readiness 结果代替当下账户状态。已有最终 report
+或已有合法非空 generation ledger 的 settle/replay-only resume 跳过网络门，保持闭合 artifact 的
+离线可读性；ledger 为空、仍可能产生新 GPU/provider side effect 的 incomplete resume 必须重查，
+失败时不得修改既有 formal output。chat transport 原有 402 fail-closed 仍保留，以覆盖 readiness
+检查和实际 authoring 请求之间的状态变化。
 
 ## 4. 唯一传播链
 
@@ -142,7 +182,7 @@ coordinator/group 已消失且两张目标 GPU compute-idle；任何无法排除
 session 保持 incomplete。完整 child-launch receipt 级恢复证明留作后续阶段验收，本阶段不为
 一个未触发竞态引入常驻 sampler 或第二套进程账本。
 
-Provider 固定 P6-A2 组合：DeepSeek official `/chat/completions`、`deepseek-v4-flash`、thinking enabled、reasoning_effort=max、temperature omitted、JSON object、non-stream、`O=32768`、timeout 300s。每 lane 最多5次，generation最多10次。保守 input reserve `I=300000` normalized units/attempt；A 首请求前原子预留本代 `10I + 10O`，权威 response usage逐次结算。用户已豁免 P6-B–P6-D 金额阻断，但 attempts/units、job、steps、GPU capacity-time和磁盘都不豁免。
+Provider 固定为 P6-A2 的 endpoint/model/输出合同，并把 reasoning mode 冻结为显式 adaptive：每个 lane 首次请求仍是 thinking enabled、reasoning_effort=max、temperature omitted；持久 receipt 同时证明 final content 为 0 bytes、reasoning 非空且不是 `finish_reason=length` 时，下一 attempt 改为 thinking disabled。既有的 length+inline-source repair 也保持 thinking disabled。所有 thinking-disabled repair 都显式移除 reasoning_effort，并固定 `temperature=0.2`；enabled/disabled 两种真实请求形状均进入 provider policy hash。reasoning 内容永不解析、物化或作为候选。JSON object、non-stream、`O=32768`、timeout 300s 不变。每 lane 最多5次，generation最多10次。保守 input reserve `I=300000` normalized units/attempt；A 首请求前原子预留本代 `10I + 10O`，权威 response usage逐次结算。该修复不能免掉第一次 channel-routing 失败的成本，只阻止同类失败在同 lane 重复。用户已豁免 P6-B–P6-D 金额阻断，但 attempts/units、job、steps、GPU capacity-time和磁盘都不豁免。
 
 完整 fresh-session 预算分栏：
 
@@ -155,7 +195,7 @@ Provider 固定 P6-A2 组合：DeepSeek official `/chat/completions`、`deepseek
 | Retry reserve | 1 | 196,608,000 | 7 | 1,960 |
 | 物理 hard cap | 4 | 786,432,000 | 48 | 13,440 |
 
-任何 GPU/API job 前，从服务器既有同 profile receipt 和 P6-A 证据预注册数值化 train/eval timeout、allocated-active GPU-hours、control steps 与 disk reserve；不得看到本代结果后放宽。人工制造 retry 不污染唯一科学 generation：正式前只做一次 production-shaped Linux attempt-chain fault probe；本代只有真实 typed infra failure 才消费 reserve。
+任何 GPU/API job 前，从服务器既有同 profile receipt 和 P6-A 证据预注册数值化 train/eval timeout、allocated-active GPU-hours、control steps 与 disk reserve；不得看到本代结果后放宽。人工制造 retry 不污染唯一科学 generation：正式前只做一次 production-shaped Linux attempt-chain fault probe，并把命令、唯一 scratch、两个 create-once attempt result、retry 链头和零遗留进程保存为启动门证据；本代只有真实 typed infra failure 才消费 reserve。
 
 正式运行前冻结的非金额资源上限为：
 
@@ -195,7 +235,10 @@ Provider 固定 P6-A2 组合：DeepSeek official `/chat/completions`、`deepseek
 
 新增薄 Stair-owned generation pilot CLI，复用现有 coordinator/lifecycle/provider/Genesis/ledger/frontier，不复制科学状态机。它负责：可信inventory与lease manager、create-once session/resource/cost合同、fresh Genesis/reference资格化、parent public-dev、A/B bindings与scope、一个generation、segment/cost closure、资源诊断和最终report。
 
-CLI 不调用session-end final-confirmation；不改旧 `run_stair_live.py`；不创建通用workflow engine。
+CLI 同时提供完全无 GPU/API 副作用的 `--preflight-only` 和不发生成请求、不触碰 GPU/正式
+状态的 `--provider-readiness-only`；正式 child 只能由 tracked
+`launch_stair_generation_session.py` 启动，使每次物理 attempt 用独占创建的新目录、log 和 exit
+receipt；launcher 复用 runner 已有的整棵进程树 ownership/回收原语，不另造进程协议。CLI 不调用session-end final-confirmation；不改旧 `run_stair_live.py`；不创建通用workflow engine。
 
 ## 7. 本地验收
 
@@ -208,7 +251,13 @@ CLI 不调用session-end final-confirmation；不改旧 `run_stair_live.py`；�
 5. Stair train/eval bound env与renderer0/1正确，unbound argv/行为不变；
 6. generation CUDA缺binding fail closed，Push与legacy width=1无binding继续通过；
 7. session成本包含3/41成功总量和4/48 physical cap，continuation不重置；
-8. coordinator用fake backend完成一代且只有一条ledger，无第二writer。
+8. coordinator用fake backend完成一代且只有一条ledger，无第二writer；
+9. `--preflight-only` 对正式 output 零写入/零 lease/零 spawn/零 provider，并让所有 binding 私有投影完成 JSON 严格往返；
+10. 每种持久化 binding 明确断言 public 两字段或 private 三字段，segment exception exit 持久化 path/secret-scrubbed 类型与消息，历史 exit v1 继续回放；
+11. launcher 连续两次运行形成两个独占 attempt/log/exit receipt，第一次字节不变；失败 child 的真实 Python traceback 与 returncode 可恢复；Linux active-child SIGTERM 后 child+grandchild 均无 live PGID 且 receipt hash 稳定；cleanup 无法证明时必须记 `cleanup_incomplete` 且不发布 child log hash。
+12. provider balance GET 使用通用 bounded/no-redirect transport，但不扩宽 `JsonTransport`/
+    `CandidateProvider` 插件协议；`is_available=true/false` 和 HTTP 402 分类、脱敏投影、fresh
+    failure 早于首个 formal write，以及 closed-ledger/final-report resume 跳过网络分别回归。
 
 随后运行受影响合集、全量suite、compileall和`git diff --check`。不增加动态拓扑、renderer组合或大规模故障矩阵。
 
@@ -223,10 +272,39 @@ CLI 不调用session-end final-confirmation；不改旧 `run_stair_live.py`；�
 - shared lease root可取得两卡；
 - MemAvailable不少于25GiB、swap增长门64MiB、磁盘满足`max(30GiB,3×预计单代峰值)`；
 - provider secret只从既有env边界读取；
+- 同参数 `--preflight-only` 已通过且正式 output 仍不存在；
+- 同参数 `--provider-readiness-only` 已通过并保存独立脱敏证据，官方 balance response 的
+  `is_available=true`；不得保存余额数值或把该 GET 计入 scientific provider attempt；
+- production-shaped Linux attempt-chain fault probe 已通过并保存独立证据；
+- 当前 `run_owned_process` 必须再用一次固定 128-step 的真实 Stair/Isaac smoke 证明正常退出后
+  PGID、目标 GPU compute PID 和 shared lease 全部清零；
 - create-once合同已冻结provider/resource/cost/retry/continuation；
 - 新output、空generation ledger，未启用final-confirmation。
 
-正式运行在独立POSIX session/process group中，stdout/stderr/exitcode写output旁的唯一新文件。监控只读，不主动干预。
+上述两个 probe 使用固定、单一职责的 task-owned 入口：
+
+- `scripts/run_p6b_attempt_chain_fault_probe.py` 只走现有 `SubprocessRunner` 的真实 retry/owner
+  路径，留下两次 owned child/grandchild、`summary_missing -> retry -> terminal` create-once 链、
+  retry 前序 hash、terminal 链头和零遗留 PGID；它不碰 GPU、lease、provider 或 Isaac。
+- `scripts/run_stair_train_teardown_probe.py` 必须由与正式运行相同的绝对 Isaac Python 启动，
+  显式传入单张 host device、完整 GPU UUID、同一 `nvidia-smi` 和同一 shared lease root；它是
+  现有 `isaaclab_stair_rsl_rl_smoke.py` 的薄 owner，运行固定
+  `16 env x 8 step x 1 iteration = 128` workload，不复制训练主体、不修改正式 196M-step 合同。
+
+双卡 inventory/compute-idle、shared lease 同时 acquire/release/reacquire、MemAvailable、磁盘和
+prelaunch swap 窗口仍作为独立 launch-readiness 证据保存，不扩张 attempt-chain driver 的合同。
+正式 launcher 运行期间另以独立周期采样保留
+`swpd`/GPU/PID 证据，并相对该次启动基线执行 64 MiB swap 增长门；任何时点越界即停止本次
+session，不把最终时刻的回落值冒充全过程通过。两条 probe 和正式 launcher 的完整 argv、
+source commit、host/boot identity、关键源码及产物 checksum 都保存在各自 fresh evidence root。
+
+正式运行以 `setsid` 启动 tracked Stair launcher，并显式传入预注册的 session `--timeout-s`；
+launcher 为每次物理 attempt 在 output 旁的 `<output-name>.launcher-attempts/` 中独占创建新
+attempt 子目录，分开保存 launcher traceback、child stdout 和 child stderr。已有 runner
+process-owner 在正常退出、timeout、Ctrl-C 或 launcher 异常时先回收该 child 的完整进程树，
+随后才计算三个 log checksum 并以 `O_EXCL` 发布含 returncode/PID 的 `exit.json`。禁止用 `>`
+复用固定 `.launcher.log` 或覆盖旧 attempt 证据。该 receipt 保证覆盖 child-active 的受控退出，
+不把 SIGKILL、掉电或恰落在 receipt 自身发布窗口的 hard crash 误报为可闭合。监控只读，不主动干预。
 
 ## 9. 真实验收与独立重算
 
@@ -241,6 +319,7 @@ CLI 不调用session-end final-confirmation；不改旧 `run_stair_live.py`；�
 - provider/attempt/train/eval/steps/GPU-hours/disk成本链未越4/48 physical cap；
 - 0未闭合reservation、0孤儿、0 compute PID、0 active lease holder、0 tmux/managed process；
 - authority和private/public边界无泄漏；
+- 归档证据包保留 checksum-bound private generation manifest receipt；不得把 public-only ledger 误报为可独立重算 `manifest_hash`；
 - historical replay、Push、legacy width=1回归通过。
 
 由独立审计直接从raw receipt重算，不只读取aggregate自报。若本代科学reject但以上全闭合，仍可工程GO。
@@ -254,6 +333,9 @@ CLI 不调用session-end final-confirmation；不改旧 `run_stair_live.py`；�
 - duplicate provider/train/eval/ledger side effect；
 - selection/decision/ledger不可独立重算；
 - session成本超过create-once physical cap；
+- preflight 失败、正式 output 被 preflight 污染、launcher attempt log/exit receipt 缺失或覆盖、或出现 `cleanup_incomplete`/未哈希 child log；
+- provider readiness 未通过、HTTP 402/`is_available=false`，或 readiness 失败后仍创建 fresh
+  formal output/foundation/reservation/lease/runner side effect；
 - 为修复结果必须改变provider、selector、eval、阈值或输入集合；
 - 旧Push/width=1/历史replay退化。
 

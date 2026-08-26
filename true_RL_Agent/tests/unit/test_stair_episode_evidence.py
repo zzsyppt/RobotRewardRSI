@@ -40,9 +40,7 @@ class StairEpisodeEvidenceTests(unittest.TestCase):
         cls.semantics = cls.config.evaluation_semantics
         cls.bin_id = str(cls.protocol.eval_bins[0]["bin_id"])
         cls.goal_m = float(
-            cls.protocol.to_dict()["terrain"]["goal"][
-                "progress_goal_m_from_origin"
-            ]
+            cls.protocol.to_dict()["terrain"]["goal"]["progress_goal_m_from_origin"]
         )
 
     def test_terminal_transition_state_is_counted_before_reset(self) -> None:
@@ -55,14 +53,14 @@ class StairEpisodeEvidenceTests(unittest.TestCase):
                 progress_m=0.8,
                 done=True,
                 termination_terms=("base_contact",),
-                torso_contact=True,
+                forbidden_contact=True,
             )
         )
 
         self.assertIsNotNone(outcome)
         assert outcome is not None
         self.assertEqual(outcome.max_progress_m, 0.8)
-        self.assertEqual(outcome.primary_reason, "torso_contact")
+        self.assertEqual(outcome.primary_reason, "forbidden_contact")
 
     def test_progress_is_floored_at_the_protocol_course_start(self) -> None:
         tracker = self._tracker()
@@ -74,7 +72,7 @@ class StairEpisodeEvidenceTests(unittest.TestCase):
                 progress_m=-0.08,
                 done=True,
                 termination_terms=("base_contact",),
-                torso_contact=True,
+                forbidden_contact=True,
             )
         )
 
@@ -99,24 +97,24 @@ class StairEpisodeEvidenceTests(unittest.TestCase):
                 termination_terms=("time_out",),
             )
 
-    def test_torso_contact_signal_and_terminal_term_are_one_contract(self) -> None:
+    def test_forbidden_contact_signal_and_terminal_term_are_one_contract(self) -> None:
         inconsistent = (
             {
                 "done": True,
                 "termination_terms": ("base_contact",),
-                "torso_contact": False,
+                "forbidden_contact": False,
             },
             {
                 "done": True,
                 "termination_terms": ("time_out",),
-                "torso_contact": True,
+                "forbidden_contact": True,
             },
         )
         for overrides in inconsistent:
             with self.subTest(overrides=overrides):
                 with self.assertRaisesRegex(
                     StairEpisodeEvidenceError,
-                    "torso-contact signal disagrees",
+                    "forbidden-contact signal disagrees",
                 ):
                     self._tracker().observe(
                         _transition(
@@ -135,12 +133,12 @@ class StairEpisodeEvidenceTests(unittest.TestCase):
                 step=1,
                 done=True,
                 termination_terms=("time_out", "base_contact"),
-                torso_contact=True,
+                forbidden_contact=True,
             )
         )
 
         assert outcome is not None
-        self.assertEqual(outcome.primary_reason, "torso_contact")
+        self.assertEqual(outcome.primary_reason, "forbidden_contact")
         self.assertEqual(outcome.active_terminal_terms, ("time_out", "base_contact"))
 
     def test_unknown_manager_term_fails_closed(self) -> None:
@@ -224,13 +222,13 @@ class StairEpisodeEvidenceTests(unittest.TestCase):
                 foot_surface_levels=(8, 8),
                 done=True,
                 termination_terms=("base_contact",),
-                torso_contact=True,
+                forbidden_contact=True,
             )
         )
 
         assert outcome is not None
         self.assertFalse(outcome.success)
-        self.assertEqual(outcome.primary_reason, "torso_contact")
+        self.assertEqual(outcome.primary_reason, "forbidden_contact")
         self.assertIn(
             "first_valid_top_arrival_achieved",
             outcome.diagnostic_flags,
@@ -273,9 +271,7 @@ class StairEpisodeEvidenceTests(unittest.TestCase):
                     root_height_m=1.55,
                     root_clearance_m=0.75,
                     foot_surface_levels=(8, 8),
-                    foot_planar_speeds_mps=(
-                        (0.8, 0.8) if step == 11 else (0.0, 0.0)
-                    ),
+                    foot_planar_speeds_mps=((0.8, 0.8) if step == 11 else (0.0, 0.0)),
                 )
             )
             self.assertIsNone(outcome)
@@ -339,14 +335,10 @@ class StairEpisodeEvidenceTests(unittest.TestCase):
                         "root_clearance_m": 0.75,
                         "foot_surface_levels": (8, 8),
                         "done": step == 20,
-                        "termination_terms": (
-                            ("time_out",) if step == 20 else ()
-                        ),
+                        "termination_terms": (("time_out",) if step == 20 else ()),
                     }
                     transition_kwargs.update(override)
-                    outcome = tracker.observe(
-                        _transition(**transition_kwargs)
-                    )
+                    outcome = tracker.observe(_transition(**transition_kwargs))
                 assert outcome is not None
                 self.assertFalse(outcome.success)
 
@@ -563,7 +555,9 @@ class StairEpisodeEvidenceTests(unittest.TestCase):
             outcome.diagnostic_flags,
         )
 
-    def test_recovered_signals_are_diagnostics_but_timeout_remains_primary(self) -> None:
+    def test_recovered_signals_are_diagnostics_but_timeout_remains_primary(
+        self,
+    ) -> None:
         cases = (
             (
                 "base_orientation_instability",
@@ -612,7 +606,9 @@ class StairEpisodeEvidenceTests(unittest.TestCase):
                 self.assertEqual(outcome.primary_reason, "timeout")
                 self.assertIn(diagnostic, outcome.diagnostic_flags)
 
-    def test_recoverable_signal_must_remain_active_at_timeout_to_be_primary(self) -> None:
+    def test_recoverable_signal_must_remain_active_at_timeout_to_be_primary(
+        self,
+    ) -> None:
         cases = (
             (
                 "base_orientation_instability",
@@ -759,7 +755,7 @@ def _transition(
     abs_pitch_rad: float = 0.0,
     done: bool = False,
     termination_terms: tuple[str, ...] = (),
-    torso_contact: bool = False,
+    forbidden_contact: bool = False,
     foot_contacts: tuple[bool, bool] = (True, True),
     foot_progress_m: tuple[float, float] = (4.35, 4.35),
     foot_surface_levels: tuple[int, int] = (0, 0),
@@ -774,18 +770,18 @@ def _transition(
         episode_step=step,
         progress_m=progress_m,
         lateral_m=lateral_m,
-        root_height_m=root_height_m,
-        root_clearance_m=root_clearance_m,
+        base_height_m=root_height_m,
+        base_clearance_m=root_clearance_m,
         abs_roll_rad=abs_roll_rad,
         abs_pitch_rad=abs_pitch_rad,
-        torso_contact=torso_contact,
-        foot_contacts=foot_contacts,
-        foot_progress_m=foot_progress_m,
-        foot_surface_levels=foot_surface_levels,
-        foot_lateral_m=foot_lateral_m,
-        foot_planar_speeds_mps=foot_planar_speeds_mps,
-        foot_surface_clearances_m=foot_surface_clearances_m,
-        foot_upward_forces_n=foot_upward_forces_n,
+        forbidden_contact=forbidden_contact,
+        support_contacts=foot_contacts,
+        support_progress_m=foot_progress_m,
+        support_surface_levels=foot_surface_levels,
+        support_lateral_m=foot_lateral_m,
+        support_planar_speeds_mps=foot_planar_speeds_mps,
+        support_surface_clearances_m=foot_surface_clearances_m,
+        support_upward_forces_n=foot_upward_forces_n,
         done=done,
         termination_terms=termination_terms,
     )

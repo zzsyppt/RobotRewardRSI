@@ -21,6 +21,7 @@ from true_rl_agent.candidates.artifact import (
     VerifiedCandidateArtifactRef,
     verify_verified_candidate_artifact,
 )
+from true_rl_agent.composition.cell_manifest import load_resolved_cell_manifest
 from true_rl_agent.evaluation.binding import (
     EvaluationBindingV1,
     canonical_json_hash,
@@ -105,6 +106,8 @@ class IsaacLabRslRlBackendConfig:
     eval_runtime_dynamics_hash: str | None = None
     work_dir: str = "."
     curriculum_capabilities: Mapping[str, Mapping[str, Any]] | None = None
+    resolved_cell_manifest_path: str | None = None
+    resolved_cell_manifest_hash: str | None = None
     trusted_seed_count: InitVar[int | None] = None
 
     def __post_init__(self, trusted_seed_count: int | None = None) -> None:
@@ -221,6 +224,28 @@ class IsaacLabRslRlBackendConfig:
             raise ValueError(
                 "runtime_config_path must be a non-empty string when provided"
             )
+        manifest_values = (
+            self.resolved_cell_manifest_path,
+            self.resolved_cell_manifest_hash,
+        )
+        if any(value is not None for value in manifest_values):
+            if not all(isinstance(value, str) and value for value in manifest_values):
+                raise ValueError(
+                    "resolved cell manifest path/hash must be provided together"
+                )
+            assert self.resolved_cell_manifest_path is not None
+            assert self.resolved_cell_manifest_hash is not None
+            path = Path(self.resolved_cell_manifest_path)
+            if not path.is_absolute():
+                raise ValueError("resolved cell manifest path must be absolute")
+            manifest = load_resolved_cell_manifest(
+                path,
+                expected_manifest_hash=self.resolved_cell_manifest_hash,
+            )
+            if manifest.task_id not in self.supported_tasks:
+                raise ValueError(
+                    "resolved cell manifest task is not supported by backend"
+                )
         if not isinstance(self.evaluation_binding, EvaluationBindingV1):
             raise TypeError("evaluation_binding must be EvaluationBindingV1")
         if not isinstance(
@@ -1074,7 +1099,17 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
                 self._process_execution_device(gpu_process_binding),
             ]
         )
+        if training_binding.task_protocol_hash is not None:
+            parts.extend(
+                ["--task-protocol-hash", training_binding.task_protocol_hash]
+            )
         parts.extend(_gpu_process_binding_argv(gpu_process_binding))
+        parts.extend(
+            _resolved_cell_manifest_argv(
+                self.config,
+                include_base_task_protocol=True,
+            )
+        )
         if execution_environment_manifest_hash is not None:
             parts.extend(
                 [
@@ -1407,6 +1442,12 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
             ]
         )
         parts.extend(_gpu_process_binding_argv(gpu_process_binding))
+        parts.extend(
+            _resolved_cell_manifest_argv(
+                self.config,
+                include_base_task_protocol=True,
+            )
+        )
         if execution_environment_manifest_hash is not None:
             parts.extend(
                 [
@@ -1446,6 +1487,17 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
             checkpoint.checkpoint.checksum if checkpoint is not None else None
         )
         agent_configuration = self.config.training_agent_configuration
+        task_protocol_hash = None
+        if self.config.resolved_cell_manifest_path is not None:
+            assert self.config.resolved_cell_manifest_hash is not None
+            manifest = load_resolved_cell_manifest(
+                self.config.resolved_cell_manifest_path,
+                expected_manifest_hash=self.config.resolved_cell_manifest_hash,
+            )
+            if not manifest.uses_legacy_training_binding_v1:
+                task_protocol_hash = (
+                    manifest.resolved_cell_task_protocol_hash
+                )
         return TrainingBinding(
             initialization_mode=policy_initialization.kind,
             initialization_checkpoint_hash=checkpoint_hash,
@@ -1464,6 +1516,7 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
             capability_profile_hash=str(
                 task_spec.candidate_capability_profile.profile_hash
             ),
+            task_protocol_hash=task_protocol_hash,
         )
 
     def _summary_path(self, *, round_id: str, phase: str) -> str:
@@ -1501,6 +1554,34 @@ def _gpu_process_binding_argv(
         "--gpu-resource-binding-hash",
         binding.resource_binding_hash,
     ]
+
+
+def _resolved_cell_manifest_argv(
+    config: IsaacLabRslRlBackendConfig,
+    *,
+    include_base_task_protocol: bool = False,
+) -> list[str]:
+    path = config.resolved_cell_manifest_path
+    manifest_hash = config.resolved_cell_manifest_hash
+    if path is None and manifest_hash is None:
+        return []
+    if path is None or manifest_hash is None:
+        raise ValueError("resolved cell manifest path/hash must be paired")
+    argv = [
+        "--resolved-cell-manifest-path",
+        path,
+        "--resolved-cell-manifest-hash",
+        manifest_hash,
+    ]
+    if include_base_task_protocol:
+        manifest = load_resolved_cell_manifest(
+            path,
+            expected_manifest_hash=manifest_hash,
+        )
+        argv.extend(
+            ["--base-task-protocol-hash", manifest.base_task_protocol_hash]
+        )
+    return argv
 
 
 def _replace_separate_cli_option(

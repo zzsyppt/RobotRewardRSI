@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from typing import Any
 
 import torch
@@ -17,7 +18,16 @@ from isaaclab.utils.math import (
 from true_rl_agent.tasks.stair_climbing.protocol_v2 import (
     StairCompleteRewardRuntimeContract,
 )
-from true_rl_agent.tasks.stair_climbing.reward_inputs import StairRewardInputsV2
+from true_rl_agent.tasks.stair_climbing.legacy_reward_adapter import (
+    StairG137LegacyRewardAdapter,
+)
+from true_rl_agent.tasks.stair_climbing.legacy_runtime_projection import (
+    build_legacy_stair_runtime_projection,
+)
+from true_rl_agent.tasks.stair_climbing.reward_inputs import (
+    StairRewardInputsV2,
+    StairRewardInputsVNext,
+)
 from true_rl_agent.tasks.stair_climbing.reward_program import (
     QualifiedStairRewardProgram,
     StairCompleteRewardDispatcher,
@@ -27,6 +37,13 @@ from true_rl_agent.tasks.stair_climbing.reward_program import (
 from true_rl_agent.tasks.stair_climbing.runtime_profile import (
     STAIR_REWARD_ACTIVATION_PREFLIGHT_SCHEMA_VERSION,
 )
+from true_rl_agent.tasks.stair_climbing.runtime_projection import (
+    STAIR_KINEMATIC_BASE_ARTICULATION_ROOT,
+    STAIR_KINEMATIC_BASE_BODY_ROLE,
+    ResolvedStairRuntimeProjection,
+    StairRuntimeProjection,
+    resolve_stair_runtime_projection,
+)
 from true_rl_agent.tasks.stair_climbing.termination_capture import (
     StairTerminationCaptureError,
     capture_current_termination_masks,
@@ -34,8 +51,57 @@ from true_rl_agent.tasks.stair_climbing.termination_capture import (
 
 STAIR_COMPLETE_REWARD_TERM_ATTRIBUTE = "_true_rl_stair_complete_reward_term"
 
-_FOOT_BODY_NAMES = ("left_ankle_roll_link", "right_ankle_roll_link")
-_BASE_BODY_NAMES = ("torso_link",)
+
+@dataclass(frozen=True)
+class StairKinematicBaseState:
+    """One explicitly selected kinematic frame shared by reward and evaluation."""
+
+    pos_w: Any
+    quat_w: Any
+    lin_vel_w: Any
+    ang_vel_w: Any
+    lin_vel_b: Any
+    ang_vel_b: Any
+    projected_gravity_b: Any
+
+
+def stair_kinematic_base_state(
+    robot_data: Any,
+    *,
+    runtime_projection: StairRuntimeProjection,
+    resolved_projection: ResolvedStairRuntimeProjection,
+) -> StairKinematicBaseState:
+    """Read the binding-selected frame; legacy ABI choice never changes physics."""
+
+    source = runtime_projection.kinematic_base_source
+    if source == STAIR_KINEMATIC_BASE_ARTICULATION_ROOT:
+        return StairKinematicBaseState(
+            pos_w=robot_data.root_pos_w,
+            quat_w=robot_data.root_quat_w,
+            lin_vel_w=robot_data.root_lin_vel_w[:, :3],
+            ang_vel_w=robot_data.root_ang_vel_w[:, :3],
+            lin_vel_b=robot_data.root_lin_vel_b[:, :3],
+            ang_vel_b=robot_data.root_ang_vel_b[:, :3],
+            projected_gravity_b=robot_data.projected_gravity_b[:, :3],
+        )
+    if source == STAIR_KINEMATIC_BASE_BODY_ROLE:
+        base_id = resolved_projection.base_body_ids[0]
+        pos_w = robot_data.body_pos_w[:, base_id, :]
+        quat_w = robot_data.body_quat_w[:, base_id, :]
+        lin_vel_w = robot_data.body_lin_vel_w[:, base_id, :]
+        ang_vel_w = robot_data.body_ang_vel_w[:, base_id, :]
+        gravity_w = torch.zeros_like(pos_w)
+        gravity_w[:, 2] = -1.0
+        return StairKinematicBaseState(
+            pos_w=pos_w,
+            quat_w=quat_w,
+            lin_vel_w=lin_vel_w,
+            ang_vel_w=ang_vel_w,
+            lin_vel_b=quat_apply_inverse(quat_w, lin_vel_w),
+            ang_vel_b=quat_apply_inverse(quat_w, ang_vel_w),
+            projected_gravity_b=quat_apply_inverse(quat_w, gravity_w),
+        )
+    raise StairRewardProgramError("Unsupported Stair kinematic base source")
 
 
 class StairRewardInputBuilder:
@@ -47,6 +113,7 @@ class StairRewardInputBuilder:
         *,
         contract: StairCompleteRewardRuntimeContract,
         base_protocol: Mapping[str, Any],
+        runtime_projection: StairRuntimeProjection | None = None,
     ) -> None:
         if not isinstance(contract, StairCompleteRewardRuntimeContract):
             raise TypeError("Stair reward builder contract is invalid")
@@ -55,75 +122,28 @@ class StairRewardInputBuilder:
         self._env = env
         self.contract = contract
         self._base_protocol = dict(base_protocol)
+        self.runtime_projection = (
+            runtime_projection
+            if runtime_projection is not None
+            else build_legacy_stair_runtime_projection()
+        )
+        if not isinstance(self.runtime_projection, StairRuntimeProjection):
+            raise TypeError("Stair reward runtime projection is invalid")
         robot = env.scene["robot"]
-        contact_sensor = env.scene["contact_forces"]
-        expected_joint_names = tuple(
-            str(name)
-            for name in base_protocol["policy_compatibility"]["robot_schema"][
-                "joint_names"
-            ]
+        contact_sensor = env.scene[self.runtime_projection.contact_sensor_name]
+        self._resolved_projection = resolve_stair_runtime_projection(
+            self.runtime_projection,
+            robot=robot,
+            contact_sensor=contact_sensor,
         )
-        self._joint_ids = _resolve_joint_ids(
-            robot,
-            expected_joint_names,
-            "all policy joints",
-        )
-        self._joint_names = expected_joint_names
-        self._ankle_ids = self._joint_group_ids(
-            lambda name: "_ankle_pitch_joint" in name
-            or "_ankle_roll_joint" in name,
-            expected_count=4,
-            context="ankle joints",
-        )
-        self._locomotion_ids = self._joint_group_ids(
-            lambda name: any(
-                token in name for token in ("_hip_", "_knee_joint", "_ankle_")
-            ),
-            expected_count=12,
-            context="locomotion joints",
-        )
-        self._hip_knee_ids = self._joint_group_ids(
-            lambda name: "_hip_" in name or "_knee_joint" in name,
-            expected_count=8,
-            context="hip and knee joints",
-        )
-        self._hip_yaw_roll_ids = self._joint_group_ids(
-            lambda name: "_hip_yaw_joint" in name or "_hip_roll_joint" in name,
-            expected_count=4,
-            context="hip yaw and roll joints",
-        )
-        self._arm_ids = self._joint_group_ids(
-            lambda name: "_shoulder_" in name or "_elbow_" in name,
-            expected_count=10,
-            context="arm joints",
-        )
-        self._finger_ids = self._joint_group_ids(
-            lambda name: any(
-                f"_{token}_joint" in name
-                for token in ("five", "three", "six", "four", "zero", "one", "two")
-            ),
-            expected_count=14,
-            context="finger joints",
-        )
-        self._torso_ids = self._joint_group_ids(
-            lambda name: name == "torso_joint",
-            expected_count=1,
-            context="torso joint",
-        )
-        self._robot_foot_ids = _resolve_body_ids(
-            robot,
-            _FOOT_BODY_NAMES,
-            "robot feet",
-        )
-        self._contact_foot_ids = _resolve_body_ids(
-            contact_sensor,
-            _FOOT_BODY_NAMES,
-            "contact feet",
-        )
-        self._contact_base_ids = _resolve_body_ids(
-            contact_sensor,
-            _BASE_BODY_NAMES,
-            "contact base",
+        self._legacy_adapter = (
+            StairG137LegacyRewardAdapter(
+                projection=self.runtime_projection,
+                contract=contract,
+                base_protocol=base_protocol,
+            )
+            if self.runtime_projection.legacy_reward_adapter_id is not None
+            else None
         )
         terrain_goal = base_protocol["terrain"]["goal"]
         self._progress_start_m = float(terrain_goal["progress_start_m_from_origin"])
@@ -133,7 +153,7 @@ class StairRewardInputBuilder:
         force_threshold = base_protocol["episode_outcomes"]["signals"]["slip"][
             "contact_force_threshold"
         ]
-        self._foot_contact_threshold = float(force_threshold)
+        self._support_contact_threshold = float(force_threshold)
         height_scan_transform = contract.source_transform("height_scan")
         if (
             height_scan_transform["source_formula"]
@@ -146,45 +166,56 @@ class StairRewardInputBuilder:
         self._height_scan_offset_m = float(height_scan_transform["offset_m"])
         self._height_scan_clip_min = float(height_scan_transform["clip_min"])
         self._height_scan_clip_max = float(height_scan_transform["clip_max"])
-        self._field_names = contract.field_names
         self.last_input_fingerprint: dict[str, Any] | None = None
+        self.last_vnext_inputs: StairRewardInputsVNext | None = None
 
-    def build(self) -> StairRewardInputsV2:
+    def build(self) -> StairRewardInputsV2 | StairRewardInputsVNext:
         env = self._env
         robot_data = env.scene["robot"].data
-        contact_data = env.scene["contact_forces"].data
-        height_data = env.scene["height_scanner"].data
+        contact_data = env.scene[self.runtime_projection.contact_sensor_name].data
+        height_data = env.scene[self.runtime_projection.height_sensor_name].data
         terrain_origins = env.scene.terrain.env_origins
-        root_pos = robot_data.root_pos_w
-        root_quat = robot_data.root_quat_w
-        root_relative = root_pos - terrain_origins
-        foot_pos = robot_data.body_pos_w[:, self._robot_foot_ids, :]
-        foot_relative = foot_pos - terrain_origins.unsqueeze(1)
+        resolved = self._resolved_projection
+        kinematic_base = stair_kinematic_base_state(
+            robot_data,
+            runtime_projection=self.runtime_projection,
+            resolved_projection=resolved,
+        )
+        base_pos = kinematic_base.pos_w
+        base_quat = kinematic_base.quat_w
+        base_lin_vel_world = kinematic_base.lin_vel_w
+        base_ang_vel_world = kinematic_base.ang_vel_w
+        base_lin_vel_body = kinematic_base.lin_vel_b
+        base_ang_vel_body = kinematic_base.ang_vel_b
+        projected_gravity = kinematic_base.projected_gravity_b
+        base_relative = base_pos - terrain_origins
+        support_pos = robot_data.body_pos_w[:, resolved.support_body_ids, :]
+        support_relative = support_pos - terrain_origins.unsqueeze(1)
         command = env.command_manager.get_command("base_velocity")
         action = env.action_manager.action
         previous_action = env.action_manager.prev_action
-        joint_pos = robot_data.joint_pos[:, self._joint_ids]
-        joint_vel = robot_data.joint_vel[:, self._joint_ids]
-        default_joint_pos = robot_data.default_joint_pos[:, self._joint_ids]
+        joint_pos = robot_data.joint_pos[:, resolved.joint_ids]
+        joint_vel = robot_data.joint_vel[:, resolved.joint_ids]
+        default_joint_pos = robot_data.default_joint_pos[:, resolved.joint_ids]
         joint_error = joint_pos - default_joint_pos
-        roll, pitch, _ = euler_xyz_from_quat(root_quat)
+        roll, pitch, _ = euler_xyz_from_quat(base_quat)
         base_lin_vel_yaw = quat_apply_inverse(
-            yaw_quat(root_quat),
-            robot_data.root_lin_vel_w[:, :3],
+            yaw_quat(base_quat),
+            base_lin_vel_world,
         )
         force_history = contact_data.net_forces_w_history[
-            :, :, self._contact_foot_ids, :
+            :, :, resolved.contact_support_body_ids, :
         ]
         current_forces = contact_data.net_forces_w
         if current_forces is None:
             raise StairRewardProgramError(
                 "Stair reward inputs require current contact forces"
             )
-        foot_forces = current_forces[:, self._contact_foot_ids, :]
-        base_forces = current_forces[:, self._contact_base_ids, :]
-        foot_contact = (
+        support_forces = current_forces[:, resolved.contact_support_body_ids, :]
+        forbidden_forces = current_forces[:, resolved.contact_forbidden_body_ids, :]
+        support_contact = (
             force_history.norm(dim=-1).max(dim=1).values
-            > self._foot_contact_threshold
+            > self._support_contact_threshold
         )
         raw_height_scan = (
             height_data.pos_w[:, 2].unsqueeze(1)
@@ -197,7 +228,7 @@ class StairRewardInputBuilder:
             min=self._height_scan_clip_min,
             max=self._height_scan_clip_max,
         )
-        progress = root_relative[:, 0] - self._progress_start_m
+        progress = base_relative[:, 0] - self._progress_start_m
         goal_span = self._progress_goal_m - self._progress_start_m
         goal_fraction = (progress / goal_span).clamp(min=0.0, max=1.0)
         episode_fraction = (
@@ -211,14 +242,14 @@ class StairRewardInputBuilder:
                 "Stair reward runtime requires the base_contact termination term"
             ) from exc
 
-        values = {
-            "base_height": root_relative[:, 2],
+        vnext_values = {
+            "base_height": base_relative[:, 2],
             "roll": roll,
             "pitch": pitch,
-            "base_pos_xy": root_relative[:, :2],
-            "base_lin_vel": robot_data.root_lin_vel_b[:, :3],
-            "base_ang_vel": robot_data.root_ang_vel_b[:, :3],
-            "projected_gravity": robot_data.projected_gravity_b[:, :3],
+            "base_pos_xy": base_relative[:, :2],
+            "base_lin_vel": base_lin_vel_body,
+            "base_ang_vel": base_ang_vel_body,
+            "projected_gravity": projected_gravity,
             "commanded_base_vel": command[:, :3],
             "joint_pos": joint_pos,
             "joint_vel": joint_vel,
@@ -226,60 +257,74 @@ class StairRewardInputBuilder:
             "last_action": action,
             "prev_action": previous_action,
             "action_delta": action - previous_action,
-            "progress_fraction": episode_fraction,
+            "joint_acc": robot_data.joint_acc[:, resolved.joint_ids],
+            "joint_torque": robot_data.applied_torque[:, resolved.joint_ids],
+            "soft_joint_pos_limits": robot_data.soft_joint_pos_limits[
+                :, resolved.joint_ids, :
+            ],
+            "episode_progress_fraction": episode_fraction,
             "base_lin_vel_yaw": base_lin_vel_yaw,
-            "base_ang_vel_world": robot_data.root_ang_vel_w[:, :3],
-            "base_quat_world": root_quat,
-            "ankle_joint_pos": robot_data.joint_pos[:, self._ankle_ids],
-            "ankle_soft_joint_pos_limits": robot_data.soft_joint_pos_limits[
-                :, self._ankle_ids, :
+            "base_ang_vel_world": base_ang_vel_world,
+            "base_quat_world": base_quat,
+            "support_air_time": contact_data.current_air_time[
+                :, resolved.contact_support_body_ids
             ],
-            "locomotion_joint_torque": robot_data.applied_torque[
-                :, self._locomotion_ids
+            "support_contact_time": contact_data.current_contact_time[
+                :, resolved.contact_support_body_ids
             ],
-            "hip_knee_joint_acc": robot_data.joint_acc[:, self._hip_knee_ids],
-            "hip_yaw_roll_joint_pos_error": _joint_error(
-                robot_data,
-                self._hip_yaw_roll_ids,
-            ),
-            "arm_joint_pos_error": _joint_error(robot_data, self._arm_ids),
-            "finger_joint_pos_error": _joint_error(robot_data, self._finger_ids),
-            "torso_joint_pos_error": _joint_error(robot_data, self._torso_ids),
-            "foot_air_time": contact_data.current_air_time[
-                :, self._contact_foot_ids
+            "support_contact_force_history": force_history,
+            "support_contact_force": support_forces,
+            "support_contact": support_contact,
+            "support_lin_vel": robot_data.body_lin_vel_w[
+                :, resolved.support_body_ids, :
             ],
-            "foot_contact_time": contact_data.current_contact_time[
-                :, self._contact_foot_ids
-            ],
-            "foot_contact_force_history": force_history,
-            "foot_contact_force": foot_forces,
-            "foot_contact": foot_contact,
-            "foot_lin_vel": robot_data.body_lin_vel_w[
-                :, self._robot_foot_ids, :
-            ],
-            "foot_pos_relative_to_terrain_origin": foot_relative,
-            "base_pos_relative_to_terrain_origin": root_relative,
-            "base_contact_force": base_forces,
+            "support_pos_relative_to_terrain_origin": support_relative,
+            "base_pos_relative_to_terrain_origin": base_relative,
+            "forbidden_contact_force": forbidden_forces,
             "height_scan": height_scan,
             "forward_progress_m": progress,
-            "remaining_goal_distance_m": self._progress_goal_m
-            - root_relative[:, 0],
+            "remaining_goal_distance_m": self._progress_goal_m - base_relative[:, 0],
             "goal_progress_fraction": goal_fraction,
             "terminated_non_timeout": termination.terminated_non_timeout_mask,
             "time_out": termination.time_out_mask,
-            "base_contact": base_contact,
+            "forbidden_contact": base_contact,
         }
-        cloned = self._clone_and_validate(values)
-        return StairRewardInputsV2._validated(
-            contract=self.contract,
+        internal_vnext_inputs = StairRewardInputsVNext._validated(
+            projection=self.runtime_projection,
+            values=vnext_values,
+        )
+        if self._legacy_adapter is not None:
+            values = self._legacy_adapter.project(internal_vnext_inputs)
+            cloned = self._clone_and_validate(
+                values,
+                fields=self.contract.input_fields,
+                schema_hash=self.contract.input_schema_hash,
+            )
+            return StairRewardInputsV2._validated(
+                contract=self.contract,
+                values=cloned,
+            )
+        cloned = self._clone_and_validate(
+            vnext_values,
+            fields=self.runtime_projection.reward_input_fields_vnext,
+            schema_hash=self.runtime_projection.reward_input_schema_hash_vnext,
+        )
+        result = StairRewardInputsVNext._validated(
+            projection=self.runtime_projection,
             values=cloned,
         )
+        self.last_vnext_inputs = result
+        return result
 
     def _clone_and_validate(
         self,
         values: Mapping[str, Any],
+        *,
+        fields: Sequence[Any],
+        schema_hash: str,
     ) -> dict[str, Any]:
-        if set(values) != set(self._field_names):
+        field_names = tuple(field.name for field in fields)
+        if set(values) != set(field_names):
             raise StairRewardProgramError(
                 "Stair reward input builder differs from the canonical ABI"
             )
@@ -287,14 +332,23 @@ class StairRewardInputBuilder:
         output_storages: set[tuple[str, int]] = set()
         metadata = [] if self.last_input_fingerprint is None else None
         with torch.inference_mode(False):
-            for field in self.contract.input_fields:
+            for field in fields:
                 source = values[field.name]
                 if not torch.is_tensor(source):
                     raise StairRewardProgramError(
                         f"Stair reward input is not a tensor: {field.name}"
                     )
                 expected_shape = (int(self._env.num_envs), *field.trailing_shape)
-                if tuple(source.shape) != expected_shape:
+                actual_shape = tuple(source.shape)
+                shape_matches = len(actual_shape) == len(expected_shape) and all(
+                    actual == expected if isinstance(expected, int) else actual > 0
+                    for actual, expected in zip(
+                        actual_shape,
+                        expected_shape,
+                        strict=True,
+                    )
+                )
+                if not shape_matches:
                     raise StairRewardProgramError(
                         f"Stair reward input shape mismatch: {field.name}: "
                         f"expected={expected_shape!r} actual={tuple(source.shape)!r}"
@@ -318,10 +372,7 @@ class StairRewardInputBuilder:
                         f"Stair reward input lacks version tracking: {field.name}"
                     )
                 storage = _storage_identity(clone)
-                if (
-                    storage == _storage_identity(source)
-                    or storage in output_storages
-                ):
+                if storage == _storage_identity(source) or storage in output_storages:
                     raise StairRewardProgramError(
                         f"Stair reward input storage alias detected: {field.name}"
                     )
@@ -341,26 +392,13 @@ class StairRewardInputBuilder:
                     )
         if metadata is not None:
             self.last_input_fingerprint = {
-                "input_schema_hash": self.contract.input_schema_hash,
+                "input_schema_hash": schema_hash,
                 "fields": metadata,
             }
         return result
 
-    def _joint_group_ids(
-        self,
-        predicate: Any,
-        *,
-        expected_count: int,
-        context: str,
-    ) -> list[int]:
-        ids = [
-            self._joint_ids[index]
-            for index, name in enumerate(self._joint_names)
-            if predicate(name)
-        ]
-        if len(ids) != expected_count or len(ids) != len(set(ids)):
-            raise RuntimeError(f"Stair {context} schema drifted")
-        return ids
+    def runtime_projection_summary(self) -> dict[str, Any]:
+        return self._resolved_projection.to_summary_dict()
 
 
 class StairCompleteRewardTerm(ManagerTermBase):
@@ -370,6 +408,7 @@ class StairCompleteRewardTerm(ManagerTermBase):
         super().__init__(cfg, env)
         program = cfg.params.get("qualified_program")
         base_protocol = cfg.params.get("base_protocol")
+        runtime_projection = cfg.params.get("runtime_projection")
         if not isinstance(program, QualifiedStairRewardProgram):
             raise TypeError("Stair RewardManager term requires a qualified program")
         if not isinstance(base_protocol, Mapping):
@@ -379,12 +418,22 @@ class StairCompleteRewardTerm(ManagerTermBase):
             env,
             contract=program.contract,
             base_protocol=base_protocol,
+            runtime_projection=runtime_projection,
         )
+        projection = self.input_builder.runtime_projection
+        if (
+            projection.legacy_reward_adapter_id is None
+            and program.contract.input_schema_hash
+            != projection.reward_input_schema_hash_vnext
+        ):
+            raise ValueError(
+                "Stair reward program is not qualified for the resolved VNext ABI"
+            )
         self.dispatcher = StairCompleteRewardDispatcher(
             program,
             num_envs=int(env.num_envs),
         )
-        self.last_inputs: StairRewardInputsV2 | None = None
+        self.last_inputs: StairRewardInputsV2 | StairRewardInputsVNext | None = None
         if hasattr(env, STAIR_COMPLETE_REWARD_TERM_ATTRIBUTE):
             raise RuntimeError("Stair complete reward term was installed twice")
         setattr(env, STAIR_COMPLETE_REWARD_TERM_ATTRIBUTE, self)
@@ -412,9 +461,10 @@ class StairCompleteRewardTerm(ManagerTermBase):
         return {
             **self.dispatcher.runtime_summary(),
             "input_fingerprint": self.input_builder.last_input_fingerprint,
+            "runtime_projection": self.input_builder.runtime_projection_summary(),
         }
 
-    def latest_inputs(self) -> StairRewardInputsV2:
+    def latest_inputs(self) -> StairRewardInputsV2 | StairRewardInputsVNext:
         if self.last_inputs is None:
             raise RuntimeError("Stair complete reward has not observed a transition")
         return self.last_inputs
@@ -464,7 +514,9 @@ def run_stair_reward_activation_preflight(
     env.step(torch.zeros_like(action))
     calls_after = int(term.runtime_summary()["dispatcher_calls"])
     if calls_after != calls_before + 1:
-        raise RuntimeError("Stair reward preflight did not execute exactly one transition")
+        raise RuntimeError(
+            "Stair reward preflight did not execute exactly one transition"
+        )
     transition_inputs = term.latest_inputs()
     result = assert_stair_reward_program_deterministic(
         reward_program,
@@ -480,32 +532,6 @@ def run_stair_reward_activation_preflight(
     }
 
 
-def _resolve_joint_ids(
-    robot: Any,
-    names: tuple[str, ...],
-    context: str,
-) -> list[int]:
-    ids, resolved_names = robot.find_joints(list(names), preserve_order=True)
-    if tuple(resolved_names) != names or len(ids) != len(names):
-        raise RuntimeError(f"Stair {context} schema drifted")
-    return [int(item) for item in ids]
-
-
-def _resolve_body_ids(
-    asset: Any,
-    names: tuple[str, ...],
-    context: str,
-) -> list[int]:
-    ids, resolved_names = asset.find_bodies(list(names), preserve_order=True)
-    if tuple(resolved_names) != names or len(ids) != len(names):
-        raise RuntimeError(f"Stair {context} body schema drifted")
-    return [int(item) for item in ids]
-
-
-def _joint_error(robot_data: Any, ids: list[int]) -> Any:
-    return robot_data.joint_pos[:, ids] - robot_data.default_joint_pos[:, ids]
-
-
 def _storage_identity(value: Any) -> tuple[str, int]:
     return str(value.device), int(value.untyped_storage().data_ptr())
 
@@ -514,7 +540,9 @@ __all__ = [
     "STAIR_COMPLETE_REWARD_TERM_ATTRIBUTE",
     "StairCompleteRewardManagerCfg",
     "StairCompleteRewardTerm",
+    "StairKinematicBaseState",
     "StairRewardInputBuilder",
     "get_stair_complete_reward_term",
     "run_stair_reward_activation_preflight",
+    "stair_kinematic_base_state",
 ]

@@ -54,8 +54,10 @@ from true_rl_agent.candidates.verifier import (  # noqa: E402
     VerificationResult,
     seal_and_verify_candidate,
 )
-from true_rl_agent.memory import (
-    PublicContextBuilder as _PublicContextBuilder,  # noqa: E402
+from true_rl_agent.memory import (  # noqa: E402
+    ExperimentRecord,
+    PrivateArtifactRef,
+    PublicContextBuilder as _PublicContextBuilder,
 )
 from true_rl_agent.prompt_artifacts import (  # noqa: E402
     RoundAuthoringAnchorRef,
@@ -443,6 +445,25 @@ class _IssueVerifier(FakeVerifier):
         return super().verify(candidate)
 
 
+class _AuthoringDeltaIssueVerifier(FakeVerifier):
+    def __init__(self) -> None:
+        self.parent_source: str | None = None
+
+    def verify_authoring_delta(
+        self,
+        *,
+        candidate: CandidatePackageRef,
+        verification: VerificationResult,
+        parent_source: str | None,
+    ) -> VerificationResult:
+        self.parent_source = parent_source
+        return VerificationResult(
+            status="fail",
+            reason="task_authoring_delta_invalid",
+            details={"issues": ["task_owned_authoring_delta_issue"]},
+        )
+
+
 class _VerifierFailThenInterruptProvider(_VerifierFailThenSuccessProvider):
     def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
         if self.payloads:
@@ -720,6 +741,56 @@ def build_training_components():
 
 
 class CandidateAuthoringLoopTests(unittest.TestCase):
+    def test_task_authoring_delta_failure_precedes_component_smoke(self) -> None:
+        anchor_source = _r10_components_source(
+            component_name="anchor_components",
+            include_support=False,
+        )
+        candidate_source = _r10_components_source(
+            component_name="candidate_components",
+            include_support=True,
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            anchor_candidate = _write_candidate_package(
+                root / "anchor",
+                "candidate-anchor",
+                anchor_source,
+            )
+            candidate = _write_candidate_package(
+                root / "candidate",
+                "candidate-authoring-delta-fail",
+                candidate_source,
+            )
+            verifier = _AuthoringDeltaIssueVerifier()
+            with patch(
+                "true_rl_agent.agent_core.authoring_loop.run_component_smoke_check"
+            ) as smoke:
+                result = CandidateAuthoringLoop(
+                    context_builder=PublicContextBuilder(
+                        task_prompt_adapter=FakeTaskPlugin().prompt_adapter(),
+                        acceptance_protocol=TEST_ACCEPTANCE_PROTOCOL,
+                    ),
+                    provider=_SingleDraftProvider(candidate),
+                    candidate_admission_policy=verifier,
+                    round_dir=root / "round",
+                    max_attempts=1,
+                ).run_round(
+                    round_id="round-authoring-delta-fail",
+                    records=[
+                        _accepted_record("round-anchor", anchor_candidate, 0.31)
+                    ],
+                )
+
+        self.assertEqual(result.stop_reason, "static_failed")
+        self.assertIsNotNone(verifier.parent_source)
+        self.assertIn("anchor_components", str(verifier.parent_source))
+        self.assertEqual(
+            result.attempt_records[0]["verifier_reason"],
+            "task_authoring_delta_invalid",
+        )
+        smoke.assert_not_called()
+
     def test_ledger_negative_verifier_equivalence_blocks_renamed_parameter_variant(self) -> None:
         anchor_source = _r10_components_source(
             component_name="anchor_components",
@@ -2031,6 +2102,43 @@ def build_training_components():
                 ),
                 expected_round_id="round-r10",
             )
+            raw_evidence_ref = result.authoring_evidence_ref.to_private_dict()
+            evaluated_record = ExperimentRecord(
+                round_id="round-r10",
+                public_record={
+                    "round_id": "round-r10",
+                    "candidate": {"candidate_id": result.candidate.candidate_id},
+                    "decision": {"accepted": False},
+                    "parent_program_source_checksum": (
+                        accepted_record["candidate"]["program_source_checksum"]
+                    ),
+                    "public_result": {"status": "pass"},
+                },
+                private_artifacts=(
+                    PrivateArtifactRef(
+                        kind=raw_evidence_ref["kind"],
+                        uri=raw_evidence_ref["uri"],
+                        checksum=raw_evidence_ref["checksum"],
+                        size_bytes=raw_evidence_ref["size_bytes"],
+                        reason=raw_evidence_ref["reason"],
+                    ),
+                ),
+                prompt_payload_ref=result.prompt_payload_ref,
+            )
+            with patch(
+                "true_rl_agent.agent_core.authoring_loop."
+                "resolve_candidate_components_source_from_record",
+                return_value={
+                    "status": "inline",
+                    "content": repaired_source,
+                    "content_sha256": hashlib.sha256(
+                        repaired_source.encode("utf-8")
+                    ).hexdigest(),
+                },
+            ):
+                evaluated_projection = _evaluated_candidate_sources(
+                    [evaluated_record]
+                )
 
         repair_source_ids = {
             item["logical_id"] for item in provider.payloads[1]["source_payloads"]
@@ -2068,6 +2176,14 @@ def build_training_components():
         self.assertEqual(
             anchor["parent_program_source_checksum"],
             accepted_record["candidate"]["program_source_checksum"],
+        )
+        self.assertEqual(
+            evaluated_projection[0]["anchor_content"],
+            initial_parent_payload["content"],
+        )
+        self.assertEqual(
+            evaluated_projection[0]["anchor_content_sha256"],
+            initial_parent_payload["content_sha256"],
         )
     def test_verifier_repair_instructions_are_specific_to_current_issue(self) -> None:
         cases = (

@@ -571,6 +571,17 @@ class CandidateVerifier(ABC):
 
         return None
 
+    def verify_authoring_delta(
+        self,
+        *,
+        candidate: CandidatePackageRef,
+        verification: VerificationResult,
+        parent_source: str | None,
+    ) -> VerificationResult:
+        """Apply optional task-owned checks that require the frozen parent source."""
+
+        return verification
+
     @abstractmethod
     def verify(
         self,

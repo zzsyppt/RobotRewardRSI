@@ -34,8 +34,7 @@ class StairTaskMemoryAdapter:
         generation_session_contract: GenerationSessionContract | None,
     ) -> Mapping[str, Any]:
         has_generation = any(
-            isinstance(record.get("generation"), Mapping)
-            for record in history.records
+            isinstance(record.get("generation"), Mapping) for record in history.records
         )
         if not has_generation:
             return {}
@@ -46,6 +45,19 @@ class StairTaskMemoryAdapter:
         if not plan.index.cards:
             return {}
         return plan.prompt_projection
+
+    def build_exploration_projection_from_validated_history(
+        self,
+        history: ProjectedPublicHistory,
+        *,
+        generation_session_contract: GenerationSessionContract | None,
+    ) -> Mapping[str, Any]:
+        """Build the internal index before prompt-only history fields are scrubbed."""
+
+        return self.build_exploration_projection(
+            history,
+            generation_session_contract=generation_session_contract,
+        )
 
     def build_generation_exploration_plan(
         self,
@@ -110,8 +122,7 @@ class StairTaskMemoryAdapter:
 
         bounded = objective_summaries[-_MAX_TREND_ROUNDS:]
         scores = [
-            float(item["stable_top_success_rate"])
-            for item in objective_summaries
+            float(item["stable_top_success_rate"]) for item in objective_summaries
         ]
         latest = objective_summaries[-1]
         return sanitize_public_context(
@@ -122,9 +133,7 @@ class StairTaskMemoryAdapter:
                 "score_source": "acceptance_objective.score_stats.mean",
                 "diagnostic_source": "generalization_public_dev",
                 "failure_summary_source": "generalization_public_dev",
-                "rounds_with_validated_public_stair_metrics": len(
-                    objective_summaries
-                ),
+                "rounds_with_validated_public_stair_metrics": len(objective_summaries),
                 "stable_top_success": {
                     "latest": scores[-1],
                     "best": max(scores),

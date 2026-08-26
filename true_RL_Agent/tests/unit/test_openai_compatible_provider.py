@@ -22,6 +22,9 @@ from true_rl_agent.agent_core.authoring_response import (  # noqa: E402
     CandidateDraftResponse,
     SourceRequestResponse,
 )
+from true_rl_agent.agent_core.authoring_loop import (  # noqa: E402
+    CandidateAuthoringLoop,
+)
 from true_rl_agent.agent_core.openai_compatible_provider import (  # noqa: E402
     OpenAICompatibleCandidateProvider,
     OpenAICompatibleProviderConfig,
@@ -37,6 +40,15 @@ from true_rl_agent.agent_core.provider_errors import (
     build_provider_repair_feedback,  # noqa: E402
     normalize_provider_receipt,  # noqa: E402
 )
+from true_rl_agent.agent_core.provider_limits import (  # noqa: E402
+    PROVIDER_EMPTY_FINAL_REASONING_FAILURE_KIND,
+)
+from tests.fakes.decision_records import (  # noqa: E402
+    TEST_ACCEPTANCE_PROTOCOL,
+    TEST_SESSION_GENESIS_HASH,
+    make_bootstrap_current_best,
+)
+from tests.fakes.fake_components import FakeTaskPlugin, FakeVerifier  # noqa: E402
 from true_rl_agent.candidates.package_contract import (  # noqa: E402
     CANDIDATE_PACKAGE_FILE_MAX_BYTES,
 )
@@ -55,6 +67,33 @@ class _FakeTransport:
     def post_json(self, *, url: str, payload: dict[str, Any], api_key: str, timeout_s: int) -> dict[str, Any]:
         self.calls.append({"url": url, "payload": payload, "api_key": api_key, "timeout_s": timeout_s})
         return self.response
+
+
+class _SequenceTransport:
+    transport_policy_id = "test.transport.v1"
+    max_response_bytes = 512 * 1024
+
+    def __init__(self, responses: list[dict[str, Any]]) -> None:
+        self.responses = list(responses)
+        self.calls: list[dict[str, Any]] = []
+
+    def post_json(
+        self,
+        *,
+        url: str,
+        payload: dict[str, Any],
+        api_key: str,
+        timeout_s: int,
+    ) -> dict[str, Any]:
+        self.calls.append(
+            {
+                "url": url,
+                "payload": payload,
+                "api_key": api_key,
+                "timeout_s": timeout_s,
+            }
+        )
+        return self.responses[len(self.calls) - 1]
 
 
 class _FakeHTTPResponse:
@@ -144,6 +183,24 @@ class OpenAICompatibleProviderTests(unittest.TestCase):
         self.assertEqual(config.timeout_s, 240)
         self.assertEqual(config.temperature, 0.1)
         self.assertEqual(config.reasoning_mode, "provider_default")
+        self.assertFalse(config.empty_final_reasoning_retry)
+
+    def test_empty_final_reasoning_retry_config_is_explicit_and_adaptive_only(
+        self,
+    ) -> None:
+        with self.assertRaisesRegex(ValueError, "must be boolean"):
+            OpenAICompatibleProviderConfig(
+                model="deepseek-v4-flash",
+                output_dir=Path("candidate-output"),
+                empty_final_reasoning_retry="enabled",  # type: ignore[arg-type]
+            )
+        with self.assertRaisesRegex(ValueError, "requires adaptive reasoning"):
+            OpenAICompatibleProviderConfig(
+                model="deepseek-v4-flash",
+                output_dir=Path("candidate-output"),
+                reasoning_mode="enabled",
+                empty_final_reasoning_retry=True,
+            )
 
     def test_provider_materializes_candidate_package_from_json_response(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -293,7 +350,19 @@ class OpenAICompatibleProviderTests(unittest.TestCase):
 
         self.assertEqual(result, {})
         self.assertEqual(opener.calls, 1)
-        self.assertEqual(opener.requests[0].full_url, url)
+        request = opener.requests[0]
+        self.assertEqual(request.full_url, url)
+        self.assertEqual(request.get_method(), "POST")
+        self.assertEqual(
+            json.loads(request.data.decode("utf-8")),
+            {"model": "test-model"},
+        )
+        self.assertEqual(
+            request.get_header("Authorization"),
+            "Bearer dummy-test-key",
+        )
+        self.assertEqual(request.get_header("Content-type"), "application/json")
+        self.assertIsNone(request.get_header("Accept"))
 
     def test_builtin_transport_policy_identity_cannot_be_overridden(self) -> None:
         with self.assertRaises(TypeError):
@@ -478,7 +547,13 @@ class OpenAICompatibleProviderTests(unittest.TestCase):
 
     def test_http_transport_classifies_http_status_without_body_content(self) -> None:
         transport = UrllibJsonTransport()
-        for status, retryable in ((401, False), (403, False), (429, True), (500, True)):
+        for status, retryable in (
+            (401, False),
+            (402, False),
+            (403, False),
+            (429, True),
+            (500, True),
+        ):
             with self.subTest(status=status):
                 error = urllib.error.HTTPError(
                     "https://api.deepseek.com/chat/completions",
@@ -524,6 +599,256 @@ class OpenAICompatibleProviderTests(unittest.TestCase):
         request = transport.calls[0]["payload"]
         self.assertEqual(request["thinking"], {"type": "enabled"})
         self.assertEqual(request["max_tokens"], 32_768)
+
+    def test_adaptive_reasoning_retries_empty_final_channel_without_using_reasoning(
+        self,
+    ) -> None:
+        reasoning_proposal = json.loads(
+            self._response()["choices"][0]["message"]["content"]
+        )
+        reasoning_proposal["candidate_id"] = "reasoning_only_candidate_v1"
+        reasoning_proposal["components_py"] = reasoning_proposal[
+            "components_py"
+        ].replace("upright_reward_v1", "reasoning_only_candidate_v1")
+        private_reasoning = json.dumps(reasoning_proposal)
+        first_response = {
+            "model": "deepseek-v4-flash",
+            "choices": [
+                {
+                    "finish_reason": "stop",
+                    "message": {
+                        "content": "",
+                        "reasoning_content": private_reasoning,
+                    },
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 100,
+                "completion_tokens": 200,
+                "completion_tokens_details": {"reasoning_tokens": 200},
+            },
+        }
+        second_response = self._response()
+        second_response["model"] = "deepseek-v4-flash"
+        second_response["choices"][0]["finish_reason"] = "stop"
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            candidate_root = root / "candidates"
+            transport = _SequenceTransport([first_response, second_response])
+            provider = OpenAICompatibleCandidateProvider(
+                OpenAICompatibleProviderConfig(
+                    model="deepseek-v4-flash",
+                    output_dir=candidate_root,
+                    api_key="test-key",
+                    reasoning_mode="adaptive",
+                    reasoning_effort="max",
+                    empty_final_reasoning_retry=True,
+                ),
+                transport=transport,
+            )
+            result = CandidateAuthoringLoop(
+                context_builder=PublicContextBuilder(
+                    task_prompt_adapter=FakeTaskPlugin().prompt_adapter(),
+                    acceptance_protocol=TEST_ACCEPTANCE_PROTOCOL,
+                    initial_current_best=make_bootstrap_current_best(),
+                    session_genesis_hash=TEST_SESSION_GENESIS_HASH,
+                ),
+                provider=provider,
+                candidate_admission_policy=FakeVerifier(),
+                round_dir=root / "authoring",
+                max_attempts=2,
+            ).run_round(round_id="round-001", records=[])
+
+            materialized_names = sorted(
+                path.name for path in candidate_root.iterdir()
+            )
+
+        self.assertEqual(result.stop_reason, "candidate_verified")
+        self.assertEqual(result.candidate.candidate_id, "upright_reward_v1")
+        self.assertEqual(len(transport.calls), 2)
+        self.assertEqual(materialized_names, ["002_upright_reward_v1"])
+        first_request = transport.calls[0]["payload"]
+        second_request = transport.calls[1]["payload"]
+        self.assertEqual(first_request["thinking"], {"type": "enabled"})
+        self.assertEqual(first_request["reasoning_effort"], "max")
+        self.assertNotIn("temperature", first_request)
+        self.assertEqual(second_request["thinking"], {"type": "disabled"})
+        self.assertNotIn("reasoning_effort", second_request)
+        self.assertEqual(second_request["temperature"], 0.2)
+
+        first_attempt = result.attempt_records[0]
+        failure = first_attempt["provider_failure"]
+        receipt = first_attempt["provider_response_receipt"]
+        self.assertEqual(failure["category"], "json_parse_error")
+        self.assertEqual(
+            failure["details"]["failure_kind"],
+            PROVIDER_EMPTY_FINAL_REASONING_FAILURE_KIND,
+        )
+        self.assertEqual(receipt["response_text_utf8_bytes"], 0)
+        self.assertTrue(receipt["reasoning_content_present"])
+        self.assertEqual(
+            receipt["reasoning_content_utf8_bytes"],
+            len(private_reasoning.encode("utf-8")),
+        )
+        public_attempt_text = json.dumps(first_attempt, sort_keys=True)
+        self.assertNotIn("reasoning_only_candidate_v1", public_attempt_text)
+        self.assertNotIn(private_reasoning, public_attempt_text)
+
+    def test_empty_final_retry_signal_requires_nonempty_reasoning_receipt(
+        self,
+    ) -> None:
+        cases = (
+            (
+                "reasoning_absent",
+                {"finish_reason": "stop", "message": {"content": ""}},
+                "json_parse_error",
+            ),
+            (
+                "reasoning_empty",
+                {
+                    "finish_reason": "stop",
+                    "message": {"content": "", "reasoning_content": ""},
+                },
+                "json_parse_error",
+            ),
+            (
+                "length_stopped",
+                {
+                    "finish_reason": "length",
+                    "message": {
+                        "content": "",
+                        "reasoning_content": '{"candidate_id":"private"}',
+                    },
+                },
+                "response_truncated",
+            ),
+            (
+                "nonempty_final",
+                {
+                    "finish_reason": "stop",
+                    "message": {
+                        "content": "not-json",
+                        "reasoning_content": '{"candidate_id":"private"}',
+                    },
+                },
+                "json_parse_error",
+            ),
+        )
+        for name, choice, expected_category in cases:
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as tmp:
+                provider = OpenAICompatibleCandidateProvider(
+                    OpenAICompatibleProviderConfig(
+                        model="deepseek-v4-flash",
+                        output_dir=Path(tmp),
+                        api_key="test-key",
+                        reasoning_mode="adaptive",
+                        reasoning_effort="max",
+                        empty_final_reasoning_retry=True,
+                    ),
+                    transport=_FakeTransport({"choices": [choice]}),
+                )
+                with self.assertRaises(ProviderCandidateError) as caught:
+                    provider.next_authoring_response(
+                        prompt_payload=build_prompt_payload(
+                            public_context={"public_only": True}
+                        )
+                    )
+
+            self.assertEqual(caught.exception.category, expected_category)
+            self.assertNotIn(
+                "failure_kind",
+                caught.exception.to_public_dict()["details"],
+            )
+
+    def test_empty_final_retry_signal_requires_explicit_adaptive_opt_in(
+        self,
+    ) -> None:
+        error = ProviderCandidateError(
+            "json_parse_error",
+            "provider final content channel was empty",
+            details={
+                "failure_kind": PROVIDER_EMPTY_FINAL_REASONING_FAILURE_KIND,
+                "finish_reason": "stop",
+            },
+        )
+        prompt = build_prompt_payload(
+            public_context={
+                "public_only": True,
+                "candidate_repair_feedback": build_provider_repair_feedback(
+                    error
+                ),
+            }
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            adaptive = OpenAICompatibleCandidateProvider(
+                OpenAICompatibleProviderConfig(
+                    model="deepseek-v4-flash",
+                    output_dir=Path(tmp),
+                    api_key="test-key",
+                    reasoning_mode="adaptive",
+                    reasoning_effort="max",
+                    empty_final_reasoning_retry=True,
+                ),
+                transport=_FakeTransport({}),
+            )._chat_completion_request(prompt)
+            default_adaptive = OpenAICompatibleCandidateProvider(
+                OpenAICompatibleProviderConfig(
+                    model="deepseek-v4-flash",
+                    output_dir=Path(tmp),
+                    api_key="test-key",
+                    reasoning_mode="adaptive",
+                    reasoning_effort="max",
+                ),
+                transport=_FakeTransport({}),
+            )._chat_completion_request(prompt)
+
+        self.assertEqual(adaptive["thinking"], {"type": "disabled"})
+        self.assertNotIn("reasoning_effort", adaptive)
+        self.assertEqual(
+            default_adaptive["thinking"], {"type": "enabled"}
+        )
+        self.assertEqual(default_adaptive["reasoning_effort"], "max")
+
+    def test_default_adaptive_mode_preserves_legacy_empty_final_failure(
+        self,
+    ) -> None:
+        response = {
+            "choices": [
+                {
+                    "finish_reason": "stop",
+                    "message": {
+                        "content": "",
+                        "reasoning_content": '{"candidate_id":"private"}',
+                    },
+                }
+            ]
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            provider = OpenAICompatibleCandidateProvider(
+                OpenAICompatibleProviderConfig(
+                    model="deepseek-v4-flash",
+                    output_dir=Path(tmp),
+                    api_key="test-key",
+                    reasoning_mode="adaptive",
+                    reasoning_effort="max",
+                ),
+                transport=_FakeTransport(response),
+            )
+            with self.assertRaises(ProviderCandidateError) as caught:
+                provider.next_authoring_response(
+                    prompt_payload=build_prompt_payload(
+                        public_context={"public_only": True}
+                    )
+                )
+
+        failure = caught.exception.to_public_dict()
+        self.assertEqual(failure["category"], "json_parse_error")
+        self.assertNotIn("failure_kind", failure["details"])
+        self.assertEqual(
+            failure["reason"],
+            "candidate proposal was not valid JSON object",
+        )
 
     def test_max_reasoning_effort_is_sent_only_for_thinking_requests(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

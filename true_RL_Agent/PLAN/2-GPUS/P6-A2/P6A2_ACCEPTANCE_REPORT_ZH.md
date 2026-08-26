@@ -47,6 +47,12 @@ retry_policy=none
 不得根据正式 generation 的中途结果静默切换模型、reasoning effort、temperature 或输出上限；
 如需改变，必须创建新合同并另行批准。
 
+后续合同说明（不追溯修改本次验收事实，也不构成运行授权）：P6-B 已在
+[`../P6-B/P6B_IMPLEMENTATION_PLAN_ZH.md`](../P6-B/P6B_IMPLEMENTATION_PLAN_ZH.md)
+建立 `true_rl_agent.stair.generation_provider_policy.v2`；其 thinking-enabled 首请求仍保持
+`temperature=omitted`；receipt 证明的 empty-final/reasoning-nonempty repair，以及既有的
+length+inline-source repair，均切换为 thinking disabled 和 `temperature=0.2`。
+
 ## 2. 冻结输入与制品身份
 
 - 唯一 source archive SHA256：

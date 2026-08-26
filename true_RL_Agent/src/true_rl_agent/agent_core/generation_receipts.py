@@ -323,11 +323,45 @@ def load_generation_manifest_receipt(
 ) -> GenerationReceiptRef:
     """Load the manifest through its canonical journal location and exact ref."""
 
-    journal = _journal_for_ref(ref, manifest=manifest, expected_kind="manifest")
-    loaded_ref = journal.bind_manifest()
-    if loaded_ref != ref:
-        raise ValueError("generation manifest receipt ref mismatch")
-    return loaded_ref
+    loaded = load_generation_manifest_from_receipt(ref)
+    if loaded != manifest:
+        raise ValueError("generation manifest receipt payload mismatch")
+    return ref
+
+
+def load_generation_manifest_from_receipt(
+    ref: GenerationReceiptRef,
+) -> GenerationManifest:
+    """Load the complete private manifest named by one exact receipt ref."""
+
+    if not isinstance(ref, GenerationReceiptRef) or ref.kind != "manifest":
+        raise TypeError("generation manifest receipt ref is invalid")
+    path = Path(ref.path)
+    encoded = read_bounded_regular_file(
+        path,
+        max_bytes=MAX_GENERATION_RECEIPT_BYTES,
+        label="generation manifest receipt",
+    )
+    if len(encoded) != ref.size_bytes:
+        raise ValueError("generation manifest receipt size mismatch")
+    checksum = "sha256:" + hashlib.sha256(encoded).hexdigest()
+    if checksum != ref.checksum:
+        raise ValueError("generation manifest receipt checksum mismatch")
+    payload = strict_json_object_loads(
+        encoded,
+        context="generation manifest receipt",
+    )
+    if encoded != canonical_json_bytes(payload, trailing_newline=True):
+        raise ValueError("generation manifest receipt is not canonical JSON")
+    if set(payload) != {"schema_version", "manifest", "manifest_hash"}:
+        raise ValueError("generation manifest receipt fields mismatch")
+    if payload.get("schema_version") != GENERATION_MANIFEST_RECEIPT_SCHEMA_VERSION:
+        raise ValueError("generation manifest receipt schema mismatch")
+    manifest = GenerationManifest.from_mapping(payload.get("manifest"))
+    if payload.get("manifest_hash") != manifest.manifest_hash:
+        raise ValueError("generation manifest receipt hash mismatch")
+    _journal_for_ref(ref, manifest=manifest, expected_kind="manifest")
+    return manifest
 
 
 def load_generation_selection_receipt(
@@ -370,6 +404,7 @@ __all__ = [
     "GenerationReceiptJournal",
     "GenerationReceiptRef",
     "LoadedGenerationSelection",
+    "load_generation_manifest_from_receipt",
     "load_generation_manifest_receipt",
     "load_generation_selection_receipt",
 ]

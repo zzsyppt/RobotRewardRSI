@@ -1385,6 +1385,16 @@ def _normalize_parameter_like_numeric_constants(tree: ast.AST) -> ast.AST:
     parsed = ast.parse(ast.unparse(tree))
 
     class Visitor(ast.NodeTransformer):
+        def visit_UnaryOp(self, node: ast.UnaryOp) -> ast.AST:  # noqa: N802
+            if (
+                isinstance(node.op, (ast.USub, ast.UAdd))
+                and isinstance(node.operand, ast.Constant)
+                and isinstance(node.operand.value, int | float)
+                and not isinstance(node.operand.value, bool)
+            ):
+                return self.visit(node.operand)
+            return self.generic_visit(node)
+
         def visit_Subscript(self, node: ast.Subscript) -> ast.AST:  # noqa: N802
             # Slice/index literals select tensor semantics, not a tunable magnitude.
             node.value = self.visit(node.value)

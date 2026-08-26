@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 from __future__ import annotations
 
 import copy
@@ -30,6 +31,10 @@ from tests.fakes.decision_records import (
 from true_rl_agent.agent_core.experiment_memory import (
     build_experiment_memory,
     recompact_experiment_memory,
+)
+from true_rl_agent.agent_core.generation_contract import (
+    GENERATION_LEDGER_RECORD_SCHEMA_VERSION,
+    GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION,
 )
 from true_rl_agent.agent_core.ledger import (
     LEDGER_RECORD_SCHEMA_VERSION,
@@ -84,6 +89,32 @@ def PublicContextBuilder(*args, **kwargs):
 
 
 class MemoryContextPhase13Tests(unittest.TestCase):
+    def test_malformed_generation_cannot_bypass_mechanism_attribution(self) -> None:
+        malformed_generations = (
+            {
+                "schema_version": GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION,
+            },
+            {
+                "schema_version": "true_rl_agent.forged_generation_projection.v1",
+                "formal": None,
+            },
+        )
+        for generation in malformed_generations:
+            with self.subTest(generation=generation):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "invalid mechanism attribution",
+                ):
+                    build_experiment_memory(
+                        [
+                            {
+                                "schema_version": GENERATION_LEDGER_RECORD_SCHEMA_VERSION,
+                                "generation": generation,
+                                "decision": {"reason": "no_selection"},
+                            }
+                        ]
+                    )
+
     def test_private_artifact_rejects_malformed_checksum(self) -> None:
         with self.assertRaisesRegex(ValueError, "lowercase SHA-256"):
             PrivateArtifactRef(
@@ -127,21 +158,15 @@ class MemoryContextPhase13Tests(unittest.TestCase):
                 candidate_id=f"candidate-{current_best_round_id}",
                 public_result=previous["public_result"],
                 acceptance_protocol=TEST_ACCEPTANCE_PROTOCOL,
-                subject_manifest_hash=previous["jobs"]["eval"][
-                    "subject_manifest_hash"
-                ],
+                subject_manifest_hash=previous["jobs"]["eval"]["subject_manifest_hash"],
                 program_source_checksum=previous["jobs"]["eval"][
                     "program_source_checksum"
                 ],
-                training_binding_hash=previous["jobs"]["eval"][
-                    "training_binding_hash"
-                ],
+                training_binding_hash=previous["jobs"]["eval"]["training_binding_hash"],
                 capability_profile_hash=previous["jobs"]["eval"][
                     "capability_profile_hash"
                 ],
-                checkpoint_hash=previous["jobs"]["eval"]["checkpoint"][
-                    "checksum"
-                ],
+                checkpoint_hash=previous["jobs"]["eval"]["checkpoint"]["checksum"],
                 expected_evaluation_binding=TEST_EVALUATION_BINDING,
             )
         return {
@@ -182,9 +207,7 @@ class MemoryContextPhase13Tests(unittest.TestCase):
                     "program_source_checksum": TEST_PROGRAM_SOURCE_CHECKSUM,
                     "training_binding_hash": TEST_TRAINING_BINDING_HASH,
                     "capability_profile_hash": TEST_CAPABILITY_PROFILE_HASH,
-                    "checkpoint": {
-                        "checksum": "sha256:" + "a" * 64
-                    },
+                    "checkpoint": {"checksum": "sha256:" + "a" * 64},
                 },
             },
             "train_result": {"job_id": f"{round_id}-train"},
@@ -318,9 +341,13 @@ class MemoryContextPhase13Tests(unittest.TestCase):
             "note": "sk-secret-should-redact",
         }
 
-    def test_experiment_record_projects_public_data_and_hides_private_artifacts(self) -> None:
+    def test_experiment_record_projects_public_data_and_hides_private_artifacts(
+        self,
+    ) -> None:
         record = ExperimentRecord.from_ledger_record(
-            self._push_record(round_id="round-001", score=0.42, failure_breakdown={"fall": 0.2}),
+            self._push_record(
+                round_id="round-001", score=0.42, failure_breakdown={"fall": 0.2}
+            ),
             private_artifacts=(
                 PrivateArtifactRef(
                     kind="trusted_eval_report",
@@ -444,7 +471,9 @@ class MemoryContextPhase13Tests(unittest.TestCase):
     def test_public_context_builder_saves_public_only_prompt_payload(self) -> None:
         records = [
             ExperimentRecord.from_ledger_record(
-                self._push_record(round_id="round-001", score=0.30, failure_breakdown={"fall": 0.3})
+                self._push_record(
+                    round_id="round-001", score=0.30, failure_breakdown={"fall": 0.3}
+                )
             ),
             ExperimentRecord.from_ledger_record(
                 self._push_record(
@@ -456,9 +485,7 @@ class MemoryContextPhase13Tests(unittest.TestCase):
                 )
             ),
         ]
-        builder = PublicContextBuilder(
-            task_memory_adapter=PushTaskMemoryAdapter()
-        )
+        builder = PublicContextBuilder(task_memory_adapter=PushTaskMemoryAdapter())
 
         prompt_build = builder.build_prompt(records)
         round_context = prompt_build.round_public_context
@@ -471,7 +498,9 @@ class MemoryContextPhase13Tests(unittest.TestCase):
             round_context["task_public_summary"]["latest_failure_mode"],
             "push_recovery_drift",
         )
-        self.assertEqual(round_context["task_public_summary"]["success_rate"]["best"], 0.46)
+        self.assertEqual(
+            round_context["task_public_summary"]["success_rate"]["best"], 0.46
+        )
         self.assertEqual(
             payload["public_feedback_summary"]["task_public_summary"],
             round_context["task_public_summary"],
@@ -501,7 +530,9 @@ class MemoryContextPhase13Tests(unittest.TestCase):
         self.assertEqual(ref.visibility, "public_prompt_payload")
         self.assertEqual(ref.to_public_dict()["path"], str(prompt_path))
 
-    def test_push_memory_uses_validated_public_score_not_raw_metric_mirror(self) -> None:
+    def test_push_memory_uses_validated_public_score_not_raw_metric_mirror(
+        self,
+    ) -> None:
         record = self._push_record(
             round_id="round-score-binding",
             score=0.42,
@@ -523,7 +554,9 @@ class MemoryContextPhase13Tests(unittest.TestCase):
         )
         self.assertNotIn("0.99", json.dumps(summary, sort_keys=True))
 
-    def test_task_memory_adapter_is_extension_point_without_agent_core_changes(self) -> None:
+    def test_task_memory_adapter_is_extension_point_without_agent_core_changes(
+        self,
+    ) -> None:
         class CustomTaskMemoryAdapter(TaskMemoryAdapter):
             task_id = "custom_task"
 
@@ -536,15 +569,91 @@ class MemoryContextPhase13Tests(unittest.TestCase):
             {
                 "round_id": "round-001",
                 "task": {"task_id": "custom_task"},
-                "decision": {"accepted": False, "outcome": "reject", "public_score": None},
+                "decision": {
+                    "accepted": False,
+                    "outcome": "reject",
+                    "public_score": None,
+                },
                 "candidate_surface": {"classification": "code_level"},
             }
         )
 
-        context = PublicContextBuilder(task_memory_adapter=CustomTaskMemoryAdapter()).build([record])
+        context = PublicContextBuilder(
+            task_memory_adapter=CustomTaskMemoryAdapter()
+        ).build([record])
 
         self.assertEqual(context["task_public_summary"]["custom_metric"], 7)
         self.assertEqual(seen_counts, [1])
+
+    def test_validated_exploration_projection_is_scrubbed_before_final_prompt(
+        self,
+    ) -> None:
+        class ProjectionMemoryAdapter:
+            task_id = "custom_task"
+
+            def build_public_summary(self, public_records):
+                _ = public_records
+                return {}
+
+            def build_exploration_projection_from_validated_history(
+                self,
+                history,
+                *,
+                generation_session_contract,
+            ):
+                seen_history.append(history)
+                self.assert_contract(generation_session_contract)
+                return {
+                    "schema_version": (
+                        "true_rl_agent.exploration_prompt_projection.v2"
+                    ),
+                    "task_id": self.task_id,
+                    "source_index_hash": "0" * 64,
+                    "current_head_hash": "1" * 64,
+                    "semantics": "public exploration only",
+                    "priority_or_eligible_cards": [],
+                    "verifier_equivalent_avoidance_cards": [],
+                    "repeated_negative_input_signature_advisories": [],
+                    "blocked_verifier_equivalence_count": 0,
+                    "omitted_verifier_equivalent_avoidance_count": 0,
+                    "frontier_backlog_count": 0,
+                    "omitted_frontier_card_count": 0,
+                    "deferred_frontier_card_count": 0,
+                    "ineligible_frontier_card_count": 0,
+                    "acceptance_authority": False,
+                    "sealed_validation_evidence": {"detail": "sealed-only-marker"},
+                }
+
+            @staticmethod
+            def assert_contract(value):
+                if value is not None:
+                    raise AssertionError("unexpected generation contract")
+
+        class ScrubbingPromptAdapter:
+            task_id = "custom_task"
+
+            def build_prompt_sections(self, *, public_records, public_context):
+                _ = public_records, public_context
+                return {}
+
+            def prompt_public_record_scrub_policy(self):
+                return {
+                    "blocked_key_parts": ("sealed_validation_evidence",),
+                    "blocked_text_parts": ("sealed-only-marker",),
+                }
+
+        seen_history = []
+        payload = PublicContextBuilder(
+            task_memory_adapter=ProjectionMemoryAdapter(),
+            task_prompt_adapter=ScrubbingPromptAdapter(),
+        ).build_prompt_payload([])
+        payload_text = json.dumps(payload, sort_keys=True)
+
+        self.assertEqual(len(seen_history), 1)
+        self.assertIn("public exploration only", payload_text)
+        self.assertNotIn("sealed_validation_evidence", payload_text)
+        self.assertNotIn("sealed-only-marker", payload_text)
+        assert_public_only_prompt_payload(payload)
 
     def test_public_context_builder_accepts_raw_mapping_records(self) -> None:
         record = valid_runtime_failed_ledger_record(
@@ -555,9 +664,7 @@ class MemoryContextPhase13Tests(unittest.TestCase):
             "failed at D:/humanoid_agent/private/raw.txt"
         )
         record["raw_seed_id"] = "public-dev-seed-001"
-        payload = PublicContextBuilder().build_prompt_payload(
-            [record]
-        )
+        payload = PublicContextBuilder().build_prompt_payload([record])
         payload_text = json.dumps(payload, sort_keys=True)
         entry = payload["public_history"]["recent_outcomes"][-1]
 
@@ -570,7 +677,9 @@ class MemoryContextPhase13Tests(unittest.TestCase):
 
     def test_prompt_payload_guard_blocks_checkpoint_selector_keys(self) -> None:
         with self.assertRaises(ValueError):
-            assert_public_only_prompt_payload({"public_context": {"checkpoint_selector": "best_trusted"}})
+            assert_public_only_prompt_payload(
+                {"public_context": {"checkpoint_selector": "best_trusted"}}
+            )
 
     def test_push_memory_adapter_tolerates_malformed_public_task_field(self) -> None:
         summary = PushTaskMemoryAdapter().build_public_summary(
@@ -658,13 +767,17 @@ class MemoryContextPhase13Tests(unittest.TestCase):
         self.assertEqual(entry["runtime_activation"]["reward_term_calls"], 3)
         self.assertEqual(entry["runtime_activation"]["diagnostic_calls"], 1)
         self.assertIs(entry["runtime_activation"]["nonzero_reward_contribution"], False)
-        self.assertEqual(entry["mechanism_attribution"]["status"], "attribution_unclear")
+        self.assertEqual(
+            entry["mechanism_attribution"]["status"], "attribution_unclear"
+        )
         self.assertEqual(entry["runner_error"]["type"], "RunnerExecutionError")
         self.assertIn("[path]", entry["runner_error"]["message"])
         self.assertNotIn("/data/yuyangliu", payload_text)
         self.assertNotIn("D:/humanoid_agent", payload_text)
 
-    def test_prompt_public_history_preserves_missing_runtime_activation_as_not_available(self) -> None:
+    def test_prompt_public_history_preserves_missing_runtime_activation_as_not_available(
+        self,
+    ) -> None:
         record = ExperimentRecord.from_ledger_record(
             {
                 "round_id": "round-no-runtime-summary",
@@ -689,7 +802,9 @@ class MemoryContextPhase13Tests(unittest.TestCase):
 
         self.assertEqual(entry["runtime_activation"], {"status": "not_available"})
 
-    def test_prompt_public_history_does_not_treat_checkpoint_eval_as_training_load_failure(self) -> None:
+    def test_prompt_public_history_does_not_treat_checkpoint_eval_as_training_load_failure(
+        self,
+    ) -> None:
         record = ExperimentRecord.from_ledger_record(
             {
                 "round_id": "round-010b",
@@ -769,9 +884,7 @@ class MemoryContextPhase13Tests(unittest.TestCase):
                     "reward_term_calls": 864018,
                     "diagnostic_calls": 0,
                     "nonzero_reward_contribution": True,
-                    "capability_activation_records": [
-                        "complete_reward_program"
-                    ],
+                    "capability_activation_records": ["complete_reward_program"],
                 },
                 "public_result": {
                     "status": "pass",
@@ -821,9 +934,9 @@ class MemoryContextPhase13Tests(unittest.TestCase):
             }
         )
 
-        entry = PublicContextBuilder().build_prompt_payload([record])[
-            "public_history"
-        ]["recent_outcomes"][-1]
+        entry = PublicContextBuilder().build_prompt_payload([record])["public_history"][
+            "recent_outcomes"
+        ][-1]
 
         self.assertEqual(
             entry["candidate_runtime_activated_in_training"],
@@ -863,12 +976,16 @@ class MemoryContextPhase13Tests(unittest.TestCase):
 
         self.assertEqual(entry["provider_failure"]["category"], "json_parse_error")
         self.assertIn("[path]", entry["provider_failure"]["reason"])
-        self.assertEqual(entry["repair_feedback"]["failure_category"], "json_parse_error")
+        self.assertEqual(
+            entry["repair_feedback"]["failure_category"], "json_parse_error"
+        )
         self.assertIn("[path]", entry["repair_feedback"]["reason"])
         self.assertNotIn("/data/yuyangliu", payload_text)
         self.assertNotIn("D:/humanoid_agent", payload_text)
 
-    def test_prompt_public_history_projects_bounded_source_request_feedback(self) -> None:
+    def test_prompt_public_history_projects_bounded_source_request_feedback(
+        self,
+    ) -> None:
         payload = PublicContextBuilder().build_prompt_payload(
             [
                 {
@@ -935,10 +1052,18 @@ class MemoryContextPhase13Tests(unittest.TestCase):
                 "max_source_request_bytes_per_round",
             },
         )
-        for forbidden in ("must_not_leak", "rationale", "instructions", "content", "D:/private"):
+        for forbidden in (
+            "must_not_leak",
+            "rationale",
+            "instructions",
+            "content",
+            "D:/private",
+        ):
             self.assertNotIn(forbidden, feedback_text)
 
-    def test_prompt_public_history_preserves_omitted_detail_count_across_recompaction(self) -> None:
+    def test_prompt_public_history_preserves_omitted_detail_count_across_recompaction(
+        self,
+    ) -> None:
         raw_payload = PublicContextBuilder().build_prompt_payload(
             [
                 {
@@ -984,9 +1109,9 @@ class MemoryContextPhase13Tests(unittest.TestCase):
         )
 
         self.assertEqual(
-            raw_payload["public_history"]["recent_outcomes"][-1]["runner_error"]["details"][
-                "omitted_detail_count"
-            ],
+            raw_payload["public_history"]["recent_outcomes"][-1]["runner_error"][
+                "details"
+            ]["omitted_detail_count"],
             5,
         )
         self.assertEqual(
@@ -996,7 +1121,9 @@ class MemoryContextPhase13Tests(unittest.TestCase):
             5,
         )
 
-    def test_static_authoring_failure_feedback_overrides_stale_attempt_repair_feedback(self) -> None:
+    def test_static_authoring_failure_feedback_overrides_stale_attempt_repair_feedback(
+        self,
+    ) -> None:
         record = ExperimentRecord.from_ledger_record(
             {
                 "round_id": "round-012",
@@ -1037,9 +1164,13 @@ class MemoryContextPhase13Tests(unittest.TestCase):
         payload = PublicContextBuilder().build_prompt_payload([record])
         entry = payload["public_history"]["recent_outcomes"][-1]
 
-        self.assertEqual(entry["repair_feedback"]["failure_category"], "component_smoke_error")
+        self.assertEqual(
+            entry["repair_feedback"]["failure_category"], "component_smoke_error"
+        )
         self.assertEqual(entry["repair_feedback"]["status"], "repair_required")
-        self.assertNotIn("json_parse_error", json.dumps(entry["repair_feedback"], sort_keys=True))
+        self.assertNotIn(
+            "json_parse_error", json.dumps(entry["repair_feedback"], sort_keys=True)
+        )
 
     def test_prompt_public_history_is_count_and_byte_bounded(self) -> None:
         records = [
@@ -1140,7 +1271,9 @@ class MemoryContextPhase13Tests(unittest.TestCase):
         self.assertNotIn("raw_seed", payload_text)
         self.assertNotIn("must_not_leak", payload_text)
 
-    def test_runtime_component_projection_drops_invalid_oversized_identity(self) -> None:
+    def test_runtime_component_projection_drops_invalid_oversized_identity(
+        self,
+    ) -> None:
         valid_name = "n" * MAX_CANONICAL_COMPONENT_NAME_CHARS
         memory = build_experiment_memory(
             [
@@ -1365,13 +1498,12 @@ class MemoryContextPhase13Tests(unittest.TestCase):
         )
         self.assertNotIn(
             "tiny_candidate_term",
-            {
-                component["name"]
-                for component in experiments[2]["activated_components"]
-            },
+            {component["name"] for component in experiments[2]["activated_components"]},
         )
 
-    def test_first_accepted_authoring_delta_survives_runtime_salience_limit(self) -> None:
+    def test_first_accepted_authoring_delta_survives_runtime_salience_limit(
+        self,
+    ) -> None:
         runtime_components = [
             {
                 "component_kind": "reward_term",
@@ -1388,28 +1520,26 @@ class MemoryContextPhase13Tests(unittest.TestCase):
             }
         ]
         first_record = {
-                    "schema_version": LEDGER_RECORD_SCHEMA_VERSION,
-                    "authoring_mode": PROVIDER_AUTHORING_MODE,
-                    "round_id": "round-001",
-                    "candidate": {"candidate_id": "first-accepted"},
-                    "decision": {
-                        "accepted": True,
-                        "reason": "test",
-                        "surface_classification": "code_level",
-                    },
-                    "mechanism_attribution": {
-                        "schema_version": MECHANISM_ATTRIBUTION_SCHEMA_VERSION,
-                        "authoring_mechanism_delta": {
-                            "schema_version": CANDIDATE_MECHANISM_DELTA_SCHEMA_VERSION,
-                            "changed_mechanisms": [
-                                "RewardTerm:progress_reward"
-                            ],
-                        }
-                    },
-                    "runtime_activation_summary": {
-                        "component_activation_records": runtime_components,
-                    },
-                }
+            "schema_version": LEDGER_RECORD_SCHEMA_VERSION,
+            "authoring_mode": PROVIDER_AUTHORING_MODE,
+            "round_id": "round-001",
+            "candidate": {"candidate_id": "first-accepted"},
+            "decision": {
+                "accepted": True,
+                "reason": "test",
+                "surface_classification": "code_level",
+            },
+            "mechanism_attribution": {
+                "schema_version": MECHANISM_ATTRIBUTION_SCHEMA_VERSION,
+                "authoring_mechanism_delta": {
+                    "schema_version": CANDIDATE_MECHANISM_DELTA_SCHEMA_VERSION,
+                    "changed_mechanisms": ["RewardTerm:progress_reward"],
+                },
+            },
+            "runtime_activation_summary": {
+                "component_activation_records": runtime_components,
+            },
+        }
         memory = build_experiment_memory([first_record])
 
         entry = memory["experiments"][0]
@@ -1426,10 +1556,7 @@ class MemoryContextPhase13Tests(unittest.TestCase):
         self.assertEqual(len(entry["activated_components"]), 8)
         self.assertNotIn(
             "progress_reward",
-            {
-                component["name"]
-                for component in entry["activated_components"]
-            },
+            {component["name"] for component in entry["activated_components"]},
         )
 
         stressed_records = [first_record]
@@ -1443,8 +1570,7 @@ class MemoryContextPhase13Tests(unittest.TestCase):
                         "reason": "x" * 500,
                         "surface_classification": "code_level",
                         "gate_statuses": {
-                            f"gate-{gate}-" + ("y" * 490): "fail"
-                            for gate in range(8)
+                            f"gate-{gate}-" + ("y" * 490): "fail" for gate in range(8)
                         },
                     },
                     "runtime_activation_summary": {
@@ -1498,13 +1624,15 @@ class MemoryContextPhase13Tests(unittest.TestCase):
             ],
         )
 
-        memory["experiments"][0]["candidate_components"][0][
-            "mechanism"
-        ] = "not-canonical"
+        memory["experiments"][0]["candidate_components"][0]["mechanism"] = (
+            "not-canonical"
+        )
         with self.assertRaisesRegex(ValueError, "not canonical"):
             recompact_experiment_memory(memory)
 
-    def test_experiment_memory_full_byte_limit_preserves_latest_accepted_and_latest(self) -> None:
+    def test_experiment_memory_full_byte_limit_preserves_latest_accepted_and_latest(
+        self,
+    ) -> None:
         records = []
         for index in range(20):
             records.append(
@@ -1524,7 +1652,8 @@ class MemoryContextPhase13Tests(unittest.TestCase):
                         "component_activation_records": [
                             {
                                 "component_kind": "reward_term",
-                                "name": f"term-{index}-{component_index}-" + ("z" * 480),
+                                "name": f"term-{index}-{component_index}-"
+                                + ("z" * 480),
                                 "effective_weight": 1.0,
                                 "last_weighted_mean": 0.1,
                                 "max_abs_weighted_contribution": 1.0,
@@ -1537,8 +1666,7 @@ class MemoryContextPhase13Tests(unittest.TestCase):
 
         memory = build_experiment_memory(records)
         candidate_ids = [
-            experiment["candidate_id"]
-            for experiment in memory["experiments"]
+            experiment["candidate_id"] for experiment in memory["experiments"]
         ]
 
         self.assertLessEqual(
@@ -1548,6 +1676,58 @@ class MemoryContextPhase13Tests(unittest.TestCase):
         self.assertIn("candidate-001", candidate_ids)
         self.assertEqual(candidate_ids[-1], "candidate-019")
         self.assertGreater(memory["omitted_experiment_count"], 0)
+
+    def test_experiment_memory_summarizes_old_entries_before_omitting_them(
+        self,
+    ) -> None:
+        raw = {
+            "schema_version": "true_rl_agent.experiment_memory.v3",
+            "omitted_experiment_count": 0,
+            "experiments": [
+                {
+                    "round_index": index + 1,
+                    "candidate_id": f"candidate-{index:03d}",
+                    "accepted": index == 1,
+                    "reason": f"reason-{index}-" + ("x" * 480),
+                    "objective_score": index / 100,
+                    "objective_delta": index / 1000,
+                    "guard_score": index / 100,
+                    "guard_delta": index / 1000,
+                    "activated_components": [
+                        {
+                            "kind": "reward_term",
+                            "name": (
+                                f"term-{index}-{component_index}-" + ("z" * 96)
+                            ),
+                            "weight": 1.0,
+                            "last_mean": 0.1,
+                            "max_abs": 1.0,
+                        }
+                        for component_index in range(8)
+                    ],
+                }
+                for index in range(12)
+            ],
+        }
+
+        memory = recompact_experiment_memory(raw)
+
+        self.assertEqual(memory["omitted_experiment_count"], 0)
+        self.assertEqual(
+            [entry["candidate_id"] for entry in memory["experiments"]],
+            [f"candidate-{index:03d}" for index in range(12)],
+        )
+        self.assertTrue(
+            any(
+                "activated_components" not in entry
+                for entry in memory["experiments"]
+            )
+        )
+        self.assertLessEqual(
+            canonical_prompt_json_bytes(memory),
+            memory["limits"]["max_serialized_bytes"],
+        )
+        self.assertEqual(recompact_experiment_memory(memory), memory)
 
     def test_direct_prompt_payload_public_history_uses_fixed_allowlist(self) -> None:
         payload = assemble_prompt_payload(
@@ -1598,7 +1778,9 @@ class MemoryContextPhase13Tests(unittest.TestCase):
         self.assertEqual(entry["runner_error"]["details"]["status"], "fail")
         self.assertGreater(entry["runner_error"]["details"]["omitted_detail_count"], 0)
 
-    def test_prompt_public_history_keeps_failed_gates_without_task_metric_semantics(self) -> None:
+    def test_prompt_public_history_keeps_failed_gates_without_task_metric_semantics(
+        self,
+    ) -> None:
         record = valid_accepted_ledger_record(
             round_id="round-behavior-gate",
             candidate_id="candidate-behavior-gate",
@@ -1663,30 +1845,24 @@ class MemoryContextPhase13Tests(unittest.TestCase):
             }
         }
         metrics["sealed_validation_gate"]["reason"] = "sealed_validation_pass"
-        metrics["sealed_validation_gate"][
-            "checkpoint_report_path"
-        ] = "D:/runner/eval/report.json"
+        metrics["sealed_validation_gate"]["checkpoint_report_path"] = (
+            "D:/runner/eval/report.json"
+        )
         candidate_stats = dict(metrics["acceptance"]["score_stats"])
         best_stats = CurrentBestEvalStats.from_public_result_mapping(
             round_id="round-best",
             candidate_id="candidate-best",
             public_result=best_record["public_result"],
             acceptance_protocol=TEST_ACCEPTANCE_PROTOCOL,
-            subject_manifest_hash=best_record["jobs"]["eval"][
-                "subject_manifest_hash"
-            ],
+            subject_manifest_hash=best_record["jobs"]["eval"]["subject_manifest_hash"],
             program_source_checksum=best_record["jobs"]["eval"][
                 "program_source_checksum"
             ],
-            training_binding_hash=best_record["jobs"]["eval"][
-                "training_binding_hash"
-            ],
+            training_binding_hash=best_record["jobs"]["eval"]["training_binding_hash"],
             capability_profile_hash=best_record["jobs"]["eval"][
                 "capability_profile_hash"
             ],
-            checkpoint_hash=best_record["jobs"]["eval"]["checkpoint"][
-                "checksum"
-            ],
+            checkpoint_hash=best_record["jobs"]["eval"]["checkpoint"]["checksum"],
             expected_evaluation_binding=TEST_EVALUATION_BINDING,
         )
         record["decision"].update(
@@ -1729,13 +1905,21 @@ class MemoryContextPhase13Tests(unittest.TestCase):
         self.assertEqual(entry["comparison"]["candidate_score"], 0.42)
         self.assertEqual(entry["comparison"]["current_best_score"], 0.40)
         self.assertEqual(entry["comparison"]["candidate_score_stats"]["count"], 3)
-        self.assertEqual(entry["comparison"]["current_best"]["accepted_round_id"], "round-best")
+        self.assertEqual(
+            entry["comparison"]["current_best"]["accepted_round_id"], "round-best"
+        )
         self.assertEqual(entry["dominant_failure"]["label"], "fall_forward")
         self.assertEqual(entry["dominant_failure"]["source_split"], "public_dev")
-        self.assertEqual(entry["sealed_validation_gate"]["checkpoint_safety_status"], "pass")
-        self.assertEqual(entry["sealed_validation_gate"]["candidate_isolation_status"], "pass")
+        self.assertEqual(
+            entry["sealed_validation_gate"]["checkpoint_safety_status"], "pass"
+        )
+        self.assertEqual(
+            entry["sealed_validation_gate"]["candidate_isolation_status"], "pass"
+        )
         self.assertNotIn("values", json.dumps(entry["comparison"], sort_keys=True))
-        self.assertNotIn("eval_protocol_hash", json.dumps(entry["comparison"], sort_keys=True))
+        self.assertNotIn(
+            "eval_protocol_hash", json.dumps(entry["comparison"], sort_keys=True)
+        )
         self.assertNotIn("checkpoint_report_path", payload_text)
         self.assertNotIn("D:/runner", payload_text)
         self.assertNotIn("seed_id", payload_text)
@@ -1774,13 +1958,13 @@ class MemoryContextPhase13Tests(unittest.TestCase):
         self.assertGreater(history["omitted_round_count"], 0)
 
     def test_stair_extension_guide_mentions_task_specific_public_summary(self) -> None:
-        guide = (PROJECT_ROOT / "docs" / "task_extension_guides" / "stair_climbing.md").read_text(
-            encoding="utf-8"
-        )
+        guide = (
+            PROJECT_ROOT / "docs" / "task_extension_guides" / "stair_climbing.md"
+        ).read_text(encoding="utf-8")
 
         self.assertIn("task-specific public summary", guide)
 
 
 if __name__ == "__main__":
     unittest.main()
-    bind_test_ledger_record,
+    (bind_test_ledger_record,)

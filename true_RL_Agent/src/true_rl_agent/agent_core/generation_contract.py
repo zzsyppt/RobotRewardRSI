@@ -36,6 +36,9 @@ GENERATION_MANIFEST_V2_SCHEMA_VERSION = "true_rl_agent.generation_manifest.v2"
 GENERATION_LEDGER_RECORD_SCHEMA_VERSION = (
     "true_rl_agent.generation_ledger_record.v1"
 )
+GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION = (
+    "true_rl_agent.generation_public_history_projection.v2"
+)
 GENERATION_SESSION_CONTRACT_FILENAME = "generation_session_contract.json"
 GENERATION_WIDTH = 2
 GENERATION_LANE_IDS = ("lane-a", "lane-b")
@@ -442,6 +445,21 @@ class GenerationLaneAssignment:
             result["gpu_process_binding"] = self.gpu_process_binding.to_dict()
         return result
 
+    def to_public_dict(self) -> dict[str, Any]:
+        """Project one lane without exposing its host-device assignment."""
+
+        result = {
+            "lane_id": self.lane_id,
+            "execution_device": self.execution_device,
+            "resource_binding_hash": self.resource_binding_hash,
+            "lane_intent_hash": self.lane_intent_hash,
+        }
+        if self.gpu_process_binding is not None:
+            result["gpu_process_binding"] = (
+                self.gpu_process_binding.to_public_dict()
+            )
+        return result
+
     @classmethod
     def from_mapping(cls, value: Any) -> "GenerationLaneAssignment":
         fields = {
@@ -580,6 +598,15 @@ class GenerationManifest:
     def to_dict(self) -> dict[str, Any]:
         return {**self._hash_payload(), "manifest_hash": self.manifest_hash}
 
+    def to_public_dict(self) -> dict[str, Any]:
+        """Project the hash-bound manifest without private host topology."""
+
+        return {
+            **self._hash_payload(),
+            "lanes": [lane.to_public_dict() for lane in self.lanes],
+            "manifest_hash": self.manifest_hash,
+        }
+
     @classmethod
     def from_mapping(cls, value: Any) -> "GenerationManifest":
         mapping = _exact_mapping(
@@ -678,6 +705,7 @@ __all__ = [
     "GENERATION_AUTHORING_ORDER",
     "GENERATION_LANE_IDS",
     "GENERATION_LEDGER_RECORD_SCHEMA_VERSION",
+    "GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION",
     "GENERATION_MANIFEST_SCHEMA_VERSION",
     "GENERATION_MANIFEST_V2_SCHEMA_VERSION",
     "MAX_GENERATION_LANE_INTENT_BYTES",

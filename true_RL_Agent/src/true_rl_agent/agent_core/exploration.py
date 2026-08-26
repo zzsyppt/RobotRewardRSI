@@ -9,9 +9,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping, Protocol, Sequence
 
-from true_rl_agent.agent_core.generation_record import (
-    GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION,
-)
 from true_rl_agent.agent_core.exploration_projection import (
     EXPLORATION_PROMPT_MAX_BYTES,
     EXPLORATION_PROMPT_PROJECTION_SCHEMA_VERSION,
@@ -21,6 +18,7 @@ from true_rl_agent.agent_core.exploration_projection import (
     minimal_exploration_prompt_card,
 )
 from true_rl_agent.agent_core.generation_contract import (
+    GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION,
     require_generation_lane_intent,
 )
 from true_rl_agent.agent_core.public_safety import sanitize_prompt_public_value

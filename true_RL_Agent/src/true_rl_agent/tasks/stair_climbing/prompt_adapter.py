@@ -14,7 +14,20 @@ from true_rl_agent.agent_core.context import (
 from true_rl_agent.agent_core.experiment_memory import (
     compact_component_activation_records,
 )
-from true_rl_agent.candidates.schema import MAX_CANDIDATE_ID_CHARS
+from true_rl_agent.agent_core.generation_contract import (
+    GENERATION_LANE_IDS,
+    GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION,
+)
+from true_rl_agent.candidates.schema import (
+    MAX_CANDIDATE_ID_CHARS,
+    require_candidate_id,
+)
+from true_rl_agent.evaluation.acceptance_protocol import (
+    AcceptanceProtocol,
+    validated_score_samples,
+)
+from true_rl_agent.evaluation.binding import require_sha256_checksum
+from true_rl_agent.evaluation.score_stats import validate_score_stats
 from true_rl_agent.prompting.serialization import canonical_prompt_json_bytes
 from true_rl_agent.prompting.capacity import build_prompt_capacity_receipt
 from true_rl_agent.tasks.prompt_adapter import (
@@ -27,6 +40,10 @@ from true_rl_agent.tasks.stair_climbing.config import (
 )
 from true_rl_agent.tasks.stair_climbing.evaluation_profile import (
     StairEvaluationProfile,
+)
+from true_rl_agent.tasks.stair_climbing.exploration import (
+    StairComparisonStats,
+    StairExplorationProjector,
 )
 from true_rl_agent.tasks.stair_climbing.public_projection import (
     build_stair_prompt_feedback,
@@ -94,6 +111,14 @@ _HISTORICAL_COMPARISON_DETAIL_OMISSIONS = (
     "historical_completion_and_diagnostic_summaries",
     "historical_progress_summary",
 )
+_PUBLIC_FEEDBACK_SUMMARY_SCHEMA_VERSION = (
+    "true_rl_agent.task.stair_climbing.public_feedback_summary.v10"
+)
+_MAX_LATEST_GENERATION_TRIAL_COMPARISONS = 2
+_MAX_GENERATION_HISTORY_ID_CHARS = 128
+_MAX_GENERATION_TRIAL_ID_CHARS = _MAX_GENERATION_HISTORY_ID_CHARS + max(
+    len(f"-{lane_id}") for lane_id in GENERATION_LANE_IDS
+)
 
 
 @dataclass(frozen=True)
@@ -142,6 +167,12 @@ class StairClimbingPromptAdapter:
             blocked_key_parts=policy["blocked_key_parts"],
             blocked_text_parts=policy["blocked_text_parts"],
         )
+        latest_generation_trial_comparisons = (
+            _latest_generation_trial_comparisons(
+                safe_records,
+                config=self.config,
+            )
+        )
         safe_context = sanitize_public_value_with_policy(
             public_context,
             blocked_key_parts=policy["blocked_key_parts"],
@@ -149,11 +180,19 @@ class StairClimbingPromptAdapter:
         )
         if not isinstance(safe_context, Mapping):
             safe_context = {}
+        safe_comparisons = sanitize_public_value_with_policy(
+            latest_generation_trial_comparisons,
+            blocked_key_parts=policy["blocked_key_parts"],
+            blocked_text_parts=policy["blocked_text_parts"],
+        )
+        if not isinstance(safe_comparisons, list):
+            safe_comparisons = []
         runtime_feedback = _latest_runtime_feedback(safe_records)
         sections = self._prompt_sections(
             public_feedback=_public_feedback_summary(
                 safe_records,
                 safe_context,
+                latest_generation_trial_comparisons=safe_comparisons,
             ),
             runtime_feedback=runtime_feedback,
         )
@@ -216,23 +255,22 @@ class StairClimbingPromptAdapter:
         if not isinstance(profile, StairSessionStartProfile):
             raise RuntimeError("stair prompt session start profile is unresolved")
         guidance = [
-            "Use only validated public failure, diagnostic, and progress summaries.",
-            "When a candidate is rejected below current_best, use current_best as the "
-            "default parent; do not carry rejected terms or weights forward unless the "
-            "public evidence supports each reuse.",
-            "Keep each candidate attributable: change one reward mechanism while "
-            "preserving current-best coefficients. Do not combine a new mechanism with "
-            "unrelated coefficient retuning.",
-            "Treat executable components.py plus verifier and runtime evidence as "
-            "authoritative over prose rationale. For any claimed reward range or maximum "
-            "weighted contribution, account for every conditioning factor, callable "
-            "output clamp, RewardTerm clip, and weight; omit the numeric claim when an "
-            "analytic bound is not justified.",
-            "When goal_not_reached_detected is frequent, preserve locomotion and "
-            "obstacle-negotiation capacity; do not respond only by increasing posture, "
-            "contact, smoothness, or termination penalties.",
-            "Canonical success is stable_success_summary.stable_top_success_rate; "
-            "valid_top_arrival_rate is diagnostic-only, and their gap means top arrival "
+            "Use only validated public failure/diagnostic/progress summaries.",
+            "After rejection, use current_best as the default parent; reuse a rejected "
+            "mechanism or weight only with public evidence.",
+            "Keep each candidate attributable: change one reward mechanism, preserve "
+            "current-best coefficients, and avoid unrelated retuning.",
+            "Prefer a recent-untried causal family when evidence permits; guidance "
+            "only, never a gate.",
+            "Code plus verifier/runtime evidence are authoritative over prose rationale; "
+            "claim a maximum weighted contribution only with conditions, clips, weight, "
+            "and an analytic bound.",
+            "Objective materiality and the guard cap are conjunctive; neither can "
+            "compensate. When "
+            "goal_not_reached_detected is frequent, preserve locomotion/obstacle "
+            "capacity; penalties alone are insufficient.",
+            "Stable success is stable_success_summary.stable_top_success_rate; "
+            "valid_top_arrival_rate is diagnostic-only, and their gap means arrival "
             "without stable success.",
             "post_arrival_safety_failure_detected marks failure after top arrival and "
             "before stable success.",
@@ -315,7 +353,7 @@ class StairClimbingPromptAdapter:
         return {
             "schema_version": "true_rl_agent.task_prompt.stair_climbing.v2",
             "task_id": self.task_id,
-            "name": "Unitree G1 Stair Climbing",
+            "name": "Stair Climbing",
             "objective": (
                 "From the fixed random initialization, climb the one-way staircase and "
                 "complete the protocol-owned stable-top success requirement."
@@ -383,6 +421,8 @@ class StairClimbingPromptAdapter:
 def _public_feedback_summary(
     public_records: Sequence[Mapping[str, Any]],
     public_context: Mapping[str, Any],
+    *,
+    latest_generation_trial_comparisons: Sequence[Mapping[str, Any]],
 ) -> dict[str, Any]:
     candidates = _candidate_feedback_entries(public_records)
     selected = _select_candidate_feedback_entries(candidates)
@@ -392,11 +432,16 @@ def _public_feedback_summary(
         if anchor is not None:
             entries.append(anchor)
     entries.extend(selected)
-    if entries:
-        return {
-            "schema_version": (
-                "true_rl_agent.task.stair_climbing.public_feedback_summary.v8"
-            ),
+    comparisons = [
+        dict(value)
+        for value in latest_generation_trial_comparisons[
+            :_MAX_LATEST_GENERATION_TRIAL_COMPARISONS
+        ]
+        if isinstance(value, Mapping)
+    ]
+    if entries or comparisons:
+        summary = {
+            "schema_version": _PUBLIC_FEEDBACK_SUMMARY_SCHEMA_VERSION,
             "status": "available",
             "feedback_entries": entries,
             "omitted_candidate_feedback_entry_count": max(
@@ -417,22 +462,287 @@ def _public_feedback_summary(
                 ),
             },
         }
+        if comparisons:
+            summary["latest_generation_trial_comparisons"] = comparisons
+            summary["latest_generation_trial_comparison_basis"] = (
+                "public_accept_vs_parent"
+            )
+            summary["limits"]["max_latest_generation_trial_comparisons"] = (
+                _MAX_LATEST_GENERATION_TRIAL_COMPARISONS
+            )
+        return summary
     task_summary = public_context.get("task_public_summary")
     if isinstance(task_summary, Mapping) and task_summary:
         return {
-            "schema_version": (
-                "true_rl_agent.task.stair_climbing.public_feedback_summary.v8"
-            ),
+            "schema_version": _PUBLIC_FEEDBACK_SUMMARY_SCHEMA_VERSION,
             "status": "memory_only",
             "task_public_summary": dict(task_summary),
         }
     return {
-        "schema_version": (
-            "true_rl_agent.task.stair_climbing.public_feedback_summary.v8"
-        ),
+        "schema_version": _PUBLIC_FEEDBACK_SUMMARY_SCHEMA_VERSION,
         "status": "not_available",
         "reason": "no_validated_public_stair_evaluation",
     }
+
+
+def _latest_generation_trial_comparisons(
+    public_records: Sequence[Mapping[str, Any]],
+    *,
+    config: StairClimbingTaskConfig,
+) -> list[dict[str, Any]]:
+    """Project the latest generation that has public-complete sibling evidence."""
+
+    for record in reversed(public_records):
+        generation = record.get("generation")
+        if (
+            isinstance(generation, Mapping)
+            and generation.get("schema_version")
+            == GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION
+        ):
+            comparisons = _generation_trial_comparisons(
+                generation,
+                config=config,
+            )
+            if (
+                len(comparisons) == len(GENERATION_LANE_IDS)
+                and {item["lane_id"] for item in comparisons}
+                == set(GENERATION_LANE_IDS)
+            ):
+                return comparisons
+    return []
+
+
+def _generation_trial_comparisons(
+    generation: Mapping[str, Any],
+    *,
+    config: StairClimbingTaskConfig,
+) -> list[dict[str, Any]]:
+    generation_id = generation.get("generation_id")
+    if (
+        not isinstance(generation_id, str)
+        or not generation_id
+        or len(generation_id) > _MAX_GENERATION_HISTORY_ID_CHARS
+    ):
+        raise ValueError("Stair generation prompt identity is invalid")
+
+    trials = generation.get("trials")
+    parent_mapping = generation.get("parent_current_best")
+    if not isinstance(trials, list) or not isinstance(parent_mapping, Mapping):
+        raise ValueError("Stair generation prompt comparison evidence is invalid")
+    parent = _public_parent_comparison(
+        parent_mapping,
+        config=config,
+    )
+    selection = _mapping(generation.get("selection"))
+    selected_trial_id = selection.get("selected_trial_id")
+    projector = StairExplorationProjector(config)
+    comparisons: list[dict[str, Any]] = []
+    for trial in trials:
+        if not isinstance(trial, Mapping):
+            raise ValueError("Stair generation prompt trial evidence is invalid")
+        if not isinstance(trial.get("public_accept"), Mapping):
+            continue
+        assessment = projector.assess_trial(
+            generation=generation,
+            trial=trial,
+            parent=parent,
+        )
+        summary = _mapping(assessment.public_evidence_summary)
+        if summary.get("status") != "public_complete":
+            continue
+        objective = _mapping(summary.get("objective"))
+        guard = _mapping(summary.get("guard"))
+        objective_delta = _finite_score(objective.get("delta"))
+        objective_threshold = _finite_score(
+            objective.get("materiality_threshold")
+        )
+        guard_delta = _finite_score(guard.get("delta"))
+        guard_threshold = _finite_score(guard.get("max_regression"))
+        if None in {
+            objective_delta,
+            objective_threshold,
+            guard_delta,
+            guard_threshold,
+        } or not isinstance(objective.get("materiality_met"), bool) or not isinstance(
+            guard.get("guard_met"), bool
+        ):
+            raise ValueError("Stair generation prompt comparison is incomplete")
+        trial_id = trial.get("trial_id")
+        lane_id = trial.get("lane_id")
+        trial_status = trial.get("trial_status")
+        if (
+            not isinstance(trial_id, str)
+            or not trial_id
+            or len(trial_id) > _MAX_GENERATION_TRIAL_ID_CHARS
+            or not isinstance(lane_id, str)
+            or not lane_id
+            or not isinstance(trial_status, str)
+            or not trial_status
+        ):
+            raise ValueError("Stair generation prompt trial identity is invalid")
+        candidate = trial.get("candidate")
+        if not isinstance(candidate, Mapping):
+            raise ValueError("Stair generation prompt candidate identity is absent")
+        candidate_id = require_candidate_id(
+            candidate.get("candidate_id"),
+            "Stair generation prompt candidate_id",
+        )
+        program_source_checksum = require_sha256_checksum(
+            candidate.get("program_source_checksum"),
+            "Stair generation prompt program_source_checksum",
+        )
+        comparisons.append(
+            {
+                "generation_id": generation_id,
+                "trial_id": trial_id,
+                "lane_id": lane_id,
+                "candidate_id": candidate_id,
+                "program_source_checksum": program_source_checksum,
+                "trial_status": trial_status,
+                "selection_status": (
+                    "selected"
+                    if trial_id == selected_trial_id
+                    else "not_selected"
+                ),
+                "observed_effect": assessment.observed_effect,
+                "objective_delta": objective_delta,
+                "objective_materiality_threshold": objective_threshold,
+                "objective_materiality_met": objective["materiality_met"],
+                "guard_delta": guard_delta,
+                "guard_max_regression": guard_threshold,
+                "guard_met": guard["guard_met"],
+                "reason_codes": list(assessment.reason_codes),
+            }
+        )
+    if len(comparisons) > _MAX_LATEST_GENERATION_TRIAL_COMPARISONS:
+        raise ValueError("Stair generation prompt comparison width exceeds two")
+    return comparisons
+
+
+@dataclass(frozen=True)
+class _PublicParentComparison(StairComparisonStats):
+    objective_score: float
+    objective_samples: tuple[float, ...]
+    guard_score: float
+    guard_samples: tuple[float, ...]
+    acceptance_protocol_hash: str
+
+    def score_for_comparison(self) -> float:
+        return self.objective_score
+
+    def score_samples_for_comparison(
+        self,
+        acceptance_protocol: AcceptanceProtocol,
+    ) -> tuple[float, ...]:
+        return (
+            self.objective_samples
+            if acceptance_protocol.protocol_hash == self.acceptance_protocol_hash
+            else ()
+        )
+
+    def guard_score_for_comparison(self) -> float:
+        return self.guard_score
+
+    def guard_score_samples_for_comparison(
+        self,
+        acceptance_protocol: AcceptanceProtocol,
+    ) -> tuple[float, ...]:
+        return (
+            self.guard_samples
+            if acceptance_protocol.protocol_hash == self.acceptance_protocol_hash
+            else ()
+        )
+
+
+def _public_parent_comparison(
+    value: Mapping[str, Any],
+    *,
+    config: StairClimbingTaskConfig,
+) -> _PublicParentComparison:
+    """Validate only the public score inputs retained after prompt scrubbing."""
+
+    required_fields = {
+        "mode",
+        "anchor_kind",
+        "anchor_id",
+        "public_score",
+        "public_accept_stats",
+        "guard_score_stats",
+        "min_score_count",
+        "task_protocol_hash",
+        "eval_protocol_hash",
+        "acceptance_protocol_hash",
+    }
+    if not required_fields.issubset(value) or "sealed_validation_evidence" in value:
+        raise ValueError("Stair public parent comparison fields mismatch")
+    for field_name in ("mode", "anchor_kind", "anchor_id"):
+        field_value = value.get(field_name)
+        if not isinstance(field_value, str) or not field_value:
+            raise ValueError("Stair public parent comparison identity is invalid")
+    protocol = config.acceptance_protocol
+    eval_protocol_hash = config.evaluation_protocol().protocol_hash
+    if (
+        value.get("task_protocol_hash") != config.task_protocol_hash
+        or value.get("eval_protocol_hash") != eval_protocol_hash
+        or value.get("acceptance_protocol_hash") != protocol.protocol_hash
+    ):
+        raise ValueError("Stair public parent comparison protocol mismatch")
+    min_score_count = value.get("min_score_count")
+    if (
+        isinstance(min_score_count, bool)
+        or not isinstance(min_score_count, int)
+        or min_score_count <= 0
+    ):
+        raise ValueError("Stair public parent comparison count is invalid")
+    objective_stats = value.get("public_accept_stats")
+    guard_stats = value.get("guard_score_stats")
+    if not isinstance(objective_stats, Mapping) or not isinstance(
+        guard_stats,
+        Mapping,
+    ):
+        raise ValueError("Stair public parent comparison stats are invalid")
+    objective_validation = validate_score_stats(
+        objective_stats,
+        minimum_count=min_score_count,
+        require_std=False,
+        require_standard_error=min_score_count >= 2,
+        require_protocol_hash=True,
+    )
+    guard_validation = validate_score_stats(
+        guard_stats,
+        minimum_count=min_score_count,
+        require_std=True,
+        require_standard_error=min_score_count >= 2,
+        require_protocol_hash=True,
+    )
+    if (
+        not objective_validation.valid
+        or objective_validation.mean is None
+        or objective_validation.eval_protocol_hash != eval_protocol_hash
+        or not guard_validation.valid
+        or guard_validation.mean is None
+        or guard_validation.eval_protocol_hash != eval_protocol_hash
+    ):
+        raise ValueError("Stair public parent comparison stats are incomplete")
+    objective_samples = validated_score_samples(
+        objective_stats.get("score_samples"),
+        expected_mean=objective_validation.mean,
+        protocol=protocol,
+        field_name="Stair public parent objective score_samples",
+    )
+    guard_samples = validated_score_samples(
+        guard_stats.get("score_samples"),
+        expected_mean=guard_validation.mean,
+        protocol=protocol,
+        field_name="Stair public parent guard score_samples",
+    )
+    return _PublicParentComparison(
+        objective_score=objective_validation.mean,
+        objective_samples=objective_samples,
+        guard_score=guard_validation.mean,
+        guard_samples=guard_samples,
+        acceptance_protocol_hash=protocol.protocol_hash,
+    )
 
 
 def _stair_capacity_preflight_feedback(
@@ -484,9 +794,7 @@ def _stair_capacity_preflight_feedback(
         }
 
     return {
-        "schema_version": (
-            "true_rl_agent.task.stair_climbing.public_feedback_summary.v8"
-        ),
+        "schema_version": _PUBLIC_FEEDBACK_SUMMARY_SCHEMA_VERSION,
         "status": "available",
         "feedback_entries": [
             entry(
@@ -500,6 +808,32 @@ def _stair_capacity_preflight_feedback(
                 selection_basis=["latest_evaluated"],
             ),
         ],
+        "latest_generation_trial_comparisons": [
+            {
+                "generation_id": fill * _MAX_GENERATION_HISTORY_ID_CHARS,
+                "trial_id": fill * _MAX_GENERATION_TRIAL_ID_CHARS,
+                "lane_id": lane_id,
+                "candidate_id": fill * MAX_CANDIDATE_ID_CHARS,
+                "program_source_checksum": f"sha256:{fill * 64}",
+                "trial_status": "qualified_not_selected",
+                "selection_status": selection_status,
+                "observed_effect": "mixed",
+                "objective_delta": maximum_number,
+                "objective_materiality_threshold": maximum_number,
+                "objective_materiality_met": False,
+                "guard_delta": maximum_number,
+                "guard_max_regression": maximum_number,
+                "guard_met": True,
+                "reason_codes": [
+                    "public_guard_improved_objective_not_improved"
+                ],
+            }
+            for fill, lane_id, selection_status in (
+                ("c", "lane-a", "not_selected"),
+                ("d", "lane-b", "selected"),
+            )
+        ],
+        "latest_generation_trial_comparison_basis": "public_accept_vs_parent",
         "omitted_candidate_feedback_entry_count": 28,
         "byte_budget_compaction_applied": True,
     }
@@ -628,6 +962,18 @@ def _minimum_core_stair_prompt_sections(
         if isinstance(raw_entries, list | tuple)
         else []
     )
+    raw_comparisons = feedback.get("latest_generation_trial_comparisons")
+    comparisons = (
+        [
+            dict(value)
+            for value in raw_comparisons[
+                :_MAX_LATEST_GENERATION_TRIAL_COMPARISONS
+            ]
+            if isinstance(value, Mapping)
+        ]
+        if isinstance(raw_comparisons, list | tuple)
+        else []
+    )
     selected: list[dict[str, Any]] = []
     current_best = next(
         (
@@ -660,10 +1006,10 @@ def _minimum_core_stair_prompt_sections(
         and raw_omitted_count >= 0
         else 0
     )
-    if minimum_entries:
+    if minimum_entries or comparisons:
         minimum_feedback: dict[str, Any] = {
             "schema_version": (
-                "true_rl_agent.task.stair_climbing.public_feedback_minimum_core.v1"
+                "true_rl_agent.task.stair_climbing.public_feedback_minimum_core.v3"
             ),
             "status": "available",
             "feedback_entries": minimum_entries,
@@ -677,7 +1023,7 @@ def _minimum_core_stair_prompt_sections(
     else:
         minimum_feedback = {
             "schema_version": (
-                "true_rl_agent.task.stair_climbing.public_feedback_minimum_core.v1"
+                "true_rl_agent.task.stair_climbing.public_feedback_minimum_core.v3"
             ),
             "status": "no_closed_outcome",
             "reason": "no_validated_public_stair_evaluation",
@@ -686,6 +1032,11 @@ def _minimum_core_stair_prompt_sections(
             "byte_budget_compaction_applied": True,
             "projection_level": "minimum_core",
         }
+    if comparisons:
+        minimum_feedback["latest_generation_trial_comparisons"] = comparisons
+        minimum_feedback["latest_generation_trial_comparison_basis"] = (
+            "public_accept_vs_parent"
+        )
     minimum = {
         "task": original.get("task"),
         "reward_inputs_contract": original.get("reward_inputs_contract"),
@@ -705,7 +1056,7 @@ def _minimum_core_stair_prompt_sections(
     receipt = build_prompt_capacity_receipt(
         original=original,
         projected_content=content_without_receipt,
-        projection_id="stair_climbing.minimum_core.v1",
+        projection_id="stair_climbing.minimum_core.v3",
         omitted=(
             "historical_feedback_entries",
             "feedback_cell_grids",
@@ -1323,7 +1674,7 @@ def _success_criteria_prompt_contract(
     return {
         **dict(success),
         "maximum_abs_roll_or_pitch_rad": orientation.get("threshold"),
-        "minimum_root_clearance_above_top_m": fall.get("threshold"),
+        "minimum_kinematic_base_clearance_above_top_m": fall.get("threshold"),
         "top_platform_stability_requirement": dict(stability),
     }
 

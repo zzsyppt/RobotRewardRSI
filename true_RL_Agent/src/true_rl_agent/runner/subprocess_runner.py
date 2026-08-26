@@ -8,7 +8,7 @@ import re
 import time
 from collections.abc import Mapping
 from contextlib import nullcontext
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, TypeVar
 
@@ -19,6 +19,7 @@ from true_rl_agent.agent_core.public_safety import (
 from true_rl_agent.backends.base import (
     BACKEND_EXECUTION_ENVIRONMENT_VERIFICATION_SCHEMA_VERSION,
 )
+from true_rl_agent.composition.cell_manifest import load_resolved_cell_manifest
 from true_rl_agent.evaluation.binding import (
     EvaluationBindingV1,
     canonical_json_hash,
@@ -34,7 +35,6 @@ from true_rl_agent.evaluation.phases import (
     EVALUATION_PHASE_SUMMARY_SCHEMA_VERSION,
     MAX_EVALUATION_PHASE_RECEIPT_BYTES,
     EvaluationAssembly,
-    EvaluationPhase,
     EvaluationPhaseResult,
 )
 from true_rl_agent.evaluation.result_contract import (
@@ -89,6 +89,10 @@ from true_rl_agent.runner.job_argv import (
     validate_eval_job_argv,
     validate_train_job_argv,
 )
+from true_rl_agent.runner.argv_contract import (
+    option_occurrences,
+    unique_option_value,
+)
 from true_rl_agent.runner.job_identity import (
     ALTERNATE_JOB_IDENTITY_FIELDS,
     JobIdentity,
@@ -106,6 +110,7 @@ from true_rl_agent.runner.specs import (
     require_positive_integer,
 )
 from true_rl_agent.runner.process_handle import (
+    OwnedProcessCleanupIncomplete,
     OwnedProcessLaunchError,
     OwnedProcessResult,
     OwnedProcessTimeout,
@@ -151,6 +156,10 @@ _ExecutionResultT = TypeVar(
     PublicEvalResult,
     EvaluationPhaseResult,
 )
+AttemptAdmissionHook = Callable[
+    [JobAttemptExecutionScope, str, str, int],
+    int | None,
+]
 
 
 @dataclass(frozen=True)
@@ -162,6 +171,11 @@ class SubprocessRunner(Runner):
     cwd: Path | None = None
     termination_grace_s: int = 5
     gpu_lease_manager: GpuLeaseManager | None = None
+    attempt_admission_hook: AttemptAdmissionHook | None = field(
+        default=None,
+        repr=False,
+        compare=False,
+    )
 
     def __post_init__(self) -> None:
         if (
@@ -172,9 +186,7 @@ class SubprocessRunner(Runner):
                 for executable in self.allowed_executables
             )
         ):
-            raise ValueError(
-                "allowed_executables must be a non-empty tuple of strings"
-            )
+            raise ValueError("allowed_executables must be a non-empty tuple of strings")
         require_positive_integer(self.timeout_s, "runner timeout_s")
         require_positive_integer(
             self.termination_grace_s,
@@ -187,15 +199,22 @@ class SubprocessRunner(Runner):
             GpuLeaseManager,
         ):
             raise TypeError("gpu_lease_manager must be a GpuLeaseManager")
+        if self.attempt_admission_hook is not None and not callable(
+            self.attempt_admission_hook
+        ):
+            raise TypeError("attempt_admission_hook must be callable when provided")
 
     def run_train(self, train_spec: TrainJobSpec) -> TrainJobResult:
         return self._execute_with_attempts(
             train_spec,
             job_kind="train",
-            operation=lambda log_dir, execution_context: self._run_train_once(
-                train_spec,
-                process_log_dir=log_dir,
-                execution_context=execution_context,
+            operation=lambda log_dir, execution_context, timeout_s: (
+                self._run_train_once(
+                    train_spec,
+                    process_log_dir=log_dir,
+                    attempt_timeout_s=timeout_s,
+                    execution_context=execution_context,
+                )
             ),
             recover_completed=lambda execution_context: self._run_train_once(
                 train_spec,
@@ -210,6 +229,7 @@ class SubprocessRunner(Runner):
         train_spec: TrainJobSpec,
         *,
         process_log_dir: Path | None,
+        attempt_timeout_s: int | None = None,
         reuse_existing_summary: bool = False,
         execution_context: _GpuJobExecutionContext | None = None,
     ) -> TrainJobResult:
@@ -239,6 +259,7 @@ class SubprocessRunner(Runner):
             checkpoint_path_option=_TRAIN_CHECKPOINT_OPTIONS[0],
             checkpoint_checksum_option=_TRAIN_CHECKPOINT_OPTIONS[1],
             process_log_dir=process_log_dir,
+            attempt_timeout_s=attempt_timeout_s,
             reuse_existing_summary=reuse_existing_summary,
             execution_context=execution_context,
         )
@@ -284,10 +305,18 @@ class SubprocessRunner(Runner):
                 ),
                 **(
                     {
-                        "gpu_process_binding": (
-                            actual_gpu_process_binding.to_dict()
-                        )
+                        "resolved_cell_manifest_hash": summary[
+                            "resolved_cell_manifest_hash"
+                        ],
+                        "resolved_cell_identity": dict(
+                            summary["resolved_cell_identity"]
+                        ),
                     }
+                    if "resolved_cell_manifest_hash" in summary
+                    else {}
+                ),
+                **(
+                    {"gpu_process_binding": (actual_gpu_process_binding.to_dict())}
                     if actual_gpu_process_binding is not None
                     else {}
                 ),
@@ -331,10 +360,13 @@ class SubprocessRunner(Runner):
         return self._execute_with_attempts(
             eval_spec,
             job_kind="eval",
-            operation=lambda log_dir, execution_context: self._run_evaluation(
-                eval_spec,
-                process_log_dir=log_dir,
-                execution_context=execution_context,
+            operation=lambda log_dir, execution_context, timeout_s: (
+                self._run_evaluation(
+                    eval_spec,
+                    process_log_dir=log_dir,
+                    attempt_timeout_s=timeout_s,
+                    execution_context=execution_context,
+                )
             ),
             recover_completed=lambda execution_context: self._run_evaluation(
                 eval_spec,
@@ -351,10 +383,13 @@ class SubprocessRunner(Runner):
         return self._execute_with_attempts(
             eval_spec,
             job_kind="eval_phase",
-            operation=lambda log_dir, execution_context: self._run_evaluation_phase(
-                eval_spec,
-                process_log_dir=log_dir,
-                execution_context=execution_context,
+            operation=lambda log_dir, execution_context, timeout_s: (
+                self._run_evaluation_phase(
+                    eval_spec,
+                    process_log_dir=log_dir,
+                    attempt_timeout_s=timeout_s,
+                    execution_context=execution_context,
+                )
             ),
             recover_completed=lambda execution_context: self._run_evaluation_phase(
                 eval_spec,
@@ -374,9 +409,7 @@ class SubprocessRunner(Runner):
         if not isinstance(eval_spec, EvalJobSpec):
             raise TypeError("assembled eval summary requires an EvalJobSpec")
         if not isinstance(assembly, EvaluationAssembly):
-            raise TypeError(
-                "assembled eval summary requires an EvaluationAssembly"
-            )
+            raise TypeError("assembled eval summary requires an EvaluationAssembly")
         expected_plan_hash = canonical_json_hash(eval_spec.to_public_dict())
         if assembly.evaluation_plan_hash != expected_plan_hash:
             raise RunnerExecutionError(
@@ -509,10 +542,13 @@ class SubprocessRunner(Runner):
         return self._execute_with_attempts(
             eval_spec,
             job_kind="baseline_eval",
-            operation=lambda log_dir, execution_context: self._run_evaluation(
-                eval_spec,
-                process_log_dir=log_dir,
-                execution_context=execution_context,
+            operation=lambda log_dir, execution_context, timeout_s: (
+                self._run_evaluation(
+                    eval_spec,
+                    process_log_dir=log_dir,
+                    attempt_timeout_s=timeout_s,
+                    execution_context=execution_context,
+                )
             ),
             recover_completed=lambda execution_context: self._run_evaluation(
                 eval_spec,
@@ -527,6 +563,7 @@ class SubprocessRunner(Runner):
         eval_spec: EvaluationJobSpec,
         *,
         process_log_dir: Path | None,
+        attempt_timeout_s: int | None = None,
         reuse_existing_summary: bool = False,
         execution_context: _GpuJobExecutionContext | None = None,
     ) -> PublicEvalResult:
@@ -556,6 +593,7 @@ class SubprocessRunner(Runner):
             checkpoint_path_option=_EVAL_CHECKPOINT_OPTIONS[0],
             checkpoint_checksum_option=_EVAL_CHECKPOINT_OPTIONS[1],
             process_log_dir=process_log_dir,
+            attempt_timeout_s=attempt_timeout_s,
             reuse_existing_summary=reuse_existing_summary,
             execution_context=execution_context,
         )
@@ -592,6 +630,7 @@ class SubprocessRunner(Runner):
         eval_spec: EvalPhaseJobSpec,
         *,
         process_log_dir: Path | None,
+        attempt_timeout_s: int | None = None,
         reuse_existing_summary: bool = False,
         execution_context: _GpuJobExecutionContext | None = None,
     ) -> EvaluationPhaseResult:
@@ -618,6 +657,7 @@ class SubprocessRunner(Runner):
             checkpoint_path_option=_EVAL_CHECKPOINT_OPTIONS[0],
             checkpoint_checksum_option=_EVAL_CHECKPOINT_OPTIONS[1],
             process_log_dir=process_log_dir,
+            attempt_timeout_s=attempt_timeout_s,
             reuse_existing_summary=reuse_existing_summary,
             execution_context=execution_context,
         )
@@ -638,7 +678,7 @@ class SubprocessRunner(Runner):
         *,
         job_kind: str,
         operation: Callable[
-            [Path | None, _GpuJobExecutionContext | None],
+            [Path | None, _GpuJobExecutionContext | None, int],
             _ExecutionResultT,
         ],
         recover_completed: Callable[
@@ -655,7 +695,7 @@ class SubprocessRunner(Runner):
                     f"{spec.job_id}: GPU process binding requires an attempt scope",
                     failure_kind=RunnerFailureKind.CONTRACT_INVALID,
                 )
-            return operation(None, None)
+            return operation(None, None, self.timeout_s)
         if not isinstance(scope, JobAttemptExecutionScope):
             raise TypeError("job attempt scope is invalid")
 
@@ -679,14 +719,10 @@ class SubprocessRunner(Runner):
                         raise ValueError(
                             "process execution device does not match job spec"
                         )
-                    lease_execution_device = (
-                        gpu_process_binding.host_execution_device
-                    )
+                    lease_execution_device = gpu_process_binding.host_execution_device
                 else:
                     lease_execution_device = spec.execution_device
-                identity = self.gpu_lease_manager.identity_for(
-                    lease_execution_device
-                )
+                identity = self.gpu_lease_manager.identity_for(lease_execution_device)
                 if (
                     gpu_process_binding is not None
                     and identity.identity_hash
@@ -746,12 +782,31 @@ class SubprocessRunner(Runner):
                 ):
                     raise ValueError("completed attempt output hash mismatch")
                 return recovered
-            attempt_index, reservation, previous_result = journal.begin_or_resume()
+            attempt_index, previous_result = journal.next_runnable_attempt()
         except JobAttemptRecoveryRequiredError as exc:
             raise RunnerExecutionError(
                 f"{spec.job_id}: requires recovery inspection",
                 failure_kind=RunnerFailureKind.CONTRACT_INVALID,
             ) from exc
+        except (OSError, TypeError, ValueError) as exc:
+            raise RunnerExecutionError(
+                f"{spec.job_id}: attempt evidence contract is invalid",
+                failure_kind=RunnerFailureKind.CONTRACT_INVALID,
+            ) from exc
+        attempt_timeout_s = self._admit_attempt(
+            scope=scope,
+            logical_job_id=spec.job_id,
+            job_kind=job_kind,
+            attempt_index=attempt_index,
+        )
+        try:
+            reservation = journal.reserve(
+                attempt_index,
+                previous_result=previous_result,
+            )
+            if not reservation.created:
+                context = "initial attempt" if attempt_index == 0 else "retry"
+                raise ValueError(f"{context} reservation raced another writer")
         except (OSError, TypeError, ValueError) as exc:
             raise RunnerExecutionError(
                 f"{spec.job_id}: attempt evidence contract is invalid",
@@ -805,6 +860,12 @@ class SubprocessRunner(Runner):
             ):
                 if current_attempt_index > attempt_index:
                     assert previous_result is not None
+                    attempt_timeout_s = self._admit_attempt(
+                        scope=scope,
+                        logical_job_id=spec.job_id,
+                        job_kind=job_kind,
+                        attempt_index=current_attempt_index,
+                    )
                     try:
                         reservation = journal.reserve(
                             current_attempt_index,
@@ -827,7 +888,11 @@ class SubprocessRunner(Runner):
                     else None
                 )
                 try:
-                    result = operation(log_dir, execution_context)
+                    result = operation(
+                        log_dir,
+                        execution_context,
+                        attempt_timeout_s,
+                    )
                 except CandidateRuntimeError as exc:
                     journal.finish(
                         reservation,
@@ -837,17 +902,14 @@ class SubprocessRunner(Runner):
                         output_hash=None,
                         returncode=None,
                         resource_lease_wall_duration_ns=(
-                            self._resource_lease_wall_duration_ns(
-                                lease_wall_started_ns
-                            )
+                            self._resource_lease_wall_duration_ns(lease_wall_started_ns)
                         ),
                     )
                     raise
                 except RunnerExecutionError as exc:
                     retryable = (
                         exc.retryable_infrastructure_failure
-                        and current_attempt_index
-                        < scope.max_infrastructure_retries
+                        and current_attempt_index < scope.max_infrastructure_retries
                     )
                     outcome = self._attempt_error_outcome(exc)
                     previous_result = journal.finish(
@@ -858,9 +920,7 @@ class SubprocessRunner(Runner):
                         output_hash=None,
                         returncode=None,
                         resource_lease_wall_duration_ns=(
-                            self._resource_lease_wall_duration_ns(
-                                lease_wall_started_ns
-                            )
+                            self._resource_lease_wall_duration_ns(lease_wall_started_ns)
                         ),
                     )
                     if retryable:
@@ -875,9 +935,7 @@ class SubprocessRunner(Runner):
                         output_hash=None,
                         returncode=None,
                         resource_lease_wall_duration_ns=(
-                            self._resource_lease_wall_duration_ns(
-                                lease_wall_started_ns
-                            )
+                            self._resource_lease_wall_duration_ns(lease_wall_started_ns)
                         ),
                     )
                     raise
@@ -890,9 +948,7 @@ class SubprocessRunner(Runner):
                         output_hash=None,
                         returncode=None,
                         resource_lease_wall_duration_ns=(
-                            self._resource_lease_wall_duration_ns(
-                                lease_wall_started_ns
-                            )
+                            self._resource_lease_wall_duration_ns(lease_wall_started_ns)
                         ),
                     )
                     raise
@@ -909,13 +965,28 @@ class SubprocessRunner(Runner):
                     output_hash=self._attempt_output_hash(result),
                     returncode=None,
                     resource_lease_wall_duration_ns=(
-                        self._resource_lease_wall_duration_ns(
-                            lease_wall_started_ns
-                        )
+                        self._resource_lease_wall_duration_ns(lease_wall_started_ns)
                     ),
                 )
                 return result
         raise RuntimeError("attempt loop exited without a terminal result")
+
+    def _admit_attempt(
+        self,
+        *,
+        scope: JobAttemptExecutionScope,
+        logical_job_id: str,
+        job_kind: str,
+        attempt_index: int,
+    ) -> int:
+        hook = self.attempt_admission_hook
+        if hook is None:
+            return self.timeout_s
+        timeout_s = hook(scope, logical_job_id, job_kind, attempt_index)
+        if timeout_s is None:
+            return self.timeout_s
+        require_positive_integer(timeout_s, "attempt admission timeout_s")
+        return min(self.timeout_s, timeout_s)
 
     @staticmethod
     def _attempt_output_hash(result: _ExecutionResultT) -> str:
@@ -985,9 +1056,7 @@ class SubprocessRunner(Runner):
         checkpoint_checksum_option: str,
     ) -> None:
         raw_path = (
-            checkpoint.metadata.get("local_path")
-            if checkpoint is not None
-            else None
+            checkpoint.metadata.get("local_path") if checkpoint is not None else None
         )
         resolved = (
             self._resolved_job_path(raw_path, metadata=metadata)
@@ -1002,6 +1071,38 @@ class SubprocessRunner(Runner):
                 checkpoint_checksum_option=checkpoint_checksum_option,
                 resolved_local_path=resolved,
             )
+            manifest_occurrences = option_occurrences(
+                argv,
+                "--resolved-cell-manifest-hash",
+            )
+            if checkpoint is not None and manifest_occurrences:
+                expected_cell_hash = unique_option_value(
+                    argv,
+                    "--resolved-cell-manifest-hash",
+                )
+                manifest_path = unique_option_value(
+                    argv,
+                    "--resolved-cell-manifest-path",
+                )
+                manifest = load_resolved_cell_manifest(
+                    manifest_path,
+                    expected_manifest_hash=expected_cell_hash,
+                )
+                checkpoint_cell_hash = checkpoint.metadata.get(
+                    "resolved_cell_manifest_hash"
+                )
+                if (
+                    checkpoint_cell_hash is None
+                    and not manifest.uses_legacy_training_binding_v1
+                ):
+                    raise ValueError(
+                        "checkpoint resolved cell manifest hash is required"
+                    )
+                if (
+                    checkpoint_cell_hash is not None
+                    and checkpoint_cell_hash != expected_cell_hash
+                ):
+                    raise ValueError("checkpoint resolved cell manifest hash mismatch")
         except ValueError as exc:
             raise RunnerExecutionError(
                 f"{job_id}: checkpoint preflight failed: {exc}"
@@ -1020,6 +1121,7 @@ class SubprocessRunner(Runner):
         checkpoint_path_option: str,
         checkpoint_checksum_option: str,
         process_log_dir: Path | None,
+        attempt_timeout_s: int | None = None,
         reuse_existing_summary: bool = False,
         execution_context: _GpuJobExecutionContext | None = None,
     ) -> _SummaryJobCompletion:
@@ -1045,6 +1147,11 @@ class SubprocessRunner(Runner):
                     summary,
                     expected=identity,
                     summary_name=summary_name,
+                )
+                self._validate_resolved_cell_summary(
+                    summary,
+                    argv=argv,
+                    job_id=identity.job_id,
                 )
                 status = validate_result_status(
                     summary.get("status"),
@@ -1087,6 +1194,7 @@ class SubprocessRunner(Runner):
             metadata,
             job_id=identity.job_id,
             process_log_dir=process_log_dir,
+            attempt_timeout_s=attempt_timeout_s,
             execution_context=execution_context,
         )
         try:
@@ -1095,6 +1203,11 @@ class SubprocessRunner(Runner):
                 summary,
                 expected=identity,
                 summary_name=summary_name,
+            )
+            self._validate_resolved_cell_summary(
+                summary,
+                argv=argv,
+                job_id=identity.job_id,
             )
             status = validate_result_status(
                 summary.get("status"),
@@ -1107,13 +1220,11 @@ class SubprocessRunner(Runner):
                 )
             )
             owned_process_identity = (
-                    self._validated_owned_process_identity_from_summary(
-                        summary,
-                        execution_context=execution_context,
-                        expected_process_id=(
-                            completed.pid if os.name != "nt" else None
-                        ),
-                    )
+                self._validated_owned_process_identity_from_summary(
+                    summary,
+                    execution_context=execution_context,
+                    expected_process_id=(completed.pid if os.name != "nt" else None),
+                )
             )
         except (RunnerExecutionError, ValueError) as exc:
             failure_kind = (
@@ -1153,13 +1264,9 @@ class SubprocessRunner(Runner):
     ) -> GpuProcessBinding | None:
         if execution_context is None:
             if summary.get("gpu_process_binding") is not None:
-                raise ValueError(
-                    "unbound summary cannot claim a GPU process binding"
-                )
+                raise ValueError("unbound summary cannot claim a GPU process binding")
             return None
-        actual = GpuProcessBinding.from_mapping(
-            summary.get("gpu_process_binding")
-        )
+        actual = GpuProcessBinding.from_mapping(summary.get("gpu_process_binding"))
         if actual != execution_context.gpu_process_binding:
             raise ValueError(
                 "summary GPU process binding does not match trusted launch context"
@@ -1193,19 +1300,21 @@ class SubprocessRunner(Runner):
         *,
         job_id: str,
         process_log_dir: Path | None,
+        attempt_timeout_s: int | None,
         execution_context: _GpuJobExecutionContext | None,
     ) -> OwnedProcessResult:
         work_dir = self._work_dir(metadata)
         if process_log_dir is None:
             process_log_dir = (
-                self._summary_path(metadata, job_id=job_id).parent
-                / "runner_process"
+                self._summary_path(metadata, job_id=job_id).parent / "runner_process"
             )
+        timeout_s = self.timeout_s if attempt_timeout_s is None else attempt_timeout_s
+        require_positive_integer(timeout_s, "attempt timeout_s")
         try:
             completed = run_owned_process(
                 argv,
                 cwd=work_dir,
-                timeout_s=self.timeout_s,
+                timeout_s=timeout_s,
                 log_dir=process_log_dir,
                 termination_grace_s=self.termination_grace_s,
                 environment_overrides=(
@@ -1214,9 +1323,14 @@ class SubprocessRunner(Runner):
                     else None
                 ),
             )
+        except OwnedProcessCleanupIncomplete as exc:
+            raise RunnerExecutionError(
+                f"{job_id}: subprocess process-group cleanup remained incomplete",
+                failure_kind=RunnerFailureKind.INTERRUPTED,
+            ) from exc
         except OwnedProcessTimeout as exc:
             raise RunnerExecutionError(
-                f"{job_id}: subprocess timed out after {self.timeout_s}s",
+                f"{job_id}: subprocess timed out after {timeout_s}s",
                 failure_kind=RunnerFailureKind.TIMEOUT,
             ) from exc
         except OwnedProcessLaunchError as exc:
@@ -1267,11 +1381,15 @@ class SubprocessRunner(Runner):
             return False
         transient_errno = {11, 12, 16, 26}
         transient_winerror = {8, 14, 1450}
-        return error.errno in transient_errno or getattr(
-            error,
-            "winerror",
-            None,
-        ) in transient_winerror
+        return (
+            error.errno in transient_errno
+            or getattr(
+                error,
+                "winerror",
+                None,
+            )
+            in transient_winerror
+        )
 
     def _validated_argv(self, metadata: Mapping[str, Any], *, job_id: str) -> list[str]:
         argv = metadata.get("cli_argv")
@@ -1283,7 +1401,9 @@ class SubprocessRunner(Runner):
             raise RunnerExecutionError(f"{job_id}: cli_argv entries must be strings")
         executable = argv[0]
         if executable not in self.allowed_executables:
-            raise RunnerExecutionError(f"{job_id}: executable is not allowlisted: {executable}")
+            raise RunnerExecutionError(
+                f"{job_id}: executable is not allowlisted: {executable}"
+            )
         cli_command = metadata.get("cli_command")
         if cli_command is not None:
             if not isinstance(cli_command, str) or cli_command != " ".join(argv):
@@ -1315,7 +1435,9 @@ class SubprocessRunner(Runner):
             base = Path.cwd() / base
         return Path(os.path.abspath(base / path))
 
-    def _read_summary(self, metadata: Mapping[str, Any], *, job_id: str) -> dict[str, Any]:
+    def _read_summary(
+        self, metadata: Mapping[str, Any], *, job_id: str
+    ) -> dict[str, Any]:
         summary_path = self._summary_path(metadata, job_id=job_id)
         if summary_path.is_symlink():
             raise RunnerExecutionError(
@@ -1350,24 +1472,73 @@ class SubprocessRunner(Runner):
                 failure_kind=RunnerFailureKind.SUMMARY_INVALID,
             ) from exc
 
+    @staticmethod
+    def _validate_resolved_cell_summary(
+        summary: Mapping[str, Any],
+        *,
+        argv: list[str],
+        job_id: str,
+    ) -> None:
+        path_occurrences = option_occurrences(
+            argv,
+            "--resolved-cell-manifest-path",
+        )
+        hash_occurrences = option_occurrences(
+            argv,
+            "--resolved-cell-manifest-hash",
+        )
+        if not path_occurrences and not hash_occurrences:
+            if (
+                summary.get("resolved_cell_manifest_hash") is not None
+                or summary.get("resolved_cell_identity") is not None
+            ):
+                raise ValueError(
+                    f"{job_id}: unbound summary claims resolved cell identity"
+                )
+            return
+        path = unique_option_value(argv, "--resolved-cell-manifest-path")
+        manifest_hash = unique_option_value(
+            argv,
+            "--resolved-cell-manifest-hash",
+        )
+        manifest = load_resolved_cell_manifest(
+            path,
+            expected_manifest_hash=manifest_hash,
+        )
+        if summary.get("resolved_cell_manifest_hash") != manifest_hash:
+            raise ValueError(f"{job_id}: summary resolved cell manifest hash mismatch")
+        identity = summary.get("resolved_cell_identity")
+        if not isinstance(identity, Mapping) or dict(identity) != (
+            manifest.summary_identity()
+        ):
+            raise ValueError(f"{job_id}: summary resolved cell identity mismatch")
+
     def _summary_path(self, metadata: Mapping[str, Any], *, job_id: str) -> Path:
         raw_summary_path = metadata.get("summary_path")
         if not isinstance(raw_summary_path, str) or not raw_summary_path:
             raise RunnerExecutionError(f"{job_id}: summary_path is required")
         return self._resolved_job_path(raw_summary_path, metadata=metadata)
 
-    def _clear_existing_summary(self, metadata: Mapping[str, Any], *, job_id: str) -> None:
+    def _clear_existing_summary(
+        self, metadata: Mapping[str, Any], *, job_id: str
+    ) -> None:
         summary_path = self._summary_path(metadata, job_id=job_id)
         if summary_path.is_symlink():
-            raise RunnerExecutionError(f"{job_id}: summary_path must not be a symlink: {summary_path}")
+            raise RunnerExecutionError(
+                f"{job_id}: summary_path must not be a symlink: {summary_path}"
+            )
         if not summary_path.exists():
             return
         if not summary_path.is_file():
-            raise RunnerExecutionError(f"{job_id}: summary_path exists but is not a file: {summary_path}")
+            raise RunnerExecutionError(
+                f"{job_id}: summary_path exists but is not a file: {summary_path}"
+            )
         try:
             summary_path.unlink()
         except OSError as exc:
-            raise RunnerExecutionError(f"{job_id}: failed to remove stale summary file: {summary_path}") from exc
+            raise RunnerExecutionError(
+                f"{job_id}: failed to remove stale summary file: {summary_path}"
+            ) from exc
 
     def _clear_existing_output(
         self,
@@ -1402,7 +1573,9 @@ class SubprocessRunner(Runner):
     ) -> Path:
         raw_path = metadata.get(key)
         if not isinstance(raw_path, str) or not raw_path:
-            raise RunnerExecutionError(f"{job_id}: {key} is required for local subprocess train")
+            raise RunnerExecutionError(
+                f"{job_id}: {key} is required for local subprocess train"
+            )
         if "://" in raw_path:
             raise RunnerExecutionError(f"{job_id}: {key} must be a local file path")
         return self._resolved_job_path(raw_path, metadata=metadata)
@@ -1414,7 +1587,9 @@ class SubprocessRunner(Runner):
     ) -> None:
         protocol = summary.get("evaluation_protocol")
         if not isinstance(protocol, Mapping):
-            raise RunnerExecutionError(f"{eval_spec.job_id}: eval summary missing evaluation_protocol object")
+            raise RunnerExecutionError(
+                f"{eval_spec.job_id}: eval summary missing evaluation_protocol object"
+            )
         expected_protocol = eval_spec.evaluation_protocol().to_public_dict()
         for key, expected in expected_protocol.items():
             actual = protocol.get(key)
@@ -1453,7 +1628,11 @@ class SubprocessRunner(Runner):
         job_id: str,
     ) -> CheckpointRef:
         raw_declared_path = checkpoint.metadata.get("local_path", checkpoint.uri)
-        if not isinstance(raw_declared_path, str) or not raw_declared_path or "://" in raw_declared_path:
+        if (
+            not isinstance(raw_declared_path, str)
+            or not raw_declared_path
+            or "://" in raw_declared_path
+        ):
             raise RunnerExecutionError(
                 f"{job_id}: train summary checkpoint must declare a local output path"
             )
@@ -1563,10 +1742,14 @@ class SubprocessRunner(Runner):
                 "candidate failure expected initial policy state hash mismatch"
             )
 
-    def _checkpoint_from_summary(self, summary: Mapping[str, Any], *, job_id: str) -> CheckpointRef:
+    def _checkpoint_from_summary(
+        self, summary: Mapping[str, Any], *, job_id: str
+    ) -> CheckpointRef:
         checkpoint = summary.get("checkpoint")
         if not isinstance(checkpoint, Mapping):
-            raise RunnerExecutionError(f"{job_id}: train summary missing checkpoint object")
+            raise RunnerExecutionError(
+                f"{job_id}: train summary missing checkpoint object"
+            )
         try:
             parsed = CheckpointRef(
                 uri=checkpoint["uri"],
@@ -1578,10 +1761,14 @@ class SubprocessRunner(Runner):
             if parsed.role != "train_output":
                 raise ValueError("train summary checkpoint role must be train_output")
             if parsed.sealed:
-                raise ValueError("train summary checkpoint must be unsealed before runner sealing")
+                raise ValueError(
+                    "train summary checkpoint must be unsealed before runner sealing"
+                )
             return parsed
         except KeyError as exc:
-            raise RunnerExecutionError(f"{job_id}: train summary checkpoint missing {exc.args[0]}") from exc
+            raise RunnerExecutionError(
+                f"{job_id}: train summary checkpoint missing {exc.args[0]}"
+            ) from exc
         except (TypeError, ValueError) as exc:
             raise RunnerExecutionError(
                 f"{job_id}: invalid train summary checkpoint: {exc}"
@@ -1597,9 +1784,7 @@ class SubprocessRunner(Runner):
     ) -> EvaluationPhaseResult:
         job_id = eval_spec.job_id
         if summary.get("schema_version") != EVALUATION_PHASE_SUMMARY_SCHEMA_VERSION:
-            raise RunnerExecutionError(
-                f"{job_id}: eval phase summary schema mismatch"
-            )
+            raise RunnerExecutionError(f"{job_id}: eval phase summary schema mismatch")
         if summary.get("status") != "pass" or summary.get("errors") != []:
             raise RunnerExecutionError(
                 f"{job_id}: eval phase did not produce complete evidence"
@@ -1609,9 +1794,7 @@ class SubprocessRunner(Runner):
                 f"{job_id}: eval phase summary identity mismatch"
             )
         if summary.get("evaluation_plan_hash") != eval_spec.evaluation_plan_hash:
-            raise RunnerExecutionError(
-                f"{job_id}: eval phase plan binding mismatch"
-            )
+            raise RunnerExecutionError(f"{job_id}: eval phase plan binding mismatch")
         task_evidence = summary.get("task_evidence")
         if not isinstance(task_evidence, Mapping):
             raise RunnerExecutionError(
@@ -1766,9 +1949,7 @@ class SubprocessRunner(Runner):
             if isinstance(rollout_evidence, Mapping)
             else None
         )
-        if (declared_task_evidence_hash is not None) != (
-            raw_task_evidence is not None
-        ):
+        if (declared_task_evidence_hash is not None) != (raw_task_evidence is not None):
             raise RunnerExecutionError(
                 f"{job_id}: sealed task evidence hash and summary must be present together"
             )
@@ -1815,23 +1996,30 @@ class SubprocessRunner(Runner):
         raw_evidence_manifest = summary.get("evidence_manifest")
         if raw_evidence_manifest is not None:
             if not isinstance(raw_evidence_manifest, list):
-                raise RunnerExecutionError(f"{job_id}: eval summary evidence_manifest must be a list")
+                raise RunnerExecutionError(
+                    f"{job_id}: eval summary evidence_manifest must be a list"
+                )
             try:
-                public_metrics["evidence_manifest"] = validate_evidence_projection_bindings(
-                    raw_evidence_manifest,
-                    projections={
-                        "metrics.checkpoint_safety_report": checkpoint_safety_report,
-                        f"metrics.{SEALED_VALIDATION_EVIDENCE_KEY}": rollout_evidence,
-                    },
+                public_metrics["evidence_manifest"] = (
+                    validate_evidence_projection_bindings(
+                        raw_evidence_manifest,
+                        projections={
+                            "metrics.checkpoint_safety_report": checkpoint_safety_report,
+                            f"metrics.{SEALED_VALIDATION_EVIDENCE_KEY}": rollout_evidence,
+                        },
+                    )
                 )
             except ValueError as exc:
                 raise RunnerExecutionError(f"{job_id}: {exc}") from exc
         supplied_gate = summary.get("sealed_validation_gate")
         if not isinstance(supplied_gate, Mapping):
-            raise RunnerExecutionError(f"{job_id}: eval summary sealed_validation_gate must be an object")
+            raise RunnerExecutionError(
+                f"{job_id}: eval summary sealed_validation_gate must be an object"
+            )
         isolation_gate = build_candidate_isolation_gate(
             candidate_code_loaded=summary.get("candidate_code_loaded_in_eval") is True,
-            candidate_package_loaded=summary.get("candidate_package_loaded_in_eval") is True,
+            candidate_package_loaded=summary.get("candidate_package_loaded_in_eval")
+            is True,
             candidate_path_argument_present=False,
         )
         canonical_gate = build_sealed_validation_gate(
@@ -1865,16 +2053,16 @@ class SubprocessRunner(Runner):
                 metrics=public_metrics,
             )
         except ValueError as exc:
-            raise RunnerExecutionError(f"{job_id}: invalid public eval result: {exc}") from exc
+            raise RunnerExecutionError(
+                f"{job_id}: invalid public eval result: {exc}"
+            ) from exc
 
     @staticmethod
     def _validate_backend_execution_environment_summary(
         summary: Mapping[str, Any],
         spec: TrainJobSpec | EvaluationJobSpec,
     ) -> None:
-        expected_hash = spec.metadata.get(
-            "backend_execution_environment_manifest_hash"
-        )
+        expected_hash = spec.metadata.get("backend_execution_environment_manifest_hash")
         receipt = summary.get("backend_execution_environment_verification")
         if expected_hash is None:
             if receipt is not None:
@@ -1975,9 +2163,7 @@ class SubprocessRunner(Runner):
                     f"{train_spec.job_id}: unexpected candidate failure contract hash"
                 )
         else:
-            expected["candidate_failure_contract_hash"] = (
-                failure_contract.contract_hash
-            )
+            expected["candidate_failure_contract_hash"] = failure_contract.contract_hash
         for field_name, expected_value in expected.items():
             if summary.get(field_name) != expected_value:
                 raise RunnerExecutionError(

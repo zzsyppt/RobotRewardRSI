@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 from __future__ import annotations
 
 import importlib.util
@@ -24,6 +25,10 @@ from scripts.isaaclab_stair_rsl_rl_train import (  # noqa: E402
     _load_and_qualify_program,
 )
 
+from tests.fakes.backend_environment import (  # noqa: E402
+    TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH,
+)
+from tests.fakes.evaluation import make_test_candidate_package  # noqa: E402
 from true_rl_agent.backends.isaac_lab_rsl_rl import (  # noqa: E402
     IsaacLabRslRlBackendAdapter,
 )
@@ -31,6 +36,7 @@ from true_rl_agent.candidates.artifact import seal_candidate_package  # noqa: E4
 from true_rl_agent.candidates.capability_readiness import (
     COMPLETE_REWARD_PROGRAM_CAPABILITY_ID,
 )
+from true_rl_agent.candidates.package_contract import CANDIDATE_PACKAGE_FILE_MAX_BYTES
 from true_rl_agent.candidates.schema import CandidateChangeSet, CandidatePackageRef
 from true_rl_agent.candidates.verifier import (
     StaticCandidateVerifier,
@@ -48,8 +54,12 @@ from true_rl_agent.json_contract import canonical_json_text
 from true_rl_agent.runner.job_argv import validate_train_job_argv
 from true_rl_agent.tasks.stair_climbing.candidate_admission import (
     StairCandidateAdmissionPolicy,
+    _duplicate_parent_reward_term_issue,
     _qualification_failure_evidence,
     _validate_qualification_worker_result,
+)
+from true_rl_agent.tasks.stair_climbing.component_smoke import (
+    StairClimbingComponentSmokeAdapter,
 )
 from true_rl_agent.tasks.stair_climbing.composition import (
     StairClimbingCompositionProvider,
@@ -63,7 +73,9 @@ from true_rl_agent.tasks.stair_climbing.reference_program import (
 )
 from true_rl_agent.tasks.stair_climbing.reward_program import (
     StairRewardArtifactIntegrityError,
+    StairRewardEnvironmentAxisError,
     StairRewardProgramError,
+    assert_stair_reward_program_environment_independent,
     qualify_stair_candidate_reward_program,
 )
 
@@ -88,27 +100,12 @@ def _write_candidate_package(
     candidate_id: str,
     source: str,
 ) -> Path:
-    candidate_dir = root / candidate_id
-    (candidate_dir / "training_code").mkdir(parents=True)
-    (candidate_dir / "candidate_manifest.yaml").write_text(
-        "\n".join(
-            (
-                "schema_version: true_rl_agent.candidate.v1",
-                f"candidate_id: {candidate_id}",
-                "entrypoint: training_code.components:build_training_components",
-                "",
-            )
-        ),
-        encoding="utf-8",
+    candidate = make_test_candidate_package(
+        candidate_id,
+        provider_root=root / candidate_id,
+        components_source=source,
     )
-    (candidate_dir / "training_code" / "components.py").write_text(
-        source,
-        encoding="utf-8",
-    )
-    (candidate_dir / "rationale.md").write_text("Stair candidate.\n", encoding="utf-8")
-    (candidate_dir / "operation_diff.json").write_text("{}\n", encoding="utf-8")
-    (candidate_dir / "diagnostics.json").write_text("{}\n", encoding="utf-8")
-    return candidate_dir
+    return Path(candidate.path)
 
 
 def _official_source_with_raw_contact_term(*, clip_clause: str) -> str:
@@ -132,6 +129,100 @@ def _official_source_with_raw_contact_term(*, clip_clause: str) -> str:
         + "            ),\n"
     )
     return source.replace(marker, replacement, 1)
+
+
+def _minimal_reward_source(*, expression: str) -> str:
+    return textwrap.dedent(
+        f'''\
+        from __future__ import annotations
+
+        from true_rl_agent.candidates.components import RewardTerm, TrainingComponents
+
+
+        def cross_environment_reward(inputs):
+            return {expression}
+
+
+        def build_training_components():
+            return TrainingComponents(
+                name="cross_environment_components",
+                reward_terms=[
+                    RewardTerm(
+                        name="cross_environment_reward",
+                        weight=1.0,
+                        fn=cross_environment_reward,
+                    ),
+                ],
+                rationale="Exercise the environment-axis admission contract.",
+            )
+        '''
+    )
+
+
+def _parent_alias_sources() -> tuple[str, str, str, str]:
+    header = textwrap.dedent(
+        '''\
+        from __future__ import annotations
+
+        from true_rl_agent.candidates.components import RewardTerm, TrainingComponents
+
+
+        def parent_reward(inputs):
+            return inputs.base_height
+        '''
+    )
+    parent = header + textwrap.dedent(
+        '''\
+
+
+        def build_training_components():
+            return TrainingComponents(
+                name="parent_components",
+                reward_terms=[RewardTerm(name="parent_reward", weight=1.0, fn=parent_reward)],
+                rationale="Parent reward.",
+            )
+        '''
+    )
+    alias = header + textwrap.dedent(
+        '''\
+
+
+        def alias_reward(inputs):
+            return inputs.base_height
+
+
+        def build_training_components():
+            return TrainingComponents(
+                name="alias_components",
+                reward_terms=[
+                    RewardTerm(name="parent_reward", weight=1.0, fn=parent_reward),
+                    RewardTerm(name="alias_reward", weight=1.0, fn=alias_reward),
+                ],
+                rationale="Alias the parent reward.",
+            )
+        '''
+    )
+    renamed = parent.replace("parent_reward", "renamed_reward")
+    novel = header + textwrap.dedent(
+        '''\
+
+
+        def novel_reward(inputs):
+            return inputs.roll.square()
+
+
+        def build_training_components():
+            return TrainingComponents(
+                name="novel_components",
+                reward_terms=[
+                    RewardTerm(name="parent_reward", weight=1.0, fn=parent_reward),
+                    RewardTerm(name="novel_reward", weight=1.0, fn=novel_reward),
+                ],
+                rationale="Add a distinct reward.",
+            )
+        '''
+    )
+    return parent, alias, renamed, novel
 
 
 class StairCandidateAdmissionTests(unittest.TestCase):
@@ -182,6 +273,231 @@ class StairCandidateAdmissionTests(unittest.TestCase):
         )
 
         self.assertNotEqual(short.policy_hash, long.policy_hash)
+
+    def test_duplicate_parent_reward_term_rejects_alias_only(self) -> None:
+        parent, alias, renamed, novel = _parent_alias_sources()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            candidate_dir = _write_candidate_package(
+                Path(tmp),
+                candidate_id="duplicate-parent-alias",
+                source=alias,
+            )
+            candidate = CandidatePackageRef(
+                candidate_id="duplicate-parent-alias",
+                path=str(candidate_dir),
+                change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+            )
+            admission = StairCandidateAdmissionPolicy(self.config)
+            static_result = admission.verify(candidate)
+            self.assertEqual(static_result.status, "pass")
+            with patch(
+                "true_rl_agent.tasks.stair_climbing.candidate_admission."
+                "seal_and_verify_candidate"
+            ) as temporary_admission:
+                duplicate = admission.verify_authoring_delta(
+                    candidate=candidate,
+                    verification=static_result,
+                    parent_source=parent,
+                )
+
+        self.assertEqual(duplicate.status, "fail")
+        self.assertEqual(duplicate.reason, "stair_candidate_authoring_delta_invalid")
+        self.assertEqual(
+            duplicate.details["issues"],
+            ["duplicate_parent_reward_term:alias_reward:matches=parent_reward"],
+        )
+        temporary_admission.assert_not_called()
+        self.assertIsNone(
+            _duplicate_parent_reward_term_issue(
+                candidate_source=renamed,
+                parent_source=parent,
+            )
+        )
+        self.assertIsNone(
+            _duplicate_parent_reward_term_issue(
+                candidate_source=novel,
+                parent_source=parent,
+            )
+        )
+
+    def test_authoring_delta_source_reread_keeps_package_byte_bound(self) -> None:
+        parent, alias, _, _ = _parent_alias_sources()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            candidate_dir = _write_candidate_package(
+                Path(tmp),
+                candidate_id="oversized-after-static-verify",
+                source=alias,
+            )
+            candidate = CandidatePackageRef(
+                candidate_id="oversized-after-static-verify",
+                path=str(candidate_dir),
+                change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+            )
+            admission = StairCandidateAdmissionPolicy(self.config)
+            static_result = admission.verify(candidate)
+            self.assertEqual(static_result.status, "pass")
+            source_path = candidate_dir / "training_code" / "components.py"
+            maximum = CANDIDATE_PACKAGE_FILE_MAX_BYTES[
+                "training_code/components.py"
+            ]
+            source_path.write_bytes(b"#" * (maximum + 1))
+
+            with patch(
+                "true_rl_agent.tasks.stair_climbing.candidate_admission."
+                "seal_and_verify_candidate"
+            ) as temporary_admission:
+                result = admission.verify_authoring_delta(
+                    candidate=candidate,
+                    verification=static_result,
+                    parent_source=parent,
+                )
+
+        self.assertEqual(result.status, "fail")
+        self.assertEqual(
+            result.reason,
+            "stair_candidate_authoring_source_invalid",
+        )
+        self.assertEqual(
+            result.details["issues"],
+            ["authoring_source_identity_invalid:CandidatePackageContractError"],
+        )
+        temporary_admission.assert_not_called()
+
+    def test_environment_axis_failure_is_repairable_during_authoring(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            candidate_dir = _write_candidate_package(
+                root,
+                candidate_id="cross-environment-authoring",
+                source=_minimal_reward_source(
+                    expression=(
+                        "inputs.base_height * 0.0 + inputs.base_height[0]"
+                    )
+                ),
+            )
+            candidate = CandidatePackageRef(
+                candidate_id="cross-environment-authoring",
+                path=str(candidate_dir),
+                change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+            )
+            admission = StairCandidateAdmissionPolicy(self.config)
+            static_result = admission.verify(candidate)
+            self.assertEqual(static_result.status, "pass")
+            failure = {
+                "schema_version": (
+                    "true_rl_agent.task.stair_climbing.candidate_qualification.v1"
+                ),
+                "status": "fail",
+                "reason": "stair_candidate_reward_program_invalid",
+                "failure_owner": "candidate",
+                "error_type": StairRewardEnvironmentAxisError.__name__,
+            }
+
+            with patch(
+                "true_rl_agent.tasks.stair_climbing.candidate_admission."
+                "_run_qualification_worker",
+                return_value=failure,
+            ):
+                result = admission.verify_authoring_delta(
+                    candidate=candidate,
+                    verification=static_result,
+                    parent_source=None,
+                )
+
+        self.assertEqual(result.status, "fail")
+        self.assertEqual(result.reason, "stair_candidate_environment_axis_invalid")
+        self.assertEqual(
+            result.details["issues"],
+            ["reward_environment_axis_independence_failed"],
+        )
+
+    @unittest.skipUnless(
+        importlib.util.find_spec("torch") is not None,
+        "environment-axis qualification requires Torch",
+    )
+    def test_environment_axis_reverse_permutation_rejects_cross_row_anchor(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            candidate_dir = _write_candidate_package(
+                root,
+                candidate_id="cross-row-anchor",
+                source=_minimal_reward_source(
+                    expression=(
+                        "inputs.base_height * 0.0 + inputs.base_height[0]"
+                    )
+                ),
+            )
+            candidate = CandidatePackageRef(
+                candidate_id="cross-row-anchor",
+                path=str(candidate_dir),
+                change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+            )
+            admission = StairCandidateAdmissionPolicy(self.config)
+            sealed = seal_candidate_package(
+                candidate,
+                artifact_root=root / "artifacts",
+            )
+            program = qualify_stair_candidate_reward_program(
+                artifact=sealed,
+                contract=self.config.protocol_v2.complete_reward_runtime,
+                static_verifier_policy=admission.static_verifier.policy,
+                trusted_reference_artifact=self.reference,
+            )
+            adapter = StairClimbingComponentSmokeAdapter(self.config)
+
+            with self.assertRaisesRegex(
+                StairRewardEnvironmentAxisError,
+                "reverse_permutation_failed",
+            ):
+                assert_stair_reward_program_environment_independent(
+                    program,
+                    adapter.build_reward_inputs,
+                )
+
+    @unittest.skipUnless(
+        importlib.util.find_spec("torch") is not None,
+        "environment-axis qualification requires Torch",
+    )
+    def test_environment_axis_locality_rejects_middle_row_dependency(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            candidate_dir = _write_candidate_package(
+                root,
+                candidate_id="cross-row-middle",
+                source=_minimal_reward_source(
+                    expression="inputs.base_height - inputs.base_height[2]"
+                ),
+            )
+            candidate = CandidatePackageRef(
+                candidate_id="cross-row-middle",
+                path=str(candidate_dir),
+                change_set=CandidateChangeSet(frozenset({"reward_callable"})),
+            )
+            admission = StairCandidateAdmissionPolicy(self.config)
+            sealed = seal_candidate_package(
+                candidate,
+                artifact_root=root / "artifacts",
+            )
+            program = qualify_stair_candidate_reward_program(
+                artifact=sealed,
+                contract=self.config.protocol_v2.complete_reward_runtime,
+                static_verifier_policy=admission.static_verifier.policy,
+                trusted_reference_artifact=self.reference,
+            )
+            adapter = StairClimbingComponentSmokeAdapter(self.config)
+
+            with self.assertRaisesRegex(
+                StairRewardEnvironmentAxisError,
+                "single_row_locality_failed",
+            ):
+                assert_stair_reward_program_environment_independent(
+                    program,
+                    adapter.build_reward_inputs,
+                )
 
     def test_hidden_joint_order_is_rejected_before_and_after_sealing(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -382,19 +698,6 @@ class StairCandidateAdmissionTests(unittest.TestCase):
     def test_sealed_qualification_uses_actual_static_source_policy(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            candidate_dir = root / "candidate"
-            (candidate_dir / "training_code").mkdir(parents=True)
-            (candidate_dir / "candidate_manifest.yaml").write_text(
-                textwrap.dedent(
-                    """
-                    schema_version: true_rl_agent.candidate.v1
-                    candidate_id: custom-source-policy
-                    entrypoint: training_code.components:build_training_components
-                    """
-                ).strip()
-                + "\n",
-                encoding="utf-8",
-            )
             source = OFFICIAL_R0_SOURCE_PATH.read_text(encoding="utf-8")
             source = source.replace(
                 "def termination_penalty(inputs):\n",
@@ -402,9 +705,10 @@ class StairCandidateAdmissionTests(unittest.TestCase):
                 "    print('custom-source-policy')\n",
                 1,
             )
-            (candidate_dir / "training_code" / "components.py").write_text(
-                source,
-                encoding="utf-8",
+            candidate_dir = _write_candidate_package(
+                root,
+                candidate_id="custom-source-policy",
+                source=source,
             )
             candidate = CandidatePackageRef(
                 candidate_id="custom-source-policy",
@@ -481,6 +785,9 @@ class StairCandidateAdmissionTests(unittest.TestCase):
                 ),
                 expected_initial_policy_state_hash=(
                     TEST_INITIAL_POLICY_STATE_HASH
+                ),
+                backend_execution_environment_manifest_hash=(
+                    TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH
                 ),
             )
             train_argv = jobs.train_spec.metadata["cli_argv"]
@@ -590,21 +897,10 @@ class StairCandidateAdmissionTests(unittest.TestCase):
                     output_dir=root / "output",
                 ),
             )
-            candidate_dir = root / "candidate"
-            (candidate_dir / "training_code").mkdir(parents=True)
-            (candidate_dir / "candidate_manifest.yaml").write_text(
-                textwrap.dedent(
-                    """
-                    schema_version: true_rl_agent.candidate.v1
-                    candidate_id: official-r0-as-candidate
-                    entrypoint: training_code.components:build_training_components
-                    """
-                ).strip()
-                + "\n",
-                encoding="utf-8",
-            )
-            (candidate_dir / "training_code" / "components.py").write_bytes(
-                OFFICIAL_R0_SOURCE_PATH.read_bytes()
+            candidate_dir = _write_candidate_package(
+                root,
+                candidate_id="official-r0-as-candidate",
+                source=OFFICIAL_R0_SOURCE_PATH.read_text(encoding="utf-8"),
             )
             candidate = CandidatePackageRef(
                 candidate_id="official-r0-as-candidate",
@@ -631,6 +927,9 @@ class StairCandidateAdmissionTests(unittest.TestCase):
                 evaluation_binding=binding,
                 expected_initial_policy_state_hash=(
                     TEST_INITIAL_POLICY_STATE_HASH
+                ),
+                backend_execution_environment_manifest_hash=(
+                    TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH
                 ),
             )
 

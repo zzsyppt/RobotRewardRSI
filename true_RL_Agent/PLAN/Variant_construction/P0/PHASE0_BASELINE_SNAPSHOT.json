@@ -1,0 +1,495 @@
+{
+  "schema_version": "true_rl_agent.variant_construction.phase0_baseline.v3",
+  "captured_on": "2026-08-26",
+  "repository": {
+    "server_checkout_root": "/data/yuyangliu/AGENT",
+    "project_subdirectory": "true_RL_Agent",
+    "tracked_worktree_status_at_capture": "clean",
+    "pre_edit_untracked_inventory": {
+      "path_count": 1520,
+      "path_list_sha256": "a221f2647786803ca96a498be1b518b0fe635276e1e5413712d2f04742005076",
+      "path_size_mtime_sha256": "dc001b67662f89021be50bbfe958f15cdc81208392b2ea7e238954e8c8097414",
+      "target_plan_sha256": "80b70c1ce681ec8d14bddc7d007c2f1622775e3ab95daa950cfeee0824ebb6c8",
+      "audit_document_sha256": "b0b6b6bc7cab6910c63dddb33f5ce26e841547fa4d00c7cdaef79affaddc822e",
+      "note": "Only the requested target plan and new P0 directory are intended writes."
+    },
+    "captured_branch": "true-rl-agent-refactor",
+    "captured_local_head": "f3593567b3901453f7dbf80dd6c450554b957fb2",
+    "captured_origin_head": "f3593567b3901453f7dbf80dd6c450554b957fb2",
+    "captured_server_head": "f3593567b3901453f7dbf80dd6c450554b957fb2",
+    "head_identity_semantics": "capture provenance only; live HEAD is not an acceptance gate",
+    "live_product_identity": "verified by resolved contracts, selected product source bytes, runner source contract, reward ABI and normalized reference argv"
+  },
+  "evidence_boundary": {
+    "current_product_commit": "f3593567b3901453f7dbf80dd6c450554b957fb2",
+    "current_product_code_commit": "ab84aa3350700a2f7d46231afefaec4425ffa2ef",
+    "current_head_delta_from_product_code": "documentation_only",
+    "frozen_formal_experiment_commit": "c582eca04dbac7d5ee5e2df0f56c646500ead55f",
+    "frozen_formal_report_sha256": "6b7e324c09b58c62a1e450308080be5b9cef533b5737a74933ef389f2ebe0897",
+    "frozen_formal_generation_outcomes": {
+      "accepted": 4,
+      "formal_rejected": 7,
+      "no_selection": 4,
+      "valid_scientific_generations": 15
+    },
+    "current_bytes_real_15_generation_rerun": false,
+    "interpretation": "The real 15-generation result belongs to c582eca. ab84aa3/f359356 contain follow-up fixes and verification, but no new provider/Isaac/GPU 15-generation rerun on the exact current bytes."
+  },
+  "matrix_scope": {
+    "cells": [
+      "stair.g1_37dof",
+      "push.g1_29dof",
+      "stair.go2"
+    ],
+    "cell_variants": [
+      "stair.g1_37dof.clean_legacy_v1",
+      "stair.g1_37dof.irregular_v1",
+      "stair.g1_37dof.rough_v1",
+      "stair.go2.clean_v1",
+      "stair.go2.irregular_v1",
+      "stair.go2.rough_v1",
+      "push.g1_29dof.legacy_v1"
+    ],
+    "scope_ceiling": "Core V1 is exactly 3 cells and 7 variants; Go2 x Push and hexapods are extensions."
+  },
+  "local_contracts": {
+    "stair": {
+      "protocol_v1_hash": "7732f94502b30cdd8524b1e9ad4a1dbb118bb8f6b7b2f60cd1d52e8901b61cde",
+      "protocol_v2_hash": "97d9473e4ba6ad5b9829fab26ad47d6d4bb89e9ad711d198629b17ccc8e153f5",
+      "task_protocol_hash": "e19eae3dc21025953a62fbc1dd147e00dc60aab90f8f2b8ab3a45e1a7bf8c5e5",
+      "evaluation_profile_hash": "86d8eed0c8b9a8c32af49c69a81d983b3ec826abec408d5664717f61e16939d5",
+      "evaluation_protocol_hash": "9daa940351fd8557fb3fab314fc952dfd3fc47c749c303615258800bade2abd0",
+      "acceptance_protocol_hash": "9fccce3984eed8f04602a07511d7afb79cedf8dc8732fe56b7a18d804ef26382",
+      "seed_cohort_hash": "2057585bf7148c4d7462a90729afdfda84aaad0cc4c89b1ecae8f2c05210f362",
+      "capability_profile_hash": "a5f96c0685e07b04929d5b92f1c8485d72e8e4e6025d7653933b557d5d2093a0",
+      "evaluation_binding_hash": "50208bedeb179d5cae43b61a8fb116181c5a50c163fd4d8dec209288df6fd014",
+      "genesis_snapshot_hash": "264f213d447e27919a94537cbf16e1336185aae510fdd34c69b39c8847e90fe4",
+      "reward_abi_hash": "d10f3801634e8a77250c38d7a56176309d4061bcd352e469135a75f8dc0791c6",
+      "evaluation_cell_ids": [
+        "stair_010__tread_400",
+        "stair_015__tread_400",
+        "stair_020__tread_400",
+        "stair_025__tread_400",
+        "stair_030__tread_400",
+        "stair_035__tread_400",
+        "stair_040__tread_400",
+        "stair_010__tread_300",
+        "stair_015__tread_300",
+        "stair_020__tread_300",
+        "stair_025__tread_300",
+        "stair_030__tread_300",
+        "stair_035__tread_300",
+        "stair_040__tread_300",
+        "stair_010__tread_350",
+        "stair_015__tread_350",
+        "stair_020__tread_350",
+        "stair_025__tread_350",
+        "stair_030__tread_350",
+        "stair_035__tread_350",
+        "stair_040__tread_350",
+        "stair_010__tread_450",
+        "stair_015__tread_450",
+        "stair_020__tread_450",
+        "stair_025__tread_450",
+        "stair_030__tread_450",
+        "stair_035__tread_450",
+        "stair_040__tread_450",
+        "stair_010__tread_500",
+        "stair_015__tread_500",
+        "stair_020__tread_500",
+        "stair_025__tread_500",
+        "stair_030__tread_500",
+        "stair_035__tread_500",
+        "stair_040__tread_500"
+      ],
+      "robot": "unitree_g1",
+      "observation_schema_hash": "eed257c77a8b3c3d3518aa103872ce2b7b400b69ea7dc28e93787927874ea5a9",
+      "action_schema_hash": "98cfa2fbddc65cc8782d63d760e2fc14c6c32efbbde8f96f096988c7bf1161cc"
+    },
+    "push": {
+      "task_protocol_hash": "47bbcf3f6f5787a2489438965cab06b0f79371bacc885f5cabc62bb53b5ee4d1",
+      "evaluation_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+      "acceptance_protocol_hash": "7d04324276f8c8f2fe2b79ef56139bffd1b70db9be2e70eb845186a5bd8829e3",
+      "seed_cohort_hash": "40a4ca0894609e14d15da22038e1384baf9a322dcc0b20907181f46781eb2c51",
+      "capability_profile_hash": "724244d5f3903999014d513130995a19b69a401173b7bf5c670fd320fe566d16",
+      "evaluation_binding_hash": "55e26f09e6b52689e0b05aabe95bee4a16ae858555221fb129320a6dbc251958",
+      "genesis_snapshot_hash": "b0924edd2928312417cd4ee2d3828c15dac6d2619a98cf2b890ed2cf028d5c84",
+      "robot": "unitree_g1",
+      "observation_schema_identity": {
+        "value": "push_recovery_obs_v1",
+        "kind": "legacy_label",
+        "content_bound": false
+      },
+      "action_schema_identity": {
+        "value": "unitree_actions_v1",
+        "kind": "legacy_label",
+        "content_bound": false
+      }
+    }
+  },
+  "stair_reward_abi": {
+    "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_runtime.v1",
+    "reward_abi_hash": "d10f3801634e8a77250c38d7a56176309d4061bcd352e469135a75f8dc0791c6",
+    "input_schema_version": "true_rl_agent.task.stair_climbing.reward_inputs.v2",
+    "input_field_count": 42,
+    "robot_specific_shapes": {
+      "joint_pos": [
+        37
+      ],
+      "joint_vel": [
+        37
+      ],
+      "joint_pos_error": [
+        37
+      ],
+      "last_action": [
+        37
+      ],
+      "prev_action": [
+        37
+      ],
+      "action_delta": [
+        37
+      ],
+      "foot_air_time": [
+        2
+      ],
+      "foot_contact_time": [
+        2
+      ],
+      "foot_contact_force_history": [
+        3,
+        2,
+        3
+      ],
+      "foot_contact_force": [
+        2,
+        3
+      ],
+      "foot_lin_vel": [
+        2,
+        3
+      ],
+      "finger_joint_pos_error": [
+        14
+      ]
+    },
+    "candidate_capability_ids": [
+      "complete_reward_program"
+    ],
+    "reference_program_id": "official-g1-rough-reward-v1",
+    "reference_source_checksum": "sha256:a1255b585ffc6752df710be648cf0439017d5220a41853b9dfdebc778c3c03a3"
+  },
+  "runner_contract": {
+    "source_hashes": {
+      "train_builder_source_sha256": "5f02dbd44803a8245333dababa524cf61bb8912d7e7b33668e9bed4ca80e302f",
+      "eval_builder_source_sha256": "693fda600404b1780e1291491c0bdc4c5e1babe2921d6c8cec1212b73b238113",
+      "backend_source_sha256": "61e113bf2ecd1e35b224e7a0b2a6c04fba4da5f88caec97e08e2d8d1bfd3b9ce",
+      "stair_train_entrypoint_sha256": "7b2e77ec9b2714f6f5d52a754f78d2eb00692cb660e0ffeeba43553bf6b9fc8f",
+      "stair_eval_entrypoint_sha256": "abd775ded02522fe316d31463c99df6831f61b81d64b3891cda6d2ad020ecfcd",
+      "push_train_entrypoint_sha256": "97a8efa4606ad5225f559d04ed50edba36501cf0294cdbee3ce4e0f06e391335",
+      "push_eval_entrypoint_sha256": "7c643a398289c79ef4810d1d70834eeb5b0ac6a5a6f639b2bc275b7c7233499d"
+    },
+    "normalized_reference_stair_argv": {
+      "schema_version": "true_rl_agent.phase0.normalized_reference_runner_argv.v1",
+      "train": [
+        "/data/yuyangliu/envs/isaaclab/bin/python",
+        "scripts/isaaclab_stair_rsl_rl_train.py",
+        "--job-id",
+        "phase0-product-reference-train",
+        "--round",
+        "phase0-product-reference",
+        "--task-id",
+        "unitree_stair_climbing",
+        "--subject-kind",
+        "reference",
+        "--subject-id",
+        "official-g1-rough-reward-v1",
+        "--subject-manifest-hash",
+        "34dff42c11b5fcd6a21514ca9e5edaaa95897c6866583f8a5ee0319338aa438e",
+        "--program-source-checksum",
+        "sha256:a1255b585ffc6752df710be648cf0439017d5220a41853b9dfdebc778c3c03a3",
+        "--reference-artifact",
+        "<RUN_ROOT>/reference-artifacts/official-g1-rough-reward-v1/df2938d72a15fa2d2c0079c0155de1765194e27de25583d32546f416efda0c7d",
+        "--reference-artifact-hash",
+        "df2938d72a15fa2d2c0079c0155de1765194e27de25583d32546f416efda0c7d",
+        "--budget-steps",
+        "196608000",
+        "--init",
+        "random",
+        "--training-binding-hash",
+        "2a469d700e2cff853d525e720173483381139f0901852ac031c681c0192fc2b2",
+        "--policy-architecture-hash",
+        "a02a7e06b7e87699dde132fd5f8ae8ac1de438c88b694ea774d958faa9d0f159",
+        "--optimizer-training-profile-hash",
+        "77942852bd99b536e3e244dd216a15e6f07a4ea4681c045dc7cc5bf50eb3962b",
+        "--agent-configuration-hash",
+        "8a5d64c47ac034695d2eec23ff60a89ecbf1253694edb8c373a4da86872bb450",
+        "--agent-configuration-json",
+        "<CANONICAL_JSON_SHA256:055ef794453257c50debda53dfeb6bbf153cef62d785b09d44e4ff972d83682d>",
+        "--initialization-seed-schedule-hash",
+        "0906656b49bcb995fc790c36d4c16174e521f06e41496ae918523a118e458d6d",
+        "--capability-profile-hash",
+        "a5f96c0685e07b04929d5b92f1c8485d72e8e4e6025d7653933b557d5d2093a0",
+        "--summary-path",
+        "<RUN_ROOT>/composition-output/runner/phase0-product-reference/train/summary.json",
+        "--checkpoint-output",
+        "<RUN_ROOT>/composition-output/runner/phase0-product-reference/checkpoints/best.pt",
+        "--profile",
+        "stair_v2_train",
+        "--runtime-dynamics-hash",
+        "sha256:0ceab72831950adf67b10beb5b11a217eaf5059f125dbfcec9596f1a41000973",
+        "--num-envs",
+        "4096",
+        "--seed",
+        "442171579",
+        "--device",
+        "cuda:0",
+        "--num-steps-per-env",
+        "24",
+        "--max-iterations",
+        "2000",
+        "--config",
+        "configs/tasks/stair_protocol_v2.json",
+        "--headless"
+      ],
+      "eval": [
+        "/data/yuyangliu/envs/isaaclab/bin/python",
+        "scripts/isaaclab_stair_rsl_rl_eval.py",
+        "--job-id",
+        "phase0-product-reference-eval",
+        "--round",
+        "phase0-product-reference",
+        "--task-id",
+        "unitree_stair_climbing",
+        "--subject-kind",
+        "reference",
+        "--subject-id",
+        "official-g1-rough-reward-v1",
+        "--checkpoint",
+        "artifact://phase0-product-reference/checkpoints/best.pt",
+        "--public-seeds",
+        "3",
+        "--public-accept-seeds",
+        "5",
+        "--sealed-validation-seeds",
+        "7",
+        "--eval-protocol-version",
+        "stair_anchor_and_tread_generalization_v5",
+        "--task-protocol-hash",
+        "e19eae3dc21025953a62fbc1dd147e00dc60aab90f8f2b8ab3a45e1a7bf8c5e5",
+        "--acceptance-protocol-hash",
+        "9fccce3984eed8f04602a07511d7afb79cedf8dc8732fe56b7a18d804ef26382",
+        "--seed-cohort-hash",
+        "2057585bf7148c4d7462a90729afdfda84aaad0cc4c89b1ecae8f2c05210f362",
+        "--evaluation-binding-hash",
+        "50208bedeb179d5cae43b61a8fb116181c5a50c163fd4d8dec209288df6fd014",
+        "--capability-profile-hash",
+        "a5f96c0685e07b04929d5b92f1c8485d72e8e4e6025d7653933b557d5d2093a0",
+        "--summary-path",
+        "<RUN_ROOT>/composition-output/runner/phase0-product-reference/eval/summary.json",
+        "--profile",
+        "stair_v2_eval",
+        "--runtime-dynamics-hash",
+        "sha256:6b6d48cb8c78418f95e18cf635ee5163d0e07ec9b1b75a46ffb2910067055cff",
+        "--num-envs",
+        "280",
+        "--seed",
+        "170100",
+        "--device",
+        "cuda:0",
+        "--subject-manifest-hash",
+        "34dff42c11b5fcd6a21514ca9e5edaaa95897c6866583f8a5ee0319338aa438e",
+        "--training-binding-hash",
+        "2a469d700e2cff853d525e720173483381139f0901852ac031c681c0192fc2b2",
+        "--program-source-checksum",
+        "sha256:a1255b585ffc6752df710be648cf0439017d5220a41853b9dfdebc778c3c03a3",
+        "--config",
+        "configs/tasks/stair_protocol_v2.json",
+        "--headless"
+      ],
+      "snapshot_hash": "c22cdf06920db9ac62b2c7611b150980db71ddc609bab6a045351de7932fbd13"
+    },
+    "materialization_authority": "production Stair composition reference_program_artifact -> BackendAdapter.materialize_reference_jobs"
+  },
+  "source_file_hashes": {
+    "configs/tasks/push_recovery.yaml": "eec5edf4807cdef9800f8726c57472275e596c7dda2b4bb3ab908c56422f1d36",
+    "configs/tasks/stair_acceptance_protocol_v5.json": "e6a7a099978bc16d2b5c9b13a4aa3f0169e021e21477fa56d17dfecc0b0dde22",
+    "configs/tasks/stair_evaluation_profile_v5.json": "d01d73b7cf9b0772aa2f0542f45f257f3fd68490a82f5ecca8e2f47539916825",
+    "configs/tasks/stair_evaluation_semantics_v6.json": "0aa176d8959624ec074981e357470781d8300778df698ef997acf859e68fe607",
+    "configs/tasks/stair_protocol_v1.json": "e80241c56b65ea287566381aa30025ab5c5b13faf321178532610dc46bb301c7",
+    "configs/tasks/stair_protocol_v2.json": "9763d898cf087b87fc3f68dc3096a7b95d053881f61f5d328a59da0652a0f559",
+    "src/true_rl_agent/composition/base.py": "efeee18f997046265aef09dea88f70947a7651ed2031f65d2fbca06f8130f24c",
+    "src/true_rl_agent/evaluation/binding.py": "a59c8dfe51a9ff4197a23f76e3a895f8bd5e3de638f8cf2876266e5733912e3a",
+    "src/true_rl_agent/tasks/base.py": "08addceffb794e7ee5352154c9cbbc36cc13d4736c6f7cfc4cd1342463bf4819",
+    "src/true_rl_agent/tasks/push_recovery/composition.py": "8a18757a36d6eba808de07e738615e182b3871cd0484071361ff85fed1ec6e8f",
+    "src/true_rl_agent/tasks/push_recovery/isaac_config.py": "f0412e101222bfedf0893323fd3b4baebc176ad8ab340a17162bceedc3fe8a2d",
+    "src/true_rl_agent/tasks/stair_climbing/composition.py": "ae8f8ef84c8a81c1313c19ef8f9899dadc4ca835c38307f4f7c73e71f5d9bd10",
+    "src/true_rl_agent/tasks/stair_climbing/config.py": "b30f1d767ef9b1f1ee70962a193c25d9a678b275acd1a2293fc3ba05429f2155",
+    "src/true_rl_agent/tasks/stair_climbing/episode_evidence.py": "83c35e10f10472dbde3c0f9babac0e76ed949e432354f174257f3d8cb1ddd1ed",
+    "src/true_rl_agent/tasks/stair_climbing/evaluation_contract.py": "055cdad821c63396d6266b6427d064cb30a4a78bee77b0453919fa5851a6be48",
+    "src/true_rl_agent/tasks/stair_climbing/evaluation_profile.py": "ec2920a8f6056ae0e3fd374c987b63e6a4f445bbfe3f828e33a1ea263a66d222",
+    "src/true_rl_agent/tasks/stair_climbing/generalization_contract.py": "b7caab57941854f0d705c966b1cca3dd60fe3afbfa921d1b67b6d1a90fc03612",
+    "src/true_rl_agent/tasks/stair_climbing/isaaclab_reward_runtime.py": "33a46c87d4c92b1b12d54b1f41de609804be46d228a59a48087926a45a86821f",
+    "src/true_rl_agent/tasks/stair_climbing/isaaclab_terrain.py": "cccdfcf6119fefef0415c93974401bbd430fb4853b08d2552cd179acc499bfb4",
+    "src/true_rl_agent/tasks/stair_climbing/phase0_contract.py": "c441d47ce26777687646117af08f9e50163b0bbef8bfbc07abc9a682c6cfad31",
+    "src/true_rl_agent/tasks/stair_climbing/plugin.py": "36b6076f76682a77c2873d4f730697e85d5d42426d3c82dc117d4ae207dc1dc3",
+    "src/true_rl_agent/tasks/stair_climbing/prompt_adapter.py": "0aabba09dfa620b320dd01c25e6ca8df3a1b41b187562a633887ba369d723bf6",
+    "src/true_rl_agent/tasks/stair_climbing/protocol_v2.py": "176aad04ad82c8f016a8b8f9cb2a95725ee561e7a44e8ae68a3a46a541e5dc6a",
+    "src/true_rl_agent/tasks/stair_climbing/public_projection.py": "073f1d555da6b21fc417c1c9d7c32a2be5625b2d1b2e2641016ae390f2690bd3",
+    "src/true_rl_agent/tasks/stair_climbing/transition_decoder.py": "7abf40fa82bca1fc21df80cade309dfcb8196502f2d9e55cd9c0497df8da22eb",
+    "src/true_rl_agent/training_binding.py": "edd9469e24db0aa8236d5c3110880c4b11b26a4a40b534b896d915e9c1575d8c"
+  },
+  "server_environment": {
+    "python": "3.11.15",
+    "isaac_sim": "5.1",
+    "isaac_lab_release": "2.3.0",
+    "isaac_lab_source_commit": "3c6e67bb5c7ada942a6d1884ab69338f57596f77",
+    "installed_distributions": {
+      "isaaclab": "0.47.2",
+      "isaaclab-assets": "0.2.3",
+      "isaaclab-tasks": "0.11.6",
+      "isaaclab-rl": "0.4.4",
+      "rsl-rl-lib": "3.0.1"
+    },
+    "unitree_rl_lab_source_commit": "4960b84732b0c2ec593dccbfe963fda1bcd7b1e3",
+    "unitree_rl_lab_extension_version": "0.1.0",
+    "remote_source_hashes": {
+      "/data/yuyangliu/AGENT/true_RL_Agent/configs/tasks/push_recovery.yaml": "eec5edf4807cdef9800f8726c57472275e596c7dda2b4bb3ab908c56422f1d36",
+      "/data/yuyangliu/AGENT/true_RL_Agent/configs/tasks/stair_protocol_v1.json": "e80241c56b65ea287566381aa30025ab5c5b13faf321178532610dc46bb301c7",
+      "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/tasks/push_recovery/isaac_config.py": "f0412e101222bfedf0893323fd3b4baebc176ad8ab340a17162bceedc3fe8a2d",
+      "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_env_cfg.py": "75df9c216f9b24d0bdae91f47b10a58dadb75100e33a246fa667b868647ecf66",
+      "/data/yuyangliu/vendor/IsaacLab/VERSION": "a42caf4a54bbbe27aa45b6efbc6356c5e299b19763e728b6cdb7201b02ebbe36",
+      "/data/yuyangliu/vendor/IsaacLab/source/isaaclab_assets/isaaclab_assets/robots/unitree.py": "8c2731e9ea4f8a6cfa7beed69e7cc493dac93ba46f9b80fdfc98f84cdf5c1c63",
+      "/data/yuyangliu/vendor/IsaacLab/source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/config/go2/agents/rsl_rl_ppo_cfg.py": "83160ad6a0b2f8cdd367264658d3a1ff9422ebba4f1eeb20c7f08c25999c0b15",
+      "/data/yuyangliu/vendor/IsaacLab/source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/config/go2/rough_env_cfg.py": "cde621c94a6076734adbbc3e7e45dedbcd1812be0343a4bbad901ed0c0bf16a0",
+      "/data/yuyangliu/vendor/IsaacLab/source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/velocity_env_cfg.py": "962c09406c4347b0488020ac0e1d8800740c5bbc3035f4d14af9aeaeb2441b58",
+      "/data/yuyangliu/vendor/unitree_rl_lab/source/unitree_rl_lab/unitree_rl_lab/assets/robots/unitree.py": "4ec244dcd30294c60164334c9353875a0c02fee1209eb24b8d2aab5dd851d75e",
+      "/data/yuyangliu/vendor/unitree_rl_lab/source/unitree_rl_lab/unitree_rl_lab/tasks/locomotion/robots/g1/29dof/velocity_env_cfg.py": "22deed51bf779bb9730cdbb48df3b098ec64dab15984942153f0073d40840b8f"
+    },
+    "probe_mode": "live headless single-scene articulation plus effective task configs",
+    "post_probe_gpu_state": "both GPUs 6 MiB, 0 percent utilization, no probe compute process; probe exit code 0"
+  },
+  "go2_availability": {
+    "decision": "AVAILABLE_NO_PULL",
+    "asset_config": "isaaclab_assets.robots.unitree.UNITREE_GO2_CFG",
+    "asset_read_result": "Result.OK",
+    "rough_env": "isaaclab_tasks.manager_based.locomotion.velocity.config.go2.rough_env_cfg.UnitreeGo2RoughEnvCfg",
+    "flat_gym_id": "Isaac-Velocity-Flat-Unitree-Go2-v0",
+    "rough_gym_id": "Isaac-Velocity-Rough-Unitree-Go2-v0",
+    "agent": {
+      "class": "isaaclab_tasks.manager_based.locomotion.velocity.config.go2.agents.rsl_rl_ppo_cfg.UnitreeGo2RoughPPORunnerCfg",
+      "num_steps_per_env": 24,
+      "max_iterations": 1500,
+      "actor_hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "critic_hidden_dims": [
+        512,
+        256,
+        128
+      ]
+    },
+    "project_support_status": "not_implemented",
+    "note": "Upstream basis exists in the frozen runtime; a task binding, Stair semantics and qualification remain Phase 5 work."
+  },
+  "references": {
+    "codex_repository_commit": "5ce04789fbbd4b12c80340a8246cfb00d0a330d5",
+    "codex_ideas_used": [
+      "stable explicit identities",
+      "layer inputs then resolve once",
+      "specialized semantics stay with owner",
+      "compare complete resolved objects"
+    ],
+    "codex_subsystems_not_adopted": [
+      "sandbox",
+      "remote plugin service",
+      "multi-agent scheduling",
+      "persistent service state"
+    ]
+  },
+  "runtime_probe_receipt": {
+    "path": "PHASE0_RUNTIME_PROBE_RECEIPT.json",
+    "file_sha256": "62c860f29c58e543a4c0d1192a718947d5f15941fa7193701647734fe1f63063",
+    "receipt_hash": "5153841b0817015351ec40bb6efeef45c9492aa21782e396faa03e0398eafd5b",
+    "probe_script_sha256": "dfc17a30a89f41865141d304b218f67dbdd30b509c6faece5f6091a26bf3e663",
+    "profile_runtime_hashes": {
+      "p0.g1_37_stair_execution": "93adedbe9022a62d19fda14057775bd39e15705757d18287e494ce18855c16c2",
+      "p0.g1_29_push_execution": "9038bdfdb8e5061adaa7bd2902fa94b65e124f73f76701f0085a155c2c678fbc",
+      "p0.go2_upstream_execution_basis": "c56fed536354249bec90ce22fa52a10f8b899396758e46f8e03747368d985437"
+    },
+    "asset_closure_hashes": {
+      "p0.g1_37_stair_execution": "660130ec88b6d500cfa7d9528d67c1450504d07ef3efff8b911cb4c2c2648cc7",
+      "p0.g1_29_push_execution": "28742f449fef956840f289178834c9401a6b4a19a76fb006fd0402da3a4f10d4",
+      "p0.go2_upstream_execution_basis": "c7fe9da20ae348ea53d34c266b7b6cea7746c94d2a4593450183dd464f783faf"
+    },
+    "binding_facts_hashes": {
+      "stair.g1_37dof.clean_legacy_v1": "1731473e00001bdbd8701de1811ad890ae2fd72f65334a37aa77fdfdd7fa8f92",
+      "push.g1_29dof.legacy_v1": "b205b58cfa2f452e1daae58616ffb3f5869600665a935de3235bc41d1515d9f5",
+      "go2.official_rough_upstream_basis": "f28e23cd57b1ec3f205d687d10474972765b2e162146d7cb4b6424cd0226f3a0"
+    },
+    "policy_io_schema_hashes": {
+      "stair.g1_37dof.clean_legacy_v1": "33c29649a0bfd26c458a764a598a38212f7e66c1207a2fbb073baa117ae69ca3",
+      "push.g1_29dof.legacy_v1": "b9808eddf0b05adc23a4263d331c467e0c1cfa327e919a7a970433eeb9647b03",
+      "go2.official_rough_upstream_basis": "e87ff59eb5516280c4c41794f651ae3aa4ae1218e23d89c5354e6c4910ddb138"
+    },
+    "sensor_schema_hashes": {
+      "stair.g1_37dof.clean_legacy_v1": "92878ccd57f5ab852a5beeaed049d1ca4632341c4a5887cd006fd90487429558",
+      "push.g1_29dof.legacy_v1": "92878ccd57f5ab852a5beeaed049d1ca4632341c4a5887cd006fd90487429558",
+      "go2.official_rough_upstream_basis": "47c42e91348ce1d49e0988040d0941317afe1b16cb90692d73e02ba7d065896d"
+    },
+    "binding_profile_map": {
+      "stair.g1_37dof.clean_legacy_v1": "p0.g1_37_stair_execution",
+      "push.g1_29dof.legacy_v1": "p0.g1_29_push_execution",
+      "go2.official_rough_upstream_basis": "p0.go2_upstream_execution_basis"
+    },
+    "cross_capture_identity": "compare profile/runtime, binding and asset hashes; receipt/file hashes remain capture-specific"
+  },
+  "capability_status_at_capture": {
+    "production_go2_integration": false,
+    "production_stair_surface_roughness": false,
+    "production_hexapod_integration": false,
+    "exact_current_bytes_real_15_generation_rerun": false,
+    "terrain_fact": "Current one_way_stairs_terrain builds flat trimesh boxes and only varies step height/tread depth.",
+    "semantics": "immutable Phase 0 observation, not a future-production negative scan",
+    "captured_against_repository_head": "f3593567b3901453f7dbf80dd6c450554b957fb2"
+  },
+  "legacy_evaluation_topology_debt": {
+    "legacy_profile": "stair_anchor_and_tread_generalization_v5",
+    "legacy_shape": {
+      "height_bins": 7,
+      "tread_depths": 5,
+      "cartesian_cells": 35
+    },
+    "representative_hard_invariants": [
+      {
+        "path": "src/true_rl_agent/tasks/stair_climbing/evaluation_profile.py",
+        "line": 222,
+        "fact": "expected_envs = len(eval_bins) * len(treads) * episodes"
+      },
+      {
+        "path": "src/true_rl_agent/tasks/stair_climbing/evaluation_profile.py",
+        "line": 139,
+        "fact": "cell projection slices by len(anchor_cells)"
+      }
+    ],
+    "affected_modules": [
+      "src/true_rl_agent/tasks/stair_climbing/prompt_adapter.py",
+      "src/true_rl_agent/tasks/stair_climbing/generalization_contract.py",
+      "src/true_rl_agent/tasks/stair_climbing/evaluation_profile.py",
+      "src/true_rl_agent/tasks/stair_climbing/public_projection.py",
+      "src/true_rl_agent/tasks/stair_climbing/plugin.py",
+      "src/true_rl_agent/tasks/stair_climbing/evaluation_contract.py",
+      "src/true_rl_agent/tasks/stair_climbing/config.py",
+      "src/true_rl_agent/tasks/stair_climbing/episode_evidence.py",
+      "src/true_rl_agent/tasks/stair_climbing/protocol_v2.py",
+      "src/true_rl_agent/tasks/stair_climbing/phase0_contract.py",
+      "src/true_rl_agent/tasks/stair_climbing/transition_decoder.py"
+    ],
+    "phase3a_required_seam": "task-owned explicit ordered evaluation cells with factor metadata; no Cartesian-shape requirement",
+    "compatibility_rule": "legacy V5 35-cell replay remains byte-for-byte readable and behaviorally unchanged"
+  },
+  "snapshot_hash": "66598edc3fe3ef43b999c624c4b4ce796355e77b7855ba5847dd02ab24424f3b"
+}

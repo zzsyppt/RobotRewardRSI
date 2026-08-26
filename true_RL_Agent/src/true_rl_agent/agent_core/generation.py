@@ -50,13 +50,25 @@ from true_rl_agent.candidates.sibling_exclusion import (
 )
 from true_rl_agent.evaluation.acceptance_protocol import AcceptanceProtocol
 from true_rl_agent.evaluation.acceptance_replay import replay_acceptance_ledger
-from true_rl_agent.evaluation.binding import canonical_json_hash, require_sha256_digest
+from true_rl_agent.evaluation.binding import (
+    canonical_json_hash,
+    require_sha256_checksum,
+    require_sha256_digest,
+)
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
 from true_rl_agent.evaluation.phases import EvaluationPhase, EvaluationPhaseResult
 from true_rl_agent.evaluation.public_projection import project_public_runner_error
-from true_rl_agent.prompt_artifacts import verify_prompt_payload
+from true_rl_agent.prompt_artifacts import (
+    verify_authoring_anchor_prompt,
+    verify_authoring_evidence,
+    verify_prompt_payload,
+)
 from true_rl_agent.prompting import assert_public_only_prompt_payload
-from true_rl_agent.runner.base import CandidateRuntimeError, RunnerExecutionError
+from true_rl_agent.runner.base import (
+    CandidateRuntimeError,
+    RunnerExecutionError,
+    TrainJobResult,
+)
 from true_rl_agent.runner.eval_binding import bind_eval_spec_to_checkpoint
 from true_rl_agent.runner.job_attempts import JobAttemptScope
 
@@ -70,6 +82,7 @@ class _ScreenEvidence(Protocol):
 
 class _SelectionResult(Protocol):
     selected_trial_id: str | None
+    reason: str
 
     def to_public_dict(self) -> dict[str, Any]: ...
 
@@ -87,7 +100,14 @@ class _PhasedEvaluationAdapter(Protocol):
     def cost_contract(self) -> Mapping[str, Any]: ...
 
     def project_public_dev_screen(
-        self, *, trial_id: str, phase_result: EvaluationPhaseResult
+        self,
+        *,
+        trial_id: str,
+        phase_result: EvaluationPhaseResult,
+        screen_role: str,
+        train_result: TrainJobResult,
+        train_receipt_checksum: str,
+        mechanism_operation_delta: Mapping[str, Any] | None,
     ) -> _ScreenEvidence: ...
 
     def project_public_phase_summary(
@@ -118,6 +138,8 @@ class GenerationLaneRuntime:
     lane_intent_hash: str
     attempt_scope: JobAttemptScope | None = None
     sealed_attempt_scope: JobAttemptScope | None = None
+    public_dev_attempt_scope: JobAttemptScope | None = None
+    public_accept_attempt_scope: JobAttemptScope | None = None
 
     def __post_init__(self) -> None:
         if self.lane_id not in GENERATION_LANE_IDS:
@@ -136,9 +158,43 @@ class GenerationLaneRuntime:
         for field_name, scope in (
             ("attempt_scope", self.attempt_scope),
             ("sealed_attempt_scope", self.sealed_attempt_scope),
+            ("public_dev_attempt_scope", self.public_dev_attempt_scope),
+            ("public_accept_attempt_scope", self.public_accept_attempt_scope),
         ):
             if scope is not None and not isinstance(scope, JobAttemptScope):
                 raise TypeError(f"generation lane {field_name} is invalid")
+
+    def scope_for_train(self) -> JobAttemptScope | None:
+        return self.attempt_scope
+
+    def scope_for_phase(
+        self,
+        phase: EvaluationPhase,
+    ) -> JobAttemptScope | None:
+        if phase is EvaluationPhase.PUBLIC_DEV:
+            specific = self.public_dev_attempt_scope
+        elif phase is EvaluationPhase.PUBLIC_ACCEPT:
+            specific = self.public_accept_attempt_scope
+        elif phase is EvaluationPhase.SEALED_VALIDATION:
+            specific = self.sealed_attempt_scope
+        else:
+            raise ValueError("generation evaluation phase is invalid")
+        return specific if specific is not None else self.attempt_scope
+
+    def operation_attempt_scopes(
+        self,
+    ) -> tuple[
+        JobAttemptScope | None,
+        JobAttemptScope | None,
+        JobAttemptScope | None,
+        JobAttemptScope | None,
+    ]:
+        return (
+            self.scope_for_train(),
+            self.scope_for_phase(EvaluationPhase.PUBLIC_DEV),
+            self.scope_for_phase(EvaluationPhase.PUBLIC_ACCEPT),
+            self.scope_for_phase(EvaluationPhase.SEALED_VALIDATION),
+        )
 
 
 @dataclass(frozen=True)
@@ -255,13 +311,15 @@ def execute_fixed_width_generation(
             break
         state.status = "authoring_verified"
         state.status_reason = "candidate_verified"
+        anchor_prompt = _verified_authoring_anchor_prompt(
+            state.authoring,
+            expected_round_id=state.runtime.trial_id,
+        )
         if index == 0:
             try:
                 exclusion = SingleComponentSemanticExclusion.from_verified_candidate(
                     candidate=_require_authored_candidate(state.authoring),
-                    prompt_payload=verify_prompt_payload(
-                        state.authoring.prompt_payload_ref
-                    ),
+                    prompt_payload=anchor_prompt,
                 )
                 state.operation_delta = dict(exclusion.operation_delta)
             except SingleComponentDeltaComparisonUnavailable:
@@ -273,9 +331,7 @@ def execute_fixed_width_generation(
             try:
                 equivalence = exclusion.compare_candidate(
                     candidate=_require_authored_candidate(state.authoring),
-                    candidate_prompt_payload=verify_prompt_payload(
-                        state.authoring.prompt_payload_ref
-                    ),
+                    candidate_prompt_payload=anchor_prompt,
                 )
             except SingleComponentDeltaComparisonUnavailable as exc:
                 raise ValueError(
@@ -331,14 +387,28 @@ def execute_fixed_width_generation(
 
     _parallel_apply(states, _run_train_lane)
     active = [state for state in states if state.status != "candidate_failed"]
-    _parallel_apply(active, lambda state: _run_phase(inputs, state, EvaluationPhase.PUBLIC_DEV))
+    _parallel_apply(
+        active, lambda state: _run_phase(inputs, state, EvaluationPhase.PUBLIC_DEV)
+    )
     for state in active:
         if state.status != "candidate_failed":
             assert state.phase_results is not None
             phase_result = state.phase_results[EvaluationPhase.PUBLIC_DEV]
+            assert state.prepared is not None and state.train_execution is not None
+            train_execution = state.train_execution
+            train_receipt_checksum = require_sha256_checksum(
+                train_execution.train_receipt_ref.checksum,
+                "generation screen train receipt checksum",
+            )
             state.screen = inputs.phased_adapter.project_public_dev_screen(
                 trial_id=state.runtime.trial_id,
                 phase_result=phase_result,
+                screen_role="candidate",
+                train_result=train_execution.train_result,
+                train_receipt_checksum=train_receipt_checksum,
+                mechanism_operation_delta=(
+                    state.prepared.authoring_mechanism_operation_delta
+                ),
             )
             state.status = "screened_only"
             state.status_reason = "public_dev_complete"
@@ -384,7 +454,12 @@ def execute_fixed_width_generation(
                 selection=selection,
                 screens=screens,
             )
-    if selection is not None:
+    if selection is not None and selected_state is None:
+        for state in states:
+            if state.status != "candidate_failed":
+                state.status = "qualified_not_selected"
+                state.status_reason = selection.reason
+    elif selection is not None:
         for state in states:
             if state is not selected_state and state.status != "candidate_failed":
                 state.status = "qualified_not_selected"
@@ -395,7 +470,9 @@ def execute_fixed_width_generation(
             selected_state.status_reason = "formal_acceptance_passed"
         elif selected_state.trial_execution.public_result is not None:
             selected_state.status = "formal_rejected"
-            selected_state.status_reason = selected_state.trial_execution.decision.reason
+            selected_state.status_reason = (
+                selected_state.trial_execution.decision.reason
+            )
 
     return _seal_and_commit(
         inputs,
@@ -442,12 +519,16 @@ def _validate_manifest_inputs(inputs: FixedWidthGenerationInputs) -> None:
         or parent.checkpoint_hash != manifest.parent_checkpoint_hash
         or parent.evaluation_binding_hash != manifest.evaluation_binding_hash
         or parent.eval_protocol_hash != bound_hashes["evaluation_protocol"]
-        or parent.acceptance_protocol_hash
-        != inputs.acceptance_protocol.protocol_hash
+        or parent.acceptance_protocol_hash != inputs.acceptance_protocol.protocol_hash
     ):
-        raise ValueError("generation manifest parent is not the configured current-best")
+        raise ValueError(
+            "generation manifest parent is not the configured current-best"
+        )
     inputs.guard_reference.assert_matches_parent(parent)
-    if manifest.guard_reference_evidence_hash != inputs.guard_reference.evidence.evidence_hash:
+    if (
+        manifest.guard_reference_evidence_hash
+        != inputs.guard_reference.evidence.evidence_hash
+    ):
         raise ValueError("generation manifest guard evidence mismatch")
     if manifest.guard_reference_phase_receipt_hash != canonical_json_hash(
         inputs.guard_reference.phase_receipt_ref.to_dict()
@@ -458,7 +539,7 @@ def _validate_manifest_inputs(inputs: FixedWidthGenerationInputs) -> None:
         assignment = assignments[lane.lane_id]
         if lane.lane_intent_hash != assignment.lane_intent_hash:
             raise ValueError("generation lane intent differs from manifest")
-        for scope in (lane.attempt_scope, lane.sealed_attempt_scope):
+        for scope in lane.operation_attempt_scopes():
             if scope is None:
                 continue
             if (
@@ -474,8 +555,13 @@ def _validate_manifest_inputs(inputs: FixedWidthGenerationInputs) -> None:
                 )
             ):
                 raise ValueError("generation lane attempt scope differs from manifest")
-        if assignment.gpu_process_binding is not None and lane.attempt_scope is None:
-            raise ValueError("bound generation lane requires an attempt scope")
+        if assignment.gpu_process_binding is not None and any(
+            scope is None for scope in lane.operation_attempt_scopes()
+        ):
+            raise ValueError(
+                "bound generation lane requires every operation attempt scope"
+            )
+
 
 def _validate_authoring_result(
     inputs: FixedWidthGenerationInputs,
@@ -486,7 +572,10 @@ def _validate_authoring_result(
     result = state.authoring
     if not isinstance(result, CandidateAuthoringResult):
         raise TypeError("generation author callback returned an invalid result")
-    if result.parent_program_source_checksum != inputs.manifest.parent_program_source_checksum:
+    if (
+        result.parent_program_source_checksum
+        != inputs.manifest.parent_program_source_checksum
+    ):
         raise ValueError("generation authoring parent differs from manifest")
     context_hash = canonical_json_hash(
         sanitize_public_context(result.round_public_context)
@@ -496,9 +585,7 @@ def _validate_authoring_result(
     verifier_rules = _provider_verifier_rules(
         verify_prompt_payload(result.prompt_payload_ref)
     )
-    if verifier_rules.get("generation_lane_intent") != dict(
-        state.runtime.lane_intent
-    ):
+    if verifier_rules.get("generation_lane_intent") != dict(state.runtime.lane_intent):
         raise ValueError("generation authoring prompt lane intent mismatch")
     if state.runtime.lane_id == GENERATION_LANE_IDS[0]:
         if exclusion is not None:
@@ -511,6 +598,19 @@ def _validate_authoring_result(
         exclusion.public_projection
     ):
         raise ValueError("generation lane B prompt exclusion mismatch")
+
+
+def _verified_authoring_anchor_prompt(
+    result: CandidateAuthoringResult,
+    *,
+    expected_round_id: str,
+) -> dict[str, Any]:
+    evidence = verify_authoring_evidence(
+        result.authoring_evidence_ref,
+        expected_round_id=expected_round_id,
+        expected_selected_prompt=result.prompt_payload_ref,
+    )
+    return verify_authoring_anchor_prompt(evidence)
 
 
 def _provider_verifier_rules(prompt_payload: Mapping[str, Any]) -> Mapping[str, Any]:
@@ -547,10 +647,8 @@ def _validate_round_inputs(
         raise TypeError("generation lane produced invalid RoundInputs")
     if (
         round_inputs.round_id != state.runtime.trial_id
-        or round_inputs.task_plugin.task_spec.task_id
-        != inputs.session_contract.task_id
-        or round_inputs.backend_adapter.backend_id
-        != inputs.session_contract.backend_id
+        or round_inputs.task_plugin.task_spec.task_id != inputs.session_contract.task_id
+        or round_inputs.backend_adapter.backend_id != inputs.session_contract.backend_id
         or round_inputs.session_genesis_hash != manifest.session_genesis_hash
         or round_inputs.ledger_epoch_hash != manifest.ledger_epoch_hash
         or round_inputs.parent_program_source_checksum
@@ -566,14 +664,21 @@ def _validate_round_inputs(
         raise ValueError("generation lane RoundInputs differ from manifest")
     if round_inputs.candidate != _require_authored_candidate(state.authoring):
         raise ValueError("generation lane RoundInputs candidate mismatch")
-    if round_inputs.task_plugin.task_spec.acceptance_protocol != inputs.acceptance_protocol:
+    if (
+        round_inputs.task_plugin.task_spec.acceptance_protocol
+        != inputs.acceptance_protocol
+    ):
         raise ValueError("generation lane acceptance protocol differs from session")
-    if round_inputs.train_attempt_scope != state.runtime.attempt_scope:
+    train_attempt_scope = state.runtime.scope_for_train()
+    public_dev_attempt_scope = state.runtime.scope_for_phase(EvaluationPhase.PUBLIC_DEV)
+    if round_inputs.train_attempt_scope != train_attempt_scope:
         raise ValueError("generation train attempt scope mismatch")
-    if round_inputs.eval_attempt_scope != state.runtime.attempt_scope:
+    if round_inputs.eval_attempt_scope != public_dev_attempt_scope:
         raise ValueError("generation eval attempt scope mismatch")
-    if assignment.execution_device.startswith("cuda:") and state.runtime.attempt_scope is None:
-        raise ValueError("generation CUDA lane requires an attempt scope")
+    if assignment.execution_device.startswith("cuda:") and any(
+        scope is None for scope in state.runtime.operation_attempt_scopes()
+    ):
+        raise ValueError("generation CUDA lane requires every operation attempt scope")
 
 
 def _validate_prepared_pair(
@@ -589,10 +694,16 @@ def _validate_prepared_pair(
             raise ValueError("generation trial preparation is missing")
         if prepared.acceptance_protocol != inputs.acceptance_protocol:
             raise ValueError("generation lane acceptance protocol mismatch")
-        if prepared.authoring_mechanism_operation_delta is not None:
-            state.operation_delta = dict(
-                prepared.authoring_mechanism_operation_delta
+        prepared_delta = prepared.authoring_mechanism_operation_delta
+        if state.operation_delta is not None and (
+            prepared_delta is None
+            or dict(state.operation_delta) != dict(prepared_delta)
+        ):
+            raise ValueError(
+                "generation prepared mechanism delta differs from authoring evidence"
             )
+        if prepared_delta is not None:
+            state.operation_delta = dict(prepared_delta)
         if prepared.jobs is None:
             continue
         assignment = next(
@@ -602,13 +713,17 @@ def _validate_prepared_pair(
         )
         train_spec = prepared.jobs.train_spec
         eval_spec = prepared.jobs.eval_spec
+        train_attempt_scope = state.runtime.scope_for_train()
+        public_dev_attempt_scope = state.runtime.scope_for_phase(
+            EvaluationPhase.PUBLIC_DEV
+        )
         if (
             train_spec.execution_device != assignment.execution_device
             or eval_spec.execution_device != assignment.execution_device
             or train_spec.gpu_process_binding != assignment.gpu_process_binding
             or eval_spec.gpu_process_binding != assignment.gpu_process_binding
-            or train_spec.attempt_scope != state.runtime.attempt_scope
-            or eval_spec.attempt_scope != state.runtime.attempt_scope
+            or train_spec.attempt_scope != train_attempt_scope
+            or eval_spec.attempt_scope != public_dev_attempt_scope
             or eval_spec.evaluation_binding.binding_hash
             != inputs.manifest.evaluation_binding_hash
         ):
@@ -636,11 +751,17 @@ def _prepared_is_runnable(state: _LaneState) -> bool:
     return prepared.ready_for_training
 
 
-def _parallel_apply(states: Sequence[_LaneState], operation: Callable[[_LaneState], None]) -> None:
+def _parallel_apply(
+    states: Sequence[_LaneState], operation: Callable[[_LaneState], None]
+) -> None:
     if not states:
         return
-    with ThreadPoolExecutor(max_workers=len(states), thread_name_prefix="generation") as pool:
-        futures = {state.runtime.lane_id: pool.submit(operation, state) for state in states}
+    with ThreadPoolExecutor(
+        max_workers=len(states), thread_name_prefix="generation"
+    ) as pool:
+        futures = {
+            state.runtime.lane_id: pool.submit(operation, state) for state in states
+        }
         for lane_id in GENERATION_LANE_IDS:
             future = futures.get(lane_id)
             if future is not None:
@@ -699,12 +820,7 @@ def _run_phase(
         return
     assert state.prepared is not None and state.train_execution is not None
     prepared = state.prepared
-    attempt_scope = (
-        state.runtime.sealed_attempt_scope
-        if phase is EvaluationPhase.SEALED_VALIDATION
-        and state.runtime.sealed_attempt_scope is not None
-        else state.runtime.attempt_scope
-    )
+    attempt_scope = state.runtime.scope_for_phase(phase)
     phase_spec = prepared.inputs.backend_adapter.materialize_eval_phase(
         eval_plan=state.train_execution.eval_plan,
         phase=phase,
@@ -723,9 +839,7 @@ def _run_phase(
     try:
         if loaded is None:
             result = prepared.inputs.runner.run_eval_phase(phase_spec)
-            receipt_ref = prepared.trial_journal.publish_eval_phase(
-                phase_spec, result
-            )
+            receipt_ref = prepared.trial_journal.publish_eval_phase(phase_spec, result)
         else:
             result, receipt_ref = loaded
     except CandidateRuntimeError as exc:
@@ -775,7 +889,10 @@ def _finalize_formal_trial(
     screens: Sequence[_ScreenEvidence],
 ) -> TrialExecution:
     assert state.prepared is not None and state.train_execution is not None
-    if state.trial_execution is not None and state.trial_execution.public_result is not None:
+    if (
+        state.trial_execution is not None
+        and state.trial_execution.public_result is not None
+    ):
         return state.trial_execution
     assert state.phase_results is not None and state.phase_refs is not None
     assembly = inputs.phased_adapter.assemble_full_summary(
@@ -884,7 +1001,10 @@ def _build_generation_record(
                     execution.receipt_ref,
                 )
             )
-            if state.runtime.trial_id == selected_id and execution.public_result is not None:
+            if (
+                state.runtime.trial_id == selected_id
+                and execution.public_result is not None
+            ):
                 formal_round = execution.record
                 trial["formal_record_hash"] = execution_hash
                 formal = {
@@ -903,12 +1023,16 @@ def _build_generation_record(
 
     if formal_round is not None:
         raw_formal_artifacts = formal_round.get("private_artifacts")
-        matches = [
-            item
-            for item in raw_formal_artifacts
-            if isinstance(item, Mapping)
-            and item.get("kind") == "candidate_artifact"
-        ] if isinstance(raw_formal_artifacts, list) else []
+        matches = (
+            [
+                item
+                for item in raw_formal_artifacts
+                if isinstance(item, Mapping)
+                and item.get("kind") == "candidate_artifact"
+            ]
+            if isinstance(raw_formal_artifacts, list)
+            else []
+        )
         if len(matches) != 1:
             raise ValueError(
                 "generation formal winner has no unique candidate artifact"
@@ -941,10 +1065,8 @@ def _build_generation_record(
         "generation_index": manifest.generation_index,
         "session_genesis_hash": manifest.session_genesis_hash,
         "ledger_epoch_hash": manifest.ledger_epoch_hash,
-        "generation_session_contract_hash": (
-            manifest.generation_session_contract_hash
-        ),
-        "manifest": manifest.to_dict(),
+        "generation_session_contract_hash": (manifest.generation_session_contract_hash),
+        "manifest": manifest.to_public_dict(),
         "manifest_receipt_checksum": manifest_ref.checksum,
         "parent_current_best": inputs.parent_current_best.to_public_dict(),
         "parent_current_best_hash": canonical_json_hash(
@@ -958,9 +1080,7 @@ def _build_generation_record(
         "formal": formal,
         "generation_outcome": outcome,
         "resulting_current_best": resulting.to_public_dict(),
-        "resulting_current_best_hash": canonical_json_hash(
-            resulting.to_public_dict()
-        ),
+        "resulting_current_best_hash": canonical_json_hash(resulting.to_public_dict()),
         "private_artifacts": private_artifacts,
     }
     return record, resulting
@@ -1112,9 +1232,7 @@ def _project_phase(
         "resource_binding_hash": result.resource_binding_hash,
         "task_evidence_hash": result.task_evidence_hash,
         "public_summary": dict(
-            inputs.phased_adapter.project_public_phase_summary(
-                phase_result=result
-            )
+            inputs.phased_adapter.project_public_phase_summary(phase_result=result)
         ),
     }
 
@@ -1133,7 +1251,11 @@ def _generation_outcome(
         if any(status == "candidate_failed" for status in statuses):
             return "candidate_execution_incomplete"
         return "no_selection"
-    return "accepted" if formal_round["decision"]["accepted"] is True else "formal_rejected"
+    return (
+        "accepted"
+        if formal_round["decision"]["accepted"] is True
+        else "formal_rejected"
+    )
 
 
 def _private_trial_ref(kind: str, ref: TrialReceiptRef) -> dict[str, Any]:
@@ -1145,9 +1267,7 @@ def _private_trial_ref(kind: str, ref: TrialReceiptRef) -> dict[str, Any]:
     }
 
 
-def _private_generation_ref(
-    kind: str, ref: GenerationReceiptRef
-) -> dict[str, Any]:
+def _private_generation_ref(kind: str, ref: GenerationReceiptRef) -> dict[str, Any]:
     return {
         "kind": kind,
         "uri": ref.path,

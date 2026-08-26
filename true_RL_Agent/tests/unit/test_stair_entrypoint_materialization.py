@@ -46,7 +46,10 @@ from true_rl_agent.composition.base import (  # noqa: E402
     TaskCompositionContext,
     resolve_task_composition,
 )
-from true_rl_agent.evaluation.binding import canonical_json_hash  # noqa: E402
+from true_rl_agent.evaluation.binding import (  # noqa: E402
+    EvaluationBindingV1,
+    canonical_json_hash,
+)
 from true_rl_agent.evaluation.phases import EvaluationPhase  # noqa: E402
 from true_rl_agent.json_contract import canonical_json_text  # noqa: E402
 from true_rl_agent.runner.base import RunnerExecutionError  # noqa: E402
@@ -55,6 +58,10 @@ from true_rl_agent.runner.job_argv import (  # noqa: E402
     validate_eval_job_argv,
     validate_train_job_argv,
 )
+from true_rl_agent.runner.process_handle import (  # noqa: E402
+    OWNED_PROCESS_IDENTITY_SCHEMA_VERSION,
+    run_owned_process,
+)
 from true_rl_agent.runner.specs import CheckpointRef, GpuProcessBinding  # noqa: E402
 from true_rl_agent.runner.subprocess_runner import SubprocessRunner  # noqa: E402
 from true_rl_agent.tasks.stair_climbing.candidate_failure import (  # noqa: E402
@@ -62,6 +69,7 @@ from true_rl_agent.tasks.stair_climbing.candidate_failure import (  # noqa: E402
     StairCandidateProgramFailure,
 )
 from true_rl_agent.tasks.stair_climbing.component_smoke import (  # noqa: E402
+    STAIR_SMOKE_NUM_ENVS,
     StairClimbingComponentSmokeAdapter,
 )
 from true_rl_agent.tasks.stair_climbing.composition import (  # noqa: E402
@@ -72,6 +80,7 @@ from true_rl_agent.tasks.stair_climbing.config import (  # noqa: E402
     StairClimbingTaskConfig,
 )
 from true_rl_agent.tasks.stair_climbing.entrypoint_contract import (  # noqa: E402
+    STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION,
     validate_stair_eval_invocation,
     validate_stair_train_invocation,
 )
@@ -85,12 +94,50 @@ from true_rl_agent.tasks.stair_climbing.reference_program import (  # noqa: E402
     resolve_official_stair_reference_program,
 )
 from true_rl_agent.tasks.stair_climbing.reward_program import (  # noqa: E402
+    STAIR_REWARD_ENVIRONMENT_AXIS_EVIDENCE_SCHEMA_VERSION,
     StairRewardProgramError,
     qualify_stair_candidate_reward_program,
+)
+from true_rl_agent.tasks.stair_climbing.seed_policy import (  # noqa: E402
+    STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
+    STAIR_FORMAL_EVAL_NAMESPACE,
 )
 
 TEST_INITIAL_POLICY_STATE_HASH = "1" * 64
 TEST_GPU_UUID = "GPU-aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+
+
+def _run_process_group_leader_identity_child(root: Path) -> dict[str, object]:
+    child_source = (
+        "import json, os, sys\n"
+        f"sys.path.insert(0, {str(SRC)!r})\n"
+        "from true_rl_agent.runner.process_handle import "
+        "current_owned_process_identity\n"
+        "print(json.dumps({"
+        "'identity': current_owned_process_identity(), "
+        "'session_id': os.getsid(0) if hasattr(os, 'getsid') else None"
+        "}, sort_keys=True))\n"
+    )
+    result = run_owned_process(
+        [sys.executable, "-c", child_source],
+        cwd=ROOT,
+        timeout_s=10,
+        log_dir=root / "owned-identity-child",
+    )
+    if result.returncode != 0:
+        raise AssertionError(
+            "owned identity child failed: " + result.stderr_tail
+        )
+    payload = json.loads(result.stdout_tail.strip())
+    identity = payload["identity"]
+    if identity["process_group_id"] != identity["process_id"]:
+        raise AssertionError("owned identity child is not its process-group leader")
+    if os.name != "nt":
+        if identity["process_id"] != result.pid:
+            raise AssertionError("owned identity child PID mismatch")
+        if payload["session_id"] != result.pid:
+            raise AssertionError("owned identity child did not start a new session")
+    return identity
 
 
 class StairEntrypointMaterializationTests(unittest.TestCase):
@@ -134,7 +181,7 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
         self.assertEqual(restored.task_id, STAIR_TASK_ID)
         self.assertEqual(
             tuple(value.shape),
-            (2, *first_field.trailing_shape),
+            (STAIR_SMOKE_NUM_ENVS, *first_field.trailing_shape),
         )
         with self.assertRaises(AttributeError):
             getattr(restored.reward_inputs, "not_a_reward_input")
@@ -237,6 +284,64 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
                 jobs.eval_spec.evaluation_binding,
             )
             self.assertEqual(eval_context.checkpoint_hash, checkpoint_hash)
+            self.assertEqual(
+                eval_context.seed_namespace,
+                STAIR_FORMAL_EVAL_NAMESPACE,
+            )
+
+    def test_final_confirmation_eval_purpose_binds_the_disjoint_namespace(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            _, jobs = self._materialize(
+                Path(tmp),
+                "stair-final-confirmation",
+                execution_device="cuda:0",
+            )
+            checkpoint = Path(tmp) / "final-confirmation-checkpoint.pt"
+            checkpoint.write_bytes(b"final-confirmation-checkpoint-fixture")
+            checkpoint_hash = file_sha256(checkpoint)
+            self.assertIsNotNone(checkpoint_hash)
+            argv = list(jobs.eval_spec.metadata["cli_argv"][2:])
+            checkpoint_index = argv.index("--checkpoint")
+            argv[checkpoint_index + 1] = str(checkpoint)
+            argv[checkpoint_index + 2 : checkpoint_index + 2] = [
+                "--checkpoint-sha256",
+                checkpoint_hash,
+            ]
+            final_binding = EvaluationBindingV1(
+                eval_protocol_hash=self.config.evaluation_protocol().protocol_hash,
+                acceptance_protocol_hash=(
+                    self.config.acceptance_protocol.protocol_hash
+                ),
+                task_protocol_hash=self.config.task_protocol_hash,
+                seed_cohort_hash=(
+                    self.config.seed_resolver().namespace_cohort_hash(
+                        STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE
+                    )
+                ),
+            )
+            argv[argv.index("--seed-cohort-hash") + 1] = (
+                final_binding.seed_cohort_hash
+            )
+            argv[argv.index("--evaluation-binding-hash") + 1] = (
+                final_binding.binding_hash
+            )
+            argv.extend(
+                [
+                    "--stair-eval-purpose",
+                    STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION,
+                ]
+            )
+
+            context = validate_stair_eval_invocation(
+                build_eval_parser(_FakeAppLauncher).parse_args(argv),
+                project_root=ROOT,
+            )
+
+            self.assertEqual(context.evaluation_binding, final_binding)
+            self.assertEqual(
+                context.seed_namespace,
+                STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
+            )
 
     def test_bound_materialization_uses_child_cuda_zero_and_phase_inherits(self) -> None:
         binding = GpuProcessBinding(
@@ -299,30 +404,46 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
                 "--/renderer/multiGpu/maxGpuCount=1 "
                 "--/renderer/activeGpu=1",
             )
-            summary = attach_stair_gpu_runtime_evidence(
-                {"status": "pass"},
-                runtime,
+            owned_child_identity = _run_process_group_leader_identity_child(
+                Path(tmp)
             )
+            self.assertEqual(
+                owned_child_identity["schema_version"],
+                OWNED_PROCESS_IDENTITY_SCHEMA_VERSION,
+            )
+            pid = owned_child_identity["process_id"]
+            with patch(
+                "true_rl_agent.tasks.stair_climbing.gpu_process_binding."
+                "current_owned_process_identity",
+                return_value=owned_child_identity,
+            ):
+                summary = attach_stair_gpu_runtime_evidence(
+                    {"status": "pass"},
+                    runtime,
+                )
             self.assertEqual(summary["gpu_process_binding"], binding.to_dict())
             self.assertEqual(
                 summary["stair_gpu_runtime_evidence"]["physical_gpu_uuid"],
                 TEST_GPU_UUID,
             )
-            pid = os.getpid()
             completed = SimpleNamespace(
                 stdout=f"{TEST_GPU_UUID}, {pid}, 512\n",
             )
             with patch(
                 "true_rl_agent.tasks.stair_climbing.gpu_process_binding."
+                "current_owned_process_identity",
+                return_value=owned_child_identity,
+            ), patch(
+                "true_rl_agent.tasks.stair_climbing.gpu_process_binding."
                 "subprocess.run",
                 return_value=completed,
             ):
                 observation = capture_stair_gpu_compute_context(runtime)
-            observed_summary = attach_stair_gpu_runtime_evidence(
-                {"status": "pass"},
-                runtime,
-                compute_context_observation=observation,
-            )
+                observed_summary = attach_stair_gpu_runtime_evidence(
+                    {"status": "pass"},
+                    runtime,
+                    compute_context_observation=observation,
+                )
             self.assertEqual(
                 observed_summary["stair_gpu_runtime_evidence"]
                 ["external_compute_context_observation"]["rows"],
@@ -1164,6 +1285,15 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
                 "reason": "stair_candidate_reward_program_qualified",
                 "qualification": program.to_public_dict(),
                 "determinism": {"status": "test_fixture"},
+                "environment_axis": {
+                    "schema_version": (
+                        STAIR_REWARD_ENVIRONMENT_AXIS_EVIDENCE_SCHEMA_VERSION
+                    ),
+                    "status": "pass",
+                    "reverse_permutation_checks": len(program.term_names),
+                    "single_row_locality_checks": len(program.term_names),
+                    "term_names": list(program.term_names),
+                },
                 "smoke_fixture_hash": adapter.fixture_hash,
             }
 

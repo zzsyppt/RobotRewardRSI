@@ -1760,15 +1760,33 @@ def build_training_components():
                 None,
             ),
             (
+                "signed_subscript_axis",
+                "inputs.projected_gravity[:, -1]",
+                "inputs.projected_gravity[:, 1]",
+                None,
+            ),
+            (
                 "keyword_dim",
                 "inputs.base_contact_force.sum(dim=1)",
                 "inputs.base_contact_force.sum(dim=2)",
                 None,
             ),
             (
+                "signed_keyword_dim",
+                "inputs.base_contact_force.sum(dim=-1)",
+                "inputs.base_contact_force.sum(dim=1)",
+                None,
+            ),
+            (
                 "positional_dim",
                 "inputs.base_contact_force.sum(1)",
                 "inputs.base_contact_force.sum(2)",
+                None,
+            ),
+            (
+                "signed_positional_dim",
+                "inputs.base_contact_force.sum(-1)",
+                "inputs.base_contact_force.sum(1)",
                 None,
             ),
             (
@@ -1781,6 +1799,18 @@ def build_training_components():
                 "arithmetic_scale",
                 "inputs.goal_progress_fraction * 0.5",
                 "inputs.goal_progress_fraction * 0.25",
+                "parameter_only_delta",
+            ),
+            (
+                "signed_arithmetic_scale",
+                "inputs.goal_progress_fraction * -0.5",
+                "inputs.goal_progress_fraction * 0.25",
+                "parameter_only_delta",
+            ),
+            (
+                "signed_threshold",
+                "inputs.goal_progress_fraction > -0.85",
+                "inputs.goal_progress_fraction > 0.85",
                 "parameter_only_delta",
             ),
             (
@@ -1818,6 +1848,23 @@ def build_training_components():
                 candidate_anchor_source=anchor,
                 comparison_source=source(
                     "second_weight",
+                    "inputs.goal_progress_fraction",
+                    weight=0.25,
+                ),
+                comparison_anchor_source=anchor,
+            ),
+            "parameter_only_delta",
+        )
+        self.assertEqual(
+            compare_single_component_deltas(
+                candidate_source=source(
+                    "first_signed_weight",
+                    "inputs.goal_progress_fraction",
+                    weight=-0.5,
+                ),
+                candidate_anchor_source=anchor,
+                comparison_source=source(
+                    "second_signed_weight",
                     "inputs.goal_progress_fraction",
                     weight=0.25,
                 ),

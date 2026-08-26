@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 from true_rl_agent.agent_core.generation_record import (
     load_bound_generation_trial_phase_receipt,
@@ -14,8 +15,8 @@ from true_rl_agent.agent_core.ledger import primary_ledger_epoch_hash
 from true_rl_agent.agent_core.session_genesis import VerifiedSessionGenesis
 from true_rl_agent.agent_core.trial_receipts import TrialReceiptJournal, TrialReceiptRef
 from true_rl_agent.backends.base import BackendAdapter
-from true_rl_agent.evaluation.binding import canonical_json_hash
 from true_rl_agent.evaluation.acceptance_protocol import AcceptanceProtocol
+from true_rl_agent.evaluation.binding import canonical_json_hash
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
 from true_rl_agent.evaluation.phases import EvaluationPhase, EvaluationPhaseResult
 from true_rl_agent.runner.base import Runner
@@ -66,8 +67,7 @@ class StairGenerationGuardReference:
             or self.evidence.checkpoint_hash != parent.checkpoint_hash
             or self.evidence.training_binding_hash != parent.training_binding_hash
             or self.evidence.capability_profile_hash != parent.capability_profile_hash
-            or self.evidence.evaluation_binding_hash
-            != parent.evaluation_binding_hash
+            or self.evidence.evaluation_binding_hash != parent.evaluation_binding_hash
         ):
             raise ValueError("Stair guard reference is not the frozen current-best")
 
@@ -91,15 +91,16 @@ def run_genesis_parent_public_dev(
         raise ValueError(
             "first Stair generation requires a reference-program Genesis anchor"
         )
-    if adapter.config.task_protocol_hash != genesis.evaluation_binding.task_protocol_hash:
+    if (
+        adapter.config.task_protocol_hash
+        != genesis.evaluation_binding.task_protocol_hash
+    ):
         raise ValueError("generation bootstrap Stair task binding mismatch")
     contract = {
         "schema_version": "true_rl_agent.trial_execution_contract.v1",
         "round_id": "generation-parent-public-dev-bootstrap",
         "session_genesis_hash": genesis.session_genesis_hash,
-        "ledger_epoch_hash": primary_ledger_epoch_hash(
-            genesis.session_genesis_hash
-        ),
+        "ledger_epoch_hash": primary_ledger_epoch_hash(genesis.session_genesis_hash),
         "generation_session_contract_hash": generation_session_contract_hash,
         "purpose": "generation_parent_public_dev_guard_reference",
         "evaluation_plan_hash": canonical_json_hash(eval_plan.to_public_dict()),
@@ -140,6 +141,10 @@ def build_stair_generation_guard_reference(
     evidence = adapter.project_public_dev_screen(
         trial_id=trial_id,
         phase_result=phase_result,
+        screen_role="guard_reference",
+        train_result=None,
+        train_receipt_checksum=None,
+        mechanism_operation_delta=None,
     )
     guard = StairGenerationGuardReference(
         evidence=evidence,
@@ -188,9 +193,54 @@ def load_stair_next_generation_guard_reference(
     )
 
 
+def replay_stair_generation_guard_chain(
+    *,
+    generation_records: Sequence[Mapping[str, Any]],
+    initial_parent: CurrentBestEvalStats,
+    initial_guard_reference: StairGenerationGuardReference,
+    acceptance_protocol: AcceptanceProtocol,
+    adapter: StairPhasedEvaluationAdapter,
+    expected_generation_session_contract_hash: str | None = None,
+) -> tuple[CurrentBestEvalStats, StairGenerationGuardReference]:
+    """Replay the authoritative head and its Stair public-dev guard in lockstep."""
+
+    if not isinstance(generation_records, Sequence) or isinstance(
+        generation_records, str | bytes
+    ):
+        raise TypeError("Stair generation guard replay records must be a sequence")
+    initial_guard_reference.assert_matches_parent(initial_parent)
+    current_parent = initial_parent
+    current_guard = initial_guard_reference
+    for record in generation_records:
+        if not isinstance(record, Mapping):
+            raise TypeError("Stair generation guard replay record must be an object")
+        next_parent = validate_generation_ledger_record(
+            record,
+            acceptance_protocol=acceptance_protocol,
+            expected_parent=current_parent,
+            expected_generation_session_contract_hash=(
+                expected_generation_session_contract_hash
+            ),
+        )
+        if record.get("generation_outcome") == "accepted":
+            current_guard = load_stair_next_generation_guard_reference(
+                generation_record=record,
+                previous_parent=current_parent,
+                acceptance_protocol=acceptance_protocol,
+                adapter=adapter,
+            )
+            current_guard.assert_matches_parent(next_parent)
+        elif next_parent != current_parent:
+            raise ValueError("non-accepted generation changed the replay current-best")
+        current_parent = next_parent
+    current_guard.assert_matches_parent(current_parent)
+    return current_parent, current_guard
+
+
 __all__ = [
     "StairGenerationGuardReference",
     "build_stair_generation_guard_reference",
     "load_stair_next_generation_guard_reference",
+    "replay_stair_generation_guard_chain",
     "run_genesis_parent_public_dev",
 ]

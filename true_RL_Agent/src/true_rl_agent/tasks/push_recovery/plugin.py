@@ -8,6 +8,11 @@ from true_rl_agent.candidates.schema import CandidateSurfacePolicy
 from true_rl_agent.curriculum.schema import CurriculumPlan
 from true_rl_agent.evaluation.public_result import PublicEvalResult
 from true_rl_agent.prompting.capabilities import build_candidate_capability_profile
+from true_rl_agent.robots.base import (
+    BASE_ROLE,
+    RobotRequirements,
+    SemanticRoleRequirement,
+)
 from true_rl_agent.tasks.base import TaskInvariantSpec, TaskPlugin, TaskSpec
 from true_rl_agent.tasks.push_recovery.candidate_surface import (
     PUSH_RECOVERY_CANDIDATE_SURFACE_POLICY,
@@ -27,6 +32,23 @@ class PushRecoveryTaskPlugin(TaskPlugin):
         "external_push_curriculum": {"supported": True, "effective_now": False},
         "train_only_dr_scale": {"supported": True, "effective_now": False},
     }
+
+    def robot_requirements(self) -> RobotRequirements:
+        return RobotRequirements(
+            roles=(
+                SemanticRoleRequirement(BASE_ROLE, "body", 1, 1),
+            ),
+            capabilities=frozenset(
+                {
+                    "articulation_runtime",
+                    "base_state",
+                    "external_body_force",
+                    "joint_position_action",
+                    "joint_state",
+                    "policy_observation_projection",
+                }
+            ),
+        )
 
     def __init__(self, config: PushRecoveryTaskConfig | None = None) -> None:
         if config is None:

@@ -832,7 +832,11 @@ class SubprocessRunnerTests(unittest.TestCase):
             )
             self.assertEqual(
                 result.to_public_dict()["gpu_process_binding"],
-                binding.to_dict(),
+                binding.to_public_dict(),
+            )
+            self.assertNotIn(
+                "host_execution_device",
+                result.to_public_dict()["gpu_process_binding"],
             )
             attempt_results = list(
                 (root / "attempts").rglob("attempt_00.result.json")
@@ -912,7 +916,7 @@ class SubprocessRunnerTests(unittest.TestCase):
 
             self.assertEqual(
                 bound.to_public_dict()["gpu_process_binding"],
-                binding.to_dict(),
+                binding.to_public_dict(),
             )
             self.assertNotIn(
                 "gpu_process_binding",

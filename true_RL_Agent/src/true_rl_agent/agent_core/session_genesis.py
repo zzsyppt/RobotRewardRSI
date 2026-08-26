@@ -1109,8 +1109,8 @@ def prepare_session_genesis(
                 "GPU-bound/pre-Genesis execution requires a generation session "
                 "contract v3 with session_cost"
             )
-    genesis_identity_hash = canonical_json_hash(
-        _json_copy(genesis_identity_snapshot)
+    genesis_identity_hash = session_genesis_identity_hash(
+        genesis_identity_snapshot
     )
     for field_name, scope in (
         ("reference_train_attempt_scope", reference_train_attempt_scope),
@@ -2126,10 +2126,21 @@ def _baseline_eval_artifact_payload(
         "session_id": session_id,
         "task_id": eval_spec.task_id,
         "backend_id": backend_id,
-        "eval_job": eval_spec.to_public_dict(),
+        "eval_job": _job_spec_to_private_dict(eval_spec),
         "public_result": _json_copy(public_result),
         "trusted_eval_seal": _json_copy(trusted_eval_seal),
     }
+
+
+def _job_spec_to_private_dict(
+    spec: TrainJobSpec | EvalJobSpec | BaselineEvalJobSpec,
+) -> dict[str, Any]:
+    """Preserve trusted host binding only inside a private Genesis artifact."""
+
+    payload = spec.to_public_dict()
+    if spec.gpu_process_binding is not None:
+        payload["gpu_process_binding"] = spec.gpu_process_binding.to_dict()
+    return payload
 
 
 def _validate_private_baseline_artifact(
@@ -2318,12 +2329,12 @@ def _reference_eval_artifact_payload(
         },
         "training_binding": train_spec.training_binding.to_private_dict(),
         "train_job": {
-            "spec": train_spec.to_public_dict(),
+            "spec": _job_spec_to_private_dict(train_spec),
             "metadata": _json_copy(train_spec.metadata),
         },
         "train_result": train_result_payload,
         "eval_job": {
-            "spec": eval_spec.to_public_dict(),
+            "spec": _job_spec_to_private_dict(eval_spec),
             "metadata": _json_copy(eval_spec.metadata),
         },
         "checkpoint_hash": train_result.checkpoint.checksum,
@@ -2573,7 +2584,7 @@ def _reference_train_spec_from_private_artifact(
         metadata=metadata,
         reference_artifact=reference_artifact,
     )
-    if spec.to_public_dict() != raw:
+    if _job_spec_to_private_dict(spec) != raw:
         raise ValueError("reference private train job canonical projection mismatch")
     argv = metadata.get("cli_argv")
     if not isinstance(argv, list) or any(not isinstance(item, str) for item in argv):
@@ -2606,11 +2617,6 @@ def _reference_train_result_from_private_artifact(
         expected_result_fields,
         "reference private train result",
     )
-    checkpoint = _exact_mapping(
-        raw.get("checkpoint"),
-        {"uri", "checksum", "role", "sealed", "metadata"},
-        "reference private train checkpoint",
-    )
     result = TrainJobResult(
         job_id=_nonempty_text(raw.get("job_id"), "reference train result job_id"),
         subject=ExperimentSubject.from_mapping(raw.get("subject")),
@@ -2639,25 +2645,40 @@ def _reference_train_result_from_private_artifact(
             if "gpu_process_binding" in raw
             else None
         ),
-        checkpoint=CheckpointRef(
-            uri=_nonempty_text(checkpoint.get("uri"), "reference checkpoint uri"),
-            checksum=require_sha256_checksum(
-                checkpoint.get("checksum"),
-                "reference checkpoint checksum",
-            ),
-            role=_nonempty_text(checkpoint.get("role"), "reference checkpoint role"),
-            sealed=checkpoint.get("sealed"),
-            metadata=_json_object(
-                checkpoint.get("metadata"),
-                "reference checkpoint metadata",
-            ),
-        ),
+        checkpoint=_reference_train_checkpoint_from_private_artifact(payload),
         summary=_json_object(raw.get("summary"), "reference train result summary"),
     )
     _validate_reference_train_result(train_spec, result)
     if _reference_initial_policy_state_hash(result) != anchor.initial_policy_state_hash:
         raise ValueError("reference initial policy state hash drift")
     return result
+
+
+def _reference_train_checkpoint_from_private_artifact(
+    payload: Mapping[str, Any],
+) -> CheckpointRef:
+    train_result = _json_object(
+        payload.get("train_result"),
+        "reference private train result",
+    )
+    checkpoint = _exact_mapping(
+        train_result.get("checkpoint"),
+        {"uri", "checksum", "role", "sealed", "metadata"},
+        "reference private train checkpoint",
+    )
+    return CheckpointRef(
+        uri=_nonempty_text(checkpoint.get("uri"), "reference checkpoint uri"),
+        checksum=require_sha256_checksum(
+            checkpoint.get("checksum"),
+            "reference checkpoint checksum",
+        ),
+        role=_nonempty_text(checkpoint.get("role"), "reference checkpoint role"),
+        sealed=checkpoint.get("sealed"),
+        metadata=_json_object(
+            checkpoint.get("metadata"),
+            "reference checkpoint metadata",
+        ),
+    )
 
 
 def _reference_eval_spec_from_private_artifact(
@@ -2721,11 +2742,18 @@ def _reference_eval_spec_from_private_artifact(
         raw.get("evaluation_binding")
     ) != evaluation_binding:
         raise ValueError("reference private eval job binding mismatch")
-    checkpoint = _exact_mapping(
+    public_checkpoint = _exact_mapping(
         raw.get("checkpoint"),
         {"uri", "checksum", "role", "sealed"},
         "reference private eval checkpoint",
     )
+    checkpoint = _reference_train_checkpoint_from_private_artifact(payload)
+    if checkpoint.to_public_dict(include_metadata=False) != dict(public_checkpoint):
+        raise ValueError(
+            "reference private eval checkpoint differs from train result"
+        )
+    if checkpoint.checksum != anchor.checkpoint_hash:
+        raise ValueError("reference private eval checkpoint hash mismatch")
     spec = EvalJobSpec(
         job_id=_nonempty_text(raw.get("job_id"), "reference eval job_id"),
         task_id=_nonempty_text(raw.get("task_id"), "reference eval task_id"),
@@ -2746,21 +2774,7 @@ def _reference_eval_spec_from_private_artifact(
             raw.get("capability_profile_hash"),
             "reference eval capability_profile_hash",
         ),
-        checkpoint=CheckpointRef(
-            uri=_nonempty_text(
-                checkpoint.get("uri"),
-                "reference eval checkpoint uri",
-            ),
-            checksum=require_sha256_checksum(
-                checkpoint.get("checksum"),
-                "reference eval checkpoint checksum",
-            ),
-            role=_nonempty_text(
-                checkpoint.get("role"),
-                "reference eval checkpoint role",
-            ),
-            sealed=checkpoint.get("sealed"),
-        ),
+        checkpoint=checkpoint,
         public_seed_count=protocol.public_seed_count,
         public_accept_seed_count=protocol.public_accept_seed_count,
         sealed_validation_seed_count=protocol.sealed_validation_seed_count,
@@ -2800,7 +2814,7 @@ def _reference_eval_spec_from_private_artifact(
     }
     if actual != expected:
         raise ValueError("reference private eval job lineage mismatch")
-    if spec.to_public_dict() != dict(raw):
+    if _job_spec_to_private_dict(spec) != dict(raw):
         raise ValueError("reference private eval job canonical projection mismatch")
     argv = metadata.get("cli_argv")
     if not isinstance(argv, list) or any(not isinstance(item, str) for item in argv):
@@ -3564,6 +3578,14 @@ def _json_object(value: Any, field_name: str) -> dict[str, Any]:
     return _json_copy(value)
 
 
+def session_genesis_identity_hash(
+    genesis_identity_snapshot: Mapping[str, Any],
+) -> str:
+    """Hash the canonical JSON projection used by Session Genesis."""
+
+    return canonical_json_hash(_json_copy(genesis_identity_snapshot))
+
+
 def _json_copy(value: Any) -> Any:
     normalized = _normalize_json_value(value)
     try:
@@ -3634,5 +3656,6 @@ __all__ = [
     "SessionGenesisArtifact",
     "VerifiedSessionGenesis",
     "prepare_session_genesis",
+    "session_genesis_identity_hash",
     "verify_session_genesis_for_runtime",
 ]

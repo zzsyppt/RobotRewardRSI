@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ctypes
+import hashlib
 import json
 import os
 import subprocess
@@ -8,6 +9,7 @@ import sys
 import tempfile
 import time
 import unittest
+from dataclasses import replace
 from pathlib import Path
 from unittest import mock
 
@@ -16,6 +18,11 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
+from tests.fakes.evaluation import make_evaluation_binding  # noqa: E402
+from tests.unit.test_subprocess_runner import (  # noqa: E402
+    _eval_job_spec,
+    _train_job_spec,
+)
 from true_rl_agent.evaluation.binding import canonical_json_hash  # noqa: E402
 from true_rl_agent.json_contract import canonical_json_bytes  # noqa: E402
 from true_rl_agent.runner.base import (  # noqa: E402
@@ -42,12 +49,18 @@ from true_rl_agent.runner.job_attempts import (  # noqa: E402
     PreGenesisExecutionScope,
 )
 from true_rl_agent.runner.process_handle import (  # noqa: E402
+    OwnedProcessCleanupIncomplete,
     OwnedProcessLaunchError,
+    OwnedProcessResult,
     OwnedProcessTimeout,
     _cleanup_preserving_exception,
+    _linux_live_process_group_members,
+    _require_linux_process_group_quiescence,
     run_owned_process,
 )
+from true_rl_agent.runner.specs import CheckpointRef  # noqa: E402
 from true_rl_agent.runner.subprocess_runner import SubprocessRunner  # noqa: E402
+from true_rl_agent.policy import PolicyInitialization  # noqa: E402
 
 
 _DIGEST_A = "a" * 64
@@ -157,9 +170,12 @@ class RunnerProcessHandleTests(unittest.TestCase):
         override_key = "TRUE_RL_AGENT_TEST_PROCESS_OVERRIDE"
         removed_key = "TRUE_RL_AGENT_TEST_PROCESS_REMOVED"
         overrides = {override_key: "child-value", removed_key: None}
-        with tempfile.TemporaryDirectory() as tmp, mock.patch.dict(
-            os.environ,
-            {override_key: "parent-value", removed_key: "parent-value"},
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            mock.patch.dict(
+                os.environ,
+                {override_key: "parent-value", removed_key: "parent-value"},
+            ),
         ):
             result = run_owned_process(
                 [
@@ -233,6 +249,111 @@ class RunnerProcessHandleTests(unittest.TestCase):
                 time.sleep(0.05)
             self.assertFalse(_pid_is_alive(child_pid))
 
+    @unittest.skipUnless(
+        sys.platform.startswith("linux"), "Linux process-group contract"
+    )
+    def test_normal_exit_quiesces_grandchild_before_logs_are_returned(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            child_pid_path = root / "child.pid"
+            ready_path = root / "grandchild.ready"
+            grandchild_source = (
+                "import pathlib,signal,sys,time\n"
+                "signal.signal(signal.SIGTERM, signal.SIG_IGN)\n"
+                "pathlib.Path(sys.argv[1]).write_text('ready', encoding='utf-8')\n"
+                "while True:\n"
+                "    print('tick', flush=True)\n"
+                "    time.sleep(0.01)\n"
+            )
+            parent_source = (
+                "import pathlib,subprocess,sys,time; "
+                "child=subprocess.Popen([sys.executable, '-c', sys.argv[3], sys.argv[2]]); "
+                "pathlib.Path(sys.argv[1]).write_text(str(child.pid), encoding='utf-8'); "
+                "deadline=time.monotonic()+5; "
+                'exec(compile("while not pathlib.Path(sys.argv[2]).is_file():\\n'
+                "    assert time.monotonic() < deadline\\n"
+                "    time.sleep(0.01)\", '<parent-wait>', 'exec'))"
+            )
+            result = run_owned_process(
+                [
+                    sys.executable,
+                    "-c",
+                    parent_source,
+                    str(child_pid_path),
+                    str(ready_path),
+                    grandchild_source,
+                ],
+                cwd=ROOT,
+                timeout_s=10,
+                log_dir=root / "logs",
+                termination_grace_s=0.1,
+            )
+            returned_bytes = result.stdout_log.read_bytes()
+
+            self.assertEqual(result.returncode, 0)
+            self.assertEqual(
+                _linux_live_process_group_members(result.pid),
+                (),
+            )
+            time.sleep(0.1)
+            self.assertEqual(result.stdout_log.read_bytes(), returned_bytes)
+
+    @unittest.skipUnless(
+        sys.platform.startswith("linux"), "Linux process-group contract"
+    )
+    def test_incomplete_process_group_cleanup_is_typed(self) -> None:
+        with mock.patch(
+            "true_rl_agent.runner.process_handle._linux_live_process_group_members",
+            return_value=(12345,),
+        ):
+            with self.assertRaises(OwnedProcessCleanupIncomplete) as raised:
+                _require_linux_process_group_quiescence(76543, timeout_s=0)
+
+        self.assertEqual(raised.exception.process_group_id, 76543)
+        self.assertEqual(raised.exception.live_process_ids, (12345,))
+
+    def test_cleanup_incomplete_replaces_false_original_completion(self) -> None:
+        cleanup = OwnedProcessCleanupIncomplete(76543, (12345,))
+        with mock.patch(
+            "true_rl_agent.runner.process_handle._terminate_process_tree",
+            side_effect=cleanup,
+        ):
+            with self.assertRaises(OwnedProcessCleanupIncomplete) as raised:
+                _cleanup_preserving_exception(
+                    mock.Mock(),
+                    windows_job=None,
+                    grace_s=0,
+                    original_exception=KeyboardInterrupt(),
+                )
+
+        self.assertIs(raised.exception, cleanup)
+
+    def test_runner_maps_cleanup_incomplete_to_nonretryable_interruption(self) -> None:
+        cleanup = OwnedProcessCleanupIncomplete(76543, (12345,))
+        runner = SubprocessRunner(allowed_executables=(sys.executable,))
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            mock.patch(
+                "true_rl_agent.runner.subprocess_runner.run_owned_process",
+                side_effect=cleanup,
+            ),
+        ):
+            with self.assertRaises(RunnerExecutionError) as raised:
+                runner._run_job(
+                    [sys.executable, "-c", "pass"],
+                    {},
+                    job_id="cleanup-incomplete",
+                    process_log_dir=Path(tmp),
+                    attempt_timeout_s=None,
+                    execution_context=None,
+                )
+
+        self.assertEqual(
+            raised.exception.failure_kind,
+            RunnerFailureKind.INTERRUPTED,
+        )
+        self.assertFalse(raised.exception.retryable_infrastructure_failure)
+
     def test_launch_failure_is_typed(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaises(OwnedProcessLaunchError):
@@ -260,7 +381,9 @@ class RunnerProcessHandleTests(unittest.TestCase):
             )
         self.assertEqual(str(original), "original")
 
-    @unittest.skipUnless(sys.platform.startswith("linux"), "Linux parent-death contract")
+    @unittest.skipUnless(
+        sys.platform.startswith("linux"), "Linux parent-death contract"
+    )
     def test_linux_parent_death_signal_stops_owned_job(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -278,7 +401,7 @@ run_owned_process(
     [sys.executable, '-c', {target_source!r}, {str(target_pid_path)!r}],
     cwd=Path({str(ROOT)!r}),
     timeout_s=60,
-    log_dir=Path({str(root / 'logs')!r}),
+    log_dir=Path({str(root / "logs")!r}),
 )
 """
             environment = dict(os.environ)
@@ -307,6 +430,34 @@ run_owned_process(
 
 
 class JobAttemptJournalTests(unittest.TestCase):
+    def test_next_runnable_attempt_is_read_only_and_begin_or_resume_reuses_it(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            journal = _journal(Path(tmp))
+
+            attempt_index, previous_result = journal.next_runnable_attempt()
+            self.assertEqual(attempt_index, 0)
+            self.assertIsNone(previous_result)
+            self.assertEqual(list(Path(tmp).rglob("attempt_*.json")), [])
+
+            reserved_index, reservation, previous = journal.begin_or_resume()
+            self.assertEqual(reserved_index, 0)
+            self.assertIsNone(previous)
+            first_result = journal.finish(
+                reservation,
+                outcome="infrastructure_failure",
+                failure_kind=RunnerFailureKind.SUMMARY_MISSING.value,
+                retryable=True,
+                output_hash=None,
+                returncode=1,
+            )
+
+            retry_index, retry_previous = journal.next_runnable_attempt()
+            self.assertEqual(retry_index, 1)
+            self.assertEqual(retry_previous.payload_hash, first_result.payload_hash)
+            self.assertFalse((journal.root / "attempt_01.reservation.json").exists())
+
     def test_pre_genesis_scope_round_trips_without_changing_legacy_projection(
         self,
     ) -> None:
@@ -437,7 +588,9 @@ class JobAttemptJournalTests(unittest.TestCase):
                 123,
             )
 
-    def test_non_retryable_result_and_open_reservation_cannot_authorize_retry(self) -> None:
+    def test_non_retryable_result_and_open_reservation_cannot_authorize_retry(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             journal = _journal(Path(tmp))
             reservation = journal.reserve(0, previous_result=None)
@@ -497,10 +650,15 @@ class JobAttemptJournalTests(unittest.TestCase):
             runner = SubprocessRunner((sys.executable,), timeout_s=10)
             calls = 0
 
-            def operation(log_dir: Path | None, execution_context) -> _FakeResult:
+            def operation(
+                log_dir: Path | None,
+                execution_context,
+                timeout_s: int,
+            ) -> _FakeResult:
                 nonlocal calls
                 self.assertIsNotNone(log_dir)
                 self.assertIsNone(execution_context)
+                self.assertEqual(timeout_s, runner.timeout_s)
                 calls += 1
                 if calls == 1:
                     raise RunnerExecutionError(
@@ -518,10 +676,334 @@ class JobAttemptJournalTests(unittest.TestCase):
             self.assertEqual(calls, 2)
             receipt_paths = sorted(Path(tmp).rglob("attempt_*.result.json"))
             self.assertEqual(len(receipt_paths), 2)
-            payloads = [json.loads(path.read_text(encoding="utf-8")) for path in receipt_paths]
+            payloads = [
+                json.loads(path.read_text(encoding="utf-8")) for path in receipt_paths
+            ]
             self.assertEqual(
                 [payload["outcome"] for payload in payloads],
                 ["infrastructure_failure", "completed"],
+            )
+
+    def test_runner_without_admission_hook_passes_runner_timeout_to_operation(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            spec = _FakeSpec(_scope(Path(tmp)))
+            runner = SubprocessRunner((sys.executable,), timeout_s=17)
+            observed_timeouts: list[int] = []
+
+            def operation(
+                log_dir: Path | None,
+                execution_context,
+                timeout_s: int,
+            ) -> _FakeResult:
+                self.assertIsNotNone(log_dir)
+                self.assertIsNone(execution_context)
+                observed_timeouts.append(timeout_s)
+                return _FakeResult("ok")
+
+            result = runner._execute_with_attempts(
+                spec,
+                job_kind="train",
+                operation=operation,
+            )
+
+            self.assertEqual(result.to_public_dict(), {"value": "ok"})
+            self.assertEqual(observed_timeouts, [17])
+
+    def test_runner_attempt_timeout_cannot_expand_runner_timeout(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            spec = _FakeSpec(_scope(Path(tmp)))
+            runner = SubprocessRunner(
+                (sys.executable,),
+                timeout_s=10,
+                attempt_admission_hook=lambda *_args: 99,
+            )
+            observed_timeouts: list[int] = []
+
+            result = runner._execute_with_attempts(
+                spec,
+                job_kind="train",
+                operation=lambda _log_dir, _execution_context, timeout_s: (
+                    observed_timeouts.append(timeout_s) or _FakeResult("ok")
+                ),
+            )
+
+            self.assertEqual(result.to_public_dict(), {"value": "ok"})
+            self.assertEqual(observed_timeouts, [10])
+
+    def test_attempt_timeout_reaches_owned_process_through_train_and_eval(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            train_scope = JobAttemptScope(
+                journal_root=root / "train-attempts",
+                session_genesis_hash=_DIGEST_A,
+                session_contract_hash=_DIGEST_B,
+                generation_id="generation-train",
+                lane_id="lane-a",
+                invocation_segment_id="segment-000",
+                budget_contract_hash=_DIGEST_C,
+                attempt_budget_units=1,
+                max_infrastructure_retries=0,
+            )
+            train_spec = _train_job_spec(
+                job_id="timeout-train",
+                task_id="unitree_push_recovery",
+                candidate_id="candidate-timeout",
+                policy_initialization=PolicyInitialization.random(),
+                budget_steps=128,
+                execution_device="cpu",
+                attempt_scope=train_scope,
+                metadata={
+                    "cli_argv": [sys.executable, "-c", "pass"],
+                    "summary_path": str(root / "train-summary.json"),
+                    "checkpoint_output_path": str(root / "train-checkpoint.pt"),
+                },
+            )
+            train_metadata = dict(train_spec.metadata)
+            train_argv = list(train_metadata["cli_argv"])
+            train_argv[train_argv.index("--device") + 1] = "cpu"
+            train_metadata["cli_argv"] = train_argv
+            train_spec = replace(train_spec, metadata=train_metadata)
+            checkpoint_bytes = b"timeout-eval-checkpoint"
+            checkpoint_path = root / "eval-checkpoint.pt"
+            checkpoint_path.write_bytes(checkpoint_bytes)
+            checkpoint_hash = "sha256:" + hashlib.sha256(checkpoint_bytes).hexdigest()
+            eval_scope = JobAttemptScope(
+                journal_root=root / "eval-attempts",
+                session_genesis_hash=_DIGEST_A,
+                session_contract_hash=_DIGEST_B,
+                generation_id="generation-eval",
+                lane_id="lane-a",
+                invocation_segment_id="segment-000",
+                budget_contract_hash=_DIGEST_C,
+                attempt_budget_units=1,
+                max_infrastructure_retries=0,
+            )
+            eval_spec = _eval_job_spec(
+                job_id="timeout-eval",
+                task_id="unitree_push_recovery",
+                candidate_id="candidate-timeout",
+                checkpoint=CheckpointRef(
+                    "artifact://timeout/eval-checkpoint.pt",
+                    checkpoint_hash,
+                    "eval",
+                    sealed=True,
+                    metadata={"local_path": str(checkpoint_path)},
+                ),
+                public_seed_count=3,
+                sealed_validation_seed_count=7,
+                evaluation_binding=make_evaluation_binding(),
+                execution_device="cpu",
+                attempt_scope=eval_scope,
+                metadata={
+                    "cli_argv": [
+                        sys.executable,
+                        "-c",
+                        "pass",
+                        "--checkpoint",
+                        str(checkpoint_path),
+                        "--checkpoint-sha256",
+                        checkpoint_hash,
+                    ],
+                    "summary_path": str(root / "eval-summary.json"),
+                },
+            )
+            completed = OwnedProcessResult(
+                returncode=0,
+                pid=12345,
+                stdout_tail="",
+                stderr_tail="",
+                stdout_log=root / "stdout.log",
+                stderr_log=root / "stderr.log",
+            )
+
+            with mock.patch(
+                "true_rl_agent.runner.subprocess_runner.run_owned_process",
+                return_value=completed,
+            ) as launch:
+                train_runner = SubprocessRunner(
+                    allowed_executables=(sys.executable,),
+                    timeout_s=17,
+                    attempt_admission_hook=lambda *_args: 7,
+                )
+                with self.assertRaisesRegex(
+                    RunnerExecutionError,
+                    "summary file was not created",
+                ):
+                    train_runner.run_train(train_spec)
+
+                eval_runner = SubprocessRunner(
+                    allowed_executables=(sys.executable,),
+                    timeout_s=11,
+                    attempt_admission_hook=lambda *_args: 99,
+                )
+                with self.assertRaisesRegex(
+                    RunnerExecutionError,
+                    "summary file was not created",
+                ):
+                    eval_runner.run_eval(eval_spec)
+
+            self.assertEqual(
+                [call.kwargs["timeout_s"] for call in launch.call_args_list],
+                [7, 11],
+            )
+
+    def test_runner_resolves_tightened_timeout_before_each_reservation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            scope = _scope(root)
+            spec = _FakeSpec(scope)
+            admissions: list[tuple[object, str, str, int]] = []
+            requested_timeouts = (7, 3)
+
+            def admit(
+                actual_scope,
+                logical_job_id: str,
+                job_kind: str,
+                attempt_index: int,
+            ) -> int:
+                self.assertEqual(
+                    len(list(root.rglob("attempt_*.reservation.json"))),
+                    attempt_index,
+                )
+                admissions.append(
+                    (actual_scope, logical_job_id, job_kind, attempt_index)
+                )
+                return requested_timeouts[attempt_index]
+
+            runner = SubprocessRunner(
+                (sys.executable,),
+                timeout_s=10,
+                attempt_admission_hook=admit,
+            )
+            operation_calls = 0
+            effective_timeouts: list[int] = []
+
+            def operation(
+                log_dir: Path | None,
+                execution_context,
+                timeout_s: int,
+            ) -> _FakeResult:
+                nonlocal operation_calls
+                operation_calls += 1
+                effective_timeouts.append(timeout_s)
+                if operation_calls == 1:
+                    raise RunnerExecutionError(
+                        "summary absent",
+                        failure_kind=RunnerFailureKind.SUMMARY_MISSING,
+                    )
+                return _FakeResult("ok")
+
+            result = runner._execute_with_attempts(
+                spec,
+                job_kind="train",
+                operation=operation,
+            )
+
+            self.assertEqual(result.to_public_dict(), {"value": "ok"})
+            self.assertEqual(
+                admissions,
+                [
+                    (scope, "logical-job", "train", 0),
+                    (scope, "logical-job", "train", 1),
+                ],
+            )
+            self.assertEqual(effective_timeouts, [7, 3])
+
+    def test_invalid_attempt_timeout_fails_before_reservation_or_operation(
+        self,
+    ) -> None:
+        for invalid_timeout in (0, -1, True, 1.5, "5"):
+            with self.subTest(invalid_timeout=invalid_timeout):
+                with tempfile.TemporaryDirectory() as tmp:
+                    root = Path(tmp)
+                    spec = _FakeSpec(_scope(root))
+                    operation_calls = 0
+
+                    def operation(
+                        log_dir: Path | None,
+                        execution_context,
+                        timeout_s: int,
+                    ) -> _FakeResult:
+                        nonlocal operation_calls
+                        operation_calls += 1
+                        return _FakeResult("should-not-run")
+
+                    runner = SubprocessRunner(
+                        (sys.executable,),
+                        timeout_s=10,
+                        attempt_admission_hook=lambda *_args: invalid_timeout,
+                    )
+                    with self.assertRaisesRegex(
+                        ValueError,
+                        "attempt admission timeout_s must be a positive integer",
+                    ):
+                        runner._execute_with_attempts(
+                            spec,
+                            job_kind="train",
+                            operation=operation,
+                        )
+
+                    self.assertEqual(operation_calls, 0)
+                    self.assertEqual(
+                        list(root.rglob("attempt_*.reservation.json")),
+                        [],
+                    )
+
+    def test_retry_admission_rejection_creates_no_retry_reservation(self) -> None:
+        class AttemptAdmissionRejected(RuntimeError):
+            pass
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            spec = _FakeSpec(_scope(root))
+            admitted_indices: list[int] = []
+
+            def admit(scope, logical_job_id, job_kind, attempt_index: int) -> None:
+                admitted_indices.append(attempt_index)
+                if attempt_index == 1:
+                    raise AttemptAdmissionRejected("retry budget exhausted")
+
+            runner = SubprocessRunner(
+                (sys.executable,),
+                timeout_s=10,
+                attempt_admission_hook=admit,
+            )
+            operation_calls = 0
+
+            def operation(
+                log_dir: Path | None,
+                execution_context,
+                _timeout_s: int,
+            ) -> _FakeResult:
+                nonlocal operation_calls
+                operation_calls += 1
+                raise RunnerExecutionError(
+                    "summary absent",
+                    failure_kind=RunnerFailureKind.SUMMARY_MISSING,
+                )
+
+            with self.assertRaisesRegex(
+                AttemptAdmissionRejected,
+                "retry budget exhausted",
+            ):
+                runner._execute_with_attempts(
+                    spec,
+                    job_kind="train",
+                    operation=operation,
+                )
+
+            self.assertEqual(admitted_indices, [0, 1])
+            self.assertEqual(operation_calls, 1)
+            self.assertEqual(
+                len(list(root.rglob("attempt_*.reservation.json"))),
+                1,
+            )
+            self.assertFalse(
+                any(root.rglob("attempt_01.reservation.json")),
             )
 
     def test_runner_derives_pre_genesis_gpu_lease_holder_from_attempt_scope(
@@ -563,7 +1045,9 @@ class JobAttemptJournalTests(unittest.TestCase):
             result = runner._execute_with_attempts(
                 spec,
                 job_kind="train",
-                operation=lambda log_dir, execution_context: _FakeResult("ok"),
+                operation=lambda log_dir, execution_context, timeout_s: _FakeResult(
+                    "ok"
+                ),
             )
 
             self.assertEqual(result.to_public_dict(), {"value": "ok"})
@@ -580,7 +1064,11 @@ class JobAttemptJournalTests(unittest.TestCase):
             runner = SubprocessRunner((sys.executable,), timeout_s=10)
             calls = 0
 
-            def operation(log_dir: Path | None, execution_context) -> _FakeResult:
+            def operation(
+                log_dir: Path | None,
+                execution_context,
+                _timeout_s: int,
+            ) -> _FakeResult:
                 nonlocal calls
                 self.assertIsNone(execution_context)
                 calls += 1
@@ -596,9 +1084,13 @@ class JobAttemptJournalTests(unittest.TestCase):
                     operation=operation,
                 )
             self.assertEqual(calls, 1)
-            self.assertEqual(len(list(Path(tmp).rglob("attempt_*.reservation.json"))), 1)
+            self.assertEqual(
+                len(list(Path(tmp).rglob("attempt_*.reservation.json"))), 1
+            )
 
-    def test_runner_does_not_reexecute_an_existing_attempt_without_inspector(self) -> None:
+    def test_runner_does_not_reexecute_an_existing_attempt_without_inspector(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             spec = _FakeSpec(_scope(Path(tmp)))
             runner = SubprocessRunner((sys.executable,), timeout_s=10)
@@ -614,7 +1106,11 @@ class JobAttemptJournalTests(unittest.TestCase):
             journal.reserve(0, previous_result=None)
             calls = 0
 
-            def operation(log_dir: Path | None, execution_context) -> _FakeResult:
+            def operation(
+                log_dir: Path | None,
+                execution_context,
+                _timeout_s: int,
+            ) -> _FakeResult:
                 nonlocal calls
                 self.assertIsNone(execution_context)
                 calls += 1
@@ -640,7 +1136,11 @@ class JobAttemptJournalTests(unittest.TestCase):
             execution_calls = 0
             recovery_calls = 0
 
-            def operation(log_dir: Path | None, execution_context) -> _FakeResult:
+            def operation(
+                log_dir: Path | None,
+                execution_context,
+                _timeout_s: int,
+            ) -> _FakeResult:
                 nonlocal execution_calls
                 self.assertIsNotNone(log_dir)
                 self.assertIsNone(execution_context)
@@ -782,7 +1282,7 @@ manager = GpuLeaseManager(
 lease = manager.acquire(
     'cuda:0',
     holder=GpuLeaseHolder(
-        session_genesis_hash={'a' * 64!r},
+        session_genesis_hash={"a" * 64!r},
         generation_id='generation-001',
         lane_id='lane-a',
         invocation_segment_id='segment-000',
@@ -801,9 +1301,7 @@ time.sleep(60)
             )
             manager = GpuLeaseManager(
                 lease_root=root,
-                devices={
-                    "cuda:0": GpuDeviceIdentity("cuda:0", "machine", "GPU-AAA")
-                },
+                devices={"cuda:0": GpuDeviceIdentity("cuda:0", "machine", "GPU-AAA")},
             )
             try:
                 deadline = time.monotonic() + 10
@@ -850,7 +1348,11 @@ time.sleep(60)
             spec = _FakeSpec(mismatched_scope, execution_device="cuda:0")
             calls = 0
 
-            def operation(log_dir: Path | None, execution_context) -> _FakeResult:
+            def operation(
+                log_dir: Path | None,
+                execution_context,
+                _timeout_s: int,
+            ) -> _FakeResult:
                 nonlocal calls
                 self.assertIsNone(execution_context)
                 calls += 1
@@ -884,9 +1386,7 @@ class RunnerSingleDeviceContractTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "distributed or multi-GPU"):
                     validate_single_device_job_argv(argv)
 
-        validate_single_device_job_argv(
-            ["python", "train.py", "--device", "cuda:0"]
-        )
+        validate_single_device_job_argv(["python", "train.py", "--device", "cuda:0"])
 
 
 if __name__ == "__main__":

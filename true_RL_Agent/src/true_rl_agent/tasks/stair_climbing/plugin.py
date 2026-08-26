@@ -7,6 +7,13 @@ from typing import TYPE_CHECKING, Any, Mapping
 from true_rl_agent.candidates.schema import CandidateSurfacePolicy
 from true_rl_agent.curriculum.schema import CurriculumPlan
 from true_rl_agent.evaluation.public_result import PublicEvalResult
+from true_rl_agent.robots.base import (
+    BASE_ROLE,
+    FORBIDDEN_CONTACT_ROLE,
+    SUPPORT_EFFECTOR_ROLE,
+    RobotRequirements,
+    SemanticRoleRequirement,
+)
 from true_rl_agent.tasks.base import TaskInvariantSpec, TaskPlugin, TaskSpec
 from true_rl_agent.tasks.stair_climbing.candidate_surface import (
     build_stair_candidate_surface_policy,
@@ -33,6 +40,37 @@ class StairClimbingTaskPlugin(TaskPlugin):
     """Own Stair semantics while leaving execution and decisions to shared layers."""
 
     curriculum_capabilities: Mapping[str, Mapping[str, Any]] = {}
+
+    def robot_requirements(self) -> RobotRequirements:
+        return RobotRequirements(
+            roles=(
+                SemanticRoleRequirement(BASE_ROLE, "body", 1, 1),
+                SemanticRoleRequirement(
+                    SUPPORT_EFFECTOR_ROLE,
+                    "body",
+                    1,
+                    None,
+                    require_all_profile_targets=True,
+                ),
+                SemanticRoleRequirement(
+                    FORBIDDEN_CONTACT_ROLE,
+                    "body",
+                    1,
+                    None,
+                ),
+            ),
+            capabilities=frozenset(
+                {
+                    "articulation_runtime",
+                    "base_state",
+                    "height_scan",
+                    "joint_position_action",
+                    "joint_state",
+                    "policy_observation_projection",
+                    "support_contact",
+                }
+            ),
+        )
 
     def __init__(
         self,
@@ -171,7 +209,7 @@ class StairClimbingTaskPlugin(TaskPlugin):
         }
         return TaskSpec(
             task_id=STAIR_TASK_ID,
-            name="Unitree G1 Stair Climbing",
+            name="Stair Climbing",
             supported_policy_initializations=frozenset({"random"}),
             genesis_anchor_policy={
                 "random": self.session_start_profile.genesis_anchor_kind
@@ -199,6 +237,24 @@ class StairClimbingTaskPlugin(TaskPlugin):
             config=self.config,
             public_result=public_result,
             train_summary=train_summary,
+        )
+
+    def project_candidate_public_result(
+        self,
+        *,
+        public_result: PublicEvalResult,
+        train_summary: Mapping[str, Any],
+        mechanism_operation_delta: Mapping[str, Any] | None,
+    ) -> PublicEvalResult:
+        from true_rl_agent.tasks.stair_climbing.public_projection import (
+            project_stair_public_result,
+        )
+
+        return project_stair_public_result(
+            config=self.config,
+            public_result=public_result,
+            train_summary=train_summary,
+            mechanism_operation_delta=mechanism_operation_delta,
         )
 
     def qualify_reference_result(

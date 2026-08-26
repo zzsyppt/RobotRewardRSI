@@ -35,6 +35,9 @@ from true_rl_agent.tasks.stair_climbing.isaaclab_execution import (  # noqa: E40
     execute_stair_evaluation,
     preflight_stair_execution_source_manifest,
 )
+from true_rl_agent.tasks.stair_climbing.seed_policy import (  # noqa: E402
+    STAIR_FORMAL_EVAL_NAMESPACE,
+)
 from true_rl_agent.tasks.stair_climbing.training_distribution import (  # noqa: E402
     STAIR_EXECUTION_SOURCE_PREFLIGHT_SCHEMA_VERSION,
     stair_training_distribution_upstream_source_evidence,
@@ -316,6 +319,7 @@ class StairExecutionSourcePreflightTests(unittest.TestCase):
             program_source_checksum="sha256:" + "e" * 64,
             training_binding_hash="f" * 64,
             capability_profile_hash="1" * 64,
+            seed_namespace=STAIR_FORMAL_EVAL_NAMESPACE,
         )
         source_preflight = SimpleNamespace(
             to_summary_dict=lambda: {"status": "pass"}

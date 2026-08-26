@@ -10,6 +10,7 @@ from true_rl_agent.agent_core.generation_contract import (
 )
 from true_rl_agent.agent_core.generation_receipts import (
     GenerationReceiptJournal,
+    load_generation_manifest_from_receipt,
     load_generation_manifest_receipt,
     load_generation_selection_receipt,
 )
@@ -67,6 +68,10 @@ class GenerationReceiptTests(unittest.TestCase):
             self.assertEqual(
                 load_generation_manifest_receipt(manifest_ref, manifest=manifest),
                 manifest_ref,
+            )
+            self.assertEqual(
+                load_generation_manifest_from_receipt(manifest_ref),
+                manifest,
             )
             loaded_selection = load_generation_selection_receipt(
                 selection_ref,

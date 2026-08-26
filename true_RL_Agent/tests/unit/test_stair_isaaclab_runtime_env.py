@@ -144,9 +144,7 @@ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
             isaac_runtime.StairEvalRecorderManagerCfg,
         )
         term_names = tuple(
-            self.protocol.to_dict()["phase0_probe"][
-                "terminal_reason_by_manager_term"
-            ]
+            self.protocol.to_dict()["phase0_probe"]["terminal_reason_by_manager_term"]
         )
         for term_name in term_names:
             with self.subTest(term=term_name):
@@ -170,16 +168,20 @@ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
                 )
 
     def test_real_recorder_payload_decodes_tracks_and_aggregates(self) -> None:
-        assignment = self.config.seed_resolver().private_bin_assignment()
+        public_dev = self.protocol.to_dict()["evaluation"]["splits"]["public_dev"]
+        episodes_per_bin = int(public_dev["episodes_per_seed_per_bin"])
+        assignment = tuple(
+            str(item["bin_id"])
+            for item in self.protocol.eval_bins
+            for _ in range(episodes_per_bin)
+        )
         num_envs = len(assignment)
         protocol_payload = self.protocol.to_dict()
         bins = {
             str(item["bin_id"]): index
             for index, item in enumerate(self.protocol.eval_bins)
         }
-        frozen_origins = protocol_payload["terrain"][
-            "evaluation_grid_origins_m"
-        ]
+        frozen_origins = protocol_payload["terrain"]["evaluation_grid_origins_m"]
         origins = torch.tensor(
             [frozen_origins[bins[bin_id]] for bin_id in assignment],
             dtype=torch.float32,
@@ -196,15 +198,19 @@ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
         foot_pos[:, 0, 1] -= 0.1
         foot_pos[:, 1, 1] += 0.1
         foot_pos[:, :, 2] += 0.05
+        robot_body_pos = torch.cat((foot_pos, root_pos[:, None, :]), dim=1)
         contact_forces = torch.zeros((num_envs, 3, 3), dtype=torch.float32)
         contact_forces[:, :2, 2] = 100.0
+        joint_names = tuple(
+            protocol_payload["policy_compatibility"]["robot_schema"]["joint_names"]
+        )
 
         robot_data = SimpleNamespace(
             root_pos_w=root_pos,
             root_quat_w=root_quat,
             joint_pos=torch.zeros((num_envs, 37), dtype=torch.float32),
-            body_pos_w=foot_pos,
-            body_lin_vel_w=torch.zeros_like(foot_pos),
+            body_pos_w=robot_body_pos,
+            body_lin_vel_w=torch.zeros_like(robot_body_pos),
         )
         contact_data = SimpleNamespace(net_forces_w=contact_forces)
         terrain = SimpleNamespace(
@@ -217,7 +223,9 @@ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
                 body_ids={
                     "left_ankle_roll_link": 0,
                     "right_ankle_roll_link": 1,
+                    "torso_link": 2,
                 },
+                joint_ids={name: index for index, name in enumerate(joint_names)},
             ),
             contact_forces=_FakeAsset(
                 data=contact_data,
@@ -310,14 +318,20 @@ class _Scene(dict):
 
 
 class _FakeAsset:
-    def __init__(self, *, data, body_ids) -> None:
+    def __init__(self, *, data, body_ids, joint_ids=None) -> None:
         self.data = data
         self._body_ids = dict(body_ids)
+        self._joint_ids = {} if joint_ids is None else dict(joint_ids)
 
     def find_bodies(self, names, *, preserve_order):
         if preserve_order is not True:
             raise AssertionError("test asset requires ordered body resolution")
         return [self._body_ids[name] for name in names], list(names)
+
+    def find_joints(self, names, *, preserve_order):
+        if preserve_order is not True:
+            raise AssertionError("test asset requires ordered joint resolution")
+        return [self._joint_ids[name] for name in names], list(names)
 
 
 if __name__ == "__main__":

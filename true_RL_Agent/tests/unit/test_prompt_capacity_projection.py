@@ -176,6 +176,25 @@ class TaskOwnedMinimumCoreTests(unittest.TestCase):
                 ),
                 "status": "available",
                 "feedback_entries": entries,
+                "latest_generation_trial_comparisons": [
+                    {
+                        "generation_id": "generation-002",
+                        "trial_id": "generation-002-lane-a",
+                        "lane_id": "lane-a",
+                        "trial_status": "qualified_not_selected",
+                        "selection_status": "not_selected",
+                        "observed_effect": "mixed",
+                        "objective_delta": -0.1,
+                        "objective_materiality_threshold": 0.02,
+                        "objective_materiality_met": False,
+                        "guard_delta": 0.05,
+                        "guard_max_regression": 0.01,
+                        "guard_met": True,
+                        "reason_codes": [
+                            "public_guard_improved_objective_not_improved"
+                        ],
+                    }
+                ],
                 "omitted_candidate_feedback_entry_count": 0,
             }
         )
@@ -197,6 +216,12 @@ class TaskOwnedMinimumCoreTests(unittest.TestCase):
         self.assertNotIn(
             "oversized_detail",
             str(clean["public_feedback_summary"]),
+        )
+        self.assertEqual(
+            clean["public_feedback_summary"][
+                "latest_generation_trial_comparisons"
+            ][0]["trial_id"],
+            "generation-002-lane-a",
         )
         self.assertLessEqual(
             canonical_prompt_json_bytes(clean),

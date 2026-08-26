@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
+from true_rl_agent.agent_core.generation_lifecycle import GenerationTerminalBinding
 from true_rl_agent.backends.base import (
     BACKEND_EXECUTION_ENVIRONMENT_VERIFICATION_SCHEMA_VERSION,
 )
@@ -25,6 +26,7 @@ from true_rl_agent.json_contract import (
     canonical_json_bytes,
     strict_json_object_loads,
 )
+from true_rl_agent.runner.specs import GpuProcessBinding
 from true_rl_agent.tasks.stair_climbing.config import (
     STAIR_TASK_ID,
     StairClimbingTaskConfig,
@@ -47,17 +49,32 @@ from true_rl_agent.tasks.stair_climbing.training_distribution import (
 STAIR_FINAL_CONFIRMATION_PLAN_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.final_confirmation_plan.v1"
 )
+STAIR_FINAL_CONFIRMATION_PLAN_V2_SCHEMA_VERSION = (
+    "true_rl_agent.task.stair_climbing.final_confirmation_plan.v2"
+)
 STAIR_FINAL_CONFIRMATION_RESERVATION_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.final_confirmation_reservation.v1"
 )
+STAIR_FINAL_CONFIRMATION_RESERVATION_V2_SCHEMA_VERSION = (
+    "true_rl_agent.task.stair_climbing.final_confirmation_reservation.v2"
+)
 STAIR_FINAL_CONFIRMATION_RESULT_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.final_confirmation_result.v1"
+)
+STAIR_FINAL_CONFIRMATION_RESULT_V2_SCHEMA_VERSION = (
+    "true_rl_agent.task.stair_climbing.final_confirmation_result.v2"
+)
+STAIR_FINAL_CONFIRMATION_PHASE_EXECUTION_SCHEMA_VERSION = (
+    "true_rl_agent.task.stair_climbing.final_confirmation_phase_execution.v1"
 )
 STAIR_FINAL_CONFIRMATION_DIRNAME = "final_confirmation"
 STAIR_FINAL_CONFIRMATION_PLAN_FILENAME = "plan.json"
 STAIR_FINAL_CONFIRMATION_RESERVATION_FILENAME = "reservation.json"
 STAIR_FINAL_CONFIRMATION_RESULT_FILENAME = "result.json"
+STAIR_GENERATION_REPORT_FILENAME = "generation_session_report.json"
 STAIR_FINAL_CONFIRMATION_REQUIRED_ROUNDS = 15
+STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS = 15
+STAIR_FINAL_CONFIRMATION_FORMAL_SESSION_MODE = "formal_generation_session"
 STAIR_FINAL_CONFIRMATION_SPLIT = "sealed_validation"
 MAX_STAIR_FINAL_CONFIRMATION_PLAN_BYTES = 64 * 1024
 MAX_STAIR_FINAL_CONFIRMATION_RESERVATION_BYTES = 64 * 1024
@@ -71,6 +88,10 @@ _COMPARISON = {
     "pairing": "same_private_cohort_by_run_index",
     "execution_order": ["genesis", "final"],
     "delta_direction": "final_minus_genesis",
+}
+_GENERATION_COMPARISON = {
+    **_COMPARISON,
+    "final_role": "formal_final_current_best_after_generation_15",
 }
 _INFORMATION_FLOW = {
     "acceptance_authority": False,
@@ -265,6 +286,154 @@ class StairFinalConfirmationPlan:
         }
 
 
+@dataclass(frozen=True)
+class StairFinalConfirmationPlanV2(StairFinalConfirmationPlan):
+    """Generation-session commitment frozen before formal Genesis."""
+
+    @classmethod
+    def from_mapping(cls, value: Any) -> "StairFinalConfirmationPlanV2":
+        mapping = _exact_mapping(
+            value,
+            {
+                "schema_version",
+                "session_mode",
+                "session_id",
+                "task_id",
+                "task_protocol_hash",
+                "eval_protocol_hash",
+                "evaluation_profile_hash",
+                "confirmation_namespace",
+                "cohort",
+                "comparison",
+                "statistics",
+                "required_closed_generations",
+                "single_use",
+                "information_flow",
+                "plan_hash",
+            },
+            "Stair generation final confirmation plan",
+        )
+        if (
+            mapping.get("schema_version")
+            != STAIR_FINAL_CONFIRMATION_PLAN_V2_SCHEMA_VERSION
+            or mapping.get("session_mode")
+            != STAIR_FINAL_CONFIRMATION_FORMAL_SESSION_MODE
+            or mapping.get("task_id") != STAIR_TASK_ID
+            or mapping.get("confirmation_namespace")
+            != STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE
+            or mapping.get("required_closed_generations")
+            != STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS
+            or mapping.get("single_use") is not True
+        ):
+            raise ValueError(
+                "Stair generation final confirmation plan identity mismatch"
+            )
+        if (
+            dict(_mapping(mapping.get("comparison"), "comparison"))
+            != _GENERATION_COMPARISON
+        ):
+            raise ValueError(
+                "Stair generation final confirmation comparison mismatch"
+            )
+        if dict(_mapping(mapping.get("statistics"), "statistics")) != _STATISTICS:
+            raise ValueError(
+                "Stair generation final confirmation statistics mismatch"
+            )
+        if (
+            dict(_mapping(mapping.get("information_flow"), "information_flow"))
+            != _INFORMATION_FLOW
+        ):
+            raise ValueError(
+                "Stair generation final confirmation information-flow mismatch"
+            )
+        cohort = _exact_mapping(
+            mapping.get("cohort"),
+            {
+                "source_shape",
+                "seed_cohort_hash",
+                "seed_count",
+                "cell_count",
+                "episodes_per_seed_per_cell",
+            },
+            "Stair generation final confirmation cohort",
+        )
+        if cohort.get("source_shape") != STAIR_FINAL_CONFIRMATION_SPLIT:
+            raise ValueError(
+                "Stair generation final confirmation cohort shape mismatch"
+            )
+        return cls(
+            session_id=_text(mapping.get("session_id"), "session_id"),
+            task_protocol_hash=require_sha256_digest(
+                mapping.get("task_protocol_hash"), "task_protocol_hash"
+            ),
+            eval_protocol_hash=require_sha256_digest(
+                mapping.get("eval_protocol_hash"), "eval_protocol_hash"
+            ),
+            evaluation_profile_hash=require_sha256_digest(
+                mapping.get("evaluation_profile_hash"),
+                "evaluation_profile_hash",
+            ),
+            seed_cohort_hash=require_sha256_digest(
+                cohort.get("seed_cohort_hash"), "seed_cohort_hash"
+            ),
+            seed_count=_positive_int(cohort.get("seed_count"), "seed_count"),
+            cell_count=_positive_int(cohort.get("cell_count"), "cell_count"),
+            episodes_per_seed_per_cell=_positive_int(
+                cohort.get("episodes_per_seed_per_cell"),
+                "episodes_per_seed_per_cell",
+            ),
+            plan_hash=require_sha256_digest(mapping.get("plan_hash"), "plan_hash"),
+        )
+
+    def genesis_commitment(self) -> dict[str, Any]:
+        assert self.plan_hash is not None
+        return {
+            "schema_version": STAIR_FINAL_CONFIRMATION_PLAN_V2_SCHEMA_VERSION,
+            "session_mode": STAIR_FINAL_CONFIRMATION_FORMAL_SESSION_MODE,
+            "plan_hash": self.plan_hash,
+            "confirmation_namespace": STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
+            "seed_cohort_hash": self.seed_cohort_hash,
+            "seed_count": self.seed_count,
+            "required_closed_generations": (
+                STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS
+            ),
+            "single_use": True,
+            **_INFORMATION_FLOW,
+        }
+
+    def _hash_payload(self) -> dict[str, Any]:
+        return {
+            "schema_version": STAIR_FINAL_CONFIRMATION_PLAN_V2_SCHEMA_VERSION,
+            "session_mode": STAIR_FINAL_CONFIRMATION_FORMAL_SESSION_MODE,
+            "session_id": self.session_id,
+            "task_id": STAIR_TASK_ID,
+            "task_protocol_hash": self.task_protocol_hash,
+            "eval_protocol_hash": self.eval_protocol_hash,
+            "evaluation_profile_hash": self.evaluation_profile_hash,
+            "confirmation_namespace": STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
+            "cohort": {
+                "source_shape": STAIR_FINAL_CONFIRMATION_SPLIT,
+                "seed_cohort_hash": self.seed_cohort_hash,
+                "seed_count": self.seed_count,
+                "cell_count": self.cell_count,
+                "episodes_per_seed_per_cell": self.episodes_per_seed_per_cell,
+            },
+            "comparison": {
+                **_GENERATION_COMPARISON,
+                "execution_order": list(_GENERATION_COMPARISON["execution_order"]),
+            },
+            "statistics": {
+                **_STATISTICS,
+                "reported": list(_STATISTICS["reported"]),
+            },
+            "required_closed_generations": (
+                STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS
+            ),
+            "single_use": True,
+            "information_flow": dict(_INFORMATION_FLOW),
+        }
+
+
 def build_stair_final_confirmation_plan(
     *,
     session_id: str,
@@ -337,6 +506,85 @@ def load_stair_final_confirmation_plan(
         )
         if plan.to_dict() != expected.to_dict():
             raise ValueError("Stair final confirmation plan differs from task config")
+    return plan
+
+
+def build_stair_generation_final_confirmation_plan(
+    *,
+    session_id: str,
+    config: StairClimbingTaskConfig,
+) -> StairFinalConfirmationPlanV2:
+    if not isinstance(config, StairClimbingTaskConfig):
+        raise TypeError(
+            "Stair generation final confirmation requires StairClimbingTaskConfig"
+        )
+    resolver = config.seed_resolver()
+    profile = config.evaluation_profile
+    return StairFinalConfirmationPlanV2(
+        session_id=session_id,
+        task_protocol_hash=config.task_protocol_hash,
+        eval_protocol_hash=config.evaluation_protocol().protocol_hash,
+        evaluation_profile_hash=profile.profile_hash,
+        seed_cohort_hash=resolver.namespace_cohort_hash(
+            STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE
+        ),
+        seed_count=config.sealed_validation_seed_count,
+        cell_count=len(profile.cells),
+        episodes_per_seed_per_cell=profile.episodes_per_seed_per_cell,
+    )
+
+
+def create_stair_generation_final_confirmation_plan(
+    *,
+    output_dir: Path,
+    session_id: str,
+    config: StairClimbingTaskConfig,
+) -> tuple[StairFinalConfirmationPlanV2, Path]:
+    output_dir = output_dir.resolve()
+    _assert_pre_genesis_output_state(output_dir)
+    plan = build_stair_generation_final_confirmation_plan(
+        session_id=session_id,
+        config=config,
+    )
+    path = stair_final_confirmation_plan_path(output_dir)
+    _atomic_create_json(
+        path,
+        plan.to_dict(),
+        max_bytes=MAX_STAIR_FINAL_CONFIRMATION_PLAN_BYTES,
+        artifact_name="Stair generation final confirmation plan",
+    )
+    loaded = load_stair_generation_final_confirmation_plan(
+        path,
+        expected_session_id=session_id,
+        expected_config=config,
+    )
+    return loaded, path
+
+
+def load_stair_generation_final_confirmation_plan(
+    path: Path,
+    *,
+    expected_session_id: str | None = None,
+    expected_config: StairClimbingTaskConfig | None = None,
+) -> StairFinalConfirmationPlanV2:
+    plan = StairFinalConfirmationPlanV2.from_mapping(
+        _load_bounded_canonical_json_object(
+            path,
+            context="Stair generation final confirmation plan",
+            max_bytes=MAX_STAIR_FINAL_CONFIRMATION_PLAN_BYTES,
+        )
+    )
+    if expected_session_id is not None and plan.session_id != expected_session_id:
+        raise ValueError("Stair generation final confirmation plan session mismatch")
+    if expected_config is not None:
+        expected = build_stair_generation_final_confirmation_plan(
+            session_id=plan.session_id,
+            config=expected_config,
+        )
+        if plan.to_dict() != expected.to_dict():
+            raise ValueError(
+                "Stair generation final confirmation plan differs from task config"
+            )
     return plan
 
 
@@ -539,6 +787,770 @@ def load_stair_final_confirmation_reservation(
         ),
         expected_plan=expected_plan,
     )
+
+
+@dataclass(frozen=True)
+class StairFinalConfirmationReservationV2:
+    """Create-once binding from a terminal generation session to two evals."""
+
+    plan_hash: str
+    session_id: str
+    session_genesis_hash: str
+    generation_session_contract_hash: str
+    generation_cost_contract_hash: str
+    ledger_checksum: str
+    terminal_binding: Mapping[str, Any]
+    source_checkout_hash: str
+    backend_execution_environment_manifest_hash: str
+    gpu_process_binding: GpuProcessBinding
+    genesis_job_id: str
+    final_job_id: str
+    genesis_eval_phase_spec_hash: str
+    final_eval_phase_spec_hash: str
+    genesis_evaluation_plan_hash: str
+    final_evaluation_plan_hash: str
+    genesis_checkpoint_hash: str
+    final_checkpoint_hash: str
+    genesis_source_manifest_hash: str
+    final_source_manifest_hash: str
+    genesis_training_binding_hash: str
+    final_training_binding_hash: str
+    genesis_capability_profile_hash: str
+    final_capability_profile_hash: str
+    final_anchor: Mapping[str, Any]
+    reservation_hash: str | None = None
+
+    def __post_init__(self) -> None:
+        require_sha256_digest(self.plan_hash, "reservation v2 plan_hash")
+        validate_experiment_subject_id(self.session_id)
+        for field_name in (
+            "session_genesis_hash",
+            "generation_session_contract_hash",
+            "generation_cost_contract_hash",
+            "source_checkout_hash",
+            "backend_execution_environment_manifest_hash",
+            "genesis_eval_phase_spec_hash",
+            "final_eval_phase_spec_hash",
+            "genesis_evaluation_plan_hash",
+            "final_evaluation_plan_hash",
+            "genesis_source_manifest_hash",
+            "final_source_manifest_hash",
+            "genesis_training_binding_hash",
+            "final_training_binding_hash",
+            "genesis_capability_profile_hash",
+            "final_capability_profile_hash",
+        ):
+            require_sha256_digest(
+                getattr(self, field_name),
+                f"reservation v2 {field_name}",
+            )
+        for field_name in (
+            "ledger_checksum",
+            "genesis_checkpoint_hash",
+            "final_checkpoint_hash",
+        ):
+            require_sha256_checksum(
+                getattr(self, field_name),
+                f"reservation v2 {field_name}",
+            )
+        for field_name in ("genesis_job_id", "final_job_id"):
+            _text(getattr(self, field_name), f"reservation v2 {field_name}")
+        if self.genesis_job_id == self.final_job_id:
+            raise ValueError("reservation v2 final job ids must be distinct")
+        terminal = _generation_terminal_binding_from_mapping(self.terminal_binding)
+        if (
+            terminal.required_generation_count
+            != STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS
+        ):
+            raise ValueError("reservation v2 requires generation 15 terminal")
+        object.__setattr__(self, "terminal_binding", terminal.to_dict())
+        if not isinstance(self.gpu_process_binding, GpuProcessBinding):
+            raise TypeError("reservation v2 GPU process binding is invalid")
+        if self.gpu_process_binding.process_execution_device != "cuda:0":
+            raise ValueError("reservation v2 child GPU must be logical cuda:0")
+        object.__setattr__(
+            self,
+            "final_anchor",
+            _json_mapping(self.final_anchor, "reservation v2 final_anchor"),
+        )
+        expected = canonical_json_hash(self._hash_payload())
+        if self.reservation_hash is not None:
+            require_sha256_digest(
+                self.reservation_hash,
+                "reservation v2 reservation_hash",
+            )
+            if self.reservation_hash != expected:
+                raise ValueError(
+                    "Stair generation final confirmation reservation hash mismatch"
+                )
+        object.__setattr__(self, "reservation_hash", expected)
+
+    @classmethod
+    def from_mapping(
+        cls,
+        value: Any,
+        *,
+        expected_plan: StairFinalConfirmationPlanV2,
+    ) -> "StairFinalConfirmationReservationV2":
+        mapping = _exact_mapping(
+            value,
+            {
+                "schema_version",
+                "plan_hash",
+                "session_id",
+                "session_genesis_hash",
+                "generation_session_contract_hash",
+                "generation_cost_contract_hash",
+                "ledger_checksum",
+                "terminal_binding",
+                "source_checkout_hash",
+                "backend_execution_environment_manifest_hash",
+                "gpu_process_binding",
+                "phase_specs",
+                "checkpoints",
+                "final_anchor",
+                "single_use",
+                "acceptance_authority",
+                "reservation_hash",
+            },
+            "Stair generation final confirmation reservation",
+        )
+        if (
+            mapping.get("schema_version")
+            != STAIR_FINAL_CONFIRMATION_RESERVATION_V2_SCHEMA_VERSION
+            or mapping.get("single_use") is not True
+            or mapping.get("acceptance_authority") is not False
+        ):
+            raise ValueError(
+                "Stair generation final confirmation reservation identity mismatch"
+            )
+        phase_specs = _exact_mapping(
+            mapping.get("phase_specs"),
+            {"genesis", "final"},
+            "Stair generation final confirmation phase specs",
+        )
+        genesis_phase = _exact_mapping(
+            phase_specs.get("genesis"),
+            {"job_id", "eval_phase_spec_hash", "evaluation_plan_hash"},
+            "Stair generation final confirmation genesis phase",
+        )
+        final_phase = _exact_mapping(
+            phase_specs.get("final"),
+            {"job_id", "eval_phase_spec_hash", "evaluation_plan_hash"},
+            "Stair generation final confirmation final phase",
+        )
+        checkpoints = _exact_mapping(
+            mapping.get("checkpoints"),
+            {"genesis", "final"},
+            "Stair generation final confirmation checkpoints",
+        )
+        checkpoint_fields = {
+            "checkpoint_hash",
+            "source_manifest_hash",
+            "training_binding_hash",
+            "capability_profile_hash",
+        }
+        genesis_checkpoint = _exact_mapping(
+            checkpoints.get("genesis"),
+            checkpoint_fields,
+            "Stair generation final confirmation genesis checkpoint",
+        )
+        final_checkpoint = _exact_mapping(
+            checkpoints.get("final"),
+            checkpoint_fields,
+            "Stair generation final confirmation final checkpoint",
+        )
+        reservation = cls(
+            plan_hash=require_sha256_digest(mapping.get("plan_hash"), "plan_hash"),
+            session_id=_text(mapping.get("session_id"), "session_id"),
+            session_genesis_hash=require_sha256_digest(
+                mapping.get("session_genesis_hash"), "session_genesis_hash"
+            ),
+            generation_session_contract_hash=require_sha256_digest(
+                mapping.get("generation_session_contract_hash"),
+                "generation_session_contract_hash",
+            ),
+            generation_cost_contract_hash=require_sha256_digest(
+                mapping.get("generation_cost_contract_hash"),
+                "generation_cost_contract_hash",
+            ),
+            ledger_checksum=require_sha256_checksum(
+                mapping.get("ledger_checksum"), "ledger_checksum"
+            ),
+            terminal_binding=_json_mapping(
+                mapping.get("terminal_binding"), "terminal_binding"
+            ),
+            source_checkout_hash=require_sha256_digest(
+                mapping.get("source_checkout_hash"), "source_checkout_hash"
+            ),
+            backend_execution_environment_manifest_hash=require_sha256_digest(
+                mapping.get("backend_execution_environment_manifest_hash"),
+                "backend_execution_environment_manifest_hash",
+            ),
+            gpu_process_binding=GpuProcessBinding.from_mapping(
+                mapping.get("gpu_process_binding")
+            ),
+            genesis_job_id=_text(genesis_phase.get("job_id"), "genesis job_id"),
+            final_job_id=_text(final_phase.get("job_id"), "final job_id"),
+            genesis_eval_phase_spec_hash=require_sha256_digest(
+                genesis_phase.get("eval_phase_spec_hash"),
+                "genesis eval_phase_spec_hash",
+            ),
+            final_eval_phase_spec_hash=require_sha256_digest(
+                final_phase.get("eval_phase_spec_hash"),
+                "final eval_phase_spec_hash",
+            ),
+            genesis_evaluation_plan_hash=require_sha256_digest(
+                genesis_phase.get("evaluation_plan_hash"),
+                "genesis evaluation_plan_hash",
+            ),
+            final_evaluation_plan_hash=require_sha256_digest(
+                final_phase.get("evaluation_plan_hash"),
+                "final evaluation_plan_hash",
+            ),
+            genesis_checkpoint_hash=require_sha256_checksum(
+                genesis_checkpoint.get("checkpoint_hash"),
+                "genesis checkpoint_hash",
+            ),
+            final_checkpoint_hash=require_sha256_checksum(
+                final_checkpoint.get("checkpoint_hash"),
+                "final checkpoint_hash",
+            ),
+            genesis_source_manifest_hash=require_sha256_digest(
+                genesis_checkpoint.get("source_manifest_hash"),
+                "genesis source_manifest_hash",
+            ),
+            final_source_manifest_hash=require_sha256_digest(
+                final_checkpoint.get("source_manifest_hash"),
+                "final source_manifest_hash",
+            ),
+            genesis_training_binding_hash=require_sha256_digest(
+                genesis_checkpoint.get("training_binding_hash"),
+                "genesis training_binding_hash",
+            ),
+            final_training_binding_hash=require_sha256_digest(
+                final_checkpoint.get("training_binding_hash"),
+                "final training_binding_hash",
+            ),
+            genesis_capability_profile_hash=require_sha256_digest(
+                genesis_checkpoint.get("capability_profile_hash"),
+                "genesis capability_profile_hash",
+            ),
+            final_capability_profile_hash=require_sha256_digest(
+                final_checkpoint.get("capability_profile_hash"),
+                "final capability_profile_hash",
+            ),
+            final_anchor=_json_mapping(mapping.get("final_anchor"), "final_anchor"),
+            reservation_hash=require_sha256_digest(
+                mapping.get("reservation_hash"), "reservation_hash"
+            ),
+        )
+        _require_generation_plan_reservation_binding(expected_plan, reservation)
+        if dict(mapping) != reservation.to_dict():
+            raise ValueError(
+                "Stair generation final confirmation reservation projection mismatch"
+            )
+        return reservation
+
+    def to_dict(self) -> dict[str, Any]:
+        assert self.reservation_hash is not None
+        return {**self._hash_payload(), "reservation_hash": self.reservation_hash}
+
+    def _hash_payload(self) -> dict[str, Any]:
+        return {
+            "schema_version": STAIR_FINAL_CONFIRMATION_RESERVATION_V2_SCHEMA_VERSION,
+            "plan_hash": self.plan_hash,
+            "session_id": self.session_id,
+            "session_genesis_hash": self.session_genesis_hash,
+            "generation_session_contract_hash": (
+                self.generation_session_contract_hash
+            ),
+            "generation_cost_contract_hash": self.generation_cost_contract_hash,
+            "ledger_checksum": self.ledger_checksum,
+            "terminal_binding": dict(self.terminal_binding),
+            "source_checkout_hash": self.source_checkout_hash,
+            "backend_execution_environment_manifest_hash": (
+                self.backend_execution_environment_manifest_hash
+            ),
+            "gpu_process_binding": self.gpu_process_binding.to_dict(),
+            "phase_specs": {
+                "genesis": {
+                    "job_id": self.genesis_job_id,
+                    "eval_phase_spec_hash": self.genesis_eval_phase_spec_hash,
+                    "evaluation_plan_hash": self.genesis_evaluation_plan_hash,
+                },
+                "final": {
+                    "job_id": self.final_job_id,
+                    "eval_phase_spec_hash": self.final_eval_phase_spec_hash,
+                    "evaluation_plan_hash": self.final_evaluation_plan_hash,
+                },
+            },
+            "checkpoints": {
+                "genesis": {
+                    "checkpoint_hash": self.genesis_checkpoint_hash,
+                    "source_manifest_hash": self.genesis_source_manifest_hash,
+                    "training_binding_hash": self.genesis_training_binding_hash,
+                    "capability_profile_hash": (
+                        self.genesis_capability_profile_hash
+                    ),
+                },
+                "final": {
+                    "checkpoint_hash": self.final_checkpoint_hash,
+                    "source_manifest_hash": self.final_source_manifest_hash,
+                    "training_binding_hash": self.final_training_binding_hash,
+                    "capability_profile_hash": self.final_capability_profile_hash,
+                },
+            },
+            "final_anchor": dict(self.final_anchor),
+            "single_use": True,
+            "acceptance_authority": False,
+        }
+
+
+def create_stair_generation_final_confirmation_reservation(
+    *,
+    output_dir: Path,
+    plan: StairFinalConfirmationPlanV2,
+    reservation: StairFinalConfirmationReservationV2,
+) -> tuple[StairFinalConfirmationReservationV2, Path]:
+    _require_generation_plan_reservation_binding(plan, reservation)
+    output_dir = output_dir.resolve()
+    stored_plan = load_stair_generation_final_confirmation_plan(
+        stair_final_confirmation_plan_path(output_dir),
+        expected_session_id=plan.session_id,
+    )
+    if stored_plan != plan:
+        raise ValueError(
+            "Stair generation final confirmation stored plan differs"
+        )
+    path = stair_final_confirmation_reservation_path(output_dir)
+    result_path = stair_final_confirmation_result_path(output_dir)
+    if result_path.exists():
+        raise FileExistsError(
+            "Stair generation final confirmation result already exists"
+        )
+    if path.exists():
+        existing = load_stair_generation_final_confirmation_reservation(
+            path,
+            expected_plan=plan,
+        )
+        if existing != reservation:
+            raise FileExistsError(
+                "Stair generation final confirmation reservation differs"
+            )
+        return existing, path
+    _atomic_create_json(
+        path,
+        reservation.to_dict(),
+        max_bytes=MAX_STAIR_FINAL_CONFIRMATION_RESERVATION_BYTES,
+        artifact_name="Stair generation final confirmation reservation",
+    )
+    loaded = load_stair_generation_final_confirmation_reservation(
+        path,
+        expected_plan=plan,
+    )
+    if loaded != reservation:
+        raise RuntimeError(
+            "Stair generation final confirmation reservation write verification failed"
+        )
+    return loaded, path
+
+
+def load_stair_generation_final_confirmation_reservation(
+    path: Path,
+    *,
+    expected_plan: StairFinalConfirmationPlanV2,
+) -> StairFinalConfirmationReservationV2:
+    return StairFinalConfirmationReservationV2.from_mapping(
+        _load_bounded_canonical_json_object(
+            path,
+            context="Stair generation final confirmation reservation",
+            max_bytes=MAX_STAIR_FINAL_CONFIRMATION_RESERVATION_BYTES,
+        ),
+        expected_plan=expected_plan,
+    )
+
+
+@dataclass(frozen=True)
+class StairFinalConfirmationPhaseExecution:
+    """Minimal runner-owned receipt projection for one final phase."""
+
+    role: str
+    job_id: str
+    eval_phase_spec_hash: str
+    evaluation_plan_hash: str
+    attempt_result_payload_hash: str
+    receipt_checksum: str
+    resource_binding_hash: str
+    checkpoint_hash: str
+    generalization_summary_hash: str
+
+    def __post_init__(self) -> None:
+        if self.role not in {"genesis", "final"}:
+            raise ValueError("final confirmation phase role is invalid")
+        _text(self.job_id, "final confirmation phase job_id")
+        for field_name in (
+            "eval_phase_spec_hash",
+            "evaluation_plan_hash",
+            "attempt_result_payload_hash",
+            "resource_binding_hash",
+            "generalization_summary_hash",
+        ):
+            require_sha256_digest(
+                getattr(self, field_name),
+                f"final confirmation phase {field_name}",
+            )
+        for field_name in ("receipt_checksum", "checkpoint_hash"):
+            require_sha256_checksum(
+                getattr(self, field_name),
+                f"final confirmation phase {field_name}",
+            )
+
+    @classmethod
+    def from_mapping(cls, value: Any) -> "StairFinalConfirmationPhaseExecution":
+        mapping = _exact_mapping(
+            value,
+            {
+                "schema_version",
+                "role",
+                "job_id",
+                "eval_phase_spec_hash",
+                "evaluation_plan_hash",
+                "attempt_result_payload_hash",
+                "receipt_checksum",
+                "resource_binding_hash",
+                "checkpoint_hash",
+                "generalization_summary_hash",
+                "acceptance_authority",
+            },
+            "Stair final confirmation phase execution",
+        )
+        if (
+            mapping.get("schema_version")
+            != STAIR_FINAL_CONFIRMATION_PHASE_EXECUTION_SCHEMA_VERSION
+            or mapping.get("acceptance_authority") is not False
+        ):
+            raise ValueError("Stair final confirmation phase execution mismatch")
+        result = cls(
+            role=_text(mapping.get("role"), "role"),
+            job_id=_text(mapping.get("job_id"), "job_id"),
+            eval_phase_spec_hash=require_sha256_digest(
+                mapping.get("eval_phase_spec_hash"), "eval_phase_spec_hash"
+            ),
+            evaluation_plan_hash=require_sha256_digest(
+                mapping.get("evaluation_plan_hash"), "evaluation_plan_hash"
+            ),
+            attempt_result_payload_hash=require_sha256_digest(
+                mapping.get("attempt_result_payload_hash"),
+                "attempt_result_payload_hash",
+            ),
+            receipt_checksum=require_sha256_checksum(
+                mapping.get("receipt_checksum"), "receipt_checksum"
+            ),
+            resource_binding_hash=require_sha256_digest(
+                mapping.get("resource_binding_hash"), "resource_binding_hash"
+            ),
+            checkpoint_hash=require_sha256_checksum(
+                mapping.get("checkpoint_hash"), "checkpoint_hash"
+            ),
+            generalization_summary_hash=require_sha256_digest(
+                mapping.get("generalization_summary_hash"),
+                "generalization_summary_hash",
+            ),
+        )
+        if dict(mapping) != result.to_dict():
+            raise ValueError(
+                "Stair final confirmation phase execution projection mismatch"
+            )
+        return result
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "schema_version": (
+                STAIR_FINAL_CONFIRMATION_PHASE_EXECUTION_SCHEMA_VERSION
+            ),
+            "role": self.role,
+            "job_id": self.job_id,
+            "eval_phase_spec_hash": self.eval_phase_spec_hash,
+            "evaluation_plan_hash": self.evaluation_plan_hash,
+            "attempt_result_payload_hash": self.attempt_result_payload_hash,
+            "receipt_checksum": self.receipt_checksum,
+            "resource_binding_hash": self.resource_binding_hash,
+            "checkpoint_hash": self.checkpoint_hash,
+            "generalization_summary_hash": self.generalization_summary_hash,
+            "acceptance_authority": False,
+        }
+
+
+@dataclass(frozen=True)
+class StairFinalConfirmationResultV2:
+    """Diagnostic-only paired result backed by runner phase receipts."""
+
+    plan_hash: str
+    reservation_hash: str
+    session_id: str
+    seed_cohort_hash: str
+    generation_terminal_binding_hash: str
+    genesis_execution: StairFinalConfirmationPhaseExecution
+    final_execution: StairFinalConfirmationPhaseExecution
+    genesis_summary: Mapping[str, Any]
+    final_summary: Mapping[str, Any]
+    paired_seed_deltas: tuple[float, ...]
+    paired_mean: float
+    paired_standard_error: float
+    result_hash: str | None = None
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "plan_hash",
+            "reservation_hash",
+            "seed_cohort_hash",
+            "generation_terminal_binding_hash",
+        ):
+            require_sha256_digest(
+                getattr(self, field_name),
+                f"result v2 {field_name}",
+            )
+        validate_experiment_subject_id(self.session_id)
+        if not isinstance(
+            self.genesis_execution,
+            StairFinalConfirmationPhaseExecution,
+        ) or not isinstance(
+            self.final_execution,
+            StairFinalConfirmationPhaseExecution,
+        ):
+            raise TypeError("result v2 phase execution is invalid")
+        if (
+            self.genesis_execution.role != "genesis"
+            or self.final_execution.role != "final"
+        ):
+            raise ValueError("result v2 phase execution roles are invalid")
+        object.__setattr__(
+            self,
+            "genesis_summary",
+            _json_mapping(self.genesis_summary, "result v2 genesis summary"),
+        )
+        object.__setattr__(
+            self,
+            "final_summary",
+            _json_mapping(self.final_summary, "result v2 final summary"),
+        )
+        deltas = tuple(
+            _finite_number(value, "result v2 paired seed delta")
+            for value in self.paired_seed_deltas
+        )
+        if not deltas:
+            raise ValueError("result v2 paired seed deltas must be non-empty")
+        object.__setattr__(self, "paired_seed_deltas", deltas)
+        object.__setattr__(
+            self,
+            "paired_mean",
+            _finite_number(self.paired_mean, "result v2 paired mean"),
+        )
+        object.__setattr__(
+            self,
+            "paired_standard_error",
+            _nonnegative_number(
+                self.paired_standard_error,
+                "result v2 paired standard_error",
+            ),
+        )
+        expected = canonical_json_hash(self._hash_payload())
+        if self.result_hash is not None:
+            require_sha256_digest(self.result_hash, "result v2 result_hash")
+            if self.result_hash != expected:
+                raise ValueError(
+                    "Stair generation final confirmation result hash mismatch"
+                )
+        object.__setattr__(self, "result_hash", expected)
+
+    @classmethod
+    def from_mapping(
+        cls,
+        value: Any,
+        *,
+        plan: StairFinalConfirmationPlanV2,
+        reservation: StairFinalConfirmationReservationV2,
+        config: StairClimbingTaskConfig,
+    ) -> "StairFinalConfirmationResultV2":
+        mapping = _exact_mapping(
+            value,
+            {
+                "schema_version",
+                "plan_hash",
+                "reservation_hash",
+                "session_id",
+                "confirmation_namespace",
+                "seed_cohort_hash",
+                "generation_terminal_binding_hash",
+                "genesis",
+                "final",
+                "paired",
+                "single_use",
+                "information_flow",
+                "result_hash",
+            },
+            "Stair generation final confirmation result",
+        )
+        if (
+            mapping.get("schema_version")
+            != STAIR_FINAL_CONFIRMATION_RESULT_V2_SCHEMA_VERSION
+            or mapping.get("confirmation_namespace")
+            != STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE
+            or mapping.get("single_use") is not True
+            or dict(_mapping(mapping.get("information_flow"), "information_flow"))
+            != _INFORMATION_FLOW
+        ):
+            raise ValueError(
+                "Stair generation final confirmation result identity mismatch"
+            )
+        genesis = _exact_mapping(
+            mapping.get("genesis"),
+            {"phase_execution", "generalization_summary"},
+            "Stair generation final confirmation result genesis",
+        )
+        final = _exact_mapping(
+            mapping.get("final"),
+            {"phase_execution", "generalization_summary"},
+            "Stair generation final confirmation result final",
+        )
+        paired = _exact_mapping(
+            mapping.get("paired"),
+            {"seed_deltas", "mean", "standard_error"},
+            "Stair generation final confirmation result paired",
+        )
+        result = cls(
+            plan_hash=require_sha256_digest(mapping.get("plan_hash"), "plan_hash"),
+            reservation_hash=require_sha256_digest(
+                mapping.get("reservation_hash"), "reservation_hash"
+            ),
+            session_id=_text(mapping.get("session_id"), "session_id"),
+            seed_cohort_hash=require_sha256_digest(
+                mapping.get("seed_cohort_hash"), "seed_cohort_hash"
+            ),
+            generation_terminal_binding_hash=require_sha256_digest(
+                mapping.get("generation_terminal_binding_hash"),
+                "generation_terminal_binding_hash",
+            ),
+            genesis_execution=StairFinalConfirmationPhaseExecution.from_mapping(
+                genesis.get("phase_execution")
+            ),
+            final_execution=StairFinalConfirmationPhaseExecution.from_mapping(
+                final.get("phase_execution")
+            ),
+            genesis_summary=_json_mapping(
+                genesis.get("generalization_summary"), "genesis summary"
+            ),
+            final_summary=_json_mapping(
+                final.get("generalization_summary"), "final summary"
+            ),
+            paired_seed_deltas=tuple(
+                _number_sequence(paired.get("seed_deltas"), "paired seed_deltas")
+            ),
+            paired_mean=_finite_number(paired.get("mean"), "paired mean"),
+            paired_standard_error=_nonnegative_number(
+                paired.get("standard_error"), "paired standard_error"
+            ),
+            result_hash=require_sha256_digest(
+                mapping.get("result_hash"), "result_hash"
+            ),
+        )
+        _validate_generation_final_confirmation_result(
+            result,
+            plan=plan,
+            reservation=reservation,
+            config=config,
+        )
+        if dict(mapping) != result.to_dict():
+            raise ValueError(
+                "Stair generation final confirmation result projection mismatch"
+            )
+        return result
+
+    def to_dict(self) -> dict[str, Any]:
+        assert self.result_hash is not None
+        return {**self._hash_payload(), "result_hash": self.result_hash}
+
+    def _hash_payload(self) -> dict[str, Any]:
+        return {
+            "schema_version": STAIR_FINAL_CONFIRMATION_RESULT_V2_SCHEMA_VERSION,
+            "plan_hash": self.plan_hash,
+            "reservation_hash": self.reservation_hash,
+            "session_id": self.session_id,
+            "confirmation_namespace": STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
+            "seed_cohort_hash": self.seed_cohort_hash,
+            "generation_terminal_binding_hash": (
+                self.generation_terminal_binding_hash
+            ),
+            "genesis": {
+                "phase_execution": self.genesis_execution.to_dict(),
+                "generalization_summary": dict(self.genesis_summary),
+            },
+            "final": {
+                "phase_execution": self.final_execution.to_dict(),
+                "generalization_summary": dict(self.final_summary),
+            },
+            "paired": {
+                "seed_deltas": list(self.paired_seed_deltas),
+                "mean": self.paired_mean,
+                "standard_error": self.paired_standard_error,
+            },
+            "single_use": True,
+            "information_flow": dict(_INFORMATION_FLOW),
+        }
+
+
+def build_stair_generation_final_confirmation_result(
+    *,
+    plan: StairFinalConfirmationPlanV2,
+    reservation: StairFinalConfirmationReservationV2,
+    config: StairClimbingTaskConfig,
+    genesis_execution: StairFinalConfirmationPhaseExecution,
+    final_execution: StairFinalConfirmationPhaseExecution,
+    genesis_summary: Mapping[str, Any],
+    final_summary: Mapping[str, Any],
+) -> StairFinalConfirmationResultV2:
+    _require_generation_plan_reservation_binding(plan, reservation)
+    _require_generation_plan_config_binding(plan, config)
+    canonical_genesis = _canonical_confirmation_summary(config, genesis_summary)
+    canonical_final = _canonical_confirmation_summary(config, final_summary)
+    genesis_scores = _summary_seed_scores(
+        canonical_genesis,
+        plan.seed_count,
+        "genesis",
+    )
+    final_scores = _summary_seed_scores(canonical_final, plan.seed_count, "final")
+    deltas = tuple(
+        right - left
+        for left, right in zip(genesis_scores, final_scores, strict=True)
+    )
+    delta_std = statistics.stdev(deltas) if len(deltas) > 1 else 0.0
+    result = StairFinalConfirmationResultV2(
+        plan_hash=require_sha256_digest(plan.plan_hash, "plan_hash"),
+        reservation_hash=require_sha256_digest(
+            reservation.reservation_hash,
+            "reservation_hash",
+        ),
+        session_id=plan.session_id,
+        seed_cohort_hash=plan.seed_cohort_hash,
+        generation_terminal_binding_hash=canonical_json_hash(
+            reservation.terminal_binding
+        ),
+        genesis_execution=genesis_execution,
+        final_execution=final_execution,
+        genesis_summary=canonical_genesis,
+        final_summary=canonical_final,
+        paired_seed_deltas=deltas,
+        paired_mean=statistics.fmean(deltas),
+        paired_standard_error=delta_std / math.sqrt(len(deltas)),
+    )
+    _validate_generation_final_confirmation_result(
+        result,
+        plan=plan,
+        reservation=reservation,
+        config=config,
+    )
+    return result
 
 
 def build_stair_final_confirmation_result(
@@ -1079,6 +2091,73 @@ def load_stair_final_confirmation_result(
     )
 
 
+def write_stair_generation_final_confirmation_result(
+    *,
+    output_dir: Path,
+    result: StairFinalConfirmationResultV2,
+    plan: StairFinalConfirmationPlanV2,
+    reservation: StairFinalConfirmationReservationV2,
+    config: StairClimbingTaskConfig,
+) -> Path:
+    verified = StairFinalConfirmationResultV2.from_mapping(
+        result.to_dict(),
+        plan=plan,
+        reservation=reservation,
+        config=config,
+    )
+    output_dir = output_dir.resolve()
+    stored_plan = load_stair_generation_final_confirmation_plan(
+        stair_final_confirmation_plan_path(output_dir),
+        expected_session_id=plan.session_id,
+        expected_config=config,
+    )
+    stored_reservation = load_stair_generation_final_confirmation_reservation(
+        stair_final_confirmation_reservation_path(output_dir),
+        expected_plan=stored_plan,
+    )
+    if stored_plan != plan or stored_reservation != reservation:
+        raise ValueError(
+            "Stair generation final confirmation stored binding differs"
+        )
+    path = stair_final_confirmation_result_path(output_dir)
+    _atomic_create_json(
+        path,
+        verified.to_dict(),
+        max_bytes=MAX_STAIR_FINAL_CONFIRMATION_RESULT_BYTES,
+        artifact_name="Stair generation final confirmation result",
+    )
+    loaded = load_stair_generation_final_confirmation_result(
+        path,
+        plan=plan,
+        reservation=reservation,
+        config=config,
+    )
+    if loaded != verified:
+        raise RuntimeError(
+            "Stair generation final confirmation result write verification failed"
+        )
+    return path
+
+
+def load_stair_generation_final_confirmation_result(
+    path: Path,
+    *,
+    plan: StairFinalConfirmationPlanV2,
+    reservation: StairFinalConfirmationReservationV2,
+    config: StairClimbingTaskConfig,
+) -> StairFinalConfirmationResultV2:
+    return StairFinalConfirmationResultV2.from_mapping(
+        _load_bounded_canonical_json_object(
+            path,
+            context="Stair generation final confirmation result",
+            max_bytes=MAX_STAIR_FINAL_CONFIRMATION_RESULT_BYTES,
+        ),
+        plan=plan,
+        reservation=reservation,
+        config=config,
+    )
+
+
 def stair_final_confirmation_plan_path(output_dir: Path) -> Path:
     return output_dir / STAIR_FINAL_CONFIRMATION_DIRNAME / STAIR_FINAL_CONFIRMATION_PLAN_FILENAME
 
@@ -1160,6 +2239,200 @@ def _require_plan_reservation_binding(
         or reservation.session_id != plan.session_id
     ):
         raise ValueError("Stair final confirmation reservation plan binding mismatch")
+
+
+def _generation_terminal_binding_from_mapping(
+    value: Any,
+) -> GenerationTerminalBinding:
+    mapping = _exact_mapping(
+        value,
+        {
+            "schema_version",
+            "identity_hash",
+            "required_generation_count",
+            "closed_generation_count",
+            "ledger_snapshot_hash",
+            "current_head_hash",
+            "lifecycle_head_hash",
+            "cost_chain_head_hash",
+            "segment_count",
+            "acceptance_authority",
+        },
+        "generation terminal binding",
+    )
+    if (
+        mapping.get("schema_version")
+        != "true_rl_agent.generation_terminal_binding.v1"
+        or mapping.get("acceptance_authority") is not False
+    ):
+        raise ValueError("generation terminal binding identity mismatch")
+    terminal = GenerationTerminalBinding(
+        identity_hash=require_sha256_digest(
+            mapping.get("identity_hash"), "terminal identity_hash"
+        ),
+        required_generation_count=_positive_int(
+            mapping.get("required_generation_count"),
+            "terminal required_generation_count",
+        ),
+        closed_generation_count=_positive_int(
+            mapping.get("closed_generation_count"),
+            "terminal closed_generation_count",
+        ),
+        ledger_snapshot_hash=require_sha256_digest(
+            mapping.get("ledger_snapshot_hash"), "terminal ledger_snapshot_hash"
+        ),
+        current_head_hash=require_sha256_digest(
+            mapping.get("current_head_hash"), "terminal current_head_hash"
+        ),
+        lifecycle_head_hash=require_sha256_digest(
+            mapping.get("lifecycle_head_hash"), "terminal lifecycle_head_hash"
+        ),
+        cost_chain_head_hash=require_sha256_digest(
+            mapping.get("cost_chain_head_hash"), "terminal cost_chain_head_hash"
+        ),
+        segment_count=_positive_int(
+            mapping.get("segment_count"), "terminal segment_count"
+        ),
+    )
+    if dict(mapping) != terminal.to_dict():
+        raise ValueError("generation terminal binding projection mismatch")
+    return terminal
+
+
+def _require_generation_plan_reservation_binding(
+    plan: StairFinalConfirmationPlanV2,
+    reservation: StairFinalConfirmationReservationV2,
+) -> None:
+    if not isinstance(plan, StairFinalConfirmationPlanV2):
+        raise TypeError("generation final confirmation requires a v2 plan")
+    if not isinstance(reservation, StairFinalConfirmationReservationV2):
+        raise TypeError("generation final confirmation requires a v2 reservation")
+    if (
+        reservation.plan_hash != plan.plan_hash
+        or reservation.session_id != plan.session_id
+    ):
+        raise ValueError(
+            "Stair generation final confirmation reservation plan binding mismatch"
+        )
+
+
+def _require_generation_plan_config_binding(
+    plan: StairFinalConfirmationPlanV2,
+    config: StairClimbingTaskConfig,
+) -> None:
+    if not isinstance(config, StairClimbingTaskConfig):
+        raise TypeError(
+            "Stair generation final confirmation requires StairClimbingTaskConfig"
+        )
+    expected = build_stair_generation_final_confirmation_plan(
+        session_id=plan.session_id,
+        config=config,
+    )
+    if expected != plan:
+        raise ValueError(
+            "Stair generation final confirmation plan differs from task config"
+        )
+
+
+def _validate_generation_final_confirmation_result(
+    result: StairFinalConfirmationResultV2,
+    *,
+    plan: StairFinalConfirmationPlanV2,
+    reservation: StairFinalConfirmationReservationV2,
+    config: StairClimbingTaskConfig,
+) -> None:
+    if not isinstance(result, StairFinalConfirmationResultV2):
+        raise TypeError("Stair generation final confirmation result is invalid")
+    _require_generation_plan_reservation_binding(plan, reservation)
+    _require_generation_plan_config_binding(plan, config)
+    terminal_hash = canonical_json_hash(reservation.terminal_binding)
+    if (
+        result.plan_hash != plan.plan_hash
+        or result.reservation_hash != reservation.reservation_hash
+        or result.session_id != plan.session_id
+        or result.seed_cohort_hash != plan.seed_cohort_hash
+        or result.generation_terminal_binding_hash != terminal_hash
+    ):
+        raise ValueError("Stair generation final confirmation result binding mismatch")
+    role_expectations = (
+        (
+            result.genesis_execution,
+            "genesis",
+            reservation.genesis_job_id,
+            reservation.genesis_eval_phase_spec_hash,
+            reservation.genesis_evaluation_plan_hash,
+            reservation.genesis_checkpoint_hash,
+            result.genesis_summary,
+        ),
+        (
+            result.final_execution,
+            "final",
+            reservation.final_job_id,
+            reservation.final_eval_phase_spec_hash,
+            reservation.final_evaluation_plan_hash,
+            reservation.final_checkpoint_hash,
+            result.final_summary,
+        ),
+    )
+    for (
+        execution,
+        role,
+        job_id,
+        phase_spec_hash,
+        evaluation_plan_hash,
+        checkpoint_hash,
+        summary,
+    ) in role_expectations:
+        canonical_summary = _canonical_confirmation_summary(config, summary)
+        if (
+            execution.role != role
+            or execution.job_id != job_id
+            or execution.eval_phase_spec_hash != phase_spec_hash
+            or execution.evaluation_plan_hash != evaluation_plan_hash
+            or execution.checkpoint_hash != checkpoint_hash
+            or execution.resource_binding_hash
+            != reservation.gpu_process_binding.resource_binding_hash
+            or execution.generalization_summary_hash
+            != canonical_json_hash(canonical_summary)
+        ):
+            raise ValueError(
+                f"Stair generation final confirmation {role} execution binding mismatch"
+            )
+    genesis_scores = _summary_seed_scores(
+        result.genesis_summary,
+        plan.seed_count,
+        "genesis",
+    )
+    final_scores = _summary_seed_scores(
+        result.final_summary,
+        plan.seed_count,
+        "final",
+    )
+    expected_deltas = tuple(
+        right - left
+        for left, right in zip(genesis_scores, final_scores, strict=True)
+    )
+    expected_std = (
+        statistics.stdev(expected_deltas) if len(expected_deltas) > 1 else 0.0
+    )
+    if (
+        result.paired_seed_deltas != expected_deltas
+        or not math.isclose(
+            result.paired_mean,
+            statistics.fmean(expected_deltas),
+            rel_tol=0.0,
+            abs_tol=1.0e-12,
+        )
+        or not math.isclose(
+            result.paired_standard_error,
+            expected_std / math.sqrt(len(expected_deltas)),
+            rel_tol=0.0,
+            abs_tol=1.0e-12,
+        )
+    ):
+        raise ValueError(
+            "Stair generation final confirmation paired statistics mismatch"
+        )
 
 
 def _require_plan_config_binding(
@@ -1274,22 +2547,41 @@ __all__ = [
     "MAX_STAIR_FINAL_CONFIRMATION_RESULT_BYTES",
     "STAIR_FINAL_CONFIRMATION_PLAN_FILENAME",
     "STAIR_FINAL_CONFIRMATION_PLAN_SCHEMA_VERSION",
+    "STAIR_FINAL_CONFIRMATION_PLAN_V2_SCHEMA_VERSION",
+    "STAIR_FINAL_CONFIRMATION_FORMAL_SESSION_MODE",
+    "STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS",
     "STAIR_FINAL_CONFIRMATION_REQUIRED_ROUNDS",
     "STAIR_FINAL_CONFIRMATION_RESERVATION_FILENAME",
+    "STAIR_FINAL_CONFIRMATION_RESERVATION_V2_SCHEMA_VERSION",
     "STAIR_FINAL_CONFIRMATION_RESULT_FILENAME",
+    "STAIR_GENERATION_REPORT_FILENAME",
+    "STAIR_FINAL_CONFIRMATION_RESULT_V2_SCHEMA_VERSION",
+    "STAIR_FINAL_CONFIRMATION_PHASE_EXECUTION_SCHEMA_VERSION",
     "STAIR_FINAL_CONFIRMATION_SPLIT",
     "StairFinalConfirmationPlan",
+    "StairFinalConfirmationPlanV2",
     "StairFinalConfirmationReservation",
+    "StairFinalConfirmationReservationV2",
     "StairFinalConfirmationResult",
+    "StairFinalConfirmationPhaseExecution",
+    "StairFinalConfirmationResultV2",
     "build_stair_final_confirmation_plan",
+    "build_stair_generation_final_confirmation_plan",
     "build_stair_final_confirmation_result",
+    "build_stair_generation_final_confirmation_result",
     "create_stair_final_confirmation_plan",
+    "create_stair_generation_final_confirmation_plan",
     "create_stair_final_confirmation_reservation",
+    "create_stair_generation_final_confirmation_reservation",
     "load_stair_final_confirmation_plan",
+    "load_stair_generation_final_confirmation_plan",
     "load_stair_final_confirmation_reservation",
+    "load_stair_generation_final_confirmation_reservation",
     "load_stair_final_confirmation_result",
+    "load_stair_generation_final_confirmation_result",
     "stair_final_confirmation_plan_path",
     "stair_final_confirmation_reservation_path",
     "stair_final_confirmation_result_path",
     "write_stair_final_confirmation_result",
+    "write_stair_generation_final_confirmation_result",
 ]

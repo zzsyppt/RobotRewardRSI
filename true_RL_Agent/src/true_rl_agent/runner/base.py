@@ -212,7 +212,9 @@ class TrainJobResult:
                 self.initial_policy_state_pairing.to_public_dict()
             )
         if self.gpu_process_binding is not None:
-            result["gpu_process_binding"] = self.gpu_process_binding.to_dict()
+            result["gpu_process_binding"] = (
+                self.gpu_process_binding.to_public_dict()
+            )
         return result
 
 

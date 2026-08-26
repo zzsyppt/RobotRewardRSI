@@ -8,7 +8,6 @@ generation ledger and its replay validators.
 from __future__ import annotations
 
 import ctypes
-import hashlib
 import os
 import re
 import uuid
@@ -27,6 +26,10 @@ from true_rl_agent.evaluation.acceptance_protocol import AcceptanceProtocol
 from true_rl_agent.evaluation.acceptance_replay import replay_acceptance_ledger
 from true_rl_agent.evaluation.binding import canonical_json_hash, require_sha256_digest
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
+from true_rl_agent.evaluation.public_projection import (
+    assert_public_projection_safe,
+    project_public_runner_error,
+)
 from true_rl_agent.fs_contract import create_once_bytes, read_bounded_regular_file
 from true_rl_agent.json_contract import canonical_json_bytes, strict_json_object_loads
 from true_rl_agent.runner.job_attempts import (
@@ -38,11 +41,17 @@ from true_rl_agent.runner.job_attempts import (
 GENERATION_CONTINUATION_POLICY_SCHEMA_VERSION = (
     "true_rl_agent.generation_continuation_policy.v1"
 )
+GENERATION_CONTINUATION_POLICY_V2_SCHEMA_VERSION = (
+    "true_rl_agent.generation_continuation_policy.v2"
+)
 GENERATION_SEGMENT_START_SCHEMA_VERSION = (
     "true_rl_agent.generation_segment.start.v2"
 )
-GENERATION_SEGMENT_EXIT_SCHEMA_VERSION = (
+LEGACY_GENERATION_SEGMENT_EXIT_SCHEMA_VERSION = (
     "true_rl_agent.generation_segment.exit.v1"
+)
+GENERATION_SEGMENT_EXIT_SCHEMA_VERSION = (
+    "true_rl_agent.generation_segment.exit.v2"
 )
 GENERATION_UNCLEAN_RECOVERY_SCHEMA_VERSION = (
     "true_rl_agent.generation_segment.unclean_recovery.v2"
@@ -51,6 +60,8 @@ GENERATION_CONTINUATION_POLICY_FILENAME = "generation_continuation_policy.json"
 _MAX_RECEIPT_BYTES = 128 * 1024
 _MAX_POLICY_BYTES = 64 * 1024
 _MAX_SEGMENTS = 32
+_MAX_EXCEPTION_TYPE_CHARS = 128
+_MAX_EXCEPTION_MESSAGE_CHARS = 512
 _SEGMENT_DIR_PATTERN = re.compile(r"segment-(?P<index>[0-9]{4})-(?P<id>[0-9a-f]{32})\Z")
 _EXIT_STATUSES = frozenset({"completed", "paused", "failed"})
 _EXIT_REASONS = frozenset(
@@ -72,10 +83,14 @@ class GenerationContinuationPolicy:
     allow_unclean_recovery: bool = True
     max_logical_job_infrastructure_retries: int = 1
     exclusive_session_lease: bool = True
+    operator_pause_generation_boundaries: tuple[int, ...] = ()
     schema_version: str = GENERATION_CONTINUATION_POLICY_SCHEMA_VERSION
 
     def __post_init__(self) -> None:
-        if self.schema_version != GENERATION_CONTINUATION_POLICY_SCHEMA_VERSION:
+        if self.schema_version not in {
+            GENERATION_CONTINUATION_POLICY_SCHEMA_VERSION,
+            GENERATION_CONTINUATION_POLICY_V2_SCHEMA_VERSION,
+        }:
             raise ValueError("generation continuation policy schema mismatch")
         if (
             isinstance(self.max_segments, bool)
@@ -97,13 +112,38 @@ class GenerationContinuationPolicy:
         ):
             raise ValueError("generation continuation reasons are invalid")
         object.__setattr__(self, "allowed_continuation_reasons", reasons)
+        boundaries = tuple(self.operator_pause_generation_boundaries)
+        if self.schema_version == GENERATION_CONTINUATION_POLICY_SCHEMA_VERSION:
+            if boundaries:
+                raise ValueError(
+                    "generation continuation v1 cannot declare pause boundaries"
+                )
+        elif (
+            not boundaries
+            or tuple(sorted(set(boundaries))) != boundaries
+            or any(
+                isinstance(boundary, bool)
+                or not isinstance(boundary, int)
+                or boundary <= 0
+                for boundary in boundaries
+            )
+            or "operator_pause" not in reasons
+        ):
+            raise ValueError(
+                "generation continuation v2 pause boundaries are invalid"
+            )
+        object.__setattr__(
+            self,
+            "operator_pause_generation_boundaries",
+            boundaries,
+        )
 
     @property
     def policy_hash(self) -> str:
         return canonical_json_hash(self.to_dict())
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        result = {
             "schema_version": self.schema_version,
             "max_segments": self.max_segments,
             "allowed_continuation_reasons": list(
@@ -115,19 +155,30 @@ class GenerationContinuationPolicy:
             ),
             "exclusive_session_lease": self.exclusive_session_lease,
         }
+        if self.schema_version == GENERATION_CONTINUATION_POLICY_V2_SCHEMA_VERSION:
+            result["operator_pause_generation_boundaries"] = list(
+                self.operator_pause_generation_boundaries
+            )
+        return result
 
     @classmethod
     def from_mapping(cls, value: Any) -> "GenerationContinuationPolicy":
+        if not isinstance(value, Mapping):
+            raise ValueError("generation continuation policy must be a mapping")
+        schema_version = value.get("schema_version")
+        fields = {
+            "schema_version",
+            "max_segments",
+            "allowed_continuation_reasons",
+            "allow_unclean_recovery",
+            "max_logical_job_infrastructure_retries",
+            "exclusive_session_lease",
+        }
+        if schema_version == GENERATION_CONTINUATION_POLICY_V2_SCHEMA_VERSION:
+            fields.add("operator_pause_generation_boundaries")
         mapping = _exact_mapping(
             value,
-            {
-                "schema_version",
-                "max_segments",
-                "allowed_continuation_reasons",
-                "allow_unclean_recovery",
-                "max_logical_job_infrastructure_retries",
-                "exclusive_session_lease",
-            },
+            fields,
             "generation continuation policy",
         )
         reasons = mapping["allowed_continuation_reasons"]
@@ -142,6 +193,9 @@ class GenerationContinuationPolicy:
                 "max_logical_job_infrastructure_retries"
             ],
             exclusive_session_lease=mapping["exclusive_session_lease"],
+            operator_pause_generation_boundaries=tuple(
+                mapping.get("operator_pause_generation_boundaries", ())
+            ),
         )
 
 
@@ -217,6 +271,7 @@ class GenerationLifecycleAudit:
     terminal: bool
     continuation_eligible: bool
     receipt_hashes: tuple[str, ...]
+    recovery_cost_edges: tuple[tuple[str, str, str], ...]
 
 
 @dataclass(frozen=True)
@@ -478,6 +533,7 @@ class GenerationSegmentJournal:
         closed_generation_count: int,
         cost_chain_head_hash: str,
         unclosed_attempt_reservations: Sequence[Path] = (),
+        exception: BaseException | None = None,
     ) -> Path:
         try:
             self._lease.assert_owned()
@@ -487,12 +543,27 @@ class GenerationSegmentJournal:
                 raise ValueError("completed generation segment must exit normally")
             if status != "completed" and reason == "normal":
                 raise ValueError("non-completed generation segment cannot exit normally")
+            if (reason == "exception") != (exception is not None):
+                raise ValueError(
+                    "generation segment exception detail does not match exit reason"
+                )
+            exception_type, exception_message = _project_exit_exception(exception)
             _require_nonnegative_int(
                 closed_generation_count,
                 "generation segment exit ledger height",
             )
             if closed_generation_count < self.start_record["generations_at_start"]:
                 raise ValueError("generation segment ledger height regressed")
+            if (
+                reason == "operator_pause"
+                and self.policy.schema_version
+                == GENERATION_CONTINUATION_POLICY_V2_SCHEMA_VERSION
+                and closed_generation_count
+                not in self.policy.operator_pause_generation_boundaries
+            ):
+                raise ValueError(
+                    "generation segment pause is not at a precommitted boundary"
+                )
             require_sha256_digest(
                 cost_chain_head_hash,
                 "generation segment exit cost chain head",
@@ -516,6 +587,8 @@ class GenerationSegmentJournal:
                 "start_receipt_hash": self.start_hash,
                 "status": status,
                 "reason": reason,
+                "exception_type": exception_type,
+                "exception_message": exception_message,
                 "exited_at_utc": _utc_now(),
                 "generations_at_end": closed_generation_count,
                 "unclosed_attempt_reservations": refs,
@@ -553,6 +626,17 @@ def publish_generation_continuation_policy(
     if len(payload) > _MAX_POLICY_BYTES:
         raise ValueError("generation continuation policy exceeds its byte limit")
     path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists() or path.is_symlink():
+        existing = read_bounded_regular_file(
+            path,
+            max_bytes=_MAX_POLICY_BYTES,
+            label="generation continuation policy",
+        )
+        if existing != payload:
+            raise FileExistsError(
+                "generation continuation policy already exists with different bytes"
+            )
+        return path
     try:
         create_once_bytes(path, payload)
     except FileExistsError:
@@ -584,8 +668,14 @@ def audit_generation_lifecycle(
     identity: GenerationLifecycleIdentity,
     policy: GenerationContinuationPolicy,
     require_closed: bool,
+    require_recovery_attempt_results: bool = True,
 ) -> GenerationLifecycleAudit:
-    """Verify the complete retained lifecycle chain without trusting a cache."""
+    """Verify the complete retained lifecycle chain without trusting a cache.
+
+    Recovery attempt results are required by default.  The sole relaxed use is
+    the pre-start inspection performed before the session lease can reconcile a
+    recovery receipt whose result publication was interrupted.
+    """
 
     output_root = Path(output_dir).resolve(strict=False)
     if str(output_root) != identity.output_root:
@@ -599,6 +689,7 @@ def audit_generation_lifecycle(
     generation_height = 0
     active_segment_id: str | None = None
     receipt_hashes: list[str] = []
+    recovery_cost_edges: list[tuple[str, str, str]] = []
     used_recovery_starts: set[str] = set()
     continuation_eligible = not segment_dirs
     for expected_index, segment_dir in enumerate(segment_dirs):
@@ -673,9 +764,17 @@ def audit_generation_lifecycle(
             start_hash=start_hash,
             identity=identity,
             policy=policy,
+            require_attempt_results=require_recovery_attempt_results,
         )
         recovery_hash = canonical_json_hash(recovery)
         receipt_hashes.append(recovery_hash)
+        recovery_cost_edges.append(
+            (
+                start["cost_chain_head_hash"],
+                recovery["cost_chain_head_hash_before_recovery"],
+                recovery["cost_chain_head_hash_after_recovery"],
+            )
+        )
         used_recovery_starts.add(start_hash)
         previous_hash = recovery_hash
         generation_height = recovery["generations_at_recovery"]
@@ -703,6 +802,7 @@ def audit_generation_lifecycle(
         terminal=terminal,
         continuation_eligible=continuation_eligible,
         receipt_hashes=tuple(receipt_hashes),
+        recovery_cost_edges=tuple(recovery_cost_edges),
     )
 
 
@@ -1153,29 +1253,39 @@ def _validate_exit(
     identity: GenerationLifecycleIdentity,
     policy: GenerationContinuationPolicy,
 ) -> None:
+    schema_version = value.get("schema_version") if isinstance(value, Mapping) else None
+    common_fields = {
+        "schema_version",
+        "identity",
+        "continuation_policy_hash",
+        "segment_id",
+        "continuation_index",
+        "start_receipt_hash",
+        "status",
+        "reason",
+        "exited_at_utc",
+        "generations_at_end",
+        "unclosed_attempt_reservations",
+        "cost_chain_head_hash",
+        "continuation_eligible",
+        "ledger_authority",
+    }
+    if schema_version == LEGACY_GENERATION_SEGMENT_EXIT_SCHEMA_VERSION:
+        expected_fields = common_fields
+    elif schema_version == GENERATION_SEGMENT_EXIT_SCHEMA_VERSION:
+        expected_fields = common_fields | {
+            "exception_type",
+            "exception_message",
+        }
+    else:
+        raise ValueError("generation segment exit schema mismatch")
     mapping = _exact_mapping(
         value,
-        {
-            "schema_version",
-            "identity",
-            "continuation_policy_hash",
-            "segment_id",
-            "continuation_index",
-            "start_receipt_hash",
-            "status",
-            "reason",
-            "exited_at_utc",
-            "generations_at_end",
-            "unclosed_attempt_reservations",
-            "cost_chain_head_hash",
-            "continuation_eligible",
-            "ledger_authority",
-        },
+        expected_fields,
         "generation segment exit",
     )
     if (
-        mapping["schema_version"] != GENERATION_SEGMENT_EXIT_SCHEMA_VERSION
-        or mapping["ledger_authority"] is not False
+        mapping["ledger_authority"] is not False
         or GenerationLifecycleIdentity.from_mapping(mapping["identity"]) != identity
         or mapping["continuation_policy_hash"] != policy.policy_hash
         or mapping["segment_id"] != start["segment_id"]
@@ -1196,8 +1306,42 @@ def _validate_exit(
         raise ValueError("generation segment continuation eligibility mismatch")
     if (mapping["status"] == "completed") != (mapping["reason"] == "normal"):
         raise ValueError("generation segment completion reason mismatch")
+    if schema_version == GENERATION_SEGMENT_EXIT_SCHEMA_VERSION:
+        exception_type = mapping["exception_type"]
+        exception_message = mapping["exception_message"]
+        if mapping["reason"] == "exception":
+            if (
+                not isinstance(exception_type, str)
+                or not exception_type
+                or len(exception_type) > _MAX_EXCEPTION_TYPE_CHARS
+                or not isinstance(exception_message, str)
+                or len(exception_message) > _MAX_EXCEPTION_MESSAGE_CHARS
+            ):
+                raise ValueError("generation segment exception detail is invalid")
+            assert_public_projection_safe(
+                {"type": exception_type, "message": exception_message}
+            )
+        elif exception_type is not None or exception_message is not None:
+            raise ValueError(
+                "generation segment non-exception exit has exception detail"
+            )
     require_sha256_digest(mapping["cost_chain_head_hash"], "segment exit cost head")
     _timestamp(mapping["exited_at_utc"], "segment exited_at_utc")
+
+
+def _project_exit_exception(
+    exception: BaseException | None,
+) -> tuple[str | None, str | None]:
+    if exception is None:
+        return None, None
+    if not isinstance(exception, BaseException):
+        raise TypeError("generation segment exception must be a BaseException")
+    projection = project_public_runner_error(exception)
+    exception_type = str(projection["type"])[:_MAX_EXCEPTION_TYPE_CHARS]
+    exception_message = " ".join(str(projection["message"]).split())[
+        :_MAX_EXCEPTION_MESSAGE_CHARS
+    ]
+    return exception_type, exception_message
 
 
 def _validate_recovery(
@@ -1592,9 +1736,11 @@ def _process_group_is_alive(process_group_id: int) -> bool:
 __all__ = [
     "GENERATION_CONTINUATION_POLICY_FILENAME",
     "GENERATION_CONTINUATION_POLICY_SCHEMA_VERSION",
+    "GENERATION_CONTINUATION_POLICY_V2_SCHEMA_VERSION",
     "GENERATION_SEGMENT_EXIT_SCHEMA_VERSION",
     "GENERATION_SEGMENT_START_SCHEMA_VERSION",
     "GENERATION_UNCLEAN_RECOVERY_SCHEMA_VERSION",
+    "LEGACY_GENERATION_SEGMENT_EXIT_SCHEMA_VERSION",
     "GenerationContinuationPolicy",
     "GenerationContinuationCursor",
     "GenerationLifecycleAudit",

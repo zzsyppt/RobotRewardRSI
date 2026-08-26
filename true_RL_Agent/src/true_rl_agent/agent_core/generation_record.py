@@ -9,6 +9,7 @@ from typing import Any
 from true_rl_agent.agent_core.generation_contract import (
     GENERATION_LANE_IDS,
     GENERATION_LEDGER_RECORD_SCHEMA_VERSION,
+    GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION,
     GENERATION_WIDTH,
     GenerationLaneAssignment,
     GenerationManifest,
@@ -18,7 +19,7 @@ from true_rl_agent.agent_core.generation_contract import (
 from true_rl_agent.agent_core.generation_receipts import (
     GenerationReceiptJournal,
     GenerationReceiptRef,
-    load_generation_manifest_receipt,
+    load_generation_manifest_from_receipt,
     load_generation_selection_receipt,
 )
 from true_rl_agent.agent_core.public_safety import sanitize_prompt_public_value
@@ -30,6 +31,7 @@ from true_rl_agent.agent_core.ledger import (
 )
 from true_rl_agent.agent_core.trial_receipts import (
     LoadedTrialEvalPhaseReceipt,
+    LoadedTrialTrainReceipt,
     TrialReceiptRef,
     load_trial_eval_phase_receipt,
     load_trial_execution_receipt,
@@ -64,9 +66,6 @@ GENERATION_PHASE_PROJECTION_SCHEMA_VERSION = (
 )
 GENERATION_FORMAL_PROJECTION_SCHEMA_VERSION = (
     "true_rl_agent.generation_formal_projection.v1"
-)
-GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION = (
-    "true_rl_agent.generation_public_history_projection.v2"
 )
 GENERATION_OUTCOMES = frozenset(
     {
@@ -149,6 +148,36 @@ _PHASE_FIELDS = {
 }
 
 
+def _load_bound_generation_manifest(
+    record: Mapping[str, Any],
+) -> tuple[GenerationManifest, GenerationReceiptRef]:
+    checksum = require_sha256_checksum(
+        record.get("manifest_receipt_checksum"),
+        "generation manifest receipt checksum",
+    )
+    manifest_ref = _find_private_generation_receipt(
+        record.get("private_artifacts"),
+        artifact_kind="generation_manifest_receipt",
+        receipt_kind="manifest",
+        checksum=checksum,
+    )
+    manifest = load_generation_manifest_from_receipt(manifest_ref)
+    if record.get("manifest") != manifest.to_public_dict():
+        raise ValueError("generation manifest public projection mismatch")
+    return manifest, manifest_ref
+
+
+def load_bound_generation_manifest(
+    record: Mapping[str, Any],
+) -> GenerationManifest:
+    """Load the private manifest exactly bound by a public generation record."""
+
+    if not isinstance(record, Mapping):
+        raise ValueError("generation ledger record must be an object")
+    manifest, _ref = _load_bound_generation_manifest(record)
+    return manifest
+
+
 def validate_generation_ledger_record(
     record: Mapping[str, Any],
     *,
@@ -189,7 +218,7 @@ def validate_generation_ledger_record(
         )
     ):
         raise ValueError("generation session contract changed within the ledger")
-    manifest = GenerationManifest.from_mapping(record.get("manifest"))
+    manifest, manifest_ref = _load_bound_generation_manifest(record)
     if (
         manifest.generation_id != generation_id
         or manifest.generation_index != generation_index
@@ -198,17 +227,6 @@ def validate_generation_ledger_record(
         or manifest.generation_session_contract_hash != session_contract_hash
     ):
         raise ValueError("generation record/manifest identity mismatch")
-    require_sha256_checksum(
-        record.get("manifest_receipt_checksum"),
-        "generation manifest receipt checksum",
-    )
-    manifest_ref = _find_private_generation_receipt(
-        record.get("private_artifacts"),
-        artifact_kind="generation_manifest_receipt",
-        receipt_kind="manifest",
-        checksum=record.get("manifest_receipt_checksum"),
-    )
-    load_generation_manifest_receipt(manifest_ref, manifest=manifest)
     journal = GenerationReceiptJournal(
         Path(manifest_ref.path).resolve(strict=False).parent.parent,
         manifest=manifest,
@@ -415,7 +433,7 @@ def validate_generation_ledger_record(
     _validate_private_artifacts(record.get("private_artifacts"))
     assert_public_projection_safe(
         {
-            "manifest": manifest.to_dict(),
+            "manifest": manifest.to_public_dict(),
             "parent_current_best": parent.to_public_dict(),
             "trials": trials,
             "selection": selection,
@@ -446,7 +464,7 @@ def project_generation_formal_round_record(
     trials = [_validate_trial(item) for item in record["trials"]]
     return _load_and_validate_formal(
         formal,
-        manifest=GenerationManifest.from_mapping(record.get("manifest")),
+        manifest=load_bound_generation_manifest(record),
         private_artifacts=record.get("private_artifacts"),
         selected_trial_id=record["selection"]["selected_trial_id"],
         trials=trials,
@@ -501,7 +519,7 @@ def project_generation_public_history_record(
         )
         loaded_selection = load_generation_selection_receipt(
             selection_ref,
-            manifest=GenerationManifest.from_mapping(record["manifest"]),
+            manifest=load_bound_generation_manifest(record),
         )
         guard_reference = _public_copy(loaded_selection.guard_reference)
     generation_summary = {
@@ -664,7 +682,7 @@ def load_bound_generation_trial_phase_receipt(
     ]
     if len(matches) != 1:
         raise ValueError("generation phase trial is not uniquely identified")
-    manifest = GenerationManifest.from_mapping(record.get("manifest"))
+    manifest = load_bound_generation_manifest(record)
     assignments = {item.lane_id: item for item in manifest.lanes}
     assignment = assignments[matches[0]["lane_id"]]
     return _load_bound_phase_projection(
@@ -673,6 +691,44 @@ def load_bound_generation_trial_phase_receipt(
         phase=phase,
         private_artifacts=record.get("private_artifacts"),
     )
+
+
+def load_bound_generation_trial_train_receipt(
+    record: Mapping[str, Any],
+    *,
+    trial_id: str,
+) -> LoadedTrialTrainReceipt:
+    """Reload one trial train result exactly bound by a generation record.
+
+    The helper owns only the generic generation/private-receipt boundary. A
+    caller that gives the result task-specific meaning must first replay and
+    validate the generation chain that selected the trial.
+    """
+
+    if not isinstance(record, Mapping) or set(record) != _GENERATION_FIELDS:
+        raise ValueError("generation ledger record fields mismatch")
+    if not isinstance(trial_id, str) or not trial_id:
+        raise ValueError("generation trial_id is required")
+    raw_trials = record.get("trials")
+    if not isinstance(raw_trials, list):
+        raise ValueError("generation trials are invalid")
+    matches = [
+        _validate_trial(item)
+        for item in raw_trials
+        if isinstance(item, Mapping) and item.get("trial_id") == trial_id
+    ]
+    if len(matches) != 1:
+        raise ValueError("generation train trial is not uniquely identified")
+    manifest = load_bound_generation_manifest(record)
+    assignments = {item.lane_id: item for item in manifest.lanes}
+    loaded = _load_bound_train_projection(
+        matches[0],
+        assignment=assignments[matches[0]["lane_id"]],
+        private_artifacts=record.get("private_artifacts"),
+    )
+    if loaded is None:
+        raise ValueError("generation train projection is missing")
+    return loaded
 
 
 def _validate_trial(value: Any) -> dict[str, Any]:
@@ -917,10 +973,10 @@ def _load_bound_train_projection(
     *,
     assignment: GenerationLaneAssignment,
     private_artifacts: Any,
-) -> None:
+) -> LoadedTrialTrainReceipt | None:
     projection = trial.get("train")
     if projection is None:
-        return
+        return None
     ref = _find_private_trial_receipt(
         private_artifacts,
         artifact_kind=f"{trial['lane_id']}_train_receipt",
@@ -931,6 +987,8 @@ def _load_bound_train_projection(
     result = loaded.result
     if (
         canonical_json_hash(loaded.contract) != trial.get("trial_contract_hash")
+        or loaded.contract.get("mechanism_operation_delta")
+        != trial.get("mechanism_operation_delta")
         or loaded.job_spec_hash != projection.get("job_spec_hash")
         or canonical_json_hash(result.to_public_dict())
         != projection.get("train_result_hash")
@@ -944,6 +1002,7 @@ def _load_bound_train_projection(
         )
     ):
         raise ValueError("generation train projection/receipt binding mismatch")
+    return loaded
 
 
 def _load_bound_phase_projection(
@@ -1227,6 +1286,7 @@ def _validate_selection_receipt_bindings(
         if trial is None or trial_id != trial["trial_id"]:
             raise ValueError("generation selection screen names an unknown trial")
         public_dev = trial.get("public_dev")
+        train = trial.get("train")
         if not isinstance(public_dev, Mapping):
             raise ValueError("generation selection screen has no public-dev receipt")
         for field_name in (
@@ -1240,6 +1300,14 @@ def _validate_selection_receipt_bindings(
                 raise ValueError(
                     f"generation selection screen {field_name} binding mismatch"
                 )
+        if "train_receipt_checksum" in screen and (
+            not isinstance(train, Mapping)
+            or screen.get("train_receipt_checksum")
+            != train.get("train_receipt_checksum")
+        ):
+            raise ValueError(
+                "generation selection screen train receipt binding mismatch"
+            )
 
 
 def _validate_status_relationships(
@@ -1359,7 +1427,9 @@ __all__ = [
     "GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION",
     "GENERATION_TRIAL_RECORD_SCHEMA_VERSION",
     "commit_generation_record",
+    "load_bound_generation_manifest",
     "load_bound_generation_trial_phase_receipt",
+    "load_bound_generation_trial_train_receipt",
     "project_generation_formal_round_record",
     "project_generation_public_history_record",
     "validate_generation_ledger_record",

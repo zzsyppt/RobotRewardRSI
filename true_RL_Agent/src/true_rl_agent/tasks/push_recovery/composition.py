@@ -16,6 +16,10 @@ from true_rl_agent.composition.base import (
     TaskCompositionContext,
     TaskCompositionProvider,
 )
+from true_rl_agent.composition.cell_manifest import (
+    ResolvedCellManifestV1,
+    materialize_resolved_cell_manifest,
+)
 from true_rl_agent.evaluation.binding import EvaluationBindingV1
 from true_rl_agent.policy import PolicyInitialization
 from true_rl_agent.runner.specs import require_execution_device
@@ -26,6 +30,10 @@ from true_rl_agent.tasks.push_recovery.candidate_failure import (
 from true_rl_agent.tasks.push_recovery.config import PushRecoveryTaskConfig
 from true_rl_agent.tasks.push_recovery.memory import PushTaskMemoryAdapter
 from true_rl_agent.tasks.push_recovery.plugin import PushRecoveryTaskPlugin
+from true_rl_agent.tasks.push_recovery.robot_binding import (
+    PUSH_G1_29DOF_LEGACY_CELL_VARIANT_ID,
+    resolve_push_cell_manifest,
+)
 
 PUSH_RECOVERY_TASK_ID = "unitree_push_recovery"
 PUSH_RECOVERY_BACKEND_ID = "isaac_lab_rsl_rl"
@@ -153,7 +161,16 @@ class PushRecoveryCompositionProvider(TaskCompositionProvider):
         return PUSH_RECOVERY_TASK_ID
 
     def cli_defaults(self) -> Mapping[str, Any]:
-        return PushRecoveryCompositionConfig.defaults().to_task_defaults()
+        defaults = PushRecoveryCompositionConfig.defaults().to_task_defaults()
+        defaults["cell_variant_id"] = PUSH_G1_29DOF_LEGACY_CELL_VARIANT_ID
+        return defaults
+
+    def add_cli_arguments(self, parser: Any) -> None:
+        parser.add_argument(
+            "--cell-variant-id",
+            choices=(PUSH_G1_29DOF_LEGACY_CELL_VARIANT_ID,),
+            default=PUSH_G1_29DOF_LEGACY_CELL_VARIANT_ID,
+        )
 
     def resolve(
         self,
@@ -164,6 +181,20 @@ class PushRecoveryCompositionProvider(TaskCompositionProvider):
         composition_config = PushRecoveryCompositionConfig.from_values(values)
         task_config = composition_config.to_task_config()
         task_plugin = PushRecoveryTaskPlugin(task_config)
+        resolved_cell_manifest = resolve_push_cell_manifest(
+            cell_variant_id=str(
+                values.get(
+                    "cell_variant_id",
+                    PUSH_G1_29DOF_LEGACY_CELL_VARIANT_ID,
+                )
+            ),
+            config=task_config,
+            plugin=task_plugin,
+        )
+        resolved_cell_manifest_path = materialize_resolved_cell_manifest(
+            resolved_cell_manifest,
+            output_dir=context.output_dir,
+        )
         candidate_admission_policy = StaticCandidateVerifier()
         backend_config = _build_push_backend_config(
             composition_config=composition_config,
@@ -171,6 +202,8 @@ class PushRecoveryCompositionProvider(TaskCompositionProvider):
             task_config=task_config,
             task_plugin=task_plugin,
             candidate_admission_policy=candidate_admission_policy,
+            resolved_cell_manifest=resolved_cell_manifest,
+            resolved_cell_manifest_path=resolved_cell_manifest_path,
         )
         return ResolvedTaskComposition(
             task_id=self.task_id,
@@ -185,7 +218,11 @@ class PushRecoveryCompositionProvider(TaskCompositionProvider):
             candidate_admission_policy=candidate_admission_policy,
             policy_initialization=PolicyInitialization.random(),
             genesis_anchor_kind="bootstrap",
-            task_defaults=composition_config.to_task_defaults(),
+            task_defaults={
+                **composition_config.to_task_defaults(),
+                "cell_variant_id": resolved_cell_manifest.cell_variant_id,
+            },
+            resolved_cell_manifest=resolved_cell_manifest,
         )
 
     def run_audit(
@@ -215,6 +252,8 @@ def _build_push_backend_config(
     task_config: PushRecoveryTaskConfig,
     task_plugin: PushRecoveryTaskPlugin,
     candidate_admission_policy: StaticCandidateVerifier,
+    resolved_cell_manifest: ResolvedCellManifestV1,
+    resolved_cell_manifest_path: Path,
 ) -> IsaacLabRslRlBackendConfig:
     if task_config != composition_config.to_task_config():
         raise ValueError(
@@ -274,6 +313,8 @@ def _build_push_backend_config(
         ],
         work_dir=str(context.project_root),
         curriculum_capabilities=PushRecoveryTaskPlugin.curriculum_capabilities,
+        resolved_cell_manifest_path=str(resolved_cell_manifest_path),
+        resolved_cell_manifest_hash=resolved_cell_manifest.manifest_hash,
     )
 
 

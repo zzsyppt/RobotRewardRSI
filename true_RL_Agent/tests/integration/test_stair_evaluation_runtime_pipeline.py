@@ -16,6 +16,9 @@ from true_rl_agent.tasks.stair_climbing import evaluation_runtime  # noqa: E402
 from true_rl_agent.tasks.stair_climbing.config import (  # noqa: E402
     StairClimbingTaskConfig,
 )
+from true_rl_agent.tasks.stair_climbing.episode_evidence import (  # noqa: E402
+    StairEpisodeTracker,
+)
 from true_rl_agent.tasks.stair_climbing.runtime_profile import (  # noqa: E402
     STAIR_EVAL_TRANSITION_EXTRAS_KEY,
     STAIR_TRANSITION_RECORDER_SCHEMA_VERSION,
@@ -23,12 +26,80 @@ from true_rl_agent.tasks.stair_climbing.runtime_profile import (  # noqa: E402
 from true_rl_agent.tasks.stair_climbing.seed_policy import (  # noqa: E402
     STAIR_FORMAL_EVAL_NAMESPACE,
 )
+from true_rl_agent.tasks.stair_climbing.runtime_projection import (  # noqa: E402
+    STAIR_TRANSITION_VNEXT_SCHEMA_VERSION,
+    StairRuntimeProjection,
+)
 from true_rl_agent.tasks.stair_climbing.transition_decoder import (  # noqa: E402
     decode_stair_transition_batch,
 )
 
 
 class StairEvaluationRuntimePipelineTests(unittest.TestCase):
+    def test_legacy_and_vnext_g1_transition_decoding_are_exactly_equal(self) -> None:
+        config = StairClimbingTaskConfig.defaults(
+            ROOT / "configs" / "tasks" / "stair_protocol_v2.json"
+        )
+        assert config.evaluation_semantics is not None
+        assignment = config.base_seed_resolver().private_bin_assignment()
+        legacy_payload = _recorder_payload(config.protocol_v1, assignment)
+        projection = _runtime_projection(2)
+        vnext_payload = _vnext_payload(legacy_payload, projection=projection)
+
+        legacy = decode_stair_transition_batch(
+            legacy_payload,
+            wrapper_done_mask=legacy_payload["done_mask"],
+            protocol=config.protocol_v1,
+            semantics=config.evaluation_semantics,
+            expected_bin_assignment=assignment,
+        )
+        vnext = decode_stair_transition_batch(
+            vnext_payload,
+            wrapper_done_mask=vnext_payload["done_mask"],
+            protocol=config.protocol_v1,
+            semantics=config.evaluation_semantics,
+            expected_bin_assignment=assignment,
+            runtime_projection=projection,
+        )
+        self.assertEqual(vnext, legacy)
+
+    def test_vnext_decoder_supports_2_4_6_effectors(self) -> None:
+        config = StairClimbingTaskConfig.defaults(
+            ROOT / "configs" / "tasks" / "stair_protocol_v2.json"
+        )
+        assert config.evaluation_semantics is not None
+        assignment = config.base_seed_resolver().private_bin_assignment()
+        legacy_payload = _recorder_payload(config.protocol_v1, assignment)
+
+        for support_count in (2, 4, 6):
+            with self.subTest(support_count=support_count):
+                projection = _runtime_projection(support_count)
+                payload = _vnext_payload(
+                    legacy_payload,
+                    projection=projection,
+                )
+                transitions = decode_stair_transition_batch(
+                    payload,
+                    wrapper_done_mask=payload["done_mask"],
+                    protocol=config.protocol_v1,
+                    semantics=config.evaluation_semantics,
+                    expected_bin_assignment=assignment,
+                    runtime_projection=projection,
+                )
+                self.assertTrue(
+                    all(item.support_count == support_count for item in transitions)
+                )
+                tracker = StairEpisodeTracker(
+                    config.protocol_v1,
+                    config.evaluation_semantics,
+                    env_index=0,
+                    bin_id=assignment[0],
+                )
+                outcome = tracker.observe(transitions[0])
+                self.assertIsNotNone(outcome)
+                assert outcome is not None
+                self.assertEqual(outcome.primary_reason, "timeout")
+
     def test_decoder_does_not_create_a_35cm_riser_fall_false_positive(self) -> None:
         config = StairClimbingTaskConfig.defaults(
             ROOT / "configs" / "tasks" / "stair_protocol_v2.json"
@@ -58,13 +129,15 @@ class StairEvaluationRuntimePipelineTests(unittest.TestCase):
         )
 
         transition = transitions[env_index]
-        self.assertEqual(transition.foot_surface_levels, (7, 7))
-        for clearance in transition.foot_surface_clearances_m:
+        self.assertEqual(transition.support_surface_levels, (7, 7))
+        for clearance in transition.support_surface_clearances_m:
             self.assertAlmostEqual(clearance, -0.35)
-        self.assertEqual(transition.foot_upward_forces_n, (100.0, 100.0))
-        self.assertAlmostEqual(transition.root_clearance_m, 0.74)
+        self.assertEqual(transition.support_upward_forces_n, (100.0, 100.0))
+        self.assertAlmostEqual(transition.base_clearance_m, 0.74)
 
-    def test_decoder_keeps_horizontal_collision_separate_from_upward_support(self) -> None:
+    def test_decoder_keeps_horizontal_collision_separate_from_upward_support(
+        self,
+    ) -> None:
         config = StairClimbingTaskConfig.defaults(
             ROOT / "configs" / "tasks" / "stair_protocol_v2.json"
         )
@@ -85,8 +158,8 @@ class StairEvaluationRuntimePipelineTests(unittest.TestCase):
             expected_bin_assignment=assignment,
         )[env_index]
 
-        self.assertEqual(transition.foot_contacts, (True, True))
-        self.assertEqual(transition.foot_upward_forces_n, (0.0, 0.0))
+        self.assertEqual(transition.support_contacts, (True, True))
+        self.assertEqual(transition.support_upward_forces_n, (0.0, 0.0))
 
     def test_recorder_schema_flows_through_all_splits_and_seven_bins(self) -> None:
         config = StairClimbingTaskConfig.defaults(
@@ -338,10 +411,7 @@ def _recorder_payload(
     else:
         origins = [list(cell.expected_origin_m) for cell in cell_assignment]
         terrain_types = [cell.terrain_type_index for cell in cell_assignment]
-    root_pos = [
-        [origin[0], origin[1], origin[2] + 0.8]
-        for origin in origins
-    ]
+    root_pos = [[origin[0], origin[1], origin[2] + 0.8] for origin in origins]
     root_quat = [[1.0, 0.0, 0.0, 0.0] for _ in assignment]
     foot_pos = [
         [
@@ -351,13 +421,8 @@ def _recorder_payload(
         for origin in origins
     ]
     zeros_by_foot = [[[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]] for _ in assignment]
-    contact_forces = [
-        [[0.0, 0.0, 100.0], [0.0, 0.0, 100.0]]
-        for _ in assignment
-    ]
-    manager_to_reason = payload["phase0_probe"][
-        "terminal_reason_by_manager_term"
-    ]
+    contact_forces = [[[0.0, 0.0, 100.0], [0.0, 0.0, 100.0]] for _ in assignment]
+    manager_to_reason = payload["phase0_probe"]["terminal_reason_by_manager_term"]
     term_order = tuple(manager_to_reason)
     timeout_terms = {
         name for name, reason in manager_to_reason.items() if reason == "timeout"
@@ -377,9 +442,7 @@ def _recorder_payload(
         "foot_pos_w": _Tensor(foot_pos),
         "foot_lin_vel_w": _Tensor(zeros_by_foot),
         "foot_contact_forces_w": _Tensor(contact_forces),
-        "base_contact_forces_w": _Tensor(
-            [[[0.0, 0.0, 0.0]] for _ in assignment]
-        ),
+        "base_contact_forces_w": _Tensor([[[0.0, 0.0, 0.0]] for _ in assignment]),
         "episode_length": _Tensor([1 for _ in assignment], dtype="int64"),
         "terrain_env_origins_w": _Tensor(origins),
         "terrain_types": _Tensor(terrain_types, dtype="int64"),
@@ -410,6 +473,73 @@ def _payload_with_timeout_mask(
     result["done_mask"] = _Tensor(done_values, dtype="bool")
     result["episode_length"] = _Tensor(episode_steps, dtype="int64")
     return result
+
+
+def _runtime_projection(support_count: int) -> StairRuntimeProjection:
+    joints = tuple(f"joint_{index}" for index in range(37))
+    return StairRuntimeProjection(
+        cell_variant_id=f"stair.fixture_{support_count}_v1",
+        robot_profile_id=f"fixture_robot_{support_count}_v1",
+        runtime_adapter_id=f"fixture_adapter_{support_count}_v1",
+        robot_profile_hash="1" * 64,
+        runtime_adapter_hash="2" * 64,
+        robot_task_binding_hash="3" * 64,
+        base_body_names=("logical_base",),
+        support_body_names=tuple(f"support_{index}" for index in range(support_count)),
+        forbidden_contact_body_names=("forbidden_body",),
+        joint_names=joints,
+        action_joint_names=joints,
+        contact_sensor_name="contact_sensor",
+        height_sensor_name="height_sensor",
+        contact_history_length=3,
+        policy_io_schema_hash="4" * 64,
+        sensor_schema_hash="5" * 64,
+        binding_facts_hash="6" * 64,
+        kinematic_base_source="articulation_root",
+    )
+
+
+def _vnext_payload(
+    legacy: dict[str, object],
+    *,
+    projection: StairRuntimeProjection,
+) -> dict[str, object]:
+    foot_pos = legacy["foot_pos_w"]
+    foot_vel = legacy["foot_lin_vel_w"]
+    foot_forces = legacy["foot_contact_forces_w"]
+    if not all(isinstance(item, _Tensor) for item in (foot_pos, foot_vel, foot_forces)):
+        raise AssertionError("test fixture requires tensor-like legacy supports")
+    support_count = projection.support_count
+
+    def expand(source: _Tensor) -> _Tensor:
+        return _Tensor(
+            [
+                [copy.deepcopy(row[index % len(row)]) for index in range(support_count)]
+                for row in source.values
+            ],
+            dtype=source.dtype,
+        )
+
+    return {
+        "schema_version": STAIR_TRANSITION_VNEXT_SCHEMA_VERSION,
+        "base_pos_w": legacy["root_pos_w"],
+        "base_quat_w": legacy["root_quat_w"],
+        "joint_pos": legacy["joint_pos"],
+        "support_pos_w": expand(foot_pos),
+        "support_lin_vel_w": expand(foot_vel),
+        "support_contact_forces_w": expand(foot_forces),
+        "forbidden_contact_forces_w": legacy["base_contact_forces_w"],
+        "episode_length": legacy["episode_length"],
+        "terrain_env_origins_w": legacy["terrain_env_origins_w"],
+        "terrain_types": legacy["terrain_types"],
+        "termination_term_order": legacy["termination_term_order"],
+        "termination_masks": legacy["termination_masks"],
+        "done_mask": legacy["done_mask"],
+        "runtime_projection_hash": projection.projection_hash,
+        "reward_input_schema_hash_vnext": (projection.reward_input_schema_hash_vnext),
+        "support_count": support_count,
+        "forbidden_contact_count": projection.forbidden_contact_count,
+    }
 
 
 class _FakeScalar:
@@ -484,10 +614,7 @@ def _map(value: object, operation):
 
 def _map_binary(left: object, right: object, operation):
     if isinstance(left, list) and isinstance(right, list):
-        return [
-            _map_binary(a, b, operation)
-            for a, b in zip(left, right, strict=True)
-        ]
+        return [_map_binary(a, b, operation) for a, b in zip(left, right, strict=True)]
     return operation(left, right)
 
 

@@ -31,6 +31,8 @@ from true_rl_agent.runner.isaac_app_lifecycle import (  # noqa: E402
 )
 from true_rl_agent.runner.specs import require_execution_device  # noqa: E402
 from true_rl_agent.tasks.stair_climbing.entrypoint_contract import (  # noqa: E402
+    STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION,
+    STAIR_EVAL_PURPOSE_FORMAL,
     StairEvalEntrypointContext,
     validate_stair_eval_invocation,
 )
@@ -51,6 +53,11 @@ from true_rl_agent.tasks.stair_climbing.isaaclab_execution import (  # noqa: E40
     VerifiedStairExecutionSourceManifest,
     execute_stair_evaluation,
     preflight_stair_execution_source_manifest,
+)
+from true_rl_agent.composition.cell_manifest import (  # noqa: E402
+    add_resolved_cell_manifest_arguments,
+    load_optional_resolved_cell_manifest_from_args,
+    resolved_cell_summary_fields,
 )
 
 
@@ -83,6 +90,16 @@ def _build_parser(app_launcher_class: Any) -> argparse.ArgumentParser:
         required_actions.append(parser.add_argument(option))
     parser.add_argument("--evaluation-phase")
     parser.add_argument("--evaluation-plan-hash")
+    parser.add_argument("--base-task-protocol-hash", default=None)
+    parser.add_argument(
+        "--stair-eval-purpose",
+        choices=(
+            STAIR_EVAL_PURPOSE_FORMAL,
+            STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION,
+        ),
+        default=STAIR_EVAL_PURPOSE_FORMAL,
+    )
+    add_resolved_cell_manifest_arguments(parser)
     for option in (
         "--public-seeds",
         "--public-accept-seeds",
@@ -128,6 +145,22 @@ def main(
             environment=os.environ,
         )
         context = validate_stair_eval_invocation(args, project_root=PROJECT_ROOT)
+        if (
+            args.resolved_cell_manifest_path is not None
+            or args.resolved_cell_manifest_hash is not None
+        ) and args.base_task_protocol_hash is None:
+            raise ValueError(
+                "resolved cell manifest requires --base-task-protocol-hash"
+            )
+        args.resolved_cell_manifest = load_optional_resolved_cell_manifest_from_args(
+            args,
+            expected_task_id=args.task_id,
+            expected_base_task_protocol_hash=(
+                args.base_task_protocol_hash
+                if args.base_task_protocol_hash is not None
+                else args.task_protocol_hash
+            ),
+        )
         phase = _optional_evaluation_phase(args)
         source_manifest_preflight = preflight_stair_execution_source_manifest(
             context.config
@@ -195,6 +228,9 @@ def main(
             gpu_runtime_binding,
             compute_context_observation=compute_context_observation,
         )
+        summary.update(
+            resolved_cell_summary_fields(args.resolved_cell_manifest)
+        )
 
         summary_path = _local_output_path(args.summary_path, "summary_path")
         summary_path.parent.mkdir(parents=True, exist_ok=True)
@@ -233,10 +269,6 @@ def _run_eval(
     runtime_lease: StairEvaluationRuntimeLease,
     phase: EvaluationPhase | None = None,
 ) -> dict[str, Any]:
-    from true_rl_agent.tasks.stair_climbing.seed_policy import (
-        STAIR_FORMAL_EVAL_NAMESPACE,
-    )
-
     if not isinstance(args.device, str) or not args.device:
         raise ValueError("stair eval device must be a non-empty string")
     splits = (
@@ -252,9 +284,10 @@ def _run_eval(
         ),
         checkpoint_path=context.checkpoint_path,
         device=args.device,
-        seed_namespace=STAIR_FORMAL_EVAL_NAMESPACE,
+        seed_namespace=context.seed_namespace,
         splits=splits,
         runtime_lease=runtime_lease,
+        resolved_cell_manifest=getattr(args, "resolved_cell_manifest", None),
     )
     if phase is not None:
         assert args.evaluation_plan_hash is not None
@@ -266,6 +299,7 @@ def _run_eval(
             execution=execution,
             evaluation_binding=context.evaluation_binding,
             checkpoint_safety_report=checkpoint_report,
+            expected_seed_namespace=context.seed_namespace,
         )
     return build_stair_full_eval_summary(
         config=context.config,

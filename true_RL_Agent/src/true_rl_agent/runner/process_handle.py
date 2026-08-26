@@ -8,19 +8,29 @@ import signal
 import subprocess
 import sys
 import time
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, BinaryIO, Mapping, Sequence
-
+from typing import Any, BinaryIO
 
 _LOG_TAIL_BYTES = 16 * 1024
-OWNED_PROCESS_IDENTITY_SCHEMA_VERSION = (
-    "true_rl_agent.runner.owned_process_identity.v1"
-)
+OWNED_PROCESS_IDENTITY_SCHEMA_VERSION = "true_rl_agent.runner.owned_process_identity.v1"
 
 
 class OwnedProcessLaunchError(OSError):
     """Raised when a process could not be launched under runner ownership."""
+
+
+class OwnedProcessCleanupIncomplete(RuntimeError):
+    """Raised when a Linux owned process group still has live members."""
+
+    def __init__(self, process_group_id: int, live_process_ids: Sequence[int]) -> None:
+        self.process_group_id = int(process_group_id)
+        self.live_process_ids = tuple(int(pid) for pid in live_process_ids)
+        super().__init__(
+            "owned process group cleanup remained incomplete: "
+            f"pgid={self.process_group_id} live_pids={list(self.live_process_ids)}"
+        )
 
 
 class OwnedProcessTimeout(TimeoutError):
@@ -102,6 +112,7 @@ def run_owned_process(
     log_dir: Path,
     termination_grace_s: float = 5.0,
     environment_overrides: Mapping[str, str | None] | None = None,
+    on_started: Callable[[int], None] | None = None,
 ) -> OwnedProcessResult:
     """Run one argv job and retain ownership of its process tree until reaped."""
 
@@ -117,6 +128,8 @@ def run_owned_process(
         or float(termination_grace_s) < 0.0
     ):
         raise ValueError("termination_grace_s must be a non-negative number")
+    if on_started is not None and not callable(on_started):
+        raise TypeError("owned process on_started must be callable")
 
     resolved_log_dir = Path(log_dir).resolve(strict=False)
     resolved_log_dir.mkdir(parents=True, exist_ok=True)
@@ -135,6 +148,8 @@ def run_owned_process(
             )
             if os.name == "nt":
                 windows_job = _WindowsJobObject.create_and_assign(process)
+            if on_started is not None:
+                on_started(int(process.pid))
             try:
                 returncode = process.wait(timeout=timeout_s)
             except subprocess.TimeoutExpired as exc:
@@ -152,7 +167,11 @@ def run_owned_process(
                 windows_job=windows_job,
                 grace_s=float(termination_grace_s),
             )
-        except (OwnedProcessTimeout, OwnedProcessLaunchError):
+        except (
+            OwnedProcessCleanupIncomplete,
+            OwnedProcessTimeout,
+            OwnedProcessLaunchError,
+        ):
             raise
         except BaseException as exc:
             if process is not None:
@@ -254,9 +273,16 @@ def _cleanup_after_normal_exit(
         if windows_job is not None:
             windows_job.close()
         return
-    if _signal_posix_group(process.pid, signal.SIGTERM):
-        time.sleep(min(grace_s, 0.1))
-        _signal_posix_group(process.pid, signal.SIGKILL)
+    if not _signal_posix_group(process.pid, signal.SIGTERM):
+        return
+    # Preserve the long-standing normal-exit grace: descendants get at most
+    # 100 ms to honor TERM before the whole group is made non-executable.
+    time.sleep(min(grace_s, 0.1))
+    _signal_posix_group(process.pid, signal.SIGKILL)
+    _require_linux_process_group_quiescence(
+        process.pid,
+        timeout_s=max(grace_s, 1.0),
+    )
 
 
 def _cleanup_preserving_exception(
@@ -272,12 +298,13 @@ def _cleanup_preserving_exception(
             windows_job=windows_job,
             grace_s=grace_s,
         )
+    except OwnedProcessCleanupIncomplete:
+        raise
     except BaseException as cleanup_error:
         add_note = getattr(original_exception, "add_note", None)
         if callable(add_note):
             add_note(
-                "runner process cleanup also failed: "
-                + type(cleanup_error).__name__
+                "runner process cleanup also failed: " + type(cleanup_error).__name__
             )
 
 
@@ -317,6 +344,11 @@ def _terminate_process_tree(
     except subprocess.TimeoutExpired:
         process.kill()
         process.wait()
+    if os.name != "nt":
+        _require_linux_process_group_quiescence(
+            process.pid,
+            timeout_s=max(grace_s, 1.0),
+        )
 
 
 def _signal_posix_group(pid: int, sig: int) -> bool:
@@ -329,6 +361,94 @@ def _signal_posix_group(pid: int, sig: int) -> bool:
             return False
         raise
     return True
+
+
+def _require_linux_process_group_quiescence(
+    process_group_id: int,
+    *,
+    timeout_s: float,
+) -> None:
+    if not sys.platform.startswith("linux"):
+        return
+    if _wait_for_linux_process_group_quiescence(process_group_id, timeout_s):
+        return
+    live_process_ids = _linux_live_process_group_members(process_group_id)
+    if not live_process_ids:
+        time.sleep(0.02)
+        live_process_ids = _linux_live_process_group_members(process_group_id)
+        if not live_process_ids:
+            return
+    raise OwnedProcessCleanupIncomplete(
+        process_group_id,
+        live_process_ids,
+    )
+
+
+def _wait_for_linux_process_group_quiescence(
+    process_group_id: int,
+    timeout_s: float,
+) -> bool:
+    if not sys.platform.startswith("linux"):
+        return False
+    deadline = time.monotonic() + max(float(timeout_s), 0.0)
+    consecutive_empty_scans = 0
+    while True:
+        if _linux_live_process_group_members(process_group_id):
+            consecutive_empty_scans = 0
+        else:
+            consecutive_empty_scans += 1
+            if consecutive_empty_scans >= 2:
+                return True
+        remaining = deadline - time.monotonic()
+        if remaining <= 0.0:
+            return False
+        time.sleep(min(0.02, remaining))
+
+
+def _linux_live_process_group_members(process_group_id: int) -> tuple[int, ...]:
+    """Return non-zombie Linux members that could still mutate inherited logs."""
+
+    if not sys.platform.startswith("linux"):
+        return ()
+    try:
+        entries = tuple(Path("/proc").iterdir())
+    except OSError as exc:
+        raise OwnedProcessCleanupIncomplete(process_group_id, ()) from exc
+    live: list[int] = []
+    for entry in entries:
+        if not entry.name.isdigit():
+            continue
+        try:
+            stat = (entry / "stat").read_bytes()
+        except (FileNotFoundError, ProcessLookupError):
+            continue
+        except PermissionError:
+            # hidepid may conceal unrelated users. Owned same-UID group members
+            # remain readable and are the only members relevant to this owner.
+            continue
+        except OSError as exc:
+            raise OwnedProcessCleanupIncomplete(
+                process_group_id,
+                tuple(live),
+            ) from exc
+        closing_parenthesis = stat.rfind(b")")
+        if closing_parenthesis < 0:
+            raise OwnedProcessCleanupIncomplete(process_group_id, tuple(live))
+        fields = stat[closing_parenthesis + 1 :].split()
+        if len(fields) < 3:
+            raise OwnedProcessCleanupIncomplete(process_group_id, tuple(live))
+        try:
+            pid = int(entry.name)
+            member_group_id = int(fields[2])
+        except ValueError as exc:
+            raise OwnedProcessCleanupIncomplete(
+                process_group_id,
+                tuple(live),
+            ) from exc
+        state = fields[0]
+        if member_group_id == process_group_id and state not in {b"Z", b"X", b"x"}:
+            live.append(pid)
+    return tuple(sorted(live))
 
 
 def _terminate_windows_process_tree(pid: int, *, grace_s: float) -> None:
@@ -421,14 +541,17 @@ def _create_kill_on_close_job() -> int:
     from ctypes import wintypes
 
     class _IoCounters(ctypes.Structure):
-        _fields_ = [(name, ctypes.c_ulonglong) for name in (
-            "ReadOperationCount",
-            "WriteOperationCount",
-            "OtherOperationCount",
-            "ReadTransferCount",
-            "WriteTransferCount",
-            "OtherTransferCount",
-        )]
+        _fields_ = [
+            (name, ctypes.c_ulonglong)
+            for name in (
+                "ReadOperationCount",
+                "WriteOperationCount",
+                "OtherOperationCount",
+                "ReadTransferCount",
+                "WriteTransferCount",
+                "OtherTransferCount",
+            )
+        ]
 
     class _BasicLimitInformation(ctypes.Structure):
         _fields_ = [
@@ -492,6 +615,7 @@ def _assign_pid_to_job(job_handle: int, pid: int) -> None:
 
 
 __all__ = [
+    "OwnedProcessCleanupIncomplete",
     "OwnedProcessLaunchError",
     "OwnedProcessResult",
     "OwnedProcessTimeout",

@@ -37,6 +37,7 @@ from true_rl_agent.agent_core.session_genesis import (
     _recover_pre_genesis_execution,
     _scan_pre_genesis_attempts,
     prepare_session_genesis,
+    session_genesis_identity_hash,
 )
 from true_rl_agent.evaluation.binding import EvaluationBindingV1, canonical_json_hash
 from true_rl_agent.json_contract import canonical_json_bytes
@@ -104,6 +105,25 @@ class DriftedBindingBackend(FakeBackendAdapter):
             task_protocol_hash=binding.task_protocol_hash,
             seed_cohort_hash="a" * 64,
         )
+
+
+class GpuBoundBaselineBackend(FakeBackendAdapter):
+    def __init__(self) -> None:
+        self.last_baseline_spec = None
+
+    def materialize_baseline_eval(
+        self,
+        *,
+        gpu_process_binding=None,
+        eval_attempt_scope=None,
+        **kwargs,
+    ):
+        self.last_baseline_spec = replace(
+            super().materialize_baseline_eval(**kwargs),
+            gpu_process_binding=gpu_process_binding,
+            attempt_scope=eval_attempt_scope,
+        )
+        return self.last_baseline_spec
 
 
 def _manifest(task_id: str) -> BaselineManifest:
@@ -362,6 +382,110 @@ class SessionGenesisTests(unittest.TestCase):
                     generation_session_contract_ref=ref,
                     baseline_eval_attempt_scope=scope,
                 )
+
+    def test_gpu_bound_baseline_private_artifact_preserves_host_binding(self) -> None:
+        task = BaselineRequiredFakeTask()
+        backend = GpuBoundBaselineBackend()
+        runner = CountingFakeRunner()
+        manifest = _manifest(task.task_spec.task_id)
+        session_id = "gpu-baseline-session"
+        snapshot = {"fixture": "gpu-baseline-session-v1"}
+        resource_binding_hash = "d" * 64
+        session_cost_hash = "a" * 64
+        gpu_process_binding = GpuProcessBinding(
+            host_execution_device="cuda:1",
+            process_execution_device="cuda:0",
+            resource_binding_hash=resource_binding_hash,
+        )
+        contract = GenerationSessionContract(
+            schema_version=GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION,
+            session_mode="development_generation_pilot",
+            session_id=session_id,
+            task_id=task.task_spec.task_id,
+            backend_id=backend.backend_id,
+            max_generations=1,
+            max_trials=2,
+            max_train_jobs=2,
+            bound_contract_hashes={
+                "authoring_policy": "1" * 64,
+                "continuation_policy": "2" * 64,
+                "evaluation_cost": "3" * 64,
+                "evaluation_protocol": "4" * 64,
+                "exploration_projector": "e" * 64,
+                "final_confirmation_plan": "5" * 64,
+                "provider_policy": "6" * 64,
+                "resource_plan": "7" * 64,
+                "retry_policy": "8" * 64,
+                "selector": "9" * 64,
+                "session_cost": session_cost_hash,
+            },
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            contract_ref = publish_generation_session_contract(
+                output_dir,
+                contract,
+            )
+            eval_scope = PreGenesisExecutionScope(
+                journal_root=output_dir / "job_attempts",
+                session_id=session_id,
+                genesis_identity_hash=session_genesis_identity_hash(snapshot),
+                session_contract_hash=contract.contract_hash,
+                lane_id="lane-a",
+                invocation_segment_id="session-genesis",
+                budget_contract_hash=session_cost_hash,
+                attempt_budget_units=1,
+                max_infrastructure_retries=0,
+                resource_binding_hash=resource_binding_hash,
+            )
+            kwargs = {
+                "output_dir": output_dir,
+                "session_id": session_id,
+                "task_plugin": task,
+                "backend_adapter": backend,
+                "runner": runner,
+                "policy_initialization": manifest.to_policy_initialization(),
+                "genesis_identity_snapshot": snapshot,
+                "baseline_manifest": manifest,
+                "generation_session_contract_ref": contract_ref,
+                "gpu_process_binding": gpu_process_binding,
+                "baseline_eval_attempt_scope": eval_scope,
+            }
+
+            created = prepare_session_genesis(**kwargs)
+            private_path = output_dir / BASELINE_EVAL_ARTIFACT_FILENAME
+            genesis_path = output_dir / SESSION_GENESIS_FILENAME
+            private_bytes = private_path.read_bytes()
+            genesis_bytes = genesis_path.read_bytes()
+            private_payload = json.loads(private_bytes)
+            self.assertEqual(
+                private_payload["eval_job"]["gpu_process_binding"],
+                gpu_process_binding.to_dict(),
+            )
+            self.assertEqual(runner.baseline_eval_calls, 1)
+
+            loaded = prepare_session_genesis(**kwargs, require_existing=True)
+
+            self.assertEqual(
+                loaded.session_genesis_hash,
+                created.session_genesis_hash,
+            )
+            self.assertEqual(runner.baseline_eval_calls, 1)
+            self.assertEqual(private_path.read_bytes(), private_bytes)
+            self.assertEqual(genesis_path.read_bytes(), genesis_bytes)
+            self.assertEqual(
+                backend.last_baseline_spec.gpu_process_binding,
+                gpu_process_binding,
+            )
+            self.assertEqual(backend.last_baseline_spec.execution_device, "cuda:0")
+            public_binding = backend.last_baseline_spec.to_public_dict()[
+                "gpu_process_binding"
+            ]
+            self.assertEqual(
+                public_binding,
+                gpu_process_binding.to_public_dict(),
+            )
+            self.assertNotIn("host_execution_device", public_binding)
 
     def test_baseline_genesis_is_full_current_best_and_resume_does_not_rerun(self) -> None:
         task = BaselineRequiredFakeTask()

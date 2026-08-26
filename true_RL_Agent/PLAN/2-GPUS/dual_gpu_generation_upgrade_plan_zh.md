@@ -1,12 +1,15 @@
 # 双卡 Generation 与探索价值系统升级计划
 
-> 文档状态：P0–P6-A2 已完成工程实现与技术验收；P6-A 为 G2 资源 GO；P6-A2
-> 机器结果 `12/15`、逐件人工保守结果 `11/15`、等价漏放 0，author-only 门为 GO；
-> 用户已批准按 `P6-B → P6-C → P6-D` 顺序实施，当前进入 P6-B。任一阶段只有在严格
-> GO、提交/同步和独立审计闭合后，下一阶段的条件式授权才生效。
-> 初编日期：2026-08-12；按当前系统复核更新：2026-08-20。
+> 文档状态：P0–P6-C 已完成工程实现与技术验收；P6-B 为工程与证据 GO、科学结果
+> rejected，历史 prelaunch readiness waiver 已明示且不补造。P6-C 三代正式验证已经
+> 在提交 `415bfad` 上闭合并通过独立 G4 审计，结论为 `GO_FOR_P6D`。用户已批准在无重大
+> 问题时继续后续 Phase；P6-D 本地实现、开发侧审计和用户静态审计已经通过，当前进入提交/同步与
+> 真机前门禁。任一阶段只有在严格 GO、提交/同步和
+> 独立审计闭合且无重大问题时，下一阶段的条件式授权才生效。
+> 初编日期：2026-08-12；按当前系统复核更新：2026-08-23。
 > 适用仓库：`true_RL_Agent`；P0 历史审计基线 `e8b1e9e`，P5 发布基线 `86e5f48`，
-> P6-A 运行提交 `4b2aefb`，P6-A2 plan/修正提交 `b5dff4d` / `bb226275`。
+> P6-A 运行提交 `4b2aefb`，P6-A2 plan/修正提交 `b5dff4d` / `bb226275`，P6-B 科学运行
+> 提交 `5f2d755`、启动治理最终根修基线 `ba71c5d`。
 > 当前门禁：P6-A2 已达到 `>=10/15` 且等价漏放为 0，并完成 15 例逐件人工复核；
 > 后续 generation 默认 provider 合同已经冻结。用户的顺序授权不允许跨过失败门、改动
 > 冻结科学语义，或把一个阶段的 ledger/Genesis 拼接到下一阶段。
@@ -514,6 +517,12 @@ Isaac context 不竞争。
 
 #### P6-B：一个受控 generation scientific pilot
 
+> 实施状态（2026-08-22）：真实单代链已完整闭合，工程与证据 GO、scientific rejected；
+> 3.725287525868333 allocated-active GPU-hours、3 train jobs、41 eval seed-units、2 provider
+> attempts，sealed/ledger/cost/resource/replay 均可独立重算。历史 prelaunch receipt 缺失按
+> 一次性 waiver 保留；`ba71c5d` 已在 launcher/child 两端阻断未来同类绕过，并以新的 600 秒
+> 服务器 readiness 证据验证。详见 `PLAN/2-GPUS/P6-B/DEV_LOG.md`。
+
 - fresh pilot Genesis，显式声明 `session_mode=development_generation_pilot` 与 `max_generations=1`；它可以产生可回放的开发期 generation ledger 与 head transition，但不具备 15-generation final-confirmation 资格，也不能并入后续正式 ledger；
 - 启动任何正式 train/eval job 前，必须把 P6-A 已验证的“宿主物理 UUID → child 单 UUID 可见性 → 进程内逻辑 `cuda:0` → task-owned renderer 物理 ordinal”策略接入正式 Stair train/eval 入口，并用 job/summary、Kit 日志和外部 PID→UUID 采样证明；P6-A shadow 入口的成功不能冒充正式入口已经接线，也不得通过放宽 cross-device 门绕过；
 - 接线的唯一数据模型使用可选、task-neutral `GpuProcessBinding`：显式区分 `host_execution_device`、`process_execution_device` 和 `resource_binding_hash`，物理 UUID/physical hash 仍只由可信 `GpuDeviceIdentity/GpuLeaseManager` 拥有。P6-B 两 lane 的 host 分别为 `cuda:0/cuda:1`，child 均为 `cuda:0`；attempt scope 只交叉绑定同一 resource hash，不能成为“实际执行”的替代真相。旧 Push 与 legacy width=1 的无-binding JobSpec 保持原 argv/env/summary 行为；P6-B 自身的 reference Genesis、baseline 或 parent public-dev 即使是单 lane，也不得借该兼容边界绕过 binding；
@@ -551,6 +560,10 @@ Isaac context 不竞争。
 
 #### P6-C：3-generation 有界验证
 
+> 实施状态（2026-08-22）：实施计划已冻结，基线为 `ba71c5d`；用户已给出“无重大问题且
+> 全部启动门通过即可继续”的条件授权。当前只进入无 GPU/provider 的合同、驱动、恢复和监控
+> 实现，真实三代启动仍受本节全部门禁约束。
+
 - 仅在一个 generation pilot 通过并经用户批准后，以新的 development Genesis/ledger 执行；显式冻结 `max_generations=3`，不继承或拼接 P6-B ledger，也不声称具有正式终局资格；
 - generation 迭代部分上限为 6 个 train jobs、69 eval seed-units（19,320 episodes）、
   30 次 provider attempts，训练预算 `1,179,648,000` env-steps；fresh session 加上同样的
@@ -570,7 +583,14 @@ Isaac context 不竞争。
 
 #### P6-D：正式 15-generation 实验
 
-- 只在 3-generation 报告通过独立审计并经用户再次明确批准后启动；
+> 当前状态（2026-08-23）：P6-C G4 已通过；P6-D 的正式会话、累计预算、五段正常生命周期、两段恢复
+> 余量和 runner-owned 终局确认已按
+> [`P6D_IMPLEMENTATION_PLAN_ZH.md`](P6-D/P6D_IMPLEMENTATION_PLAN_ZH.md) 完成本地实现、全量回归、
+> 开发侧审计与用户静态审计，正在执行提交/同步和服务器真机前门禁。尚未创建 P6-D Genesis，尚未
+> 调用 provider 或启动 P6-D GPU job。
+
+- 只在 3-generation 报告通过独立审计、无重大问题且既有条件授权仍适用时启动；若需要改变
+  冻结科学语义或扩大权限，必须重新请求用户明确批准；
 - 新 Genesis 明确 generation 迭代部分 `15 generations ≤ 30 train jobs ≤ 5,898,240,000`
   train env-steps、`≤345 eval seed-units = 96,600 episodes`；fresh reference qualification、
   parent bootstrap 和终局 `2×7` seed confirmation 全部计入后，成功 session 总量为

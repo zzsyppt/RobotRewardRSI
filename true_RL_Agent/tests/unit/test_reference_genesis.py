@@ -33,14 +33,21 @@ from true_rl_agent.agent_core.ledger import (
     load_ledger,
     primary_ledger_epoch_hash,
 )
+from true_rl_agent.agent_core.generation_contract import (
+    GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION,
+    GenerationSessionContract,
+    publish_generation_session_contract,
+)
 from true_rl_agent.agent_core.live_loop import run_live_loop
 from true_rl_agent.agent_core.session_genesis import (
+    GPU_BOUND_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION,
     LEGACY_SESSION_GENESIS_SCHEMA_VERSION,
     SESSION_GENESIS_CREATION_LEASE_FILENAME,
     SESSION_GENESIS_FILENAME,
     SessionGenesisArtifact,
     SessionGenesisCreationInProgressError,
     prepare_session_genesis,
+    session_genesis_identity_hash,
 )
 from true_rl_agent.agent_core.source_request_limits import CURRENT_BEST_SOURCE_ID
 from true_rl_agent.backends.base import BackendJobBundle
@@ -60,10 +67,15 @@ from true_rl_agent.policy import PolicyInitialization
 from true_rl_agent.prompting.source_catalog import build_prompt_source_context
 from true_rl_agent.reference_artifact import materialize_reference_program_artifact
 from true_rl_agent.runner.checkpoint import file_sha256, seal_checkpoint
+from true_rl_agent.runner.checkpoint_preflight import (
+    validate_checkpoint_process_input,
+)
+from true_rl_agent.runner.job_attempts import PreGenesisExecutionScope
 from true_rl_agent.runner.specs import (
     CheckpointOutputPlan,
     CheckpointRef,
     EvalJobSpec,
+    GpuProcessBinding,
     TrainJobSpec,
 )
 from true_rl_agent.tasks.base import TaskInvariantSpec, TaskPlugin, TaskSpec
@@ -192,6 +204,9 @@ class _ReferenceBackend(FakeBackendAdapter):
         artifact_root,
         policy_initialization,
         evaluation_binding=None,
+        gpu_process_binding=None,
+        train_attempt_scope=None,
+        eval_attempt_scope=None,
     ):
         binding = evaluation_binding or self.evaluation_binding_for(task_spec)
         self.validate_session_evaluation_binding(
@@ -223,6 +238,7 @@ class _ReferenceBackend(FakeBackendAdapter):
             agent_json=agent_json,
             summary_path=train_summary,
             checkpoint_output=checkpoint_output,
+            gpu_process_binding=gpu_process_binding,
         )
         train_spec = TrainJobSpec(
             job_id=f"{session_id}-train",
@@ -234,7 +250,9 @@ class _ReferenceBackend(FakeBackendAdapter):
             training_binding=training_binding,
             budget_steps=training_binding.budget_steps,
             execution_device="cuda:0",
+            gpu_process_binding=gpu_process_binding,
             reference_artifact=artifact,
+            attempt_scope=train_attempt_scope,
             metadata={
                 "cli_argv": train_argv,
                 "cli_command": " ".join(train_argv),
@@ -255,6 +273,7 @@ class _ReferenceBackend(FakeBackendAdapter):
             evaluation_binding=binding,
             checkpoint_uri=checkpoint_plan.uri,
             summary_path=eval_summary,
+            gpu_process_binding=gpu_process_binding,
         )
         eval_spec = EvalJobSpec(
             job_id=f"{session_id}-eval",
@@ -272,12 +291,14 @@ class _ReferenceBackend(FakeBackendAdapter):
             eval_num_envs=64,
             evaluation_binding=binding,
             execution_device="cuda:0",
+            gpu_process_binding=gpu_process_binding,
             metadata={
                 "cli_argv": eval_argv,
                 "cli_command": " ".join(eval_argv),
                 "summary_path": str(eval_summary),
                 "fake_public_score": 0.25,
             },
+            attempt_scope=eval_attempt_scope,
         )
         return BackendJobBundle(
             train_spec=train_spec,
@@ -289,10 +310,12 @@ class _ReferenceBackend(FakeBackendAdapter):
 class _CountingReferenceBackend(_ReferenceBackend):
     def __init__(self) -> None:
         self.materialize_reference_calls = 0
+        self.reference_jobs = None
 
     def materialize_reference_jobs(self, **kwargs):
         self.materialize_reference_calls += 1
-        return super().materialize_reference_jobs(**kwargs)
+        self.reference_jobs = super().materialize_reference_jobs(**kwargs)
+        return self.reference_jobs
 
 
 class _ReferenceRunner(FakeRunner):
@@ -309,21 +332,26 @@ class _ReferenceRunner(FakeRunner):
         )
         checkpoint_hash = file_sha256(checkpoint_path)
         assert checkpoint_hash is not None
+        checkpoint_metadata = {
+            "local_path": str(checkpoint_path.resolve()),
+            "training_subject": train_spec.subject.to_public_dict(),
+            "subject_manifest_hash": train_spec.subject_manifest_hash,
+            "program_source_checksum": train_spec.program_source_checksum,
+            "training_binding_hash": train_spec.training_binding.binding_hash,
+            "capability_profile_hash": (
+                train_spec.training_binding.capability_profile_hash
+            ),
+            "execution_device": train_spec.execution_device,
+        }
+        if train_spec.gpu_process_binding is not None:
+            checkpoint_metadata["gpu_process_binding"] = (
+                train_spec.gpu_process_binding.to_dict()
+            )
         raw = CheckpointRef(
             uri=str(checkpoint_path),
             checksum=checkpoint_hash,
             role="train_output",
-            metadata={
-                "local_path": str(checkpoint_path.resolve()),
-                "training_subject": train_spec.subject.to_public_dict(),
-                "subject_manifest_hash": train_spec.subject_manifest_hash,
-                "program_source_checksum": train_spec.program_source_checksum,
-                "training_binding_hash": train_spec.training_binding.binding_hash,
-                "capability_profile_hash": (
-                    train_spec.training_binding.capability_profile_hash
-                ),
-                "execution_device": train_spec.execution_device,
-            },
+            metadata=checkpoint_metadata,
         )
         checkpoint = seal_checkpoint(
             raw,
@@ -341,6 +369,7 @@ class _ReferenceRunner(FakeRunner):
                 train_spec.training_binding.capability_profile_hash
             ),
             execution_device=train_spec.execution_device,
+            gpu_process_binding=train_spec.gpu_process_binding,
             checkpoint=checkpoint,
             summary={
                 "formal_training_executed": True,
@@ -478,6 +507,21 @@ def _reference_training_binding() -> tuple[TrainingBinding, str]:
     return binding, agent_json
 
 
+def _gpu_process_binding_argv(
+    binding: GpuProcessBinding | None,
+) -> list[str]:
+    if binding is None:
+        return []
+    return [
+        "--gpu-host-execution-device",
+        binding.host_execution_device,
+        "--gpu-process-execution-device",
+        binding.process_execution_device,
+        "--gpu-resource-binding-hash",
+        binding.resource_binding_hash,
+    ]
+
+
 def _reference_train_argv(
     *,
     session_id: str,
@@ -491,6 +535,7 @@ def _reference_train_argv(
     agent_json: str,
     summary_path: Path,
     checkpoint_output: Path,
+    gpu_process_binding: GpuProcessBinding | None = None,
 ) -> list[str]:
     return [
         "fake-python",
@@ -539,6 +584,7 @@ def _reference_train_argv(
         "42",
         "--device",
         "cuda:0",
+        *_gpu_process_binding_argv(gpu_process_binding),
     ]
 
 
@@ -554,6 +600,7 @@ def _reference_eval_argv(
     evaluation_binding,
     checkpoint_uri: str,
     summary_path: Path,
+    gpu_process_binding: GpuProcessBinding | None = None,
 ) -> list[str]:
     protocol = EvaluationProtocol(
         eval_protocol_version=DEFAULT_EVAL_PROTOCOL_VERSION,
@@ -609,6 +656,7 @@ def _reference_eval_argv(
         "0",
         "--device",
         "cuda:0",
+        *_gpu_process_binding_argv(gpu_process_binding),
     ]
 
 
@@ -875,6 +923,38 @@ def _run_reference_live_case(
 
 
 class ReferenceGenesisContractTests(unittest.TestCase):
+    def test_reference_eval_plan_restores_private_checkpoint_for_process_preflight(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            fixture = _reference_fixture(Path(tmp))
+            plan = fixture["genesis"].reference_eval_plan()
+            self.assertIsNotNone(plan)
+            assert plan is not None
+            checkpoint = plan.execution_checkpoint()
+            private_payload = json.loads(fixture["private_path"].read_text("utf-8"))
+            expected_checkpoint = private_payload["train_result"]["checkpoint"]
+
+            self.assertEqual(
+                checkpoint.to_public_dict(include_metadata=True),
+                expected_checkpoint,
+            )
+            self.assertEqual(
+                plan.to_public_dict(),
+                private_payload["eval_job"]["spec"],
+            )
+            local_path = Path(checkpoint.metadata["local_path"]).resolve(strict=True)
+            self.assertEqual(
+                validate_checkpoint_process_input(
+                    checkpoint,
+                    argv=plan.metadata["cli_argv"],
+                    checkpoint_path_option="--checkpoint",
+                    checkpoint_checksum_option="--checkpoint-sha256",
+                    resolved_local_path=local_path,
+                ),
+                local_path,
+            )
+
     def test_legacy_reference_genesis_reads_posix_private_uris_on_any_host(
         self,
     ) -> None:
@@ -1037,6 +1117,129 @@ class ReferenceGenesisContractTests(unittest.TestCase):
                 reloaded.session_genesis_hash,
                 fixture["genesis"].session_genesis_hash,
             )
+
+    def test_gpu_bound_reference_v3_round_trips_private_binding(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            session_id = "gpu-reference-session"
+            task = _ReferenceTaskPlugin()
+            backend = _CountingReferenceBackend()
+            runner = _ReferenceRunner()
+            _, reference = _reference_program_for_task(output_dir, task)
+            snapshot = {"fixture": "gpu-reference-session-v1"}
+            resource_binding_hash = "d" * 64
+            gpu_process_binding = GpuProcessBinding(
+                host_execution_device="cuda:1",
+                process_execution_device="cuda:0",
+                resource_binding_hash=resource_binding_hash,
+            )
+            session_cost_hash = "a" * 64
+            contract = GenerationSessionContract(
+                schema_version=GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION,
+                session_mode="development_generation_pilot",
+                session_id=session_id,
+                task_id=task.task_spec.task_id,
+                backend_id=backend.backend_id,
+                max_generations=1,
+                max_trials=2,
+                max_train_jobs=2,
+                bound_contract_hashes={
+                    "authoring_policy": "1" * 64,
+                    "continuation_policy": "2" * 64,
+                    "evaluation_cost": "3" * 64,
+                    "evaluation_protocol": "4" * 64,
+                    "exploration_projector": "e" * 64,
+                    "final_confirmation_plan": "5" * 64,
+                    "provider_policy": "6" * 64,
+                    "resource_plan": "7" * 64,
+                    "retry_policy": "8" * 64,
+                    "selector": "9" * 64,
+                    "session_cost": session_cost_hash,
+                },
+            )
+            contract_ref = publish_generation_session_contract(
+                output_dir,
+                contract,
+            )
+            common_scope = {
+                "journal_root": output_dir / "job_attempts",
+                "session_id": session_id,
+                "genesis_identity_hash": session_genesis_identity_hash(snapshot),
+                "session_contract_hash": contract.contract_hash,
+                "lane_id": "lane-a",
+                "invocation_segment_id": "session-genesis",
+                "budget_contract_hash": session_cost_hash,
+                "resource_binding_hash": resource_binding_hash,
+            }
+            train_scope = PreGenesisExecutionScope(
+                **common_scope,
+                attempt_budget_units=2,
+                max_infrastructure_retries=1,
+            )
+            eval_scope = PreGenesisExecutionScope(
+                **common_scope,
+                attempt_budget_units=1,
+                max_infrastructure_retries=0,
+            )
+            kwargs = {
+                "output_dir": output_dir,
+                "session_id": session_id,
+                "task_plugin": task,
+                "backend_adapter": backend,
+                "runner": runner,
+                "policy_initialization": PolicyInitialization.random(),
+                "genesis_identity_snapshot": snapshot,
+                "reference_program_artifact": reference,
+                "generation_session_contract_ref": contract_ref,
+                "gpu_process_binding": gpu_process_binding,
+                "reference_train_attempt_scope": train_scope,
+                "reference_eval_attempt_scope": eval_scope,
+            }
+
+            created = prepare_session_genesis(**kwargs)
+            private_path = output_dir / "reference_eval_artifact.json"
+            genesis_path = output_dir / SESSION_GENESIS_FILENAME
+            private_bytes = private_path.read_bytes()
+            genesis_bytes = genesis_path.read_bytes()
+            payload = json.loads(private_bytes)
+
+            self.assertEqual(
+                payload["schema_version"],
+                GPU_BOUND_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION,
+            )
+            for raw_binding in (
+                payload["train_job"]["spec"]["gpu_process_binding"],
+                payload["eval_job"]["spec"]["gpu_process_binding"],
+                payload["train_result"]["gpu_process_binding"],
+            ):
+                self.assertEqual(raw_binding, gpu_process_binding.to_dict())
+            self.assertEqual(backend.materialize_reference_calls, 1)
+            self.assertEqual((runner.train_calls, runner.eval_calls), (1, 1))
+
+            loaded = prepare_session_genesis(**kwargs, require_existing=True)
+
+            self.assertEqual(backend.materialize_reference_calls, 1)
+            self.assertEqual((runner.train_calls, runner.eval_calls), (1, 1))
+            self.assertEqual(
+                loaded.session_genesis_hash,
+                created.session_genesis_hash,
+            )
+            self.assertEqual(private_path.read_bytes(), private_bytes)
+            self.assertEqual(genesis_path.read_bytes(), genesis_bytes)
+            self.assertIsNotNone(backend.reference_jobs)
+            for spec in (
+                backend.reference_jobs.train_spec,
+                backend.reference_jobs.eval_spec,
+                loaded.reference_eval_plan(),
+            ):
+                self.assertEqual(spec.gpu_process_binding, gpu_process_binding)
+                self.assertEqual(spec.execution_device, "cuda:0")
+                public_binding = spec.to_public_dict()["gpu_process_binding"]
+                self.assertEqual(
+                    public_binding,
+                    gpu_process_binding.to_public_dict(),
+                )
+                self.assertNotIn("host_execution_device", public_binding)
 
     def test_require_existing_rejects_before_materialization(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

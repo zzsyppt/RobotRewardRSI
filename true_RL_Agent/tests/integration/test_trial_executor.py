@@ -135,9 +135,10 @@ class TrialExecutorTests(unittest.TestCase):
             )
             assert legacy.jobs is not None
             legacy_spec = legacy.jobs.train_spec
+            legacy_result = runner.run_train(legacy_spec)
             legacy_ref = legacy.trial_journal.publish_train(
                 legacy_spec,
-                runner.run_train(legacy_spec),
+                legacy_result,
             )
             legacy_payload = strict_json_object_loads(
                 Path(legacy_ref.path).read_bytes(),
@@ -146,6 +147,10 @@ class TrialExecutorTests(unittest.TestCase):
             self.assertNotIn(
                 "gpu_process_binding",
                 legacy_payload["train_result"],
+            )
+            self.assertNotIn(
+                "gpu_process_binding",
+                legacy_result.to_public_dict(),
             )
             self.assertIsNotNone(legacy.trial_journal.load_train(legacy_spec))
 
@@ -174,6 +179,10 @@ class TrialExecutorTests(unittest.TestCase):
                 unbound_result,
                 checkpoint=checkpoint,
                 gpu_process_binding=binding,
+            )
+            self.assertEqual(
+                bound_result.to_public_dict()["gpu_process_binding"],
+                binding.to_public_dict(),
             )
             bound_ref = bound.trial_journal.publish_train(
                 bound_spec,

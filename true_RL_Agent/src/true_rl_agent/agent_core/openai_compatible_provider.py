@@ -39,6 +39,7 @@ from true_rl_agent.agent_core.provider_limits import (
     DEFAULT_PROVIDER_MAX_OUTPUT_TOKENS,
     DEFAULT_PROVIDER_MAX_RESPONSE_BYTES,
     DEFAULT_PROVIDER_REASONING_MODE,
+    PROVIDER_EMPTY_FINAL_REASONING_FAILURE_KIND,
     PROVIDER_REASONING_EFFORTS,
     PROVIDER_REASONING_MODES,
     PROVIDER_TRANSPORT_POLICY_ID,
@@ -93,6 +94,7 @@ class OpenAICompatibleProviderConfig:
     max_response_bytes: int = DEFAULT_PROVIDER_MAX_RESPONSE_BYTES
     reasoning_mode: str = DEFAULT_PROVIDER_REASONING_MODE
     reasoning_effort: str | None = None
+    empty_final_reasoning_retry: bool = False
 
     def __post_init__(self) -> None:
         if (
@@ -114,6 +116,17 @@ class OpenAICompatibleProviderConfig:
             and self.reasoning_effort not in PROVIDER_REASONING_EFFORTS
         ):
             raise ValueError("provider reasoning_effort is unsupported")
+        if not isinstance(self.empty_final_reasoning_retry, bool):
+            raise ValueError(
+                "provider empty_final_reasoning_retry must be boolean"
+            )
+        if (
+            self.empty_final_reasoning_retry
+            and self.reasoning_mode != "adaptive"
+        ):
+            raise ValueError(
+                "provider empty_final_reasoning_retry requires adaptive reasoning"
+            )
         _join_url(self.base_url, self.endpoint)
 
 
@@ -175,7 +188,48 @@ class UrllibJsonTransport:
             },
         )
 
-    def post_json(self, *, url: str, payload: dict[str, Any], api_key: str, timeout_s: int) -> dict[str, Any]:
+    def post_json(
+        self,
+        *,
+        url: str,
+        payload: dict[str, Any],
+        api_key: str,
+        timeout_s: int,
+    ) -> dict[str, Any]:
+        return self._request_json(
+            method="POST",
+            url=url,
+            payload=payload,
+            api_key=api_key,
+            timeout_s=timeout_s,
+        )
+
+    def get_json(
+        self,
+        *,
+        url: str,
+        api_key: str,
+        timeout_s: int,
+    ) -> dict[str, Any]:
+        """Issue one bounded authenticated GET without changing JsonTransport."""
+
+        return self._request_json(
+            method="GET",
+            url=url,
+            payload=None,
+            api_key=api_key,
+            timeout_s=timeout_s,
+        )
+
+    def _request_json(
+        self,
+        *,
+        method: str,
+        url: str,
+        payload: dict[str, Any] | None,
+        api_key: str,
+        timeout_s: int,
+    ) -> dict[str, Any]:
         try:
             url = _validated_provider_url(url)
         except (TypeError, ValueError) as exc:
@@ -190,15 +244,27 @@ class UrllibJsonTransport:
                 failure_kind="credential_format_error",
                 retryable=False,
             )
-        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        if method not in {"GET", "POST"}:
+            raise ValueError("provider JSON request method is invalid")
+        if method == "POST" and payload is None:
+            raise ValueError("provider POST requires a JSON payload")
+        if method == "GET" and payload is not None:
+            raise ValueError("provider GET cannot carry a JSON payload")
+        body = (
+            json.dumps(payload, ensure_ascii=False).encode("utf-8")
+            if payload is not None
+            else None
+        )
+        headers = {"Authorization": f"Bearer {api_key}"}
+        if body is not None:
+            headers["Content-Type"] = "application/json"
+        else:
+            headers["Accept"] = "application/json"
         request = urllib.request.Request(
             url,
             data=body,
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-            },
-            method="POST",
+            headers=headers,
+            method=method,
         )
         try:
             opener = urllib.request.build_opener(_RejectProviderRedirects())
@@ -334,6 +400,29 @@ class OpenAICompatibleCandidateProvider:
                 provider_usage=provider_usage,
                 provider_receipt=provider_receipt,
             ) from exc
+        if (
+            self.config.empty_final_reasoning_retry
+            and finish_reason != "length"
+            and _receipt_proves_empty_final_content_with_reasoning(
+                provider_receipt
+            )
+        ):
+            raise ProviderCandidateError(
+                "json_parse_error",
+                "provider final content channel was empty",
+                details={
+                    "failure_kind": (
+                        PROVIDER_EMPTY_FINAL_REASONING_FAILURE_KIND
+                    ),
+                    **(
+                        {"finish_reason": finish_reason}
+                        if finish_reason is not None
+                        else {}
+                    ),
+                },
+                provider_usage=provider_usage,
+                provider_receipt=provider_receipt,
+            )
         try:
             proposal = _json_object_from_text(response_text, "candidate proposal")
         except ValueError as exc:
@@ -416,6 +505,9 @@ class OpenAICompatibleCandidateProvider:
         thinking_mode = _resolved_thinking_mode(
             self.config.reasoning_mode,
             prompt_payload,
+            empty_final_reasoning_retry=(
+                self.config.empty_final_reasoning_retry
+            ),
         )
         if thinking_mode != "provider_default":
             request["thinking"] = {"type": thinking_mode}
@@ -743,6 +835,8 @@ def _provider_finish_reason(response: Mapping[str, Any]) -> str | None:
 def _resolved_thinking_mode(
     configured_mode: str,
     prompt_payload: Mapping[str, Any],
+    *,
+    empty_final_reasoning_retry: bool = False,
 ) -> str:
     """Resolve reasoning without interpreting any task-owned semantics."""
 
@@ -750,12 +844,54 @@ def _resolved_thinking_mode(
         return configured_mode
     repair = prompt_payload.get("provider_or_runtime_repair_feedback")
     if (
+        empty_final_reasoning_retry
+        and _is_empty_final_reasoning_retry_feedback(repair)
+    ):
+        return "disabled"
+    if (
         isinstance(repair, Mapping)
         and repair.get("failure_category") == "response_truncated"
         and has_inline_current_authoring_failed_source(prompt_payload)
     ):
         return "disabled"
     return "enabled"
+
+
+def _receipt_proves_empty_final_content_with_reasoning(
+    receipt: Mapping[str, Any],
+) -> bool:
+    """Use only content-free receipt metadata to identify the routing failure."""
+
+    empty_sha256 = "sha256:" + hashlib.sha256(b"").hexdigest()
+    return (
+        receipt.get("response_text_present") is True
+        and receipt.get("response_text_utf8_bytes") == 0
+        and receipt.get("response_text_sha256") == empty_sha256
+        and receipt.get("reasoning_content_present") is True
+        and isinstance(receipt.get("reasoning_content_utf8_bytes"), int)
+        and not isinstance(receipt.get("reasoning_content_utf8_bytes"), bool)
+        and receipt["reasoning_content_utf8_bytes"] > 0
+        and isinstance(receipt.get("reasoning_content_sha256"), str)
+    )
+
+
+def _is_empty_final_reasoning_retry_feedback(value: Any) -> bool:
+    if not isinstance(value, Mapping):
+        return False
+    if value.get("failure_category") != "json_parse_error":
+        return False
+    failure = value.get("failure")
+    if (
+        not isinstance(failure, Mapping)
+        or failure.get("category") != "json_parse_error"
+    ):
+        return False
+    details = failure.get("details")
+    return (
+        isinstance(details, Mapping)
+        and details.get("failure_kind")
+        == PROVIDER_EMPTY_FINAL_REASONING_FAILURE_KIND
+    )
 
 
 def _provider_response_receipt(

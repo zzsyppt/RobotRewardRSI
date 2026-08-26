@@ -13,6 +13,12 @@ DEFAULT_PROVIDER_REASONING_EFFORT = "max"
 PROVIDER_TRANSPORT_POLICY_ID = (
     "true_rl_agent.openai_compatible_transport.https_or_loopback_http_no_redirect.v1"
 )
+PROVIDER_ADAPTIVE_REASONING_POLICY_ID = (
+    "true_rl_agent.openai_compatible_provider.adaptive_reasoning.v2"
+)
+PROVIDER_EMPTY_FINAL_REASONING_FAILURE_KIND = (
+    "empty_final_content_with_reasoning"
+)
 PROVIDER_REASONING_MODES = (
     "adaptive",
     "disabled",
@@ -29,6 +35,8 @@ __all__ = [
     "DEFAULT_PROVIDER_REASONING_EFFORT",
     "DEFAULT_PROVIDER_REASONING_MODE",
     "PROVIDER_REASONING_EFFORTS",
+    "PROVIDER_ADAPTIVE_REASONING_POLICY_ID",
+    "PROVIDER_EMPTY_FINAL_REASONING_FAILURE_KIND",
     "PROVIDER_TRANSPORT_POLICY_ID",
     "PROVIDER_REASONING_MODES",
 ]

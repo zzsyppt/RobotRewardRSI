@@ -83,6 +83,14 @@ class GpuProcessBinding:
             "resource_binding_hash": self.resource_binding_hash,
         }
 
+    def to_public_dict(self) -> dict[str, str]:
+        """Project child-visible binding identity without host topology."""
+
+        return {
+            "process_execution_device": self.process_execution_device,
+            "resource_binding_hash": self.resource_binding_hash,
+        }
+
     @classmethod
     def from_mapping(cls, value: Any) -> "GpuProcessBinding":
         fields = {
@@ -371,7 +379,9 @@ class TrainJobSpec:
                 self.candidate_failure_contract.contract_hash
             )
         if self.gpu_process_binding is not None:
-            result["gpu_process_binding"] = self.gpu_process_binding.to_dict()
+            result["gpu_process_binding"] = (
+                self.gpu_process_binding.to_public_dict()
+            )
         return result
 
 
@@ -576,7 +586,9 @@ class EvalJobSpec:
                 self.initial_policy_state_pairing_hash
             )
         if self.gpu_process_binding is not None:
-            result["gpu_process_binding"] = self.gpu_process_binding.to_dict()
+            result["gpu_process_binding"] = (
+                self.gpu_process_binding.to_public_dict()
+            )
         return result
 
 
@@ -864,7 +876,9 @@ class BaselineEvalJobSpec:
             "evaluation_binding": self.evaluation_binding.to_public_dict(),
         }
         if self.gpu_process_binding is not None:
-            result["gpu_process_binding"] = self.gpu_process_binding.to_dict()
+            result["gpu_process_binding"] = (
+                self.gpu_process_binding.to_public_dict()
+            )
         return result
 
 

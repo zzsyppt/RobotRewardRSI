@@ -2,22 +2,24 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from true_rl_agent.evaluation.phases import (
     EvaluationAssembly,
     EvaluationPhase,
     EvaluationPhaseResult,
 )
+from true_rl_agent.runner.base import TrainJobResult
 from true_rl_agent.runner.specs import EvalJobSpec
 from true_rl_agent.tasks.stair_climbing.config import StairClimbingTaskConfig
+from true_rl_agent.tasks.stair_climbing.phased_cost import (
+    stair_phased_evaluation_cost_contract,
+)
 from true_rl_agent.tasks.stair_climbing.phased_evaluation import (
     assemble_stair_eval_phase_results,
     canonical_stair_phase_result_summary,
-)
-from true_rl_agent.tasks.stair_climbing.phased_cost import (
-    stair_phased_evaluation_cost_contract,
 )
 from true_rl_agent.tasks.stair_climbing.selection import (
     StairPublicDevScreenEvidence,
@@ -45,11 +47,19 @@ class StairPhasedEvaluationAdapter:
         *,
         trial_id: str,
         phase_result: EvaluationPhaseResult,
+        screen_role: str,
+        train_result: TrainJobResult | None,
+        train_receipt_checksum: str | None,
+        mechanism_operation_delta: Mapping[str, Any] | None,
     ) -> StairPublicDevScreenEvidence:
         return build_stair_public_dev_screen_evidence(
             config=self.config,
             trial_id=trial_id,
             phase_result=phase_result,
+            screen_role=screen_role,
+            train_result=train_result,
+            train_receipt_checksum=train_receipt_checksum,
+            mechanism_operation_delta=mechanism_operation_delta,
         )
 
     def select(

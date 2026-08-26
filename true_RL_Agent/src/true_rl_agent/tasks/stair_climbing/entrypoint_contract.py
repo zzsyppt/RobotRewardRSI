@@ -39,6 +39,7 @@ from true_rl_agent.tasks.stair_climbing.config import (
 )
 from true_rl_agent.tasks.stair_climbing.local_paths import resolve_existing_file
 from true_rl_agent.tasks.stair_climbing.seed_policy import (
+    STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
     STAIR_FORMAL_EVAL_NAMESPACE,
 )
 from true_rl_agent.training_binding import TrainingBinding
@@ -74,6 +75,11 @@ class StairEvalEntrypointContext:
     program_source_checksum: str
     training_binding_hash: str
     capability_profile_hash: str
+    seed_namespace: str
+
+
+STAIR_EVAL_PURPOSE_FORMAL = "formal_generation"
+STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION = "final_confirmation"
 
 
 def validate_stair_train_invocation(
@@ -375,12 +381,28 @@ def validate_stair_eval_invocation(
     if capability_profile_hash != config.protocol_v2.capability_profile.profile_hash:
         raise ValueError("stair eval capability profile mismatch")
 
+    eval_purpose = getattr(
+        args,
+        "stair_eval_purpose",
+        STAIR_EVAL_PURPOSE_FORMAL,
+    )
+    seed_namespace_by_purpose = {
+        STAIR_EVAL_PURPOSE_FORMAL: STAIR_FORMAL_EVAL_NAMESPACE,
+        STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION: (
+            STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE
+        ),
+    }
+    try:
+        seed_namespace = seed_namespace_by_purpose[eval_purpose]
+    except (KeyError, TypeError) as exc:
+        raise ValueError("stair eval purpose is invalid") from exc
+
     expected_binding = EvaluationBindingV1(
         eval_protocol_hash=config.evaluation_protocol().protocol_hash,
         acceptance_protocol_hash=config.acceptance_protocol.protocol_hash,
         task_protocol_hash=config.task_protocol_hash,
         seed_cohort_hash=config.seed_resolver().namespace_cohort_hash(
-            STAIR_FORMAL_EVAL_NAMESPACE
+            seed_namespace
         ),
     )
     declared_binding = EvaluationBindingV1(
@@ -433,6 +455,7 @@ def validate_stair_eval_invocation(
         program_source_checksum=program_source_checksum,
         training_binding_hash=training_binding_hash,
         capability_profile_hash=capability_profile_hash,
+        seed_namespace=seed_namespace,
     )
 
 
@@ -480,6 +503,8 @@ def _nonnegative_int(value: Any, field_name: str) -> int:
 
 __all__ = [
     "StairEvalEntrypointContext",
+    "STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION",
+    "STAIR_EVAL_PURPOSE_FORMAL",
     "StairTrainEntrypointContext",
     "validate_stair_eval_invocation",
     "validate_stair_train_invocation",

@@ -29,6 +29,13 @@ from true_rl_agent.tasks.stair_climbing.config import (  # noqa: E402
     STAIR_PROTOCOL_V2_RELATIVE_PATH,
     StairClimbingTaskConfig,
 )
+from true_rl_agent.tasks.stair_climbing.gpu_process_binding import (  # noqa: E402
+    StairGpuRuntimeBinding,
+    add_stair_gpu_process_binding_arguments,
+    attach_stair_gpu_runtime_evidence,
+    capture_stair_gpu_compute_context,
+    validate_stair_gpu_process_binding_invocation,
+)
 from true_rl_agent.tasks.stair_climbing.reference_program import (  # noqa: E402
     resolve_official_stair_reference_program,
 )
@@ -42,7 +49,9 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     output_action = parser.add_argument("--output", type=Path)
     checkpoint_action = parser.add_argument("--checkpoint-output", type=Path)
+    parser.add_argument("--nvidia-smi-executable")
     AppLauncher.add_app_launcher_args(parser)
+    add_stair_gpu_process_binding_arguments(parser)
     output_action.required = True
     checkpoint_action.required = True
     parser.set_defaults(headless=True)
@@ -50,6 +59,30 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 args = _build_parser().parse_args()
+gpu_runtime_binding = validate_stair_gpu_process_binding_invocation(
+    args,
+    environment=os.environ,
+)
+
+
+def _bound_nvidia_smi(
+    runtime: StairGpuRuntimeBinding | None,
+) -> str | None:
+    if runtime is None:
+        return None
+    raw = args.nvidia_smi_executable
+    if not isinstance(raw, str) or not raw:
+        raise ValueError("bound Stair smoke requires --nvidia-smi-executable")
+    path = Path(raw)
+    if not path.is_absolute():
+        raise ValueError("bound Stair smoke nvidia-smi must be absolute")
+    resolved = path.resolve(strict=True)
+    if not resolved.is_file() or not os.access(resolved, os.X_OK):
+        raise ValueError("bound Stair smoke nvidia-smi must be executable")
+    return str(resolved)
+
+
+bound_nvidia_smi = _bound_nvidia_smi(gpu_runtime_binding)
 config = StairClimbingTaskConfig.defaults(
     PROJECT_ROOT / STAIR_PROTOCOL_V2_RELATIVE_PATH
 )
@@ -57,7 +90,11 @@ official = resolve_official_stair_reference_program(
     config,
     project_root=PROJECT_ROOT,
 )
-simulation_app = AppLauncher(args).app
+simulation_app = (
+    AppLauncher(args).app
+    if gpu_runtime_binding is None
+    else AppLauncher(args, multi_gpu=False).app
+)
 
 
 import gymnasium as gym  # noqa: E402
@@ -94,6 +131,7 @@ def main() -> int:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     checkpoint_output.parent.mkdir(parents=True, exist_ok=True)
     env = None
+    compute_context_observation = None
     report: dict[str, Any]
     try:
         if checkpoint_output.exists():
@@ -273,6 +311,13 @@ def main() -> int:
         if int(runner.tot_timesteps) != expected_env_steps:
             raise RuntimeError("RSL-RL smoke timestep accounting did not close")
 
+        if gpu_runtime_binding is not None:
+            assert bound_nvidia_smi is not None
+            compute_context_observation = capture_stair_gpu_compute_context(
+                gpu_runtime_binding,
+                nvidia_smi=bound_nvidia_smi,
+            )
+
         checkpoints = sorted(log_dir.rglob("model_*.pt"))
         if not checkpoints:
             raise RuntimeError("RSL-RL smoke produced no checkpoint")
@@ -371,6 +416,12 @@ def main() -> int:
             except Exception:
                 pass
 
+    if gpu_runtime_binding is not None:
+        report = attach_stair_gpu_runtime_evidence(
+            report,
+            gpu_runtime_binding,
+            compute_context_observation=compute_context_observation,
+        )
     report["report_hash"] = canonical_json_hash(report)
     output_path.write_text(
         json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n",

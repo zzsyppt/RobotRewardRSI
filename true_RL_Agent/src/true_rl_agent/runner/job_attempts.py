@@ -14,12 +14,8 @@ from true_rl_agent.json_contract import canonical_json_bytes, strict_json_object
 
 ATTEMPT_RESERVATION_SCHEMA_VERSION = "true_rl_agent.runner.attempt_reservation.v1"
 ATTEMPT_RESULT_SCHEMA_VERSION = "true_rl_agent.runner.attempt_result.v1"
-RECOVERED_ATTEMPT_RESULT_SCHEMA_VERSION = (
-    "true_rl_agent.runner.attempt_result.v2"
-)
-RESOURCE_LEASE_ATTEMPT_RESULT_SCHEMA_VERSION = (
-    "true_rl_agent.runner.attempt_result.v3"
-)
+RECOVERED_ATTEMPT_RESULT_SCHEMA_VERSION = "true_rl_agent.runner.attempt_result.v2"
+RESOURCE_LEASE_ATTEMPT_RESULT_SCHEMA_VERSION = "true_rl_agent.runner.attempt_result.v3"
 PRE_GENESIS_EXECUTION_SCOPE_SCHEMA_VERSION = (
     "true_rl_agent.runner.pre_genesis_execution_scope.v1"
 )
@@ -114,10 +110,9 @@ class JobAttemptScope:
             )
         for field_name in ("generation_id", "lane_id", "invocation_segment_id"):
             _require_bounded_text(getattr(self, field_name), f"attempt {field_name}")
-        if (
-            isinstance(self.max_infrastructure_retries, bool)
-            or self.max_infrastructure_retries not in {0, 1}
-        ):
+        if isinstance(
+            self.max_infrastructure_retries, bool
+        ) or self.max_infrastructure_retries not in {0, 1}:
             raise ValueError("max_infrastructure_retries must be 0 or 1")
         required_units = self.max_infrastructure_retries + 1
         if (
@@ -208,10 +203,9 @@ class PreGenesisExecutionScope:
                 getattr(self, field_name),
                 f"pre-Genesis attempt {field_name}",
             )
-        if (
-            isinstance(self.max_infrastructure_retries, bool)
-            or self.max_infrastructure_retries not in {0, 1}
-        ):
+        if isinstance(
+            self.max_infrastructure_retries, bool
+        ) or self.max_infrastructure_retries not in {0, 1}:
             raise ValueError("max_infrastructure_retries must be 0 or 1")
         required_units = self.max_infrastructure_retries + 1
         if (
@@ -274,8 +268,7 @@ def _execution_scope_from_binding_payload(
 ) -> JobAttemptExecutionScope:
     if (
         isinstance(value, Mapping)
-        and value.get("schema_version")
-        == PRE_GENESIS_EXECUTION_SCOPE_SCHEMA_VERSION
+        and value.get("schema_version") == PRE_GENESIS_EXECUTION_SCOPE_SCHEMA_VERSION
     ):
         return PreGenesisExecutionScope.from_binding_payload(
             value,
@@ -354,7 +347,9 @@ class JobAttemptJournal:
             previous_hash = None
         else:
             if previous_result is None:
-                raise ValueError("retry reservation requires the previous attempt result")
+                raise ValueError(
+                    "retry reservation requires the previous attempt result"
+                )
             previous = self._load_and_validate_result(attempt_index - 1)
             if previous.payload_hash != previous_result.payload_hash:
                 raise ValueError("retry previous result reference mismatch")
@@ -416,7 +411,9 @@ class JobAttemptJournal:
             context="attempt reservation",
         )
         if canonical_reservation != reservation_payload:
-            raise ValueError("attempt reservation payload does not match journal authority")
+            raise ValueError(
+                "attempt reservation payload does not match journal authority"
+            )
         if retryable and outcome != "infrastructure_failure":
             raise ValueError("only infrastructure failure may be retryable")
         if retryable and attempt_index >= self.scope.max_infrastructure_retries:
@@ -487,9 +484,7 @@ class JobAttemptJournal:
         if recovery_receipt_hash is not None:
             payload["recovery_receipt_hash"] = recovery_receipt_hash
         if resource_lease_wall_duration_ns is not None:
-            payload["resource_lease_wall_duration_ns"] = (
-                resource_lease_wall_duration_ns
-            )
+            payload["resource_lease_wall_duration_ns"] = resource_lease_wall_duration_ns
         return self._publish_or_verify(
             self._result_path(attempt_index),
             payload,
@@ -570,13 +565,25 @@ class JobAttemptJournal:
         pre-reserved retry instead of creating a fresh attempt chain.
         """
 
+        attempt_index, previous_result = self.next_runnable_attempt()
+        reservation = self.reserve(
+            attempt_index,
+            previous_result=previous_result,
+        )
+        if not reservation.created:
+            context = "initial attempt" if attempt_index == 0 else "retry"
+            raise ValueError(f"{context} reservation raced another writer")
+        return attempt_index, reservation, previous_result
+
+    def next_runnable_attempt(
+        self,
+    ) -> tuple[int, JobAttemptReceiptRef | None]:
+        """Inspect the chain and identify the next attempt without reserving it."""
+
         first_path = self._reservation_path(0)
         if not first_path.exists():
-            reservation = self.reserve(0, previous_result=None)
-            if not reservation.created:
-                raise ValueError("initial attempt reservation raced another writer")
-            return 0, reservation, None
-        first_reservation = self.load_reservation(0)
+            return 0, None
+        self.load_reservation(0)
         first_result_path = self._result_path(0)
         if not first_result_path.exists():
             raise JobAttemptRecoveryRequiredError(
@@ -599,10 +606,7 @@ class JobAttemptJournal:
                 )
             self.load_result(1)
             raise ValueError("existing logical job already exhausted its retry")
-        retry = self.reserve(1, previous_result=first_result)
-        if not retry.created:
-            raise ValueError("retry reservation raced another writer")
-        return 1, retry, first_result
+        return 1, first_result
 
     @classmethod
     def from_reservation_path(
@@ -794,13 +798,17 @@ class JobAttemptJournal:
 
 def _require_bounded_text(value: Any, field_name: str) -> str:
     if not isinstance(value, str) or not value.strip() or len(value) > 128:
-        raise ValueError(f"{field_name} must be a non-empty string of at most 128 chars")
+        raise ValueError(
+            f"{field_name} must be a non-empty string of at most 128 chars"
+        )
     return value
 
 
 def _require_execution_device(value: Any) -> str:
     if not isinstance(value, str) or _EXECUTION_DEVICE_PATTERN.fullmatch(value) is None:
-        raise ValueError("attempt execution_device must be canonical cpu or cuda:<index>")
+        raise ValueError(
+            "attempt execution_device must be canonical cpu or cuda:<index>"
+        )
     return value
 
 

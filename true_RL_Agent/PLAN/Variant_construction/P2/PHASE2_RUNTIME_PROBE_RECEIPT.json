@@ -1,0 +1,830 @@
+{
+  "action": {
+    "device": "cuda:0",
+    "dtype": "torch.float32",
+    "finite": true,
+    "shape": [
+      1,
+      37
+    ]
+  },
+  "capture_kind": "real_headless_g1_scene_reward_and_recorder",
+  "captured_repository_head": "5513076d5cbfe279987310c12c89938ff1a7691e",
+  "cell": {
+    "cell_variant_id": "stair.g1_37dof.clean_legacy_v1",
+    "manifest_hash": "4f3cba01f11abcfadea7f262df9a1001a217c0654e8ff050a4b38d1dc4a6b3ca",
+    "robot_profile_id": "unitree_g1_37dof_isaaclab_v1",
+    "runtime_adapter_id": "g1_37dof_isaaclab_adapter_v1"
+  },
+  "environment": {
+    "cuda_device_name": "NVIDIA GeForce RTX 5090",
+    "device": "cuda:0",
+    "python": "3.11.15",
+    "torch": "2.7.0+cu128"
+  },
+  "head_identity_semantics": "capture provenance only",
+  "kinematic_base_parity": {
+    "legacy_reward_adapter_id_removed_only": true,
+    "maximum_absolute_differences": {
+      "ang_vel_b": 0.0,
+      "ang_vel_w": 0.0,
+      "lin_vel_b": 0.0,
+      "lin_vel_w": 0.0,
+      "pos_w": 0.0,
+      "projected_gravity_b": 0.0,
+      "quat_w": 0.0
+    },
+    "source": "articulation_root",
+    "status": "exact"
+  },
+  "observation_after_step": {
+    "policy": {
+      "device": "cuda:0",
+      "dtype": "torch.float32",
+      "finite": true,
+      "shape": [
+        1,
+        310
+      ]
+    }
+  },
+  "observation_before_step": {
+    "policy": {
+      "device": "cuda:0",
+      "dtype": "torch.float32",
+      "finite": true,
+      "shape": [
+        1,
+        310
+      ]
+    }
+  },
+  "product_source_hash_mode": "normalized_lf_sha256",
+  "product_source_hashes": {
+    "configs/tasks/stair_evaluation_semantics_v7.json": "c325b851013477a786cde1187eacce97e8faf7cb17aff2370502008b588cb384",
+    "configs/tasks/stair_g1_37dof_clean_legacy_binding_v1.json": "685a0d6063efe6f4657610aebcb5af96cef0b7376e842a8c36a005e7f7ce7e0c",
+    "src/true_rl_agent/composition/cell_manifest.py": "aaa3058b638b83dd31b8f942d7c17e601f7220a75fad61445be1205eb6439cfd",
+    "src/true_rl_agent/robots/base.py": "611ede324eefa064750f783ec4c376db94719cb00f6d9b255684328a7b0c65c9",
+    "src/true_rl_agent/tasks/stair_climbing/episode_evidence.py": "39ea2f5bd6337ed204fb24e50f30569434d260f43cf366335365583c3303e37e",
+    "src/true_rl_agent/tasks/stair_climbing/evaluation_semantics.py": "c42082fd52a0a543e23c96d7cbb59c931f8dd02724f820c5e4780073a0bcd680",
+    "src/true_rl_agent/tasks/stair_climbing/isaaclab_reward_runtime.py": "291898ce5e96073c9eff854323522b26c1937666044bdd1cdc338d595d4f8b53",
+    "src/true_rl_agent/tasks/stair_climbing/isaaclab_runtime_env.py": "1b33d08a3cd0b9ebd253386d865d4d33620a4d980a5b8ab815431ae05741c835",
+    "src/true_rl_agent/tasks/stair_climbing/legacy_reward_adapter.py": "0a30eddcd7b6319e12fe5211d7c7648c9b1e0895f879c6841ced748cebe5ed1a",
+    "src/true_rl_agent/tasks/stair_climbing/legacy_runtime_projection.py": "b058e393fc3620396ac6bb14f120c1f7b54a6d9508d62c707c09170c93415b20",
+    "src/true_rl_agent/tasks/stair_climbing/legacy_transition_reader.py": "d08bab08b279e41224e55296b49441b4094a1aed9096403e92db007c5da47493",
+    "src/true_rl_agent/tasks/stair_climbing/reward_inputs.py": "5ad26b3dbb993a1583b123aafd17431f29f812cd1ebe8a1fd45b7d4324f34612",
+    "src/true_rl_agent/tasks/stair_climbing/robot_binding.py": "6eda5126db93767f1b7b34c7de090ce111622d730c09c306508ade8c20f82f57",
+    "src/true_rl_agent/tasks/stair_climbing/runtime_projection.py": "76d8d2f2ecbbd5edf884faf464ac64e2fe5e1db12194ad1b241b7005bb4fac55",
+    "src/true_rl_agent/tasks/stair_climbing/terrain_evidence.py": "cfb8728161823272e0500a3bbc9bb18391e489ef58b64d9739660984a82b5c08",
+    "src/true_rl_agent/tasks/stair_climbing/transition_decoder.py": "c7a788f1b6cb05f73583b9d681b4a9773f6718602afa819600743d6ffa044bde"
+  },
+  "receipt_hash": "bea2c4678e82c10e2a220ab12077f3238979b2d5f4b5527834a4f2d34c963e26",
+  "reward": {
+    "field_count": 42,
+    "input_schema_hash": "2953831ca66dae9115006e84ec0063c9194b0d1cdd84eac4a2901172642a49dd",
+    "input_type": "StairRewardInputsV2",
+    "runtime_input_fingerprint": {
+      "fields": [
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "base_height",
+          "shape": [
+            1
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "roll",
+          "shape": [
+            1
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "pitch",
+          "shape": [
+            1
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "base_pos_xy",
+          "shape": [
+            1,
+            2
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "base_lin_vel",
+          "shape": [
+            1,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "base_ang_vel",
+          "shape": [
+            1,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "projected_gravity",
+          "shape": [
+            1,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "commanded_base_vel",
+          "shape": [
+            1,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "joint_pos",
+          "shape": [
+            1,
+            37
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "joint_vel",
+          "shape": [
+            1,
+            37
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "joint_pos_error",
+          "shape": [
+            1,
+            37
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "last_action",
+          "shape": [
+            1,
+            37
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "prev_action",
+          "shape": [
+            1,
+            37
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "action_delta",
+          "shape": [
+            1,
+            37
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "progress_fraction",
+          "shape": [
+            1
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "base_lin_vel_yaw",
+          "shape": [
+            1,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "base_ang_vel_world",
+          "shape": [
+            1,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "base_quat_world",
+          "shape": [
+            1,
+            4
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "ankle_joint_pos",
+          "shape": [
+            1,
+            4
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "ankle_soft_joint_pos_limits",
+          "shape": [
+            1,
+            4,
+            2
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "locomotion_joint_torque",
+          "shape": [
+            1,
+            12
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "hip_knee_joint_acc",
+          "shape": [
+            1,
+            8
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "hip_yaw_roll_joint_pos_error",
+          "shape": [
+            1,
+            4
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "arm_joint_pos_error",
+          "shape": [
+            1,
+            10
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "finger_joint_pos_error",
+          "shape": [
+            1,
+            14
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "torso_joint_pos_error",
+          "shape": [
+            1,
+            1
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "foot_air_time",
+          "shape": [
+            1,
+            2
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "foot_contact_time",
+          "shape": [
+            1,
+            2
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "foot_contact_force_history",
+          "shape": [
+            1,
+            3,
+            2,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "foot_contact_force",
+          "shape": [
+            1,
+            2,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.bool",
+          "name": "foot_contact",
+          "shape": [
+            1,
+            2
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "foot_lin_vel",
+          "shape": [
+            1,
+            2,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "foot_pos_relative_to_terrain_origin",
+          "shape": [
+            1,
+            2,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "base_pos_relative_to_terrain_origin",
+          "shape": [
+            1,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "base_contact_force",
+          "shape": [
+            1,
+            1,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "height_scan",
+          "shape": [
+            1,
+            187
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "forward_progress_m",
+          "shape": [
+            1
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "remaining_goal_distance_m",
+          "shape": [
+            1
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "goal_progress_fraction",
+          "shape": [
+            1
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.bool",
+          "name": "terminated_non_timeout",
+          "shape": [
+            1
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.bool",
+          "name": "time_out",
+          "shape": [
+            1
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.bool",
+          "name": "base_contact",
+          "shape": [
+            1
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        }
+      ],
+      "input_schema_hash": "2953831ca66dae9115006e84ec0063c9194b0d1cdd84eac4a2901172642a49dd"
+    },
+    "term_names": [
+      "termination_penalty",
+      "track_lin_vel_xy_exp",
+      "track_ang_vel_z_exp",
+      "feet_air_time",
+      "feet_slide",
+      "dof_pos_limits",
+      "joint_deviation_hip",
+      "joint_deviation_arms",
+      "joint_deviation_fingers",
+      "joint_deviation_torso",
+      "ang_vel_xy_l2",
+      "flat_orientation_l2",
+      "action_rate_l2",
+      "dof_acc_l2",
+      "dof_torques_l2"
+    ],
+    "total_rate": {
+      "device": "cuda:0",
+      "dtype": "torch.float32",
+      "finite": true,
+      "shape": [
+        1
+      ]
+    },
+    "total_rate_mean": 2.060307741165161
+  },
+  "runtime_projection": {
+    "action_joint_names": [
+      "left_hip_pitch_joint",
+      "right_hip_pitch_joint",
+      "torso_joint",
+      "left_hip_roll_joint",
+      "right_hip_roll_joint",
+      "left_shoulder_pitch_joint",
+      "right_shoulder_pitch_joint",
+      "left_hip_yaw_joint",
+      "right_hip_yaw_joint",
+      "left_shoulder_roll_joint",
+      "right_shoulder_roll_joint",
+      "left_knee_joint",
+      "right_knee_joint",
+      "left_shoulder_yaw_joint",
+      "right_shoulder_yaw_joint",
+      "left_ankle_pitch_joint",
+      "right_ankle_pitch_joint",
+      "left_elbow_pitch_joint",
+      "right_elbow_pitch_joint",
+      "left_ankle_roll_joint",
+      "right_ankle_roll_joint",
+      "left_elbow_roll_joint",
+      "right_elbow_roll_joint",
+      "left_five_joint",
+      "left_three_joint",
+      "left_zero_joint",
+      "right_five_joint",
+      "right_three_joint",
+      "right_zero_joint",
+      "left_six_joint",
+      "left_four_joint",
+      "left_one_joint",
+      "right_six_joint",
+      "right_four_joint",
+      "right_one_joint",
+      "left_two_joint",
+      "right_two_joint"
+    ],
+    "binding_facts_hash": "1731473e00001bdbd8701de1811ad890ae2fd72f65334a37aa77fdfdd7fa8f92",
+    "cell_variant_id": "stair.g1_37dof.clean_legacy_v1",
+    "contact_history_length": 3,
+    "contact_sensor_name": "contact_forces",
+    "height_sensor_name": "height_scanner",
+    "joint_names": [
+      "left_hip_pitch_joint",
+      "right_hip_pitch_joint",
+      "torso_joint",
+      "left_hip_roll_joint",
+      "right_hip_roll_joint",
+      "left_shoulder_pitch_joint",
+      "right_shoulder_pitch_joint",
+      "left_hip_yaw_joint",
+      "right_hip_yaw_joint",
+      "left_shoulder_roll_joint",
+      "right_shoulder_roll_joint",
+      "left_knee_joint",
+      "right_knee_joint",
+      "left_shoulder_yaw_joint",
+      "right_shoulder_yaw_joint",
+      "left_ankle_pitch_joint",
+      "right_ankle_pitch_joint",
+      "left_elbow_pitch_joint",
+      "right_elbow_pitch_joint",
+      "left_ankle_roll_joint",
+      "right_ankle_roll_joint",
+      "left_elbow_roll_joint",
+      "right_elbow_roll_joint",
+      "left_five_joint",
+      "left_three_joint",
+      "left_zero_joint",
+      "right_five_joint",
+      "right_three_joint",
+      "right_zero_joint",
+      "left_six_joint",
+      "left_four_joint",
+      "left_one_joint",
+      "right_six_joint",
+      "right_four_joint",
+      "right_one_joint",
+      "left_two_joint",
+      "right_two_joint"
+    ],
+    "kinematic_base_source": "articulation_root",
+    "legacy_reward_adapter_id": "stair_g1_37dof_reward_v2_adapter_v1",
+    "policy_io_schema_hash": "33c29649a0bfd26c458a764a598a38212f7e66c1207a2fbb073baa117ae69ca3",
+    "projection_hash": "69405038c92b4a679cd58205a95d003f22af7cb174a079eb574111fe5e6367ff",
+    "resolved_cell_manifest_hash": "4f3cba01f11abcfadea7f262df9a1001a217c0654e8ff050a4b38d1dc4a6b3ca",
+    "resolved_roles": {
+      "base": [
+        "torso_link"
+      ],
+      "forbidden_contact": [
+        "torso_link"
+      ],
+      "support_effector": [
+        "left_ankle_roll_link",
+        "right_ankle_roll_link"
+      ]
+    },
+    "resolved_runtime": {
+      "base_body_ids": [
+        4
+      ],
+      "contact_forbidden_body_ids": [
+        14
+      ],
+      "contact_support_body_ids": [
+        6,
+        13
+      ],
+      "joint_ids": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36
+      ],
+      "support_body_ids": [
+        24,
+        25
+      ]
+    },
+    "reward_capability_hash_vnext": "ee3d3f47a536dd387919640c06068cc3522dcb76c6778ef6c8304f6a42025d02",
+    "reward_input_schema_hash_vnext": "ac6432f79789a4c809b3614259073923f846e4888d5a1586c74adf73ab0dcb9f",
+    "robot_profile_hash": "d23a5ffdca4aae1845ee37947653cefd4a21e96eeffde029cd319864014b7d18",
+    "robot_profile_id": "unitree_g1_37dof_isaaclab_v1",
+    "robot_task_binding_hash": "26de74e9f3e123b329f8132f241ecb2096525a49140a46f92c90f9f5094e93b2",
+    "runtime_adapter_hash": "d0fbd7e34deb7f8265cf0b6ad969cdfa2c3b059f068d1564d7d9ec5f9056557c",
+    "runtime_adapter_id": "g1_37dof_isaaclab_adapter_v1",
+    "schema_version": "true_rl_agent.task.stair_climbing.runtime_projection.vnext.v1",
+    "sensor_schema_hash": "92878ccd57f5ab852a5beeaed049d1ca4632341c4a5887cd006fd90487429558"
+  },
+  "schema_version": "true_rl_agent.variant_construction.phase2_runtime_receipt.v1",
+  "status": "pass",
+  "transition": {
+    "forbidden_contact_forces_w": {
+      "device": "cuda:0",
+      "dtype": "torch.float32",
+      "finite": true,
+      "shape": [
+        1,
+        1,
+        3
+      ]
+    },
+    "joint_pos": {
+      "device": "cuda:0",
+      "dtype": "torch.float32",
+      "finite": true,
+      "shape": [
+        1,
+        37
+      ]
+    },
+    "normalized_schema_version": "true_rl_agent.task.stair_climbing.transition.normalized.v1",
+    "source_schema_version": "true_rl_agent.task.stair_climbing.transition.v2",
+    "support_contact_forces_w": {
+      "device": "cuda:0",
+      "dtype": "torch.float32",
+      "finite": true,
+      "shape": [
+        1,
+        2,
+        3
+      ]
+    },
+    "support_pos_w": {
+      "device": "cuda:0",
+      "dtype": "torch.float32",
+      "finite": true,
+      "shape": [
+        1,
+        2,
+        3
+      ]
+    }
+  }
+}

@@ -11,7 +11,11 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from true_rl_agent.candidates.authoring_policy import (  # noqa: E402
+    CANDIDATE_MECHANISM_OPERATION_DELTA_SCHEMA_VERSION,
     MAX_CANONICAL_COMPONENT_NAME_CHARS,
+)
+from true_rl_agent.agent_core.generation_contract import (  # noqa: E402
+    GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION,
 )
 from true_rl_agent.evaluation.binding import canonical_json_hash  # noqa: E402
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats  # noqa: E402
@@ -25,6 +29,7 @@ from true_rl_agent.tasks.prompt_adapter import (  # noqa: E402
     MAX_TASK_PROMPT_SECTIONS_BYTES,
 )
 from true_rl_agent.tasks.stair_climbing.component_smoke import (  # noqa: E402
+    STAIR_SMOKE_NUM_ENVS,
     StairClimbingComponentSmokeAdapter,
 )
 from true_rl_agent.tasks.stair_climbing.config import (  # noqa: E402
@@ -52,8 +57,10 @@ from true_rl_agent.tasks.stair_climbing.prompt_adapter import (  # noqa: E402
     StairClimbingPromptAdapter,
 )
 from true_rl_agent.tasks.stair_climbing.public_projection import (  # noqa: E402
+    build_stair_candidate_runtime_effect_evidence,
     build_stair_prompt_feedback,
     build_stair_prompt_score_semantics,
+    build_stair_runtime_activation_gate,
     project_stair_public_result,
 )
 from true_rl_agent.tasks.stair_climbing.runtime_profile import (  # noqa: E402
@@ -198,6 +205,204 @@ class StairPublicProjectionTests(unittest.TestCase):
         )
         self.assertEqual(unsafe.observed_effect, "negative")
         self.assertEqual(unsafe.value_label, "low")
+
+    def test_prompt_keeps_latest_paired_objective_guard_comparisons(self) -> None:
+        generation_id = "g" * 128
+        eval_protocol_hash = self.config.evaluation_protocol().protocol_hash
+        parent = CurrentBestEvalStats(
+            mode="incomplete",
+            anchor_kind="bootstrap",
+            anchor_id="stair-prompt-comparison-parent",
+            public_accept_stats={
+                "count": 5,
+                "mean": 0.6,
+                "std": 0.0,
+                "standard_error": 0.0,
+                "eval_protocol_hash": eval_protocol_hash,
+                "score_samples": [0.6] * 5,
+            },
+            guard_score_stats={
+                "count": 5,
+                "mean": 0.4,
+                "std": 0.0,
+                "standard_error": 0.0,
+                "eval_protocol_hash": eval_protocol_hash,
+                "score_samples": [0.4] * 5,
+            },
+            task_protocol_hash=self.config.task_protocol_hash,
+            eval_protocol_hash=eval_protocol_hash,
+            acceptance_protocol_hash=(
+                self.config.acceptance_protocol.protocol_hash
+            ),
+            min_score_count=5,
+        )
+        trials = [
+            {
+                "trial_id": generation_id + "-lane-a",
+                "lane_id": "lane-a",
+                "candidate": {
+                    "candidate_id": "paired-candidate-a",
+                    "program_source_checksum": "sha256:" + ("a" * 64),
+                },
+                "trial_status": "qualified_not_selected",
+                "public_dev": {"public_summary": self.public_dev},
+                "public_accept": {"public_summary": self.public_accept},
+            },
+            {
+                "trial_id": generation_id + "-lane-b",
+                "lane_id": "lane-b",
+                "candidate": {
+                    "candidate_id": "paired-candidate-b",
+                    "program_source_checksum": "sha256:" + ("b" * 64),
+                },
+                "trial_status": "accepted",
+                "public_dev": {"public_summary": self.public_dev},
+                "public_accept": {"public_summary": self.public_accept},
+            },
+        ]
+        generation = {
+            "schema_version": GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION,
+            "generation_id": generation_id,
+            "generation_index": 2,
+            "parent_current_best": parent.to_public_dict(),
+            "guard_reference": {
+                "generalization_score_stats": {"mean": 0.5},
+                "anchor_score_stats": {"mean": 0.5},
+            },
+            "trials": trials,
+            "selection": {"selected_trial_id": generation_id + "-lane-b"},
+        }
+        newer_incomplete_generation = {
+            "schema_version": GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION,
+            "generation_id": "generation-003",
+            "generation_index": 3,
+            "parent_current_best": parent.to_public_dict(),
+            "trials": [
+                {
+                    "trial_id": "generation-003-lane-a",
+                    "lane_id": "lane-a",
+                    "trial_status": "candidate_failed",
+                    "public_dev": None,
+                    "public_accept": None,
+                },
+                {
+                    "trial_id": "generation-003-lane-b",
+                    "lane_id": "lane-b",
+                    "trial_status": "not_started",
+                    "public_dev": None,
+                    "public_accept": None,
+                },
+            ],
+            "selection": None,
+        }
+        newer_partial_generation = {
+            "schema_version": GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION,
+            "generation_id": "generation-004",
+            "generation_index": 4,
+            "parent_current_best": parent.to_public_dict(),
+            "guard_reference": {
+                "generalization_score_stats": {"mean": 0.5},
+                "anchor_score_stats": {"mean": 0.5},
+            },
+            "trials": [
+                {
+                    "trial_id": "generation-004-lane-a",
+                    "lane_id": "lane-a",
+                    "candidate": {
+                        "candidate_id": "partial-candidate-a",
+                        "program_source_checksum": "sha256:" + ("c" * 64),
+                    },
+                    "trial_status": "qualified_not_selected",
+                    "public_dev": {"public_summary": self.public_dev},
+                    "public_accept": {"public_summary": self.public_accept},
+                },
+                {
+                    "trial_id": "generation-004-lane-b",
+                    "lane_id": "lane-b",
+                    "trial_status": "candidate_failed",
+                    "public_dev": None,
+                    "public_accept": None,
+                },
+            ],
+            "selection": None,
+        }
+
+        sections = StairClimbingPromptAdapter(self.config).build_prompt_sections(
+            public_records=[
+                {"generation": generation},
+                {"generation": newer_incomplete_generation},
+                {"generation": newer_partial_generation},
+            ],
+            public_context={},
+        )
+
+        comparisons = sections["public_feedback_summary"][
+            "latest_generation_trial_comparisons"
+        ]
+        self.assertEqual(
+            sections["public_feedback_summary"][
+                "latest_generation_trial_comparison_basis"
+            ],
+            "public_accept_vs_parent",
+        )
+        self.assertEqual(len(comparisons), 2)
+        by_lane = {value["lane_id"]: value for value in comparisons}
+        self.assertEqual(by_lane["lane-a"]["selection_status"], "not_selected")
+        self.assertEqual(by_lane["lane-b"]["selection_status"], "selected")
+        self.assertEqual(by_lane["lane-a"]["candidate_id"], "paired-candidate-a")
+        self.assertEqual(
+            by_lane["lane-b"]["program_source_checksum"],
+            "sha256:" + ("b" * 64),
+        )
+        self.assertEqual(
+            by_lane["lane-a"]["trial_status"],
+            "qualified_not_selected",
+        )
+        self.assertAlmostEqual(by_lane["lane-a"]["objective_delta"], -0.1)
+        self.assertAlmostEqual(by_lane["lane-a"]["guard_delta"], 0.1)
+        self.assertFalse(by_lane["lane-a"]["objective_materiality_met"])
+        self.assertTrue(by_lane["lane-a"]["guard_met"])
+        self.assertIn(
+            "public_guard_improved_objective_not_improved",
+            by_lane["lane-a"]["reason_codes"],
+        )
+        expected_comparison_fields = {
+            "generation_id",
+            "trial_id",
+            "lane_id",
+            "candidate_id",
+            "program_source_checksum",
+            "trial_status",
+            "selection_status",
+            "observed_effect",
+            "objective_delta",
+            "objective_materiality_threshold",
+            "objective_materiality_met",
+            "guard_delta",
+            "guard_max_regression",
+            "guard_met",
+            "reason_codes",
+        }
+        self.assertTrue(
+            all(set(value) == expected_comparison_fields for value in comparisons)
+        )
+        self.assertNotIn("checkpoint", repr(comparisons).lower())
+
+        too_long_generation = copy.deepcopy(generation)
+        too_long_generation["generation_id"] = "g" * 129
+        with self.assertRaisesRegex(ValueError, "generation prompt identity"):
+            StairClimbingPromptAdapter(self.config).build_prompt_sections(
+                public_records=[{"generation": too_long_generation}],
+                public_context={},
+            )
+
+        too_long_trial = copy.deepcopy(generation)
+        too_long_trial["trials"][0]["trial_id"] = "t" * 136
+        with self.assertRaisesRegex(ValueError, "trial identity"):
+            StairClimbingPromptAdapter(self.config).build_prompt_sections(
+                public_records=[{"generation": too_long_trial}],
+                public_context={},
+            )
 
     def test_projection_overwrites_forged_task_gates(self) -> None:
         raw = PublicEvalResult(
@@ -583,6 +788,206 @@ class StairPublicProjectionTests(unittest.TestCase):
             projected.metrics["runtime_activation_gate"]["failed_checks"],
         )
 
+    def test_runtime_gate_observes_candidate_reward_operation(self) -> None:
+        train_summary = _train_summary(self.config)
+        source_checksum = "sha256:" + "1" * 64
+        subject_manifest_hash = "2" * 64
+        qualification_hash = "3" * 64
+        train_summary.update(
+            {
+                "program_source_checksum": source_checksum,
+                "subject_kind": "candidate",
+                "subject_id": "candidate-runtime-test",
+                "subject_manifest_hash": subject_manifest_hash,
+                "reward_program_qualification_hash": qualification_hash,
+            }
+        )
+        term_names = ["reference_term", "candidate_term"]
+        expected_dispatcher_calls = (
+            self.config.train_steps_per_iteration * self.config.train_max_iterations
+        ) + 1
+        train_summary["runtime_activation_summary"] = {
+            "status": "pass",
+            "runtime_status": "active_pre_reset_complete_reward_v1",
+            "dispatcher_calls": expected_dispatcher_calls,
+            "term_calls": expected_dispatcher_calls * len(term_names),
+            "declared_term_count": len(term_names),
+            "input_guard": "pass",
+            "rng_guard": "pass",
+            "source_alias_guard": "pass",
+            "reward_manager_active_terms": ["complete_reward"],
+            "reward_manager_term_weight": 1.0,
+            "training_recorder_enabled": False,
+            "reward_term_calls": expected_dispatcher_calls * len(term_names),
+            "diagnostic_calls": 0,
+            "nonzero_reward_contribution": True,
+            "component_activation_records": [
+                {
+                    "component_kind": "reward_term",
+                    "name": name,
+                    "max_abs_weighted_contribution": (
+                        0.5 if name == "reference_term" else 2.0e-12
+                    ),
+                }
+                for name in term_names
+            ],
+            "capability_activation_records": ["complete_reward_program"],
+            "activation_preflight": {
+                "schema_version": STAIR_REWARD_ACTIVATION_PREFLIGHT_SCHEMA_VERSION,
+                "status": "pass",
+                "real_transition_dispatcher_calls": 1,
+                "transition_common_step": 1,
+                "repeat_count": 2,
+                "term_names": term_names,
+            },
+            "program": {
+                "program_source_checksum": source_checksum,
+                "subject_manifest_hash": subject_manifest_hash,
+                "qualification_hash": qualification_hash,
+                "subject": {
+                    "kind": "candidate",
+                    "id": "candidate-runtime-test",
+                },
+                "input_schema_hash": (
+                    self.config.protocol_v2.complete_reward_runtime.input_schema_hash
+                ),
+                "term_names": term_names,
+            },
+        }
+        operation_delta = {
+            "schema_version": CANDIDATE_MECHANISM_OPERATION_DELTA_SCHEMA_VERSION,
+            "operation": "add",
+            "before_component": None,
+            "after_component": {
+                "mechanism_id": "RewardTerm:candidate_term",
+                "structure_hash": "4" * 64,
+                "parameter_normalized_structure_hash": "5" * 64,
+                "input_fields": ["goal_progress_fraction"],
+            },
+            "anchor_source_checksum": "sha256:" + "6" * 64,
+            "candidate_source_checksum": "sha256:" + "7" * 64,
+        }
+
+        gate = build_stair_runtime_activation_gate(
+            self.config,
+            train_summary,
+            mechanism_operation_delta=operation_delta,
+        )
+        self.assertEqual(gate["status"], "pass")
+        self.assertEqual(
+            build_stair_candidate_runtime_effect_evidence(
+                train_summary,
+                mechanism_operation_delta=operation_delta,
+            )["status"],
+            "pass",
+        )
+        projected = project_stair_public_result(
+            config=self.config,
+            public_result=PublicEvalResult(
+                status="pass",
+                public_score=0.5,
+                metrics={
+                    "environment_source_preflight": self.source_preflight,
+                    "stair_evaluation": {
+                        "public_dev": self.public_dev,
+                        "public_accept": self.public_accept,
+                    },
+                },
+            ),
+            train_summary=train_summary,
+            mechanism_operation_delta=operation_delta,
+        )
+        self.assertEqual(
+            projected.metrics["runtime_activation_gate"]["status"],
+            "pass",
+        )
+
+        for contribution in (0.0, 1.0e-12, float("nan"), None):
+            with self.subTest(contribution=contribution):
+                changed = copy.deepcopy(train_summary)
+                changed["runtime_activation_summary"][
+                    "component_activation_records"
+                ][1]["max_abs_weighted_contribution"] = contribution
+                gate = build_stair_runtime_activation_gate(
+                    self.config,
+                    changed,
+                    mechanism_operation_delta=operation_delta,
+                )
+                self.assertEqual(gate["status"], "fail")
+                self.assertEqual(
+                    build_stair_candidate_runtime_effect_evidence(
+                        changed,
+                        mechanism_operation_delta=operation_delta,
+                    )["status"],
+                    "fail",
+                )
+                self.assertIn(
+                    "candidate_reward_operation_runtime_effect",
+                    gate["failed_checks"],
+                )
+
+        removal_delta = {
+            **operation_delta,
+            "operation": "remove",
+            "before_component": {
+                **operation_delta["after_component"],
+                "mechanism_id": "RewardTerm:removed_term",
+            },
+            "after_component": None,
+        }
+        gate = build_stair_runtime_activation_gate(
+            self.config,
+            train_summary,
+            mechanism_operation_delta=removal_delta,
+        )
+        self.assertEqual(gate["status"], "pass")
+
+        still_present = copy.deepcopy(removal_delta)
+        still_present["before_component"]["mechanism_id"] = (
+            "RewardTerm:reference_term"
+        )
+        gate = build_stair_runtime_activation_gate(
+            self.config,
+            train_summary,
+            mechanism_operation_delta=still_present,
+        )
+        self.assertEqual(gate["status"], "fail")
+        self.assertIn(
+            "candidate_reward_operation_runtime_effect",
+            gate["failed_checks"],
+        )
+
+        for reward_delta in (operation_delta, removal_delta):
+            with self.subTest(
+                unsupported_operation=reward_delta["operation"],
+            ):
+                unsupported = copy.deepcopy(reward_delta)
+                changed_component = (
+                    unsupported["before_component"]
+                    if unsupported["operation"] == "remove"
+                    else unsupported["after_component"]
+                )
+                changed_component["mechanism_id"] = "DiagnosticTerm:future_probe"
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "supports RewardTerm deltas only",
+                ):
+                    build_stair_runtime_activation_gate(
+                        self.config,
+                        train_summary,
+                        mechanism_operation_delta=unsupported,
+                    )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "invalid verifier-owned mechanism operation delta",
+        ):
+            build_stair_runtime_activation_gate(
+                self.config,
+                train_summary,
+                mechanism_operation_delta={"operation": "add"},
+            )
+
     def test_prompt_memory_exposes_only_the_phase_c_public_abi(self) -> None:
         projected = project_stair_public_result(
             config=self.config,
@@ -699,6 +1104,11 @@ class StairPublicProjectionTests(unittest.TestCase):
         self.assertIn("maximum weighted contribution", guidance)
         self.assertNotIn("tune one existing mechanism", guidance)
         self.assertIn("goal_not_reached_detected is frequent", guidance)
+        self.assertIn(
+            "objective materiality and the guard cap are conjunctive",
+            guidance,
+        )
+        self.assertIn("neither can compensate", guidance)
         self.assertEqual(
             sections["task"]["candidate_authoring_status"],
             "governed_by_shared_candidate_capabilities",
@@ -721,12 +1131,15 @@ class StairPublicProjectionTests(unittest.TestCase):
         )
         self.assertEqual(
             success_criteria["top_platform_stability_requirement"][
-                "maximum_supporting_foot_planar_speed_mps"
+                "maximum_support_effector_planar_speed_mps"
             ],
             0.5,
         )
         self.assertEqual(success_criteria["maximum_abs_roll_or_pitch_rad"], 0.65)
-        self.assertEqual(success_criteria["minimum_root_clearance_above_top_m"], 0.45)
+        self.assertEqual(
+            success_criteria["minimum_kinematic_base_clearance_above_top_m"],
+            0.45,
+        )
         self.assertEqual(
             [
                 field["name"]
@@ -801,12 +1214,21 @@ class StairPublicProjectionTests(unittest.TestCase):
         self.assertEqual(fixture.task_id, "unitree_stair_climbing")
         self.assertEqual(
             fixture.expected_reward_output_shape,
-            (2,),
+            (STAIR_SMOKE_NUM_ENVS,),
         )
         self.assertEqual(
             fixture.public_summary["input_schema_hash"],
             self.config.protocol_v2.complete_reward_runtime.input_schema_hash,
         )
+
+    def test_component_smoke_env_axis_does_not_alias_input_axes(self) -> None:
+        trailing_dimensions = {
+            dimension
+            for field in self.config.protocol_v2.complete_reward_runtime.input_fields
+            for dimension in field.trailing_shape
+        }
+
+        self.assertNotIn(STAIR_SMOKE_NUM_ENVS, trailing_dimensions)
 
     def test_prompt_score_semantics_names_objective_guard_and_public_dev_roles(
         self,
@@ -950,7 +1372,7 @@ class StairPublicProjectionTests(unittest.TestCase):
         summary = sections["public_feedback_summary"]
         self.assertEqual(
             summary["schema_version"],
-            "true_rl_agent.task.stair_climbing.public_feedback_summary.v8",
+            "true_rl_agent.task.stair_climbing.public_feedback_summary.v10",
         )
         self.assertEqual(len(summary["feedback_entries"]), 1)
         anchor_entry = summary["feedback_entries"][0]
@@ -1101,7 +1523,7 @@ class StairPublicProjectionTests(unittest.TestCase):
         public_dev = copy.deepcopy(self.public_dev["anchor"])
         public_dev["primary_failure_breakdown"] = {
             "timeout": 0.9,
-            "torso_contact": 0.05,
+            "forbidden_contact": 0.05,
         }
         public_dev["diagnostic_flag_rates"] = {
             "goal_not_reached_detected": 0.06,
@@ -1140,7 +1562,7 @@ class StairPublicProjectionTests(unittest.TestCase):
             "primary_failure_breakdown"
         ] = {
             "base_orientation_instability": 0.6,
-            "torso_contact": 0.1,
+            "forbidden_contact": 0.1,
         }
         older_high_progress_result["metrics"]["prompt_feedback"][
             "dominant_failure"
@@ -1160,12 +1582,12 @@ class StairPublicProjectionTests(unittest.TestCase):
         latest_low_progress_result["metrics"]["prompt_feedback"][
             "primary_failure_breakdown"
         ] = {
-            "torso_contact": 1.0,
+            "forbidden_contact": 1.0,
         }
         latest_low_progress_result["metrics"]["prompt_feedback"][
             "dominant_failure"
         ] = {
-            "reason": "torso_contact",
+            "reason": "forbidden_contact",
             "rate": 1.0,
         }
         latest_low_progress_result["metrics"]["prompt_feedback"][
@@ -1241,7 +1663,7 @@ class StairPublicProjectionTests(unittest.TestCase):
             entries["latest-low-progress"]["feedback"][
                 "primary_failure_breakdown"
             ],
-            {"torso_contact": 1.0},
+            {"forbidden_contact": 1.0},
         )
 
     def test_prompt_feedback_history_stays_bounded_without_losing_source_anchors(
@@ -1651,22 +2073,22 @@ class StairPublicProjectionTests(unittest.TestCase):
         generalization["zero_count_grids_omitted"] = []
         records = [
             _prompt_record(
-                f"stair-round-{'a' * 100}",
-                "a" * 80,
+                f"stair-round-{'a' * 90}",
+                "a" * 70,
                 "1",
                 0.9,
                 copy.deepcopy(projected),
             ),
             _prompt_record(
-                f"stair-round-{'b' * 100}",
-                "b" * 80,
+                f"stair-round-{'b' * 90}",
+                "b" * 70,
                 "2",
                 0.95,
                 copy.deepcopy(projected),
             ),
             _prompt_record(
-                f"stair-round-{'c' * 100}",
-                "c" * 80,
+                f"stair-round-{'c' * 90}",
+                "c" * 70,
                 "3",
                 0.8,
                 copy.deepcopy(projected),

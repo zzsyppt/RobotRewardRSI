@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Any
 
@@ -20,9 +21,9 @@ from true_rl_agent.tasks.stair_climbing.protocol_v2 import (
 from true_rl_agent.tasks.stair_climbing.reward_inputs import StairRewardInputsV2
 
 STAIR_SMOKE_FIXTURE_SCHEMA_VERSION = (
-    "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v1"
+    "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v2"
 )
-STAIR_SMOKE_NUM_ENVS = 2
+STAIR_SMOKE_NUM_ENVS = 5
 
 
 @dataclass(frozen=True)
@@ -75,7 +76,7 @@ class StairClimbingComponentSmokeAdapter:
                 "schema_version": STAIR_SMOKE_FIXTURE_SCHEMA_VERSION,
                 "input_schema_hash": self.contract.input_schema_hash,
                 "num_envs": STAIR_SMOKE_NUM_ENVS,
-                "value_recipe": "typed_cpu_zeros_v1",
+                "value_recipe": "typed_cpu_environment_row_markers_v2",
             }
         )
 
@@ -85,8 +86,33 @@ class StairClimbingComponentSmokeAdapter:
         values = {}
         for field in self.contract.input_fields:
             shape = (STAIR_SMOKE_NUM_ENVS, *field.trailing_shape)
-            dtype = torch.bool if field.dtype == "bool" else torch.float32
-            values[field.name] = torch.zeros(shape, dtype=dtype, device="cpu")
+            row_shape = (STAIR_SMOKE_NUM_ENVS,) + (1,) * len(
+                field.trailing_shape
+            )
+            row_ids = torch.arange(
+                STAIR_SMOKE_NUM_ENVS,
+                dtype=torch.float32,
+                device="cpu",
+            ).reshape(row_shape)
+            if field.dtype == "bool":
+                values[field.name] = (
+                    (row_ids.to(dtype=torch.int64) % 3) == 1
+                ).expand(shape).clone()
+                continue
+            trailing_size = math.prod(field.trailing_shape)
+            trailing_offsets = (
+                torch.arange(
+                    trailing_size,
+                    dtype=torch.float32,
+                    device="cpu",
+                ).reshape(field.trailing_shape)
+                * 0.001
+                if field.trailing_shape
+                else 0.0
+            )
+            values[field.name] = (
+                (row_ids + 1.0) * 0.1 + trailing_offsets
+            ).expand(shape).clone()
         return values
 
     def build_reward_inputs(self) -> StairRewardInputsV2:

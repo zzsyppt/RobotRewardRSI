@@ -52,10 +52,12 @@ from true_rl_agent.memory import (
     PublicPromptBuild,
 )
 from true_rl_agent.prompt_artifacts import (
+    AUTHORING_EVIDENCE_KIND,
     AuthoringEvidenceRef,
     RoundAuthoringJournal,
     authoring_outcome_from_evidence,
     validate_authoring_budget_usage,
+    verify_authoring_anchor_prompt,
     verify_authoring_evidence,
     verify_prompt_payload,
 )
@@ -632,6 +634,27 @@ class CandidateAuthoringLoop:
                 provider_response.response_mode
             )
             verification = self.candidate_admission_policy.verify(candidate)
+            if verification.status == "pass":
+                if round_authoring_anchor_prompt is None:
+                    raise RuntimeError("round authoring anchor was not frozen")
+                parent_source, _, anchor_role = select_authoring_anchor_source(
+                    round_authoring_anchor_prompt
+                )
+                verification = (
+                    self.candidate_admission_policy.verify_authoring_delta(
+                        candidate=candidate,
+                        verification=verification,
+                        parent_source=(
+                            parent_source
+                            if anchor_role == "current_best"
+                            else None
+                        ),
+                    )
+                )
+                if not isinstance(verification, VerificationResult):
+                    raise TypeError(
+                        "candidate authoring-delta verification result is invalid"
+                    )
             attempt_record.update(
                 _candidate_attempt_public_record(candidate, verification)
             )
@@ -1625,8 +1648,33 @@ def _evaluated_candidate_authoring_anchor(
             prompt_ref = PromptPayloadRef.from_mapping(raw_prompt_ref)
         except (TypeError, ValueError):
             return None
+    evidence_items = tuple(
+        item
+        for item in record.private_artifacts
+        if item.kind == AUTHORING_EVIDENCE_KIND
+    )
     try:
-        prompt_payload = verify_prompt_payload(prompt_ref)
+        if evidence_items:
+            if len(evidence_items) != 1:
+                return None
+            evidence_item = evidence_items[0]
+            if (
+                evidence_item.checksum is None
+                or evidence_item.size_bytes is None
+            ):
+                return None
+            evidence = verify_authoring_evidence(
+                AuthoringEvidenceRef(
+                    path=evidence_item.uri,
+                    checksum=evidence_item.checksum,
+                    size_bytes=evidence_item.size_bytes,
+                ),
+                expected_round_id=record.round_id,
+                expected_selected_prompt=prompt_ref,
+            )
+            prompt_payload = verify_authoring_anchor_prompt(evidence)
+        else:
+            prompt_payload = verify_prompt_payload(prompt_ref)
         anchor_content, anchor_sha256, anchor_role = select_authoring_anchor_source(
             prompt_payload
         )

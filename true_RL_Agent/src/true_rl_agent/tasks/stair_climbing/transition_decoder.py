@@ -12,40 +12,50 @@ from true_rl_agent.tasks.stair_climbing.evaluation_profile import (
 from true_rl_agent.tasks.stair_climbing.evaluation_semantics import (
     StairEvaluationSemantics,
 )
+from true_rl_agent.tasks.stair_climbing.legacy_transition_reader import (
+    STAIR_NORMALIZED_TRANSITION_SCHEMA_VERSION,
+    normalize_stair_transition_payload,
+)
 from true_rl_agent.tasks.stair_climbing.phase0_contract import StairProtocolV1
-from true_rl_agent.tasks.stair_climbing.runtime_profile import (
-    STAIR_TRANSITION_RECORDER_SCHEMA_VERSION,
+from true_rl_agent.tasks.stair_climbing.runtime_projection import (
+    STAIR_TRANSITION_VNEXT_SCHEMA_VERSION,
+    StairRuntimeProjection,
 )
 from true_rl_agent.tasks.stair_climbing.terrain_evidence import (
-    expected_stair_surface_height_m,
-    stair_surface_level,
+    FlatStairSurfaceQuery,
+    StairSurfaceQuery,
     supporting_stair_surface_height_m,
 )
 
 _REQUIRED_FIELDS = {
     "schema_version",
-    "root_pos_w",
-    "root_quat_w",
+    "source_schema_version",
+    "base_pos_w",
+    "base_quat_w",
     "joint_pos",
-    "foot_pos_w",
-    "foot_lin_vel_w",
-    "foot_contact_forces_w",
-    "base_contact_forces_w",
+    "support_pos_w",
+    "support_lin_vel_w",
+    "support_contact_forces_w",
+    "forbidden_contact_forces_w",
     "episode_length",
     "terrain_env_origins_w",
     "terrain_types",
     "termination_term_order",
     "termination_masks",
     "done_mask",
+    "runtime_projection_hash",
+    "reward_input_schema_hash_vnext",
+    "support_count",
+    "forbidden_contact_count",
 }
 _TENSOR_FIELDS = (
-    "root_pos_w",
-    "root_quat_w",
+    "base_pos_w",
+    "base_quat_w",
     "joint_pos",
-    "foot_pos_w",
-    "foot_lin_vel_w",
-    "foot_contact_forces_w",
-    "base_contact_forces_w",
+    "support_pos_w",
+    "support_lin_vel_w",
+    "support_contact_forces_w",
+    "forbidden_contact_forces_w",
     "episode_length",
     "terrain_env_origins_w",
     "terrain_types",
@@ -76,15 +86,21 @@ def materialize_stair_transition_history(
     term_order: tuple[str, ...] | None = None
     field_values = {name: [] for name in _TENSOR_FIELDS}
     term_values: dict[str, list[Any]] = {}
-    for raw in raw_steps:
-        if not isinstance(raw, Mapping) or set(raw) != _REQUIRED_FIELDS:
+    normalized_steps: list[Mapping[str, Any]] = []
+    for source_raw in raw_steps:
+        try:
+            raw = normalize_stair_transition_payload(source_raw)
+        except (TypeError, ValueError) as exc:
+            raise StairTransitionDecodeError(str(exc)) from exc
+        if set(raw) != _REQUIRED_FIELDS:
             raise StairTransitionDecodeError(
-                "Stair transition recorder fields mismatch"
+                "Stair normalized transition recorder fields mismatch"
             )
-        if raw.get("schema_version") != STAIR_TRANSITION_RECORDER_SCHEMA_VERSION:
+        if raw.get("schema_version") != STAIR_NORMALIZED_TRANSITION_SCHEMA_VERSION:
             raise StairTransitionDecodeError(
-                "Stair transition recorder schema mismatch"
+                "Stair normalized transition recorder schema mismatch"
             )
+        normalized_steps.append(raw)
         current_order = raw.get("termination_term_order")
         current_masks = raw.get("termination_masks")
         if (
@@ -111,16 +127,8 @@ def materialize_stair_transition_history(
             term_values[name].append(current_masks[name])
 
     assert term_order is not None
-    tensor_values = [
-        value
-        for values in field_values.values()
-        for value in values
-    ]
-    tensor_values.extend(
-        value
-        for values in term_values.values()
-        for value in values
-    )
+    tensor_values = [value for values in field_values.values() for value in values]
+    tensor_values.extend(value for values in term_values.values() for value in values)
     tensor_values.extend(wrapper_steps)
     torch = _torch_for_history(tensor_values)
     if torch is None:
@@ -129,7 +137,7 @@ def materialize_stair_transition_history(
                 **dict(raw),
                 "termination_masks": dict(raw["termination_masks"]),
             }
-            for raw in raw_steps
+            for raw in normalized_steps
         )
         return copied, wrapper_steps
 
@@ -156,18 +164,30 @@ def materialize_stair_transition_history(
         field_name="wrapper_done_mask",
     )
     host_steps: list[Mapping[str, Any]] = []
-    for index in range(len(raw_steps)):
+    for index in range(len(normalized_steps)):
         host_steps.append(
             {
-                "schema_version": STAIR_TRANSITION_RECORDER_SCHEMA_VERSION,
+                "schema_version": STAIR_NORMALIZED_TRANSITION_SCHEMA_VERSION,
+                "source_schema_version": normalized_steps[index][
+                    "source_schema_version"
+                ],
+                "runtime_projection_hash": normalized_steps[index][
+                    "runtime_projection_hash"
+                ],
+                "reward_input_schema_hash_vnext": normalized_steps[index][
+                    "reward_input_schema_hash_vnext"
+                ],
+                "support_count": normalized_steps[index]["support_count"],
+                "forbidden_contact_count": normalized_steps[index][
+                    "forbidden_contact_count"
+                ],
                 **{
                     name: value if shared else value[index]
                     for name, (shared, value) in host_fields.items()
                 },
                 "termination_term_order": term_order,
                 "termination_masks": {
-                    name: values[index]
-                    for name, values in stacked_terms.items()
+                    name: values[index] for name, values in stacked_terms.items()
                 },
             }
         )
@@ -184,17 +204,32 @@ def decode_stair_transition_batch(
     semantics: StairEvaluationSemantics,
     expected_bin_assignment: Sequence[str],
     expected_cell_assignment: Sequence[StairEvaluationCell] | None = None,
+    runtime_projection: StairRuntimeProjection | None = None,
+    surface_queries: Sequence[StairSurfaceQuery] | None = None,
 ) -> tuple[StairEnvTransition, ...]:
     """Validate one pre-reset batch and derive task-level transition signals."""
 
-    if not isinstance(raw, Mapping) or set(raw) != _REQUIRED_FIELDS:
-        raise StairTransitionDecodeError("Stair transition recorder fields mismatch")
-    if raw.get("schema_version") != STAIR_TRANSITION_RECORDER_SCHEMA_VERSION:
-        raise StairTransitionDecodeError("Stair transition recorder schema mismatch")
+    try:
+        raw = normalize_stair_transition_payload(raw)
+    except (TypeError, ValueError) as exc:
+        raise StairTransitionDecodeError(str(exc)) from exc
+    if set(raw) != _REQUIRED_FIELDS:
+        raise StairTransitionDecodeError(
+            "Stair normalized transition recorder fields mismatch"
+        )
+    if raw.get("schema_version") != STAIR_NORMALIZED_TRANSITION_SCHEMA_VERSION:
+        raise StairTransitionDecodeError(
+            "Stair normalized transition recorder schema mismatch"
+        )
     if not isinstance(protocol, StairProtocolV1):
         raise TypeError("Stair transition decoder requires StairProtocolV1")
     if not isinstance(semantics, StairEvaluationSemantics):
         raise TypeError("Stair transition decoder requires evaluation semantics")
+    if runtime_projection is not None and not isinstance(
+        runtime_projection,
+        StairRuntimeProjection,
+    ):
+        raise TypeError("Stair transition runtime projection is invalid")
 
     bin_assignment = tuple(expected_bin_assignment)
     cell_assignment = (
@@ -213,8 +248,7 @@ def decode_stair_transition_batch(
         raise StairTransitionDecodeError("Stair bin assignment differs from protocol")
     if cell_assignment is not None:
         if len(cell_assignment) != expected_num_envs or any(
-            not isinstance(cell, StairEvaluationCell)
-            for cell in cell_assignment
+            not isinstance(cell, StairEvaluationCell) for cell in cell_assignment
         ):
             raise StairTransitionDecodeError(
                 "Stair evaluation cell assignment is invalid"
@@ -223,31 +257,92 @@ def decode_stair_transition_batch(
             raise StairTransitionDecodeError(
                 "Stair evaluation cell/bin assignment drifted"
             )
-    root_pos = _numeric_tensor(raw["root_pos_w"], (expected_num_envs, 3), "root_pos_w")
-    root_quat = _numeric_tensor(raw["root_quat_w"], (expected_num_envs, 4), "root_quat_w")
-    joint_count = len(
-        protocol.to_dict()["policy_compatibility"]["robot_schema"]["joint_names"]
+    support_count = raw.get("support_count")
+    if (
+        isinstance(support_count, bool)
+        or not isinstance(support_count, int)
+        or support_count <= 0
+    ):
+        raise StairTransitionDecodeError("Stair support count is invalid")
+    source_schema = raw.get("source_schema_version")
+    if source_schema == STAIR_TRANSITION_VNEXT_SCHEMA_VERSION:
+        if runtime_projection is None:
+            raise StairTransitionDecodeError(
+                "Stair VNext transition requires its runtime projection"
+            )
+        if (
+            raw.get("runtime_projection_hash") != runtime_projection.projection_hash
+            or raw.get("reward_input_schema_hash_vnext")
+            != runtime_projection.reward_input_schema_hash_vnext
+        ):
+            raise StairTransitionDecodeError(
+                "Stair VNext transition projection identity mismatch"
+            )
+    if runtime_projection is not None and (
+        support_count != runtime_projection.support_count
+    ):
+        raise StairTransitionDecodeError(
+            "Stair transition support count differs from runtime projection"
+        )
+    forbidden_count = raw.get("forbidden_contact_count")
+    if (
+        isinstance(forbidden_count, bool)
+        or not isinstance(forbidden_count, int)
+        or forbidden_count <= 0
+    ):
+        raise StairTransitionDecodeError("Stair forbidden-contact count is invalid")
+    if runtime_projection is not None and (
+        forbidden_count != runtime_projection.forbidden_contact_count
+    ):
+        raise StairTransitionDecodeError(
+            "Stair transition forbidden-contact count differs from runtime projection"
+        )
+    if surface_queries is None:
+        resolved_surface_queries: tuple[StairSurfaceQuery, ...] | None = None
+    else:
+        resolved_surface_queries = tuple(surface_queries)
+        if len(resolved_surface_queries) != expected_num_envs or any(
+            not isinstance(item, StairSurfaceQuery) for item in resolved_surface_queries
+        ):
+            raise StairTransitionDecodeError(
+                "Stair surface query assignment is invalid"
+            )
+    base_pos = _numeric_tensor(
+        raw["base_pos_w"],
+        (expected_num_envs, 3),
+        "base_pos_w",
+    )
+    base_quat = _numeric_tensor(
+        raw["base_quat_w"],
+        (expected_num_envs, 4),
+        "base_quat_w",
+    )
+    joint_pos, joint_count = _numeric_matrix(
+        raw["joint_pos"], expected_num_envs, "joint_pos"
+    )
+    if runtime_projection is not None and joint_count != runtime_projection.joint_count:
+        raise StairTransitionDecodeError(
+            "Stair joint_pos width differs from runtime projection"
+        )
+    support_pos = _numeric_tensor(
+        raw["support_pos_w"],
+        (expected_num_envs, support_count, 3),
+        "support_pos_w",
+    )
+    support_vel = _numeric_tensor(
+        raw["support_lin_vel_w"],
+        (expected_num_envs, support_count, 3),
+        "support_lin_vel_w",
+    )
+    support_forces = _numeric_tensor(
+        raw["support_contact_forces_w"],
+        (expected_num_envs, support_count, 3),
+        "support_contact_forces_w",
     )
     _numeric_tensor(
-        raw["joint_pos"],
-        (expected_num_envs, joint_count),
-        "joint_pos",
-    )
-    foot_pos = _numeric_tensor(raw["foot_pos_w"], (expected_num_envs, 2, 3), "foot_pos_w")
-    foot_vel = _numeric_tensor(
-        raw["foot_lin_vel_w"],
-        (expected_num_envs, 2, 3),
-        "foot_lin_vel_w",
-    )
-    foot_forces = _numeric_tensor(
-        raw["foot_contact_forces_w"],
-        (expected_num_envs, 2, 3),
-        "foot_contact_forces_w",
-    )
-    _numeric_tensor(
-        raw["base_contact_forces_w"],
-        (expected_num_envs, 1, 3),
-        "base_contact_forces_w",
+        raw["forbidden_contact_forces_w"],
+        (expected_num_envs, forbidden_count, 3),
+        "forbidden_contact_forces_w",
     )
     episode_length = _integer_tensor(
         raw["episode_length"],
@@ -327,11 +422,11 @@ def decode_stair_transition_batch(
         cell_assignment=cell_assignment,
     )
 
-    root_pos_values = _to_list(root_pos)
-    root_quat_values = _to_list(root_quat)
-    foot_pos_values = _to_list(foot_pos)
-    foot_vel_values = _to_list(foot_vel)
-    foot_force_values = _to_list(foot_forces)
+    base_pos_values = _to_list(base_pos)
+    base_quat_values = _to_list(base_quat)
+    support_pos_values = _to_list(support_pos)
+    support_vel_values = _to_list(support_vel)
+    support_force_values = _to_list(support_forces)
     episode_steps = _to_list(episode_length)
     origin_values = _to_list(origins)
     done_values = _to_list(done_mask)
@@ -347,8 +442,8 @@ def decode_stair_transition_batch(
             "maximum_projected_surface_penetration_m"
         ]
     )
-    torso_contact_manager_term = str(
-        semantics_payload["episode_outcomes"]["signals"]["torso_contact"][
+    forbidden_contact_manager_term = str(
+        semantics_payload["episode_outcomes"]["signals"]["forbidden_contact"][
             "manager_term"
         ]
     )
@@ -357,7 +452,7 @@ def decode_stair_transition_batch(
     )
     if (
         len(base_contact_terms) != 1
-        or base_contact_terms[0] != torso_contact_manager_term
+        or base_contact_terms[0] != forbidden_contact_manager_term
     ):
         raise StairTransitionDecodeError(
             "Stair protocol must map exactly one base-contact manager term"
@@ -367,60 +462,63 @@ def decode_stair_transition_batch(
     for env_index, bin_id in enumerate(bin_assignment):
         cell = cell_assignment[env_index] if cell_assignment is not None else None
         origin = origin_values[env_index]
-        root = root_pos_values[env_index]
-        progress = float(root[0]) - float(origin[0])
-        lateral = float(root[1]) - float(origin[1])
-        root_height = float(root[2]) - float(origin[2])
+        base = base_pos_values[env_index]
+        progress = float(base[0]) - float(origin[0])
+        lateral = float(base[1]) - float(origin[1])
+        base_height = float(base[2]) - float(origin[2])
         step_height = cell.height_m if cell is not None else frozen_bins[bin_id][1]
         tread_depth = cell.tread_depth_m if cell is not None else None
-        foot_contacts: list[bool] = []
-        foot_progresses: list[float] = []
-        foot_lateral: list[float] = []
-        foot_surface_levels: list[int] = []
-        foot_speeds: list[float] = []
-        foot_clearances: list[float] = []
-        foot_upward_forces: list[float] = []
-        for foot_index in range(2):
-            force = foot_force_values[env_index][foot_index]
-            velocity = foot_vel_values[env_index][foot_index]
-            position = foot_pos_values[env_index][foot_index]
-            force_norm = math.sqrt(sum(float(value) ** 2 for value in force))
-            foot_contacts.append(force_norm > contact_threshold)
-            foot_upward_forces.append(float(force[2]))
-            foot_speeds.append(
-                math.sqrt(float(velocity[0]) ** 2 + float(velocity[1]) ** 2)
-            )
-            foot_progress = float(position[0]) - float(origin[0])
-            foot_progresses.append(foot_progress)
-            foot_lateral.append(float(position[1]) - float(origin[1]))
-            foot_surface_levels.append(
-                stair_surface_level(
-                    progress_m=foot_progress,
-                    protocol=protocol_payload,
-                    tread_depth_m=tread_depth,
-                )
-            )
-            surface = expected_stair_surface_height_m(
-                progress_m=foot_progress,
-                step_height_m=step_height,
+        surface_query = (
+            resolved_surface_queries[env_index]
+            if resolved_surface_queries is not None
+            else FlatStairSurfaceQuery(
                 protocol=protocol_payload,
+                step_height_m=step_height,
                 tread_depth_m=tread_depth,
             )
-            foot_clearances.append(float(position[2]) - float(origin[2]) - surface)
+        )
+        support_contacts: list[bool] = []
+        support_progresses: list[float] = []
+        support_lateral: list[float] = []
+        support_surface_levels: list[int] = []
+        support_speeds: list[float] = []
+        support_clearances: list[float] = []
+        support_upward_forces: list[float] = []
+        for support_index in range(support_count):
+            force = support_force_values[env_index][support_index]
+            velocity = support_vel_values[env_index][support_index]
+            position = support_pos_values[env_index][support_index]
+            force_norm = math.sqrt(sum(float(value) ** 2 for value in force))
+            support_contacts.append(force_norm > contact_threshold)
+            support_upward_forces.append(float(force[2]))
+            support_speeds.append(
+                math.sqrt(float(velocity[0]) ** 2 + float(velocity[1]) ** 2)
+            )
+            support_progress = float(position[0]) - float(origin[0])
+            support_progresses.append(support_progress)
+            support_lateral_position = float(position[1]) - float(origin[1])
+            support_lateral.append(support_lateral_position)
+            surface = surface_query.sample(
+                progress_m=support_progress,
+                lateral_m=support_lateral_position,
+            )
+            support_surface_levels.append(surface.level)
+            support_clearances.append(
+                float(position[2]) - float(origin[2]) - surface.height_m
+            )
 
         support_surface = supporting_stair_surface_height_m(
-            foot_progress_m=(foot_progresses[0], foot_progresses[1]),
-            foot_contacts=(foot_contacts[0], foot_contacts[1]),
-            foot_surface_clearance_m=(foot_clearances[0], foot_clearances[1]),
-            step_height_m=step_height,
+            support_progress_m=tuple(support_progresses),
+            support_lateral_m=tuple(support_lateral),
+            support_contacts=tuple(support_contacts),
+            support_surface_clearance_m=tuple(support_clearances),
             maximum_projected_surface_penetration_m=(
                 maximum_projected_surface_penetration_m
             ),
-            protocol=protocol_payload,
-            tread_depth_m=tread_depth,
+            surface_query=surface_query,
         )
-        root_clearance = root_height - support_surface
-        roll, pitch = _roll_pitch_from_wxyz(root_quat_values[env_index])
+        base_clearance = base_height - support_surface
+        roll, pitch = _roll_pitch_from_wxyz(base_quat_values[env_index])
 
         active_terms = tuple(
             name for name in term_order if bool(term_values[name][env_index])
@@ -432,29 +530,18 @@ def decode_stair_transition_batch(
                 episode_step=int(episode_steps[env_index]),
                 progress_m=progress,
                 lateral_m=lateral,
-                root_height_m=root_height,
-                root_clearance_m=root_clearance,
+                base_height_m=base_height,
+                base_clearance_m=base_clearance,
                 abs_roll_rad=abs(roll),
                 abs_pitch_rad=abs(pitch),
-                torso_contact=bool(
-                    term_values[base_contact_terms[0]][env_index]
-                ),
-                foot_contacts=(foot_contacts[0], foot_contacts[1]),
-                foot_progress_m=(foot_progresses[0], foot_progresses[1]),
-                foot_surface_levels=(
-                    foot_surface_levels[0],
-                    foot_surface_levels[1],
-                ),
-                foot_lateral_m=(foot_lateral[0], foot_lateral[1]),
-                foot_planar_speeds_mps=(foot_speeds[0], foot_speeds[1]),
-                foot_surface_clearances_m=(
-                    foot_clearances[0],
-                    foot_clearances[1],
-                ),
-                foot_upward_forces_n=(
-                    foot_upward_forces[0],
-                    foot_upward_forces[1],
-                ),
+                forbidden_contact=bool(term_values[base_contact_terms[0]][env_index]),
+                support_contacts=tuple(support_contacts),
+                support_progress_m=tuple(support_progresses),
+                support_surface_levels=tuple(support_surface_levels),
+                support_lateral_m=tuple(support_lateral),
+                support_planar_speeds_mps=tuple(support_speeds),
+                support_surface_clearances_m=tuple(support_clearances),
+                support_upward_forces_n=tuple(support_upward_forces),
                 done=bool(done_values[env_index]),
                 termination_terms=active_terms,
                 evaluation_cell_id=(cell.cell_id if cell is not None else None),
@@ -488,7 +575,9 @@ def _assert_origins(
             )
             for axis in range(3)
         ):
-            raise StairTransitionDecodeError("Stair terrain origin/bin identity drifted")
+            raise StairTransitionDecodeError(
+                "Stair terrain origin/bin identity drifted"
+            )
 
 
 def _roll_pitch_from_wxyz(quaternion: Sequence[float]) -> tuple[float, float]:
@@ -525,6 +614,31 @@ def _numeric_tensor(value: Any, shape: tuple[int, ...], field_name: str) -> Any:
     return tensor
 
 
+def _numeric_matrix(
+    value: Any,
+    expected_rows: int,
+    field_name: str,
+) -> tuple[Any, int]:
+    """Validate a runtime-owned matrix while deriving its non-empty width."""
+
+    try:
+        actual_shape = tuple(int(item) for item in value.shape)
+    except (AttributeError, TypeError, ValueError) as exc:
+        raise StairTransitionDecodeError(
+            f"Stair {field_name} does not expose a tensor shape"
+        ) from exc
+    if (
+        len(actual_shape) != 2
+        or actual_shape[0] != expected_rows
+        or actual_shape[1] <= 0
+    ):
+        raise StairTransitionDecodeError(
+            f"Stair {field_name} matrix shape is invalid: {actual_shape}"
+        )
+    tensor = _numeric_tensor(value, actual_shape, field_name)
+    return tensor, actual_shape[1]
+
+
 def _integer_tensor(
     value: Any,
     shape: tuple[int, ...],
@@ -538,7 +652,10 @@ def _integer_tensor(
         raise StairTransitionDecodeError(f"Stair {field_name} must be integer")
     values = _to_list(tensor)
     minimum = 1 if positive else 0
-    if any(isinstance(item, bool) or not isinstance(item, int) or item < minimum for item in values):
+    if any(
+        isinstance(item, bool) or not isinstance(item, int) or item < minimum
+        for item in values
+    ):
         raise StairTransitionDecodeError(f"Stair {field_name} values are invalid")
     return tensor
 
@@ -554,7 +671,9 @@ def _tensor(value: Any, shape: tuple[int, ...], field_name: str) -> Any:
     try:
         actual_shape = tuple(int(item) for item in value.shape)
     except (AttributeError, TypeError, ValueError) as exc:
-        raise StairTransitionDecodeError(f"Stair {field_name} is not tensor-like") from exc
+        raise StairTransitionDecodeError(
+            f"Stair {field_name} is not tensor-like"
+        ) from exc
     if actual_shape != shape:
         raise StairTransitionDecodeError(
             f"Stair {field_name} shape mismatch: expected={shape} actual={actual_shape}"

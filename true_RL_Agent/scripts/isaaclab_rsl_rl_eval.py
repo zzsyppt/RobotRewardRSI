@@ -51,6 +51,11 @@ from true_rl_agent.tasks.push_recovery.seed_policy import (  # noqa: E402
     derive_runner_seed,
     public_seed_record,
 )
+from true_rl_agent.composition.cell_manifest import (  # noqa: E402
+    add_resolved_cell_manifest_arguments,
+    load_optional_resolved_cell_manifest_from_args,
+    resolved_cell_summary_fields,
+)
 
 
 def evaluation_protocol_from_args(args: argparse.Namespace) -> EvaluationProtocol:
@@ -105,6 +110,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--sealed-validation-seeds", type=int, default=7)
     parser.add_argument("--eval-protocol-version", default=DEFAULT_EVAL_PROTOCOL_VERSION)
     parser.add_argument("--task-protocol-hash", required=True)
+    parser.add_argument("--base-task-protocol-hash", default=None)
     parser.add_argument("--acceptance-protocol-hash", required=True)
     parser.add_argument("--seed-cohort-hash", required=True)
     parser.add_argument("--evaluation-binding-hash", required=True)
@@ -126,6 +132,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--action-scale", type=float, default=None)
     parser.add_argument("--status-file", default=None)
+    add_resolved_cell_manifest_arguments(parser)
     AppLauncher.add_app_launcher_args(parser)
     parser.set_defaults(headless=True)
     return parser
@@ -166,6 +173,20 @@ try:
     ):
         raise ValueError("baseline eval cannot carry program lineage")
     args_cli.evaluation_binding = evaluation_binding_from_args(args_cli)
+    if (
+        args_cli.resolved_cell_manifest_path is not None
+        or args_cli.resolved_cell_manifest_hash is not None
+    ) and args_cli.base_task_protocol_hash is None:
+        raise ValueError("resolved cell manifest requires --base-task-protocol-hash")
+    args_cli.resolved_cell_manifest = load_optional_resolved_cell_manifest_from_args(
+        args_cli,
+        expected_task_id=args_cli.task_id,
+        expected_base_task_protocol_hash=(
+            args_cli.base_task_protocol_hash
+            if args_cli.base_task_protocol_hash is not None
+            else args_cli.task_protocol_hash
+        ),
+    )
     actual_seed_cohort_hash = build_seed_cohort_hash(
         base_seed=int(args_cli.seed),
         evaluation_protocol=evaluation_protocol_from_args(args_cli),
@@ -328,6 +349,7 @@ def main() -> int:
         elif base_env is not None:
             base_env.close()
 
+    summary.update(resolved_cell_summary_fields(args_cli.resolved_cell_manifest))
     summary_path.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     if args_cli.status_file:
         Path(args_cli.status_file).write_text(str(summary.get("status", "fail")) + "\n", encoding="utf-8")

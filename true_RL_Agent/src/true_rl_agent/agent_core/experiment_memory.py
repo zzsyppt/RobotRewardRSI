@@ -13,6 +13,9 @@ from true_rl_agent.agent_core.exploration_projection import (
     compact_exploration_prompt_projection,
     degrade_exploration_prompt_projection,
 )
+from true_rl_agent.agent_core.generation_contract import (
+    GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION,
+)
 from true_rl_agent.agent_core.public_safety import sanitize_prompt_public_value
 from true_rl_agent.candidates.authoring_policy import (
     CANDIDATE_MECHANISM_DELTA_SCHEMA_VERSION,
@@ -147,31 +150,52 @@ def _bounded_memory(
         omitted_count=omitted_count,
         exploration_projection=exploration,
     )
-    protected_summaries_applied = False
     while (
         canonical_prompt_json_bytes(memory) > EXPERIMENT_MEMORY_MAX_SERIALIZED_BYTES
     ):
-        drop_position = next(
+        summary_position = next(
             (
                 position
-                for position, (index, _) in enumerate(shown)
+                for position, (index, entry) in enumerate(shown)
                 if index not in protected_indexes
+                and _retained_entry_summary(entry) != entry
             ),
             None,
         )
-        if drop_position is not None:
-            shown.pop(drop_position)
-            omitted_count += 1
-        elif shown and not protected_summaries_applied:
-            shown = [
-                (index, _protected_entry_summary(entry))
-                for index, entry in shown
-            ]
-            protected_summaries_applied = True
-        elif exploration is not None:
-            exploration = degrade_exploration_prompt_projection(exploration)
+        if summary_position is not None:
+            index, entry = shown[summary_position]
+            shown[summary_position] = (index, _retained_entry_summary(entry))
         else:
-            break
+            drop_position = next(
+                (
+                    position
+                    for position, (index, _) in enumerate(shown)
+                    if index not in protected_indexes
+                ),
+                None,
+            )
+            protected_summary_position = next(
+                (
+                    position
+                    for position, (index, entry) in enumerate(shown)
+                    if index in protected_indexes
+                    and _retained_entry_summary(entry) != entry
+                ),
+                None,
+            )
+            if drop_position is not None:
+                shown.pop(drop_position)
+                omitted_count += 1
+            elif protected_summary_position is not None:
+                index, entry = shown[protected_summary_position]
+                shown[protected_summary_position] = (
+                    index,
+                    _retained_entry_summary(entry),
+                )
+            elif exploration is not None:
+                exploration = degrade_exploration_prompt_projection(exploration)
+            else:
+                break
         memory = _memory_payload(
             [entry for _, entry in shown],
             omitted_count=omitted_count,
@@ -204,7 +228,7 @@ def _protected_entry_indexes(
     return frozenset(protected)
 
 
-def _protected_entry_summary(entry: Mapping[str, Any]) -> dict[str, Any]:
+def _retained_entry_summary(entry: Mapping[str, Any]) -> dict[str, Any]:
     return _sanitize_mapping(
         {
             key: entry[key]
@@ -409,6 +433,18 @@ def _authoring_candidate_components(
         or descriptor.authoring_mode != PROVIDER_AUTHORING_MODE
     ):
         return None
+    generation = _mapping(record.get("generation"))
+    if (
+        descriptor.record_kind == "generation"
+        and generation.get("schema_version")
+        == GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION
+        and "formal" in generation
+        and generation["formal"] is None
+    ):
+        # A generation without a formal winner has no singular candidate round.
+        # Its sibling mechanisms remain available through the generation-owned
+        # exploration projection instead of being misattributed here.
+        return []
     surface_classification = _mapping(record.get("candidate_surface")).get(
         "classification"
     )

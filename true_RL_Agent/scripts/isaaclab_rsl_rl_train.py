@@ -49,6 +49,11 @@ from true_rl_agent.tasks.push_recovery.candidate_failure import (  # noqa: E402
 from true_rl_agent.training_binding import (  # noqa: E402
     initialization_seed_schedule_hash,
 )
+from true_rl_agent.composition.cell_manifest import (  # noqa: E402
+    add_resolved_cell_manifest_arguments,
+    load_optional_resolved_cell_manifest_from_args,
+    resolved_cell_summary_fields,
+)
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -72,6 +77,9 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--initialization-seed-schedule-hash", required=True)
     parser.add_argument("--capability-profile-hash", required=True)
     parser.add_argument("--candidate-failure-contract-hash", required=True)
+    parser.add_argument("--task-protocol-hash", default=None)
+    parser.add_argument("--base-task-protocol-hash", default=None)
+    add_resolved_cell_manifest_arguments(parser)
     parser.add_argument("--init-checkpoint", default=None)
     parser.add_argument("--init-checkpoint-sha256", default=None)
     parser.add_argument("--summary-path", required=True)
@@ -102,6 +110,21 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 args_cli = _build_parser().parse_args()
+if (
+    args_cli.resolved_cell_manifest_path is not None
+    or args_cli.resolved_cell_manifest_hash is not None
+):
+    if args_cli.base_task_protocol_hash is None:
+        raise ValueError(
+            "resolved cell manifest requires --base-task-protocol-hash"
+        )
+    args_cli.resolved_cell_manifest = load_optional_resolved_cell_manifest_from_args(
+        args_cli,
+        expected_task_id=args_cli.task_id,
+        expected_base_task_protocol_hash=args_cli.base_task_protocol_hash,
+    )
+else:
+    args_cli.resolved_cell_manifest = None
 args_cli.device = require_execution_device(
     args_cli.device,
     "push train execution device",
@@ -460,6 +483,7 @@ def status_summary(status: str, **kwargs: Any) -> dict[str, Any]:
             "train_attempt_id": train_attempt_id,
             "seed_policy": "runner_owned_not_public",
         },
+        **resolved_cell_summary_fields(args_cli.resolved_cell_manifest),
     }
 
 

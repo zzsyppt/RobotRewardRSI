@@ -15,6 +15,7 @@ from true_rl_agent.evaluation.binding import canonical_json_hash, require_sha256
 from true_rl_agent.evaluation.public_result import PublicEvalResult
 
 if TYPE_CHECKING:
+    from true_rl_agent.robots.base import RobotRequirements
     from true_rl_agent.tasks.component_smoke import ComponentSmokeAdapter
     from true_rl_agent.tasks.prompt_adapter import TaskPromptAdapter
     from true_rl_agent.tasks.reference_qualification import (
@@ -150,6 +151,21 @@ class TaskPlugin(ABC):
         _ = train_summary
         return public_result
 
+    def project_candidate_public_result(
+        self,
+        *,
+        public_result: PublicEvalResult,
+        train_summary: Mapping[str, Any],
+        mechanism_operation_delta: Mapping[str, Any] | None,
+    ) -> PublicEvalResult:
+        """Project a candidate result with verifier-owned attribution context."""
+
+        _ = mechanism_operation_delta
+        return self.project_public_result(
+            public_result=public_result,
+            train_summary=train_summary,
+        )
+
     def qualify_reference_result(
         self,
         *,
@@ -165,6 +181,13 @@ class TaskPlugin(ABC):
         """Return the task-owned taxonomy for candidate change components."""
 
         return CandidateSurfacePolicy()
+
+    def robot_requirements(self) -> "RobotRequirements":
+        """Declare task-neutral embodiment requirements at composition time."""
+
+        from true_rl_agent.robots.base import RobotRequirements
+
+        return RobotRequirements()
 
     def prompt_adapter(self) -> "TaskPromptAdapter":
         """Return the task-owned prompt semantics provider for this task."""

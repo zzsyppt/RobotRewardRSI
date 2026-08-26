@@ -10,6 +10,7 @@ from true_rl_agent.agent_core.context import (
     build_public_context_from_projected,
     sanitize_prompt_public_context,
     sanitize_public_records_with_policy,
+    sanitize_public_value_with_policy,
 )
 from true_rl_agent.agent_core.generation_contract import GenerationSessionContract
 from true_rl_agent.agent_core.ledger import (
@@ -55,6 +56,18 @@ class PublicPromptBuild:
     round_public_context: Mapping[str, Any]
     provider_payload: dict[str, Any]
     parent_program_source_checksum: str | None
+
+
+@dataclass(frozen=True)
+class _PreparedRecords:
+    experiment_records: list[ExperimentRecord]
+    sanitized_history: ProjectedPublicHistory
+    validated_history: ProjectedPublicHistory
+
+    def __iter__(self):
+        # Preserve the private two-value unpacking contract used by test builders.
+        yield self.experiment_records
+        yield self.sanitized_history
 
 
 def preflight_task_prompt_capacity(
@@ -134,9 +147,7 @@ class PublicContextBuilder:
             initial_current_best=initial_current_best,
             acceptance_protocol=acceptance_protocol,
         )
-        self.expected_initial_policy_state_hash = (
-            expected_initial_policy_state_hash
-        )
+        self.expected_initial_policy_state_hash = expected_initial_policy_state_hash
         self.ledger_authoring_mode = require_ledger_authoring_mode(
             ledger_authoring_mode
         )
@@ -157,8 +168,14 @@ class PublicContextBuilder:
         # Compatibility-only argument: failed-candidate source projection belongs
         # to the provider view built by build_prompt().
         _ = latest_failed_candidate
-        _, history = self._prepare_records(records)
-        return self._build_round_public_context(history)
+        prepared = self._prepare_records(records)
+        _experiment_records, history = prepared
+        return self._build_round_public_context(
+            history,
+            validated_exploration_history=(
+                self._validated_exploration_history(prepared)
+            ),
+        )
 
     def build_prompt(
         self,
@@ -171,9 +188,15 @@ class PublicContextBuilder:
         authoring_capability_readiness: Mapping[str, Mapping[str, Any]] | None = None,
         candidate_verifier_prompt_rules: Mapping[str, Any] | None = None,
     ) -> PublicPromptBuild:
-        experiment_records, history = self._prepare_records(records)
+        prepared = self._prepare_records(records)
+        experiment_records, history = prepared
         public_records = history.records
-        round_public_context = self._build_round_public_context(history)
+        round_public_context = self._build_round_public_context(
+            history,
+            validated_exploration_history=(
+                self._validated_exploration_history(prepared)
+            ),
+        )
         provider_context = dict(round_public_context)
 
         task_prompt_sections = self._build_task_prompt_sections(
@@ -198,11 +221,13 @@ class PublicContextBuilder:
             )
         )
         if candidate_repair_feedback is not None:
-            provider_context["candidate_repair_feedback"] = sanitize_prompt_public_context(
-                dict(candidate_repair_feedback)
+            provider_context["candidate_repair_feedback"] = (
+                sanitize_prompt_public_context(dict(candidate_repair_feedback))
             )
         if source_payloads is not None:
-            provider_context["source_payloads"] = [dict(item) for item in source_payloads]
+            provider_context["source_payloads"] = [
+                dict(item) for item in source_payloads
+            ]
 
         provider_payload = build_prompt_payload(
             public_context=sanitize_prompt_public_context(provider_context),
@@ -215,9 +240,7 @@ class PublicContextBuilder:
         lineage = provider_payload.get("candidate_lineage")
         if not isinstance(lineage, Mapping):
             raise ValueError("provider prompt has no candidate lineage")
-        parent_program_source_checksum = lineage.get(
-            "parent_program_source_checksum"
-        )
+        parent_program_source_checksum = lineage.get("parent_program_source_checksum")
         if parent_program_source_checksum is not None:
             parent_program_source_checksum = require_sha256_checksum(
                 parent_program_source_checksum,
@@ -232,21 +255,12 @@ class PublicContextBuilder:
     def _prepare_records(
         self,
         records: Sequence[ExperimentRecord | Mapping[str, Any]],
-    ) -> tuple[list[ExperimentRecord], ProjectedPublicHistory]:
+    ) -> _PreparedRecords:
         experiment_records = [_experiment_record(record) for record in records]
-        replay_records = [record.replay_record() for record in experiment_records]
-        history = project_public_history(
-            replay_records,
-            initial_current_best=self.initial_current_best,
-            expected_session_genesis_hash=self.session_genesis_hash,
-            acceptance_protocol=self.acceptance_protocol,
-            expected_initial_policy_state_hash=(
-                self.expected_initial_policy_state_hash
-            ),
-            expected_authoring_mode=self.ledger_authoring_mode,
-            expected_ledger_epoch_hash=self.expected_ledger_epoch_hash,
+        history = self._project_public_history(experiment_records)
+        record_scrub_policy = _prompt_public_record_scrub_policy(
+            self.task_prompt_adapter
         )
-        record_scrub_policy = _prompt_public_record_scrub_policy(self.task_prompt_adapter)
         public_records = sanitize_public_records_with_policy(
             history.records,
             blocked_key_parts=record_scrub_policy["blocked_key_parts"],
@@ -266,30 +280,89 @@ class PublicContextBuilder:
                 experiment_records, public_records, strict=True
             )
         ]
-        return projected_experiment_records, sanitized_history
+        return _PreparedRecords(
+            experiment_records=projected_experiment_records,
+            sanitized_history=sanitized_history,
+            validated_history=history,
+        )
+
+    def _project_public_history(
+        self,
+        experiment_records: Sequence[ExperimentRecord],
+    ) -> ProjectedPublicHistory:
+        replay_records = [record.replay_record() for record in experiment_records]
+        return project_public_history(
+            replay_records,
+            initial_current_best=self.initial_current_best,
+            expected_session_genesis_hash=self.session_genesis_hash,
+            acceptance_protocol=self.acceptance_protocol,
+            expected_initial_policy_state_hash=(
+                self.expected_initial_policy_state_hash
+            ),
+            expected_authoring_mode=self.ledger_authoring_mode,
+            expected_ledger_epoch_hash=self.expected_ledger_epoch_hash,
+        )
+
+    def _validated_exploration_history(
+        self,
+        prepared: Any,
+    ) -> ProjectedPublicHistory | None:
+        builder = getattr(
+            self.task_memory_adapter,
+            "build_exploration_projection_from_validated_history",
+            None,
+        )
+        if not callable(builder):
+            return None
+        if not isinstance(prepared, _PreparedRecords):
+            raise TypeError("validated exploration history is unavailable")
+        return prepared.validated_history
 
     def _build_round_public_context(
         self,
         history: ProjectedPublicHistory,
+        *,
+        validated_exploration_history: ProjectedPublicHistory | None = None,
     ) -> dict[str, Any]:
         exploration_projection: Mapping[str, Any] | None = None
         if self.task_memory_adapter is not None:
+            validated_builder = getattr(
+                self.task_memory_adapter,
+                "build_exploration_projection_from_validated_history",
+                None,
+            )
             exploration_builder = getattr(
                 self.task_memory_adapter,
                 "build_exploration_projection",
                 None,
             )
-            if callable(exploration_builder):
+            if callable(validated_builder):
+                if validated_exploration_history is None:
+                    raise ValueError("validated exploration history is unavailable")
+                projected = validated_builder(
+                    validated_exploration_history,
+                    generation_session_contract=self.generation_session_contract,
+                )
+                if projected:
+                    scrub_policy = _prompt_public_record_scrub_policy(
+                        self.task_prompt_adapter
+                    )
+                    projected = sanitize_public_value_with_policy(
+                        projected,
+                        blocked_key_parts=scrub_policy["blocked_key_parts"],
+                        blocked_text_parts=scrub_policy["blocked_text_parts"],
+                    )
+            elif callable(exploration_builder):
                 projected = exploration_builder(
                     history,
                     generation_session_contract=self.generation_session_contract,
                 )
-                if projected:
-                    if not isinstance(projected, Mapping):
-                        raise TypeError(
-                            "task exploration projection must be a mapping"
-                        )
-                    exploration_projection = projected
+            else:
+                projected = None
+            if projected:
+                if not isinstance(projected, Mapping):
+                    raise TypeError("task exploration projection must be a mapping")
+                exploration_projection = projected
         context = build_public_context_from_projected(
             history,
             exploration_projection=exploration_projection,
@@ -299,7 +372,9 @@ class PublicContextBuilder:
                 history.records,
             )
             if task_summary:
-                context["task_public_summary"] = sanitize_prompt_public_context(dict(task_summary))
+                context["task_public_summary"] = sanitize_prompt_public_context(
+                    dict(task_summary)
+                )
         return sanitize_prompt_public_context(context)
 
     def _build_task_prompt_sections(
@@ -309,9 +384,7 @@ class PublicContextBuilder:
         round_public_context: Mapping[str, Any],
     ) -> dict[str, Any]:
         if self.task_prompt_adapter is not None:
-            adapter_context = sanitize_prompt_public_context(
-                dict(round_public_context)
-            )
+            adapter_context = sanitize_prompt_public_context(dict(round_public_context))
             if self.initial_anchor_public_evidence is not None:
                 adapter_context["initial_anchor_public_evidence"] = dict(
                     self.initial_anchor_public_evidence
@@ -345,7 +418,9 @@ class PublicContextBuilder:
             candidate_verifier_prompt_rules=candidate_verifier_prompt_rules,
         ).provider_payload
 
-    def save_prompt_payload(self, path: Path, payload: Mapping[str, Any]) -> PromptPayloadRef:
+    def save_prompt_payload(
+        self, path: Path, payload: Mapping[str, Any]
+    ) -> PromptPayloadRef:
         sanitized_payload = sanitize_prompt_public_context(dict(payload))
         assert_public_only_prompt_payload(sanitized_payload)
         return publish_prompt_payload(path, sanitized_payload)
@@ -355,7 +430,9 @@ def _public_record(record: ExperimentRecord | Mapping[str, Any]) -> dict[str, An
     return _experiment_record(record).ledger_public_record()
 
 
-def _experiment_record(record: ExperimentRecord | Mapping[str, Any]) -> ExperimentRecord:
+def _experiment_record(
+    record: ExperimentRecord | Mapping[str, Any],
+) -> ExperimentRecord:
     if isinstance(record, ExperimentRecord):
         return record
     return ExperimentRecord.from_ledger_record(record)
@@ -435,7 +512,9 @@ def _validate_initial_anchor_public_evidence(
     }
 
 
-def _prompt_public_record_scrub_policy(task_prompt_adapter: TaskPromptAdapter | None) -> dict[str, tuple[str, ...]]:
+def _prompt_public_record_scrub_policy(
+    task_prompt_adapter: TaskPromptAdapter | None,
+) -> dict[str, tuple[str, ...]]:
     if task_prompt_adapter is None:
         return {"blocked_key_parts": (), "blocked_text_parts": ()}
     policy_fn = getattr(task_prompt_adapter, "prompt_public_record_scrub_policy", None)
@@ -463,9 +542,7 @@ def _nonaccepted_authoring_tiebreak_key(
     if ranker is None:
         return None
     if not callable(ranker):
-        raise TypeError(
-            "task nonaccepted_authoring_tiebreak_key must be callable"
-        )
+        raise TypeError("task nonaccepted_authoring_tiebreak_key must be callable")
     return ranker
 
 

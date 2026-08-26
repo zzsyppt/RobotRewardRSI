@@ -50,6 +50,7 @@ from true_rl_agent.tasks.stair_climbing.reference_program import (  # noqa: E402
     resolve_official_stair_reference_artifact,
 )
 from true_rl_agent.tasks.stair_climbing.reward_program import (  # noqa: E402
+    STAIR_REWARD_ENVIRONMENT_AXIS_EVIDENCE_SCHEMA_VERSION,
     qualify_stair_candidate_reward_program,
 )
 from true_rl_agent.tasks.stair_climbing.session_start import (  # noqa: E402
@@ -273,6 +274,15 @@ class StairRewardColdStartTests(unittest.TestCase):
                     "reason": "stair_candidate_reward_program_qualified",
                     "qualification": program.to_public_dict(),
                     "determinism": {"status": "test_fixture"},
+                    "environment_axis": {
+                        "schema_version": (
+                            STAIR_REWARD_ENVIRONMENT_AXIS_EVIDENCE_SCHEMA_VERSION
+                        ),
+                        "status": "pass",
+                        "reverse_permutation_checks": len(program.term_names),
+                        "single_row_locality_checks": len(program.term_names),
+                        "term_names": list(program.term_names),
+                    },
                     "smoke_fixture_hash": adapter.fixture_hash,
                 }
 

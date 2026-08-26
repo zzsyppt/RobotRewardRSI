@@ -14,7 +14,10 @@ from true_rl_agent.evaluation.binding import (
 from true_rl_agent.json_contract import strict_json_object_loads
 from true_rl_agent.runner.argv_contract import unique_option_value
 
-TRAINING_BINDING_SCHEMA_VERSION = "true_rl_agent.training_binding.v1"
+TRAINING_BINDING_V1_SCHEMA_VERSION = "true_rl_agent.training_binding.v1"
+TRAINING_BINDING_V2_SCHEMA_VERSION = "true_rl_agent.training_binding.v2"
+# Compatibility alias retained for legacy imports and frozen V1 artifacts.
+TRAINING_BINDING_SCHEMA_VERSION = TRAINING_BINDING_V1_SCHEMA_VERSION
 
 
 @dataclass(frozen=True)
@@ -28,6 +31,7 @@ class TrainingBinding:
     private_training_seed_resolver_hash: str
     capability_profile_hash: str
     initialization_checkpoint_hash: str | None = None
+    task_protocol_hash: str | None = None
     binding_hash: str | None = None
 
     def __post_init__(self) -> None:
@@ -42,6 +46,11 @@ class TrainingBinding:
             "capability_profile_hash",
         ):
             require_sha256_digest(getattr(self, field_name), field_name)
+        if self.task_protocol_hash is not None:
+            require_sha256_digest(
+                self.task_protocol_hash,
+                "training binding task_protocol_hash",
+            )
         _require_positive_integer(self.budget_steps, "training binding budget_steps")
         if self.initialization_mode == "random":
             if self.initialization_checkpoint_hash is not None:
@@ -64,7 +73,7 @@ class TrainingBinding:
     def from_mapping(cls, value: Any) -> "TrainingBinding":
         if not isinstance(value, Mapping):
             raise ValueError("training binding must be an object")
-        expected_fields = {
+        common_fields = {
             "schema_version",
             "initialization_mode",
             "initialization_checkpoint_hash",
@@ -77,10 +86,20 @@ class TrainingBinding:
             "capability_profile_hash",
             "binding_hash",
         }
+        schema_version = value.get("schema_version")
+        if schema_version == TRAINING_BINDING_V1_SCHEMA_VERSION:
+            expected_fields = common_fields
+            task_protocol_hash = None
+        elif schema_version == TRAINING_BINDING_V2_SCHEMA_VERSION:
+            expected_fields = common_fields | {"task_protocol_hash"}
+            task_protocol_hash = require_sha256_digest(
+                value.get("task_protocol_hash"),
+                "training binding V2 task_protocol_hash",
+            )
+        else:
+            raise ValueError("training binding schema_version mismatch")
         if set(value) != expected_fields:
             raise ValueError("training binding fields mismatch")
-        if value.get("schema_version") != TRAINING_BINDING_SCHEMA_VERSION:
-            raise ValueError("training binding schema_version mismatch")
         return cls(
             initialization_mode=value.get("initialization_mode"),
             initialization_checkpoint_hash=value.get(
@@ -99,13 +118,14 @@ class TrainingBinding:
                 "private_training_seed_resolver_hash"
             ),
             capability_profile_hash=value.get("capability_profile_hash"),
+            task_protocol_hash=task_protocol_hash,
             binding_hash=value.get("binding_hash"),
         )
 
     def to_public_dict(self) -> dict[str, Any]:
         assert self.binding_hash is not None
-        return {
-            "schema_version": TRAINING_BINDING_SCHEMA_VERSION,
+        payload = {
+            "schema_version": self.schema_version,
             "initialization_mode": self.initialization_mode,
             "initialization_checkpoint_hash": self.initialization_checkpoint_hash,
             "policy_architecture_hash": self.policy_architecture_hash,
@@ -120,14 +140,17 @@ class TrainingBinding:
             "capability_profile_hash": self.capability_profile_hash,
             "binding_hash": self.binding_hash,
         }
+        if self.task_protocol_hash is not None:
+            payload["task_protocol_hash"] = self.task_protocol_hash
+        return payload
 
     def to_private_dict(self) -> dict[str, Any]:
         assert self.binding_hash is not None
         return {**self._hash_payload(), "binding_hash": self.binding_hash}
 
     def _hash_payload(self) -> dict[str, Any]:
-        return {
-            "schema_version": TRAINING_BINDING_SCHEMA_VERSION,
+        payload = {
+            "schema_version": self.schema_version,
             "initialization_mode": self.initialization_mode,
             "initialization_checkpoint_hash": self.initialization_checkpoint_hash,
             "policy_architecture_hash": self.policy_architecture_hash,
@@ -142,6 +165,27 @@ class TrainingBinding:
             ),
             "capability_profile_hash": self.capability_profile_hash,
         }
+        if self.task_protocol_hash is not None:
+            payload["task_protocol_hash"] = self.task_protocol_hash
+        return payload
+
+    @property
+    def schema_version(self) -> str:
+        if self.task_protocol_hash is None:
+            return TRAINING_BINDING_V1_SCHEMA_VERSION
+        return TRAINING_BINDING_V2_SCHEMA_VERSION
+
+    def require_task_protocol(self, expected_task_protocol_hash: str) -> None:
+        """Require the V2 comparison domain without changing V1 replay parsing."""
+
+        require_sha256_digest(
+            expected_task_protocol_hash,
+            "expected training binding task protocol hash",
+        )
+        if self.task_protocol_hash is None:
+            raise ValueError("training binding V2 task_protocol_hash is required")
+        if self.task_protocol_hash != expected_task_protocol_hash:
+            raise ValueError("training binding task protocol mismatch")
 
 
 def initialization_seed_schedule_hash(seed: int) -> str:
@@ -188,6 +232,8 @@ def validate_training_execution_argv(
             binding.initialization_seed_schedule_hash
         ),
     }
+    if binding.task_protocol_hash is not None:
+        options["--task-protocol-hash"] = binding.task_protocol_hash
     for option, expected in options.items():
         actual = unique_option_value(argv, option)
         if actual != expected:
@@ -242,6 +288,8 @@ def _load_agent_configuration_json(value: str) -> dict[str, Any]:
 
 __all__ = [
     "TRAINING_BINDING_SCHEMA_VERSION",
+    "TRAINING_BINDING_V1_SCHEMA_VERSION",
+    "TRAINING_BINDING_V2_SCHEMA_VERSION",
     "TrainingBinding",
     "fixed_training_seed_resolver_hash",
     "initialization_seed_schedule_hash",

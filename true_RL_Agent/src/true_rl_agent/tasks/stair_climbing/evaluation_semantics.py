@@ -15,7 +15,7 @@ from true_rl_agent.tasks.stair_climbing.phase0_contract import StairProtocolV1
 from true_rl_agent.tasks.stair_climbing.protocol_v2 import StairProtocolV2
 
 STAIR_EVALUATION_SEMANTICS_RELATIVE_PATH = (
-    "configs/tasks/stair_evaluation_semantics_v6.json"
+    "configs/tasks/stair_evaluation_semantics_v7.json"
 )
 
 
@@ -97,14 +97,12 @@ def _validate_semantics(
     if set(payload) != expected_keys:
         raise ValueError("Stair evaluation semantics fields mismatch")
     if payload["schema_version"] != (
-        "true_rl_agent.task.stair_climbing.evaluation_semantics.v6"
+        "true_rl_agent.task.stair_climbing.evaluation_semantics.v7"
     ):
         raise ValueError("Stair evaluation semantics schema mismatch")
-    if payload["protocol_id"] != "unitree_stair_climbing_evaluation_semantics_v6":
+    if payload["protocol_id"] != "unitree_stair_climbing_evaluation_semantics_v7":
         raise ValueError("Stair evaluation semantics protocol_id mismatch")
-    if payload["status"] != (
-        "active_stable_top_completion_with_profile_owned_cell_horizons"
-    ):
+    if payload["status"] != "active_morphology_neutral_stable_top_completion":
         raise ValueError("Stair evaluation semantics status mismatch")
     if payload["task_id"] != base_protocol.task_id:
         raise ValueError("Stair evaluation semantics task_id mismatch")
@@ -140,7 +138,7 @@ def _validate_semantics(
     primary_reasons = _unique_strings(outcomes["primary_reasons"], "primary_reasons")
     failure_priority = _unique_strings(outcomes["failure_priority"], "failure_priority")
     expected_failures = (
-        "torso_contact",
+        "forbidden_contact",
         "fall",
         "off_course",
         "base_orientation_instability",
@@ -171,7 +169,7 @@ def _validate_semantics(
         "off_course",
         "slip",
         "timeout",
-        "torso_contact",
+        "forbidden_contact",
     }
     if set(signals) != required_signals:
         raise ValueError("Stair evaluation signal taxonomy mismatch")
@@ -214,7 +212,7 @@ def _validate_semantics(
             "speed_unit",
         },
         "timeout": {"deadline_authority", "source", "unit"},
-        "torso_contact": {
+        "forbidden_contact": {
             "manager_term",
             "other_body_contacts_policy",
             "source",
@@ -228,36 +226,36 @@ def _validate_semantics(
     expected_descriptors = {
         "base_orientation_instability": {
             "comparison": "greater_than",
-            "source": "root_roll_or_pitch_abs",
+            "source": "kinematic_base_roll_or_pitch_abs",
             "unit": "rad",
         },
         "fall": {
             "comparison": "less_than",
             "no_contact_fallback": (
-                "lowest_vertically_feasible_projected_foot_tread"
+                "lowest_vertically_feasible_projected_support_surface"
             ),
             "source": (
-                "root_height_above_lowest_vertically_feasible_"
-                "contacting_foot_tread"
+                "kinematic_base_height_above_lowest_vertically_feasible_"
+                "contacting_support_surface"
             ),
             "unit": "m",
         },
         "insufficient_clearance": {
             "comparison": "less_than",
             "source": (
-                "noncontact_ankle_roll_link_clearance_above_projected_"
+                "noncontact_support_effector_clearance_above_projected_"
                 "local_stair_surface"
             ),
             "unit": "m",
         },
         "off_course": {
             "comparison": "outside",
-            "source": "root_xy_outside_own_terrain_patch",
+            "source": "kinematic_base_xy_outside_own_terrain_patch",
             "unit": "m",
         },
         "slip": {
             "force_unit": "N",
-            "source": "ankle_roll_link_planar_speed_while_in_contact",
+            "source": "support_effector_planar_speed_while_in_contact",
             "speed_unit": "m/s",
         },
         "timeout": {
@@ -299,28 +297,28 @@ def _validate_semantics(
         )
         if threshold <= 0.0:
             raise ValueError(f"Stair {signal_name} {threshold_name} must be positive")
-    torso_contact = _mapping(signals["torso_contact"], "torso_contact")
+    forbidden_contact = _mapping(signals["forbidden_contact"], "forbidden_contact")
     if (
-        torso_contact["source"] != "contact_forces.torso_link"
-        or torso_contact["manager_term"] != "base_contact"
-        or torso_contact["trigger"] != "manager_term_active"
-        or torso_contact["other_body_contacts_policy"]
+        forbidden_contact["source"] != "resolved_forbidden_contact_role_force"
+        or forbidden_contact["manager_term"] != "base_contact"
+        or forbidden_contact["trigger"] != "manager_term_active"
+        or forbidden_contact["other_body_contacts_policy"]
         != "allowed_unless_another_failure_signal_triggers"
     ):
-        raise ValueError("Stair torso contact policy mismatch")
+        raise ValueError("Stair forbidden-contact policy mismatch")
     success = _mapping(outcomes["success"], "success")
     if set(success) != {
         "completion_mode",
         "minimum_progress_fraction",
-        "minimum_supporting_feet_on_top",
-        "minimum_supporting_foot_upward_force_n",
+        "minimum_support_effectors_on_top",
+        "minimum_support_effector_upward_force_n",
         "post_arrival_failure_policy",
         "pre_arrival_blocking_latches",
         "requires_orientation_stable",
-        "requires_root_clearance_above_top",
-        "requires_root_within_top_platform_bounds",
-        "requires_supporting_feet_within_top_platform_bounds",
-        "supporting_foot_surface_clearance_range_m",
+        "requires_kinematic_base_clearance_above_top",
+        "requires_kinematic_base_within_top_platform_bounds",
+        "requires_support_effectors_within_top_platform_bounds",
+        "support_effector_surface_clearance_range_m",
     }:
         raise ValueError("Stair success fields mismatch")
     if success.get("completion_mode") != (
@@ -334,7 +332,7 @@ def _validate_semantics(
     if _unique_strings(
         success.get("pre_arrival_blocking_latches"),
         "success pre_arrival_blocking_latches",
-    ) != ("torso_contact", "fall", "off_course"):
+    ) != ("forbidden_contact", "fall", "off_course"):
         raise ValueError("Stair pre-arrival blocking latches mismatch")
     if _finite_number(
         success.get("minimum_progress_fraction"),
@@ -342,11 +340,11 @@ def _validate_semantics(
     ) != 1.0:
         raise ValueError("Stair success progress fraction mismatch")
     if _positive_int(
-        success.get("minimum_supporting_feet_on_top"),
-        "success supporting foot count",
-    ) not in {1, 2}:
-        raise ValueError("Stair success supporting foot count is invalid")
-    support_clearance_range = success.get("supporting_foot_surface_clearance_range_m")
+        success.get("minimum_support_effectors_on_top"),
+        "success support-effector count",
+    ) < 1:
+        raise ValueError("Stair success support-effector count is invalid")
+    support_clearance_range = success.get("support_effector_surface_clearance_range_m")
     if (
         not isinstance(support_clearance_range, list)
         or len(support_clearance_range) != 2
@@ -354,22 +352,22 @@ def _validate_semantics(
         raise ValueError("Stair success support clearance range is invalid")
     minimum_clearance = _finite_number(
         support_clearance_range[0],
-        "success minimum supporting foot surface clearance",
+        "success minimum support-effector surface clearance",
     )
     maximum_clearance = _finite_number(
         support_clearance_range[1],
-        "success maximum supporting foot surface clearance",
+        "success maximum support-effector surface clearance",
     )
     if minimum_clearance >= maximum_clearance:
         raise ValueError("Stair success support clearance range is empty")
-    for field_name in ("minimum_supporting_foot_upward_force_n",):
+    for field_name in ("minimum_support_effector_upward_force_n",):
         if _finite_number(success.get(field_name), f"success {field_name}") <= 0.0:
             raise ValueError(f"Stair success {field_name} must be positive")
     required_success_flags = {
         "requires_orientation_stable",
-        "requires_root_clearance_above_top",
-        "requires_root_within_top_platform_bounds",
-        "requires_supporting_feet_within_top_platform_bounds",
+        "requires_kinematic_base_clearance_above_top",
+        "requires_kinematic_base_within_top_platform_bounds",
+        "requires_support_effectors_within_top_platform_bounds",
     }
     if any(success.get(key) is not True for key in required_success_flags):
         raise ValueError("Stair success safety constraints must be enabled")
@@ -382,7 +380,7 @@ def _validate_semantics(
         "acceptance_role",
         "command_policy",
         "consecutive_control_steps",
-        "maximum_supporting_foot_planar_speed_mps",
+        "maximum_support_effector_planar_speed_mps",
         "requires_first_valid_top_arrival_latched",
         "source",
     }:
@@ -391,7 +389,7 @@ def _validate_semantics(
         "acceptance_role": "primary_success_required",
         "command_policy": "fixed_forward_command_continues",
         "requires_first_valid_top_arrival_latched": True,
-        "source": "valid_top_arrival_plus_supporting_foot_speed_bound",
+        "source": "valid_top_arrival_plus_support_effector_speed_bound",
     }
     if any(stability.get(key) != value for key, value in expected_stability.items()):
         raise ValueError("Stair top-platform stability policy mismatch")
@@ -400,8 +398,8 @@ def _validate_semantics(
         "top-platform stability consecutive_control_steps",
     )
     if _finite_number(
-        stability.get("maximum_supporting_foot_planar_speed_mps"),
-        "top-platform stability maximum_supporting_foot_planar_speed_mps",
+        stability.get("maximum_support_effector_planar_speed_mps"),
+        "top-platform stability maximum_support_effector_planar_speed_mps",
     ) <= 0.0:
         raise ValueError("Stair top-platform stability speed must be positive")
 

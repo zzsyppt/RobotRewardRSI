@@ -1,5 +1,14 @@
 # P6-A2 author-only 探针开发日志
 
+## 2026-08-24：当前主线退役一次性运行设施
+
+- P6-A2 已完成验收并冻结历史证据；当前主线删除专属 plan/runtime、CLI 与单测运行设施，
+  不再提供 author-only paired-ready probe 的新建或恢复入口。
+- R01 correction 只允许原 plan source commit 的直接子提交、固定 `round-001` 和固定三文件
+  修正集；在当前主线已永久不可达，且整套探针不被 P6-B、P6-C 或 P6-D 导入。
+- 本次退役不改写 P6-A2 计划、验收报告、既有输出或其中记录的 source/hash。需要复核历史运行时，
+  应使用验收报告绑定的冻结提交与制品，而不是在新主线复活一次性 correction 路径。
+
 ## 2026-08-20：正式 production-path P6-A2（GO）
 
 - 用户已批准正式 P6-A2，并明确豁免金额门；调用数量和协议预算不变：固定 15 个输入、

@@ -325,9 +325,9 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         early_sections = [
             '"task"',
             '"loop_contract"',
-            '"required_candidate_package"',
             '"candidate_capabilities"',
             '"reward_inputs_contract"',
+            '"required_candidate_package"',
             '"source_catalog"',
             '"candidate_lineage"',
         ]
@@ -337,9 +337,10 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
             self.assertIn(section, text)
         self.assertLess(text.index('"schema_version"'), text.index('"task"'))
         self.assertLess(text.index('"task"'), text.index('"loop_contract"'))
-        self.assertLess(text.index('"loop_contract"'), text.index('"required_candidate_package"'))
-        self.assertLess(text.index('"required_candidate_package"'), text.index('"candidate_capabilities"'))
+        self.assertLess(text.index('"loop_contract"'), text.index('"candidate_capabilities"'))
         self.assertLess(text.index('"candidate_capabilities"'), text.index('"reward_inputs_contract"'))
+        self.assertLess(text.index('"selection_guidance"'), text.index('"required_candidate_package"'))
+        self.assertLess(text.index('"required_candidate_package"'), text.index('"authoring_context_frame"'))
         self.assertLess(text.index('"selection_guidance"'), text.index('"authoring_context_frame"'))
         self.assertLess(text.index('"reward_inputs_contract"'), text.index('"source_catalog"'))
         self.assertLess(text.index('"source_catalog"'), text.index('"candidate_lineage"'))
@@ -347,6 +348,36 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         self.assertLess(text.index('"public_feedback_summary"'), text.index('"runtime_feedback_summary"'))
         self.assertIn("Readable Custom Task", first_screen)
         self.assertNotIn('"public_context"', first_screen)
+
+    def test_lane_specific_candidate_rules_start_after_the_shared_prompt_prefix(
+        self,
+    ) -> None:
+        context = {"public_only": True}
+        base_rules = candidate_component_contract()["static_verifier_rules"]
+        lane_a = build_prompt_payload(
+            public_context=context,
+            candidate_verifier_prompt_rules={
+                **base_rules,
+                "generation_lane": "lane-a",
+            },
+        )
+        lane_b = build_prompt_payload(
+            public_context=context,
+            candidate_verifier_prompt_rules={
+                **base_rules,
+                "generation_lane": "lane-b",
+            },
+        )
+
+        marker = '"required_candidate_package"'
+        prefix_a = serialize_prompt_payload(lane_a).partition(marker)[0]
+        prefix_b = serialize_prompt_payload(lane_b).partition(marker)[0]
+        self.assertEqual(prefix_a, prefix_b)
+        self.assertGreater(len(prefix_a), 1000)
+        self.assertNotEqual(
+            lane_a["required_candidate_package"],
+            lane_b["required_candidate_package"],
+        )
 
     def test_provider_facing_payload_omits_legacy_alias_sections(self) -> None:
         generic_payload = build_prompt_payload(public_context={"public_only": True})
@@ -534,8 +565,12 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
             self.assertNotIn(removed_alias, frame["budget_metadata"]["legacy_alias_section_bytes"])
         self.assertIn("public_history", frame["budget_metadata"]["section_serialized_bytes"])
         self.assertLess(
+            list(payload).index("selection_guidance"),
             list(payload).index("required_candidate_package"),
-            list(payload).index("reward_inputs_contract"),
+        )
+        self.assertLess(
+            list(payload).index("required_candidate_package"),
+            list(payload).index("authoring_context_frame"),
         )
         self.assertLess(
             list(payload).index("selection_guidance"),

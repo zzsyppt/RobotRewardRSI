@@ -16,6 +16,9 @@ from tests.fakes.decision_records import (
 )
 from true_rl_agent.agent_core.generation_contract import GenerationSessionContract
 from true_rl_agent.agent_core.generation_lifecycle import (
+    GENERATION_CONTINUATION_POLICY_V2_SCHEMA_VERSION,
+    GENERATION_SEGMENT_EXIT_SCHEMA_VERSION,
+    LEGACY_GENERATION_SEGMENT_EXIT_SCHEMA_VERSION,
     GenerationContinuationPolicy,
     GenerationLifecycleIdentity,
     GenerationSegmentJournal,
@@ -30,6 +33,7 @@ from true_rl_agent.agent_core.generation_lifecycle import (
 )
 from true_rl_agent.agent_core.ledger import LEDGER_RECORD_SCHEMA_VERSION
 from true_rl_agent.agent_core.process_lock import ProcessFileLockUnavailableError
+from true_rl_agent.json_contract import canonical_json_bytes
 from true_rl_agent.runner.job_attempts import (
     RECOVERED_ATTEMPT_RESULT_SCHEMA_VERSION,
     JobAttemptJournal,
@@ -39,6 +43,128 @@ from true_rl_agent.runner.job_attempts import (
 
 
 class GenerationLifecycleTests(unittest.TestCase):
+    def test_v2_continuation_policy_round_trips_exact_pause_boundaries(self) -> None:
+        policy = GenerationContinuationPolicy(
+            schema_version=GENERATION_CONTINUATION_POLICY_V2_SCHEMA_VERSION,
+            max_segments=7,
+            allowed_continuation_reasons=(
+                "operator_pause",
+                "typed_infrastructure_failure",
+                "exception",
+            ),
+            operator_pause_generation_boundaries=(3, 6, 9, 12),
+        )
+
+        self.assertEqual(
+            GenerationContinuationPolicy.from_mapping(policy.to_dict()),
+            policy,
+        )
+        self.assertEqual(
+            policy.to_dict()["operator_pause_generation_boundaries"],
+            [3, 6, 9, 12],
+        )
+
+    def test_v1_continuation_policy_projection_is_unchanged(self) -> None:
+        policy = GenerationContinuationPolicy(
+            max_segments=4,
+            allowed_continuation_reasons=(
+                "operator_pause",
+                "typed_infrastructure_failure",
+                "exception",
+            ),
+        )
+
+        self.assertEqual(
+            policy.to_dict(),
+            {
+                "schema_version": "true_rl_agent.generation_continuation_policy.v1",
+                "max_segments": 4,
+                "allowed_continuation_reasons": [
+                    "operator_pause",
+                    "typed_infrastructure_failure",
+                    "exception",
+                ],
+                "allow_unclean_recovery": True,
+                "max_logical_job_infrastructure_retries": 1,
+                "exclusive_session_lease": True,
+            },
+        )
+        self.assertEqual(
+            GenerationContinuationPolicy.from_mapping(policy.to_dict()),
+            policy,
+        )
+
+    def test_v2_segment_rejects_pause_outside_precommitted_boundary(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            _, contract, identity = _contracts(root)
+            policy = GenerationContinuationPolicy(
+                schema_version=GENERATION_CONTINUATION_POLICY_V2_SCHEMA_VERSION,
+                max_segments=7,
+                allowed_continuation_reasons=(
+                    "operator_pause",
+                    "typed_infrastructure_failure",
+                    "exception",
+                ),
+                operator_pause_generation_boundaries=(3, 6, 9, 12),
+            )
+            contract = GenerationSessionContract(
+                schema_version=contract.schema_version,
+                session_mode=contract.session_mode,
+                session_id=contract.session_id,
+                task_id=contract.task_id,
+                backend_id=contract.backend_id,
+                max_generations=contract.max_generations,
+                max_trials=contract.max_trials,
+                max_train_jobs=contract.max_train_jobs,
+                bound_contract_hashes={
+                    **contract.bound_contract_hashes,
+                    "continuation_policy": policy.policy_hash,
+                },
+            )
+            identity = GenerationLifecycleIdentity(
+                session_id=identity.session_id,
+                session_genesis_hash=identity.session_genesis_hash,
+                generation_session_contract_hash=contract.contract_hash,
+                final_confirmation_plan_hash=identity.final_confirmation_plan_hash,
+                ledger_epoch_hash=identity.ledger_epoch_hash,
+                output_root=identity.output_root,
+            )
+            segment = GenerationSegmentJournal.start(
+                output_dir=root,
+                identity=identity,
+                policy=policy,
+                session_contract=contract,
+                closed_generation_count=0,
+                cost_chain_head_hash="a" * 64,
+                attempt_journal_root=root / "attempts",
+            )
+
+            with self.assertRaisesRegex(ValueError, "precommitted boundary"):
+                segment.finish(
+                    status="paused",
+                    reason="operator_pause",
+                    closed_generation_count=2,
+                    cost_chain_head_hash="b" * 64,
+                )
+
+    def test_existing_continuation_policy_is_verified_without_a_write(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            policy, _, _ = _contracts(root)
+            path = publish_generation_continuation_policy(root, policy)
+            before = path.read_bytes()
+
+            with patch(
+                "true_rl_agent.agent_core.generation_lifecycle.create_once_bytes",
+                side_effect=AssertionError("existing policy must not be republished"),
+            ) as create_once:
+                replayed = publish_generation_continuation_policy(root, policy)
+
+            self.assertEqual(replayed, path)
+            self.assertEqual(path.read_bytes(), before)
+            create_once.assert_not_called()
+
     def test_segment_scans_ignore_pre_genesis_attempt_reservations(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp).resolve()
@@ -104,12 +230,19 @@ class GenerationLifecycleTests(unittest.TestCase):
                     cost_chain_head_hash="a" * 64,
                     attempt_journal_root=root / "attempts",
                 )
-            first.finish(
+            first_exit_path = first.finish(
                 status="paused",
                 reason="operator_pause",
                 closed_generation_count=2,
                 cost_chain_head_hash="b" * 64,
             )
+            first_exit = json.loads(first_exit_path.read_text(encoding="utf-8"))
+            self.assertEqual(
+                first_exit["schema_version"],
+                GENERATION_SEGMENT_EXIT_SCHEMA_VERSION,
+            )
+            self.assertIsNone(first_exit["exception_type"])
+            self.assertIsNone(first_exit["exception_message"])
 
             second = GenerationSegmentJournal.start(
                 output_dir=root,
@@ -147,6 +280,88 @@ class GenerationLifecycleTests(unittest.TestCase):
                     cost_chain_head_hash="c" * 64,
                     attempt_journal_root=root / "attempts",
                 )
+
+    def test_exception_exit_persists_scrubbed_bounded_diagnostic(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            policy, contract, identity = _contracts(root)
+            segment = GenerationSegmentJournal.start(
+                output_dir=root,
+                identity=identity,
+                policy=policy,
+                session_contract=contract,
+                closed_generation_count=0,
+                cost_chain_head_hash="a" * 64,
+                attempt_journal_root=root / "attempts",
+            )
+            raw_path = root / "private" / "failure.json"
+            raw_secret = "sk-test-generation-lifecycle-secret"
+            error = RuntimeError(
+                f"failed at {raw_path} with {raw_secret}"
+            )
+
+            exit_path = segment.finish(
+                status="failed",
+                reason="exception",
+                closed_generation_count=0,
+                cost_chain_head_hash="b" * 64,
+                exception=error,
+            )
+            exit_record = json.loads(exit_path.read_text(encoding="utf-8"))
+
+            self.assertEqual(
+                exit_record["schema_version"],
+                GENERATION_SEGMENT_EXIT_SCHEMA_VERSION,
+            )
+            self.assertEqual(exit_record["exception_type"], "RuntimeError")
+            self.assertIn("[path]", exit_record["exception_message"])
+            self.assertNotIn(str(raw_path), exit_record["exception_message"])
+            self.assertNotIn(raw_secret, exit_record["exception_message"])
+            self.assertLessEqual(len(exit_record["exception_message"]), 512)
+            audit = audit_generation_lifecycle(
+                output_dir=root,
+                identity=identity,
+                policy=policy,
+                require_closed=True,
+            )
+            self.assertEqual(audit.segment_count, 1)
+            self.assertTrue(audit.continuation_eligible)
+
+    def test_lifecycle_audit_accepts_legacy_v1_exit_receipt(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            policy, contract, identity = _contracts(root)
+            segment = GenerationSegmentJournal.start(
+                output_dir=root,
+                identity=identity,
+                policy=policy,
+                session_contract=contract,
+                closed_generation_count=0,
+                cost_chain_head_hash="a" * 64,
+                attempt_journal_root=root / "attempts",
+            )
+            exit_path = segment.finish(
+                status="paused",
+                reason="operator_pause",
+                closed_generation_count=0,
+                cost_chain_head_hash="b" * 64,
+            )
+            legacy = json.loads(exit_path.read_text(encoding="utf-8"))
+            legacy["schema_version"] = LEGACY_GENERATION_SEGMENT_EXIT_SCHEMA_VERSION
+            legacy.pop("exception_type")
+            legacy.pop("exception_message")
+            exit_path.write_bytes(canonical_json_bytes(legacy, trailing_newline=True))
+
+            audit = audit_generation_lifecycle(
+                output_dir=root,
+                identity=identity,
+                policy=policy,
+                require_closed=True,
+            )
+
+            self.assertEqual(audit.segment_count, 1)
+            self.assertEqual(audit.closed_generation_count, 0)
+            self.assertTrue(audit.continuation_eligible)
 
     def test_unclean_reservation_is_charged_then_uses_only_retry(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -395,6 +610,31 @@ class GenerationLifecycleTests(unittest.TestCase):
                         recovery_process_incarnation=lambda _pid: None,
                         process_group_alive=lambda _group: False,
                     )
+
+            # The recovery receipt is durable, but the result publication was
+            # interrupted.  A pre-start read may inspect this transaction so
+            # the next lease owner can reach reconciliation; every ordinary
+            # audit remains fail-closed until that reconciliation completes.
+            pre_start = audit_generation_lifecycle(
+                output_dir=root,
+                identity=identity,
+                policy=policy,
+                require_closed=False,
+                require_recovery_attempt_results=False,
+            )
+            self.assertIsNone(pre_start.active_segment_id)
+            self.assertEqual(pre_start.segment_count, 1)
+            with self.assertRaisesRegex(
+                ValueError,
+                "attempt result could not be inspected",
+            ):
+                audit_generation_lifecycle(
+                    output_dir=root,
+                    identity=identity,
+                    policy=policy,
+                    require_closed=False,
+                )
+
             resumed = GenerationSegmentJournal.start(
                 output_dir=root,
                 identity=identity,
@@ -410,6 +650,13 @@ class GenerationLifecycleTests(unittest.TestCase):
                 attempt.load_result(0).payload["failure_kind"],
                 "abandoned_unclean",
             )
+            reconciled = audit_generation_lifecycle(
+                output_dir=root,
+                identity=identity,
+                policy=policy,
+                require_closed=False,
+            )
+            self.assertEqual(reconciled.active_segment_id, resumed.segment_id)
             resumed.finish(
                 status="paused",
                 reason="operator_pause",

@@ -13,6 +13,7 @@ from true_rl_agent.tasks.stair_climbing.phase0_contract import (  # noqa: E402
     StairProtocolV1,
 )
 from true_rl_agent.tasks.stair_climbing.terrain_evidence import (  # noqa: E402
+    FlatStairSurfaceQuery,
     expected_stair_surface_height_m,
     supporting_stair_surface_height_m,
 )
@@ -62,13 +63,17 @@ class StairTerrainEvidenceTests(unittest.TestCase):
             )
 
     def test_riser_crossing_uses_contacting_feet_not_root_projection(self) -> None:
-        support_height = supporting_stair_surface_height_m(
-            foot_progress_m=(3.14, 3.20),
-            foot_contacts=(True, True),
-            foot_surface_clearance_m=(0.0, 0.0),
-            step_height_m=0.35,
-            maximum_projected_surface_penetration_m=0.03,
+        surface_query = FlatStairSurfaceQuery(
             protocol=self.protocol,
+            step_height_m=0.35,
+        )
+        support_height = supporting_stair_surface_height_m(
+            support_progress_m=(3.14, 3.20),
+            support_lateral_m=(0.0, 0.0),
+            support_contacts=(True, True),
+            support_surface_clearance_m=(0.0, 0.0),
+            maximum_projected_surface_penetration_m=0.03,
+            surface_query=surface_query,
         )
 
         self.assertAlmostEqual(support_height, 6 * 0.35)
@@ -84,12 +89,15 @@ class StairTerrainEvidenceTests(unittest.TestCase):
     def test_no_contact_fallback_uses_lowest_projected_foot_tread(self) -> None:
         self.assertAlmostEqual(
             supporting_stair_surface_height_m(
-                foot_progress_m=(3.14, 3.20),
-                foot_contacts=(False, False),
-                foot_surface_clearance_m=(0.0, 0.0),
-                step_height_m=0.35,
+                support_progress_m=(3.14, 3.20),
+                support_lateral_m=(0.0, 0.0),
+                support_contacts=(False, False),
+                support_surface_clearance_m=(0.0, 0.0),
                 maximum_projected_surface_penetration_m=0.03,
-                protocol=self.protocol,
+                surface_query=FlatStairSurfaceQuery(
+                    protocol=self.protocol,
+                    step_height_m=0.35,
+                ),
             ),
             6 * 0.35,
         )
@@ -97,12 +105,15 @@ class StairTerrainEvidenceTests(unittest.TestCase):
     def test_riser_collision_cannot_promote_support_above_the_foot(self) -> None:
         self.assertAlmostEqual(
             supporting_stair_surface_height_m(
-                foot_progress_m=(3.20, 3.22),
-                foot_contacts=(True, True),
-                foot_surface_clearance_m=(-0.35, -0.35),
-                step_height_m=0.35,
+                support_progress_m=(3.20, 3.22),
+                support_lateral_m=(0.0, 0.0),
+                support_contacts=(True, True),
+                support_surface_clearance_m=(-0.35, -0.35),
                 maximum_projected_surface_penetration_m=0.03,
-                protocol=self.protocol,
+                surface_query=FlatStairSurfaceQuery(
+                    protocol=self.protocol,
+                    step_height_m=0.35,
+                ),
             ),
             6 * 0.35,
         )

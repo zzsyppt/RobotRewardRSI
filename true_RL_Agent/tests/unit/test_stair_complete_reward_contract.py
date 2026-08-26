@@ -169,7 +169,11 @@ class StairCompleteRewardContractTests(unittest.TestCase):
         self.assertEqual(prompt["input_schema_hash"], contract.input_schema_hash)
         self.assertEqual(
             prompt["schema_version"],
-            "true_rl_agent.reward_inputs_contract.stair.v11",
+            "true_rl_agent.reward_inputs_contract.stair.v12",
+        )
+        self.assertLess(
+            list(prompt).index("field_semantics_constraints"),
+            list(prompt).index("fields"),
         )
         self.assertEqual(
             [item["name"] for item in prompt["fields"]],
@@ -186,6 +190,22 @@ class StairCompleteRewardContractTests(unittest.TestCase):
         )
         self.assertIn("clip_min", raw_magnitudes["candidate_usage"])
         self.assertIn("clip_max", raw_magnitudes["candidate_usage"])
+        axes = prompt["field_semantics_constraints"][
+            "high_risk_axis_semantics"
+        ]
+        self.assertIn("independent environments", axes["environment"])
+        self.assertIn("output[i] only from input[i]", axes["environment"])
+        self.assertIn("declared history fields", axes["environment"])
+        self.assertIn("0 newest", axes["foot_contact_force_history"])
+        self.assertIn("0 left", axes["foot_contact_force_history"])
+        self.assertIn("max all 3 history", axes["foot_contact_force_history"])
+        self.assertIn("index0 contact", axes["foot_contact_force_history"])
+        self.assertIn("world +x stair-forward", axes["spatial_vectors"])
+        remaining = prompt["field_semantics_constraints"][
+            "remaining_goal_distance_m"
+        ]
+        self.assertEqual(remaining["source_equivalence"], "goal_x-current_x")
+        self.assertIn("negative beyond", remaining["sign"])
         projected_gravity = prompt["field_semantics_constraints"][
             "projected_gravity"
         ]

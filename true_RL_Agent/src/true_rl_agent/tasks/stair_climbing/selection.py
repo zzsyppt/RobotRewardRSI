@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import math
 import statistics
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from true_rl_agent.evaluation.binding import (
     canonical_json_hash,
@@ -14,6 +15,7 @@ from true_rl_agent.evaluation.binding import (
 )
 from true_rl_agent.evaluation.phases import EvaluationPhase, EvaluationPhaseResult
 from true_rl_agent.evaluation.subject import ExperimentSubject
+from true_rl_agent.runner.base import TrainJobResult
 from true_rl_agent.tasks.stair_climbing.config import (
     STAIR_TASK_ID,
     StairClimbingTaskConfig,
@@ -27,19 +29,22 @@ from true_rl_agent.tasks.stair_climbing.generalization_contract import (
 from true_rl_agent.tasks.stair_climbing.phase_contract import (
     STAIR_PHASE_EVIDENCE_SCHEMA_VERSION,
 )
+from true_rl_agent.tasks.stair_climbing.public_projection import (
+    build_stair_candidate_runtime_effect_evidence,
+    require_stair_candidate_runtime_effect_evidence,
+)
 from true_rl_agent.tasks.stair_climbing.seed_policy import (
     STAIR_FORMAL_EVAL_NAMESPACE,
 )
 
-
 STAIR_SCREEN_EVIDENCE_SCHEMA_VERSION = (
-    "true_rl_agent.task.stair_climbing.public_dev_screen_evidence.v2"
+    "true_rl_agent.task.stair_climbing.public_dev_screen_evidence.v3"
 )
 STAIR_SELECTION_CONTRACT_SCHEMA_VERSION = (
-    "true_rl_agent.task.stair_climbing.selection_contract.v3"
+    "true_rl_agent.task.stair_climbing.selection_contract.v5"
 )
 STAIR_SELECTION_RESULT_SCHEMA_VERSION = (
-    "true_rl_agent.task.stair_climbing.selection_result.v3"
+    "true_rl_agent.task.stair_climbing.selection_result.v5"
 )
 
 
@@ -48,6 +53,9 @@ class StairPublicDevScreenEvidence:
     """Validated public-dev evidence with no acceptance authority."""
 
     trial_id: str
+    screen_role: str
+    train_receipt_checksum: str | None
+    runtime_effect_evidence: Mapping[str, Any] | None
     phase_result_hash: str
     evaluation_plan_hash: str
     task_id: str
@@ -72,6 +80,25 @@ class StairPublicDevScreenEvidence:
                 raise ValueError(f"Stair screen {field_name} is required")
         if not isinstance(self.subject, ExperimentSubject):
             raise TypeError("Stair screen subject is invalid")
+        if self.screen_role == "candidate":
+            require_sha256_checksum(
+                self.train_receipt_checksum,
+                "Stair candidate screen train receipt checksum",
+            )
+            runtime_effect = require_stair_candidate_runtime_effect_evidence(
+                self.runtime_effect_evidence
+            )
+        elif self.screen_role == "guard_reference":
+            if (
+                self.train_receipt_checksum is not None
+                or self.runtime_effect_evidence is not None
+            ):
+                raise ValueError(
+                    "Stair guard screen cannot carry candidate train evidence"
+                )
+            runtime_effect = None
+        else:
+            raise ValueError("Stair screen role is invalid")
         require_sha256_checksum(self.checkpoint_hash, "Stair screen checkpoint_hash")
         for field_name in (
             "phase_result_hash",
@@ -100,6 +127,7 @@ class StairPublicDevScreenEvidence:
                 raise ValueError(f"Stair screen {field_name} cannot be empty")
             for score in scores:
                 _finite_score(score, f"Stair screen {field_name}")
+        object.__setattr__(self, "runtime_effect_evidence", runtime_effect)
 
     @property
     def evidence_hash(self) -> str:
@@ -122,6 +150,13 @@ class StairPublicDevScreenEvidence:
         return {
             "schema_version": STAIR_SCREEN_EVIDENCE_SCHEMA_VERSION,
             "trial_id": self.trial_id,
+            "screen_role": self.screen_role,
+            "train_receipt_checksum": self.train_receipt_checksum,
+            "runtime_effect_evidence": (
+                dict(self.runtime_effect_evidence)
+                if self.runtime_effect_evidence is not None
+                else None
+            ),
             "phase_result_hash": self.phase_result_hash,
             "evaluation_plan_hash": self.evaluation_plan_hash,
             "task_id": self.task_id,
@@ -148,6 +183,9 @@ class StairPublicDevScreenEvidence:
         expected_fields = {
             "schema_version",
             "trial_id",
+            "screen_role",
+            "train_receipt_checksum",
+            "runtime_effect_evidence",
             "phase_result_hash",
             "evaluation_plan_hash",
             "task_id",
@@ -187,6 +225,9 @@ class StairPublicDevScreenEvidence:
             raise ValueError("Stair screen score stats must be objects")
         return cls(
             trial_id=value.get("trial_id"),
+            screen_role=value.get("screen_role"),
+            train_receipt_checksum=value.get("train_receipt_checksum"),
+            runtime_effect_evidence=value.get("runtime_effect_evidence"),
             phase_result_hash=value.get("phase_result_hash"),
             evaluation_plan_hash=value.get("evaluation_plan_hash"),
             task_id=value.get("task_id"),
@@ -216,11 +257,13 @@ class StairSelectionResult:
     selected_trial_id: str | None
     reason: str
     ranking_confidence: str
-    paired_mean_delta: float
-    paired_standard_error: float
-    uncertainty_threshold: float
+    paired_mean_delta: float | None
+    paired_standard_error: float | None
+    uncertainty_threshold: float | None
     guard_regression_by_trial: Mapping[str, float]
-    guard_eligible_trial_ids: tuple[str, ...]
+    selection_eligible_trial_ids: tuple[str, ...]
+    paired_statistics_status: str = "applicable"
+    schema_version: str = STAIR_SELECTION_RESULT_SCHEMA_VERSION
 
     def __post_init__(self) -> None:
         require_sha256_digest(self.contract_hash, "Stair selection contract_hash")
@@ -239,16 +282,17 @@ class StairSelectionResult:
         if self.reason not in {
             "public_dev_objective_rank",
             "public_dev_guard_filter",
+            "public_dev_runtime_activation_filter",
             "public_dev_guard_tiebreak",
             "inconclusive_exact_tie",
             "no_guard_eligible_candidate",
+            "no_runtime_activation_eligible_candidate",
         }:
             raise ValueError("Stair selection reason is invalid")
         if self.ranking_confidence not in {
             "outside_estimated_noise_band",
             "within_estimated_noise_band",
             "deterministic_paired_gap",
-            "guard_filtered",
             "guard_tiebreak",
             "not_applicable",
         }:
@@ -257,6 +301,7 @@ class StairSelectionResult:
             if self.reason not in {
                 "inconclusive_exact_tie",
                 "no_guard_eligible_candidate",
+                "no_runtime_activation_eligible_candidate",
             } or self.ranking_confidence != "not_applicable":
                 raise ValueError("Stair no-selection reason mismatch")
         elif (
@@ -266,28 +311,28 @@ class StairSelectionResult:
             not in {
                 "public_dev_objective_rank",
                 "public_dev_guard_filter",
+                "public_dev_runtime_activation_filter",
                 "public_dev_guard_tiebreak",
             }
         ):
             raise ValueError("Stair selected trial identity mismatch")
+        if self.schema_version != STAIR_SELECTION_RESULT_SCHEMA_VERSION:
+            raise ValueError("Stair selection result schema is unsupported")
         expected_confidences = {
             "public_dev_objective_rank": {
                 "outside_estimated_noise_band",
                 "within_estimated_noise_band",
                 "deterministic_paired_gap",
             },
-            "public_dev_guard_filter": {"guard_filtered"},
+            "public_dev_guard_filter": {"not_applicable"},
+            "public_dev_runtime_activation_filter": {"not_applicable"},
             "public_dev_guard_tiebreak": {"guard_tiebreak"},
             "inconclusive_exact_tie": {"not_applicable"},
             "no_guard_eligible_candidate": {"not_applicable"},
+            "no_runtime_activation_eligible_candidate": {"not_applicable"},
         }
         if self.ranking_confidence not in expected_confidences[self.reason]:
             raise ValueError("Stair selection reason/confidence mismatch")
-        _finite_score(self.paired_mean_delta, "Stair paired mean delta")
-        for name in ("paired_standard_error", "uncertainty_threshold"):
-            value = _finite_score(getattr(self, name), f"Stair {name}")
-            if value < 0.0:
-                raise ValueError(f"Stair {name} must be non-negative")
         if not isinstance(self.guard_regression_by_trial, Mapping):
             raise TypeError("Stair guard regression evidence must be an object")
         if len(self.guard_regression_by_trial) != 2:
@@ -297,75 +342,111 @@ class StairSelectionResult:
                 raise ValueError("Stair guard regression trial ID is invalid")
             _finite_score(regression, "Stair guard regression")
         if (
-            not isinstance(self.guard_eligible_trial_ids, tuple)
-            or len(set(self.guard_eligible_trial_ids))
-            != len(self.guard_eligible_trial_ids)
+            not isinstance(self.selection_eligible_trial_ids, tuple)
+            or len(set(self.selection_eligible_trial_ids))
+            != len(self.selection_eligible_trial_ids)
             or any(
                 not isinstance(trial_id, str) or not trial_id
-                for trial_id in self.guard_eligible_trial_ids
+                for trial_id in self.selection_eligible_trial_ids
             )
-            or not set(self.guard_eligible_trial_ids).issubset(
+            or not set(self.selection_eligible_trial_ids).issubset(
                 self.guard_regression_by_trial
             )
         ):
-            raise ValueError("Stair guard-eligible trial IDs are invalid")
+            raise ValueError("Stair selection-eligible trial IDs are invalid")
         if (
             self.selected_trial_id is not None
-            and self.selected_trial_id not in self.guard_eligible_trial_ids
+            and self.selected_trial_id not in self.selection_eligible_trial_ids
         ):
-            raise ValueError("Stair selected trial failed the guard precheck")
+            raise ValueError("Stair selected trial failed the selection precheck")
+        if len(self.selection_eligible_trial_ids) == 2:
+            if self.paired_statistics_status != "applicable":
+                raise ValueError("Stair paired statistics must be applicable")
+            self._validate_present_paired_statistics()
+        elif (
+            self.paired_statistics_status != "not_applicable"
+            or self.paired_mean_delta is not None
+            or self.paired_standard_error is not None
+            or self.uncertainty_threshold is not None
+        ):
+            raise ValueError(
+                "Stair paired statistics require two selection-eligible trials"
+            )
         object.__setattr__(
             self,
             "guard_regression_by_trial",
             dict(self.guard_regression_by_trial),
         )
 
+    def _validate_present_paired_statistics(self) -> None:
+        _finite_score(self.paired_mean_delta, "Stair paired mean delta")
+        for name in ("paired_standard_error", "uncertainty_threshold"):
+            value = _finite_score(getattr(self, name), f"Stair {name}")
+            if value < 0.0:
+                raise ValueError(f"Stair {name} must be non-negative")
+
     @property
     def selection_hash(self) -> str:
         return canonical_json_hash(self.to_public_dict())
 
     def to_public_dict(self) -> dict[str, Any]:
-        return {
-            "schema_version": STAIR_SELECTION_RESULT_SCHEMA_VERSION,
+        payload = {
+            "schema_version": self.schema_version,
             "contract_hash": self.contract_hash,
             "screen_evidence_hashes": list(self.screen_evidence_hashes),
             "guard_reference_evidence_hash": self.guard_reference_evidence_hash,
             "selected_trial_id": self.selected_trial_id,
             "reason": self.reason,
             "ranking_confidence": self.ranking_confidence,
-            "paired_mean_delta": self.paired_mean_delta,
-            "paired_standard_error": self.paired_standard_error,
-            "uncertainty_threshold": self.uncertainty_threshold,
             "guard_regression_by_trial": dict(self.guard_regression_by_trial),
-            "guard_eligible_trial_ids": list(self.guard_eligible_trial_ids),
+            "selection_eligible_trial_ids": list(
+                self.selection_eligible_trial_ids
+            ),
             "evidence_tier": "public_dev_screen_only",
             "acceptance_authority": False,
         }
+        paired_statistics: dict[str, Any] = {
+            "status": self.paired_statistics_status,
+        }
+        if self.paired_statistics_status == "applicable":
+            paired_statistics.update(
+                {
+                    "mean_delta": self.paired_mean_delta,
+                    "standard_error": self.paired_standard_error,
+                    "uncertainty_threshold": self.uncertainty_threshold,
+                }
+            )
+        payload["paired_statistics"] = paired_statistics
+        return payload
 
     @classmethod
     def from_mapping(cls, value: Any) -> "StairSelectionResult":
-        if not isinstance(value, Mapping) or set(value) != {
-            "schema_version",
+        common_fields = {
             "contract_hash",
             "screen_evidence_hashes",
             "guard_reference_evidence_hash",
             "selected_trial_id",
             "reason",
             "ranking_confidence",
-            "paired_mean_delta",
-            "paired_standard_error",
-            "uncertainty_threshold",
             "guard_regression_by_trial",
-            "guard_eligible_trial_ids",
+            "selection_eligible_trial_ids",
             "evidence_tier",
             "acceptance_authority",
-        }:
+            "schema_version",
+            "paired_statistics",
+        }
+        if not isinstance(value, Mapping):
+            raise ValueError("Stair selection result fields mismatch")
+        schema_version = value.get("schema_version")
+        if schema_version != STAIR_SELECTION_RESULT_SCHEMA_VERSION or set(
+            value
+        ) != common_fields:
             raise ValueError("Stair selection result fields mismatch")
         hashes = value.get("screen_evidence_hashes")
         if not isinstance(hashes, list) or len(hashes) != 2:
             raise ValueError("Stair selection evidence hashes are invalid")
         guard_regressions = value.get("guard_regression_by_trial")
-        eligible = value.get("guard_eligible_trial_ids")
+        eligible = value.get("selection_eligible_trial_ids")
         if not isinstance(guard_regressions, Mapping) or not isinstance(eligible, list):
             raise ValueError("Stair selection guard evidence is invalid")
         if any(
@@ -374,11 +455,40 @@ class StairSelectionResult:
         ):
             raise ValueError("Stair selection guard trial IDs are invalid")
         if (
-            value.get("schema_version") != STAIR_SELECTION_RESULT_SCHEMA_VERSION
-            or value.get("evidence_tier") != "public_dev_screen_only"
+            value.get("evidence_tier") != "public_dev_screen_only"
             or value.get("acceptance_authority") is not False
         ):
             raise ValueError("Stair selection result contract mismatch")
+        paired = value.get("paired_statistics")
+        if not isinstance(paired, Mapping):
+            raise ValueError("Stair paired statistics are invalid")
+        paired_statistics_status = paired.get("status")
+        if paired_statistics_status == "applicable":
+            if set(paired) != {
+                "status",
+                "mean_delta",
+                "standard_error",
+                "uncertainty_threshold",
+            }:
+                raise ValueError("Stair paired statistics fields mismatch")
+            paired_mean_delta = _finite_score(
+                paired.get("mean_delta"), "paired mean_delta"
+            )
+            paired_standard_error = _finite_score(
+                paired.get("standard_error"), "paired standard_error"
+            )
+            uncertainty_threshold = _finite_score(
+                paired.get("uncertainty_threshold"),
+                "paired uncertainty_threshold",
+            )
+        elif paired_statistics_status == "not_applicable":
+            if set(paired) != {"status"}:
+                raise ValueError("Stair inapplicable paired statistics mismatch")
+            paired_mean_delta = None
+            paired_standard_error = None
+            uncertainty_threshold = None
+        else:
+            raise ValueError("Stair paired statistics status is invalid")
         return cls(
             contract_hash=require_sha256_digest(
                 value.get("contract_hash"), "contract_hash"
@@ -394,20 +504,16 @@ class StairSelectionResult:
             selected_trial_id=value.get("selected_trial_id"),
             reason=value.get("reason"),
             ranking_confidence=value.get("ranking_confidence"),
-            paired_mean_delta=_finite_score(
-                value.get("paired_mean_delta"), "paired_mean_delta"
-            ),
-            paired_standard_error=_finite_score(
-                value.get("paired_standard_error"), "paired_standard_error"
-            ),
-            uncertainty_threshold=_finite_score(
-                value.get("uncertainty_threshold"), "uncertainty_threshold"
-            ),
+            paired_mean_delta=paired_mean_delta,
+            paired_standard_error=paired_standard_error,
+            uncertainty_threshold=uncertainty_threshold,
             guard_regression_by_trial={
                 trial_id: _finite_score(regression, "guard_regression")
                 for trial_id, regression in guard_regressions.items()
             },
-            guard_eligible_trial_ids=tuple(eligible),
+            selection_eligible_trial_ids=tuple(eligible),
+            paired_statistics_status=paired_statistics_status,
+            schema_version=schema_version,
         )
 
 
@@ -416,11 +522,60 @@ def build_stair_public_dev_screen_evidence(
     config: StairClimbingTaskConfig,
     trial_id: str,
     phase_result: EvaluationPhaseResult,
+    screen_role: str,
+    train_result: TrainJobResult | None = None,
+    train_receipt_checksum: str | None = None,
+    mechanism_operation_delta: Mapping[str, Any] | None = None,
 ) -> StairPublicDevScreenEvidence:
     """Project one validated public-dev phase into selector-safe evidence."""
 
     if phase_result.phase is not EvaluationPhase.PUBLIC_DEV:
         raise ValueError("Stair selector accepts public-dev phase results only")
+    if screen_role == "candidate":
+        if not isinstance(train_result, TrainJobResult):
+            raise TypeError("Stair candidate screen requires a train result")
+        require_sha256_checksum(
+            train_receipt_checksum,
+            "Stair candidate screen train receipt checksum",
+        )
+        if mechanism_operation_delta is None:
+            raise ValueError(
+                "Stair candidate screen requires its verifier-owned operation delta"
+            )
+        expected_train_identity = {
+            "subject": phase_result.subject,
+            "subject_manifest_hash": phase_result.subject_manifest_hash,
+            "program_source_checksum": phase_result.program_source_checksum,
+            "training_binding_hash": phase_result.training_binding_hash,
+            "capability_profile_hash": phase_result.capability_profile_hash,
+            "checkpoint_hash": phase_result.checkpoint_hash,
+            "execution_device": phase_result.execution_device,
+        }
+        observed_train_identity = {
+            "subject": train_result.subject,
+            "subject_manifest_hash": train_result.subject_manifest_hash,
+            "program_source_checksum": train_result.program_source_checksum,
+            "training_binding_hash": train_result.training_binding_hash,
+            "capability_profile_hash": train_result.capability_profile_hash,
+            "checkpoint_hash": train_result.checkpoint.checksum,
+            "execution_device": train_result.execution_device,
+        }
+        if observed_train_identity != expected_train_identity:
+            raise ValueError("Stair candidate screen train/eval lineage mismatch")
+        runtime_effect_evidence = build_stair_candidate_runtime_effect_evidence(
+            train_result.summary,
+            mechanism_operation_delta=mechanism_operation_delta,
+        )
+    elif screen_role == "guard_reference":
+        if (
+            train_result is not None
+            or train_receipt_checksum is not None
+            or mechanism_operation_delta is not None
+        ):
+            raise ValueError("Stair guard screen received candidate train evidence")
+        runtime_effect_evidence = None
+    else:
+        raise ValueError("Stair screen role is invalid")
     raw_evidence = phase_result.task_evidence
     if (
         set(raw_evidence)
@@ -478,6 +633,9 @@ def build_stair_public_dev_screen_evidence(
         raise ValueError("Stair screen public-dev seed count mismatch")
     return StairPublicDevScreenEvidence(
         trial_id=trial_id,
+        screen_role=screen_role,
+        train_receipt_checksum=train_receipt_checksum,
+        runtime_effect_evidence=runtime_effect_evidence,
         phase_result_hash=canonical_json_hash(phase_result.to_private_dict()),
         evaluation_plan_hash=phase_result.evaluation_plan_hash,
         task_id=phase_result.task_id,
@@ -518,10 +676,13 @@ def stair_selection_contract(config: StairClimbingTaskConfig) -> dict[str, Any]:
         "task_id": STAIR_TASK_ID,
         "task_protocol_hash": config.task_protocol_hash,
         "acceptance_protocol_hash": config.acceptance_protocol.protocol_hash,
-        "rule": "guard_eligible_public_dev_generalization_rank_v2",
+        "rule": "guard_and_runtime_eligible_public_dev_generalization_rank_v4",
         "primary_score_source": "public_dev.generalization.seed_macro_scores",
         "guard_score_source": "public_dev.anchor.seed_macro_scores",
         "guard_rule": "parent_relative_hard_regression_cap_only",
+        "runtime_effect_rule": (
+            "candidate_reward_operation_runtime_effect.status_must_pass"
+        ),
         "guard_max_regression": float(guard_max_regression),
         "paired_standard_error_multiplier": float(multiplier),
         "screen_seed_count": config.public_seed_count,
@@ -530,12 +691,14 @@ def stair_selection_contract(config: StairClimbingTaskConfig) -> dict[str, Any]:
         "reason_codes": [
             "public_dev_objective_rank",
             "public_dev_guard_filter",
+            "public_dev_runtime_activation_filter",
             "public_dev_guard_tiebreak",
             "inconclusive_exact_tie",
             "no_guard_eligible_candidate",
+            "no_runtime_activation_eligible_candidate",
         ],
         "ranking_policy": (
-            "always_rank_guard_eligible_candidates; paired noise is evidence only"
+            "always_rank_selection_eligible_candidates; paired noise is evidence only"
         ),
         "acceptance_headroom_role": "not_evaluated_by_selector",
         "allowed_execution_differences": [
@@ -546,7 +709,13 @@ def stair_selection_contract(config: StairClimbingTaskConfig) -> dict[str, Any]:
             "resource_binding_hash",
             "subject",
             "checkpoint_hash",
+            "train_receipt_checksum",
+            "runtime_effect_evidence",
         ],
+        "paired_statistics_policy": (
+            "emit only when both sibling trials are selection eligible; otherwise "
+            "status is not_applicable and numeric statistics are absent"
+        ),
         "acceptance_authority": False,
     }
 
@@ -557,19 +726,54 @@ def select_stair_public_dev_winner(
     screens: Sequence[StairPublicDevScreenEvidence],
     guard_reference: StairPublicDevScreenEvidence,
 ) -> StairSelectionResult:
-    """Allocate formal evaluation to the best guard-eligible public-dev trial."""
+    return _select_stair_public_dev_winner(
+        config=config,
+        screens=screens,
+        guard_reference=guard_reference,
+    )
+
+
+def replay_stair_public_dev_winner(
+    *,
+    config: StairClimbingTaskConfig,
+    screens: Sequence[StairPublicDevScreenEvidence],
+    guard_reference: StairPublicDevScreenEvidence,
+    result_schema_version: str,
+) -> StairSelectionResult:
+    """Replay the current selector against its sealed public inputs."""
+
+    if result_schema_version != STAIR_SELECTION_RESULT_SCHEMA_VERSION:
+        raise ValueError("Stair selection replay schema is unsupported")
+    return _select_stair_public_dev_winner(
+        config=config,
+        screens=screens,
+        guard_reference=guard_reference,
+    )
+
+
+def _select_stair_public_dev_winner(
+    *,
+    config: StairClimbingTaskConfig,
+    screens: Sequence[StairPublicDevScreenEvidence],
+    guard_reference: StairPublicDevScreenEvidence,
+) -> StairSelectionResult:
+    """Allocate formal evaluation to the best fully eligible public-dev trial."""
 
     if len(screens) != 2 or any(
         not isinstance(item, StairPublicDevScreenEvidence) for item in screens
     ):
         raise ValueError("Stair selection requires exactly two screen evidences")
     ordered = tuple(sorted(screens, key=lambda item: item.trial_id))
+    if any(item.screen_role != "candidate" for item in ordered):
+        raise ValueError("Stair selection screens must identify candidates")
     if ordered[0].trial_id == ordered[1].trial_id:
         raise ValueError("Stair selection trial IDs must be unique")
     if ordered[0].comparison_domain != ordered[1].comparison_domain:
         raise ValueError("Stair screen evidences are not comparable")
     if not isinstance(guard_reference, StairPublicDevScreenEvidence):
         raise TypeError("Stair selection requires a public-dev guard reference")
+    if guard_reference.screen_role != "guard_reference":
+        raise ValueError("Stair selection guard must identify the frozen parent")
     if guard_reference.comparison_domain != ordered[0].comparison_domain:
         raise ValueError("Stair guard reference is not comparable")
     if (
@@ -610,18 +814,37 @@ def select_stair_public_dev_winner(
         - statistics.fmean(item.anchor_seed_macro_scores)
         for item in ordered
     }
-    eligible = tuple(
+    guard_eligible = tuple(
         item.trial_id
         for item in ordered
         if guard_regressions[item.trial_id] <= hard_guard_cap
     )
+    runtime_eligible = tuple(
+        item.trial_id
+        for item in ordered
+        if item.runtime_effect_evidence is not None
+        and item.runtime_effect_evidence["status"] == "pass"
+    )
+    eligible = tuple(
+        item.trial_id
+        for item in ordered
+        if item.trial_id in guard_eligible and item.trial_id in runtime_eligible
+    )
     selected = None
-    reason = "no_guard_eligible_candidate"
+    reason = (
+        "no_guard_eligible_candidate"
+        if not guard_eligible
+        else "no_runtime_activation_eligible_candidate"
+    )
     confidence = "not_applicable"
     if len(eligible) == 1:
         selected = eligible[0]
-        reason = "public_dev_guard_filter"
-        confidence = "guard_filtered"
+        other = next(item.trial_id for item in ordered if item.trial_id != selected)
+        reason = (
+            "public_dev_guard_filter"
+            if other not in guard_eligible
+            else "public_dev_runtime_activation_filter"
+        )
     elif len(eligible) == 2 and not math.isclose(
         mean_delta, 0.0, rel_tol=1.0e-12, abs_tol=1.0e-12
     ):
@@ -657,11 +880,15 @@ def select_stair_public_dev_winner(
         selected_trial_id=selected,
         reason=reason,
         ranking_confidence=confidence,
-        paired_mean_delta=mean_delta,
-        paired_standard_error=standard_error,
-        uncertainty_threshold=threshold,
+        paired_mean_delta=(mean_delta if len(eligible) == 2 else None),
+        paired_standard_error=(standard_error if len(eligible) == 2 else None),
+        uncertainty_threshold=(threshold if len(eligible) == 2 else None),
         guard_regression_by_trial=guard_regressions,
-        guard_eligible_trial_ids=eligible,
+        selection_eligible_trial_ids=eligible,
+        paired_statistics_status=(
+            "applicable" if len(eligible) == 2 else "not_applicable"
+        ),
+        schema_version=STAIR_SELECTION_RESULT_SCHEMA_VERSION,
     )
 
 
@@ -682,6 +909,7 @@ __all__ = [
     "StairPublicDevScreenEvidence",
     "StairSelectionResult",
     "build_stair_public_dev_screen_evidence",
+    "replay_stair_public_dev_winner",
     "select_stair_public_dev_winner",
     "stair_selection_contract",
 ]

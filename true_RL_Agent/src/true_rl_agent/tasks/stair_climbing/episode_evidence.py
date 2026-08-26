@@ -26,18 +26,18 @@ class StairEnvTransition:
     episode_step: int
     progress_m: float
     lateral_m: float
-    root_height_m: float
-    root_clearance_m: float
+    base_height_m: float
+    base_clearance_m: float
     abs_roll_rad: float
     abs_pitch_rad: float
-    torso_contact: bool
-    foot_contacts: tuple[bool, bool]
-    foot_progress_m: tuple[float, float]
-    foot_surface_levels: tuple[int, int]
-    foot_lateral_m: tuple[float, float]
-    foot_planar_speeds_mps: tuple[float, float]
-    foot_surface_clearances_m: tuple[float, float]
-    foot_upward_forces_n: tuple[float, float]
+    forbidden_contact: bool
+    support_contacts: tuple[bool, ...]
+    support_progress_m: tuple[float, ...]
+    support_surface_levels: tuple[int, ...]
+    support_lateral_m: tuple[float, ...]
+    support_planar_speeds_mps: tuple[float, ...]
+    support_surface_clearances_m: tuple[float, ...]
+    support_upward_forces_n: tuple[float, ...]
     done: bool
     termination_terms: tuple[str, ...] = ()
     evaluation_cell_id: str | None = None
@@ -52,8 +52,7 @@ class StairEnvTransition:
         if not isinstance(self.bin_id, str) or not self.bin_id:
             raise StairEpisodeEvidenceError("stair bin_id must be non-empty")
         if self.evaluation_cell_id is not None and (
-            not isinstance(self.evaluation_cell_id, str)
-            or not self.evaluation_cell_id
+            not isinstance(self.evaluation_cell_id, str) or not self.evaluation_cell_id
         ):
             raise StairEpisodeEvidenceError(
                 "stair evaluation_cell_id must be non-empty when present"
@@ -67,29 +66,45 @@ class StairEnvTransition:
         for field_name in (
             "progress_m",
             "lateral_m",
-            "root_height_m",
-            "root_clearance_m",
+            "base_height_m",
+            "base_clearance_m",
             "abs_roll_rad",
             "abs_pitch_rad",
         ):
             _finite_number(getattr(self, field_name), field_name)
         for field_name in (
-            "torso_contact",
+            "forbidden_contact",
             "done",
         ):
             if not isinstance(getattr(self, field_name), bool):
                 raise StairEpisodeEvidenceError(f"stair {field_name} must be boolean")
-        _boolean_pair(self.foot_contacts, "foot_contacts")
-        _finite_pair(self.foot_progress_m, "foot_progress_m")
-        _non_negative_int_pair(self.foot_surface_levels, "foot_surface_levels")
-        _finite_pair(self.foot_lateral_m, "foot_lateral_m")
-        _finite_pair(self.foot_planar_speeds_mps, "foot_planar_speeds_mps")
-        _finite_pair(self.foot_surface_clearances_m, "foot_surface_clearances_m")
-        _finite_pair(self.foot_upward_forces_n, "foot_upward_forces_n")
+        support_count = len(_boolean_tuple(self.support_contacts, "support_contacts"))
+        for field_name in (
+            "support_progress_m",
+            "support_lateral_m",
+            "support_planar_speeds_mps",
+            "support_surface_clearances_m",
+            "support_upward_forces_n",
+        ):
+            values = _finite_tuple(getattr(self, field_name), field_name)
+            if len(values) != support_count:
+                raise StairEpisodeEvidenceError(
+                    "stair support evidence cardinality mismatch"
+                )
+        levels = _non_negative_int_tuple(
+            self.support_surface_levels,
+            "support_surface_levels",
+        )
+        if len(levels) != support_count:
+            raise StairEpisodeEvidenceError(
+                "stair support evidence cardinality mismatch"
+            )
         if (
             not isinstance(self.termination_terms, tuple)
             or len(self.termination_terms) != len(set(self.termination_terms))
-            or any(not isinstance(item, str) or not item for item in self.termination_terms)
+            or any(
+                not isinstance(item, str) or not item for item in self.termination_terms
+            )
         ):
             raise StairEpisodeEvidenceError(
                 "stair termination_terms must be a unique string tuple"
@@ -98,6 +113,10 @@ class StairEnvTransition:
             raise StairEpisodeEvidenceError(
                 "stair done mask does not match active termination terms"
             )
+
+    @property
+    def support_count(self) -> int:
+        return len(self.support_contacts)
 
 
 @dataclass(frozen=True)
@@ -119,12 +138,13 @@ class StairEpisodeOutcome:
             or not isinstance(self.env_index, int)
             or self.env_index < 0
         ):
-            raise StairEpisodeEvidenceError("stair outcome env_index must be non-negative")
+            raise StairEpisodeEvidenceError(
+                "stair outcome env_index must be non-negative"
+            )
         if not isinstance(self.bin_id, str) or not self.bin_id:
             raise StairEpisodeEvidenceError("stair outcome bin_id must be non-empty")
         if self.evaluation_cell_id is not None and (
-            not isinstance(self.evaluation_cell_id, str)
-            or not self.evaluation_cell_id
+            not isinstance(self.evaluation_cell_id, str) or not self.evaluation_cell_id
         ):
             raise StairEpisodeEvidenceError(
                 "stair outcome evaluation_cell_id must be non-empty when present"
@@ -134,13 +154,19 @@ class StairEpisodeOutcome:
             or not isinstance(self.episode_steps, int)
             or self.episode_steps <= 0
         ):
-            raise StairEpisodeEvidenceError("stair outcome episode_steps must be positive")
+            raise StairEpisodeEvidenceError(
+                "stair outcome episode_steps must be positive"
+            )
         if not isinstance(self.primary_reason, str) or not self.primary_reason:
-            raise StairEpisodeEvidenceError("stair outcome primary_reason must be non-empty")
+            raise StairEpisodeEvidenceError(
+                "stair outcome primary_reason must be non-empty"
+            )
         if not isinstance(self.success, bool):
             raise StairEpisodeEvidenceError("stair outcome success must be boolean")
         _unique_string_tuple(self.diagnostic_flags, "outcome diagnostic_flags")
-        _unique_string_tuple(self.active_terminal_terms, "outcome active_terminal_terms")
+        _unique_string_tuple(
+            self.active_terminal_terms, "outcome active_terminal_terms"
+        )
         diagnostics = set(self.diagnostic_flags)
         arrival_flag = "first_valid_top_arrival_achieved"
         post_arrival_failure_flag = "post_arrival_safety_failure_detected"
@@ -191,7 +217,11 @@ class StairEpisodeTracker:
             raise TypeError("stair tracker protocol must be StairProtocolV1")
         if not isinstance(semantics, StairEvaluationSemantics):
             raise TypeError("stair tracker semantics must be StairEvaluationSemantics")
-        if isinstance(env_index, bool) or not isinstance(env_index, int) or env_index < 0:
+        if (
+            isinstance(env_index, bool)
+            or not isinstance(env_index, int)
+            or env_index < 0
+        ):
             raise StairEpisodeEvidenceError("stair tracker env_index is invalid")
         bin_ids = tuple(str(item["bin_id"]) for item in protocol.eval_bins)
         if bin_id not in bin_ids:
@@ -245,11 +275,11 @@ class StairEpisodeTracker:
         )
         self._course_half_width_m = float(terrain["size_m"][1]) / 2.0
         manager_term = str(
-            self._outcomes["signals"]["torso_contact"]["manager_term"]
+            self._outcomes["signals"]["forbidden_contact"]["manager_term"]
         )
         self._manager_term_reason = {
             **dict(payload["phase0_probe"]["terminal_reason_by_manager_term"]),
-            manager_term: "torso_contact",
+            manager_term: "forbidden_contact",
         }
         self._last_step = 0
         self._max_progress_m = self._progress_start_m
@@ -258,7 +288,7 @@ class StairEpisodeTracker:
         self._orientation_streak = 0
         self._slip_streak = 0
         self._clearance_streak = 0
-        self._torso_contact_latched = False
+        self._forbidden_contact_latched = False
         self._fall_latched = False
         self._orientation_diagnostic_latched = False
         self._slip_diagnostic_latched = False
@@ -278,13 +308,13 @@ class StairEpisodeTracker:
             or transition.evaluation_cell_id != self._evaluation_cell_id
         ):
             raise StairEpisodeEvidenceError("stair transition identity drifted")
-        terminal_torso_contact = any(
-            self._manager_term_reason.get(term) == "torso_contact"
+        terminal_forbidden_contact = any(
+            self._manager_term_reason.get(term) == "forbidden_contact"
             for term in transition.termination_terms
         )
-        if transition.torso_contact != terminal_torso_contact:
+        if transition.forbidden_contact != terminal_forbidden_contact:
             raise StairEpisodeEvidenceError(
-                "stair torso-contact signal disagrees with termination terms"
+                "stair forbidden-contact signal disagrees with termination terms"
             )
         if transition.episode_step != self._last_step + 1:
             raise StairEpisodeEvidenceError("stair episode step sequence drifted")
@@ -320,10 +350,10 @@ class StairEpisodeTracker:
         stability = self._outcomes["top_platform_stability_requirement"]
         arrival_was_latched = self._top_arrival_latched
 
-        self._torso_contact_latched |= transition.torso_contact
+        self._forbidden_contact_latched |= transition.forbidden_contact
         self._fall_streak = _next_streak(
             self._fall_streak,
-            transition.root_clearance_m < float(signals["fall"]["threshold"]),
+            transition.base_clearance_m < float(signals["fall"]["threshold"]),
         )
         self._orientation_streak = _next_streak(
             self._orientation_streak,
@@ -331,19 +361,18 @@ class StairEpisodeTracker:
             > float(signals["base_orientation_instability"]["threshold"]),
         )
         slip = any(
-            contact
-            and speed > float(signals["slip"]["speed_threshold"])
+            contact and speed > float(signals["slip"]["speed_threshold"])
             for contact, speed in zip(
-                transition.foot_contacts,
-                transition.foot_planar_speeds_mps,
+                transition.support_contacts,
+                transition.support_planar_speeds_mps,
             )
         )
         clearance = any(
             (not contact)
             and value < float(signals["insufficient_clearance"]["threshold"])
             for contact, value in zip(
-                transition.foot_contacts,
-                transition.foot_surface_clearances_m,
+                transition.support_contacts,
+                transition.support_surface_clearances_m,
             )
         )
         self._slip_streak = _next_streak(self._slip_streak, slip)
@@ -371,52 +400,52 @@ class StairEpisodeTracker:
         required_progress = self._progress_start_m + (
             self._goal_m - self._progress_start_m
         ) * float(success["minimum_progress_fraction"])
-        support_clearance_range = success["supporting_foot_surface_clearance_range_m"]
+        support_clearance_range = success["support_effector_surface_clearance_range_m"]
         minimum_support_clearance = float(support_clearance_range[0])
         maximum_support_clearance = float(support_clearance_range[1])
         minimum_upward_force = float(
-            success["minimum_supporting_foot_upward_force_n"]
+            success["minimum_support_effector_upward_force_n"]
         )
         top_support_evidence = tuple(
             contact
             and level == self._step_count
             and self._course_min_progress_m
-            <= foot_progress
+            <= support_progress
             <= self._course_max_progress_m
             and abs(lateral) <= self._course_half_width_m
             and minimum_support_clearance <= clearance <= maximum_support_clearance
             and upward_force >= minimum_upward_force
             for (
                 contact,
-                foot_progress,
+                support_progress,
                 level,
                 lateral,
                 clearance,
                 upward_force,
             ) in zip(
-                transition.foot_contacts,
-                transition.foot_progress_m,
-                transition.foot_surface_levels,
-                transition.foot_lateral_m,
-                transition.foot_surface_clearances_m,
-                transition.foot_upward_forces_n,
+                transition.support_contacts,
+                transition.support_progress_m,
+                transition.support_surface_levels,
+                transition.support_lateral_m,
+                transition.support_surface_clearances_m,
+                transition.support_upward_forces_n,
                 strict=True,
             )
         )
         top_support_count = sum(top_support_evidence)
         maximum_support_speed = float(
-            stability["maximum_supporting_foot_planar_speed_mps"]
+            stability["maximum_support_effector_planar_speed_mps"]
         )
         stable_top_support_count = sum(
             supported and speed <= maximum_support_speed
             for supported, speed in zip(
                 top_support_evidence,
-                transition.foot_planar_speeds_mps,
+                transition.support_planar_speeds_mps,
                 strict=True,
             )
         )
-        root_clearance_above_top = (
-            transition.root_height_m - self._step_count * self._step_height_m
+        base_clearance_above_top = (
+            transition.base_height_m - self._step_count * self._step_height_m
         )
         orientation_stable = max(
             transition.abs_roll_rad,
@@ -426,12 +455,12 @@ class StairEpisodeTracker:
             transition.progress_m >= required_progress
             and transition.progress_m <= self._course_max_progress_m
             and abs(transition.lateral_m) <= self._course_half_width_m
-            and root_clearance_above_top >= float(signals["fall"]["threshold"])
+            and base_clearance_above_top >= float(signals["fall"]["threshold"])
             and orientation_stable
-            and top_support_count >= int(success["minimum_supporting_feet_on_top"])
+            and top_support_count >= int(success["minimum_support_effectors_on_top"])
         )
         pre_arrival_blocked = (
-            self._torso_contact_latched
+            self._forbidden_contact_latched
             or self._fall_latched
             or self._off_course_latched
         )
@@ -445,7 +474,7 @@ class StairEpisodeTracker:
             self._top_arrival_latched
             and valid_top_arrival
             and stable_top_support_count
-            >= int(success["minimum_supporting_feet_on_top"])
+            >= int(success["minimum_support_effectors_on_top"])
             and not pre_arrival_blocked
         )
         self._top_platform_stability_streak = _next_streak(
@@ -483,22 +512,18 @@ class StairEpisodeTracker:
         else:
             signals = self._outcomes["signals"]
             reason_flags = {
-                "torso_contact": self._torso_contact_latched
-                or "torso_contact" in active_reasons,
+                "forbidden_contact": self._forbidden_contact_latched
+                or "forbidden_contact" in active_reasons,
                 "fall": self._fall_latched,
                 "off_course": self._off_course_latched,
                 "base_orientation_instability": self._orientation_streak
                 >= int(
-                    signals["base_orientation_instability"][
-                        "consecutive_control_steps"
-                    ]
+                    signals["base_orientation_instability"]["consecutive_control_steps"]
                 ),
                 "slip": self._slip_streak
                 >= int(signals["slip"]["consecutive_control_steps"]),
                 "insufficient_clearance": self._clearance_streak
-                >= int(
-                    signals["insufficient_clearance"]["consecutive_control_steps"]
-                ),
+                >= int(signals["insufficient_clearance"]["consecutive_control_steps"]),
                 "timeout": "timeout" in active_reasons,
             }
             primary_reason = next(
@@ -545,9 +570,7 @@ class StairEpisodeTracker:
             episode_steps=transition.episode_step,
             primary_reason=primary_reason,
             success=succeeded,
-            diagnostic_flags=tuple(
-                name for name in declared if diagnostics[name]
-            ),
+            diagnostic_flags=tuple(name for name in declared if diagnostics[name]),
             max_progress_m=round(self._max_progress_m, 8),
             progress_fraction=round(progress_fraction, 8),
             active_terminal_terms=transition.termination_terms,
@@ -601,37 +624,39 @@ def _finite_number(value: Any, field_name: str) -> float:
     return float(value)
 
 
-def _boolean_pair(value: Any, field_name: str) -> tuple[bool, bool]:
+def _boolean_tuple(value: Any, field_name: str) -> tuple[bool, ...]:
     if (
         not isinstance(value, tuple)
-        or len(value) != 2
+        or not value
         or any(not isinstance(item, bool) for item in value)
     ):
-        raise StairEpisodeEvidenceError(f"stair {field_name} must be a boolean pair")
+        raise StairEpisodeEvidenceError(
+            f"stair {field_name} must be a non-empty boolean tuple"
+        )
     return value
 
 
-def _non_negative_int_pair(value: Any, field_name: str) -> tuple[int, int]:
+def _non_negative_int_tuple(value: Any, field_name: str) -> tuple[int, ...]:
     if (
         not isinstance(value, tuple)
-        or len(value) != 2
+        or not value
         or any(
             isinstance(item, bool) or not isinstance(item, int) or item < 0
             for item in value
         )
     ):
         raise StairEpisodeEvidenceError(
-            f"stair {field_name} must be a non-negative integer pair"
+            f"stair {field_name} must be a non-empty non-negative integer tuple"
         )
     return value
 
 
-def _finite_pair(value: Any, field_name: str) -> tuple[float, float]:
-    if not isinstance(value, tuple) or len(value) != 2:
-        raise StairEpisodeEvidenceError(f"stair {field_name} must be a pair")
-    return (
-        _finite_number(value[0], f"{field_name}[0]"),
-        _finite_number(value[1], f"{field_name}[1]"),
+def _finite_tuple(value: Any, field_name: str) -> tuple[float, ...]:
+    if not isinstance(value, tuple) or not value:
+        raise StairEpisodeEvidenceError(f"stair {field_name} must be a non-empty tuple")
+    return tuple(
+        _finite_number(item, f"{field_name}[{index}]")
+        for index, item in enumerate(value)
     )
 
 

@@ -5,7 +5,7 @@ import unittest
 from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import Mock
+from unittest.mock import Mock, call, patch
 
 from scripts.isaaclab_stair_rsl_rl_eval import _optional_evaluation_phase
 from tests.fakes.backend_environment import (
@@ -52,11 +52,14 @@ from true_rl_agent.tasks.stair_climbing.phased_evaluation import (
     assemble_stair_eval_phase_results,
     build_stair_eval_phase_summary,
     build_stair_full_eval_summary,
+    canonical_stair_phase_result_summary,
 )
 from true_rl_agent.tasks.stair_climbing.phased_adapter import (
     StairPhasedEvaluationAdapter,
 )
 from true_rl_agent.tasks.stair_climbing.generation_bootstrap import (
+    StairGenerationGuardReference,
+    replay_stair_generation_guard_chain,
     run_genesis_parent_public_dev,
 )
 from true_rl_agent.tasks.stair_climbing.phased_cost import (
@@ -65,6 +68,7 @@ from true_rl_agent.tasks.stair_climbing.phased_cost import (
 )
 from true_rl_agent.tasks.stair_climbing.plugin import StairClimbingTaskPlugin
 from true_rl_agent.tasks.stair_climbing.seed_policy import (
+    STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
     STAIR_FORMAL_EVAL_NAMESPACE,
 )
 from true_rl_agent.tasks.stair_climbing.selection import (
@@ -95,9 +99,7 @@ class StairPhasedEvaluationTests(unittest.TestCase):
 
     def test_generation_cost_and_genesis_guard_bootstrap_are_separate(self) -> None:
         cost = stair_phased_evaluation_cost_contract(self.config)
-        self.assertEqual(
-            cost["schema_version"], STAIR_PHASED_EVAL_COST_SCHEMA_VERSION
-        )
+        self.assertEqual(cost["schema_version"], STAIR_PHASED_EVAL_COST_SCHEMA_VERSION)
         self.assertEqual(cost["max_seed_units_per_generation"], 23)
         self.assertEqual(cost["max_session_bootstrap_seed_units"], 3)
 
@@ -160,6 +162,116 @@ class StairPhasedEvaluationTests(unittest.TestCase):
         self.assertEqual(first.evidence.subject, plan.subject)
         self.assertEqual(runner.run_eval_phase.call_count, 1)
         self.assertEqual(backend.materialize_eval_phase.call_count, 2)
+
+    def test_guard_chain_replay_updates_only_after_accepted_generation(self) -> None:
+        initial_parent = Mock(spec=CurrentBestEvalStats)
+        accepted_parent = Mock(spec=CurrentBestEvalStats)
+        initial_guard = Mock(spec=StairGenerationGuardReference)
+        accepted_guard = Mock(spec=StairGenerationGuardReference)
+        acceptance_protocol = self.config.acceptance_protocol
+        adapter = StairPhasedEvaluationAdapter(self.config)
+        records = (
+            {"generation_outcome": "formal_rejected", "generation_index": 1},
+            {
+                "generation_outcome": "paired_authoring_incomplete",
+                "generation_index": 2,
+            },
+            {"generation_outcome": "accepted", "generation_index": 3},
+            {"generation_outcome": "no_selection", "generation_index": 4},
+        )
+        expected_contract_hash = "9" * 64
+        validator_target = (
+            "true_rl_agent.tasks.stair_climbing.generation_bootstrap."
+            "validate_generation_ledger_record"
+        )
+        loader_target = (
+            "true_rl_agent.tasks.stair_climbing.generation_bootstrap."
+            "load_stair_next_generation_guard_reference"
+        )
+
+        with (
+            patch(
+                validator_target,
+                side_effect=(
+                    initial_parent,
+                    initial_parent,
+                    accepted_parent,
+                    accepted_parent,
+                ),
+            ) as validate_record,
+            patch(loader_target, return_value=accepted_guard) as load_guard,
+        ):
+            current_parent, current_guard = replay_stair_generation_guard_chain(
+                generation_records=records,
+                initial_parent=initial_parent,
+                initial_guard_reference=initial_guard,
+                acceptance_protocol=acceptance_protocol,
+                adapter=adapter,
+                expected_generation_session_contract_hash=(expected_contract_hash),
+            )
+
+        self.assertIs(current_parent, accepted_parent)
+        self.assertIs(current_guard, accepted_guard)
+        self.assertEqual(
+            [item.args[0] for item in validate_record.call_args_list],
+            list(records),
+        )
+        self.assertEqual(
+            [item.kwargs["expected_parent"] for item in validate_record.call_args_list],
+            [initial_parent, initial_parent, initial_parent, accepted_parent],
+        )
+        self.assertEqual(
+            {
+                item.kwargs["expected_generation_session_contract_hash"]
+                for item in validate_record.call_args_list
+            },
+            {expected_contract_hash},
+        )
+        self.assertTrue(
+            all(
+                item.kwargs["acceptance_protocol"] is acceptance_protocol
+                for item in validate_record.call_args_list
+            )
+        )
+        load_guard.assert_called_once_with(
+            generation_record=records[2],
+            previous_parent=initial_parent,
+            acceptance_protocol=acceptance_protocol,
+            adapter=adapter,
+        )
+        initial_guard.assert_matches_parent.assert_called_once_with(initial_parent)
+        self.assertEqual(
+            accepted_guard.assert_matches_parent.call_args_list,
+            [call(accepted_parent), call(accepted_parent)],
+        )
+
+    def test_guard_chain_replay_rejects_nonaccepted_head_transition(self) -> None:
+        initial_parent = Mock(spec=CurrentBestEvalStats)
+        changed_parent = Mock(spec=CurrentBestEvalStats)
+        initial_guard = Mock(spec=StairGenerationGuardReference)
+        record = {"generation_outcome": "formal_rejected"}
+        validator_target = (
+            "true_rl_agent.tasks.stair_climbing.generation_bootstrap."
+            "validate_generation_ledger_record"
+        )
+        loader_target = (
+            "true_rl_agent.tasks.stair_climbing.generation_bootstrap."
+            "load_stair_next_generation_guard_reference"
+        )
+
+        with (
+            patch(validator_target, return_value=changed_parent),
+            patch(loader_target) as load_guard,
+            self.assertRaisesRegex(ValueError, "non-accepted generation changed"),
+        ):
+            replay_stair_generation_guard_chain(
+                generation_records=(record,),
+                initial_parent=initial_parent,
+                initial_guard_reference=initial_guard,
+                acceptance_protocol=self.config.acceptance_protocol,
+                adapter=StairPhasedEvaluationAdapter(self.config),
+            )
+        load_guard.assert_not_called()
 
     def test_three_phase_assembly_matches_monolithic_scientific_summary(self) -> None:
         plan = self._eval_plan("candidate-phased")
@@ -225,6 +337,22 @@ class StairPhasedEvaluationTests(unittest.TestCase):
             )
             self.assertIsInstance(assembled, EvaluationAssembly)
             self.assertEqual(assembled.summary, full_summary)
+            tampered_screens = list(selection_screens)
+            tampered_screens[0] = self._candidate_screen(
+                tampered_screens[0],
+                runtime_status="fail",
+            )
+            with self.assertRaisesRegex(ValueError, "selection replay mismatch"):
+                assemble_stair_eval_phase_results(
+                    config=self.config,
+                    eval_plan=plan,
+                    trial_id="trial-winner",
+                    selection_result=selection,
+                    selection_screens=tampered_screens,
+                    guard_reference=guard_reference,
+                    phase_results=phase_results,
+                    phase_receipt_refs=phase_receipts,
+                )
 
             runner = SubprocessRunner(allowed_executables=("python",))
             with self.assertRaisesRegex(TypeError, "EvaluationAssembly"):
@@ -255,11 +383,12 @@ class StairPhasedEvaluationTests(unittest.TestCase):
 
     def test_selector_uses_public_dev_only_and_can_return_no_selection(self) -> None:
         guard_reference = self._screen_with_scores(
-            "parent", objective=[0.5] * 3, guard=[0.8] * 3
+            "parent",
+            objective=[0.5] * 3,
+            guard=[0.8] * 3,
+            screen_role="guard_reference",
         )
-        left = self._screen_with_scores(
-            "trial-a", objective=[0.7] * 3, guard=[0.8] * 3
-        )
+        left = self._screen_with_scores("trial-a", objective=[0.7] * 3, guard=[0.8] * 3)
         right = self._screen_with_scores(
             "trial-b", objective=[0.2, 0.3, 0.2], guard=[0.8] * 3
         )
@@ -273,6 +402,16 @@ class StairPhasedEvaluationTests(unittest.TestCase):
         self.assertEqual(
             selected.ranking_confidence,
             "outside_estimated_noise_band",
+        )
+        self.assertEqual(selected.paired_statistics_status, "applicable")
+        self.assertEqual(
+            set(selected.to_public_dict()["paired_statistics"]),
+            {
+                "status",
+                "mean_delta",
+                "standard_error",
+                "uncertainty_threshold",
+            },
         )
         self.assertFalse(selected.to_public_dict()["acceptance_authority"])
         self.assertEqual(
@@ -294,10 +433,14 @@ class StairPhasedEvaluationTests(unittest.TestCase):
         )
         self.assertIsNone(tie.selected_trial_id)
         self.assertEqual(tie.reason, "inconclusive_exact_tie")
+        self.assertEqual(tie.paired_statistics_status, "applicable")
 
     def test_selector_ranks_tiny_gaps_and_filters_clear_guard_regression(self) -> None:
         parent = self._screen_with_scores(
-            "parent", objective=[0.5] * 3, guard=[0.8] * 3
+            "parent",
+            objective=[0.5] * 3,
+            guard=[0.8] * 3,
+            screen_role="guard_reference",
         )
         tiny_lead = self._screen_with_scores(
             "tiny-lead",
@@ -344,9 +487,7 @@ class StairPhasedEvaluationTests(unittest.TestCase):
         unsafe = self._screen_with_scores(
             "unsafe", objective=[0.9] * 3, guard=[0.74] * 3
         )
-        safe = self._screen_with_scores(
-            "safe", objective=[0.7] * 3, guard=[0.8] * 3
-        )
+        safe = self._screen_with_scores("safe", objective=[0.7] * 3, guard=[0.8] * 3)
         guard_filtered = select_stair_public_dev_winner(
             config=self.config,
             screens=[unsafe, safe],
@@ -354,7 +495,20 @@ class StairPhasedEvaluationTests(unittest.TestCase):
         )
         self.assertEqual(guard_filtered.selected_trial_id, "safe")
         self.assertEqual(guard_filtered.reason, "public_dev_guard_filter")
-        self.assertEqual(guard_filtered.guard_eligible_trial_ids, ("safe",))
+        self.assertEqual(guard_filtered.ranking_confidence, "not_applicable")
+        self.assertEqual(
+            guard_filtered.selection_eligible_trial_ids,
+            ("safe",),
+        )
+        self.assertEqual(guard_filtered.paired_statistics_status, "not_applicable")
+        self.assertIsNone(guard_filtered.paired_mean_delta)
+        self.assertIsNone(guard_filtered.paired_standard_error)
+        self.assertIsNone(guard_filtered.uncertainty_threshold)
+        guard_public = guard_filtered.to_public_dict()
+        self.assertEqual(
+            guard_public["paired_statistics"],
+            {"status": "not_applicable"},
+        )
 
         both_unsafe = select_stair_public_dev_winner(
             config=self.config,
@@ -370,10 +524,73 @@ class StairPhasedEvaluationTests(unittest.TestCase):
         )
         self.assertIsNone(both_unsafe.selected_trial_id)
         self.assertEqual(both_unsafe.reason, "no_guard_eligible_candidate")
+        self.assertEqual(both_unsafe.paired_statistics_status, "not_applicable")
+        self.assertEqual(
+            both_unsafe.to_public_dict()["paired_statistics"],
+            {"status": "not_applicable"},
+        )
+
+    def test_selector_filters_unobserved_runtime_effect_before_ranking(self) -> None:
+        parent = self._screen_with_scores(
+            "parent",
+            objective=[0.5] * 3,
+            guard=[0.8] * 3,
+            screen_role="guard_reference",
+        )
+        zero_high = self._screen_with_scores(
+            "zero-high",
+            objective=[0.9] * 3,
+            guard=[0.8] * 3,
+            runtime_status="fail",
+        )
+        live_lower = self._screen_with_scores(
+            "live-lower",
+            objective=[0.7] * 3,
+            guard=[0.8] * 3,
+        )
+        filtered = select_stair_public_dev_winner(
+            config=self.config,
+            screens=[zero_high, live_lower],
+            guard_reference=parent,
+        )
+        self.assertEqual(filtered.selected_trial_id, "live-lower")
+        self.assertEqual(filtered.reason, "public_dev_runtime_activation_filter")
+        self.assertEqual(
+            filtered.selection_eligible_trial_ids,
+            ("live-lower",),
+        )
+        self.assertEqual(filtered.paired_statistics_status, "not_applicable")
+
+        both_zero = select_stair_public_dev_winner(
+            config=self.config,
+            screens=[
+                zero_high,
+                self._screen_with_scores(
+                    "zero-low",
+                    objective=[0.6] * 3,
+                    guard=[0.8] * 3,
+                    runtime_status="fail",
+                ),
+            ],
+            guard_reference=parent,
+        )
+        self.assertIsNone(both_zero.selected_trial_id)
+        self.assertEqual(
+            both_zero.reason,
+            "no_runtime_activation_eligible_candidate",
+        )
+        self.assertEqual(both_zero.selection_eligible_trial_ids, ())
+        self.assertEqual(
+            both_zero.to_public_dict()["paired_statistics"],
+            {"status": "not_applicable"},
+        )
 
     def test_selector_records_declared_cross_gpu_execution_differences(self) -> None:
         parent = self._screen_with_scores(
-            "parent", objective=[0.5] * 3, guard=[0.8] * 3
+            "parent",
+            objective=[0.5] * 3,
+            guard=[0.8] * 3,
+            screen_role="guard_reference",
         )
         left = self._screen_with_scores(
             "left",
@@ -412,6 +629,7 @@ class StairPhasedEvaluationTests(unittest.TestCase):
                 config=self.config,
                 trial_id="trial-accept",
                 phase_result=result,
+                screen_role="guard_reference",
             )
 
         phases = [
@@ -422,16 +640,21 @@ class StairPhasedEvaluationTests(unittest.TestCase):
             )
             for phase in EvaluationPhase
         ]
-        loser_screen = build_stair_public_dev_screen_evidence(
-            config=self.config,
-            trial_id="trial-loser",
-            phase_result=phases[0],
+        loser_screen = self._candidate_screen(
+            build_stair_public_dev_screen_evidence(
+                config=self.config,
+                trial_id="trial-loser",
+                phase_result=phases[0],
+                screen_role="guard_reference",
+            )
         )
         loser_screens = [
             loser_screen,
             self._screen("trial-better", [7, 7, 7]),
         ]
-        loser_guard_reference = self._screen("trial-parent", [4, 4, 4])
+        loser_guard_reference = self._screen(
+            "trial-parent", [4, 4, 4], screen_role="guard_reference"
+        )
         loser_selection = select_stair_public_dev_winner(
             config=self.config,
             screens=loser_screens,
@@ -509,10 +732,60 @@ class StairPhasedEvaluationTests(unittest.TestCase):
                 )
             )
 
+    def test_canonical_phase_accepts_explicit_final_confirmation_namespace(
+        self,
+    ) -> None:
+        final_binding = EvaluationBindingV1(
+            eval_protocol_hash=self.config.evaluation_protocol().protocol_hash,
+            acceptance_protocol_hash=self.config.acceptance_protocol.protocol_hash,
+            task_protocol_hash=self.config.task_protocol_hash,
+            seed_cohort_hash=self.config.seed_resolver().namespace_cohort_hash(
+                STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE
+            ),
+        )
+        plan = replace(
+            self._eval_plan("final-confirmation"),
+            evaluation_binding=final_binding,
+        )
+        phase = EvaluationPhase.SEALED_VALIDATION
+        execution = self._execution(
+            {phase: [5, 5, 6, 5, 6, 5, 6]},
+            seed_namespace=STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
+        )
+        summary = build_stair_eval_phase_summary(
+            config=self.config,
+            identity=replace(plan.job_identity(), job_id="final-confirmation-phase"),
+            evaluation_plan_hash=canonical_json_hash(plan.to_public_dict()),
+            phase=phase,
+            execution=execution,
+            evaluation_binding=final_binding,
+            checkpoint_safety_report=self._checkpoint_report(),
+            expected_seed_namespace=STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
+        )
+        result = self._phase_result(
+            plan=plan,
+            phase=phase,
+            job_id="final-confirmation-phase",
+            summary=summary,
+        )
+
+        canonical = canonical_stair_phase_result_summary(
+            config=self.config,
+            expected_phase=phase,
+            result=result,
+            expected_seed_namespace=STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
+        )
+
+        self.assertEqual(canonical, summary["task_evidence"]["summary"])
+        with self.assertRaisesRegex(ValueError, "execution identity binding"):
+            canonical_stair_phase_result_summary(
+                config=self.config,
+                expected_phase=phase,
+                result=result,
+            )
+
     def test_stair_plugin_owns_the_optional_phase_capability(self) -> None:
-        adapter = StairClimbingTaskPlugin(
-            self.config
-        ).phased_evaluation_adapter()
+        adapter = StairClimbingTaskPlugin(self.config).phased_evaluation_adapter()
         self.assertIsInstance(adapter, StairPhasedEvaluationAdapter)
         self.assertEqual(
             adapter.selection_contract(),
@@ -542,7 +815,9 @@ class StairPhasedEvaluationTests(unittest.TestCase):
             select_stair_public_dev_winner(
                 config=self.config,
                 screens=[screen, sibling],
-                guard_reference=screen,
+                guard_reference=self._screen(
+                    "trial-a", [4, 4, 4], screen_role="guard_reference"
+                ),
             )
 
     def test_runner_parser_and_phase_receipt_preserve_plan_binding(self) -> None:
@@ -556,9 +831,7 @@ class StairPhasedEvaluationTests(unittest.TestCase):
             gpu_process_binding=binding,
         )
         phase = EvaluationPhase.PUBLIC_DEV
-        execution = self._execution(
-            {phase: [4] * self.config.public_seed_count}
-        )
+        execution = self._execution({phase: [4] * self.config.public_seed_count})
         phase_spec = EvalPhaseJobSpec(
             job_id=f"{plan.job_id}-public-dev",
             evaluation_plan=plan,
@@ -625,17 +898,55 @@ class StairPhasedEvaluationTests(unittest.TestCase):
                 actual_gpu_process_binding=binding,
             )
 
-    def _screen(self, trial_id: str, successes: list[int]):
+    def _screen(
+        self,
+        trial_id: str,
+        successes: list[int],
+        *,
+        screen_role: str = "candidate",
+        runtime_status: str = "pass",
+    ):
         plan = self._eval_plan(f"candidate-{trial_id}")
         result = self._phase_result_for(
             plan=plan,
             phase=EvaluationPhase.PUBLIC_DEV,
             successes=successes,
         )
-        return build_stair_public_dev_screen_evidence(
+        screen = build_stair_public_dev_screen_evidence(
             config=self.config,
             trial_id=trial_id,
             phase_result=result,
+            screen_role="guard_reference",
+        )
+        if screen_role == "guard_reference":
+            return screen
+        return self._candidate_screen(screen, runtime_status=runtime_status)
+
+    def _candidate_screen(
+        self,
+        screen: StairPublicDevScreenEvidence,
+        *,
+        runtime_status: str = "pass",
+    ) -> StairPublicDevScreenEvidence:
+        reason = {
+            "pass": "candidate_reward_operation_runtime_effect_observed",
+            "fail": "candidate_reward_operation_runtime_effect_not_observed",
+        }[runtime_status]
+        return replace(
+            screen,
+            screen_role="candidate",
+            train_receipt_checksum=(
+                "sha256:" + canonical_json_hash({"trial_id": screen.trial_id})
+            ),
+            runtime_effect_evidence={
+                "schema_version": (
+                    "true_rl_agent.task.stair_climbing."
+                    "candidate_runtime_effect_evidence.v1"
+                ),
+                "status": runtime_status,
+                "reason": reason,
+                "acceptance_authority": False,
+            },
         )
 
     def _selection_for_result(
@@ -648,14 +959,21 @@ class StairPhasedEvaluationTests(unittest.TestCase):
         list,
         StairPublicDevScreenEvidence,
     ]:
-        selected = build_stair_public_dev_screen_evidence(
-            config=self.config,
-            trial_id=trial_id,
-            phase_result=result,
+        selected = self._candidate_screen(
+            build_stair_public_dev_screen_evidence(
+                config=self.config,
+                trial_id=trial_id,
+                phase_result=result,
+                screen_role="guard_reference",
+            )
         )
         sibling = self._screen(f"{trial_id}-sibling", [1, 1, 1])
         guard_reference = replace(
-            self._screen(f"{trial_id}-parent", [4, 4, 4]),
+            self._screen(
+                f"{trial_id}-parent",
+                [4, 4, 4],
+                screen_role="guard_reference",
+            ),
             anchor_seed_macro_scores=selected.anchor_seed_macro_scores,
         )
         screens = [selected, sibling]
@@ -675,9 +993,16 @@ class StairPhasedEvaluationTests(unittest.TestCase):
         guard: list[float],
         execution_device: str = "cuda:0",
         resource_binding_hash: str | None = None,
+        screen_role: str = "candidate",
+        runtime_status: str = "pass",
     ):
         return replace(
-            self._screen(trial_id, [4, 4, 4]),
+            self._screen(
+                trial_id,
+                [4, 4, 4],
+                screen_role=screen_role,
+                runtime_status=runtime_status,
+            ),
             execution_device=execution_device,
             resource_binding_hash=resource_binding_hash,
             anchor_seed_macro_scores=tuple(guard),
@@ -802,13 +1127,15 @@ class StairPhasedEvaluationTests(unittest.TestCase):
                 "backend_id": "isaac_lab_rsl_rl",
                 "backend_execution_environment_manifest_hash": (
                     TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH
-                )
+                ),
             },
         )
 
     def _execution(
         self,
         split_successes: dict[EvaluationPhase, list[int]],
+        *,
+        seed_namespace: str = STAIR_FORMAL_EVAL_NAMESPACE,
     ) -> StairEvaluationExecutionResult:
         summaries = {}
         outcomes = {}
@@ -816,8 +1143,7 @@ class StairPhasedEvaluationTests(unittest.TestCase):
         walls = {}
         for phase, successes in split_successes.items():
             per_seed = tuple(
-                tuple(self._outcomes(successes_per_cell=count))
-                for count in successes
+                tuple(self._outcomes(successes_per_cell=count)) for count in successes
             )
             summaries[phase.value] = build_stair_evaluation_summary(
                 self.config.protocol_v1,
@@ -836,9 +1162,9 @@ class StairPhasedEvaluationTests(unittest.TestCase):
             split_vector_env_step_calls=steps,
             split_wall_times_s=walls,
             checkpoint_hash=CHECKPOINT_HASH,
-            seed_namespace=STAIR_FORMAL_EVAL_NAMESPACE,
+            seed_namespace=seed_namespace,
             seed_cohort_hash=self.config.seed_resolver().namespace_cohort_hash(
-                STAIR_FORMAL_EVAL_NAMESPACE
+                seed_namespace
             ),
             source_manifest_preflight={
                 "schema_version": STAIR_EXECUTION_SOURCE_PREFLIGHT_SCHEMA_VERSION,
@@ -857,7 +1183,10 @@ class StairPhasedEvaluationTests(unittest.TestCase):
         for env_index, cell in enumerate(
             self.config.evaluation_profile.private_cell_assignment()
         ):
-            success = env_index % self.config.evaluation_profile.episodes_per_seed_per_cell < successes_per_cell
+            success = (
+                env_index % self.config.evaluation_profile.episodes_per_seed_per_cell
+                < successes_per_cell
+            )
             outcomes.append(
                 StairEpisodeOutcome(
                     env_index=env_index,

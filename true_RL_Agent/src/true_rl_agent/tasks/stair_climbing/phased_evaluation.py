@@ -43,8 +43,7 @@ from true_rl_agent.tasks.stair_climbing.selection import (
     StairPublicDevScreenEvidence,
     StairSelectionResult,
     build_stair_public_dev_screen_evidence,
-    select_stair_public_dev_winner,
-    stair_selection_contract,
+    replay_stair_public_dev_winner,
 )
 
 
@@ -62,6 +61,7 @@ def build_stair_eval_phase_summary(
     execution: StairEvaluationExecutionResult,
     evaluation_binding: Any,
     checkpoint_safety_report: Mapping[str, Any],
+    expected_seed_namespace: str = STAIR_FORMAL_EVAL_NAMESPACE,
 ) -> dict[str, Any]:
     """Build the private subprocess summary for exactly one Stair split."""
 
@@ -72,6 +72,7 @@ def build_stair_eval_phase_summary(
         config=config,
         phase=phase,
         execution=execution,
+        expected_seed_namespace=expected_seed_namespace,
     )
     return {
         "schema_version": EVALUATION_PHASE_SUMMARY_SCHEMA_VERSION,
@@ -103,11 +104,17 @@ def build_stair_phase_task_evidence(
     config: StairClimbingTaskConfig,
     phase: EvaluationPhase,
     execution: StairEvaluationExecutionResult,
+    expected_seed_namespace: str = STAIR_FORMAL_EVAL_NAMESPACE,
 ) -> dict[str, Any]:
     phase = EvaluationPhase.parse(phase)
     if set(execution.summaries) != {phase.value}:
         raise ValueError("Stair phase evidence requires exactly its declared split")
-    _require_stair_execution_domain(config, execution, phases={phase})
+    _require_stair_execution_domain(
+        config,
+        execution,
+        phases={phase},
+        expected_seed_namespace=expected_seed_namespace,
+    )
     raw_summary = execution.public_summaries()[phase.value]
     canonical_summary = _canonical_phase_summary(
         config=config,
@@ -209,23 +216,41 @@ def assemble_stair_eval_phase_results(
         raise ValueError("Stair formal assembly trial_id is required")
     if not isinstance(selection_result, StairSelectionResult):
         raise TypeError("Stair formal assembly requires a selection result")
-    if selection_result.contract_hash != canonical_json_hash(
-        stair_selection_contract(config)
-    ):
-        raise ValueError("Stair formal assembly selection contract mismatch")
-    if select_stair_public_dev_winner(
+    replayed_selection = replay_stair_public_dev_winner(
         config=config,
         screens=selection_screens,
         guard_reference=guard_reference,
-    ) != selection_result:
+        result_schema_version=selection_result.schema_version,
+    )
+    if selection_result.contract_hash != replayed_selection.contract_hash:
+        raise ValueError("Stair formal assembly selection contract mismatch")
+    if replayed_selection != selection_result:
         raise ValueError("Stair formal assembly selection replay mismatch")
     if selection_result.selected_trial_id != trial_id:
         raise ValueError("Stair formal assembly is not bound to the selected trial")
-    selected_screen = build_stair_public_dev_screen_evidence(
+    phase_projection = build_stair_public_dev_screen_evidence(
         config=config,
         trial_id=trial_id,
         phase_result=by_phase[EvaluationPhase.PUBLIC_DEV],
+        screen_role="guard_reference",
     )
+    selected_matches = [
+        screen for screen in selection_screens if screen.trial_id == trial_id
+    ]
+    if len(selected_matches) != 1:
+        raise ValueError("Stair formal assembly selected screen is not unique")
+    selected_screen = selected_matches[0]
+    selected_phase_fields = selected_screen.to_selector_dict()
+    expected_phase_fields = phase_projection.to_selector_dict()
+    for field_name in (
+        "screen_role",
+        "train_receipt_checksum",
+        "runtime_effect_evidence",
+    ):
+        selected_phase_fields.pop(field_name)
+        expected_phase_fields.pop(field_name)
+    if selected_phase_fields != expected_phase_fields:
+        raise ValueError("Stair formal assembly selected screen phase mismatch")
     if selected_screen.evidence_hash not in selection_result.screen_evidence_hashes:
         raise ValueError("Stair formal assembly selection evidence mismatch")
 
@@ -450,6 +475,7 @@ def canonical_stair_phase_result_summary(
     config: StairClimbingTaskConfig,
     expected_phase: EvaluationPhase,
     result: EvaluationPhaseResult,
+    expected_seed_namespace: str = STAIR_FORMAL_EVAL_NAMESPACE,
 ) -> dict[str, Any]:
     evidence = result.task_evidence
     if set(evidence) != {"schema_version", "phase", "execution_identity", "summary"}:
@@ -465,9 +491,9 @@ def canonical_stair_phase_result_summary(
     expected_splits = [expected_phase.value]
     if (
         execution_identity.get("checkpoint_hash") != result.checkpoint_hash
-        or execution_identity.get("seed_namespace") != STAIR_FORMAL_EVAL_NAMESPACE
+        or execution_identity.get("seed_namespace") != expected_seed_namespace
         or execution_identity.get("seed_cohort_hash")
-        != config.seed_resolver().namespace_cohort_hash(STAIR_FORMAL_EVAL_NAMESPACE)
+        != config.seed_resolver().namespace_cohort_hash(expected_seed_namespace)
         or execution_identity.get("splits") != expected_splits
         or execution_identity.get("execution_device") != result.execution_device
         or execution_identity.get("environment_source_preflight")
@@ -540,6 +566,7 @@ def _require_stair_execution_domain(
     execution: StairEvaluationExecutionResult,
     *,
     phases: set[EvaluationPhase],
+    expected_seed_namespace: str = STAIR_FORMAL_EVAL_NAMESPACE,
 ) -> None:
     if not isinstance(config, StairClimbingTaskConfig):
         raise TypeError("Stair phased evaluation requires StairClimbingTaskConfig")
@@ -547,10 +574,10 @@ def _require_stair_execution_domain(
         raise TypeError("Stair phased evaluation requires an execution result")
     if set(execution.summaries) != {phase.value for phase in phases}:
         raise ValueError("Stair execution split set mismatch")
-    if execution.seed_namespace != STAIR_FORMAL_EVAL_NAMESPACE:
+    if execution.seed_namespace != expected_seed_namespace:
         raise ValueError("Stair phased evaluation seed namespace mismatch")
     expected_cohort = config.seed_resolver().namespace_cohort_hash(
-        STAIR_FORMAL_EVAL_NAMESPACE
+        expected_seed_namespace
     )
     if execution.seed_cohort_hash != expected_cohort:
         raise ValueError("Stair phased evaluation seed cohort mismatch")

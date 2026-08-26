@@ -7,15 +7,15 @@ does not accept candidates and never reads sealed rollout detail.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any, Mapping, Protocol
 
 from true_rl_agent.agent_core.exploration import TaskExplorationAssessment
 from true_rl_agent.evaluation.acceptance_protocol import (
+    AcceptanceProtocol,
     acceptance_delta_met,
     acceptance_threshold,
     guard_regression_threshold,
 )
-from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
 from true_rl_agent.tasks.stair_climbing.config import (
     STAIR_TASK_ID,
     StairClimbingTaskConfig,
@@ -31,6 +31,24 @@ from true_rl_agent.tasks.stair_climbing.generalization_contract import (
 STAIR_EXPLORATION_PROJECTOR_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.exploration_projector.v2"
 )
+
+
+class StairComparisonStats(Protocol):
+    """Public comparison surface consumed by the Stair exploration projector."""
+
+    def score_for_comparison(self) -> float | None: ...
+
+    def score_samples_for_comparison(
+        self,
+        acceptance_protocol: AcceptanceProtocol,
+    ) -> tuple[float, ...]: ...
+
+    def guard_score_for_comparison(self) -> float | None: ...
+
+    def guard_score_samples_for_comparison(
+        self,
+        acceptance_protocol: AcceptanceProtocol,
+    ) -> tuple[float, ...]: ...
 
 
 @dataclass(frozen=True)
@@ -67,7 +85,7 @@ class StairExplorationProjector:
         *,
         generation: Mapping[str, Any],
         trial: Mapping[str, Any],
-        parent: CurrentBestEvalStats,
+        parent: StairComparisonStats,
     ) -> TaskExplorationAssessment:
         public_accept = _phase_summary(trial, "public_accept")
         public_dev = _phase_summary(trial, "public_dev")

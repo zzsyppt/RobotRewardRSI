@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import hashlib
 import math
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Mapping
@@ -14,12 +16,21 @@ from true_rl_agent.candidates.artifact import (
 from true_rl_agent.candidates.capability_readiness import (
     COMPLETE_REWARD_PROGRAM_CAPABILITY_ID,
 )
+from true_rl_agent.candidates.component_source_semantics import (
+    SingleComponentDeltaComparisonUnavailable,
+    project_canonical_reward_term_sources,
+    project_single_component_operation_delta,
+)
 from true_rl_agent.candidates.isolated_worker import (
     IsolatedWorkerProtocolError,
     IsolatedWorkerStartupError,
     WorkerReady,
     WorkerStartupFailure,
     run_ready_worker,
+)
+from true_rl_agent.candidates.package_contract import (
+    open_preflighted_candidate_file,
+    preflight_candidate_package,
 )
 from true_rl_agent.candidates.schema import CandidatePackageRef
 from true_rl_agent.candidates.verifier import (
@@ -28,6 +39,7 @@ from true_rl_agent.candidates.verifier import (
     StaticCandidateVerifier,
     StaticCandidateVerifierPolicy,
     VerificationResult,
+    seal_and_verify_candidate,
     static_verifier_source_policy_hash,
 )
 from true_rl_agent.evaluation.binding import (
@@ -44,10 +56,13 @@ from true_rl_agent.tasks.stair_climbing.reference_program import (
     resolve_official_stair_reference_artifact,
 )
 from true_rl_agent.tasks.stair_climbing.reward_program import (
+    STAIR_REWARD_ENVIRONMENT_AXIS_EVIDENCE_SCHEMA_VERSION,
     STAIR_REWARD_PROGRAM_QUALIFICATION_SCHEMA_VERSION,
     QualifiedStairRewardProgram,
+    StairRewardEnvironmentAxisError,
     StairRewardProgramError,
     assert_stair_reward_program_deterministic,
+    assert_stair_reward_program_environment_independent,
     qualify_stair_candidate_reward_program,
 )
 from true_rl_agent.tasks.stair_climbing.reward_source_semantics import (
@@ -60,7 +75,7 @@ STAIR_CANDIDATE_ADMISSION_POLICY_ID = (
     "true_rl_agent.stair_climbing.complete_reward_admission.v1"
 )
 STAIR_CANDIDATE_ADMISSION_POLICY_SCHEMA_VERSION = (
-    "true_rl_agent.task.stair_climbing.candidate_admission_policy.v3"
+    "true_rl_agent.task.stair_climbing.candidate_admission_policy.v4"
 )
 STAIR_CANDIDATE_EXECUTION_AUTHORIZATION_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.candidate_execution_authorization.v1"
@@ -165,6 +180,76 @@ class StairCandidateAdmissionPolicy(CandidateVerifier):
     def authoring_prompt_rules(self) -> Mapping[str, Any]:
         return self.static_verifier.authoring_prompt_rules()
 
+    def verify_authoring_delta(
+        self,
+        *,
+        candidate: CandidatePackageRef,
+        verification: VerificationResult,
+        parent_source: str | None,
+    ) -> VerificationResult:
+        if verification.status != "pass":
+            return verification
+        try:
+            candidate_source = _verified_mutable_candidate_source(
+                candidate,
+                verification,
+            )
+        except (OSError, TypeError, UnicodeError, ValueError) as exc:
+            return _authoring_verification_failure(
+                verification,
+                reason="stair_candidate_authoring_source_invalid",
+                issue=(
+                    "authoring_source_identity_invalid:"
+                    + type(exc).__name__
+                ),
+            )
+        if parent_source is not None:
+            duplicate_issue = _duplicate_parent_reward_term_issue(
+                candidate_source=candidate_source,
+                parent_source=parent_source,
+            )
+            if duplicate_issue is not None:
+                return _authoring_verification_failure(
+                    verification,
+                    reason="stair_candidate_authoring_delta_invalid",
+                    issue=duplicate_issue,
+                )
+
+        with tempfile.TemporaryDirectory(
+            prefix=".stair-authoring-admission-"
+        ) as artifact_root:
+            temporary_verification = seal_and_verify_candidate(
+                candidate,
+                artifact_root=artifact_root,
+                verifier=self,
+            )
+        task_evidence = temporary_verification.result.details.get(
+            "task_qualification"
+        )
+        if (
+            temporary_verification.result.status != "pass"
+            and isinstance(task_evidence, Mapping)
+            and task_evidence.get("error_type")
+            == StairRewardEnvironmentAxisError.__name__
+        ):
+            return _authoring_verification_failure(
+                verification,
+                reason="stair_candidate_environment_axis_invalid",
+                issue="reward_environment_axis_independence_failed",
+            )
+        if temporary_verification.result.status != "pass":
+            return verification
+        if (
+            temporary_verification.result.program_identity
+            != verification.program_identity
+        ):
+            return _authoring_verification_failure(
+                verification,
+                reason="stair_candidate_authoring_source_invalid",
+                issue="authoring_source_identity_changed_during_admission",
+            )
+        return verification
+
     @property
     def policy_hash(self) -> str:
         adapter = StairClimbingComponentSmokeAdapter(self.config)
@@ -211,10 +296,10 @@ class StairCandidateAdmissionPolicy(CandidateVerifier):
             reference_artifact, _ = resolve_official_stair_reference_artifact(
                 self.config
             )
-            source_path = (
-                Path(candidate.path) / CANONICAL_TRAINING_COMPONENTS_PATH
+            source_text = _verified_mutable_candidate_source(
+                candidate,
+                static_result,
             )
-            source_text = source_path.read_text(encoding="utf-8-sig")
             task_issues = audit_stair_reward_source_semantics(
                 source_text,
                 contract=StairClimbingComponentSmokeAdapter(
@@ -622,6 +707,12 @@ def _qualification_worker(
             program,
             adapter.build_reward_inputs,
         )
+        environment_axis = (
+            assert_stair_reward_program_environment_independent(
+                program,
+                adapter.build_reward_inputs,
+            )
+        )
     except Exception as exc:  # noqa: BLE001 - ownership is closed below.
         result_connection.send(_qualification_failure_evidence(exc))
         return
@@ -632,6 +723,7 @@ def _qualification_worker(
             "reason": "stair_candidate_reward_program_qualified",
             "qualification": program.to_public_dict(),
             "determinism": determinism,
+            "environment_axis": environment_axis,
             "smoke_fixture_hash": adapter.fixture_hash,
         }
     )
@@ -648,6 +740,7 @@ def _assert_task_evidence_matches(
     qualification = evidence.get("qualification")
     if not isinstance(qualification, Mapping):
         raise RuntimeError("Stair candidate qualification identity is missing")
+    environment_axis = evidence.get("environment_axis")
     subject = qualification.get("subject")
     expected_subject = {
         "schema_version": "true_rl_agent.experiment.subject.v2",
@@ -669,10 +762,121 @@ def _assert_task_evidence_matches(
         != expected_input_schema_hash
         or qualification.get("static_verifier_policy_hash")
         != expected_static_verifier_source_policy_hash
+        or not isinstance(environment_axis, Mapping)
+        or environment_axis.get("schema_version")
+        != STAIR_REWARD_ENVIRONMENT_AXIS_EVIDENCE_SCHEMA_VERSION
+        or environment_axis.get("status") != "pass"
+        or environment_axis.get("term_names")
+        != qualification.get("term_names")
+        or environment_axis.get("reverse_permutation_checks")
+        != len(qualification.get("term_names", ()))
+        or environment_axis.get("single_row_locality_checks")
+        != len(qualification.get("term_names", ()))
         or evidence.get("smoke_fixture_hash")
         != expected_smoke_fixture_hash
     ):
         raise RuntimeError("Stair candidate qualification identity mismatch")
+
+
+def _verified_mutable_candidate_source(
+    candidate: CandidatePackageRef,
+    verification: VerificationResult,
+) -> str:
+    if not isinstance(candidate, CandidatePackageRef):
+        raise TypeError("Stair authoring verification requires a mutable candidate")
+    if verification.program_identity is None:
+        raise ValueError("Stair authoring verification has no program identity")
+    preflight = preflight_candidate_package(
+        candidate.path,
+        sealed_artifact=False,
+        enforce_size_limits=True,
+    )
+    source_state = preflight.file_state(CANONICAL_TRAINING_COMPONENTS_PATH)
+    with open_preflighted_candidate_file(
+        preflight,
+        CANONICAL_TRAINING_COMPONENTS_PATH,
+    ) as source:
+        source_bytes = source.read(source_state.size_bytes + 1)
+    if len(source_bytes) != source_state.size_bytes:
+        raise ValueError("candidate program source size changed after preflight")
+    identity = verification.program_identity
+    source_checksum = "sha256:" + hashlib.sha256(source_bytes).hexdigest()
+    if (
+        identity.candidate_id != candidate.candidate_id
+        or identity.source_checksum != source_checksum
+        or identity.source_size_bytes != len(source_bytes)
+    ):
+        raise ValueError("candidate program identity changed after static verification")
+    return source_bytes.decode("utf-8-sig")
+
+
+def _duplicate_parent_reward_term_issue(
+    *,
+    candidate_source: str,
+    parent_source: str,
+) -> str | None:
+    try:
+        operation = project_single_component_operation_delta(
+            candidate_source=candidate_source,
+            anchor_source=parent_source,
+        )
+    except SingleComponentDeltaComparisonUnavailable:
+        return None
+    if operation.get("operation") != "add":
+        return None
+    after = operation.get("after_component")
+    if not isinstance(after, Mapping):
+        return None
+    mechanism_id = after.get("mechanism_id")
+    if not isinstance(mechanism_id, str) or not mechanism_id.startswith(
+        "RewardTerm:"
+    ):
+        return None
+    candidate_terms = project_canonical_reward_term_sources(candidate_source)
+    parent_terms = project_canonical_reward_term_sources(parent_source)
+    if candidate_terms is None or parent_terms is None:
+        return None
+    added = next(
+        (term for term in candidate_terms if term.mechanism_id == mechanism_id),
+        None,
+    )
+    if added is None:
+        return None
+    duplicate = next(
+        (
+            term
+            for term in parent_terms
+            if term.structure_signature == added.structure_signature
+        ),
+        None,
+    )
+    if duplicate is None:
+        return None
+    return (
+        "duplicate_parent_reward_term:"
+        + mechanism_id.removeprefix("RewardTerm:")
+        + ":matches="
+        + duplicate.mechanism_id.removeprefix("RewardTerm:")
+    )
+
+
+def _authoring_verification_failure(
+    verification: VerificationResult,
+    *,
+    reason: str,
+    issue: str,
+) -> VerificationResult:
+    return VerificationResult(
+        "fail",
+        reason,
+        {
+            "issues": [issue],
+            "derived_change_set": list(
+                verification.details.get("derived_change_set", ())
+            ),
+        },
+        program_identity=verification.program_identity,
+    )
 
 
 __all__ = [
