@@ -82,7 +82,7 @@ def run_genesis_parent_public_dev(
     generation_session_contract_hash: str,
     attempt_scope: JobAttemptScope | None = None,
 ) -> StairGenerationGuardReference:
-    """Run or reload the single session-level Genesis public-dev phase."""
+    """Reuse phased Genesis public-dev, or run the legacy bootstrap once."""
 
     if not isinstance(genesis, VerifiedSessionGenesis):
         raise TypeError("generation bootstrap requires verified Session Genesis")
@@ -96,6 +96,19 @@ def run_genesis_parent_public_dev(
         != genesis.evaluation_binding.task_protocol_hash
     ):
         raise ValueError("generation bootstrap Stair task binding mismatch")
+    if adapter.config.is_unified_protocol:
+        loaded = genesis.reference_eval_phase_receipt(EvaluationPhase.PUBLIC_DEV)
+        if loaded is None:
+            raise ValueError(
+                "unified generation bootstrap requires phased Genesis evidence"
+            )
+        return build_stair_generation_guard_reference(
+            adapter=adapter,
+            parent=genesis.initial_current_best,
+            trial_id="genesis-parent",
+            phase_result=loaded.result,
+            phase_receipt_ref=loaded.receipt_ref,
+        )
     contract = {
         "schema_version": "true_rl_agent.trial_execution_contract.v1",
         "round_id": "generation-parent-public-dev-bootstrap",

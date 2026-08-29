@@ -768,6 +768,36 @@ def evaluate_stair_sealed_score_gate(
     return floor_met and public_consistency_met, reason
 
 
+def evaluate_unified_stair_sealed_score_gate(
+    *,
+    sealed_mean: float,
+    public_mean: float,
+    acceptance_protocol: AcceptanceProtocol,
+    evaluation_subject: ExperimentSubject,
+) -> tuple[bool, str]:
+    """Apply reference telemetry or candidate acceptance semantics by subject."""
+
+    if not isinstance(acceptance_protocol, AcceptanceProtocol):
+        raise TypeError("unified Stair sealed score gate requires active acceptance protocol")
+    if not isinstance(evaluation_subject, ExperimentSubject):
+        raise TypeError("unified Stair sealed score gate requires an experiment subject")
+    sealed_score = _finite_number(sealed_mean, "unified Stair sealed score mean")
+    public_score = _finite_number(public_mean, "unified Stair public score mean")
+    if evaluation_subject.kind == "reference":
+        return True, "unified_stair_reference_sealed_telemetry_complete"
+
+    max_drop = acceptance_protocol.max_public_to_sealed_score_drop
+    if max_drop is None:
+        raise ValueError("unified Stair acceptance lacks sealed consistency tolerance")
+    floor_met = sealed_score >= acceptance_protocol.absolute_accept_floor
+    consistency_met = sealed_score >= public_score - max_drop
+    if not floor_met:
+        return False, "unified_stair_sealed_absolute_floor_failed"
+    if not consistency_met:
+        return False, "unified_stair_sealed_public_consistency_failed"
+    return True, "unified_stair_sealed_primary_complete"
+
+
 def _outcomes_contract(
     protocol: StairProtocolV1,
     semantics: StairEvaluationSemantics | None,
@@ -846,5 +876,6 @@ __all__ = [
     "build_stair_split_summary",
     "canonical_stair_sealed_summary",
     "evaluate_stair_sealed_score_gate",
+    "evaluate_unified_stair_sealed_score_gate",
     "validate_stair_split_summary",
 ]

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -19,6 +19,7 @@ from true_rl_agent.tasks.stair_climbing.phased_cost import (
 )
 from true_rl_agent.tasks.stair_climbing.phased_evaluation import (
     assemble_stair_eval_phase_results,
+    assemble_stair_reference_eval_phase_results,
     canonical_stair_phase_result_summary,
 )
 from true_rl_agent.tasks.stair_climbing.selection import (
@@ -35,6 +36,19 @@ class StairPhasedEvaluationAdapter:
     """Expose Stair semantics without teaching the common runner about Stair."""
 
     config: StairClimbingTaskConfig
+    objective_family_mask_provider: (
+        Callable[[], Mapping[str, Any] | None] | None
+    ) = None
+
+    def _objective_family_mask(self) -> Mapping[str, Any] | None:
+        if not self.config.is_unified_protocol:
+            return None
+        if self.objective_family_mask_provider is None:
+            raise ValueError("unified Stair adapter has no objective family mask source")
+        mask = self.objective_family_mask_provider()
+        if mask is None:
+            raise ValueError("unified Stair objective family mask is not frozen")
+        return mask
 
     def selection_contract(self) -> dict[str, object]:
         return stair_selection_contract(self.config)
@@ -60,6 +74,7 @@ class StairPhasedEvaluationAdapter:
             train_result=train_result,
             train_receipt_checksum=train_receipt_checksum,
             mechanism_operation_delta=mechanism_operation_delta,
+            objective_family_mask=self._objective_family_mask(),
         )
 
     def select(
@@ -107,6 +122,21 @@ class StairPhasedEvaluationAdapter:
             selection_result=selection_result,
             selection_screens=selection_screens,
             guard_reference=guard_reference,
+            phase_results=phase_results,
+            phase_receipt_refs=phase_receipt_refs,
+            objective_family_mask=self._objective_family_mask(),
+        )
+
+    def assemble_reference_full_summary(
+        self,
+        *,
+        eval_plan: EvalJobSpec,
+        phase_results: Sequence[EvaluationPhaseResult],
+        phase_receipt_refs: Mapping[EvaluationPhase | str, Mapping[str, Any]],
+    ) -> EvaluationAssembly:
+        return assemble_stair_reference_eval_phase_results(
+            config=self.config,
+            eval_plan=eval_plan,
             phase_results=phase_results,
             phase_receipt_refs=phase_receipt_refs,
         )

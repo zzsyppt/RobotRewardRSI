@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import math
+import re
 from dataclasses import dataclass
 from typing import Any, Mapping
 
@@ -20,6 +21,9 @@ STAIR_REWARD_SOURCE_SEMANTICS_SCHEMA_VERSION = (
 )
 
 _RAW_PHYSICAL_UNITS = frozenset({"N", "N*m", "rad/s^2"})
+_JOINT_GROUP_FIELD_PATTERN = re.compile(
+    r"[a-z][a-z0-9_]*_group_(?:pos|pos_error|acc|torque|soft_pos_limits)"
+)
 
 # These axes describe real physical groups, but their positional member mapping is
 # intentionally absent from the public ABI. Candidates may aggregate a whole axis;
@@ -40,6 +44,17 @@ STAIR_OPAQUE_INPUT_TRAILING_AXES: Mapping[str, tuple[int, ...]] = {
     "locomotion_joint_torque": (0,),
     "prev_action": (0,),
     "torso_joint_pos_error": (0,),
+    "joint_acc": (0,),
+    "joint_torque": (0,),
+    "soft_joint_pos_limits": (0,),
+    "support_air_time": (0,),
+    "support_contact_time": (0,),
+    "support_contact_force_history": (1,),
+    "support_contact_force": (0,),
+    "support_contact": (0,),
+    "support_lin_vel": (0,),
+    "support_pos_relative_to_terrain_origin": (0,),
+    "forbidden_contact_force": (0,),
 }
 
 _ORDER_INVARIANT_REDUCTIONS = frozenset(
@@ -74,6 +89,7 @@ _ORDER_PRESERVING_METHODS = frozenset(
         "isfinite",
         "isinf",
         "isnan",
+        "int",
         "log",
         "log1p",
         "masked_fill",
@@ -157,7 +173,7 @@ def stair_reward_source_semantics_policy(
 ) -> dict[str, Any]:
     """Return the single prompt policy enforced by Stair source admission."""
 
-    _validated_opaque_fields(contract)
+    opaque_fields = _validated_opaque_fields(contract)
     raw_fields = _validated_raw_physical_fields(contract)
     return {
         "schema_version": STAIR_REWARD_SOURCE_SEMANTICS_SCHEMA_VERSION,
@@ -168,11 +184,16 @@ def stair_reward_source_semantics_policy(
                     "axes": list(axes),
                     "fields": sorted(
                         name
-                        for name, field_axes in STAIR_OPAQUE_INPUT_TRAILING_AXES.items()
-                        if field_axes == axes
+                        for name, (_, resolved_axes) in opaque_fields.items()
+                        if resolved_axes == tuple(1 + axis for axis in axes)
                     ),
                 }
-                for axes in sorted(set(STAIR_OPAQUE_INPUT_TRAILING_AXES.values()))
+                for axes in sorted(
+                    {
+                        tuple(axis - 1 for axis in resolved_axes)
+                        for _, resolved_axes in opaque_fields.values()
+                    }
+                )
             ],
             "usage_rule": (
                 "Member mapping is hidden. Only whole-axis order-invariant reductions "
@@ -370,11 +391,20 @@ def _validated_opaque_fields(
     result: dict[str, tuple[int, tuple[int, ...]]] = {}
     for name, axes in STAIR_OPAQUE_INPUT_TRAILING_AXES.items():
         if name not in shapes:
-            raise ValueError(f"opaque Stair reward field is absent: {name}")
+            continue
         trailing_shape = shapes[name]
         if any(axis < 0 or axis >= len(trailing_shape) for axis in axes):
             raise ValueError(f"opaque Stair reward axes are invalid: {name}")
         result[name] = (1 + len(trailing_shape), tuple(1 + axis for axis in axes))
+    for name, trailing_shape in shapes.items():
+        if _JOINT_GROUP_FIELD_PATTERN.fullmatch(name) is None:
+            continue
+        if not trailing_shape:
+            raise ValueError(f"opaque Stair reward axes are invalid: {name}")
+        result[name] = (1 + len(trailing_shape), (1,))
+    required_common = {"joint_pos", "joint_vel", "joint_pos_error", "last_action", "prev_action", "action_delta"}
+    if not required_common.issubset(result):
+        raise ValueError("opaque Stair common reward fields are absent")
     return result
 
 

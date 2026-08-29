@@ -147,9 +147,27 @@ class StairRewardInputBuilder:
         )
         terrain_goal = base_protocol["terrain"]["goal"]
         self._progress_start_m = float(terrain_goal["progress_start_m_from_origin"])
-        self._progress_goal_m = float(terrain_goal["progress_goal_m_from_origin"])
-        if self._progress_goal_m <= self._progress_start_m:
-            raise ValueError("Stair reward progress goal is invalid")
+        goal_by_type = terrain_goal.get("progress_goal_m_by_terrain_type")
+        if goal_by_type is None:
+            self._progress_goal_m = float(terrain_goal["progress_goal_m_from_origin"])
+            self._progress_goal_m_by_terrain_type = None
+            if self._progress_goal_m <= self._progress_start_m:
+                raise ValueError("Stair reward progress goal is invalid")
+        else:
+            goals = tuple(float(value) for value in goal_by_type)
+            terrain = env.scene.terrain
+            if (
+                not goals
+                or min(goals) <= self._progress_start_m
+                or len(goals) != int(terrain.terrain_origins.shape[1])
+            ):
+                raise ValueError("Stair per-terrain reward progress goals are invalid")
+            self._progress_goal_m = None
+            self._progress_goal_m_by_terrain_type = torch.tensor(
+                goals,
+                dtype=terrain.env_origins.dtype,
+                device=terrain.env_origins.device,
+            )
         force_threshold = base_protocol["episode_outcomes"]["signals"]["slip"][
             "contact_force_threshold"
         ]
@@ -172,7 +190,8 @@ class StairRewardInputBuilder:
     def build(self) -> StairRewardInputsV2 | StairRewardInputsVNext:
         env = self._env
         robot_data = env.scene["robot"].data
-        contact_data = env.scene[self.runtime_projection.contact_sensor_name].data
+        contact_sensor = env.scene[self.runtime_projection.contact_sensor_name]
+        contact_data = contact_sensor.data
         height_data = env.scene[self.runtime_projection.height_sensor_name].data
         terrain_origins = env.scene.terrain.env_origins
         resolved = self._resolved_projection
@@ -198,6 +217,11 @@ class StairRewardInputBuilder:
         joint_vel = robot_data.joint_vel[:, resolved.joint_ids]
         default_joint_pos = robot_data.default_joint_pos[:, resolved.joint_ids]
         joint_error = joint_pos - default_joint_pos
+        joint_acc = robot_data.joint_acc[:, resolved.joint_ids]
+        joint_torque = robot_data.applied_torque[:, resolved.joint_ids]
+        soft_joint_pos_limits = robot_data.soft_joint_pos_limits[
+            :, resolved.joint_ids, :
+        ]
         roll, pitch, _ = euler_xyz_from_quat(base_quat)
         base_lin_vel_yaw = quat_apply_inverse(
             yaw_quat(base_quat),
@@ -229,7 +253,14 @@ class StairRewardInputBuilder:
             max=self._height_scan_clip_max,
         )
         progress = base_relative[:, 0] - self._progress_start_m
-        goal_span = self._progress_goal_m - self._progress_start_m
+        progress_goal_m = (
+            self._progress_goal_m_by_terrain_type[
+                env.scene.terrain.terrain_types
+            ]
+            if self._progress_goal_m_by_terrain_type is not None
+            else self._progress_goal_m
+        )
+        goal_span = progress_goal_m - self._progress_start_m
         goal_fraction = (progress / goal_span).clamp(min=0.0, max=1.0)
         episode_fraction = (
             env.episode_length_buf.float() / float(env.max_episode_length)
@@ -257,12 +288,10 @@ class StairRewardInputBuilder:
             "last_action": action,
             "prev_action": previous_action,
             "action_delta": action - previous_action,
-            "joint_acc": robot_data.joint_acc[:, resolved.joint_ids],
-            "joint_torque": robot_data.applied_torque[:, resolved.joint_ids],
-            "soft_joint_pos_limits": robot_data.soft_joint_pos_limits[
-                :, resolved.joint_ids, :
-            ],
-            "episode_progress_fraction": episode_fraction,
+            "joint_acc": joint_acc,
+            "joint_torque": joint_torque,
+            "soft_joint_pos_limits": soft_joint_pos_limits,
+            "progress_fraction": episode_fraction,
             "base_lin_vel_yaw": base_lin_vel_yaw,
             "base_ang_vel_world": base_ang_vel_world,
             "base_quat_world": base_quat,
@@ -283,12 +312,35 @@ class StairRewardInputBuilder:
             "forbidden_contact_force": forbidden_forces,
             "height_scan": height_scan,
             "forward_progress_m": progress,
-            "remaining_goal_distance_m": self._progress_goal_m - base_relative[:, 0],
+            "remaining_goal_distance_m": progress_goal_m - base_relative[:, 0],
             "goal_progress_fraction": goal_fraction,
             "terminated_non_timeout": termination.terminated_non_timeout_mask,
             "time_out": termination.time_out_mask,
             "forbidden_contact": base_contact,
         }
+        if self.runtime_projection.support_transition_inputs:
+            vnext_values["support_last_air_time"] = contact_data.last_air_time[
+                :, resolved.contact_support_body_ids
+            ]
+            vnext_values["support_first_contact"] = (
+                contact_sensor.compute_first_contact(env.step_dt)[
+                    :, resolved.contact_support_body_ids
+                ]
+            )
+        joint_sources = {
+            "joint_pos": joint_pos,
+            "joint_pos_error": joint_error,
+            "joint_acc": joint_acc,
+            "joint_torque": joint_torque,
+            "soft_joint_pos_limits": soft_joint_pos_limits,
+        }
+        group_indices = self.runtime_projection.joint_group_indices
+        for field_name, role_id, source_name, _, _ in (
+            self.runtime_projection.joint_group_input_specs
+        ):
+            vnext_values[field_name] = joint_sources[source_name][
+                :, list(group_indices[role_id]), ...
+            ]
         internal_vnext_inputs = StairRewardInputsVNext._validated(
             projection=self.runtime_projection,
             values=vnext_values,
@@ -443,6 +495,7 @@ class StairCompleteRewardTerm(ManagerTermBase):
         env: Any,
         qualified_program: QualifiedStairRewardProgram,
         base_protocol: Mapping[str, Any],
+        runtime_projection: StairRuntimeProjection | None = None,
     ) -> Any:
         if env is not self._env:
             raise RuntimeError("Stair reward term environment identity changed")
@@ -450,6 +503,16 @@ class StairCompleteRewardTerm(ManagerTermBase):
             raise RuntimeError("Stair reward program identity changed after install")
         if not isinstance(base_protocol, Mapping):
             raise RuntimeError("Stair reward base protocol changed after install")
+        installed_projection = self.input_builder.runtime_projection
+        if runtime_projection is None:
+            if installed_projection.legacy_reward_adapter_id is None:
+                raise RuntimeError("Stair VNext reward projection disappeared after install")
+        elif (
+            not isinstance(runtime_projection, StairRuntimeProjection)
+            or runtime_projection.projection_hash
+            != installed_projection.projection_hash
+        ):
+            raise RuntimeError("Stair reward projection changed after install")
         inputs = self.input_builder.build()
         self.last_inputs = inputs
         return self.dispatcher.compute(

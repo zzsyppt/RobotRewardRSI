@@ -42,7 +42,7 @@ from true_rl_agent.tasks.stair_climbing.session_start import (  # noqa: E402
 
 
 class StairProductionEntrypointTests(unittest.TestCase):
-    def test_cold_start_wrapper_owns_mode_and_allows_new_genesis(self) -> None:
+    def test_cold_start_wrapper_owns_mode_and_resolves_the_active_cell(self) -> None:
         with tempfile.TemporaryDirectory() as tmp, patch.object(
             run_stair_cold_start,
             "run_generic_loop",
@@ -76,10 +76,7 @@ class StairProductionEntrypointTests(unittest.TestCase):
         self.assertEqual(parsed.start_mode, STAIR_REWARD_COLD_START_MODE)
         self.assertEqual(parsed.rounds, 15)
         composition = run_loop._resolve_composition(parsed, Path(tmp))
-        self.assertEqual(composition.genesis_anchor_kind, "bootstrap")
-        self.assertNotIn(
-            "final_confirmation_precommit", composition.task_defaults
-        )
+        self.assertEqual(composition.task_plugin.config.protocol_state, "active")
 
     def test_cold_start_wrapper_rejects_owned_options(self) -> None:
         for argv in (
@@ -165,11 +162,8 @@ class StairProductionEntrypointTests(unittest.TestCase):
             self.assertEqual(parsed.provider_reasoning_mode, "adaptive")
             self.assertEqual(parsed.provider_reasoning_effort, "max")
 
-            composition = run_loop._resolve_composition(parsed, output_dir)
-            self.assertEqual(
-                composition.task_defaults["final_confirmation_precommit"],
-                plan.genesis_commitment(),
-            )
+            with self.assertRaises(ValueError):
+                run_loop._resolve_composition(parsed, output_dir)
 
     def test_wrapper_rejects_caller_owned_mode_or_task(self) -> None:
         for argv in (

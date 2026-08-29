@@ -27,6 +27,9 @@ from true_rl_agent.runner.specs import require_execution_device  # noqa: E402
 from true_rl_agent.tasks.stair_climbing.candidate_failure import (  # noqa: E402
     StairCandidateProgramFailure,
 )
+from true_rl_agent.tasks.stair_climbing.component_smoke import (  # noqa: E402
+    StairClimbingComponentSmokeAdapter,
+)
 from true_rl_agent.tasks.stair_climbing.entrypoint_contract import (  # noqa: E402
     StairTrainEntrypointContext,
     validate_stair_train_invocation,
@@ -143,7 +146,6 @@ def main(argv: list[str] | None = None) -> int:
             args,
             environment=os.environ,
         )
-        context = validate_stair_train_invocation(args, project_root=PROJECT_ROOT)
         if (
             args.resolved_cell_manifest_path is not None
             or args.resolved_cell_manifest_hash is not None
@@ -161,6 +163,11 @@ def main(argv: list[str] | None = None) -> int:
             )
         else:
             args.resolved_cell_manifest = None
+        context = validate_stair_train_invocation(
+            args,
+            project_root=PROJECT_ROOT,
+            resolved_cell_manifest=args.resolved_cell_manifest,
+        )
         if args.headless is not True:
             raise ValueError("stair production train must be headless")
         summary_path = _local_output_path(args.summary_path, "summary_path")
@@ -222,7 +229,10 @@ def main(argv: list[str] | None = None) -> int:
 def _load_and_qualify_program(
     context: StairTrainEntrypointContext,
 ) -> QualifiedStairRewardProgram:
-    contract = context.config.protocol_v2.complete_reward_runtime
+    contract = StairClimbingComponentSmokeAdapter(
+        context.config,
+        resolved_cell_manifest=context.resolved_cell_manifest,
+    ).contract
     if context.identity.subject.kind == "candidate":
         authorization = context.candidate_execution_authorization
         if (
@@ -236,6 +246,7 @@ def _load_and_qualify_program(
             trusted_reference, _ = resolve_official_stair_reference_artifact(
                 context.config,
                 project_root=PROJECT_ROOT,
+                resolved_cell_manifest=context.resolved_cell_manifest,
             )
             program = qualify_stair_candidate_reward_program(
                 artifact=context.candidate_artifact,

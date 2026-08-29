@@ -14,7 +14,10 @@ STAIR_PILOT_TRAIN_PROFILE = "stair_v2_draft_train"
 STAIR_PILOT_EVAL_PROFILE = "stair_v2_draft_eval"
 STAIR_TRAIN_PROFILE = "stair_v2_train"
 STAIR_EVAL_PROFILE = "stair_v2_eval"
+STAIR_UNIFIED_TRAIN_PROFILE = "stair_unified_v1_train"
+STAIR_UNIFIED_EVAL_PROFILE = "stair_unified_v1_eval"
 STAIR_ENV_BUILDER_VERSION = "stair_g1_rough_env_v3"
+STAIR_UNIFIED_ENV_BUILDER_VERSION = "stair_unified_c0_c1_env_v1"
 STAIR_LEGACY_TRANSITION_RECORDER_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.transition.v1"
 )
@@ -101,10 +104,12 @@ class StairProductionRuntimeProfile:
     def __post_init__(self) -> None:
         if self.mode not in {"train", "eval"}:
             raise ValueError("stair production runtime profile mode is invalid")
-        expected_profile = (
-            STAIR_TRAIN_PROFILE if self.mode == "train" else STAIR_EVAL_PROFILE
+        expected_profiles = (
+            {STAIR_TRAIN_PROFILE, STAIR_UNIFIED_TRAIN_PROFILE}
+            if self.mode == "train"
+            else {STAIR_EVAL_PROFILE, STAIR_UNIFIED_EVAL_PROFILE}
         )
-        if self.profile_id != expected_profile:
+        if self.profile_id not in expected_profiles:
             raise ValueError("stair production runtime profile ID mismatch")
         require_sha256_digest(
             self.base_protocol_hash,
@@ -132,7 +137,12 @@ class StairProductionRuntimeProfile:
             "profile_id": self.profile_id,
             "base_protocol_hash": self.base_protocol_hash,
             "task_protocol_hash": self.task_protocol_hash,
-            "env_builder_version": STAIR_ENV_BUILDER_VERSION,
+            "env_builder_version": (
+                STAIR_UNIFIED_ENV_BUILDER_VERSION
+                if self.profile_id
+                in {STAIR_UNIFIED_TRAIN_PROFILE, STAIR_UNIFIED_EVAL_PROFILE}
+                else STAIR_ENV_BUILDER_VERSION
+            ),
             "transition_recorder_schema_version": (
                 STAIR_TRANSITION_RECORDER_SCHEMA_VERSION
                 if self.mode == "eval"
@@ -158,6 +168,9 @@ __all__ = [
     "STAIR_REWARD_ACTIVATION_PREFLIGHT_SCHEMA_VERSION",
     "STAIR_TRAIN_GYM_ID",
     "STAIR_TRAIN_PROFILE",
+    "STAIR_UNIFIED_TRAIN_PROFILE",
+    "STAIR_UNIFIED_EVAL_PROFILE",
+    "STAIR_UNIFIED_ENV_BUILDER_VERSION",
     "STAIR_TRANSITION_RECORDER_SCHEMA_VERSION",
     "StairProductionRuntimeProfile",
     "StairRuntimeProfile",

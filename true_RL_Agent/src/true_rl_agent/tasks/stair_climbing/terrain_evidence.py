@@ -3,8 +3,19 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
+from bisect import bisect_left
+from dataclasses import dataclass, field
 from typing import Any, Mapping, Protocol, runtime_checkable
+
+from true_rl_agent.tasks.stair_climbing.ordered_evaluation import (
+    OrderedStairCellSpec,
+)
+from true_rl_agent.tasks.stair_climbing.rough_surface import (
+    STAIR_C2_SURFACE_KIND,
+    STAIR_FLAT_SURFACE_KIND,
+    normalize_stair_surface_profile,
+    rough_surface_offset_m,
+)
 
 
 @dataclass(frozen=True)
@@ -94,6 +105,137 @@ class FlatStairSurfaceQuery:
         ):
             raise ValueError("Stair requested surface level is outside geometry")
         return float(level) * self.step_height_m
+
+
+@dataclass(frozen=True)
+class IrregularFlatStairSurfaceQuery:
+    """Exact analytic query for one explicit C1 unequal-riser course."""
+
+    cell: OrderedStairCellSpec
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.cell, OrderedStairCellSpec):
+            raise TypeError("irregular Stair surface query requires an ordered cell")
+
+    def sample(self, *, progress_m: float, lateral_m: float) -> StairSurfaceSample:
+        _finite_coordinate(progress_m, "progress")
+        _finite_coordinate(lateral_m, "lateral")
+        local_x = progress_m + self.cell.start_platform_length_m / 2.0
+        level = min(
+            self.cell.step_count,
+            bisect_left(self.cell.cumulative_tread_boundaries_m, local_x),
+        )
+        return StairSurfaceSample(
+            level=level,
+            height_m=self.height_for_level_m(
+                level=level,
+                progress_m=progress_m,
+                lateral_m=lateral_m,
+            ),
+        )
+
+    def height_for_level_m(
+        self,
+        *,
+        level: int,
+        progress_m: float,
+        lateral_m: float,
+    ) -> float:
+        _finite_coordinate(progress_m, "progress")
+        _finite_coordinate(lateral_m, "lateral")
+        if (
+            isinstance(level, bool)
+            or not isinstance(level, int)
+            or level < 0
+            or level > self.cell.step_count
+        ):
+            raise ValueError("irregular Stair requested surface level is outside geometry")
+        return self.cell.cumulative_riser_heights_m[level]
+
+
+@dataclass(frozen=True)
+class RoughStairSurfaceQuery:
+    """Exact query for the same piecewise-linear C2 triangles used by Isaac."""
+
+    cell: OrderedStairCellSpec
+    _surface_profile: Mapping[str, Any] = field(init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.cell, OrderedStairCellSpec):
+            raise TypeError("rough Stair surface query requires an ordered cell")
+        profile = normalize_stair_surface_profile(self.cell.surface_profile)
+        if profile["kind"] != STAIR_C2_SURFACE_KIND:
+            raise ValueError("rough Stair surface query requires C2 geometry")
+        object.__setattr__(self, "_surface_profile", profile)
+
+    def sample(self, *, progress_m: float, lateral_m: float) -> StairSurfaceSample:
+        _finite_coordinate(progress_m, "progress")
+        _finite_coordinate(lateral_m, "lateral")
+        local_x = progress_m + self.cell.start_platform_length_m / 2.0
+        level = min(
+            self.cell.step_count,
+            bisect_left(self.cell.cumulative_tread_boundaries_m, local_x),
+        )
+        return StairSurfaceSample(
+            level=level,
+            height_m=self.height_for_level_m(
+                level=level,
+                progress_m=progress_m,
+                lateral_m=lateral_m,
+            ),
+        )
+
+    def height_for_level_m(
+        self,
+        *,
+        level: int,
+        progress_m: float,
+        lateral_m: float,
+    ) -> float:
+        _finite_coordinate(progress_m, "progress")
+        _finite_coordinate(lateral_m, "lateral")
+        if (
+            isinstance(level, bool)
+            or not isinstance(level, int)
+            or level < 0
+            or level > self.cell.step_count
+        ):
+            raise ValueError("rough Stair requested surface level is outside geometry")
+        nominal = self.cell.cumulative_riser_heights_m[level]
+        if level == 0:
+            return nominal
+        local_x = progress_m + self.cell.start_platform_length_m / 2.0
+        boundaries = self.cell.cumulative_tread_boundaries_m
+        physical_level = min(self.cell.step_count, bisect_left(boundaries, local_x))
+        if physical_level != level or not (
+            boundaries[level - 1] <= local_x <= boundaries[level]
+        ):
+            return nominal
+        tread_depth = self.cell.tread_depths_m[level - 1]
+        u = min(1.0, max(0.0, (local_x - boundaries[level - 1]) / tread_depth))
+        local_y = lateral_m + self.cell.size_m[1] / 2.0
+        v = min(1.0, max(0.0, local_y / self.cell.size_m[1]))
+        return nominal + rough_surface_offset_m(
+            self._surface_profile,
+            tread_index=level - 1,
+            longitudinal_fraction=u,
+            lateral_fraction=v,
+        )
+
+
+def stair_surface_query_for_ordered_cell(
+    cell: OrderedStairCellSpec,
+) -> StairSurfaceQuery:
+    """Resolve the task-owned physical surface without a runner/shared-layer branch."""
+
+    if not isinstance(cell, OrderedStairCellSpec):
+        raise TypeError("Stair ordered surface query requires an ordered cell")
+    profile = normalize_stair_surface_profile(cell.surface_profile)
+    if profile["kind"] == STAIR_FLAT_SURFACE_KIND:
+        return IrregularFlatStairSurfaceQuery(cell)
+    if profile["kind"] == STAIR_C2_SURFACE_KIND:
+        return RoughStairSurfaceQuery(cell)
+    raise ValueError("Stair ordered surface kind is unsupported")
 
 
 def expected_stair_surface_height_m(
@@ -241,9 +383,12 @@ def _finite_coordinate(value: Any, field_name: str) -> float:
 
 __all__ = [
     "FlatStairSurfaceQuery",
+    "IrregularFlatStairSurfaceQuery",
+    "RoughStairSurfaceQuery",
     "StairSurfaceQuery",
     "StairSurfaceSample",
     "expected_stair_surface_height_m",
     "stair_surface_level",
+    "stair_surface_query_for_ordered_cell",
     "supporting_stair_surface_height_m",
 ]

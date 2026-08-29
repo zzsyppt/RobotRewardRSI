@@ -135,7 +135,7 @@ class StairG137LegacyRewardAdapter:
             "last_action": inputs.last_action,
             "prev_action": inputs.prev_action,
             "action_delta": inputs.action_delta,
-            "progress_fraction": inputs.episode_progress_fraction,
+            "progress_fraction": inputs.progress_fraction,
             "base_lin_vel_yaw": inputs.base_lin_vel_yaw,
             "base_ang_vel_world": inputs.base_ang_vel_world,
             "base_quat_world": inputs.base_quat_world,

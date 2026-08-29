@@ -173,6 +173,7 @@ def build_public_context_from_projected(
     *,
     history_blocked_key_parts: Sequence[str] = (),
     history_blocked_text_parts: Sequence[str] = (),
+    initial_anchor_public_score: float | None = None,
     exploration_projection: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build public context from the shared sequential projection only."""
@@ -206,19 +207,24 @@ def build_public_context_from_projected(
         sanitized_records,
         exploration_projection=exploration_projection,
     )
-    initial_accepted_score = (
-        history.initial_current_best.score_for_comparison()
+    parsed_initial_anchor_score = _optional_number(initial_anchor_public_score)
+    if initial_anchor_public_score is not None and parsed_initial_anchor_score is None:
+        raise ValueError("initial prompt anchor score must be finite")
+    initial_anchor_score = (
+        float(parsed_initial_anchor_score)
+        if parsed_initial_anchor_score is not None
+        else history.initial_current_best.score_for_comparison()
         if history.initial_current_best is not None
         and history.initial_current_best.mode == "accepted"
         else None
     )
-    all_accepted_scores = list(numeric_accepted_scores)
-    if initial_accepted_score is not None:
-        all_accepted_scores.append(initial_accepted_score)
+    comparable_scores = list(numeric_accepted_scores)
+    if initial_anchor_score is not None:
+        comparable_scores.append(initial_anchor_score)
     context = {
         "public_only": True,
         "previous_rounds": len(sanitized_records),
-        "best_public_score": max(all_accepted_scores) if all_accepted_scores else None,
+        "best_public_score": max(comparable_scores) if comparable_scores else None,
         "public_score_source": history.public_score_source,
         "last_outcome": last_decision.get("outcome"),
         "pure_knob_streak": _pure_knob_streak(sanitized_records),

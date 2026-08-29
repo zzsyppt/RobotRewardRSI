@@ -12,6 +12,19 @@ from true_rl_agent.prompting.task_sections import sanitize_task_prompt_sections
 from true_rl_agent.tasks.base import TaskSpec
 
 
+@dataclass(frozen=True)
+class PromptPublicHistoryProjection:
+    """Task-owned provider view over already validated public history.
+
+    Acceptance replay remains authoritative.  This projection only chooses the
+    score semantics and record view exposed to the next provider request.
+    """
+
+    records: tuple[Mapping[str, Any], ...]
+    public_score_source: str | None = None
+    initial_anchor_score: float | None = None
+
+
 class TaskPromptAdapter(Protocol):
     """Task-owned source for prompt sections that shared code should not interpret."""
 
@@ -32,6 +45,15 @@ class TaskPromptAdapter(Protocol):
 
     def prompt_public_record_scrub_policy(self) -> Mapping[str, Sequence[str]]:
         """Return task-owned extra public-record scrub terms before prompt construction."""
+        ...
+
+    def project_prompt_public_history(
+        self,
+        *,
+        public_records: Sequence[Mapping[str, Any]],
+        initial_anchor_public_evidence: Mapping[str, Any] | None,
+    ) -> PromptPublicHistoryProjection:
+        """Project validated history into task-owned provider score semantics."""
         ...
 
     def nonaccepted_authoring_tiebreak_key(
@@ -116,6 +138,17 @@ class NeutralTaskPromptAdapter:
 
     def prompt_public_record_scrub_policy(self) -> Mapping[str, Sequence[str]]:
         return {"blocked_key_parts": (), "blocked_text_parts": ()}
+
+    def project_prompt_public_history(
+        self,
+        *,
+        public_records: Sequence[Mapping[str, Any]],
+        initial_anchor_public_evidence: Mapping[str, Any] | None,
+    ) -> PromptPublicHistoryProjection:
+        _ = initial_anchor_public_evidence
+        return PromptPublicHistoryProjection(
+            records=tuple(dict(record) for record in public_records),
+        )
 
     def nonaccepted_authoring_tiebreak_key(
         self,

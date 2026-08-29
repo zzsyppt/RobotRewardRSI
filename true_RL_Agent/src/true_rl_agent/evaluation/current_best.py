@@ -38,6 +38,7 @@ class CurrentBestEvalStats:
     public_score: float | None = None
     public_accept_stats: Mapping[str, Any] = field(default_factory=dict)
     guard_score_stats: Mapping[str, Any] = field(default_factory=dict)
+    named_guard_evidence: Mapping[str, Any] = field(default_factory=dict)
     sealed_validation_evidence: Mapping[str, Any] = field(default_factory=dict)
     sealed_validation_gate: Mapping[str, Any] = field(default_factory=dict)
     gate_statuses: Mapping[str, str] = field(default_factory=dict)
@@ -107,6 +108,7 @@ class CurrentBestEvalStats:
         for field_name in (
             "public_accept_stats",
             "guard_score_stats",
+            "named_guard_evidence",
             "sealed_validation_evidence",
             "sealed_validation_gate",
             "gate_statuses",
@@ -352,6 +354,9 @@ class CurrentBestEvalStats:
             public_score=acceptance_validation.canonical_public_score,
             public_accept_stats=dict(acceptance_validation.score_stats),
             guard_score_stats=dict(acceptance_validation.guard_score_stats),
+            named_guard_evidence=dict(
+                acceptance_validation.named_guard_evidence
+            ),
             sealed_validation_evidence=dict(
                 acceptance_validation.sealed_validation_evidence
             ),
@@ -462,6 +467,9 @@ class CurrentBestEvalStats:
         guard_score_valid = not (
             acceptance_protocol is not None and acceptance_protocol.uses_guard_score
         )
+        named_guards_valid = not (
+            acceptance_protocol is not None and acceptance_protocol.uses_named_guards
+        )
         if (
             acceptance_protocol is not None
             and acceptance_protocol.requires_paired_score_samples
@@ -506,10 +514,44 @@ class CurrentBestEvalStats:
                     )
                 except ValueError:
                     guard_score_valid = False
+        if acceptance_protocol is not None and acceptance_protocol.uses_named_guards:
+            named_guards_valid = set(self.named_guard_evidence) == {
+                guard.name for guard in acceptance_protocol.named_guards
+            }
+            for guard in acceptance_protocol.named_guards:
+                item = _mapping(self.named_guard_evidence.get(guard.name))
+                stats = _mapping(item.get("score_stats"))
+                validation = validate_score_stats(
+                    stats,
+                    minimum_count=self.min_score_count,
+                    require_std=True,
+                    require_standard_error=self.min_score_count >= 2,
+                    require_protocol_hash=True,
+                )
+                item_valid = bool(
+                    validation.valid
+                    and validation.eval_protocol_hash == binding.eval_protocol_hash
+                    and item.get("score_source") == guard.score_source
+                )
+                try:
+                    if validation.mean is None:
+                        raise ValueError("current-best named guard mean is missing")
+                    validated_score_samples(
+                        item.get("score_samples"),
+                        expected_mean=validation.mean,
+                        protocol=acceptance_protocol,
+                        field_name=(
+                            f"current_best.named_guard_evidence.{guard.name}.score_samples"
+                        ),
+                    )
+                except ValueError:
+                    item_valid = False
+                named_guards_valid = named_guards_valid and item_valid
         return bool(
             stats_validation.valid
             and score_samples_valid
             and guard_score_valid
+            and named_guards_valid
             and stats_validation.eval_protocol_hash == binding.eval_protocol_hash
             and rollout.passed
             and gate_validation.valid
@@ -560,6 +602,29 @@ class CurrentBestEvalStats:
         except ValueError:
             return ()
 
+    def named_guard_score_for_comparison(self, name: str) -> float | None:
+        item = _mapping(self.named_guard_evidence.get(name))
+        return _optional_number(_mapping(item.get("score_stats")).get("mean"))
+
+    def named_guard_score_samples_for_comparison(
+        self,
+        name: str,
+        acceptance_protocol: AcceptanceProtocol,
+    ) -> tuple[float, ...]:
+        item = _mapping(self.named_guard_evidence.get(name))
+        mean = self.named_guard_score_for_comparison(name)
+        if mean is None:
+            return ()
+        try:
+            return validated_score_samples(
+                item.get("score_samples"),
+                expected_mean=mean,
+                protocol=acceptance_protocol,
+                field_name=f"current_best.named_guard_evidence.{name}.score_samples",
+            )
+        except ValueError:
+            return ()
+
     def comparison_identity(self) -> dict[str, Any]:
         return {
             "mode": self.mode,
@@ -585,6 +650,9 @@ class CurrentBestEvalStats:
             "public_score": self.public_score,
             "public_accept_stats": _thaw_json_value(self.public_accept_stats),
             "guard_score_stats": _thaw_json_value(self.guard_score_stats),
+            "named_guard_evidence": _thaw_json_value(
+                self.named_guard_evidence
+            ),
             "sealed_validation_evidence": _thaw_json_value(
                 self.sealed_validation_evidence
             ),
@@ -618,14 +686,21 @@ class CurrentBestEvalStats:
             "public_score",
             "public_accept_stats",
             "guard_score_stats",
+            "named_guard_evidence",
             "sealed_validation_evidence",
             "sealed_validation_gate",
             "gate_statuses",
             "min_score_count",
         }
-        if not isinstance(value, Mapping) or set(value) != expected_fields:
+        legacy_fields = expected_fields - {"named_guard_evidence"}
+        if not isinstance(value, Mapping) or frozenset(value) not in {
+            frozenset(expected_fields),
+            frozenset(legacy_fields),
+        }:
             raise ValueError("current-best mapping fields mismatch")
-        return cls(**dict(value))
+        payload = dict(value)
+        payload.setdefault("named_guard_evidence", {})
+        return cls(**payload)
 
 
 def attach_eval_protocol_hash(

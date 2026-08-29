@@ -13,6 +13,10 @@ from true_rl_agent.tasks.stair_climbing.evaluation_profile import (
     StairEvaluationCell,
     StairEvaluationProfile,
 )
+from true_rl_agent.tasks.stair_climbing.ordered_evaluation import (
+    OrderedStairEvaluationCell,
+    StairOrderedEvaluationSuite,
+)
 
 STAIR_PRIVATE_SEED_RESOLVER_VERSION = (
     "stair_v2_private_seed_and_bin_resolver_v1"
@@ -20,11 +24,15 @@ STAIR_PRIVATE_SEED_RESOLVER_VERSION = (
 STAIR_EVALUATION_SEED_RESOLVER_VERSION = (
     "stair_evaluation_profile_seed_resolver_v1"
 )
+STAIR_ORDERED_EVALUATION_SEED_RESOLVER_VERSION = (
+    "stair_ordered_cell_seed_resolver_v1"
+)
 STAIR_FORMAL_EVAL_NAMESPACE = "formal_reference_candidate_eval"
 STAIR_PILOT_EVAL_NAMESPACE = "pilot_reference_eval"
 STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE = (
     "final_never_fed_paired_confirmation_v1"
 )
+STAIR_CALIBRATION_EVAL_NAMESPACE = "c1_irregular_terrain_calibration_v1"
 STAIR_FORMAL_TRAIN_NAMESPACE = "formal_reference_candidate_train"
 STAIR_PILOT_TRAIN_NAMESPACE = "pilot_reference_train"
 STAIR_PRIVATE_TRAIN_SEED_RESOLVER_VERSION = (
@@ -36,6 +44,11 @@ _VALID_EVAL_NAMESPACES = (
     STAIR_FORMAL_EVAL_NAMESPACE,
     STAIR_PILOT_EVAL_NAMESPACE,
     STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
+)
+_ORDERED_VALID_SPLITS = (*_VALID_SPLITS, "calibration")
+_ORDERED_VALID_EVAL_NAMESPACES = (
+    *_VALID_EVAL_NAMESPACES,
+    STAIR_CALIBRATION_EVAL_NAMESPACE,
 )
 _VALID_TRAIN_NAMESPACES = (
     STAIR_FORMAL_TRAIN_NAMESPACE,
@@ -299,6 +312,165 @@ class StairEvaluationSeedResolver:
 
 
 @dataclass(frozen=True)
+class StairOrderedEvaluationSeedResolver:
+    """Private seeds bound to the exact split-local ordered C1 cohort."""
+
+    base_seed: int
+    task_protocol_hash: str
+    evaluation_suite: StairOrderedEvaluationSuite
+    resolver_version: str = STAIR_ORDERED_EVALUATION_SEED_RESOLVER_VERSION
+
+    def __post_init__(self) -> None:
+        if (
+            isinstance(self.base_seed, bool)
+            or not isinstance(self.base_seed, int)
+            or self.base_seed < 0
+        ):
+            raise ValueError("Stair ordered eval base_seed must be non-negative")
+        require_sha256_digest(
+            self.task_protocol_hash,
+            "Stair ordered eval task protocol hash",
+        )
+        if not isinstance(self.evaluation_suite, StairOrderedEvaluationSuite):
+            raise TypeError("Stair ordered resolver requires an ordered suite")
+        if self.resolver_version != STAIR_ORDERED_EVALUATION_SEED_RESOLVER_VERSION:
+            raise ValueError("Stair ordered seed resolver version mismatch")
+
+    @property
+    def evaluation_protocol(self) -> EvaluationProtocol:
+        return self.evaluation_suite.evaluation_protocol
+
+    def derive_seed(
+        self,
+        *,
+        split: str,
+        run_index: int,
+        namespace: str,
+    ) -> int:
+        self._validate_run(split=split, run_index=run_index)
+        self._validate_namespace_for_split(split=split, namespace=namespace)
+        digest = hashlib.sha256(
+            canonical_json_text(
+                {
+                    **self._public_commitment_payload(split=split),
+                    "namespace": namespace,
+                    "run_index": run_index,
+                    "private_base_seed": self.base_seed,
+                }
+            ).encode("utf-8")
+        ).digest()
+        return int.from_bytes(digest[:8], "big") % (2**31 - 1)
+
+    def namespace_cohort_hash(self, namespace: str) -> str:
+        _require_namespace(
+            namespace,
+            allowed=_ORDERED_VALID_EVAL_NAMESPACES,
+            field_name="Stair ordered evaluation seed namespace",
+        )
+        splits = (
+            ("calibration",)
+            if namespace == STAIR_CALIBRATION_EVAL_NAMESPACE
+            else _VALID_SPLITS
+        )
+        return canonical_json_hash(
+            {
+                "schema_version": (
+                    "true_rl_agent.task.stair_climbing."
+                    "ordered_seed_namespace_cohort.v1"
+                ),
+                "resolver_version": self.resolver_version,
+                "suite_hash": self.evaluation_suite.suite_hash,
+                "task_protocol_hash": self.task_protocol_hash,
+                "namespace": namespace,
+                "split_cohort_hashes": {
+                    split: self.evaluation_suite.cohort_hash(split)
+                    for split in splits
+                },
+            }
+        )
+
+    def private_cell_assignment(
+        self,
+        split: str,
+    ) -> tuple[OrderedStairEvaluationCell, ...]:
+        self._validate_split(split)
+        return self.evaluation_suite.private_cell_assignment(split)
+
+    def private_bin_assignment(self, split: str) -> tuple[str, ...]:
+        return tuple(cell.cell_id for cell in self.private_cell_assignment(split))
+
+    def public_seed_record(
+        self,
+        *,
+        split: str,
+        run_index: int,
+        namespace: str,
+    ) -> dict[str, Any]:
+        self._validate_run(split=split, run_index=run_index)
+        self._validate_namespace_for_split(split=split, namespace=namespace)
+        cells = self.evaluation_suite.cells_for_cohort(split)
+        return {
+            "resolver_version": self.resolver_version,
+            "split": split,
+            "run_index": run_index,
+            "split_seed_count": self._split_seed_count(split),
+            "cell_count": len(cells),
+            "episodes_per_seed_per_cell": (
+                self.evaluation_suite.episodes_per_seed_per_cell
+            ),
+            "complete_cell_coverage_required": True,
+            "ordered_suite_hash": self.evaluation_suite.suite_hash,
+            "split_cohort_hash": self.evaluation_suite.cohort_hash(split),
+            "seed_cohort_hash": self.namespace_cohort_hash(namespace),
+        }
+
+    def _public_commitment_payload(self, *, split: str) -> dict[str, Any]:
+        self._validate_split(split)
+        return {
+            "schema_version": (
+                "true_rl_agent.task.stair_climbing.ordered_seed_domain.v1"
+            ),
+            "resolver_version": self.resolver_version,
+            "task_protocol_hash": self.task_protocol_hash,
+            "ordered_suite_hash": self.evaluation_suite.suite_hash,
+            "split": split,
+            "split_cohort_hash": self.evaluation_suite.cohort_hash(split),
+        }
+
+    def _validate_run(self, *, split: str, run_index: int) -> None:
+        self._validate_split(split)
+        if (
+            isinstance(run_index, bool)
+            or not isinstance(run_index, int)
+            or run_index <= 0
+            or run_index > self._split_seed_count(split)
+        ):
+            raise ValueError("Stair ordered evaluation run_index is out of range")
+
+    @staticmethod
+    def _validate_split(split: str) -> None:
+        if split not in _ORDERED_VALID_SPLITS:
+            raise ValueError(f"unknown Stair ordered evaluation split: {split}")
+
+    @staticmethod
+    def _validate_namespace_for_split(*, split: str, namespace: str) -> None:
+        allowed = (
+            (STAIR_CALIBRATION_EVAL_NAMESPACE,)
+            if split == "calibration"
+            else _VALID_EVAL_NAMESPACES
+        )
+        _require_namespace(
+            namespace,
+            allowed=allowed,
+            field_name="Stair ordered evaluation seed namespace",
+        )
+
+    def _split_seed_count(self, split: str) -> int:
+        self._validate_split(split)
+        return self.evaluation_suite.seed_count(split)
+
+
+@dataclass(frozen=True)
 class StairPrivateTrainingSeedResolver:
     """Task-owned deterministic separation of pilot and formal training seeds."""
 
@@ -435,7 +607,11 @@ class StairPrivateTrainingSeedResolver:
 
 
 def assert_seed_namespaces_disjoint(
-    resolver: StairPrivateSeedResolver | StairEvaluationSeedResolver,
+    resolver: (
+        StairPrivateSeedResolver
+        | StairEvaluationSeedResolver
+        | StairOrderedEvaluationSeedResolver
+    ),
     *,
     splits: Sequence[str] = _VALID_SPLITS,
 ) -> None:
@@ -470,6 +646,22 @@ def assert_seed_namespaces_disjoint(
                     "stair evaluation seed namespaces overlap: "
                     f"{left_name}, {right_name}"
                 )
+    if isinstance(resolver, StairOrderedEvaluationSeedResolver):
+        calibration = [
+            resolver.derive_seed(
+                split="calibration",
+                run_index=index,
+                namespace=STAIR_CALIBRATION_EVAL_NAMESPACE,
+            )
+            for index in range(1, resolver._split_seed_count("calibration") + 1)
+        ]
+        if len(calibration) != len(set(calibration)):
+            raise ValueError("stair calibration seed namespace contains duplicates")
+        all_formal = {
+            value for values in values_by_namespace.values() for value in values
+        }
+        if all_formal & set(calibration):
+            raise ValueError("stair calibration and formal evaluation seeds overlap")
 
 
 def _require_namespace(
@@ -496,6 +688,7 @@ def _positive_int(value: Any, field_name: str) -> int:
 
 
 __all__ = [
+    "STAIR_CALIBRATION_EVAL_NAMESPACE",
     "STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE",
     "STAIR_FORMAL_EVAL_NAMESPACE",
     "STAIR_FORMAL_TRAIN_NAMESPACE",
@@ -503,10 +696,12 @@ __all__ = [
     "STAIR_PILOT_TRAIN_NAMESPACE",
     "STAIR_PRIVATE_SEED_RESOLVER_VERSION",
     "STAIR_EVALUATION_SEED_RESOLVER_VERSION",
+    "STAIR_ORDERED_EVALUATION_SEED_RESOLVER_VERSION",
     "STAIR_PRIVATE_TRAIN_SEED_RESOLVER_VERSION",
     "STAIR_TRAIN_SEED_BASE",
     "StairPrivateSeedResolver",
     "StairEvaluationSeedResolver",
+    "StairOrderedEvaluationSeedResolver",
     "StairPrivateTrainingSeedResolver",
     "assert_seed_namespaces_disjoint",
 ]

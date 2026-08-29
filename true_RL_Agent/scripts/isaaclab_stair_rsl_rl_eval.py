@@ -144,7 +144,6 @@ def main(
             args,
             environment=os.environ,
         )
-        context = validate_stair_eval_invocation(args, project_root=PROJECT_ROOT)
         if (
             args.resolved_cell_manifest_path is not None
             or args.resolved_cell_manifest_hash is not None
@@ -160,6 +159,11 @@ def main(
                 if args.base_task_protocol_hash is not None
                 else args.task_protocol_hash
             ),
+        )
+        context = validate_stair_eval_invocation(
+            args,
+            project_root=PROJECT_ROOT,
+            resolved_cell_manifest=args.resolved_cell_manifest,
         )
         phase = _optional_evaluation_phase(args)
         source_manifest_preflight = preflight_stair_execution_source_manifest(

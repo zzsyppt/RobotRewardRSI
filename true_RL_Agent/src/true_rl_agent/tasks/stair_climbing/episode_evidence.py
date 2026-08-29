@@ -7,6 +7,9 @@ from dataclasses import dataclass
 from typing import Any, Sequence
 
 from true_rl_agent.tasks.stair_climbing.evaluation_profile import StairEvaluationCell
+from true_rl_agent.tasks.stair_climbing.ordered_evaluation import (
+    OrderedStairEvaluationCell,
+)
 from true_rl_agent.tasks.stair_climbing.evaluation_semantics import (
     StairEvaluationSemantics,
 )
@@ -183,8 +186,10 @@ class StairEpisodeOutcome:
             self.progress_fraction,
             "outcome progress_fraction",
         )
-        if max_progress < 0.0 or progress_fraction < 0.0:
-            raise StairEpisodeEvidenceError("stair outcome progress cannot be negative")
+        if max_progress < 0.0 or not 0.0 <= progress_fraction <= 1.0:
+            raise StairEpisodeEvidenceError(
+                "stair outcome progress fraction must be in [0, 1]"
+            )
 
     def to_public_dict(self) -> dict[str, Any]:
         result = {
@@ -206,15 +211,13 @@ class StairEpisodeTracker:
 
     def __init__(
         self,
-        protocol: StairProtocolV1,
+        protocol: StairProtocolV1 | None,
         semantics: StairEvaluationSemantics,
         *,
         env_index: int,
         bin_id: str,
-        evaluation_cell: StairEvaluationCell | None = None,
+        evaluation_cell: StairEvaluationCell | OrderedStairEvaluationCell | None = None,
     ) -> None:
-        if not isinstance(protocol, StairProtocolV1):
-            raise TypeError("stair tracker protocol must be StairProtocolV1")
         if not isinstance(semantics, StairEvaluationSemantics):
             raise TypeError("stair tracker semantics must be StairEvaluationSemantics")
         if (
@@ -223,23 +226,39 @@ class StairEpisodeTracker:
             or env_index < 0
         ):
             raise StairEpisodeEvidenceError("stair tracker env_index is invalid")
-        bin_ids = tuple(str(item["bin_id"]) for item in protocol.eval_bins)
-        if bin_id not in bin_ids:
+        ordered_cell = isinstance(evaluation_cell, OrderedStairEvaluationCell)
+        if protocol is not None and not isinstance(protocol, StairProtocolV1):
+            raise TypeError("stair tracker protocol must be StairProtocolV1 or None")
+        if protocol is None and not ordered_cell:
+            raise TypeError("protocol-free Stair tracking requires an ordered cell")
+        bin_ids = (
+            tuple(str(item["bin_id"]) for item in protocol.eval_bins)
+            if protocol is not None
+            else ()
+        )
+        if bin_id not in bin_ids and not ordered_cell:
             raise StairEpisodeEvidenceError("stair tracker bin_id is not frozen")
         if evaluation_cell is not None:
-            if not isinstance(evaluation_cell, StairEvaluationCell):
+            if not isinstance(
+                evaluation_cell,
+                StairEvaluationCell | OrderedStairEvaluationCell,
+            ):
                 raise TypeError("stair tracker evaluation cell is invalid")
             if evaluation_cell.bin_id != bin_id:
                 raise StairEpisodeEvidenceError(
                     "stair tracker evaluation cell/bin identity drifted"
                 )
-        payload = protocol.to_dict()
+        payload = protocol.to_dict() if protocol is not None else None
         self.protocol = protocol
         self.env_index = env_index
         self.bin_id = bin_id
         self._outcomes = semantics.to_dict()["episode_outcomes"]
-        goal = payload["terrain"]["goal"]
-        self._progress_start_m = float(goal["progress_start_m_from_origin"])
+        goal = payload["terrain"]["goal"] if payload is not None else None
+        self._progress_start_m = (
+            float(goal["progress_start_m_from_origin"])
+            if goal is not None
+            else 0.0
+        )
         self._goal_m = (
             evaluation_cell.progress_goal_m
             if evaluation_cell is not None
@@ -249,15 +268,24 @@ class StairEpisodeTracker:
             raise StairEpisodeEvidenceError(
                 "stair progress goal must be beyond the progress start"
             )
-        terrain = payload["terrain"]
-        self._step_count = int(terrain["step_count"])
-        self._step_height_m = (
-            evaluation_cell.height_m
-            if evaluation_cell is not None
-            else next(
+        terrain = payload["terrain"] if payload is not None else None
+        self._step_count = (
+            evaluation_cell.step_count
+            if ordered_cell
+            else int(terrain["step_count"])
+        )
+        self._top_height_m = (
+            evaluation_cell.total_height_m
+            if ordered_cell
+            else (
+                evaluation_cell.height_m * self._step_count
+                if isinstance(evaluation_cell, StairEvaluationCell)
+                else next(
                 float(item["height_m"])
                 for item in protocol.eval_bins
                 if str(item["bin_id"]) == bin_id
+                )
+                * self._step_count
             )
         )
         self._evaluation_cell_id = (
@@ -268,19 +296,32 @@ class StairEpisodeTracker:
             if evaluation_cell is not None
             else None
         )
-        self._course_min_progress_m = -float(terrain["start_platform_length_m"]) / 2.0
-        self._course_max_progress_m = (
-            float(terrain["size_m"][0])
-            - float(terrain["start_platform_length_m"]) / 2.0
+        start_platform_length_m = (
+            evaluation_cell.start_platform_length_m
+            if ordered_cell
+            else float(terrain["start_platform_length_m"])
         )
-        self._course_half_width_m = float(terrain["size_m"][1]) / 2.0
+        size_m = (
+            evaluation_cell.size_m
+            if ordered_cell
+            else tuple(float(value) for value in terrain["size_m"])
+        )
+        self._course_min_progress_m = -start_platform_length_m / 2.0
+        self._course_max_progress_m = (
+            float(size_m[0]) - start_platform_length_m / 2.0
+        )
+        self._course_half_width_m = float(size_m[1]) / 2.0
         manager_term = str(
             self._outcomes["signals"]["forbidden_contact"]["manager_term"]
         )
-        self._manager_term_reason = {
-            **dict(payload["phase0_probe"]["terminal_reason_by_manager_term"]),
-            manager_term: "forbidden_contact",
-        }
+        self._manager_term_reason = (
+            {
+                **dict(payload["phase0_probe"]["terminal_reason_by_manager_term"]),
+                manager_term: "forbidden_contact",
+            }
+            if payload is not None
+            else {"time_out": "timeout", manager_term: "forbidden_contact"}
+        )
         self._last_step = 0
         self._max_progress_m = self._progress_start_m
         self._top_platform_stability_streak = 0
@@ -444,9 +485,7 @@ class StairEpisodeTracker:
                 strict=True,
             )
         )
-        base_clearance_above_top = (
-            transition.base_height_m - self._step_count * self._step_height_m
-        )
+        base_clearance_above_top = transition.base_height_m - self._top_height_m
         orientation_stable = max(
             transition.abs_roll_rad,
             transition.abs_pitch_rad,
@@ -559,10 +598,13 @@ class StairEpisodeTracker:
             raise StairEpisodeEvidenceError(
                 "stair diagnostic implementation does not match protocol"
             )
-        progress_fraction = max(
-            0.0,
-            (self._max_progress_m - self._progress_start_m)
-            / (self._goal_m - self._progress_start_m),
+        progress_fraction = min(
+            1.0,
+            max(
+                0.0,
+                (self._max_progress_m - self._progress_start_m)
+                / (self._goal_m - self._progress_start_m),
+            ),
         )
         return StairEpisodeOutcome(
             env_index=self.env_index,

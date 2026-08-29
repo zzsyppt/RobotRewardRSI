@@ -75,11 +75,16 @@ class ResolvedTaskComposition:
                 raise TaskCompositionError("composition cell manifest is invalid")
             if manifest.task_id != self.task_id:
                 raise TaskCompositionError("composition cell manifest task_id mismatch")
-            if manifest.base_task_protocol_hash != (
+            expected_task_protocol_hash = (
+                manifest.base_task_protocol_hash
+                if manifest.uses_legacy_training_binding_v1
+                else manifest.resolved_cell_task_protocol_hash
+            )
+            if expected_task_protocol_hash != (
                 self.task_plugin.task_spec.resolved_task_protocol_hash()
             ):
                 raise TaskCompositionError(
-                    "composition cell manifest base task protocol mismatch"
+                    "composition cell manifest task protocol mismatch"
                 )
         expected_anchor_kind = self.task_plugin.task_spec.genesis_anchor_kind_for(
             self.policy_initialization.kind

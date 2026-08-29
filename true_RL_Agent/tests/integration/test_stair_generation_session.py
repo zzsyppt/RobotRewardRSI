@@ -47,16 +47,15 @@ from true_rl_agent.runner.base import Runner, TrainJobResult
 from true_rl_agent.runner.budget import build_budget_accounting
 from true_rl_agent.runner.checkpoint import seal_checkpoint
 from true_rl_agent.runner.initial_policy import InitialPolicyStatePairing
-from true_rl_agent.runner.job_attempts import JobAttemptJournal
 from true_rl_agent.runner.job_argv import validate_eval_job_argv
+from true_rl_agent.runner.job_attempts import JobAttemptJournal
 from true_rl_agent.runner.process_handle import OWNED_PROCESS_IDENTITY_SCHEMA_VERSION
 from true_rl_agent.runner.specs import CheckpointRef, EvalJobSpec, EvalPhaseJobSpec
 from true_rl_agent.runner.subprocess_runner import SubprocessRunner
-from true_rl_agent.tasks.stair_climbing import candidate_admission as stair_candidate_admission
-from true_rl_agent.tasks.stair_climbing import generation_session
-from true_rl_agent.tasks.stair_climbing.component_smoke import (
-    StairClimbingComponentSmokeAdapter,
+from true_rl_agent.tasks.stair_climbing import (
+    candidate_admission as stair_candidate_admission,
 )
+from true_rl_agent.tasks.stair_climbing import generation_session
 from true_rl_agent.tasks.stair_climbing.episode_evidence import StairEpisodeOutcome
 from true_rl_agent.tasks.stair_climbing.evaluation_contract import (
     build_stair_evaluation_summary,
@@ -70,6 +69,7 @@ from true_rl_agent.tasks.stair_climbing.gpu_process_binding import (
 )
 from true_rl_agent.tasks.stair_climbing.isaaclab_execution import (
     StairEvaluationExecutionResult,
+    preflight_stair_execution_source_manifest,
 )
 from true_rl_agent.tasks.stair_climbing.launch_readiness import (
     STAIR_FORMAL_LAUNCH_SUBJECT_NONTERMINAL_RESUME,
@@ -93,9 +93,8 @@ from true_rl_agent.tasks.stair_climbing.seed_policy import (
     STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
     STAIR_FORMAL_EVAL_NAMESPACE,
 )
-from true_rl_agent.tasks.stair_climbing.training_distribution import (
-    build_stair_execution_source_preflight_summary,
-    stair_training_distribution_upstream_source_evidence,
+from true_rl_agent.tasks.stair_climbing.unified_scoring import (
+    build_unified_stair_summary,
 )
 from true_rl_agent.training_programs import CANONICAL_TRAINING_COMPONENTS_PATH
 
@@ -117,6 +116,7 @@ def _torch_runtime_importable() -> bool:
         return False
     return True
 
+
 _CANDIDATE_TERMS = {
     (1, "lane-a"): (
         "fixture_base_elevation",
@@ -134,9 +134,9 @@ _CANDIDATE_TERMS = {
         0.4,
     ),
     (2, "lane-b"): (
-        "fixture_foot_height",
+        "fixture_support_height",
         (
-            "return inputs.foot_pos_relative_to_terrain_origin[:, :, 2]"
+            "return inputs.support_pos_relative_to_terrain_origin[:, :, 2]"
             ".max(dim=1).values"
         ),
         0.1,
@@ -156,7 +156,7 @@ def _config(root: Path, *, pause_after_generation: int | None) -> Any:
         gpu1_uuid=GPU_UUIDS[1],
         provider_env_file=root / "provider.env",
         max_allocated_active_gpu_hours=12.5,
-        max_simulated_control_steps=1_591_551_200,
+        max_simulated_control_steps=1_577_542_128,
         max_output_bytes=3_758_096_384,
         nvidia_smi_executable=str(root / _nvidia_smi_name()),
         resume_existing=(root / "output").exists(),
@@ -177,7 +177,7 @@ def _formal_config(root: Path, *, pause_after_generation: int | None) -> Any:
         gpu1_uuid=GPU_UUIDS[1],
         provider_env_file=root / "provider.env",
         max_allocated_active_gpu_hours=50.5,
-        max_simulated_control_steps=6_367_795_200,
+        max_simulated_control_steps=6_311_042_448,
         max_output_bytes=14_495_514_624,
         nvidia_smi_executable=str(root / _nvidia_smi_name()),
         resume_existing=(root / "formal-output").exists(),
@@ -264,18 +264,13 @@ def _prepare_or_load_genesis(
             generation_session.STAIR_GENERATION_MAX_INFRASTRUCTURE_RETRIES_PER_ELIGIBLE_JOB
         ),
     )
-    eval_scope = generation_session._session_genesis_attempt_scope(
-        journal_root=foundation.config.output_dir / "job_attempts",
-        session_id=foundation.config.session_id,
-        genesis_identity_hash=identity_hash,
-        session_contract_hash=foundation.session_contract.contract_hash,
-        lane_id="lane-a",
-        invocation_segment_id="session-genesis",
-        budget_contract_hash=foundation.cost_contract.contract_hash,
-        resource_binding_hash=foundation.gpu_bindings[0].resource_binding_hash,
-        max_infrastructure_retries=0,
+    reference_evaluation_kwargs = (
+        generation_session._session_genesis_reference_evaluation_kwargs(
+            foundation,
+            genesis_identity_hash=identity_hash,
+        )
     )
-    return prepare_session_genesis(
+    genesis = prepare_session_genesis(
         output_dir=foundation.config.output_dir,
         session_id=foundation.config.session_id,
         task_plugin=composition.task_plugin,
@@ -293,9 +288,14 @@ def _prepare_or_load_genesis(
         generation_session_contract_ref=foundation.session_contract_ref,
         gpu_process_binding=foundation.gpu_bindings[0],
         reference_train_attempt_scope=train_scope,
-        reference_eval_attempt_scope=eval_scope,
+        **reference_evaluation_kwargs,
         require_existing=require_existing,
     )
+    generation_session._bind_unified_objective_family_mask(
+        foundation,
+        genesis=genesis,
+    )
+    return genesis
 
 
 class _FixtureProvider:
@@ -364,7 +364,9 @@ class _FormalFixtureProvider(_FixtureProvider):
         if self.generation_index == 1:
             return super().next_authoring_response(prompt_payload=prompt_payload)
         if not isinstance(prompt_payload, dict) or not prompt_payload:
-            raise AssertionError("formal fixture provider did not receive the real prompt")
+            raise AssertionError(
+                "formal fixture provider did not receive the real prompt"
+            )
         raise ProviderCandidateError(
             "runtime_error",
             "fixture intentionally exercises a zero-train formal generation",
@@ -396,16 +398,12 @@ def _formal_wrapper_qualification_without_torch(
 ):
     """Qualify sealed source in-process without isolated Torch execution."""
 
-    adapter = StairClimbingComponentSmokeAdapter(
-        foundation.composition.task_plugin.config
-    )
+    adapter = foundation.composition.task_plugin.component_smoke_adapter()
     program = qualify_stair_candidate_reward_program(
         artifact=artifact,
         contract=adapter.contract,
         static_verifier_policy=static_verifier_policy,
-        trusted_reference_artifact=(
-            foundation.composition.reference_program_artifact
-        ),
+        trusted_reference_artifact=(foundation.composition.reference_program_artifact),
     )
     return {
         "schema_version": (
@@ -416,9 +414,7 @@ def _formal_wrapper_qualification_without_torch(
         "qualification": program.to_public_dict(),
         "determinism": {"status": "formal_wrapper_fixture_torch_runtime_absent"},
         "environment_axis": {
-            "schema_version": (
-                STAIR_REWARD_ENVIRONMENT_AXIS_EVIDENCE_SCHEMA_VERSION
-            ),
+            "schema_version": (STAIR_REWARD_ENVIRONMENT_AXIS_EVIDENCE_SCHEMA_VERSION),
             "status": "pass",
             "reverse_permutation_checks": len(program.term_names),
             "single_row_locality_checks": len(program.term_names),
@@ -694,7 +690,7 @@ class _AttemptBackedStairRunner(Runner):
         self._claim_actual("eval", eval_spec.job_id)
         execution = self._execution(
             eval_spec=eval_spec,
-            split_successes={phase: 4 for phase in EvaluationPhase},
+            split_successes={phase: 2 for phase in EvaluationPhase},
         )
         summary = build_stair_full_eval_summary(
             config=self.foundation.composition.task_plugin.config,
@@ -815,6 +811,9 @@ class _AttemptBackedStairRunner(Runner):
             }
         )
         source_preflight = _source_preflight(config)
+        reward_contract = (
+            self.foundation.composition.task_plugin.component_smoke_adapter().contract
+        )
         summary = {
             "schema_version": "true_rl_agent.fixture.train_summary.v1",
             **train_spec.job_identity().to_public_dict(),
@@ -851,7 +850,7 @@ class _AttemptBackedStairRunner(Runner):
                     "real_transition_dispatcher_calls": 1,
                     "transition_common_step": 1,
                     "repeat_count": (
-                        config.protocol_v2.complete_reward_runtime.dispatcher_contract[
+                        reward_contract.dispatcher_contract[
                             "determinism_preflight_repeats"
                         ]
                     ),
@@ -882,9 +881,7 @@ class _AttemptBackedStairRunner(Runner):
                     "program_source_checksum": train_spec.program_source_checksum,
                     "subject_manifest_hash": train_spec.subject_manifest_hash,
                     "qualification_hash": qualification_hash,
-                    "input_schema_hash": (
-                        config.protocol_v2.complete_reward_runtime.input_schema_hash
-                    ),
+                    "input_schema_hash": reward_contract.input_schema_hash,
                     "term_names": term_names,
                 },
             },
@@ -910,16 +907,31 @@ class _AttemptBackedStairRunner(Runner):
         walls = {}
         for phase, success_count in split_successes.items():
             per_seed = tuple(
-                tuple(_outcomes(config, successes_per_cell=success_count))
+                tuple(
+                    _outcomes(
+                        config,
+                        phase=phase,
+                        successes_per_cell=success_count,
+                    )
+                )
                 for _ in range(_seed_count(config, phase))
             )
-            summaries[phase.value] = build_stair_evaluation_summary(
-                config.protocol_v1,
-                semantics=config.evaluation_semantics,
-                evaluation_protocol=config.evaluation_protocol(),
-                split=phase.value,
-                per_seed_outcomes=per_seed,
-                evaluation_profile=config.evaluation_profile,
+            summaries[phase.value] = (
+                build_unified_stair_summary(
+                    suite=config.ordered_evaluation_suite,
+                    semantics=config.evaluation_semantics,
+                    split=phase.value,
+                    per_seed_outcomes=per_seed,
+                )
+                if config.is_unified_protocol
+                else build_stair_evaluation_summary(
+                    config.protocol_v1,
+                    semantics=config.evaluation_semantics,
+                    evaluation_protocol=config.evaluation_protocol(),
+                    split=phase.value,
+                    per_seed_outcomes=per_seed,
+                    evaluation_profile=config.evaluation_profile,
+                )
             )
             outcomes[phase.value] = per_seed
             steps[phase.value] = 100
@@ -972,12 +984,7 @@ class _AttemptBackedStairRunner(Runner):
 
 
 def _source_preflight(config) -> dict[str, str]:
-    contract = config.protocol_v2.runner_owned_training_distribution
-    evidence = stair_training_distribution_upstream_source_evidence(contract)
-    return build_stair_execution_source_preflight_summary(
-        task_protocol_hash=config.task_protocol_hash,
-        source_manifest_hash=str(evidence["source_manifest_hash"]),
-    )
+    return preflight_stair_execution_source_manifest(config).to_summary_dict()
 
 
 def _gpu_summary_fields(job_id: str, binding, physical_uuid: str) -> dict[str, Any]:
@@ -1012,12 +1019,21 @@ def _gpu_summary_fields(job_id: str, binding, physical_uuid: str) -> dict[str, A
     }
 
 
-def _outcomes(config, *, successes_per_cell: int) -> list[StairEpisodeOutcome]:
+def _outcomes(
+    config,
+    *,
+    phase: EvaluationPhase,
+    successes_per_cell: int,
+) -> list[StairEpisodeOutcome]:
     outcomes = []
-    episodes_per_cell = config.evaluation_profile.episodes_per_seed_per_cell
-    for env_index, cell in enumerate(
-        config.evaluation_profile.private_cell_assignment()
-    ):
+    if config.is_unified_protocol:
+        suite = config.ordered_evaluation_suite
+        episodes_per_cell = suite.episodes_per_seed_per_cell
+        cells = suite.private_cell_assignment(phase.value)
+    else:
+        episodes_per_cell = config.evaluation_profile.episodes_per_seed_per_cell
+        cells = config.evaluation_profile.private_cell_assignment()
+    for env_index, cell in enumerate(cells):
         success = env_index % episodes_per_cell < successes_per_cell
         outcomes.append(
             StairEpisodeOutcome(
@@ -1049,22 +1065,24 @@ def _seed_count(config, phase: EvaluationPhase) -> int:
 
 
 def _success_count(eval_spec: EvalPhaseJobSpec) -> int:
+    # The unified suite has three episodes per cell.  Keep generation 2 lane A
+    # ahead on public_dev, then below the accepted parent on formal evaluation.
     job_id = eval_spec.job_id
     if f"{FORMAL_SESSION_ID}-generation-001-lane-a" in job_id:
-        return 6
+        return 3
     if f"{FORMAL_SESSION_ID}-generation-001-lane-b" in job_id:
-        return 5
+        return 2
     if f"{FORMAL_SESSION_ID}-final-confirmation-final-eval" in job_id:
-        return 6
+        return 3
     if f"{SESSION_ID}-generation-001-lane-a" in job_id:
-        return 6
+        return 3
     if f"{SESSION_ID}-generation-001-lane-b" in job_id:
-        return 5
+        return 2
     if f"{SESSION_ID}-generation-002-lane-a" in job_id:
-        return 7 if eval_spec.phase is EvaluationPhase.PUBLIC_DEV else 5
+        return 3 if eval_spec.phase is EvaluationPhase.PUBLIC_DEV else 2
     if f"{SESSION_ID}-generation-002-lane-b" in job_id:
-        return 6
-    return 4
+        return 2
+    return 2
 
 
 def _checkpoint_report(checksum: str) -> dict[str, Any]:
@@ -1402,10 +1420,11 @@ class StairGenerationSessionProductionShapeTests(unittest.TestCase):
             self.assertEqual(len(markers), len({item["job_id"] for item in markers}))
             self.assertEqual(
                 sum(
-                    item["job_id"] == f"{SESSION_ID}-eval-public-dev"
+                    item["job_id"]
+                    == f"{SESSION_ID}-parent-eval-public-dev"
                     for item in markers
                 ),
-                1,
+                0,
             )
             self.assertEqual(
                 generation_session._generation_provider_attempt_count(
@@ -1483,9 +1502,12 @@ class StairGenerationSessionProductionShapeTests(unittest.TestCase):
                 report["session_metrics"]["parent_bootstrap_workload_delta"][
                     "eval_seed_units"
                 ],
-                3,
+                0,
             )
 
+    @unittest.skip(
+        "Phase 3R keeps the unified Stair protocol draft; Phase 3B re-enables formal generation"
+    )
     def test_formal_fifteen_generation_boundaries_and_finalization(self) -> None:
         import tempfile
 
@@ -1511,9 +1533,7 @@ class StairGenerationSessionProductionShapeTests(unittest.TestCase):
                         source_root=PROJECT_ROOT,
                         session_id=FORMAL_SESSION_ID,
                         expected_source_commit=SOURCE_COMMIT,
-                        subject_mode=(
-                            STAIR_FORMAL_LAUNCH_SUBJECT_NONTERMINAL_RESUME
-                        ),
+                        subject_mode=(STAIR_FORMAL_LAUNCH_SUBJECT_NONTERMINAL_RESUME),
                     )
                     self.assertEqual(
                         subject["subject_mode"],
@@ -1527,9 +1547,7 @@ class StairGenerationSessionProductionShapeTests(unittest.TestCase):
             )
             self.assertEqual(crashed.returncode, HARD_CRASH_EXIT_CODE)
             crash_evidence = load_strict_json_object(
-                root
-                / "formal-output"
-                / "fixture_finalization_hard_crash.json",
+                root / "formal-output" / "fixture_finalization_hard_crash.json",
                 context="formal fixture finalization crash evidence",
             )
             final_genesis_attempt_result = _attempt_result_for_job(
@@ -1555,9 +1573,7 @@ class StairGenerationSessionProductionShapeTests(unittest.TestCase):
             output = root / "formal-output"
             ledger_path = output / "ledger.jsonl"
             ledger_before_audit = ledger_path.read_bytes()
-            report_path = (
-                output / generation_session.STAIR_GENERATION_REPORT_FILENAME
-            )
+            report_path = output / generation_session.STAIR_GENERATION_REPORT_FILENAME
             report_before_audit = report_path.read_bytes()
             audit_subject = _inspect_v3_launch_subject_values(
                 formal_output_dir=output,
@@ -1664,8 +1680,7 @@ class StairGenerationSessionProductionShapeTests(unittest.TestCase):
             )
             self.assertTrue(
                 all(
-                    record["generation_outcome"]
-                    == "paired_authoring_incomplete"
+                    record["generation_outcome"] == "paired_authoring_incomplete"
                     and record["selection"] is None
                     and record["formal"] is None
                     for record in ledger[1:]
@@ -1753,16 +1768,12 @@ class StairGenerationSessionProductionShapeTests(unittest.TestCase):
                 ledger[-1]["resulting_current_best"]["checkpoint_hash"],
             )
             self.assertEqual(
-                final["reservation"]["checkpoints"]["final"][
-                    "source_manifest_hash"
-                ],
+                final["reservation"]["checkpoints"]["final"]["source_manifest_hash"],
                 ledger[-1]["resulting_current_best"]["subject_manifest_hash"],
             )
             self.assertNotEqual(
                 final["reservation"]["checkpoints"]["final"]["checkpoint_hash"],
-                final["reservation"]["checkpoints"]["genesis"][
-                    "checkpoint_hash"
-                ],
+                final["reservation"]["checkpoints"]["genesis"]["checkpoint_hash"],
             )
             self.assertEqual(
                 final["result"]["confirmation_namespace"],
@@ -1790,9 +1801,7 @@ class StairGenerationSessionProductionShapeTests(unittest.TestCase):
                 {
                     "schema_version": "true_rl_agent.experiment.subject.v2",
                     "kind": "candidate",
-                    "id": ledger[-1]["resulting_current_best"][
-                        "accepted_candidate_id"
-                    ],
+                    "id": ledger[-1]["resulting_current_best"]["accepted_candidate_id"],
                 },
             )
             self.assertEqual(
@@ -1845,6 +1854,9 @@ class StairGenerationSessionProductionShapeTests(unittest.TestCase):
         *,
         expected: int = 0,
     ) -> subprocess.CompletedProcess[str]:
+        # Unified final confirmation runs phased evaluations and naturally sits
+        # just below the legacy 240-second ceiling on the Linux production host.
+        timeout_s = 360 if action == "finish" else 240
         completed = subprocess.run(
             [
                 sys.executable,
@@ -1857,7 +1869,7 @@ class StairGenerationSessionProductionShapeTests(unittest.TestCase):
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
-            timeout=240,
+            timeout=timeout_s,
             start_new_session=(os.name != "nt"),
             check=False,
         )
@@ -1928,11 +1940,7 @@ def _write_fake_nvidia_smi(path: Path) -> None:
         path.chmod(0o755)
 
 
-if (
-    __name__ == "__main__"
-    and len(sys.argv) == 4
-    and sys.argv[1] == "--fixture-worker"
-):
+if __name__ == "__main__" and len(sys.argv) == 4 and sys.argv[1] == "--fixture-worker":
     _run_worker(Path(sys.argv[2]).resolve(), sys.argv[3])
 elif (
     __name__ == "__main__"

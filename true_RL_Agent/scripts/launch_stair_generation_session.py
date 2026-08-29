@@ -456,7 +456,7 @@ def _formal_generation_identity(
     ):
         return None
     parsed = parse_stair_generation_session_args(generation_args)
-    if parsed.terminal_audit_only and not parsed.formal_session:
+    if not parsed.formal_session:
         return None
     multi_generation_session = parsed.formal_session
     if parsed.resume_existing and not multi_generation_session:

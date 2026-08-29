@@ -201,6 +201,19 @@ def stair_reward_input_vnext_values(
     )
 
 
+def stair_reward_input_vnext_projection(
+    inputs: StairRewardInputsVNext,
+) -> StairRuntimeProjection:
+    """Return the trusted projection needed to preserve a VNext fixture type."""
+
+    if type(inputs) is not StairRewardInputsVNext:
+        raise TypeError("Stair VNext reward inputs have an invalid runtime type")
+    return object.__getattribute__(
+        inputs,
+        "_StairRewardInputsVNext__projection",
+    )
+
+
 def stair_reward_input_prompt_contract(
     contract: StairCompleteRewardRuntimeContract,
 ) -> dict[str, Any]:
@@ -331,5 +344,6 @@ __all__ = [
     "StairRewardInputsVNext",
     "stair_reward_input_prompt_contract",
     "stair_reward_input_values",
+    "stair_reward_input_vnext_projection",
     "stair_reward_input_vnext_values",
 ]

@@ -172,7 +172,8 @@ class StairCompleteRewardRuntimeContract:
         cls,
         value: Any,
         *,
-        base: StairProtocolV1,
+        base: StairProtocolV1 | None = None,
+        common_input_fields: tuple[str, ...] | None = None,
     ) -> "StairCompleteRewardRuntimeContract":
         raw = _mapping(value)
         _require_exact_fields(
@@ -211,11 +212,19 @@ class StairCompleteRewardRuntimeContract:
         names = tuple(item.name for item in fields)
         if len(names) != len(set(names)):
             raise ValueError("Stair reward input field names must be unique")
-        common_names = tuple(
-            str(item)
-            for item in base.to_dict()["candidate_boundary"][
-                "common_reward_input_fields"
-            ]
+        if (base is None) == (common_input_fields is None):
+            raise ValueError(
+                "Stair reward contract requires exactly one common-input authority"
+            )
+        common_names = (
+            tuple(str(item) for item in common_input_fields)
+            if common_input_fields is not None
+            else tuple(
+                str(item)
+                for item in base.to_dict()["candidate_boundary"][
+                    "common_reward_input_fields"
+                ]
+            )
         )
         if names[: len(common_names)] != common_names:
             raise ValueError(

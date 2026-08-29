@@ -25,6 +25,7 @@ from true_rl_agent.tasks.stair_climbing.runtime_projection import (
 )
 from true_rl_agent.tasks.stair_climbing.seed_policy import (
     StairEvaluationSeedResolver,
+    StairOrderedEvaluationSeedResolver,
     StairPrivateSeedResolver,
 )
 from true_rl_agent.tasks.stair_climbing.transition_decoder import (
@@ -98,6 +99,11 @@ def run_all_stair_splits(
 ) -> dict[str, dict[str, Any]]:
     """Run every fixed split and return public-safe aggregate summaries."""
 
+    if isinstance(seed_resolver, StairOrderedEvaluationSeedResolver):
+        raise TypeError(
+            "ordered Stair splits require split-local environments; use phased evaluation"
+        )
+
     split_counts = {
         "public_dev": seed_resolver.evaluation_protocol.public_seed_count,
         "public_accept": seed_resolver.evaluation_protocol.public_accept_seed_count,
@@ -136,9 +142,13 @@ def run_stair_split_outcomes(
     *,
     env: Any,
     inference_policy: Callable[[Any], Any],
-    protocol: StairProtocolV1,
+    protocol: StairProtocolV1 | None,
     semantics: StairEvaluationSemantics,
-    seed_resolver: StairPrivateSeedResolver | StairEvaluationSeedResolver,
+    seed_resolver: (
+        StairPrivateSeedResolver
+        | StairEvaluationSeedResolver
+        | StairOrderedEvaluationSeedResolver
+    ),
     split: str,
     seed_count: int,
     seed_namespace: str,
@@ -166,9 +176,13 @@ def run_stair_split_execution(
     *,
     env: Any,
     inference_policy: Callable[[Any], Any],
-    protocol: StairProtocolV1,
+    protocol: StairProtocolV1 | None,
     semantics: StairEvaluationSemantics,
-    seed_resolver: StairPrivateSeedResolver | StairEvaluationSeedResolver,
+    seed_resolver: (
+        StairPrivateSeedResolver
+        | StairEvaluationSeedResolver
+        | StairOrderedEvaluationSeedResolver
+    ),
     split: str,
     seed_count: int,
     seed_namespace: str,
@@ -207,9 +221,13 @@ def run_stair_seed_rollout(
     *,
     env: Any,
     inference_policy: Callable[[Any], Any],
-    protocol: StairProtocolV1,
+    protocol: StairProtocolV1 | None,
     semantics: StairEvaluationSemantics,
-    seed_resolver: StairPrivateSeedResolver | StairEvaluationSeedResolver,
+    seed_resolver: (
+        StairPrivateSeedResolver
+        | StairEvaluationSeedResolver
+        | StairOrderedEvaluationSeedResolver
+    ),
     split: str,
     run_index: int,
     seed_namespace: str,
@@ -235,9 +253,13 @@ def _execute_stair_seed_rollout(
     *,
     env: Any,
     inference_policy: Callable[[Any], Any],
-    protocol: StairProtocolV1,
+    protocol: StairProtocolV1 | None,
     semantics: StairEvaluationSemantics,
-    seed_resolver: StairPrivateSeedResolver | StairEvaluationSeedResolver,
+    seed_resolver: (
+        StairPrivateSeedResolver
+        | StairEvaluationSeedResolver
+        | StairOrderedEvaluationSeedResolver
+    ),
     split: str,
     run_index: int,
     seed_namespace: str,
@@ -256,19 +278,29 @@ def _execute_stair_seed_rollout(
     observation, _ = _reset_env(env, runner_seed)
     _assert_finite_tree(observation, "Stair reset observation")
 
-    assignment = seed_resolver.private_bin_assignment()
-    cell_assignment = (
-        seed_resolver.private_cell_assignment()
-        if isinstance(seed_resolver, StairEvaluationSeedResolver)
-        else None
-    )
+    if isinstance(seed_resolver, StairOrderedEvaluationSeedResolver):
+        assignment = seed_resolver.private_bin_assignment(split)
+        cell_assignment = seed_resolver.private_cell_assignment(split)
+    else:
+        assignment = seed_resolver.private_bin_assignment()
+        cell_assignment = (
+            seed_resolver.private_cell_assignment()
+            if isinstance(seed_resolver, StairEvaluationSeedResolver)
+            else None
+        )
     base_env = getattr(env, "unwrapped", env)
     step_dt = float(getattr(base_env, "step_dt", 0.0))
-    horizon_s = (
-        seed_resolver.evaluation_profile.max_episode_horizon_s
-        if isinstance(seed_resolver, StairEvaluationSeedResolver)
-        else float(protocol.to_dict()["evaluation"]["episode_length_s"])
-    )
+    if isinstance(seed_resolver, StairEvaluationSeedResolver):
+        horizon_s = seed_resolver.evaluation_profile.max_episode_horizon_s
+    elif isinstance(seed_resolver, StairOrderedEvaluationSeedResolver):
+        horizon_s = max(
+            cell.episode_horizon_s
+            for cell in seed_resolver.evaluation_suite.runtime_cells(split)
+        )
+    else:
+        if protocol is None:
+            raise TypeError("legacy Stair evaluation requires StairProtocolV1")
+        horizon_s = float(protocol.to_dict()["evaluation"]["episode_length_s"])
     if step_dt <= 0.0:
         raise StairEvaluationRuntimeError("Stair environment step_dt must be positive")
     max_steps_float = horizon_s / step_dt

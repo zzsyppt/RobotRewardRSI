@@ -37,7 +37,9 @@ from true_rl_agent.tasks.stair_climbing.prompt_adapter import (  # noqa: E402
     StairClimbingPromptAdapter,
     _compact_historical_comparison_entry,
     _compact_public_feedback_to_fit_task_sections,
+    _minimum_core_selection_guidance,
     _minimum_core_stair_prompt_sections,
+    _minimum_core_task_section,
 )
 from true_rl_agent.tasks.stair_climbing.config import (  # noqa: E402
     StairClimbingTaskConfig,
@@ -127,6 +129,31 @@ class PromptCapacityReceiptTests(unittest.TestCase):
 
 
 class TaskOwnedMinimumCoreTests(unittest.TestCase):
+    def test_stair_minimum_core_preserves_mode_guidance_and_seed_counts(
+        self,
+    ) -> None:
+        guidance = [f"mode-aware-guidance-{index}" for index in range(13)]
+        self.assertEqual(_minimum_core_selection_guidance(guidance), guidance)
+
+        seed_contract = {
+            "strata": ["c0_id", "c1_id"],
+            "cells_per_stratum": 3,
+            "episodes_per_seed_per_cell": 3,
+            "public_seed_count": 3,
+            "public_accept_seed_count": 5,
+            "sealed_validation_seed_count": 7,
+            "seed_values_exposed": False,
+            "statistics_unit": "cell_then_stratum_then_paired_seed",
+            "success_criteria": {},
+        }
+        projected = _minimum_core_task_section(
+            {"fixed_eval_protocol_summary": seed_contract}
+        )["fixed_eval_protocol_summary"]
+        self.assertEqual(projected["public_seed_count"], 3)
+        self.assertEqual(projected["public_accept_seed_count"], 5)
+        self.assertEqual(projected["sealed_validation_seed_count"], 7)
+        self.assertFalse(projected["seed_values_exposed"])
+
     def test_stair_bootstrap_minimum_core_has_explicit_sentinel(self) -> None:
         minimum = _minimum_core_stair_prompt_sections(
             _base_sections({"status": "not_available"}),
@@ -265,6 +292,137 @@ class TaskOwnedMinimumCoreTests(unittest.TestCase):
             "no_closed_outcome",
         )
         self.assertNotIn("contract_valid_bounded_detail", str(clean))
+        self.assertLessEqual(
+            canonical_prompt_json_bytes(clean),
+            MAX_TASK_PROMPT_SECTIONS_BYTES,
+        )
+
+    def test_stair_minimum_core_retains_compacted_public_dev_feedback(self) -> None:
+        sections = _base_sections(
+            {
+                "schema_version": (
+                    "true_rl_agent.task.stair_climbing.public_feedback_summary.v10"
+                ),
+                "status": "available",
+                "feedback_entries": [
+                    {
+                        "source_kind": "reference_anchor",
+                        "source_public_result_hash": "a" * 64,
+                        "objective_score": 0.78,
+                        "selection_basis": ["reference_current_best"],
+                        "feedback": {
+                            "schema_version": (
+                                "true_rl_agent.task.stair_climbing.prompt_feedback.v9"
+                            ),
+                            "source_split": "public_dev",
+                            "stable_success_summary": {
+                                "stable_top_success_rate": 0.82
+                            },
+                            "dominant_failure": {
+                                "reason": "forbidden_contact",
+                                "rate": 0.16,
+                            },
+                            "generalization_summary": {
+                                "public_dev_objective_score": 0.74,
+                                "j_id": 0.98,
+                                "j_ood": 0.62,
+                                "named_guard_scores": {
+                                    "c0_id": 0.97,
+                                    "c1_id": 0.99,
+                                    "j_ood": 0.62,
+                                },
+                                "family_scores": {
+                                    "F_scalar": 0.62,
+                                    "F_c1": 1.0,
+                                    "F_c2": 1.0,
+                                },
+                                "qualified_ood_families": ["F_scalar"],
+                                "objective_family_mask_hash": "b" * 64,
+                            },
+                            "progress_summary": {
+                                "mean_progress_fraction": 0.89,
+                                "mean_progress_fraction_by_cell": {
+                                    "public_dev.height_ood_01": 0.65
+                                },
+                            },
+                        },
+                    }
+                ],
+            }
+        )
+        latest = copy.deepcopy(
+            sections["public_feedback_summary"]["feedback_entries"][0]
+        )
+        latest.update(
+            {
+                "source_kind": "candidate",
+                "source_public_result_hash": "c" * 64,
+                "candidate_id": "latest-candidate",
+                "selection_basis": ["latest_evaluated"],
+            }
+        )
+        sections["public_feedback_summary"]["feedback_entries"].append(latest)
+        # Force the full two-stage path: required-entry compaction first, then
+        # task-owned minimum-core projection because non-feedback detail still
+        # exceeds the reserved task-section budget.
+        sections["runtime_feedback_summary"] = {
+            "status": "available",
+            "contract_valid_bounded_detail": "x" * 40000,
+        }
+
+        clean = sanitize_task_prompt_sections(
+            _compact_public_feedback_to_fit_task_sections(
+                sections,
+                evaluation_profile=None,
+            )
+        )
+
+        self.assertEqual(
+            clean["public_feedback_summary"]["projection_level"],
+            "minimum_core",
+        )
+        entries = clean["public_feedback_summary"]["feedback_entries"]
+        self.assertEqual(len(entries), 2)
+        feedback = entries[0][
+            "feedback"
+        ]
+        self.assertEqual(
+            feedback["dominant_failure"],
+            {"reason": "forbidden_contact", "rate": 0.16},
+        )
+        self.assertEqual(
+            feedback["generalization_summary"]["public_dev_objective_score"],
+            0.74,
+        )
+        self.assertEqual(
+            feedback["generalization_summary"]["qualified_ood_families"],
+            ["F_scalar"],
+        )
+        self.assertEqual(
+            feedback["generalization_summary"]["objective_family_mask_hash"],
+            "b" * 64,
+        )
+        self.assertEqual(
+            feedback["generalization_summary"]["named_guard_scores"],
+            {"c0_id": 0.97, "c1_id": 0.99, "j_ood": 0.62},
+        )
+        self.assertEqual(
+            feedback["generalization_summary"]["family_scores"],
+            {"F_scalar": 0.62, "F_c1": 1.0, "F_c2": 1.0},
+        )
+        self.assertEqual(
+            feedback["progress_summary"]["mean_progress_fraction_by_cell"],
+            {"public_dev.height_ood_01": 0.65},
+        )
+        latest_feedback = entries[1]["feedback"]
+        self.assertEqual(
+            latest_feedback["generalization_summary"],
+            {"public_dev_objective_score": 0.74},
+        )
+        self.assertEqual(
+            latest_feedback["progress_summary"],
+            {"mean_progress_fraction": 0.89},
+        )
         self.assertLessEqual(
             canonical_prompt_json_bytes(clean),
             MAX_TASK_PROMPT_SECTIONS_BYTES,

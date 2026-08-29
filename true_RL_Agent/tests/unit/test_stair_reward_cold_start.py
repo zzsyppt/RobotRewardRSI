@@ -252,11 +252,13 @@ class StairRewardColdStartTests(unittest.TestCase):
                 ),
             )
             adapter = StairClimbingComponentSmokeAdapter(
-                composition.task_plugin.config
+                composition.task_plugin.config,
+                resolved_cell_manifest=composition.resolved_cell_manifest,
             )
             trusted_reference, _ = resolve_official_stair_reference_artifact(
                 composition.task_plugin.config,
                 project_root=ROOT,
+                resolved_cell_manifest=composition.resolved_cell_manifest,
             )
 
             def qualification_worker(*, artifact, static_verifier_policy, **_kwargs):

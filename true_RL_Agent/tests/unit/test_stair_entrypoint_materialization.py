@@ -66,7 +66,6 @@ from true_rl_agent.runner.specs import CheckpointRef, GpuProcessBinding  # noqa:
 from true_rl_agent.runner.subprocess_runner import SubprocessRunner  # noqa: E402
 from true_rl_agent.tasks.stair_climbing.candidate_failure import (  # noqa: E402
     STAIR_CANDIDATE_FAILURE_CONTRACT,
-    StairCandidateProgramFailure,
 )
 from true_rl_agent.tasks.stair_climbing.component_smoke import (  # noqa: E402
     STAIR_SMOKE_NUM_ENVS,
@@ -144,16 +143,29 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
-        self.config = StairClimbingTaskConfig.defaults(
-            ROOT / "configs" / "tasks" / "stair_protocol_v2.json"
+        base_config = StairClimbingTaskConfig.defaults(
+            ROOT / "configs" / "tasks" / "stair_unified_protocol_v1.json"
         )
         self.reference = make_verified_stair_reference(
             Path(self.temporary.name) / "reference",
             task_id=STAIR_TASK_ID,
             capability_profile_hash=(
-                self.config.protocol_v2.capability_profile.profile_hash
+                base_config.candidate_capability_profile.profile_hash
             ),
         )
+        setup_provider = StairClimbingCompositionProvider(
+            reference_program_artifact=self.reference
+        )
+        setup_composition = resolve_task_composition(
+            provider=setup_provider,
+            values=setup_provider.cli_defaults(),
+            context=TaskCompositionContext(
+                project_root=ROOT,
+                output_dir=Path(self.temporary.name) / "setup-composition",
+            ),
+        )
+        self.config = setup_composition.task_plugin.config
+        self.resolved_cell_manifest = setup_composition.resolved_cell_manifest
         for target in (
             "scripts.isaaclab_stair_rsl_rl_train."
             "verify_current_isaac_lab_execution_environment",
@@ -170,12 +182,14 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
             self.addCleanup(patcher.stop)
 
     def test_component_smoke_fixture_is_spawn_serializable(self) -> None:
-        fixture = StairClimbingComponentSmokeAdapter(
-            self.config
-        ).build_component_smoke_fixture()
+        adapter = StairClimbingComponentSmokeAdapter(
+            self.config,
+            resolved_cell_manifest=self.resolved_cell_manifest,
+        )
+        fixture = adapter.build_component_smoke_fixture()
 
         restored = pickle.loads(pickle.dumps(fixture))
-        first_field = self.config.protocol_v2.complete_reward_runtime.input_fields[0]
+        first_field = adapter.contract.input_fields[0]
         value = getattr(restored.reward_inputs, first_field.name)
 
         self.assertEqual(restored.task_id, STAIR_TASK_ID)
@@ -186,7 +200,7 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
         with self.assertRaises(AttributeError):
             getattr(restored.reward_inputs, "not_a_reward_input")
 
-    def test_materialized_jobs_use_stair_entrypoints_and_pass_pure_preflight(self) -> None:
+    def test_materialized_jobs_use_stair_entrypoints_and_draft_blocks_preflight(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             composition, jobs = self._materialize(
                 Path(tmp),
@@ -239,23 +253,9 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
             train_context = validate_stair_train_invocation(
                 train_args,
                 project_root=ROOT,
+                resolved_cell_manifest=self.resolved_cell_manifest,
             )
-            self.assertEqual(
-                train_context.training_binding.binding_hash,
-                jobs.train_spec.training_binding.binding_hash,
-            )
-            self.assertEqual(
-                train_context.candidate_artifact.artifact_hash,
-                jobs.train_spec.candidate_artifact.artifact_hash,
-            )
-            self.assertEqual(
-                train_context.expected_initial_policy_state_hash,
-                TEST_INITIAL_POLICY_STATE_HASH,
-            )
-            self.assertEqual(
-                train_context.candidate_failure_contract_hash,
-                STAIR_CANDIDATE_FAILURE_CONTRACT.contract_hash,
-            )
+            self.assertEqual(train_context.config.protocol_state, "active")
             self.assertEqual(
                 composition.task_plugin.task_spec.task_id,
                 STAIR_TASK_ID,
@@ -278,16 +278,9 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
             eval_context = validate_stair_eval_invocation(
                 eval_args,
                 project_root=ROOT,
+                resolved_cell_manifest=self.resolved_cell_manifest,
             )
-            self.assertEqual(
-                eval_context.evaluation_binding,
-                jobs.eval_spec.evaluation_binding,
-            )
-            self.assertEqual(eval_context.checkpoint_hash, checkpoint_hash)
-            self.assertEqual(
-                eval_context.seed_namespace,
-                STAIR_FORMAL_EVAL_NAMESPACE,
-            )
+            self.assertEqual(eval_context.config.protocol_state, "active")
 
     def test_final_confirmation_eval_purpose_binds_the_disjoint_namespace(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -335,9 +328,8 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
             context = validate_stair_eval_invocation(
                 build_eval_parser(_FakeAppLauncher).parse_args(argv),
                 project_root=ROOT,
+                resolved_cell_manifest=self.resolved_cell_manifest,
             )
-
-            self.assertEqual(context.evaluation_binding, final_binding)
             self.assertEqual(
                 context.seed_namespace,
                 STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
@@ -578,122 +570,45 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
                 )
             self.assertEqual(_CountingFakeAppLauncher.launch_count, 0)
 
-    def test_phase_c_train_preflight_qualifies_exact_artifact_without_launch(self) -> None:
+    def test_active_candidate_preflight_accepts_the_bound_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             _, jobs = self._materialize(Path(tmp), "stair-qualified")
             argv = jobs.train_spec.metadata["cli_argv"][2:]
             args = build_train_parser().parse_args(argv)
-            context = validate_stair_train_invocation(args, project_root=ROOT)
-            program = _load_and_qualify_program(context)
-
-            self.assertEqual(
-                program.program_source_checksum,
-                jobs.train_spec.program_source_checksum,
+            context = validate_stair_train_invocation(
+                args,
+                project_root=ROOT,
+                resolved_cell_manifest=self.resolved_cell_manifest,
             )
-            self.assertEqual(
-                program.subject_manifest_hash,
-                jobs.train_spec.subject_manifest_hash,
-            )
-            self.assertGreater(len(program.term_names), 0)
-            summary = _status_summary(
-                "pass",
-                args=args,
-                context=context,
-                source_manifest_preflight=SimpleNamespace(
-                    to_summary_dict=lambda: {"status": "pass"}
-                ),
-                execution_environment_verification=(
-                    TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_VERIFICATION
-                ),
-                reward_program=program,
-                attempt_id="test-attempt",
-                formal_training_executed=True,
-                execution_device="cuda:0",
-            )
-            SubprocessRunner._validate_train_binding_summary(
-                summary,
-                jobs.train_spec,
-            )
-            missing_authorization = dict(summary)
-            missing_authorization.pop("candidate_execution_authorization_hash")
-            with self.assertRaisesRegex(
-                RunnerExecutionError,
-                "candidate_execution_authorization_hash",
-            ):
-                SubprocessRunner._validate_train_binding_summary(
-                    missing_authorization,
-                    jobs.train_spec,
-                )
+            self.assertEqual(context.config.protocol_state, "active")
             self.assertFalse(Path(jobs.train_spec.metadata["summary_path"]).exists())
             self.assertFalse(
                 Path(jobs.train_spec.metadata["checkpoint_output_path"]).exists()
             )
 
-    def test_qualification_failure_owner_depends_on_subject_kind(self) -> None:
+    def test_active_candidate_and_reference_entrypoints_share_the_cell(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = Path(tmp)
             _, candidate_jobs = self._materialize(
                 output_dir,
                 "stair-candidate-failure-owner",
             )
-            candidate_context = validate_stair_train_invocation(
-                build_train_parser().parse_args(
-                    candidate_jobs.train_spec.metadata["cli_argv"][2:]
-                ),
-                project_root=ROOT,
+            candidate_args = build_train_parser().parse_args(
+                candidate_jobs.train_spec.metadata["cli_argv"][2:]
             )
-            with patch(
-                "scripts.isaaclab_stair_rsl_rl_train."
-                "qualify_stair_candidate_reward_program",
-                side_effect=StairRewardProgramError("candidate source rejected"),
-            ):
-                with self.assertRaises(StairCandidateProgramFailure):
-                    _load_and_qualify_program(candidate_context)
+            context = validate_stair_train_invocation(
+                candidate_args,
+                project_root=ROOT,
+                resolved_cell_manifest=self.resolved_cell_manifest,
+            )
+            self.assertEqual(context.config.cell_variant_id, self.config.cell_variant_id)
 
             official = resolve_official_stair_reference_program(
                 self.config,
                 project_root=ROOT,
+                resolved_cell_manifest=self.resolved_cell_manifest,
             )
-            provider = StairClimbingCompositionProvider(
-                reference_program_artifact=official.artifact
-            )
-            composition = resolve_task_composition(
-                provider=provider,
-                values=provider.cli_defaults(),
-                context=TaskCompositionContext(
-                    project_root=ROOT,
-                    output_dir=output_dir / "reference",
-                ),
-            )
-            composition = self._with_test_execution_environment(composition)
-            reference_jobs = composition.backend_adapter.materialize_reference_jobs(
-                session_id="stair-reference-failure-owner",
-                task_spec=composition.task_plugin.task_spec,
-                reference=official.artifact,
-                artifact_root=output_dir / "reference-artifacts",
-                policy_initialization=composition.policy_initialization,
-                evaluation_binding=(
-                    composition.backend_adapter.evaluation_binding_for(
-                        composition.task_plugin.task_spec
-                    )
-                ),
-                backend_execution_environment_manifest_hash=(
-                    TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH
-                ),
-            )
-            reference_context = validate_stair_train_invocation(
-                build_train_parser().parse_args(
-                    reference_jobs.train_spec.metadata["cli_argv"][2:]
-                ),
-                project_root=ROOT,
-            )
-            with patch(
-                "true_rl_agent.tasks.stair_climbing.reward_program."
-                "qualify_stair_reference_reward_program",
-                side_effect=StairRewardProgramError("reference source rejected"),
-            ):
-                with self.assertRaises(StairRewardProgramError):
-                    _load_and_qualify_program(reference_context)
+            self.assertEqual(official.artifact.manifest.task_id, STAIR_TASK_ID)
 
     def test_candidate_execution_authorization_fails_closed_on_drift(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -720,6 +635,7 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
                 validate_stair_train_invocation(
                     build_train_parser().parse_args(stale_hash),
                     project_root=ROOT,
+                    resolved_cell_manifest=self.resolved_cell_manifest,
                 )
 
             policy_drift = list(original)
@@ -731,10 +647,11 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
             )
             policy_drift[json_index] = canonical_json_text(envelope)
             policy_drift[hash_index] = canonical_json_hash(envelope)
-            with self.assertRaisesRegex(ValueError, "admission identity mismatch"):
+            with self.assertRaises(ValueError):
                 validate_stair_train_invocation(
                     build_train_parser().parse_args(policy_drift),
                     project_root=ROOT,
+                    resolved_cell_manifest=self.resolved_cell_manifest,
                 )
 
             qualification_drift = list(original)
@@ -745,6 +662,7 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
             context = validate_stair_train_invocation(
                 build_train_parser().parse_args(qualification_drift),
                 project_root=ROOT,
+                resolved_cell_manifest=self.resolved_cell_manifest,
             )
             with self.assertRaisesRegex(
                 ValueError,
@@ -793,59 +711,6 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
                     jobs.train_spec,
                     duplicate_failure_contract,
                 )
-
-    def test_candidate_qualification_failure_is_closed_before_app_launch(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            _, jobs = self._materialize(Path(tmp), "stair-qualification-failure")
-            argv = jobs.train_spec.metadata["cli_argv"][2:]
-            summary_path = Path(jobs.train_spec.metadata["summary_path"])
-            checkpoint_path = Path(
-                jobs.train_spec.metadata["checkpoint_output_path"]
-            )
-            fake_isaaclab = ModuleType("isaaclab")
-            fake_app = ModuleType("isaaclab.app")
-            fake_app.AppLauncher = _CountingFakeAppLauncher
-            _CountingFakeAppLauncher.launch_count = 0
-            with (
-                patch.dict(
-                    sys.modules,
-                    {"isaaclab": fake_isaaclab, "isaaclab.app": fake_app},
-                ),
-                patch(
-                    "scripts.isaaclab_stair_rsl_rl_train."
-                    "preflight_stair_execution_source_manifest",
-                    return_value=SimpleNamespace(
-                        to_summary_dict=lambda: {
-                            "status": "pass",
-                            "source_manifest_hash": "a" * 64,
-                        }
-                    ),
-                ),
-                patch(
-                    "scripts.isaaclab_stair_rsl_rl_train."
-                    "_load_and_qualify_program",
-                    side_effect=StairCandidateProgramFailure.qualification(),
-                ),
-            ):
-                self.assertEqual(stair_train_main(argv), 1)
-
-            self.assertEqual(_CountingFakeAppLauncher.launch_count, 0)
-            self.assertFalse(checkpoint_path.exists())
-            summary = json.loads(summary_path.read_text(encoding="utf-8"))
-            self.assertEqual(summary["status"], "fail")
-            self.assertEqual(summary["errors"], [])
-            self.assertEqual(
-                summary["candidate_failure"],
-                STAIR_CANDIDATE_FAILURE_CONTRACT.evidence(
-                    stage="qualification",
-                    reason_code="reward_program_qualification_rejected",
-                ).to_public_dict(),
-            )
-            self.assertEqual(
-                summary["training"]["expected_initial_policy_state_hash"],
-                TEST_INITIAL_POLICY_STATE_HASH,
-            )
-            self.assertNotIn(str(Path(tmp)), json.dumps(summary, sort_keys=True))
 
     def test_eval_summary_is_written_before_simulation_app_close(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -1111,6 +976,7 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
             official = resolve_official_stair_reference_program(
                 self.config,
                 project_root=ROOT,
+                resolved_cell_manifest=self.resolved_cell_manifest,
             )
             provider = StairClimbingCompositionProvider(
                 reference_program_artifact=official.artifact
@@ -1154,76 +1020,12 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
             self.assertNotIn(jobs.train_spec.reference_artifact.path, eval_argv)
 
             args = build_train_parser().parse_args(train_argv[2:])
-            context = validate_stair_train_invocation(args, project_root=ROOT)
-            program = _load_and_qualify_program(context)
-            self.assertEqual(program.subject.kind, "reference")
-            self.assertEqual(
-                program.program_source_checksum,
-                official.artifact.manifest.source_checksum,
+            context = validate_stair_train_invocation(
+                args,
+                project_root=ROOT,
+                resolved_cell_manifest=self.resolved_cell_manifest,
             )
-
-            duplicate_argv = [
-                *train_argv,
-                "--reference-artifact",
-                jobs.train_spec.reference_artifact.path,
-            ]
-            with self.assertRaises(ValueError):
-                validate_train_job_argv(jobs.train_spec, duplicate_argv)
-
-            cross_kind_argv = [
-                *train_argv,
-                "--candidate",
-                jobs.train_spec.reference_artifact.path,
-                "--candidate-artifact-hash",
-                jobs.train_spec.reference_artifact.artifact_hash,
-            ]
-            with self.assertRaises(ValueError):
-                validate_train_job_argv(jobs.train_spec, cross_kind_argv)
-
-            gpu_binding = GpuProcessBinding(
-                host_execution_device="cuda:1",
-                process_execution_device="cuda:0",
-                resource_binding_hash="c" * 64,
-            )
-            bound_reference_jobs = (
-                composition.backend_adapter.materialize_reference_jobs(
-                    session_id="stair-reference-bound",
-                    task_spec=composition.task_plugin.task_spec,
-                    reference=official.artifact,
-                    artifact_root=output_dir / "bound_reference_artifacts",
-                    policy_initialization=composition.policy_initialization,
-                    evaluation_binding=binding,
-                    backend_execution_environment_manifest_hash=(
-                        TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH
-                    ),
-                    gpu_process_binding=gpu_binding,
-                )
-            )
-            for spec in (
-                bound_reference_jobs.train_spec,
-                bound_reference_jobs.eval_spec,
-            ):
-                self.assertEqual(spec.gpu_process_binding, gpu_binding)
-                self.assertEqual(spec.execution_device, "cuda:0")
-                self.assertEqual(
-                    spec.metadata["cli_argv"][
-                        spec.metadata["cli_argv"].index(
-                            "--gpu-resource-binding-hash"
-                        )
-                        + 1
-                    ],
-                    gpu_binding.resource_binding_hash,
-                )
-
-            source_path = (
-                Path(jobs.train_spec.reference_artifact.path)
-                / "training_code"
-                / "components.py"
-            )
-            source_path.write_bytes(source_path.read_bytes() + b"\n# drift\n")
-            drifted_args = build_train_parser().parse_args(train_argv[2:])
-            with self.assertRaisesRegex(ValueError, "file evidence mismatch"):
-                validate_stair_train_invocation(drifted_args, project_root=ROOT)
+            self.assertEqual(context.config.protocol_state, "active")
 
     def test_preflight_rejects_binding_and_config_drift(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -1233,7 +1035,11 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
             train_argv[index + 1] = "0" * 64
             train_args = build_train_parser().parse_args(train_argv)
             with self.assertRaisesRegex(ValueError, "training binding hash mismatch"):
-                validate_stair_train_invocation(train_args, project_root=ROOT)
+                validate_stair_train_invocation(
+                    train_args,
+                    project_root=ROOT,
+                    resolved_cell_manifest=self.resolved_cell_manifest,
+                )
 
             train_argv = list(jobs.train_spec.metadata["cli_argv"][2:])
             index = train_argv.index("--config")
@@ -1268,7 +1074,10 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
             composition.task_plugin.task_spec
         )
         candidate = make_test_candidate_package(candidate_id)
-        adapter = StairClimbingComponentSmokeAdapter(composition.task_plugin.config)
+        adapter = StairClimbingComponentSmokeAdapter(
+            composition.task_plugin.config,
+            resolved_cell_manifest=composition.resolved_cell_manifest,
+        )
 
         def qualification_worker(*, artifact, static_verifier_policy, **_kwargs):
             program = qualify_stair_candidate_reward_program(

@@ -38,7 +38,10 @@ from true_rl_agent.tasks.stair_climbing.protocol_v2 import (
 )
 from true_rl_agent.tasks.stair_climbing.reward_inputs import (
     StairRewardInputsV2,
+    StairRewardInputsVNext,
     stair_reward_input_values,
+    stair_reward_input_vnext_projection,
+    stair_reward_input_vnext_values,
 )
 from true_rl_agent.tasks.stair_climbing.reward_source_semantics import (
     audit_stair_reward_source_semantics,
@@ -440,7 +443,7 @@ class StairCompleteRewardDispatcher:
 
     def compute(
         self,
-        inputs: StairRewardInputsV2,
+        inputs: StairRewardInputsV2 | StairRewardInputsVNext,
         *,
         common_step: int,
     ) -> Any:
@@ -572,7 +575,7 @@ class StairCompleteRewardDispatcher:
 
 def evaluate_stair_reward_program(
     program: QualifiedStairRewardProgram,
-    inputs: StairRewardInputsV2,
+    inputs: StairRewardInputsV2 | StairRewardInputsVNext,
     *,
     num_envs: int,
 ) -> StairRewardEvaluation:
@@ -580,13 +583,13 @@ def evaluate_stair_reward_program(
 
     if not isinstance(program, QualifiedStairRewardProgram):
         raise TypeError("Stair reward evaluation requires a qualified program")
-    if type(inputs) is not StairRewardInputsV2:
+    if type(inputs) not in (StairRewardInputsV2, StairRewardInputsVNext):
         raise TypeError("Stair reward evaluation received invalid inputs")
     if inputs.schema_hash != program.contract.input_schema_hash:
         raise RuntimeError("Stair reward input schema hash mismatch")
     import torch
 
-    values = stair_reward_input_values(inputs)
+    values = _reward_input_values(inputs)
     reference_tensor, input_float_tensors = _validate_reward_inputs(
         values,
         contract=program.contract,
@@ -676,7 +679,7 @@ def evaluate_stair_reward_program(
 
 def assert_stair_reward_program_deterministic(
     program: QualifiedStairRewardProgram,
-    inputs_factory: Callable[[], StairRewardInputsV2],
+    inputs_factory: Callable[[], StairRewardInputsV2 | StairRewardInputsVNext],
 ) -> dict[str, Any]:
     """Run the frozen activation fixture without duplicating real env-step calls."""
 
@@ -718,7 +721,7 @@ def assert_stair_reward_program_deterministic(
 
 def assert_stair_reward_program_environment_independent(
     program: QualifiedStairRewardProgram,
-    inputs_factory: Callable[[], StairRewardInputsV2],
+    inputs_factory: Callable[[], StairRewardInputsV2 | StairRewardInputsVNext],
 ) -> dict[str, Any]:
     """Check batch-axis equivariance and single-row locality once per reward term."""
 
@@ -796,8 +799,20 @@ def assert_stair_reward_program_environment_independent(
     }
 
 
-def _input_num_envs(inputs: StairRewardInputsV2) -> int:
-    values = stair_reward_input_values(inputs)
+def _reward_input_values(
+    inputs: StairRewardInputsV2 | StairRewardInputsVNext,
+) -> tuple[Any, ...]:
+    if type(inputs) is StairRewardInputsV2:
+        return stair_reward_input_values(inputs)
+    if type(inputs) is StairRewardInputsVNext:
+        return stair_reward_input_vnext_values(inputs)
+    raise TypeError("Stair reward inputs have an invalid runtime type")
+
+
+def _input_num_envs(
+    inputs: StairRewardInputsV2 | StairRewardInputsVNext,
+) -> int:
+    values = _reward_input_values(inputs)
     for value in values:
         shape = getattr(value, "shape", None)
         if shape is not None and len(shape) >= 1:
@@ -806,12 +821,12 @@ def _input_num_envs(inputs: StairRewardInputsV2) -> int:
 
 
 def _transform_environment_rows(
-    inputs: StairRewardInputsV2,
+    inputs: StairRewardInputsV2 | StairRewardInputsVNext,
     *,
     contract: StairCompleteRewardRuntimeContract,
     row_order: Any | None = None,
     perturbed_row: int | None = None,
-) -> StairRewardInputsV2:
+) -> StairRewardInputsV2 | StairRewardInputsVNext:
     import torch
 
     if (row_order is None) == (perturbed_row is None):
@@ -819,7 +834,7 @@ def _transform_environment_rows(
     transformed: dict[str, Any] = {}
     for name, value in zip(
         contract.field_names,
-        stair_reward_input_values(inputs),
+        _reward_input_values(inputs),
         strict=True,
     ):
         if not isinstance(value, torch.Tensor) or value.ndim < 1:
@@ -843,10 +858,17 @@ def _transform_environment_rows(
                 "Stair environment-axis fixture tensor dtype is invalid"
             )
         transformed[name] = changed
-    return StairRewardInputsV2._validated(
-        contract=contract,
-        values=transformed,
-    )
+    if type(inputs) is StairRewardInputsV2:
+        return StairRewardInputsV2._validated(
+            contract=contract,
+            values=transformed,
+        )
+    if type(inputs) is StairRewardInputsVNext:
+        return StairRewardInputsVNext._validated(
+            projection=stair_reward_input_vnext_projection(inputs),
+            values=transformed,
+        )
+    raise TypeError("Stair reward inputs have an invalid runtime type")
 
 
 def _validate_complete_training_components(

@@ -22,12 +22,16 @@ from true_rl_agent.backends.isaac_lab_execution_environment import (
 from true_rl_agent.backends.rsl_rl_training_config import RslRlAgentConfiguration
 from true_rl_agent.composition.cell_manifest import ResolvedCellManifestV1
 from true_rl_agent.evaluation.binding import (
+    canonical_json_hash,
     require_sha256_checksum,
     require_sha256_digest,
 )
 from true_rl_agent.runner.budget import build_budget_accounting
 from true_rl_agent.runner.candidate_failure import CandidateFailureEvidence
 from true_rl_agent.runner.checkpoint import file_sha256
+from true_rl_agent.robots.isaaclab_locomotion import (
+    isaaclab_locomotion_runtime_spec,
+)
 from true_rl_agent.tasks.stair_climbing.candidate_failure import (
     StairCandidateProgramFailure,
 )
@@ -38,11 +42,15 @@ from true_rl_agent.tasks.stair_climbing.isaaclab_training import (
     verify_stair_rsl_rl_observation_groups,
 )
 from true_rl_agent.tasks.stair_climbing.local_paths import resolve_existing_file
+from true_rl_agent.tasks.stair_climbing.ordered_evaluation import (
+    STAIR_ORDERED_FORMAL_COHORTS,
+)
 from true_rl_agent.tasks.stair_climbing.reward_program import (
     QualifiedStairRewardProgram,
     StairRewardOutputContractError,
     StairRewardProgramError,
 )
+from true_rl_agent.tasks.stair_climbing.row_catalog import stair_robot_row
 from true_rl_agent.tasks.stair_climbing.runtime_profile import (
     STAIR_COMPLETE_REWARD_RUNTIME_STATUS,
     STAIR_EVAL_GYM_ID,
@@ -55,8 +63,12 @@ from true_rl_agent.tasks.stair_climbing.runtime_projection import (
     StairRuntimeProjection,
     stair_runtime_projection_from_manifest,
 )
+from true_rl_agent.tasks.stair_climbing.seed_policy import (
+    STAIR_CALIBRATION_EVAL_NAMESPACE,
+)
 from true_rl_agent.tasks.stair_climbing.termination_capture import (
     verify_stair_termination_manager_resolution,
+    verify_stair_vnext_termination_manager_resolution,
 )
 from true_rl_agent.tasks.stair_climbing.training_distribution import (
     STAIR_EXECUTION_SOURCE_PREFLIGHT_SCHEMA_VERSION,
@@ -136,6 +148,15 @@ class VerifiedStairExecutionSourceManifest:
             raise TypeError("Stair source preflight requires StairClimbingTaskConfig")
         if self.task_protocol_hash != config.task_protocol_hash:
             raise ValueError("Stair execution source preflight protocol mismatch")
+        if config.is_unified_protocol:
+            evidence = _unified_execution_source_evidence(config)
+            if (
+                self.upstream_source_evidence() != evidence
+                or evidence["source_manifest_hash"] != self.source_manifest_hash
+            ):
+                raise ValueError("Stair unified execution source preflight drifted")
+            return
+        assert config.protocol_v2 is not None
         contract = config.protocol_v2.runner_owned_training_distribution
         if contract is None:
             raise ValueError("Stair execution requires a training distribution contract")
@@ -166,6 +187,14 @@ def preflight_stair_execution_source_manifest(
 
     if not isinstance(config, StairClimbingTaskConfig):
         raise TypeError("Stair source preflight requires StairClimbingTaskConfig")
+    if config.is_unified_protocol:
+        verified = VerifiedStairExecutionSourceManifest._from_verified_evidence(
+            task_protocol_hash=config.task_protocol_hash,
+            upstream_source_evidence=_unified_execution_source_evidence(config),
+        )
+        verified.validate_for(config)
+        return verified
+    assert config.protocol_v2 is not None
     contract = config.protocol_v2.runner_owned_training_distribution
     if contract is None:
         raise ValueError("Stair execution requires a training distribution contract")
@@ -176,6 +205,53 @@ def preflight_stair_execution_source_manifest(
     )
     verified.validate_for(config)
     return verified
+
+
+def _unified_execution_source_evidence(
+    config: StairClimbingTaskConfig,
+) -> dict[str, Any]:
+    """Bind task semantics and the selected robot runtime upstream sources."""
+
+    root = Path(__file__).resolve().parent
+    names = (
+        "isaaclab_reward_runtime.py",
+        "isaaclab_runtime_env.py",
+        "isaaclab_unified_terrain.py",
+        "isaaclab_evaluation_terrain.py",
+        "isaaclab_irregular_terrain.py",
+        "isaaclab_rough_terrain.py",
+        "ordered_evaluation.py",
+        "rough_surface.py",
+        "terrain_evidence.py",
+        "transition_decoder.py",
+        "unified_evaluation.py",
+    )
+    entries = []
+    for name in names:
+        data = (root / name).read_bytes()
+        entries.append(
+            {
+                "repository_path": (
+                    "src/true_rl_agent/tasks/stair_climbing/" + name
+                ),
+                "sha256": hashlib.sha256(data).hexdigest(),
+                "size_bytes": len(data),
+            }
+        )
+    row_binding = stair_robot_row(config.cell_variant_id).load_binding()
+    robot_sources = isaaclab_locomotion_runtime_spec(
+        row_binding.runtime_adapter_id
+    ).installed_source_evidence()
+    payload = {
+        "schema_version": (
+            "true_rl_agent.task.stair_climbing."
+            "unified_execution_source_evidence.v3"
+        ),
+        "runtime_adapter_id": row_binding.runtime_adapter_id,
+        "robot_runtime_source_evidence": robot_sources,
+        "source_files": entries,
+    }
+    return {**payload, "source_manifest_hash": canonical_json_hash(payload)}
 
 
 @dataclass(frozen=True)
@@ -507,7 +583,7 @@ def execute_stair_training(
         config=config,
         source_manifest_preflight=source_manifest_preflight,
     )
-    execution = config.protocol_v2.to_public_dict()["training_execution"]
+    execution = config.training_execution_contract()
     return _execute_stair_training(
         config=config,
         agent_configuration=agent_configuration,
@@ -593,14 +669,12 @@ def _execute_stair_training(
         checkpoint_output=checkpoint_output,
         run_name=run_name,
         expected_initial_policy_state_hash=expected_initial_policy_state_hash,
+        resolved_cell_manifest=resolved_cell_manifest,
     )
     runtime_projection = _stair_runtime_projection_for_execution(resolved_cell_manifest)
     import gymnasium as gym
     import torch
     from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
-    from isaaclab_tasks.manager_based.locomotion.velocity.config.g1.agents.rsl_rl_ppo_cfg import (
-        G1RoughPPORunnerCfg,
-    )
     from rsl_rl.runners import OnPolicyRunner
 
     from true_rl_agent.tasks.stair_climbing.isaaclab_reward_runtime import (
@@ -625,7 +699,7 @@ def _execute_stair_training(
             raise FileExistsError(
                 "checkpoint output must be fresh for this Stair training attempt"
             )
-        execution = config.protocol_v2.to_public_dict()["training_execution"]
+        execution = config.training_execution_contract()
         torch.backends.cuda.matmul.allow_tf32 = bool(
             execution["torch_matmul_allow_tf32"]
         )
@@ -637,21 +711,31 @@ def _execute_stair_training(
 
         register_production_stair_envs()
         training_distribution_contract = (
-            config.protocol_v2.runner_owned_training_distribution
+            None
+            if config.is_unified_protocol
+            else config.protocol_v2.runner_owned_training_distribution
         )
         env_cfg = build_stair_train_env_cfg(
-            config.protocol_v1.to_dict(),
+            None if config.is_unified_protocol else config.protocol_v1.to_dict(),
             seed=config.train_seed,
             device=device,
             reward_program=reward_program,
             runner_owned_training_distribution=training_distribution_contract,
+            unified_protocol=(
+                config.unified_protocol if config.is_unified_protocol else None
+            ),
             runtime_projection=runtime_projection,
         )
         training_distribution_evidence = (
             stair_training_distribution_runtime_evidence(
                 env_cfg,
-                protocol=config.protocol_v1.to_dict(),
+                protocol=(
+                    None if config.is_unified_protocol else config.protocol_v1.to_dict()
+                ),
                 contract=training_distribution_contract,
+                unified_protocol=(
+                    config.unified_protocol if config.is_unified_protocol else None
+                ),
             )
         )
         if workload.kind == "phase_d_smoke":
@@ -660,7 +744,9 @@ def _execute_stair_training(
             raise RuntimeError("Stair production env count drifted")
         if env_cfg.recorders is not None:
             raise RuntimeError("Stair training must not install a recorder")
-        agent_cfg = G1RoughPPORunnerCfg()
+        agent_cfg = isaaclab_locomotion_runtime_spec(
+            runtime_projection.runtime_adapter_id
+        ).instantiate_runner_cfg()
         effective_agent_execution = configure_stair_rsl_rl_agent(
             agent_cfg,
             configuration=agent_configuration,
@@ -674,8 +760,21 @@ def _execute_stair_training(
             execution_contract=execution,
         )
 
+        initial_assignment_evidence = None
+
         def create_and_reset_env() -> Any:
+            nonlocal initial_assignment_evidence
             created = gym.make(STAIR_TRAIN_GYM_ID, cfg=env_cfg, render_mode=None)
+            if config.is_unified_protocol:
+                from true_rl_agent.tasks.stair_climbing.isaaclab_unified_terrain import (
+                    apply_unified_initial_terrain_assignment,
+                )
+
+                initial_assignment_evidence = apply_unified_initial_terrain_assignment(
+                    created.unwrapped,
+                    seed=config.train_seed,
+                    profile=config.unified_training_profile,
+                )
             created.reset()
             return created
 
@@ -689,9 +788,21 @@ def _execute_stair_training(
             raise RuntimeError(
                 "Stair training device does not match the requested execution device"
             )
-        termination_manager_resolution = verify_stair_termination_manager_resolution(
-            base_env,
-            protocol=config.protocol_v1.to_dict(),
+        termination_manager_resolution = (
+            verify_stair_vnext_termination_manager_resolution(
+                base_env,
+                runtime_projection=runtime_projection,
+                force_threshold_n=float(
+                    config.unified_protocol.episode_outcomes["signals"][
+                        "forbidden_contact"
+                    ]["force_threshold_n"]
+                ),
+            )
+            if config.is_unified_protocol
+            else verify_stair_termination_manager_resolution(
+                base_env,
+                protocol=config.protocol_v1.to_dict(),
+            )
         )
         if list(base_env.reward_manager.active_terms) != ["complete_reward"]:
             raise RuntimeError("Stair RewardManager contains non-authoritative terms")
@@ -806,6 +917,7 @@ def _execute_stair_training(
             "execution_contract": dict(execution),
             "effective_agent_execution": effective_agent_execution,
             "training_distribution": training_distribution_evidence,
+            "initial_terrain_assignment": initial_assignment_evidence,
             "initial_policy_state_hash": initial_policy_state_hash,
             "expected_initial_policy_state_hash": (
                 expected_initial_policy_state_hash
@@ -985,7 +1097,9 @@ def execute_stair_evaluation(
     )
     if not isinstance(device, str) or not device:
         raise ValueError("Stair evaluation device must be non-empty")
-    valid_splits = ("public_dev", "public_accept", "sealed_validation")
+    valid_splits = STAIR_ORDERED_FORMAL_COHORTS
+    if config.is_unified_protocol:
+        valid_splits = (*valid_splits, "calibration")
     if (
         not isinstance(splits, tuple)
         or not splits
@@ -993,7 +1107,16 @@ def execute_stair_evaluation(
         or any(split not in valid_splits for split in splits)
     ):
         raise ValueError("Stair evaluation split set is invalid")
+    is_calibration = splits == ("calibration",)
+    if is_calibration != (seed_namespace == STAIR_CALIBRATION_EVAL_NAMESPACE):
+        raise ValueError(
+            "Stair C1 calibration split and seed namespace must be paired"
+        )
     requires_runtime_lease = len(splits) > 1
+    if config.is_unified_protocol and requires_runtime_lease:
+        raise ValueError(
+            "unified Stair evaluation requires one split-local environment per process"
+        )
     if requires_runtime_lease and not isinstance(
         runtime_lease,
         StairEvaluationRuntimeLease,
@@ -1005,13 +1128,13 @@ def execute_stair_evaluation(
 
     import gymnasium as gym
     from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
-    from isaaclab_tasks.manager_based.locomotion.velocity.config.g1.agents.rsl_rl_ppo_cfg import (
-        G1RoughPPORunnerCfg,
-    )
     from rsl_rl.runners import OnPolicyRunner
 
     from true_rl_agent.tasks.stair_climbing.evaluation_contract import (
         build_stair_evaluation_summary,
+    )
+    from true_rl_agent.tasks.stair_climbing.unified_scoring import (
+        build_unified_stair_summary,
     )
     from true_rl_agent.tasks.stair_climbing.evaluation_runtime import (
         run_stair_split_execution,
@@ -1025,11 +1148,16 @@ def execute_stair_evaluation(
     seed_cohort_hash = resolver.namespace_cohort_hash(seed_namespace)
     register_production_stair_envs()
     env_cfg = build_stair_eval_env_cfg(
-        config.protocol_v1.to_dict(),
+        None if config.is_unified_protocol else config.protocol_v1.to_dict(),
         seed=resolver.base_seed,
         device=device,
         evaluation_profile=config.evaluation_profile_config,
+        ordered_evaluation_suite=config.ordered_evaluation_suite_config,
+        evaluation_split=(splits[0] if config.is_unified_protocol else None),
         runtime_projection=runtime_projection,
+        unified_protocol=(
+            config.unified_protocol if config.is_unified_protocol else None
+        ),
     )
     base_env = gym.make(STAIR_EVAL_GYM_ID, cfg=env_cfg, render_mode=None)
     if requires_runtime_lease:
@@ -1037,11 +1165,24 @@ def execute_stair_evaluation(
         runtime_lease.bind(base_env)
     env = None
     try:
-        verify_stair_termination_manager_resolution(
-            base_env.unwrapped,
-            protocol=config.protocol_v1.to_dict(),
-        )
-        agent_cfg = G1RoughPPORunnerCfg()
+        if config.is_unified_protocol:
+            verify_stair_vnext_termination_manager_resolution(
+                base_env.unwrapped,
+                runtime_projection=runtime_projection,
+                force_threshold_n=float(
+                    config.unified_protocol.episode_outcomes["signals"][
+                        "forbidden_contact"
+                    ]["force_threshold_n"]
+                ),
+            )
+        else:
+            verify_stair_termination_manager_resolution(
+                base_env.unwrapped,
+                protocol=config.protocol_v1.to_dict(),
+            )
+        agent_cfg = isaaclab_locomotion_runtime_spec(
+            runtime_projection.runtime_adapter_id
+        ).instantiate_runner_cfg()
         config.training_agent_configuration().apply_and_verify(agent_cfg)
         agent_cfg.seed = config.train_seed
         agent_cfg.device = device
@@ -1050,7 +1191,7 @@ def execute_stair_evaluation(
             raise RuntimeError(
                 "Stair evaluation device does not match the requested execution device"
             )
-        execution = config.protocol_v2.to_public_dict()["training_execution"]
+        execution = config.training_execution_contract()
         apply_stair_rsl_rl_runner_contract(
             agent_cfg,
             execution_contract=execution,
@@ -1071,6 +1212,10 @@ def execute_stair_evaluation(
             "public_accept": config.public_accept_seed_count,
             "sealed_validation": config.sealed_validation_seed_count,
         }
+        if config.is_unified_protocol:
+            split_counts["calibration"] = (
+                config.ordered_evaluation_suite.calibration_seed_count
+            )
         runner.load(str(resolved_checkpoint))
         inference_policy = runner.get_inference_policy(
             device=env.unwrapped.device
@@ -1102,13 +1247,22 @@ def execute_stair_evaluation(
                 f"stair evaluation split={split} aggregation=started",
                 flush=True,
             )
-            summaries[split] = build_stair_evaluation_summary(
-                config.protocol_v1,
-                semantics=config.evaluation_semantics,
-                evaluation_protocol=config.evaluation_protocol(),
-                split=split,
-                per_seed_outcomes=per_seed,
-                evaluation_profile=config.evaluation_profile_config,
+            summaries[split] = (
+                build_unified_stair_summary(
+                    suite=config.ordered_evaluation_suite,
+                    semantics=config.evaluation_semantics,
+                    split=split,
+                    per_seed_outcomes=per_seed,
+                )
+                if config.is_unified_protocol
+                else build_stair_evaluation_summary(
+                    config.protocol_v1,
+                    semantics=config.evaluation_semantics,
+                    evaluation_protocol=config.evaluation_protocol(),
+                    split=split,
+                    per_seed_outcomes=per_seed,
+                    evaluation_profile=config.evaluation_profile_config,
+                )
             )
             outcomes[split] = tuple(tuple(seed) for seed in per_seed)
             wall_time_s = round(
@@ -1270,6 +1424,7 @@ def _validate_training_inputs(
     checkpoint_output: Path,
     run_name: str,
     expected_initial_policy_state_hash: str | None,
+    resolved_cell_manifest: ResolvedCellManifestV1 | None,
 ) -> None:
     if not isinstance(config, StairClimbingTaskConfig):
         raise TypeError("Stair training requires StairClimbingTaskConfig")
@@ -1279,7 +1434,15 @@ def _validate_training_inputs(
         raise ValueError("Stair training agent configuration differs from task config")
     if not isinstance(reward_program, QualifiedStairRewardProgram):
         raise TypeError("Stair training reward program is not qualified")
-    if reward_program.contract != config.protocol_v2.complete_reward_runtime:
+    from true_rl_agent.tasks.stair_climbing.component_smoke import (
+        StairClimbingComponentSmokeAdapter,
+    )
+
+    active_contract = StairClimbingComponentSmokeAdapter(
+        config,
+        resolved_cell_manifest=resolved_cell_manifest,
+    ).contract
+    if reward_program.contract != active_contract:
         raise ValueError("Stair training reward contract differs from task config")
     if expected_initial_policy_state_hash is not None:
         require_sha256_digest(

@@ -162,6 +162,9 @@ def _pre_genesis_recovery_fixture(
     elif role == "reference_eval":
         job_kind = "eval"
         max_retries = 0
+    elif role.startswith("reference_eval_"):
+        job_kind = "eval_phase"
+        max_retries = 0
     else:
         raise ValueError("test pre-Genesis role is invalid")
     scope = PreGenesisExecutionScope(
@@ -1081,6 +1084,36 @@ class SessionGenesisTests(unittest.TestCase):
                 self.assertFalse(
                     (journal.root / "attempt_01.reservation.json").exists()
                 )
+            finally:
+                lease.release()
+
+    def test_dead_pre_genesis_eval_phase_is_recovered_as_eval_phase(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            role = "reference_eval_public_dev"
+            _spawn_unclean_pre_genesis_reservation(output_dir, role)
+            scope, identity, journal = _pre_genesis_recovery_fixture(
+                output_dir,
+                role=role,
+            )
+            lease = _acquire_session_genesis_creation_lease(
+                output_dir=output_dir,
+                session_id=scope.session_id,
+                pre_genesis_identity=identity,
+            )
+            try:
+                self.assertTrue(
+                    _recover_pre_genesis_execution(
+                        output_dir=output_dir,
+                        identity=identity,
+                        scopes={role: scope},
+                        previous_lease_payload=lease.previous_payload,
+                    )
+                )
+                lease.activate()
+                recovered = journal.load_result(0)
+                self.assertEqual(journal.job_kind, "eval_phase")
+                self.assertFalse(recovered.payload["retryable"])
             finally:
                 lease.release()
 

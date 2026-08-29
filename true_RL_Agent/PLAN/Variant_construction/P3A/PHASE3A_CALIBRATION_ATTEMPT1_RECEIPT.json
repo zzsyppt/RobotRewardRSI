@@ -1,0 +1,515 @@
+{
+  "calibration_protocol_hash": "c5e679b8d82b8f2a4016bf667f266f7af73448fdea8a96ea706060d4a6358835",
+  "calibration_summary": {
+    "aggregate_mean_progress_fraction_by_cell": {
+      "c1_irregular_03": 0.9618338891666666,
+      "c1_irregular_08": 1.0,
+      "c1_irregular_10": 0.6394385862499999,
+      "c1_irregular_13": 0.8713621545833333
+    },
+    "aggregate_success_rate_by_cell": {
+      "c1_irregular_03": 0.6666666666666666,
+      "c1_irregular_08": 0.7083333333333334,
+      "c1_irregular_10": 0.0,
+      "c1_irregular_13": 0.0
+    },
+    "cell_aggregation": "equal_weight_mean_over_explicit_cells",
+    "cell_ids": [
+      "c1_irregular_03",
+      "c1_irregular_08",
+      "c1_irregular_10",
+      "c1_irregular_13"
+    ],
+    "episodes_per_seed_per_cell": 8,
+    "factor_diagnostics": {
+      "phase": {
+        "p1": {
+          "cell_count": 2,
+          "cell_ids": [
+            "c1_irregular_03",
+            "c1_irregular_08"
+          ],
+          "mean_progress_fraction": 0.9809169445833332,
+          "success_rate": 0.6875
+        },
+        "p2": {
+          "cell_count": 2,
+          "cell_ids": [
+            "c1_irregular_10",
+            "c1_irregular_13"
+          ],
+          "mean_progress_fraction": 0.7554003704166666,
+          "success_rate": 0.0
+        }
+      },
+      "riser_band": {
+        "high": {
+          "cell_count": 1,
+          "cell_ids": [
+            "c1_irregular_08"
+          ],
+          "mean_progress_fraction": 1.0,
+          "success_rate": 0.7083333333333334
+        },
+        "low": {
+          "cell_count": 2,
+          "cell_ids": [
+            "c1_irregular_03",
+            "c1_irregular_10"
+          ],
+          "mean_progress_fraction": 0.8006362377083333,
+          "success_rate": 0.3333333333333333
+        },
+        "target": {
+          "cell_count": 1,
+          "cell_ids": [
+            "c1_irregular_13"
+          ],
+          "mean_progress_fraction": 0.8713621545833333,
+          "success_rate": 0.0
+        }
+      },
+      "sequence_pattern": {
+        "alternating": {
+          "cell_count": 1,
+          "cell_ids": [
+            "c1_irregular_08"
+          ],
+          "mean_progress_fraction": 1.0,
+          "success_rate": 0.7083333333333334
+        },
+        "back_loaded": {
+          "cell_count": 2,
+          "cell_ids": [
+            "c1_irregular_03",
+            "c1_irregular_13"
+          ],
+          "mean_progress_fraction": 0.916598021875,
+          "success_rate": 0.3333333333333333
+        },
+        "front_loaded": {
+          "cell_count": 1,
+          "cell_ids": [
+            "c1_irregular_10"
+          ],
+          "mean_progress_fraction": 0.6394385862499999,
+          "success_rate": 0.0
+        }
+      },
+      "tread_band": {
+        "long": {
+          "cell_count": 2,
+          "cell_ids": [
+            "c1_irregular_10",
+            "c1_irregular_13"
+          ],
+          "mean_progress_fraction": 0.7554003704166666,
+          "success_rate": 0.0
+        },
+        "medium": {
+          "cell_count": 1,
+          "cell_ids": [
+            "c1_irregular_08"
+          ],
+          "mean_progress_fraction": 1.0,
+          "success_rate": 0.7083333333333334
+        },
+        "short": {
+          "cell_count": 1,
+          "cell_ids": [
+            "c1_irregular_03"
+          ],
+          "mean_progress_fraction": 0.9618338891666666,
+          "success_rate": 0.6666666666666666
+        }
+      }
+    },
+    "ordered_suite_hash": "dbf8fc2b6972fa2c593ed26553aa5bca154de0c79e36b5ccb7c97a0b7940b96d",
+    "primary_outcome_counts": {
+      "base_orientation_instability": 0,
+      "fall": 4,
+      "forbidden_contact": 34,
+      "insufficient_clearance": 0,
+      "off_course": 22,
+      "slip": 0,
+      "success": 33,
+      "timeout": 3
+    },
+    "primary_outcome_counts_by_cell": {
+      "c1_irregular_03": {
+        "base_orientation_instability": 0,
+        "fall": 1,
+        "forbidden_contact": 5,
+        "insufficient_clearance": 0,
+        "off_course": 0,
+        "slip": 0,
+        "success": 16,
+        "timeout": 2
+      },
+      "c1_irregular_08": {
+        "base_orientation_instability": 0,
+        "fall": 0,
+        "forbidden_contact": 6,
+        "insufficient_clearance": 0,
+        "off_course": 0,
+        "slip": 0,
+        "success": 17,
+        "timeout": 1
+      },
+      "c1_irregular_10": {
+        "base_orientation_instability": 0,
+        "fall": 0,
+        "forbidden_contact": 22,
+        "insufficient_clearance": 0,
+        "off_course": 2,
+        "slip": 0,
+        "success": 0,
+        "timeout": 0
+      },
+      "c1_irregular_13": {
+        "base_orientation_instability": 0,
+        "fall": 3,
+        "forbidden_contact": 1,
+        "insufficient_clearance": 0,
+        "off_course": 20,
+        "slip": 0,
+        "success": 0,
+        "timeout": 0
+      }
+    },
+    "schema_version": "true_rl_agent.task.stair_climbing.ordered_evaluation_summary.v1",
+    "score_stats": {
+      "count": 3,
+      "eval_protocol_hash": "9791e978082c66adde1d3a1365a43451ce04e37b84a5a7d2f38801953d079c2b",
+      "mean": 0.34375,
+      "standard_error": 0.018042195912175808,
+      "std": 0.03125
+    },
+    "seed_count": 3,
+    "seed_macro_scores": [
+      0.375,
+      0.34375,
+      0.3125
+    ],
+    "seed_summaries": [
+      {
+        "macro_score": 0.375,
+        "mean_progress_fraction_by_cell": {
+          "c1_irregular_03": 0.96996331875,
+          "c1_irregular_08": 1.0,
+          "c1_irregular_10": 0.67989402875,
+          "c1_irregular_13": 0.88618000125
+        },
+        "primary_outcome_counts": {
+          "base_orientation_instability": 0,
+          "fall": 2,
+          "forbidden_contact": 9,
+          "insufficient_clearance": 0,
+          "off_course": 8,
+          "slip": 0,
+          "success": 12,
+          "timeout": 1
+        },
+        "primary_outcome_counts_by_cell": {
+          "c1_irregular_03": {
+            "base_orientation_instability": 0,
+            "fall": 1,
+            "forbidden_contact": 1,
+            "insufficient_clearance": 0,
+            "off_course": 0,
+            "slip": 0,
+            "success": 6,
+            "timeout": 0
+          },
+          "c1_irregular_08": {
+            "base_orientation_instability": 0,
+            "fall": 0,
+            "forbidden_contact": 1,
+            "insufficient_clearance": 0,
+            "off_course": 0,
+            "slip": 0,
+            "success": 6,
+            "timeout": 1
+          },
+          "c1_irregular_10": {
+            "base_orientation_instability": 0,
+            "fall": 0,
+            "forbidden_contact": 7,
+            "insufficient_clearance": 0,
+            "off_course": 1,
+            "slip": 0,
+            "success": 0,
+            "timeout": 0
+          },
+          "c1_irregular_13": {
+            "base_orientation_instability": 0,
+            "fall": 1,
+            "forbidden_contact": 0,
+            "insufficient_clearance": 0,
+            "off_course": 7,
+            "slip": 0,
+            "success": 0,
+            "timeout": 0
+          }
+        },
+        "seed_index": 1,
+        "success_rate_by_cell": {
+          "c1_irregular_03": 0.75,
+          "c1_irregular_08": 0.75,
+          "c1_irregular_10": 0.0,
+          "c1_irregular_13": 0.0
+        }
+      },
+      {
+        "macro_score": 0.34375,
+        "mean_progress_fraction_by_cell": {
+          "c1_irregular_03": 0.92135399875,
+          "c1_irregular_08": 1.0,
+          "c1_irregular_10": 0.6363762675,
+          "c1_irregular_13": 0.9249359725
+        },
+        "primary_outcome_counts": {
+          "base_orientation_instability": 0,
+          "fall": 1,
+          "forbidden_contact": 13,
+          "insufficient_clearance": 0,
+          "off_course": 6,
+          "slip": 0,
+          "success": 11,
+          "timeout": 1
+        },
+        "primary_outcome_counts_by_cell": {
+          "c1_irregular_03": {
+            "base_orientation_instability": 0,
+            "fall": 0,
+            "forbidden_contact": 1,
+            "insufficient_clearance": 0,
+            "off_course": 0,
+            "slip": 0,
+            "success": 6,
+            "timeout": 1
+          },
+          "c1_irregular_08": {
+            "base_orientation_instability": 0,
+            "fall": 0,
+            "forbidden_contact": 3,
+            "insufficient_clearance": 0,
+            "off_course": 0,
+            "slip": 0,
+            "success": 5,
+            "timeout": 0
+          },
+          "c1_irregular_10": {
+            "base_orientation_instability": 0,
+            "fall": 0,
+            "forbidden_contact": 8,
+            "insufficient_clearance": 0,
+            "off_course": 0,
+            "slip": 0,
+            "success": 0,
+            "timeout": 0
+          },
+          "c1_irregular_13": {
+            "base_orientation_instability": 0,
+            "fall": 1,
+            "forbidden_contact": 1,
+            "insufficient_clearance": 0,
+            "off_course": 6,
+            "slip": 0,
+            "success": 0,
+            "timeout": 0
+          }
+        },
+        "seed_index": 2,
+        "success_rate_by_cell": {
+          "c1_irregular_03": 0.75,
+          "c1_irregular_08": 0.625,
+          "c1_irregular_10": 0.0,
+          "c1_irregular_13": 0.0
+        }
+      },
+      {
+        "macro_score": 0.3125,
+        "mean_progress_fraction_by_cell": {
+          "c1_irregular_03": 0.99418435,
+          "c1_irregular_08": 1.0,
+          "c1_irregular_10": 0.6020454625,
+          "c1_irregular_13": 0.80297049
+        },
+        "primary_outcome_counts": {
+          "base_orientation_instability": 0,
+          "fall": 1,
+          "forbidden_contact": 12,
+          "insufficient_clearance": 0,
+          "off_course": 8,
+          "slip": 0,
+          "success": 10,
+          "timeout": 1
+        },
+        "primary_outcome_counts_by_cell": {
+          "c1_irregular_03": {
+            "base_orientation_instability": 0,
+            "fall": 0,
+            "forbidden_contact": 3,
+            "insufficient_clearance": 0,
+            "off_course": 0,
+            "slip": 0,
+            "success": 4,
+            "timeout": 1
+          },
+          "c1_irregular_08": {
+            "base_orientation_instability": 0,
+            "fall": 0,
+            "forbidden_contact": 2,
+            "insufficient_clearance": 0,
+            "off_course": 0,
+            "slip": 0,
+            "success": 6,
+            "timeout": 0
+          },
+          "c1_irregular_10": {
+            "base_orientation_instability": 0,
+            "fall": 0,
+            "forbidden_contact": 7,
+            "insufficient_clearance": 0,
+            "off_course": 1,
+            "slip": 0,
+            "success": 0,
+            "timeout": 0
+          },
+          "c1_irregular_13": {
+            "base_orientation_instability": 0,
+            "fall": 1,
+            "forbidden_contact": 0,
+            "insufficient_clearance": 0,
+            "off_course": 7,
+            "slip": 0,
+            "success": 0,
+            "timeout": 0
+          }
+        },
+        "seed_index": 3,
+        "success_rate_by_cell": {
+          "c1_irregular_03": 0.5,
+          "c1_irregular_08": 0.75,
+          "c1_irregular_10": 0.0,
+          "c1_irregular_13": 0.0
+        }
+      }
+    ],
+    "split": "calibration",
+    "split_cohort_hash": "d7634713c5d420d799fc1ee7bd9f927983fa11ca970df252d358476209ccb953",
+    "total_episode_count": 96
+  },
+  "captured_repository_head": "0e958dbb1eb80ee12f72d7cd93b7f149cc784f91",
+  "cell_variant_id": "stair.g1_37dof.irregular_v1",
+  "checkpoint_safety_report": {
+    "byte_read_status": "pass",
+    "checkpoint_hash": "sha256:239cc5d2ac9ecc623f5f3811277680b36d6ff6621f7a816bdd9dfe5d719e2c5e",
+    "checkpoint_hash_match_status": "pass",
+    "expected_checkpoint_hash": "sha256:239cc5d2ac9ecc623f5f3811277680b36d6ff6621f7a816bdd9dfe5d719e2c5e",
+    "file_exists": true,
+    "loader_error_class": null,
+    "loader_error_summary": null,
+    "reason": "checkpoint_safe_to_load",
+    "schema_version": "true_rl_agent.checkpoint_safety_report.v1",
+    "status": "pass",
+    "weights_only_load_status": "pass"
+  },
+  "execution_cost": {
+    "clock_source": "time.perf_counter_ns",
+    "measurement_scope": "split_rollout_and_summary_aggregation",
+    "schema_version": "true_rl_agent.task.stair_climbing.eval_execution_cost.v1",
+    "splits": {
+      "calibration": {
+        "closed_first_episode_control_steps": 46963,
+        "evaluation_env_count_per_seed": 32,
+        "seed_count": 3,
+        "simulated_env_control_steps": 63936,
+        "vector_env_step_calls": 1998,
+        "wall_time_s": 99.602872
+      }
+    }
+  },
+  "execution_identity": {
+    "backend_execution_environment_verification": {
+      "actual_manifest_hash": "3e314c3aa47a414cb84bafcb55d7bafe7bf64f3cb7f775933600dfb05cb6aeda",
+      "backend_id": "isaac_lab_rsl_rl",
+      "expected_manifest_hash": "3e314c3aa47a414cb84bafcb55d7bafe7bf64f3cb7f775933600dfb05cb6aeda",
+      "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+      "status": "pass"
+    },
+    "checkpoint_hash": "sha256:239cc5d2ac9ecc623f5f3811277680b36d6ff6621f7a816bdd9dfe5d719e2c5e",
+    "environment_source_preflight": {
+      "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+      "source_manifest_hash": "f5c5edffe857a905d60e1ffea1a0ceca0aa586c247fe62883b329f598b9ad94b",
+      "status": "pass",
+      "task_protocol_hash": "1433c212211cf3af3eedd2654791137c24d0e045f4205bbb227057b396c1cbe6"
+    },
+    "execution_device": "cuda:0",
+    "schema_version": "true_rl_agent.task.stair_climbing.eval_execution_identity.v1",
+    "seed_cohort_hash": "a64f5bf7a54a50214c42c843d3899e45cf2342546ecfdef535bc7c57188b23f0",
+    "seed_namespace": "c1_irregular_terrain_calibration_v1",
+    "splits": [
+      "calibration"
+    ]
+  },
+  "head_identity_semantics": "provenance only; normalized source bytes bind execution",
+  "product_source_hash_mode": "normalized_lf_sha256",
+  "product_source_hashes": {
+    "configs/tasks/stair_g1_37dof_irregular_acceptance_protocol_v1.json": "81dd34910a6e15afaf6be6cc6f25775ec906dcfd8f8de038f1a19fb9e1f197f0",
+    "configs/tasks/stair_g1_37dof_irregular_calibration_protocol_v1.json": "609dbddf43e4b9f0a852d7e497440097e8f3bdd9ba50a88a6e055812be5d43e5",
+    "configs/tasks/stair_g1_37dof_irregular_evaluation_suite_v1.json": "75dfecb17bd56cc14d6b8ed2d7d46e0a2055d5b4e53fcdc227639a3a4c613040",
+    "configs/tasks/stair_g1_37dof_irregular_reference_gate_v1.json": "bd5c41b3e9ca3cbcc1ad3af6c1636debfe2a021e55ad974ff3f5a9efff9e64b0",
+    "src/true_rl_agent/tasks/stair_climbing/irregular_calibration.py": "3bcbc46dbe75cadd267227c1c7d82d23573d2357b769bdb1245a1c3ada6d9c7e",
+    "src/true_rl_agent/tasks/stair_climbing/isaaclab_execution.py": "ea969d203b9ed16ad276aa0103d73a459d170e8275e74ebfb3762ead3b052c14",
+    "src/true_rl_agent/tasks/stair_climbing/isaaclab_runtime_env.py": "d0d7aa4a961894b3bbfa899a016e82378a6c19ca149f7bf82aa0287bb758494b",
+    "src/true_rl_agent/tasks/stair_climbing/ordered_evaluation.py": "501feec658015084c05bad50b25bc3f5046f635412cd30aa818a173e50238870",
+    "src/true_rl_agent/tasks/stair_climbing/ordered_summary.py": "67d15b3f7251a9a42f8d02aea93bd1369a748570ac86beddf1467852c20ce214",
+    "src/true_rl_agent/tasks/stair_climbing/seed_policy.py": "9ccb4fe217caf8178a81b3b44ee1e0534065f485a2e5f7364da6230eb8a0f36b"
+  },
+  "receipt_hash": "cd6758402fec14f3ccd3ba250be30929a81a40a3736212e96a846c370cee1839",
+  "resolved_cell_manifest_hash": "1af180a15fbdb448e45c34d6ce7c33a0a99250a92ec37cdfc777eafa7caf68a8",
+  "resolved_cell_task_protocol_hash": "1433c212211cf3af3eedd2654791137c24d0e045f4205bbb227057b396c1cbe6",
+  "schema_version": "true_rl_agent.variant_construction.phase3a_calibration_receipt.v1",
+  "status": "fail",
+  "terrain_qualification": {
+    "active_acceptance_protocol_hash": "4a41bcc09b559d8e0181e7b920e9bed5985b7ee851ce3347bb343ffb620e96a6",
+    "anchor_checkpoint_sha256": "sha256:239cc5d2ac9ecc623f5f3811277680b36d6ff6621f7a816bdd9dfe5d719e2c5e",
+    "calibration_cohort_hash": "d7634713c5d420d799fc1ee7bd9f927983fa11ca970df252d358476209ccb953",
+    "calibration_protocol_hash": "c5e679b8d82b8f2a4016bf667f266f7af73448fdea8a96ea706060d4a6358835",
+    "calibration_seed_count": 3,
+    "checks": {
+      "easy_capability": false,
+      "harder_than_target": false,
+      "target_nontrivial": true
+    },
+    "ordered_suite_hash": "dbf8fc2b6972fa2c593ed26553aa5bca154de0c79e36b5ccb7c97a0b7940b96d",
+    "reference_capability_gate_hash": "96ae66e9d46fe8c3f1728d1ca2fab8e68dea25f94320bb3ef30fa9186cc2bdfe",
+    "result_hash": "2aa71a9c9a55e256aa092f553aa72aa3fed4f0bda49a538487268dd8f97c02ae",
+    "role_measurements": {
+      "coverage_probe": {
+        "cell_id": "c1_irregular_03",
+        "mean_progress_fraction": 0.9618338891666666,
+        "success_rate": 0.6666666666666666
+      },
+      "easy": {
+        "cell_id": "c1_irregular_10",
+        "mean_progress_fraction": 0.6394385862499999,
+        "success_rate": 0.0
+      },
+      "hard": {
+        "cell_id": "c1_irregular_08",
+        "mean_progress_fraction": 1.0,
+        "success_rate": 0.7083333333333334
+      },
+      "target": {
+        "cell_id": "c1_irregular_13",
+        "mean_progress_fraction": 0.8713621545833333,
+        "success_rate": 0.0
+      }
+    },
+    "schema_version": "true_rl_agent.task.stair_climbing.irregular_calibration_result.v1",
+    "terrain_profile_status": "fail"
+  }
+}

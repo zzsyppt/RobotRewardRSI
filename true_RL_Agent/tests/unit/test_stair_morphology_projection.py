@@ -18,13 +18,12 @@ from true_rl_agent.robots.base import (  # noqa: E402
     SemanticRole,
 )
 from true_rl_agent.robots.defaults import (  # noqa: E402
+    G1_37DOF_ISAACLAB_GROUPED_ADAPTER_ID,
+    G1_37DOF_ISAACLAB_GROUPED_PROFILE_ID,
     G1_37DOF_ISAACLAB_PROFILE_ID,
     build_default_robot_registry,
 )
 from true_rl_agent.robots.registry import RobotRegistry  # noqa: E402
-from true_rl_agent.tasks.stair_climbing.composition import (  # noqa: E402
-    StairClimbingCompositionConfig,
-)
 from true_rl_agent.tasks.stair_climbing.plugin import (  # noqa: E402
     StairClimbingTaskPlugin,
 )
@@ -33,6 +32,12 @@ from true_rl_agent.tasks.stair_climbing.robot_binding import (  # noqa: E402
     build_stair_cell_catalog,
     compile_stair_cell_manifest,
     resolve_stair_cell_manifest,
+)
+from true_rl_agent.tasks.stair_climbing.config import (  # noqa: E402
+    StairClimbingTaskConfig,
+)
+from true_rl_agent.tasks.stair_climbing.unified_protocol import (  # noqa: E402
+    STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
 )
 from true_rl_agent.tasks.stair_climbing.runtime_projection import (  # noqa: E402
     STAIR_KINEMATIC_BASE_ARTICULATION_ROOT,
@@ -46,9 +51,10 @@ from true_rl_agent.tasks.stair_climbing.runtime_projection import (  # noqa: E40
 class StairMorphologyProjectionTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.config = StairClimbingCompositionConfig.defaults(
-            project_root=ROOT
-        ).to_task_config(project_root=ROOT)
+        cls.config = StairClimbingTaskConfig.defaults(
+            ROOT / "configs/tasks/stair_protocol_v2.json",
+            cell_variant_id=STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID,
+        )
         cls.plugin = StairClimbingTaskPlugin(cls.config)
         cls.definition = build_stair_cell_catalog(
             config=cls.config,
@@ -194,6 +200,121 @@ class StairMorphologyProjectionTests(unittest.TestCase):
             self.assertEqual(fields["joint_pos"], (expected[0],))
             self.assertEqual(fields["last_action"], (expected[1],))
 
+    def test_unified_cell_uses_versioned_profile_joint_groups(self) -> None:
+        config = StairClimbingTaskConfig.defaults(
+            ROOT / "configs/tasks/stair_unified_protocol_v1.json",
+            cell_variant_id=STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
+        )
+        manifest = resolve_stair_cell_manifest(
+            cell_variant_id=STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
+            config=config,
+            plugin=StairClimbingTaskPlugin(config),
+        )
+        self.assertEqual(
+            manifest.robot_profile["robot_profile_id"],
+            G1_37DOF_ISAACLAB_GROUPED_PROFILE_ID,
+        )
+        self.assertEqual(
+            manifest.runtime_adapter["runtime_adapter_id"],
+            G1_37DOF_ISAACLAB_GROUPED_ADAPTER_ID,
+        )
+        grouped = self.default_registry.profile(
+            G1_37DOF_ISAACLAB_GROUPED_PROFILE_ID
+        )
+        legacy = self.default_registry.profile(G1_37DOF_ISAACLAB_PROFILE_ID)
+        self.assertEqual(grouped.runtime_facts, legacy.runtime_facts)
+        all_joints = grouped.semantic_roles["joint_group.all"].targets
+        groups = {
+            role_id: role.targets
+            for role_id, role in grouped.semantic_roles.items()
+            if role_id.startswith("joint_group.") and role_id != "joint_group.all"
+        }
+        self.assertEqual(
+            groups["joint_group.ankle"],
+            tuple(name for name in all_joints if "_ankle_" in name),
+        )
+        self.assertEqual(
+            groups["joint_group.locomotion"],
+            tuple(
+                name
+                for name in all_joints
+                if any(token in name for token in ("_hip_", "_knee_", "_ankle_"))
+            ),
+        )
+        self.assertEqual(
+            groups["joint_group.hip_knee"],
+            tuple(
+                name
+                for name in all_joints
+                if "_hip_" in name or "_knee_" in name
+            ),
+        )
+        projection = stair_runtime_projection_from_manifest(manifest)
+        self.assertEqual(
+            {role_id: len(names) for role_id, names in projection.joint_groups},
+            {
+                "joint_group.ankle": 4,
+                "joint_group.arm": 10,
+                "joint_group.finger": 14,
+                "joint_group.hip_knee": 8,
+                "joint_group.hip_yaw_roll": 4,
+                "joint_group.locomotion": 12,
+                "joint_group.torso": 1,
+            },
+        )
+        fields = {
+            field.name: field.trailing_shape
+            for field in projection.reward_input_fields_vnext
+        }
+        self.assertEqual(fields["ankle_group_pos"], (4,))
+        self.assertEqual(fields["ankle_group_soft_pos_limits"], (4, 2))
+        self.assertEqual(fields["locomotion_group_torque"], (12,))
+        self.assertEqual(fields["hip_knee_group_acc"], (8,))
+
+    def test_binding_can_request_a_new_profile_group_without_projection_code(self) -> None:
+        profile, adapter, binding, _ = self._execution_fixture(4)
+        all_joints = profile.semantic_roles["joint_group.all"].targets
+        role_id = "joint_group.thigh"
+        profile = replace(
+            profile,
+            semantic_roles={
+                **profile.semantic_roles,
+                role_id: SemanticRole(role_id, "joint", all_joints[:2]),
+            },
+            profile_hash=None,
+        )
+        task_projection = copy.deepcopy(dict(binding.task_projection))
+        task_projection["stair_runtime_projection"][
+            "reward_joint_group_inputs"
+        ] = [{"role_id": role_id, "source": "joint_torque"}]
+        binding = replace(
+            binding,
+            task_projection=task_projection,
+            binding_hash=None,
+        )
+        projection = stair_runtime_projection_from_execution(
+            profile=profile,
+            adapter=adapter,
+            binding=binding,
+        )
+        fields = {
+            field.name: field.trailing_shape
+            for field in projection.reward_input_fields_vnext
+        }
+        self.assertEqual(fields["thigh_group_torque"], (2,))
+        self.assertEqual(
+            projection.joint_group_input_specs,
+            (
+                (
+                    "thigh_group_torque",
+                    "joint_group.thigh",
+                    "joint_torque",
+                    "N*m",
+                    (),
+                ),
+            ),
+        )
+
     def test_runtime_ids_are_resolved_from_projection_and_reported(self) -> None:
         profile, adapter, binding, _ = self._execution_fixture(4)
         projection = stair_runtime_projection_from_execution(
@@ -324,6 +445,11 @@ class StairMorphologyProjectionTests(unittest.TestCase):
             "plugin.py",
             "prompt_adapter.py",
         )
+        shared_role_vocabulary = {
+            str(role_name)
+            for profile_id in self.default_registry.profile_ids()
+            for role_name in self.default_registry.profile(profile_id).semantic_roles
+        }
         concrete_robot_names = {
             str(name)
             for profile_id in self.default_registry.profile_ids()
@@ -331,6 +457,7 @@ class StairMorphologyProjectionTests(unittest.TestCase):
             for name in self.default_registry.profile(profile_id).runtime_facts.get(
                 key, ()
             )
+            if str(name) not in shared_role_vocabulary
         }
         forbidden_source_markers = (
             "_FOOT_BODY_NAMES",

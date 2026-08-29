@@ -34,6 +34,8 @@ RESOLVED_CELL_MANIFEST_FILENAME = "resolved_cell_manifest.json"
 LEGACY_TRAINING_BINDING_V1_GRANT_SCHEMA_VERSION = (
     "true_rl_agent.legacy_training_binding_v1_grant.v1"
 )
+CELL_PROTOCOL_STATES = frozenset({"draft", "active", "archived"})
+CELL_PROTOCOL_STATE_SCHEMA_VERSION = "true_rl_agent.cell_protocol_state.v1"
 
 
 @dataclass(frozen=True)
@@ -209,6 +211,7 @@ class CellVariantDefinition:
     environment: CellEnvironmentDescriptor
     contract_hashes: Mapping[str, str]
     legacy_training_binding_v1_grant_hash: str | None = None
+    protocol_state: str = "active"
 
     def __post_init__(self) -> None:
         require_versioned_id(self.cell_variant_id, "cell_variant_id")
@@ -250,10 +253,22 @@ class CellVariantDefinition:
                 self.legacy_training_binding_v1_grant_hash,
                 "legacy TrainingBindingV1 grant hash",
             )
+        if self.protocol_state not in CELL_PROTOCOL_STATES:
+            raise ValueError("cell protocol_state is invalid")
         object.__setattr__(
             self,
             "contract_hashes",
             MappingProxyType(normalized_hashes),
+        )
+
+    @property
+    def protocol_state_hash(self) -> str:
+        return canonical_json_hash(
+            {
+                "schema_version": CELL_PROTOCOL_STATE_SCHEMA_VERSION,
+                "cell_variant_id": self.cell_variant_id,
+                "protocol_state": self.protocol_state,
+            }
         )
 
 
@@ -370,6 +385,15 @@ class CellVariantCatalog:
 
     def ids(self) -> tuple[str, ...]:
         return tuple(sorted(self._items))
+
+    def require_active(self, cell_variant_id: str) -> CellVariantDefinition:
+        definition = self.resolve(cell_variant_id)
+        if definition.protocol_state != "active":
+            raise ValueError(
+                "cell protocol is not active: "
+                f"{cell_variant_id} ({definition.protocol_state})"
+            )
+        return definition
 
 
 @dataclass(frozen=True)
@@ -849,6 +873,8 @@ def _profile_manifest_descriptor(profile: RobotProfile) -> dict[str, Any]:
 
 __all__ = [
     "CELL_ENVIRONMENT_SCHEMA_VERSION",
+    "CELL_PROTOCOL_STATES",
+    "CELL_PROTOCOL_STATE_SCHEMA_VERSION",
     "LEGACY_TRAINING_BINDING_V1_GRANT_SCHEMA_VERSION",
     "RESOLVED_CELL_MANIFEST_FILENAME",
     "RESOLVED_CELL_MANIFEST_SCHEMA_VERSION",

@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import copy
 import math
-from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass, field
 from typing import Any
 
 from true_rl_agent.agent_core.context import (
@@ -22,17 +23,22 @@ from true_rl_agent.candidates.schema import (
     MAX_CANDIDATE_ID_CHARS,
     require_candidate_id,
 )
+from true_rl_agent.composition.cell_manifest import ResolvedCellManifestV1
 from true_rl_agent.evaluation.acceptance_protocol import (
     AcceptanceProtocol,
     validated_score_samples,
 )
 from true_rl_agent.evaluation.binding import require_sha256_checksum
 from true_rl_agent.evaluation.score_stats import validate_score_stats
-from true_rl_agent.prompting.serialization import canonical_prompt_json_bytes
 from true_rl_agent.prompting.capacity import build_prompt_capacity_receipt
+from true_rl_agent.prompting.serialization import canonical_prompt_json_bytes
 from true_rl_agent.tasks.prompt_adapter import (
     MAX_TASK_PROMPT_SECTIONS_BYTES,
+    PromptPublicHistoryProjection,
     sanitize_task_prompt_sections,
+)
+from true_rl_agent.tasks.stair_climbing.component_smoke import (
+    StairClimbingComponentSmokeAdapter,
 )
 from true_rl_agent.tasks.stair_climbing.config import (
     STAIR_TASK_ID,
@@ -59,6 +65,14 @@ from true_rl_agent.tasks.stair_climbing.session_start import (
     StairSessionStartProfile,
     resolve_stair_session_start_profile,
 )
+from true_rl_agent.tasks.stair_climbing.unified_training import (
+    STAIR_TERRAIN_REGIME_C2,
+)
+from true_rl_agent.tasks.stair_climbing.unified_scoring import (
+    UNIFIED_STAIR_PROMPT_OBJECTIVE_SCORE_SOURCE,
+    build_unified_stair_prompt_feedback,
+    unified_stair_prompt_named_guard_score_source,
+)
 
 _SCRUBBED_KEY_PARTS = (
     "raw_seed",
@@ -82,6 +96,9 @@ _LEGACY_COMPACT_FEEDBACK_SCHEMA_VERSION = (
 _COMPACT_FEEDBACK_PROJECTION_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.feedback_entry_projection.v6"
 )
+_STRATUM_FEEDBACK_TABLE_SCHEMA_VERSION = (
+    "true_rl_agent.task.stair_climbing.stratum_feedback_table.v2"
+)
 _COMPACT_FEEDBACK_SOURCE_SPLIT = "public_dev"
 _COMPACT_COUNT_GRID_ROW_SEPARATOR = ";"
 _COMPACT_COUNT_GRID_COLUMN_SEPARATOR = ","
@@ -95,10 +112,56 @@ _COMPACT_FEEDBACK_KEYS = (
 )
 _COMPACT_GENERALIZATION_KEYS = (
     "public_dev_objective_score",
+    "j_id",
+    "j_ood",
+    "named_guard_scores",
+    "family_scores",
+    "qualified_ood_families",
+    "objective_family_mask_hash",
     "success_count_grid",
     "zero_count_grids_omitted",
     "primary_failure_count_grids",
+    "ordered_suite_hash",
+    "split_cohort_hash",
+    "success_rate_by_cell",
+    "factor_diagnostics",
+    "stratum_diagnostics",
 )
+
+
+def _unified_suite_prompt_projection(suite: Any) -> dict[str, Any]:
+    """Project public suite semantics without copying its task-owned declarations."""
+
+    cells = suite.cells_for_cohort("public_dev")
+    if not cells:
+        raise ValueError("unified Stair public_dev suite is empty")
+
+    strata: list[str] = []
+    cell_counts: dict[str, int] = {}
+    claim_kinds: dict[str, str] = {}
+    for cell in cells:
+        stratum = str(cell.stratum_id)
+        claim_kind = str(cell.claim_kind)
+        if stratum not in cell_counts:
+            strata.append(stratum)
+            cell_counts[stratum] = 0
+            claim_kinds[stratum] = claim_kind
+        elif claim_kinds[stratum] != claim_kind:
+            raise ValueError(
+                f"unified Stair stratum {stratum!r} mixes claim kinds"
+            )
+        cell_counts[stratum] += 1
+
+    unique_counts = set(cell_counts.values())
+    if len(unique_counts) != 1:
+        raise ValueError("unified Stair prompt requires equal cells per stratum")
+    return {
+        "strata": strata,
+        "cells_per_stratum": unique_counts.pop(),
+        "claim_kinds_by_stratum": claim_kinds,
+    }
+
+
 _DETAILED_FEEDBACK_SELECTION_LABELS = frozenset(
     {
         "reference_current_best",
@@ -125,22 +188,31 @@ _MAX_GENERATION_TRIAL_ID_CHARS = _MAX_GENERATION_HISTORY_ID_CHARS + max(
 class StairClimbingPromptAdapter:
     config: StairClimbingTaskConfig
     session_start_profile: StairSessionStartProfile | None = None
+    resolved_cell_manifest: ResolvedCellManifestV1 | None = field(
+        default=None,
+        repr=False,
+        compare=False,
+    )
     task_id: str = STAIR_TASK_ID
+    objective_family_mask_provider: (
+        Callable[[], Mapping[str, Any] | None] | None
+    ) = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.config, StairClimbingTaskConfig):
             raise TypeError("stair prompt adapter requires StairClimbingTaskConfig")
+        if self.config.is_unified_protocol and not isinstance(
+            self.resolved_cell_manifest,
+            ResolvedCellManifestV1,
+        ):
+            raise ValueError("Stair VNext prompt requires the resolved manifest")
         profile = self.session_start_profile
-        production_training = self.config.protocol_v2.to_public_dict()[
-            "production_training"
-        ]
+        training_binding_hash = self.config.formal_training_binding().binding_hash
         if profile is None:
             profile = resolve_stair_session_start_profile(
                 STAIR_DEFAULT_START_MODE,
                 task_protocol_hash=self.config.task_protocol_hash,
-                training_binding_hash=production_training[
-                    "formal_training_binding_hash"
-                ],
+                training_binding_hash=training_binding_hash,
             )
             object.__setattr__(self, "session_start_profile", profile)
         if not isinstance(profile, StairSessionStartProfile):
@@ -151,7 +223,7 @@ class StairClimbingPromptAdapter:
             raise ValueError("stair prompt start profile protocol mismatch")
         if (
             profile.training_binding_hash
-            != production_training["formal_training_binding_hash"]
+            != self.config.formal_training_binding().binding_hash
         ):
             raise ValueError("stair prompt start profile training binding mismatch")
 
@@ -162,8 +234,19 @@ class StairClimbingPromptAdapter:
         public_context: Mapping[str, Any],
     ) -> Mapping[str, Any]:
         policy = self.prompt_public_record_scrub_policy()
+        prompt_projection = self.project_prompt_public_history(
+            public_records=public_records,
+            initial_anchor_public_evidence=(
+                public_context.get("initial_anchor_public_evidence")
+                if isinstance(
+                    public_context.get("initial_anchor_public_evidence"),
+                    Mapping,
+                )
+                else None
+            ),
+        )
         safe_records = sanitize_public_records_with_policy(
-            public_records,
+            prompt_projection.records,
             blocked_key_parts=policy["blocked_key_parts"],
             blocked_text_parts=policy["blocked_text_parts"],
         )
@@ -171,10 +254,24 @@ class StairClimbingPromptAdapter:
             _latest_generation_trial_comparisons(
                 safe_records,
                 config=self.config,
+                objective_family_mask_provider=(
+                    self.objective_family_mask_provider
+                ),
             )
         )
+        prompt_context = (
+            _project_unified_prompt_public_context(
+                public_context,
+                config=self.config,
+                objective_family_mask_provider=(
+                    self.objective_family_mask_provider
+                ),
+            )
+            if self.config.is_unified_protocol
+            else public_context
+        )
         safe_context = sanitize_public_value_with_policy(
-            public_context,
+            prompt_context,
             blocked_key_parts=policy["blocked_key_parts"],
             blocked_text_parts=policy["blocked_text_parts"],
         )
@@ -193,6 +290,7 @@ class StairClimbingPromptAdapter:
                 safe_records,
                 safe_context,
                 latest_generation_trial_comparisons=safe_comparisons,
+                use_public_dev_objective=self.config.is_unified_protocol,
             ),
             runtime_feedback=runtime_feedback,
         )
@@ -207,7 +305,7 @@ class StairClimbingPromptAdapter:
 
         sections = self._prompt_sections(
             public_feedback=_stair_capacity_preflight_feedback(
-                self.config.evaluation_profile_config
+                self.config
             ),
             runtime_feedback={
                 "schema_version": (
@@ -234,7 +332,10 @@ class StairClimbingPromptAdapter:
         return {
             "task": self._task_section(),
             "reward_inputs_contract": stair_reward_input_prompt_contract(
-                self.config.protocol_v2.complete_reward_runtime
+                StairClimbingComponentSmokeAdapter(
+                    self.config,
+                    resolved_cell_manifest=self.resolved_cell_manifest,
+                ).contract
             ),
             "public_eval_contract": self._public_eval_contract(),
             "public_feedback_summary": dict(public_feedback),
@@ -265,16 +366,24 @@ class StairClimbingPromptAdapter:
             "Code plus verifier/runtime evidence are authoritative over prose rationale; "
             "claim a maximum weighted contribution only with conditions, clips, weight, "
             "and an analytic bound.",
-            "Objective materiality and the guard cap are conjunctive; neither can "
-            "compensate. When "
-            "goal_not_reached_detected is frequent, preserve locomotion/obstacle "
-            "capacity; penalties alone are insufficient.",
             "Stable success is stable_success_summary.stable_top_success_rate; "
             "valid_top_arrival_rate is diagnostic-only, and their gap means arrival "
             "without stable success.",
             "post_arrival_safety_failure_detected marks failure after top arrival and "
             "before stable success.",
         ]
+        if self.config.is_unified_protocol:
+            guidance.append(
+                "Optimize J_primary=(2*J_OOD+J_ID)/3 while all three runner-owned "
+                "named guards J_OOD, C0-ID, and C1-ID remain within their paired "
+                "non-regression tolerances; no score can compensate for a failed guard."
+            )
+        else:
+            guidance.append(
+                "Objective materiality and the guard cap are conjunctive; neither can "
+                "compensate. When goal_not_reached_detected is frequent, preserve "
+                "locomotion/obstacle capacity; penalties alone are insufficient."
+            )
         if profile.profile_id == STAIR_REFERENCE_START_MODE:
             guidance.append(
                 "Match candidate feedback to source_catalog by candidate_id and "
@@ -310,7 +419,52 @@ class StairClimbingPromptAdapter:
             "blocked_text_parts": _SCRUBBED_KEY_PARTS,
         }
 
+    def project_prompt_public_history(
+        self,
+        *,
+        public_records: Sequence[Mapping[str, Any]],
+        initial_anchor_public_evidence: Mapping[str, Any] | None,
+    ) -> PromptPublicHistoryProjection:
+        if not self.config.is_unified_protocol:
+            return PromptPublicHistoryProjection(
+                records=tuple(dict(record) for record in public_records),
+            )
+        projected = tuple(
+            _project_unified_prompt_public_record(
+                record,
+                config=self.config,
+                objective_family_mask_provider=(
+                    self.objective_family_mask_provider
+                ),
+            )
+            for record in public_records
+        )
+        anchor_score = None
+        if initial_anchor_public_evidence is not None:
+            anchor_result = _mapping(
+                initial_anchor_public_evidence.get("public_result")
+            )
+            anchor_feedback = _validated_unified_prompt_feedback(
+                anchor_result,
+                config=self.config,
+                objective_family_mask_provider=(
+                    self.objective_family_mask_provider
+                ),
+            )
+            anchor_score = _prompt_feedback_objective_score(anchor_feedback)
+            if anchor_score is None:
+                raise ValueError(
+                    "unified Stair initial anchor lacks public_dev prompt score"
+                )
+        return PromptPublicHistoryProjection(
+            records=projected,
+            public_score_source=UNIFIED_STAIR_PROMPT_OBJECTIVE_SCORE_SOURCE,
+            initial_anchor_score=anchor_score,
+        )
+
     def _task_section(self) -> dict[str, Any]:
+        if self.config.is_unified_protocol:
+            return self._unified_task_section()
         base = self.config.protocol_v1.to_dict()
         evaluation = self.config.evaluation_protocol().to_public_dict()
         outcomes = self.config.episode_outcomes()
@@ -386,8 +540,147 @@ class StairClimbingPromptAdapter:
             ],
         }
 
+    def _unified_task_section(self) -> dict[str, Any]:
+        protocol = self.config.unified_protocol
+        training = protocol.training
+        training_profile = self.config.unified_training_profile
+        suite = self.config.ordered_evaluation_suite
+        suite_projection = _unified_suite_prompt_projection(suite)
+        profile_payload = training_profile.to_dict()
+        training_exposure = profile_payload["training_exposure"]
+        training_phases = {
+            int(training_profile.pattern(pattern_id)["training_phase_steps"])
+            for pattern_id in training_profile.pattern_ids
+        }
+        if len(training_phases) != 1:
+            raise ValueError("unified Stair prompt requires one training phase")
+        c2_training_exposure = (
+            "forbidden"
+            if STAIR_TERRAIN_REGIME_C2 in training_exposure["forbidden_regimes"]
+            and STAIR_TERRAIN_REGIME_C2 not in training_exposure["allowed_regimes"]
+            else "allowed"
+        )
+        authority = protocol.to_dict()["candidate_authority"]
+        return {
+            "schema_version": "true_rl_agent.task_prompt.stair_climbing.v4",
+            "task_id": self.task_id,
+            "name": "Stair Climbing",
+            "objective": (
+                "Improve one reward program for the unified Stair task across runner-owned "
+                "C0/C1 training regimes, with OOD performance as the primary emphasis and "
+                "in-distribution performance protected by named guards."
+            ),
+            "candidate_authoring_status": "complete_reward_program_only",
+            "fixed_train_protocol_summary": {
+                "budget_steps": self.config.budget_steps,
+                "train_num_envs": self.config.train_num_envs,
+                "train_max_iterations": self.config.train_max_iterations,
+                "train_steps_per_iteration": self.config.train_steps_per_iteration,
+                "policy_initialization": training["policy_initialization"],
+                "terrain_regime_allocation": dict(training_profile.allocation),
+                "c0_support": dict(training_profile.terrain["c0"]),
+                "c1_support": dict(training_profile.terrain["c1"]),
+                "c1_pattern_families": list(training_profile.pattern_ids),
+                "c1_training_phase_steps": training_phases.pop(),
+                "c2_training_exposure": c2_training_exposure,
+                "adaptive_difficulty_authority": "runner_owned",
+                "complete_reward_runtime_available": True,
+            },
+            "fixed_eval_protocol_summary": {
+                **self.config.evaluation_protocol().to_public_dict(),
+                "ordered_evaluation_suite_hash": suite.suite_hash,
+                "strata": suite_projection["strata"],
+                "cells_per_stratum": suite_projection["cells_per_stratum"],
+                "episodes_per_seed_per_cell": suite.episodes_per_seed_per_cell,
+                "seed_values_exposed": False,
+                "statistics_unit": "cell_then_stratum_then_paired_seed",
+                "success_criteria": _success_criteria_prompt_contract(
+                    self.config.episode_outcomes()
+                ),
+            },
+            "primary_outcomes": list(self.config.episode_outcomes()["primary_reasons"]),
+            "diagnostic_flags": list(
+                self.config.episode_outcomes()["diagnostic_flags"]
+            ),
+            "candidate_must_not_change": [
+                "checkpoint_policy" if item == "checkpoint_selector" else str(item)
+                for item in authority["runner_owned_components"]
+            ],
+        }
+
     def _public_eval_contract(self) -> dict[str, Any]:
         acceptance_protocol = self.config.acceptance_protocol
+        if self.config.is_unified_protocol:
+            suite = self.config.ordered_evaluation_suite
+            suite_projection = _unified_suite_prompt_projection(suite)
+            score_contract = suite.score_contract
+            exposure = self.config.unified_training_profile.to_dict()[
+                "training_exposure"
+            ]
+            c2_strata = {
+                str(cell.stratum_id)
+                for cell in suite.cells_for_cohort("public_dev")
+                if str(cell.terrain_regime_id) == STAIR_TERRAIN_REGIME_C2
+            }
+            c2_is_evaluation_only = (
+                len(c2_strata) == 1
+                and c2_strata <= set(suite_projection["strata"])
+                and STAIR_TERRAIN_REGIME_C2 in exposure["forbidden_regimes"]
+                and STAIR_TERRAIN_REGIME_C2 not in exposure["allowed_regimes"]
+            )
+            if not c2_is_evaluation_only:
+                raise ValueError(
+                    "unified Stair C2 prompt claim requires zero training exposure"
+                )
+            return {
+                "schema_version": "true_rl_agent.public_eval_contract.stair.unified.v3",
+                "prompt_score_semantics": {
+                    "score_sources_by_role": {
+                        "objective_score": (
+                            UNIFIED_STAIR_PROMPT_OBJECTIVE_SCORE_SOURCE
+                        ),
+                        "named_guards": {
+                            guard.name: unified_stair_prompt_named_guard_score_source(
+                                guard.name
+                            )
+                            for guard in acceptance_protocol.named_guards
+                        },
+                    },
+                    "source_split": "public_dev",
+                    "acceptance_result_metrics_visible": False,
+                },
+                "primary_objective": str(score_contract["j_primary"]),
+                "objective_structure": {
+                    "j_id": str(score_contract["j_id"]),
+                    "j_ood": str(score_contract["j_ood"]),
+                    "ood_families": {
+                        str(name): list(stratum_ids)
+                        for name, stratum_ids in score_contract["families"].items()
+                    },
+                    "family_mask": {
+                        "source_split": "public_accept_reference",
+                        "mode": suite.qualification_rule["family_mask_mode"],
+                        "minimum_reference_score": suite.qualification_rule[
+                            "minimum_reference_score"
+                        ],
+                        "frozen_for_session": True,
+                    },
+                },
+                "named_non_regression_guards": list(
+                    score_contract["named_guards"]
+                ),
+                "aggregation": "episode_to_cell_to_stratum_to_paired_seed",
+                "generalization_claims": dict(
+                    suite_projection["claim_kinds_by_stratum"]
+                ),
+                "c2_evidence_scope": (
+                    "current evaluation-only surface/contact mechanism shift; "
+                    "zero training exposure; height-scan policy salience not claimed"
+                ),
+                "public_feedback_source": "public_dev_unified_stratum_projection",
+                "primary_failure_is_mutually_exclusive": True,
+                "classification_warnings_block_pass": True,
+            }
         if self.config.evaluation_profile_config is None:
             return {
                 "schema_version": "true_rl_agent.public_eval_contract.stair.v2",
@@ -423,12 +716,19 @@ def _public_feedback_summary(
     public_context: Mapping[str, Any],
     *,
     latest_generation_trial_comparisons: Sequence[Mapping[str, Any]],
+    use_public_dev_objective: bool = False,
 ) -> dict[str, Any]:
-    candidates = _candidate_feedback_entries(public_records)
+    candidates = _candidate_feedback_entries(
+        public_records,
+        use_public_dev_objective=use_public_dev_objective,
+    )
     selected = _select_candidate_feedback_entries(candidates)
     entries: list[dict[str, Any]] = []
     if not any(entry["accepted"] is True for entry in candidates):
-        anchor = _reference_anchor_feedback_entry(public_context)
+        anchor = _reference_anchor_feedback_entry(
+            public_context,
+            use_public_dev_objective=use_public_dev_objective,
+        )
         if anchor is not None:
             entries.append(anchor)
     entries.extend(selected)
@@ -464,9 +764,10 @@ def _public_feedback_summary(
         }
         if comparisons:
             summary["latest_generation_trial_comparisons"] = comparisons
-            summary["latest_generation_trial_comparison_basis"] = (
-                "public_accept_vs_parent"
-            )
+            if any("objective_delta" in item for item in comparisons):
+                summary["latest_generation_trial_comparison_basis"] = (
+                    "public_accept_vs_parent"
+                )
             summary["limits"]["max_latest_generation_trial_comparisons"] = (
                 _MAX_LATEST_GENERATION_TRIAL_COMPARISONS
             )
@@ -489,6 +790,9 @@ def _latest_generation_trial_comparisons(
     public_records: Sequence[Mapping[str, Any]],
     *,
     config: StairClimbingTaskConfig,
+    objective_family_mask_provider: (
+        Callable[[], Mapping[str, Any] | None] | None
+    ) = None,
 ) -> list[dict[str, Any]]:
     """Project the latest generation that has public-complete sibling evidence."""
 
@@ -502,6 +806,7 @@ def _latest_generation_trial_comparisons(
             comparisons = _generation_trial_comparisons(
                 generation,
                 config=config,
+                objective_family_mask_provider=objective_family_mask_provider,
             )
             if (
                 len(comparisons) == len(GENERATION_LANE_IDS)
@@ -516,6 +821,9 @@ def _generation_trial_comparisons(
     generation: Mapping[str, Any],
     *,
     config: StairClimbingTaskConfig,
+    objective_family_mask_provider: (
+        Callable[[], Mapping[str, Any] | None] | None
+    ) = None,
 ) -> list[dict[str, Any]]:
     generation_id = generation.get("generation_id")
     if (
@@ -527,15 +835,31 @@ def _generation_trial_comparisons(
 
     trials = generation.get("trials")
     parent_mapping = generation.get("parent_current_best")
-    if not isinstance(trials, list) or not isinstance(parent_mapping, Mapping):
+    if not isinstance(trials, list):
         raise ValueError("Stair generation prompt comparison evidence is invalid")
+    if config.is_unified_protocol:
+        return _generation_public_dev_trial_summaries(
+            generation,
+            trials=trials,
+            config=config,
+            objective_family_mask_provider=objective_family_mask_provider,
+        )
+    if not isinstance(parent_mapping, Mapping):
+        raise ValueError("Stair generation prompt comparison parent is invalid")
     parent = _public_parent_comparison(
         parent_mapping,
         config=config,
     )
     selection = _mapping(generation.get("selection"))
     selected_trial_id = selection.get("selected_trial_id")
-    projector = StairExplorationProjector(config)
+    projector = StairExplorationProjector(
+        config,
+        objective_family_mask=(
+            objective_family_mask_provider()
+            if objective_family_mask_provider is not None
+            else None
+        ),
+    )
     comparisons: list[dict[str, Any]] = []
     for trial in trials:
         if not isinstance(trial, Mapping):
@@ -619,12 +943,114 @@ def _generation_trial_comparisons(
     return comparisons
 
 
+def _generation_public_dev_trial_summaries(
+    generation: Mapping[str, Any],
+    *,
+    trials: Sequence[Any],
+    config: StairClimbingTaskConfig,
+    objective_family_mask_provider: (
+        Callable[[], Mapping[str, Any] | None] | None
+    ),
+) -> list[dict[str, Any]]:
+    selection = _mapping(generation.get("selection"))
+    selected_trial_id = selection.get("selected_trial_id")
+    projector = StairExplorationProjector(
+        config,
+        objective_family_mask=(
+            objective_family_mask_provider()
+            if objective_family_mask_provider is not None
+            else None
+        ),
+    )
+    summaries: list[dict[str, Any]] = []
+    for trial in trials:
+        if not isinstance(trial, Mapping):
+            raise ValueError("Stair generation prompt trial evidence is invalid")
+        if not isinstance(trial.get("public_dev"), Mapping):
+            continue
+        assessment = projector.assess_trial(
+            generation=generation,
+            trial=trial,
+            parent=None,
+        )
+        summary = _mapping(assessment.public_evidence_summary)
+        if (
+            summary.get("status") != "public_complete"
+            or summary.get("source_split") != "public_dev"
+        ):
+            continue
+        objective = _mapping(summary.get("objective"))
+        objective_score = _finite_score(objective.get("candidate"))
+        raw_guards = _mapping(summary.get("named_guards"))
+        named_guard_scores = {
+            str(name): score
+            for name, item in raw_guards.items()
+            for score in [_finite_score(_mapping(item).get("candidate"))]
+            if score is not None
+        }
+        if objective_score is None or set(named_guard_scores) != {
+            guard.name for guard in config.acceptance_protocol.named_guards
+        }:
+            raise ValueError("Stair public_dev generation summary is incomplete")
+        identity = _generation_prompt_trial_identity(
+            trial,
+            selected_trial_id=selected_trial_id,
+        )
+        summaries.append(
+            {
+                **identity,
+                "objective_score": objective_score,
+                "named_guard_scores": named_guard_scores,
+            }
+        )
+    if len(summaries) > _MAX_LATEST_GENERATION_TRIAL_COMPARISONS:
+        raise ValueError("Stair generation prompt comparison width exceeds two")
+    return summaries
+
+
+def _generation_prompt_trial_identity(
+    trial: Mapping[str, Any],
+    *,
+    selected_trial_id: Any,
+) -> dict[str, Any]:
+    trial_id = trial.get("trial_id")
+    lane_id = trial.get("lane_id")
+    trial_status = trial.get("trial_status")
+    if (
+        not isinstance(trial_id, str)
+        or not trial_id
+        or len(trial_id) > _MAX_GENERATION_TRIAL_ID_CHARS
+        or not isinstance(lane_id, str)
+        or not lane_id
+        or not isinstance(trial_status, str)
+        or not trial_status
+    ):
+        raise ValueError("Stair generation prompt trial identity is invalid")
+    candidate = trial.get("candidate")
+    if not isinstance(candidate, Mapping):
+        raise ValueError("Stair generation prompt candidate identity is absent")
+    return {
+        "lane_id": lane_id,
+        "candidate_id": require_candidate_id(
+            candidate.get("candidate_id"),
+            "Stair generation prompt candidate_id",
+        ),
+        "program_source_checksum": require_sha256_checksum(
+            candidate.get("program_source_checksum"),
+            "Stair generation prompt program_source_checksum",
+        ),
+        "selected": trial_id == selected_trial_id,
+    }
+
+
 @dataclass(frozen=True)
 class _PublicParentComparison(StairComparisonStats):
     objective_score: float
     objective_samples: tuple[float, ...]
     guard_score: float
     guard_samples: tuple[float, ...]
+    named_guard_scores: Mapping[str, float]
+    named_guard_samples: Mapping[str, tuple[float, ...]]
     acceptance_protocol_hash: str
 
     def score_for_comparison(self) -> float:
@@ -652,6 +1078,18 @@ class _PublicParentComparison(StairComparisonStats):
             if acceptance_protocol.protocol_hash == self.acceptance_protocol_hash
             else ()
         )
+
+    def named_guard_score_for_comparison(self, name: str) -> float | None:
+        return self.named_guard_scores.get(name)
+
+    def named_guard_score_samples_for_comparison(
+        self,
+        name: str,
+        acceptance_protocol: AcceptanceProtocol,
+    ) -> tuple[float, ...]:
+        if acceptance_protocol.protocol_hash != self.acceptance_protocol_hash:
+            return ()
+        return self.named_guard_samples.get(name, ())
 
 
 def _public_parent_comparison(
@@ -696,10 +1134,7 @@ def _public_parent_comparison(
         raise ValueError("Stair public parent comparison count is invalid")
     objective_stats = value.get("public_accept_stats")
     guard_stats = value.get("guard_score_stats")
-    if not isinstance(objective_stats, Mapping) or not isinstance(
-        guard_stats,
-        Mapping,
-    ):
+    if not isinstance(objective_stats, Mapping) or not isinstance(guard_stats, Mapping):
         raise ValueError("Stair public parent comparison stats are invalid")
     objective_validation = validate_score_stats(
         objective_stats,
@@ -708,20 +1143,10 @@ def _public_parent_comparison(
         require_standard_error=min_score_count >= 2,
         require_protocol_hash=True,
     )
-    guard_validation = validate_score_stats(
-        guard_stats,
-        minimum_count=min_score_count,
-        require_std=True,
-        require_standard_error=min_score_count >= 2,
-        require_protocol_hash=True,
-    )
     if (
         not objective_validation.valid
         or objective_validation.mean is None
         or objective_validation.eval_protocol_hash != eval_protocol_hash
-        or not guard_validation.valid
-        or guard_validation.mean is None
-        or guard_validation.eval_protocol_hash != eval_protocol_hash
     ):
         raise ValueError("Stair public parent comparison stats are incomplete")
     objective_samples = validated_score_samples(
@@ -730,25 +1155,88 @@ def _public_parent_comparison(
         protocol=protocol,
         field_name="Stair public parent objective score_samples",
     )
-    guard_samples = validated_score_samples(
-        guard_stats.get("score_samples"),
-        expected_mean=guard_validation.mean,
-        protocol=protocol,
-        field_name="Stair public parent guard score_samples",
-    )
+    named_guard_scores: dict[str, float] = {}
+    named_guard_samples: dict[str, tuple[float, ...]] = {}
+    if config.is_unified_protocol:
+        raw_named = value.get("named_guard_evidence")
+        if not isinstance(raw_named, Mapping) or set(raw_named) != {
+            guard.name for guard in protocol.named_guards
+        }:
+            raise ValueError("Stair unified parent named guards are incomplete")
+        for guard in protocol.named_guards:
+            item = raw_named.get(guard.name)
+            if not isinstance(item, Mapping) or item.get("score_source") != guard.score_source:
+                raise ValueError("Stair unified parent named guard source mismatch")
+            stats = item.get("score_stats")
+            if not isinstance(stats, Mapping):
+                raise ValueError("Stair unified parent named guard stats are invalid")
+            validation = validate_score_stats(
+                stats,
+                minimum_count=min_score_count,
+                require_std=True,
+                require_standard_error=min_score_count >= 2,
+                require_protocol_hash=True,
+            )
+            if (
+                not validation.valid
+                or validation.mean is None
+                or validation.eval_protocol_hash != eval_protocol_hash
+            ):
+                raise ValueError("Stair unified parent named guard stats are incomplete")
+            samples = validated_score_samples(
+                item.get("score_samples"),
+                expected_mean=validation.mean,
+                protocol=protocol,
+                field_name=f"Stair public parent {guard.name} score_samples",
+            )
+            named_guard_scores[guard.name] = validation.mean
+            named_guard_samples[guard.name] = samples
+        limiting_name = min(named_guard_scores, key=named_guard_scores.__getitem__)
+        guard_mean = named_guard_scores[limiting_name]
+        guard_samples = tuple(
+            min(named_guard_samples[name][index] for name in named_guard_samples)
+            for index in range(len(named_guard_samples[limiting_name]))
+        )
+    else:
+        guard_validation = validate_score_stats(
+            guard_stats,
+            minimum_count=min_score_count,
+            require_std=True,
+            require_standard_error=min_score_count >= 2,
+            require_protocol_hash=True,
+        )
+        if (
+            not guard_validation.valid
+            or guard_validation.mean is None
+            or guard_validation.eval_protocol_hash != eval_protocol_hash
+        ):
+            raise ValueError("Stair public parent comparison stats are incomplete")
+        guard_mean = guard_validation.mean
+        guard_samples = validated_score_samples(
+            guard_stats.get("score_samples"),
+            expected_mean=guard_validation.mean,
+            protocol=protocol,
+            field_name="Stair public parent guard score_samples",
+        )
     return _PublicParentComparison(
         objective_score=objective_validation.mean,
         objective_samples=objective_samples,
-        guard_score=guard_validation.mean,
+        guard_score=guard_mean,
         guard_samples=guard_samples,
+        named_guard_scores=named_guard_scores,
+        named_guard_samples=named_guard_samples,
         acceptance_protocol_hash=protocol.protocol_hash,
     )
 
 
 def _stair_capacity_preflight_feedback(
-    evaluation_profile: StairEvaluationProfile,
+    config: StairClimbingTaskConfig,
 ) -> dict[str, Any]:
     """Build the largest bounded shape retained by Stair minimum-core."""
+
+    if config.is_unified_protocol:
+        return _stair_unified_capacity_preflight_feedback(config)
+    evaluation_profile = config.evaluation_profile
 
     maximum_number = -1.7976931348623157e308
     stable = {
@@ -834,6 +1322,151 @@ def _stair_capacity_preflight_feedback(
             )
         ],
         "latest_generation_trial_comparison_basis": "public_accept_vs_parent",
+        "omitted_candidate_feedback_entry_count": 28,
+        "byte_budget_compaction_applied": True,
+    }
+
+
+def _stair_unified_capacity_preflight_feedback(
+    config: StairClimbingTaskConfig,
+) -> dict[str, Any]:
+    suite = config.ordered_evaluation_suite
+    cells = suite.cells_for_cohort("public_dev")
+    # Unified scores, rates, and normalized progress are contract-bounded to
+    # [0, 1]; model the largest legal prompt shape instead of an impossible
+    # IEEE-754 magnitude.
+    maximum_number = 1.0
+    cell_values = {cell.cell_id: maximum_number for cell in cells}
+    stratum_diagnostics = {
+        stratum: {
+            "cell_count": len(members),
+            "cell_ids": [cell.cell_id for cell in members],
+            "success_rate": maximum_number,
+            "mean_progress_fraction": maximum_number,
+            "score": maximum_number,
+            "primary_failure_breakdown": {
+                reason: maximum_number
+                for reason in config.episode_outcomes()["failure_priority"]
+            },
+            "diagnostic_flag_rates": {
+                flag: maximum_number
+                for flag in config.episode_outcomes()["diagnostic_flags"]
+            },
+        }
+        for stratum in sorted({cell.stratum_id for cell in cells})
+        if (
+            members := [cell for cell in cells if cell.stratum_id == stratum]
+        )
+    }
+    factor_diagnostics: dict[str, Any] = {}
+    if cells:
+        for factor in next(iter(cells)).factor_levels:
+            levels: dict[str, Any] = {}
+            for level in dict.fromkeys(
+                cell.factor_levels[factor] for cell in cells
+            ):
+                members = [
+                    cell for cell in cells if cell.factor_levels[factor] == level
+                ]
+                levels[str(level)] = {
+                    "cell_count": len(members),
+                    "cell_ids": [cell.cell_id for cell in members],
+                    "success_rate": maximum_number,
+                    "mean_progress_fraction": maximum_number,
+                }
+            factor_diagnostics[str(factor)] = levels
+
+    def entry(*, fill: str, accepted: bool, selection_basis: list[str]) -> dict[str, Any]:
+        return {
+            "source_kind": "candidate",
+            "source_public_result_hash": fill * 64,
+            "candidate_id": fill * MAX_CANDIDATE_ID_CHARS,
+            "program_source_checksum": f"sha256:{fill * 64}",
+            "objective_score": maximum_number,
+            "guard_score": maximum_number,
+            "accepted": accepted,
+            "selection_basis": selection_basis,
+            "feedback": {
+                "schema_version": _COMPACT_FEEDBACK_SCHEMA_VERSION,
+                "source_split": _COMPACT_FEEDBACK_SOURCE_SPLIT,
+                "stable_success_summary": {
+                    "stable_top_success_rate": maximum_number,
+                    "valid_top_arrival_rate": None,
+                    "top_arrival_without_stable_success_rate": None,
+                },
+                "dominant_failure": {
+                    "reason": "goal_not_reached_detected",
+                    "rate": maximum_number,
+                },
+                "generalization_summary": {
+                    "public_dev_objective_score": maximum_number,
+                    "j_id": maximum_number,
+                    "j_ood": maximum_number,
+                    "named_guard_scores": {
+                        name: maximum_number
+                        for name in ("j_ood", "c0_id", "c1_id")
+                    },
+                    "family_scores": {
+                        str(name): maximum_number
+                        for name in suite.score_contract["families"]
+                    },
+                    "qualified_ood_families": list(
+                        suite.score_contract["families"]
+                    ),
+                    "objective_family_mask_hash": "f" * 64,
+                    "ordered_suite_hash": suite.suite_hash,
+                    "split_cohort_hash": suite.cohort_hash("public_dev"),
+                    "success_rate_by_cell": dict(cell_values),
+                    "factor_diagnostics": factor_diagnostics,
+                    "stratum_diagnostics": stratum_diagnostics,
+                },
+                "primary_failure_breakdown": {
+                    reason: maximum_number
+                    for reason in config.episode_outcomes()["failure_priority"]
+                },
+                "diagnostic_flag_rates": {
+                    flag: maximum_number
+                    for flag in config.episode_outcomes()["diagnostic_flags"]
+                },
+                "progress_summary": {
+                    "mean_progress_fraction": maximum_number,
+                    "mean_progress_fraction_by_cell": dict(cell_values),
+                },
+            },
+        }
+
+    return {
+        "schema_version": _PUBLIC_FEEDBACK_SUMMARY_SCHEMA_VERSION,
+        "status": "available",
+        "feedback_entries": [
+            entry(
+                fill="a",
+                accepted=True,
+                selection_basis=["accepted_current_best"],
+            ),
+            entry(
+                fill="b",
+                accepted=False,
+                selection_basis=["latest_evaluated"],
+            ),
+        ],
+        "latest_generation_trial_comparisons": [
+            {
+                "lane_id": lane_id,
+                "candidate_id": fill * MAX_CANDIDATE_ID_CHARS,
+                "program_source_checksum": f"sha256:{fill * 64}",
+                "selected": selected,
+                "objective_score": maximum_number,
+                "named_guard_scores": {
+                    guard.name: maximum_number
+                    for guard in config.acceptance_protocol.named_guards
+                },
+            }
+            for fill, lane_id, selected in (
+                ("c", "lane-a", False),
+                ("d", "lane-b", True),
+            )
+        ],
         "omitted_candidate_feedback_entry_count": 28,
         "byte_budget_compaction_applied": True,
     }
@@ -997,7 +1630,16 @@ def _minimum_core_stair_prompt_sections(
     for entry in (current_best, latest):
         if entry is not None and entry not in selected:
             selected.append(entry)
-    minimum_entries = [_minimum_core_feedback_entry(entry) for entry in selected]
+    minimum_entries = []
+    for entry in selected:
+        compact = _minimum_core_feedback_entry(entry)
+        if current_best is not None and entry is latest and entry is not current_best:
+            # Unified feedback must keep the latest trial's family/stratum
+            # deltas: those are the causal signal for the next reward edit.
+            # Legacy feedback has no bounded stratum table and stays a compact
+            # scalar comparison.
+            compact = _compact_latest_feedback_entry(compact)
+        minimum_entries.append(compact)
     raw_omitted_count = feedback.get("omitted_candidate_feedback_entry_count", 0)
     omitted_count = (
         raw_omitted_count
@@ -1009,7 +1651,7 @@ def _minimum_core_stair_prompt_sections(
     if minimum_entries or comparisons:
         minimum_feedback: dict[str, Any] = {
             "schema_version": (
-                "true_rl_agent.task.stair_climbing.public_feedback_minimum_core.v3"
+                "true_rl_agent.task.stair_climbing.public_feedback_minimum_core.v4"
             ),
             "status": "available",
             "feedback_entries": minimum_entries,
@@ -1023,7 +1665,7 @@ def _minimum_core_stair_prompt_sections(
     else:
         minimum_feedback = {
             "schema_version": (
-                "true_rl_agent.task.stair_climbing.public_feedback_minimum_core.v3"
+                "true_rl_agent.task.stair_climbing.public_feedback_minimum_core.v4"
             ),
             "status": "no_closed_outcome",
             "reason": "no_validated_public_stair_evaluation",
@@ -1034,12 +1676,15 @@ def _minimum_core_stair_prompt_sections(
         }
     if comparisons:
         minimum_feedback["latest_generation_trial_comparisons"] = comparisons
-        minimum_feedback["latest_generation_trial_comparison_basis"] = (
-            "public_accept_vs_parent"
-        )
+        if any("objective_delta" in item for item in comparisons):
+            minimum_feedback["latest_generation_trial_comparison_basis"] = (
+                "public_accept_vs_parent"
+            )
     minimum = {
-        "task": original.get("task"),
-        "reward_inputs_contract": original.get("reward_inputs_contract"),
+        "task": _minimum_core_task_section(_mapping(original.get("task"))),
+        "reward_inputs_contract": _minimum_core_reward_inputs_contract(
+            _mapping(original.get("reward_inputs_contract"))
+        ),
         "public_eval_contract": original.get("public_eval_contract"),
         "public_feedback_summary": minimum_feedback,
         "runtime_feedback_summary": {
@@ -1050,26 +1695,128 @@ def _minimum_core_stair_prompt_sections(
             "reason": "minimum_core_projection",
         },
         "known_good_examples": [],
-        "selection_guidance": original.get("selection_guidance", []),
+        "selection_guidance": _minimum_core_selection_guidance(
+            original.get("selection_guidance")
+        ),
     }
-    content_without_receipt = dict(minimum)
+    content_without_receipt = copy.deepcopy(minimum)
     receipt = build_prompt_capacity_receipt(
         original=original,
         projected_content=content_without_receipt,
-        projection_id="stair_climbing.minimum_core.v3",
+        projection_id="stair_climbing.minimum_core.v4",
         omitted=(
             "historical_feedback_entries",
             "feedback_cell_grids",
             "feedback_diagnostic_detail",
+            "reward_field_descriptions",
+            "duplicated_eval_identity_detail",
+            "guidance_prose_detail",
             "runtime_activation_detail",
         ),
     )
     minimum_feedback["capacity_projection_receipt"] = receipt
-    if canonical_prompt_json_bytes(minimum) > target_bytes:
+    measured_bytes = canonical_prompt_json_bytes(minimum)
+    if measured_bytes > target_bytes:
         raise ValueError(
-            "Stair minimum-core prompt sections exceed reserved task-section capacity"
+            "Stair minimum-core prompt sections exceed reserved task-section "
+            f"capacity: {measured_bytes} > {target_bytes} bytes"
         )
     return minimum
+
+
+def _minimum_core_reward_inputs_contract(
+    value: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Drop repetitive field prose while preserving the executable reward ABI."""
+
+    result = copy.deepcopy(dict(value))
+    fields = result.get("fields")
+    if isinstance(fields, list):
+        result["fields"] = {
+            "schema_version": (
+                "true_rl_agent.task.stair_climbing.reward_input_field_table.v1"
+            ),
+            "row_format": (
+                "name|dtype|trailing_shape_csv|unit; empty shape means scalar"
+            ),
+            "rows": [
+                "|".join(
+                    (
+                        str(item["name"]),
+                        str(item["dtype"]),
+                        ",".join(
+                            str(dimension)
+                            for dimension in item["trailing_shape"]
+                        ),
+                        str(item["unit"]),
+                    )
+                )
+                for item in fields
+                if isinstance(item, Mapping)
+                and all(
+                    key in item
+                    for key in ("name", "dtype", "trailing_shape", "unit")
+                )
+                and isinstance(item["trailing_shape"], list | tuple)
+            ],
+        }
+    result["capacity_projection"] = (
+        "field_descriptions_omitted_fields_tabulated"
+    )
+    return result
+
+
+def _minimum_core_task_section(value: Mapping[str, Any]) -> dict[str, Any]:
+    """Remove evaluation identity fields duplicated by public_eval_contract."""
+
+    result = copy.deepcopy(dict(value))
+    evaluation = _mapping(result.get("fixed_eval_protocol_summary"))
+    if evaluation:
+        success = _mapping(evaluation.get("success_criteria"))
+        stability = _mapping(success.get("top_platform_stability_requirement"))
+        compact_success = {
+            key: success[key]
+            for key in (
+                "completion_mode",
+                "minimum_progress_fraction",
+                "pre_arrival_blocking_latches",
+                "maximum_abs_roll_or_pitch_rad",
+            )
+            if key in success
+        }
+        if stability:
+            compact_success["top_platform_stability_requirement"] = {
+                key: stability[key]
+                for key in (
+                    "consecutive_control_steps",
+                    "maximum_support_effector_planar_speed_mps",
+                )
+                if key in stability
+            }
+        result["fixed_eval_protocol_summary"] = {
+            key: evaluation[key]
+            for key in (
+                "strata",
+                "cells_per_stratum",
+                "episodes_per_seed_per_cell",
+                "public_seed_count",
+                "public_accept_seed_count",
+                "sealed_validation_seed_count",
+                "seed_values_exposed",
+                "statistics_unit",
+            )
+            if key in evaluation
+        }
+        result["fixed_eval_protocol_summary"]["success_criteria"] = compact_success
+    return result
+
+
+def _minimum_core_selection_guidance(value: Any) -> list[str]:
+    """Preserve the task-owned, mode-aware guidance as the single source of truth."""
+
+    if not isinstance(value, list | tuple):
+        return []
+    return [item for item in value if isinstance(item, str)]
 
 
 def _minimum_core_feedback_entry(entry: Mapping[str, Any]) -> dict[str, Any]:
@@ -1087,26 +1834,65 @@ def _minimum_core_feedback_entry(entry: Mapping[str, Any]) -> dict[str, Any]:
         )
         if key in entry
     }
-    feedback = _normalize_supported_prompt_feedback(_mapping(entry.get("feedback")))
+    raw_feedback = _mapping(entry.get("feedback"))
+    feedback = _normalize_supported_prompt_feedback(raw_feedback)
+    if (
+        not feedback
+        and raw_feedback
+        and "schema_version" not in raw_feedback
+        and "source_split" not in raw_feedback
+        and set(raw_feedback).issubset(_COMPACT_FEEDBACK_KEYS)
+    ):
+        # The required-entry projection intentionally removes schema metadata
+        # to save bytes.  A later minimum-core projection in the same capacity
+        # pass must recognize that exact task-owned core instead of erasing it.
+        feedback = dict(raw_feedback)
     generalization = _mapping(feedback.get("generalization_summary"))
+    stratum_diagnostics = _compact_unified_stratum_diagnostics(
+        _mapping(generalization.get("stratum_diagnostics"))
+    )
     compact_feedback = {
         "stable_success_summary": _mapping(
             feedback.get("stable_success_summary")
         ),
         "dominant_failure": _mapping(feedback.get("dominant_failure")),
         "generalization_summary": {
-            "public_dev_objective_score": generalization.get(
-                "public_dev_objective_score"
+            key: generalization[key]
+            for key in (
+                "public_dev_objective_score",
+                "j_id",
+                "j_ood",
+                "named_guard_scores",
+                "family_scores",
+                "qualified_ood_families",
+                "objective_family_mask_hash",
             )
+            if key in generalization
         },
         "progress_summary": {
             "mean_max_progress_m_by_tread": _mapping(
                 _mapping(feedback.get("progress_summary")).get(
                     "mean_max_progress_m_by_tread"
                 )
-            )
+            ),
+            "mean_progress_fraction": _mapping(
+                feedback.get("progress_summary")
+            ).get("mean_progress_fraction"),
+            "mean_progress_fraction_by_cell": _mapping(
+                _mapping(feedback.get("progress_summary")).get(
+                    "mean_progress_fraction_by_cell"
+                )
+            ),
         },
     }
+    if stratum_diagnostics:
+        compact_feedback["generalization_summary"][
+            "stratum_diagnostics"
+        ] = stratum_diagnostics
+        compact_feedback["progress_summary"].pop(
+            "mean_progress_fraction_by_cell",
+            None,
+        )
     result["feedback"] = _without_empty_values(compact_feedback)
     return result
 
@@ -1156,6 +1942,17 @@ def _compact_required_feedback_entry(
         for key in _COMPACT_GENERALIZATION_KEYS
         if key in generalization
     }
+    stratum_diagnostics = _compact_unified_stratum_diagnostics(
+        _mapping(generalization.get("stratum_diagnostics"))
+    )
+    if stratum_diagnostics:
+        # The stratum projection is the actionable unified-task signal.  Per-cell
+        # and factor arrays repeat the same membership at much higher byte cost.
+        core["generalization_summary"].pop("success_rate_by_cell", None)
+        core["generalization_summary"].pop("factor_diagnostics", None)
+        core["generalization_summary"]["stratum_diagnostics"] = (
+            stratum_diagnostics
+        )
     failure_grid_strings = _compact_failure_count_grid_strings(
         _mapping(generalization.get("primary_failure_count_grids")),
         evaluation_profile=evaluation_profile,
@@ -1190,6 +1987,21 @@ def _compact_required_feedback_entry(
             key: round(float(value), 8)
             for key, value in progress_by_tread.items()
         }
+    progress_by_cell = _mapping(progress.get("mean_progress_fraction_by_cell"))
+    if progress_by_cell and not stratum_diagnostics:
+        compact_progress["mean_progress_fraction_by_cell"] = {
+            key: round(float(value), 8)
+            for key, value in progress_by_cell.items()
+        }
+    mean_progress_fraction = progress.get("mean_progress_fraction")
+    if isinstance(mean_progress_fraction, int | float) and not isinstance(
+        mean_progress_fraction,
+        bool,
+    ):
+        compact_progress["mean_progress_fraction"] = round(
+            float(mean_progress_fraction),
+            8,
+        )
     core["progress_summary"] = compact_progress
     for key in ("primary_failure_breakdown", "diagnostic_flag_rates"):
         core[key] = _without_numeric_zero_values(_mapping(core.get(key)))
@@ -1200,6 +2012,123 @@ def _compact_required_feedback_entry(
         )
     core = {key: value for key, value in core.items() if value not in ({}, [])}
     return {**dict(entry), "feedback": core}
+
+
+def _compact_unified_stratum_diagnostics(
+    value: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Keep causal per-stratum feedback as one bounded self-describing table."""
+
+    schema_version = _STRATUM_FEEDBACK_TABLE_SCHEMA_VERSION
+    if value.get("schema_version") == schema_version:
+        return copy.deepcopy(dict(value))
+
+    normalized: list[
+        tuple[
+            str,
+            dict[str, float | None],
+            dict[str, float],
+            frozenset[str],
+            dict[str, float],
+        ]
+    ] = []
+    failure_names: set[str] = set()
+    diagnostic_names: set[str] = set()
+    for raw_name, raw_item in sorted(value.items(), key=lambda item: str(item[0])):
+        if not isinstance(raw_item, Mapping):
+            continue
+        numbers: dict[str, float | None] = {}
+        for key in ("score", "success_rate", "mean_progress_fraction"):
+            raw_number = raw_item.get(key)
+            numbers[key] = (
+                round(float(raw_number), 6)
+                if isinstance(raw_number, int | float)
+                and not isinstance(raw_number, bool)
+                else None
+            )
+        all_failure_pairs = sorted(
+            (
+                (str(name), round(float(rate), 6))
+                for name, rate in _mapping(
+                    raw_item.get("primary_failure_breakdown")
+                ).items()
+                if isinstance(rate, int | float)
+                and not isinstance(rate, bool)
+                and float(rate) != 0.0
+            ),
+            key=lambda pair: (-pair[1], pair[0]),
+        )
+        failure_pairs = all_failure_pairs[:2]
+        failures = dict(failure_pairs)
+        truncated_failures = frozenset(
+            name for name, _rate in all_failure_pairs[2:]
+        )
+        failure_names.update(failures)
+        diagnostics = {
+            str(name): round(float(rate), 6)
+            for name, rate in _mapping(
+                raw_item.get("diagnostic_flag_rates")
+            ).items()
+            if isinstance(rate, int | float)
+            and not isinstance(rate, bool)
+            and float(rate) != 0.0
+        }
+        diagnostic_names.update(diagnostics)
+        if any(number is not None for number in numbers.values()) or failures or diagnostics:
+            normalized.append(
+                (
+                    str(raw_name),
+                    numbers,
+                    failures,
+                    truncated_failures,
+                    diagnostics,
+                )
+            )
+    if not normalized:
+        return {}
+
+    ordered_failures = sorted(failure_names)
+    ordered_diagnostics = sorted(diagnostic_names)
+    return {
+        "schema_version": schema_version,
+        "columns": [
+            "stratum_id",
+            "score",
+            "success_rate",
+            "mean_progress_fraction",
+            "primary_failure_rates",
+            "diagnostic_flag_rates",
+        ],
+        "primary_failure_rate_columns": ordered_failures,
+        "diagnostic_flag_rate_columns": ordered_diagnostics,
+        "primary_failure_projection": "top_2_per_stratum",
+        "truncated_rates_are_null": True,
+        "omitted_diagnostic_rates_are_zero": True,
+        "rows": [
+            [
+                name,
+                numbers["score"],
+                numbers["success_rate"],
+                numbers["mean_progress_fraction"],
+                [
+                    failures[reason]
+                    if reason in failures
+                    else None
+                    if reason in truncated_failures
+                    else 0.0
+                    for reason in ordered_failures
+                ],
+                [diagnostics.get(flag, 0.0) for flag in ordered_diagnostics],
+            ]
+            for (
+                name,
+                numbers,
+                failures,
+                truncated_failures,
+                diagnostics,
+            ) in normalized
+        ],
+    }
 
 
 def _normalize_supported_prompt_feedback(
@@ -1253,6 +2182,10 @@ def _compact_historical_comparison_entry(
         historical_feedback["progress_summary"] = {
             "mean_max_progress_m": progress["mean_max_progress_m"]
         }
+    elif "mean_progress_fraction" in progress:
+        historical_feedback["progress_summary"] = {
+            "mean_progress_fraction": progress["mean_progress_fraction"]
+        }
     raw_detail_omissions = entry.get("detail_omissions")
     detail_omissions = (
         raw_detail_omissions
@@ -1273,6 +2206,22 @@ def _compact_historical_comparison_entry(
             }
         ),
     }
+
+
+def _compact_latest_feedback_entry(
+    entry: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Keep bounded unified causal evidence; compact legacy latest feedback."""
+
+    generalization = _mapping(
+        _mapping(entry.get("feedback")).get("generalization_summary")
+    )
+    stratum_diagnostics = _mapping(generalization.get("stratum_diagnostics"))
+    if stratum_diagnostics.get("schema_version") == (
+        _STRATUM_FEEDBACK_TABLE_SCHEMA_VERSION
+    ):
+        return dict(entry)
+    return _compact_historical_comparison_entry(entry)
 
 
 def _compact_feedback_projection(
@@ -1435,8 +2384,289 @@ def _is_detailed_feedback_entry(entry: Mapping[str, Any]) -> bool:
     )
 
 
+def _project_unified_prompt_public_record(
+    record: Mapping[str, Any],
+    *,
+    config: StairClimbingTaskConfig,
+    objective_family_mask_provider: (
+        Callable[[], Mapping[str, Any] | None] | None
+    ),
+) -> dict[str, Any]:
+    """Build the Stair provider view without copying acceptance measurements."""
+
+    projected = copy.deepcopy(dict(record))
+    raw_result = _mapping(projected.get("public_result"))
+    feedback = _validated_unified_prompt_feedback(
+        raw_result,
+        config=config,
+        objective_family_mask_provider=objective_family_mask_provider,
+    )
+    score = _prompt_feedback_objective_score(feedback)
+    if raw_result.get("status") == "pass" and score is None:
+        raise ValueError(
+            "unified Stair evaluated record lacks public_dev prompt score"
+        )
+    if raw_result:
+        projected["public_result"] = _project_unified_prompt_public_result(
+            raw_result,
+            feedback=feedback,
+            score=score,
+        )
+
+    raw_decision = _mapping(projected.get("decision"))
+    if raw_decision:
+        projected["decision"] = _project_unified_prompt_decision(
+            raw_decision,
+            score=score,
+        )
+
+    raw_generation = _mapping(projected.get("generation"))
+    if raw_generation:
+        projected["generation"] = _project_unified_prompt_generation(
+            raw_generation
+        )
+    return projected
+
+
+def _project_unified_prompt_public_context(
+    public_context: Mapping[str, Any],
+    *,
+    config: StairClimbingTaskConfig,
+    objective_family_mask_provider: (
+        Callable[[], Mapping[str, Any] | None] | None
+    ),
+) -> dict[str, Any]:
+    projected = copy.deepcopy(dict(public_context))
+    anchor = _mapping(projected.get("initial_anchor_public_evidence"))
+    if not anchor:
+        return projected
+    result = _mapping(anchor.get("public_result"))
+    feedback = _validated_unified_prompt_feedback(
+        result,
+        config=config,
+        objective_family_mask_provider=objective_family_mask_provider,
+    )
+    score = _prompt_feedback_objective_score(feedback)
+    if result.get("status") == "pass" and score is None:
+        raise ValueError(
+            "unified Stair initial anchor lacks public_dev prompt score"
+        )
+    projected["initial_anchor_public_evidence"] = {
+        key: copy.deepcopy(anchor[key])
+        for key in ("anchor_kind", "public_result_hash")
+        if key in anchor
+    }
+    if result:
+        projected["initial_anchor_public_evidence"]["public_result"] = (
+            _project_unified_prompt_public_result(
+                result,
+                feedback=feedback,
+                score=score,
+            )
+        )
+    return projected
+
+
+def _project_unified_prompt_public_result(
+    result: Mapping[str, Any],
+    *,
+    feedback: Mapping[str, Any],
+    score: float | None,
+) -> dict[str, Any]:
+    metrics = _mapping(result.get("metrics"))
+    visible_metrics: dict[str, Any] = {}
+    if feedback:
+        visible_metrics["prompt_feedback"] = copy.deepcopy(dict(feedback))
+    candidate_loaded = metrics.get("candidate_code_loaded_in_eval")
+    if isinstance(candidate_loaded, bool):
+        visible_metrics["candidate_code_loaded_in_eval"] = candidate_loaded
+    projected: dict[str, Any] = {
+        "status": result.get("status"),
+        "metrics": visible_metrics,
+    }
+    if score is not None:
+        projected["public_score"] = score
+    return projected
+
+
+def _project_unified_prompt_decision(
+    decision: Mapping[str, Any],
+    *,
+    score: float | None,
+) -> dict[str, Any]:
+    accepted = decision.get("accepted")
+    projected: dict[str, Any] = {
+        "outcome": decision.get("outcome"),
+        "accepted": accepted,
+        "reason": (
+            "runner_accepted_candidate"
+            if accepted is True
+            else "runner_did_not_accept_candidate"
+            if accepted is False
+            else "runner_decision_unavailable"
+        ),
+        "surface_classification": decision.get("surface_classification"),
+    }
+    gate_statuses = _mapping(decision.get("gate_statuses"))
+    runtime_gate = gate_statuses.get("runtime_activation_gate")
+    if isinstance(runtime_gate, str):
+        projected["gate_statuses"] = {
+            "runtime_activation_gate": runtime_gate,
+        }
+    if score is not None:
+        projected.update(
+            {
+                "public_score": score,
+                "comparison": {
+                    "mode": "prompt_visible_public_dev_absolute_v1",
+                    "score_source": UNIFIED_STAIR_PROMPT_OBJECTIVE_SCORE_SOURCE,
+                    "candidate_score": score,
+                },
+            }
+        )
+    return projected
+
+
+def _project_unified_prompt_generation(
+    generation: Mapping[str, Any],
+) -> dict[str, Any]:
+    projected = {
+        key: copy.deepcopy(generation[key])
+        for key in (
+            "schema_version",
+            "generation_id",
+            "generation_index",
+            "generation_outcome",
+            "selection",
+        )
+        if key in generation
+    }
+    if "formal" in generation:
+        projected["formal"] = _project_unified_prompt_formal(
+            generation.get("formal")
+        )
+    compact_reference = _mapping(
+        generation.get("public_dev_parent_reference")
+    )
+    compact_reference_is_valid = (
+        compact_reference.get("source_split") == "public_dev"
+        and compact_reference.get("acceptance_authority") is False
+    )
+    reference = _mapping(generation.get("guard_reference"))
+    raw_reference_is_valid = (
+        reference.get("screen_role") == "guard_reference"
+        and reference.get("acceptance_authority") is False
+    )
+    reference_objective = (
+        _finite_score(compact_reference.get("objective_score"))
+        if compact_reference_is_valid
+        else _finite_score(
+            _mapping(reference.get("generalization_score_stats")).get("mean")
+        )
+        if raw_reference_is_valid
+        else None
+    )
+    reference_guard_floor = (
+        _finite_score(compact_reference.get("guard_floor_score"))
+        if compact_reference_is_valid
+        else _finite_score(
+            _mapping(reference.get("anchor_score_stats")).get("mean")
+        )
+        if raw_reference_is_valid
+        else None
+    )
+    if reference_objective is not None and reference_guard_floor is not None:
+        projected["public_dev_parent_reference"] = {
+            "source_split": "public_dev",
+            "acceptance_authority": False,
+            "objective_score": reference_objective,
+            "guard_floor_score": reference_guard_floor,
+        }
+    trials = generation.get("trials")
+    if isinstance(trials, list | tuple):
+        projected["trials"] = [
+            {
+                key: copy.deepcopy(trial[key])
+                for key in (
+                    "schema_version",
+                    "lane_id",
+                    "trial_id",
+                    "trial_status",
+                    "candidate",
+                    "candidate_surface",
+                    "mechanism_operation_delta",
+                    "public_dev",
+                    "lane_intent",
+                )
+                if key in trial
+            }
+            for trial in trials
+            if isinstance(trial, Mapping)
+        ]
+    return projected
+
+
+def _project_unified_prompt_formal(value: Any) -> dict[str, Any] | None:
+    if value is None:
+        return None
+    formal = _mapping(value)
+    return {
+        key: copy.deepcopy(formal[key])
+        for key in (
+            "schema_version",
+            "selected_lane_id",
+            "selected_trial_id",
+            "decision_outcome",
+            "accepted",
+        )
+        if key in formal
+    }
+
+
+def _validated_unified_prompt_feedback(
+    public_result: Mapping[str, Any],
+    *,
+    config: StairClimbingTaskConfig,
+    objective_family_mask_provider: (
+        Callable[[], Mapping[str, Any] | None] | None
+    ),
+) -> Mapping[str, Any]:
+    metrics = _mapping(public_result.get("metrics"))
+    stored = _mapping(metrics.get("prompt_feedback"))
+    public_dev = metrics.get("public_dev")
+    if not isinstance(public_dev, Mapping):
+        return stored
+    mask = (
+        objective_family_mask_provider()
+        if objective_family_mask_provider is not None
+        else None
+    )
+    if mask is None:
+        raise ValueError("unified Stair prompt feedback lacks Genesis family mask")
+    expected = build_unified_stair_prompt_feedback(
+        suite=config.ordered_evaluation_suite,
+        semantics=config.evaluation_semantics,
+        summary=public_dev,
+        objective_family_mask=mask,
+    )
+    if dict(stored) != expected:
+        raise ValueError(
+            "unified Stair stored prompt feedback differs from public_dev"
+        )
+    return expected
+
+
+def _prompt_feedback_objective_score(
+    feedback: Mapping[str, Any],
+) -> float | None:
+    generalization = _mapping(feedback.get("generalization_summary"))
+    return _finite_score(generalization.get("public_dev_objective_score"))
+
+
 def _candidate_feedback_entries(
     public_records: Sequence[Mapping[str, Any]],
+    *,
+    use_public_dev_objective: bool = False,
 ) -> list[dict[str, Any]]:
     entries: list[dict[str, Any]] = []
     for index, record in enumerate(public_records):
@@ -1452,12 +2682,20 @@ def _candidate_feedback_entries(
         bound_score = _finite_score(
             decision.get("public_score", result.get("public_score"))
         )
-        objective_score = _finite_score(comparison.get("candidate_score"))
+        objective_score = (
+            _prompt_feedback_objective_score(feedback)
+            if use_public_dev_objective
+            else None
+        )
         guard_source = comparison.get("guard_score_source")
         has_guard_score = isinstance(guard_source, str) and bool(guard_source)
-        if objective_score is None and not has_guard_score:
-            objective_score = bound_score
-        guard_score = bound_score if has_guard_score else None
+        if objective_score is None:
+            objective_score = _finite_score(comparison.get("candidate_score"))
+            if objective_score is None and not has_guard_score:
+                objective_score = bound_score
+            guard_score = bound_score if has_guard_score else None
+        else:
+            guard_score = None
         candidate = _mapping(record.get("candidate"))
         train_result = _mapping(record.get("train_result"))
         entries.append(
@@ -1539,6 +2777,8 @@ def _select_candidate_feedback_entries(
 
 def _reference_anchor_feedback_entry(
     public_context: Mapping[str, Any],
+    *,
+    use_public_dev_objective: bool = False,
 ) -> dict[str, Any] | None:
     anchor = _mapping(public_context.get("initial_anchor_public_evidence"))
     if anchor.get("anchor_kind") != "reference_program":
@@ -1550,21 +2790,30 @@ def _reference_anchor_feedback_entry(
     if feedback is None or not isinstance(result_hash, str):
         return None
     acceptance = _mapping(metrics.get("acceptance"))
-    objective_score = _finite_score(
-        _mapping(acceptance.get("score_stats")).get("mean")
+    objective_score = (
+        _prompt_feedback_objective_score(feedback)
+        if use_public_dev_objective
+        else None
     )
     has_guard_score = isinstance(
         acceptance.get("guard_score_source"),
         str,
     ) and bool(acceptance.get("guard_score_source"))
     bound_score = _finite_score(result.get("public_score"))
-    if objective_score is None and not has_guard_score:
-        objective_score = bound_score
+    if objective_score is None:
+        objective_score = _finite_score(
+            _mapping(acceptance.get("score_stats")).get("mean")
+        )
+        if objective_score is None and not has_guard_score:
+            objective_score = bound_score
+        guard_score = bound_score if has_guard_score else None
+    else:
+        guard_score = None
     entry = {
         "source_kind": "reference_anchor",
         "source_public_result_hash": result_hash,
         "objective_score": objective_score,
-        "guard_score": bound_score if has_guard_score else None,
+        "guard_score": guard_score,
         "selection_basis": ["reference_current_best"],
         "feedback": feedback,
     }

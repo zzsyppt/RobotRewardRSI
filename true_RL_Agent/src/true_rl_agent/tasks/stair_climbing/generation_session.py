@@ -54,13 +54,14 @@ from true_rl_agent.agent_core.generation_lifecycle import (
     build_generation_terminal_binding,
     publish_generation_continuation_policy,
 )
-from true_rl_agent.agent_core.generation_record import (
-    load_bound_generation_manifest,
-    load_bound_generation_trial_train_receipt,
-)
 from true_rl_agent.agent_core.generation_receipts import (
     GenerationReceiptJournal,
     load_generation_manifest_from_receipt,
+)
+from true_rl_agent.agent_core.generation_record import (
+    load_bound_generation_manifest,
+    load_bound_generation_trial_phase_receipt,
+    load_bound_generation_trial_train_receipt,
 )
 from true_rl_agent.agent_core.ledger import (
     PROVIDER_AUTHORING_MODE,
@@ -95,6 +96,11 @@ from true_rl_agent.composition import (
     resolve_task_composition,
 )
 from true_rl_agent.evaluation.acceptance_replay import project_public_history
+from true_rl_agent.evaluation.acceptance_protocol import (
+    acceptance_delta_met,
+    acceptance_threshold,
+    named_guard_regression_threshold,
+)
 from true_rl_agent.evaluation.binding import (
     EvaluationBindingV1,
     canonical_json_hash,
@@ -116,6 +122,7 @@ from true_rl_agent.prompt_artifacts import (
     verify_authoring_evidence,
     verify_prompt_payload,
 )
+from true_rl_agent.runner.checkpoint import file_sha256
 from true_rl_agent.runner.gpu_lease import (
     GpuDeviceIdentity,
     GpuLeaseHolder,
@@ -127,9 +134,7 @@ from true_rl_agent.runner.job_attempts import (
     JobAttemptScope,
     PreGenesisExecutionScope,
 )
-from true_rl_agent.runner.checkpoint import file_sha256
 from true_rl_agent.runner.specs import (
-    CheckpointRef,
     EvalJobSpec,
     EvalPhaseJobSpec,
     GpuProcessBinding,
@@ -138,12 +143,31 @@ from true_rl_agent.runner.subprocess_runner import SubprocessRunner
 from true_rl_agent.tasks.stair_climbing.composition import (
     StairClimbingCompositionProvider,
 )
+from true_rl_agent.tasks.stair_climbing.entrypoint_contract import (
+    STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION,
+)
 from true_rl_agent.tasks.stair_climbing.exploration import (
     StairExplorationProjector,
 )
-from true_rl_agent.tasks.stair_climbing.generation_bootstrap import (
-    replay_stair_generation_guard_chain,
-    run_genesis_parent_public_dev,
+from true_rl_agent.tasks.stair_climbing.final_confirmation import (
+    STAIR_FINAL_CONFIRMATION_DIRNAME,
+    STAIR_FINAL_CONFIRMATION_PLAN_FILENAME,
+    STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS,
+    STAIR_GENERATION_REPORT_FILENAME,
+    StairFinalConfirmationPhaseExecution,
+    StairFinalConfirmationPlanV2,
+    StairFinalConfirmationReservationV2,
+    StairFinalConfirmationResultV2,
+    build_stair_generation_final_confirmation_result,
+    create_stair_generation_final_confirmation_plan,
+    create_stair_generation_final_confirmation_reservation,
+    load_stair_generation_final_confirmation_plan,
+    load_stair_generation_final_confirmation_reservation,
+    load_stair_generation_final_confirmation_result,
+    stair_final_confirmation_plan_path,
+    stair_final_confirmation_reservation_path,
+    stair_final_confirmation_result_path,
+    write_stair_generation_final_confirmation_result,
 )
 from true_rl_agent.tasks.stair_climbing.generation_attempt_scopes import (
     StairGenerationLaneOperationScopes,
@@ -155,16 +179,20 @@ from true_rl_agent.tasks.stair_climbing.generation_authoring_timing import (
     replay_stair_generation_authoring_timing,
     run_stair_generation_authoring_attempt,
 )
+from true_rl_agent.tasks.stair_climbing.generation_bootstrap import (
+    replay_stair_generation_guard_chain,
+    run_genesis_parent_public_dev,
+)
 from true_rl_agent.tasks.stair_climbing.generation_session_cost import (
     DEVELOPMENT_GENERATION_PILOT_MODE,
     DEVELOPMENT_GENERATION_VALIDATION_MODE,
     FORMAL_GENERATION_SESSION_MODE,
+    STAIR_FORMAL_GENERATION_PAUSE_BOUNDARIES,
+    STAIR_GENERATION_FINALIZATION_OUTPUT_RESERVE_BYTES,
     STAIR_GENERATION_FORMAL_RETRY_ALLOCATED_ACTIVE_GPU_HOURS,
     STAIR_GENERATION_FORMAL_RETRY_OUTPUT_BYTES,
     STAIR_GENERATION_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS,
     STAIR_GENERATION_FORMAL_SUCCESSFUL_OUTPUT_BYTES,
-    STAIR_FORMAL_GENERATION_PAUSE_BOUNDARIES,
-    STAIR_GENERATION_FINALIZATION_OUTPUT_RESERVE_BYTES,
     STAIR_GENERATION_MAX_INFRASTRUCTURE_RETRIES_PER_ELIGIBLE_JOB,
     STAIR_GENERATION_PROVIDER_ATTEMPTS_PER_LANE,
     STAIR_GENERATION_PROVIDER_INPUT_UNITS_PER_ATTEMPT,
@@ -193,26 +221,6 @@ from true_rl_agent.tasks.stair_climbing.generation_session_cost import (
     stair_formal_generation_operation_cost_reserves,
     stair_generation_operation_cost_reserves,
 )
-from true_rl_agent.tasks.stair_climbing.final_confirmation import (
-    STAIR_FINAL_CONFIRMATION_DIRNAME,
-    STAIR_FINAL_CONFIRMATION_PLAN_FILENAME,
-    STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS,
-    STAIR_GENERATION_REPORT_FILENAME,
-    StairFinalConfirmationPhaseExecution,
-    StairFinalConfirmationPlanV2,
-    StairFinalConfirmationReservationV2,
-    StairFinalConfirmationResultV2,
-    build_stair_generation_final_confirmation_result,
-    create_stair_generation_final_confirmation_plan,
-    create_stair_generation_final_confirmation_reservation,
-    load_stair_generation_final_confirmation_plan,
-    load_stair_generation_final_confirmation_reservation,
-    load_stair_generation_final_confirmation_result,
-    stair_final_confirmation_plan_path,
-    stair_final_confirmation_reservation_path,
-    stair_final_confirmation_result_path,
-    write_stair_generation_final_confirmation_result,
-)
 from true_rl_agent.tasks.stair_climbing.gpu_process_binding import (
     validate_stair_gpu_runtime_summary_evidence,
 )
@@ -222,16 +230,16 @@ from true_rl_agent.tasks.stair_climbing.phased_adapter import (
 from true_rl_agent.tasks.stair_climbing.phased_evaluation import (
     canonical_stair_phase_result_summary,
 )
-from true_rl_agent.tasks.stair_climbing.entrypoint_contract import (
-    STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION,
-)
-from true_rl_agent.tasks.stair_climbing.seed_policy import (
-    STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
+from true_rl_agent.tasks.stair_climbing.unified_scoring import (
+    build_unified_score_projection,
 )
 from true_rl_agent.tasks.stair_climbing.provider_readiness import (
     STAIR_PROVIDER_READINESS_SCHEMA_VERSION,
     require_stair_provider_readiness,
     validate_stair_provider_credential,
+)
+from true_rl_agent.tasks.stair_climbing.seed_policy import (
+    STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
 )
 from true_rl_agent.tasks.stair_climbing.source_checkout import (
     require_stair_source_checkout,
@@ -737,16 +745,9 @@ def run_stair_generation_pilot(
             STAIR_GENERATION_MAX_INFRASTRUCTURE_RETRIES_PER_ELIGIBLE_JOB
         ),
     )
-    reference_eval_scope = _session_genesis_attempt_scope(
-        journal_root=config.output_dir / "job_attempts",
-        session_id=config.session_id,
+    reference_evaluation_kwargs = _session_genesis_reference_evaluation_kwargs(
+        foundation,
         genesis_identity_hash=genesis_identity_hash,
-        session_contract_hash=foundation.session_contract.contract_hash,
-        lane_id="lane-a",
-        invocation_segment_id="session-genesis",
-        budget_contract_hash=foundation.cost_contract.contract_hash,
-        resource_binding_hash=foundation.gpu_bindings[0].resource_binding_hash,
-        max_infrastructure_retries=0,
     )
     genesis_exists = (config.output_dir / SESSION_GENESIS_FILENAME).exists()
     if final_report_path.exists() and not genesis_exists:
@@ -778,7 +779,7 @@ def run_stair_generation_pilot(
             generation_session_contract_ref=foundation.session_contract_ref,
             gpu_process_binding=foundation.gpu_bindings[0],
             reference_train_attempt_scope=reference_train_scope,
-            reference_eval_attempt_scope=reference_eval_scope,
+            **reference_evaluation_kwargs,
             require_existing=final_report_path.exists(),
         )
     except BaseException:
@@ -795,6 +796,7 @@ def run_stair_generation_pilot(
             finalization_output_reserve_bytes=0,
         )
         raise
+    _bind_unified_objective_family_mask(foundation, genesis=genesis)
     if final_report_path.exists():
         if config.session_mode == DEVELOPMENT_GENERATION_VALIDATION_MODE:
             report = _load_and_validate_existing_validation_report(
@@ -896,18 +898,11 @@ def _load_existing_session_genesis_for_terminal_audit(
             STAIR_GENERATION_MAX_INFRASTRUCTURE_RETRIES_PER_ELIGIBLE_JOB
         ),
     )
-    reference_eval_scope = _session_genesis_attempt_scope(
-        journal_root=config.output_dir / "job_attempts",
-        session_id=config.session_id,
+    reference_evaluation_kwargs = _session_genesis_reference_evaluation_kwargs(
+        foundation,
         genesis_identity_hash=identity_hash,
-        session_contract_hash=foundation.session_contract.contract_hash,
-        lane_id="lane-a",
-        invocation_segment_id="session-genesis",
-        budget_contract_hash=foundation.cost_contract.contract_hash,
-        resource_binding_hash=foundation.gpu_bindings[0].resource_binding_hash,
-        max_infrastructure_retries=0,
     )
-    return prepare_session_genesis(
+    genesis = prepare_session_genesis(
         output_dir=config.output_dir,
         session_id=config.session_id,
         task_plugin=foundation.composition.task_plugin,
@@ -927,9 +922,32 @@ def _load_existing_session_genesis_for_terminal_audit(
         generation_session_contract_ref=foundation.session_contract_ref,
         gpu_process_binding=foundation.gpu_bindings[0],
         reference_train_attempt_scope=reference_train_scope,
-        reference_eval_attempt_scope=reference_eval_scope,
+        **reference_evaluation_kwargs,
         require_existing=True,
     )
+    _bind_unified_objective_family_mask(foundation, genesis=genesis)
+    return genesis
+
+
+def _bind_unified_objective_family_mask(
+    foundation: StairGenerationSessionFoundation,
+    *,
+    genesis: VerifiedSessionGenesis,
+) -> None:
+    plugin = foundation.composition.task_plugin
+    from true_rl_agent.tasks.stair_climbing.config import StairClimbingTaskConfig
+
+    if not isinstance(getattr(plugin, "config", None), StairClimbingTaskConfig):
+        return
+    if not plugin.config.is_unified_protocol:
+        return
+    evidence = genesis.initial_anchor_public_evidence()
+    public_result = evidence.get("public_result") if isinstance(evidence, Mapping) else None
+    metrics = public_result.get("metrics") if isinstance(public_result, Mapping) else None
+    mask = metrics.get("objective_family_mask") if isinstance(metrics, Mapping) else None
+    if not isinstance(mask, Mapping):
+        raise ValueError("unified Stair Session Genesis lacks objective family mask")
+    plugin.bind_objective_family_mask(mask)
 
 
 def discover_two_gpu_inventory(
@@ -1033,6 +1051,10 @@ def _create_foundation(
                 output_dir=config.output_dir,
             ),
         )
+        if provisional_composition.task_plugin.config.protocol_state != "active":
+            raise ValueError(
+                "Stair unified protocol is draft; formal generation is disabled"
+            )
         final_plan_path = stair_final_confirmation_plan_path(config.output_dir)
         if final_plan_path.is_file():
             formal_final_plan = load_stair_generation_final_confirmation_plan(
@@ -1091,7 +1113,9 @@ def _create_foundation(
         for identity in identities
     )
     assert len(bindings) == 2
-    phased_adapter = StairPhasedEvaluationAdapter(composition.task_plugin.config)
+    phased_adapter = composition.task_plugin.phased_evaluation_adapter()
+    if not isinstance(phased_adapter, StairPhasedEvaluationAdapter):
+        raise TypeError("Stair composition returned an invalid phased adapter")
     scientific_cost_basis = build_stair_generation_scientific_cost_basis(
         session_id=config.session_id,
         config=composition.task_plugin.config,
@@ -1465,7 +1489,7 @@ def _exercise_preflight_persistence_contracts(
 
     train_spec, train_result, eval_spec = _preflight_reference_v3_round_trip(
         foundation,
-        scratch_root=scratch_root / "reference-v3",
+        scratch_root=scratch_root / "r",
     )
     digest = canonical_json_hash({"mode": "preflight-only"})
     manifest = GenerationManifest(
@@ -1580,11 +1604,11 @@ def _preflight_reference_v3_round_trip(
 
     from true_rl_agent.agent_core.session_genesis import (
         GPU_BOUND_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION,
+        _job_spec_to_private_dict,
         _reference_eval_artifact_payload,
         _reference_eval_spec_from_private_artifact,
         _reference_train_result_from_private_artifact,
         _reference_train_spec_from_private_artifact,
-        _job_spec_to_private_dict,
     )
     from true_rl_agent.runner.base import TrainJobResult
     from true_rl_agent.runner.checkpoint import file_sha256
@@ -1606,7 +1630,7 @@ def _preflight_reference_v3_round_trip(
         session_id=f"{foundation.config.session_id}-preflight-v3",
         task_spec=task_spec,
         reference=reference,
-        artifact_root=scratch_root / "reference-program-artifacts",
+        artifact_root=scratch_root / "a",
         policy_initialization=foundation.composition.policy_initialization,
         evaluation_binding=backend.evaluation_binding_for(task_spec),
         backend_execution_environment_manifest_hash=digest,
@@ -1851,14 +1875,16 @@ def _run_one_generation(
                 ledger=[],
             )
         else:
-            bootstrap_scope = _job_attempt_scope(
-                foundation,
-                genesis=genesis,
-                generation_id="generation-parent-public-dev-bootstrap",
-                lane_id="lane-a",
-                invocation_segment_id=attempt_scope_segment_id,
-                binding=foundation.gpu_bindings[0],
-            )
+            bootstrap_scope = None
+            if not composition.task_plugin.config.is_unified_protocol:
+                bootstrap_scope = _job_attempt_scope(
+                    foundation,
+                    genesis=genesis,
+                    generation_id="generation-parent-public-dev-bootstrap",
+                    lane_id="lane-a",
+                    invocation_segment_id=attempt_scope_segment_id,
+                    binding=foundation.gpu_bindings[0],
+                )
             guard = run_genesis_parent_public_dev(
                 genesis=genesis,
                 adapter=foundation.phased_adapter,
@@ -2286,20 +2312,22 @@ def _run_bounded_generation_session(
         raise ValueError("Stair bounded generation segment cost head differs from combined replay")
     segment_closed = False
     try:
-        bootstrap_scope = _job_attempt_scope(
-            foundation,
-            genesis=genesis,
-            generation_id="generation-parent-public-dev-bootstrap",
-            lane_id="lane-a",
-            invocation_segment_id=segment.segment_id,
-            binding=foundation.gpu_bindings[0],
-        )
-        bootstrap_scope = recover_stair_parent_bootstrap_attempt_scope(
-            attempt_journal_root=config.output_dir / "job_attempts",
-            session_id=config.session_id,
-            current_invocation_segment_id=segment.segment_id,
-            current_scope=bootstrap_scope,
-        )
+        bootstrap_scope = None
+        if not composition.task_plugin.config.is_unified_protocol:
+            bootstrap_scope = _job_attempt_scope(
+                foundation,
+                genesis=genesis,
+                generation_id="generation-parent-public-dev-bootstrap",
+                lane_id="lane-a",
+                invocation_segment_id=segment.segment_id,
+                binding=foundation.gpu_bindings[0],
+            )
+            bootstrap_scope = recover_stair_parent_bootstrap_attempt_scope(
+                attempt_journal_root=config.output_dir / "job_attempts",
+                session_id=config.session_id,
+                current_invocation_segment_id=segment.segment_id,
+                current_scope=bootstrap_scope,
+            )
         initial_guard = run_genesis_parent_public_dev(
             genesis=genesis,
             adapter=foundation.phased_adapter,
@@ -4133,6 +4161,49 @@ def _strict_operation_reserves_by_class(
     return result
 
 
+def _reference_qualification_phase_reserves(
+    cost_contract: StairGenerationSessionCostContractV2,
+) -> dict[EvaluationPhase, StairGenerationOperationCostReserve]:
+    """Split one frozen reference-eval reserve across its three processes."""
+
+    combined = _strict_operation_reserves_by_class(cost_contract)[
+        "reference_qualification"
+    ]
+    weights = {
+        phase: cost_contract.scientific_cost_basis.seed_units_for_phase(phase.value)
+        for phase in EvaluationPhase
+    }
+    total_weight = sum(weights.values())
+
+    def shares(total: int) -> dict[EvaluationPhase, int]:
+        consumed_weight = 0
+        previous = 0
+        result: dict[EvaluationPhase, int] = {}
+        for phase in EvaluationPhase:
+            consumed_weight += weights[phase]
+            current = total * consumed_weight // total_weight
+            result[phase] = current - previous
+            previous = current
+        if sum(result.values()) != total or any(
+            value <= 0 for value in result.values()
+        ):
+            raise ValueError("reference qualification reserve cannot be split")
+        return result
+
+    gpu_shares = shares(combined.source_allocated_gpu_capacity_ns)
+    output_shares = shares(combined.source_output_bytes)
+    return {
+        phase: StairGenerationOperationCostReserve(
+            operation_class=f"reference_qualification_{phase.value}",
+            budget_class=combined.budget_class,
+            multiplicity=1,
+            source_allocated_gpu_capacity_ns=gpu_shares[phase],
+            source_output_bytes=output_shares[phase],
+        )
+        for phase in EvaluationPhase
+    }
+
+
 def _strict_operation_slot(
     *,
     session_id: str,
@@ -4142,6 +4213,9 @@ def _strict_operation_slot(
     attempt_index: int,
     cost_contract: StairGenerationSessionCostContractV2,
 ) -> tuple[str, StairGenerationOperationCostReserve]:
+    reuses_reference_public_dev = (
+        cost_contract.scientific_cost_basis.reuses_reference_public_dev_receipt
+    )
     reserves = _strict_operation_reserves_by_class(cost_contract)
     max_generations = cost_contract.max_generations
     expected_retries = 0
@@ -4160,7 +4234,8 @@ def _strict_operation_slot(
         expected_retries = 1
     elif logical_job_id == f"{session_id}-eval":
         if (
-            not isinstance(scope, PreGenesisExecutionScope)
+            reuses_reference_public_dev
+            or not isinstance(scope, PreGenesisExecutionScope)
             or scope.session_id != session_id
             or scope.lane_id != "lane-a"
             or job_kind != "eval"
@@ -4168,7 +4243,39 @@ def _strict_operation_slot(
             raise ValueError("Stair bounded generation reference-eval attempt binding is invalid")
         success_slot = "reference_qualification"
         success_class = "reference_qualification"
-    elif logical_job_id == f"{session_id}-eval-public-dev":
+    elif (
+        reuses_reference_public_dev
+        and isinstance(scope, PreGenesisExecutionScope)
+        and logical_job_id.startswith(f"{session_id}-eval-")
+    ):
+        suffix = logical_job_id.removeprefix(f"{session_id}-eval-")
+        phase_by_suffix = {
+            phase.value.replace("_", "-"): phase for phase in EvaluationPhase
+        }
+        phase = phase_by_suffix.get(suffix)
+        if (
+            phase is None
+            or scope.session_id != session_id
+            or scope.lane_id != "lane-a"
+            or scope.invocation_segment_id
+            != "session-genesis-" + phase.value.replace("_", "-")
+            or job_kind != "eval_phase"
+        ):
+            raise ValueError(
+                "Stair bounded generation phased reference-eval binding is invalid"
+            )
+        if scope.max_infrastructure_retries != 0 or attempt_index != 0:
+            raise ValueError(
+                "Stair bounded generation phased reference-eval retry is invalid"
+            )
+        return (
+            f"reference_qualification:{phase.value}",
+            _reference_qualification_phase_reserves(cost_contract)[phase],
+        )
+    elif (
+        not reuses_reference_public_dev
+        and logical_job_id == f"{session_id}-eval-public-dev"
+    ):
         if (
             not isinstance(scope, JobAttemptScope)
             or scope.generation_id != "generation-parent-public-dev-bootstrap"
@@ -4330,9 +4437,22 @@ def _strict_success_operation_slots(
     reserves = _strict_operation_reserves_by_class(cost_contract)
     slots = {
         "reference_train": reserves["reference_train"],
-        "reference_qualification": reserves["reference_qualification"],
-        "parent_public_dev": reserves["parent_public_dev"],
     }
+    reuses_reference_public_dev = (
+        cost_contract.scientific_cost_basis.reuses_reference_public_dev_receipt
+    )
+    if reuses_reference_public_dev:
+        slots.update(
+            {
+                f"reference_qualification:{phase.value}": reserve
+                for phase, reserve in _reference_qualification_phase_reserves(
+                    cost_contract
+                ).items()
+            }
+        )
+    else:
+        slots["reference_qualification"] = reserves["reference_qualification"]
+        slots["parent_public_dev"] = reserves["parent_public_dev"]
     max_generations = cost_contract.max_generations
     for generation_index in range(1, max_generations + 1):
         for lane_suffix in ("a", "b"):
@@ -4352,14 +4472,23 @@ def _strict_success_operation_slots(
         slots["final-confirmation:genesis"] = reserves["sealed_validation"]
         slots["final-confirmation:final"] = reserves["sealed_validation"]
     expected_counts: dict[str, int] = {}
+    phased_reference_classes: set[str] = set()
     for reserve in slots.values():
+        if reserve.operation_class.startswith("reference_qualification_"):
+            phased_reference_classes.add(reserve.operation_class)
+            continue
         expected_counts[reserve.operation_class] = (
             expected_counts.get(reserve.operation_class, 0) + 1
         )
+    if phased_reference_classes:
+        if len(phased_reference_classes) != len(EvaluationPhase):
+            raise ValueError("phased reference operation slot inventory is incomplete")
+        expected_counts["reference_qualification"] = 1
+    operation_reserves = cost_contract.to_dict()["operation_reserves"]["entries"]
     frozen_counts = {
-        reserve.operation_class: reserve.multiplicity
-        for reserve in reserves.values()
-        if reserve.budget_class == "successful_session"
+        str(entry["operation_class"]): int(entry["multiplicity"])
+        for entry in operation_reserves
+        if entry["budget_class"] == "successful_session"
     }
     if expected_counts != frozen_counts:
         raise ValueError("Stair bounded generation operation slot inventory differs from its cost contract")
@@ -4391,7 +4520,8 @@ def _strict_retry_is_still_possible(
         return False
     slots = _strict_success_operation_slots(cost_contract)
     future_slot_exists = any(
-        slot.endswith(":sealed_validation")
+        slot.startswith("generation-")
+        and slot.endswith(":sealed_validation")
         and slot not in state.reserved_success_slots
         and int(slot.split(":", 1)[0].split("-")[1]) > closed_generation_count
         for slot in slots
@@ -5093,6 +5223,47 @@ def _session_genesis_attempt_scope(**kwargs: Any) -> PreGenesisExecutionScope:
         attempt_budget_units=retries + 1,
         max_infrastructure_retries=retries,
     )
+
+
+def _session_genesis_reference_evaluation_kwargs(
+    foundation: StairGenerationSessionFoundation,
+    *,
+    genesis_identity_hash: str,
+) -> dict[str, Any]:
+    """Choose the task-owned reference evaluation shape for this protocol."""
+
+    config = foundation.config
+    common = {
+        "journal_root": config.output_dir / "job_attempts",
+        "session_id": config.session_id,
+        "genesis_identity_hash": genesis_identity_hash,
+        "session_contract_hash": foundation.session_contract.contract_hash,
+        "lane_id": "lane-a",
+        "budget_contract_hash": foundation.cost_contract.contract_hash,
+        "resource_binding_hash": (
+            foundation.gpu_bindings[0].resource_binding_hash
+        ),
+        "max_infrastructure_retries": 0,
+    }
+    if foundation.composition.task_plugin.config.is_unified_protocol:
+        return {
+            "reference_phased_evaluation_adapter": foundation.phased_adapter,
+            "reference_eval_phase_attempt_scopes": {
+                phase: _session_genesis_attempt_scope(
+                    **common,
+                    invocation_segment_id=(
+                        "session-genesis-" + phase.value.replace("_", "-")
+                    ),
+                )
+                for phase in EvaluationPhase
+            },
+        }
+    return {
+        "reference_eval_attempt_scope": _session_genesis_attempt_scope(
+            **common,
+            invocation_segment_id="session-genesis",
+        )
+    }
 
 
 def _latest_cost_head(journal: StairGenerationActualCostJournal) -> str:
@@ -6129,29 +6300,80 @@ def _validated_job_cost_artifacts(
             },
         )
     )
-    summary_path = eval_plan.metadata.get("summary_path")
-    if not isinstance(summary_path, str) or not summary_path:
-        raise ValueError("reference eval plan has no summary path")
-    reference_summary_path = Path(summary_path)
-    reference_summary = load_strict_json_object(
-        reference_summary_path,
-        context="reference evaluation summary",
-    )
-    if reference_summary.get("job_id") != eval_plan.job_id:
-        raise ValueError("reference evaluation summary job identity mismatch")
-    _insert_unique_cost(
-        eval_costs,
-        eval_plan.job_id,
-        _execution_cost_totals(reference_summary.get("evaluation_execution_cost")),
-    )
-    evidence.append(
-        _job_cost_evidence_projection(
-            foundation,
-            path=reference_summary_path,
-            kind="reference-eval-summary",
-            job_identity={"job_id": eval_plan.job_id},
+    reference_assembly = private.get("evaluation_assembly")
+    if reference_assembly is None:
+        summary_path = eval_plan.metadata.get("summary_path")
+        if not isinstance(summary_path, str) or not summary_path:
+            raise ValueError("reference eval plan has no summary path")
+        reference_summary_path = Path(summary_path)
+        reference_summary = load_strict_json_object(
+            reference_summary_path,
+            context="reference evaluation summary",
         )
-    )
+        if reference_summary.get("job_id") != eval_plan.job_id:
+            raise ValueError("reference evaluation summary job identity mismatch")
+        _insert_unique_cost(
+            eval_costs,
+            eval_plan.job_id,
+            _execution_cost_totals(
+                reference_summary.get("evaluation_execution_cost")
+            ),
+        )
+        evidence.append(
+            _job_cost_evidence_projection(
+                foundation,
+                path=reference_summary_path,
+                kind="reference-eval-summary",
+                job_identity={"job_id": eval_plan.job_id},
+            )
+        )
+    else:
+        if not isinstance(reference_assembly, Mapping):
+            raise TypeError("reference evaluation assembly is invalid")
+        raw_receipts = reference_assembly.get("phase_receipts")
+        if not isinstance(raw_receipts, list) or len(raw_receipts) != len(
+            EvaluationPhase
+        ):
+            raise ValueError("reference evaluation phase receipts are incomplete")
+        expected_plan_hash = canonical_json_hash(eval_plan.to_public_dict())
+        observed_phases: set[EvaluationPhase] = set()
+        for raw_binding in raw_receipts:
+            if not isinstance(raw_binding, Mapping):
+                raise TypeError("reference evaluation phase receipt is invalid")
+            phase = EvaluationPhase.parse(raw_binding.get("phase"))
+            if phase in observed_phases:
+                raise ValueError("reference evaluation phase receipt is duplicated")
+            observed_phases.add(phase)
+            ref = TrialReceiptRef(
+                kind="eval_phase",
+                path=str(raw_binding.get("path")),
+                checksum=str(raw_binding.get("checksum")),
+                size_bytes=raw_binding.get("size_bytes"),
+                schema_version=str(raw_binding.get("ref_schema_version")),
+            )
+            loaded = load_trial_eval_phase_receipt(ref)
+            result = loaded.result
+            if (
+                result.phase is not phase
+                or result.job_id != raw_binding.get("job_id")
+                or result.evaluation_plan_hash != expected_plan_hash
+            ):
+                raise ValueError("reference evaluation phase receipt identity mismatch")
+            _insert_unique_cost(
+                eval_costs,
+                result.job_id,
+                _execution_cost_totals(result.execution_cost),
+            )
+            evidence.append(
+                _job_cost_evidence_projection(
+                    foundation,
+                    path=Path(ref.path),
+                    kind="reference-eval-phase-receipt",
+                    job_identity={"job_id": result.job_id},
+                )
+            )
+        if observed_phases != set(EvaluationPhase):
+            raise ValueError("reference evaluation phase receipts are incomplete")
     for root in (
         foundation.config.output_dir / "parent_public_dev_receipts",
         foundation.config.output_dir / "trial_receipts",
@@ -7126,10 +7348,16 @@ def _build_validation_report(
         genesis=genesis,
         ledger=ledger,
     )
+    selector_metrics = _validation_selector_reversal_metrics(
+        foundation,
+        ledger=ledger,
+        final_exploration=final_exploration,
+    )
     exploration_metrics = _validation_exploration_metrics(
         foundation,
         genesis=genesis,
         ledger=ledger,
+        selector_metrics=selector_metrics,
     )
     authoring_metrics = _validation_authoring_metrics(foundation)
     actual = actual_cost_receipt.payload["actual"]
@@ -7196,7 +7424,6 @@ def _build_validation_report(
     if not all(checks.values()):
         failed = sorted(name for name, passed in checks.items() if not passed)
         raise ValueError("Stair bounded generation validation report checks failed: " + ", ".join(failed))
-    selector_metrics = _validation_selector_reversal_metrics(final_exploration)
     p6d_entry_gates = {
         "authoring_timing_complete": (
             authoring_metrics["timing"]["timing_complete"] is True
@@ -7288,6 +7515,7 @@ def _validation_exploration_metrics(
     *,
     genesis: VerifiedSessionGenesis,
     ledger: list[dict[str, Any]],
+    selector_metrics: Mapping[str, Any],
 ) -> dict[str, Any]:
     final_plan = _generation_exploration_for_ledger(
         foundation,
@@ -7318,7 +7546,12 @@ def _validation_exploration_metrics(
         ),
     )
     expected_high_losers: set[tuple[str, str]] = set()
-    projector = StairExplorationProjector(foundation.composition.task_plugin.config)
+    projector = StairExplorationProjector(
+        foundation.composition.task_plugin.config,
+        objective_family_mask=(
+            foundation.composition.task_plugin.objective_family_mask()
+        ),
+    )
     for history_record in history.records:
         generation = history_record.get("generation")
         if not isinstance(generation, Mapping):
@@ -7413,7 +7646,7 @@ def _validation_exploration_metrics(
     negative_repeat_count = sum(
         max(0, count - 1) for count in trained_negative_keys.values()
     )
-    direction_consistency = [
+    legacy_direction_consistency = [
         card.public_evidence_summary.get("public_dev", {}).get(
             "direction_consistent_with_accept"
         )
@@ -7513,13 +7746,24 @@ def _validation_exploration_metrics(
             final_plan.blocked_verifier_equivalence_keys
         ),
         "public_dev_accept_consistency": {
-            "numerator": sum(value is True for value in direction_consistency),
-            "denominator": len(direction_consistency),
-            "rate": (
-                sum(value is True for value in direction_consistency)
-                / len(direction_consistency)
-                if direction_consistency
-                else None
+            **(
+                dict(selector_metrics["public_dev_accept_consistency"])
+                if foundation.composition.task_plugin.config.is_unified_protocol
+                else {
+                    "numerator": sum(
+                        value is True for value in legacy_direction_consistency
+                    ),
+                    "denominator": len(legacy_direction_consistency),
+                    "rate": (
+                        sum(
+                            value is True
+                            for value in legacy_direction_consistency
+                        )
+                        / len(legacy_direction_consistency)
+                        if legacy_direction_consistency
+                        else None
+                    ),
+                }
             ),
         },
     }
@@ -7659,8 +7903,17 @@ def _validation_authoring_metrics(
 
 
 def _validation_selector_reversal_metrics(
+    foundation: StairGenerationSessionFoundation,
+    *,
+    ledger: list[dict[str, Any]],
     final_exploration: GenerationExplorationPlan,
 ) -> dict[str, Any]:
+    if foundation.composition.task_plugin.config.is_unified_protocol:
+        return _unified_validation_selector_reversal_metrics(
+            foundation,
+            ledger=ledger,
+        )
+
     cards_by_generation: dict[int, list[Any]] = {}
     for card in final_exploration.index.cards:
         cards_by_generation.setdefault(card.generation_index, []).append(card)
@@ -7746,6 +7999,132 @@ def _validation_selector_reversal_metrics(
         "complete_dual_public_generation_count": complete_pair_count,
         "observed_reversal_count": len(reversals),
         "blocking_reversal_count": (len(reversals) if complete_pair_count >= 2 else 0),
+        "reversals": reversals,
+    }
+
+
+def _unified_validation_selector_reversal_metrics(
+    foundation: StairGenerationSessionFoundation,
+    *,
+    ledger: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Audit the public-dev selector against runner-private public-accept receipts."""
+
+    config = foundation.composition.task_plugin.config
+    protocol = config.acceptance_protocol
+    mask = foundation.composition.task_plugin.objective_family_mask()
+    if mask is None:
+        raise ValueError(
+            "unified validation selector metrics lack Genesis objective family mask"
+        )
+    complete_pair_count = 0
+    reversals: list[dict[str, Any]] = []
+    for record in ledger:
+        selection = record.get("selection")
+        trials = record.get("trials")
+        if not isinstance(selection, Mapping) or not isinstance(trials, list):
+            continue
+        selected_trial_id = selection.get("selected_trial_id")
+        if not isinstance(selected_trial_id, str):
+            continue
+        by_id = {
+            str(trial.get("trial_id")): trial
+            for trial in trials
+            if isinstance(trial, Mapping)
+        }
+        winner = by_id.get(selected_trial_id)
+        losers = [trial for trial_id, trial in by_id.items() if trial_id != selected_trial_id]
+        if winner is None or len(losers) != 1:
+            continue
+        loser = losers[0]
+        if winner.get("public_accept") is None or loser.get("public_accept") is None:
+            continue
+        projections: dict[str, Mapping[str, Any]] = {}
+        for label, trial in (("winner", winner), ("loser", loser)):
+            loaded = load_bound_generation_trial_phase_receipt(
+                record,
+                trial_id=str(trial["trial_id"]),
+                phase=EvaluationPhase.PUBLIC_ACCEPT,
+            )
+            summary = canonical_stair_phase_result_summary(
+                config=config,
+                expected_phase=EvaluationPhase.PUBLIC_ACCEPT,
+                result=loaded.result,
+            )
+            projections[label] = build_unified_score_projection(
+                summary,
+                objective_family_mask=mask,
+            )
+        winner_projection = projections["winner"]
+        loser_projection = projections["loser"]
+        winner_objective = winner_projection["j_primary"]
+        loser_objective = loser_projection["j_primary"]
+        winner_score = float(winner_objective["score_stats"]["mean"])
+        loser_score = float(loser_objective["score_stats"]["mean"])
+        threshold = acceptance_threshold(
+            protocol,
+            candidate_score=loser_score,
+            best_score=winner_score,
+            candidate_score_samples=loser_objective["seed_macro_scores"],
+            best_score_samples=winner_objective["seed_macro_scores"],
+        )
+        loser_advantage = loser_score - winner_score
+        material_reversal = acceptance_delta_met(
+            protocol,
+            loser_advantage,
+            threshold.threshold,
+        )
+        guard_checks: dict[str, bool] = {}
+        for guard in protocol.named_guards:
+            winner_guard = winner_projection[guard.name]
+            loser_guard = loser_projection[guard.name]
+            guard_threshold = named_guard_regression_threshold(
+                protocol,
+                guard,
+                candidate_guard_score=float(
+                    loser_guard["score_stats"]["mean"]
+                ),
+                best_guard_score=float(winner_guard["score_stats"]["mean"]),
+                candidate_guard_score_samples=loser_guard["seed_macro_scores"],
+                best_guard_score_samples=winner_guard["seed_macro_scores"],
+            )
+            guard_checks[guard.name] = (
+                float(loser_guard["score_stats"]["mean"])
+                - float(winner_guard["score_stats"]["mean"])
+                >= -guard_threshold.threshold
+            )
+        complete_pair_count += 1
+        blocking = material_reversal and all(guard_checks.values())
+        if blocking:
+            reversals.append(
+                {
+                    "generation_index": record.get("generation_index"),
+                    "selected_trial_id": selected_trial_id,
+                    "loser_trial_id": loser["trial_id"],
+                    "selected_public_accept_objective": winner_score,
+                    "loser_public_accept_objective": loser_score,
+                    "loser_advantage": loser_advantage,
+                    "materiality_threshold": threshold.threshold,
+                    "named_guard_checks": guard_checks,
+                }
+            )
+    consistent_count = complete_pair_count - len(reversals)
+    return {
+        "comparison_source": "runner_private_public_accept_phase_receipts",
+        "complete_dual_public_generation_count": complete_pair_count,
+        "observed_reversal_count": len(reversals),
+        "blocking_reversal_count": (
+            len(reversals) if complete_pair_count >= 2 else 0
+        ),
+        "public_dev_accept_consistency": {
+            "numerator": consistent_count,
+            "denominator": complete_pair_count,
+            "rate": (
+                consistent_count / complete_pair_count
+                if complete_pair_count
+                else None
+            ),
+        },
         "reversals": reversals,
     }
 

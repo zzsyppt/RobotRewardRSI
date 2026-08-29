@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
@@ -44,6 +45,7 @@ from true_rl_agent.prompting.task_sections import (
     validate_provider_task_prompt_receipt,
 )
 from true_rl_agent.tasks.prompt_adapter import (
+    PromptPublicHistoryProjection,
     TaskPromptAdapter,
     sanitize_task_prompt_sections,
 )
@@ -63,6 +65,8 @@ class _PreparedRecords:
     experiment_records: list[ExperimentRecord]
     sanitized_history: ProjectedPublicHistory
     validated_history: ProjectedPublicHistory
+    prompt_score_source: str | None = None
+    initial_anchor_prompt_score: float | None = None
 
     def __iter__(self):
         # Preserve the private two-value unpacking contract used by test builders.
@@ -172,6 +176,9 @@ class PublicContextBuilder:
         _experiment_records, history = prepared
         return self._build_round_public_context(
             history,
+            initial_anchor_prompt_score=(
+                prepared.initial_anchor_prompt_score
+            ),
             validated_exploration_history=(
                 self._validated_exploration_history(prepared)
             ),
@@ -193,6 +200,9 @@ class PublicContextBuilder:
         public_records = history.records
         round_public_context = self._build_round_public_context(
             history,
+            initial_anchor_prompt_score=(
+                prepared.initial_anchor_prompt_score
+            ),
             validated_exploration_history=(
                 self._validated_exploration_history(prepared)
             ),
@@ -214,6 +224,12 @@ class PublicContextBuilder:
                 latest_failed_candidate=latest_failed_candidate,
                 initial_reference_program_source=(
                     self.initial_reference_program_source
+                ),
+                prompt_objective_score_source=(
+                    prepared.prompt_score_source
+                ),
+                initial_anchor_objective_score=(
+                    prepared.initial_anchor_prompt_score
                 ),
                 nonaccepted_authoring_tiebreak_key=(
                     _nonaccepted_authoring_tiebreak_key(self.task_prompt_adapter)
@@ -258,11 +274,26 @@ class PublicContextBuilder:
     ) -> _PreparedRecords:
         experiment_records = [_experiment_record(record) for record in records]
         history = self._project_public_history(experiment_records)
+        prompt_projection = _project_prompt_public_history(
+            self.task_prompt_adapter,
+            public_records=history.records,
+            initial_anchor_public_evidence=self.initial_anchor_public_evidence,
+        )
+        initial_best = history.initial_current_best
+        if (
+            prompt_projection.public_score_source is not None
+            and initial_best is not None
+            and initial_best.mode in {"accepted", "reference"}
+            and prompt_projection.initial_anchor_score is None
+        ):
+            raise ValueError(
+                "task prompt score semantics require an explicit initial anchor score"
+            )
         record_scrub_policy = _prompt_public_record_scrub_policy(
             self.task_prompt_adapter
         )
         public_records = sanitize_public_records_with_policy(
-            history.records,
+            prompt_projection.records,
             blocked_key_parts=record_scrub_policy["blocked_key_parts"],
             blocked_text_parts=record_scrub_policy["blocked_text_parts"],
         )
@@ -272,7 +303,10 @@ class PublicContextBuilder:
             session_genesis_hash=history.session_genesis_hash,
             acceptance_protocol_hash=history.acceptance_protocol_hash,
             current_best=history.current_best,
-            public_score_source=history.public_score_source,
+            public_score_source=(
+                prompt_projection.public_score_source
+                or history.public_score_source
+            ),
         )
         projected_experiment_records = [
             replace(record, public_record=public_record)
@@ -284,6 +318,10 @@ class PublicContextBuilder:
             experiment_records=projected_experiment_records,
             sanitized_history=sanitized_history,
             validated_history=history,
+            prompt_score_source=prompt_projection.public_score_source,
+            initial_anchor_prompt_score=(
+                prompt_projection.initial_anchor_score
+            ),
         )
 
     def _project_public_history(
@@ -322,6 +360,7 @@ class PublicContextBuilder:
         self,
         history: ProjectedPublicHistory,
         *,
+        initial_anchor_prompt_score: float | None = None,
         validated_exploration_history: ProjectedPublicHistory | None = None,
     ) -> dict[str, Any]:
         exploration_projection: Mapping[str, Any] | None = None
@@ -365,6 +404,7 @@ class PublicContextBuilder:
                 exploration_projection = projected
         context = build_public_context_from_projected(
             history,
+            initial_anchor_public_score=initial_anchor_prompt_score,
             exploration_projection=exploration_projection,
         )
         if self.task_memory_adapter is not None:
@@ -526,6 +566,144 @@ def _prompt_public_record_scrub_policy(
     return {
         "blocked_key_parts": _string_tuple(policy.get("blocked_key_parts")),
         "blocked_text_parts": _string_tuple(policy.get("blocked_text_parts")),
+    }
+
+
+def _project_prompt_public_history(
+    task_prompt_adapter: TaskPromptAdapter | None,
+    *,
+    public_records: Sequence[Mapping[str, Any]],
+    initial_anchor_public_evidence: Mapping[str, Any] | None,
+) -> PromptPublicHistoryProjection:
+    projector = getattr(
+        task_prompt_adapter,
+        "project_prompt_public_history",
+        None,
+    )
+    if callable(projector):
+        projection = projector(
+            public_records=public_records,
+            initial_anchor_public_evidence=initial_anchor_public_evidence,
+        )
+    else:
+        projection = PromptPublicHistoryProjection(
+            records=tuple(dict(record) for record in public_records),
+        )
+    if not isinstance(projection, PromptPublicHistoryProjection):
+        raise TypeError("task prompt history projection is invalid")
+    if len(projection.records) != len(public_records):
+        raise ValueError("task prompt history projection changed record count")
+    for index, (before, after) in enumerate(
+        zip(public_records, projection.records, strict=True)
+    ):
+        if not isinstance(after, Mapping):
+            raise TypeError("task prompt history projection record is invalid")
+        if before.get("round_id") != after.get("round_id"):
+            raise ValueError(
+                "task prompt history projection changed round_id at "
+                f"index {index}"
+            )
+        if _prompt_history_authority_identity(before) != (
+            _prompt_history_authority_identity(after)
+        ):
+            raise ValueError(
+                "task prompt history projection changed runner authority at "
+                f"index {index}"
+            )
+    if projection.public_score_source is not None and (
+        not isinstance(projection.public_score_source, str)
+        or not projection.public_score_source.strip()
+    ):
+        raise ValueError("task prompt public score source is invalid")
+    score = projection.initial_anchor_score
+    if score is not None and (
+        isinstance(score, bool)
+        or not isinstance(score, int | float)
+        or not math.isfinite(float(score))
+    ):
+        raise ValueError("task prompt initial anchor score is invalid")
+    if score is not None and projection.public_score_source is None:
+        raise ValueError("task prompt initial anchor score has no score source")
+    return projection
+
+
+def _prompt_history_authority_identity(
+    record: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Freeze identities and runner decisions while tasks choose feedback fields."""
+
+    def nested(value: Any, *keys: str) -> Any:
+        current = value
+        for key in keys:
+            if not isinstance(current, Mapping):
+                return None
+            current = current.get(key)
+        return current
+
+    generation = record.get("generation")
+    non_feedback_fields = {
+        key: value
+        for key, value in record.items()
+        if key not in {"public_result", "decision", "generation"}
+    }
+    raw_trials = nested(generation, "trials")
+    trial_identities = (
+        tuple(
+            (
+                nested(trial, "lane_id"),
+                nested(trial, "trial_id"),
+                nested(trial, "trial_status"),
+                nested(trial, "candidate", "candidate_id"),
+                nested(trial, "candidate", "program_source_checksum"),
+            )
+            for trial in raw_trials
+        )
+        if isinstance(raw_trials, list | tuple)
+        else None
+    )
+    return {
+        "non_feedback_fields": non_feedback_fields,
+        "round_id": record.get("round_id"),
+        "task_id": nested(record, "task", "task_id"),
+        "candidate_id": nested(record, "candidate", "candidate_id"),
+        "program_source_checksum": nested(
+            record,
+            "candidate",
+            "program_source_checksum",
+        ),
+        "public_result_status": nested(record, "public_result", "status"),
+        "decision_outcome": nested(record, "decision", "outcome"),
+        "decision_accepted": nested(record, "decision", "accepted"),
+        "decision_surface_classification": nested(
+            record,
+            "decision",
+            "surface_classification",
+        ),
+        "generation_id": nested(generation, "generation_id"),
+        "generation_index": nested(generation, "generation_index"),
+        "generation_outcome": nested(generation, "generation_outcome"),
+        "selected_trial_id": nested(
+            generation,
+            "selection",
+            "selected_trial_id",
+        ),
+        "formal_accepted": nested(generation, "formal", "accepted"),
+        "formal_decision_outcome": nested(
+            generation,
+            "formal",
+            "decision_outcome",
+        ),
+        "formal_selected_lane_id": nested(
+            generation,
+            "formal",
+            "selected_lane_id",
+        ),
+        "formal_selected_trial_id": nested(
+            generation,
+            "formal",
+            "selected_trial_id",
+        ),
+        "trial_identities": trial_identities,
     }
 
 

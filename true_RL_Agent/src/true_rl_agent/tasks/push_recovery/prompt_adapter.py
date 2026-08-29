@@ -25,6 +25,7 @@ from true_rl_agent.prompting.serialization import canonical_prompt_json_bytes
 from true_rl_agent.prompting.capacity import build_prompt_capacity_receipt
 from true_rl_agent.tasks.prompt_adapter import (
     MAX_TASK_PROMPT_SECTIONS_BYTES,
+    PromptPublicHistoryProjection,
     sanitize_task_prompt_sections,
 )
 from true_rl_agent.tasks.push_recovery.config import PushRecoveryTaskConfig
@@ -324,6 +325,17 @@ class PushRecoveryPromptAdapter:
             "blocked_key_parts": reserved_fields,
             "blocked_text_parts": reserved_fields,
         }
+
+    def project_prompt_public_history(
+        self,
+        *,
+        public_records: Sequence[Mapping[str, Any]],
+        initial_anchor_public_evidence: Mapping[str, Any] | None,
+    ) -> PromptPublicHistoryProjection:
+        _ = initial_anchor_public_evidence
+        return PromptPublicHistoryProjection(
+            records=tuple(dict(record) for record in public_records),
+        )
 
     def nonaccepted_authoring_tiebreak_key(
         self,

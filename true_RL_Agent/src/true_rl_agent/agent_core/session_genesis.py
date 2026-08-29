@@ -8,13 +8,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any, Mapping, Protocol, Sequence
 
-from true_rl_agent.agent_core.process_lock import (
-    ProcessFileLock,
-    ProcessFileLockUnavailableError,
-    acquire_process_file_lock,
-)
 from true_rl_agent.agent_core.generation_contract import (
     GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION,
     GenerationSessionContractRef,
@@ -23,14 +18,34 @@ from true_rl_agent.agent_core.generation_contract import (
 from true_rl_agent.agent_core.generation_lifecycle import (
     _canonical_uuid_hex,
     _current_process_group_id,
-    _load_json as _load_generation_json,
     _positive_int,
     _process_group_is_alive,
     _process_incarnation_token,
-    _publish_json_once as _publish_generation_json_once,
-    _reservation_ref as _generation_reservation_ref,
     _timestamp,
+)
+from true_rl_agent.agent_core.generation_lifecycle import (
+    _load_json as _load_generation_json,
+)
+from true_rl_agent.agent_core.generation_lifecycle import (
+    _publish_json_once as _publish_generation_json_once,
+)
+from true_rl_agent.agent_core.generation_lifecycle import (
+    _reservation_ref as _generation_reservation_ref,
+)
+from true_rl_agent.agent_core.generation_lifecycle import (
     _validate_reservation_ref as _validate_generation_reservation_ref,
+)
+from true_rl_agent.agent_core.process_lock import (
+    ProcessFileLock,
+    ProcessFileLockUnavailableError,
+    acquire_process_file_lock,
+)
+from true_rl_agent.agent_core.trial_receipts import (
+    TRIAL_EXECUTION_CONTRACT_SCHEMA_VERSION,
+    LoadedTrialEvalPhaseReceipt,
+    TrialReceiptJournal,
+    TrialReceiptRef,
+    load_trial_eval_phase_receipt,
 )
 from true_rl_agent.backends.base import BackendAdapter
 from true_rl_agent.evaluation.acceptance_protocol import AcceptanceProtocol
@@ -42,6 +57,12 @@ from true_rl_agent.evaluation.binding import (
     require_sha256_digest,
 )
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
+from true_rl_agent.evaluation.phases import (
+    EvaluationAssembly,
+    EvaluationPhase,
+    EvaluationPhaseReceiptBinding,
+    EvaluationPhaseResult,
+)
 from true_rl_agent.evaluation.protocol import EvaluationProtocol
 from true_rl_agent.evaluation.public_projection import assert_public_projection_safe
 from true_rl_agent.evaluation.public_result import PublicEvalResult
@@ -105,6 +126,9 @@ REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION = (
 GPU_BOUND_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION = (
     "true_rl_agent.session_genesis.reference_eval_artifact.v3"
 )
+PHASED_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION = (
+    "true_rl_agent.session_genesis.reference_eval_artifact.v4"
+)
 SESSION_GENESIS_FILENAME = "session_genesis.json"
 BASELINE_EVAL_ARTIFACT_FILENAME = "baseline_eval_artifact.json"
 REFERENCE_EVAL_ARTIFACT_FILENAME = "reference_eval_artifact.json"
@@ -124,6 +148,50 @@ _SESSION_GENESIS_RECOVERY_MAX_BYTES = 128 * 1024
 
 class SessionGenesisCreationInProgressError(RuntimeError):
     """Raised when another writer owns creation of the same session Genesis."""
+
+
+class ReferencePhasedEvaluationAdapter(Protocol):
+    """Task-owned assembly hook for a split reference evaluation."""
+
+    def assemble_reference_full_summary(
+        self,
+        *,
+        eval_plan: EvalJobSpec,
+        phase_results: Sequence[EvaluationPhaseResult],
+        phase_receipt_refs: Mapping[
+            EvaluationPhase | str,
+            Mapping[str, Any],
+        ],
+    ) -> EvaluationAssembly: ...
+
+
+def _reference_eval_phase_role(phase: EvaluationPhase) -> str:
+    return f"reference_eval_{phase.value}"
+
+
+def _normalize_reference_eval_phase_attempt_scopes(
+    value: Mapping[EvaluationPhase | str, PreGenesisExecutionScope] | None,
+) -> Mapping[EvaluationPhase, PreGenesisExecutionScope] | None:
+    if value is None:
+        return None
+    if not isinstance(value, Mapping):
+        raise TypeError("reference_eval_phase_attempt_scopes must be an object")
+    normalized: dict[EvaluationPhase, PreGenesisExecutionScope] = {}
+    for raw_phase, scope in value.items():
+        phase = EvaluationPhase.parse(raw_phase)
+        if phase in normalized:
+            raise ValueError("reference eval phase attempt scopes repeat a phase")
+        if not isinstance(scope, PreGenesisExecutionScope):
+            raise TypeError(
+                "reference eval phase attempt scope must be a "
+                "PreGenesisExecutionScope"
+            )
+        normalized[phase] = scope
+    if set(normalized) != set(EvaluationPhase):
+        raise ValueError(
+            "reference eval phase attempt scopes must cover every evaluation phase"
+        )
+    return MappingProxyType(dict(normalized))
 
 
 @dataclass
@@ -957,6 +1025,55 @@ class VerifiedSessionGenesis:
             evaluation_binding=self.evaluation_binding,
         )
 
+    def reference_eval_phase_receipt(
+        self,
+        phase: EvaluationPhase | str,
+    ) -> LoadedTrialEvalPhaseReceipt | None:
+        """Reload one receipt from a verified phased reference evaluation."""
+
+        anchor = self._artifact.anchor
+        if not isinstance(anchor, ReferenceProgramGenesisAnchor):
+            return None
+        resolved_phase = EvaluationPhase.parse(phase)
+        private_payload = _read_bound_reference_private_artifact(
+            anchor=anchor,
+            expected_path=(
+                self._artifact_path.parent / REFERENCE_EVAL_ARTIFACT_FILENAME
+            ),
+        )
+        eval_spec = _reference_eval_spec_from_private_artifact(
+            private_payload,
+            anchor=anchor,
+            evaluation_binding=self.evaluation_binding,
+        )
+        assembly = _validate_reference_evaluation_assembly(
+            private_payload,
+            eval_spec=eval_spec,
+            expected_phased=True,
+        )
+        assert assembly is not None
+        binding = next(
+            item
+            for item in assembly.phase_receipts
+            if item.phase is resolved_phase
+        )
+        loaded = load_trial_eval_phase_receipt(
+            TrialReceiptRef(
+                kind="eval_phase",
+                path=binding.path,
+                checksum=binding.checksum,
+                size_bytes=binding.size_bytes,
+                schema_version=binding.ref_schema_version,
+            )
+        )
+        if (
+            loaded.job_spec_hash != binding.job_spec_hash
+            or loaded.result.job_id != binding.job_id
+            or loaded.result.resource_binding_hash != binding.resource_binding_hash
+        ):
+            raise ValueError("reference evaluation phase receipt binding mismatch")
+        return loaded
+
 
 def prepare_session_genesis(
     *,
@@ -977,6 +1094,12 @@ def prepare_session_genesis(
     gpu_process_binding: GpuProcessBinding | None = None,
     reference_train_attempt_scope: PreGenesisExecutionScope | None = None,
     reference_eval_attempt_scope: PreGenesisExecutionScope | None = None,
+    reference_phased_evaluation_adapter: (
+        ReferencePhasedEvaluationAdapter | None
+    ) = None,
+    reference_eval_phase_attempt_scopes: (
+        Mapping[EvaluationPhase | str, PreGenesisExecutionScope] | None
+    ) = None,
     baseline_eval_attempt_scope: PreGenesisExecutionScope | None = None,
 ) -> VerifiedSessionGenesis:
     """Create a Genesis once, or validate the existing one without rerunning eval."""
@@ -1043,6 +1166,26 @@ def prepare_session_genesis(
         raise ValueError(
             "GPU-bound Genesis requires a generation session contract"
         )
+    phase_attempt_scopes = _normalize_reference_eval_phase_attempt_scopes(
+        reference_eval_phase_attempt_scopes
+    )
+    phased_reference_eval = reference_phased_evaluation_adapter is not None
+    if phased_reference_eval != (phase_attempt_scopes is not None):
+        raise ValueError(
+            "phased reference evaluation requires both an adapter and all phase scopes"
+        )
+    if phased_reference_eval and not callable(
+        getattr(
+            reference_phased_evaluation_adapter,
+            "assemble_reference_full_summary",
+            None,
+        )
+    ):
+        raise TypeError("reference phased evaluation adapter is invalid")
+    if phased_reference_eval and reference_eval_attempt_scope is not None:
+        raise ValueError(
+            "reference evaluation cannot use full and phased attempt scopes together"
+        )
     for field_name, scope in (
         ("reference_train_attempt_scope", reference_train_attempt_scope),
         ("reference_eval_attempt_scope", reference_eval_attempt_scope),
@@ -1055,6 +1198,7 @@ def prepare_session_genesis(
     if (
         reference_train_attempt_scope is not None
         or reference_eval_attempt_scope is not None
+        or phase_attempt_scopes is not None
     ) and reference_program_artifact is None:
         raise ValueError(
             "reference pre-Genesis attempt scopes require a reference artifact"
@@ -1099,6 +1243,7 @@ def prepare_session_genesis(
             gpu_process_binding is not None
             or reference_train_attempt_scope is not None
             or reference_eval_attempt_scope is not None
+            or phase_attempt_scopes is not None
             or baseline_eval_attempt_scope is not None
         ) and (
             generation_contract.schema_version
@@ -1116,6 +1261,13 @@ def prepare_session_genesis(
         ("reference_train_attempt_scope", reference_train_attempt_scope),
         ("reference_eval_attempt_scope", reference_eval_attempt_scope),
         ("baseline_eval_attempt_scope", baseline_eval_attempt_scope),
+        *(
+            (
+                f"reference_eval_phase_attempt_scopes[{phase.value}]",
+                scope,
+            )
+            for phase, scope in (phase_attempt_scopes or {}).items()
+        ),
     ):
         if scope is not None:
             if generation_contract is None:
@@ -1143,6 +1295,10 @@ def prepare_session_genesis(
             ("reference_train", reference_train_attempt_scope),
             ("reference_eval", reference_eval_attempt_scope),
             ("baseline_eval", baseline_eval_attempt_scope),
+            *(
+                (_reference_eval_phase_role(phase), scope)
+                for phase, scope in (phase_attempt_scopes or {}).items()
+            ),
         )
         if scope is not None
     }
@@ -1222,6 +1378,10 @@ def prepare_session_genesis(
             gpu_process_binding=gpu_process_binding,
             reference_train_attempt_scope=reference_train_attempt_scope,
             reference_eval_attempt_scope=reference_eval_attempt_scope,
+            reference_phased_evaluation_adapter=(
+                reference_phased_evaluation_adapter
+            ),
+            reference_eval_phase_attempt_scopes=phase_attempt_scopes,
             baseline_eval_attempt_scope=baseline_eval_attempt_scope,
         )
 
@@ -1375,6 +1535,12 @@ class _GenesisContext:
     gpu_process_binding: GpuProcessBinding | None
     reference_train_attempt_scope: PreGenesisExecutionScope | None
     reference_eval_attempt_scope: PreGenesisExecutionScope | None
+    reference_phased_evaluation_adapter: (
+        ReferencePhasedEvaluationAdapter | None
+    )
+    reference_eval_phase_attempt_scopes: (
+        Mapping[EvaluationPhase, PreGenesisExecutionScope] | None
+    )
     baseline_eval_attempt_scope: PreGenesisExecutionScope | None
 
     def __post_init__(self) -> None:
@@ -1394,6 +1560,15 @@ class _GenesisContext:
                 PreGenesisExecutionScope,
             ):
                 raise TypeError(f"Genesis {field_name} is invalid")
+        phased_reference_eval = self.reference_phased_evaluation_adapter is not None
+        phase_scopes = self.reference_eval_phase_attempt_scopes
+        if phased_reference_eval != (phase_scopes is not None):
+            raise ValueError("Genesis phased reference evaluation is incomplete")
+        if phased_reference_eval:
+            if self.reference_eval_attempt_scope is not None:
+                raise ValueError("Genesis reference eval scopes are ambiguous")
+            if set(phase_scopes or {}) != set(EvaluationPhase):
+                raise ValueError("Genesis reference eval phase scopes are incomplete")
         if (
             self.gpu_process_binding is not None
             and self.generation_session_contract_ref is None
@@ -1581,7 +1756,10 @@ def _create_reference_genesis(
     if context.gpu_process_binding is not None:
         if (
             context.reference_train_attempt_scope is None
-            or context.reference_eval_attempt_scope is None
+            or (
+                context.reference_eval_attempt_scope is None
+                and context.reference_eval_phase_attempt_scopes is None
+            )
         ):
             raise ValueError(
                 "GPU-bound reference Genesis requires train and eval attempt scopes"
@@ -1619,7 +1797,18 @@ def _create_reference_genesis(
         jobs.eval_spec,
         train_result.checkpoint,
     )
-    raw_public_result = runner.run_eval(eval_spec)
+    evaluation_assembly: EvaluationAssembly | None = None
+    if context.reference_phased_evaluation_adapter is None:
+        raw_public_result = runner.run_eval(eval_spec)
+    else:
+        evaluation_assembly, raw_public_result = (
+            _run_reference_phased_evaluation(
+                output_dir=output_dir,
+                context=context,
+                runner=runner,
+                eval_plan=eval_spec,
+            )
+        )
     qualification = context.task_plugin.qualify_reference_result(
         public_result=raw_public_result,
         train_summary=train_result.summary,
@@ -1664,6 +1853,7 @@ def _create_reference_genesis(
         public_result=public_result,
         trusted_eval_seal=seal,
         qualification=qualification,
+        evaluation_assembly=evaluation_assembly,
     )
     private_path = output_dir / REFERENCE_EVAL_ARTIFACT_FILENAME
     _atomic_create_json(private_path, private_payload)
@@ -1705,6 +1895,79 @@ def _create_reference_genesis(
         generation_session_contract_ref=context.generation_session_contract_ref,
         schema_version=_context_session_genesis_schema_version(context),
     )
+
+
+def _run_reference_phased_evaluation(
+    *,
+    output_dir: Path,
+    context: _GenesisContext,
+    runner: Runner,
+    eval_plan: EvalJobSpec,
+) -> tuple[EvaluationAssembly, PublicEvalResult]:
+    adapter = context.reference_phased_evaluation_adapter
+    phase_scopes = context.reference_eval_phase_attempt_scopes
+    if adapter is None or phase_scopes is None:
+        raise ValueError("reference phased evaluation context is incomplete")
+    manifest = context.reference_program_manifest
+    if manifest is None:
+        raise ValueError("reference phased evaluation has no manifest")
+    eval_plan_hash = canonical_json_hash(eval_plan.to_public_dict())
+    receipt_commitment = {
+        "schema_version": (
+            "true_rl_agent.session_genesis.reference_phase_receipts.v1"
+        ),
+        "session_id": context.session_id,
+        "genesis_identity_hash": context.genesis_identity_hash,
+        "reference_manifest_hash": manifest.manifest_hash,
+        "evaluation_plan_hash": eval_plan_hash,
+    }
+    journal = TrialReceiptJournal(
+        output_dir / "reference_program_artifacts" / "evaluation_receipts",
+        contract={
+            "schema_version": TRIAL_EXECUTION_CONTRACT_SCHEMA_VERSION,
+            "round_id": context.session_id,
+            "session_genesis_hash": context.genesis_identity_hash,
+            "ledger_epoch_hash": canonical_json_hash(receipt_commitment),
+            "purpose": "session_genesis_reference_phased_evaluation",
+            "commitment": receipt_commitment,
+        },
+    )
+    journal.bind_contract()
+    phase_results: list[EvaluationPhaseResult] = []
+    phase_receipt_refs: dict[EvaluationPhase, Mapping[str, Any]] = {}
+    for phase in EvaluationPhase:
+        scope = phase_scopes[phase]
+        phase_spec = context.backend_adapter.materialize_eval_phase(
+            eval_plan=eval_plan,
+            phase=phase,
+            attempt_scope=scope,
+        )
+        if (
+            phase_spec.evaluation_plan != eval_plan
+            or phase_spec.phase is not phase
+            or phase_spec.attempt_scope != scope
+            or phase_spec.gpu_process_binding != context.gpu_process_binding
+        ):
+            raise ValueError("reference eval phase job identity mismatch")
+        loaded = journal.load_eval_phase(phase_spec)
+        if loaded is None:
+            phase_result = runner.run_eval_phase(phase_spec)
+            receipt_ref = journal.publish_eval_phase(phase_spec, phase_result)
+        else:
+            phase_result, receipt_ref = loaded
+        phase_results.append(phase_result)
+        phase_receipt_refs[phase] = receipt_ref.to_dict()
+    assembly = adapter.assemble_reference_full_summary(
+        eval_plan=eval_plan,
+        phase_results=phase_results,
+        phase_receipt_refs=phase_receipt_refs,
+    )
+    if not isinstance(assembly, EvaluationAssembly):
+        raise TypeError("reference phased evaluation assembly is invalid")
+    raw_result = runner.project_assembled_eval_summary(eval_plan, assembly)
+    if not isinstance(raw_result, PublicEvalResult):
+        raise TypeError("reference phased evaluation projection is invalid")
+    return assembly, raw_result
 
 
 def _context_session_genesis_schema_version(context: _GenesisContext) -> str:
@@ -1969,6 +2232,13 @@ def _load_verified_session_genesis(
             private_payload,
             anchor=anchor,
             evaluation_binding=context.evaluation_binding,
+        )
+        _validate_reference_evaluation_assembly(
+            private_payload,
+            eval_spec=eval_spec,
+            expected_phased=(
+                context.reference_phased_evaluation_adapter is not None
+            ),
         )
         if eval_spec.gpu_process_binding != context.gpu_process_binding:
             raise ValueError("reference private eval GPU process binding mismatch")
@@ -2288,6 +2558,7 @@ def _reference_eval_artifact_payload(
     public_result: PublicEvalResult,
     trusted_eval_seal: TrustedEvalSeal,
     qualification: ReferenceQualificationResult,
+    evaluation_assembly: EvaluationAssembly | None = None,
 ) -> dict[str, Any]:
     if reference_artifact is None:
         raise ValueError("reference private evidence requires a materialized artifact")
@@ -2313,9 +2584,11 @@ def _reference_eval_artifact_payload(
         train_result_payload["gpu_process_binding"] = (
             gpu_process_binding.to_dict()
         )
-    return {
+    payload = {
         "schema_version": (
-            GPU_BOUND_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION
+            PHASED_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION
+            if evaluation_assembly is not None
+            else GPU_BOUND_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION
             if gpu_process_binding is not None
             else REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION
         ),
@@ -2348,6 +2621,9 @@ def _reference_eval_artifact_payload(
         "qualification_evidence": dict(qualification.private_evidence),
         "program_source": reference.source_text,
     }
+    if evaluation_assembly is not None:
+        payload["evaluation_assembly"] = evaluation_assembly.to_private_dict()
+    return payload
 
 
 def _reference_program_source_from_private_artifact(
@@ -2381,9 +2657,9 @@ def _read_bound_reference_private_artifact(
     actual_checksum = file_sha256(path)
     if actual_checksum != ref.checksum:
         raise ValueError("reference Genesis private artifact checksum mismatch")
-    payload = _exact_mapping(
-        _read_json(path),
-        {
+    raw_payload = _read_json(path)
+    schema_version = raw_payload.get("schema_version")
+    expected_fields = {
             "schema_version",
             "session_id",
             "task_id",
@@ -2401,15 +2677,121 @@ def _read_bound_reference_private_artifact(
             "qualification_gate",
             "qualification_evidence",
             "program_source",
-        },
+        }
+    if schema_version == PHASED_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION:
+        expected_fields.add("evaluation_assembly")
+    payload = _exact_mapping(
+        raw_payload,
+        expected_fields,
         "reference Genesis private artifact",
     )
     if payload.get("schema_version") not in {
         REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION,
         GPU_BOUND_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION,
+        PHASED_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION,
     }:
         raise ValueError("reference private artifact schema_version mismatch")
     return dict(payload)
+
+
+def _validate_reference_evaluation_assembly(
+    payload: Mapping[str, Any],
+    *,
+    eval_spec: EvalJobSpec,
+    expected_phased: bool,
+) -> EvaluationAssembly | None:
+    raw_assembly = payload.get("evaluation_assembly")
+    if expected_phased != (raw_assembly is not None):
+        raise ValueError("reference private phased evaluation mode mismatch")
+    if raw_assembly is None:
+        return None
+    assembly_payload = _exact_mapping(
+        raw_assembly,
+        {
+            "schema_version",
+            "evaluation_plan_hash",
+            "selected_trial_id",
+            "selection",
+            "selection_hash",
+            "phase_receipts",
+            "summary",
+            "summary_hash",
+            "acceptance_authority",
+            "assembly_hash",
+        },
+        "reference evaluation assembly",
+    )
+    raw_receipts = assembly_payload.get("phase_receipts")
+    if not isinstance(raw_receipts, list):
+        raise ValueError("reference evaluation assembly receipts are invalid")
+    bindings: list[EvaluationPhaseReceiptBinding] = []
+    for raw_binding in raw_receipts:
+        binding_payload = _exact_mapping(
+            raw_binding,
+            {
+                "phase",
+                "job_id",
+                "path",
+                "checksum",
+                "size_bytes",
+                "ref_schema_version",
+                "job_spec_hash",
+                "phase_result_hash",
+                "resource_binding_hash",
+            },
+            "reference evaluation phase receipt binding",
+        )
+        binding = EvaluationPhaseReceiptBinding(
+            phase=EvaluationPhase.parse(binding_payload.get("phase")),
+            job_id=binding_payload.get("job_id"),
+            path=binding_payload.get("path"),
+            checksum=binding_payload.get("checksum"),
+            size_bytes=binding_payload.get("size_bytes"),
+            ref_schema_version=binding_payload.get("ref_schema_version"),
+            job_spec_hash=binding_payload.get("job_spec_hash"),
+            phase_result_hash=binding_payload.get("phase_result_hash"),
+            resource_binding_hash=binding_payload.get("resource_binding_hash"),
+        )
+        loaded = load_trial_eval_phase_receipt(
+            TrialReceiptRef(
+                kind="eval_phase",
+                path=binding.path,
+                checksum=binding.checksum,
+                size_bytes=binding.size_bytes,
+                schema_version=binding.ref_schema_version,
+            )
+        )
+        if (
+            loaded.job_spec_hash != binding.job_spec_hash
+            or loaded.result.job_id != binding.job_id
+            or loaded.result.phase is not binding.phase
+            or loaded.result.resource_binding_hash != binding.resource_binding_hash
+            or canonical_json_hash(loaded.result.to_private_dict())
+            != binding.phase_result_hash
+        ):
+            raise ValueError("reference evaluation phase receipt binding mismatch")
+        bindings.append(binding)
+    assembly = EvaluationAssembly(
+        evaluation_plan_hash=assembly_payload.get("evaluation_plan_hash"),
+        selected_trial_id=assembly_payload.get("selected_trial_id"),
+        selection=_json_object(
+            assembly_payload.get("selection"),
+            "reference evaluation assembly selection",
+        ),
+        phase_receipts=tuple(bindings),
+        summary=_json_object(
+            assembly_payload.get("summary"),
+            "reference evaluation assembly summary",
+        ),
+        assembly_hash=assembly_payload.get("assembly_hash"),
+    )
+    if assembly.to_private_dict() != dict(assembly_payload):
+        raise ValueError("reference evaluation assembly canonical form mismatch")
+    if assembly.evaluation_plan_hash != canonical_json_hash(eval_spec.to_public_dict()):
+        raise ValueError("reference evaluation assembly plan mismatch")
+    if assembly.selected_trial_id != eval_spec.subject.subject_id:
+        raise ValueError("reference evaluation assembly subject mismatch")
+    return assembly
 
 
 def _validate_private_reference_artifact(
@@ -2711,12 +3093,19 @@ def _reference_eval_spec_from_private_artifact(
         "evaluation_binding",
         "checkpoint",
     }
+    raw_eval_spec = _json_object(
+        wrapper.get("spec"),
+        "reference private eval job",
+    )
     if payload.get("schema_version") == (
         GPU_BOUND_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION
+    ) or (
+        payload.get("schema_version") == PHASED_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION
+        and "gpu_process_binding" in raw_eval_spec
     ):
         expected_eval_fields.add("gpu_process_binding")
     raw = _exact_mapping(
-        wrapper.get("spec"),
+        raw_eval_spec,
         expected_eval_fields,
         "reference private eval job",
     )
@@ -2973,7 +3362,12 @@ def _validate_pre_genesis_creation_identity(value: Any) -> dict[str, Any]:
     if resource_binding_hash is not None:
         require_sha256_digest(resource_binding_hash, "pre-Genesis resource binding")
     scope_hashes = mapping["attempt_scope_hashes"]
-    allowed_roles = {"reference_train", "reference_eval", "baseline_eval"}
+    allowed_roles = {
+        "reference_train",
+        "reference_eval",
+        "baseline_eval",
+        *(_reference_eval_phase_role(phase) for phase in EvaluationPhase),
+    }
     if (
         not isinstance(scope_hashes, Mapping)
         or not scope_hashes
@@ -3421,11 +3815,16 @@ def _validate_pre_genesis_reservation(
     role = role_by_hash.get(scope_hash)
     if not isinstance(journal.scope, PreGenesisExecutionScope) or role is None:
         raise ValueError("abandoned reservation is outside pre-Genesis authority")
-    expected_kind = {
-        "reference_train": "train",
-        "reference_eval": "eval",
-        "baseline_eval": "baseline_eval",
-    }[role]
+    phase_roles = {_reference_eval_phase_role(phase) for phase in EvaluationPhase}
+    expected_kind = (
+        "eval_phase"
+        if role in phase_roles
+        else {
+            "reference_train": "train",
+            "reference_eval": "eval",
+            "baseline_eval": "baseline_eval",
+        }[role]
+    )
     if journal.job_kind != expected_kind:
         raise ValueError("pre-Genesis abandoned reservation job kind mismatch")
     approved_root = scopes[role].journal_root.resolve(strict=False)
@@ -3645,6 +4044,7 @@ __all__ = [
     "REFERENCE_EVAL_ARTIFACT_FILENAME",
     "REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION",
     "GPU_BOUND_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION",
+    "PHASED_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION",
     "REFERENCE_QUALIFICATION_GATE_SCHEMA_VERSION",
     "SESSION_GENESIS_CREATION_LEASE_FILENAME",
     "SESSION_GENESIS_FILENAME",
@@ -3652,6 +4052,7 @@ __all__ = [
     "BaselineGenesisAnchor",
     "BootstrapGenesisAnchor",
     "ReferenceProgramGenesisAnchor",
+    "ReferencePhasedEvaluationAdapter",
     "SessionGenesisCreationInProgressError",
     "SessionGenesisArtifact",
     "VerifiedSessionGenesis",

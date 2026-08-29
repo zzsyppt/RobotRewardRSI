@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from true_rl_agent.candidates.capability_readiness import (
     COMPLETE_REWARD_PROGRAM_CAPABILITY_ID,
 )
+from true_rl_agent.composition.cell_manifest import ResolvedCellManifestV1
 from true_rl_agent.evaluation.binding import canonical_json_hash
 from true_rl_agent.tasks.component_smoke import ComponentSmokeFixture
 from true_rl_agent.tasks.stair_climbing.config import (
@@ -19,6 +20,12 @@ from true_rl_agent.tasks.stair_climbing.protocol_v2 import (
     StairCompleteRewardRuntimeContract,
 )
 from true_rl_agent.tasks.stair_climbing.reward_inputs import StairRewardInputsV2
+from true_rl_agent.tasks.stair_climbing.runtime_projection import (
+    stair_runtime_projection_from_manifest,
+)
+from true_rl_agent.tasks.stair_climbing.vnext_reward_contract import (
+    build_stair_vnext_reward_runtime_contract,
+)
 
 STAIR_SMOKE_FIXTURE_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v2"
@@ -55,11 +62,26 @@ class StairClimbingComponentSmokeAdapter:
     """Build the same opaque tensor ABI used by the pre-reset dispatcher."""
 
     config: StairClimbingTaskConfig
+    resolved_cell_manifest: ResolvedCellManifestV1 | None = field(
+        default=None,
+        repr=False,
+        compare=False,
+    )
     task_id: str = STAIR_TASK_ID
 
     def __post_init__(self) -> None:
         if not isinstance(self.config, StairClimbingTaskConfig):
             raise TypeError("stair smoke adapter requires StairClimbingTaskConfig")
+        manifest = self.resolved_cell_manifest
+        if self.config.is_unified_protocol:
+            if not isinstance(manifest, ResolvedCellManifestV1):
+                raise ValueError("unified Stair smoke requires the resolved manifest")
+            if (
+                manifest.cell_variant_id != self.config.cell_variant_id
+                or manifest.resolved_cell_task_protocol_hash
+                != self.config.task_protocol_hash
+            ):
+                raise ValueError("Stair smoke manifest/config identity mismatch")
 
     @property
     def candidate_capability_ids(self) -> frozenset[str]:
@@ -67,6 +89,15 @@ class StairClimbingComponentSmokeAdapter:
 
     @property
     def contract(self) -> StairCompleteRewardRuntimeContract:
+        if self.config.is_unified_protocol:
+            assert self.resolved_cell_manifest is not None
+            return build_stair_vnext_reward_runtime_contract(
+                projection=stair_runtime_projection_from_manifest(
+                    self.resolved_cell_manifest
+                ),
+                authority=self.config.vnext_reward_authority,
+            )
+        assert self.config.protocol_v2 is not None
         return self.config.protocol_v2.complete_reward_runtime
 
     @property

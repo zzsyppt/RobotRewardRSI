@@ -24,6 +24,7 @@ from true_rl_agent.evaluation.acceptance_protocol import (
     acceptance_delta_reason,
     acceptance_threshold,
     guard_regression_threshold,
+    named_guard_regression_threshold,
     threshold_components_match,
 )
 from true_rl_agent.evaluation.binding import require_sha256_digest
@@ -553,6 +554,7 @@ def _sequence_reasons(
         return ["acceptance_replay_comparison_missing"]
 
     reasons: list[str] = []
+    current_best_public = current_best.to_public_dict()
     if comparison.get("mode") != current_best.mode:
         reasons.append("acceptance_replay_comparison_mode_mismatch")
     _compare_optional_number(
@@ -562,7 +564,7 @@ def _sequence_reasons(
         current_best.score_for_comparison(),
     )
     expected_best_score_stats = _mapping(
-        current_best.to_public_dict().get("public_accept_stats")
+        current_best_public.get("public_accept_stats")
     )
     if dict(_mapping(comparison.get("best_score_stats"))) != dict(
         expected_best_score_stats
@@ -574,7 +576,7 @@ def _sequence_reasons(
     guard_met: bool | None = None
     if acceptance_protocol.uses_guard_score:
         expected_best_guard_stats = _mapping(
-            current_best.to_public_dict().get("guard_score_stats")
+            current_best_public.get("guard_score_stats")
         )
         if dict(_mapping(comparison.get("best_guard_score_stats"))) != dict(
             expected_best_guard_stats
@@ -638,6 +640,86 @@ def _sequence_reasons(
         )
         if comparison.get("guard_met") is not guard_met:
             reasons.append("acceptance_replay_guard_met_mismatch")
+
+    named_guard_mets: dict[str, bool | None] = {}
+    if acceptance_protocol.uses_named_guards:
+        declared_guards = _mapping(comparison.get("named_guards"))
+        best_named_guards = _mapping(
+            current_best_public.get("named_guard_evidence")
+        )
+        if set(declared_guards) != {
+            guard.name for guard in acceptance_protocol.named_guards
+        }:
+            reasons.append("acceptance_replay_named_guard_set_mismatch")
+        for guard in acceptance_protocol.named_guards:
+            declared = _mapping(declared_guards.get(guard.name))
+            candidate_item = _mapping(evidence.named_guard_evidence.get(guard.name))
+            candidate_stats = _mapping(candidate_item.get("score_stats"))
+            best_item = _mapping(best_named_guards.get(guard.name))
+            best_stats = _mapping(best_item.get("score_stats"))
+            candidate_value = _finite_number(candidate_stats.get("mean"))
+            best_value = current_best.named_guard_score_for_comparison(guard.name)
+            if dict(_mapping(declared.get("best_score_stats"))) != dict(best_stats):
+                reasons.append(
+                    f"acceptance_replay_best_named_guard_stats_mismatch:{guard.name}"
+                )
+            threshold_result = None
+            if candidate_value is not None and best_value is not None:
+                try:
+                    threshold_result = named_guard_regression_threshold(
+                        acceptance_protocol,
+                        guard,
+                        candidate_guard_score=candidate_value,
+                        best_guard_score=best_value,
+                        candidate_guard_score_samples=candidate_item.get(
+                            "score_samples"
+                        ),
+                        best_guard_score_samples=(
+                            current_best.named_guard_score_samples_for_comparison(
+                                guard.name, acceptance_protocol
+                            )
+                        ),
+                    )
+                except ValueError:
+                    reasons.append(
+                        "acceptance_replay_named_guard_threshold_evidence_invalid:"
+                        f"{guard.name}"
+                    )
+            effective = (
+                threshold_result.threshold
+                if threshold_result is not None
+                else None
+            )
+            _compare_optional_number(
+                reasons,
+                f"acceptance_replay_named_guard_threshold_mismatch:{guard.name}",
+                declared.get("regression_threshold"),
+                effective,
+            )
+            expected_components = (
+                threshold_result.to_public_dict()
+                if threshold_result is not None
+                else {}
+            )
+            if not threshold_components_match(
+                declared.get("threshold_components"), expected_components
+            ):
+                reasons.append(
+                    "acceptance_replay_named_guard_threshold_components_mismatch:"
+                    f"{guard.name}"
+                )
+            met = (
+                candidate_value >= best_value - effective
+                if candidate_value is not None
+                and best_value is not None
+                and effective is not None
+                else None
+            )
+            named_guard_mets[guard.name] = met
+            if declared.get("met") is not met:
+                reasons.append(
+                    f"acceptance_replay_named_guard_met_mismatch:{guard.name}"
+                )
 
     declared_best = _mapping(comparison.get("current_best"))
     for field, expected in current_best.comparison_identity().items():
@@ -724,9 +806,30 @@ def _sequence_reasons(
     if accepted:
         if current_best.mode == "bootstrap":
             expected_bootstrap_reason = (
-                "absolute_and_guard_accept_floors"
+                "absolute_and_named_guard_accept_floors"
+                if acceptance_protocol.uses_named_guards
+                else "absolute_and_guard_accept_floors"
                 if acceptance_protocol.uses_guard_score
                 else "absolute_accept_floor"
+            )
+            named_floor_failed = any(
+                _finite_number(
+                    _mapping(
+                        _mapping(evidence.named_guard_evidence.get(guard.name)).get(
+                            "score_stats"
+                        )
+                    ).get("mean")
+                )
+                is None
+                or _finite_number(
+                    _mapping(
+                        _mapping(evidence.named_guard_evidence.get(guard.name)).get(
+                            "score_stats"
+                        )
+                    ).get("mean")
+                )
+                < guard.absolute_accept_floor
+                for guard in acceptance_protocol.named_guards
             )
             if (
                 candidate_score is None
@@ -740,6 +843,7 @@ def _sequence_reasons(
                         < acceptance_protocol.guard_absolute_accept_floor
                     )
                 )
+                or named_floor_failed
                 or reason != expected_bootstrap_reason
             ):
                 reasons.append("acceptance_replay_bootstrap_accept_invalid")
@@ -754,6 +858,10 @@ def _sequence_reasons(
             if (
                 expected_delta_met is not True
                 or (acceptance_protocol.uses_guard_score and guard_met is not True)
+                or (
+                    acceptance_protocol.uses_named_guards
+                    and any(value is not True for value in named_guard_mets.values())
+                )
                 or reason not in valid_accept_reasons
             ):
                 reasons.append("acceptance_replay_delta_accept_invalid")
@@ -780,6 +888,31 @@ def _sequence_reasons(
             )
         ):
             reasons.append("acceptance_replay_bootstrap_reject_invalid")
+    elif reason == "absolute_or_named_guard_accept_floor_not_met":
+        named_scores = {
+            guard.name: _finite_number(
+                _mapping(
+                    _mapping(evidence.named_guard_evidence.get(guard.name)).get(
+                        "score_stats"
+                    )
+                ).get("mean")
+            )
+            for guard in acceptance_protocol.named_guards
+        }
+        if (
+            not acceptance_protocol.uses_named_guards
+            or current_best.mode != "bootstrap"
+            or candidate_score is None
+            or any(value is None for value in named_scores.values())
+            or (
+                candidate_score >= acceptance_protocol.absolute_accept_floor
+                and all(
+                    named_scores[guard.name] >= guard.absolute_accept_floor
+                    for guard in acceptance_protocol.named_guards
+                )
+            )
+        ):
+            reasons.append("acceptance_replay_bootstrap_reject_invalid")
     elif reason == "guard_score_regression":
         if (
             not acceptance_protocol.uses_guard_score
@@ -787,6 +920,13 @@ def _sequence_reasons(
             or guard_met is not False
         ):
             reasons.append("acceptance_replay_guard_reject_invalid")
+    elif reason == "named_guard_score_regression":
+        if (
+            not acceptance_protocol.uses_named_guards
+            or current_best.mode not in {"accepted", "reference"}
+            or not any(value is False for value in named_guard_mets.values())
+        ):
+            reasons.append("acceptance_replay_named_guard_reject_invalid")
     elif reason in {
         acceptance_delta_reason(acceptance_protocol, accepted=False),
         *(

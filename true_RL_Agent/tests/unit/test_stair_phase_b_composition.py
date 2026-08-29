@@ -52,11 +52,14 @@ class StairPhaseBCompositionTests(unittest.TestCase):
             ROOT / "configs" / "tasks" / "stair_protocol_v2_draft_r2.json"
         )
         self.task_config = StairClimbingTaskConfig.defaults(self.protocol_path)
+        self.unified_config = StairClimbingTaskConfig.defaults(
+            ROOT / "configs" / "tasks" / "stair_unified_protocol_v1.json"
+        )
         self.reference = make_verified_stair_reference(
             Path(self.temporary.name) / "reference",
             task_id=STAIR_TASK_ID,
             capability_profile_hash=(
-                self.task_config.protocol_v2.capability_profile.profile_hash
+                self.unified_config.candidate_capability_profile.profile_hash
             ),
         )
 
@@ -115,10 +118,8 @@ class StairPhaseBCompositionTests(unittest.TestCase):
             task.task_protocol_hash,
         )
         self.assertEqual(
-            composition.task_plugin.task_spec.invariants.values[
-                "protocol_status"
-            ],
-            task.protocol_v2.to_public_dict()["status"],
+            composition.task_plugin.task_spec.invariants.values["protocol_state"],
+            "active",
         )
         self.assertNotIn(
             "draft_status",
@@ -250,7 +251,7 @@ class StairPhaseBCompositionTests(unittest.TestCase):
             Path(self.temporary.name) / "inherited-reference",
             task_id=STAIR_TASK_ID,
             capability_profile_hash=(
-                self.task_config.protocol_v2.capability_profile.profile_hash
+                self.unified_config.candidate_capability_profile.profile_hash
             ),
             authorship_origin="llm_generated",
         )
@@ -302,14 +303,7 @@ class StairPhaseBCompositionTests(unittest.TestCase):
             )
 
     def test_official_g1_agent_configuration_is_fully_bound(self) -> None:
-        production = StairClimbingTaskConfig.defaults(
-            ROOT / "configs" / "tasks" / "stair_protocol_v2.json"
-        )
-        agent = production.training_agent_configuration()
-        self.assertEqual(agent.policy["actor_hidden_dims"], (512, 256, 128))
-        self.assertEqual(agent.policy["critic_hidden_dims"], (512, 256, 128))
-        self.assertEqual(agent.algorithm["entropy_coef"], 0.008)
-        spec = resolve_task_composition(
+        composition = resolve_task_composition(
             provider=StairClimbingCompositionProvider(
                 reference_program_artifact=self.reference
             ),
@@ -317,7 +311,13 @@ class StairPhaseBCompositionTests(unittest.TestCase):
                 project_root=ROOT
             ).to_task_defaults(),
             context=_context(),
-        ).task_plugin.task_spec
+        )
+        production = composition.task_plugin.config
+        agent = production.training_agent_configuration()
+        spec = composition.task_plugin.task_spec
+        self.assertEqual(agent.policy["actor_hidden_dims"], (512, 256, 128))
+        self.assertEqual(agent.policy["critic_hidden_dims"], (512, 256, 128))
+        self.assertEqual(agent.algorithm["entropy_coef"], 0.008)
         self.assertEqual(
             spec.fixed_train_protocol["agent_configuration_hash"],
             agent.agent_configuration_hash,

@@ -47,6 +47,8 @@ COMMIT = "a" * 40
 GPU_A = "GPU-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
 GPU_B = "GPU-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
 BOOT_ID = "11111111-2222-3333-4444-555555555555"
+
+
 class StairGenerationLauncherTests(unittest.TestCase):
     def test_p6d_readiness_consumption_is_create_once(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -89,7 +91,7 @@ class StairGenerationLauncherTests(unittest.TestCase):
             args = list(self._formal_args(root))
             replacements = {
                 "--max-allocated-active-gpu-hours": "50.5",
-                "--max-simulated-control-steps": "6367795200",
+                "--max-simulated-control-steps": "6311042448",
                 "--max-output-bytes": "14495514624",
             }
             for option, value in replacements.items():
@@ -326,7 +328,7 @@ class StairGenerationLauncherTests(unittest.TestCase):
             generation_args = list(self._formal_args(root))
             replacements = {
                 "--max-allocated-active-gpu-hours": "50.5",
-                "--max-simulated-control-steps": "6367795200",
+                "--max-simulated-control-steps": "6311042448",
                 "--max-output-bytes": "14495514624",
             }
             for option, value in replacements.items():
@@ -390,9 +392,7 @@ class StairGenerationLauncherTests(unittest.TestCase):
             }
             readiness = mock.Mock()
             readiness.payload = {
-                "schema_version": (
-                    STAIR_GENERATION_LAUNCH_READINESS_V3_SCHEMA_VERSION
-                )
+                "schema_version": (STAIR_GENERATION_LAUNCH_READINESS_V3_SCHEMA_VERSION)
             }
             readiness.assert_fresh = mock.Mock()
             readiness.to_ref.return_value.to_dict.return_value = readiness_ref
@@ -407,9 +407,7 @@ class StairGenerationLauncherTests(unittest.TestCase):
             def complete_after_start(command, **kwargs):
                 consumption_path = Path(str(readiness_path) + ".consumed.json")
                 self.assertTrue(consumption_path.is_file())
-                consumption = json.loads(
-                    consumption_path.read_text(encoding="utf-8")
-                )
+                consumption = json.loads(consumption_path.read_text(encoding="utf-8"))
                 self.assertEqual(
                     consumption["schema_version"],
                     P6D_READINESS_CONSUMPTION_SCHEMA_VERSION,

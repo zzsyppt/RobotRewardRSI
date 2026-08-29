@@ -20,6 +20,9 @@ GUARDED_PAIRED_HEADROOM_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION = (
 BOUNDED_PAIRED_GUARD_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION = (
     "true_rl_agent.acceptance.protocol.v5"
 )
+NAMED_GUARDS_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION = (
+    "true_rl_agent.acceptance.protocol.v6"
+)
 NOISE_AWARE_DELTA_RULE = "bootstrap_floor_then_noise_aware_delta_v1"
 PAIRED_HEADROOM_DELTA_RULE = "bootstrap_floor_then_paired_headroom_delta_v1"
 GUARDED_PAIRED_HEADROOM_DELTA_RULE = (
@@ -27,6 +30,9 @@ GUARDED_PAIRED_HEADROOM_DELTA_RULE = (
 )
 BOUNDED_PAIRED_GUARD_HEADROOM_DELTA_RULE = (
     "bootstrap_bounded_paired_guard_then_paired_headroom_delta_v1"
+)
+NAMED_GUARDS_PAIRED_HEADROOM_DELTA_RULE = (
+    "bootstrap_named_guard_floors_then_paired_headroom_delta_v1"
 )
 PUBLIC_SCORE_BINDING_ACCEPTANCE_MEAN = "acceptance_score_mean"
 PUBLIC_SCORE_BINDING_GUARD_MEAN = "guard_score_mean"
@@ -47,6 +53,10 @@ _ACCEPTANCE_DELTA_REASONS_BY_RULE = {
     BOUNDED_PAIRED_GUARD_HEADROOM_DELTA_RULE: (
         "bounded_paired_guard_headroom_delta",
         "bounded_paired_guard_headroom_delta_not_met",
+    ),
+    NAMED_GUARDS_PAIRED_HEADROOM_DELTA_RULE: (
+        "named_guards_paired_headroom_delta",
+        "named_guards_paired_headroom_delta_not_met",
     ),
 }
 ACCEPTANCE_DELTA_ACCEPT_REASONS = frozenset(
@@ -116,6 +126,71 @@ class GuardRegressionThreshold:
 
 
 @dataclass(frozen=True)
+class NamedGuardSpec:
+    """One task-named score protected by task-neutral acceptance math."""
+
+    name: str
+    score_source: str
+    absolute_accept_floor: float
+    max_regression: float
+    regression_margin: float
+
+    def __post_init__(self) -> None:
+        for field_name in ("name", "score_source"):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value:
+                raise ValueError(f"named guard {field_name} must be non-empty")
+        for field_name in (
+            "absolute_accept_floor",
+            "max_regression",
+            "regression_margin",
+        ):
+            value = getattr(self, field_name)
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, int | float)
+                or not math.isfinite(float(value))
+                or float(value) < 0.0
+            ):
+                raise ValueError(
+                    f"named guard {field_name} must be a finite non-negative number"
+                )
+        if self.regression_margin > self.max_regression:
+            raise ValueError(
+                "named guard regression_margin cannot exceed max_regression"
+            )
+
+    @classmethod
+    def from_mapping(cls, payload: Any) -> "NamedGuardSpec":
+        if not isinstance(payload, Mapping) or set(payload) != {
+            "name",
+            "score_source",
+            "absolute_accept_floor",
+            "max_regression",
+            "regression_margin",
+        }:
+            raise ValueError("named guard fields mismatch")
+        return cls(
+            name=_required_text(payload, "name"),
+            score_source=_required_text(payload, "score_source"),
+            absolute_accept_floor=_required_number(
+                payload, "absolute_accept_floor"
+            ),
+            max_regression=_required_number(payload, "max_regression"),
+            regression_margin=_required_number(payload, "regression_margin"),
+        )
+
+    def to_public_dict(self) -> dict[str, Any]:
+        return {
+            "name": self.name,
+            "score_source": self.score_source,
+            "absolute_accept_floor": float(self.absolute_accept_floor),
+            "max_regression": float(self.max_regression),
+            "regression_margin": float(self.regression_margin),
+        }
+
+
+@dataclass(frozen=True)
 class AcceptanceProtocol:
     """Runner-owned acceptance constants supplied by a task plugin."""
 
@@ -134,6 +209,7 @@ class AcceptanceProtocol:
     guard_max_regression: float | None = None
     guard_regression_margin: float | None = None
     max_public_to_sealed_score_drop: float | None = None
+    named_guards: tuple[NamedGuardSpec, ...] = ()
 
     @property
     def public_score_source(self) -> str:
@@ -190,6 +266,7 @@ class AcceptanceProtocol:
             PAIRED_HEADROOM_DELTA_RULE,
             GUARDED_PAIRED_HEADROOM_DELTA_RULE,
             BOUNDED_PAIRED_GUARD_HEADROOM_DELTA_RULE,
+            NAMED_GUARDS_PAIRED_HEADROOM_DELTA_RULE,
         }:
             if any(value is None for value in adaptive_fields):
                 raise ValueError(
@@ -225,6 +302,29 @@ class AcceptanceProtocol:
                 raise ValueError("acceptance min_delta cannot exceed score_ceiling")
         else:
             raise ValueError(f"unsupported acceptance decision_rule: {self.decision_rule}")
+        if not isinstance(self.named_guards, tuple) or any(
+            not isinstance(item, NamedGuardSpec) for item in self.named_guards
+        ):
+            raise TypeError("acceptance named_guards must be a tuple of NamedGuardSpec")
+        guard_names = tuple(item.name for item in self.named_guards)
+        guard_sources = tuple(item.score_source for item in self.named_guards)
+        if len(set(guard_names)) != len(guard_names):
+            raise ValueError("acceptance named guard names must be unique")
+        if len(set(guard_sources)) != len(guard_sources):
+            raise ValueError("acceptance named guard score sources must be unique")
+        if self.uses_named_guards:
+            if not self.named_guards:
+                raise ValueError("named-guard acceptance requires at least one guard")
+            assert self.score_ceiling is not None
+            for guard in self.named_guards:
+                if guard.absolute_accept_floor > self.score_ceiling:
+                    raise ValueError("named guard floor cannot exceed score_ceiling")
+                if guard.max_regression > self.score_ceiling:
+                    raise ValueError(
+                        "named guard regression cannot exceed score_ceiling"
+                    )
+        elif self.named_guards:
+            raise ValueError("non-named acceptance cannot define named_guards")
         guard_fields = (
             self.guard_score_source,
             self.guard_absolute_accept_floor,
@@ -255,10 +355,7 @@ class AcceptanceProtocol:
                 raise ValueError("acceptance guard regression cannot exceed score_ceiling")
         elif any(value is not None for value in guard_fields):
             raise ValueError("unguarded acceptance cannot define guard fields")
-        bounded_guard_fields = (
-            self.guard_regression_margin,
-            self.max_public_to_sealed_score_drop,
-        )
+        bounded_guard_fields = (self.guard_regression_margin,)
         if self.requires_paired_guard_score_samples:
             if any(value is None for value in bounded_guard_fields):
                 raise ValueError(
@@ -280,19 +377,34 @@ class AcceptanceProtocol:
                     )
             assert self.guard_regression_margin is not None
             assert self.guard_max_regression is not None
-            assert self.max_public_to_sealed_score_drop is not None
             assert self.score_ceiling is not None
             if self.guard_regression_margin > self.guard_max_regression:
                 raise ValueError(
                     "acceptance guard_regression_margin cannot exceed guard_max_regression"
                 )
-            if self.max_public_to_sealed_score_drop > self.score_ceiling:
-                raise ValueError(
-                    "acceptance max_public_to_sealed_score_drop cannot exceed score_ceiling"
-                )
         elif any(value is not None for value in bounded_guard_fields):
             raise ValueError(
                 "non-bounded acceptance cannot define bounded guard fields"
+            )
+        if self.requires_paired_guard_score_samples or self.uses_named_guards:
+            value = self.max_public_to_sealed_score_drop
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, int | float)
+                or not math.isfinite(float(value))
+                or float(value) < 0.0
+            ):
+                raise ValueError(
+                    "bounded acceptance requires finite max_public_to_sealed_score_drop"
+                )
+            assert self.score_ceiling is not None
+            if float(value) > self.score_ceiling:
+                raise ValueError(
+                    "acceptance max_public_to_sealed_score_drop cannot exceed score_ceiling"
+                )
+        elif self.max_public_to_sealed_score_drop is not None:
+            raise ValueError(
+                "non-bounded acceptance cannot define max_public_to_sealed_score_drop"
             )
 
     @property
@@ -301,6 +413,7 @@ class AcceptanceProtocol:
             PAIRED_HEADROOM_DELTA_RULE,
             GUARDED_PAIRED_HEADROOM_DELTA_RULE,
             BOUNDED_PAIRED_GUARD_HEADROOM_DELTA_RULE,
+            NAMED_GUARDS_PAIRED_HEADROOM_DELTA_RULE,
         }
 
     @property
@@ -314,6 +427,14 @@ class AcceptanceProtocol:
     def requires_paired_guard_score_samples(self) -> bool:
         return self.decision_rule == BOUNDED_PAIRED_GUARD_HEADROOM_DELTA_RULE
 
+    @property
+    def uses_named_guards(self) -> bool:
+        return self.decision_rule == NAMED_GUARDS_PAIRED_HEADROOM_DELTA_RULE
+
+    @property
+    def requires_paired_named_guard_score_samples(self) -> bool:
+        return self.uses_named_guards
+
     @classmethod
     def from_mapping(cls, payload: Any) -> "AcceptanceProtocol":
         if not isinstance(payload, Mapping):
@@ -324,12 +445,14 @@ class AcceptanceProtocol:
             PAIRED_HEADROOM_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION,
             GUARDED_PAIRED_HEADROOM_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION,
             BOUNDED_PAIRED_GUARD_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION,
+            NAMED_GUARDS_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION,
         }:
             raise ValueError("acceptance protocol schema_version mismatch")
         adaptive = schema_version in {
             PAIRED_HEADROOM_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION,
             GUARDED_PAIRED_HEADROOM_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION,
             BOUNDED_PAIRED_GUARD_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION,
+            NAMED_GUARDS_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION,
         }
         guarded = schema_version in {
             GUARDED_PAIRED_HEADROOM_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION,
@@ -337,6 +460,9 @@ class AcceptanceProtocol:
         }
         bounded_guard = (
             schema_version == BOUNDED_PAIRED_GUARD_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION
+        )
+        named_guards = (
+            schema_version == NAMED_GUARDS_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION
         )
         expected_fields = {
             "schema_version",
@@ -372,6 +498,8 @@ class AcceptanceProtocol:
                     "max_public_to_sealed_score_drop",
                 }
             )
+        if named_guards:
+            expected_fields.update({"named_guards", "max_public_to_sealed_score_drop"})
         if set(payload) != expected_fields:
             raise ValueError("acceptance protocol fields mismatch")
         protocol = cls(
@@ -415,12 +543,22 @@ class AcceptanceProtocol:
             ),
             max_public_to_sealed_score_drop=(
                 _required_number(payload, "max_public_to_sealed_score_drop")
-                if bounded_guard
+                if bounded_guard or named_guards
                 else None
+            ),
+            named_guards=(
+                tuple(
+                    NamedGuardSpec.from_mapping(item)
+                    for item in _required_mapping_sequence(payload, "named_guards")
+                )
+                if named_guards
+                else ()
             ),
         )
         expected_schema = (
-            BOUNDED_PAIRED_GUARD_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION
+            NAMED_GUARDS_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION
+            if protocol.uses_named_guards
+            else BOUNDED_PAIRED_GUARD_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION
             if protocol.requires_paired_guard_score_samples
             else GUARDED_PAIRED_HEADROOM_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION
             if protocol.uses_guard_score
@@ -456,6 +594,8 @@ class AcceptanceProtocol:
             "schema_version": (
                 BOUNDED_PAIRED_GUARD_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION
                 if self.requires_paired_guard_score_samples
+                else NAMED_GUARDS_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION
+                if self.uses_named_guards
                 else GUARDED_PAIRED_HEADROOM_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION
                 if self.uses_guard_score
                 else PAIRED_HEADROOM_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION
@@ -511,6 +651,18 @@ class AcceptanceProtocol:
                     ),
                 }
             )
+        if self.uses_named_guards:
+            assert self.max_public_to_sealed_score_drop is not None
+            payload.update(
+                {
+                    "named_guards": [
+                        guard.to_public_dict() for guard in self.named_guards
+                    ],
+                    "max_public_to_sealed_score_drop": float(
+                        self.max_public_to_sealed_score_drop
+                    ),
+                }
+            )
         return payload
 
 
@@ -549,6 +701,7 @@ def acceptance_threshold(
         PAIRED_HEADROOM_DELTA_RULE,
         GUARDED_PAIRED_HEADROOM_DELTA_RULE,
         BOUNDED_PAIRED_GUARD_HEADROOM_DELTA_RULE,
+        NAMED_GUARDS_PAIRED_HEADROOM_DELTA_RULE,
     }:
         raise ValueError(f"unsupported acceptance decision_rule: {protocol.decision_rule}")
     if candidate_score is None or best_score is None:
@@ -700,6 +853,59 @@ def guard_regression_threshold(
     )
 
 
+def named_guard_regression_threshold(
+    protocol: AcceptanceProtocol,
+    guard: NamedGuardSpec,
+    *,
+    candidate_guard_score: float | None,
+    best_guard_score: float | None,
+    candidate_guard_score_samples: Sequence[float] | None,
+    best_guard_score_samples: Sequence[float] | None,
+) -> GuardRegressionThreshold:
+    """Compute one v6 guard tolerance without interpreting its task-owned name."""
+
+    if not protocol.uses_named_guards or guard not in protocol.named_guards:
+        raise ValueError("named guard threshold requires a declared v6 guard")
+    if candidate_guard_score is None or best_guard_score is None:
+        raise ValueError("paired named guard threshold requires both bound scores")
+    candidate = validated_score_samples(
+        candidate_guard_score_samples,
+        expected_mean=candidate_guard_score,
+        protocol=protocol,
+        field_name=f"candidate_named_guard_samples:{guard.name}",
+    )
+    best = validated_score_samples(
+        best_guard_score_samples,
+        expected_mean=best_guard_score,
+        protocol=protocol,
+        field_name=f"best_named_guard_samples:{guard.name}",
+    )
+    if len(candidate) != len(best):
+        raise ValueError("paired named guard score sample counts differ")
+    paired_deltas = [left - right for left, right in zip(candidate, best, strict=True)]
+    paired_standard_error = (
+        statistics.stdev(paired_deltas) / math.sqrt(len(paired_deltas))
+        if len(paired_deltas) > 1
+        else 0.0
+    )
+    assert protocol.paired_standard_error_multiplier is not None
+    paired_noise_allowance = (
+        protocol.paired_standard_error_multiplier * paired_standard_error
+    )
+    threshold = min(
+        guard.max_regression,
+        guard.regression_margin + paired_noise_allowance,
+    )
+    return GuardRegressionThreshold(
+        decision_rule=protocol.decision_rule,
+        threshold=threshold,
+        hard_cap=guard.max_regression,
+        base_margin=guard.regression_margin,
+        paired_standard_error=paired_standard_error,
+        paired_noise_allowance=paired_noise_allowance,
+    )
+
+
 def validated_score_samples(
     value: Sequence[float] | None,
     *,
@@ -790,6 +996,17 @@ def _required_number(payload: Mapping[str, Any], key: str) -> float:
     return parsed
 
 
+def _required_mapping_sequence(
+    payload: Mapping[str, Any], key: str
+) -> tuple[Mapping[str, Any], ...]:
+    value = payload.get(key)
+    if not isinstance(value, Sequence) or isinstance(value, str | bytes):
+        raise ValueError(f"acceptance {key} must be a sequence")
+    if any(not isinstance(item, Mapping) for item in value):
+        raise ValueError(f"acceptance {key} must contain only objects")
+    return tuple(value)
+
+
 __all__ = [
     "ACCEPTANCE_PROTOCOL_SCHEMA_VERSION",
     "ACCEPTANCE_DELTA_ACCEPT_REASONS",
@@ -797,19 +1014,23 @@ __all__ = [
     "PAIRED_HEADROOM_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION",
     "GUARDED_PAIRED_HEADROOM_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION",
     "BOUNDED_PAIRED_GUARD_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION",
+    "NAMED_GUARDS_ACCEPTANCE_PROTOCOL_SCHEMA_VERSION",
     "AcceptanceThreshold",
     "GuardRegressionThreshold",
+    "NamedGuardSpec",
     "AcceptanceProtocol",
     "NOISE_AWARE_DELTA_RULE",
     "PAIRED_HEADROOM_DELTA_RULE",
     "GUARDED_PAIRED_HEADROOM_DELTA_RULE",
     "BOUNDED_PAIRED_GUARD_HEADROOM_DELTA_RULE",
+    "NAMED_GUARDS_PAIRED_HEADROOM_DELTA_RULE",
     "PUBLIC_SCORE_BINDING_ACCEPTANCE_MEAN",
     "PUBLIC_SCORE_BINDING_GUARD_MEAN",
     "acceptance_delta_met",
     "acceptance_delta_reason",
     "acceptance_threshold",
     "guard_regression_threshold",
+    "named_guard_regression_threshold",
     "noise_aware_threshold",
     "threshold_components_match",
     "validated_score_samples",

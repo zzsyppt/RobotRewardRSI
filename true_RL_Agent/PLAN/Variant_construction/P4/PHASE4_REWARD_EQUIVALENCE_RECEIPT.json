@@ -1,0 +1,159 @@
+{
+  "feet_air_time_edge_cases": {
+    "double_contact_moving": 0.0,
+    "flight_moving": 0.0,
+    "single_stance_moving": 0.30000001192092896,
+    "single_stance_stationary": 0.0
+  },
+  "receipt_hash": "f12a02eaae2bf29de85e6e81d4c164b13e91c0a2d0a2cea0e95dc396026a7b89",
+  "sample_count": 257,
+  "schema_version": "true_rl_agent.variant_construction.phase4.reward_equivalence.v1",
+  "seed": 20260828,
+  "source_hashes": {
+    "src/true_rl_agent/tasks/stair_climbing/reference_programs/official_g1_rough_v1/training_code/components.py": "a1255b585ffc6752df710be648cf0439017d5220a41853b9dfdebc778c3c03a3",
+    "src/true_rl_agent/tasks/stair_climbing/reference_programs/official_g1_rough_vnext_v1/training_code/components.py": "3462bdf78d874ce2e4ab527cea3c1530ebc93cf9750d2b4fc64292e3a63adfb8"
+  },
+  "status": "pass",
+  "term_count": 15,
+  "term_evidence": {
+    "action_rate_l2": {
+      "finite": true,
+      "max_abs_raw_difference": 0.0,
+      "shape": [
+        257
+      ],
+      "weight": -0.005
+    },
+    "ang_vel_xy_l2": {
+      "finite": true,
+      "max_abs_raw_difference": 0.0,
+      "shape": [
+        257
+      ],
+      "weight": -0.05
+    },
+    "dof_acc_l2": {
+      "finite": true,
+      "max_abs_raw_difference": 0.0,
+      "shape": [
+        257
+      ],
+      "weight": -1.25e-07
+    },
+    "dof_pos_limits": {
+      "finite": true,
+      "max_abs_raw_difference": 0.0,
+      "shape": [
+        257
+      ],
+      "weight": -1.0
+    },
+    "dof_torques_l2": {
+      "finite": true,
+      "max_abs_raw_difference": 0.0,
+      "shape": [
+        257
+      ],
+      "weight": -1.5e-07
+    },
+    "feet_air_time": {
+      "finite": true,
+      "max_abs_raw_difference": 0.0,
+      "shape": [
+        257
+      ],
+      "weight": 0.25
+    },
+    "feet_slide": {
+      "finite": true,
+      "max_abs_raw_difference": 0.0,
+      "shape": [
+        257
+      ],
+      "weight": -0.1
+    },
+    "flat_orientation_l2": {
+      "finite": true,
+      "max_abs_raw_difference": 0.0,
+      "shape": [
+        257
+      ],
+      "weight": -1.0
+    },
+    "joint_deviation_arms": {
+      "finite": true,
+      "max_abs_raw_difference": 0.0,
+      "shape": [
+        257
+      ],
+      "weight": -0.1
+    },
+    "joint_deviation_fingers": {
+      "finite": true,
+      "max_abs_raw_difference": 0.0,
+      "shape": [
+        257
+      ],
+      "weight": -0.05
+    },
+    "joint_deviation_hip": {
+      "finite": true,
+      "max_abs_raw_difference": 0.0,
+      "shape": [
+        257
+      ],
+      "weight": -0.1
+    },
+    "joint_deviation_torso": {
+      "finite": true,
+      "max_abs_raw_difference": 0.0,
+      "shape": [
+        257
+      ],
+      "weight": -0.1
+    },
+    "termination_penalty": {
+      "finite": true,
+      "max_abs_raw_difference": 0.0,
+      "shape": [
+        257
+      ],
+      "weight": -200.0
+    },
+    "track_ang_vel_z_exp": {
+      "finite": true,
+      "max_abs_raw_difference": 0.0,
+      "shape": [
+        257
+      ],
+      "weight": 2.0
+    },
+    "track_lin_vel_xy_exp": {
+      "finite": true,
+      "max_abs_raw_difference": 0.0,
+      "shape": [
+        257
+      ],
+      "weight": 1.0
+    }
+  },
+  "term_order": [
+    "termination_penalty",
+    "track_lin_vel_xy_exp",
+    "track_ang_vel_z_exp",
+    "feet_air_time",
+    "feet_slide",
+    "dof_pos_limits",
+    "joint_deviation_hip",
+    "joint_deviation_arms",
+    "joint_deviation_fingers",
+    "joint_deviation_torso",
+    "ang_vel_xy_l2",
+    "flat_orientation_l2",
+    "action_rate_l2",
+    "dof_acc_l2",
+    "dof_torques_l2"
+  ],
+  "torch_version": "2.7.0+cu128",
+  "weighted_total_max_abs_difference": 0.0
+}

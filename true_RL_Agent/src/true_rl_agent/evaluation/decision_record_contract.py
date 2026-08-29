@@ -20,6 +20,7 @@ from true_rl_agent.evaluation.acceptance_protocol import (
     acceptance_delta_met,
     acceptance_delta_reason,
     guard_regression_threshold,
+    named_guard_regression_threshold,
     threshold_components_match,
 )
 from true_rl_agent.evaluation.binding import (
@@ -58,6 +59,7 @@ _ALLOWED_REASONS_BY_OUTCOME = {
         {
             "absolute_accept_floor",
             "absolute_and_guard_accept_floors",
+            "absolute_and_named_guard_accept_floors",
             "public_score_delta_met",
         }
     )
@@ -70,10 +72,12 @@ _ALLOWED_REASONS_BY_OUTCOME = {
             "acceptance_protocol_mismatch",
             "absolute_accept_floor_not_met",
             "absolute_or_guard_accept_floor_not_met",
+            "absolute_or_named_guard_accept_floor_not_met",
             "baseline_accept_gate_not_required",
             "candidate_contamination_detected",
             "candidate_eval_stats_missing",
             "candidate_guard_stats_missing",
+            "candidate_named_guard_stats_missing",
             "candidate_runtime_failed",
             "candidate_static_authoring_failed",
             "candidate_verifier_failed",
@@ -84,6 +88,8 @@ _ALLOWED_REASONS_BY_OUTCOME = {
             "evaluation_binding_mismatch",
             "guard_eval_stats_missing",
             "guard_score_regression",
+            "named_guard_eval_stats_missing",
+            "named_guard_score_regression",
             "insufficient_accept_evidence",
             "no_candidate_changes",
             "parameter_only_candidate",
@@ -945,6 +951,97 @@ def _comparison_reasons(
         ):
             reasons.append("decision_comparison_guard_fields_without_bound_scores")
 
+    if acceptance_protocol is not None and acceptance_protocol.uses_named_guards:
+        declared_guards = _mapping(comparison.get("named_guards"))
+        expected_names = {guard.name for guard in acceptance_protocol.named_guards}
+        if set(declared_guards) != expected_names:
+            reasons.append("decision_comparison_named_guard_set_mismatch")
+        for guard in acceptance_protocol.named_guards:
+            declared = _mapping(declared_guards.get(guard.name))
+            evidence = _mapping(
+                acceptance_evidence.named_guard_evidence.get(guard.name)
+            )
+            evidence_stats = _mapping(evidence.get("score_stats"))
+            candidate_guard = _finite_number(declared.get("candidate_score"))
+            evidence_mean = _finite_number(evidence_stats.get("mean"))
+            best_guard = _finite_number(declared.get("current_best_score"))
+            best_stats = _mapping(declared.get("best_score_stats"))
+            if (
+                candidate_guard is None
+                or evidence_mean is None
+                or not _numbers_match(candidate_guard, evidence_mean)
+                or dict(_mapping(declared.get("candidate_score_stats")))
+                != dict(evidence_stats)
+            ):
+                reasons.append(
+                    f"decision_comparison_named_guard_candidate_mismatch:{guard.name}"
+                )
+            declared_floor = _finite_number(
+                declared.get("absolute_accept_floor")
+            )
+            declared_cap = _finite_number(declared.get("max_regression"))
+            if (
+                declared.get("score_source") != guard.score_source
+                or declared_floor is None
+                or not _numbers_match(
+                    declared_floor, guard.absolute_accept_floor
+                )
+                or declared_cap is None
+                or not _numbers_match(declared_cap, guard.max_regression)
+            ):
+                reasons.append(
+                    f"decision_comparison_named_guard_contract_mismatch:{guard.name}"
+                )
+            threshold = _finite_number(declared.get("regression_threshold"))
+            delta = _finite_number(declared.get("delta"))
+            met = declared.get("met")
+            if candidate_guard is None or best_guard is None:
+                if any(value is not None for value in (threshold, delta, met)):
+                    reasons.append(
+                        f"decision_comparison_named_guard_unbound:{guard.name}"
+                    )
+                continue
+            try:
+                threshold_result = named_guard_regression_threshold(
+                    acceptance_protocol,
+                    guard,
+                    candidate_guard_score=candidate_guard,
+                    best_guard_score=best_guard,
+                    candidate_guard_score_samples=evidence.get("score_samples"),
+                    best_guard_score_samples=best_stats.get("score_samples"),
+                )
+            except ValueError:
+                reasons.append(
+                    f"decision_comparison_named_guard_threshold_invalid:{guard.name}"
+                )
+                continue
+            expected_delta = candidate_guard - best_guard
+            expected_met = (
+                candidate_guard >= best_guard - threshold_result.threshold
+            )
+            if delta is None or not _numbers_match(delta, expected_delta):
+                reasons.append(
+                    f"decision_comparison_named_guard_delta_mismatch:{guard.name}"
+                )
+            if threshold is None or not _numbers_match(
+                threshold, threshold_result.threshold
+            ):
+                reasons.append(
+                    f"decision_comparison_named_guard_threshold_mismatch:{guard.name}"
+                )
+            if not threshold_components_match(
+                declared.get("threshold_components"),
+                threshold_result.to_public_dict(),
+            ):
+                reasons.append(
+                    "decision_comparison_named_guard_threshold_components_mismatch:"
+                    f"{guard.name}"
+                )
+            if met is not expected_met:
+                reasons.append(
+                    f"decision_comparison_named_guard_met_mismatch:{guard.name}"
+                )
+
     delta_fields_present = any(
         key in comparison for key in ("delta", "threshold", "delta_met")
     )
@@ -992,10 +1089,18 @@ def _reason_evidence_reasons(
         consistent = _absolute_floor_consistent(comparison, accepted=True)
     elif reason == "absolute_and_guard_accept_floors":
         consistent = _guarded_absolute_floor_consistent(comparison, accepted=True)
+    elif reason == "absolute_and_named_guard_accept_floors":
+        consistent = _named_guarded_absolute_floor_consistent(
+            comparison, accepted=True
+        )
     elif reason == "absolute_accept_floor_not_met":
         consistent = _absolute_floor_consistent(comparison, accepted=False)
     elif reason == "absolute_or_guard_accept_floor_not_met":
         consistent = _guarded_absolute_floor_consistent(comparison, accepted=False)
+    elif reason == "absolute_or_named_guard_accept_floor_not_met":
+        consistent = _named_guarded_absolute_floor_consistent(
+            comparison, accepted=False
+        )
     elif reason in ACCEPTANCE_DELTA_ACCEPT_REASONS:
         consistent = (
             comparison.get("mode") in {"accepted", "reference"}
@@ -1031,6 +1136,19 @@ def _reason_evidence_reasons(
             comparison.get("mode") in {"accepted", "reference"}
             and comparison.get("guard_met") is False
         )
+    elif reason == "named_guard_score_regression":
+        consistent = bool(
+            comparison.get("mode") in {"accepted", "reference"}
+            and any(
+                _mapping(item).get("met") is False
+                for item in _mapping(comparison.get("named_guards")).values()
+            )
+        )
+    elif reason in {
+        "candidate_named_guard_stats_missing",
+        "named_guard_eval_stats_missing",
+    }:
+        consistent = not acceptance_evidence.named_guard_binding_valid
     elif reason in _ACCEPTANCE_REJECT_REASONS:
         consistent = acceptance_evidence.reject_reason == reason
     elif reason == "eval_protocol_hash_mismatch":
@@ -1105,6 +1223,33 @@ def _guarded_absolute_floor_consistent(
         return False
     both_met = candidate_score >= score_floor and candidate_guard >= guard_floor
     return both_met if accepted else not both_met
+
+
+def _named_guarded_absolute_floor_consistent(
+    comparison: Mapping[str, Any],
+    *,
+    accepted: bool,
+) -> bool:
+    candidate_score = _finite_number(comparison.get("candidate_score"))
+    score_floor = _finite_number(comparison.get("absolute_accept_floor"))
+    guards = _mapping(comparison.get("named_guards"))
+    if (
+        comparison.get("mode") != "bootstrap"
+        or candidate_score is None
+        or score_floor is None
+        or not guards
+    ):
+        return False
+    guard_results: list[bool] = []
+    for item in guards.values():
+        guard_item = _mapping(item)
+        score = _finite_number(guard_item.get("candidate_score"))
+        floor = _finite_number(guard_item.get("absolute_accept_floor"))
+        if score is None or floor is None:
+            return False
+        guard_results.append(score >= floor)
+    all_met = candidate_score >= score_floor and all(guard_results)
+    return all_met if accepted else not all_met
 
 
 def _mapping(value: Any) -> Mapping[str, Any]:

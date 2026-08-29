@@ -36,8 +36,16 @@ from true_rl_agent.tasks.stair_climbing.public_projection import (
 from true_rl_agent.tasks.stair_climbing.seed_policy import (
     STAIR_FORMAL_EVAL_NAMESPACE,
 )
+from true_rl_agent.tasks.stair_climbing.unified_scoring import (
+    build_unified_score_projection,
+    validate_objective_family_mask,
+    validate_unified_stair_summary,
+)
 
 STAIR_SCREEN_EVIDENCE_SCHEMA_VERSION = (
+    "true_rl_agent.task.stair_climbing.public_dev_screen_evidence.v4"
+)
+_STAIR_LEGACY_SCREEN_EVIDENCE_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.public_dev_screen_evidence.v3"
 )
 STAIR_SELECTION_CONTRACT_SCHEMA_VERSION = (
@@ -72,6 +80,8 @@ class StairPublicDevScreenEvidence:
     anchor_seed_macro_scores: tuple[float, ...]
     generalization_score_stats: Mapping[str, Any]
     generalization_seed_macro_scores: tuple[float, ...]
+    objective_family_mask_hash: str | None = None
+    schema_version: str = STAIR_SCREEN_EVIDENCE_SCHEMA_VERSION
 
     def __post_init__(self) -> None:
         for field_name in ("trial_id", "task_id", "execution_device"):
@@ -80,6 +90,16 @@ class StairPublicDevScreenEvidence:
                 raise ValueError(f"Stair screen {field_name} is required")
         if not isinstance(self.subject, ExperimentSubject):
             raise TypeError("Stair screen subject is invalid")
+        if self.schema_version not in {
+            STAIR_SCREEN_EVIDENCE_SCHEMA_VERSION,
+            _STAIR_LEGACY_SCREEN_EVIDENCE_SCHEMA_VERSION,
+        }:
+            raise ValueError("Stair screen evidence schema is unsupported")
+        if (
+            self.schema_version == _STAIR_LEGACY_SCREEN_EVIDENCE_SCHEMA_VERSION
+            and self.objective_family_mask_hash is not None
+        ):
+            raise ValueError("legacy Stair screen cannot carry a family mask")
         if self.screen_role == "candidate":
             require_sha256_checksum(
                 self.train_receipt_checksum,
@@ -115,6 +135,11 @@ class StairPublicDevScreenEvidence:
                 self.resource_binding_hash,
                 "Stair screen resource_binding_hash",
             )
+        if self.objective_family_mask_hash is not None:
+            require_sha256_digest(
+                self.objective_family_mask_hash,
+                "Stair screen objective family mask hash",
+            )
         for field_name in ("anchor_score_stats", "generalization_score_stats"):
             if not isinstance(getattr(self, field_name), Mapping):
                 raise TypeError(f"Stair screen {field_name} must be an object")
@@ -142,13 +167,14 @@ class StairPublicDevScreenEvidence:
             self.training_binding_hash,
             self.capability_profile_hash,
             self.execution_environment_hash,
+            self.objective_family_mask_hash or "legacy_unmasked_objective",
         )
 
     def to_selector_dict(self) -> dict[str, Any]:
         """Serialize selector evidence; this is not a prompt-memory projection."""
 
-        return {
-            "schema_version": STAIR_SCREEN_EVIDENCE_SCHEMA_VERSION,
+        payload = {
+            "schema_version": self.schema_version,
             "trial_id": self.trial_id,
             "screen_role": self.screen_role,
             "train_receipt_checksum": self.train_receipt_checksum,
@@ -177,10 +203,13 @@ class StairPublicDevScreenEvidence:
             ),
             "acceptance_authority": False,
         }
+        if self.schema_version == STAIR_SCREEN_EVIDENCE_SCHEMA_VERSION:
+            payload["objective_family_mask_hash"] = self.objective_family_mask_hash
+        return payload
 
     @classmethod
     def from_mapping(cls, value: Any) -> "StairPublicDevScreenEvidence":
-        expected_fields = {
+        base_fields = {
             "schema_version",
             "trial_id",
             "screen_role",
@@ -204,11 +233,18 @@ class StairPublicDevScreenEvidence:
             "generalization_seed_macro_scores",
             "acceptance_authority",
         }
-        if not isinstance(value, Mapping) or set(value) != expected_fields:
+        if not isinstance(value, Mapping):
+            raise ValueError("Stair screen evidence fields mismatch")
+        schema_version = value.get("schema_version")
+        expected_fields = set(base_fields)
+        if schema_version == STAIR_SCREEN_EVIDENCE_SCHEMA_VERSION:
+            expected_fields.add("objective_family_mask_hash")
+        elif schema_version != _STAIR_LEGACY_SCREEN_EVIDENCE_SCHEMA_VERSION:
+            raise ValueError("Stair screen evidence contract mismatch")
+        if set(value) != expected_fields:
             raise ValueError("Stair screen evidence fields mismatch")
         if (
-            value.get("schema_version") != STAIR_SCREEN_EVIDENCE_SCHEMA_VERSION
-            or value.get("acceptance_authority") is not False
+            value.get("acceptance_authority") is not False
         ):
             raise ValueError("Stair screen evidence contract mismatch")
         anchor_scores = value.get("anchor_seed_macro_scores")
@@ -240,10 +276,12 @@ class StairPublicDevScreenEvidence:
             execution_environment_hash=value.get("execution_environment_hash"),
             execution_device=value.get("execution_device"),
             resource_binding_hash=value.get("resource_binding_hash"),
+            objective_family_mask_hash=value.get("objective_family_mask_hash"),
             anchor_score_stats=dict(anchor_stats),
             anchor_seed_macro_scores=tuple(anchor_scores),
             generalization_score_stats=dict(generalization_stats),
             generalization_seed_macro_scores=tuple(generalization_scores),
+            schema_version=str(schema_version),
         )
 
 
@@ -526,6 +564,7 @@ def build_stair_public_dev_screen_evidence(
     train_result: TrainJobResult | None = None,
     train_receipt_checksum: str | None = None,
     mechanism_operation_delta: Mapping[str, Any] | None = None,
+    objective_family_mask: Mapping[str, Any] | None = None,
 ) -> StairPublicDevScreenEvidence:
     """Project one validated public-dev phase into selector-safe evidence."""
 
@@ -605,25 +644,61 @@ def build_stair_public_dev_screen_evidence(
     ):
         raise ValueError("Stair public-dev execution identity mismatch")
     raw_summary = raw_evidence.get("summary")
-    if not isinstance(raw_summary, Mapping) or set(raw_summary) != {
-        "anchor",
-        "generalization",
-    }:
-        raise ValueError("Stair public-dev summary fields mismatch")
-    anchor = validate_stair_split_summary(
-        config.protocol_v1,
-        semantics=config.evaluation_semantics,
-        evaluation_protocol=config.evaluation_protocol(),
-        split=EvaluationPhase.PUBLIC_DEV.value,
-        summary=raw_summary["anchor"],
-    )
-    generalization = validate_stair_generalization_summary(
-        profile=config.evaluation_profile,
-        semantics=config.evaluation_semantics,
-        evaluation_protocol=config.evaluation_protocol(),
-        split=EvaluationPhase.PUBLIC_DEV.value,
-        summary=raw_summary["generalization"],
-    )
+    if config.is_unified_protocol:
+        if objective_family_mask is None:
+            raise ValueError("unified Stair screen requires the reference family mask")
+        objective_family_mask = validate_objective_family_mask(
+            suite=config.ordered_evaluation_suite,
+            mask=objective_family_mask,
+        )
+        canonical = validate_unified_stair_summary(
+            suite=config.ordered_evaluation_suite,
+            semantics=config.evaluation_semantics,
+            split=EvaluationPhase.PUBLIC_DEV.value,
+            summary=raw_summary,
+        )
+        projection = build_unified_score_projection(
+            canonical,
+            objective_family_mask=objective_family_mask,
+        )
+        generalization = projection["j_primary"]
+        guard_vectors = [
+            projection[guard.name]["seed_macro_scores"]
+            for guard in config.acceptance_protocol.named_guards
+        ]
+        anchor_scores = tuple(
+            min(float(values[index]) for values in guard_vectors)
+            for index in range(config.public_seed_count)
+        )
+        anchor = {
+            "score_stats": _screen_score_stats(
+                anchor_scores,
+                eval_protocol_hash=config.evaluation_protocol().protocol_hash,
+            ),
+            "seed_macro_scores": list(anchor_scores),
+        }
+    else:
+        if objective_family_mask is not None:
+            raise ValueError("legacy Stair screen cannot carry a family mask")
+        if not isinstance(raw_summary, Mapping) or set(raw_summary) != {
+            "anchor",
+            "generalization",
+        }:
+            raise ValueError("Stair public-dev summary fields mismatch")
+        anchor = validate_stair_split_summary(
+            config.protocol_v1,
+            semantics=config.evaluation_semantics,
+            evaluation_protocol=config.evaluation_protocol(),
+            split=EvaluationPhase.PUBLIC_DEV.value,
+            summary=raw_summary["anchor"],
+        )
+        generalization = validate_stair_generalization_summary(
+            profile=config.evaluation_profile,
+            semantics=config.evaluation_semantics,
+            evaluation_protocol=config.evaluation_protocol(),
+            split=EvaluationPhase.PUBLIC_DEV.value,
+            summary=raw_summary["generalization"],
+        )
     anchor_scores = tuple(float(value) for value in anchor["seed_macro_scores"])
     scores = tuple(float(value) for value in generalization["seed_macro_scores"])
     if (
@@ -657,6 +732,11 @@ def build_stair_public_dev_screen_evidence(
         ),
         execution_device=phase_result.execution_device,
         resource_binding_hash=phase_result.resource_binding_hash,
+        objective_family_mask_hash=(
+            str(objective_family_mask["objective_family_mask_hash"])
+            if objective_family_mask is not None
+            else None
+        ),
         anchor_score_stats=dict(anchor["score_stats"]),
         anchor_seed_macro_scores=anchor_scores,
         generalization_score_stats=dict(generalization["score_stats"]),
@@ -666,7 +746,11 @@ def build_stair_public_dev_screen_evidence(
 
 def stair_selection_contract(config: StairClimbingTaskConfig) -> dict[str, Any]:
     multiplier = config.acceptance_protocol.paired_standard_error_multiplier
-    guard_max_regression = config.acceptance_protocol.guard_max_regression
+    guard_max_regression = (
+        min(guard.max_regression for guard in config.acceptance_protocol.named_guards)
+        if config.acceptance_protocol.uses_named_guards
+        else config.acceptance_protocol.guard_max_regression
+    )
     if multiplier is None:
         raise ValueError("Stair selector requires a paired-noise acceptance protocol")
     if guard_max_regression is None:
@@ -676,9 +760,21 @@ def stair_selection_contract(config: StairClimbingTaskConfig) -> dict[str, Any]:
         "task_id": STAIR_TASK_ID,
         "task_protocol_hash": config.task_protocol_hash,
         "acceptance_protocol_hash": config.acceptance_protocol.protocol_hash,
-        "rule": "guard_and_runtime_eligible_public_dev_generalization_rank_v4",
-        "primary_score_source": "public_dev.generalization.seed_macro_scores",
-        "guard_score_source": "public_dev.anchor.seed_macro_scores",
+        "rule": (
+            "named_guard_min_and_runtime_eligible_public_dev_rank_v1"
+            if config.is_unified_protocol
+            else "guard_and_runtime_eligible_public_dev_generalization_rank_v4"
+        ),
+        "primary_score_source": (
+            "public_dev.unified_score.j_primary.seed_macro_scores"
+            if config.is_unified_protocol
+            else "public_dev.generalization.seed_macro_scores"
+        ),
+        "guard_score_source": (
+            "public_dev.minimum_of_named_guard_seed_scores"
+            if config.is_unified_protocol
+            else "public_dev.anchor.seed_macro_scores"
+        ),
         "guard_rule": "parent_relative_hard_regression_cap_only",
         "runtime_effect_rule": (
             "candidate_reward_operation_runtime_effect.status_must_pass"
@@ -717,6 +813,24 @@ def stair_selection_contract(config: StairClimbingTaskConfig) -> dict[str, Any]:
             "status is not_applicable and numeric statistics are absent"
         ),
         "acceptance_authority": False,
+    }
+
+
+def _screen_score_stats(
+    values: Sequence[float],
+    *,
+    eval_protocol_hash: str,
+) -> dict[str, Any]:
+    canonical = [float(value) for value in values]
+    mean = statistics.fmean(canonical)
+    std = statistics.stdev(canonical) if len(canonical) > 1 else 0.0
+    return {
+        "count": len(canonical),
+        "mean": mean,
+        "std": std,
+        "standard_error": std / (len(canonical) ** 0.5),
+        "values": canonical,
+        "eval_protocol_hash": eval_protocol_hash,
     }
 
 

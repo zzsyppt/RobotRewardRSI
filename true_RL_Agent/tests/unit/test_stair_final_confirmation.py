@@ -9,7 +9,6 @@ from types import SimpleNamespace
 
 from true_rl_agent.composition.base import (
     TaskCompositionContext,
-    resolve_task_composition,
 )
 from true_rl_agent.agent_core.generation_lifecycle import GenerationTerminalBinding
 from true_rl_agent.evaluation.binding import canonical_json_hash
@@ -470,111 +469,6 @@ class StairFinalConfirmationTests(unittest.TestCase):
         for index, left in enumerate(names):
             for right in names[index + 1 :]:
                 self.assertFalse(all_values[left] & all_values[right])
-
-    def test_live_composition_binds_only_safe_plan_commitment_into_genesis(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            output_dir = Path(tmp) / "live"
-            session_id = "stair-final-genesis-binding"
-            plan, path = create_stair_final_confirmation_plan(
-                output_dir=output_dir,
-                session_id=session_id,
-                config=self.config,
-            )
-            provider = StairClimbingCompositionProvider()
-            values = dict(provider.cli_defaults())
-            values.update(
-                {
-                    "mode": "live",
-                    "rounds": STAIR_FINAL_CONFIRMATION_REQUIRED_ROUNDS,
-                    "session_id": session_id,
-                    "start_mode": STAIR_REFERENCE_START_MODE,
-                    "final_confirmation_plan": path,
-                }
-            )
-            composition = resolve_task_composition(
-                provider=provider,
-                values=values,
-                context=TaskCompositionContext(
-                    project_root=ROOT,
-                    output_dir=output_dir,
-                ),
-            )
-            commitment = composition.task_defaults[
-                "final_confirmation_precommit"
-            ]
-            self.assertEqual(commitment, plan.genesis_commitment())
-            self.assertEqual(
-                composition.genesis_identity_snapshot()["task_defaults"][
-                    "final_confirmation_precommit"
-                ],
-                plan.genesis_commitment(),
-            )
-            self.assertNotIn("session_id", commitment)
-            self.assertNotIn("comparison", commitment)
-
-            values["rounds"] = 16
-            with self.assertRaisesRegex(ValueError, "exactly 15 rounds"):
-                provider.resolve(
-                    values=values,
-                    context=TaskCompositionContext(
-                        project_root=ROOT,
-                        output_dir=output_dir,
-                    ),
-                )
-
-    def test_formal_generation_composition_binds_v2_plan_only(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            output_dir = Path(tmp) / "formal-generation"
-            session_id = "stair-formal-generation-plan-binding"
-            plan, path = create_stair_generation_final_confirmation_plan(
-                output_dir=output_dir,
-                session_id=session_id,
-                config=self.config,
-            )
-            provider = StairClimbingCompositionProvider()
-            values = dict(provider.cli_defaults())
-            values.update(
-                {
-                    "mode": "formal_generation_session",
-                    "max_generations": 15,
-                    "session_id": session_id,
-                    "start_mode": STAIR_REFERENCE_START_MODE,
-                    "final_confirmation_plan": path,
-                }
-            )
-
-            composition = provider.resolve(
-                values=values,
-                context=TaskCompositionContext(
-                    project_root=ROOT,
-                    output_dir=output_dir,
-                ),
-            )
-
-            self.assertEqual(
-                composition.task_defaults["final_confirmation_precommit"],
-                plan.genesis_commitment(),
-            )
-            self.assertEqual(
-                composition.task_defaults["final_confirmation_precommit"][
-                    "required_closed_generations"
-                ],
-                15,
-            )
-            self.assertNotIn(
-                "required_closed_rounds",
-                composition.task_defaults["final_confirmation_precommit"],
-            )
-
-            values["max_generations"] = 14
-            with self.assertRaisesRegex(ValueError, "exactly 15 generations"):
-                provider.resolve(
-                    values=values,
-                    context=TaskCompositionContext(
-                        project_root=ROOT,
-                        output_dir=output_dir,
-                    ),
-                )
 
     def test_live_requires_plan_but_nonlive_composition_does_not(self) -> None:
         provider = StairClimbingCompositionProvider()

@@ -271,6 +271,83 @@ def verify_stair_termination_manager_resolution(
     return expected
 
 
+def verify_stair_vnext_termination_manager_resolution(
+    env: Any,
+    *,
+    runtime_projection: Any,
+    force_threshold_n: float,
+) -> dict[str, Any]:
+    """Verify VNext term ownership against resolved roles, not robot names."""
+
+    from true_rl_agent.tasks.stair_climbing.runtime_projection import (
+        StairRuntimeProjection,
+    )
+
+    if not isinstance(runtime_projection, StairRuntimeProjection):
+        raise TypeError("Stair VNext termination projection is invalid")
+    manager = getattr(env, "termination_manager", None)
+    if manager is None or list(_active_term_order(manager)) != [
+        "time_out",
+        "base_contact",
+    ]:
+        raise StairTerminationCaptureError(
+            "Stair VNext termination manager term set drifted"
+        )
+    for term_name in ("time_out", "base_contact"):
+        term_cfg = manager.get_term_cfg(term_name)
+        if not is_stair_termination_capture_callable(term_cfg.func):
+            raise StairTerminationCaptureError(
+                f"Stair VNext term {term_name!r} is not capture-instrumented"
+            )
+    base_cfg = manager.get_term_cfg("base_contact")
+    if float(base_cfg.params.get("threshold")) != float(force_threshold_n):
+        raise StairTerminationCaptureError(
+            "Stair VNext forbidden-contact threshold drifted"
+        )
+    sensor_cfg = base_cfg.params.get("sensor_cfg")
+    expected_names = tuple(runtime_projection.forbidden_contact_body_names)
+    runtime_names = _canonical_string_sequence(
+        getattr(sensor_cfg, "body_names", None),
+        "Stair VNext forbidden contact body_names",
+    )
+    if (
+        getattr(sensor_cfg, "name", None) != runtime_projection.contact_sensor_name
+        or runtime_names != expected_names
+    ):
+        raise StairTerminationCaptureError(
+            "Stair VNext forbidden-contact role resolution drifted"
+        )
+    scene_entity = env.scene[runtime_projection.contact_sensor_name]
+    body_ids, body_names = scene_entity.find_bodies(
+        list(expected_names), preserve_order=True
+    )
+    if (
+        tuple(body_names) != expected_names
+        or tuple(body_ids)
+        != _canonical_int_sequence(
+            getattr(sensor_cfg, "body_ids", None),
+            "Stair VNext forbidden contact body_ids",
+        )
+    ):
+        raise StairTerminationCaptureError(
+            "Stair VNext forbidden-contact body IDs drifted"
+        )
+    return {
+        "schema_version": (
+            "true_rl_agent.task.stair_climbing."
+            "termination_manager_resolution.vnext.v1"
+        ),
+        "status": "pass",
+        "active_terms": ["time_out", "base_contact"],
+        "forbidden_contact": {
+            "scene_entity_name": runtime_projection.contact_sensor_name,
+            "role_id": "forbidden_contact",
+            "body_count": len(expected_names),
+            "force_threshold_n": float(force_threshold_n),
+        },
+    }
+
+
 def _build_captured_termination_callable(
     *,
     term_name: str,
@@ -553,4 +630,5 @@ __all__ = [
     "is_stair_termination_capture_callable",
     "stair_termination_manager_resolution_contract",
     "verify_stair_termination_manager_resolution",
+    "verify_stair_vnext_termination_manager_resolution",
 ]

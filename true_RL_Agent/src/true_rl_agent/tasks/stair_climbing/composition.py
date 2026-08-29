@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, fields, replace
 from pathlib import Path, PurePosixPath
 from typing import Any, Mapping
 
@@ -35,7 +35,6 @@ from true_rl_agent.tasks.stair_climbing.candidate_failure import (
     STAIR_CANDIDATE_FAILURE_CONTRACT,
 )
 from true_rl_agent.tasks.stair_climbing.config import (
-    STAIR_PROTOCOL_V2_RELATIVE_PATH,
     STAIR_TASK_ID,
     StairClimbingTaskConfig,
 )
@@ -43,19 +42,21 @@ from true_rl_agent.tasks.stair_climbing.final_confirmation import (
     STAIR_FINAL_CONFIRMATION_FORMAL_SESSION_MODE,
     STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS,
     STAIR_FINAL_CONFIRMATION_REQUIRED_ROUNDS,
-    load_stair_generation_final_confirmation_plan,
     load_stair_final_confirmation_plan,
+    load_stair_generation_final_confirmation_plan,
     stair_final_confirmation_plan_path,
 )
 from true_rl_agent.tasks.stair_climbing.memory import StairTaskMemoryAdapter
 from true_rl_agent.tasks.stair_climbing.plugin import StairClimbingTaskPlugin
-from true_rl_agent.tasks.stair_climbing.runtime_profile import (
-    STAIR_EVAL_PROFILE,
-    STAIR_TRAIN_PROFILE,
+from true_rl_agent.tasks.stair_climbing.robot_binding import resolve_stair_cell_manifest
+from true_rl_agent.tasks.stair_climbing.row_catalog import (
+    STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
+    active_unified_stair_cell_variant_ids,
+    stair_robot_row,
 )
-from true_rl_agent.tasks.stair_climbing.robot_binding import (
-    STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID,
-    resolve_stair_cell_manifest,
+from true_rl_agent.tasks.stair_climbing.runtime_profile import (
+    STAIR_UNIFIED_EVAL_PROFILE,
+    STAIR_UNIFIED_TRAIN_PROFILE,
 )
 from true_rl_agent.tasks.stair_climbing.seed_policy import (
     STAIR_FORMAL_EVAL_NAMESPACE,
@@ -67,12 +68,15 @@ from true_rl_agent.tasks.stair_climbing.session_start import (
     StairSessionStartProfile,
     resolve_stair_session_start_profile,
 )
+from true_rl_agent.tasks.stair_climbing.unified_protocol import (
+    STAIR_UNIFIED_PROTOCOL_RELATIVE_PATH,
+)
 from true_rl_agent.training_programs import VerifiedReferenceProgramArtifact
 
 DEFAULT_ISAAC_PYTHON = "/data/yuyangliu/envs/isaaclab/bin/python"
 DEFAULT_STAIR_TRAIN_ENTRYPOINT = "scripts/isaaclab_stair_rsl_rl_train.py"
 DEFAULT_STAIR_EVAL_ENTRYPOINT = "scripts/isaaclab_stair_rsl_rl_eval.py"
-DEFAULT_STAIR_PROTOCOL_V2 = STAIR_PROTOCOL_V2_RELATIVE_PATH
+DEFAULT_STAIR_PROTOCOL_V2 = STAIR_UNIFIED_PROTOCOL_RELATIVE_PATH
 DEFAULT_EXECUTION_DEVICE = "cuda:0"
 
 
@@ -97,6 +101,7 @@ class StairClimbingCompositionConfig:
     train_steps_per_iteration: int
     eval_num_envs: int
     runner_timeout_s: int
+    cell_variant_id: str
 
     def __post_init__(self) -> None:
         for field_name in (
@@ -147,8 +152,14 @@ class StairClimbingCompositionConfig:
             raise ValueError("stair train_entrypoint is not canonical")
         if self.eval_entrypoint != DEFAULT_STAIR_EVAL_ENTRYPOINT:
             raise ValueError("stair eval_entrypoint is not canonical")
-        if self.runtime_config != DEFAULT_STAIR_PROTOCOL_V2:
-            raise ValueError("stair runtime_config is not the canonical final V2")
+        try:
+            row = stair_robot_row(self.cell_variant_id)
+        except KeyError as exc:
+            raise ValueError("unsupported Stair cell_variant_id") from exc
+        if not row.unified:
+            raise ValueError("Stair composition requires a unified robot row")
+        if self.runtime_config != row.protocol_relative_path:
+            raise ValueError("stair runtime_config differs from the selected robot row")
         runtime_path = PurePosixPath(self.runtime_config)
         if runtime_path.is_absolute() or ".." in runtime_path.parts:
             raise ValueError("stair runtime_config must be project-relative")
@@ -176,13 +187,14 @@ class StairClimbingCompositionConfig:
             eval_protocol_version=task.eval_protocol_version,
             train_seed=task.train_seed,
             runtime_config=DEFAULT_STAIR_PROTOCOL_V2,
-            train_profile=STAIR_TRAIN_PROFILE,
-            eval_profile=STAIR_EVAL_PROFILE,
+            train_profile=STAIR_UNIFIED_TRAIN_PROFILE,
+            eval_profile=STAIR_UNIFIED_EVAL_PROFILE,
             train_num_envs=task.train_num_envs,
             train_max_iterations=task.train_max_iterations,
             train_steps_per_iteration=task.train_steps_per_iteration,
             eval_num_envs=task.eval_num_envs,
             runner_timeout_s=task.runner_timeout_s,
+            cell_variant_id=STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
         )
 
     @classmethod
@@ -191,9 +203,18 @@ class StairClimbingCompositionConfig:
         missing = [name for name in names if name not in values]
         if missing:
             raise ValueError("stair composition values missing: " + ", ".join(missing))
-        return cls(**{name: values[name] for name in names})
+        normalized = {name: values[name] for name in names}
+        normalized["runtime_config"] = stair_robot_row(
+            str(normalized["cell_variant_id"])
+        ).protocol_relative_path
+        return cls(**normalized)
 
-    def to_task_config(self, *, project_root: Path) -> StairClimbingTaskConfig:
+    def to_task_config(
+        self,
+        *,
+        project_root: Path,
+        resolved_cell_task_protocol_hash: str | None = None,
+    ) -> StairClimbingTaskConfig:
         return StairClimbingTaskConfig(
             protocol_v2_path=project_root / self.runtime_config,
             budget_steps=self.budget_steps,
@@ -209,6 +230,38 @@ class StairClimbingCompositionConfig:
             runner_timeout_s=self.runner_timeout_s,
             train_profile=self.train_profile,
             eval_profile=self.eval_profile,
+            cell_variant_id=self.cell_variant_id,
+            resolved_cell_task_protocol_hash=resolved_cell_task_protocol_hash,
+        )
+
+    def bind_selected_cell_contract(
+        self,
+        *,
+        project_root: Path,
+    ) -> "StairClimbingCompositionConfig":
+        """Replace clean CLI defaults with the selected cell's frozen eval shape."""
+
+        row = stair_robot_row(self.cell_variant_id)
+        selected = StairClimbingTaskConfig.defaults(
+            project_root / row.protocol_relative_path,
+            cell_variant_id=self.cell_variant_id,
+        )
+        return replace(
+            self,
+            budget_steps=selected.budget_steps,
+            public_seed_count=selected.public_seed_count,
+            public_accept_seed_count=selected.public_accept_seed_count,
+            sealed_validation_seed_count=selected.sealed_validation_seed_count,
+            eval_protocol_version=selected.eval_protocol_version,
+            train_seed=selected.train_seed,
+            runtime_config=row.protocol_relative_path,
+            train_profile=selected.train_profile,
+            eval_profile=selected.eval_profile,
+            train_num_envs=selected.train_num_envs,
+            train_max_iterations=selected.train_max_iterations,
+            train_steps_per_iteration=selected.train_steps_per_iteration,
+            eval_num_envs=selected.eval_num_envs,
+            runner_timeout_s=selected.runner_timeout_s,
         )
 
     def to_task_defaults(self) -> dict[str, Any]:
@@ -255,14 +308,13 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
         defaults = StairClimbingCompositionConfig.defaults(
             project_root=self._project_root
         ).to_task_defaults()
-        defaults["cell_variant_id"] = STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID
         return defaults
 
     def add_cli_arguments(self, parser: Any) -> None:
         parser.add_argument(
             "--cell-variant-id",
-            choices=(STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID,),
-            default=STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID,
+            choices=active_unified_stair_cell_variant_ids(),
+            default=STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
         )
         parser.add_argument(
             "--start-mode",
@@ -285,19 +337,37 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
         values: Mapping[str, Any],
         context: TaskCompositionContext,
     ) -> ResolvedTaskComposition:
-        composition_config = StairClimbingCompositionConfig.from_values(values)
+        composition_config = StairClimbingCompositionConfig.from_values(
+            values
+        ).bind_selected_cell_contract(project_root=context.project_root)
         task_config = composition_config.to_task_config(
             project_root=context.project_root
         )
-        production_training = task_config.protocol_v2.to_public_dict()[
-            "production_training"
-        ]
+        if task_config.protocol_state != "active" and values.get("mode") in {
+            "live",
+            STAIR_FINAL_CONFIRMATION_FORMAL_SESSION_MODE,
+        }:
+            raise ValueError(
+                "Stair unified protocol is draft; formal training and evaluation are disabled"
+            )
+        provisional_plugin = StairClimbingTaskPlugin(task_config)
+        resolved_cell_manifest = resolve_stair_cell_manifest(
+            cell_variant_id=composition_config.cell_variant_id,
+            config=task_config,
+            plugin=provisional_plugin,
+        )
+        if task_config.is_unified_protocol:
+            task_config = composition_config.to_task_config(
+                project_root=context.project_root,
+                resolved_cell_task_protocol_hash=(
+                    resolved_cell_manifest.resolved_cell_task_protocol_hash
+                ),
+            )
+        training_binding = task_config.formal_training_binding()
         start_profile = resolve_stair_session_start_profile(
             composition_config.start_mode,
             task_protocol_hash=task_config.task_protocol_hash,
-            training_binding_hash=production_training[
-                "formal_training_binding_hash"
-            ],
+            training_binding_hash=str(training_binding.binding_hash),
         )
         confirmation_commitment: Mapping[str, Any] | None = None
         mode = values.get("mode")
@@ -363,27 +433,30 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
         plugin = StairClimbingTaskPlugin(
             task_config,
             session_start_profile=start_profile,
+            resolved_cell_manifest=resolved_cell_manifest,
         )
-        resolved_cell_manifest = resolve_stair_cell_manifest(
-            cell_variant_id=str(
-                values.get(
-                    "cell_variant_id",
-                    STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID,
-                )
-            ),
+        final_cell_manifest = resolve_stair_cell_manifest(
+            cell_variant_id=composition_config.cell_variant_id,
             config=task_config,
             plugin=plugin,
         )
+        if final_cell_manifest.to_dict() != resolved_cell_manifest.to_dict():
+            raise ValueError("Stair cell manifest changed after final task resolution")
+        resolved_cell_manifest = final_cell_manifest
         resolved_cell_manifest_path = materialize_resolved_cell_manifest(
             resolved_cell_manifest,
             output_dir=context.output_dir,
         )
-        candidate_admission_policy = StairCandidateAdmissionPolicy(task_config)
+        candidate_admission_policy = StairCandidateAdmissionPolicy(
+            task_config,
+            resolved_cell_manifest=resolved_cell_manifest,
+        )
         profile_hash = plugin.task_spec.candidate_capability_profile.profile_hash
         reference_program_artifact = self._resolve_reference_program_artifact(
             start_profile=start_profile,
             task_config=task_config,
             project_root=context.project_root,
+            resolved_cell_manifest=resolved_cell_manifest,
         )
         if reference_program_artifact is not None:
             manifest = reference_program_artifact.manifest
@@ -422,7 +495,10 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
         return ResolvedTaskComposition(
             task_id=self.task_id,
             task_plugin=plugin,
-            task_memory_adapter=StairTaskMemoryAdapter(config=task_config),
+            task_memory_adapter=StairTaskMemoryAdapter(
+                config=task_config,
+                objective_family_mask_provider=plugin.objective_family_mask,
+            ),
             backend_adapter=IsaacLabRslRlBackendAdapter(backend),
             runner=SubprocessRunner(
                 allowed_executables=(composition_config.isaac_python,),
@@ -449,6 +525,7 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
         start_profile: StairSessionStartProfile,
         task_config: StairClimbingTaskConfig,
         project_root: Path,
+        resolved_cell_manifest: ResolvedCellManifestV1,
     ) -> VerifiedReferenceProgramArtifact | None:
         injected = self._injected_reference_program_artifact
         if not start_profile.requires_reference_program:
@@ -466,6 +543,7 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
         return resolve_official_stair_reference_program(
             task_config,
             project_root=project_root,
+            resolved_cell_manifest=resolved_cell_manifest,
         ).artifact
 
 
@@ -490,7 +568,26 @@ def _build_stair_backend_config(
             STAIR_FORMAL_EVAL_NAMESPACE
         ),
     )
-    compatibility = task_config.protocol_v1.to_dict()["policy_compatibility"]
+    if task_config.is_unified_protocol:
+        robot_identity = str(
+            resolved_cell_manifest.robot_profile["robot_profile_id"]
+        )
+        observation_schema_hash = str(
+            resolved_cell_manifest.contract_hashes["observation_content_hash"]
+        )
+        action_schema_hash = str(
+            resolved_cell_manifest.contract_hashes["action_content_hash"]
+        )
+        policy_architecture = "rsl_rl_ppo_mlp"
+    else:
+        assert task_config.protocol_v1 is not None
+        compatibility = task_config.protocol_v1.to_dict()["policy_compatibility"]
+        robot_identity = str(compatibility["robot"])
+        observation_schema_hash = str(
+            compatibility["policy_observation"]["schema_hash"]
+        )
+        action_schema_hash = str(compatibility["action"]["schema_hash"])
+        policy_architecture = str(compatibility["policy_architecture"])
     admission = candidate_admission_policy.admission_policy_descriptor()
     return IsaacLabRslRlBackendConfig(
         isaac_lab_python=composition_config.isaac_python,
@@ -504,12 +601,10 @@ def _build_stair_backend_config(
         eval_num_envs=task_config.eval_num_envs,
         eval_protocol_version=task_config.eval_protocol_version,
         evaluation_binding=binding,
-        robot=str(compatibility["robot"]),
-        observation_schema_hash=str(
-            compatibility["policy_observation"]["schema_hash"]
-        ),
-        action_schema_hash=str(compatibility["action"]["schema_hash"]),
-        policy_architecture=str(compatibility["policy_architecture"]),
+        robot=robot_identity,
+        observation_schema_hash=observation_schema_hash,
+        action_schema_hash=action_schema_hash,
+        policy_architecture=policy_architecture,
         artifact_root=str(context.output_dir / "runner"),
         train_profile=task_config.train_profile,
         eval_profile=task_config.eval_profile,

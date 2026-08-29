@@ -61,6 +61,7 @@ from true_rl_agent.prompting.payload import (
 )
 from true_rl_agent.prompting.serialization import canonical_prompt_json_bytes
 from true_rl_agent.tasks.push_recovery import PushTaskMemoryAdapter
+from true_rl_agent.tasks.prompt_adapter import PromptPublicHistoryProjection
 
 
 class _BoundPublicContextBuilder(_PublicContextBuilder):
@@ -440,6 +441,199 @@ class MemoryContextPhase13Tests(unittest.TestCase):
             entry["comparison"]["public_score_source"],
             TEST_ACCEPTANCE_PROTOCOL.public_score_source,
         )
+
+    def test_task_projection_separates_provider_score_from_acceptance_score(
+        self,
+    ) -> None:
+        provider_score = 0.125
+        provider_source = "task.public_dev.objective"
+
+        class PublicDevPromptAdapter:
+            task_id = "custom_task"
+
+            @staticmethod
+            def build_prompt_sections(*, public_records, public_context):
+                _ = public_records, public_context
+                return {}
+
+            @staticmethod
+            def prompt_public_record_scrub_policy():
+                return {"blocked_key_parts": (), "blocked_text_parts": ()}
+
+            @staticmethod
+            def project_prompt_public_history(
+                *, public_records, initial_anchor_public_evidence
+            ):
+                _ = initial_anchor_public_evidence
+                projected = []
+                for raw_record in public_records:
+                    record = copy.deepcopy(dict(raw_record))
+                    result = dict(record["public_result"])
+                    result["public_score"] = provider_score
+                    record["public_result"] = result
+                    decision = dict(record["decision"])
+                    decision["public_score"] = provider_score
+                    decision["comparison"] = {
+                        "mode": "provider_feedback_absolute",
+                        "score_source": provider_source,
+                        "candidate_score": provider_score,
+                    }
+                    record["decision"] = decision
+                    projected.append(record)
+                return PromptPublicHistoryProjection(
+                    records=tuple(projected),
+                    public_score_source=provider_source,
+                )
+
+        record = valid_accepted_ledger_record(
+            round_id="round-provider-score",
+            candidate_id="candidate-provider-score",
+            public_score=0.25,
+        )
+        payload = PublicContextBuilder(
+            task_prompt_adapter=PublicDevPromptAdapter()
+        ).build_prompt_payload([record])
+
+        public_history = payload["public_history"]
+        recent = public_history["recent_outcomes"][-1]
+        lineage = payload["candidate_lineage"]["current_best"]
+        self.assertEqual(public_history["public_score_source"], provider_source)
+        self.assertEqual(public_history["best_public_score"], provider_score)
+        self.assertEqual(recent["public_score"], provider_score)
+        self.assertEqual(recent["comparison"]["candidate_score"], provider_score)
+        self.assertEqual(lineage["objective_score"], provider_score)
+        self.assertEqual(lineage["score_source"], provider_source)
+
+    def test_task_score_projection_cannot_fall_back_to_acceptance_anchor(self) -> None:
+        class IncompletePublicDevPromptAdapter:
+            task_id = "custom_task"
+
+            @staticmethod
+            def build_prompt_sections(*, public_records, public_context):
+                _ = public_records, public_context
+                return {}
+
+            @staticmethod
+            def prompt_public_record_scrub_policy():
+                return {"blocked_key_parts": (), "blocked_text_parts": ()}
+
+            @staticmethod
+            def project_prompt_public_history(
+                *, public_records, initial_anchor_public_evidence
+            ):
+                _ = initial_anchor_public_evidence
+                return PromptPublicHistoryProjection(
+                    records=tuple(dict(record) for record in public_records),
+                    public_score_source="task.public_dev.objective",
+                )
+
+        baseline_id = "baseline-anchor"
+        baseline_result = copy.deepcopy(
+            valid_accepted_ledger_record(
+                round_id="baseline-source",
+                candidate_id="baseline-source",
+                public_score=0.25,
+            )["public_result"]
+        )
+        baseline_subject = {
+            "schema_version": "true_rl_agent.experiment.subject.v2",
+            "kind": "baseline",
+            "id": baseline_id,
+        }
+        baseline_metrics = baseline_result["metrics"]
+        baseline_metrics["evaluation_subject"] = baseline_subject
+        baseline_metrics["program_source_checksum"] = None
+        baseline_metrics["training_binding_hash"] = None
+        baseline_metrics["sealed_validation"]["evaluation_subject"] = (
+            baseline_subject
+        )
+        baseline_metrics["sealed_validation"]["program_source_checksum"] = None
+        baseline_metrics["sealed_validation"]["training_binding_hash"] = None
+        initial_best = CurrentBestEvalStats.from_baseline_public_result_mapping(
+            baseline_id=baseline_id,
+            baseline_manifest_hash=TEST_SUBJECT_MANIFEST_HASH,
+            checkpoint_hash=baseline_metrics["sealed_validation"][
+                "checkpoint_hash"
+            ],
+            public_result=baseline_result,
+            acceptance_protocol=TEST_ACCEPTANCE_PROTOCOL,
+            expected_evaluation_binding=TEST_EVALUATION_BINDING,
+            capability_profile_hash=TEST_CAPABILITY_PROFILE_HASH,
+        )
+        with self.assertRaisesRegex(
+            ValueError,
+            "explicit initial anchor score",
+        ):
+            PublicContextBuilder(
+                task_prompt_adapter=IncompletePublicDevPromptAdapter(),
+                initial_current_best=initial_best,
+            ).build_prompt_payload([])
+
+    def test_task_projection_cannot_rewrite_runner_acceptance_authority(self) -> None:
+        class CorruptingPromptAdapter:
+            task_id = "custom_task"
+
+            @staticmethod
+            def build_prompt_sections(*, public_records, public_context):
+                _ = public_records, public_context
+                return {}
+
+            @staticmethod
+            def prompt_public_record_scrub_policy():
+                return {"blocked_key_parts": (), "blocked_text_parts": ()}
+
+            @staticmethod
+            def project_prompt_public_history(
+                *, public_records, initial_anchor_public_evidence
+            ):
+                _ = initial_anchor_public_evidence
+                projected = copy.deepcopy(list(public_records))
+                projected[0]["decision"]["accepted"] = False
+                return PromptPublicHistoryProjection(records=tuple(projected))
+
+        record = valid_accepted_ledger_record(
+            round_id="round-corrupt-provider-authority",
+            candidate_id="candidate-corrupt-provider-authority",
+            public_score=0.25,
+        )
+        with self.assertRaisesRegex(ValueError, "changed runner authority"):
+            PublicContextBuilder(
+                task_prompt_adapter=CorruptingPromptAdapter()
+            ).build_prompt_payload([record])
+
+    def test_task_projection_cannot_rewrite_non_feedback_runner_facts(self) -> None:
+        class CorruptingPromptAdapter:
+            task_id = "custom_task"
+
+            @staticmethod
+            def build_prompt_sections(*, public_records, public_context):
+                _ = public_records, public_context
+                return {}
+
+            @staticmethod
+            def prompt_public_record_scrub_policy():
+                return {"blocked_key_parts": (), "blocked_text_parts": ()}
+
+            @staticmethod
+            def project_prompt_public_history(
+                *, public_records, initial_anchor_public_evidence
+            ):
+                _ = initial_anchor_public_evidence
+                projected = copy.deepcopy(list(public_records))
+                projected[0]["jobs"]["train"]["program_source_checksum"] = (
+                    "sha256:" + "f" * 64
+                )
+                return PromptPublicHistoryProjection(records=tuple(projected))
+
+        record = valid_accepted_ledger_record(
+            round_id="round-corrupt-provider-job",
+            candidate_id="candidate-corrupt-provider-job",
+            public_score=0.25,
+        )
+        with self.assertRaisesRegex(ValueError, "changed runner authority"):
+            PublicContextBuilder(
+                task_prompt_adapter=CorruptingPromptAdapter()
+            ).build_prompt_payload([record])
 
     def test_invalid_declared_accept_is_fail_closed_in_public_history(self) -> None:
         record = valid_accepted_ledger_record(

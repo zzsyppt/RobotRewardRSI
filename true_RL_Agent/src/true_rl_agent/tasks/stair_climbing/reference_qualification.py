@@ -16,6 +16,10 @@ from true_rl_agent.tasks.stair_climbing.config import StairClimbingTaskConfig
 from true_rl_agent.tasks.stair_climbing.evaluation_contract import (
     validate_stair_split_summary,
 )
+from true_rl_agent.tasks.stair_climbing.unified_scoring import (
+    validate_objective_family_mask,
+    validate_unified_stair_summary,
+)
 
 STAIR_REFERENCE_QUALIFICATION_EVIDENCE_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.reference_qualification_evidence.v1"
@@ -31,6 +35,11 @@ def qualify_stair_reference_public_result(
         raise TypeError("Stair reference qualification requires task config")
     if not isinstance(public_result, PublicEvalResult):
         raise TypeError("Stair reference qualification requires a public result")
+    if config.is_unified_protocol:
+        return _qualify_unified_stair_reference(
+            config=config,
+            public_result=public_result,
+        )
     contract = _gate_contract(config)
     metrics = dict(public_result.metrics)
     split_name = str(contract["source_split"])
@@ -166,6 +175,123 @@ def qualify_stair_reference_public_result(
     acceptance = dict(_mapping(metrics.get("acceptance"), "Stair acceptance"))
     required = acceptance.get("required_pass_gates")
     if not isinstance(required, list) or any(not isinstance(item, str) for item in required):
+        raise ValueError("Stair acceptance required gates are invalid")
+    if "reference_capability_gate" in required:
+        raise ValueError("Stair reference capability gate is already projected")
+    acceptance["required_pass_gates"] = [*required, "reference_capability_gate"]
+    metrics["acceptance"] = acceptance
+    metrics["reference_capability_gate"] = public_gate
+    qualified_public = PublicEvalResult(
+        status=public_result.status,
+        public_score=public_result.public_score,
+        metrics=metrics,
+    )
+    return ReferenceQualificationResult(
+        public_result=qualified_public,
+        gate=public_gate,
+        private_evidence=evidence,
+    )
+
+
+def _qualify_unified_stair_reference(
+    *,
+    config: StairClimbingTaskConfig,
+    public_result: PublicEvalResult,
+) -> ReferenceQualificationResult:
+    if config.resolved_cell_task_protocol_hash is None:
+        raise ValueError("unified Stair reference requires resolved cell identity")
+    readiness = config.unified_protocol.reference_readiness
+    source_split = str(readiness["source_cohort"])
+    metrics = dict(public_result.metrics)
+    split = validate_unified_stair_summary(
+        suite=config.ordered_evaluation_suite,
+        semantics=config.evaluation_semantics,
+        split=source_split,
+        summary=_mapping(
+            metrics.get(source_split),
+            "unified Stair reference source split",
+        ),
+    )
+    if len(split["seed_summaries"]) != int(readiness["seed_count"]):
+        raise ValueError("unified Stair reference seed count mismatch")
+
+    ordered = split["ordered_summary"]
+    success_by_cell = ordered["aggregate_success_rate_by_cell"]
+    progress_by_cell = ordered["aggregate_mean_progress_fraction_by_cell"]
+    easy_measurements: dict[str, Any] = {}
+    easy_pass = True
+    for stratum in readiness["easy_strata"]:
+        cell_ids = split["stratum_cell_ids"][stratum]
+        success = statistics.fmean(float(success_by_cell[cell]) for cell in cell_ids)
+        progress = statistics.fmean(float(progress_by_cell[cell]) for cell in cell_ids)
+        passed = (
+            success >= float(readiness["minimum_macro_success_rate"])
+            and progress >= float(readiness["minimum_macro_goal_progress_fraction"])
+        )
+        easy_measurements[str(stratum)] = {
+            "cell_ids": list(cell_ids),
+            "macro_success_rate": success,
+            "macro_goal_progress_fraction": progress,
+            "status": "pass" if passed else "fail",
+        }
+        easy_pass = easy_pass and passed
+
+    suite = config.ordered_evaluation_suite
+    rule = suite.qualification_rule
+    objective_family_mask = validate_objective_family_mask(
+        suite=suite,
+        mask=_mapping(
+            metrics.get("objective_family_mask"),
+            "unified Stair objective family mask",
+        ),
+        public_accept_summary=split,
+        require_nonempty=False,
+    )
+    ood_family_measurements = dict(objective_family_mask["family_measurements"])
+    ood_pass = bool(objective_family_mask["qualified_ood_families"])
+    passed = easy_pass and ood_pass
+    task_gate = {
+        "schema_version": "true_rl_agent.task.stair_climbing.reference_readiness.v1",
+        "status": "pass" if passed else "fail",
+        "predicate": "easy_strata_floors_and_one_reference_supported_ood_family",
+        "easy_strata_status": "pass" if easy_pass else "fail",
+        "ood_family_status": "pass" if ood_pass else "fail",
+        "threshold_relaxation_allowed": False,
+        "reason": (
+            "unified_stair_reference_readiness_met"
+            if passed
+            else "unified_stair_reference_readiness_not_met"
+        ),
+    }
+    evidence = {
+        "schema_version": STAIR_REFERENCE_QUALIFICATION_EVIDENCE_SCHEMA_VERSION,
+        "task_protocol_hash": config.task_protocol_hash,
+        "cell_variant_id": config.cell_variant_id,
+        "source_split": source_split,
+        "ordered_suite_hash": config.ordered_evaluation_suite.suite_hash,
+        "split_cohort_hash": config.ordered_evaluation_suite.cohort_hash(source_split),
+        "reference_readiness": dict(readiness),
+        "qualification_rule": dict(rule),
+        "easy_strata": easy_measurements,
+        "ood_families": ood_family_measurements,
+        "objective_family_mask": objective_family_mask,
+        "objective_family_mask_hash": objective_family_mask[
+            "objective_family_mask_hash"
+        ],
+        "task_gate": task_gate,
+    }
+    evidence["evidence_hash"] = canonical_json_hash(evidence)
+    public_gate = {
+        "schema_version": REFERENCE_QUALIFICATION_GATE_SCHEMA_VERSION,
+        "status": task_gate["status"],
+        "protocol_hash": config.task_protocol_hash,
+        "evidence_hash": evidence["evidence_hash"],
+    }
+    acceptance = dict(_mapping(metrics.get("acceptance"), "Stair acceptance"))
+    required = acceptance.get("required_pass_gates")
+    if not isinstance(required, list) or any(
+        not isinstance(item, str) for item in required
+    ):
         raise ValueError("Stair acceptance required gates are invalid")
     if "reference_capability_gate" in required:
         raise ValueError("Stair reference capability gate is already projected")

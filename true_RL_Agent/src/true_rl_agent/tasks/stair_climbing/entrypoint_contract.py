@@ -13,6 +13,7 @@ from true_rl_agent.candidates.artifact import (
     load_sealed_candidate_artifact,
 )
 from true_rl_agent.candidates.schema import CandidateChangeSet
+from true_rl_agent.composition.cell_manifest import ResolvedCellManifestV1
 from true_rl_agent.evaluation.binding import (
     EvaluationBindingV1,
     require_sha256_checksum,
@@ -33,7 +34,6 @@ from true_rl_agent.tasks.stair_climbing.candidate_failure import (
     STAIR_CANDIDATE_FAILURE_CONTRACT,
 )
 from true_rl_agent.tasks.stair_climbing.config import (
-    STAIR_PROTOCOL_V2_RELATIVE_PATH,
     STAIR_TASK_ID,
     StairClimbingTaskConfig,
 )
@@ -43,6 +43,9 @@ from true_rl_agent.tasks.stair_climbing.seed_policy import (
     STAIR_FORMAL_EVAL_NAMESPACE,
 )
 from true_rl_agent.training_binding import TrainingBinding
+from true_rl_agent.tasks.stair_climbing.unified_protocol import (
+    STAIR_UNIFIED_PROTOCOL_RELATIVE_PATH,
+)
 
 
 @dataclass(frozen=True)
@@ -61,6 +64,7 @@ class StairTrainEntrypointContext:
     budget_accounting: dict[str, int | str]
     expected_initial_policy_state_hash: str | None
     candidate_failure_contract_hash: str | None
+    resolved_cell_manifest: ResolvedCellManifestV1 | None
 
 
 @dataclass(frozen=True)
@@ -86,11 +90,17 @@ def validate_stair_train_invocation(
     args: Any,
     *,
     project_root: Path,
+    resolved_cell_manifest: ResolvedCellManifestV1 | None = None,
 ) -> StairTrainEntrypointContext:
     """Reject any train argv that differs from the task-owned config snapshot."""
 
     config_path = _canonical_config_path(args.config, project_root=project_root)
-    defaults = StairClimbingTaskConfig.defaults(config_path)
+    defaults = _resolved_stair_config(
+        config_path,
+        resolved_cell_manifest=resolved_cell_manifest,
+    )
+    if defaults.protocol_state != "active":
+        raise ValueError("Stair unified protocol is draft; formal training is disabled")
     config = StairClimbingTaskConfig(
         protocol_v2_path=config_path,
         budget_steps=_positive_int(args.budget_steps, "budget_steps"),
@@ -109,6 +119,10 @@ def validate_stair_train_invocation(
         runner_timeout_s=defaults.runner_timeout_s,
         train_profile=_text(args.profile, "profile"),
         eval_profile=defaults.eval_profile,
+        cell_variant_id=defaults.cell_variant_id,
+        resolved_cell_task_protocol_hash=(
+            defaults.resolved_cell_task_protocol_hash
+        ),
     )
     if args.task_id != STAIR_TASK_ID:
         raise ValueError("stair train task_id mismatch")
@@ -182,6 +196,7 @@ def validate_stair_train_invocation(
                 authorization,
                 artifact=candidate_artifact,
                 config=config,
+                resolved_cell_manifest=resolved_cell_manifest,
             )
         )
         expected_initial_policy_state_hash = require_sha256_digest(
@@ -229,7 +244,7 @@ def validate_stair_train_invocation(
         )
         if (
             reference_artifact.program.manifest.capability_profile_hash
-            != config.protocol_v2.capability_profile.profile_hash
+            != config.candidate_capability_profile.profile_hash
         ):
             raise ValueError("stair train reference capability profile mismatch")
         _require_absent(
@@ -276,26 +291,15 @@ def validate_stair_train_invocation(
             args.capability_profile_hash,
             "stair capability profile hash",
         ),
+        task_protocol_hash=(
+            config.task_protocol_hash if config.is_unified_protocol else None
+        ),
         binding_hash=require_sha256_digest(
             args.training_binding_hash,
             "stair training binding hash",
         ),
     )
-    expected_binding = TrainingBinding(
-        initialization_mode="random",
-        initialization_checkpoint_hash=None,
-        policy_architecture_hash=expected_agent.policy_architecture_hash,
-        agent_configuration_hash=expected_agent.agent_configuration_hash,
-        initialization_seed_schedule_hash=config.initialization_seed_schedule_hash(),
-        optimizer_training_profile_hash=(
-            expected_agent.optimizer_training_profile_hash
-        ),
-        budget_steps=config.budget_steps,
-        private_training_seed_resolver_hash=(
-            config.private_training_seed_resolver_hash()
-        ),
-        capability_profile_hash=config.protocol_v2.capability_profile.profile_hash,
-    )
+    expected_binding = config.formal_training_binding()
     if training_binding != expected_binding:
         raise ValueError("stair train binding differs from task config")
 
@@ -319,6 +323,7 @@ def validate_stair_train_invocation(
             expected_initial_policy_state_hash
         ),
         candidate_failure_contract_hash=candidate_failure_contract_hash,
+        resolved_cell_manifest=resolved_cell_manifest,
     )
 
 
@@ -326,11 +331,17 @@ def validate_stair_eval_invocation(
     args: Any,
     *,
     project_root: Path,
+    resolved_cell_manifest: ResolvedCellManifestV1 | None = None,
 ) -> StairEvalEntrypointContext:
     """Bind an eval invocation to one immutable Stair comparison domain."""
 
     config_path = _canonical_config_path(args.config, project_root=project_root)
-    config = StairClimbingTaskConfig.defaults(config_path)
+    config = _resolved_stair_config(
+        config_path,
+        resolved_cell_manifest=resolved_cell_manifest,
+    )
+    if config.protocol_state != "active":
+        raise ValueError("Stair unified protocol is draft; formal evaluation is disabled")
     if args.task_id != STAIR_TASK_ID:
         raise ValueError("stair eval task_id mismatch")
     if args.subject_kind not in {"candidate", "reference"}:
@@ -378,7 +389,7 @@ def validate_stair_eval_invocation(
         args.capability_profile_hash,
         "stair eval capability profile hash",
     )
-    if capability_profile_hash != config.protocol_v2.capability_profile.profile_hash:
+    if capability_profile_hash != config.candidate_capability_profile.profile_hash:
         raise ValueError("stair eval capability profile mismatch")
 
     eval_purpose = getattr(
@@ -462,11 +473,29 @@ def validate_stair_eval_invocation(
 def _canonical_config_path(value: Any, *, project_root: Path) -> Path:
     if not isinstance(project_root, Path):
         raise TypeError("project_root must be a Path")
-    if value != STAIR_PROTOCOL_V2_RELATIVE_PATH:
+    if value != STAIR_UNIFIED_PROTOCOL_RELATIVE_PATH:
         raise ValueError("stair entrypoint config path is not canonical")
     return resolve_existing_file(
-        project_root / STAIR_PROTOCOL_V2_RELATIVE_PATH,
+        project_root / STAIR_UNIFIED_PROTOCOL_RELATIVE_PATH,
         field_name="stair entrypoint config",
+    )
+
+
+def _resolved_stair_config(
+    config_path: Path,
+    *,
+    resolved_cell_manifest: ResolvedCellManifestV1 | None,
+) -> StairClimbingTaskConfig:
+    if resolved_cell_manifest is None:
+        return StairClimbingTaskConfig.defaults(config_path)
+    if not isinstance(resolved_cell_manifest, ResolvedCellManifestV1):
+        raise TypeError("resolved Stair cell manifest is invalid")
+    return StairClimbingTaskConfig.defaults(
+        config_path,
+        cell_variant_id=resolved_cell_manifest.cell_variant_id,
+        resolved_cell_task_protocol_hash=(
+            resolved_cell_manifest.resolved_cell_task_protocol_hash
+        ),
     )
 
 

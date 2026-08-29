@@ -12,7 +12,6 @@ from true_rl_agent.tasks.stair_climbing.generation_session import (
     run_stair_generation_pilot,
 )
 
-
 SHA = "a" * 40
 GPU_A = "GPU-11111111-1111-1111-1111-111111111111"
 GPU_B = "GPU-22222222-2222-2222-2222-222222222222"
@@ -52,6 +51,7 @@ class StairP6BLegacyResumeTests(unittest.TestCase):
             )
             composition = Mock()
             composition.genesis_identity_snapshot.return_value = {}
+            composition.task_plugin.config.is_unified_protocol = False
             foundation = SimpleNamespace(
                 config=config,
                 composition=composition,

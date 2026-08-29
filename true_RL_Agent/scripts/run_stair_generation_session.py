@@ -1,4 +1,4 @@
-"""Run the frozen Stair formal generation session or read-only helpers."""
+"""Run bounded Stair pilot, validation, or formal generation sessions."""
 
 from __future__ import annotations
 
@@ -20,6 +20,7 @@ from true_rl_agent.tasks.stair_climbing.generation_session import (  # noqa: E40
 )
 from true_rl_agent.tasks.stair_climbing.generation_session_cost import (  # noqa: E402
     DEVELOPMENT_GENERATION_PILOT_MODE,
+    DEVELOPMENT_GENERATION_VALIDATION_MODE,
     FORMAL_GENERATION_SESSION_MODE,
     STAIR_FORMAL_GENERATION_PAUSE_BOUNDARIES,
 )
@@ -34,26 +35,23 @@ from true_rl_agent.tasks.stair_climbing.launch_context import (  # noqa: E402
 def main(argv: list[str] | None = None) -> int:
     raw_argv = list(sys.argv[1:] if argv is None else argv)
     args = parse_stair_generation_session_args(raw_argv)
-    consume_stair_generation_launch_context(
-        process_argv=_process_argv(raw_argv, explicit=argv is not None),
-        project_root=PROJECT_ROOT,
-        formal_output_dir=args.output_dir,
-        session_id=args.session_id,
-        expected_source_commit=args.expected_source_commit,
-        expected_machine_id=args.machine_id,
-        expected_gpu_uuids=(args.gpu0_uuid, args.gpu1_uuid),
-        lease_root=args.lease_root,
-        max_output_bytes=args.max_output_bytes,
-        nvidia_smi_executable=args.nvidia_smi_executable,
-        helper_mode=(
-            args.preflight_only
-            or args.provider_readiness_only
-            or (args.terminal_audit_only and not args.formal_session)
-        ),
-        resume_existing=args.resume_existing,
-        formal_session=args.formal_session,
-        terminal_audit_only=args.terminal_audit_only,
-    )
+    if args.formal_session:
+        consume_stair_generation_launch_context(
+            process_argv=_process_argv(raw_argv, explicit=argv is not None),
+            project_root=PROJECT_ROOT,
+            formal_output_dir=args.output_dir,
+            session_id=args.session_id,
+            expected_source_commit=args.expected_source_commit,
+            expected_machine_id=args.machine_id,
+            expected_gpu_uuids=(args.gpu0_uuid, args.gpu1_uuid),
+            lease_root=args.lease_root,
+            max_output_bytes=args.max_output_bytes,
+            nvidia_smi_executable=args.nvidia_smi_executable,
+            helper_mode=args.preflight_only or args.provider_readiness_only,
+            resume_existing=args.resume_existing,
+            formal_session=True,
+            terminal_audit_only=args.terminal_audit_only,
+        )
     config = StairGenerationPilotConfig(
         project_root=PROJECT_ROOT,
         output_dir=args.output_dir.resolve(),
@@ -72,6 +70,8 @@ def main(argv: list[str] | None = None) -> int:
         session_mode=(
             FORMAL_GENERATION_SESSION_MODE
             if args.formal_session
+            else DEVELOPMENT_GENERATION_VALIDATION_MODE
+            if args.validation_session
             else DEVELOPMENT_GENERATION_PILOT_MODE
         ),
         pause_after_generation=args.pause_after_generation,
@@ -97,8 +97,8 @@ def parse_stair_generation_session_args(
 ) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Run the frozen dual-GPU P6-D formal session or one of its "
-            "read-only helper modes."
+            "Run one frozen dual-GPU Stair pilot, validation, formal session, "
+            "or a read-only helper."
         ),
         allow_abbrev=False,
     )
@@ -126,7 +126,18 @@ def parse_stair_generation_session_args(
     )
     parser.add_argument("--max-output-bytes", type=int, required=True)
     parser.add_argument("--nvidia-smi-executable", default="nvidia-smi")
-    parser.add_argument(
+    session_mode = parser.add_mutually_exclusive_group()
+    session_mode.add_argument(
+        "--pilot-session",
+        action="store_true",
+        help="Run the fixed one-generation Phase 4 pilot.",
+    )
+    session_mode.add_argument(
+        "--validation-session",
+        action="store_true",
+        help="Run the fixed fresh three-generation Phase 4 validation.",
+    )
+    session_mode.add_argument(
         "--formal-session",
         action="store_true",
         help=(
@@ -138,7 +149,7 @@ def parse_stair_generation_session_args(
     parser.add_argument(
         "--pause-after-generation",
         type=int,
-        choices=STAIR_FORMAL_GENERATION_PAUSE_BOUNDARIES,
+        choices=(1, 2, *STAIR_FORMAL_GENERATION_PAUSE_BOUNDARIES),
         help="Pause only at a boundary precommitted by the selected session mode.",
     )
     parser.add_argument(
@@ -173,13 +184,24 @@ def parse_stair_generation_session_args(
     )
     args = parser.parse_args(argv)
     helper_mode = args.preflight_only or args.provider_readiness_only
-    if not args.formal_session and not helper_mode:
-        parser.error("--formal-session is required for a runnable session")
+    runnable_mode = args.pilot_session or args.validation_session or args.formal_session
+    if not runnable_mode and not helper_mode:
+        parser.error(
+            "one of --pilot-session, --validation-session, or --formal-session "
+            "is required for a runnable session"
+        )
     if args.pause_after_generation is not None:
-        if not args.formal_session:
+        if not (args.validation_session or args.formal_session):
             parser.error(
                 "--pause-after-generation requires a multi-generation session"
             )
+        allowed = (
+            {1, 2}
+            if args.validation_session
+            else set(STAIR_FORMAL_GENERATION_PAUSE_BOUNDARIES)
+        )
+        if args.pause_after_generation not in allowed:
+            parser.error("--pause-after-generation is not a valid mode boundary")
         if helper_mode:
             parser.error(
                 "--pause-after-generation cannot be combined with a helper mode"
@@ -187,7 +209,7 @@ def parse_stair_generation_session_args(
     if args.terminal_audit_only:
         if helper_mode:
             parser.error("--terminal-audit-only cannot be combined with a helper mode")
-        if not args.formal_session:
+        if not (args.validation_session or args.formal_session):
             parser.error(
                 "--terminal-audit-only requires a multi-generation session"
             )

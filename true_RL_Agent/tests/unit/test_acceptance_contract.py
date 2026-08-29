@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -24,12 +25,15 @@ from tests.fakes.decision_records import (
 from true_rl_agent.agent_core.decision import decide_candidate
 from true_rl_agent.candidates.schema import CandidateSurfaceAssessment
 from true_rl_agent.evaluation.acceptance_contract import validate_acceptance_evidence
+from true_rl_agent.evaluation.acceptance_replay import replay_acceptance_ledger
 from true_rl_agent.evaluation.acceptance_protocol import (
     GUARDED_PAIRED_HEADROOM_DELTA_RULE,
+    NAMED_GUARDS_PAIRED_HEADROOM_DELTA_RULE,
     PAIRED_HEADROOM_DELTA_RULE,
     PUBLIC_SCORE_BINDING_ACCEPTANCE_MEAN,
     PUBLIC_SCORE_BINDING_GUARD_MEAN,
     AcceptanceProtocol,
+    NamedGuardSpec,
 )
 from true_rl_agent.evaluation.binding import EvaluationBindingV1
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
@@ -160,6 +164,117 @@ class AcceptanceContractTests(unittest.TestCase):
         self.assertTrue(accepted.accepted)
         self.assertEqual(accepted.reason, "guarded_paired_headroom_delta")
         self.assertTrue(ledger_validation.valid, ledger_validation.reasons)
+
+    def test_named_guards_are_independent_and_replay_bound(self) -> None:
+        protocol = _named_guard_protocol()
+        binding = EvaluationBindingV1(
+            eval_protocol_hash=TEST_EVALUATION_PROTOCOL.protocol_hash,
+            acceptance_protocol_hash=protocol.protocol_hash,
+            task_protocol_hash=TEST_EVALUATION_BINDING.task_protocol_hash,
+            seed_cohort_hash=TEST_EVALUATION_BINDING.seed_cohort_hash,
+        )
+        baseline = _named_guard_record(
+            objective_score=0.5,
+            guard_scores={"j_ood": 0.5, "c0_id": 0.5, "c1_id": 0.5},
+            protocol=protocol,
+            binding=binding,
+        )
+        current_best = CurrentBestEvalStats.from_public_result_mapping(
+            round_id="round-named-guard",
+            candidate_id="candidate-acceptance",
+            public_result=baseline["public_result"],
+            acceptance_protocol=protocol,
+            subject_manifest_hash=TEST_SUBJECT_MANIFEST_HASH,
+            program_source_checksum=TEST_PROGRAM_SOURCE_CHECKSUM,
+            training_binding_hash=TEST_TRAINING_BINDING_HASH,
+            capability_profile_hash=TEST_CAPABILITY_PROFILE_HASH,
+            checkpoint_hash="sha256:" + "d" * 64,
+            expected_evaluation_binding=binding,
+        )
+
+        regressed = _named_guard_record(
+            objective_score=0.7,
+            guard_scores={"j_ood": 0.5, "c0_id": 0.39, "c1_id": 0.5},
+            protocol=protocol,
+            binding=binding,
+        )
+        rejected = decide_candidate(
+            surface=CandidateSurfaceAssessment(
+                "code_level", True, "code_level_candidate"
+            ),
+            public_result=PublicEvalResult(**regressed["public_result"]),
+            current_best=current_best,
+            acceptance_protocol=protocol,
+        )
+        self.assertFalse(rejected.accepted)
+        self.assertEqual(rejected.reason, "named_guard_score_regression")
+        self.assertFalse(rejected.comparison["named_guards"]["c0_id"]["met"])
+
+        improved = _named_guard_record(
+            objective_score=0.7,
+            guard_scores={"j_ood": 0.51, "c0_id": 0.49, "c1_id": 0.5},
+            protocol=protocol,
+            binding=binding,
+        )
+        accepted = decide_candidate(
+            surface=CandidateSurfaceAssessment(
+                "code_level", True, "code_level_candidate"
+            ),
+            public_result=PublicEvalResult(**improved["public_result"]),
+            current_best=current_best,
+            acceptance_protocol=protocol,
+        )
+        improved["decision"] = accepted.to_public_dict()
+        improved["evaluation_binding"] = binding.to_public_dict()
+        improved["jobs"]["eval"]["evaluation_binding"] = binding.to_public_dict()
+        replay = validate_decision_record(
+            improved,
+            acceptance_protocol=protocol,
+            expected_evaluation_binding=binding,
+            expected_session_genesis_hash=TEST_SESSION_GENESIS_HASH,
+        )
+        self.assertTrue(accepted.accepted)
+        self.assertEqual(accepted.reason, "named_guards_paired_headroom_delta")
+        self.assertTrue(replay.valid, replay.reasons)
+        for guard in protocol.named_guards:
+            self.assertIsInstance(
+                accepted.to_public_dict()["comparison"]["named_guards"][
+                    guard.name
+                ]["best_score_stats"]["score_samples"],
+                list,
+            )
+        persisted = json.loads(json.dumps([improved]))
+        acceptance_replay = replay_acceptance_ledger(
+            persisted,
+            initial_current_best=current_best,
+            expected_session_genesis_hash=TEST_SESSION_GENESIS_HASH,
+            acceptance_protocol=protocol,
+        )
+        acceptance_replay.raise_for_continuation()
+
+        missing = copy.deepcopy(improved)
+        missing["public_result"]["metrics"]["acceptance"]["named_guards"].pop(
+            "c1_id"
+        )
+        missing_validation = validate_acceptance_evidence(
+            missing["public_result"]["metrics"],
+            acceptance_protocol=protocol,
+            public_score=missing["public_result"]["public_score"],
+        )
+        self.assertFalse(missing_validation.valid)
+        self.assertIn("acceptance_named_guard_set_mismatch", missing_validation.reasons)
+
+        tampered = copy.deepcopy(improved)
+        tampered["public_result"]["metrics"]["acceptance"]["named_guards"][
+            "c0_id"
+        ]["score_samples"][0] = 0.1
+        tampered_replay = validate_decision_record(
+            tampered,
+            acceptance_protocol=protocol,
+            expected_evaluation_binding=binding,
+            expected_session_genesis_hash=TEST_SESSION_GENESIS_HASH,
+        )
+        self.assertFalse(tampered_replay.valid)
 
     def test_paired_acceptance_samples_are_bound_to_declared_stats(self) -> None:
         record = _record()
@@ -554,6 +669,32 @@ def _guarded_protocol() -> AcceptanceProtocol:
     )
 
 
+def _named_guard_protocol() -> AcceptanceProtocol:
+    return AcceptanceProtocol(
+        protocol_id="test_named_guard_acceptance_v1",
+        score_source="unified_score.j_primary.score_stats.mean",
+        min_score_count=3,
+        absolute_accept_floor=0.2,
+        min_delta=0.0,
+        public_score_binding=PUBLIC_SCORE_BINDING_ACCEPTANCE_MEAN,
+        decision_rule=NAMED_GUARDS_PAIRED_HEADROOM_DELTA_RULE,
+        score_ceiling=1.0,
+        headroom_reduction_fraction=0.2,
+        paired_standard_error_multiplier=1.5,
+        named_guards=tuple(
+            NamedGuardSpec(
+                name=name,
+                score_source=f"unified_score.{name}.score_stats.mean",
+                absolute_accept_floor=0.1,
+                max_regression=0.05,
+                regression_margin=0.02,
+            )
+            for name in ("j_ood", "c0_id", "c1_id")
+        ),
+        max_public_to_sealed_score_drop=0.05,
+    )
+
+
 def _guarded_record(
     *,
     objective_score: float,
@@ -599,6 +740,69 @@ def _guarded_record(
     metrics["sealed_validation"]["evaluation_binding_hash"] = (
         binding.binding_hash
     )
+    return record
+
+
+def _named_guard_record(
+    *,
+    objective_score: float,
+    guard_scores: dict[str, float],
+    protocol: AcceptanceProtocol,
+    binding: EvaluationBindingV1,
+) -> dict[str, object]:
+    record = _record()
+    result = record["public_result"]
+    result["public_score"] = objective_score
+    metrics = result["metrics"]
+
+    def score_stats(value: float) -> dict[str, object]:
+        return {
+            "count": 3,
+            "mean": value,
+            "std": 0.0,
+            "standard_error": 0.0,
+            "eval_protocol_hash": TEST_EVALUATION_PROTOCOL.protocol_hash,
+        }
+
+    objective_stats = score_stats(objective_score)
+    unified_score = {
+        "j_primary": {
+            "score_stats": objective_stats,
+            "seed_macro_scores": [objective_score] * 3,
+        }
+    }
+    named_guards = {}
+    for guard in protocol.named_guards:
+        score = guard_scores[guard.name]
+        stats = score_stats(score)
+        unified_score[guard.name] = {
+            "score_stats": stats,
+            "seed_macro_scores": [score] * 3,
+        }
+        named_guards[guard.name] = {
+            **guard.to_public_dict(),
+            "score_stats": stats,
+            "score_samples": [score] * 3,
+        }
+    required_pass_gates = list(metrics["acceptance"]["required_pass_gates"])
+    metrics["unified_score"] = unified_score
+    metrics["evaluation_binding"] = binding.to_public_dict()
+    metrics["acceptance"] = {
+        "score_source": protocol.score_source,
+        "public_score_binding": protocol.public_score_binding,
+        "score_stats": objective_stats,
+        "score_samples": [objective_score] * 3,
+        "named_guards": named_guards,
+        "min_score_count": protocol.min_score_count,
+        "required_pass_gates": required_pass_gates,
+        "absolute_accept_floor": protocol.absolute_accept_floor,
+        "min_delta": protocol.min_delta,
+        "max_public_to_sealed_score_drop": (
+            protocol.max_public_to_sealed_score_drop
+        ),
+        "acceptance_protocol_hash": protocol.protocol_hash,
+    }
+    metrics["sealed_validation"]["evaluation_binding_hash"] = binding.binding_hash
     return record
 
 

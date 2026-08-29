@@ -13,7 +13,10 @@ from true_rl_agent.evaluation.phases import (
     EvaluationPhaseReceiptBinding,
     EvaluationPhaseResult,
 )
-from true_rl_agent.evaluation.sealed_validation import build_sealed_validation_gate
+from true_rl_agent.evaluation.sealed_validation import (
+    build_sealed_rollout_evidence,
+    build_sealed_validation_gate,
+)
 from true_rl_agent.runner.checkpoint import validate_checkpoint_safety_report
 from true_rl_agent.runner.eval_isolation import build_candidate_isolation_gate
 from true_rl_agent.runner.job_identity import JobIdentity
@@ -25,6 +28,7 @@ from true_rl_agent.tasks.stair_climbing.config import (
 from true_rl_agent.tasks.stair_climbing.evaluation_contract import (
     build_stair_sealed_rollout_evidence,
     canonical_stair_sealed_summary,
+    evaluate_unified_stair_sealed_score_gate,
     validate_stair_split_summary,
 )
 from true_rl_agent.tasks.stair_climbing.generalization_contract import (
@@ -44,6 +48,13 @@ from true_rl_agent.tasks.stair_climbing.selection import (
     StairSelectionResult,
     build_stair_public_dev_screen_evidence,
     replay_stair_public_dev_winner,
+)
+from true_rl_agent.tasks.stair_climbing.unified_scoring import (
+    build_unified_reference_score_projection,
+    build_reference_objective_family_mask,
+    build_unified_score_projection,
+    validate_objective_family_mask,
+    validate_unified_stair_summary,
 )
 
 
@@ -140,6 +151,7 @@ def build_stair_full_eval_summary(
     program_source_checksum: str,
     training_binding_hash: str,
     capability_profile_hash: str,
+    objective_family_mask: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build the legacy full summary from one all-split execution."""
 
@@ -181,6 +193,7 @@ def build_stair_full_eval_summary(
         public_dev_summary=public_dev,
         public_accept_summary=public_accept,
         sealed_summary=sealed,
+        objective_family_mask=objective_family_mask,
     )
 
 
@@ -194,23 +207,16 @@ def assemble_stair_eval_phase_results(
     guard_reference: StairPublicDevScreenEvidence,
     phase_results: Sequence[EvaluationPhaseResult],
     phase_receipt_refs: Mapping[EvaluationPhase | str, Mapping[str, Any]],
+    objective_family_mask: Mapping[str, Any] | None = None,
 ) -> EvaluationAssembly:
     """Assemble one winner's three validated phases into the normal raw summary."""
 
-    if not isinstance(eval_plan, EvalJobSpec):
-        raise TypeError("Stair phase assembly requires an EvalJobSpec plan")
-    _require_eval_plan_matches_config(config, eval_plan)
-    checkpoint = eval_plan.execution_checkpoint()
-    by_phase: dict[EvaluationPhase, EvaluationPhaseResult] = {}
-    for result in phase_results:
-        if not isinstance(result, EvaluationPhaseResult):
-            raise TypeError("Stair phase assembly received an invalid result")
-        if result.phase in by_phase:
-            raise ValueError("Stair phase assembly contains a duplicate phase")
-        _require_phase_result_matches_plan(result, eval_plan)
-        by_phase[result.phase] = result
-    if set(by_phase) != set(EvaluationPhase):
-        raise ValueError("Stair phase assembly requires public-dev, public-accept, and sealed")
+    by_phase, summary = _validated_complete_phase_summary(
+        config=config,
+        eval_plan=eval_plan,
+        phase_results=phase_results,
+        objective_family_mask=objective_family_mask,
+    )
 
     if not isinstance(trial_id, str) or not trial_id:
         raise ValueError("Stair formal assembly trial_id is required")
@@ -233,6 +239,7 @@ def assemble_stair_eval_phase_results(
         trial_id=trial_id,
         phase_result=by_phase[EvaluationPhase.PUBLIC_DEV],
         screen_role="guard_reference",
+        objective_family_mask=objective_family_mask,
     )
     selected_matches = [
         screen for screen in selection_screens if screen.trial_id == trial_id
@@ -254,6 +261,83 @@ def assemble_stair_eval_phase_results(
     if selected_screen.evidence_hash not in selection_result.screen_evidence_hashes:
         raise ValueError("Stair formal assembly selection evidence mismatch")
 
+    bindings = _phase_receipt_bindings(
+        eval_plan=eval_plan,
+        by_phase=by_phase,
+        phase_receipt_refs=phase_receipt_refs,
+    )
+    return EvaluationAssembly(
+        evaluation_plan_hash=canonical_json_hash(eval_plan.to_public_dict()),
+        selected_trial_id=trial_id,
+        selection=selection_result.to_public_dict(),
+        phase_receipts=bindings,
+        summary=summary,
+    )
+
+
+def assemble_stair_reference_eval_phase_results(
+    *,
+    config: StairClimbingTaskConfig,
+    eval_plan: EvalJobSpec,
+    phase_results: Sequence[EvaluationPhaseResult],
+    phase_receipt_refs: Mapping[EvaluationPhase | str, Mapping[str, Any]],
+) -> EvaluationAssembly:
+    """Assemble one reference program's three phases without candidate selection."""
+
+    if not isinstance(eval_plan, EvalJobSpec) or eval_plan.subject.kind != "reference":
+        raise TypeError("Stair reference phase assembly requires a reference eval plan")
+    by_phase, summary = _validated_complete_phase_summary(
+        config=config,
+        eval_plan=eval_plan,
+        phase_results=phase_results,
+        objective_family_mask=None,
+    )
+    bindings = _phase_receipt_bindings(
+        eval_plan=eval_plan,
+        by_phase=by_phase,
+        phase_receipt_refs=phase_receipt_refs,
+    )
+    reference_id = eval_plan.subject.subject_id
+    selection = {
+        "schema_version": (
+            "true_rl_agent.task.stair_climbing.reference_eval_assembly.v1"
+        ),
+        "selected_trial_id": reference_id,
+        "selection_kind": "reference_program_qualification",
+        "acceptance_authority": False,
+    }
+    return EvaluationAssembly(
+        evaluation_plan_hash=canonical_json_hash(eval_plan.to_public_dict()),
+        selected_trial_id=reference_id,
+        selection=selection,
+        phase_receipts=bindings,
+        summary=summary,
+    )
+
+
+def _validated_complete_phase_summary(
+    *,
+    config: StairClimbingTaskConfig,
+    eval_plan: EvalJobSpec,
+    phase_results: Sequence[EvaluationPhaseResult],
+    objective_family_mask: Mapping[str, Any] | None,
+) -> tuple[dict[EvaluationPhase, EvaluationPhaseResult], dict[str, Any]]:
+    if not isinstance(eval_plan, EvalJobSpec):
+        raise TypeError("Stair phase assembly requires an EvalJobSpec plan")
+    _require_eval_plan_matches_config(config, eval_plan)
+    checkpoint = eval_plan.execution_checkpoint()
+    by_phase: dict[EvaluationPhase, EvaluationPhaseResult] = {}
+    for result in phase_results:
+        if not isinstance(result, EvaluationPhaseResult):
+            raise TypeError("Stair phase assembly received an invalid result")
+        if result.phase in by_phase:
+            raise ValueError("Stair phase assembly contains a duplicate phase")
+        _require_phase_result_matches_plan(result, eval_plan)
+        by_phase[result.phase] = result
+    if set(by_phase) != set(EvaluationPhase):
+        raise ValueError(
+            "Stair phase assembly requires public-dev, public-accept, and sealed"
+        )
     canonical = {
         phase: canonical_stair_phase_result_summary(
             config=config,
@@ -273,7 +357,6 @@ def assemble_stair_eval_phase_results(
             != dict(first.checkpoint_safety_report)
         ):
             raise ValueError("Stair phase execution environment evidence differs")
-
     summary = _build_complete_stair_eval_summary(
         config=config,
         identity=eval_plan.job_identity(),
@@ -294,7 +377,17 @@ def assemble_stair_eval_phase_results(
         public_dev_summary=canonical[EvaluationPhase.PUBLIC_DEV],
         public_accept_summary=canonical[EvaluationPhase.PUBLIC_ACCEPT],
         sealed_summary=canonical[EvaluationPhase.SEALED_VALIDATION],
+        objective_family_mask=objective_family_mask,
     )
+    return by_phase, summary
+
+
+def _phase_receipt_bindings(
+    *,
+    eval_plan: EvalJobSpec,
+    by_phase: Mapping[EvaluationPhase, EvaluationPhaseResult],
+    phase_receipt_refs: Mapping[EvaluationPhase | str, Mapping[str, Any]],
+) -> tuple[EvaluationPhaseReceiptBinding, ...]:
     receipt_refs: dict[EvaluationPhase, Mapping[str, Any]] = {}
     if not isinstance(phase_receipt_refs, Mapping):
         raise TypeError("Stair phase receipt refs must be an object")
@@ -338,13 +431,7 @@ def assemble_stair_eval_phase_results(
                 resource_binding_hash=result.resource_binding_hash,
             )
         )
-    return EvaluationAssembly(
-        evaluation_plan_hash=canonical_json_hash(eval_plan.to_public_dict()),
-        selected_trial_id=trial_id,
-        selection=selection_result.to_public_dict(),
-        phase_receipts=tuple(bindings),
-        summary=summary,
-    )
+    return tuple(bindings)
 
 
 def _build_complete_stair_eval_summary(
@@ -366,7 +453,31 @@ def _build_complete_stair_eval_summary(
     public_dev_summary: Mapping[str, Any],
     public_accept_summary: Mapping[str, Any],
     sealed_summary: Mapping[str, Any],
+    objective_family_mask: Mapping[str, Any] | None,
 ) -> dict[str, Any]:
+    if config.is_unified_protocol:
+        return _build_complete_unified_stair_eval_summary(
+            config=config,
+            identity=identity,
+            evaluation_binding=evaluation_binding,
+            execution_device=execution_device,
+            environment_source_preflight=environment_source_preflight,
+            backend_execution_environment_verification=(
+                backend_execution_environment_verification
+            ),
+            evaluation_execution_cost=evaluation_execution_cost,
+            checkpoint_safety_report=checkpoint_safety_report,
+            evaluation_subject=evaluation_subject,
+            subject_manifest_hash=subject_manifest_hash,
+            program_source_checksum=program_source_checksum,
+            training_binding_hash=training_binding_hash,
+            capability_profile_hash=capability_profile_hash,
+            checkpoint_hash=checkpoint_hash,
+            public_dev_summary=public_dev_summary,
+            public_accept_summary=public_accept_summary,
+            sealed_summary=sealed_summary,
+            objective_family_mask=objective_family_mask,
+        )
     evaluation_protocol = config.evaluation_protocol()
     evaluation_profile = config.evaluation_profile_config
     public_objective = public_accept_summary["generalization"]
@@ -431,6 +542,139 @@ def _build_complete_stair_eval_summary(
     }
 
 
+def _build_complete_unified_stair_eval_summary(
+    *,
+    config: StairClimbingTaskConfig,
+    identity: JobIdentity,
+    evaluation_binding: Any,
+    execution_device: str,
+    environment_source_preflight: Mapping[str, Any],
+    backend_execution_environment_verification: Mapping[str, Any],
+    evaluation_execution_cost: Mapping[str, Any],
+    checkpoint_safety_report: Mapping[str, Any],
+    evaluation_subject: Any,
+    subject_manifest_hash: str | None,
+    program_source_checksum: str,
+    training_binding_hash: str,
+    capability_profile_hash: str,
+    checkpoint_hash: str,
+    public_dev_summary: Mapping[str, Any],
+    public_accept_summary: Mapping[str, Any],
+    sealed_summary: Mapping[str, Any],
+    objective_family_mask: Mapping[str, Any] | None,
+) -> dict[str, Any]:
+    """Assemble the single-cell ID/OOD result without reviving terrain cells."""
+
+    suite = config.ordered_evaluation_suite
+    is_reference = getattr(evaluation_subject, "kind", None) == "reference"
+    if is_reference:
+        derived_mask = build_reference_objective_family_mask(
+            suite=suite,
+            public_accept_summary=public_accept_summary,
+        )
+        if objective_family_mask is not None and dict(objective_family_mask) != derived_mask:
+            raise ValueError("reference objective family mask must be result-derived")
+        objective_family_mask = derived_mask
+    elif objective_family_mask is not None:
+        objective_family_mask = validate_objective_family_mask(
+            suite=suite,
+            mask=objective_family_mask,
+        )
+    else:
+        raise ValueError("unified Stair candidate evaluation lacks Genesis mask")
+    public_projection = build_unified_reference_score_projection(
+        public_accept_summary,
+        objective_family_mask=objective_family_mask,
+    )
+    sealed_projection = build_unified_reference_score_projection(
+        sealed_summary,
+        objective_family_mask=objective_family_mask,
+    )
+    public_primary = public_projection["j_primary"]["score_stats"]
+    sealed_primary = sealed_projection["j_primary"]["score_stats"]
+    sealed_task_summary = {
+        **dict(sealed_summary),
+        "score_stats": dict(sealed_primary),
+        "objective_family_mask_hash": public_projection[
+            "objective_family_mask_hash"
+        ],
+    }
+    public_mean = float(public_primary["mean"])
+    sealed_mean = float(sealed_primary["mean"])
+    passed, reason = evaluate_unified_stair_sealed_score_gate(
+        sealed_mean=sealed_mean,
+        public_mean=public_mean,
+        acceptance_protocol=config.acceptance_protocol,
+        evaluation_subject=evaluation_subject,
+    )
+    evaluation_protocol = config.evaluation_protocol()
+    sealed_evidence = build_sealed_rollout_evidence(
+        score_stats=sealed_primary,
+        expected_seed_count=evaluation_protocol.sealed_validation_seed_count,
+        eval_protocol_hash=evaluation_protocol.protocol_hash,
+        evaluation_binding_hash=evaluation_binding.binding_hash,
+        evaluation_subject=evaluation_subject,
+        checkpoint_hash=checkpoint_hash,
+        task_validation_status="pass" if passed else "fail",
+        reason=reason,
+        subject_manifest_hash=subject_manifest_hash,
+        program_source_checksum=program_source_checksum,
+        training_binding_hash=training_binding_hash,
+        capability_profile_hash=capability_profile_hash,
+        task_evidence_hash=canonical_json_hash(sealed_task_summary),
+    )
+    checkpoint_report = validate_checkpoint_safety_report(
+        checkpoint_safety_report,
+        expected_checkpoint_hash=checkpoint_hash,
+    )
+    sealed_gate = build_sealed_validation_gate(
+        rollout_evidence=sealed_evidence,
+        checkpoint_safety_status=str(checkpoint_report["status"]),
+        checkpoint_hash_match_status=str(
+            checkpoint_report["checkpoint_hash_match_status"]
+        ),
+        candidate_isolation_gate=build_candidate_isolation_gate(),
+        expected_eval_protocol_hash=evaluation_protocol.protocol_hash,
+        expected_evaluation_binding_hash=evaluation_binding.binding_hash,
+    )
+    return {
+        "schema_version": STAIR_FULL_EVAL_SUMMARY_SCHEMA_VERSION,
+        **identity.to_public_dict(),
+        "evaluation_protocol": evaluation_protocol.to_public_dict(),
+        "evaluation_binding": evaluation_binding.to_public_dict(),
+        "execution_device": execution_device,
+        "backend_execution_environment_verification": dict(
+            backend_execution_environment_verification
+        ),
+        "evaluation_execution_cost": dict(evaluation_execution_cost),
+        "status": "pass",
+        "public_score": public_mean,
+        "metrics": {
+            "environment_source_preflight": dict(environment_source_preflight),
+            "stair_evaluation": {
+                "public_dev": dict(public_dev_summary),
+                "public_accept": dict(public_accept_summary),
+            },
+            "unified_score": public_projection,
+            **(
+                {"objective_family_mask": dict(objective_family_mask)}
+                if objective_family_mask is not None
+                else {}
+            ),
+        },
+        "checkpoint_safety_report": checkpoint_report,
+        "sealed_validation_summary": sealed_task_summary,
+        "sealed_validation_score": sealed_projection,
+        "sealed_validation_evidence": sealed_evidence,
+        "sealed_validation_gate": sealed_gate,
+        "candidate_code_loaded_in_eval": False,
+        "candidate_package_loaded": False,
+        "candidate_package_loaded_in_eval": False,
+        "candidate_path_argument_present": False,
+        "errors": [],
+    }
+
+
 def _canonical_phase_summary(
     *,
     config: StairClimbingTaskConfig,
@@ -439,6 +683,13 @@ def _canonical_phase_summary(
 ) -> dict[str, Any]:
     if not isinstance(summary, Mapping):
         raise ValueError("Stair phase summary must be an object")
+    if config.is_unified_protocol:
+        return validate_unified_stair_summary(
+            suite=config.ordered_evaluation_suite,
+            semantics=config.evaluation_semantics,
+            split=phase.value,
+            summary=summary,
+        )
     if phase is EvaluationPhase.SEALED_VALIDATION:
         raw_generalization = summary.get("generalization")
         if not isinstance(raw_generalization, Mapping):
@@ -503,7 +754,10 @@ def canonical_stair_phase_result_summary(
     ):
         raise ValueError("Stair phase execution identity binding mismatch")
     summary = evidence.get("summary")
-    if expected_phase is EvaluationPhase.SEALED_VALIDATION:
+    if (
+        expected_phase is EvaluationPhase.SEALED_VALIDATION
+        and not config.is_unified_protocol
+    ):
         return canonical_stair_sealed_summary(
             config.protocol_v1,
             semantics=config.evaluation_semantics,
@@ -613,6 +867,7 @@ __all__ = [
     "STAIR_FULL_EVAL_SUMMARY_SCHEMA_VERSION",
     "STAIR_PHASE_EVIDENCE_SCHEMA_VERSION",
     "assemble_stair_eval_phase_results",
+    "assemble_stair_reference_eval_phase_results",
     "build_stair_eval_phase_summary",
     "build_stair_full_eval_summary",
     "build_stair_phase_task_evidence",

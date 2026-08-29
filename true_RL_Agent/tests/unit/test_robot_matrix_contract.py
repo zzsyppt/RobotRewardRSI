@@ -53,9 +53,7 @@ from true_rl_agent.tasks.push_recovery.robot_binding import (
     build_push_cell_catalog,
     resolve_push_cell_manifest,
 )
-from true_rl_agent.tasks.stair_climbing.composition import (
-    StairClimbingCompositionConfig,
-)
+from true_rl_agent.tasks.stair_climbing.config import StairClimbingTaskConfig
 from true_rl_agent.tasks.stair_climbing.plugin import StairClimbingTaskPlugin
 from true_rl_agent.tasks.stair_climbing.robot_binding import (
     STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID,
@@ -77,9 +75,10 @@ class RobotMatrixContractTests(unittest.TestCase):
             / "PLAN/Variant_construction/P0/PHASE0_RUNTIME_PROBE_RECEIPT.json",
             context="Phase 0 runtime receipt",
         )
-        cls.stair_config = StairClimbingCompositionConfig.defaults(
-            project_root=PROJECT_ROOT
-        ).to_task_config(project_root=PROJECT_ROOT)
+        cls.stair_config = StairClimbingTaskConfig.defaults(
+            PROJECT_ROOT / "configs/tasks/stair_protocol_v2.json",
+            cell_variant_id=STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID,
+        )
         cls.stair_plugin = StairClimbingTaskPlugin(cls.stair_config)
         cls.push_config = PushRecoveryTaskConfig()
         cls.push_plugin = PushRecoveryTaskPlugin(cls.push_config)
@@ -207,10 +206,10 @@ import sys
 from pathlib import Path
 from true_rl_agent.json_contract import canonical_json_bytes
 if sys.argv[1] == "stair":
-    from true_rl_agent.tasks.stair_climbing.composition import StairClimbingCompositionConfig
+    from true_rl_agent.tasks.stair_climbing.config import StairClimbingTaskConfig
     from true_rl_agent.tasks.stair_climbing.plugin import StairClimbingTaskPlugin
     from true_rl_agent.tasks.stair_climbing.robot_binding import STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID, resolve_stair_cell_manifest
-    root=Path.cwd(); config=StairClimbingCompositionConfig.defaults(project_root=root).to_task_config(project_root=root); plugin=StairClimbingTaskPlugin(config)
+    root=Path.cwd(); config=StairClimbingTaskConfig.defaults(root / "configs/tasks/stair_protocol_v2.json", cell_variant_id=STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID); plugin=StairClimbingTaskPlugin(config)
     manifest=resolve_stair_cell_manifest(cell_variant_id=STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID, config=config, plugin=plugin)
 else:
     from true_rl_agent.tasks.push_recovery.config import PushRecoveryTaskConfig

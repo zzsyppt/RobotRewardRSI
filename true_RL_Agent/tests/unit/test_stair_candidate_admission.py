@@ -18,21 +18,14 @@ if str(SRC_ROOT) not in sys.path:
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from scripts.isaaclab_stair_rsl_rl_train import (  # noqa: E402
-    _build_parser as build_train_parser,
-)
-from scripts.isaaclab_stair_rsl_rl_train import (  # noqa: E402
-    _load_and_qualify_program,
-)
-
-from tests.fakes.backend_environment import (  # noqa: E402
-    TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH,
-)
 from tests.fakes.evaluation import make_test_candidate_package  # noqa: E402
 from true_rl_agent.backends.isaac_lab_rsl_rl import (  # noqa: E402
     IsaacLabRslRlBackendAdapter,
 )
-from true_rl_agent.candidates.artifact import seal_candidate_package  # noqa: E402
+from true_rl_agent.candidates.artifact import (  # noqa: E402
+    CandidateExecutionAuthorization,
+    seal_candidate_package,
+)
 from true_rl_agent.candidates.capability_readiness import (
     COMPLETE_REWARD_PROGRAM_CAPABILITY_ID,
 )
@@ -49,14 +42,13 @@ from true_rl_agent.composition import (
     TaskCompositionError,
     resolve_task_composition,
 )
-from true_rl_agent.evaluation.binding import canonical_json_hash
 from true_rl_agent.json_contract import canonical_json_text
-from true_rl_agent.runner.job_argv import validate_train_job_argv
 from true_rl_agent.tasks.stair_climbing.candidate_admission import (
     StairCandidateAdmissionPolicy,
     _duplicate_parent_reward_term_issue,
     _qualification_failure_evidence,
     _validate_qualification_worker_result,
+    validate_stair_candidate_execution_authorization,
 )
 from true_rl_agent.tasks.stair_climbing.component_smoke import (
     StairClimbingComponentSmokeAdapter,
@@ -65,9 +57,6 @@ from true_rl_agent.tasks.stair_climbing.composition import (
     StairClimbingCompositionProvider,
 )
 from true_rl_agent.tasks.stair_climbing.config import StairClimbingTaskConfig
-from true_rl_agent.tasks.stair_climbing.entrypoint_contract import (
-    validate_stair_train_invocation,
-)
 from true_rl_agent.tasks.stair_climbing.reference_program import (
     resolve_official_stair_reference_program,
 )
@@ -91,9 +80,6 @@ OFFICIAL_R0_SOURCE_PATH = (
     / "training_code"
     / "components.py"
 )
-TEST_INITIAL_POLICY_STATE_HASH = "1" * 64
-
-
 def _write_candidate_package(
     root: Path,
     *,
@@ -665,9 +651,10 @@ class StairCandidateAdmissionTests(unittest.TestCase):
 
     def test_composition_rejects_execution_authorization_schema_drift(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            provider = StairClimbingCompositionProvider(
-                reference_program_artifact=self.reference
-            )
+            # Exercise the current production composition.  The class-level
+            # reference belongs to the explicit legacy-v2 admission fixture and
+            # must not be injected into the unified Phase-3R cell.
+            provider = StairClimbingCompositionProvider()
             composition = resolve_task_composition(
                 provider=provider,
                 values=provider.cli_defaults(),
@@ -753,78 +740,39 @@ class StairCandidateAdmissionTests(unittest.TestCase):
                 static_verifier_source_policy_hash(policy=default_policy),
             )
 
-            provider = StairClimbingCompositionProvider(
-                reference_program_artifact=self.reference
-            )
-            composition = resolve_task_composition(
-                provider=provider,
-                values=provider.cli_defaults(),
-                context=TaskCompositionContext(
-                    project_root=PROJECT_ROOT,
-                    output_dir=root / "output",
+            descriptor = admission.admission_policy_descriptor()
+            authorization = CandidateExecutionAuthorization.from_payload(
+                admission_policy_id=descriptor.policy_id,
+                admission_policy_hash=descriptor.policy_hash,
+                payload=admission.build_execution_authorization_payload(
+                    artifact=artifact.sealed_artifact,
+                    result=verification.result,
                 ),
             )
-            custom_backend = IsaacLabRslRlBackendAdapter(
-                replace(
-                    composition.backend_adapter.config,
-                    candidate_admission_policy_id=(
-                        admission.admission_policy_descriptor().policy_id
-                    ),
-                    candidate_admission_policy_hash=(
-                        admission.admission_policy_descriptor().policy_hash
-                    ),
+            verified_authorization = (
+                validate_stair_candidate_execution_authorization(
+                    authorization,
+                    artifact=artifact.sealed_artifact,
+                    config=self.config,
                 )
             )
-            jobs = custom_backend.materialize_jobs(
-                round_id="custom-source-policy",
-                task_spec=composition.task_plugin.task_spec,
-                candidate=artifact,
-                policy_initialization=composition.policy_initialization,
-                evaluation_binding=custom_backend.evaluation_binding_for(
-                    composition.task_plugin.task_spec
-                ),
-                expected_initial_policy_state_hash=(
-                    TEST_INITIAL_POLICY_STATE_HASH
-                ),
-                backend_execution_environment_manifest_hash=(
-                    TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH
-                ),
-            )
-            train_argv = jobs.train_spec.metadata["cli_argv"]
-            validate_train_job_argv(jobs.train_spec, train_argv)
-            train_args = build_train_parser().parse_args(train_argv[2:])
-            context = validate_stair_train_invocation(
-                train_args,
-                project_root=PROJECT_ROOT,
-            )
-            program = _load_and_qualify_program(context)
-
             self.assertEqual(
-                program.static_verifier_policy_hash,
+                static_verifier_source_policy_hash(
+                    policy=verified_authorization.static_verifier_policy
+                ),
                 expected_source_policy_hash,
             )
             self.assertEqual(
-                program.qualification_hash,
+                verified_authorization.qualification_hash,
                 qualification["qualification_hash"],
             )
 
-            authorization_index = train_argv.index(
-                "--candidate-execution-authorization-json"
-            ) + 1
-            envelope = json.loads(train_argv[authorization_index])
+            envelope = json.loads(authorization.canonical_json)
             envelope["payload"]["qualification_hash"] = "f" * 64
-            stale_hash_argv = list(train_argv[2:])
-            stale_hash_argv[
-                stale_hash_argv.index(
-                    "--candidate-execution-authorization-json"
-                )
-                + 1
-            ] = canonical_json_text(envelope)
-            stale_hash_args = build_train_parser().parse_args(stale_hash_argv)
             with self.assertRaisesRegex(ValueError, "authorization hash mismatch"):
-                validate_stair_train_invocation(
-                    stale_hash_args,
-                    project_root=PROJECT_ROOT,
+                CandidateExecutionAuthorization.from_canonical_json(
+                    canonical_json_text(envelope),
+                    expected_authorization_hash=authorization.authorization_hash,
                 )
 
             drifted_policy = replace(
@@ -833,29 +781,20 @@ class StairCandidateAdmissionTests(unittest.TestCase):
                     custom_policy.component_load_timeout_s + 1.0
                 ),
             )
-            envelope = json.loads(train_argv[authorization_index])
+            envelope = json.loads(authorization.canonical_json)
             envelope["payload"]["static_verifier_policy_snapshot"] = (
                 drifted_policy.to_snapshot_payload()
             )
-            drifted_json = canonical_json_text(envelope)
-            drifted_argv = list(train_argv[2:])
-            drifted_argv[
-                drifted_argv.index(
-                    "--candidate-execution-authorization-json"
+            drifted_authorization = (
+                CandidateExecutionAuthorization.from_canonical_json(
+                    canonical_json_text(envelope)
                 )
-                + 1
-            ] = drifted_json
-            drifted_argv[
-                drifted_argv.index(
-                    "--candidate-execution-authorization-hash"
-                )
-                + 1
-            ] = canonical_json_hash(envelope)
-            drifted_args = build_train_parser().parse_args(drifted_argv)
+            )
             with self.assertRaisesRegex(ValueError, "admission identity mismatch"):
-                validate_stair_train_invocation(
-                    drifted_args,
-                    project_root=PROJECT_ROOT,
+                validate_stair_candidate_execution_authorization(
+                    drifted_authorization,
+                    artifact=artifact.sealed_artifact,
+                    config=self.config,
                 )
 
             tampered_evidence = {
@@ -883,20 +822,9 @@ class StairCandidateAdmissionTests(unittest.TestCase):
         importlib.util.find_spec("torch") is not None,
         "production Stair qualification requires Torch",
     )
-    def test_cold_official_r0_passes_admission_and_materialization(self) -> None:
+    def test_legacy_official_r0_admits_but_cannot_enter_unified_cell(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            provider = StairClimbingCompositionProvider(
-                reference_program_artifact=self.reference
-            )
-            composition = resolve_task_composition(
-                provider=provider,
-                values=provider.cli_defaults(),
-                context=TaskCompositionContext(
-                    project_root=PROJECT_ROOT,
-                    output_dir=root / "output",
-                ),
-            )
             candidate_dir = _write_candidate_package(
                 root,
                 candidate_id="official-r0-as-candidate",
@@ -913,25 +841,9 @@ class StairCandidateAdmissionTests(unittest.TestCase):
             verification = seal_and_verify_candidate(
                 candidate,
                 artifact_root=root / "artifacts",
-                verifier=composition.candidate_admission_policy,
+                verifier=StairCandidateAdmissionPolicy(self.config),
             )
             artifact = verification.require_verified()
-            binding = composition.backend_adapter.evaluation_binding_for(
-                composition.task_plugin.task_spec
-            )
-            jobs = composition.backend_adapter.materialize_jobs(
-                round_id="official-r0-as-candidate",
-                task_spec=composition.task_plugin.task_spec,
-                candidate=artifact,
-                policy_initialization=composition.policy_initialization,
-                evaluation_binding=binding,
-                expected_initial_policy_state_hash=(
-                    TEST_INITIAL_POLICY_STATE_HASH
-                ),
-                backend_execution_environment_manifest_hash=(
-                    TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH
-                ),
-            )
 
             self.assertEqual(
                 verification.result.reason,
@@ -939,22 +851,27 @@ class StairCandidateAdmissionTests(unittest.TestCase):
             )
             self.assertEqual(
                 artifact.verification_policy_hash,
-                composition.candidate_admission_policy
-                .admission_policy_descriptor()
-                .policy_hash,
+                StairCandidateAdmissionPolicy(self.config).policy_hash,
             )
             self.assertIn(
                 COMPLETE_REWARD_PROGRAM_CAPABILITY_ID,
                 verification.result.details["capability_ids"],
             )
-            self.assertEqual(
-                jobs.train_spec.candidate_artifact,
-                artifact,
+            provider = StairClimbingCompositionProvider(
+                reference_program_artifact=self.reference
             )
-            validate_train_job_argv(
-                jobs.train_spec,
-                jobs.train_spec.metadata["cli_argv"],
-            )
+            with self.assertRaisesRegex(
+                ValueError,
+                "reference capability profile mismatch",
+            ):
+                resolve_task_composition(
+                    provider=provider,
+                    values=provider.cli_defaults(),
+                    context=TaskCompositionContext(
+                        project_root=PROJECT_ROOT,
+                        output_dir=root / "unified-output",
+                    ),
+                )
 
 
 if __name__ == "__main__":

@@ -63,6 +63,8 @@ class AcceptanceEvidenceValidation:
     guard_regression_margin: float | None = None
     max_public_to_sealed_score_drop: float | None = None
     guard_score_binding_valid: bool = False
+    named_guard_evidence: Mapping[str, Any] = field(default_factory=dict)
+    named_guard_binding_valid: bool = False
     score_source: str | None = None
     public_score_binding: str | None = None
     public_score_binding_valid: bool = False
@@ -291,6 +293,12 @@ def validate_acceptance_evidence(
                 acceptance_protocol.max_public_to_sealed_score_drop,
             ):
                 protocol_mismatches.append("max_public_to_sealed_score_drop")
+        if acceptance_protocol.uses_named_guards:
+            if not _numbers_close(
+                acceptance.get("max_public_to_sealed_score_drop"),
+                acceptance_protocol.max_public_to_sealed_score_drop,
+            ):
+                protocol_mismatches.append("max_public_to_sealed_score_drop")
         reasons.extend(
             f"acceptance_protocol_mismatch:{field}"
             for field in protocol_mismatches
@@ -466,6 +474,85 @@ def validate_acceptance_evidence(
             acceptance_protocol_binding_valid and guard_score_binding_valid
         )
 
+    named_guard_evidence: dict[str, Any] = {}
+    named_guard_binding_valid = not (
+        acceptance_protocol is not None and acceptance_protocol.uses_named_guards
+    )
+    if acceptance_protocol is not None and acceptance_protocol.uses_named_guards:
+        declared_named_guards = _mapping(acceptance.get("named_guards"))
+        expected_names = {guard.name for guard in acceptance_protocol.named_guards}
+        if set(declared_named_guards) != expected_names:
+            reasons.append("acceptance_named_guard_set_mismatch")
+        named_guard_binding_valid = set(declared_named_guards) == expected_names
+        for guard in acceptance_protocol.named_guards:
+            declared = _mapping(declared_named_guards.get(guard.name))
+            source_summary = _score_summary_from_source(metrics, guard.score_source)
+            validation = _validate_guard_score_evidence(
+                source_stats=_mapping(source_summary.get("score_stats")),
+                declared_stats=_mapping(declared.get("score_stats")),
+                minimum_count=acceptance_protocol.min_score_count,
+                expected_eval_protocol_hash=eval_protocol_hash,
+            )
+            guard_reasons = [
+                f"named_guard:{guard.name}:{reason}"
+                for reason in validation["reasons"]
+            ]
+            reasons.extend(guard_reasons)
+            fields_valid = bool(
+                declared.get("score_source") == guard.score_source
+                and _numbers_close(
+                    declared.get("absolute_accept_floor"),
+                    guard.absolute_accept_floor,
+                )
+                and _numbers_close(
+                    declared.get("max_regression"), guard.max_regression
+                )
+                and _numbers_close(
+                    declared.get("regression_margin"), guard.regression_margin
+                )
+            )
+            if not fields_valid:
+                reasons.append(f"named_guard:{guard.name}:contract_mismatch")
+            samples: tuple[float, ...] = ()
+            samples_valid = False
+            try:
+                mean = validation["mean"]
+                if mean is None:
+                    raise ValueError("named guard mean is missing")
+                samples = validated_score_samples(
+                    declared.get("score_samples"),
+                    expected_mean=mean,
+                    protocol=acceptance_protocol,
+                    field_name=f"acceptance.named_guards.{guard.name}.score_samples",
+                )
+                source_samples = validated_score_samples(
+                    source_summary.get("seed_macro_scores"),
+                    expected_mean=mean,
+                    protocol=acceptance_protocol,
+                    field_name=f"named guard source samples:{guard.name}",
+                )
+                samples_valid = samples == source_samples
+            except ValueError:
+                samples_valid = False
+            if not samples_valid:
+                reasons.append(f"named_guard:{guard.name}:score_samples_untrusted")
+            item_valid = bool(validation["valid"] and fields_valid and samples_valid)
+            named_guard_binding_valid = named_guard_binding_valid and item_valid
+            if item_valid:
+                named_guard_evidence[guard.name] = {
+                    **guard.to_public_dict(),
+                    "score_stats": {
+                        **dict(validation["score_stats"]),
+                        "score_samples": list(samples),
+                    },
+                    "score_samples": list(samples),
+                }
+        if not named_guard_binding_valid:
+            reasons.append("acceptance_named_guards_untrusted")
+        acceptance_protocol_binding_valid = bool(
+            acceptance_protocol_binding_valid and named_guard_binding_valid
+        )
+
     public_score_binding_valid = False
     canonical_public_score: float | None = None
     if public_score is not _PUBLIC_SCORE_UNSET:
@@ -590,6 +677,8 @@ def validate_acceptance_evidence(
         guard_regression_margin=guard_regression_margin,
         max_public_to_sealed_score_drop=max_public_to_sealed_score_drop,
         guard_score_binding_valid=guard_score_binding_valid,
+        named_guard_evidence=named_guard_evidence,
+        named_guard_binding_valid=named_guard_binding_valid,
         score_source=score_source,
         public_score_binding=public_score_binding,
         public_score_binding_valid=public_score_binding_valid,
@@ -801,6 +890,7 @@ def _canonical_reject_reason(
         "acceptance_score_stats_missing",
         "guard_score_stats_missing",
         "acceptance_guard_score_stats_missing",
+        "named_guard:",
     ):
         return "required_score_missing"
     if has(

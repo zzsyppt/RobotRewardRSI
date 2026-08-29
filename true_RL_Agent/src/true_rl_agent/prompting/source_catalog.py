@@ -123,18 +123,21 @@ def build_prompt_source_context_from_projected(
     known_good_examples: Any = None,
     latest_failed_candidate: Any = None,
     initial_reference_program_source: str | None = None,
+    prompt_objective_score_source: str | None = None,
+    initial_anchor_objective_score: float | None = None,
     nonaccepted_authoring_tiebreak_key: Callable[
         [Mapping[str, Any]], Sequence[float]
     ]
     | None = None,
 ) -> dict[str, Any]:
-    """Build source sections without reinterpreting validated decisions."""
+    """Build source sections from the validated, task-projected provider view."""
 
     if not isinstance(history, ProjectedPublicHistory):
         raise TypeError("history must be a ProjectedPublicHistory")
     objective_score_source = _objective_score_source(
         history,
         acceptance_protocol=acceptance_protocol,
+        prompt_objective_score_source=prompt_objective_score_source,
     )
     canonical_public_records = history.records
     _assert_projected_history_alignment(records, canonical_public_records)
@@ -149,10 +152,14 @@ def build_prompt_source_context_from_projected(
         if accepted_index is not None
         else None
     )
-    baseline_anchor = _baseline_anchor_from_history(history)
+    baseline_anchor = _baseline_anchor_from_history(
+        history,
+        prompt_objective_score=initial_anchor_objective_score,
+    )
     reference_anchor = _reference_anchor_from_history(
         history,
         initial_reference_program_source=initial_reference_program_source,
+        prompt_objective_score=initial_anchor_objective_score,
     )
     current_best = (
         _reference_anchor_source(reference_anchor)
@@ -763,6 +770,7 @@ def _objective_score_source(
     history: ProjectedPublicHistory,
     *,
     acceptance_protocol: AcceptanceProtocol | None,
+    prompt_objective_score_source: str | None = None,
 ) -> str | None:
     expected_hash = history.acceptance_protocol_hash
     if expected_hash is None:
@@ -775,6 +783,13 @@ def _objective_score_source(
         )
     ):
         return None
+    if prompt_objective_score_source is not None:
+        if (
+            not isinstance(prompt_objective_score_source, str)
+            or not prompt_objective_score_source.strip()
+        ):
+            raise ValueError("prompt objective score source is invalid")
+        return prompt_objective_score_source
     if acceptance_protocol is not None:
         if acceptance_protocol.protocol_hash != expected_hash:
             raise ValueError(
@@ -801,6 +816,8 @@ def _objective_score_source(
 
 def _baseline_anchor_from_history(
     history: ProjectedPublicHistory,
+    *,
+    prompt_objective_score: float | None = None,
 ) -> dict[str, Any] | None:
     current_best = history.initial_current_best
     if (
@@ -813,7 +830,10 @@ def _baseline_anchor_from_history(
         raise ValueError("projected baseline current-best is incomplete")
     return {
         "baseline_id": current_best.anchor_id,
-        "public_score": current_best.score_for_comparison(),
+        "public_score": _prompt_anchor_score(
+            current_best.score_for_comparison(),
+            override=prompt_objective_score,
+        ),
         "task_protocol_hash": current_best.task_protocol_hash,
         "eval_protocol_hash": current_best.eval_protocol_hash,
         "acceptance_protocol_hash": current_best.acceptance_protocol_hash,
@@ -836,6 +856,7 @@ def _reference_anchor_from_history(
     history: ProjectedPublicHistory,
     *,
     initial_reference_program_source: str | None,
+    prompt_objective_score: float | None = None,
 ) -> dict[str, Any] | None:
     current_best = history.initial_current_best
     if (
@@ -860,7 +881,10 @@ def _reference_anchor_from_history(
         raise ValueError("reference current-best source checksum mismatch")
     return {
         "reference_id": current_best.anchor_id,
-        "public_score": current_best.score_for_comparison(),
+        "public_score": _prompt_anchor_score(
+            current_best.score_for_comparison(),
+            override=prompt_objective_score,
+        ),
         "subject_manifest_hash": current_best.subject_manifest_hash,
         "program_source_checksum": current_best.program_source_checksum,
         "training_binding_hash": current_best.training_binding_hash,
@@ -891,6 +915,21 @@ def _reference_anchor_source(
         },
         "payload_role": "reference_program_anchor",
     }
+
+
+def _prompt_anchor_score(
+    authoritative_score: float | None,
+    *,
+    override: float | None,
+) -> float:
+    value = authoritative_score if override is None else override
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, int | float)
+        or not math.isfinite(float(value))
+    ):
+        raise ValueError("prompt anchor objective score must be finite")
+    return float(value)
 
 
 def _source_catalog(
@@ -2032,9 +2071,8 @@ def _best_observed_nonaccepted_index(
             raise ValueError(
                 "nonaccepted authoring tiebreak keys must have a fixed width"
             )
-        # The validated acceptance objective remains authoritative. Task-owned
-        # public metrics only choose an authoring source when objective scores
-        # tie; recency is last.
+        # The projected provider objective remains the authoring authority;
+        # task-owned tie-break evidence is secondary and recency is last.
         candidate = (score, *task_key, float(index))
         if best is None or candidate > best:
             best = candidate

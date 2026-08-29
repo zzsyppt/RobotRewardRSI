@@ -8,16 +8,17 @@ from types import SimpleNamespace
 from unittest.mock import Mock, call, patch
 
 from scripts.isaaclab_stair_rsl_rl_eval import _optional_evaluation_phase
+
 from tests.fakes.backend_environment import (
     TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH,
     TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_VERIFICATION,
 )
 from tests.fakes.fake_components import FakeTaskPlugin
+from true_rl_agent.agent_core.session_genesis import VerifiedSessionGenesis
 from true_rl_agent.agent_core.trial_receipts import (
     TrialReceiptJournal,
     load_trial_eval_phase_receipt,
 )
-from true_rl_agent.agent_core.session_genesis import VerifiedSessionGenesis
 from true_rl_agent.backends.base import BackendAdapter
 from true_rl_agent.evaluation.binding import EvaluationBindingV1, canonical_json_hash
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
@@ -27,6 +28,7 @@ from true_rl_agent.evaluation.phases import (
     EvaluationPhaseResult,
 )
 from true_rl_agent.evaluation.subject import ExperimentSubject
+from true_rl_agent.runner.base import Runner
 from true_rl_agent.runner.job_attempts import JobAttemptScope
 from true_rl_agent.runner.specs import (
     CheckpointRef,
@@ -34,7 +36,6 @@ from true_rl_agent.runner.specs import (
     EvalPhaseJobSpec,
     GpuProcessBinding,
 )
-from true_rl_agent.runner.base import Runner
 from true_rl_agent.runner.subprocess_runner import SubprocessRunner
 from true_rl_agent.tasks.stair_climbing.config import (
     STAIR_TASK_ID,
@@ -44,29 +45,34 @@ from true_rl_agent.tasks.stair_climbing.episode_evidence import StairEpisodeOutc
 from true_rl_agent.tasks.stair_climbing.evaluation_contract import (
     build_stair_evaluation_summary,
 )
-from true_rl_agent.tasks.stair_climbing.isaaclab_execution import (
-    STAIR_EVALUATION_EXECUTION_COST_SCHEMA_VERSION,
-    StairEvaluationExecutionResult,
-)
-from true_rl_agent.tasks.stair_climbing.phased_evaluation import (
-    assemble_stair_eval_phase_results,
-    build_stair_eval_phase_summary,
-    build_stair_full_eval_summary,
-    canonical_stair_phase_result_summary,
-)
-from true_rl_agent.tasks.stair_climbing.phased_adapter import (
-    StairPhasedEvaluationAdapter,
-)
 from true_rl_agent.tasks.stair_climbing.generation_bootstrap import (
     StairGenerationGuardReference,
     replay_stair_generation_guard_chain,
     run_genesis_parent_public_dev,
 )
+from true_rl_agent.tasks.stair_climbing.isaaclab_execution import (
+    STAIR_EVALUATION_EXECUTION_COST_SCHEMA_VERSION,
+    StairEvaluationExecutionResult,
+)
+from true_rl_agent.tasks.stair_climbing.phased_adapter import (
+    StairPhasedEvaluationAdapter,
+)
 from true_rl_agent.tasks.stair_climbing.phased_cost import (
     STAIR_PHASED_EVAL_COST_SCHEMA_VERSION,
     stair_phased_evaluation_cost_contract,
 )
+from true_rl_agent.tasks.stair_climbing.phased_evaluation import (
+    assemble_stair_eval_phase_results,
+    assemble_stair_reference_eval_phase_results,
+    build_stair_eval_phase_summary,
+    build_stair_full_eval_summary,
+    canonical_stair_phase_result_summary,
+)
 from true_rl_agent.tasks.stair_climbing.plugin import StairClimbingTaskPlugin
+from true_rl_agent.tasks.stair_climbing.public_projection import (
+    _validate_unified_sealed_score_verdict,
+)
+from true_rl_agent.tasks.stair_climbing.robot_binding import resolve_stair_cell_manifest
 from true_rl_agent.tasks.stair_climbing.seed_policy import (
     STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
     STAIR_FORMAL_EVAL_NAMESPACE,
@@ -77,10 +83,12 @@ from true_rl_agent.tasks.stair_climbing.selection import (
     build_stair_public_dev_screen_evidence,
     select_stair_public_dev_winner,
 )
+from true_rl_agent.tasks.stair_climbing.unified_scoring import (
+    build_unified_stair_summary,
+)
 from true_rl_agent.tasks.stair_climbing.training_distribution import (
     STAIR_EXECUTION_SOURCE_PREFLIGHT_SCHEMA_VERSION,
 )
-
 
 ROOT = Path(__file__).resolve().parents[2]
 CHECKPOINT_HASH = "sha256:" + "1" * 64
@@ -162,6 +170,54 @@ class StairPhasedEvaluationTests(unittest.TestCase):
         self.assertEqual(first.evidence.subject, plan.subject)
         self.assertEqual(runner.run_eval_phase.call_count, 1)
         self.assertEqual(backend.materialize_eval_phase.call_count, 2)
+
+    def test_unified_parent_guard_reuses_genesis_public_dev_receipt(self) -> None:
+        unified = StairClimbingTaskConfig.defaults(
+            ROOT / "configs" / "tasks" / "stair_unified_protocol_v1.json"
+        )
+        cost = stair_phased_evaluation_cost_contract(unified)
+        self.assertEqual(cost["session_bootstrap"], {})
+        self.assertEqual(cost["max_session_bootstrap_seed_units"], 0)
+        adapter = StairPhasedEvaluationAdapter(unified)
+        genesis = Mock(spec=VerifiedSessionGenesis)
+        genesis.reference_eval_plan.return_value = Mock(spec=EvalJobSpec)
+        genesis.evaluation_binding = SimpleNamespace(
+            task_protocol_hash=unified.task_protocol_hash
+        )
+        loaded = SimpleNamespace(result=object(), receipt_ref=object())
+        genesis.reference_eval_phase_receipt.return_value = loaded
+        genesis.initial_current_best = object()
+        backend = Mock(spec=BackendAdapter)
+        runner = Mock(spec=Runner)
+        expected = object()
+
+        with patch(
+            "true_rl_agent.tasks.stair_climbing.generation_bootstrap."
+            "build_stair_generation_guard_reference",
+            return_value=expected,
+        ) as build:
+            actual = run_genesis_parent_public_dev(
+                genesis=genesis,
+                adapter=adapter,
+                backend=backend,
+                runner=runner,
+                receipt_root=Path("unused"),
+                generation_session_contract_hash="8" * 64,
+            )
+
+        self.assertIs(actual, expected)
+        genesis.reference_eval_phase_receipt.assert_called_once_with(
+            EvaluationPhase.PUBLIC_DEV
+        )
+        backend.materialize_eval_phase.assert_not_called()
+        runner.run_eval_phase.assert_not_called()
+        build.assert_called_once_with(
+            adapter=adapter,
+            parent=genesis.initial_current_best,
+            trial_id="genesis-parent",
+            phase_result=loaded.result,
+            phase_receipt_ref=loaded.receipt_ref,
+        )
 
     def test_guard_chain_replay_updates_only_after_accepted_generation(self) -> None:
         initial_parent = Mock(spec=CurrentBestEvalStats)
@@ -379,6 +435,160 @@ class StairPhasedEvaluationTests(unittest.TestCase):
         self.assertEqual(
             assembled.summary["sealed_validation_evidence"]["task_evidence_hash"],
             full_summary["sealed_validation_evidence"]["task_evidence_hash"],
+        )
+
+    def test_reference_three_phase_assembly_needs_no_candidate_selection(self) -> None:
+        plan = replace(
+            self._eval_plan("reference-phased"),
+            subject=ExperimentSubject.reference("reference-phased"),
+        )
+        split_successes = {
+            EvaluationPhase.PUBLIC_DEV: [5, 6, 5],
+            EvaluationPhase.PUBLIC_ACCEPT: [6, 5, 6, 5, 6],
+            EvaluationPhase.SEALED_VALIDATION: [5, 5, 6, 5, 6, 5, 6],
+        }
+        checkpoint_report = self._checkpoint_report()
+        phase_results = []
+        for phase, successes in split_successes.items():
+            summary = build_stair_eval_phase_summary(
+                config=self.config,
+                identity=replace(plan.job_identity(), job_id=f"reference-{phase.value}"),
+                evaluation_plan_hash=canonical_json_hash(plan.to_public_dict()),
+                phase=phase,
+                execution=self._execution({phase: successes}),
+                evaluation_binding=plan.evaluation_binding,
+                checkpoint_safety_report=checkpoint_report,
+            )
+            phase_results.append(
+                self._phase_result(
+                    plan=plan,
+                    phase=phase,
+                    job_id=f"reference-{phase.value}",
+                    summary=summary,
+                )
+            )
+        with tempfile.TemporaryDirectory() as tmp:
+            phase_receipts = self._publish_phase_receipts(
+                root=Path(tmp),
+                plan=plan,
+                phase_results=phase_results,
+            )
+            assembled = assemble_stair_reference_eval_phase_results(
+                config=self.config,
+                eval_plan=plan,
+                phase_results=phase_results,
+                phase_receipt_refs=phase_receipts,
+            )
+            result = SubprocessRunner(
+                allowed_executables=("python",)
+            ).project_assembled_eval_summary(plan, assembled)
+        self.assertEqual(assembled.selected_trial_id, "reference-phased")
+        self.assertEqual(
+            assembled.selection["selection_kind"],
+            "reference_program_qualification",
+        )
+        self.assertEqual(result.status, "pass")
+
+    def test_reference_does_not_consume_candidate_public_to_sealed_guard(self) -> None:
+        protocol_path = ROOT / "configs/tasks/stair_unified_protocol_v1.json"
+        base = StairClimbingTaskConfig.defaults(protocol_path)
+        manifest = resolve_stair_cell_manifest(
+            cell_variant_id=base.cell_variant_id,
+            config=base,
+            plugin=StairClimbingTaskPlugin(base),
+        )
+        self.config = StairClimbingTaskConfig.defaults(
+            protocol_path,
+            resolved_cell_task_protocol_hash=(
+                manifest.resolved_cell_task_protocol_hash
+            ),
+        )
+        reference_plan = replace(
+            self._eval_plan("reference-sealed-boundary"),
+            subject=ExperimentSubject.reference("reference-sealed-boundary"),
+        )
+        split_successes = {
+            EvaluationPhase.PUBLIC_DEV: [2, 2, 2],
+            EvaluationPhase.PUBLIC_ACCEPT: [2, 2, 2, 2, 2],
+            EvaluationPhase.SEALED_VALIDATION: [1, 1, 1, 1, 1, 1, 1],
+        }
+        checkpoint_report = self._checkpoint_report()
+        phase_results = []
+        for phase in EvaluationPhase:
+            job_id = f"reference-sealed-boundary-{phase.value}"
+            summary = build_stair_eval_phase_summary(
+                config=self.config,
+                identity=replace(reference_plan.job_identity(), job_id=job_id),
+                evaluation_plan_hash=canonical_json_hash(reference_plan.to_public_dict()),
+                phase=phase,
+                execution=self._execution({phase: split_successes[phase]}),
+                evaluation_binding=reference_plan.evaluation_binding,
+                checkpoint_safety_report=checkpoint_report,
+            )
+            phase_results.append(
+                self._phase_result(
+                    plan=reference_plan,
+                    phase=phase,
+                    job_id=job_id,
+                    summary=summary,
+                )
+            )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            phase_receipts = self._publish_phase_receipts(
+                root=Path(tmp),
+                plan=reference_plan,
+                phase_results=phase_results,
+            )
+            reference = assemble_stair_reference_eval_phase_results(
+                config=self.config,
+                eval_plan=reference_plan,
+                phase_results=phase_results,
+                phase_receipt_refs=phase_receipts,
+            ).summary
+
+        reference_evidence = reference["sealed_validation_evidence"]
+        self.assertEqual(reference_evidence["status"], "pass")
+        self.assertEqual(
+            reference_evidence["reason"],
+            "unified_stair_reference_sealed_telemetry_complete",
+        )
+        public_mean = reference["public_score"]
+        sealed_mean = reference["sealed_validation_score"]["j_primary"][
+            "score_stats"
+        ]["mean"]
+        self.assertGreater(
+            public_mean - sealed_mean,
+            self.config.acceptance_protocol.max_public_to_sealed_score_drop,
+        )
+        _validate_unified_sealed_score_verdict(
+            self.config,
+            reference_evidence,
+            public_mean=public_mean,
+        )
+
+        candidate_plan = self._eval_plan("candidate-sealed-boundary")
+        candidate = build_stair_full_eval_summary(
+            config=self.config,
+            identity=candidate_plan.job_identity(),
+            evaluation_binding=candidate_plan.evaluation_binding,
+            execution=self._execution(split_successes),
+            checkpoint_safety_report=checkpoint_report,
+            subject_manifest_hash=candidate_plan.subject_manifest_hash,
+            program_source_checksum=candidate_plan.program_source_checksum,
+            training_binding_hash=candidate_plan.training_binding_hash,
+            capability_profile_hash=candidate_plan.capability_profile_hash,
+            objective_family_mask=reference["metrics"]["objective_family_mask"],
+        )
+        self.assertEqual(candidate["sealed_validation_evidence"]["status"], "fail")
+        self.assertEqual(
+            candidate["sealed_validation_evidence"]["reason"],
+            "unified_stair_sealed_public_consistency_failed",
+        )
+        _validate_unified_sealed_score_verdict(
+            self.config,
+            candidate["sealed_validation_evidence"],
+            public_mean=candidate["public_score"],
         )
 
     def test_selector_uses_public_dev_only_and_can_return_no_selection(self) -> None:
@@ -1142,17 +1352,35 @@ class StairPhasedEvaluationTests(unittest.TestCase):
         steps = {}
         walls = {}
         for phase, successes in split_successes.items():
-            per_seed = tuple(
-                tuple(self._outcomes(successes_per_cell=count)) for count in successes
-            )
-            summaries[phase.value] = build_stair_evaluation_summary(
-                self.config.protocol_v1,
-                semantics=self.config.evaluation_semantics,
-                evaluation_protocol=self.config.evaluation_protocol(),
-                split=phase.value,
-                per_seed_outcomes=per_seed,
-                evaluation_profile=self.config.evaluation_profile,
-            )
+            if self.config.is_unified_protocol:
+                per_seed = tuple(
+                    tuple(
+                        self._unified_outcomes(
+                            split=phase.value,
+                            successes_per_cell=count,
+                        )
+                    )
+                    for count in successes
+                )
+                summaries[phase.value] = build_unified_stair_summary(
+                    suite=self.config.ordered_evaluation_suite,
+                    semantics=self.config.evaluation_semantics,
+                    split=phase.value,
+                    per_seed_outcomes=per_seed,
+                )
+            else:
+                per_seed = tuple(
+                    tuple(self._outcomes(successes_per_cell=count))
+                    for count in successes
+                )
+                summaries[phase.value] = build_stair_evaluation_summary(
+                    self.config.protocol_v1,
+                    semantics=self.config.evaluation_semantics,
+                    evaluation_protocol=self.config.evaluation_protocol(),
+                    split=phase.value,
+                    per_seed_outcomes=per_seed,
+                    evaluation_profile=self.config.evaluation_profile,
+                )
             outcomes[phase.value] = per_seed
             steps[phase.value] = 100 + len(successes)
             walls[phase.value] = float(len(successes))
@@ -1177,6 +1405,42 @@ class StairPhasedEvaluationTests(unittest.TestCase):
             ),
             execution_device="cuda:0",
         )
+
+    def _unified_outcomes(
+        self,
+        *,
+        split: str,
+        successes_per_cell: int,
+    ) -> list[StairEpisodeOutcome]:
+        outcomes = []
+        occurrences: dict[str, int] = {}
+        for env_index, cell in enumerate(
+            self.config.ordered_evaluation_suite.private_cell_assignment(split)
+        ):
+            occurrence = occurrences.get(cell.cell_id, 0)
+            occurrences[cell.cell_id] = occurrence + 1
+            success = occurrence < successes_per_cell
+            outcomes.append(
+                StairEpisodeOutcome(
+                    env_index=env_index,
+                    bin_id=cell.cell_id,
+                    episode_steps=cell.episode_horizon_control_steps,
+                    primary_reason="success" if success else "timeout",
+                    success=success,
+                    diagnostic_flags=(
+                        ("first_valid_top_arrival_achieved",)
+                        if success
+                        else ("goal_not_reached_detected",)
+                    ),
+                    max_progress_m=(
+                        cell.progress_goal_m if success else 0.1 * cell.progress_goal_m
+                    ),
+                    progress_fraction=1.0 if success else 0.1,
+                    active_terminal_terms=() if success else ("time_out",),
+                    evaluation_cell_id=cell.cell_id,
+                )
+            )
+        return outcomes
 
     def _outcomes(self, *, successes_per_cell: int) -> list[StairEpisodeOutcome]:
         outcomes = []

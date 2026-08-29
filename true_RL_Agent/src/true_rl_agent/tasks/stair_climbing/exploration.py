@@ -6,6 +6,8 @@ does not accept candidates and never reads sealed rollout detail.
 
 from __future__ import annotations
 
+import math
+import statistics
 from dataclasses import dataclass
 from typing import Any, Mapping, Protocol
 
@@ -26,10 +28,16 @@ from true_rl_agent.tasks.stair_climbing.evaluation_contract import (
 from true_rl_agent.tasks.stair_climbing.generalization_contract import (
     validate_stair_generalization_summary,
 )
+from true_rl_agent.tasks.stair_climbing.unified_scoring import (
+    UNIFIED_STAIR_PROMPT_OBJECTIVE_SCORE_SOURCE,
+    build_unified_score_projection,
+    unified_stair_prompt_named_guard_score_source,
+    validate_unified_stair_summary,
+)
 
 
 STAIR_EXPLORATION_PROJECTOR_SCHEMA_VERSION = (
-    "true_rl_agent.task.stair_climbing.exploration_projector.v2"
+    "true_rl_agent.task.stair_climbing.exploration_projector.v3"
 )
 
 
@@ -50,10 +58,19 @@ class StairComparisonStats(Protocol):
         acceptance_protocol: AcceptanceProtocol,
     ) -> tuple[float, ...]: ...
 
+    def named_guard_score_for_comparison(self, name: str) -> float | None: ...
+
+    def named_guard_score_samples_for_comparison(
+        self,
+        name: str,
+        acceptance_protocol: AcceptanceProtocol,
+    ) -> tuple[float, ...]: ...
+
 
 @dataclass(frozen=True)
 class StairExplorationProjector:
     config: StairClimbingTaskConfig
+    objective_family_mask: Mapping[str, Any] | None = None
     task_id: str = STAIR_TASK_ID
 
     def contract(self) -> Mapping[str, Any]:
@@ -63,9 +80,15 @@ class StairExplorationProjector:
             "task_protocol_hash": self.config.task_protocol_hash,
             "evaluation_protocol_hash": self.config.evaluation_protocol().protocol_hash,
             "acceptance_protocol_hash": self.config.acceptance_protocol.protocol_hash,
-            "rule": "public_accept_headroom_guard_with_public_dev_consistency_v1",
+            "rule": (
+                "unified_public_dev_parent_relative_objective_and_named_guards_v1"
+                if self.config.is_unified_protocol
+                else "public_accept_headroom_guard_with_public_dev_consistency_v1"
+            ),
             "revisit_rank_rule": (
-                "task_owned_public_objective_delta_then_guard_delta_v1"
+                "task_owned_public_dev_objective_delta_then_guard_delta_v1"
+                if self.config.is_unified_protocol
+                else "task_owned_public_objective_delta_then_guard_delta_v1"
             ),
             "effect_labels": [
                 "strong_positive",
@@ -85,10 +108,33 @@ class StairExplorationProjector:
         *,
         generation: Mapping[str, Any],
         trial: Mapping[str, Any],
-        parent: StairComparisonStats,
+        parent: StairComparisonStats | None,
     ) -> TaskExplorationAssessment:
-        public_accept = _phase_summary(trial, "public_accept")
         public_dev = _phase_summary(trial, "public_dev")
+        if self.config.is_unified_protocol:
+            if public_dev is None:
+                return TaskExplorationAssessment(
+                    observed_effect="unknown",
+                    value_label="unknown",
+                    public_evidence_summary={
+                        "status": "not_public_complete",
+                        "trial_status": trial.get("trial_status"),
+                    },
+                    reason_codes=("public_dev_evidence_missing",),
+                )
+            selection = generation.get("selection")
+            selected_trial_id = (
+                selection.get("selected_trial_id")
+                if isinstance(selection, Mapping)
+                else None
+            )
+            return self._assess_unified_trial(
+                generation=generation,
+                trial=trial,
+                public_dev=public_dev,
+                selected=(trial.get("trial_id") == selected_trial_id),
+            )
+        public_accept = _phase_summary(trial, "public_accept")
         if public_accept is None:
             return TaskExplorationAssessment(
                 observed_effect="unknown",
@@ -99,6 +145,8 @@ class StairExplorationProjector:
                 },
                 reason_codes=("public_accept_evidence_missing",),
             )
+        if parent is None:
+            raise ValueError("legacy Stair exploration requires parent comparison")
         accept_anchor, accept_generalization = self._validated_summary(
             public_accept,
             split="public_accept",
@@ -304,12 +352,180 @@ class StairExplorationProjector:
             ),
         )
 
+    def _assess_unified_trial(
+        self,
+        *,
+        generation: Mapping[str, Any],
+        trial: Mapping[str, Any],
+        public_dev: Mapping[str, Any],
+        selected: bool,
+    ) -> TaskExplorationAssessment:
+        """Project only prompt-visible public_dev evidence for revisit scheduling."""
+
+        protocol = self.config.acceptance_protocol
+        canonical = validate_unified_stair_summary(
+            suite=self.config.ordered_evaluation_suite,
+            semantics=self.config.evaluation_semantics,
+            split="public_dev",
+            summary=public_dev,
+        )
+        projection = build_unified_score_projection(
+            canonical,
+            objective_family_mask=self._required_objective_family_mask(),
+        )
+        objective = projection["j_primary"]
+        candidate_score = float(objective["score_stats"]["mean"])
+        guard_evidence: dict[str, dict[str, Any]] = {}
+        guard_seed_vectors: list[tuple[float, ...]] = []
+        for guard in protocol.named_guards:
+            source = projection[guard.name]
+            candidate_guard = float(source["score_stats"]["mean"])
+            guard_seed_vectors.append(
+                tuple(float(value) for value in source["seed_macro_scores"])
+            )
+            guard_evidence[guard.name] = {
+                "score_source": unified_stair_prompt_named_guard_score_source(
+                    guard.name
+                ),
+                "candidate": candidate_guard,
+            }
+        candidate_guard_floor = statistics.fmean(
+            min(values[index] for values in guard_seed_vectors)
+            for index in range(len(guard_seed_vectors[0]))
+        )
+        projected_reference = _mapping(
+            generation.get("public_dev_parent_reference")
+        )
+        projected_reference_is_public_dev = (
+            projected_reference.get("source_split") == "public_dev"
+            and projected_reference.get("acceptance_authority") is False
+        )
+        reference = _mapping(generation.get("guard_reference"))
+        raw_reference_is_public_dev = (
+            reference.get("screen_role") == "guard_reference"
+            and reference.get("acceptance_authority") is False
+        )
+        parent_score = (
+            _numeric(projected_reference, "objective_score")
+            if projected_reference_is_public_dev
+            else _numeric(reference.get("generalization_score_stats"), "mean")
+            if raw_reference_is_public_dev
+            else None
+        )
+        parent_guard_floor = (
+            _numeric(projected_reference, "guard_floor_score")
+            if projected_reference_is_public_dev
+            else _numeric(reference.get("anchor_score_stats"), "mean")
+            if raw_reference_is_public_dev
+            else None
+        )
+        if parent_score is None or parent_guard_floor is None:
+            return TaskExplorationAssessment(
+                observed_effect="unknown",
+                value_label="unknown",
+                public_evidence_summary={
+                    "status": "parent_public_dev_reference_incomplete",
+                    "source_split": "public_dev",
+                    "candidate_objective": candidate_score,
+                    "candidate_guard_floor": candidate_guard_floor,
+                },
+                reason_codes=("parent_public_dev_reference_missing",),
+            )
+        objective_delta = candidate_score - parent_score
+        guard_delta = candidate_guard_floor - parent_guard_floor
+        objective_improved = objective_delta > 0.0 and not math.isclose(
+            objective_delta, 0.0, rel_tol=0.0, abs_tol=1.0e-12
+        )
+        objective_regressed = objective_delta < 0.0 and not math.isclose(
+            objective_delta, 0.0, rel_tol=0.0, abs_tol=1.0e-12
+        )
+        guard_improved = guard_delta > 0.0 and not math.isclose(
+            guard_delta, 0.0, rel_tol=0.0, abs_tol=1.0e-12
+        )
+        guard_regressed = guard_delta < 0.0 and not math.isclose(
+            guard_delta, 0.0, rel_tol=0.0, abs_tol=1.0e-12
+        )
+        if objective_improved and not guard_regressed:
+            effect = "strong_positive" if selected else "positive"
+            value = "high" if selected else "medium"
+            reasons = (
+                "selected_public_dev_objective_improved_without_guard_regression",
+            ) if selected else (
+                "public_dev_objective_improved_without_guard_regression",
+            )
+        elif objective_improved or guard_improved:
+            effect, value, reasons = (
+                "mixed",
+                "medium",
+                ("public_dev_objective_guard_tradeoff",),
+            )
+        elif objective_regressed or guard_regressed:
+            effect, value, reasons = (
+                "negative",
+                "low",
+                ("public_dev_objective_and_guard_nonpositive",),
+            )
+        else:
+            effect, value, reasons = (
+                "neutral",
+                "low",
+                ("public_dev_effect_neutral",),
+            )
+        summary = {
+            "status": "public_complete",
+            "source_split": "public_dev",
+            "objective_family_mask_hash": projection[
+                "objective_family_mask_hash"
+            ],
+            "qualified_ood_families": list(
+                projection["qualified_ood_families"]
+            ),
+            "objective": {
+                "score_source": UNIFIED_STAIR_PROMPT_OBJECTIVE_SCORE_SOURCE,
+                "candidate": candidate_score,
+                "parent": parent_score,
+                "delta": objective_delta,
+            },
+            "named_guards": guard_evidence,
+            "guard_floor": {
+                "score_source": (
+                    "minimum_named_guard_per_seed_then_mean"
+                ),
+                "candidate": candidate_guard_floor,
+                "parent": parent_guard_floor,
+                "delta": guard_delta,
+            },
+            "selection_status": "selected" if selected else "not_selected",
+        }
+        return TaskExplorationAssessment(
+            observed_effect=effect,
+            value_label=value,
+            public_evidence_summary=summary,
+            reason_codes=reasons,
+            revisit_rank_key=(
+                round(objective_delta * 1_000_000),
+                round(guard_delta * 1_000_000),
+            ),
+        )
+
     def _validated_summary(
         self,
         value: Mapping[str, Any],
         *,
         split: str,
     ) -> tuple[dict[str, Any], dict[str, Any]]:
+        if self.config.is_unified_protocol:
+            canonical = validate_unified_stair_summary(
+                suite=self.config.ordered_evaluation_suite,
+                semantics=self.config.evaluation_semantics,
+                split=split,
+                summary=value,
+            )
+            projection = build_unified_score_projection(
+                canonical,
+                objective_family_mask=self._required_objective_family_mask(),
+            )
+            return projection["j_ood"], projection["j_primary"]
         if set(value) != {"anchor", "generalization"}:
             raise ValueError("Stair exploration phase summary fields mismatch")
         anchor = validate_stair_split_summary(
@@ -327,6 +543,11 @@ class StairExplorationProjector:
             summary=value["generalization"],
         )
         return anchor, generalization
+
+    def _required_objective_family_mask(self) -> Mapping[str, Any]:
+        if self.objective_family_mask is None:
+            raise ValueError("unified Stair exploration lacks Genesis family mask")
+        return self.objective_family_mask
 
 
 def _phase_summary(

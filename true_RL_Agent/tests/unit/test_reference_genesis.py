@@ -27,21 +27,22 @@ from tests.fakes.fake_components import (
     FakeTaskPlugin,
     FakeVerifier,
 )
+from true_rl_agent.agent_core.generation_contract import (
+    GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION,
+    GenerationSessionContract,
+    publish_generation_session_contract,
+)
 from true_rl_agent.agent_core.ledger import (
     LEDGER_RECORD_SCHEMA_V5,
     NON_PROVIDER_AUTHORING_MODE,
     load_ledger,
     primary_ledger_epoch_hash,
 )
-from true_rl_agent.agent_core.generation_contract import (
-    GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION,
-    GenerationSessionContract,
-    publish_generation_session_contract,
-)
 from true_rl_agent.agent_core.live_loop import run_live_loop
 from true_rl_agent.agent_core.session_genesis import (
     GPU_BOUND_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION,
     LEGACY_SESSION_GENESIS_SCHEMA_VERSION,
+    PHASED_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION,
     SESSION_GENESIS_CREATION_LEASE_FILENAME,
     SESSION_GENESIS_FILENAME,
     SessionGenesisArtifact,
@@ -55,6 +56,12 @@ from true_rl_agent.candidates.schema import CandidateChangeSet
 from true_rl_agent.evaluation.acceptance_replay import replay_acceptance_ledger
 from true_rl_agent.evaluation.binding import canonical_json_hash
 from true_rl_agent.evaluation.decision_record_contract import validate_decision_record
+from true_rl_agent.evaluation.phases import (
+    EvaluationAssembly,
+    EvaluationPhase,
+    EvaluationPhaseReceiptBinding,
+    EvaluationPhaseResult,
+)
 from true_rl_agent.evaluation.protocol import (
     DEFAULT_EVAL_PROTOCOL_VERSION,
     EvaluationProtocol,
@@ -75,6 +82,7 @@ from true_rl_agent.runner.specs import (
     CheckpointOutputPlan,
     CheckpointRef,
     EvalJobSpec,
+    EvalPhaseJobSpec,
     GpuProcessBinding,
     TrainJobSpec,
 )
@@ -306,6 +314,22 @@ class _ReferenceBackend(FakeBackendAdapter):
             task_invariants=task_spec.invariants,
         )
 
+    def materialize_eval_phase(
+        self,
+        *,
+        eval_plan,
+        phase,
+        attempt_scope=None,
+    ):
+        phase = EvaluationPhase.parse(phase)
+        return EvalPhaseJobSpec(
+            job_id=f"{eval_plan.job_id}-{phase.value}",
+            evaluation_plan=eval_plan,
+            phase=phase,
+            metadata={"phase": phase.value},
+            attempt_scope=attempt_scope,
+        )
+
 
 class _CountingReferenceBackend(_ReferenceBackend):
     def __init__(self) -> None:
@@ -386,6 +410,101 @@ class _ReferenceRunner(FakeRunner):
     def run_eval(self, eval_spec):
         self.eval_calls += 1
         return super().run_eval(eval_spec)
+
+
+class _PhasedReferenceRunner(_ReferenceRunner):
+    def __init__(self) -> None:
+        super().__init__()
+        self.phase_calls: list[EvaluationPhase] = []
+        self.projection_calls = 0
+
+    def run_eval_phase(self, eval_spec):
+        self.phase_calls.append(eval_spec.phase)
+        return EvaluationPhaseResult(
+            job_id=eval_spec.job_id,
+            task_id=eval_spec.task_id,
+            phase=eval_spec.phase,
+            evaluation_plan_hash=eval_spec.evaluation_plan_hash,
+            subject=eval_spec.subject,
+            subject_manifest_hash=eval_spec.subject_manifest_hash,
+            program_source_checksum=eval_spec.program_source_checksum,
+            training_binding_hash=eval_spec.training_binding_hash,
+            capability_profile_hash=eval_spec.capability_profile_hash,
+            checkpoint_hash=eval_spec.execution_checkpoint().checksum,
+            eval_protocol_hash=eval_spec.evaluation_protocol().protocol_hash,
+            evaluation_binding_hash=eval_spec.evaluation_binding.binding_hash,
+            execution_device=eval_spec.execution_device,
+            resource_binding_hash=(
+                eval_spec.attempt_scope.resource_binding_hash
+                if eval_spec.attempt_scope is not None
+                else None
+            ),
+            task_evidence={"phase": eval_spec.phase.value},
+            execution_cost={"seed_units": 1},
+            environment_source_preflight={"status": "pass"},
+            backend_execution_environment_verification={"status": "pass"},
+            checkpoint_safety_report={"status": "pass"},
+            gpu_process_binding=(
+                eval_spec.gpu_process_binding.to_dict()
+                if eval_spec.gpu_process_binding is not None
+                else None
+            ),
+        )
+
+    def project_assembled_eval_summary(self, eval_spec, assembly):
+        self.projection_calls += 1
+        if not isinstance(assembly, EvaluationAssembly):
+            raise TypeError("test reference assembly is invalid")
+        return FakeRunner.run_eval(self, eval_spec)
+
+
+class _ReferencePhasedAdapter:
+    def assemble_reference_full_summary(
+        self,
+        *,
+        eval_plan,
+        phase_results,
+        phase_receipt_refs,
+    ):
+        by_phase = {result.phase: result for result in phase_results}
+        bindings = []
+        for phase in EvaluationPhase:
+            result = by_phase[phase]
+            ref = phase_receipt_refs[phase]
+            phase_spec = EvalPhaseJobSpec(
+                job_id=result.job_id,
+                evaluation_plan=eval_plan,
+                phase=phase,
+            )
+            bindings.append(
+                EvaluationPhaseReceiptBinding(
+                    phase=phase,
+                    job_id=result.job_id,
+                    path=ref["path"],
+                    checksum=ref["checksum"],
+                    size_bytes=ref["size_bytes"],
+                    ref_schema_version=ref["schema_version"],
+                    job_spec_hash=canonical_json_hash(
+                        phase_spec.to_public_dict()
+                    ),
+                    phase_result_hash=canonical_json_hash(
+                        result.to_private_dict()
+                    ),
+                    resource_binding_hash=result.resource_binding_hash,
+                )
+            )
+        reference_id = eval_plan.subject.subject_id
+        return EvaluationAssembly(
+            evaluation_plan_hash=canonical_json_hash(eval_plan.to_public_dict()),
+            selected_trial_id=reference_id,
+            selection={
+                "schema_version": "fake.reference_assembly.v1",
+                "selected_trial_id": reference_id,
+                "acceptance_authority": False,
+            },
+            phase_receipts=tuple(bindings),
+            summary={"status": "pass"},
+        )
 
 
 class _LiveReferenceBackend(_ReferenceBackend):
@@ -1240,6 +1359,123 @@ class ReferenceGenesisContractTests(unittest.TestCase):
                     gpu_process_binding.to_public_dict(),
                 )
                 self.assertNotIn("host_execution_device", public_binding)
+
+    def test_gpu_bound_phased_reference_round_trips_three_receipts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            session_id = "gpu-phased-reference-session"
+            task = _ReferenceTaskPlugin()
+            backend = _CountingReferenceBackend()
+            runner = _PhasedReferenceRunner()
+            adapter = _ReferencePhasedAdapter()
+            _, reference = _reference_program_for_task(output_dir, task)
+            snapshot = {"fixture": "gpu-phased-reference-session-v1"}
+            resource_binding_hash = "d" * 64
+            gpu_process_binding = GpuProcessBinding(
+                host_execution_device="cuda:1",
+                process_execution_device="cuda:0",
+                resource_binding_hash=resource_binding_hash,
+            )
+            session_cost_hash = "a" * 64
+            contract = GenerationSessionContract(
+                schema_version=GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION,
+                session_mode="development_generation_pilot",
+                session_id=session_id,
+                task_id=task.task_spec.task_id,
+                backend_id=backend.backend_id,
+                max_generations=1,
+                max_trials=2,
+                max_train_jobs=2,
+                bound_contract_hashes={
+                    "authoring_policy": "1" * 64,
+                    "continuation_policy": "2" * 64,
+                    "evaluation_cost": "3" * 64,
+                    "evaluation_protocol": "4" * 64,
+                    "exploration_projector": "e" * 64,
+                    "final_confirmation_plan": "5" * 64,
+                    "provider_policy": "6" * 64,
+                    "resource_plan": "7" * 64,
+                    "retry_policy": "8" * 64,
+                    "selector": "9" * 64,
+                    "session_cost": session_cost_hash,
+                },
+            )
+            contract_ref = publish_generation_session_contract(output_dir, contract)
+            common_scope = {
+                "journal_root": output_dir / "job_attempts",
+                "session_id": session_id,
+                "genesis_identity_hash": session_genesis_identity_hash(snapshot),
+                "session_contract_hash": contract.contract_hash,
+                "lane_id": "lane-a",
+                "budget_contract_hash": session_cost_hash,
+                "resource_binding_hash": resource_binding_hash,
+            }
+            train_scope = PreGenesisExecutionScope(
+                **common_scope,
+                invocation_segment_id="session-genesis",
+                attempt_budget_units=2,
+                max_infrastructure_retries=1,
+            )
+            phase_scopes = {
+                phase: PreGenesisExecutionScope(
+                    **common_scope,
+                    invocation_segment_id=f"session-genesis-{phase.value}",
+                    attempt_budget_units=1,
+                    max_infrastructure_retries=0,
+                )
+                for phase in EvaluationPhase
+            }
+            kwargs = {
+                "output_dir": output_dir,
+                "session_id": session_id,
+                "task_plugin": task,
+                "backend_adapter": backend,
+                "runner": runner,
+                "policy_initialization": PolicyInitialization.random(),
+                "genesis_identity_snapshot": snapshot,
+                "reference_program_artifact": reference,
+                "generation_session_contract_ref": contract_ref,
+                "gpu_process_binding": gpu_process_binding,
+                "reference_train_attempt_scope": train_scope,
+                "reference_phased_evaluation_adapter": adapter,
+                "reference_eval_phase_attempt_scopes": phase_scopes,
+            }
+
+            created = prepare_session_genesis(**kwargs)
+            private_path = output_dir / "reference_eval_artifact.json"
+            payload = json.loads(private_path.read_text("utf-8"))
+            self.assertEqual(
+                payload["schema_version"],
+                PHASED_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION,
+            )
+            self.assertEqual(
+                {item["phase"] for item in payload["evaluation_assembly"]["phase_receipts"]},
+                {phase.value for phase in EvaluationPhase},
+            )
+            self.assertEqual(runner.train_calls, 1)
+            self.assertEqual(runner.eval_calls, 0)
+            self.assertEqual(runner.phase_calls, list(EvaluationPhase))
+            self.assertEqual(runner.projection_calls, 1)
+
+            loaded = prepare_session_genesis(**kwargs, require_existing=True)
+            self.assertEqual(
+                loaded.session_genesis_hash,
+                created.session_genesis_hash,
+            )
+            self.assertEqual(runner.train_calls, 1)
+            self.assertEqual(runner.eval_calls, 0)
+            self.assertEqual(runner.phase_calls, list(EvaluationPhase))
+            self.assertEqual(runner.projection_calls, 1)
+
+            first_receipt = Path(
+                payload["evaluation_assembly"]["phase_receipts"][0]["path"]
+            )
+            first_receipt.write_bytes(first_receipt.read_bytes() + b" ")
+            with self.assertRaisesRegex(
+                ValueError,
+                "checksum mismatch|not canonical JSON",
+            ):
+                prepare_session_genesis(**kwargs, require_existing=True)
 
     def test_require_existing_rejects_before_materialization(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

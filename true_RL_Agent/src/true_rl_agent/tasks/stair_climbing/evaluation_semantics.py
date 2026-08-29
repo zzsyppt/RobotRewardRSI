@@ -44,6 +44,27 @@ class StairEvaluationSemantics:
         )
         return cls(_payload=_freeze_json(payload))
 
+    @classmethod
+    def from_task_outcomes(
+        cls,
+        *,
+        task_protocol_hash: str,
+        task_id: str,
+        episode_outcomes: Mapping[str, Any],
+    ) -> "StairEvaluationSemantics":
+        """Bind morphology-neutral outcomes already validated by a task protocol."""
+
+        payload = {
+            "schema_version": (
+                "true_rl_agent.task.stair_climbing.evaluation_semantics.unified.v1"
+            ),
+            "task_id": task_id,
+            "task_protocol_hash": task_protocol_hash,
+            "episode_outcomes": _thaw_json(_freeze_json(episode_outcomes)),
+        }
+        payload["protocol_hash"] = canonical_json_hash(payload)
+        return cls(_payload=_freeze_json(payload))
+
     @property
     def protocol_hash(self) -> str:
         return str(self._payload["protocol_hash"])

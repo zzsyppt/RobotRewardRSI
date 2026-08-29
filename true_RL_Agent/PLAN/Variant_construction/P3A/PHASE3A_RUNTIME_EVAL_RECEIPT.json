@@ -1,0 +1,681 @@
+{
+  "capture_kind": "real_headless_c1_scene_and_decoder",
+  "captured_repository_head": "0e958dbb1eb80ee12f72d7cd93b7f149cc784f91",
+  "cell": {
+    "cell_variant_id": "stair.g1_37dof.irregular_v1",
+    "irregular_training_profile_hash": "0d5bccd3bb0c317e2d3e2634f17434491cb9805e2a7acf6b89bbdb1db0cc1133",
+    "manifest_hash": "7ad0d37c5be8c94ae9a3fff2308599a597592e670cd1f07699e2205e77b49adb",
+    "ordered_evaluation_suite_hash": "9c3db7e3fdd75fa1260909ba21b9048c1b2022ea34cf27757bdc67fbdfd98a38",
+    "reference_program_source_checksum": "sha256:7e71af92ef6236f16246a36ed644f60afe076575249f3143cdaa29d02fdc4a75",
+    "resolved_cell_task_protocol_hash": "b325908e9559b31f1a83fb22a356c0aa7bbebc6f3a9956fcb9df95d746a546f4",
+    "reward_input_schema_hash_vnext": "b522c792748732391465492c5cec6361b5d727dce7cfd369024e8e4d3e8697dc"
+  },
+  "cost": {
+    "evaluation_scene_steps": 1,
+    "training_budget_steps": 0,
+    "wall_time_s": 4.838185
+  },
+  "environment": {
+    "cuda_device_name": "NVIDIA GeForce RTX 5090",
+    "device": "cuda:0",
+    "python": "3.11.15",
+    "torch": "2.7.0+cu128"
+  },
+  "evaluation_scene": {
+    "action_shape": [
+      32,
+      37
+    ],
+    "decoded_transition_count": 32,
+    "num_envs": 32,
+    "observation_shape": {
+      "policy": [
+        32,
+        310
+      ]
+    },
+    "ordered_cell_ids": [
+      "c1_irregular_06",
+      "c1_irregular_06",
+      "c1_irregular_06",
+      "c1_irregular_06",
+      "c1_irregular_06",
+      "c1_irregular_06",
+      "c1_irregular_06",
+      "c1_irregular_06",
+      "c1_irregular_09",
+      "c1_irregular_09",
+      "c1_irregular_09",
+      "c1_irregular_09",
+      "c1_irregular_09",
+      "c1_irregular_09",
+      "c1_irregular_09",
+      "c1_irregular_09",
+      "c1_irregular_11",
+      "c1_irregular_11",
+      "c1_irregular_11",
+      "c1_irregular_11",
+      "c1_irregular_11",
+      "c1_irregular_11",
+      "c1_irregular_11",
+      "c1_irregular_11",
+      "c1_irregular_16",
+      "c1_irregular_16",
+      "c1_irregular_16",
+      "c1_irregular_16",
+      "c1_irregular_16",
+      "c1_irregular_16",
+      "c1_irregular_16",
+      "c1_irregular_16"
+    ],
+    "reward_finite": true,
+    "runtime_projection": {
+      "action_joint_names": [
+        "left_hip_pitch_joint",
+        "right_hip_pitch_joint",
+        "torso_joint",
+        "left_hip_roll_joint",
+        "right_hip_roll_joint",
+        "left_shoulder_pitch_joint",
+        "right_shoulder_pitch_joint",
+        "left_hip_yaw_joint",
+        "right_hip_yaw_joint",
+        "left_shoulder_roll_joint",
+        "right_shoulder_roll_joint",
+        "left_knee_joint",
+        "right_knee_joint",
+        "left_shoulder_yaw_joint",
+        "right_shoulder_yaw_joint",
+        "left_ankle_pitch_joint",
+        "right_ankle_pitch_joint",
+        "left_elbow_pitch_joint",
+        "right_elbow_pitch_joint",
+        "left_ankle_roll_joint",
+        "right_ankle_roll_joint",
+        "left_elbow_roll_joint",
+        "right_elbow_roll_joint",
+        "left_five_joint",
+        "left_three_joint",
+        "left_zero_joint",
+        "right_five_joint",
+        "right_three_joint",
+        "right_zero_joint",
+        "left_six_joint",
+        "left_four_joint",
+        "left_one_joint",
+        "right_six_joint",
+        "right_four_joint",
+        "right_one_joint",
+        "left_two_joint",
+        "right_two_joint"
+      ],
+      "binding_facts_hash": "67e391514abd5293dbc5b2c2d6845a33f11d777da55a6c078a3001c48220f955",
+      "cell_variant_id": "stair.g1_37dof.irregular_v1",
+      "contact_history_length": 3,
+      "contact_sensor_name": "contact_forces",
+      "height_scan_ray_count": 187,
+      "height_sensor_name": "height_scanner",
+      "joint_names": [
+        "left_hip_pitch_joint",
+        "right_hip_pitch_joint",
+        "torso_joint",
+        "left_hip_roll_joint",
+        "right_hip_roll_joint",
+        "left_shoulder_pitch_joint",
+        "right_shoulder_pitch_joint",
+        "left_hip_yaw_joint",
+        "right_hip_yaw_joint",
+        "left_shoulder_roll_joint",
+        "right_shoulder_roll_joint",
+        "left_knee_joint",
+        "right_knee_joint",
+        "left_shoulder_yaw_joint",
+        "right_shoulder_yaw_joint",
+        "left_ankle_pitch_joint",
+        "right_ankle_pitch_joint",
+        "left_elbow_pitch_joint",
+        "right_elbow_pitch_joint",
+        "left_ankle_roll_joint",
+        "right_ankle_roll_joint",
+        "left_elbow_roll_joint",
+        "right_elbow_roll_joint",
+        "left_five_joint",
+        "left_three_joint",
+        "left_zero_joint",
+        "right_five_joint",
+        "right_three_joint",
+        "right_zero_joint",
+        "left_six_joint",
+        "left_four_joint",
+        "left_one_joint",
+        "right_six_joint",
+        "right_four_joint",
+        "right_one_joint",
+        "left_two_joint",
+        "right_two_joint"
+      ],
+      "kinematic_base_source": "articulation_root",
+      "legacy_reward_adapter_id": null,
+      "policy_io_schema_hash": "33c29649a0bfd26c458a764a598a38212f7e66c1207a2fbb073baa117ae69ca3",
+      "projection_hash": "a2ae9be85e42976070f2ae5a5c8c932976531070188c6025fd16baba5d76bd89",
+      "resolved_cell_manifest_hash": "7ad0d37c5be8c94ae9a3fff2308599a597592e670cd1f07699e2205e77b49adb",
+      "resolved_roles": {
+        "base": [
+          "torso_link"
+        ],
+        "forbidden_contact": [
+          "torso_link"
+        ],
+        "support_effector": [
+          "left_ankle_roll_link",
+          "right_ankle_roll_link"
+        ]
+      },
+      "resolved_runtime": {
+        "base_body_ids": [
+          4
+        ],
+        "contact_forbidden_body_ids": [
+          14
+        ],
+        "contact_support_body_ids": [
+          6,
+          13
+        ],
+        "joint_ids": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36
+        ],
+        "support_body_ids": [
+          24,
+          25
+        ]
+      },
+      "reward_capability_hash_vnext": "c976c7a686a8585be16f48ef175470e315f91e61016308d616842d086e05d717",
+      "reward_input_schema_hash_vnext": "b522c792748732391465492c5cec6361b5d727dce7cfd369024e8e4d3e8697dc",
+      "robot_profile_hash": "d23a5ffdca4aae1845ee37947653cefd4a21e96eeffde029cd319864014b7d18",
+      "robot_profile_id": "unitree_g1_37dof_isaaclab_v1",
+      "robot_task_binding_hash": "839c0e14fb064f408aeb6ef8ae4241fc528fc21ab82987c8d3fbb92f3a9286f9",
+      "runtime_adapter_hash": "d0fbd7e34deb7f8265cf0b6ad969cdfa2c3b059f068d1564d7d9ec5f9056557c",
+      "runtime_adapter_id": "g1_37dof_isaaclab_adapter_v1",
+      "schema_version": "true_rl_agent.task.stair_climbing.runtime_projection.vnext.v1",
+      "sensor_schema_hash": "92878ccd57f5ab852a5beeaed049d1ca4632341c4a5887cd006fd90487429558"
+    },
+    "split": "public_dev",
+    "status": "pass",
+    "terrain_origins_m": [
+      [
+        -3.25,
+        -6.0,
+        0.0
+      ],
+      [
+        -3.25,
+        -6.0,
+        0.0
+      ],
+      [
+        -3.25,
+        -6.0,
+        0.0
+      ],
+      [
+        -3.25,
+        -6.0,
+        0.0
+      ],
+      [
+        -3.25,
+        -6.0,
+        0.0
+      ],
+      [
+        -3.25,
+        -6.0,
+        0.0
+      ],
+      [
+        -3.25,
+        -6.0,
+        0.0
+      ],
+      [
+        -3.25,
+        -6.0,
+        0.0
+      ],
+      [
+        -3.25,
+        -2.0,
+        0.0
+      ],
+      [
+        -3.25,
+        -2.0,
+        0.0
+      ],
+      [
+        -3.25,
+        -2.0,
+        0.0
+      ],
+      [
+        -3.25,
+        -2.0,
+        0.0
+      ],
+      [
+        -3.25,
+        -2.0,
+        0.0
+      ],
+      [
+        -3.25,
+        -2.0,
+        0.0
+      ],
+      [
+        -3.25,
+        -2.0,
+        0.0
+      ],
+      [
+        -3.25,
+        -2.0,
+        0.0
+      ],
+      [
+        -3.25,
+        2.0,
+        0.0
+      ],
+      [
+        -3.25,
+        2.0,
+        0.0
+      ],
+      [
+        -3.25,
+        2.0,
+        0.0
+      ],
+      [
+        -3.25,
+        2.0,
+        0.0
+      ],
+      [
+        -3.25,
+        2.0,
+        0.0
+      ],
+      [
+        -3.25,
+        2.0,
+        0.0
+      ],
+      [
+        -3.25,
+        2.0,
+        0.0
+      ],
+      [
+        -3.25,
+        2.0,
+        0.0
+      ],
+      [
+        -3.25,
+        6.0,
+        0.0
+      ],
+      [
+        -3.25,
+        6.0,
+        0.0
+      ],
+      [
+        -3.25,
+        6.0,
+        0.0
+      ],
+      [
+        -3.25,
+        6.0,
+        0.0
+      ],
+      [
+        -3.25,
+        6.0,
+        0.0
+      ],
+      [
+        -3.25,
+        6.0,
+        0.0
+      ],
+      [
+        -3.25,
+        6.0,
+        0.0
+      ],
+      [
+        -3.25,
+        6.0,
+        0.0
+      ]
+    ],
+    "terrain_types": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "transition_cell_ids": [
+      "c1_irregular_06",
+      "c1_irregular_06",
+      "c1_irregular_06",
+      "c1_irregular_06",
+      "c1_irregular_06",
+      "c1_irregular_06",
+      "c1_irregular_06",
+      "c1_irregular_06",
+      "c1_irregular_09",
+      "c1_irregular_09",
+      "c1_irregular_09",
+      "c1_irregular_09",
+      "c1_irregular_09",
+      "c1_irregular_09",
+      "c1_irregular_09",
+      "c1_irregular_09",
+      "c1_irregular_11",
+      "c1_irregular_11",
+      "c1_irregular_11",
+      "c1_irregular_11",
+      "c1_irregular_11",
+      "c1_irregular_11",
+      "c1_irregular_11",
+      "c1_irregular_11",
+      "c1_irregular_16",
+      "c1_irregular_16",
+      "c1_irregular_16",
+      "c1_irregular_16",
+      "c1_irregular_16",
+      "c1_irregular_16",
+      "c1_irregular_16",
+      "c1_irregular_16"
+    ]
+  },
+  "head_identity_semantics": "capture provenance only; product bytes are authoritative",
+  "mesh_oracle": {
+    "cell_count": 18,
+    "cells": [
+      {
+        "boundary_side_checks": 16,
+        "cell_id": "c1_irregular_01",
+        "cohort": "public_accept",
+        "geometry_digest": "e8e8594ae9416ae8ccaf9f96ffa3a0bfcdfef19489b69996abed01b6c9ac8530",
+        "mesh_count": 10,
+        "top_platform_length_m": 2.82,
+        "total_height_m": 1.12,
+        "total_run_m": 3.68
+      },
+      {
+        "boundary_side_checks": 16,
+        "cell_id": "c1_irregular_02",
+        "cohort": "sealed_validation",
+        "geometry_digest": "cdcd72dbb9e1cd7b914f28ebd141c8c131f1486414756c65ae3125210120dbc8",
+        "mesh_count": 10,
+        "top_platform_length_m": 3.38,
+        "total_height_m": 1.12,
+        "total_run_m": 3.12
+      },
+      {
+        "boundary_side_checks": 16,
+        "cell_id": "c1_irregular_03",
+        "cohort": "calibration",
+        "geometry_digest": "e907c6444d26ef0bd27048eae902ce7361df1f41be627defd2e762584c2c13dd",
+        "mesh_count": 10,
+        "top_platform_length_m": 3.86,
+        "total_height_m": 1.12,
+        "total_run_m": 2.64
+      },
+      {
+        "boundary_side_checks": 16,
+        "cell_id": "c1_irregular_04",
+        "cohort": "sealed_validation",
+        "geometry_digest": "aa3ee13b7e1564e8ba2528355c89870d2ff644abd307c3997d17ddee1682e6aa",
+        "mesh_count": 10,
+        "top_platform_length_m": 2.82,
+        "total_height_m": 1.44,
+        "total_run_m": 3.68
+      },
+      {
+        "boundary_side_checks": 16,
+        "cell_id": "c1_irregular_05",
+        "cohort": "public_accept",
+        "geometry_digest": "38a521ba948aa4c8f4533db411721af56b014245a36b743ec87eda6b905b2630",
+        "mesh_count": 10,
+        "top_platform_length_m": 3.38,
+        "total_height_m": 1.44,
+        "total_run_m": 3.12
+      },
+      {
+        "boundary_side_checks": 16,
+        "cell_id": "c1_irregular_06",
+        "cohort": "public_dev",
+        "geometry_digest": "4b9834e27016fb4c30424b77213f610cd1410395373f496d6c8ec6290ee76dd6",
+        "mesh_count": 10,
+        "top_platform_length_m": 3.86,
+        "total_height_m": 1.44,
+        "total_run_m": 2.64
+      },
+      {
+        "boundary_side_checks": 16,
+        "cell_id": "c1_irregular_07",
+        "cohort": "unseen_final_holdout",
+        "geometry_digest": "4afb42560c52f07f56d5adf3be7695bf9cf2a7d79fbf30a6a8f7f081fd85b653",
+        "mesh_count": 10,
+        "top_platform_length_m": 2.82,
+        "total_height_m": 1.76,
+        "total_run_m": 3.68
+      },
+      {
+        "boundary_side_checks": 16,
+        "cell_id": "c1_irregular_08",
+        "cohort": "calibration",
+        "geometry_digest": "17095562512effb4f274ad1b74963277493eff9092d1ab41a5276adf1d549e53",
+        "mesh_count": 10,
+        "top_platform_length_m": 2.82,
+        "total_height_m": 1.76,
+        "total_run_m": 3.68
+      },
+      {
+        "boundary_side_checks": 16,
+        "cell_id": "c1_irregular_09",
+        "cohort": "public_dev",
+        "geometry_digest": "a29b7c4614fc64f664b56fb01bef4aa3dbdbcba9a2cb2986891de64627eb36d6",
+        "mesh_count": 10,
+        "top_platform_length_m": 3.86,
+        "total_height_m": 1.76,
+        "total_run_m": 2.64
+      },
+      {
+        "boundary_side_checks": 16,
+        "cell_id": "c1_irregular_10",
+        "cohort": "calibration",
+        "geometry_digest": "e93e9b1b91ceeb346b9542c5b2d39366719c0e445f39423158b0e47992d808cd",
+        "mesh_count": 10,
+        "top_platform_length_m": 3.38,
+        "total_height_m": 1.44,
+        "total_run_m": 3.12
+      },
+      {
+        "boundary_side_checks": 16,
+        "cell_id": "c1_irregular_11",
+        "cohort": "public_dev",
+        "geometry_digest": "efa7c9ee7be6dc912c0ce1ecd92623e839b133f288f571f747e993159c370562",
+        "mesh_count": 10,
+        "top_platform_length_m": 3.38,
+        "total_height_m": 1.12,
+        "total_run_m": 3.12
+      },
+      {
+        "boundary_side_checks": 16,
+        "cell_id": "c1_irregular_12",
+        "cohort": "unseen_final_holdout",
+        "geometry_digest": "9adac01045eb49d60b8943e4a0e8422845de59cc1b0915d2e83ed9e5319637a0",
+        "mesh_count": 10,
+        "top_platform_length_m": 3.86,
+        "total_height_m": 1.12,
+        "total_run_m": 2.64
+      },
+      {
+        "boundary_side_checks": 16,
+        "cell_id": "c1_irregular_13",
+        "cohort": "calibration",
+        "geometry_digest": "3881ac2dcc334092125fa36eb739767a64e27e8b741c4723f33e1c7f62739667",
+        "mesh_count": 10,
+        "top_platform_length_m": 2.82,
+        "total_height_m": 1.44,
+        "total_run_m": 3.68
+      },
+      {
+        "boundary_side_checks": 16,
+        "cell_id": "c1_irregular_14",
+        "cohort": "sealed_validation",
+        "geometry_digest": "621d0771f02dff5169572a3e45c353b8c9ef0eee14b7c88036dc6f81dcc11a7a",
+        "mesh_count": 10,
+        "top_platform_length_m": 3.38,
+        "total_height_m": 1.44,
+        "total_run_m": 3.12
+      },
+      {
+        "boundary_side_checks": 16,
+        "cell_id": "c1_irregular_15",
+        "cohort": "public_accept",
+        "geometry_digest": "efbc97419f6a9b64ce9f760e35aaddbe17666417f92c1a2c93e3f0f41dc3b140",
+        "mesh_count": 10,
+        "top_platform_length_m": 3.86,
+        "total_height_m": 1.44,
+        "total_run_m": 2.64
+      },
+      {
+        "boundary_side_checks": 16,
+        "cell_id": "c1_irregular_16",
+        "cohort": "public_dev",
+        "geometry_digest": "b223c2b3551b54ef80c126b587d39acb125ba182491245f7608bc31cd9d43371",
+        "mesh_count": 10,
+        "top_platform_length_m": 2.82,
+        "total_height_m": 1.76,
+        "total_run_m": 3.68
+      },
+      {
+        "boundary_side_checks": 16,
+        "cell_id": "c1_irregular_17",
+        "cohort": "public_accept",
+        "geometry_digest": "6d2bf9e832a481f7e537853845373631198daa1d591fd1a0766b35d8e97ccf0f",
+        "mesh_count": 10,
+        "top_platform_length_m": 3.38,
+        "total_height_m": 1.76,
+        "total_run_m": 3.12
+      },
+      {
+        "boundary_side_checks": 16,
+        "cell_id": "c1_irregular_18",
+        "cohort": "sealed_validation",
+        "geometry_digest": "10feae5f0c2401f22e2eca7d1e54b9e737efacaa7a25df7520c3306a1577d3c3",
+        "mesh_count": 10,
+        "top_platform_length_m": 3.86,
+        "total_height_m": 1.76,
+        "total_run_m": 2.64
+      }
+    ],
+    "geometry_closure_hash": "233ebce758fcec586afc29ceac47de217747028c050236ceee5c455277666c33",
+    "maximum_absolute_error_m": 8.881784197001252e-16,
+    "status": "pass"
+  },
+  "probe_mode": "evaluation_scene",
+  "product_source_hash_mode": "normalized_lf_sha256",
+  "product_source_hashes": {
+    "configs/tasks/stair_g1_37dof_irregular_evaluation_suite_v1.json": "63b587ae5a5e827ed0346dd5897ba0996234b0aadb9b8af3534f7f6ce1bab758",
+    "configs/tasks/stair_g1_37dof_irregular_training_profile_v1.json": "88fb63775cc5d3e4d88b3c87c9dd883d156f77ca3eb18befa6102f2c350b4cb3",
+    "src/true_rl_agent/tasks/stair_climbing/irregular_training.py": "5f963d021099f686b368e3622a776b36519b55c25d27ea75bf02a8f7b2ccd275",
+    "src/true_rl_agent/tasks/stair_climbing/isaaclab_evaluation_terrain.py": "bb3ae5844ff07fc89a9ce6448f31adf663237788f188415119df1ceca8a30ea1",
+    "src/true_rl_agent/tasks/stair_climbing/isaaclab_irregular_terrain.py": "82188a920dbb27cb1d9d1e90aa7b6664f930edc1aee6a30f906ad498db6a0368",
+    "src/true_rl_agent/tasks/stair_climbing/isaaclab_runtime_env.py": "d0d7aa4a961894b3bbfa899a016e82378a6c19ca149f7bf82aa0287bb758494b",
+    "src/true_rl_agent/tasks/stair_climbing/ordered_evaluation.py": "501feec658015084c05bad50b25bc3f5046f635412cd30aa818a173e50238870",
+    "src/true_rl_agent/tasks/stair_climbing/reference_programs/g1_irregular_v1/training_code/components.py": "7e71af92ef6236f16246a36ed644f60afe076575249f3143cdaa29d02fdc4a75",
+    "src/true_rl_agent/tasks/stair_climbing/runtime_projection.py": "e8f950efeaab9d4f5d2baa25b98016e40b4624881fc84aae1a11e706a9c28b3d",
+    "src/true_rl_agent/tasks/stair_climbing/terrain_evidence.py": "63203e833dd04ceaae19fd0252bfc0f579ee1646e22136ca7a7a10fb27e06d4f",
+    "src/true_rl_agent/tasks/stair_climbing/transition_decoder.py": "b462774f315a9e6bbe17d462a14c2ab44f06ad094a9e9c2a8a678a91631c5991",
+    "src/true_rl_agent/tasks/stair_climbing/vnext_reward_contract.py": "9f67e9098677ae9a0dbf6d9567b2269ae7699c17c64ca9fb535c8a2be526066e"
+  },
+  "receipt_hash": "ab42b9c634b6b293440f0ca80b828c2c593caa8e6e71dcfc291bfcdda8f0bdfc",
+  "schema_version": "true_rl_agent.variant_construction.phase3a_runtime_receipt.v1",
+  "status": "pass",
+  "training_smoke": null
+}

@@ -33,6 +33,7 @@ from true_rl_agent.candidates.package_contract import (
     preflight_candidate_package,
 )
 from true_rl_agent.candidates.schema import CandidatePackageRef
+from true_rl_agent.composition.cell_manifest import ResolvedCellManifestV1
 from true_rl_agent.candidates.verifier import (
     CandidateAdmissionPolicyDescriptor,
     CandidateVerifier,
@@ -139,6 +140,11 @@ class StairCandidateAdmissionPolicy(CandidateVerifier):
     """Admit complete rewards only after qualification of runner-owned bytes."""
 
     config: StairClimbingTaskConfig
+    resolved_cell_manifest: ResolvedCellManifestV1 | None = field(
+        default=None,
+        repr=False,
+        compare=False,
+    )
     qualification_timeout_s: float = DEFAULT_STAIR_QUALIFICATION_TIMEOUT_S
     worker_startup_timeout_s: float = (
         DEFAULT_STAIR_QUALIFICATION_WORKER_STARTUP_TIMEOUT_S
@@ -152,8 +158,21 @@ class StairCandidateAdmissionPolicy(CandidateVerifier):
     def __post_init__(self) -> None:
         if not isinstance(self.config, StairClimbingTaskConfig):
             raise TypeError("Stair admission requires StairClimbingTaskConfig")
-        if not isinstance(self.config.protocol_v2, StairProtocolV2):
+        if not (
+            self.config.is_unified_protocol
+            or isinstance(self.config.protocol_v2, StairProtocolV2)
+        ):
             raise ValueError("Stair admission requires the final V2 protocol")
+        if self.config.is_unified_protocol:
+            if not isinstance(self.resolved_cell_manifest, ResolvedCellManifestV1):
+                raise ValueError("Stair VNext admission requires the resolved manifest")
+            if (
+                self.resolved_cell_manifest.cell_variant_id
+                != self.config.cell_variant_id
+                or self.resolved_cell_manifest.resolved_cell_task_protocol_hash
+                != self.config.task_protocol_hash
+            ):
+                raise ValueError("Stair admission manifest/config identity mismatch")
         _require_positive_finite_timeout(
             self.qualification_timeout_s,
             "Stair qualification timeout",
@@ -252,10 +271,14 @@ class StairCandidateAdmissionPolicy(CandidateVerifier):
 
     @property
     def policy_hash(self) -> str:
-        adapter = StairClimbingComponentSmokeAdapter(self.config)
+        adapter = StairClimbingComponentSmokeAdapter(
+            self.config,
+            resolved_cell_manifest=self.resolved_cell_manifest,
+        )
         static_policy = self.static_verifier.admission_policy_descriptor()
         reference_artifact, _ = resolve_official_stair_reference_artifact(
-            self.config
+            self.config,
+            resolved_cell_manifest=self.resolved_cell_manifest,
         )
         return canonical_json_hash(
             {
@@ -294,7 +317,8 @@ class StairCandidateAdmissionPolicy(CandidateVerifier):
             return static_result
         if isinstance(candidate, CandidatePackageRef):
             reference_artifact, _ = resolve_official_stair_reference_artifact(
-                self.config
+                self.config,
+                resolved_cell_manifest=self.resolved_cell_manifest,
             )
             source_text = _verified_mutable_candidate_source(
                 candidate,
@@ -303,7 +327,8 @@ class StairCandidateAdmissionPolicy(CandidateVerifier):
             task_issues = audit_stair_reward_source_semantics(
                 source_text,
                 contract=StairClimbingComponentSmokeAdapter(
-                    self.config
+                    self.config,
+                    resolved_cell_manifest=self.resolved_cell_manifest,
                 ).contract,
                 trusted_reference_source_text=reference_artifact.source_text,
             )
@@ -334,6 +359,11 @@ class StairCandidateAdmissionPolicy(CandidateVerifier):
         task_evidence = _run_qualification_worker(
             artifact=candidate,
             protocol_v2_path=self.config.protocol_v2_path,
+            cell_variant_id=self.config.cell_variant_id,
+            resolved_cell_task_protocol_hash=(
+                self.config.resolved_cell_task_protocol_hash
+            ),
+            resolved_cell_manifest=self.resolved_cell_manifest,
             static_verifier_policy=self.static_verifier.policy,
             worker_startup_timeout_s=float(self.worker_startup_timeout_s),
             candidate_execution_timeout_s=float(
@@ -361,7 +391,10 @@ class StairCandidateAdmissionPolicy(CandidateVerifier):
                     "task_qualification": dict(task_evidence),
                 },
             )
-        adapter = StairClimbingComponentSmokeAdapter(self.config)
+        adapter = StairClimbingComponentSmokeAdapter(
+            self.config,
+            resolved_cell_manifest=self.resolved_cell_manifest,
+        )
         _assert_task_evidence_matches(
             candidate,
             task_evidence,
@@ -414,7 +447,10 @@ class StairCandidateAdmissionPolicy(CandidateVerifier):
         evidence = result.details.get("task_qualification")
         if not isinstance(evidence, Mapping):
             raise ValueError("Stair execution authorization evidence is missing")
-        adapter = StairClimbingComponentSmokeAdapter(self.config)
+        adapter = StairClimbingComponentSmokeAdapter(
+            self.config,
+            resolved_cell_manifest=self.resolved_cell_manifest,
+        )
         source_policy_hash = static_verifier_source_policy_hash(
             policy=self.static_verifier.policy,
         )
@@ -459,6 +495,7 @@ def validate_stair_candidate_execution_authorization(
     *,
     artifact: SealedCandidateArtifactRef,
     config: StairClimbingTaskConfig,
+    resolved_cell_manifest: ResolvedCellManifestV1 | None = None,
 ) -> VerifiedStairCandidateExecutionAuthorization:
     """Rebuild the exact policy and bind it to Stair runtime identities."""
 
@@ -533,7 +570,10 @@ def validate_stair_candidate_execution_authorization(
     ):
         raise ValueError("Stair candidate authorization qualification schema mismatch")
 
-    adapter = StairClimbingComponentSmokeAdapter(config)
+    adapter = StairClimbingComponentSmokeAdapter(
+        config,
+        resolved_cell_manifest=resolved_cell_manifest,
+    )
     if (
         require_sha256_digest(
             payload.get("input_schema_hash"),
@@ -562,6 +602,7 @@ def validate_stair_candidate_execution_authorization(
     )
     reconstructed = StairCandidateAdmissionPolicy(
         config,
+        resolved_cell_manifest=resolved_cell_manifest,
         qualification_timeout_s=qualification_timeout_s,
         static_verifier=StaticCandidateVerifier(policy=static_policy),
     )
@@ -585,6 +626,9 @@ def _run_qualification_worker(
     *,
     artifact: SealedCandidateArtifactRef,
     protocol_v2_path: Path,
+    cell_variant_id: str,
+    resolved_cell_task_protocol_hash: str | None,
+    resolved_cell_manifest: ResolvedCellManifestV1 | None,
     static_verifier_policy: StaticCandidateVerifierPolicy,
     worker_startup_timeout_s: float,
     candidate_execution_timeout_s: float,
@@ -592,7 +636,18 @@ def _run_qualification_worker(
     try:
         outcome = run_ready_worker(
             target=_qualification_worker,
-            args=(artifact, str(protocol_v2_path), static_verifier_policy),
+            args=(
+                artifact,
+                str(protocol_v2_path),
+                cell_variant_id,
+                resolved_cell_task_protocol_hash,
+                (
+                    resolved_cell_manifest.to_dict()
+                    if resolved_cell_manifest is not None
+                    else None
+                ),
+                static_verifier_policy,
+            ),
             startup_timeout_s=worker_startup_timeout_s,
             execution_timeout_s=candidate_execution_timeout_s,
         )
@@ -670,17 +725,35 @@ def _qualification_failure_evidence(exc: Exception) -> Mapping[str, Any]:
 def _qualification_worker(
     artifact: SealedCandidateArtifactRef,
     protocol_v2_path: str,
+    cell_variant_id: str,
+    resolved_cell_task_protocol_hash: str | None,
+    resolved_cell_manifest_payload: Mapping[str, Any] | None,
     static_verifier_policy: StaticCandidateVerifierPolicy,
     result_connection: Any,
     start_connection: Any,
 ) -> None:
     try:
-        config = StairClimbingTaskConfig.defaults(Path(protocol_v2_path))
+        config = StairClimbingTaskConfig.defaults(
+            Path(protocol_v2_path),
+            cell_variant_id=cell_variant_id,
+            resolved_cell_task_protocol_hash=resolved_cell_task_protocol_hash,
+        )
+        resolved_cell_manifest = (
+            ResolvedCellManifestV1.from_mapping(resolved_cell_manifest_payload)
+            if resolved_cell_manifest_payload is not None
+            else None
+        )
         if not isinstance(static_verifier_policy, StaticCandidateVerifierPolicy):
             raise TypeError("Stair qualification worker policy is invalid")
-        adapter = StairClimbingComponentSmokeAdapter(config)
+        adapter = StairClimbingComponentSmokeAdapter(
+            config,
+            resolved_cell_manifest=resolved_cell_manifest,
+        )
         adapter.build_reward_inputs()
-        reference_artifact, _ = resolve_official_stair_reference_artifact(config)
+        reference_artifact, _ = resolve_official_stair_reference_artifact(
+            config,
+            resolved_cell_manifest=resolved_cell_manifest,
+        )
     except Exception as exc:  # noqa: BLE001 - private detail is not projected.
         result_connection.send(
             WorkerStartupFailure(error_type=type(exc).__name__)

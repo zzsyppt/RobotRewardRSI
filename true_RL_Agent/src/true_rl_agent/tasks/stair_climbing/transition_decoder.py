@@ -9,6 +9,9 @@ from true_rl_agent.tasks.stair_climbing.episode_evidence import StairEnvTransiti
 from true_rl_agent.tasks.stair_climbing.evaluation_profile import (
     StairEvaluationCell,
 )
+from true_rl_agent.tasks.stair_climbing.ordered_evaluation import (
+    OrderedStairEvaluationCell,
+)
 from true_rl_agent.tasks.stair_climbing.evaluation_semantics import (
     StairEvaluationSemantics,
 )
@@ -24,6 +27,7 @@ from true_rl_agent.tasks.stair_climbing.runtime_projection import (
 from true_rl_agent.tasks.stair_climbing.terrain_evidence import (
     FlatStairSurfaceQuery,
     StairSurfaceQuery,
+    stair_surface_query_for_ordered_cell,
     supporting_stair_surface_height_m,
 )
 
@@ -200,10 +204,13 @@ def decode_stair_transition_batch(
     raw: Mapping[str, Any],
     *,
     wrapper_done_mask: Any,
-    protocol: StairProtocolV1,
+    protocol: StairProtocolV1 | None,
     semantics: StairEvaluationSemantics,
     expected_bin_assignment: Sequence[str],
-    expected_cell_assignment: Sequence[StairEvaluationCell] | None = None,
+    expected_cell_assignment: Sequence[
+        StairEvaluationCell | OrderedStairEvaluationCell
+    ]
+    | None = None,
     runtime_projection: StairRuntimeProjection | None = None,
     surface_queries: Sequence[StairSurfaceQuery] | None = None,
 ) -> tuple[StairEnvTransition, ...]:
@@ -221,8 +228,8 @@ def decode_stair_transition_batch(
         raise StairTransitionDecodeError(
             "Stair normalized transition recorder schema mismatch"
         )
-    if not isinstance(protocol, StairProtocolV1):
-        raise TypeError("Stair transition decoder requires StairProtocolV1")
+    if protocol is not None and not isinstance(protocol, StairProtocolV1):
+        raise TypeError("Stair transition decoder protocol is invalid")
     if not isinstance(semantics, StairEvaluationSemantics):
         raise TypeError("Stair transition decoder requires evaluation semantics")
     if runtime_projection is not None and not isinstance(
@@ -240,15 +247,42 @@ def decode_stair_transition_batch(
     expected_num_envs = len(bin_assignment)
     if expected_num_envs <= 0:
         raise StairTransitionDecodeError("Stair bin assignment must be non-empty")
-    frozen_bins = {
-        str(item["bin_id"]): (index, float(item["height_m"]))
-        for index, item in enumerate(protocol.eval_bins)
-    }
-    if set(bin_assignment) != set(frozen_bins):
+    frozen_bins = (
+        {
+            str(item["bin_id"]): (index, float(item["height_m"]))
+            for index, item in enumerate(protocol.eval_bins)
+        }
+        if protocol is not None
+        else {}
+    )
+    ordered_assignment = bool(cell_assignment) and all(
+        isinstance(cell, OrderedStairEvaluationCell) for cell in cell_assignment
+    )
+    legacy_cell_assignment = bool(cell_assignment) and all(
+        isinstance(cell, StairEvaluationCell) for cell in cell_assignment
+    )
+    if cell_assignment is not None and not (
+        ordered_assignment or legacy_cell_assignment
+    ):
+        raise StairTransitionDecodeError(
+            "Stair evaluation cell assignment mixes incompatible course semantics"
+        )
+    if ordered_assignment:
+        assert cell_assignment is not None
+        if tuple(cell.cell_id for cell in cell_assignment) != bin_assignment:
+            raise StairTransitionDecodeError(
+                "Stair ordered cell assignment differs from explicit identities"
+            )
+        if protocol is not None:
+            raise StairTransitionDecodeError(
+                "ordered VNext Stair decoding must not consult a legacy protocol"
+            )
+    elif set(bin_assignment) != set(frozen_bins):
         raise StairTransitionDecodeError("Stair bin assignment differs from protocol")
     if cell_assignment is not None:
         if len(cell_assignment) != expected_num_envs or any(
-            not isinstance(cell, StairEvaluationCell) for cell in cell_assignment
+            not isinstance(cell, StairEvaluationCell | OrderedStairEvaluationCell)
+            for cell in cell_assignment
         ):
             raise StairTransitionDecodeError(
                 "Stair evaluation cell assignment is invalid"
@@ -383,9 +417,20 @@ def decode_stair_transition_batch(
         or set(term_masks) != set(term_order)
     ):
         raise StairTransitionDecodeError("Stair termination mask identity is invalid")
-    protocol_payload = protocol.to_dict()
-    manager_to_reason = dict(
-        protocol_payload["phase0_probe"]["terminal_reason_by_manager_term"]
+    protocol_payload = protocol.to_dict() if protocol is not None else None
+    semantics_payload = semantics.to_dict()
+    forbidden_contact_manager_term = str(
+        semantics_payload["episode_outcomes"]["signals"]["forbidden_contact"][
+            "manager_term"
+        ]
+    )
+    manager_to_reason = (
+        dict(protocol_payload["phase0_probe"]["terminal_reason_by_manager_term"])
+        if protocol_payload is not None
+        else {
+            "time_out": "timeout",
+            forbidden_contact_manager_term: "forbidden_contact",
+        }
     )
     if set(term_order) != set(manager_to_reason):
         raise StairTransitionDecodeError(
@@ -431,7 +476,6 @@ def decode_stair_transition_batch(
     origin_values = _to_list(origins)
     done_values = _to_list(done_mask)
     term_values = {name: _to_list(mask) for name, mask in decoded_term_masks.items()}
-    semantics_payload = semantics.to_dict()
     contact_threshold = float(
         semantics_payload["episode_outcomes"]["signals"]["slip"][
             "contact_force_threshold"
@@ -442,13 +486,10 @@ def decode_stair_transition_batch(
             "maximum_projected_surface_penetration_m"
         ]
     )
-    forbidden_contact_manager_term = str(
-        semantics_payload["episode_outcomes"]["signals"]["forbidden_contact"][
-            "manager_term"
-        ]
-    )
     base_contact_terms = tuple(
-        name for name, reason in manager_to_reason.items() if reason == "base_contact"
+        name
+        for name, reason in manager_to_reason.items()
+        if reason in {"base_contact", "forbidden_contact"}
     )
     if (
         len(base_contact_terms) != 1
@@ -466,15 +507,25 @@ def decode_stair_transition_batch(
         progress = float(base[0]) - float(origin[0])
         lateral = float(base[1]) - float(origin[1])
         base_height = float(base[2]) - float(origin[2])
-        step_height = cell.height_m if cell is not None else frozen_bins[bin_id][1]
-        tread_depth = cell.tread_depth_m if cell is not None else None
         surface_query = (
             resolved_surface_queries[env_index]
             if resolved_surface_queries is not None
-            else FlatStairSurfaceQuery(
-                protocol=protocol_payload,
-                step_height_m=step_height,
-                tread_depth_m=tread_depth,
+            else (
+                stair_surface_query_for_ordered_cell(cell.spec)
+                if isinstance(cell, OrderedStairEvaluationCell)
+                else FlatStairSurfaceQuery(
+                    protocol=protocol_payload,
+                    step_height_m=(
+                        cell.height_m
+                        if isinstance(cell, StairEvaluationCell)
+                        else frozen_bins[bin_id][1]
+                    ),
+                    tread_depth_m=(
+                        cell.tread_depth_m
+                        if isinstance(cell, StairEvaluationCell)
+                        else None
+                    ),
+                )
             )
         )
         support_contacts: list[bool] = []
@@ -556,9 +607,16 @@ def _assert_origins(
     bin_assignment: tuple[str, ...],
     frozen_bins: Mapping[str, tuple[int, float]],
     protocol_payload: Mapping[str, Any],
-    cell_assignment: tuple[StairEvaluationCell, ...] | None,
+    cell_assignment: tuple[
+        StairEvaluationCell | OrderedStairEvaluationCell, ...
+    ]
+    | None,
 ) -> None:
-    expected_origins = protocol_payload["terrain"]["evaluation_grid_origins_m"]
+    expected_origins = (
+        protocol_payload["terrain"]["evaluation_grid_origins_m"]
+        if cell_assignment is None
+        else None
+    )
     observed = _to_list(origins)
     for env_index, bin_id in enumerate(bin_assignment):
         expected = (

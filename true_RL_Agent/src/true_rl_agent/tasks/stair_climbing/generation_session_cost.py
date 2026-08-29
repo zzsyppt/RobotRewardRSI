@@ -363,13 +363,23 @@ def stair_formal_generation_operation_cost_reserves() -> tuple[
     return _P6D_OPERATION_COST_RESERVES
 
 
-def _operation_reserve_plan_payload() -> dict[str, Any]:
-    entries = [item.to_dict() for item in _P6C_OPERATION_COST_RESERVES]
+def _operation_reserve_plan_payload(
+    *,
+    include_parent_public_dev: bool = True,
+) -> dict[str, Any]:
+    if not isinstance(include_parent_public_dev, bool):
+        raise TypeError("parent public-dev reserve inclusion must be boolean")
+    active_reserves = tuple(
+        item
+        for item in _P6C_OPERATION_COST_RESERVES
+        if include_parent_public_dev or item.operation_class != "parent_public_dev"
+    )
+    entries = [item.to_dict() for item in active_reserves]
     totals: dict[str, dict[str, int]] = {}
     for budget_class in ("successful_session", "retry_reserve"):
         selected = [
             item
-            for item in _P6C_OPERATION_COST_RESERVES
+            for item in active_reserves
             if item.budget_class == budget_class
         ]
         totals[budget_class] = {
@@ -404,10 +414,10 @@ def _operation_reserve_plan_payload() -> dict[str, Any]:
         + STAIR_GENERATION_VALIDATION_RETRY_OUTPUT_BYTES
     )
     reserved_gpu_ns = sum(
-        item.allocated_gpu_capacity_ns for item in _P6C_OPERATION_COST_RESERVES
+        item.allocated_gpu_capacity_ns for item in active_reserves
     )
     reserved_output_bytes = sum(
-        item.output_bytes for item in _P6C_OPERATION_COST_RESERVES
+        item.output_bytes for item in active_reserves
     )
     return {
         "schema_version": STAIR_GENERATION_OPERATION_RESERVES_SCHEMA_VERSION,
@@ -434,13 +444,23 @@ def _operation_reserve_plan_payload() -> dict[str, Any]:
     }
 
 
-def _formal_operation_reserve_plan_payload() -> dict[str, Any]:
-    entries = [item.to_dict() for item in _P6D_OPERATION_COST_RESERVES]
+def _formal_operation_reserve_plan_payload(
+    *,
+    include_parent_public_dev: bool = True,
+) -> dict[str, Any]:
+    if not isinstance(include_parent_public_dev, bool):
+        raise TypeError("parent public-dev reserve inclusion must be boolean")
+    active_reserves = tuple(
+        item
+        for item in _P6D_OPERATION_COST_RESERVES
+        if include_parent_public_dev or item.operation_class != "parent_public_dev"
+    )
+    entries = [item.to_dict() for item in active_reserves]
     totals: dict[str, dict[str, int]] = {}
     for budget_class in ("successful_session", "retry_reserve"):
         selected = [
             item
-            for item in _P6D_OPERATION_COST_RESERVES
+            for item in active_reserves
             if item.budget_class == budget_class
         ]
         totals[budget_class] = {
@@ -475,10 +495,10 @@ def _formal_operation_reserve_plan_payload() -> dict[str, Any]:
         + STAIR_GENERATION_FORMAL_RETRY_OUTPUT_BYTES
     )
     reserved_gpu_ns = sum(
-        item.allocated_gpu_capacity_ns for item in _P6D_OPERATION_COST_RESERVES
+        item.allocated_gpu_capacity_ns for item in active_reserves
     )
     reserved_output_bytes = sum(
-        item.output_bytes for item in _P6D_OPERATION_COST_RESERVES
+        item.output_bytes for item in active_reserves
     )
     return {
         "schema_version": STAIR_GENERATION_FORMAL_OPERATION_RESERVES_SCHEMA_VERSION,
@@ -539,7 +559,6 @@ class StairGenerationScientificCostBasis:
             "train_steps_per_job",
             "train_jobs_per_generation",
             "reference_eval_seed_units",
-            "parent_bootstrap_seed_units",
             "eval_seed_units_per_generation",
             "public_dev_seed_units_per_job",
             "public_accept_seed_units_per_job",
@@ -549,6 +568,10 @@ class StairGenerationScientificCostBasis:
             "final_confirmation_seed_units",
         ):
             _positive_int(getattr(self, field_name), field_name)
+        _nonnegative_int(
+            self.parent_bootstrap_seed_units,
+            "parent_bootstrap_seed_units",
+        )
         if self.train_jobs_per_generation != _GENERATION_WIDTH:
             raise ValueError("scientific train-job count differs from generation width")
         if self.reference_eval_seed_units != (
@@ -557,7 +580,10 @@ class StairGenerationScientificCostBasis:
             + self.sealed_validation_seed_units_per_job
         ):
             raise ValueError("reference evaluation seed-unit projection mismatch")
-        if self.parent_bootstrap_seed_units != self.public_dev_seed_units_per_job:
+        if self.parent_bootstrap_seed_units not in {
+            0,
+            self.public_dev_seed_units_per_job,
+        }:
             raise ValueError("parent bootstrap seed-unit projection mismatch")
         if self.eval_seed_units_per_generation != (
             _GENERATION_WIDTH * self.public_dev_seed_units_per_job
@@ -576,6 +602,12 @@ class StairGenerationScientificCostBasis:
             return values[phase]
         except KeyError as exc:
             raise ValueError("unknown Stair evaluation phase") from exc
+
+    @property
+    def reuses_reference_public_dev_receipt(self) -> bool:
+        """Whether Genesis already owns the parent public-dev guard evidence."""
+
+        return self.parent_bootstrap_seed_units == 0
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -618,12 +650,33 @@ def build_stair_generation_scientific_cost_basis(
         )
     ):
         raise ValueError("Stair phased evaluation cost hash is invalid")
+    ordered_suite = config.ordered_evaluation_suite_config
+    if ordered_suite is None:
+        evaluation_identity_matches = (
+            phased.get("evaluation_profile_hash")
+            == config.evaluation_profile.profile_hash
+        )
+        expected_episodes_per_seed = len(
+            config.evaluation_profile.private_cell_assignment()
+        )
+        max_episode_horizon_control_steps = (
+            config.evaluation_profile.max_episode_horizon_control_steps
+        )
+    else:
+        evaluation_identity_matches = (
+            phased.get("evaluation_suite_hash") == ordered_suite.suite_hash
+        )
+        expected_episodes_per_seed = len(
+            ordered_suite.private_cell_assignment("public_dev")
+        )
+        max_episode_horizon_control_steps = (
+            ordered_suite.max_episode_horizon_control_steps
+        )
     if (
         phased.get("task_id") != STAIR_TASK_ID
         or phased.get("evaluation_protocol_hash")
         != config.evaluation_protocol().protocol_hash
-        or phased.get("evaluation_profile_hash")
-        != config.evaluation_profile.profile_hash
+        or not evaluation_identity_matches
     ):
         raise ValueError("Stair phased evaluation cost identity differs from config")
     phases = phased.get("per_generation_phases")
@@ -634,7 +687,10 @@ def build_stair_generation_scientific_cost_basis(
         "sealed_validation",
     }:
         raise ValueError("Stair phased evaluation cost topology is invalid")
-    if not isinstance(bootstrap, Mapping) or set(bootstrap) != {"parent_public_dev"}:
+    expected_bootstrap_keys = (
+        set() if ordered_suite is not None else {"parent_public_dev"}
+    )
+    if not isinstance(bootstrap, Mapping) or set(bootstrap) != expected_bootstrap_keys:
         raise ValueError("Stair phased bootstrap cost topology is invalid")
 
     def phase(name: str) -> tuple[int, int]:
@@ -652,14 +708,18 @@ def build_stair_generation_scientific_cost_basis(
     public_dev_jobs, public_dev_seeds = phase("public_dev")
     public_accept_jobs, public_accept_seeds = phase("public_accept")
     sealed_jobs, sealed_seeds = phase("sealed_validation")
-    parent = bootstrap["parent_public_dev"]
-    if not isinstance(parent, Mapping):
-        raise TypeError("Stair phased bootstrap cost entry is invalid")
-    parent_jobs = _positive_int(parent.get("max_jobs"), "parent bootstrap max_jobs")
-    parent_seeds = _positive_int(
-        parent.get("seed_count_per_job"),
-        "parent bootstrap seed_count_per_job",
-    )
+    if ordered_suite is None:
+        parent = bootstrap["parent_public_dev"]
+        if not isinstance(parent, Mapping):
+            raise TypeError("Stair phased bootstrap cost entry is invalid")
+        parent_jobs = _positive_int(parent.get("max_jobs"), "parent bootstrap max_jobs")
+        parent_seeds = _positive_int(
+            parent.get("seed_count_per_job"),
+            "parent bootstrap seed_count_per_job",
+        )
+    else:
+        parent_jobs = 0
+        parent_seeds = 0
     trial_count = _positive_int(
         phased.get("scientific_trial_count"),
         "scientific_trial_count",
@@ -675,9 +735,11 @@ def build_stair_generation_scientific_cost_basis(
         or public_dev_seeds != config.public_seed_count
         or public_accept_seeds != config.public_accept_seed_count
         or sealed_seeds != config.sealed_validation_seed_count
-        or parent_seeds != config.public_seed_count
-        or phased.get("episodes_per_seed_unit")
-        != len(config.evaluation_profile.private_cell_assignment())
+        or (
+            ordered_suite is None
+            and parent_seeds != config.public_seed_count
+        )
+        or phased.get("episodes_per_seed_unit") != expected_episodes_per_seed
     ):
         raise ValueError("Stair phased evaluation cost differs from task config")
     computed_generation_seed_units = (
@@ -700,18 +762,24 @@ def build_stair_generation_scientific_cost_basis(
     ):
         raise ValueError("Stair phased evaluation cost arithmetic mismatch")
 
-    final_plan = build_stair_final_confirmation_plan(
-        session_id=session_id,
-        config=config,
-    )
-    comparison = final_plan.to_dict().get("comparison")
-    if not isinstance(comparison, Mapping):
-        raise TypeError("Stair final confirmation comparison is invalid")
-    execution_order = comparison.get("execution_order")
-    if not isinstance(execution_order, list) or not execution_order:
-        raise ValueError("Stair final confirmation execution order is invalid")
-    if final_plan.seed_count != config.sealed_validation_seed_count:
-        raise ValueError("Stair final confirmation seed count differs from config")
+    if ordered_suite is None:
+        final_plan = build_stair_final_confirmation_plan(
+            session_id=session_id,
+            config=config,
+        )
+        comparison = final_plan.to_dict().get("comparison")
+        if not isinstance(comparison, Mapping):
+            raise TypeError("Stair final confirmation comparison is invalid")
+        execution_order = comparison.get("execution_order")
+        if not isinstance(execution_order, list) or not execution_order:
+            raise ValueError("Stair final confirmation execution order is invalid")
+        final_confirmation_seed_units = (
+            len(execution_order) * final_plan.seed_count
+        )
+    else:
+        # Unified Stair final confirmation compares the frozen Genesis reference
+        # with the terminal policy on the sealed cohort.
+        final_confirmation_seed_units = 2 * config.sealed_validation_seed_count
 
     return StairGenerationScientificCostBasis(
         task_protocol_hash=config.task_protocol_hash,
@@ -728,10 +796,9 @@ def build_stair_generation_scientific_cost_basis(
         sealed_validation_seed_units_per_job=sealed_seeds,
         episodes_per_seed_unit=episodes_per_seed,
         max_eval_control_steps_per_seed_unit=(
-            episodes_per_seed
-            * config.evaluation_profile.max_episode_horizon_control_steps
+            episodes_per_seed * max_episode_horizon_control_steps
         ),
-        final_confirmation_seed_units=(len(execution_order) * final_plan.seed_count),
+        final_confirmation_seed_units=final_confirmation_seed_units,
     )
 
 
@@ -1023,17 +1090,27 @@ class StairGenerationSessionCostContractV2:
             or self.retry_output_bytes != STAIR_GENERATION_VALIDATION_RETRY_OUTPUT_BYTES
         ):
             raise ValueError("Stair generation validation physical reserve mismatch")
-        operation_plan = _operation_reserve_plan_payload()
+        source_operation_plan = _operation_reserve_plan_payload()
+        source_operation_totals = source_operation_plan["totals"]
+        source_successful = source_operation_totals["successful_session"]
+        source_retry = source_operation_totals["retry_reserve"]
+        if (
+            source_successful["source_allocated_gpu_capacity_ns"]
+            != 31_127_832_110_058
+            or source_successful["source_total_output_bytes"] != 2_341_181_253
+            or source_retry["source_allocated_gpu_capacity_ns"]
+            != 4_172_484_142_958
+            or source_retry["source_output_bytes"] != 326_023_821
+        ):
+            raise ValueError("Stair operation reserve source evidence drifted")
+        operation_plan = _operation_reserve_plan_payload(
+            include_parent_public_dev=(
+                not self.scientific_cost_basis.reuses_reference_public_dev_receipt
+            )
+        )
         operation_totals = operation_plan["totals"]
         successful = operation_totals["successful_session"]
         retry = operation_totals["retry_reserve"]
-        if (
-            successful["source_allocated_gpu_capacity_ns"] != 31_127_832_110_058
-            or successful["source_total_output_bytes"] != 2_341_181_253
-            or retry["source_allocated_gpu_capacity_ns"] != 4_172_484_142_958
-            or retry["source_output_bytes"] != 326_023_821
-        ):
-            raise ValueError("Stair operation reserve source evidence drifted")
         if (
             successful["reserved_allocated_gpu_capacity_ns"]
             > int(self.successful_allocated_active_gpu_hours * 3_600_000_000_000)
@@ -1233,7 +1310,11 @@ class StairGenerationSessionCostContractV2:
                 ),
                 "output_bytes": self.retry_output_bytes,
             },
-            "operation_reserves": _operation_reserve_plan_payload(),
+            "operation_reserves": _operation_reserve_plan_payload(
+                include_parent_public_dev=(
+                    not self.scientific_cost_basis.reuses_reference_public_dev_receipt
+                )
+            ),
             "physical_cap": {
                 "train_jobs": self.physical_train_job_cap,
                 "train_steps": self.physical_train_step_cap,
@@ -1337,17 +1418,25 @@ class StairGenerationSessionCostContractV3(
             or self.retry_output_bytes != STAIR_GENERATION_FORMAL_RETRY_OUTPUT_BYTES
         ):
             raise ValueError("Stair generation formal physical reserve mismatch")
-        operation_plan = _formal_operation_reserve_plan_payload()
-        successful = operation_plan["totals"]["successful_session"]
-        retry = operation_plan["totals"]["retry_reserve"]
+        source_operation_plan = _formal_operation_reserve_plan_payload()
+        source_successful = source_operation_plan["totals"]["successful_session"]
+        source_retry = source_operation_plan["totals"]["retry_reserve"]
         if (
-            successful["reserved_allocated_gpu_capacity_ns"]
+            source_successful["reserved_allocated_gpu_capacity_ns"]
             != 175_397_494_998_204
-            or successful["reserved_output_bytes"] != 12_957_346_478
-            or retry["reserved_allocated_gpu_capacity_ns"] != 5_253_617_286_198
-            or retry["reserved_output_bytes"] != 417_801_847
+            or source_successful["reserved_output_bytes"] != 12_957_346_478
+            or source_retry["reserved_allocated_gpu_capacity_ns"]
+            != 5_253_617_286_198
+            or source_retry["reserved_output_bytes"] != 417_801_847
         ):
             raise ValueError("Stair formal operation reserve evidence drifted")
+        operation_plan = _formal_operation_reserve_plan_payload(
+            include_parent_public_dev=(
+                not self.scientific_cost_basis.reuses_reference_public_dev_receipt
+            )
+        )
+        successful = operation_plan["totals"]["successful_session"]
+        retry = operation_plan["totals"]["retry_reserve"]
         if (
             successful["reserved_allocated_gpu_capacity_ns"]
             > int(self.successful_allocated_active_gpu_hours * 3_600_000_000_000)
@@ -1376,7 +1465,11 @@ class StairGenerationSessionCostContractV3(
 
     def _hash_payload(self) -> dict[str, Any]:
         payload = super()._hash_payload()
-        payload["operation_reserves"] = _formal_operation_reserve_plan_payload()
+        payload["operation_reserves"] = _formal_operation_reserve_plan_payload(
+            include_parent_public_dev=(
+                not self.scientific_cost_basis.reuses_reference_public_dev_receipt
+            )
+        )
         return payload
 
     @classmethod

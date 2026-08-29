@@ -18,6 +18,8 @@ from true_rl_agent.evaluation.public_metric_contract import (
     SEALED_VALIDATION_EVIDENCE_KEY,
 )
 from true_rl_agent.evaluation.public_result import PublicEvalResult
+from true_rl_agent.evaluation.subject import ExperimentSubject
+from true_rl_agent.composition.cell_manifest import ResolvedCellManifestV1
 from true_rl_agent.prompting.capabilities import (
     COMPLETE_REWARD_PROGRAM_CAPABILITY_ID,
 )
@@ -25,6 +27,7 @@ from true_rl_agent.runner.budget import build_budget_accounting
 from true_rl_agent.tasks.stair_climbing.config import StairClimbingTaskConfig
 from true_rl_agent.tasks.stair_climbing.evaluation_contract import (
     evaluate_stair_sealed_score_gate,
+    evaluate_unified_stair_sealed_score_gate,
     validate_stair_split_summary,
 )
 from true_rl_agent.tasks.stair_climbing.evaluation_profile import (
@@ -32,6 +35,13 @@ from true_rl_agent.tasks.stair_climbing.evaluation_profile import (
 )
 from true_rl_agent.tasks.stair_climbing.generalization_contract import (
     validate_stair_generalization_summary,
+)
+from true_rl_agent.tasks.stair_climbing.unified_scoring import (
+    build_unified_reference_score_projection,
+    build_unified_score_projection,
+    build_unified_stair_prompt_feedback,
+    validate_objective_family_mask,
+    validate_unified_stair_summary,
 )
 from true_rl_agent.tasks.stair_climbing.runtime_profile import (
     STAIR_REWARD_ACTIVATION_PREFLIGHT_SCHEMA_VERSION,
@@ -54,6 +64,7 @@ _TASK_DERIVED_INPUT_KEYS = {
     "runtime_activation_gate",
     "stair_behavior_gate",
     "acceptance",
+    "objective_family_mask",
 }
 
 _PUBLIC_DEV_OBJECTIVE_SCORE_SOURCE = (
@@ -71,6 +82,8 @@ def project_stair_public_result(
     public_result: PublicEvalResult,
     train_summary: Mapping[str, Any],
     mechanism_operation_delta: Mapping[str, Any] | None = None,
+    resolved_cell_manifest: ResolvedCellManifestV1 | None = None,
+    objective_family_mask: Mapping[str, Any] | None = None,
 ) -> PublicEvalResult:
     """Validate recorder summaries and derive every Stair acceptance input."""
 
@@ -81,7 +94,208 @@ def project_stair_public_result(
     if not isinstance(train_summary, Mapping):
         raise TypeError("stair public projection train_summary must be an object")
 
+    if config.is_unified_protocol:
+        return _project_unified_stair_public_result(
+            config=config,
+            public_result=public_result,
+            train_summary=train_summary,
+            mechanism_operation_delta=mechanism_operation_delta,
+            resolved_cell_manifest=resolved_cell_manifest,
+            objective_family_mask=objective_family_mask,
+        )
+
+    return _project_legacy_stair_public_result(
+        config=config,
+        public_result=public_result,
+        train_summary=train_summary,
+        mechanism_operation_delta=mechanism_operation_delta,
+    )
+
+
+def _project_unified_stair_public_result(
+    *,
+    config: StairClimbingTaskConfig,
+    public_result: PublicEvalResult,
+    train_summary: Mapping[str, Any],
+    mechanism_operation_delta: Mapping[str, Any] | None,
+    resolved_cell_manifest: ResolvedCellManifestV1 | None,
+    objective_family_mask: Mapping[str, Any] | None,
+) -> PublicEvalResult:
     incoming = dict(public_result.metrics)
+    unsupported = (
+        set(incoming)
+        - _TASK_DERIVED_INPUT_KEYS
+        - RUNNER_OWNED_PUBLIC_EVAL_METRIC_KEYS
+        - {"unified_score"}
+    )
+    if unsupported:
+        raise ValueError(
+            "unified Stair eval metrics contain unsupported field(s): "
+            + ", ".join(sorted(unsupported))
+        )
+    source_preflight = _validate_environment_source_preflight_pair(
+        config,
+        train_summary=train_summary,
+        eval_preflight=incoming.get("environment_source_preflight"),
+    )
+    raw_splits = incoming.get("stair_evaluation")
+    if not isinstance(raw_splits, Mapping) or set(raw_splits) != {
+        "public_dev",
+        "public_accept",
+    }:
+        raise ValueError("unified Stair evaluation must contain two public splits")
+    suite = config.ordered_evaluation_suite
+    semantics = config.evaluation_semantics
+    public_dev = validate_unified_stair_summary(
+        suite=suite,
+        semantics=semantics,
+        split="public_dev",
+        summary=raw_splits["public_dev"],
+    )
+    public_accept = validate_unified_stair_summary(
+        suite=suite,
+        semantics=semantics,
+        split="public_accept",
+        summary=raw_splits["public_accept"],
+    )
+    raw_mask = incoming.get("objective_family_mask")
+    if raw_mask is None:
+        raise ValueError("unified Stair result lacks its objective family mask")
+    is_reference_projection = objective_family_mask is None
+    raw_mask = validate_objective_family_mask(
+        suite=suite,
+        mask=raw_mask,
+        public_accept_summary=(
+            public_accept if is_reference_projection else None
+        ),
+        require_nonempty=not is_reference_projection,
+    )
+    if objective_family_mask is not None:
+        expected_mask = validate_objective_family_mask(
+            suite=suite,
+            mask=objective_family_mask,
+        )
+        if raw_mask != expected_mask:
+            raise ValueError("unified Stair result used a different Genesis mask")
+    objective_family_mask = raw_mask
+    score_builder = (
+        build_unified_reference_score_projection
+        if is_reference_projection
+        else build_unified_score_projection
+    )
+    unified_score = score_builder(
+        public_accept,
+        objective_family_mask=objective_family_mask,
+    )
+    dev_score = score_builder(
+        public_dev,
+        objective_family_mask=objective_family_mask,
+    )
+    incoming_score = incoming.get("unified_score")
+    if not isinstance(incoming_score, Mapping) or dict(incoming_score) != unified_score:
+        raise ValueError("unified Stair runner score differs from frozen-mask replay")
+    canonical_score = float(unified_score["j_primary"]["score_stats"]["mean"])
+    if not math.isclose(
+        public_result.public_score,
+        canonical_score,
+        rel_tol=1.0e-9,
+        abs_tol=1.0e-9,
+    ):
+        raise ValueError("unified Stair public score differs from J_primary")
+    _validate_unified_sealed_score_verdict(
+        config,
+        incoming.get(SEALED_VALIDATION_EVIDENCE_KEY),
+        public_mean=canonical_score,
+    )
+    budget_gate = _budget_accounting_gate(config, train_summary)
+    runtime_gate = build_stair_runtime_activation_gate(
+        config,
+        train_summary,
+        mechanism_operation_delta=mechanism_operation_delta,
+        resolved_cell_manifest=resolved_cell_manifest,
+    )
+    acceptance_protocol = config.acceptance_protocol
+    named_guards = {}
+    for guard in acceptance_protocol.named_guards:
+        source = unified_score[guard.name]
+        named_guards[guard.name] = {
+            **guard.to_public_dict(),
+            "score_stats": dict(source["score_stats"]),
+            "score_samples": list(source["seed_macro_scores"]),
+        }
+    score_source = unified_score["j_primary"]
+    acceptance = {
+        "score_source": acceptance_protocol.score_source,
+        "public_score_binding": acceptance_protocol.public_score_binding,
+        "score_stats": dict(score_source["score_stats"]),
+        "score_samples": list(score_source["seed_macro_scores"]),
+        "named_guards": named_guards,
+        "min_score_count": acceptance_protocol.min_score_count,
+        "missing_required_score": False,
+        "required_pass_gates": list(config.unified_protocol.required_pass_gates),
+        "acceptance_protocol_hash": acceptance_protocol.protocol_hash,
+        "absolute_accept_floor": acceptance_protocol.absolute_accept_floor,
+        "min_delta": acceptance_protocol.min_delta,
+        "max_public_to_sealed_score_drop": (
+            acceptance_protocol.max_public_to_sealed_score_drop
+        ),
+    }
+    metrics = {
+        key: incoming[key]
+        for key in RUNNER_OWNED_PUBLIC_EVAL_METRIC_KEYS
+        if key in incoming
+    }
+    metrics.update(
+        {
+            "environment_source_preflight": source_preflight,
+            "public_dev": public_dev,
+            "public_accept": public_accept,
+            "unified_score": unified_score,
+            "objective_family_mask": dict(objective_family_mask),
+            "generalization_public_dev": dev_score,
+            "prompt_feedback": build_unified_stair_prompt_feedback(
+                suite=suite,
+                semantics=semantics,
+                summary=public_dev,
+                objective_family_mask=objective_family_mask,
+            ),
+            "accept_evidence_gate": {
+                "status": "pass",
+                "reason": "unified_paired_public_accept_evidence_complete",
+                "observed_count": score_source["score_stats"]["count"],
+                "required_count": acceptance_protocol.min_score_count,
+                "statistics_unit": "one_stratified_macro_score_per_paired_seed",
+            },
+            "budget_accounting": budget_gate,
+            "runtime_activation_gate": runtime_gate,
+            "stair_behavior_gate": {
+                "status": "pass",
+                "reason": "unified_task_recorder_strata_complete",
+                "source": "runner_owned_stair_transition_recorder",
+                "validated_splits": ["public_dev", "public_accept"],
+                "ordered_suite_hash": suite.suite_hash,
+                "classification_warning_count": 0,
+            },
+            "acceptance": acceptance,
+        }
+    )
+    return PublicEvalResult(
+        status=public_result.status,
+        public_score=canonical_score,
+        metrics=metrics,
+    )
+
+
+def _project_legacy_stair_public_result(
+    *,
+    config: StairClimbingTaskConfig,
+    public_result: PublicEvalResult,
+    train_summary: Mapping[str, Any],
+    mechanism_operation_delta: Mapping[str, Any] | None,
+) -> PublicEvalResult:
+    incoming = dict(public_result.metrics)
+    if "objective_family_mask" in incoming:
+        raise ValueError("legacy Stair eval cannot carry an objective family mask")
     unsupported = (
         set(incoming)
         - _TASK_DERIVED_INPUT_KEYS
@@ -263,6 +477,40 @@ def project_stair_public_result(
     )
 
 
+def _validate_unified_sealed_score_verdict(
+    config: StairClimbingTaskConfig,
+    evidence: Any,
+    *,
+    public_mean: float,
+) -> None:
+    if evidence is None:
+        return
+    protocol_label = "unified Stair"
+    if not isinstance(evidence, Mapping):
+        raise ValueError(f"{protocol_label} sealed validation evidence must be an object")
+    score_stats = evidence.get("score_stats")
+    if not isinstance(score_stats, Mapping):
+        raise ValueError(f"{protocol_label} sealed score_stats must be an object")
+    sealed_mean = score_stats.get("mean")
+    if (
+        isinstance(sealed_mean, bool)
+        or not isinstance(sealed_mean, int | float)
+        or not math.isfinite(float(sealed_mean))
+    ):
+        raise ValueError(f"{protocol_label} sealed score mean is invalid")
+    passed, expected_reason = evaluate_unified_stair_sealed_score_gate(
+        sealed_mean=float(sealed_mean),
+        public_mean=public_mean,
+        acceptance_protocol=config.acceptance_protocol,
+        evaluation_subject=ExperimentSubject.from_mapping(
+            evidence.get("evaluation_subject")
+        ),
+    )
+    expected_status = "pass" if passed else "fail"
+    if evidence.get("status") != expected_status or evidence.get("reason") != expected_reason:
+        raise ValueError(f"{protocol_label} sealed score verdict differs from task policy")
+
+
 def _validate_sealed_score_verdict(
     config: StairClimbingTaskConfig,
     evidence: Any,
@@ -298,6 +546,22 @@ def _validate_environment_source_preflight_pair(
     train_summary: Mapping[str, Any],
     eval_preflight: Any,
 ) -> dict[str, str]:
+    if config.is_unified_protocol:
+        observed_train = train_summary.get("environment_source_preflight")
+        if not isinstance(observed_train, Mapping) or not isinstance(
+            eval_preflight, Mapping
+        ):
+            raise ValueError("unified Stair source preflight evidence is missing")
+        expected = dict(observed_train)
+        if (
+            dict(eval_preflight) != expected
+            or expected.get("status") != "pass"
+            or expected.get("task_protocol_hash") != config.task_protocol_hash
+            or not is_sha256_digest(expected.get("source_manifest_hash"))
+        ):
+            raise ValueError("unified Stair train/eval source preflight differs")
+        return expected
+    assert config.protocol_v2 is not None
     contract = config.protocol_v2.runner_owned_training_distribution
     if contract is None:
         raise ValueError("Stair Final V2 training distribution contract is missing")
@@ -348,6 +612,7 @@ def build_stair_runtime_activation_gate(
     *,
     expected_control_calls: int | None = None,
     mechanism_operation_delta: Mapping[str, Any] | None = None,
+    resolved_cell_manifest: ResolvedCellManifestV1 | None = None,
 ) -> dict[str, Any]:
     if expected_control_calls is None:
         expected_control_calls = (
@@ -385,6 +650,19 @@ def build_stair_runtime_activation_gate(
         train_summary,
         mechanism_operation_delta=mechanism_operation_delta,
     )
+    from true_rl_agent.tasks.stair_climbing.component_smoke import (
+        StairClimbingComponentSmokeAdapter,
+    )
+
+    active_input_schema_hash = StairClimbingComponentSmokeAdapter(
+        config,
+        resolved_cell_manifest=resolved_cell_manifest,
+    ).contract.input_schema_hash
+    dispatcher_contract = (
+        config.vnext_reward_authority.runtime_authority_payload()["dispatcher"]
+        if config.is_unified_protocol
+        else config.protocol_v2.complete_reward_runtime.dispatcher_contract
+    )
     checks = {
         "runtime_status": runtime.get("runtime_status") == expected_status,
         "runtime_evidence_status": runtime.get("status") == "pass",
@@ -399,9 +677,7 @@ def build_stair_runtime_activation_gate(
             and preflight_calls == 1
             and preflight.get("transition_common_step") == 1
             and preflight.get("repeat_count")
-            == config.protocol_v2.complete_reward_runtime.dispatcher_contract[
-                "determinism_preflight_repeats"
-            ]
+            == dispatcher_contract["determinism_preflight_repeats"]
             and isinstance(program, Mapping)
             and preflight.get("term_names") == program.get("term_names")
         ),
@@ -463,8 +739,7 @@ def build_stair_runtime_activation_gate(
             == train_summary.get("subject_manifest_hash")
             and program.get("qualification_hash")
             == train_summary.get("reward_program_qualification_hash")
-            and program.get("input_schema_hash")
-            == config.protocol_v2.complete_reward_runtime.input_schema_hash
+            and program.get("input_schema_hash") == active_input_schema_hash
             and isinstance(program_subject, Mapping)
             and program_subject.get("kind") == train_summary.get("subject_kind")
             and program_subject.get("id") == train_summary.get("subject_id")
@@ -721,6 +996,11 @@ def build_stair_prompt_score_semantics(
     }
     if acceptance_protocol.uses_guard_score:
         sources["guard_score"] = str(acceptance_protocol.guard_score_source)
+    if acceptance_protocol.uses_named_guards:
+        sources["named_guards"] = {
+            guard.name: guard.score_source
+            for guard in acceptance_protocol.named_guards
+        }
     return {
         "score_sources_by_role": sources,
         "diagnostic_only_roles": ["public_dev_objective_score"],
