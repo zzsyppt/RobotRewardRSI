@@ -1,0 +1,43 @@
+{
+  "schema_version": "humanoid_agent.phase8a.min_runner.config.v1",
+  "runner": {
+    "task": "Unitree-G1-29dof-Velocity",
+    "train_profile": "phase2_train",
+    "seed": 801,
+    "device": "cuda:0",
+    "num_envs": 4096,
+    "max_iterations": 1,
+    "timeout_seconds": 1800,
+    "phase1_config": "configs/phase1_push_recovery.yaml",
+    "phase2_config": "configs/phase2_baseline.yaml",
+    "run_root": "/data/yuyangliu/runs/phase_8_cold_start_autoresearch",
+    "commands_filename": "commands.sh",
+    "train_summary_filename": "train_start_smoke_summary.json",
+    "runner_summary_filename": "phase8a_runner_summary.json"
+  },
+  "budget_contract": {
+    "primary_unit": "env_steps",
+    "phase8a_scope": "train-start smoke only; full env-step accounting is Phase 8B",
+    "enforcement_status": "metadata_only_in_phase8a; enforced runtime accounting starts in Phase 8B",
+    "fixed_num_envs_target": 4096,
+    "fixed_max_iterations_for_smoke": 1,
+    "candidate_may_change_budget": false,
+    "candidate_may_select_checkpoint": false,
+    "candidate_may_run_eval": false
+  },
+  "candidate_policy": {
+    "allowed_schema_version": "humanoid_agent.cold_start.candidate.v1",
+    "allow_llm_authored": false,
+    "require_noop_components": true,
+    "require_trusted_human_provenance": true,
+    "trusted_human_candidates": [
+      {
+        "candidate_id": "phase8a_noop_candidate",
+        "path": "examples/cold_start_candidates/noop_candidate",
+        "manifest_sha256": "75285263e204e93a1238b909d082b9f3609cae1d6ea2e7fd89cedc1fa5422ae7",
+        "entrypoint_sha256": "f511eea12b105544d60b8f080d4a1c448bef3966e548419c2bdccc0044ea210b",
+        "training_code_tree_sha256": "7097767f9fd0c72102d0c53a9460e79cd934b6097cd88dad65bcd242983d8eb4"
+      }
+    ]
+  }
+}

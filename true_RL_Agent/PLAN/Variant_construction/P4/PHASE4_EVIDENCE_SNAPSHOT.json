@@ -1,0 +1,372 @@
+{
+  "schema_version": "true_rl_agent.variant_construction.phase4_evidence.v1",
+  "status": "pass",
+  "scope": "g1_37dof_unified_stair_reference_and_reward_loop",
+  "source": {
+    "artifact_source_commit": "5a30129060353fcbddea0224d4544e23b8d2ee35",
+    "product_freeze_commit": "66e9c3bb97267663406e91b63f826acd97cc9e12",
+    "product_bytes_unchanged_after_freeze": true,
+    "server_full_regression": {
+      "python_environment": "Isaac Lab server environment with torch 2.7.0+cu128",
+      "run_count": 1549,
+      "failure_count": 0,
+      "skip_count": 3,
+      "duration_s": 1008.815
+    }
+  },
+  "product_source_hash_mode": "normalized_lf_sha256",
+  "product_source_hashes": {
+    "configs/tasks/stair_unified_acceptance_protocol_v6.json": "c97aacb7aba24605d38092acf64f55baaa0b55eb8165a72581e0f400f83cd45a",
+    "configs/tasks/stair_unified_evaluation_suite_v1.json": "7ca40d15263923d10f588f4d2d3b8a33a4f9411612996268ce0f6dd5fdc642bd",
+    "configs/tasks/stair_unified_protocol_v1.json": "45b637067561468975bd72ee1a4371ef6445aad772a97f9c2e2947256460b26d",
+    "configs/tasks/stair_unified_training_profile_v1.json": "04aa81b507091c615c4fe3aed25a9f4878c0d3833c1172c55091a189bab201b7",
+    "configs/tasks/stair_vnext_reward_authority_v1.json": "b226a1a2dc1528bbfc010fd7d6067f3be6261f446e3ed78f4757a037685164f4",
+    "scripts/isaaclab_stair_rsl_rl_eval.py": "ff28760b327edbaeb9c0d6025fc35c8ea7bf596c98bb22cf99d70b56befdeeb1",
+    "scripts/isaaclab_stair_rsl_rl_train.py": "c949ed6d20392fe6d13da1ddc89377b781c457df77cad501d282042b29f593f9",
+    "scripts/launch_stair_generation_session.py": "157536624849c943cbfe8844127b0d6b260a228bdafcc7a64510d2c6440efcbd",
+    "scripts/run_stair_generation_session.py": "8c42386c46cd3687f0fbbd3cc04830521c50a7e07d6f3ee6678d6e51947689ec",
+    "src/true_rl_agent/agent_core/context.py": "850ab31ea112a5b16b9619a3409cab1537b3ad31ace74009509b1c8c068b1d85",
+    "src/true_rl_agent/agent_core/experiment_memory.py": "a79f08476799d706d36ba31a7bb032bab681334c82ec39f487e5ee35c5deec85",
+    "src/true_rl_agent/agent_core/session_genesis.py": "2c9570b2db294dcc8b80b1c7ee34788e092743eb497faa1d3f987b04de1bbeb8",
+    "src/true_rl_agent/memory/context_builder.py": "d7f83de99f6e8da5af3ef1c22d1ab990b4df0e3f1e726da8c6df127512ac3527",
+    "src/true_rl_agent/prompting/authoring_frame.py": "b4a27f8d6d3117b19226dc8117a2c819289e1f861e43781200a33fd78196d579",
+    "src/true_rl_agent/prompting/payload.py": "8d0fdef7619570b1ebe3e04b4f1e6b2dd04d1f54d1d5465d3689af3159f09333",
+    "src/true_rl_agent/prompting/source_catalog.py": "90f57f20723582e024f274d112b037c337e73e029129d5aa64d0a0e51603e838",
+    "src/true_rl_agent/tasks/prompt_adapter.py": "24efd24a399f4f36bfd9efd7486be0c1561a6a0b87d99f3db9846885f52d7e62",
+    "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py": "022ae74ab1e58a846ee9d829db9e7df32d93234528e0fd7569cc152e051df960",
+    "src/true_rl_agent/tasks/stair_climbing/composition.py": "c113d2d6bdb37b79a5e111dfdfa9069d94ec801f1155feef47e391413650b7bb",
+    "src/true_rl_agent/tasks/stair_climbing/evaluation_contract.py": "efb58a722366825b0c6d78938b2ce58fe3bce6d721db35303f83ee38d835ead8",
+    "src/true_rl_agent/tasks/stair_climbing/exploration.py": "e9c173851606e60e265bc6c02f26e3ab172afb446f9d9149d367a83df6b3619e",
+    "src/true_rl_agent/tasks/stair_climbing/generation_bootstrap.py": "f17022d40f89784231ecfbf4efd938e0524ce99109e9cc12f6e045d622f217fd",
+    "src/true_rl_agent/tasks/stair_climbing/generation_session.py": "bb79408e9def9a8839ea19b66650ea74fc33c1cf0ca1ada4793daf084f9a79be",
+    "src/true_rl_agent/tasks/stair_climbing/generation_session_cost.py": "a414ba8d4c4790261857ad908f5784f0ee8df13ed92300bfecc6c5243e9b3dff",
+    "src/true_rl_agent/tasks/stair_climbing/memory.py": "9a74e5cac26dc3e25862299c0d3dd1e933c489c964b3ec6db63aab333c041812",
+    "src/true_rl_agent/tasks/stair_climbing/ordered_summary.py": "a0436cd3b061f6990a8a8f44bc69240e152137ef679b20e4b59f87acb16ab5b8",
+    "src/true_rl_agent/tasks/stair_climbing/phased_adapter.py": "48d0b99c3fa794f08e32470b7b6c2a21c59c81b3a74144e61135f7047dd429d1",
+    "src/true_rl_agent/tasks/stair_climbing/phased_cost.py": "1b7c7201b19dc067821786489dfc37cabd7b20a4e6e34639f00bb833c7057187",
+    "src/true_rl_agent/tasks/stair_climbing/phased_evaluation.py": "b881ed5f6f84341a34bb290aee83a5419c6fa631a6fbedeca110386e5c3edc8c",
+    "src/true_rl_agent/tasks/stair_climbing/plugin.py": "1ff3bf4e0ac64a7485bbdb256ff3fcbd477ce926c6b3d62967b888536ffbd172",
+    "src/true_rl_agent/tasks/stair_climbing/prompt_adapter.py": "19e1633bb23cfbd564a47bffed02f862ea941a04ec41fdd1d5b8fd7846ee6068",
+    "src/true_rl_agent/tasks/stair_climbing/public_projection.py": "56a9505954561b8e1cc47293c2f9cdec86a2227016d5120af678f38def35fba8",
+    "src/true_rl_agent/tasks/stair_climbing/reference_program.py": "93ae3da27cc7d3e2e5067cee45dc8410dec460e1130104028fcfc5a527f1cfce",
+    "src/true_rl_agent/tasks/stair_climbing/reference_programs/official_g1_rough_vnext_v1/training_code/components.py": "3462bdf78d874ce2e4ab527cea3c1530ebc93cf9750d2b4fc64292e3a63adfb8",
+    "src/true_rl_agent/tasks/stair_climbing/reference_qualification.py": "ce98456fbf1533473cc481e58164439a7aff04ca916af556b396a81029071f3a",
+    "src/true_rl_agent/tasks/stair_climbing/selection.py": "cba29cc2ea58761e73a27b6f181899dc557c7f7ee253d9a58cdd1b02a37e6445",
+    "src/true_rl_agent/tasks/stair_climbing/unified_evaluation.py": "2c42f3175f000455c0998569b080e7e6586afcdc121ffe28059ab844bc13ba36",
+    "src/true_rl_agent/tasks/stair_climbing/unified_protocol.py": "6020a5d429aa41a380770b43ac9fd18832898daa260100ba7371a2d377eaa9f4",
+    "src/true_rl_agent/tasks/stair_climbing/unified_scoring.py": "7ba043c026e5b4d316c139d4d3dda31cd83a989a88e830fdde2b327a178a3320"
+  },
+  "identities": {
+    "cell_variant_id": "stair.g1_37dof.unified_v1",
+    "resolved_cell_manifest_hash": "cb9c93c1239d2f20eb58737b684cc74e21b6675a724198c470a58410f9ccdae2",
+    "task_protocol_hash": "3328f6600513d2e34f9b5f1cfab125505a9144fea7e2be23bc22ceb181d3b42e",
+    "base_task_protocol_hash": "e65239927cbf98f6cf12b0ddb959c6bd1390bdf7fd1c6a262fbbab7f1f04dcf8",
+    "training_binding_hash": "d7aea85d7742c57eae1753b8b236b32555269d9bcd8c25ed2b3742d2e045e14c",
+    "evaluation_binding_hash": "96d04d130cb669337297bbf8a5b53918b2006810c42586ff0ed374f6c18a0af2",
+    "acceptance_protocol_hash": "d18b5345c8b3112546af401a8dd1560e6c6e840ad8c5ef4d102bd3e1ea5b4c24",
+    "evaluation_protocol_hash": "aaea86a49cb01ea488eb3508685509dbee55c31589a268a922afd24ed082a942",
+    "seed_cohort_hash": "f61f9f4eec761b9818a6b48e032b534a121725f9b11a4d2326853d3056a0c11d",
+    "ordered_evaluation_suite_hash": "4ee307fe359122671cf4f7056b601135b28679818a9b4bd419f3e7697891ceb7",
+    "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db"
+  },
+  "reward_equivalence": {
+    "receipt_hash": "f12a02eaae2bf29de85e6e81d4c164b13e91c0a2d0a2cea0e95dc396026a7b89",
+    "term_count": 15,
+    "sample_count": 257,
+    "weighted_total_max_abs_difference": 0.0,
+    "official_v1_source_hash": "a1255b585ffc6752df710be648cf0439017d5220a41853b9dfdebc778c3c03a3",
+    "vnext_source_hash": "3462bdf78d874ce2e4ab527cea3c1530ebc93cf9750d2b4fc64292e3a63adfb8"
+  },
+  "reference": {
+    "reference_id": "official-g1-rough-reward-vnext-v1",
+    "reference_manifest_hash": "4090bd3b80113ee956400870e17dbe60809cf55d0a15e351ff11583942ff924f",
+    "program_source_checksum": "sha256:3462bdf78d874ce2e4ab527cea3c1530ebc93cf9750d2b4fc64292e3a63adfb8",
+    "checkpoint_hash": "sha256:3fbbf80d5e7e4ee559420ea06759231c00e2d90316101ace4db6e24ec25810b2",
+    "initialization_mode": "random",
+    "budget_steps": 196608000,
+    "qualification_evidence_hash": "89537aa93a5bc18f07563cf07e6bd3d68ec4aaf49cfee67eab8afe0a72853f79",
+    "objective_family_mask_hash": "04ad43edf20c7dfb7749492cc0b7e4fadcb881136444c0ccbc4cd40cb3284a54",
+    "qualified_ood_families": [
+      "F_scalar",
+      "F_c1",
+      "F_c2"
+    ],
+    "readiness": {
+      "c0_id_macro_progress": 0.9429426062222221,
+      "c0_id_macro_success": 0.6666666666666666,
+      "c1_id_macro_progress": 0.8623122688888888,
+      "c1_id_macro_success": 0.31111111111111106
+    },
+    "public_accept": {
+      "j_primary": 0.6454813152510288,
+      "j_primary_standard_error": 0.009298997579867964,
+      "j_id": 0.6957581632222221,
+      "j_ood": 0.6203428912654321,
+      "j_ood_standard_error": 0.007563553121658003,
+      "families": {
+        "F_scalar": {
+          "score": 0.6767892207407407,
+          "success_rate": 0.5037037037037037,
+          "fixed_seed_vector_standard_error": 0.01990578023773575
+        },
+        "F_c1": {
+          "score": 0.6317541253888888,
+          "success_rate": 0.35555555555555557,
+          "fixed_seed_vector_standard_error": 0.008166656654559583
+        },
+        "F_c2": {
+          "score": 0.5524853276666667,
+          "success_rate": 0.24444444444444444,
+          "fixed_seed_vector_standard_error": 0.03420296708784771
+        }
+      }
+    },
+    "public_dev": {
+      "j_primary": 0.6550906132510288,
+      "j_id": 0.7267460442592593,
+      "j_ood": 0.6192628977469136
+    },
+    "sealed_validation": {
+      "j_primary": 0.6732289701895944,
+      "j_id": 0.7400321802777778,
+      "j_ood": 0.6398273651455026,
+      "F_scalar": 0.6622267848412698,
+      "F_c1": 0.6698375258333333,
+      "F_c2": 0.5874177847619048
+    }
+  },
+  "pilot": {
+    "artifact_root_name": "phase4_unified_pilot_5a30129_20260829",
+    "session_id": "phase4-unified-pilot-5a30129-20260829",
+    "session_mode": "development_generation_pilot",
+    "session_genesis_hash": "75b0348198755f3a16319c3884fa0704a6a77e059dc558c14ebfebdd81682aa2",
+    "generation_session_contract_hash": "d498fb975088093103ecec63e5634d70e3b2ec508c204e20dfbb87bc98214334",
+    "generation_count": 1,
+    "generation_outcomes": [
+      "accepted"
+    ],
+    "accepted_candidate": {
+      "candidate_id": "stair_vnext_lateral_course_alignment_v1",
+      "artifact_hash": "84f344e9fac7b9008680008d70abc3279fe36f545381594434ec15e849e5dff4",
+      "source_checksum": "sha256:c369860b490b3bf625387f614575f3767a5d5f52ac63321f2eb674e28d0c215e",
+      "checkpoint_hash": "sha256:89413d763bc04398ec2ea628c43de5f3346bc13db437afbde8763db8006239bf",
+      "public_dev_j_primary": 0.9224228519135803,
+      "public_accept_j_primary": 0.9302344638600824,
+      "sealed_j_primary": 0.9154413626
+    },
+    "terminal_binding": {
+      "closed_generation_count": 1,
+      "current_head_hash": "fb3401ef1cf7bd7ec1b5e722f228d1a866706efb2fe8ba88b975217580e74f61",
+      "cost_chain_head_hash": "bdd792508a357e92affc4132150e87f5cf16466e5aad55163d2037e04d298000",
+      "ledger_snapshot_hash": "d09d27f00ce80b2f1b78203a135455cb5e7b059ca67d4f3c4ea5818d1091d140"
+    },
+    "actual_cost": {
+      "train_jobs": 3,
+      "train_steps": 589824000,
+      "simulated_control_steps": 591761736,
+      "eval_seed_units": 38,
+      "provider_attempts": 3,
+      "provider_total_units": 69499,
+      "allocated_gpu_capacity_hours_charged": 3.836509210328611,
+      "observed_output_bytes": 1005455599
+    },
+    "prompt_payload": {
+      "file_count": 3,
+      "total_bytes": 195203,
+      "sizes_bytes": [
+        63986,
+        64794,
+        66423
+      ]
+    },
+    "raw_artifact_hashes": {
+      "session_genesis.json": "7dbc18958336b8fbc2a1b430b51eab523aeacee093f2ff3de7921ae8ee5d5f64",
+      "reference_eval_artifact.json": "cfbf5d39a9a3238bf8a47f70e4f4f3923bf878688422b733bc09872125e1be7b",
+      "ledger.jsonl": "8ef90b2b0391bdc6c566450fd8b96ab1bd23aa35a87c7f0572b1c58971e9387b",
+      "generation_session_report.json": "301f52e4354ba8e829c6f4e904e5d0ff90f58e4faae5c75e6cb4107b07c35d90",
+      "generation_session_contract.json": "43dc74693932dce5e2a070107ff2c14f6faf82ea545d8a6726fee7e58baa7f69",
+      "generation_session_cost.json": "c060437e1b8c829a87e588c85d02904d749a1efcf04866b669ce61946a797764",
+      "resolved_cell_manifest.json": "26c7b46d05b079a282102e133296b0178ceb1e6083ab66634e53179aaca4afdf"
+    }
+  },
+  "validation": {
+    "artifact_root_name": "phase4_unified_validation_5a30129_20260829",
+    "session_id": "phase4-unified-validation-5a30129-20260829",
+    "session_mode": "development_generation_validation",
+    "session_genesis_hash": "310fa7595fc65c5b6e18a9ad6f7af73aec285e7c2171bddc4fa1d53051740b8e",
+    "generation_session_contract_hash": "21673d79c8688de0a8cd8c1b8b1deaec0d179f0f458641cf8d9ef78b67ec5297",
+    "generation_count": 3,
+    "generation_outcomes": [
+      "accepted",
+      "formal_rejected",
+      "no_selection"
+    ],
+    "generation_records": [
+      {
+        "generation_index": 1,
+        "record_hash": "a6440ba264f1e915d24e6c0ec3e8b86ff9eba77c5ec1e473f7e224e9c08b4309",
+        "execution_receipt_checksum": "sha256:e13e5209cdf99d7acf5947ea2c54ba945e741e85c091fd2e2804f18d6b7c6e90",
+        "closure_hash": "03442175451fad2bdba0a936947e246104ebc68eb6bf713eebd497096dba1bc2",
+        "resource_evidence_hash": "52c8a0c354fcbf7cd08881df4e6c8470fc5f6c611de5eac0d391e79dae612b7d",
+        "outcome": "accepted",
+        "formal_selected_lane": "lane-b"
+      },
+      {
+        "generation_index": 2,
+        "record_hash": "df48a4eaa0a5f7c340f94897486cc4d175d69eb8f86f0afb6ec786446f6d05b9",
+        "execution_receipt_checksum": "sha256:3e50cc5169bc051a92a977a7f4a1b3c7b3d8fc9dd927b3b6b0a26f56137e5047",
+        "closure_hash": "3d5f60b1eec349b0c90cf5ec2ec56653a44d06486c8b7d708e72badde2b51851",
+        "resource_evidence_hash": "c28cfc175c1221e68cf0df4b1ccec7c0e6936ced65ca0367f21ddd84b78c08bc",
+        "outcome": "formal_rejected",
+        "formal_selected_lane": "lane-b"
+      },
+      {
+        "generation_index": 3,
+        "record_hash": "7319ebd2428a174e3b0d872a86f37a0d66e53c5cae311af1d5a07ba1b949a5e6",
+        "execution_receipt_checksum": "sha256:f430682b87afb0ea06058f336616482be1de87383668132fb8cca8521d3a53fb",
+        "closure_hash": "d1c66219e0e241cffba8da983a88c7743226e66b58c3d4e2dd0272f235cf84fb",
+        "resource_evidence_hash": "fc82881303640e207b723a6e5326c3c1be4a480ed1874ff93a13d12c90f1e05e",
+        "outcome": "no_selection",
+        "formal_selected_lane": null
+      }
+    ],
+    "accepted_candidate": {
+      "candidate_id": "g1_rough_lateral_course_deviation_v1",
+      "artifact_hash": "9183fe42da7c81f9d700ad76d9c9abe166ade31e96d0ebe4e650a78d140b428d",
+      "source_checksum": "sha256:0b07f3f44450d94dcbdda3469d1aabfc65ee8c06f98957da011db0717d5781ab",
+      "checkpoint_hash": "sha256:65ee712a12b09945a44157cdf49550974299a9f241fe60c875f0092322890ef2",
+      "public_dev": {
+        "j_primary": 0.9224332062139918,
+        "j_id": 0.9814814814814814,
+        "j_ood": 0.8929090685802469
+      },
+      "public_accept": {
+        "j_primary": 0.9420168865679012,
+        "j_id": 1.0,
+        "j_ood": 0.9130253298518518
+      },
+      "sealed_validation": {
+        "j_primary": 0.9289654062,
+        "j_primary_standard_error": 0.00529480045,
+        "j_id": 1.0,
+        "j_ood": 0.8934481093,
+        "F_scalar": 0.6962173437,
+        "F_c1": 0.9841269841,
+        "F_c2": 1.0
+      },
+      "decision": {
+        "delta": 0.29653557131687236,
+        "threshold": 0.07090373694979424,
+        "paired_standard_error": 0.010592478619107755,
+        "family_paired_deltas": {
+          "F_scalar": {
+            "delta": 0.07895343548148148,
+            "paired_standard_error": 0.01688850542855915
+          },
+          "F_c1": {
+            "delta": 0.3515792079444444,
+            "paired_standard_error": 0.008008729750076379
+          },
+          "F_c2": {
+            "delta": 0.4475146723333333,
+            "paired_standard_error": 0.034202967087847716
+          }
+        }
+      }
+    },
+    "generation_2_rejection": {
+      "candidate_id": "g1_upright_goal_progress_v1",
+      "public_accept_j_primary": 0.9067657098024691,
+      "delta": -0.0352511767654321,
+      "threshold": 0.0172472587342497,
+      "paired_standard_error": 0.011498172489499801,
+      "failed_guard": "c1_id",
+      "failed_guard_delta": -0.09372999844444452,
+      "failed_guard_threshold": 0.05
+    },
+    "terminal_binding": {
+      "closed_generation_count": 3,
+      "current_head_hash": "8fe3f82b54639f64692ff4e6ae43a395bc9442d1ed9c9999f8feccf734788f26",
+      "cost_chain_head_hash": "fd2668a511b28d46a158683641ef67c8b80c99a25acc143271027fc3423ef65b",
+      "ledger_snapshot_hash": "d85365fbb875f2b6b622f8dacb35da0f6f7948fe6250112a31494adcd126a4bf",
+      "lifecycle_head_hash": "a8575de656dfd1b4767739595ae059e8cb8b60f19bc49d85a6f2807395a67209",
+      "identity_hash": "e5498e0129c744edd7e455b245c5224ad8c06cd009ffda1d46cf33efc78f372c"
+    },
+    "actual_cost": {
+      "train_jobs": 7,
+      "train_steps": 1376256000,
+      "simulated_control_steps": 1380177624,
+      "eval_seed_units": 77,
+      "provider_attempts": 11,
+      "provider_request_units": 210370,
+      "provider_response_units": 109263,
+      "provider_reasoning_units": 91810,
+      "provider_total_units": 319633,
+      "job_attempts": 24,
+      "allocated_gpu_capacity_hours_charged": 8.537714789365555,
+      "observed_output_bytes": 2345475845,
+      "accounted_output_bytes": 2346524421
+    },
+    "terminal_metrics": {
+      "paired_ready_generation_count": 3,
+      "paired_ready_rate": 1.0,
+      "generation_outcome_counts": {
+        "accepted": 1,
+        "formal_rejected": 1,
+        "no_selection": 1
+      },
+      "selector_reversal_count": 0,
+      "selector_consistency_numerator": 2,
+      "selector_consistency_denominator": 2,
+      "retry_eval_seed_units_consumed": 0,
+      "retry_train_jobs_consumed": 0,
+      "parent_bootstrap_eval_seed_units": 0
+    },
+    "prompt_and_memory_audit": {
+      "prompt_payload_file_count": 11,
+      "prompt_payload_total_bytes": 792328,
+      "prompt_payload_sizes_bytes": [
+        63986,
+        65615,
+        64792,
+        70457,
+        72086,
+        56729,
+        55671,
+        71273,
+        89475,
+        90301,
+        91943
+      ],
+      "private_cell_id_hits": 0,
+      "private_cohort_hash_hits": 0,
+      "private_reference_qualification_hash_hits": 0,
+      "generation_3_task_section_bytes": 31433,
+      "generation_3_task_section_limit_bytes": 32768,
+      "generation_3_public_history_bytes": 7330,
+      "generation_3_experiment_memory_bytes": 4725,
+      "generation_3_feedback_entry_count": 2,
+      "generation_3_family_count": 3,
+      "generation_3_stratum_count": 8,
+      "nonblocking_followup_count": 3
+    },
+    "raw_artifact_hashes": {
+      "session_genesis.json": "09a771de0b14b1666d53f20615e42d9095f6846c489e1c60164a53162d79e05c",
+      "reference_eval_artifact.json": "8dfdece31028ec90c33c0b6a19dbda56e817282efbd18166eee9c4ca4b2032b8",
+      "ledger.jsonl": "09fcf7413bfcd37bddc8ef44637cb5ff297e8b2c6599d367a46d70c103b9eaf9",
+      "generation_session_report.json": "93c605f9b4b75d424808b862d3c9d4a7e06a3458da91d5aff09f39a7409516e5",
+      "generation_session_contract.json": "2d747742c0f4e96414f4e1d9ba329510aed21f47df26801f8c2f2d2dbf722123",
+      "generation_session_cost.json": "e8a2172047ab394f8fe3288d7722359ec785eb3330546a25d0b1fd7dde506544",
+      "resolved_cell_manifest.json": "26c7b46d05b079a282102e133296b0178ceb1e6083ab66634e53179aaca4afdf"
+    }
+  },
+  "phase_gate": {
+    "loop_verified": true,
+    "improvement_observed": true,
+    "generation_budget_extended": false,
+    "runner_owned_semantics_changed_during_experiment": false,
+    "private_feedback_leaked_to_provider": false,
+    "legacy_task_regression_observed": false
+  },
+  "snapshot_hash": "b6ff1f56af6bc67ea6a9e5a1c5eddbc4cda120970d11092c9927175bcda11d53"
+}

@@ -1,0 +1,283 @@
+{
+  "schema_version": "true_rl_agent.task.stair_climbing.protocol_v2_draft.v4",
+  "protocol_id": "unitree_stair_climbing_v2_draft_r2",
+  "task_id": "unitree_stair_climbing",
+  "status": "draft_frozen_for_operator_selected_fixed_reference_confirmation",
+  "base_protocol": {
+    "schema_version": "true_rl_agent.task.stair_climbing.protocol.v1",
+    "protocol_id": "unitree_stair_climbing_v1",
+    "task_protocol_hash": "7732f94502b30cdd8524b1e9ad4a1dbb118bb8f6b7b2f60cd1d52e8901b61cde"
+  },
+  "genesis_anchor_policy": {
+    "random": "reference_program"
+  },
+  "reference_program": {
+    "reference_id": "official-g1-rough-reward-v1",
+    "repository_source_path": "src/true_rl_agent/tasks/stair_climbing/reference_programs/official_g1_rough_v1/training_code/components.py",
+    "canonical_source_path": "training_code/components.py",
+    "entrypoint": "training_code.components:build_training_components",
+    "session_role": "reference",
+    "required_authorship_origin": "official_upstream"
+  },
+  "candidate_capability_profile": {
+    "schema_version": "true_rl_agent.candidate_capability_profile.v1",
+    "profile_id": "unitree_stair_complete_reward_v1",
+    "capability_ids": [
+      "complete_reward_program"
+    ],
+    "profile_hash": "a5f96c0685e07b04929d5b92f1c8485d72e8e4e6025d7653933b557d5d2093a0"
+  },
+  "pilot_training": {
+    "fixed_max_iterations": 2000,
+    "budget_policy": "operator_selected_fixed_budget_without_optimality_or_convergence_claim",
+    "pilot_seed_domain": "single_seed_disjoint_from_formal_reference_and_candidate_training",
+    "training_seed_count": 1,
+    "curve_diagnostics": {
+      "schema_version": "true_rl_agent.task.stair_climbing.pilot_curve_diagnostics.v1",
+      "tail_window_iterations": 100,
+      "normalization": "absolute_linear_tail_change_over_population_stddev_with_1e-6_floor",
+      "required_scalar_tags": [
+        "Train/mean_reward",
+        "Curriculum/terrain_levels"
+      ]
+    },
+    "pilot_artifacts_enter_genesis": false,
+    "pilot_results_enter_acceptance_or_prompt": false
+  },
+  "reference_capability_gate": {
+    "schema_version": "true_rl_agent.task.stair_climbing.reference_capability_gate.v1",
+    "source_split": "public_accept",
+    "seed_count": 5,
+    "low_step_bin_ids": [
+      "stair_010",
+      "stair_015",
+      "stair_020"
+    ],
+    "bin_coverage": "every_seed_covers_every_declared_low_step_bin",
+    "aggregation": "per_seed_equal_weight_macro_over_declared_bins_then_cross_seed_mean",
+    "predicate": "success_and_progress_floors_both_required",
+    "minimum_macro_mean_success_rate": 0.05,
+    "minimum_macro_mean_max_progress_m": 0.5,
+    "threshold_relaxation_after_pilot_allowed": false
+  },
+  "formal_protocol": {
+    "evaluation_protocol_version": "stair_v2_formal_reference_and_candidate_v1",
+    "private_seed_resolver_version": "stair_v2_private_seed_and_bin_resolver_v1",
+    "pilot_seed_overlap_allowed": false,
+    "reference_candidate_training_binding_equal": true
+  },
+  "runner_owned_training_distribution": {
+    "schema_version": "true_rl_agent.task.stair_climbing.training_distribution.v1",
+    "authority": "task_runner",
+    "candidate_writable": false,
+    "prompt_visible": false,
+    "formal_and_pilot_identical": true,
+    "design_basis": "upstream_g1_rough_curriculum_alignment_under_frozen_stair_v1_bounds",
+    "selection_provenance": {
+      "kind": "upstream_alignment_not_failure_result",
+      "invalid_pre_capture_pilot_results_used": false
+    },
+    "upstream_reference": {
+      "project": "IsaacLab",
+      "revision": "v2.3.0",
+      "source_files": [
+        {
+          "import_package": "isaaclab",
+          "package_relative_path": "terrains/terrain_importer.py",
+          "covered_symbols": [
+            "TerrainImporter.update_env_origins"
+          ],
+          "checksum": "sha256:48fcd31dbdba2f17fb35311e2afd0cbd3c0db2a10c4b63d24b5d3dfab171fc78",
+          "size_bytes": 16702
+        },
+        {
+          "import_package": "isaaclab_tasks",
+          "package_relative_path": "manager_based/locomotion/velocity/config/g1/agents/rsl_rl_ppo_cfg.py",
+          "covered_symbols": [
+            "G1RoughPPORunnerCfg"
+          ],
+          "checksum": "sha256:b0d534c52f265a8154341428ddc0c215ea39f470d4bad1fc0d67168951ed8e88",
+          "size_bytes": 1454
+        },
+        {
+          "import_package": "isaaclab_tasks",
+          "package_relative_path": "manager_based/locomotion/velocity/config/g1/rough_env_cfg.py",
+          "covered_symbols": [
+            "G1RoughEnvCfg"
+          ],
+          "checksum": "sha256:484db0fefe6c057f03d9ce7fbd3ca6f50a65bf0373d7f1f5d159bb2a8d8bd6ce",
+          "size_bytes": 6663
+        },
+        {
+          "import_package": "isaaclab_tasks",
+          "package_relative_path": "manager_based/locomotion/velocity/mdp/curriculums.py",
+          "covered_symbols": [
+            "terrain_levels_vel"
+          ],
+          "checksum": "sha256:d1d39584cc4a61e489ffba5cd9737b15ce5803d3a7abb7a43b4386bfcf98b6f7",
+          "size_bytes": 2414
+        },
+        {
+          "import_package": "isaaclab_tasks",
+          "package_relative_path": "manager_based/locomotion/velocity/velocity_env_cfg.py",
+          "covered_symbols": [
+            "CurriculumCfg.terrain_levels"
+          ],
+          "checksum": "sha256:962c09406c4347b0488020ac0e1d8800740c5bbc3035f4d14af9aeaeb2441b58",
+          "size_bytes": 11100
+        }
+      ]
+    },
+    "terrain": {
+      "generation_mode": "difficulty_linear_by_row",
+      "height_range_source": "base_v1.terrain.training_distribution.step_height_range_m",
+      "runtime_level_curriculum_enabled": true,
+      "initial_max_terrain_level": 5,
+      "level_update_term": "isaaclab_tasks.manager_based.locomotion.velocity.mdp.curriculums.terrain_levels_vel"
+    },
+    "command": {
+      "forward_sampling": "uniform_zero_to_base_v1.training.forward_command_mps",
+      "lateral_source": "base_v1.training.lateral_command_mps",
+      "yaw_source": "base_v1.training.yaw_command_radps",
+      "standing_env_fraction": 0.02,
+      "heading_command_enabled": false
+    }
+  },
+  "training_execution": {
+    "schema_version": "true_rl_agent.task.stair_climbing.training_execution.v2",
+    "runner": "rsl_rl_on_policy_runner",
+    "init_at_random_episode_length": true,
+    "checkpoint_selector": "final_iteration",
+    "checkpoint_save_interval_iterations": 50,
+    "torch_matmul_allow_tf32": true,
+    "cudnn_allow_tf32": true,
+    "cudnn_deterministic": false,
+    "cudnn_benchmark": false,
+    "observation_groups": {
+      "policy": ["policy"],
+      "critic": ["policy"]
+    },
+    "clip_actions": null,
+    "empirical_normalization": null,
+    "logger": "tensorboard",
+    "resume": false
+  },
+  "complete_reward_runtime": {
+    "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_runtime.v1",
+    "input_schema": {
+      "schema_version": "true_rl_agent.task.stair_climbing.reward_inputs.v2",
+      "fields": [
+        {"name": "base_height", "dtype": "float", "trailing_shape": [], "unit": "m", "description": "Base height relative to the terrain origin."},
+        {"name": "roll", "dtype": "float", "trailing_shape": [], "unit": "rad", "description": "Base roll in the world frame."},
+        {"name": "pitch", "dtype": "float", "trailing_shape": [], "unit": "rad", "description": "Base pitch in the world frame."},
+        {"name": "base_pos_xy", "dtype": "float", "trailing_shape": [2], "unit": "m", "description": "Base planar position relative to the terrain origin."},
+        {"name": "base_lin_vel", "dtype": "float", "trailing_shape": [3], "unit": "m/s", "description": "Base linear velocity in the body frame."},
+        {"name": "base_ang_vel", "dtype": "float", "trailing_shape": [3], "unit": "rad/s", "description": "Base angular velocity in the body frame."},
+        {"name": "projected_gravity", "dtype": "float", "trailing_shape": [3], "unit": "unit_vector", "description": "World gravity direction projected into the base frame."},
+        {"name": "commanded_base_vel", "dtype": "float", "trailing_shape": [3], "unit": "mixed_mps_radps", "description": "Task velocity command [vx, vy, yaw rate]."},
+        {"name": "joint_pos", "dtype": "float", "trailing_shape": [37], "unit": "rad", "description": "All policy-controlled joint positions."},
+        {"name": "joint_vel", "dtype": "float", "trailing_shape": [37], "unit": "rad/s", "description": "All policy-controlled joint velocities."},
+        {"name": "joint_pos_error", "dtype": "float", "trailing_shape": [37], "unit": "rad", "description": "Joint positions relative to the default pose."},
+        {"name": "last_action", "dtype": "float", "trailing_shape": [37], "unit": "policy_action", "description": "Action applied for the current control transition."},
+        {"name": "prev_action", "dtype": "float", "trailing_shape": [37], "unit": "policy_action", "description": "Action applied for the preceding control transition."},
+        {"name": "action_delta", "dtype": "float", "trailing_shape": [37], "unit": "policy_action", "description": "Current action minus previous action."},
+        {"name": "progress_fraction", "dtype": "float", "trailing_shape": [], "unit": "fraction", "description": "Elapsed fraction of the current episode horizon."},
+        {"name": "base_lin_vel_yaw", "dtype": "float", "trailing_shape": [3], "unit": "m/s", "description": "World base linear velocity rotated into the gravity-aligned yaw frame."},
+        {"name": "base_ang_vel_world", "dtype": "float", "trailing_shape": [3], "unit": "rad/s", "description": "Base angular velocity in the world frame."},
+        {"name": "base_quat_world", "dtype": "float", "trailing_shape": [4], "unit": "unit_quaternion_wxyz", "description": "Base orientation in the world frame."},
+        {"name": "ankle_joint_pos", "dtype": "float", "trailing_shape": [4], "unit": "rad", "description": "Left/right ankle pitch and roll joint positions."},
+        {"name": "ankle_soft_joint_pos_limits", "dtype": "float", "trailing_shape": [4, 2], "unit": "rad", "description": "Lower and upper soft position limits for ankle joints."},
+        {"name": "locomotion_joint_torque", "dtype": "float", "trailing_shape": [12], "unit": "N*m", "description": "Applied hip, knee, and ankle joint torques."},
+        {"name": "hip_knee_joint_acc", "dtype": "float", "trailing_shape": [8], "unit": "rad/s^2", "description": "Hip and knee joint accelerations used by the official reward."},
+        {"name": "hip_yaw_roll_joint_pos_error", "dtype": "float", "trailing_shape": [4], "unit": "rad", "description": "Hip yaw and roll offsets from the default pose."},
+        {"name": "arm_joint_pos_error", "dtype": "float", "trailing_shape": [10], "unit": "rad", "description": "Shoulder and elbow offsets from the default pose."},
+        {"name": "finger_joint_pos_error", "dtype": "float", "trailing_shape": [14], "unit": "rad", "description": "Finger joint offsets from the default pose."},
+        {"name": "torso_joint_pos_error", "dtype": "float", "trailing_shape": [1], "unit": "rad", "description": "Torso joint offset from the default pose."},
+        {"name": "foot_air_time", "dtype": "float", "trailing_shape": [2], "unit": "s", "description": "Current left/right foot air times."},
+        {"name": "foot_contact_time", "dtype": "float", "trailing_shape": [2], "unit": "s", "description": "Current left/right foot contact times."},
+        {"name": "foot_contact_force_history", "dtype": "float", "trailing_shape": [3, 2, 3], "unit": "N", "description": "Three physics samples of left/right foot world contact force."},
+        {"name": "foot_contact_force", "dtype": "float", "trailing_shape": [2, 3], "unit": "N", "description": "Current left/right foot world contact force."},
+        {"name": "foot_contact", "dtype": "bool", "trailing_shape": [2], "unit": "boolean", "description": "Foot contact mask derived from the frozen force threshold."},
+        {"name": "foot_lin_vel", "dtype": "float", "trailing_shape": [2, 3], "unit": "m/s", "description": "Left/right foot world linear velocity."},
+        {"name": "foot_pos_relative_to_terrain_origin", "dtype": "float", "trailing_shape": [2, 3], "unit": "m", "description": "Left/right foot position relative to the terrain origin."},
+        {"name": "base_pos_relative_to_terrain_origin", "dtype": "float", "trailing_shape": [3], "unit": "m", "description": "Base position relative to the terrain origin."},
+        {"name": "base_contact_force", "dtype": "float", "trailing_shape": [1, 3], "unit": "N", "description": "Current torso contact force in the world frame."},
+        {"name": "height_scan", "dtype": "float", "trailing_shape": [187], "unit": "m", "description": "Uncorrupted task height scan in the yaw-aligned sensor frame after the canonical ray-miss projection."},
+        {"name": "forward_progress_m", "dtype": "float", "trailing_shape": [], "unit": "m", "description": "Base progress along the task ascending axis from the frozen start."},
+        {"name": "remaining_goal_distance_m", "dtype": "float", "trailing_shape": [], "unit": "m", "description": "Signed remaining distance to the frozen top-platform goal."},
+        {"name": "goal_progress_fraction", "dtype": "float", "trailing_shape": [], "unit": "fraction", "description": "Clamped progress from frozen start to frozen goal."},
+        {"name": "terminated_non_timeout", "dtype": "bool", "trailing_shape": [], "unit": "boolean", "description": "Current pre-reset non-timeout termination mask."},
+        {"name": "time_out", "dtype": "bool", "trailing_shape": [], "unit": "boolean", "description": "Current pre-reset timeout mask."},
+        {"name": "base_contact", "dtype": "bool", "trailing_shape": [], "unit": "boolean", "description": "Current pre-reset torso-contact termination mask."}
+      ],
+      "source_transforms": {
+        "height_scan": {
+          "source_formula": "sensor_pos_w_z_minus_ray_hit_w_z_minus_offset",
+          "offset_m": 0.5,
+          "corruption": "disabled",
+          "ray_miss_policy": "saturate_infinity_to_clip_preserve_nan",
+          "clip_min": -1.0,
+          "clip_max": 1.0
+        }
+      }
+    },
+    "output_contract": {
+      "shape": ["num_envs"],
+      "dtype": "float",
+      "device": "same_as_inputs",
+      "finite_required": true,
+      "term_bound_applies_to": "weighted_contribution_after_clip",
+      "maximum_absolute_term_rate": 100000.0,
+      "maximum_absolute_total_rate": 100000.0
+    },
+    "dispatcher": {
+      "manager_term_name": "complete_reward",
+      "manager_term_weight": 1.0,
+      "program_calls_per_control_step": 1,
+      "term_calls_per_program_call": 1,
+      "determinism_preflight_repeats": 2,
+      "evidence_sample_interval_steps": 24,
+      "input_isolation": "detached_clone_per_field",
+      "rng_guard": "python_numpy_torch_cpu_and_all_initialized_cuda_devices"
+    },
+    "reference_equivalence": {
+      "upstream_project": "IsaacLab",
+      "upstream_revision": "v2.3.0",
+      "upstream_source_path": "isaaclab_tasks/manager_based/locomotion/velocity/config/g1/rough_env_cfg.py",
+      "absolute_tolerance": 1e-6,
+      "relative_tolerance": 1e-6,
+      "active_term_names": [
+        "termination_penalty",
+        "track_lin_vel_xy_exp",
+        "track_ang_vel_z_exp",
+        "feet_air_time",
+        "feet_slide",
+        "dof_pos_limits",
+        "joint_deviation_hip",
+        "joint_deviation_arms",
+        "joint_deviation_fingers",
+        "joint_deviation_torso",
+        "ang_vel_xy_l2",
+        "flat_orientation_l2",
+        "action_rate_l2",
+        "dof_acc_l2",
+        "dof_torques_l2"
+      ],
+      "zero_weight_term_names": ["lin_vel_z_l2"],
+      "disabled_term_names": ["undesired_contacts"]
+    },
+    "performance_gate": {
+      "num_envs": 1024,
+      "warmup_control_steps": 32,
+      "measured_control_steps": 128,
+      "minimum_dispatcher_throughput_ratio": 0.85
+    }
+  },
+  "inheritance": {
+    "height_bins": "base_v1_by_task_protocol_hash",
+    "episode_outcomes": "base_v1_by_task_protocol_hash",
+    "evaluation_statistics": "base_v1_by_task_protocol_hash",
+    "episode_horizon_and_timeout": "base_v1_by_task_protocol_hash"
+  },
+  "draft_protocol_hash": "b7ff0280faf98b59473088768b55b242caae03b6783f41bfe51b4db07b94f7be"
+}

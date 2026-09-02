@@ -1,0 +1,105 @@
+{
+  "captured_frame_count": 600,
+  "checkpoint_report": {
+    "byte_read_status": "pass",
+    "checkpoint_hash": "sha256:fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729",
+    "checkpoint_hash_match_status": "pass",
+    "expected_checkpoint_hash": "sha256:fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729",
+    "file_exists": true,
+    "loader_error_class": null,
+    "loader_error_summary": null,
+    "reason": "checkpoint_safe_to_load",
+    "schema_version": "true_rl_agent.checkpoint_safety_report.v1",
+    "status": "pass",
+    "weights_only_load_status": "pass"
+  },
+  "joint_names": [
+    "FL_hip_joint",
+    "FR_hip_joint",
+    "RL_hip_joint",
+    "RR_hip_joint",
+    "FL_thigh_joint",
+    "FR_thigh_joint",
+    "RL_thigh_joint",
+    "RR_thigh_joint",
+    "FL_calf_joint",
+    "FR_calf_joint",
+    "RL_calf_joint",
+    "RR_calf_joint"
+  ],
+  "reset_counts": [
+    0,
+    1,
+    0
+  ],
+  "rollout_summary": {
+    "complete_height_tread_coverage": true,
+    "episode_count": 72,
+    "episodes_per_cell": 3,
+    "macro_success_rate": 0.0,
+    "ordered_suite_hash": "f7d744df40eb9708ace9772b6f23f366090a6d312fcfef93e54e85cd4e0dd18b",
+    "outcome_source": "task_owned_formal_episode_state_machine",
+    "primary_outcome_counts": {
+      "fall": 22,
+      "forbidden_contact": 50
+    },
+    "reclassified_by_video_exporter": false,
+    "schema_version": "true_rl_agent.task.stair_climbing.checkpoint_video_rollout_summary.v2",
+    "scope": "one_unified_public_dev_run_not_acceptance_score",
+    "split": "public_dev"
+  },
+  "schema_version": "true_rl_agent.task.stair_climbing.checkpoint_capture_result.v6",
+  "source_preflight": {
+    "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+    "source_manifest_hash": "c17e19b1378a9574becad09bdea791a47f8ac2950510df509753cb011811b5d0",
+    "status": "pass",
+    "task_protocol_hash": "fae31b3d9dd9b971e870a4ee5379e24d25a843929a8f2d20944887efc0610e59"
+  },
+  "tracked_outcomes": [
+    {
+      "bin_id": "public_dev.c0_id_01",
+      "diagnostic_flags": [
+        "base_orientation_instability_detected",
+        "slip_detected",
+        "insufficient_clearance_detected",
+        "off_course_detected"
+      ],
+      "episode_steps": 600,
+      "evaluation_cell_id": "public_dev.c0_id_01",
+      "max_progress_m": 9.2280736,
+      "primary_reason": "fall",
+      "progress_fraction": 1.0,
+      "success": false
+    },
+    {
+      "bin_id": "public_dev.c0_id_01",
+      "diagnostic_flags": [
+        "slip_detected",
+        "insufficient_clearance_detected",
+        "off_course_detected"
+      ],
+      "episode_steps": 497,
+      "evaluation_cell_id": "public_dev.c0_id_01",
+      "max_progress_m": 7.32928896,
+      "primary_reason": "forbidden_contact",
+      "progress_fraction": 1.0,
+      "success": false
+    },
+    {
+      "bin_id": "public_dev.c0_id_01",
+      "diagnostic_flags": [
+        "base_orientation_instability_detected",
+        "slip_detected",
+        "insufficient_clearance_detected",
+        "off_course_detected"
+      ],
+      "episode_steps": 600,
+      "evaluation_cell_id": "public_dev.c0_id_01",
+      "max_progress_m": 9.13975573,
+      "primary_reason": "fall",
+      "progress_fraction": 1.0,
+      "success": false
+    }
+  ],
+  "trajectory_filename": "trajectory.npz"
+}

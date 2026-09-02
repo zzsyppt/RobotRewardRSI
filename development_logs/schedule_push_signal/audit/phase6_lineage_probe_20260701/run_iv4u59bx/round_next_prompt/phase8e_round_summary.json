@@ -1,0 +1,113 @@
+{
+  "candidate": null,
+  "config_path": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_lineage_probe_20260701\\run_iv4u59bx\\phase8e_loop_for_selftest.json",
+  "created_at_utc": "2026-07-01T10:09:26.848107+00:00",
+  "current_recipe": {
+    "candidate_dir": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_lineage_probe_20260701\\run_iv4u59bx\\lab\\accepted_recipes\\0000_phase6_curriculum_probe_candidate",
+    "diagnostics": {
+      "curriculum_hypothesis": {
+        "anti_tuning_rationale": "Reward terms alone do not expose recovery perturbations during training.",
+        "evidence": [
+          "public push probe under target distribution"
+        ],
+        "improvement_attribution_intent": "Curriculum stage distribution is expected to contribute to improvement.",
+        "primary_failure_mode": "public push recovery is weaker than no-push standing."
+      },
+      "items": []
+    },
+    "fingerprint": {
+      "candidate_id": "phase6_curriculum_probe_candidate",
+      "entrypoint": "training_code.components:build_training_components",
+      "entrypoint_path": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_lineage_probe_20260701\\run_iv4u59bx\\lab\\accepted_recipes\\0000_phase6_curriculum_probe_candidate\\training_code\\components.py",
+      "entrypoint_sha256": "b8ede1c0a6940a2a53a9e8d55d43b2621e9e19f88bc367108c532c03cc2b42bc",
+      "manifest_path": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_lineage_probe_20260701\\run_iv4u59bx\\lab\\accepted_recipes\\0000_phase6_curriculum_probe_candidate\\candidate_manifest.yaml",
+      "manifest_sha256": "e63c8e52bf6af1d423114f5560491bdda72ac0e60f9a2f014a13da9c229cb5ea",
+      "path": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_lineage_probe_20260701\\run_iv4u59bx\\lab\\accepted_recipes\\0000_phase6_curriculum_probe_candidate",
+      "training_code_tree_sha256": "b6b658cc2ceb1a83c1c7994efa68682e604722942769fde2559f5a2386615348"
+    },
+    "manifest": {
+      "author": "LLM",
+      "candidate_id": "phase6_curriculum_probe_candidate",
+      "description": "test curriculum candidate",
+      "entrypoint": "training_code.components:build_training_components",
+      "expected_behavior": "test candidate",
+      "llm_authored": true,
+      "phase": "8E",
+      "schema_version": "humanoid_agent.cold_start.candidate.v1"
+    },
+    "operation_diff": {
+      "curriculum_design": {
+        "anti_tuning_rationale": "The design changes the training distribution by stage instead of only changing scalar weights.",
+        "final_consolidation": {
+          "distribution": "runner_owned_target_distribution",
+          "fraction": 0.2,
+          "includes_target_push": true,
+          "includes_target_robustness_variation": true
+        },
+        "improvement_attribution_intent": "Improvement should come from staged push recovery plus final target consolidation.",
+        "stage_list": [
+          {
+            "capabilities": [
+              "reward_weight_scale"
+            ],
+            "name": "stand_balance_warmup",
+            "progress_range": [
+              0.0,
+              0.3
+            ],
+            "rationale": "stabilize standing before perturbation."
+          },
+          {
+            "capabilities": [
+              "external_push_curriculum"
+            ],
+            "name": "mild_push_recovery",
+            "progress_range": [
+              0.3,
+              0.8
+            ],
+            "rationale": "introduce recoverable external pushes."
+          },
+          {
+            "capabilities": [
+              "external_push_curriculum",
+              "train_only_dr_scale"
+            ],
+            "name": "target_consolidation",
+            "progress_range": [
+              0.8,
+              1.0
+            ],
+            "rationale": "finish on the target push distribution with train-only robustness variation."
+          }
+        ]
+      },
+      "operations": []
+    }
+  },
+  "curriculum_lineage": null,
+  "decision": null,
+  "formal_training_executed": false,
+  "inheritance": {
+    "accepted_recipe_snapshot_dir": null,
+    "lab_dir": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_lineage_probe_20260701\\run_iv4u59bx\\lab",
+    "requested": false,
+    "snapshot_created": false
+  },
+  "ledger": {
+    "appended": false,
+    "path": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_lineage_probe_20260701\\run_iv4u59bx\\lab\\phase8e_ledger.jsonl",
+    "records": 1
+  },
+  "phase": "8E-single-agent-code-level-cold-start-loop",
+  "prompt": {
+    "messages_file": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_lineage_probe_20260701\\run_iv4u59bx\\round_next_prompt\\phase8e_prompt_messages.json",
+    "public_only": true,
+    "text_file": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_lineage_probe_20260701\\run_iv4u59bx\\round_next_prompt\\phase8e_prompt.txt"
+  },
+  "public_result": null,
+  "run_dir": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_lineage_probe_20260701\\run_iv4u59bx\\round_next_prompt",
+  "schema_version": "humanoid_agent.phase8e.loop.summary.v1",
+  "status": "prepared",
+  "verifier": null
+}

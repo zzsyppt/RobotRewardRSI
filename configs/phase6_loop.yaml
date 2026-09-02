@@ -1,0 +1,44 @@
+schema_version: humanoid_agent.phase6.loop.config.v1
+
+loop:
+  min_rounds: 3
+  max_rounds: 5
+  # Phase 6 must start from the Phase 2 human baseline, not from a Phase 5 best.
+  start_from: phase2_baseline
+  provider: deepseek
+  run_root: /data/yuyangliu/runs/phase_6_multi_round_loop
+  baseline_summary: /data/yuyangliu/runs/phase_2_baseline_variance_5seed/2026-06-20_5seed_formal/summary.json
+  best_reevaluate_every_accepts: 2
+
+configs:
+  baseline_phase1: configs/phase1_push_recovery.yaml
+  baseline_phase2: configs/phase2_baseline.yaml
+  phase5_agent: configs/phase5_llm_agent.yaml
+  verifier: configs/phase3_verifier.yaml
+
+seed_policy:
+  # User-requested Phase 6 trigger policy:
+  # first evaluate fixed paired 3 seeds; expand to 5 only when the decision is
+  # close enough that more data can change it.
+  initial_train_seeds: [101, 102, 103]
+  expanded_train_seeds: [101, 102, 103, 104, 105]
+  expand_if_abs_margin_below_threshold_fraction: 0.5
+  public_min_delta: 0.05
+  pooled_se_multiplier: 1.0
+
+feedback:
+  include_history_rounds: 3
+  include_operation_diff: true
+  include_public_seed_deltas: true
+  # Never expose held-out diagnostics or raw decision JSON files to
+  # the next proposal prompt.
+  public_only: true
+
+smoke:
+  enabled: true
+  seed: 501
+
+final_validation:
+  # Final IID-hidden checks are for audit only and must not be written into any
+  # later Agent prompt.
+  iid_hidden_audit_only: true

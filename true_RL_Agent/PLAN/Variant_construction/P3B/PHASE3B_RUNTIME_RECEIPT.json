@@ -1,0 +1,200 @@
+{
+  "capture_kind": "real_headless_c2_mesh_scanner_and_decoder",
+  "cell": {
+    "base_task_protocol_hash": "5488c5616e85c2846a6206d4dfcb19832486274075267e7003a5855c8c1a848f",
+    "cell_variant_id": "stair.g1_37dof.unified_v1",
+    "evaluation_suite_hash": "e9fb21758761a2d2f38996e8946fdcbd1539f6cb63c3e72fa0f5307f5d9f3153",
+    "manifest_hash": "0c9156a2cca0a6dbe03bb38a5e441cf4b527f7a4bc6b10d423b6186af595b5be",
+    "protocol_state": "active",
+    "resolved_cell_task_protocol_hash": "401a22a8f85b54cc287bc07a38586699f82b2146faa65018cc4653b1a819c242",
+    "training_profile_hash": "d222a1ddc2ed52ed6feae43d8413b6364576880ac4febbc09e6ac7a9122028d1"
+  },
+  "cost": {
+    "episodes_per_seed_per_cell": 3,
+    "formal_cells_per_cohort": 24,
+    "formal_episode_count": 1080,
+    "p3r_formal_episode_cap": 1260,
+    "wall_time_s": 5.965877
+  },
+  "environment": {
+    "cuda_device_name": "NVIDIA GeForce RTX 5090",
+    "device": "cuda:0",
+    "python": "3.11.15",
+    "torch": "2.7.0+cu128"
+  },
+  "failure_feedback_calibration": {
+    "clearance_threshold_m": 0.03,
+    "fixed_world_flip_count": 82,
+    "fixed_world_sample_count": 896,
+    "maximum_clearance_delta_m": 0.004248083477462999,
+    "out_of_amplitude_margin_flip_count": 0,
+    "paired_cells": [
+      "calibration.c1_id_02",
+      "calibration.c2_rough_02"
+    ],
+    "status": "pass",
+    "surface_amplitude_m": 0.006,
+    "surface_relative_diagnostic_flags": [
+      "insufficient_clearance_detected",
+      "goal_not_reached_detected"
+    ],
+    "surface_relative_exact_parity": true,
+    "surface_relative_primary_reason": "insufficient_clearance"
+  },
+  "geometry_probe": {
+    "cell_count": 9,
+    "cells": [
+      {
+        "all_meshes_watertight": true,
+        "amplitude_m": 0.004,
+        "cell_id": "public_dev.c2_rough_01",
+        "cohort": "public_dev",
+        "geometry_digest": "74b12a2725dc8c904267f80017ff4e01592693463e1273b3cc0afee389d40eca",
+        "mesh_count": 10,
+        "mesh_query_max_abs_error_m": 2.220446049250313e-16,
+        "observed_max_abs_offset_m": 0.0040000000000000036
+      },
+      {
+        "all_meshes_watertight": true,
+        "amplitude_m": 0.006,
+        "cell_id": "public_dev.c2_rough_02",
+        "cohort": "public_dev",
+        "geometry_digest": "6c68c78a85e725548288bc808faf4165a970209465032ae29396b12ccff09ca7",
+        "mesh_count": 10,
+        "mesh_query_max_abs_error_m": 2.220446049250313e-16,
+        "observed_max_abs_offset_m": 0.006000000000000005
+      },
+      {
+        "all_meshes_watertight": true,
+        "amplitude_m": 0.008,
+        "cell_id": "public_dev.c2_rough_03",
+        "cohort": "public_dev",
+        "geometry_digest": "1ab219fcd7fcd7352e8d794e785627f87cf1d90146f74875b7be02b119bba2ee",
+        "mesh_count": 10,
+        "mesh_query_max_abs_error_m": 2.220446049250313e-16,
+        "observed_max_abs_offset_m": 0.008000000000000007
+      },
+      {
+        "all_meshes_watertight": true,
+        "amplitude_m": 0.004,
+        "cell_id": "public_accept.c2_rough_01",
+        "cohort": "public_accept",
+        "geometry_digest": "e7cc0de8da21a8f7d190b1d68b368abc87c69fac174483f1667aaa2b22db24a3",
+        "mesh_count": 10,
+        "mesh_query_max_abs_error_m": 2.220446049250313e-16,
+        "observed_max_abs_offset_m": 0.0040000000000000036
+      },
+      {
+        "all_meshes_watertight": true,
+        "amplitude_m": 0.006,
+        "cell_id": "public_accept.c2_rough_02",
+        "cohort": "public_accept",
+        "geometry_digest": "7b2b00d440c408597ae5633770abb964adbc4eaafecca6be69b7e0ffb3c30aa0",
+        "mesh_count": 10,
+        "mesh_query_max_abs_error_m": 2.220446049250313e-16,
+        "observed_max_abs_offset_m": 0.006000000000000005
+      },
+      {
+        "all_meshes_watertight": true,
+        "amplitude_m": 0.008,
+        "cell_id": "public_accept.c2_rough_03",
+        "cohort": "public_accept",
+        "geometry_digest": "1ad4231005e81ca7e771bb3ce5c69c12e4b4b51b1eb8023614f747bbf594f6c5",
+        "mesh_count": 10,
+        "mesh_query_max_abs_error_m": 2.220446049250313e-16,
+        "observed_max_abs_offset_m": 0.008000000000000007
+      },
+      {
+        "all_meshes_watertight": true,
+        "amplitude_m": 0.004,
+        "cell_id": "sealed_validation.c2_rough_01",
+        "cohort": "sealed_validation",
+        "geometry_digest": "a3444ef835d6059d3d7e373b4aaac3d7f8b03f82894e8ca7f7f3f0ee1de28277",
+        "mesh_count": 10,
+        "mesh_query_max_abs_error_m": 2.220446049250313e-16,
+        "observed_max_abs_offset_m": 0.0040000000000000036
+      },
+      {
+        "all_meshes_watertight": true,
+        "amplitude_m": 0.006,
+        "cell_id": "sealed_validation.c2_rough_02",
+        "cohort": "sealed_validation",
+        "geometry_digest": "ae2e5af42396ec662c4e76db0e9cd95e28d55c5136e6b4956b0f9d0656091b11",
+        "mesh_count": 10,
+        "mesh_query_max_abs_error_m": 3.3306690738754696e-16,
+        "observed_max_abs_offset_m": 0.006000000000000116
+      },
+      {
+        "all_meshes_watertight": true,
+        "amplitude_m": 0.008,
+        "cell_id": "sealed_validation.c2_rough_03",
+        "cohort": "sealed_validation",
+        "geometry_digest": "db4f36d9758a967857da4e3b68173af90becefb48bf1104874cf4f74815ede52",
+        "mesh_count": 10,
+        "mesh_query_max_abs_error_m": 2.220446049250313e-16,
+        "observed_max_abs_offset_m": 0.008000000000000007
+      }
+    ],
+    "hard_max_abs_offset_m": 0.015,
+    "mesh_query_max_abs_error_m": 3.3306690738754696e-16,
+    "observed_max_abs_offset_m": 0.008000000000000007,
+    "status": "pass"
+  },
+  "height_scanner_and_decoder_probe": {
+    "decoder": {
+      "reward_finite": true,
+      "rough_support_surface_clearances_m": [
+        0.11095258568445232,
+        0.11228047415225495
+      ],
+      "rough_support_surface_levels": [
+        3,
+        3
+      ],
+      "transition_count": 15
+    },
+    "flat_cell_id": "calibration.c1_id_02",
+    "height_scanner": {
+      "finite_paired_ray_count": 187,
+      "maximum_abs_hit_height_delta_m": 0.00452423095703125,
+      "ray_count": 187,
+      "required_maximum_delta_m": 0.002,
+      "required_visible_ray_count": 8,
+      "visible_ray_count": 120,
+      "visible_ray_threshold_m": 0.001
+    },
+    "num_envs": 15,
+    "observation_shapes": {
+      "policy": [
+        15,
+        310
+      ]
+    },
+    "paired_lateral_m": 0.13,
+    "paired_progress_m": 1.7133849999999997,
+    "paired_surface_heights_m": [
+      0.447,
+      0.4499046260628186
+    ],
+    "rough_cell_id": "calibration.c2_rough_02",
+    "split": "calibration",
+    "status": "pass"
+  },
+  "product_source_hash_mode": "normalized_lf_sha256",
+  "product_source_hashes": {
+    "PLAN/Variant_construction/P3B/capture_phase3b_runtime_receipt.py": "d50d5daed4bee9dd86e684998a276d1930f3a265da1c8a94568094153d9a7aba",
+    "configs/tasks/stair_unified_evaluation_suite_v1.json": "2476c5935281fbca29e1b5eba2d6708cad1e3ff7375808094e0332d6a723a9d1",
+    "configs/tasks/stair_unified_protocol_v1.json": "4bef4d2a60a07802cf9ca4505e11f101776e3976b66701b24c67fce63dd6fc4d",
+    "configs/tasks/stair_unified_training_profile_v1.json": "04aa81b507091c615c4fe3aed25a9f4878c0d3833c1172c55091a189bab201b7",
+    "src/true_rl_agent/tasks/stair_climbing/isaaclab_evaluation_terrain.py": "618cf39def0a7925ec1590a3789bb34cfea036a655ed190a8171f708a7406d84",
+    "src/true_rl_agent/tasks/stair_climbing/isaaclab_rough_terrain.py": "27b12a7f21fdf6f77ee4964eb098ab2379f1511c1ca725e05fb72bca18cc0315",
+    "src/true_rl_agent/tasks/stair_climbing/ordered_evaluation.py": "8bc8d3e3e89b3a42b8c351b715e159078a6c431ae4210d914ea1283c37d51201",
+    "src/true_rl_agent/tasks/stair_climbing/rough_surface.py": "285eab5a5a31bac3ab9e50234ba008ef16839b5781ab906c8504c5c39a488a64",
+    "src/true_rl_agent/tasks/stair_climbing/terrain_evidence.py": "ab9acad54f8cb1d086bb94383697e7fe8674fe539e5075168943be19ce4c6c2f",
+    "src/true_rl_agent/tasks/stair_climbing/transition_decoder.py": "2bf34da47b9d4e9467254620a941065958f3b5c343e94e73db2efb2a19998cd3",
+    "src/true_rl_agent/tasks/stair_climbing/unified_evaluation.py": "f1f8df0dad00a22b48ceb4bc410f719654e21e617a2cdd349e121f428270b23d"
+  },
+  "receipt_hash": "e8a8e50e5c2225d83d76d0f73c466483b28d86fe7d398750daf85025a66c9a12",
+  "schema_version": "true_rl_agent.variant_construction.phase3b_runtime.v1",
+  "status": "pass"
+}

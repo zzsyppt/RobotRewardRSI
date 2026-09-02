@@ -1,0 +1,186 @@
+{
+  "boundaries": {
+    "markers": [
+      "c2_rough",
+      "rough_surface",
+      "bounded_piecewise_linear_v1",
+      "roughness_band",
+      "surface_pattern"
+    ],
+    "roughness_owner": "src/true_rl_agent/tasks/stair_climbing",
+    "shared_layer_marker_hits": []
+  },
+  "contract": {
+    "acceptance_protocol_hash": "d18b5345c8b3112546af401a8dd1560e6c6e840ad8c5ef4d102bd3e1ea5b4c24",
+    "base_task_protocol_hash": "e65239927cbf98f6cf12b0ddb959c6bd1390bdf7fd1c6a262fbbab7f1f04dcf8",
+    "cell_variant_id": "stair.g1_37dof.unified_v1",
+    "cohorts": {
+      "public_accept": {
+        "c2_surface_profile_hashes": [
+          "b77ac7180471c736c2364e9a68ff9adaf01301ff89c9eb438f498f4d546f4160",
+          "d51fa2c27996ad02c566862c1d81280983d0f9c9294cb50859e443d42f1c6886",
+          "ffbdb37075289945914c041e348365294577ca1e1073856a32e805366ecb86dd"
+        ],
+        "cell_count": 24,
+        "geometry_closure_hash": "ba20b483dc5838054776f4565a5a9fa0bfd5ed5d061fca04212ee42e35883a74",
+        "seed_count": 5,
+        "stratum_counts": {
+          "c0_id": 3,
+          "c1_conditional_frontier": 3,
+          "c1_id": 3,
+          "c2_mechanism_ood": 3,
+          "height_ood": 3,
+          "joint_ood": 3,
+          "phase_composition_ood": 3,
+          "tread_ood": 3
+        }
+      },
+      "public_dev": {
+        "c2_surface_profile_hashes": [
+          "b77ac7180471c736c2364e9a68ff9adaf01301ff89c9eb438f498f4d546f4160",
+          "d51fa2c27996ad02c566862c1d81280983d0f9c9294cb50859e443d42f1c6886",
+          "ffbdb37075289945914c041e348365294577ca1e1073856a32e805366ecb86dd"
+        ],
+        "cell_count": 24,
+        "geometry_closure_hash": "853fd1ac1dbaa192a50801d490269b7ee9fb973f57b797a101906ffe318a027f",
+        "seed_count": 3,
+        "stratum_counts": {
+          "c0_id": 3,
+          "c1_conditional_frontier": 3,
+          "c1_id": 3,
+          "c2_mechanism_ood": 3,
+          "height_ood": 3,
+          "joint_ood": 3,
+          "phase_composition_ood": 3,
+          "tread_ood": 3
+        }
+      },
+      "sealed_validation": {
+        "c2_surface_profile_hashes": [
+          "b77ac7180471c736c2364e9a68ff9adaf01301ff89c9eb438f498f4d546f4160",
+          "d51fa2c27996ad02c566862c1d81280983d0f9c9294cb50859e443d42f1c6886",
+          "ffbdb37075289945914c041e348365294577ca1e1073856a32e805366ecb86dd"
+        ],
+        "cell_count": 24,
+        "geometry_closure_hash": "798ab344a7a13aa9b15e1ddf10271327f54be95ce76c171e4c555ba0821f3118",
+        "seed_count": 7,
+        "stratum_counts": {
+          "c0_id": 3,
+          "c1_conditional_frontier": 3,
+          "c1_id": 3,
+          "c2_mechanism_ood": 3,
+          "height_ood": 3,
+          "joint_ood": 3,
+          "phase_composition_ood": 3,
+          "tread_ood": 3
+        }
+      }
+    },
+    "episodes_per_seed_per_cell": 3,
+    "evaluation_suite_hash": "4ee307fe359122671cf4f7056b601135b28679818a9b4bd419f3e7697891ceb7",
+    "formal_episode_count": 1080,
+    "manifest_hash": "cb9c93c1239d2f20eb58737b684cc74e21b6675a724198c470a58410f9ccdae2",
+    "prompt_projection": {
+      "c2": "current evaluation-only surface/contact mechanism shift; zero training exposure; height-scan policy salience not claimed",
+      "claim_kinds_by_stratum": {
+        "c0_id": "in_distribution",
+        "c1_conditional_frontier": "conditional_on_c1_support",
+        "c1_id": "in_distribution",
+        "c2_mechanism_ood": "surface_mechanism_shift",
+        "height_ood": "scalar_extrapolation",
+        "joint_ood": "joint_scalar_extrapolation",
+        "phase_composition_ood": "known_family_held_out_phase",
+        "tread_ood": "scalar_extrapolation"
+      },
+      "public_eval_schema_version": "true_rl_agent.public_eval_contract.stair.unified.v3",
+      "strata": [
+        "c0_id",
+        "c1_id",
+        "height_ood",
+        "tread_ood",
+        "joint_ood",
+        "phase_composition_ood",
+        "c1_conditional_frontier",
+        "c2_mechanism_ood"
+      ],
+      "task_schema_version": "true_rl_agent.task_prompt.stair_climbing.v4"
+    },
+    "protocol_hash": "b836e6e37326fa63785beaec78c32dcb3fca037a7d7b27a253d9d53702ee0909",
+    "protocol_state": "active",
+    "resolved_cell_task_protocol_hash": "3328f6600513d2e34f9b5f1cfab125505a9144fea7e2be23bc22ceb181d3b42e",
+    "single_cell_count": 1,
+    "training_exposure": {
+      "allowed_regimes": [
+        "c0_regular",
+        "c1_irregular_flat"
+      ],
+      "evaluation_only_cohorts": [
+        "sealed_validation"
+      ],
+      "forbidden_regimes": [
+        "c2_rough"
+      ]
+    },
+    "training_profile_hash": "d222a1ddc2ed52ed6feae43d8413b6364576880ac4febbc09e6ac7a9122028d1"
+  },
+  "product_source_hash_mode": "normalized_lf_sha256",
+  "product_source_hashes": {
+    "configs/tasks/stair_unified_acceptance_protocol_v6.json": "c97aacb7aba24605d38092acf64f55baaa0b55eb8165a72581e0f400f83cd45a",
+    "configs/tasks/stair_unified_evaluation_suite_v1.json": "7ca40d15263923d10f588f4d2d3b8a33a4f9411612996268ce0f6dd5fdc642bd",
+    "configs/tasks/stair_unified_protocol_v1.json": "45b637067561468975bd72ee1a4371ef6445aad772a97f9c2e2947256460b26d",
+    "configs/tasks/stair_unified_training_profile_v1.json": "04aa81b507091c615c4fe3aed25a9f4878c0d3833c1172c55091a189bab201b7",
+    "configs/tasks/stair_vnext_reward_authority_v1.json": "b226a1a2dc1528bbfc010fd7d6067f3be6261f446e3ed78f4757a037685164f4",
+    "src/true_rl_agent/tasks/stair_climbing/isaaclab_evaluation_terrain.py": "618cf39def0a7925ec1590a3789bb34cfea036a655ed190a8171f708a7406d84",
+    "src/true_rl_agent/tasks/stair_climbing/isaaclab_execution.py": "676f99447e068e9e16c3a79edf1a9b91d2b8e16e7e6df0acb309d8292c7f553d",
+    "src/true_rl_agent/tasks/stair_climbing/isaaclab_rough_terrain.py": "27b12a7f21fdf6f77ee4964eb098ab2379f1511c1ca725e05fb72bca18cc0315",
+    "src/true_rl_agent/tasks/stair_climbing/isaaclab_runtime_env.py": "32c68c233b839116fa012964e841af536d15f3f460ec6c2ca4818e29b8f98c22",
+    "src/true_rl_agent/tasks/stair_climbing/ordered_evaluation.py": "8bc8d3e3e89b3a42b8c351b715e159078a6c431ae4210d914ea1283c37d51201",
+    "src/true_rl_agent/tasks/stair_climbing/prompt_adapter.py": "19e1633bb23cfbd564a47bffed02f862ea941a04ec41fdd1d5b8fd7846ee6068",
+    "src/true_rl_agent/tasks/stair_climbing/rough_surface.py": "285eab5a5a31bac3ab9e50234ba008ef16839b5781ab906c8504c5c39a488a64",
+    "src/true_rl_agent/tasks/stair_climbing/terrain_evidence.py": "ab9acad54f8cb1d086bb94383697e7fe8674fe539e5075168943be19ce4c6c2f",
+    "src/true_rl_agent/tasks/stair_climbing/transition_decoder.py": "2bf34da47b9d4e9467254620a941065958f3b5c343e94e73db2efb2a19998cd3",
+    "src/true_rl_agent/tasks/stair_climbing/unified_evaluation.py": "2c42f3175f000455c0998569b080e7e6586afcdc121ffe28059ab844bc13ba36",
+    "src/true_rl_agent/tasks/stair_climbing/unified_protocol.py": "6020a5d429aa41a380770b43ac9fd18832898daa260100ba7371a2d377eaa9f4",
+    "src/true_rl_agent/tasks/stair_climbing/unified_scoring.py": "7ba043c026e5b4d316c139d4d3dda31cd83a989a88e830fdde2b327a178a3320",
+    "src/true_rl_agent/tasks/stair_climbing/unified_training.py": "934c224de39b5abee9b703d9e8ccaad4dff4d957ab94c7e20fa978d274703568"
+  },
+  "runtime": {
+    "contract_transition": {
+      "current_base_task_protocol_hash": "e65239927cbf98f6cf12b0ddb959c6bd1390bdf7fd1c6a262fbbab7f1f04dcf8",
+      "current_evaluation_suite_hash": "4ee307fe359122671cf4f7056b601135b28679818a9b4bd419f3e7697891ceb7",
+      "current_manifest_hash": "cb9c93c1239d2f20eb58737b684cc74e21b6675a724198c470a58410f9ccdae2",
+      "historical_base_task_protocol_hash": "5488c5616e85c2846a6206d4dfcb19832486274075267e7003a5855c8c1a848f",
+      "historical_evaluation_suite_hash": "e9fb21758761a2d2f38996e8946fdcbd1539f6cb63c3e72fa0f5307f5d9f3153",
+      "historical_manifest_hash": "0c9156a2cca0a6dbe03bb38a5e441cf4b527f7a4bc6b10d423b6186af595b5be",
+      "reason": "phase4_pre_reference_scoring_rule_correction",
+      "rollout_geometry_or_training_changed": false
+    },
+    "cuda_device_name": "NVIDIA GeForce RTX 5090",
+    "failure_flip_count": 82,
+    "formal_episode_count": 1080,
+    "geometry_cell_count": 9,
+    "maximum_ray_delta_m": 0.00452423095703125,
+    "mesh_query_max_abs_error_m": 3.3306690738754696e-16,
+    "out_of_margin_flip_count": 0,
+    "receipt_hash": "e8a8e50e5c2225d83d76d0f73c466483b28d86fe7d398750daf85025a66c9a12",
+    "source_closure_hash": "18e98968cfef951fbb96f5003c2e76def132369a3083850339d799ef3791afcf",
+    "source_file_count": 11,
+    "visible_ray_count": 120,
+    "watertight_cell_count": 9
+  },
+  "schema_version": "true_rl_agent.variant_construction.phase3b_snapshot.v1",
+  "snapshot_hash": "92b94b749e490e45b8ad9daf70079299174d0827a544b3c930d980b22474b861",
+  "training_exclusion": {
+    "budget_fraction": 6.510416666666666e-07,
+    "budget_steps": 128,
+    "c2_training_env_count": 0,
+    "receipt_hash": "a51d237864d46d5bf2aacad4a056aef830076e99cb4721528466cb23d0b41140",
+    "regime_counts": {
+      "c0_regular": 8,
+      "c1_irregular_flat": 8
+    },
+    "source_closure_hash": "026d1169f006ee45c3c1ca2387f66d87cd6acc99e6595ccfacd7724a5c7aef33",
+    "source_file_count": 21,
+    "state_transition": "draft_runtime_smoke_then_activation_then_phase4_pre_reference_scoring_correction"
+  }
+}

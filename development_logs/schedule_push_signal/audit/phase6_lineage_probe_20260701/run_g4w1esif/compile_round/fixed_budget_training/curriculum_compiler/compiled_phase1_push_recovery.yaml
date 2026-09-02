@@ -1,0 +1,346 @@
+{
+  "environment": {
+    "disable_curriculum": true,
+    "disable_observation_corruption": false,
+    "episode_length_s": 4.0,
+    "terrain_cols": 2,
+    "terrain_rows": 2
+  },
+  "evaluation": {
+    "disable_vendor_fall_terminations": true
+  },
+  "json_output": {
+    "include_command_line": true,
+    "include_config_snapshot": true,
+    "include_diagnostic_hints": true,
+    "include_per_episode": true
+  },
+  "metrics": {
+    "max_per_episode_records": 24
+  },
+  "policy_defaults": {
+    "random_action_scale": 1.0,
+    "zero_action_scale": 0.0
+  },
+  "profiles": {
+    "no_push": {
+      "push": {
+        "interval_range_s": [
+          1.0,
+          1.0
+        ],
+        "velocity_range_mps": {
+          "x": [
+            0.0,
+            0.0
+          ],
+          "y": [
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    "phase2_iid_hidden": {
+      "push": {
+        "interval_range_s": [
+          1.0,
+          1.0
+        ],
+        "velocity_range_mps": {
+          "x": [
+            -0.25,
+            0.25
+          ],
+          "y": [
+            -0.25,
+            0.25
+          ]
+        }
+      }
+    },
+    "phase2_public": {
+      "push": {
+        "interval_range_s": [
+          1.0,
+          1.0
+        ],
+        "velocity_range_mps": {
+          "x": [
+            -0.25,
+            0.25
+          ],
+          "y": [
+            -0.25,
+            0.25
+          ]
+        }
+      }
+    },
+    "phase2_train": {
+      "push": {
+        "interval_range_s": [
+          1.0,
+          1.0
+        ],
+        "velocity_range_mps": {
+          "x": [
+            -0.0,
+            0.0
+          ],
+          "y": [
+            -0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    "small_push": {
+      "push": {
+        "interval_range_s": [
+          1.0,
+          1.0
+        ],
+        "velocity_range_mps": {
+          "x": [
+            -0.25,
+            0.25
+          ],
+          "y": [
+            -0.25,
+            0.25
+          ]
+        }
+      }
+    },
+    "strong_push": {
+      "push": {
+        "interval_range_s": [
+          1.0,
+          1.0
+        ],
+        "velocity_range_mps": {
+          "x": [
+            -0.6,
+            0.6
+          ],
+          "y": [
+            -0.6,
+            0.6
+          ]
+        }
+      }
+    }
+  },
+  "push": {
+    "interval_range_s": [
+      1.0,
+      1.0
+    ],
+    "velocity_range_mps": {
+      "x": [
+        -0.0,
+        0.0
+      ],
+      "y": [
+        -0.0,
+        0.0
+      ]
+    }
+  },
+  "runner_curriculum": {
+    "capabilities": [
+      "reward_weight_scale",
+      "external_push_curriculum",
+      "train_only_dr_scale"
+    ],
+    "compiler_version": "v1-runner-owned-stage-push-static-dr",
+    "dr_execution": {
+      "mode": "train_only_static_observation_corruption",
+      "reason": "Current Isaac overlay supports observation corruption at env construction; per-stage DR scaling is recorded but not candidate-controlled."
+    },
+    "enabled": true,
+    "execution_mode": "env_step_progress",
+    "guards": {
+      "budget_changed": false,
+      "checkpoint_selector_changed": false,
+      "eval_config_changed": false,
+      "seed_changed": false,
+      "success_metric_changed": false
+    },
+    "planned_policy_iterations": 500,
+    "planned_training_steps": 12000,
+    "schema_version": "humanoid_agent.phase8e.compiled_curriculum.v1",
+    "source": "operation_diff.json.curriculum_design",
+    "stages": [
+      {
+        "capabilities": [
+          "reward_weight_scale"
+        ],
+        "name": "stand_balance_warmup",
+        "progress_range": [
+          0.0,
+          0.3
+        ],
+        "push": {
+          "enabled": false,
+          "interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "scale": 0.0,
+          "velocity_range_mps": {
+            "x": [
+              -0.0,
+              0.0
+            ],
+            "y": [
+              -0.0,
+              0.0
+            ]
+          }
+        },
+        "rationale": "stabilize standing before perturbation.",
+        "robustness": {
+          "enabled": false,
+          "mode": "train_only_static_observation_corruption",
+          "scale": 0.0
+        }
+      },
+      {
+        "capabilities": [
+          "external_push_curriculum"
+        ],
+        "name": "mild_push_recovery",
+        "progress_range": [
+          0.3,
+          0.8
+        ],
+        "push": {
+          "enabled": true,
+          "interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "scale": 0.666667,
+          "velocity_range_mps": {
+            "x": [
+              -0.166667,
+              0.166667
+            ],
+            "y": [
+              -0.166667,
+              0.166667
+            ]
+          }
+        },
+        "rationale": "introduce recoverable external pushes.",
+        "robustness": {
+          "enabled": false,
+          "mode": "train_only_static_observation_corruption",
+          "scale": 0.0
+        }
+      },
+      {
+        "capabilities": [
+          "external_push_curriculum",
+          "train_only_dr_scale"
+        ],
+        "name": "target_consolidation",
+        "progress_range": [
+          0.8,
+          1.0
+        ],
+        "push": {
+          "enabled": true,
+          "interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "scale": 1.0,
+          "velocity_range_mps": {
+            "x": [
+              -0.25,
+              0.25
+            ],
+            "y": [
+              -0.25,
+              0.25
+            ]
+          }
+        },
+        "rationale": "finish on the target push distribution with train-only robustness variation.",
+        "robustness": {
+          "enabled": true,
+          "mode": "train_only_static_observation_corruption",
+          "scale": 1.0
+        }
+      }
+    ],
+    "target_distribution": {
+      "final_consolidation_fraction": 0.2,
+      "push": {
+        "interval_range_s": [
+          1.0,
+          1.0
+        ],
+        "velocity_range_mps": {
+          "x": [
+            -0.25,
+            0.25
+          ],
+          "y": [
+            -0.25,
+            0.25
+          ]
+        }
+      }
+    },
+    "train_profile": "phase2_train"
+  },
+  "schema_version": "humanoid_agent.phase1.push_recovery.config.v1",
+  "smoke_gates": {
+    "push_effect_min_margin_over_no_push_mps": 0.08,
+    "random_strong_push_max_success_rate": 0.35,
+    "require_observation_finite": true,
+    "require_push_evidence_for_profiles": [
+      "strong_push",
+      "small_push"
+    ],
+    "require_reward_finite": true
+  },
+  "standing_command": {
+    "ang_vel_z_radps": [
+      0.0,
+      0.0
+    ],
+    "command_name": "base_velocity",
+    "heading_command": false,
+    "lin_vel_x_mps": [
+      0.0,
+      0.0
+    ],
+    "lin_vel_y_mps": [
+      0.0,
+      0.0
+    ],
+    "rel_heading_envs": 0.0,
+    "rel_standing_envs": 1.0,
+    "resampling_time_range_s": [
+      10.0,
+      10.0
+    ]
+  },
+  "success_thresholds": {
+    "max_abs_pitch_rad": 0.65,
+    "max_abs_roll_rad": 0.65,
+    "max_final_xy_drift_m": 0.8,
+    "min_base_height_m": 0.45
+  },
+  "task": {
+    "gym_id": "Unitree-G1-29dof-Velocity",
+    "implementation_strategy": "project_local_config_overlay",
+    "robot": "Unitree G1 29DoF",
+    "vendor_env": "unitree_rl_lab.tasks.locomotion.robots.g1.29dof.velocity_env_cfg"
+  }
+}

@@ -1,0 +1,276 @@
+{
+  "candidate_dir": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_lineage_probe_20260701\\run_g4w1esif\\candidate",
+  "clamps": [
+    {
+      "added_capabilities": [],
+      "compiled_dr_scale": 0.0,
+      "compiled_progress_range": [
+        0.0,
+        0.3
+      ],
+      "compiled_push_scale": 0.0,
+      "effective_capabilities": [
+        "reward_weight_scale"
+      ],
+      "raw_capabilities": [
+        "reward_weight_scale"
+      ],
+      "raw_progress_range": [
+        0.0,
+        0.3
+      ],
+      "removed_capabilities": [],
+      "stage": "stand_balance_warmup"
+    },
+    {
+      "added_capabilities": [],
+      "compiled_dr_scale": 0.0,
+      "compiled_progress_range": [
+        0.3,
+        0.8
+      ],
+      "compiled_push_scale": 0.666667,
+      "effective_capabilities": [
+        "external_push_curriculum"
+      ],
+      "raw_capabilities": [
+        "external_push_curriculum"
+      ],
+      "raw_progress_range": [
+        0.3,
+        0.8
+      ],
+      "removed_capabilities": [],
+      "stage": "mild_push_recovery"
+    },
+    {
+      "added_capabilities": [],
+      "compiled_dr_scale": 1.0,
+      "compiled_progress_range": [
+        0.8,
+        1.0
+      ],
+      "compiled_push_scale": 1.0,
+      "effective_capabilities": [
+        "external_push_curriculum",
+        "train_only_dr_scale"
+      ],
+      "raw_capabilities": [
+        "external_push_curriculum",
+        "train_only_dr_scale"
+      ],
+      "raw_progress_range": [
+        0.8,
+        1.0
+      ],
+      "removed_capabilities": [],
+      "stage": "target_consolidation"
+    }
+  ],
+  "compiler_version": "v1-runner-owned-stage-push-static-dr",
+  "created_at_utc": "2026-07-01T10:07:36.108643+00:00",
+  "curriculum_lineage_file": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_lineage_probe_20260701\\run_g4w1esif\\compile_round\\fixed_budget_training\\curriculum_compiler\\curriculum_lineage.json",
+  "effective_curriculum": {
+    "capabilities": [
+      "reward_weight_scale",
+      "external_push_curriculum",
+      "train_only_dr_scale"
+    ],
+    "compiler_version": "v1-runner-owned-stage-push-static-dr",
+    "dr_execution": {
+      "mode": "train_only_static_observation_corruption",
+      "reason": "Current Isaac overlay supports observation corruption at env construction; per-stage DR scaling is recorded but not candidate-controlled."
+    },
+    "enabled": true,
+    "execution_mode": "env_step_progress",
+    "guards": {
+      "budget_changed": false,
+      "checkpoint_selector_changed": false,
+      "eval_config_changed": false,
+      "seed_changed": false,
+      "success_metric_changed": false
+    },
+    "planned_policy_iterations": 500,
+    "planned_training_steps": 12000,
+    "schema_version": "humanoid_agent.phase8e.compiled_curriculum.v1",
+    "source": "operation_diff.json.curriculum_design",
+    "stages": [
+      {
+        "capabilities": [
+          "reward_weight_scale"
+        ],
+        "name": "stand_balance_warmup",
+        "progress_range": [
+          0.0,
+          0.3
+        ],
+        "push": {
+          "enabled": false,
+          "interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "scale": 0.0,
+          "velocity_range_mps": {
+            "x": [
+              -0.0,
+              0.0
+            ],
+            "y": [
+              -0.0,
+              0.0
+            ]
+          }
+        },
+        "rationale": "stabilize standing before perturbation.",
+        "robustness": {
+          "enabled": false,
+          "mode": "train_only_static_observation_corruption",
+          "scale": 0.0
+        }
+      },
+      {
+        "capabilities": [
+          "external_push_curriculum"
+        ],
+        "name": "mild_push_recovery",
+        "progress_range": [
+          0.3,
+          0.8
+        ],
+        "push": {
+          "enabled": true,
+          "interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "scale": 0.666667,
+          "velocity_range_mps": {
+            "x": [
+              -0.166667,
+              0.166667
+            ],
+            "y": [
+              -0.166667,
+              0.166667
+            ]
+          }
+        },
+        "rationale": "introduce recoverable external pushes.",
+        "robustness": {
+          "enabled": false,
+          "mode": "train_only_static_observation_corruption",
+          "scale": 0.0
+        }
+      },
+      {
+        "capabilities": [
+          "external_push_curriculum",
+          "train_only_dr_scale"
+        ],
+        "name": "target_consolidation",
+        "progress_range": [
+          0.8,
+          1.0
+        ],
+        "push": {
+          "enabled": true,
+          "interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "scale": 1.0,
+          "velocity_range_mps": {
+            "x": [
+              -0.25,
+              0.25
+            ],
+            "y": [
+              -0.25,
+              0.25
+            ]
+          }
+        },
+        "rationale": "finish on the target push distribution with train-only robustness variation.",
+        "robustness": {
+          "enabled": true,
+          "mode": "train_only_static_observation_corruption",
+          "scale": 1.0
+        }
+      }
+    ],
+    "target_distribution": {
+      "final_consolidation_fraction": 0.2,
+      "push": {
+        "interval_range_s": [
+          1.0,
+          1.0
+        ],
+        "velocity_range_mps": {
+          "x": [
+            -0.25,
+            0.25
+          ],
+          "y": [
+            -0.25,
+            0.25
+          ]
+        }
+      }
+    },
+    "train_profile": "phase2_train"
+  },
+  "immutable_context_hash": "d7b3550763f0d1efe3d84db4c8400fd1e5feadb9c1989faee2b04dbfc85e9dcb",
+  "phase1_config_path": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_lineage_probe_20260701\\run_g4w1esif\\compile_round\\fixed_budget_training\\curriculum_compiler\\compiled_phase1_push_recovery.yaml",
+  "phase2_config_path": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_lineage_probe_20260701\\run_g4w1esif\\compile_round\\fixed_budget_training\\curriculum_compiler\\compiled_phase2_baseline.yaml",
+  "raw_curriculum_design": {
+    "anti_tuning_rationale": "The design changes the training distribution by stage instead of only changing scalar weights.",
+    "final_consolidation": {
+      "distribution": "runner_owned_target_distribution",
+      "fraction": 0.2,
+      "includes_target_push": true,
+      "includes_target_robustness_variation": true
+    },
+    "improvement_attribution_intent": "Improvement should come from staged push recovery plus final target consolidation.",
+    "stage_list": [
+      {
+        "capabilities": [
+          "reward_weight_scale"
+        ],
+        "name": "stand_balance_warmup",
+        "progress_range": [
+          0.0,
+          0.3
+        ],
+        "rationale": "stabilize standing before perturbation."
+      },
+      {
+        "capabilities": [
+          "external_push_curriculum"
+        ],
+        "name": "mild_push_recovery",
+        "progress_range": [
+          0.3,
+          0.8
+        ],
+        "rationale": "introduce recoverable external pushes."
+      },
+      {
+        "capabilities": [
+          "external_push_curriculum",
+          "train_only_dr_scale"
+        ],
+        "name": "target_consolidation",
+        "progress_range": [
+          0.8,
+          1.0
+        ],
+        "rationale": "finish on the target push distribution with train-only robustness variation."
+      }
+    ]
+  },
+  "reject_reason": null,
+  "schema_version": "humanoid_agent.phase8e.curriculum_compiler.summary.v1",
+  "status": "pass",
+  "summary_file": "D:\\humanoid_agent\\development_logs\\schedule_push_signal\\audit\\phase6_lineage_probe_20260701\\run_g4w1esif\\compile_round\\fixed_budget_training\\curriculum_compiler\\compiled_curriculum_summary.json"
+}

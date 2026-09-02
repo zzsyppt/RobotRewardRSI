@@ -1,0 +1,62 @@
+{
+  "budget_accounting": {
+    "status": "pass",
+    "summary": "within scaffold budget contract"
+  },
+  "motion_quality_gate": {
+    "status": "pass",
+    "summary": "synthetic selftest gate"
+  },
+  "ood_stress_gate": {
+    "status": "pass",
+    "summary": "synthetic selftest gate"
+  },
+  "public_accept": {
+    "seed_results": [
+      {
+        "success_rate": 0.08
+      },
+      {
+        "success_rate": 0.09
+      },
+      {
+        "success_rate": 0.1
+      }
+    ],
+    "success_rate_stats": {
+      "count": 3,
+      "max": 0.820012,
+      "mean": 0.08,
+      "standard_error": 0.01
+    }
+  },
+  "public_dev": {
+    "seed_results": [
+      {
+        "failure_breakdown": {
+          "fall_forward": 0.5
+        },
+        "success_rate": 0.08
+      },
+      {
+        "failure_breakdown": {
+          "fall_forward": 0.4
+        },
+        "success_rate": 0.09
+      },
+      {
+        "failure_breakdown": {
+          "fall_forward": 0.8
+        },
+        "success_rate": 0.0
+      }
+    ],
+    "success_rate_stats": {
+      "count": 3,
+      "mean": 0.08,
+      "standard_error": 0.01
+    }
+  },
+  "schema_version": "humanoid_agent.phase8e.public_result.v1",
+  "status": "pass"
+}

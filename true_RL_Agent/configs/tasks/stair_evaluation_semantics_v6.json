@@ -1,0 +1,116 @@
+{
+  "base_protocol_hash": "7732f94502b30cdd8524b1e9ad4a1dbb118bb8f6b7b2f60cd1d52e8901b61cde",
+  "episode_outcomes": {
+    "classification_warning_blocks_pass": true,
+    "counting_invariant": "success_count_plus_primary_failure_counts_equals_total_episode_count",
+    "diagnostic_flags": [
+      "base_orientation_instability_detected",
+      "slip_detected",
+      "insufficient_clearance_detected",
+      "off_course_detected",
+      "goal_not_reached_detected",
+      "first_valid_top_arrival_achieved",
+      "post_arrival_safety_failure_detected"
+    ],
+    "failure_priority": [
+      "torso_contact",
+      "fall",
+      "off_course",
+      "base_orientation_instability",
+      "slip",
+      "insufficient_clearance",
+      "timeout"
+    ],
+    "primary_reasons": [
+      "success",
+      "torso_contact",
+      "fall",
+      "off_course",
+      "base_orientation_instability",
+      "slip",
+      "insufficient_clearance",
+      "timeout"
+    ],
+    "signals": {
+      "base_orientation_instability": {
+        "comparison": "greater_than",
+        "consecutive_control_steps": 10,
+        "source": "root_roll_or_pitch_abs",
+        "threshold": 0.65,
+        "unit": "rad"
+      },
+      "fall": {
+        "comparison": "less_than",
+        "consecutive_control_steps": 5,
+        "maximum_projected_surface_penetration_m": 0.03,
+        "no_contact_fallback": "lowest_vertically_feasible_projected_foot_tread",
+        "source": "root_height_above_lowest_vertically_feasible_contacting_foot_tread",
+        "threshold": 0.45,
+        "unit": "m"
+      },
+      "insufficient_clearance": {
+        "comparison": "less_than",
+        "consecutive_control_steps": 3,
+        "source": "noncontact_ankle_roll_link_clearance_above_projected_local_stair_surface",
+        "threshold": 0.03,
+        "unit": "m"
+      },
+      "off_course": {
+        "comparison": "outside",
+        "consecutive_control_steps": 1,
+        "source": "root_xy_outside_own_terrain_patch",
+        "unit": "m"
+      },
+      "slip": {
+        "consecutive_control_steps": 5,
+        "contact_force_threshold": 1.0,
+        "force_unit": "N",
+        "source": "ankle_roll_link_planar_speed_while_in_contact",
+        "speed_threshold": 0.5,
+        "speed_unit": "m/s"
+      },
+      "timeout": {
+        "deadline_authority": "stair_evaluation_profile",
+        "source": "evaluation_profile_cell_episode_horizon",
+        "unit": "s"
+      },
+      "torso_contact": {
+        "manager_term": "base_contact",
+        "other_body_contacts_policy": "allowed_unless_another_failure_signal_triggers",
+        "source": "contact_forces.torso_link",
+        "trigger": "manager_term_active"
+      }
+    },
+    "success": {
+      "completion_mode": "stable_top_traversal_after_first_valid_top_arrival",
+      "minimum_progress_fraction": 1.0,
+      "minimum_supporting_feet_on_top": 1,
+      "minimum_supporting_foot_upward_force_n": 10.0,
+      "post_arrival_failure_policy": "blocks_success_until_stability_requirement_met",
+      "pre_arrival_blocking_latches": [
+        "torso_contact",
+        "fall",
+        "off_course"
+      ],
+      "requires_orientation_stable": true,
+      "requires_root_clearance_above_top": true,
+      "requires_root_within_top_platform_bounds": true,
+      "requires_supporting_feet_within_top_platform_bounds": true,
+      "supporting_foot_surface_clearance_range_m": [0.0, 0.12]
+    },
+    "top_platform_stability_requirement": {
+      "acceptance_role": "primary_success_required",
+      "command_policy": "fixed_forward_command_continues",
+      "consecutive_control_steps": 20,
+      "maximum_supporting_foot_planar_speed_mps": 0.5,
+      "requires_first_valid_top_arrival_latched": true,
+      "source": "valid_top_arrival_plus_supporting_foot_speed_bound"
+    }
+  },
+  "protocol_hash": "21591e47c38d15e5742a9592761add3339b1b90002d28e3c4e825a9602322e92",
+  "protocol_id": "unitree_stair_climbing_evaluation_semantics_v6",
+  "schema_version": "true_rl_agent.task.stair_climbing.evaluation_semantics.v6",
+  "status": "active_stable_top_completion_with_profile_owned_cell_horizons",
+  "task_id": "unitree_stair_climbing",
+  "training_protocol_hash": "97d9473e4ba6ad5b9829fab26ad47d6d4bb89e9ad711d198629b17ccc8e153f5"
+}

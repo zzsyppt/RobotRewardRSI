@@ -1,0 +1,1816 @@
+{
+  "cases": [
+    {
+      "case": "official",
+      "elapsed_seconds": 6.42610293,
+      "env_steps_per_second": 20396.81,
+      "hardware_fingerprint": {
+        "control_dt_s": 0.02,
+        "device": "cuda:1",
+        "gpu_name": "NVIDIA GeForce RTX 5090",
+        "simulation_dt_s": 0.005,
+        "torch": "2.7.0+cu128"
+      },
+      "measured_control_steps": 128,
+      "num_envs": 1024,
+      "program": null,
+      "protocol_v2_hash": "fb00275c563d71044516ec0263c649b9b4c20cf4ad7bfe1e5b2ad988462c48c2",
+      "report_hash": "34aaa89fcd5bbffd3ece17280541dece1ea2c4910ca081488c65028b7f96fc73",
+      "reward_manager_active_terms": [
+        "track_lin_vel_xy_exp",
+        "track_ang_vel_z_exp",
+        "lin_vel_z_l2",
+        "ang_vel_xy_l2",
+        "dof_torques_l2",
+        "dof_acc_l2",
+        "action_rate_l2",
+        "feet_air_time",
+        "flat_orientation_l2",
+        "dof_pos_limits",
+        "termination_penalty",
+        "feet_slide",
+        "joint_deviation_hip",
+        "joint_deviation_arms",
+        "joint_deviation_fingers",
+        "joint_deviation_torso"
+      ],
+      "runtime": {},
+      "schema_version": "true_rl_agent.task.stair_climbing.reward_benchmark_case.v1",
+      "status": "pass",
+      "training_recorder_enabled": false,
+      "warmup_control_steps": 32
+    },
+    {
+      "case": "dispatcher",
+      "elapsed_seconds": 5.60149659,
+      "env_steps_per_second": 23399.461,
+      "hardware_fingerprint": {
+        "control_dt_s": 0.02,
+        "device": "cuda:1",
+        "gpu_name": "NVIDIA GeForce RTX 5090",
+        "simulation_dt_s": 0.005,
+        "torch": "2.7.0+cu128"
+      },
+      "measured_control_steps": 128,
+      "num_envs": 1024,
+      "program": {
+        "input_schema_hash": "2953831ca66dae9115006e84ec0063c9194b0d1cdd84eac4a2901172642a49dd",
+        "program_source_checksum": "sha256:a1255b585ffc6752df710be648cf0439017d5220a41853b9dfdebc778c3c03a3",
+        "program_source_size_bytes": 4978,
+        "qualification_hash": "914e4bdd978ee62c0416149bab3b77d5132093ce4b94bd1844585f3c6c670c80",
+        "schema_version": "true_rl_agent.task.stair_climbing.qualified_reward_program.v1",
+        "static_verifier_policy_hash": "063478ad7112b0d5f8d9fbb0f1da979fefccd65c83ad50ff205d6a526759bbdf",
+        "subject": {
+          "id": "official-g1-rough-reward-v1",
+          "kind": "reference",
+          "schema_version": "true_rl_agent.experiment.subject.v2"
+        },
+        "subject_manifest_hash": "34dff42c11b5fcd6a21514ca9e5edaaa95897c6866583f8a5ee0319338aa438e",
+        "term_names": [
+          "termination_penalty",
+          "track_lin_vel_xy_exp",
+          "track_ang_vel_z_exp",
+          "feet_air_time",
+          "feet_slide",
+          "dof_pos_limits",
+          "joint_deviation_hip",
+          "joint_deviation_arms",
+          "joint_deviation_fingers",
+          "joint_deviation_torso",
+          "ang_vel_xy_l2",
+          "flat_orientation_l2",
+          "action_rate_l2",
+          "dof_acc_l2",
+          "dof_torques_l2"
+        ]
+      },
+      "protocol_v2_hash": "fb00275c563d71044516ec0263c649b9b4c20cf4ad7bfe1e5b2ad988462c48c2",
+      "report_hash": "2b0208f2720aff9e79ca48a40be86adbb466aa22ee5830904f0ebdbe3b4bdf09",
+      "reward_manager_active_terms": [
+        "complete_reward"
+      ],
+      "runtime": {
+        "capability_activation_records": [
+          "complete_reward_program"
+        ],
+        "component_activation_records": [
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": -200.0,
+            "max_abs_weighted_contribution": 200.0,
+            "name": "termination_penalty",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": 0.0565364,
+            "max_abs_weighted_contribution": 0.07730453,
+            "name": "track_lin_vel_xy_exp",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": 1.99394298,
+            "max_abs_weighted_contribution": 2.0,
+            "name": "track_ang_vel_z_exp",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": 0.0,
+            "max_abs_weighted_contribution": 0.0,
+            "name": "feet_air_time",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": -0.05203757,
+            "max_abs_weighted_contribution": 0.05204247,
+            "name": "feet_slide",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": 0.0,
+            "max_abs_weighted_contribution": 0.0,
+            "name": "dof_pos_limits",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": -3.576e-05,
+            "max_abs_weighted_contribution": 3.578e-05,
+            "name": "joint_deviation_hip",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": -7.359e-05,
+            "max_abs_weighted_contribution": 7.361e-05,
+            "name": "joint_deviation_arms",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": -0.01448745,
+            "max_abs_weighted_contribution": 0.01699436,
+            "name": "joint_deviation_fingers",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": -2.47e-06,
+            "max_abs_weighted_contribution": 2.48e-06,
+            "name": "joint_deviation_torso",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": -0.00051837,
+            "max_abs_weighted_contribution": 0.00051843,
+            "name": "ang_vel_xy_l2",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": -0.0,
+            "max_abs_weighted_contribution": 0.0,
+            "name": "flat_orientation_l2",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": 0.0,
+            "max_abs_weighted_contribution": 0.0,
+            "name": "action_rate_l2",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": -0.02592993,
+            "max_abs_weighted_contribution": 0.02593171,
+            "name": "dof_acc_l2",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": -0.0,
+            "max_abs_weighted_contribution": 0.0,
+            "name": "dof_torques_l2",
+            "observation_count": 7
+          }
+        ],
+        "declared_term_count": 15,
+        "diagnostic_calls": 0,
+        "diagnostic_outputs": {},
+        "dispatcher_calls": 160,
+        "feature_activation_records": [],
+        "input_fingerprint": {
+          "fields": [
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "base_height",
+              "shape": [
+                1024
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "roll",
+              "shape": [
+                1024
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "pitch",
+              "shape": [
+                1024
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "base_pos_xy",
+              "shape": [
+                1024,
+                2
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "base_lin_vel",
+              "shape": [
+                1024,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "base_ang_vel",
+              "shape": [
+                1024,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "projected_gravity",
+              "shape": [
+                1024,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "commanded_base_vel",
+              "shape": [
+                1024,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "joint_pos",
+              "shape": [
+                1024,
+                37
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "joint_vel",
+              "shape": [
+                1024,
+                37
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "joint_pos_error",
+              "shape": [
+                1024,
+                37
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "last_action",
+              "shape": [
+                1024,
+                37
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "prev_action",
+              "shape": [
+                1024,
+                37
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "action_delta",
+              "shape": [
+                1024,
+                37
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "progress_fraction",
+              "shape": [
+                1024
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "base_lin_vel_yaw",
+              "shape": [
+                1024,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "base_ang_vel_world",
+              "shape": [
+                1024,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "base_quat_world",
+              "shape": [
+                1024,
+                4
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "ankle_joint_pos",
+              "shape": [
+                1024,
+                4
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "ankle_soft_joint_pos_limits",
+              "shape": [
+                1024,
+                4,
+                2
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "locomotion_joint_torque",
+              "shape": [
+                1024,
+                12
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "hip_knee_joint_acc",
+              "shape": [
+                1024,
+                8
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "hip_yaw_roll_joint_pos_error",
+              "shape": [
+                1024,
+                4
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "arm_joint_pos_error",
+              "shape": [
+                1024,
+                10
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "finger_joint_pos_error",
+              "shape": [
+                1024,
+                14
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "torso_joint_pos_error",
+              "shape": [
+                1024,
+                1
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "foot_air_time",
+              "shape": [
+                1024,
+                2
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "foot_contact_time",
+              "shape": [
+                1024,
+                2
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "foot_contact_force_history",
+              "shape": [
+                1024,
+                3,
+                2,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "foot_contact_force",
+              "shape": [
+                1024,
+                2,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.bool",
+              "name": "foot_contact",
+              "shape": [
+                1024,
+                2
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "foot_lin_vel",
+              "shape": [
+                1024,
+                2,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "foot_pos_relative_to_terrain_origin",
+              "shape": [
+                1024,
+                2,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "base_pos_relative_to_terrain_origin",
+              "shape": [
+                1024,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "base_contact_force",
+              "shape": [
+                1024,
+                1,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "height_scan",
+              "shape": [
+                1024,
+                187
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "forward_progress_m",
+              "shape": [
+                1024
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "remaining_goal_distance_m",
+              "shape": [
+                1024
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "goal_progress_fraction",
+              "shape": [
+                1024
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.bool",
+              "name": "terminated_non_timeout",
+              "shape": [
+                1024
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.bool",
+              "name": "time_out",
+              "shape": [
+                1024
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.bool",
+              "name": "base_contact",
+              "shape": [
+                1024
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            }
+          ],
+          "input_schema_hash": "2953831ca66dae9115006e84ec0063c9194b0d1cdd84eac4a2901172642a49dd"
+        },
+        "input_guard": "pass",
+        "last_common_step": 160,
+        "last_total_rate_mean": -198.04260254,
+        "max_abs_total_rate": 198.04260254,
+        "nonzero_reward_contribution": true,
+        "program": {
+          "input_schema_hash": "2953831ca66dae9115006e84ec0063c9194b0d1cdd84eac4a2901172642a49dd",
+          "program_source_checksum": "sha256:a1255b585ffc6752df710be648cf0439017d5220a41853b9dfdebc778c3c03a3",
+          "program_source_size_bytes": 4978,
+          "qualification_hash": "914e4bdd978ee62c0416149bab3b77d5132093ce4b94bd1844585f3c6c670c80",
+          "schema_version": "true_rl_agent.task.stair_climbing.qualified_reward_program.v1",
+          "static_verifier_policy_hash": "063478ad7112b0d5f8d9fbb0f1da979fefccd65c83ad50ff205d6a526759bbdf",
+          "subject": {
+            "id": "official-g1-rough-reward-v1",
+            "kind": "reference",
+            "schema_version": "true_rl_agent.experiment.subject.v2"
+          },
+          "subject_manifest_hash": "34dff42c11b5fcd6a21514ca9e5edaaa95897c6866583f8a5ee0319338aa438e",
+          "term_names": [
+            "termination_penalty",
+            "track_lin_vel_xy_exp",
+            "track_ang_vel_z_exp",
+            "feet_air_time",
+            "feet_slide",
+            "dof_pos_limits",
+            "joint_deviation_hip",
+            "joint_deviation_arms",
+            "joint_deviation_fingers",
+            "joint_deviation_torso",
+            "ang_vel_xy_l2",
+            "flat_orientation_l2",
+            "action_rate_l2",
+            "dof_acc_l2",
+            "dof_torques_l2"
+          ]
+        },
+        "reward_output_stats": {
+          "complete_reward": {
+            "last_mean": -198.04260254,
+            "max_abs": 198.04260254
+          }
+        },
+        "reward_term_calls": 2400,
+        "rng_guard": "pass",
+        "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_runtime_evidence.v1",
+        "source_alias_guard": "pass",
+        "status": "pass",
+        "term_calls": 2400,
+        "term_records": [
+          {
+            "call_count": 160,
+            "last_raw_mean": 1.0,
+            "last_weighted_mean": -200.0,
+            "max_abs_weighted_rate": 200.0,
+            "name": "termination_penalty",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.0565364,
+            "last_weighted_mean": 0.0565364,
+            "max_abs_weighted_rate": 0.07730453,
+            "name": "track_lin_vel_xy_exp",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.99697149,
+            "last_weighted_mean": 1.99394298,
+            "max_abs_weighted_rate": 2.0,
+            "name": "track_ang_vel_z_exp",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.0,
+            "last_weighted_mean": 0.0,
+            "max_abs_weighted_rate": 0.0,
+            "name": "feet_air_time",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.52037561,
+            "last_weighted_mean": -0.05203757,
+            "max_abs_weighted_rate": 0.05204247,
+            "name": "feet_slide",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.0,
+            "last_weighted_mean": 0.0,
+            "max_abs_weighted_rate": 0.0,
+            "name": "dof_pos_limits",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.00035765,
+            "last_weighted_mean": -3.576e-05,
+            "max_abs_weighted_rate": 3.578e-05,
+            "name": "joint_deviation_hip",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.00073595,
+            "last_weighted_mean": -7.359e-05,
+            "max_abs_weighted_rate": 7.361e-05,
+            "name": "joint_deviation_arms",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.28974909,
+            "last_weighted_mean": -0.01448745,
+            "max_abs_weighted_rate": 0.01699436,
+            "name": "joint_deviation_fingers",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 2.474e-05,
+            "last_weighted_mean": -2.47e-06,
+            "max_abs_weighted_rate": 2.48e-06,
+            "name": "joint_deviation_torso",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.01036734,
+            "last_weighted_mean": -0.00051837,
+            "max_abs_weighted_rate": 0.00051843,
+            "name": "ang_vel_xy_l2",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.0,
+            "last_weighted_mean": -0.0,
+            "max_abs_weighted_rate": 0.0,
+            "name": "flat_orientation_l2",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.0,
+            "last_weighted_mean": 0.0,
+            "max_abs_weighted_rate": 0.0,
+            "name": "action_rate_l2",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 207439.40625,
+            "last_weighted_mean": -0.02592993,
+            "max_abs_weighted_rate": 0.02593171,
+            "name": "dof_acc_l2",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.0,
+            "last_weighted_mean": -0.0,
+            "max_abs_weighted_rate": 0.0,
+            "name": "dof_torques_l2",
+            "sample_count": 7
+          }
+        ]
+      },
+      "schema_version": "true_rl_agent.task.stair_climbing.reward_benchmark_case.v1",
+      "status": "pass",
+      "training_recorder_enabled": false,
+      "warmup_control_steps": 32
+    },
+    {
+      "case": "dispatcher_with_eval_recorder",
+      "elapsed_seconds": 6.83410779,
+      "env_steps_per_second": 19179.095,
+      "hardware_fingerprint": {
+        "control_dt_s": 0.02,
+        "device": "cuda:1",
+        "gpu_name": "NVIDIA GeForce RTX 5090",
+        "simulation_dt_s": 0.005,
+        "torch": "2.7.0+cu128"
+      },
+      "measured_control_steps": 128,
+      "num_envs": 1024,
+      "program": {
+        "input_schema_hash": "2953831ca66dae9115006e84ec0063c9194b0d1cdd84eac4a2901172642a49dd",
+        "program_source_checksum": "sha256:a1255b585ffc6752df710be648cf0439017d5220a41853b9dfdebc778c3c03a3",
+        "program_source_size_bytes": 4978,
+        "qualification_hash": "914e4bdd978ee62c0416149bab3b77d5132093ce4b94bd1844585f3c6c670c80",
+        "schema_version": "true_rl_agent.task.stair_climbing.qualified_reward_program.v1",
+        "static_verifier_policy_hash": "063478ad7112b0d5f8d9fbb0f1da979fefccd65c83ad50ff205d6a526759bbdf",
+        "subject": {
+          "id": "official-g1-rough-reward-v1",
+          "kind": "reference",
+          "schema_version": "true_rl_agent.experiment.subject.v2"
+        },
+        "subject_manifest_hash": "34dff42c11b5fcd6a21514ca9e5edaaa95897c6866583f8a5ee0319338aa438e",
+        "term_names": [
+          "termination_penalty",
+          "track_lin_vel_xy_exp",
+          "track_ang_vel_z_exp",
+          "feet_air_time",
+          "feet_slide",
+          "dof_pos_limits",
+          "joint_deviation_hip",
+          "joint_deviation_arms",
+          "joint_deviation_fingers",
+          "joint_deviation_torso",
+          "ang_vel_xy_l2",
+          "flat_orientation_l2",
+          "action_rate_l2",
+          "dof_acc_l2",
+          "dof_torques_l2"
+        ]
+      },
+      "protocol_v2_hash": "fb00275c563d71044516ec0263c649b9b4c20cf4ad7bfe1e5b2ad988462c48c2",
+      "report_hash": "ae51155224deb57a1db3a2de3611d13cba8a501bc47a1c3487bd07a2fc2c2b2d",
+      "reward_manager_active_terms": [
+        "complete_reward"
+      ],
+      "runtime": {
+        "capability_activation_records": [
+          "complete_reward_program"
+        ],
+        "component_activation_records": [
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": -200.0,
+            "max_abs_weighted_contribution": 200.0,
+            "name": "termination_penalty",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": 0.0565364,
+            "max_abs_weighted_contribution": 0.07730453,
+            "name": "track_lin_vel_xy_exp",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": 1.99394298,
+            "max_abs_weighted_contribution": 2.0,
+            "name": "track_ang_vel_z_exp",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": 0.0,
+            "max_abs_weighted_contribution": 0.0,
+            "name": "feet_air_time",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": -0.05203759,
+            "max_abs_weighted_contribution": 0.05204305,
+            "name": "feet_slide",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": 0.0,
+            "max_abs_weighted_contribution": 0.0,
+            "name": "dof_pos_limits",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": -3.576e-05,
+            "max_abs_weighted_contribution": 3.578e-05,
+            "name": "joint_deviation_hip",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": -7.359e-05,
+            "max_abs_weighted_contribution": 7.361e-05,
+            "name": "joint_deviation_arms",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": -0.01448745,
+            "max_abs_weighted_contribution": 0.01699436,
+            "name": "joint_deviation_fingers",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": -2.47e-06,
+            "max_abs_weighted_contribution": 2.48e-06,
+            "name": "joint_deviation_torso",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": -0.00051837,
+            "max_abs_weighted_contribution": 0.00051843,
+            "name": "ang_vel_xy_l2",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": -0.0,
+            "max_abs_weighted_contribution": 0.0,
+            "name": "flat_orientation_l2",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": 0.0,
+            "max_abs_weighted_contribution": 0.0,
+            "name": "action_rate_l2",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": -0.02592993,
+            "max_abs_weighted_contribution": 0.02593169,
+            "name": "dof_acc_l2",
+            "observation_count": 7
+          },
+          {
+            "call_count": 160,
+            "component_kind": "reward_term",
+            "last_weighted_mean": -0.0,
+            "max_abs_weighted_contribution": 0.0,
+            "name": "dof_torques_l2",
+            "observation_count": 7
+          }
+        ],
+        "declared_term_count": 15,
+        "diagnostic_calls": 0,
+        "diagnostic_outputs": {},
+        "dispatcher_calls": 160,
+        "feature_activation_records": [],
+        "input_fingerprint": {
+          "fields": [
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "base_height",
+              "shape": [
+                1024
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "roll",
+              "shape": [
+                1024
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "pitch",
+              "shape": [
+                1024
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "base_pos_xy",
+              "shape": [
+                1024,
+                2
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "base_lin_vel",
+              "shape": [
+                1024,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "base_ang_vel",
+              "shape": [
+                1024,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "projected_gravity",
+              "shape": [
+                1024,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "commanded_base_vel",
+              "shape": [
+                1024,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "joint_pos",
+              "shape": [
+                1024,
+                37
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "joint_vel",
+              "shape": [
+                1024,
+                37
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "joint_pos_error",
+              "shape": [
+                1024,
+                37
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "last_action",
+              "shape": [
+                1024,
+                37
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "prev_action",
+              "shape": [
+                1024,
+                37
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "action_delta",
+              "shape": [
+                1024,
+                37
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "progress_fraction",
+              "shape": [
+                1024
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "base_lin_vel_yaw",
+              "shape": [
+                1024,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "base_ang_vel_world",
+              "shape": [
+                1024,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "base_quat_world",
+              "shape": [
+                1024,
+                4
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "ankle_joint_pos",
+              "shape": [
+                1024,
+                4
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "ankle_soft_joint_pos_limits",
+              "shape": [
+                1024,
+                4,
+                2
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "locomotion_joint_torque",
+              "shape": [
+                1024,
+                12
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "hip_knee_joint_acc",
+              "shape": [
+                1024,
+                8
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "hip_yaw_roll_joint_pos_error",
+              "shape": [
+                1024,
+                4
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "arm_joint_pos_error",
+              "shape": [
+                1024,
+                10
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "finger_joint_pos_error",
+              "shape": [
+                1024,
+                14
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "torso_joint_pos_error",
+              "shape": [
+                1024,
+                1
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "foot_air_time",
+              "shape": [
+                1024,
+                2
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "foot_contact_time",
+              "shape": [
+                1024,
+                2
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "foot_contact_force_history",
+              "shape": [
+                1024,
+                3,
+                2,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "foot_contact_force",
+              "shape": [
+                1024,
+                2,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.bool",
+              "name": "foot_contact",
+              "shape": [
+                1024,
+                2
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "foot_lin_vel",
+              "shape": [
+                1024,
+                2,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "foot_pos_relative_to_terrain_origin",
+              "shape": [
+                1024,
+                2,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "base_pos_relative_to_terrain_origin",
+              "shape": [
+                1024,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "base_contact_force",
+              "shape": [
+                1024,
+                1,
+                3
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "height_scan",
+              "shape": [
+                1024,
+                187
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "forward_progress_m",
+              "shape": [
+                1024
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "remaining_goal_distance_m",
+              "shape": [
+                1024
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.float32",
+              "name": "goal_progress_fraction",
+              "shape": [
+                1024
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.bool",
+              "name": "terminated_non_timeout",
+              "shape": [
+                1024
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.bool",
+              "name": "time_out",
+              "shape": [
+                1024
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            },
+            {
+              "detached": true,
+              "device": "cuda:1",
+              "dtype": "torch.bool",
+              "name": "base_contact",
+              "shape": [
+                1024
+              ],
+              "storage_unique": true,
+              "version_tracked": true
+            }
+          ],
+          "input_schema_hash": "2953831ca66dae9115006e84ec0063c9194b0d1cdd84eac4a2901172642a49dd"
+        },
+        "input_guard": "pass",
+        "last_common_step": 160,
+        "last_total_rate_mean": -198.04260254,
+        "max_abs_total_rate": 198.04260254,
+        "nonzero_reward_contribution": true,
+        "program": {
+          "input_schema_hash": "2953831ca66dae9115006e84ec0063c9194b0d1cdd84eac4a2901172642a49dd",
+          "program_source_checksum": "sha256:a1255b585ffc6752df710be648cf0439017d5220a41853b9dfdebc778c3c03a3",
+          "program_source_size_bytes": 4978,
+          "qualification_hash": "914e4bdd978ee62c0416149bab3b77d5132093ce4b94bd1844585f3c6c670c80",
+          "schema_version": "true_rl_agent.task.stair_climbing.qualified_reward_program.v1",
+          "static_verifier_policy_hash": "063478ad7112b0d5f8d9fbb0f1da979fefccd65c83ad50ff205d6a526759bbdf",
+          "subject": {
+            "id": "official-g1-rough-reward-v1",
+            "kind": "reference",
+            "schema_version": "true_rl_agent.experiment.subject.v2"
+          },
+          "subject_manifest_hash": "34dff42c11b5fcd6a21514ca9e5edaaa95897c6866583f8a5ee0319338aa438e",
+          "term_names": [
+            "termination_penalty",
+            "track_lin_vel_xy_exp",
+            "track_ang_vel_z_exp",
+            "feet_air_time",
+            "feet_slide",
+            "dof_pos_limits",
+            "joint_deviation_hip",
+            "joint_deviation_arms",
+            "joint_deviation_fingers",
+            "joint_deviation_torso",
+            "ang_vel_xy_l2",
+            "flat_orientation_l2",
+            "action_rate_l2",
+            "dof_acc_l2",
+            "dof_torques_l2"
+          ]
+        },
+        "reward_output_stats": {
+          "complete_reward": {
+            "last_mean": -198.04260254,
+            "max_abs": 198.04260254
+          }
+        },
+        "reward_term_calls": 2400,
+        "rng_guard": "pass",
+        "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_runtime_evidence.v1",
+        "source_alias_guard": "pass",
+        "status": "pass",
+        "term_calls": 2400,
+        "term_records": [
+          {
+            "call_count": 160,
+            "last_raw_mean": 1.0,
+            "last_weighted_mean": -200.0,
+            "max_abs_weighted_rate": 200.0,
+            "name": "termination_penalty",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.0565364,
+            "last_weighted_mean": 0.0565364,
+            "max_abs_weighted_rate": 0.07730453,
+            "name": "track_lin_vel_xy_exp",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.99697149,
+            "last_weighted_mean": 1.99394298,
+            "max_abs_weighted_rate": 2.0,
+            "name": "track_ang_vel_z_exp",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.0,
+            "last_weighted_mean": 0.0,
+            "max_abs_weighted_rate": 0.0,
+            "name": "feet_air_time",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.52037585,
+            "last_weighted_mean": -0.05203759,
+            "max_abs_weighted_rate": 0.05204305,
+            "name": "feet_slide",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.0,
+            "last_weighted_mean": 0.0,
+            "max_abs_weighted_rate": 0.0,
+            "name": "dof_pos_limits",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.00035765,
+            "last_weighted_mean": -3.576e-05,
+            "max_abs_weighted_rate": 3.578e-05,
+            "name": "joint_deviation_hip",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.00073595,
+            "last_weighted_mean": -7.359e-05,
+            "max_abs_weighted_rate": 7.361e-05,
+            "name": "joint_deviation_arms",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.28974909,
+            "last_weighted_mean": -0.01448745,
+            "max_abs_weighted_rate": 0.01699436,
+            "name": "joint_deviation_fingers",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 2.474e-05,
+            "last_weighted_mean": -2.47e-06,
+            "max_abs_weighted_rate": 2.48e-06,
+            "name": "joint_deviation_torso",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.01036735,
+            "last_weighted_mean": -0.00051837,
+            "max_abs_weighted_rate": 0.00051843,
+            "name": "ang_vel_xy_l2",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.0,
+            "last_weighted_mean": -0.0,
+            "max_abs_weighted_rate": 0.0,
+            "name": "flat_orientation_l2",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.0,
+            "last_weighted_mean": 0.0,
+            "max_abs_weighted_rate": 0.0,
+            "name": "action_rate_l2",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 207439.453125,
+            "last_weighted_mean": -0.02592993,
+            "max_abs_weighted_rate": 0.02593169,
+            "name": "dof_acc_l2",
+            "sample_count": 7
+          },
+          {
+            "call_count": 160,
+            "last_raw_mean": 0.0,
+            "last_weighted_mean": -0.0,
+            "max_abs_weighted_rate": 0.0,
+            "name": "dof_torques_l2",
+            "sample_count": 7
+          }
+        ]
+      },
+      "schema_version": "true_rl_agent.task.stair_climbing.reward_benchmark_case.v1",
+      "status": "pass",
+      "training_recorder_enabled": true,
+      "warmup_control_steps": 32
+    }
+  ],
+  "diagnostic_recorder_to_dispatcher_throughput_ratio": 0.81963832,
+  "gate": {
+    "minimum_dispatcher_throughput_ratio": 0.85,
+    "observed_dispatcher_throughput_ratio": 1.14721179,
+    "passed": true
+  },
+  "hardware_fingerprint": {
+    "control_dt_s": 0.02,
+    "device": "cuda:1",
+    "gpu_name": "NVIDIA GeForce RTX 5090",
+    "simulation_dt_s": 0.005,
+    "torch": "2.7.0+cu128"
+  },
+  "protocol_v2_hash": "fb00275c563d71044516ec0263c649b9b4c20cf4ad7bfe1e5b2ad988462c48c2",
+  "reference_program": {
+    "input_schema_hash": "2953831ca66dae9115006e84ec0063c9194b0d1cdd84eac4a2901172642a49dd",
+    "program_source_checksum": "sha256:a1255b585ffc6752df710be648cf0439017d5220a41853b9dfdebc778c3c03a3",
+    "program_source_size_bytes": 4978,
+    "qualification_hash": "914e4bdd978ee62c0416149bab3b77d5132093ce4b94bd1844585f3c6c670c80",
+    "schema_version": "true_rl_agent.task.stair_climbing.qualified_reward_program.v1",
+    "static_verifier_policy_hash": "063478ad7112b0d5f8d9fbb0f1da979fefccd65c83ad50ff205d6a526759bbdf",
+    "subject": {
+      "id": "official-g1-rough-reward-v1",
+      "kind": "reference",
+      "schema_version": "true_rl_agent.experiment.subject.v2"
+    },
+    "subject_manifest_hash": "34dff42c11b5fcd6a21514ca9e5edaaa95897c6866583f8a5ee0319338aa438e",
+    "term_names": [
+      "termination_penalty",
+      "track_lin_vel_xy_exp",
+      "track_ang_vel_z_exp",
+      "feet_air_time",
+      "feet_slide",
+      "dof_pos_limits",
+      "joint_deviation_hip",
+      "joint_deviation_arms",
+      "joint_deviation_fingers",
+      "joint_deviation_torso",
+      "ang_vel_xy_l2",
+      "flat_orientation_l2",
+      "action_rate_l2",
+      "dof_acc_l2",
+      "dof_torques_l2"
+    ]
+  },
+  "report_hash": "cad21e0489860c53fe8e2888da9a966dce2043684af6b2510e4f28fe2f50f688",
+  "schema_version": "true_rl_agent.task.stair_climbing.reward_performance_report.v1",
+  "status": "pass"
+}

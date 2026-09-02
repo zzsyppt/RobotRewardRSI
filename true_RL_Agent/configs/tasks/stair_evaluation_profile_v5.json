@@ -1,0 +1,15 @@
+{
+  "schema_version": "true_rl_agent.task.stair_climbing.evaluation_profile.v5",
+  "profile_id": "unitree_stair_climbing_anchor_and_tread_generalization_v5",
+  "base_protocol_hash": "7732f94502b30cdd8524b1e9ad4a1dbb118bb8f6b7b2f60cd1d52e8901b61cde",
+  "evaluation_protocol_version": "stair_anchor_and_tread_generalization_v5",
+  "anchor_tread_depth_m": 0.4,
+  "tread_depths_m": [0.3, 0.35, 0.4, 0.45, 0.5],
+  "episodes_per_seed_per_cell": 8,
+  "eval_num_envs": 280,
+  "top_platform_goal_offset_m": 0.4,
+  "episode_horizon_policy": "scale_base_horizon_by_progress_goal_ratio_to_anchor_nearest_control_step",
+  "cell_aggregation": "equal_weight_mean_over_height_tread_cells",
+  "terrain_layout": "anchor_first_then_ascending_tread",
+  "profile_hash": "86d8eed0c8b9a8c32af49c69a81d983b3ec826abec408d5664717f61e16939d5"
+}

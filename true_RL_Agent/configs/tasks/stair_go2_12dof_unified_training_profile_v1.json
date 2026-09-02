@@ -1,0 +1,126 @@
+{
+  "schema_version": "true_rl_agent.task.stair_climbing.unified_training_profile.v1",
+  "profile_id": "stair_unified_go2_12dof_c0_c1_training_v1",
+  "task_id": "unitree_stair_climbing",
+  "allocation": {
+    "c0_regular_fraction": 0.5,
+    "c1_irregular_flat_fraction": 0.5
+  },
+  "grid": {
+    "terrain_rows": 10,
+    "terrain_cols": 10,
+    "c0_column_count": 1,
+    "c1_column_count": 9,
+    "difficulty_range": [
+      0.0,
+      1.0
+    ]
+  },
+  "terrain": {
+    "size_m": [
+      8.0,
+      4.0
+    ],
+    "floor_depth_m": 0.5,
+    "start_platform_length_m": 1.5,
+    "step_count": 8,
+    "top_platform_goal_offset_m": 0.4,
+    "c0": {
+      "riser_range_m": [
+        0.03,
+        0.206
+      ],
+      "tread_depth_m": 0.4
+    },
+    "c1": {
+      "riser_base_range_m": [
+        0.047,
+        0.118
+      ],
+      "riser_offset_m": 0.007069,
+      "tread_bases_m": [
+        0.37,
+        0.4,
+        0.43
+      ],
+      "tread_offset_m": 0.018
+    }
+  },
+  "pattern_families": {
+    "alternating": {
+      "multipliers": [
+        -1.0,
+        1.0,
+        -1.0,
+        1.0,
+        -1.0,
+        1.0,
+        -1.0,
+        1.0
+      ],
+      "training_phase_steps": 0,
+      "held_out_phase_steps": [
+        1
+      ]
+    },
+    "front_loaded": {
+      "multipliers": [
+        1.0,
+        0.75,
+        0.5,
+        0.25,
+        -0.25,
+        -0.5,
+        -0.75,
+        -1.0
+      ],
+      "training_phase_steps": 0,
+      "held_out_phase_steps": [
+        2,
+        4,
+        6
+      ]
+    },
+    "back_loaded": {
+      "multipliers": [
+        -1.0,
+        -0.75,
+        -0.5,
+        -0.25,
+        0.25,
+        0.5,
+        0.75,
+        1.0
+      ],
+      "training_phase_steps": 0,
+      "held_out_phase_steps": [
+        2,
+        4,
+        6
+      ]
+    }
+  },
+  "curriculum": {
+    "progress_source": "goal_progress_fraction_from_actual_geometry",
+    "move_up_threshold": 0.8,
+    "move_down_threshold": 0.4,
+    "terrain_type_is_fixed": true,
+    "initial_max_level": {
+      "c0_regular": 5,
+      "c1_irregular_flat": 1
+    }
+  },
+  "training_exposure": {
+    "allowed_regimes": [
+      "c0_regular",
+      "c1_irregular_flat"
+    ],
+    "forbidden_regimes": [
+      "c2_rough"
+    ],
+    "evaluation_only_cohorts": [
+      "sealed_validation"
+    ]
+  },
+  "profile_hash": "081f65711be0708e005f6b04f94743e64446994380ee1b4f58fa3eed173b6164"
+}

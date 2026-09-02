@@ -1,0 +1,396 @@
+{
+  "cell_variant_id": "stair.g1_37dof.unified_v2",
+  "initial_current_best": {
+    "acceptance_protocol_hash": "d18b5345c8b3112546af401a8dd1560e6c6e840ad8c5ef4d102bd3e1ea5b4c24",
+    "accepted_candidate_id": null,
+    "accepted_round_id": null,
+    "anchor_id": "official-g1-rough-reward-vnext-v1",
+    "anchor_kind": "reference",
+    "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+    "checkpoint_hash": "sha256:3fbbf80d5e7e4ee559420ea06759231c00e2d90316101ace4db6e24ec25810b2",
+    "eval_protocol_hash": "aaea86a49cb01ea488eb3508685509dbee55c31589a268a922afd24ed082a942",
+    "evaluation_binding_hash": "92bdcae916b8f3fcb6ba5204ffc98b9e1dcfc1e2fa5fc786ed1af7a613824c6a",
+    "gate_statuses": {
+      "accept_evidence_gate": "pass",
+      "budget_accounting": "pass",
+      "reference_capability_gate": "pass",
+      "runtime_activation_gate": "pass",
+      "sealed_validation_gate": "pass",
+      "stair_behavior_gate": "pass"
+    },
+    "guard_score_stats": {},
+    "min_score_count": 5,
+    "mode": "reference",
+    "named_guard_evidence": {
+      "c0_id": {
+        "absolute_accept_floor": 0.1,
+        "max_regression": 0.05,
+        "name": "c0_id",
+        "regression_margin": 0.02,
+        "score_samples": [
+          0.9339163972222222,
+          0.8556939922222222,
+          0.9277335477777777,
+          0.8719176272222221,
+          0.7803952005555556
+        ],
+        "score_source": "unified_score.c0_id.score_stats.mean",
+        "score_stats": {
+          "count": 5,
+          "eval_protocol_hash": "aaea86a49cb01ea488eb3508685509dbee55c31589a268a922afd24ed082a942",
+          "mean": 0.873931353,
+          "score_samples": [
+            0.9339163972222222,
+            0.8556939922222222,
+            0.9277335477777777,
+            0.8719176272222221,
+            0.7803952005555556
+          ],
+          "standard_error": 0.027909272587264927,
+          "std": 0.06240703070769581
+        }
+      },
+      "c1_id": {
+        "absolute_accept_floor": 0.1,
+        "max_regression": 0.05,
+        "name": "c1_id",
+        "regression_margin": 0.02,
+        "score_samples": [
+          0.5518503677777779,
+          0.7055180944444444,
+          0.5842057155555556,
+          0.6163463927777778,
+          0.5737272833333333
+        ],
+        "score_source": "unified_score.c1_id.score_stats.mean",
+        "score_stats": {
+          "count": 5,
+          "eval_protocol_hash": "aaea86a49cb01ea488eb3508685509dbee55c31589a268a922afd24ed082a942",
+          "mean": 0.6063295707777778,
+          "score_samples": [
+            0.5518503677777779,
+            0.7055180944444444,
+            0.5842057155555556,
+            0.6163463927777778,
+            0.5737272833333333
+          ],
+          "standard_error": 0.026887783123727204,
+          "std": 0.06012291082892567
+        }
+      },
+      "j_ood": {
+        "absolute_accept_floor": 0.1,
+        "max_regression": 0.05,
+        "name": "j_ood",
+        "regression_margin": 0.02,
+        "score_samples": [
+          0.6398548615740741,
+          0.6806524712037035,
+          0.7048433120679012,
+          0.6961665646296296,
+          0.6343965028395062
+        ],
+        "score_source": "unified_score.j_ood.score_stats.mean",
+        "score_stats": {
+          "count": 5,
+          "eval_protocol_hash": "aaea86a49cb01ea488eb3508685509dbee55c31589a268a922afd24ed082a942",
+          "mean": 0.6711827424629628,
+          "score_samples": [
+            0.6398548615740741,
+            0.6806524712037035,
+            0.7048433120679012,
+            0.6961665646296296,
+            0.6343965028395062
+          ],
+          "standard_error": 0.01445953772641177,
+          "std": 0.03233250927947948
+        }
+      }
+    },
+    "program_source_checksum": "sha256:3462bdf78d874ce2e4ab527cea3c1530ebc93cf9750d2b4fc64292e3a63adfb8",
+    "public_accept_stats": {
+      "count": 5,
+      "eval_protocol_hash": "aaea86a49cb01ea488eb3508685509dbee55c31589a268a922afd24ed082a942",
+      "mean": 0.6941653156049383,
+      "score_samples": [
+        0.6741977018827162,
+        0.7139703285802468,
+        0.7218854186008231,
+        0.712155046419753,
+        0.6486180825411523
+      ],
+      "standard_error": 0.014066856616477627,
+      "std": 0.031454447624186664
+    },
+    "public_score": 0.6941653156049383,
+    "sealed_validation_evidence": {
+      "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+      "checkpoint_hash": "sha256:3fbbf80d5e7e4ee559420ea06759231c00e2d90316101ace4db6e24ec25810b2",
+      "eval_protocol_hash": "aaea86a49cb01ea488eb3508685509dbee55c31589a268a922afd24ed082a942",
+      "evaluation_binding_hash": "92bdcae916b8f3fcb6ba5204ffc98b9e1dcfc1e2fa5fc786ed1af7a613824c6a",
+      "evaluation_subject": {
+        "id": "official-g1-rough-reward-vnext-v1",
+        "kind": "reference",
+        "schema_version": "true_rl_agent.experiment.subject.v2"
+      },
+      "expected_seed_count": 7,
+      "observed_seed_count": 7,
+      "program_source_checksum": "sha256:3462bdf78d874ce2e4ab527cea3c1530ebc93cf9750d2b4fc64292e3a63adfb8",
+      "reason": "unified_stair_reference_sealed_telemetry_complete",
+      "schema_version": "true_rl_agent.sealed_validation.evidence.v4",
+      "score_stats": {
+        "count": 7,
+        "eval_protocol_hash": "aaea86a49cb01ea488eb3508685509dbee55c31589a268a922afd24ed082a942",
+        "mean": 0.7195139361860671,
+        "standard_error": 0.009194269076469178,
+        "std": 0.02432574946334895,
+        "values": [
+          0.732069101399177,
+          0.7127564189917696,
+          0.7508627899176954,
+          0.7300633711316872,
+          0.676604519382716,
+          0.7029707351646092,
+          0.7312706173148147
+        ]
+      },
+      "status": "pass",
+      "subject_manifest_hash": "4090bd3b80113ee956400870e17dbe60809cf55d0a15e351ff11583942ff924f",
+      "task_evidence_hash": "16265a1a8cd6ddf2a476bb2901c5e4e303c59439d7cd4421495eb25adb4f9774",
+      "training_binding_hash": "d7aea85d7742c57eae1753b8b236b32555269d9bcd8c25ed2b3742d2e045e14c"
+    },
+    "sealed_validation_gate": {
+      "candidate_code_loaded_in_eval": false,
+      "candidate_isolation_status": "pass",
+      "candidate_package_loaded_in_eval": false,
+      "candidate_path_argument_present": false,
+      "checkpoint_hash_match_status": "pass",
+      "checkpoint_safety_status": "pass",
+      "eval_protocol_hash_match_status": "pass",
+      "evaluation_binding_hash_match_status": "pass",
+      "holdout_rollout_status": "pass",
+      "reason": "sealed_validation_complete",
+      "status": "pass"
+    },
+    "seed_cohort_hash": "1fb55c41146a4d46f561858eb4650111eafc6a4ee96df4b8e0c5cbaf1e9453e2",
+    "subject_manifest_hash": "4090bd3b80113ee956400870e17dbe60809cf55d0a15e351ff11583942ff924f",
+    "task_protocol_hash": "32d7f3c9855b04a826dcbfe958bf12fc44d7be09275285295e12f80f3abc0332",
+    "training_binding_hash": "d7aea85d7742c57eae1753b8b236b32555269d9bcd8c25ed2b3742d2e045e14c"
+  },
+  "ledger_record_count": 0,
+  "ledger_state": "absent",
+  "load_only_evidence": {
+    "genesis_checksum_after": "sha256:5389121151f661b2dfd2b2e09604439b8fae9a2ba594230739f044365e08ad8a",
+    "genesis_checksum_before": "sha256:5389121151f661b2dfd2b2e09604439b8fae9a2ba594230739f044365e08ad8a",
+    "genesis_mtime_ns_after": 1788039794438567316,
+    "genesis_mtime_ns_before": 1788039794438567316,
+    "ledger_checksum_after": null,
+    "ledger_checksum_before": null,
+    "ledger_mtime_ns_after": null,
+    "ledger_mtime_ns_before": null,
+    "provider_call_count": 0,
+    "reference_source_status": "pass",
+    "replay_ledger_record_count": 0,
+    "replay_status": "pass",
+    "runner_call_count": 0,
+    "status": "pass"
+  },
+  "mode": "load-only",
+  "provider_call_count": 0,
+  "reference_anchor": {
+    "acceptance_protocol_hash": "d18b5345c8b3112546af401a8dd1560e6c6e840ad8c5ef4d102bd3e1ea5b4c24",
+    "anchor_kind": "reference_program",
+    "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+    "eval_protocol_hash": "aaea86a49cb01ea488eb3508685509dbee55c31589a268a922afd24ed082a942",
+    "evaluation_binding_hash": "92bdcae916b8f3fcb6ba5204ffc98b9e1dcfc1e2fa5fc786ed1af7a613824c6a",
+    "program_source_checksum": "sha256:3462bdf78d874ce2e4ab527cea3c1530ebc93cf9750d2b4fc64292e3a63adfb8",
+    "public_score": 0.6941653156049383,
+    "reference_id": "official-g1-rough-reward-vnext-v1",
+    "reference_manifest_hash": "4090bd3b80113ee956400870e17dbe60809cf55d0a15e351ff11583942ff924f",
+    "task_protocol_hash": "32d7f3c9855b04a826dcbfe958bf12fc44d7be09275285295e12f80f3abc0332",
+    "training_binding_hash": "d7aea85d7742c57eae1753b8b236b32555269d9bcd8c25ed2b3742d2e045e14c"
+  },
+  "reference_evaluation_mode": "phased",
+  "reference_source_checksum": "sha256:3462bdf78d874ce2e4ab527cea3c1530ebc93cf9750d2b4fc64292e3a63adfb8",
+  "replay_current_best": {
+    "acceptance_protocol_hash": "d18b5345c8b3112546af401a8dd1560e6c6e840ad8c5ef4d102bd3e1ea5b4c24",
+    "accepted_candidate_id": null,
+    "accepted_round_id": null,
+    "anchor_id": "official-g1-rough-reward-vnext-v1",
+    "anchor_kind": "reference",
+    "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+    "checkpoint_hash": "sha256:3fbbf80d5e7e4ee559420ea06759231c00e2d90316101ace4db6e24ec25810b2",
+    "eval_protocol_hash": "aaea86a49cb01ea488eb3508685509dbee55c31589a268a922afd24ed082a942",
+    "evaluation_binding_hash": "92bdcae916b8f3fcb6ba5204ffc98b9e1dcfc1e2fa5fc786ed1af7a613824c6a",
+    "gate_statuses": {
+      "accept_evidence_gate": "pass",
+      "budget_accounting": "pass",
+      "reference_capability_gate": "pass",
+      "runtime_activation_gate": "pass",
+      "sealed_validation_gate": "pass",
+      "stair_behavior_gate": "pass"
+    },
+    "guard_score_stats": {},
+    "min_score_count": 5,
+    "mode": "reference",
+    "named_guard_evidence": {
+      "c0_id": {
+        "absolute_accept_floor": 0.1,
+        "max_regression": 0.05,
+        "name": "c0_id",
+        "regression_margin": 0.02,
+        "score_samples": [
+          0.9339163972222222,
+          0.8556939922222222,
+          0.9277335477777777,
+          0.8719176272222221,
+          0.7803952005555556
+        ],
+        "score_source": "unified_score.c0_id.score_stats.mean",
+        "score_stats": {
+          "count": 5,
+          "eval_protocol_hash": "aaea86a49cb01ea488eb3508685509dbee55c31589a268a922afd24ed082a942",
+          "mean": 0.873931353,
+          "score_samples": [
+            0.9339163972222222,
+            0.8556939922222222,
+            0.9277335477777777,
+            0.8719176272222221,
+            0.7803952005555556
+          ],
+          "standard_error": 0.027909272587264927,
+          "std": 0.06240703070769581
+        }
+      },
+      "c1_id": {
+        "absolute_accept_floor": 0.1,
+        "max_regression": 0.05,
+        "name": "c1_id",
+        "regression_margin": 0.02,
+        "score_samples": [
+          0.5518503677777779,
+          0.7055180944444444,
+          0.5842057155555556,
+          0.6163463927777778,
+          0.5737272833333333
+        ],
+        "score_source": "unified_score.c1_id.score_stats.mean",
+        "score_stats": {
+          "count": 5,
+          "eval_protocol_hash": "aaea86a49cb01ea488eb3508685509dbee55c31589a268a922afd24ed082a942",
+          "mean": 0.6063295707777778,
+          "score_samples": [
+            0.5518503677777779,
+            0.7055180944444444,
+            0.5842057155555556,
+            0.6163463927777778,
+            0.5737272833333333
+          ],
+          "standard_error": 0.026887783123727204,
+          "std": 0.06012291082892567
+        }
+      },
+      "j_ood": {
+        "absolute_accept_floor": 0.1,
+        "max_regression": 0.05,
+        "name": "j_ood",
+        "regression_margin": 0.02,
+        "score_samples": [
+          0.6398548615740741,
+          0.6806524712037035,
+          0.7048433120679012,
+          0.6961665646296296,
+          0.6343965028395062
+        ],
+        "score_source": "unified_score.j_ood.score_stats.mean",
+        "score_stats": {
+          "count": 5,
+          "eval_protocol_hash": "aaea86a49cb01ea488eb3508685509dbee55c31589a268a922afd24ed082a942",
+          "mean": 0.6711827424629628,
+          "score_samples": [
+            0.6398548615740741,
+            0.6806524712037035,
+            0.7048433120679012,
+            0.6961665646296296,
+            0.6343965028395062
+          ],
+          "standard_error": 0.01445953772641177,
+          "std": 0.03233250927947948
+        }
+      }
+    },
+    "program_source_checksum": "sha256:3462bdf78d874ce2e4ab527cea3c1530ebc93cf9750d2b4fc64292e3a63adfb8",
+    "public_accept_stats": {
+      "count": 5,
+      "eval_protocol_hash": "aaea86a49cb01ea488eb3508685509dbee55c31589a268a922afd24ed082a942",
+      "mean": 0.6941653156049383,
+      "score_samples": [
+        0.6741977018827162,
+        0.7139703285802468,
+        0.7218854186008231,
+        0.712155046419753,
+        0.6486180825411523
+      ],
+      "standard_error": 0.014066856616477627,
+      "std": 0.031454447624186664
+    },
+    "public_score": 0.6941653156049383,
+    "sealed_validation_evidence": {
+      "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+      "checkpoint_hash": "sha256:3fbbf80d5e7e4ee559420ea06759231c00e2d90316101ace4db6e24ec25810b2",
+      "eval_protocol_hash": "aaea86a49cb01ea488eb3508685509dbee55c31589a268a922afd24ed082a942",
+      "evaluation_binding_hash": "92bdcae916b8f3fcb6ba5204ffc98b9e1dcfc1e2fa5fc786ed1af7a613824c6a",
+      "evaluation_subject": {
+        "id": "official-g1-rough-reward-vnext-v1",
+        "kind": "reference",
+        "schema_version": "true_rl_agent.experiment.subject.v2"
+      },
+      "expected_seed_count": 7,
+      "observed_seed_count": 7,
+      "program_source_checksum": "sha256:3462bdf78d874ce2e4ab527cea3c1530ebc93cf9750d2b4fc64292e3a63adfb8",
+      "reason": "unified_stair_reference_sealed_telemetry_complete",
+      "schema_version": "true_rl_agent.sealed_validation.evidence.v4",
+      "score_stats": {
+        "count": 7,
+        "eval_protocol_hash": "aaea86a49cb01ea488eb3508685509dbee55c31589a268a922afd24ed082a942",
+        "mean": 0.7195139361860671,
+        "standard_error": 0.009194269076469178,
+        "std": 0.02432574946334895,
+        "values": [
+          0.732069101399177,
+          0.7127564189917696,
+          0.7508627899176954,
+          0.7300633711316872,
+          0.676604519382716,
+          0.7029707351646092,
+          0.7312706173148147
+        ]
+      },
+      "status": "pass",
+      "subject_manifest_hash": "4090bd3b80113ee956400870e17dbe60809cf55d0a15e351ff11583942ff924f",
+      "task_evidence_hash": "16265a1a8cd6ddf2a476bb2901c5e4e303c59439d7cd4421495eb25adb4f9774",
+      "training_binding_hash": "d7aea85d7742c57eae1753b8b236b32555269d9bcd8c25ed2b3742d2e045e14c"
+    },
+    "sealed_validation_gate": {
+      "candidate_code_loaded_in_eval": false,
+      "candidate_isolation_status": "pass",
+      "candidate_package_loaded_in_eval": false,
+      "candidate_path_argument_present": false,
+      "checkpoint_hash_match_status": "pass",
+      "checkpoint_safety_status": "pass",
+      "eval_protocol_hash_match_status": "pass",
+      "evaluation_binding_hash_match_status": "pass",
+      "holdout_rollout_status": "pass",
+      "reason": "sealed_validation_complete",
+      "status": "pass"
+    },
+    "seed_cohort_hash": "1fb55c41146a4d46f561858eb4650111eafc6a4ee96df4b8e0c5cbaf1e9453e2",
+    "subject_manifest_hash": "4090bd3b80113ee956400870e17dbe60809cf55d0a15e351ff11583942ff924f",
+    "task_protocol_hash": "32d7f3c9855b04a826dcbfe958bf12fc44d7be09275285295e12f80f3abc0332",
+    "training_binding_hash": "d7aea85d7742c57eae1753b8b236b32555269d9bcd8c25ed2b3742d2e045e14c"
+  },
+  "session_genesis_hash": "080154a88c0721c0a6a4ebe99d1ab32309f83f448d428dc5472ac3aa4be41fcc",
+  "session_id": "p5-g1-pseudofall-removed-0a3f08a",
+  "status": "pass",
+  "task_id": "unitree_stair_climbing"
+}

@@ -1,0 +1,396 @@
+{
+  "cell_variant_id": "stair.go2_12dof.unified_v2",
+  "initial_current_best": {
+    "acceptance_protocol_hash": "d18b5345c8b3112546af401a8dd1560e6c6e840ad8c5ef4d102bd3e1ea5b4c24",
+    "accepted_candidate_id": null,
+    "accepted_round_id": null,
+    "anchor_id": "go2-stair-official-flat-derived-v1",
+    "anchor_kind": "reference",
+    "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+    "checkpoint_hash": "sha256:fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729",
+    "eval_protocol_hash": "750656cbdef8787205f037db07c18a787f73364a14b3435b662003d633b56594",
+    "evaluation_binding_hash": "62f9d2c837f8ece3dc7dcc7e74742a5aa2089dc4e0aa1db0980cf55e4f7fa36b",
+    "gate_statuses": {
+      "accept_evidence_gate": "pass",
+      "budget_accounting": "pass",
+      "reference_capability_gate": "pass",
+      "runtime_activation_gate": "pass",
+      "sealed_validation_gate": "pass",
+      "stair_behavior_gate": "pass"
+    },
+    "guard_score_stats": {},
+    "min_score_count": 5,
+    "mode": "reference",
+    "named_guard_evidence": {
+      "c0_id": {
+        "absolute_accept_floor": 0.1,
+        "max_regression": 0.05,
+        "name": "c0_id",
+        "regression_margin": 0.02,
+        "score_samples": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "score_source": "unified_score.c0_id.score_stats.mean",
+        "score_stats": {
+          "count": 5,
+          "eval_protocol_hash": "750656cbdef8787205f037db07c18a787f73364a14b3435b662003d633b56594",
+          "mean": 1.0,
+          "score_samples": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "standard_error": 0.0,
+          "std": 0.0
+        }
+      },
+      "c1_id": {
+        "absolute_accept_floor": 0.1,
+        "max_regression": 0.05,
+        "name": "c1_id",
+        "regression_margin": 0.02,
+        "score_samples": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "score_source": "unified_score.c1_id.score_stats.mean",
+        "score_stats": {
+          "count": 5,
+          "eval_protocol_hash": "750656cbdef8787205f037db07c18a787f73364a14b3435b662003d633b56594",
+          "mean": 1.0,
+          "score_samples": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "standard_error": 0.0,
+          "std": 0.0
+        }
+      },
+      "j_ood": {
+        "absolute_accept_floor": 0.1,
+        "max_regression": 0.05,
+        "name": "j_ood",
+        "regression_margin": 0.02,
+        "score_samples": [
+          0.8940857020987654,
+          0.8997382408641975,
+          0.9021856796913581,
+          0.8997444258641975,
+          0.9086107096296296
+        ],
+        "score_source": "unified_score.j_ood.score_stats.mean",
+        "score_stats": {
+          "count": 5,
+          "eval_protocol_hash": "750656cbdef8787205f037db07c18a787f73364a14b3435b662003d633b56594",
+          "mean": 0.9008729516296295,
+          "score_samples": [
+            0.8940857020987654,
+            0.8997382408641975,
+            0.9021856796913581,
+            0.8997444258641975,
+            0.9086107096296296
+          ],
+          "standard_error": 0.002347595034809694,
+          "std": 0.00524938208147546
+        }
+      }
+    },
+    "program_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+    "public_accept_stats": {
+      "count": 5,
+      "eval_protocol_hash": "750656cbdef8787205f037db07c18a787f73364a14b3435b662003d633b56594",
+      "mean": 0.9339153010864198,
+      "score_samples": [
+        0.9293904680658436,
+        0.9331588272427984,
+        0.934790453127572,
+        0.9331629505761315,
+        0.9390738064197531
+      ],
+      "standard_error": 0.0015650633565398018,
+      "std": 0.003499588054316987
+    },
+    "public_score": 0.9339153010864198,
+    "sealed_validation_evidence": {
+      "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+      "checkpoint_hash": "sha256:fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729",
+      "eval_protocol_hash": "750656cbdef8787205f037db07c18a787f73364a14b3435b662003d633b56594",
+      "evaluation_binding_hash": "62f9d2c837f8ece3dc7dcc7e74742a5aa2089dc4e0aa1db0980cf55e4f7fa36b",
+      "evaluation_subject": {
+        "id": "go2-stair-official-flat-derived-v1",
+        "kind": "reference",
+        "schema_version": "true_rl_agent.experiment.subject.v2"
+      },
+      "expected_seed_count": 7,
+      "observed_seed_count": 7,
+      "program_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+      "reason": "unified_stair_reference_sealed_telemetry_complete",
+      "schema_version": "true_rl_agent.sealed_validation.evidence.v4",
+      "score_stats": {
+        "count": 7,
+        "eval_protocol_hash": "750656cbdef8787205f037db07c18a787f73364a14b3435b662003d633b56594",
+        "mean": 0.9326411055261611,
+        "standard_error": 0.0042171026704944554,
+        "std": 0.011157404919354692,
+        "values": [
+          0.9186480895061729,
+          0.9281576727572016,
+          0.9501461947736626,
+          0.935299039382716,
+          0.9221627551028805,
+          0.9429142458024691,
+          0.9311597413580248
+        ]
+      },
+      "status": "pass",
+      "subject_manifest_hash": "ece5ad653267f11e5b791403208472f42622e44661fdbc7162776799a370dbd4",
+      "task_evidence_hash": "8d04064eccf88144f8b1dd3003e7f00168df8c806ae1eeafe772b19faaa1f25f",
+      "training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98"
+    },
+    "sealed_validation_gate": {
+      "candidate_code_loaded_in_eval": false,
+      "candidate_isolation_status": "pass",
+      "candidate_package_loaded_in_eval": false,
+      "candidate_path_argument_present": false,
+      "checkpoint_hash_match_status": "pass",
+      "checkpoint_safety_status": "pass",
+      "eval_protocol_hash_match_status": "pass",
+      "evaluation_binding_hash_match_status": "pass",
+      "holdout_rollout_status": "pass",
+      "reason": "sealed_validation_complete",
+      "status": "pass"
+    },
+    "seed_cohort_hash": "dd34bee6e6e14047bb0d3659949ea3641113aa27044514701411d374095831a0",
+    "subject_manifest_hash": "ece5ad653267f11e5b791403208472f42622e44661fdbc7162776799a370dbd4",
+    "task_protocol_hash": "fb0a30071b27af5b600a7dba65dd03d8a1184ab195c9fd987f770e5eeb667429",
+    "training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98"
+  },
+  "ledger_record_count": 0,
+  "ledger_state": "absent",
+  "load_only_evidence": {
+    "genesis_checksum_after": "sha256:d2000f41617bbcdef034a26a79c0ba409ff222c7fedf16fff5ecf18ffad5a820",
+    "genesis_checksum_before": "sha256:d2000f41617bbcdef034a26a79c0ba409ff222c7fedf16fff5ecf18ffad5a820",
+    "genesis_mtime_ns_after": 1788039794278564951,
+    "genesis_mtime_ns_before": 1788039794278564951,
+    "ledger_checksum_after": null,
+    "ledger_checksum_before": null,
+    "ledger_mtime_ns_after": null,
+    "ledger_mtime_ns_before": null,
+    "provider_call_count": 0,
+    "reference_source_status": "pass",
+    "replay_ledger_record_count": 0,
+    "replay_status": "pass",
+    "runner_call_count": 0,
+    "status": "pass"
+  },
+  "mode": "load-only",
+  "provider_call_count": 0,
+  "reference_anchor": {
+    "acceptance_protocol_hash": "d18b5345c8b3112546af401a8dd1560e6c6e840ad8c5ef4d102bd3e1ea5b4c24",
+    "anchor_kind": "reference_program",
+    "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+    "eval_protocol_hash": "750656cbdef8787205f037db07c18a787f73364a14b3435b662003d633b56594",
+    "evaluation_binding_hash": "62f9d2c837f8ece3dc7dcc7e74742a5aa2089dc4e0aa1db0980cf55e4f7fa36b",
+    "program_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+    "public_score": 0.9339153010864198,
+    "reference_id": "go2-stair-official-flat-derived-v1",
+    "reference_manifest_hash": "ece5ad653267f11e5b791403208472f42622e44661fdbc7162776799a370dbd4",
+    "task_protocol_hash": "fb0a30071b27af5b600a7dba65dd03d8a1184ab195c9fd987f770e5eeb667429",
+    "training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98"
+  },
+  "reference_evaluation_mode": "phased",
+  "reference_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+  "replay_current_best": {
+    "acceptance_protocol_hash": "d18b5345c8b3112546af401a8dd1560e6c6e840ad8c5ef4d102bd3e1ea5b4c24",
+    "accepted_candidate_id": null,
+    "accepted_round_id": null,
+    "anchor_id": "go2-stair-official-flat-derived-v1",
+    "anchor_kind": "reference",
+    "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+    "checkpoint_hash": "sha256:fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729",
+    "eval_protocol_hash": "750656cbdef8787205f037db07c18a787f73364a14b3435b662003d633b56594",
+    "evaluation_binding_hash": "62f9d2c837f8ece3dc7dcc7e74742a5aa2089dc4e0aa1db0980cf55e4f7fa36b",
+    "gate_statuses": {
+      "accept_evidence_gate": "pass",
+      "budget_accounting": "pass",
+      "reference_capability_gate": "pass",
+      "runtime_activation_gate": "pass",
+      "sealed_validation_gate": "pass",
+      "stair_behavior_gate": "pass"
+    },
+    "guard_score_stats": {},
+    "min_score_count": 5,
+    "mode": "reference",
+    "named_guard_evidence": {
+      "c0_id": {
+        "absolute_accept_floor": 0.1,
+        "max_regression": 0.05,
+        "name": "c0_id",
+        "regression_margin": 0.02,
+        "score_samples": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "score_source": "unified_score.c0_id.score_stats.mean",
+        "score_stats": {
+          "count": 5,
+          "eval_protocol_hash": "750656cbdef8787205f037db07c18a787f73364a14b3435b662003d633b56594",
+          "mean": 1.0,
+          "score_samples": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "standard_error": 0.0,
+          "std": 0.0
+        }
+      },
+      "c1_id": {
+        "absolute_accept_floor": 0.1,
+        "max_regression": 0.05,
+        "name": "c1_id",
+        "regression_margin": 0.02,
+        "score_samples": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "score_source": "unified_score.c1_id.score_stats.mean",
+        "score_stats": {
+          "count": 5,
+          "eval_protocol_hash": "750656cbdef8787205f037db07c18a787f73364a14b3435b662003d633b56594",
+          "mean": 1.0,
+          "score_samples": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "standard_error": 0.0,
+          "std": 0.0
+        }
+      },
+      "j_ood": {
+        "absolute_accept_floor": 0.1,
+        "max_regression": 0.05,
+        "name": "j_ood",
+        "regression_margin": 0.02,
+        "score_samples": [
+          0.8940857020987654,
+          0.8997382408641975,
+          0.9021856796913581,
+          0.8997444258641975,
+          0.9086107096296296
+        ],
+        "score_source": "unified_score.j_ood.score_stats.mean",
+        "score_stats": {
+          "count": 5,
+          "eval_protocol_hash": "750656cbdef8787205f037db07c18a787f73364a14b3435b662003d633b56594",
+          "mean": 0.9008729516296295,
+          "score_samples": [
+            0.8940857020987654,
+            0.8997382408641975,
+            0.9021856796913581,
+            0.8997444258641975,
+            0.9086107096296296
+          ],
+          "standard_error": 0.002347595034809694,
+          "std": 0.00524938208147546
+        }
+      }
+    },
+    "program_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+    "public_accept_stats": {
+      "count": 5,
+      "eval_protocol_hash": "750656cbdef8787205f037db07c18a787f73364a14b3435b662003d633b56594",
+      "mean": 0.9339153010864198,
+      "score_samples": [
+        0.9293904680658436,
+        0.9331588272427984,
+        0.934790453127572,
+        0.9331629505761315,
+        0.9390738064197531
+      ],
+      "standard_error": 0.0015650633565398018,
+      "std": 0.003499588054316987
+    },
+    "public_score": 0.9339153010864198,
+    "sealed_validation_evidence": {
+      "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+      "checkpoint_hash": "sha256:fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729",
+      "eval_protocol_hash": "750656cbdef8787205f037db07c18a787f73364a14b3435b662003d633b56594",
+      "evaluation_binding_hash": "62f9d2c837f8ece3dc7dcc7e74742a5aa2089dc4e0aa1db0980cf55e4f7fa36b",
+      "evaluation_subject": {
+        "id": "go2-stair-official-flat-derived-v1",
+        "kind": "reference",
+        "schema_version": "true_rl_agent.experiment.subject.v2"
+      },
+      "expected_seed_count": 7,
+      "observed_seed_count": 7,
+      "program_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+      "reason": "unified_stair_reference_sealed_telemetry_complete",
+      "schema_version": "true_rl_agent.sealed_validation.evidence.v4",
+      "score_stats": {
+        "count": 7,
+        "eval_protocol_hash": "750656cbdef8787205f037db07c18a787f73364a14b3435b662003d633b56594",
+        "mean": 0.9326411055261611,
+        "standard_error": 0.0042171026704944554,
+        "std": 0.011157404919354692,
+        "values": [
+          0.9186480895061729,
+          0.9281576727572016,
+          0.9501461947736626,
+          0.935299039382716,
+          0.9221627551028805,
+          0.9429142458024691,
+          0.9311597413580248
+        ]
+      },
+      "status": "pass",
+      "subject_manifest_hash": "ece5ad653267f11e5b791403208472f42622e44661fdbc7162776799a370dbd4",
+      "task_evidence_hash": "8d04064eccf88144f8b1dd3003e7f00168df8c806ae1eeafe772b19faaa1f25f",
+      "training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98"
+    },
+    "sealed_validation_gate": {
+      "candidate_code_loaded_in_eval": false,
+      "candidate_isolation_status": "pass",
+      "candidate_package_loaded_in_eval": false,
+      "candidate_path_argument_present": false,
+      "checkpoint_hash_match_status": "pass",
+      "checkpoint_safety_status": "pass",
+      "eval_protocol_hash_match_status": "pass",
+      "evaluation_binding_hash_match_status": "pass",
+      "holdout_rollout_status": "pass",
+      "reason": "sealed_validation_complete",
+      "status": "pass"
+    },
+    "seed_cohort_hash": "dd34bee6e6e14047bb0d3659949ea3641113aa27044514701411d374095831a0",
+    "subject_manifest_hash": "ece5ad653267f11e5b791403208472f42622e44661fdbc7162776799a370dbd4",
+    "task_protocol_hash": "fb0a30071b27af5b600a7dba65dd03d8a1184ab195c9fd987f770e5eeb667429",
+    "training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98"
+  },
+  "session_genesis_hash": "db0d7a174f9c11c56a76c6671ed4e5f8297d204cf4ab3029527dfce0bfdb50b6",
+  "session_id": "p5-go2-pseudofall-removed-0a3f08a",
+  "status": "pass",
+  "task_id": "unitree_stair_climbing"
+}

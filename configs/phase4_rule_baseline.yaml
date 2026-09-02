@@ -1,0 +1,90 @@
+schema_version: humanoid_agent.phase4.rule_baseline.config.v1
+
+candidate:
+  name_prefix: rule_baseline
+  source_summary: phase2_public_eval
+  notes: >
+    Hand-coded failure-to-intervention baseline. It is intentionally simple and
+    deterministic so later LLM-agent improvements can be compared against a
+    transparent non-LLM rule system.
+
+thresholds:
+  high_primary_failure_rate: 0.25
+  high_condition_flag_rate: 0.20
+  high_action_rate_l2: 0.50
+  high_action_l2: 2.50
+  high_energy_proxy: 0.002
+  high_oscillation_rate: 0.20
+  low_success_rate: 0.45
+  high_success_rate: 0.70
+
+training_push_curriculum:
+  # Training-only curriculum. Public and IID-hidden eval profiles remain
+  # protected by Phase 3 verifier.
+  default_interval_range_s: [1.0, 1.0]
+  fallback_velocity_range_mps:
+    x: [-0.05, 0.05]
+    y: [-0.05, 0.05]
+  pitch_dominant_velocity_range_mps:
+    x: [-0.12, 0.12]
+    y: [-0.06, 0.06]
+  side_dominant_velocity_range_mps:
+    x: [-0.06, 0.06]
+    y: [-0.12, 0.12]
+  drift_dominant_velocity_range_mps:
+    x: [-0.10, 0.10]
+    y: [-0.10, 0.10]
+
+reward_adjustments:
+  # All weights refer to existing Unitree/IsaacLab reward terms already exposed
+  # in Phase 2 config. Negative penalties become more negative.
+  fall_forward:
+    flat_orientation_l2: -2.0
+    base_angular_velocity: -0.05
+  fall_backward:
+    flat_orientation_l2: -2.0
+    base_angular_velocity: -0.08
+  fall_side:
+    flat_orientation_l2: -1.5
+    feet_slide: -0.10
+  height_collapse:
+    base_height: -2.0
+    alive: 0.05
+  excessive_drift:
+    base_linear_velocity: -0.50
+    track_lin_vel_xy: 0.20
+  high_action_rate:
+    action_rate: -0.04
+  high_energy:
+    energy: -1.0e-5
+  oscillation:
+    action_rate: -0.04
+    base_angular_velocity: -0.04
+  fallback:
+    flat_orientation_l2: -0.5
+    base_height: -0.5
+
+reward_weight_bounds:
+  alive: [0.0, 1.0]
+  track_lin_vel_xy: [0.5, 3.0]
+  track_ang_vel_z: [0.1, 2.0]
+  base_linear_velocity: [-6.0, -0.1]
+  base_angular_velocity: [-2.0, -0.01]
+  joint_vel: [-0.01, 0.0]
+  joint_acc: [-1.0e-5, 0.0]
+  action_rate: [-0.5, 0.0]
+  dof_pos_limits: [-10.0, 0.0]
+  energy: [-1.0e-3, 0.0]
+  joint_deviation_arms: [-2.0, 0.0]
+  joint_deviation_waists: [-3.0, 0.0]
+  joint_deviation_legs: [-3.0, 0.0]
+  flat_orientation_l2: [-20.0, -0.1]
+  base_height: [-30.0, -0.1]
+  gait: [0.0, 0.0]
+  feet_slide: [-2.0, 0.0]
+  feet_clearance: [0.0, 1.0]
+  undesired_contacts: [-5.0, 0.0]
+
+ppo_adjustments:
+  # Keep PPO conservative; Phase 3 verifier enforces the allowlist/ranges.
+  entropy_coef_when_low_success: 0.005

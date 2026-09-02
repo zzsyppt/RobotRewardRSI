@@ -1,0 +1,46 @@
+{
+  "anti_tuning_rationale": "The design changes the training distribution by stage instead of only changing scalar weights.",
+  "final_consolidation": {
+    "distribution": "runner_owned_target_distribution",
+    "fraction": 0.2,
+    "includes_target_push": true,
+    "includes_target_robustness_variation": true
+  },
+  "improvement_attribution_intent": "Improvement should come from staged push recovery plus final target consolidation.",
+  "stage_list": [
+    {
+      "capabilities": [
+        "reward_weight_scale"
+      ],
+      "name": "stand_balance_warmup",
+      "progress_range": [
+        0.0,
+        0.3
+      ],
+      "rationale": "stabilize standing before perturbation."
+    },
+    {
+      "capabilities": [
+        "external_push_curriculum"
+      ],
+      "name": "mild_push_recovery",
+      "progress_range": [
+        0.3,
+        0.8
+      ],
+      "rationale": "introduce recoverable external pushes."
+    },
+    {
+      "capabilities": [
+        "external_push_curriculum",
+        "train_only_dr_scale"
+      ],
+      "name": "target_consolidation",
+      "progress_range": [
+        0.8,
+        1.0
+      ],
+      "rationale": "finish on the target push distribution with train-only robustness variation."
+    }
+  ]
+}

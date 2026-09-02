@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "true-rl-agent"
+version = "0.1.0"
+description = "Independent true RL policy improvement agent for humanoid tasks."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "true_RL_Agent contributors" }]
+dependencies = []
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+src = ["src", "tests"]
