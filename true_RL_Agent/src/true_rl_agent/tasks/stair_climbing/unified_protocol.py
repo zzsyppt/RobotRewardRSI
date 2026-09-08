@@ -19,11 +19,19 @@ from true_rl_agent.tasks.stair_climbing.unified_evaluation import (
 from true_rl_agent.tasks.stair_climbing.unified_training import (
     StairUnifiedTrainingProfile,
 )
+from true_rl_agent.tasks.stair_climbing.evaluation_semantics import (
+    FIRST_VALID_TOP_ARRIVAL_COMPLETION_MODE,
+    STAIR_LEGACY_FALL_SIGNAL,
+    STABLE_TOP_TRAVERSAL_COMPLETION_MODE,
+)
 from true_rl_agent.tasks.stair_climbing.vnext_reward_authority import (
     StairVNextRewardAuthority,
 )
 
-STAIR_UNIFIED_PROTOCOL_RELATIVE_PATH = "configs/tasks/stair_unified_protocol_v1.json"
+STAIR_UNIFIED_PROTOCOL_RELATIVE_PATH = "configs/tasks/stair_unified_protocol_v2.json"
+STAIR_UNIFIED_PROTOCOL_V1_RELATIVE_PATH = (
+    "configs/tasks/stair_unified_protocol_v1.json"
+)
 STAIR_UNIFIED_ACCEPTANCE_PROTOCOL_RELATIVE_PATH = (
     "configs/tasks/stair_unified_acceptance_protocol_v6.json"
 )
@@ -33,8 +41,6 @@ STAIR_UNIFIED_PROTOCOL_SCHEMA_VERSION = (
 STAIR_UNIFIED_TASK_PROJECTION_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.task_projection.v1"
 )
-STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID = "stair.g1_37dof.unified_v1"
-
 _FIELDS = {
     "schema_version",
     "protocol_id",
@@ -53,6 +59,14 @@ _FIELDS = {
     "component_hashes",
     "task_protocol_hash",
     "protocol_hash",
+}
+_TRAINING_LINEAGE_FIELDS = {
+    "mode",
+    "source_cell_variant_id",
+    "source_base_task_protocol_hash",
+    "source_resolved_cell_task_protocol_hash",
+    "source_resolved_cell_manifest_hash",
+    "source_training_profile_hash",
 }
 
 
@@ -76,7 +90,11 @@ class StairUnifiedProtocol:
     ) -> "StairUnifiedProtocol":
         resolved = Path(path)
         payload = load_strict_json_object(resolved, context="Stair unified protocol")
-        if set(payload) != _FIELDS:
+        payload_fields = set(payload)
+        if (
+            payload_fields != _FIELDS
+            and payload_fields != _FIELDS | {"training_lineage"}
+        ):
             raise ValueError("Stair unified protocol fields mismatch")
         if payload.get("schema_version") != STAIR_UNIFIED_PROTOCOL_SCHEMA_VERSION:
             raise ValueError("Stair unified protocol schema mismatch")
@@ -93,6 +111,36 @@ class StairUnifiedProtocol:
         if payload.get("protocol_state") not in {"draft", "active", "archived"}:
             raise ValueError("Stair unified protocol state is invalid")
 
+        training_lineage = payload.get("training_lineage")
+        if training_lineage is not None:
+            lineage = _mapping(training_lineage, "training_lineage")
+            if set(lineage) != _TRAINING_LINEAGE_FIELDS:
+                raise ValueError("Stair unified training lineage fields mismatch")
+            if lineage.get("mode") != "evaluation_only_successor":
+                raise ValueError("Stair unified training lineage mode is invalid")
+            source_cell = lineage.get("source_cell_variant_id")
+            if (
+                not isinstance(source_cell, str)
+                or not source_cell
+                or source_cell == cell_variant_id
+            ):
+                raise ValueError("Stair unified training lineage source is invalid")
+            for name in (
+                "source_base_task_protocol_hash",
+                "source_resolved_cell_task_protocol_hash",
+                "source_resolved_cell_manifest_hash",
+                "source_training_profile_hash",
+            ):
+                value = lineage.get(name)
+                if (
+                    not isinstance(value, str)
+                    or len(value) != 64
+                    or any(character not in "0123456789abcdef" for character in value)
+                ):
+                    raise ValueError(
+                        f"Stair unified training lineage {name} is invalid"
+                    )
+
         component_refs = _mapping(payload.get("component_refs"), "component_refs")
         if set(component_refs) != {
             "training_profile",
@@ -108,6 +156,11 @@ class StairUnifiedProtocol:
                 "training profile",
             )
         )
+        if training_lineage is not None and (
+            training_lineage["source_training_profile_hash"]
+            != training_profile.profile_hash
+        ):
+            raise ValueError("Stair unified successor changed its training profile")
         evaluation_suite = StairUnifiedEvaluationSuite.load(
             _resolve_component_ref(
                 resolved,
@@ -283,27 +336,29 @@ class StairUnifiedProtocol:
         ):
             raise ValueError("Stair unified train/eval commands diverged")
         outcomes = _mapping(self._payload["episode_outcomes"], "episode_outcomes")
+        completion_mode = _mapping(outcomes.get("success"), "outcome success").get(
+            "completion_mode"
+        )
+        expected_failures = {
+            "forbidden_contact",
+            "off_course",
+            "base_orientation_instability",
+            "slip",
+            "insufficient_clearance",
+            "timeout",
+        }
+        expected_signals = set(expected_failures)
+        if completion_mode == STABLE_TOP_TRAVERSAL_COMPLETION_MODE:
+            expected_failures.add(STAIR_LEGACY_FALL_SIGNAL)
+            expected_signals.add(STAIR_LEGACY_FALL_SIGNAL)
         if set(outcomes.get("primary_reasons", ())) != {
             "success",
-            "forbidden_contact",
-            "fall",
-            "off_course",
-            "base_orientation_instability",
-            "slip",
-            "insufficient_clearance",
-            "timeout",
+            *expected_failures,
         }:
             raise ValueError("Stair unified outcome taxonomy drifted")
-        if set(_mapping(outcomes.get("signals"), "outcome signals")) != {
-            "forbidden_contact",
-            "fall",
-            "off_course",
-            "base_orientation_instability",
-            "slip",
-            "insufficient_clearance",
-            "timeout",
-        }:
+        if set(_mapping(outcomes.get("signals"), "outcome signals")) != expected_signals:
             raise ValueError("Stair unified outcome signals drifted")
+        _validate_episode_completion_contract(outcomes)
         if self._payload.get("task_protocol_hash") != self.task_protocol_hash:
             raise ValueError("Stair unified task protocol hash mismatch")
         if self._payload.get("protocol_hash") != self.protocol_hash:
@@ -344,6 +399,20 @@ class StairUnifiedProtocol:
     @property
     def reference_readiness(self) -> Mapping[str, Any]:
         return _mapping(self._payload["reference_readiness"], "reference_readiness")
+
+    @property
+    def training_lineage(self) -> Mapping[str, Any] | None:
+        raw = self._payload.get("training_lineage")
+        return _mapping(raw, "training_lineage") if raw is not None else None
+
+    @property
+    def training_seed_anchor_hash(self) -> str:
+        lineage = self.training_lineage
+        return (
+            str(lineage["source_base_task_protocol_hash"])
+            if lineage is not None
+            else self.task_protocol_hash
+        )
 
     @property
     def required_pass_gates(self) -> tuple[str, ...]:
@@ -448,6 +517,69 @@ def _string_tuple(value: Any, field_name: str) -> tuple[str, ...]:
     return tuple(value)
 
 
+def _validate_episode_completion_contract(outcomes: Mapping[str, Any]) -> None:
+    success = _mapping(outcomes.get("success"), "outcome success")
+    completion_mode = success.get("completion_mode")
+    blockers = _string_tuple(
+        success.get("pre_arrival_blocking_latches"),
+        "pre-arrival blocking latches",
+    )
+    diagnostics = set(
+        _string_tuple(outcomes.get("diagnostic_flags"), "diagnostic flags")
+    )
+    post_arrival_flag = "post_arrival_safety_failure_detected"
+    has_stability_requirement = "top_platform_stability_requirement" in outcomes
+
+    if completion_mode == STABLE_TOP_TRAVERSAL_COMPLETION_MODE:
+        if success.get("post_arrival_failure_policy") != (
+            "blocks_success_until_stability_requirement_met"
+        ):
+            raise ValueError("Stair stable completion policy drifted")
+        if blockers != ("forbidden_contact", "fall", "off_course"):
+            raise ValueError("Stair stable completion blockers drifted")
+        if not has_stability_requirement or post_arrival_flag not in diagnostics:
+            raise ValueError("Stair stable completion evidence is incomplete")
+        return
+
+    if completion_mode == FIRST_VALID_TOP_ARRIVAL_COMPLETION_MODE:
+        if success.get("post_arrival_failure_policy") != (
+            "not_evaluated_outcome_closes_on_first_valid_top_arrival"
+        ):
+            raise ValueError("Stair first-arrival completion policy drifted")
+        if blockers != ("forbidden_contact", "off_course"):
+            raise ValueError("Stair first-arrival completion blockers drifted")
+        if (
+            "minimum_kinematic_base_clearance_above_top_m" in success
+            or "requires_kinematic_base_clearance_above_top" in success
+        ):
+            raise ValueError("Stair first-arrival completion retained pseudo-fall clearance")
+        support_surface_projection = _mapping(
+            outcomes.get("support_surface_projection"),
+            "support-surface projection",
+        )
+        if set(support_surface_projection) != {
+            "maximum_projected_surface_penetration_m",
+            "no_contact_fallback",
+        }:
+            raise ValueError("Stair support-surface projection fields drifted")
+        if _finite_number(
+            support_surface_projection.get(
+                "maximum_projected_surface_penetration_m"
+            ),
+            "maximum projected surface penetration",
+        ) < 0.0:
+            raise ValueError("Stair projected surface penetration must be non-negative")
+        if support_surface_projection.get("no_contact_fallback") != (
+            "lowest_vertically_feasible_projected_support_surface"
+        ):
+            raise ValueError("Stair support-surface fallback drifted")
+        if has_stability_requirement or post_arrival_flag in diagnostics:
+            raise ValueError("Stair first-arrival completion contains post-arrival semantics")
+        return
+
+    raise ValueError("Stair unified completion mode is unsupported")
+
+
 def _freeze(value: Any) -> Any:
     copied = json.loads(json.dumps(value, allow_nan=False))
     return _freeze_copied(copied)
@@ -472,9 +604,9 @@ def _thaw(value: Any) -> Any:
 
 
 __all__ = [
-    "STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID",
     "STAIR_UNIFIED_ACCEPTANCE_PROTOCOL_RELATIVE_PATH",
     "STAIR_UNIFIED_PROTOCOL_RELATIVE_PATH",
+    "STAIR_UNIFIED_PROTOCOL_V1_RELATIVE_PATH",
     "STAIR_UNIFIED_PROTOCOL_SCHEMA_VERSION",
     "STAIR_UNIFIED_TASK_PROJECTION_SCHEMA_VERSION",
     "StairUnifiedProtocol",

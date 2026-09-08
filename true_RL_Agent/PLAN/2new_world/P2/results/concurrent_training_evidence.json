@@ -1,0 +1,44 @@
+{
+  "status": "PASS",
+  "evidence": "Independent TensorBoard scalar event time ranges overlap on the two named GPU train processes; this is not a simultaneous nvidia-smi screenshot.",
+  "overlap_s": 1.19496488571167,
+  "lanes": [
+    {
+      "run": "go2_full_train_03",
+      "kit_logs": [
+        "/data/yuyangliu/isolated/new_world_p2_train_final/true_RL_Agent/PLAN/2new_world/P2/results/go2_full_train_03/runner/go2_full_train_03/train/summary.kit.log"
+      ],
+      "stdout_logs": [
+        "/data/yuyangliu/isolated/new_world_p2_train_final/true_RL_Agent/PLAN/2new_world/P2/results/go2_full_train_03/attempts/b159ce1ca93f631b338865e4/attempt_00.logs/stdout.log"
+      ],
+      "tensorboard": [
+        {
+          "path": "/data/yuyangliu/isolated/new_world_p2_train_final/true_RL_Agent/PLAN/2new_world/P2/results/go2_full_train_03/runner/go2_full_train_03/train/run/attempt-4f6222e41a1843fc8b6b3d1a506b0ba6/rsl_rl/events.out.tfevents.1788776309.deyugptserver.484512.0",
+          "first_event": 1788776334.3970535,
+          "last_event": 1788778937.5730639
+        }
+      ]
+    },
+    {
+      "run": "g1_resume_concurrency",
+      "kit_logs": [
+        "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/PLAN/2new_world/P2/results/g1_resume_concurrency/result.kit.log"
+      ],
+      "stdout_logs": [
+        "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/PLAN/2new_world/P2/results/g1_resume_concurrency/process/stdout.log"
+      ],
+      "tensorboard": [
+        {
+          "path": "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/PLAN/2new_world/P2/results/g1_resume_concurrency/resume/events.out.tfevents.1788778495.deyugptserver.504575.1",
+          "first_event": 1788778495.5774539,
+          "last_event": 1788778495.5817149
+        },
+        {
+          "path": "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/PLAN/2new_world/P2/results/g1_resume_concurrency/train/events.out.tfevents.1788778492.deyugptserver.504575.0",
+          "first_event": 1788778494.38675,
+          "last_event": 1788778494.9278786
+        }
+      ]
+    }
+  ]
+}

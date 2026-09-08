@@ -1,0 +1,47 @@
+{
+  "status": "PASS",
+  "checks": {
+    "g1_train": {
+      "same_events_with_explicit_uniform_default": true,
+      "same_physics_shared_fields": true,
+      "same_bound_asset_root": true,
+      "same_actions": true,
+      "same_observations": true,
+      "same_dt_decimation": true,
+      "same_contact_update_period": true
+    },
+    "g1_eval": {
+      "same_events_with_explicit_uniform_default": true,
+      "same_physics_shared_fields": true,
+      "same_bound_asset_root": true,
+      "same_actions": true,
+      "same_observations": true,
+      "same_dt_decimation": true,
+      "same_contact_update_period": true
+    },
+    "go2_train": {
+      "same_events_with_explicit_uniform_default": true,
+      "same_physics_shared_fields": true,
+      "same_bound_asset_root": true,
+      "same_actions": true,
+      "same_observations": true,
+      "same_dt_decimation": true,
+      "same_contact_update_period": true
+    },
+    "go2_eval": {
+      "same_events_with_explicit_uniform_default": true,
+      "same_physics_shared_fields": true,
+      "same_bound_asset_root": true,
+      "same_actions": true,
+      "same_observations": true,
+      "same_dt_decimation": true,
+      "same_contact_update_period": true
+    }
+  },
+  "normalizations": [
+    "Legacy randomize_rigid_body_mass implicit distribution=uniform is compared with explicit uniform.",
+    "PhysxCfg moved from sim.physx to sim.physics; shared fields are identical.",
+    "Quaternion constructor defaults use XYZW; raw policy and task WXYZ ABI tested separately.",
+    "Renderer/GUI/schema additions are not scientific workload controls."
+  ]
+}

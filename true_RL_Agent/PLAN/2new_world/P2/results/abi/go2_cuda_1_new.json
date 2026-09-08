@@ -1,0 +1,23 @@
+{
+  "robot": "go2",
+  "device": "cuda:1",
+  "rsl_rl": "5.0.1",
+  "checkpoint_sha256": "fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729",
+  "actor_observation_dim": 235,
+  "critic_observation_dim": 235,
+  "num_actions": 12,
+  "legacy_optimizer_migration": "unsupported",
+  "comparison": {
+    "actor": {
+      "max_abs_error": 4.76837158203125e-06,
+      "atol": 2e-05,
+      "rtol": 1e-05
+    },
+    "critic": {
+      "max_abs_error": 3.0517578125e-05,
+      "atol": 2e-05,
+      "rtol": 1e-05
+    }
+  },
+  "status": "PASS"
+}

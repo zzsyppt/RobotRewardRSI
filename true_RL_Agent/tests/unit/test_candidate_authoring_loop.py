@@ -2681,6 +2681,52 @@ def build_training_components():
         self.assertNotIn("/data/yuyangliu", feedback_text)
         self.assertNotIn("sk-live-secret", feedback_text)
 
+    def test_component_smoke_advisory_repairs_once_then_allows_training(
+        self,
+    ) -> None:
+        advisory = {
+            "schema_version": "true_rl_agent.component_smoke_result.v2",
+            "status": "advisory",
+            "reason": "reward_term_suppressed_by_declared_clip_and_weight",
+            "task_id": "fake_push_recovery",
+            "checked_reward_terms": 1,
+            "checked_diagnostics": 0,
+            "reward_results": [],
+            "diagnostic_results": [],
+            "advisory_reward_term_names": ["suppressed_reward"],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            provider = _SmokeFailThenSuccessProvider(root / "candidates")
+            with patch(
+                "true_rl_agent.agent_core.authoring_loop.run_component_smoke_check",
+                side_effect=[dict(advisory), dict(advisory)],
+            ):
+                result = CandidateAuthoringLoop(
+                    context_builder=PublicContextBuilder(
+                        task_prompt_adapter=FakeTaskPlugin().prompt_adapter(),
+                        acceptance_protocol=TEST_ACCEPTANCE_PROTOCOL,
+                    ),
+                    provider=provider,
+                    candidate_admission_policy=FakeVerifier(),
+                    round_dir=root / "round-001",
+                    max_attempts=3,
+                    component_smoke_adapter=_SmokeAdapter(),
+                ).run_round(round_id="round-001", records=[])
+
+        self.assertEqual(result.stop_reason, "candidate_verified")
+        self.assertEqual(len(result.attempt_records), 2)
+        self.assertEqual(
+            provider.payloads[1]["provider_or_runtime_repair_feedback"][
+                "failure_category"
+            ],
+            "component_smoke_advisory",
+        )
+        self.assertEqual(
+            result.attempt_records[1]["component_smoke"]["status"],
+            "advisory",
+        )
+
     def test_evaluated_mechanism_repeat_is_rewritten_before_training(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

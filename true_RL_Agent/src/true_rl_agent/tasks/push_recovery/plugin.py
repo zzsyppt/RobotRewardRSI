@@ -64,7 +64,6 @@ class PushRecoveryTaskPlugin(TaskPlugin):
         acceptance_protocol = config.acceptance_protocol()
         train_runtime_dynamics = config.train_runtime_dynamics()
         eval_runtime_dynamics = config.eval_runtime_dynamics()
-        agent_configuration = config.training_agent_configuration()
         seed_cohort_hash = config.seed_cohort_hash()
         fixed_train_protocol = {
             "baseline_train_distribution": "runner_owned_target_distribution",
@@ -77,15 +76,6 @@ class PushRecoveryTaskPlugin(TaskPlugin):
             "runtime_profile": config.train_profile,
             "runtime_dynamics_hash": train_runtime_dynamics["runtime_dynamics_hash"],
             "train_seed": config.train_seed,
-            "policy_architecture_hash": (
-                agent_configuration.policy_architecture_hash
-            ),
-            "optimizer_training_profile_hash": (
-                agent_configuration.optimizer_training_profile_hash
-            ),
-            "agent_configuration_hash": (
-                agent_configuration.agent_configuration_hash
-            ),
         }
         fixed_eval_protocol = {
             "eval_protocol": "fixed_public_accept_and_sealed_validation",
@@ -124,15 +114,6 @@ class PushRecoveryTaskPlugin(TaskPlugin):
                     "train_max_iterations": config.train_max_iterations,
                     "train_steps_per_iteration": config.train_steps_per_iteration,
                     "train_seed": config.train_seed,
-                    "policy_architecture_hash": (
-                        agent_configuration.policy_architecture_hash
-                    ),
-                    "optimizer_training_profile_hash": (
-                        agent_configuration.optimizer_training_profile_hash
-                    ),
-                    "agent_configuration_hash": (
-                        agent_configuration.agent_configuration_hash
-                    ),
                     "train_runtime_profile": config.train_profile,
                     "eval_runtime_profile": config.eval_profile,
                     "train_runtime_dynamics_hash": train_runtime_dynamics["runtime_dynamics_hash"],

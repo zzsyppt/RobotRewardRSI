@@ -1,0 +1,1842 @@
+{
+  "actions": {
+    "joint_pos": {
+      "asset_name": "robot",
+      "class_type": "isaaclab.envs.mdp.actions.joint_actions:JointPositionAction",
+      "clip": null,
+      "debug_vis": false,
+      "joint_names": [
+        ".*"
+      ],
+      "offset": 0.0,
+      "preserve_order": false,
+      "scale": 0.25,
+      "use_default_offset": true
+    }
+  },
+  "commands": {
+    "base_velocity": {
+      "asset_name": "robot",
+      "class_type": "isaaclab.envs.mdp.commands.velocity_command:UniformVelocityCommand",
+      "current_vel_visualizer_cfg": {
+        "markers": {
+          "arrow": {
+            "activate_contact_sensors": false,
+            "articulation_props": null,
+            "collision_props": null,
+            "copy_from_source": true,
+            "deformable_props": null,
+            "fixed_tendons_props": null,
+            "func": "isaaclab.sim.spawners.from_files.from_files:spawn_from_usd",
+            "joint_drive_props": null,
+            "mass_props": null,
+            "rigid_props": null,
+            "scale": [
+              0.5,
+              0.5,
+              0.5
+            ],
+            "semantic_tags": null,
+            "spatial_tendons_props": null,
+            "usd_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/UIElements/arrow_x.usd",
+            "variants": null,
+            "visible": true,
+            "visual_material": {
+              "diffuse_color": [
+                0.0,
+                0.0,
+                1.0
+              ],
+              "emissive_color": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "func": "isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface",
+              "metallic": 0.0,
+              "opacity": 1.0,
+              "roughness": 0.5
+            },
+            "visual_material_path": "material"
+          }
+        },
+        "prim_path": "/Visuals/Command/velocity_current"
+      },
+      "debug_vis": false,
+      "goal_vel_visualizer_cfg": {
+        "markers": {
+          "arrow": {
+            "activate_contact_sensors": false,
+            "articulation_props": null,
+            "collision_props": null,
+            "copy_from_source": true,
+            "deformable_props": null,
+            "fixed_tendons_props": null,
+            "func": "isaaclab.sim.spawners.from_files.from_files:spawn_from_usd",
+            "joint_drive_props": null,
+            "mass_props": null,
+            "rigid_props": null,
+            "scale": [
+              0.5,
+              0.5,
+              0.5
+            ],
+            "semantic_tags": null,
+            "spatial_tendons_props": null,
+            "usd_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/UIElements/arrow_x.usd",
+            "variants": null,
+            "visible": true,
+            "visual_material": {
+              "diffuse_color": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "emissive_color": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "func": "isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface",
+              "metallic": 0.0,
+              "opacity": 1.0,
+              "roughness": 0.5
+            },
+            "visual_material_path": "material"
+          }
+        },
+        "prim_path": "/Visuals/Command/velocity_goal"
+      },
+      "heading_command": false,
+      "heading_control_stiffness": 0.5,
+      "ranges": {
+        "ang_vel_z": [
+          0.0,
+          0.0
+        ],
+        "heading": [
+          -3.141592653589793,
+          3.141592653589793
+        ],
+        "lin_vel_x": [
+          0.0,
+          0.8
+        ],
+        "lin_vel_y": [
+          0.0,
+          0.0
+        ]
+      },
+      "rel_heading_envs": 0.0,
+      "rel_standing_envs": 0.02,
+      "resampling_time_range": [
+        12.0,
+        12.0
+      ]
+    }
+  },
+  "curriculum": {
+    "terrain_levels": {
+      "func": "true_rl_agent.tasks.stair_climbing.isaaclab_unified_terrain:stair_goal_progress_levels",
+      "params": {
+        "asset_cfg": {
+          "body_ids": "slice(None, None, None)",
+          "body_names": null,
+          "fixed_tendon_ids": "slice(None, None, None)",
+          "fixed_tendon_names": null,
+          "joint_ids": "slice(None, None, None)",
+          "joint_names": null,
+          "name": "robot",
+          "object_collection_ids": "slice(None, None, None)",
+          "object_collection_names": null,
+          "preserve_order": false
+        },
+        "goal_progress_m_by_terrain_type": [
+          4.35,
+          4.11,
+          4.35,
+          4.59,
+          4.11,
+          4.35,
+          4.59,
+          4.11,
+          4.35,
+          4.59
+        ],
+        "move_down_threshold": 0.4,
+        "move_up_threshold": 0.8
+      }
+    }
+  },
+  "decimation": 4,
+  "episode_length_s": 12.0,
+  "events": {
+    "add_base_mass": {
+      "func": "isaaclab.envs.mdp.events:randomize_rigid_body_mass",
+      "interval_range_s": null,
+      "is_global_time": false,
+      "min_step_count_between_reset": 0,
+      "mode": "startup",
+      "params": {
+        "asset_cfg": {
+          "body_ids": "slice(None, None, None)",
+          "body_names": "base",
+          "fixed_tendon_ids": "slice(None, None, None)",
+          "fixed_tendon_names": null,
+          "joint_ids": "slice(None, None, None)",
+          "joint_names": null,
+          "name": "robot",
+          "object_collection_ids": "slice(None, None, None)",
+          "object_collection_names": null,
+          "preserve_order": false
+        },
+        "mass_distribution_params": [
+          -1.0,
+          3.0
+        ],
+        "operation": "add"
+      }
+    },
+    "base_com": null,
+    "base_external_force_torque": null,
+    "physics_material": {
+      "func": "isaaclab.envs.mdp.events:randomize_rigid_body_material",
+      "interval_range_s": null,
+      "is_global_time": false,
+      "min_step_count_between_reset": 0,
+      "mode": "startup",
+      "params": {
+        "asset_cfg": {
+          "body_ids": "slice(None, None, None)",
+          "body_names": ".*",
+          "fixed_tendon_ids": "slice(None, None, None)",
+          "fixed_tendon_names": null,
+          "joint_ids": "slice(None, None, None)",
+          "joint_names": null,
+          "name": "robot",
+          "object_collection_ids": "slice(None, None, None)",
+          "object_collection_names": null,
+          "preserve_order": false
+        },
+        "dynamic_friction_range": [
+          0.6,
+          0.6
+        ],
+        "num_buckets": 64,
+        "restitution_range": [
+          0.0,
+          0.0
+        ],
+        "static_friction_range": [
+          0.8,
+          0.8
+        ]
+      }
+    },
+    "push_robot": null,
+    "reset_base": {
+      "func": "isaaclab.envs.mdp.events:reset_root_state_uniform",
+      "interval_range_s": null,
+      "is_global_time": false,
+      "min_step_count_between_reset": 0,
+      "mode": "reset",
+      "params": {
+        "pose_range": {
+          "x": [
+            -0.1,
+            0.1
+          ],
+          "y": [
+            -0.1,
+            0.1
+          ],
+          "yaw": [
+            0.0,
+            0.0
+          ]
+        },
+        "velocity_range": {
+          "pitch": [
+            0.0,
+            0.0
+          ],
+          "roll": [
+            0.0,
+            0.0
+          ],
+          "x": [
+            0.0,
+            0.0
+          ],
+          "y": [
+            0.0,
+            0.0
+          ],
+          "yaw": [
+            0.0,
+            0.0
+          ],
+          "z": [
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    "reset_robot_joints": {
+      "func": "isaaclab.envs.mdp.events:reset_joints_by_scale",
+      "interval_range_s": null,
+      "is_global_time": false,
+      "min_step_count_between_reset": 0,
+      "mode": "reset",
+      "params": {
+        "position_range": [
+          1.0,
+          1.0
+        ],
+        "velocity_range": [
+          0.0,
+          0.0
+        ]
+      }
+    }
+  },
+  "export_io_descriptors": false,
+  "io_descriptors_output_dir": null,
+  "is_finite_horizon": false,
+  "log_dir": null,
+  "observations": {
+    "policy": {
+      "actions": {
+        "clip": null,
+        "flatten_history_dim": true,
+        "func": "isaaclab.envs.mdp.observations:last_action",
+        "history_length": 0,
+        "modifiers": null,
+        "noise": null,
+        "params": {},
+        "scale": null
+      },
+      "base_ang_vel": {
+        "clip": null,
+        "flatten_history_dim": true,
+        "func": "isaaclab.envs.mdp.observations:base_ang_vel",
+        "history_length": 0,
+        "modifiers": null,
+        "noise": {
+          "func": "isaaclab.utils.noise.noise_model:uniform_noise",
+          "n_max": 0.2,
+          "n_min": -0.2,
+          "operation": "add"
+        },
+        "params": {},
+        "scale": null
+      },
+      "base_lin_vel": {
+        "clip": null,
+        "flatten_history_dim": true,
+        "func": "isaaclab.envs.mdp.observations:base_lin_vel",
+        "history_length": 0,
+        "modifiers": null,
+        "noise": {
+          "func": "isaaclab.utils.noise.noise_model:uniform_noise",
+          "n_max": 0.1,
+          "n_min": -0.1,
+          "operation": "add"
+        },
+        "params": {},
+        "scale": null
+      },
+      "concatenate_dim": -1,
+      "concatenate_terms": true,
+      "enable_corruption": true,
+      "flatten_history_dim": true,
+      "height_scan": {
+        "clip": [
+          -1.0,
+          1.0
+        ],
+        "flatten_history_dim": true,
+        "func": "isaaclab.envs.mdp.observations:height_scan",
+        "history_length": 0,
+        "modifiers": null,
+        "noise": {
+          "func": "isaaclab.utils.noise.noise_model:uniform_noise",
+          "n_max": 0.1,
+          "n_min": -0.1,
+          "operation": "add"
+        },
+        "params": {
+          "sensor_cfg": {
+            "body_ids": "slice(None, None, None)",
+            "body_names": null,
+            "fixed_tendon_ids": "slice(None, None, None)",
+            "fixed_tendon_names": null,
+            "joint_ids": "slice(None, None, None)",
+            "joint_names": null,
+            "name": "height_scanner",
+            "object_collection_ids": "slice(None, None, None)",
+            "object_collection_names": null,
+            "preserve_order": false
+          }
+        },
+        "scale": null
+      },
+      "history_length": null,
+      "joint_pos": {
+        "clip": null,
+        "flatten_history_dim": true,
+        "func": "isaaclab.envs.mdp.observations:joint_pos_rel",
+        "history_length": 0,
+        "modifiers": null,
+        "noise": {
+          "func": "isaaclab.utils.noise.noise_model:uniform_noise",
+          "n_max": 0.01,
+          "n_min": -0.01,
+          "operation": "add"
+        },
+        "params": {},
+        "scale": null
+      },
+      "joint_vel": {
+        "clip": null,
+        "flatten_history_dim": true,
+        "func": "isaaclab.envs.mdp.observations:joint_vel_rel",
+        "history_length": 0,
+        "modifiers": null,
+        "noise": {
+          "func": "isaaclab.utils.noise.noise_model:uniform_noise",
+          "n_max": 1.5,
+          "n_min": -1.5,
+          "operation": "add"
+        },
+        "params": {},
+        "scale": null
+      },
+      "projected_gravity": {
+        "clip": null,
+        "flatten_history_dim": true,
+        "func": "isaaclab.envs.mdp.observations:projected_gravity",
+        "history_length": 0,
+        "modifiers": null,
+        "noise": {
+          "func": "isaaclab.utils.noise.noise_model:uniform_noise",
+          "n_max": 0.05,
+          "n_min": -0.05,
+          "operation": "add"
+        },
+        "params": {},
+        "scale": null
+      },
+      "velocity_commands": {
+        "clip": null,
+        "flatten_history_dim": true,
+        "func": "isaaclab.envs.mdp.observations:generated_commands",
+        "history_length": 0,
+        "modifiers": null,
+        "noise": null,
+        "params": {
+          "command_name": "base_velocity"
+        },
+        "scale": null
+      }
+    }
+  },
+  "recorders": null,
+  "rerender_on_reset": false,
+  "rewards": {
+    "complete_reward": {
+      "func": "true_rl_agent.tasks.stair_climbing.isaaclab_reward_runtime:StairCompleteRewardTerm",
+      "params": {
+        "base_protocol": {
+          "episode_outcomes": {
+            "classification_warning_blocks_pass": true,
+            "counting_invariant": "success_count_plus_primary_failure_counts_equals_total_episode_count",
+            "diagnostic_flags": [
+              "base_orientation_instability_detected",
+              "slip_detected",
+              "insufficient_clearance_detected",
+              "off_course_detected",
+              "goal_not_reached_detected",
+              "first_valid_top_arrival_achieved"
+            ],
+            "failure_priority": [
+              "forbidden_contact",
+              "off_course",
+              "base_orientation_instability",
+              "slip",
+              "insufficient_clearance",
+              "timeout"
+            ],
+            "primary_reasons": [
+              "success",
+              "forbidden_contact",
+              "off_course",
+              "base_orientation_instability",
+              "slip",
+              "insufficient_clearance",
+              "timeout"
+            ],
+            "signals": {
+              "base_orientation_instability": {
+                "comparison": "greater_than",
+                "consecutive_control_steps": 10,
+                "source": "kinematic_base_roll_or_pitch_abs",
+                "threshold": 0.65,
+                "unit": "rad"
+              },
+              "forbidden_contact": {
+                "force_threshold_n": 1.0,
+                "manager_term": "base_contact",
+                "other_body_contacts_policy": "allowed_unless_another_failure_signal_triggers",
+                "source": "resolved_forbidden_contact_role_force",
+                "trigger": "manager_term_active"
+              },
+              "insufficient_clearance": {
+                "comparison": "less_than",
+                "consecutive_control_steps": 3,
+                "source": "noncontact_support_effector_clearance_above_projected_local_stair_surface",
+                "threshold": 0.018,
+                "unit": "m"
+              },
+              "off_course": {
+                "comparison": "outside",
+                "consecutive_control_steps": 1,
+                "source": "kinematic_base_xy_outside_own_terrain_patch",
+                "unit": "m"
+              },
+              "slip": {
+                "consecutive_control_steps": 5,
+                "contact_force_threshold": 1.0,
+                "force_unit": "N",
+                "source": "support_effector_planar_speed_while_in_contact",
+                "speed_threshold": 0.5,
+                "speed_unit": "m/s"
+              },
+              "timeout": {
+                "deadline_authority": "ordered_evaluation_suite",
+                "source": "evaluation_suite_cell_episode_horizon",
+                "unit": "s"
+              }
+            },
+            "success": {
+              "completion_mode": "first_valid_top_arrival_latched",
+              "minimum_progress_fraction": 1.0,
+              "minimum_support_effector_upward_force_n": 10.0,
+              "minimum_support_effectors_on_top": 1,
+              "post_arrival_failure_policy": "not_evaluated_outcome_closes_on_first_valid_top_arrival",
+              "pre_arrival_blocking_latches": [
+                "forbidden_contact",
+                "off_course"
+              ],
+              "requires_kinematic_base_within_top_platform_bounds": true,
+              "requires_orientation_stable": true,
+              "requires_support_effectors_within_top_platform_bounds": true,
+              "support_effector_surface_clearance_range_m": [
+                0.0,
+                0.071
+              ]
+            },
+            "support_surface_projection": {
+              "maximum_projected_surface_penetration_m": 0.018,
+              "no_contact_fallback": "lowest_vertically_feasible_projected_support_surface"
+            }
+          },
+          "schema_version": "true_rl_agent.task.stair_climbing.runtime_task_contract.v1",
+          "terrain": {
+            "goal": {
+              "progress_goal_m_by_terrain_type": [
+                4.35,
+                4.11,
+                4.35,
+                4.59,
+                4.11,
+                4.35,
+                4.59,
+                4.11,
+                4.35,
+                4.59
+              ],
+              "progress_start_m_from_origin": 0.0
+            }
+          }
+        },
+        "qualified_program": {
+          "contract": {
+            "input_fields": [
+              {
+                "description": "Task-owned morphology-neutral runtime value for base_height.",
+                "dtype": "float",
+                "name": "base_height",
+                "trailing_shape": [],
+                "unit": "m"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for roll.",
+                "dtype": "float",
+                "name": "roll",
+                "trailing_shape": [],
+                "unit": "rad"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for pitch.",
+                "dtype": "float",
+                "name": "pitch",
+                "trailing_shape": [],
+                "unit": "rad"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for base_pos_xy.",
+                "dtype": "float",
+                "name": "base_pos_xy",
+                "trailing_shape": [
+                  2
+                ],
+                "unit": "m"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for base_lin_vel.",
+                "dtype": "float",
+                "name": "base_lin_vel",
+                "trailing_shape": [
+                  3
+                ],
+                "unit": "m/s"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for base_ang_vel.",
+                "dtype": "float",
+                "name": "base_ang_vel",
+                "trailing_shape": [
+                  3
+                ],
+                "unit": "rad/s"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for projected_gravity.",
+                "dtype": "float",
+                "name": "projected_gravity",
+                "trailing_shape": [
+                  3
+                ],
+                "unit": "unit_vector"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for commanded_base_vel.",
+                "dtype": "float",
+                "name": "commanded_base_vel",
+                "trailing_shape": [
+                  3
+                ],
+                "unit": "mixed_mps_radps"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for joint_pos.",
+                "dtype": "float",
+                "name": "joint_pos",
+                "trailing_shape": [
+                  12
+                ],
+                "unit": "rad"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for joint_vel.",
+                "dtype": "float",
+                "name": "joint_vel",
+                "trailing_shape": [
+                  12
+                ],
+                "unit": "rad/s"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for joint_pos_error.",
+                "dtype": "float",
+                "name": "joint_pos_error",
+                "trailing_shape": [
+                  12
+                ],
+                "unit": "rad"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for last_action.",
+                "dtype": "float",
+                "name": "last_action",
+                "trailing_shape": [
+                  12
+                ],
+                "unit": "policy_action"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for prev_action.",
+                "dtype": "float",
+                "name": "prev_action",
+                "trailing_shape": [
+                  12
+                ],
+                "unit": "policy_action"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for action_delta.",
+                "dtype": "float",
+                "name": "action_delta",
+                "trailing_shape": [
+                  12
+                ],
+                "unit": "policy_action"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for progress_fraction.",
+                "dtype": "float",
+                "name": "progress_fraction",
+                "trailing_shape": [],
+                "unit": "fraction"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for joint_acc.",
+                "dtype": "float",
+                "name": "joint_acc",
+                "trailing_shape": [
+                  12
+                ],
+                "unit": "rad/s^2"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for joint_torque.",
+                "dtype": "float",
+                "name": "joint_torque",
+                "trailing_shape": [
+                  12
+                ],
+                "unit": "N*m"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for soft_joint_pos_limits.",
+                "dtype": "float",
+                "name": "soft_joint_pos_limits",
+                "trailing_shape": [
+                  12,
+                  2
+                ],
+                "unit": "rad"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for base_lin_vel_yaw.",
+                "dtype": "float",
+                "name": "base_lin_vel_yaw",
+                "trailing_shape": [
+                  3
+                ],
+                "unit": "m/s"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for base_ang_vel_world.",
+                "dtype": "float",
+                "name": "base_ang_vel_world",
+                "trailing_shape": [
+                  3
+                ],
+                "unit": "rad/s"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for base_quat_world.",
+                "dtype": "float",
+                "name": "base_quat_world",
+                "trailing_shape": [
+                  4
+                ],
+                "unit": "unit_quaternion_wxyz"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for support_air_time.",
+                "dtype": "float",
+                "name": "support_air_time",
+                "trailing_shape": [
+                  4
+                ],
+                "unit": "s"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for support_contact_time.",
+                "dtype": "float",
+                "name": "support_contact_time",
+                "trailing_shape": [
+                  4
+                ],
+                "unit": "s"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for support_last_air_time.",
+                "dtype": "float",
+                "name": "support_last_air_time",
+                "trailing_shape": [
+                  4
+                ],
+                "unit": "s"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for support_first_contact.",
+                "dtype": "bool",
+                "name": "support_first_contact",
+                "trailing_shape": [
+                  4
+                ],
+                "unit": "boolean"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for support_contact_force_history.",
+                "dtype": "float",
+                "name": "support_contact_force_history",
+                "trailing_shape": [
+                  3,
+                  4,
+                  3
+                ],
+                "unit": "N"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for support_contact_force.",
+                "dtype": "float",
+                "name": "support_contact_force",
+                "trailing_shape": [
+                  4,
+                  3
+                ],
+                "unit": "N"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for support_contact.",
+                "dtype": "bool",
+                "name": "support_contact",
+                "trailing_shape": [
+                  4
+                ],
+                "unit": "boolean"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for support_lin_vel.",
+                "dtype": "float",
+                "name": "support_lin_vel",
+                "trailing_shape": [
+                  4,
+                  3
+                ],
+                "unit": "m/s"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for support_pos_relative_to_terrain_origin.",
+                "dtype": "float",
+                "name": "support_pos_relative_to_terrain_origin",
+                "trailing_shape": [
+                  4,
+                  3
+                ],
+                "unit": "m"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for base_pos_relative_to_terrain_origin.",
+                "dtype": "float",
+                "name": "base_pos_relative_to_terrain_origin",
+                "trailing_shape": [
+                  3
+                ],
+                "unit": "m"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for forbidden_contact_force.",
+                "dtype": "float",
+                "name": "forbidden_contact_force",
+                "trailing_shape": [
+                  1,
+                  3
+                ],
+                "unit": "N"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for height_scan.",
+                "dtype": "float",
+                "name": "height_scan",
+                "trailing_shape": [
+                  187
+                ],
+                "unit": "m"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for forward_progress_m.",
+                "dtype": "float",
+                "name": "forward_progress_m",
+                "trailing_shape": [],
+                "unit": "m"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for remaining_goal_distance_m.",
+                "dtype": "float",
+                "name": "remaining_goal_distance_m",
+                "trailing_shape": [],
+                "unit": "m"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for goal_progress_fraction.",
+                "dtype": "float",
+                "name": "goal_progress_fraction",
+                "trailing_shape": [],
+                "unit": "fraction"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for terminated_non_timeout.",
+                "dtype": "bool",
+                "name": "terminated_non_timeout",
+                "trailing_shape": [],
+                "unit": "boolean"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for time_out.",
+                "dtype": "bool",
+                "name": "time_out",
+                "trailing_shape": [],
+                "unit": "boolean"
+              },
+              {
+                "description": "Task-owned morphology-neutral runtime value for forbidden_contact.",
+                "dtype": "bool",
+                "name": "forbidden_contact",
+                "trailing_shape": [],
+                "unit": "boolean"
+              }
+            ],
+            "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+            "payload": "{'dispatcher': mappingproxy({'determinism_preflight_repeats': 2, 'evidence_sample_interval_steps': 24, 'input_isolation': 'detached_clone_per_field', 'manager_term_name': 'complete_reward', 'manager_term_weight': 1.0, 'program_calls_per_control_step': 1, 'rng_guard': 'python_numpy_torch_cpu_and_all_initialized_cuda_devices', 'term_calls_per_program_call': 1}), 'input_schema': mappingproxy({'fields': (mappingproxy({'description': 'Task-owned morphology-neutral runtime value for base_height.', 'dtype': 'float', 'name': 'base_height', 'trailing_shape': (), 'unit': 'm'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for roll.', 'dtype': 'float', 'name': 'roll', 'trailing_shape': (), 'unit': 'rad'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for pitch.', 'dtype': 'float', 'name': 'pitch', 'trailing_shape': (), 'unit': 'rad'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for base_pos_xy.', 'dtype': 'float', 'name': 'base_pos_xy', 'trailing_shape': (2,), 'unit': 'm'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for base_lin_vel.', 'dtype': 'float', 'name': 'base_lin_vel', 'trailing_shape': (3,), 'unit': 'm/s'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for base_ang_vel.', 'dtype': 'float', 'name': 'base_ang_vel', 'trailing_shape': (3,), 'unit': 'rad/s'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for projected_gravity.', 'dtype': 'float', 'name': 'projected_gravity', 'trailing_shape': (3,), 'unit': 'unit_vector'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for commanded_base_vel.', 'dtype': 'float', 'name': 'commanded_base_vel', 'trailing_shape': (3,), 'unit': 'mixed_mps_radps'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for joint_pos.', 'dtype': 'float', 'name': 'joint_pos', 'trailing_shape': (12,), 'unit': 'rad'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for joint_vel.', 'dtype': 'float', 'name': 'joint_vel', 'trailing_shape': (12,), 'unit': 'rad/s'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for joint_pos_error.', 'dtype': 'float', 'name': 'joint_pos_error', 'trailing_shape': (12,), 'unit': 'rad'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for last_action.', 'dtype': 'float', 'name': 'last_action', 'trailing_shape': (12,), 'unit': 'policy_action'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for prev_action.', 'dtype': 'float', 'name': 'prev_action', 'trailing_shape': (12,), 'unit': 'policy_action'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for action_delta.', 'dtype': 'float', 'name': 'action_delta', 'trailing_shape': (12,), 'unit': 'policy_action'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for progress_fraction.', 'dtype': 'float', 'name': 'progress_fraction', 'trailing_shape': (), 'unit': 'fraction'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for joint_acc.', 'dtype': 'float', 'name': 'joint_acc', 'trailing_shape': (12,), 'unit': 'rad/s^2'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for joint_torque.', 'dtype': 'float', 'name': 'joint_torque', 'trailing_shape': (12,), 'unit': 'N*m'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for soft_joint_pos_limits.', 'dtype': 'float', 'name': 'soft_joint_pos_limits', 'trailing_shape': (12, 2), 'unit': 'rad'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for base_lin_vel_yaw.', 'dtype': 'float', 'name': 'base_lin_vel_yaw', 'trailing_shape': (3,), 'unit': 'm/s'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for base_ang_vel_world.', 'dtype': 'float', 'name': 'base_ang_vel_world', 'trailing_shape': (3,), 'unit': 'rad/s'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for base_quat_world.', 'dtype': 'float', 'name': 'base_quat_world', 'trailing_shape': (4,), 'unit': 'unit_quaternion_wxyz'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for support_air_time.', 'dtype': 'float', 'name': 'support_air_time', 'trailing_shape': (4,), 'unit': 's'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for support_contact_time.', 'dtype': 'float', 'name': 'support_contact_time', 'trailing_shape': (4,), 'unit': 's'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for support_last_air_time.', 'dtype': 'float', 'name': 'support_last_air_time', 'trailing_shape': (4,), 'unit': 's'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for support_first_contact.', 'dtype': 'bool', 'name': 'support_first_contact', 'trailing_shape': (4,), 'unit': 'boolean'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for support_contact_force_history.', 'dtype': 'float', 'name': 'support_contact_force_history', 'trailing_shape': (3, 4, 3), 'unit': 'N'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for support_contact_force.', 'dtype': 'float', 'name': 'support_contact_force', 'trailing_shape': (4, 3), 'unit': 'N'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for support_contact.', 'dtype': 'bool', 'name': 'support_contact', 'trailing_shape': (4,), 'unit': 'boolean'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for support_lin_vel.', 'dtype': 'float', 'name': 'support_lin_vel', 'trailing_shape': (4, 3), 'unit': 'm/s'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for support_pos_relative_to_terrain_origin.', 'dtype': 'float', 'name': 'support_pos_relative_to_terrain_origin', 'trailing_shape': (4, 3), 'unit': 'm'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for base_pos_relative_to_terrain_origin.', 'dtype': 'float', 'name': 'base_pos_relative_to_terrain_origin', 'trailing_shape': (3,), 'unit': 'm'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for forbidden_contact_force.', 'dtype': 'float', 'name': 'forbidden_contact_force', 'trailing_shape': (1, 3), 'unit': 'N'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for height_scan.', 'dtype': 'float', 'name': 'height_scan', 'trailing_shape': (187,), 'unit': 'm'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for forward_progress_m.', 'dtype': 'float', 'name': 'forward_progress_m', 'trailing_shape': (), 'unit': 'm'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for remaining_goal_distance_m.', 'dtype': 'float', 'name': 'remaining_goal_distance_m', 'trailing_shape': (), 'unit': 'm'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for goal_progress_fraction.', 'dtype': 'float', 'name': 'goal_progress_fraction', 'trailing_shape': (), 'unit': 'fraction'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for terminated_non_timeout.', 'dtype': 'bool', 'name': 'terminated_non_timeout', 'trailing_shape': (), 'unit': 'boolean'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for time_out.', 'dtype': 'bool', 'name': 'time_out', 'trailing_shape': (), 'unit': 'boolean'}), mappingproxy({'description': 'Task-owned morphology-neutral runtime value for forbidden_contact.', 'dtype': 'bool', 'name': 'forbidden_contact', 'trailing_shape': (), 'unit': 'boolean'})), 'schema_version': 'true_rl_agent.task.stair_climbing.reward_inputs.vnext.v1', 'source_transforms': mappingproxy({'height_scan': mappingproxy({'clip_max': 1.0, 'clip_min': -1.0, 'corruption': 'disabled', 'offset_m': 0.5, 'ray_miss_policy': 'saturate_infinity_to_clip_preserve_nan', 'source_formula': 'sensor_pos_w_z_minus_ray_hit_w_z_minus_offset'})})}), 'output_contract': mappingproxy({'device': 'same_as_inputs', 'dtype': 'float', 'finite_required': True, 'maximum_absolute_term_rate': 100000.0, 'maximum_absolute_total_rate': 100000.0, 'shape': ('num_envs',), 'term_bound_applies_to': 'weighted_contribution_after_clip'}), 'performance_gate': mappingproxy({'measured_control_steps': 128, 'minimum_dispatcher_throughput_ratio': 0.85, 'num_envs': 1024, 'warmup_control_steps': 32}), 'reference_equivalence': mappingproxy({'absolute_tolerance': 1e-06, 'active_term_names': ('track_lin_vel_xy_exp', 'track_ang_vel_z_exp', 'ang_vel_xy_l2', 'flat_orientation_l2', 'dof_torques_l2', 'dof_acc_l2', 'action_rate_l2', 'feet_air_time'), 'disabled_term_names': ('undesired_contacts',), 'relative_tolerance': 1e-06, 'upstream_project': 'IsaacLab', 'upstream_revision': 'v2.3.0', 'upstream_source_path': 'isaaclab_tasks/manager_based/locomotion/velocity/config/go2/flat_env_cfg.py', 'weight_adaptations': (mappingproxy({'rationale_id': 'forward_only_command_advantage_normalization', 'reference_weight': 3.5, 'term_name': 'track_lin_vel_xy_exp', 'upstream_weight': 1.5}), mappingproxy({'rationale_id': 'stair_ascent_vertical_motion_not_penalized', 'reference_weight': 0.0, 'term_name': 'lin_vel_z_l2', 'upstream_weight': -2.0})), 'zero_weight_term_names': ('lin_vel_z_l2', 'dof_pos_limits')}), 'schema_version': 'true_rl_agent.task.stair_climbing.complete_reward_runtime.vnext.v1'}"
+          },
+          "program_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+          "program_source_size_bytes": 2326,
+          "qualification_hash": "e6fa2c439b66e672cca94cf930be5013192d68a97637e5dbd186d4ea86dc08e4",
+          "reward_terms": [
+            {
+              "clip_max": null,
+              "clip_min": null,
+              "description": "",
+              "fn": "true_rl_agent_stair_reward_10b1a34218d7fbb3:track_lin_vel_xy_exp",
+              "name": "track_lin_vel_xy_exp",
+              "weight": 3.5
+            },
+            {
+              "clip_max": null,
+              "clip_min": null,
+              "description": "",
+              "fn": "true_rl_agent_stair_reward_10b1a34218d7fbb3:track_ang_vel_z_exp",
+              "name": "track_ang_vel_z_exp",
+              "weight": 0.75
+            },
+            {
+              "clip_max": null,
+              "clip_min": null,
+              "description": "",
+              "fn": "true_rl_agent_stair_reward_10b1a34218d7fbb3:ang_vel_xy_l2",
+              "name": "ang_vel_xy_l2",
+              "weight": -0.05
+            },
+            {
+              "clip_max": null,
+              "clip_min": null,
+              "description": "",
+              "fn": "true_rl_agent_stair_reward_10b1a34218d7fbb3:flat_orientation_l2",
+              "name": "flat_orientation_l2",
+              "weight": -2.5
+            },
+            {
+              "clip_max": null,
+              "clip_min": null,
+              "description": "",
+              "fn": "true_rl_agent_stair_reward_10b1a34218d7fbb3:dof_torques_l2",
+              "name": "dof_torques_l2",
+              "weight": -0.0002
+            },
+            {
+              "clip_max": null,
+              "clip_min": null,
+              "description": "",
+              "fn": "true_rl_agent_stair_reward_10b1a34218d7fbb3:dof_acc_l2",
+              "name": "dof_acc_l2",
+              "weight": -2.5e-07
+            },
+            {
+              "clip_max": null,
+              "clip_min": null,
+              "description": "",
+              "fn": "true_rl_agent_stair_reward_10b1a34218d7fbb3:action_rate_l2",
+              "name": "action_rate_l2",
+              "weight": -0.01
+            },
+            {
+              "clip_max": null,
+              "clip_min": null,
+              "description": "",
+              "fn": "true_rl_agent_stair_reward_10b1a34218d7fbb3:feet_air_time",
+              "name": "feet_air_time",
+              "weight": 0.25
+            }
+          ],
+          "static_verifier_policy_hash": "310e04b305b2744a1ea62a6d5416e993905bdff401ffd33187fa1028bc402275",
+          "subject": {
+            "kind": "reference",
+            "subject_id": "go2-stair-official-flat-derived-v1"
+          },
+          "subject_manifest_hash": "ece5ad653267f11e5b791403208472f42622e44661fdbc7162776799a370dbd4"
+        },
+        "runtime_projection": {
+          "action_joint_names": [
+            "FL_hip_joint",
+            "FR_hip_joint",
+            "RL_hip_joint",
+            "RR_hip_joint",
+            "FL_thigh_joint",
+            "FR_thigh_joint",
+            "RL_thigh_joint",
+            "RR_thigh_joint",
+            "FL_calf_joint",
+            "FR_calf_joint",
+            "RL_calf_joint",
+            "RR_calf_joint"
+          ],
+          "base_body_names": [
+            "base"
+          ],
+          "binding_facts_hash": "1160a2a4544eb3cb8d55aa436988a73eca46019296d2b559eab246749798a53f",
+          "cell_variant_id": "stair.go2_12dof.unified_v2",
+          "contact_history_length": 3,
+          "contact_sensor_name": "contact_forces",
+          "forbidden_contact_body_names": [
+            "base"
+          ],
+          "height_scan_ray_count": 187,
+          "height_sensor_name": "height_scanner",
+          "joint_group_inputs": [],
+          "joint_groups": [],
+          "joint_names": [
+            "FL_hip_joint",
+            "FR_hip_joint",
+            "RL_hip_joint",
+            "RR_hip_joint",
+            "FL_thigh_joint",
+            "FR_thigh_joint",
+            "RL_thigh_joint",
+            "RR_thigh_joint",
+            "FL_calf_joint",
+            "FR_calf_joint",
+            "RL_calf_joint",
+            "RR_calf_joint"
+          ],
+          "kinematic_base_source": "articulation_root",
+          "legacy_reward_adapter_id": null,
+          "policy_io_schema_hash": "5fdd774448ee18f6d37040380efabe6c9fbcb4229cfb5675818ea388e447dca1",
+          "resolved_cell_manifest_hash": "193fa9038a6f46539fb71a7e73edc44bdc024be2b899785394b8f82113c91f37",
+          "robot_profile_hash": "3e9c110449be639fceb48d6792fc8f683f43bd34978286325bba99547d20f1c0",
+          "robot_profile_id": "unitree_go2_12dof_isaaclab_v1",
+          "robot_task_binding_hash": "c2e568571b86072bdcb218bb38cfc579a3189265a0de5dc60fb606e3d813915d",
+          "runtime_adapter_hash": "14f03caebe810885d5681d73812987b2d31706cf432c4de5597b14a9dbfcd3f0",
+          "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1",
+          "sensor_schema_hash": "47c42e91348ce1d49e0988040d0941317afe1b16cb90692d73e02ba7d065896d",
+          "support_body_names": [
+            "FL_foot",
+            "FR_foot",
+            "RL_foot",
+            "RR_foot"
+          ],
+          "support_transition_inputs": true,
+          "task_horizontal_scale": 1.0,
+          "task_vertical_scale": 0.589087
+        }
+      },
+      "weight": 1.0
+    }
+  },
+  "scene": {
+    "clone_in_fabric": false,
+    "contact_forces": {
+      "class_type": "isaaclab.sensors.contact_sensor.contact_sensor:ContactSensor",
+      "debug_vis": false,
+      "filter_prim_paths_expr": [],
+      "force_threshold": 1.0,
+      "history_length": 3,
+      "max_contact_data_count_per_prim": 4,
+      "prim_path": "{ENV_REGEX_NS}/Robot/.*",
+      "track_air_time": true,
+      "track_contact_points": false,
+      "track_pose": false,
+      "update_period": 0.005,
+      "visualizer_cfg": {
+        "markers": {
+          "contact": {
+            "activate_contact_sensors": false,
+            "collision_props": null,
+            "copy_from_source": true,
+            "func": "isaaclab.sim.spawners.shapes.shapes:spawn_sphere",
+            "mass_props": null,
+            "physics_material": null,
+            "physics_material_path": "material",
+            "radius": 0.02,
+            "rigid_props": null,
+            "semantic_tags": null,
+            "visible": true,
+            "visual_material": {
+              "diffuse_color": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "emissive_color": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "func": "isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface",
+              "metallic": 0.0,
+              "opacity": 1.0,
+              "roughness": 0.5
+            },
+            "visual_material_path": "material"
+          },
+          "no_contact": {
+            "activate_contact_sensors": false,
+            "collision_props": null,
+            "copy_from_source": true,
+            "func": "isaaclab.sim.spawners.shapes.shapes:spawn_sphere",
+            "mass_props": null,
+            "physics_material": null,
+            "physics_material_path": "material",
+            "radius": 0.02,
+            "rigid_props": null,
+            "semantic_tags": null,
+            "visible": false,
+            "visual_material": {
+              "diffuse_color": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "emissive_color": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "func": "isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface",
+              "metallic": 0.0,
+              "opacity": 1.0,
+              "roughness": 0.5
+            },
+            "visual_material_path": "material"
+          }
+        },
+        "prim_path": "/Visuals/ContactSensor"
+      }
+    },
+    "env_spacing": 2.5,
+    "filter_collisions": true,
+    "height_scanner": {
+      "attach_yaw_only": null,
+      "class_type": "isaaclab.sensors.ray_caster.ray_caster:RayCaster",
+      "debug_vis": false,
+      "drift_range": [
+        0.0,
+        0.0
+      ],
+      "history_length": 0,
+      "max_distance": 1000000.0,
+      "mesh_prim_paths": [
+        "/World/ground"
+      ],
+      "offset": {
+        "pos": [
+          0.0,
+          0.0,
+          20.0
+        ],
+        "rot": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "pattern_cfg": {
+        "direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "func": "isaaclab.sensors.ray_caster.patterns.patterns:grid_pattern",
+        "ordering": "xy",
+        "resolution": 0.1,
+        "size": [
+          1.6,
+          1.0
+        ]
+      },
+      "prim_path": "{ENV_REGEX_NS}/Robot/base",
+      "ray_alignment": "yaw",
+      "ray_cast_drift_range": {
+        "x": [
+          0.0,
+          0.0
+        ],
+        "y": [
+          0.0,
+          0.0
+        ],
+        "z": [
+          0.0,
+          0.0
+        ]
+      },
+      "update_period": 0.02,
+      "visualizer_cfg": {
+        "markers": {
+          "hit": {
+            "activate_contact_sensors": false,
+            "collision_props": null,
+            "copy_from_source": true,
+            "func": "isaaclab.sim.spawners.shapes.shapes:spawn_sphere",
+            "mass_props": null,
+            "physics_material": null,
+            "physics_material_path": "material",
+            "radius": 0.02,
+            "rigid_props": null,
+            "semantic_tags": null,
+            "visible": true,
+            "visual_material": {
+              "diffuse_color": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "emissive_color": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "func": "isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface",
+              "metallic": 0.0,
+              "opacity": 1.0,
+              "roughness": 0.5
+            },
+            "visual_material_path": "material"
+          }
+        },
+        "prim_path": "/Visuals/RayCaster"
+      }
+    },
+    "lazy_sensor_update": true,
+    "num_envs": 4096,
+    "replicate_physics": true,
+    "robot": {
+      "actuator_value_resolution_debug_print": false,
+      "actuators": {
+        "base_legs": {
+          "armature": null,
+          "class_type": "isaaclab.actuators.actuator_pd:DCMotor",
+          "damping": 0.5,
+          "dynamic_friction": null,
+          "effort_limit": 23.5,
+          "effort_limit_sim": null,
+          "friction": 0.0,
+          "joint_names_expr": [
+            ".*_hip_joint",
+            ".*_thigh_joint",
+            ".*_calf_joint"
+          ],
+          "saturation_effort": 23.5,
+          "stiffness": 25.0,
+          "velocity_limit": 30.0,
+          "velocity_limit_sim": null,
+          "viscous_friction": null
+        }
+      },
+      "articulation_root_prim_path": null,
+      "class_type": "isaaclab.assets.articulation.articulation:Articulation",
+      "collision_group": 0,
+      "debug_vis": false,
+      "init_state": {
+        "ang_vel": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "joint_pos": {
+          ".*L_hip_joint": 0.1,
+          ".*R_hip_joint": -0.1,
+          ".*_calf_joint": -1.5,
+          "F[L,R]_thigh_joint": 0.8,
+          "R[L,R]_thigh_joint": 1.0
+        },
+        "joint_vel": {
+          ".*": 0.0
+        },
+        "lin_vel": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "pos": [
+          0.0,
+          0.0,
+          0.4
+        ],
+        "rot": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "prim_path": "{ENV_REGEX_NS}/Robot",
+      "soft_joint_pos_limit_factor": 0.9,
+      "spawn": {
+        "activate_contact_sensors": true,
+        "articulation_props": {
+          "articulation_enabled": null,
+          "enabled_self_collisions": false,
+          "fix_root_link": null,
+          "sleep_threshold": null,
+          "solver_position_iteration_count": 4,
+          "solver_velocity_iteration_count": 0,
+          "stabilization_threshold": null
+        },
+        "collision_props": null,
+        "copy_from_source": true,
+        "deformable_props": null,
+        "fixed_tendons_props": null,
+        "func": "isaaclab.sim.spawners.from_files.from_files:spawn_from_usd",
+        "joint_drive_props": null,
+        "mass_props": null,
+        "rigid_props": {
+          "angular_damping": 0.0,
+          "disable_gravity": false,
+          "enable_gyroscopic_forces": null,
+          "kinematic_enabled": null,
+          "linear_damping": 0.0,
+          "max_angular_velocity": 1000.0,
+          "max_contact_impulse": null,
+          "max_depenetration_velocity": 1.0,
+          "max_linear_velocity": 1000.0,
+          "retain_accelerations": false,
+          "rigid_body_enabled": null,
+          "sleep_threshold": null,
+          "solver_position_iteration_count": null,
+          "solver_velocity_iteration_count": null,
+          "stabilization_threshold": null
+        },
+        "scale": null,
+        "semantic_tags": null,
+        "spatial_tendons_props": null,
+        "usd_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/IsaacLab/Robots/Unitree/Go2/go2.usd",
+        "variants": null,
+        "visible": true,
+        "visual_material": null,
+        "visual_material_path": "material"
+      }
+    },
+    "sky_light": {
+      "class_type": null,
+      "collision_group": 0,
+      "debug_vis": false,
+      "init_state": {
+        "pos": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rot": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "prim_path": "/World/skyLight",
+      "spawn": {
+        "color": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "color_temperature": 6500.0,
+        "copy_from_source": true,
+        "enable_color_temperature": false,
+        "exposure": 0.0,
+        "func": "isaaclab.sim.spawners.lights.lights:spawn_light",
+        "intensity": 750.0,
+        "normalize": false,
+        "prim_type": "DomeLight",
+        "semantic_tags": null,
+        "texture_file": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Materials/Textures/Skies/PolyHaven/kloofendal_43d_clear_puresky_4k.hdr",
+        "texture_format": "automatic",
+        "visible": true,
+        "visible_in_primary_ray": true
+      }
+    },
+    "terrain": {
+      "class_type": "isaaclab.terrains.terrain_importer:TerrainImporter",
+      "collision_group": -1,
+      "debug_vis": false,
+      "env_spacing": null,
+      "max_init_terrain_level": 9,
+      "num_envs": 1,
+      "physics_material": {
+        "compliant_contact_damping": 0.0,
+        "compliant_contact_stiffness": 0.0,
+        "dynamic_friction": 1.0,
+        "friction_combine_mode": "multiply",
+        "func": "isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material",
+        "restitution": 0.0,
+        "restitution_combine_mode": "multiply",
+        "static_friction": 1.0
+      },
+      "prim_path": "/World/ground",
+      "terrain_generator": {
+        "border_height": 1.0,
+        "border_width": 0.0,
+        "cache_dir": "/tmp/isaaclab/terrains",
+        "class_type": "isaaclab.terrains.terrain_generator:TerrainGenerator",
+        "color_scheme": "height",
+        "curriculum": true,
+        "difficulty_range": [
+          0.0,
+          1.0
+        ],
+        "horizontal_scale": 0.1,
+        "num_cols": 10,
+        "num_rows": 10,
+        "seed": 1262835026,
+        "size": [
+          8.0,
+          4.0
+        ],
+        "slope_threshold": 0.75,
+        "sub_terrains": {
+          "c0_regular": {
+            "flat_patch_sampling": null,
+            "floor_depth": 0.5,
+            "function": "true_rl_agent.tasks.stair_climbing.isaaclab_terrain:one_way_stairs_terrain",
+            "proportion": 0.1,
+            "size": [
+              10.0,
+              10.0
+            ],
+            "start_platform_length": 1.5,
+            "step_count": 8,
+            "step_height_range": [
+              0.03,
+              0.206
+            ],
+            "top_platform_length": 3.3,
+            "tread_depth": 0.4
+          },
+          "c1_alternating_tread_0.37": {
+            "flat_patch_sampling": null,
+            "floor_depth": 0.5,
+            "function": "true_rl_agent.tasks.stair_climbing.isaaclab_unified_terrain:unified_irregular_training_stairs_terrain",
+            "pattern_id": "alternating",
+            "pattern_multipliers": [
+              -1.0,
+              1.0,
+              -1.0,
+              1.0,
+              -1.0,
+              1.0,
+              -1.0,
+              1.0
+            ],
+            "phase_steps": 0,
+            "proportion": 0.1,
+            "riser_base_range": [
+              0.047,
+              0.118
+            ],
+            "riser_offset": 0.007069,
+            "size": [
+              10.0,
+              10.0
+            ],
+            "start_platform_length": 1.5,
+            "tread_base": 0.37,
+            "tread_offset": 0.018
+          },
+          "c1_alternating_tread_0.40": {
+            "flat_patch_sampling": null,
+            "floor_depth": 0.5,
+            "function": "true_rl_agent.tasks.stair_climbing.isaaclab_unified_terrain:unified_irregular_training_stairs_terrain",
+            "pattern_id": "alternating",
+            "pattern_multipliers": [
+              -1.0,
+              1.0,
+              -1.0,
+              1.0,
+              -1.0,
+              1.0,
+              -1.0,
+              1.0
+            ],
+            "phase_steps": 0,
+            "proportion": 0.1,
+            "riser_base_range": [
+              0.047,
+              0.118
+            ],
+            "riser_offset": 0.007069,
+            "size": [
+              10.0,
+              10.0
+            ],
+            "start_platform_length": 1.5,
+            "tread_base": 0.4,
+            "tread_offset": 0.018
+          },
+          "c1_alternating_tread_0.43": {
+            "flat_patch_sampling": null,
+            "floor_depth": 0.5,
+            "function": "true_rl_agent.tasks.stair_climbing.isaaclab_unified_terrain:unified_irregular_training_stairs_terrain",
+            "pattern_id": "alternating",
+            "pattern_multipliers": [
+              -1.0,
+              1.0,
+              -1.0,
+              1.0,
+              -1.0,
+              1.0,
+              -1.0,
+              1.0
+            ],
+            "phase_steps": 0,
+            "proportion": 0.1,
+            "riser_base_range": [
+              0.047,
+              0.118
+            ],
+            "riser_offset": 0.007069,
+            "size": [
+              10.0,
+              10.0
+            ],
+            "start_platform_length": 1.5,
+            "tread_base": 0.43,
+            "tread_offset": 0.018
+          },
+          "c1_back_loaded_tread_0.37": {
+            "flat_patch_sampling": null,
+            "floor_depth": 0.5,
+            "function": "true_rl_agent.tasks.stair_climbing.isaaclab_unified_terrain:unified_irregular_training_stairs_terrain",
+            "pattern_id": "back_loaded",
+            "pattern_multipliers": [
+              -1.0,
+              -0.75,
+              -0.5,
+              -0.25,
+              0.25,
+              0.5,
+              0.75,
+              1.0
+            ],
+            "phase_steps": 0,
+            "proportion": 0.1,
+            "riser_base_range": [
+              0.047,
+              0.118
+            ],
+            "riser_offset": 0.007069,
+            "size": [
+              10.0,
+              10.0
+            ],
+            "start_platform_length": 1.5,
+            "tread_base": 0.37,
+            "tread_offset": 0.018
+          },
+          "c1_back_loaded_tread_0.40": {
+            "flat_patch_sampling": null,
+            "floor_depth": 0.5,
+            "function": "true_rl_agent.tasks.stair_climbing.isaaclab_unified_terrain:unified_irregular_training_stairs_terrain",
+            "pattern_id": "back_loaded",
+            "pattern_multipliers": [
+              -1.0,
+              -0.75,
+              -0.5,
+              -0.25,
+              0.25,
+              0.5,
+              0.75,
+              1.0
+            ],
+            "phase_steps": 0,
+            "proportion": 0.1,
+            "riser_base_range": [
+              0.047,
+              0.118
+            ],
+            "riser_offset": 0.007069,
+            "size": [
+              10.0,
+              10.0
+            ],
+            "start_platform_length": 1.5,
+            "tread_base": 0.4,
+            "tread_offset": 0.018
+          },
+          "c1_back_loaded_tread_0.43": {
+            "flat_patch_sampling": null,
+            "floor_depth": 0.5,
+            "function": "true_rl_agent.tasks.stair_climbing.isaaclab_unified_terrain:unified_irregular_training_stairs_terrain",
+            "pattern_id": "back_loaded",
+            "pattern_multipliers": [
+              -1.0,
+              -0.75,
+              -0.5,
+              -0.25,
+              0.25,
+              0.5,
+              0.75,
+              1.0
+            ],
+            "phase_steps": 0,
+            "proportion": 0.1,
+            "riser_base_range": [
+              0.047,
+              0.118
+            ],
+            "riser_offset": 0.007069,
+            "size": [
+              10.0,
+              10.0
+            ],
+            "start_platform_length": 1.5,
+            "tread_base": 0.43,
+            "tread_offset": 0.018
+          },
+          "c1_front_loaded_tread_0.37": {
+            "flat_patch_sampling": null,
+            "floor_depth": 0.5,
+            "function": "true_rl_agent.tasks.stair_climbing.isaaclab_unified_terrain:unified_irregular_training_stairs_terrain",
+            "pattern_id": "front_loaded",
+            "pattern_multipliers": [
+              1.0,
+              0.75,
+              0.5,
+              0.25,
+              -0.25,
+              -0.5,
+              -0.75,
+              -1.0
+            ],
+            "phase_steps": 0,
+            "proportion": 0.1,
+            "riser_base_range": [
+              0.047,
+              0.118
+            ],
+            "riser_offset": 0.007069,
+            "size": [
+              10.0,
+              10.0
+            ],
+            "start_platform_length": 1.5,
+            "tread_base": 0.37,
+            "tread_offset": 0.018
+          },
+          "c1_front_loaded_tread_0.40": {
+            "flat_patch_sampling": null,
+            "floor_depth": 0.5,
+            "function": "true_rl_agent.tasks.stair_climbing.isaaclab_unified_terrain:unified_irregular_training_stairs_terrain",
+            "pattern_id": "front_loaded",
+            "pattern_multipliers": [
+              1.0,
+              0.75,
+              0.5,
+              0.25,
+              -0.25,
+              -0.5,
+              -0.75,
+              -1.0
+            ],
+            "phase_steps": 0,
+            "proportion": 0.1,
+            "riser_base_range": [
+              0.047,
+              0.118
+            ],
+            "riser_offset": 0.007069,
+            "size": [
+              10.0,
+              10.0
+            ],
+            "start_platform_length": 1.5,
+            "tread_base": 0.4,
+            "tread_offset": 0.018
+          },
+          "c1_front_loaded_tread_0.43": {
+            "flat_patch_sampling": null,
+            "floor_depth": 0.5,
+            "function": "true_rl_agent.tasks.stair_climbing.isaaclab_unified_terrain:unified_irregular_training_stairs_terrain",
+            "pattern_id": "front_loaded",
+            "pattern_multipliers": [
+              1.0,
+              0.75,
+              0.5,
+              0.25,
+              -0.25,
+              -0.5,
+              -0.75,
+              -1.0
+            ],
+            "phase_steps": 0,
+            "proportion": 0.1,
+            "riser_base_range": [
+              0.047,
+              0.118
+            ],
+            "riser_offset": 0.007069,
+            "size": [
+              10.0,
+              10.0
+            ],
+            "start_platform_length": 1.5,
+            "tread_base": 0.43,
+            "tread_offset": 0.018
+          }
+        },
+        "use_cache": false,
+        "vertical_scale": 0.005
+      },
+      "terrain_type": "generator",
+      "usd_path": null,
+      "visual_material": {
+        "albedo_brightness": null,
+        "func": "isaaclab.sim.spawners.materials.visual_materials:spawn_from_mdl_file",
+        "mdl_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/IsaacLab/Materials/TilesMarbleSpiderWhiteBrickBondHoned/TilesMarbleSpiderWhiteBrickBondHoned.mdl",
+        "project_uvw": true,
+        "texture_scale": [
+          0.25,
+          0.25
+        ]
+      }
+    }
+  },
+  "seed": 1262835026,
+  "sim": {
+    "create_stage_in_memory": false,
+    "device": "cuda:1",
+    "dt": 0.005,
+    "enable_scene_query_support": false,
+    "gravity": [
+      0.0,
+      0.0,
+      -9.81
+    ],
+    "physics_material": {
+      "compliant_contact_damping": 0.0,
+      "compliant_contact_stiffness": 0.0,
+      "dynamic_friction": 1.0,
+      "friction_combine_mode": "multiply",
+      "func": "isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material",
+      "restitution": 0.0,
+      "restitution_combine_mode": "multiply",
+      "static_friction": 1.0
+    },
+    "physics_prim_path": "/physicsScene",
+    "physx": {
+      "bounce_threshold_velocity": 0.5,
+      "enable_ccd": false,
+      "enable_enhanced_determinism": false,
+      "enable_stabilization": false,
+      "friction_correlation_distance": 0.025,
+      "friction_offset_threshold": 0.04,
+      "gpu_collision_stack_size": 67108864,
+      "gpu_found_lost_aggregate_pairs_capacity": 33554432,
+      "gpu_found_lost_pairs_capacity": 2097152,
+      "gpu_heap_capacity": 67108864,
+      "gpu_max_num_partitions": 8,
+      "gpu_max_particle_contacts": 1048576,
+      "gpu_max_rigid_contact_count": 8388608,
+      "gpu_max_rigid_patch_count": 327680,
+      "gpu_max_soft_body_contacts": 1048576,
+      "gpu_temp_buffer_capacity": 16777216,
+      "gpu_total_aggregate_pairs_capacity": 2097152,
+      "max_position_iteration_count": 255,
+      "max_velocity_iteration_count": 255,
+      "min_position_iteration_count": 1,
+      "min_velocity_iteration_count": 0,
+      "solve_articulation_contact_last": false,
+      "solver_type": 1
+    },
+    "render": {
+      "antialiasing_mode": null,
+      "carb_settings": null,
+      "dlss_mode": null,
+      "dome_light_upper_lower_strategy": null,
+      "enable_ambient_occlusion": null,
+      "enable_direct_lighting": null,
+      "enable_dl_denoiser": null,
+      "enable_dlssg": null,
+      "enable_global_illumination": null,
+      "enable_reflections": null,
+      "enable_shadows": null,
+      "enable_translucency": null,
+      "rendering_mode": null,
+      "samples_per_pixel": null
+    },
+    "render_interval": 4,
+    "use_fabric": true
+  },
+  "teleop_devices": {
+    "devices": {}
+  },
+  "terminations": {
+    "base_contact": {
+      "func": "isaaclab.envs.mdp.terminations:illegal_contact",
+      "params": {
+        "sensor_cfg": {
+          "body_ids": "slice(None, None, None)",
+          "body_names": [
+            "base"
+          ],
+          "fixed_tendon_ids": "slice(None, None, None)",
+          "fixed_tendon_names": null,
+          "joint_ids": "slice(None, None, None)",
+          "joint_names": null,
+          "name": "contact_forces",
+          "object_collection_ids": "slice(None, None, None)",
+          "object_collection_names": null,
+          "preserve_order": false
+        },
+        "threshold": 1.0
+      },
+      "time_out": false
+    },
+    "time_out": {
+      "func": "isaaclab.envs.mdp.terminations:time_out",
+      "params": {},
+      "time_out": true
+    }
+  },
+  "ui_window_class_type": "isaaclab.envs.ui.manager_based_rl_env_window:ManagerBasedRLEnvWindow",
+  "viewer": {
+    "asset_name": null,
+    "body_name": null,
+    "cam_prim_path": "/OmniverseKit_Persp",
+    "env_index": 0,
+    "eye": [
+      7.5,
+      7.5,
+      7.5
+    ],
+    "lookat": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "origin_type": "world",
+    "resolution": [
+      1280,
+      720
+    ]
+  },
+  "wait_for_textures": true,
+  "xr": null
+}

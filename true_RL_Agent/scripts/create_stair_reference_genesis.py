@@ -40,6 +40,10 @@ from true_rl_agent.tasks.stair_climbing.config import (
 from true_rl_agent.tasks.stair_climbing.final_confirmation import (
     STAIR_FINAL_CONFIRMATION_REQUIRED_ROUNDS,
 )
+from true_rl_agent.tasks.stair_climbing.row_catalog import (
+    STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
+    active_unified_stair_cell_variant_ids,
+)
 
 
 class _LoadOnlyRunner(Runner):
@@ -66,11 +70,16 @@ def _build_parser(*, execution_device: object) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--mode",
-        choices=("preflight", "create", "load-only"),
+        choices=("preflight", "qualify", "create", "load-only"),
         required=True,
     )
     parser.add_argument("--session-id", required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument(
+        "--cell-variant-id",
+        choices=active_unified_stair_cell_variant_ids(),
+        default=STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
+    )
     parser.add_argument("--final-confirmation-plan", type=Path, default=None)
     add_execution_device_argument(parser, default=execution_device)
     return parser
@@ -85,9 +94,14 @@ def main(argv: list[str] | None = None) -> int:
     ).parse_args(argv)
     output_dir = args.output_dir.resolve()
     task_values["execution_device"] = args.execution_device
+    task_values["cell_variant_id"] = args.cell_variant_id
     if args.mode == "create" and args.final_confirmation_plan is None:
         raise ValueError(
             "Stair reference Genesis create requires --final-confirmation-plan"
+        )
+    if args.mode == "qualify" and args.final_confirmation_plan is not None:
+        raise ValueError(
+            "Stair reference qualification does not use a final-confirmation plan"
         )
     if (
         args.mode in {"create", "load-only"}
@@ -158,7 +172,7 @@ def main(argv: list[str] | None = None) -> int:
     load_only_runner = _LoadOnlyRunner()
     if args.mode == "load-only" and not genesis_path.is_file():
         raise ValueError("load-only mode requires an existing session Genesis")
-    if args.mode == "create" and ledger_path.exists():
+    if args.mode in {"create", "qualify"} and ledger_path.exists():
         raise ValueError("reference Genesis creation requires an absent ledger")
     before_checksum = file_sha256(genesis_path) if genesis_path.is_file() else None
     before_mtime_ns = genesis_path.stat().st_mtime_ns if genesis_path.is_file() else None
@@ -181,9 +195,12 @@ def main(argv: list[str] | None = None) -> int:
         policy_initialization=composition.policy_initialization,
         genesis_identity_snapshot=composition.genesis_identity_snapshot(),
         reference_program_artifact=reference_artifact,
-        bind_backend_execution_environment=(args.mode == "create"),
+        bind_backend_execution_environment=(args.mode in {"create", "qualify"}),
+        reference_phased_evaluation_adapter=(
+            composition.task_plugin.phased_evaluation_adapter()
+        ),
     )
-    if args.mode == "create" and ledger_path.exists():
+    if args.mode in {"create", "qualify"} and ledger_path.exists():
         raise ValueError("reference Genesis creation unexpectedly created a ledger")
     anchor = genesis.reference_anchor_public()
     if anchor is None:
@@ -214,6 +231,9 @@ def main(argv: list[str] | None = None) -> int:
         "initial_current_best": genesis.initial_current_best.to_public_dict(),
         "reference_anchor": anchor,
         "reference_source_checksum": reference_artifact.manifest.source_checksum,
+        "cell_variant_id": args.cell_variant_id,
+        "reference_evaluation_mode": "phased",
+        "provider_call_count": 0,
         "ledger_state": "present" if ledger_path.is_file() else "absent",
         "ledger_record_count": len(ledger_records),
         "replay_current_best": replay.current_best.to_public_dict(),

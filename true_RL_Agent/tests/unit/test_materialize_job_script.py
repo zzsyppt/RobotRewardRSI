@@ -165,10 +165,12 @@ class MaterializeJobScriptTests(unittest.TestCase):
             self.assertEqual(captured.exception.code, 2)
 
     def test_materialize_job_requires_an_explicit_candidate_package(self) -> None:
-        with redirect_stderr(io.StringIO()), self.assertRaises(
-            SystemExit
-        ) as captured:
-            main(["--candidate-id", "candidate-001"])
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            redirect_stderr(io.StringIO()),
+            self.assertRaises(SystemExit) as captured,
+        ):
+            main(["--candidate-id", "candidate-001", "--output-dir", tmp])
 
         self.assertEqual(captured.exception.code, 2)
 
@@ -205,7 +207,10 @@ class MaterializeJobScriptTests(unittest.TestCase):
         self.assertEqual(output.getvalue(), "")
 
     def test_materialize_job_rejects_inconsistent_training_budget(self) -> None:
-        with self.assertRaisesRegex(ValueError, "planned env steps mismatch"):
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            self.assertRaisesRegex(ValueError, "planned env steps mismatch"),
+        ):
             main(
                 [
                     "--round-id",
@@ -214,6 +219,8 @@ class MaterializeJobScriptTests(unittest.TestCase):
                     "candidate-001",
                     "--candidate-path",
                     "artifact://candidate-001",
+                    "--output-dir",
+                    tmp,
                     "--budget-steps",
                     "65",
                     "--train-num-envs",

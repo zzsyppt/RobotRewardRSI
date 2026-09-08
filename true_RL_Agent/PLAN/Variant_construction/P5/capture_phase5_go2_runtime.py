@@ -5,6 +5,7 @@ import hashlib
 import json
 import math
 import os
+import subprocess
 import sys
 import time
 import traceback
@@ -84,9 +85,9 @@ def _geometry_probe(config: Any) -> dict[str, Any]:
 
     cells = config.ordered_evaluation_suite.runtime_cells("public_dev")
     rows = []
+    generator = build_ordered_eval_terrain_generator(cells=cells, seed=5100)
     for regime in ("c0_regular", "c1_irregular_flat", "c2_rough"):
         cell = next(item for item in cells if item.terrain_regime_id == regime)
-        generator = build_ordered_eval_terrain_generator(cells=(cell,), seed=5100)
         terrain_cfg = generator.sub_terrains[cell.cell_id]
         terrain_cfg.size = generator.size
         meshes, origin = terrain_cfg.function(0.0, terrain_cfg)
@@ -137,6 +138,10 @@ def _reward_equivalence_probe(
         runtime_projection=projection,
         unified_protocol=config.unified_protocol,
     )
+    env_cfg.rewards.track_lin_vel_xy_exp.weight = 3.5
+    env_cfg.rewards.lin_vel_z_l2.weight = 0.0
+    env_cfg.rewards.flat_orientation_l2.weight = -2.5
+    env_cfg.rewards.feet_air_time.weight = 0.25
     created = gym.make(STAIR_EVAL_GYM_ID, cfg=env_cfg, render_mode=None)
     env = created.unwrapped
     maximum_raw = {term.name: 0.0 for term in official.reward_program.reward_terms}
@@ -150,10 +155,17 @@ def _reward_equivalence_probe(
         if not isinstance(observation, Mapping) or "policy" not in observation:
             raise RuntimeError("Phase 5 Go2 policy observation group is unavailable")
         policy_observation_dimension = int(observation["policy"].shape[-1])
+        eval_runtime_contract = config.unified_protocol.runtime_task_contract()
+        eval_runtime_contract["terrain"]["goal"][
+            "progress_goal_m_by_terrain_type"
+        ] = [
+            float(cell.progress_goal_m)
+            for cell in config.ordered_evaluation_suite.runtime_cells("public_dev")
+        ]
         builder = StairRewardInputBuilder(
             env,
             contract=official.reward_program.contract,
-            base_protocol=config.runtime_task_contract(),
+            base_protocol=eval_runtime_contract,
             runtime_projection=projection,
         )
         program_terms = {
@@ -168,18 +180,18 @@ def _reward_equivalence_probe(
             raise RuntimeError("Phase 5 Go2 reference term order drifted")
         reward_manager = env.reward_manager
         if not set(expected_active) <= set(reward_manager.active_terms):
-            raise RuntimeError("official Go2 reward manager is missing active terms")
+            raise RuntimeError("derived Go2 reward manager is missing active terms")
         if "undesired_contacts" in reward_manager.active_terms:
-            raise RuntimeError("official Go2 disabled contact term became active")
+            raise RuntimeError("derived Go2 disabled contact term became active")
         zero_weights = {
             name: float(reward_manager.get_term_cfg(name).weight)
-            for name in ("flat_orientation_l2", "dof_pos_limits")
+            for name in ("lin_vel_z_l2", "dof_pos_limits")
         }
-        if zero_weights != {"flat_orientation_l2": 0.0, "dof_pos_limits": 0.0}:
-            raise RuntimeError("official Go2 zero-weight terms drifted")
+        if zero_weights != {"lin_vel_z_l2": 0.0, "dof_pos_limits": 0.0}:
+            raise RuntimeError("derived Go2 zero-weight terms drifted")
 
         torch.manual_seed(5102)
-        for _ in range(40):
+        for step_index in range(40):
             actions = 0.6 * torch.randn(
                 (env.num_envs, projection.action_count),
                 dtype=torch.float32,
@@ -238,6 +250,18 @@ def _reward_equivalence_probe(
                 ),
             )
             sample_count += int(env.num_envs)
+            if (step_index + 1) % 10 == 0:
+                print(
+                    json.dumps(
+                        {
+                            "stage": "reward_equivalence",
+                            "completed_control_steps": step_index + 1,
+                            "total_control_steps": 40,
+                        },
+                        sort_keys=True,
+                    ),
+                    flush=True,
+                )
 
         tolerance = 1.0e-6
         if (
@@ -275,6 +299,12 @@ def _reward_equivalence_probe(
             raise RuntimeError("Phase 5 Go2 live runtime schema drifted")
         return {
             "status": "pass",
+            "weight_adaptations": list(
+                config.vnext_reward_authority.runtime_authority_payload()[
+                    "reference_equivalence"
+                ]["weight_adaptations"]
+            ),
+            "zero_weight_terms": zero_weights,
             "sample_count": sample_count,
             "control_step_count": 40,
             "maximum_absolute_raw_difference_by_term": maximum_raw,
@@ -290,29 +320,60 @@ def _reward_equivalence_probe(
         created.close()
 
 
-def _capture(args: argparse.Namespace) -> dict[str, Any]:
+def _write_hashed_json(path: Path, payload: dict[str, Any], *, hash_key: str) -> None:
+    payload[hash_key] = _canonical_hash(payload)
+    encoded = (
+        json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
+    ).encode("utf-8")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("wb") as handle:
+        handle.write(encoded)
+        handle.flush()
+        os.fsync(handle.fileno())
+
+
+def _cell_identity(config: Any, manifest: Any, official: Any) -> dict[str, Any]:
+    return {
+        "cell_variant_id": manifest.cell_variant_id,
+        "manifest_hash": manifest.manifest_hash,
+        "robot_profile_hash": manifest.robot_profile["profile_hash"],
+        "runtime_adapter_hash": manifest.runtime_adapter["adapter_hash"],
+        "binding_hash": manifest.robot_task_binding["binding_hash"],
+        "base_task_protocol_hash": config.base_task_protocol_hash,
+        "resolved_cell_task_protocol_hash": (
+            manifest.resolved_cell_task_protocol_hash
+        ),
+        "training_profile_hash": config.unified_training_profile.profile_hash,
+        "evaluation_suite_hash": config.ordered_evaluation_suite.suite_hash,
+        "vnext_reward_authority_hash": config.vnext_reward_authority.authority_hash,
+        "reference_program_source_checksum": (
+            official.reward_program.program_source_checksum
+        ),
+    }
+
+
+def _prepare_stage(args: argparse.Namespace) -> tuple[Path, Path, Any, Any, Any]:
     project_root = args.project_root.resolve(strict=True)
     output = args.output.resolve()
-    work_dir = args.work_dir.resolve()
-    if output.exists() or work_dir.exists():
-        raise FileExistsError("Phase 5 receipt and work directory must be fresh")
+    if output.exists():
+        raise FileExistsError("Phase 5 stage output must be fresh")
     sys.path.insert(0, str(project_root / "src"))
 
     config, manifest = _resolve_go2_cell(project_root)
-    from true_rl_agent.tasks.stair_climbing.isaaclab_execution import (
-        execute_stair_training_smoke,
-        preflight_stair_execution_source_manifest,
-    )
     from true_rl_agent.tasks.stair_climbing.reference_program import (
         resolve_official_stair_reference_program,
     )
 
-    source_preflight = preflight_stair_execution_source_manifest(config)
     official = resolve_official_stair_reference_program(
         config,
         project_root=project_root,
         resolved_cell_manifest=manifest,
     )
+    return project_root, output, config, manifest, official
+
+
+def _capture_oracle_stage(args: argparse.Namespace) -> dict[str, Any]:
+    _, output, config, manifest, official = _prepare_stage(args)
 
     from isaaclab.app import AppLauncher
 
@@ -328,6 +389,56 @@ def _capture(args: argparse.Namespace) -> dict[str, Any]:
         official,
         device=args.device,
     )
+    payload = {
+        "schema_version": (
+            "true_rl_agent.variant_construction.phase5_go2_runtime_stage.v1"
+        ),
+        "stage": "oracle",
+        "environment": {
+            "python": ".".join(str(item) for item in sys.version_info[:3]),
+            "device": args.device,
+            "torch": str(torch.__version__),
+            "cuda_device_name": torch.cuda.get_device_name(args.device),
+        },
+        "cell": _cell_identity(config, manifest, official),
+        "geometry_probe": geometry,
+        "reference_reward_equivalence": equivalence,
+        "wall_time_s": round(time.perf_counter() - started, 6),
+        "status": "pass",
+    }
+    _write_hashed_json(output, payload, hash_key="stage_hash")
+    print(
+        json.dumps(
+            {
+                "status": "pass",
+                "stage": "oracle",
+                "stage_hash": payload["stage_hash"],
+            },
+            sort_keys=True,
+        ),
+        flush=True,
+    )
+    return payload
+
+
+def _capture_smoke_stage(args: argparse.Namespace) -> dict[str, Any]:
+    project_root, output, config, manifest, official = _prepare_stage(args)
+    work_dir = args.work_dir.resolve()
+    if work_dir.exists():
+        raise FileExistsError("Phase 5 smoke work directory must be fresh")
+    from true_rl_agent.tasks.stair_climbing.isaaclab_execution import (
+        execute_stair_training_smoke,
+        preflight_stair_execution_source_manifest,
+    )
+
+    source_preflight = preflight_stair_execution_source_manifest(config)
+    from isaaclab.app import AppLauncher
+
+    launcher = AppLauncher(headless=True, device=args.device)
+    _ = launcher.app
+    import torch
+
+    started = time.perf_counter()
     work_dir.mkdir(parents=True, exist_ok=False)
     training = execute_stair_training_smoke(
         config=config,
@@ -345,7 +456,8 @@ def _capture(args: argparse.Namespace) -> dict[str, Any]:
         raise RuntimeError("Phase 5 Go2 training smoke failed")
     activation = training_summary["runtime_activation_summary"]
     if (
-        activation["declared_term_count"] != 8
+        activation["declared_term_count"]
+        != len(official.reward_program.reward_terms)
         or activation["dispatcher_calls"] <= 1
         or activation["nonzero_reward_contribution"] is not True
         or not math.isfinite(float(activation["last_total_rate_mean"]))
@@ -357,6 +469,126 @@ def _capture(args: argparse.Namespace) -> dict[str, Any]:
         "c1_irregular_flat": 8,
     }:
         raise RuntimeError("Phase 5 Go2 train assignment is not 50/50")
+
+    payload = {
+        "schema_version": (
+            "true_rl_agent.variant_construction.phase5_go2_runtime_stage.v1"
+        ),
+        "stage": "smoke",
+        "environment": {
+            "python": ".".join(str(item) for item in sys.version_info[:3]),
+            "device": args.device,
+            "torch": str(torch.__version__),
+            "cuda_device_name": torch.cuda.get_device_name(args.device),
+        },
+        "cell": _cell_identity(config, manifest, official),
+        "training_smoke": training_summary,
+        "source_preflight": {
+            "summary": source_preflight.to_summary_dict(),
+            "evidence": source_preflight.upstream_source_evidence(),
+        },
+        "wall_time_s": round(time.perf_counter() - started, 6),
+        "status": "pass",
+    }
+    _write_hashed_json(output, payload, hash_key="stage_hash")
+    print(
+        json.dumps(
+            {
+                "status": "pass",
+                "stage": "smoke",
+                "stage_hash": payload["stage_hash"],
+            },
+            sort_keys=True,
+        ),
+        flush=True,
+    )
+    return payload
+
+
+def _load_stage(path: Path, *, expected_stage: str) -> dict[str, Any]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise RuntimeError("Phase 5 runtime stage receipt is invalid")
+    stage_hash = payload.pop("stage_hash", None)
+    if stage_hash != _canonical_hash(payload):
+        raise RuntimeError("Phase 5 runtime stage hash mismatch")
+    payload["stage_hash"] = stage_hash
+    if payload.get("stage") != expected_stage or payload.get("status") != "pass":
+        raise RuntimeError("Phase 5 runtime stage did not pass")
+    return payload
+
+
+def _capture(args: argparse.Namespace) -> dict[str, Any]:
+    project_root = args.project_root.resolve(strict=True)
+    output = args.output.resolve()
+    work_dir = args.work_dir.resolve()
+    if output.exists() or work_dir.exists():
+        raise FileExistsError("Phase 5 receipt and work directory must be fresh")
+    sys.path.insert(0, str(project_root / "src"))
+    config, manifest = _resolve_go2_cell(project_root)
+    from true_rl_agent.tasks.stair_climbing.isaaclab_execution import (
+        preflight_stair_execution_source_manifest,
+    )
+    from true_rl_agent.tasks.stair_climbing.reference_program import (
+        resolve_official_stair_reference_program,
+    )
+
+    source_preflight = preflight_stair_execution_source_manifest(config)
+    official = resolve_official_stair_reference_program(
+        config,
+        project_root=project_root,
+        resolved_cell_manifest=manifest,
+    )
+    work_dir.mkdir(parents=True, exist_ok=False)
+    oracle_path = work_dir / "oracle_stage.json"
+    smoke_path = work_dir / "smoke_stage.json"
+    script_path = Path(__file__).resolve()
+    common_argv = [
+        sys.executable,
+        str(script_path),
+        "--project-root",
+        str(project_root),
+        "--device",
+        args.device,
+    ]
+    started = time.perf_counter()
+    subprocess.run(
+        [
+            *common_argv,
+            "--worker-stage",
+            "oracle",
+            "--output",
+            str(oracle_path),
+            "--work-dir",
+            str(work_dir / "oracle_runtime"),
+        ],
+        cwd=project_root,
+        check=True,
+    )
+    subprocess.run(
+        [
+            *common_argv,
+            "--worker-stage",
+            "smoke",
+            "--output",
+            str(smoke_path),
+            "--work-dir",
+            str(work_dir / "smoke_runtime"),
+        ],
+        cwd=project_root,
+        check=True,
+    )
+    oracle = _load_stage(oracle_path, expected_stage="oracle")
+    smoke = _load_stage(smoke_path, expected_stage="smoke")
+    expected_cell = _cell_identity(config, manifest, official)
+    if oracle["cell"] != expected_cell or smoke["cell"] != expected_cell:
+        raise RuntimeError("Phase 5 runtime stages resolved different cell identities")
+    if oracle["environment"] != smoke["environment"]:
+        raise RuntimeError("Phase 5 runtime stages used different environments")
+
+    geometry = oracle["geometry_probe"]
+    equivalence = oracle["reference_reward_equivalence"]
+    training_summary = smoke["training_smoke"]
 
     source_paths = (
         "configs/robots/unitree_go2_12dof_isaaclab_v1.json",
@@ -372,35 +604,14 @@ def _capture(args: argparse.Namespace) -> dict[str, Any]:
         "src/true_rl_agent/tasks/stair_climbing/isaaclab_runtime_env.py",
         "src/true_rl_agent/tasks/stair_climbing/isaaclab_reward_runtime.py",
         "src/true_rl_agent/tasks/stair_climbing/isaaclab_execution.py",
-        "src/true_rl_agent/tasks/stair_climbing/reference_programs/official_go2_rough_vnext_v1/training_code/components.py",
+        "src/true_rl_agent/tasks/stair_climbing/reference_programs/go2_stair_official_flat_derived_v1/training_code/components.py",
         "PLAN/Variant_construction/P5/capture_phase5_go2_runtime.py",
     )
     receipt = {
         "schema_version": RECEIPT_SCHEMA_VERSION,
         "capture_kind": "real_headless_go2_unified_stair_runtime_and_reward_oracle",
-        "environment": {
-            "python": ".".join(str(item) for item in sys.version_info[:3]),
-            "device": args.device,
-            "torch": str(torch.__version__),
-            "cuda_device_name": torch.cuda.get_device_name(args.device),
-        },
-        "cell": {
-            "cell_variant_id": manifest.cell_variant_id,
-            "manifest_hash": manifest.manifest_hash,
-            "robot_profile_hash": manifest.robot_profile["profile_hash"],
-            "runtime_adapter_hash": manifest.runtime_adapter["adapter_hash"],
-            "binding_hash": manifest.robot_task_binding["binding_hash"],
-            "base_task_protocol_hash": config.base_task_protocol_hash,
-            "resolved_cell_task_protocol_hash": (
-                manifest.resolved_cell_task_protocol_hash
-            ),
-            "training_profile_hash": config.unified_training_profile.profile_hash,
-            "evaluation_suite_hash": config.ordered_evaluation_suite.suite_hash,
-            "vnext_reward_authority_hash": config.vnext_reward_authority.authority_hash,
-            "reference_program_source_checksum": (
-                official.reward_program.program_source_checksum
-            ),
-        },
+        "environment": oracle["environment"],
+        "cell": expected_cell,
         "geometry_probe": geometry,
         "reference_reward_equivalence": equivalence,
         "training_smoke": training_summary,
@@ -415,8 +626,14 @@ def _capture(args: argparse.Namespace) -> dict[str, Any]:
         },
         "cost": {
             "wall_time_s": round(time.perf_counter() - started, 6),
+            "oracle_wall_time_s": oracle["wall_time_s"],
+            "smoke_wall_time_s": smoke["wall_time_s"],
             "smoke_budget_steps": int(training_summary["training"]["budget_steps"]),
             "full_training_budget_steps": int(config.budget_steps),
+        },
+        "stage_receipts": {
+            "oracle_stage_hash": oracle["stage_hash"],
+            "smoke_stage_hash": smoke["stage_hash"],
         },
         "product_source_hash_mode": "normalized_lf_sha256",
         "product_source_hashes": {
@@ -424,15 +641,7 @@ def _capture(args: argparse.Namespace) -> dict[str, Any]:
         },
         "status": "pass",
     }
-    receipt["receipt_hash"] = _canonical_hash(receipt)
-    encoded = (
-        json.dumps(receipt, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
-    ).encode("utf-8")
-    output.parent.mkdir(parents=True, exist_ok=True)
-    with output.open("wb") as handle:
-        handle.write(encoded)
-        handle.flush()
-        os.fsync(handle.fileno())
+    _write_hashed_json(output, receipt, hash_key="receipt_hash")
     print(
         json.dumps(
             {
@@ -457,9 +666,15 @@ def main() -> int:
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--work-dir", required=True, type=Path)
     parser.add_argument("--device", default="cuda:0")
+    parser.add_argument("--worker-stage", choices=("oracle", "smoke"))
     args = parser.parse_args()
     try:
-        _capture(args)
+        if args.worker_stage == "oracle":
+            _capture_oracle_stage(args)
+        elif args.worker_stage == "smoke":
+            _capture_smoke_stage(args)
+        else:
+            _capture(args)
     except BaseException:
         traceback.print_exc()
         sys.stdout.flush()

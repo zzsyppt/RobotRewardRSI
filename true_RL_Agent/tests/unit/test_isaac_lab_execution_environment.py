@@ -3,8 +3,12 @@ from __future__ import annotations
 import json
 import sys
 import unittest
+import tempfile
+import subprocess
+from dataclasses import replace
 from importlib.metadata import PackageNotFoundError
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -25,9 +29,112 @@ from true_rl_agent.backends.isaac_lab_execution_environment import (  # noqa: E4
     build_isaac_lab_execution_environment_manifest_from_components,
     verify_current_isaac_lab_execution_environment,
 )
+from true_rl_agent.runner.source_snapshot import project_source_snapshot
+from true_rl_agent.backends.isaac_lab_rsl_rl import IsaacLabRslRlBackendAdapter
 
 
 class IsaacLabExecutionEnvironmentTests(unittest.TestCase):
+    def test_physx_logged_failure_cannot_be_published_as_success(self) -> None:
+        from true_rl_agent.backends.isaac_lab_runtime import require_physx_success
+
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / "summary.kit.log"
+            log.write_text("[Warning] [omni.physx.plugin] diagnostic\n", encoding="utf-8")
+            require_physx_success(log)
+            log.write_text(
+                "[Error] [omni.physx.plugin] PhysX error: The application needs to "
+                "increase PxGpuDynamicsMemoryConfig::totalAggregatePairsCapacity to "
+                "2106194, otherwise, the simulation will miss interactions\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(RuntimeError, "totalAggregatePairsCapacity"):
+                require_physx_success(log)
+
+    def test_rsl5_identity_binds_both_model_and_distribution_sources(self) -> None:
+        versions = {**TEST_ISAAC_LAB_PACKAGE_VERSIONS, "rsl-rl-lib": "5.0.1"}
+        sources = {k: v for k, v in TEST_ISAAC_LAB_MODULE_SOURCES.items() if k != "ActorCritic"}
+        sources.update(MLPModel=b"class MLPModel: pass\n",
+                       GaussianDistribution=b"class GaussianDistribution: pass\n")
+        def build():
+            return build_isaac_lab_execution_environment_manifest_from_components(
+                python_identity={"implementation": "CPython", "version": "3.12.14", "cache_tag": "cpython-312"},
+                package_versions=versions, module_sources=sources)
+        first = build()
+        self.assertEqual(first, IsaacLabExecutionEnvironmentManifest.from_mapping(first.to_dict()))
+        self.assertEqual(len(first.modules), 6)
+        self.assertNotIn("ActorCritic", [item["logical_name"] for item in first.modules])
+        sources["GaussianDistribution"] += b"# changed distribution implementation\n"
+        self.assertNotEqual(first.manifest_hash, build().manifest_hash)
+
+    def test_parent_rejects_source_drift_before_resampling_environment(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for directory in ("src/true_rl_agent", "scripts", "configs"):
+                (root / directory).mkdir(parents=True)
+            source = root / "scripts/train.py"
+            source.write_bytes(b"VALUE = 1\n")
+            manifest = replace(
+                make_test_isaac_lab_execution_environment_manifest(),
+                manifest_hash=None,
+                project_source=project_source_snapshot(root),
+            )
+            with (
+                patch(
+                    "true_rl_agent.backends.isaac_lab_rsl_rl.running_project_source_snapshot",
+                    side_effect=lambda: project_source_snapshot(root),
+                ),
+                patch(
+                    "true_rl_agent.backends.isaac_lab_rsl_rl.build_current_isaac_lab_execution_environment_manifest",
+                    return_value=manifest,
+                ) as resolver,
+            ):
+                backend = IsaacLabRslRlBackendAdapter(
+                    SimpleNamespace(isaac_lab_python=sys.executable)
+                )
+                backend.validate_runtime_session_execution_environment(
+                    execution_environment=manifest.to_dict()
+                )
+                resolver.assert_called_once()
+                source.write_bytes(b"VALUE = 2\n")
+                with self.assertRaisesRegex(
+                    ValueError, "project source changed after backend construction"
+                ):
+                    backend.validate_runtime_session_execution_environment(
+                        execution_environment=manifest.to_dict()
+                    )
+                resolver.assert_called_once()
+
+    def test_child_admission_binds_parent_source_across_locations(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for name in ("first", "moved"):
+                for directory in ("src/true_rl_agent", "scripts", "configs"):
+                    (root / name / directory).mkdir(parents=True)
+                (root / name / "src/true_rl_agent/runtime.py").write_bytes(b"VALUE = 1\n")
+                (root / name / "configs/physics.json").write_bytes(b'{"control_dt":0.02}\n')
+            expected = replace(make_test_isaac_lab_execution_environment_manifest(), manifest_hash=None, project_source=project_source_snapshot(root / "first"))
+            self.assertEqual(expected.project_source, project_source_snapshot(root / "moved"))
+            self.assertEqual(expected, IsaacLabExecutionEnvironmentManifest.from_mapping(expected.to_dict()))
+            worker = '''
+import sys
+from pathlib import Path
+from dataclasses import replace
+from tests.fakes.backend_environment import make_test_isaac_lab_execution_environment_manifest
+from true_rl_agent.runner.source_snapshot import project_source_snapshot
+from true_rl_agent.backends.isaac_lab_execution_environment import verify_current_isaac_lab_execution_environment
+verify_current_isaac_lab_execution_environment(sys.argv[2], current_manifest_builder=lambda: replace(make_test_isaac_lab_execution_environment_manifest(), manifest_hash=None, project_source=project_source_snapshot(Path(sys.argv[1]))))
+print("job-admitted")
+'''
+            def admit():
+                return subprocess.run([sys.executable, "-c", worker, str(root / "moved"), expected.manifest_hash], cwd=PROJECT_ROOT, capture_output=True, text=True)
+            admitted = admit()
+            self.assertEqual(admitted.returncode, 0, admitted.stderr)
+            (root / "moved/src/true_rl_agent/runtime.py").write_bytes(b"VALUE = 2\n")
+            refused = admit()
+            self.assertNotEqual(refused.returncode, 0)
+            self.assertNotIn("job-admitted", refused.stdout)
+            self.assertIn("environment drift", refused.stderr)
+
     def test_stable_fixture_round_trips_with_canonical_hash(self) -> None:
         first = make_test_isaac_lab_execution_environment_manifest()
         second = IsaacLabExecutionEnvironmentManifest.from_mapping(first.to_dict())

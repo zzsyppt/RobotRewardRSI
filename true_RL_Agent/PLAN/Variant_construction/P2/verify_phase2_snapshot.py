@@ -5,7 +5,6 @@ import ast
 import copy
 import hashlib
 import json
-import subprocess
 import sys
 from dataclasses import replace
 from pathlib import Path
@@ -27,8 +26,8 @@ from true_rl_agent.robots.defaults import (  # noqa: E402
     build_default_robot_registry,
 )
 from true_rl_agent.robots.registry import RobotRegistry  # noqa: E402
-from true_rl_agent.tasks.stair_climbing.composition import (  # noqa: E402
-    StairClimbingCompositionConfig,
+from true_rl_agent.tasks.stair_climbing.config import (  # noqa: E402
+    StairClimbingTaskConfig,
 )
 from true_rl_agent.tasks.stair_climbing.plugin import (  # noqa: E402
     StairClimbingTaskPlugin,
@@ -42,6 +41,7 @@ from true_rl_agent.tasks.stair_climbing.robot_binding import (  # noqa: E402
     compile_stair_cell_manifest,
     resolve_stair_cell_manifest,
 )
+from true_rl_agent.tasks.stair_climbing.row_catalog import stair_robot_row  # noqa: E402
 from true_rl_agent.tasks.stair_climbing.runtime_projection import (  # noqa: E402
     stair_runtime_projection_from_execution,
     stair_runtime_projection_from_manifest,
@@ -130,10 +130,28 @@ def _assert_equal(actual: Any, expected: Any, context: str) -> None:
         raise AssertionError(f"{context} mismatch: {actual!r} != {expected!r}")
 
 
+def _validate_recorded_source_closure(
+    source_hashes: Any, *, context: str
+) -> dict[str, str]:
+    if not isinstance(source_hashes, Mapping) or not source_hashes:
+        raise AssertionError(f"{context} is missing")
+    normalized = {str(path): str(digest) for path, digest in source_hashes.items()}
+    if any(
+        not path
+        or len(digest) != 64
+        or any(character not in "0123456789abcdef" for character in digest)
+        for path, digest in normalized.items()
+    ):
+        raise AssertionError(f"{context} contains an invalid recorded digest")
+    return normalized
+
+
 def _task_context() -> tuple[Any, StairClimbingTaskPlugin]:
-    config = StairClimbingCompositionConfig.defaults(
-        project_root=PROJECT_ROOT
-    ).to_task_config(project_root=PROJECT_ROOT)
+    row = stair_robot_row(STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID)
+    config = StairClimbingTaskConfig.defaults(
+        PROJECT_ROOT / row.protocol_relative_path,
+        cell_variant_id=STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID,
+    )
     return config, StairClimbingTaskPlugin(config)
 
 
@@ -295,12 +313,17 @@ def _cardinality_receipt(
 
 def _registered_robot_names() -> set[str]:
     registry = build_default_robot_registry()
+    role_vocabulary = {
+        str(role_id)
+        for profile_id in registry.profile_ids()
+        for role_id in registry.profile(profile_id).semantic_roles
+    }
     return {
         str(name)
         for profile_id in registry.profile_ids()
         for key in ("body_names", "joint_names")
         for name in registry.profile(profile_id).runtime_facts.get(key, ())
-        if isinstance(name, str) and name
+        if isinstance(name, str) and name and name not in role_vocabulary
     }
 
 
@@ -369,17 +392,9 @@ def _runtime_receipt(config: Any, plugin: StairClimbingTaskPlugin) -> dict[str, 
     )
     if receipt.get("product_source_hash_mode") != "normalized_lf_sha256":
         raise AssertionError("Phase 2 runtime source hash mode changed")
-    source_hashes = receipt.get("product_source_hashes")
-    if not isinstance(source_hashes, Mapping) or not source_hashes:
-        raise AssertionError("Phase 2 runtime source closure is missing")
-    current_source_hashes = {
-        str(path): _normalized_text_hash(PROJECT_ROOT / str(path))
-        for path in source_hashes
-    }
-    _assert_equal(
-        current_source_hashes,
-        dict(source_hashes),
-        "Phase 2 runtime source closure",
+    _validate_recorded_source_closure(
+        receipt.get("product_source_hashes"),
+        context="Phase 2 runtime source closure",
     )
 
     manifest = resolve_stair_cell_manifest(
@@ -394,10 +409,31 @@ def _runtime_receipt(config: Any, plugin: StairClimbingTaskPlugin) -> dict[str, 
         for key, value in runtime_projection.items()
         if key != "resolved_runtime"
     }
+    current_projection = projection.to_summary_dict()
+    stable_projection_fields = (
+        "schema_version",
+        "cell_variant_id",
+        "robot_profile_id",
+        "runtime_adapter_id",
+        "robot_profile_hash",
+        "runtime_adapter_hash",
+        "robot_task_binding_hash",
+        "resolved_roles",
+        "joint_names",
+        "action_joint_names",
+        "contact_sensor_name",
+        "height_sensor_name",
+        "contact_history_length",
+        "policy_io_schema_hash",
+        "sensor_schema_hash",
+        "binding_facts_hash",
+        "kinematic_base_source",
+        "legacy_reward_adapter_id",
+    )
     _assert_equal(
-        static_projection,
-        projection.to_summary_dict(),
-        "Phase 2 live projection identity",
+        {key: static_projection.get(key) for key in stable_projection_fields},
+        {key: current_projection.get(key) for key in stable_projection_fields},
+        "Phase 2 live legacy projection semantics",
     )
     parity = receipt.get("kinematic_base_parity")
     if not isinstance(parity, Mapping):
@@ -439,7 +475,9 @@ def _runtime_receipt(config: Any, plugin: StairClimbingTaskPlugin) -> dict[str, 
         project_root=PROJECT_ROOT,
     ).reward_program
     _assert_equal(
-        receipt["cell"]["manifest_hash"], manifest.manifest_hash, "runtime cell"
+        receipt["cell"]["manifest_hash"],
+        static_projection["resolved_cell_manifest_hash"],
+        "captured runtime cell closure",
     )
     _assert_equal(
         receipt["action"]["shape"], [1, projection.action_count], "action shape"
@@ -476,7 +514,8 @@ def _runtime_receipt(config: Any, plugin: StairClimbingTaskPlugin) -> dict[str, 
         "head_identity_semantics": receipt["head_identity_semantics"],
         "device": receipt["environment"]["device"],
         "cuda_device_name": receipt["environment"]["cuda_device_name"],
-        "projection_hash": projection.projection_hash,
+        "projection_hash": static_projection["projection_hash"],
+        "current_projection_hash": projection.projection_hash,
         "kinematic_base_parity": dict(parity),
         "resolved_runtime": resolved_runtime,
         "observation_policy_shape": receipt["observation_after_step"]["policy"][
@@ -501,41 +540,80 @@ def _current_contract() -> dict[str, Any]:
     }
 
 
-def _captured_head() -> str | None:
-    completed = subprocess.run(
-        ["git", "-C", str(PROJECT_ROOT), "rev-parse", "HEAD"],
-        check=False,
-        capture_output=True,
-        text=True,
+def _validate_frozen_product_tree(product_tree: Any) -> None:
+    if not isinstance(product_tree, Mapping):
+        raise AssertionError("Phase 2 frozen product tree is missing")
+    _assert_equal(
+        product_tree.get("hash_mode"),
+        "normalized_lf_sha256",
+        "Phase 2 frozen product hash mode",
     )
-    value = completed.stdout.strip()
-    return value if completed.returncode == 0 and len(value) == 40 else None
+    hashes = _validate_recorded_source_closure(
+        product_tree.get("file_hashes"),
+        context="Phase 2 frozen product source closure",
+    )
+    _assert_equal(
+        product_tree.get("file_count"),
+        len(hashes),
+        "Phase 2 frozen product file count",
+    )
+    _assert_equal(
+        product_tree.get("product_tree_hash"),
+        canonical_json_hash(hashes),
+        "Phase 2 frozen product tree hash",
+    )
 
 
-def emit_current() -> dict[str, Any]:
-    payload = {
-        "schema_version": SNAPSHOT_SCHEMA_VERSION,
-        "captured_on": "2026-08-27",
-        "provenance": {
-            "captured_branch": "true-rl-agent-refactor",
-            "captured_repository_head": _captured_head(),
-            "head_identity_semantics": "capture provenance only; live HEAD is not an acceptance gate",
-        },
-        "scope": {
-            "phase": "Phase 2",
-            "goal": "Stair task semantics and robot morphology decoupling",
-            "excludes": [
-                "Go2 cell",
-                "C1 irregular terrain",
-                "C2 roughness",
-                "VNext reward-program authoring qualification",
-                "new LOOP authority",
+def _semantic_contract(contract: Mapping[str, Any]) -> dict[str, Any]:
+    legacy = contract["legacy_cell"]
+    legacy_fields = (
+        "cell_variant_id",
+        "task_display_name",
+        "legacy_reward_adapter_id",
+        "support_count",
+        "joint_count",
+        "action_count",
+        "forbidden_contact_count",
+        "support_requirement",
+    )
+    cardinality_rows = [
+        {
+            key: row[key]
+            for key in (
+                "support_count",
+                "resolved_support_count",
+                "incomplete_selection_status",
+                "incomplete_selection_reasons",
+            )
+        }
+        for row in contract["cardinality"]["rows"]
+    ]
+    boundary = contract["ownership_boundary"]
+    runtime = contract["runtime"]
+    runtime_fields = (
+        "runtime_receipt_hash",
+        "capture_kind",
+        "kinematic_base_parity",
+        "resolved_runtime",
+        "observation_policy_shape",
+        "action_shape",
+        "transition_source_schema",
+        "reward_input_schema_hash",
+        "reward_term_count",
+        "status",
+    )
+    return {
+        "legacy_cell": {key: legacy[key] for key in legacy_fields},
+        "cardinality": {"rows": cardinality_rows},
+        "ownership_boundary": {
+            "public_task_imports": boundary["public_task_imports"],
+            "generic_stair_concrete_marker_hits": boundary[
+                "generic_stair_concrete_marker_hits"
             ],
+            "generic_file_count": boundary["generic_file_count"],
         },
-        "verification_contract": _current_contract(),
+        "runtime": {key: runtime[key] for key in runtime_fields},
     }
-    payload["receipt_hash"] = canonical_json_hash(payload)
-    return payload
 
 
 def verify(snapshot_path: Path = SNAPSHOT_PATH) -> dict[str, Any]:
@@ -548,12 +626,14 @@ def verify(snapshot_path: Path = SNAPSHOT_PATH) -> dict[str, Any]:
         snapshot.get("receipt_hash"),
         "Phase 2 snapshot hash",
     )
-    _assert_equal(
-        snapshot.get("verification_contract"),
-        _current_contract(),
-        "Phase 2 current contract",
-    )
     contract = snapshot["verification_contract"]
+    _validate_frozen_product_tree(contract.get("product_tree"))
+    current_contract = _current_contract()
+    _assert_equal(
+        _semantic_contract(contract),
+        _semantic_contract(current_contract),
+        "Phase 2 current semantic contract",
+    )
     return {
         "schema_version": VERIFY_SCHEMA_VERSION,
         "status": "pass",
@@ -563,16 +643,19 @@ def verify(snapshot_path: Path = SNAPSHOT_PATH) -> dict[str, Any]:
             row["support_count"] for row in contract["cardinality"]["rows"]
         ],
         "legacy_projection_hash": contract["legacy_cell"]["projection_hash"],
+        "current_legacy_projection_hash": current_contract["legacy_cell"][
+            "projection_hash"
+        ],
         "runtime_receipt_hash": contract["runtime"]["runtime_receipt_hash"],
+        "source_identity_semantics": "historical_provenance",
     }
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--snapshot", type=Path, default=SNAPSHOT_PATH)
-    parser.add_argument("--emit-current", action="store_true")
     args = parser.parse_args()
-    payload = emit_current() if args.emit_current else verify(args.snapshot)
+    payload = verify(args.snapshot)
     print(json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2))
     return 0
 

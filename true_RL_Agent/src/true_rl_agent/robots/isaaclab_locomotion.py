@@ -38,7 +38,15 @@ class IsaacLabLocomotionRuntimeSpec:
     upstream_sources: tuple[IsaacLabSourceSpec, ...]
 
     def instantiate_environment_cfg(self) -> Any:
-        return _load_entrypoint(self.environment_cfg_entrypoint)()
+        from true_rl_agent.robots.defaults import build_default_robot_registry
+
+        config = _load_entrypoint(self.environment_cfg_entrypoint)()
+        registry = build_default_robot_registry()
+        adapter = registry.runtime_adapter(self.runtime_adapter_id)
+        profile = registry.profile(adapter.robot_profile_id)
+        config.scene.robot.spawn.usd_path = profile.runtime_facts["asset_closure"]["root_identity"]
+        config.scene.contact_forces.update_period = config.sim.dt
+        return config
 
     def instantiate_runner_cfg(self) -> Any:
         return _load_entrypoint(self.runner_cfg_entrypoint)()
@@ -81,6 +89,31 @@ class IsaacLabLocomotionRuntimeSpec:
             "source_files": entries,
         }
         return {**payload, "source_manifest_hash": canonical_json_hash(payload)}
+
+
+def _g1_environment_cfg() -> Any:
+    from isaaclab_tasks.manager_based.locomotion.velocity.config.g1.rough_env_cfg import G1RoughEnvCfg
+    from true_rl_agent.backends.isaac_lab_runtime import resolve_physx_environment
+
+    return resolve_physx_environment(G1RoughEnvCfg())
+
+
+def _go2_environment_cfg() -> Any:
+    from isaaclab_tasks.manager_based.locomotion.velocity.config.go2.rough_env_cfg import UnitreeGo2RoughEnvCfg
+    from true_rl_agent.backends.isaac_lab_runtime import resolve_physx_environment
+
+    config = resolve_physx_environment(UnitreeGo2RoughEnvCfg())
+    # The Go2 adapter preserves its bound physical defaults across Lab versions.
+    config.events.add_base_mass.params.update(
+        mass_distribution_params=(-1.0, 3.0), operation="add", distribution="uniform",
+    )
+    config.events.add_base_mass.params["asset_cfg"].body_names = "base"
+    config.events.base_com = None
+    config.events.reset_robot_joints.params["position_range"] = (1.0, 1.0)
+    config.events.base_external_force_torque.params["asset_cfg"].body_names = "base"
+    config.events.push_robot = None
+    config.scene.robot.actuators["base_legs"].armature = None
+    return config
 
 
 G1_ROUGH_AGENT_CONFIGURATION = RslRlAgentConfiguration(
@@ -195,8 +228,7 @@ _SPECS = {
     G1_37DOF_ISAACLAB_ADAPTER_ID: IsaacLabLocomotionRuntimeSpec(
         runtime_adapter_id=G1_37DOF_ISAACLAB_ADAPTER_ID,
         environment_cfg_entrypoint=(
-            "isaaclab_tasks.manager_based.locomotion.velocity.config.g1."
-            "rough_env_cfg:G1RoughEnvCfg"
+            "true_rl_agent.robots.isaaclab_locomotion:_g1_environment_cfg"
         ),
         runner_cfg_entrypoint=(
             "isaaclab_tasks.manager_based.locomotion.velocity.config.g1.agents."
@@ -208,8 +240,7 @@ _SPECS = {
     G1_37DOF_ISAACLAB_GROUPED_ADAPTER_ID: IsaacLabLocomotionRuntimeSpec(
         runtime_adapter_id=G1_37DOF_ISAACLAB_GROUPED_ADAPTER_ID,
         environment_cfg_entrypoint=(
-            "isaaclab_tasks.manager_based.locomotion.velocity.config.g1."
-            "rough_env_cfg:G1RoughEnvCfg"
+            "true_rl_agent.robots.isaaclab_locomotion:_g1_environment_cfg"
         ),
         runner_cfg_entrypoint=(
             "isaaclab_tasks.manager_based.locomotion.velocity.config.g1.agents."
@@ -221,8 +252,7 @@ _SPECS = {
     GO2_12DOF_ISAACLAB_ADAPTER_ID: IsaacLabLocomotionRuntimeSpec(
         runtime_adapter_id=GO2_12DOF_ISAACLAB_ADAPTER_ID,
         environment_cfg_entrypoint=(
-            "isaaclab_tasks.manager_based.locomotion.velocity.config.go2."
-            "rough_env_cfg:UnitreeGo2RoughEnvCfg"
+            "true_rl_agent.robots.isaaclab_locomotion:_go2_environment_cfg"
         ),
         runner_cfg_entrypoint=(
             "isaaclab_tasks.manager_based.locomotion.velocity.config.go2.agents."

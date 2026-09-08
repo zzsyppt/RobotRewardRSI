@@ -43,6 +43,7 @@ from true_rl_agent.tasks.stair_climbing.runtime_profile import (
 )
 from true_rl_agent.tasks.stair_climbing.row_catalog import (
     STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID,
+    frozen_stair_predecessor_row,
     stair_robot_row,
 )
 from true_rl_agent.tasks.stair_climbing.seed_policy import (
@@ -92,7 +93,7 @@ STAIR_G1_ROUGH_AGENT_CONFIGURATION = G1_ROUGH_AGENT_CONFIGURATION
 
 @dataclass(frozen=True)
 class StairClimbingTaskConfig:
-    """One validated source for Stair task, backend, and runner settings."""
+    """Frozen Stair protocol values; process placement belongs to composition."""
 
     protocol_v2_path: Path
     budget_steps: int
@@ -105,7 +106,7 @@ class StairClimbingTaskConfig:
     sealed_validation_seed_count: int
     eval_protocol_version: str
     train_seed: int
-    runner_timeout_s: int
+    protocol_runner_timeout_s: int  # Historical JSON runner_timeout_s, not a process deadline.
     train_profile: str
     eval_profile: str
     cell_variant_id: str = STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID
@@ -267,7 +268,7 @@ class StairClimbingTaskConfig:
             "public_seed_count",
             "public_accept_seed_count",
             "sealed_validation_seed_count",
-            "runner_timeout_s",
+            "protocol_runner_timeout_s",
         ):
             _positive_int(getattr(self, field_name), field_name)
         if (
@@ -340,7 +341,7 @@ class StairClimbingTaskConfig:
                 "num_envs": self.train_num_envs,
                 "steps_per_env": self.train_steps_per_iteration,
                 "max_iterations": self.train_max_iterations,
-                "runner_timeout_s": self.runner_timeout_s,
+                "runner_timeout_s": self.protocol_runner_timeout_s,
                 "train_profile": self.train_profile,
                 "eval_profile": self.eval_profile,
             }
@@ -455,6 +456,9 @@ class StairClimbingTaskConfig:
             path,
             expected_cell_variant_id=self.cell_variant_id,
         )
+        frozen_row = frozen_stair_predecessor_row(self.cell_variant_id)
+        if frozen_row is not None:
+            frozen_row.require_frozen_protocol_identity(protocol.task_protocol_hash)
         if self.cell_variant_id != protocol.cell_variant_id:
             raise ValueError("Stair unified config/cell identity mismatch")
         training = protocol.training
@@ -469,7 +473,7 @@ class StairClimbingTaskConfig:
             "public_accept_seed_count": evaluation.public_accept_seed_count,
             "sealed_validation_seed_count": evaluation.sealed_validation_seed_count,
             "eval_protocol_version": evaluation.eval_protocol_version,
-            "runner_timeout_s": int(training["runner_timeout_s"]),
+            "protocol_runner_timeout_s": int(training["runner_timeout_s"]),
             "train_profile": str(training["train_profile"]),
             "eval_profile": str(training["eval_profile"]),
         }
@@ -489,7 +493,7 @@ class StairClimbingTaskConfig:
             "public_seed_count",
             "public_accept_seed_count",
             "sealed_validation_seed_count",
-            "runner_timeout_s",
+            "protocol_runner_timeout_s",
         ):
             _positive_int(getattr(self, name), name)
         if (
@@ -570,7 +574,7 @@ class StairClimbingTaskConfig:
             evaluation_protocol = protocol.evaluation_suite.evaluation_protocol
             train_seed = StairPrivateTrainingSeedResolver(
                 base_seed=STAIR_TRAIN_SEED_BASE,
-                task_protocol_hash=protocol.task_protocol_hash,
+                task_protocol_hash=protocol.training_seed_anchor_hash,
             ).derive_seed(namespace=STAIR_FORMAL_TRAIN_NAMESPACE)
             return cls(
                 protocol_v2_path=protocol_v2_path,
@@ -586,7 +590,7 @@ class StairClimbingTaskConfig:
                 ),
                 eval_protocol_version=evaluation_protocol.eval_protocol_version,
                 train_seed=train_seed,
-                runner_timeout_s=int(training["runner_timeout_s"]),
+                protocol_runner_timeout_s=int(training["runner_timeout_s"]),
                 train_profile=str(training["train_profile"]),
                 eval_profile=str(training["eval_profile"]),
                 cell_variant_id=cell_variant_id,
@@ -662,7 +666,7 @@ class StairClimbingTaskConfig:
             ),
             eval_protocol_version=evaluation_protocol.eval_protocol_version,
             train_seed=train_seed,
-            runner_timeout_s=int(training["runner_timeout_s"]),
+            protocol_runner_timeout_s=int(training["runner_timeout_s"]),
             train_profile=train_profile,
             eval_profile=eval_profile,
             cell_variant_id=cell_variant_id,
@@ -692,6 +696,30 @@ class StairClimbingTaskConfig:
             assert self.protocol_v2 is not None
             return self.protocol_v2.protocol_hash
         return self._base_task_protocol_hash
+
+    @property
+    def training_base_task_protocol_hash(self) -> str:
+        if self.unified_protocol_config is not None:
+            lineage = self.unified_protocol_config.training_lineage
+            if lineage is not None:
+                return str(lineage["source_base_task_protocol_hash"])
+        return self.base_task_protocol_hash
+
+    @property
+    def training_binding_task_protocol_hash(self) -> str:
+        if self.unified_protocol_config is not None:
+            lineage = self.unified_protocol_config.training_lineage
+            if lineage is not None:
+                return str(lineage["source_resolved_cell_task_protocol_hash"])
+        return self.task_protocol_hash
+
+    @property
+    def training_predecessor_manifest_hash(self) -> str | None:
+        if self.unified_protocol_config is not None:
+            lineage = self.unified_protocol_config.training_lineage
+            if lineage is not None:
+                return str(lineage["source_resolved_cell_manifest_hash"])
+        return None
 
     def episode_outcomes(self) -> dict[str, Any]:
         if self.unified_protocol_config is not None:
@@ -836,7 +864,9 @@ class StairClimbingTaskConfig:
             ),
             capability_profile_hash=self.candidate_capability_profile.profile_hash,
             task_protocol_hash=(
-                self.task_protocol_hash if self.is_unified_protocol else None
+                self.training_binding_task_protocol_hash
+                if self.is_unified_protocol
+                else None
             ),
         )
 
@@ -847,10 +877,10 @@ class StairClimbingTaskConfig:
             return StairProductionRuntimeProfile(
                 mode="train",
                 profile_id=self.train_profile,
-                base_protocol_hash=self.base_task_protocol_hash,
+                base_protocol_hash=self.training_base_task_protocol_hash,
                 # The resolved cell hash includes this runtime profile through the
                 # environment descriptor; binding it back here would be recursive.
-                task_protocol_hash=self.base_task_protocol_hash,
+                task_protocol_hash=self.training_base_task_protocol_hash,
             )
         if isinstance(self.protocol_v2, StairProtocolV2):
             assert self.protocol_v1 is not None

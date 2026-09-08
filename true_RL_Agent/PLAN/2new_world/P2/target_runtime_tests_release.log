@@ -1,0 +1,32 @@
+EF..........Isaac SimulationApp close failed: close failed
+......
+======================================================================
+ERROR: test_rsl_rl_checkpoint (unittest.loader._FailedTest.test_rsl_rl_checkpoint)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_rsl_rl_checkpoint
+Traceback (most recent call last):
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/loader.py", line 137, in loadTestsFromName
+    module = __import__(module_name)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/tests/unit/test_rsl_rl_checkpoint.py", line 8, in <module>
+    from true_rl_agent.backends.rsl_rl_checkpoint import (
+ModuleNotFoundError: No module named 'true_rl_agent'
+
+
+======================================================================
+FAIL: test_child_admission_binds_parent_source_across_locations (tests.unit.test_isaac_lab_execution_environment.IsaacLabExecutionEnvironmentTests.test_child_admission_binds_parent_source_across_locations)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/tests/unit/test_isaac_lab_execution_environment.py", line 115, in test_child_admission_binds_parent_source_across_locations
+    self.assertEqual(admitted.returncode, 0, admitted.stderr)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 5, in <module>
+  File "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/tests/fakes/backend_environment.py", line 9, in <module>
+    from true_rl_agent.backends.base import (
+ModuleNotFoundError: No module named 'true_rl_agent'
+
+
+----------------------------------------------------------------------
+Ran 18 tests in 0.379s
+
+FAILED (failures=1, errors=1)

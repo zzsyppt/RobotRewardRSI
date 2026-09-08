@@ -26,6 +26,9 @@ RSL_RL_POLICY_CONFIGURATION_SCHEMA_VERSION = (
 RSL_RL_ALGORITHM_CONFIGURATION_SCHEMA_VERSION = (
     "true_rl_agent.rsl_rl_algorithm_configuration.v1"
 )
+# In the frozen v1 contract, PPO means RSL-RL 3's hard-coded Adam optimizer.
+# Making that implicit choice explicit in RSL-RL 5 does not rewrite old hashes.
+RSL_RL_CONFIGURATION_MAPPING_VERSION = "rsl_rl_3_actor_critic_to_rsl_rl_5_mlp.v1"
 
 
 @dataclass(frozen=True)
@@ -148,40 +151,108 @@ class RslRlAgentConfiguration:
     def to_canonical_json(self) -> str:
         return canonical_json_text(self.to_dict())
 
-    def apply_and_verify(self, agent_cfg: Any) -> None:
-        """Apply the bound payload and prove the effective runner payload is exact."""
+    def apply_to(self, agent_cfg: Any) -> None:
+        """Materialize the bound scientific payload in the RSL-RL 5 config."""
 
-        for section_name, expected in (
-            ("policy", self.policy),
-            ("algorithm", self.algorithm),
-        ):
-            target = getattr(agent_cfg, section_name, None)
-            if target is None:
-                raise ValueError(f"RSL-RL agent_cfg is missing {section_name}")
-            for key, value in expected.items():
-                if not hasattr(target, key):
-                    raise ValueError(
-                        f"RSL-RL agent_cfg.{section_name} is missing {key}"
-                    )
-                setattr(target, key, copy.deepcopy(_thaw_json(value)))
-        to_dict = getattr(agent_cfg, "to_dict", None)
-        if not callable(to_dict):
-            raise TypeError("RSL-RL agent_cfg must provide to_dict()")
-        effective = to_dict()
-        if not isinstance(effective, Mapping):
-            raise ValueError("RSL-RL agent_cfg.to_dict() must return an object")
-        for section_name, expected in (
-            ("policy", self.policy),
-            ("algorithm", self.algorithm),
-        ):
-            actual = _canonical_object(
-                effective.get(section_name),
-                f"effective RSL-RL {section_name} configuration",
-            )
-            if actual != _thaw_json(expected):
-                raise ValueError(
-                    f"effective RSL-RL {section_name} configuration mismatch"
-                )
+        sections = self.runtime_sections()
+        for section_name, expected in sections.items():
+            setattr(agent_cfg, section_name, copy.deepcopy(expected))
+        # Lab's base config retains this deprecated field for its other clients.
+        # It is not another policy source for our runtime.
+        if hasattr(agent_cfg, "policy"):
+            agent_cfg.policy = None
+
+    def verify_runner(self, runner: Any) -> dict[str, Any]:
+        """Inspect the constructed learner before loading weights or learning."""
+        import torch
+        from rsl_rl.utils import resolve_nn_activation
+
+        learner = runner.alg
+        models = {}
+        for role in ("actor", "critic"):
+            model = getattr(learner, role)
+            # Sequential reuses activation objects; children() deduplicates them.
+            layers = list(model.mlp)
+            linear = [layer for layer in layers if isinstance(layer, torch.nn.Linear)]
+            hidden = [layer.out_features for layer in linear[:-1]]
+            activation = type(resolve_nn_activation(self.policy["activation"]))
+            nonlinear = [layer for layer in layers if not isinstance(layer, torch.nn.Linear)]
+            if (
+                hidden != list(self.policy[role + "_hidden_dims"])
+                or len(nonlinear) != len(hidden)
+                or any(type(layer) is not activation for layer in nonlinear)
+                or model.obs_normalization != self.policy[role + "_obs_normalization"]
+            ):
+                raise ValueError(f"constructed RSL-RL {role} differs from the bound policy")
+            models[role] = {
+                "input_dim": linear[0].in_features,
+                "output_dim": linear[-1].out_features,
+                "hidden_dims": hidden,
+                "activation": activation.__name__,
+                "obs_normalization": model.obs_normalization,
+                "obs_groups": list(model.obs_groups),
+            }
+        distribution = learner.actor.distribution
+        std = (distribution.std_param if distribution.std_type == "scalar"
+               else distribution.log_std_param.exp())
+        if (type(distribution).__name__ != "GaussianDistribution"
+                or distribution.std_type != self.policy["noise_std_type"]
+                or not torch.allclose(std, torch.full_like(std, self.policy["init_noise_std"]))
+                or learner.critic.distribution is not None):
+            raise ValueError("constructed RSL-RL distribution differs from the bound policy")
+        actual_algorithm = {
+            name: getattr(learner, name)
+            for name in self.algorithm
+            if name not in {"class_name", "rnd_cfg", "symmetry_cfg"}
+        }
+        expected_algorithm = {name: self.algorithm[name] for name in actual_algorithm}
+        if (type(learner).__name__ != self.algorithm["class_name"]
+                or actual_algorithm != expected_algorithm
+                or learner.rnd is not None or learner.symmetry is not None
+                or type(learner.optimizer) is not torch.optim.Adam
+                or any(group["lr"] != self.algorithm["learning_rate"]
+                       for group in learner.optimizer.param_groups)):
+            raise ValueError("constructed RSL-RL learner differs from the bound PPO")
+        return {
+            "schema_version": "true_rl_agent.rsl_rl_constructed_learner.v1",
+            "configuration_mapping_version": RSL_RL_CONFIGURATION_MAPPING_VERSION,
+            "models": models,
+            "algorithm": actual_algorithm,
+            "optimizer": "Adam",
+            "optimizer_source": "frozen_v1_PPO_implicit_Adam",
+            "noise_std_type": distribution.std_type,
+            "initial_noise_std": self.policy["init_noise_std"],
+        }
+
+    def runtime_sections(self) -> dict[str, Any]:
+        """Translate the frozen MLP description without changing its hashes."""
+
+        policy = self.policy
+        if policy.get("class_name") != "ActorCritic":
+            raise ValueError("the RSL-RL runtime supports the bound MLP policy only")
+        actor = {
+            "class_name": "MLPModel",
+            "hidden_dims": _thaw_json(policy["actor_hidden_dims"]),
+            "activation": policy["activation"],
+            "obs_normalization": policy["actor_obs_normalization"],
+            "distribution_cfg": {
+                "class_name": "GaussianDistribution",
+                "init_std": policy["init_noise_std"],
+                "std_type": policy["noise_std_type"],
+            },
+        }
+        critic = {
+            "class_name": "MLPModel",
+            "hidden_dims": _thaw_json(policy["critic_hidden_dims"]),
+            "activation": policy["activation"],
+            "obs_normalization": policy["critic_obs_normalization"],
+            "distribution_cfg": None,
+        }
+        return {
+            "actor": actor,
+            "critic": critic,
+            "algorithm": {**_thaw_json(self.algorithm), "optimizer": "adam"},
+        }
 
 
 def _canonical_object(value: Any, field_name: str) -> dict[str, Any]:

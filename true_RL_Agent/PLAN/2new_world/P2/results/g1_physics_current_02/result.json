@@ -1,0 +1,4 @@
+{
+  "status": "FAIL",
+  "error": "Traceback (most recent call last):\n  File \"/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/PLAN/2new_world/P2/stair_physics_probe.py\", line 65, in <module>\n    physics_facts = {\"masses\": cpu(physics.get_masses()),\n                               ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/PLAN/2new_world/P2/stair_physics_probe.py\", line 51, in cpu\n    return tensor(x).detach().cpu().numpy().copy()\n           ^^^^^^^^^^^^^^^^\nAttributeError: 'array' object has no attribute 'detach'\n"
+}

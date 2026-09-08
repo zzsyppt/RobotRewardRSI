@@ -552,15 +552,49 @@ def _validate_environment_source_preflight_pair(
             eval_preflight, Mapping
         ):
             raise ValueError("unified Stair source preflight evidence is missing")
-        expected = dict(observed_train)
+        train_evidence = dict(observed_train)
+        eval_evidence = dict(eval_preflight)
+        train_task_hash = train_evidence.get("task_protocol_hash")
+        predecessor_training = (
+            train_task_hash == config.training_binding_task_protocol_hash
+            and train_task_hash != config.task_protocol_hash
+        )
+        predecessor_identity_matches = True
+        if predecessor_training:
+            lineage = config.unified_protocol.training_lineage
+            resolved_identity = train_summary.get("resolved_cell_identity")
+            predecessor_identity_matches = bool(
+                lineage is not None
+                and config.training_predecessor_manifest_hash is not None
+                and train_summary.get("resolved_cell_manifest_hash")
+                == config.training_predecessor_manifest_hash
+                and isinstance(resolved_identity, Mapping)
+                and resolved_identity.get("cell_variant_id")
+                == lineage["source_cell_variant_id"]
+                and resolved_identity.get("resolved_cell_task_protocol_hash")
+                == config.training_binding_task_protocol_hash
+            )
+        source_manifests_match = (
+            predecessor_training
+            or eval_evidence.get("source_manifest_hash")
+            == train_evidence.get("source_manifest_hash")
+        )
         if (
-            dict(eval_preflight) != expected
-            or expected.get("status") != "pass"
-            or expected.get("task_protocol_hash") != config.task_protocol_hash
-            or not is_sha256_digest(expected.get("source_manifest_hash"))
+            train_evidence.get("status") != "pass"
+            or eval_evidence.get("status") != "pass"
+            or train_task_hash
+            not in {
+                config.training_binding_task_protocol_hash,
+                config.task_protocol_hash,
+            }
+            or eval_evidence.get("task_protocol_hash") != config.task_protocol_hash
+            or not is_sha256_digest(train_evidence.get("source_manifest_hash"))
+            or not is_sha256_digest(eval_evidence.get("source_manifest_hash"))
+            or not source_manifests_match
+            or not predecessor_identity_matches
         ):
             raise ValueError("unified Stair train/eval source preflight differs")
-        return expected
+        return eval_evidence
     assert config.protocol_v2 is not None
     contract = config.protocol_v2.runner_owned_training_distribution
     if contract is None:

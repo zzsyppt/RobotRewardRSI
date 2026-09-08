@@ -1,0 +1,48 @@
+{
+  "local": {
+    "manifest": "local_deletion_manifest.json",
+    "targets": 200,
+    "files": 3291,
+    "bytes": 249004818,
+    "deleted_files": 3291,
+    "deleted_bytes": 249004818,
+    "state": "completed",
+    "attempts": [
+      {
+        "action": "manifest-scoped PowerShell Remove-Item cleanup",
+        "result": "blocked by policy"
+      },
+      {
+        "action": "single validated .codex_tmp/audit_live_rounds.py Remove-Item",
+        "result": "blocked by policy"
+      },
+      {
+        "action": "revalidated native PowerShell literal-path cleanup after renewed user authorization",
+        "result": "completed"
+      }
+    ],
+    "all_targets_absent": true,
+    "receipts": [
+      "local_cleanup_result.json",
+      "local_cache_fixture_cleanup_result.json"
+    ],
+    "initial_manifest_targets": 167
+  },
+  "remote": {
+    "manifest": "remote_inventory.json",
+    "candidate_files": 901,
+    "candidate_bytes": 6694745891,
+    "deleted_files": 892,
+    "deleted_bytes": 6632805920,
+    "state": "completed",
+    "approved_files": 892,
+    "approved_bytes": 6632805920,
+    "receipt": "remote_cleanup_result.json",
+    "remaining_eligible_files": 0,
+    "retained_models": 429,
+    "protected_files_unchanged": 3214,
+    "retained_formal_failure_models": 9
+  },
+  "total_artifact_deleted_files": 4183,
+  "total_artifact_deleted_bytes": 6881810738
+}

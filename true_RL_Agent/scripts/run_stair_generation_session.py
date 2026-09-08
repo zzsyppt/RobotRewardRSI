@@ -30,6 +30,10 @@ from true_rl_agent.tasks.stair_climbing.final_confirmation import (  # noqa: E40
 from true_rl_agent.tasks.stair_climbing.launch_context import (  # noqa: E402
     consume_stair_generation_launch_context,
 )
+from true_rl_agent.tasks.stair_climbing.row_catalog import (  # noqa: E402
+    STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
+    active_unified_stair_cell_variant_ids,
+)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -65,6 +69,13 @@ def main(argv: list[str] | None = None) -> int:
         max_allocated_active_gpu_hours=args.max_allocated_active_gpu_hours,
         max_simulated_control_steps=args.max_simulated_control_steps,
         max_output_bytes=args.max_output_bytes,
+        source_reference_genesis_dir=(
+            args.source_reference_genesis_dir.resolve()
+            if args.source_reference_genesis_dir is not None
+            else None
+        ),
+        source_reference_session_id=args.source_reference_session_id,
+        cell_variant_id=args.cell_variant_id,
         nvidia_smi_executable=args.nvidia_smi_executable,
         resume_existing=args.resume_existing,
         session_mode=(
@@ -125,6 +136,24 @@ def parse_stair_generation_session_args(
         required=True,
     )
     parser.add_argument("--max-output-bytes", type=int, required=True)
+    parser.add_argument(
+        "--source-reference-genesis-dir",
+        type=Path,
+        help=(
+            "Import one already-qualified direct reference Genesis without "
+            "rerunning its reference train/evaluation."
+        ),
+    )
+    parser.add_argument(
+        "--source-reference-session-id",
+        help="Session id recorded by --source-reference-genesis-dir.",
+    )
+    parser.add_argument(
+        "--cell-variant-id",
+        choices=active_unified_stair_cell_variant_ids(),
+        default=STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
+        help="Select the robot row for this Stair generation session.",
+    )
     parser.add_argument("--nvidia-smi-executable", default="nvidia-smi")
     session_mode = parser.add_mutually_exclusive_group()
     session_mode.add_argument(
@@ -183,6 +212,13 @@ def parse_stair_generation_session_args(
         ),
     )
     args = parser.parse_args(argv)
+    if (args.source_reference_genesis_dir is None) != (
+        args.source_reference_session_id is None
+    ):
+        parser.error(
+            "--source-reference-genesis-dir and --source-reference-session-id "
+            "must be provided together"
+        )
     helper_mode = args.preflight_only or args.provider_readiness_only
     runnable_mode = args.pilot_session or args.validation_session or args.formal_session
     if not runnable_mode and not helper_mode:

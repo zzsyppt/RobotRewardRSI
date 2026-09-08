@@ -18,7 +18,7 @@ from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, Sequence
 
 from true_rl_agent.agent_core.authoring_loop import CandidateAuthoringLoop
 from true_rl_agent.agent_core.exploration import GenerationExplorationPlan
@@ -38,6 +38,7 @@ from true_rl_agent.agent_core.generation_contract import (
     GenerationSessionContractRef,
     generation_resource_plan_hash,
     generation_training_initialization_hash,
+    load_generation_session_contract,
     publish_generation_session_contract,
 )
 from true_rl_agent.agent_core.generation_lifecycle import (
@@ -52,15 +53,16 @@ from true_rl_agent.agent_core.generation_lifecycle import (
     audit_generation_lifecycle,
     build_generation_continuation_cursor,
     build_generation_terminal_binding,
+    load_generation_continuation_policy,
     publish_generation_continuation_policy,
 )
 from true_rl_agent.agent_core.generation_receipts import (
+    GenerationReceiptRef,
     GenerationReceiptJournal,
     load_generation_manifest_from_receipt,
 )
 from true_rl_agent.agent_core.generation_record import (
     load_bound_generation_manifest,
-    load_bound_generation_trial_phase_receipt,
     load_bound_generation_trial_train_receipt,
 )
 from true_rl_agent.agent_core.ledger import (
@@ -79,6 +81,7 @@ from true_rl_agent.agent_core.round import RoundInputs
 from true_rl_agent.agent_core.session_genesis import (
     REFERENCE_EVAL_ARTIFACT_FILENAME,
     SESSION_GENESIS_FILENAME,
+    SessionGenesisArtifact,
     VerifiedSessionGenesis,
     prepare_session_genesis,
     session_genesis_identity_hash,
@@ -91,16 +94,16 @@ from true_rl_agent.agent_core.trial_receipts import (
     load_trial_train_receipt,
 )
 from true_rl_agent.composition import (
+    ResolvedCellManifestV1,
     ResolvedTaskComposition,
     TaskCompositionContext,
     resolve_task_composition,
 )
-from true_rl_agent.evaluation.acceptance_replay import project_public_history
-from true_rl_agent.evaluation.acceptance_protocol import (
-    acceptance_delta_met,
-    acceptance_threshold,
-    named_guard_regression_threshold,
+from true_rl_agent.composition.cell_manifest import (
+    RESOLVED_CELL_MANIFEST_FILENAME,
+    load_resolved_cell_manifest,
 )
+from true_rl_agent.evaluation.acceptance_replay import project_public_history
 from true_rl_agent.evaluation.binding import (
     EvaluationBindingV1,
     canonical_json_hash,
@@ -143,6 +146,7 @@ from true_rl_agent.runner.subprocess_runner import SubprocessRunner
 from true_rl_agent.tasks.stair_climbing.composition import (
     StairClimbingCompositionProvider,
 )
+from true_rl_agent.tasks.stair_climbing.config import STAIR_TASK_ID
 from true_rl_agent.tasks.stair_climbing.entrypoint_contract import (
     STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION,
 )
@@ -179,6 +183,10 @@ from true_rl_agent.tasks.stair_climbing.generation_authoring_timing import (
     replay_stair_generation_authoring_timing,
     run_stair_generation_authoring_attempt,
 )
+from true_rl_agent.tasks.stair_climbing.row_catalog import (
+    STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
+    active_unified_stair_cell_variant_ids,
+)
 from true_rl_agent.tasks.stair_climbing.generation_bootstrap import (
     replay_stair_generation_guard_chain,
     run_genesis_parent_public_dev,
@@ -193,6 +201,14 @@ from true_rl_agent.tasks.stair_climbing.generation_session_cost import (
     STAIR_GENERATION_FORMAL_RETRY_OUTPUT_BYTES,
     STAIR_GENERATION_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS,
     STAIR_GENERATION_FORMAL_SUCCESSFUL_OUTPUT_BYTES,
+    STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_ALLOCATED_ACTIVE_GPU_HOURS,
+    STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_OUTPUT_BYTES,
+    STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS,
+    STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_OUTPUT_BYTES,
+    STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_ALLOCATED_ACTIVE_GPU_HOURS,
+    STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_OUTPUT_BYTES,
+    STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS,
+    STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_OUTPUT_BYTES,
     STAIR_GENERATION_MAX_INFRASTRUCTURE_RETRIES_PER_ELIGIBLE_JOB,
     STAIR_GENERATION_PROVIDER_ATTEMPTS_PER_LANE,
     STAIR_GENERATION_PROVIDER_INPUT_UNITS_PER_ATTEMPT,
@@ -213,8 +229,11 @@ from true_rl_agent.tasks.stair_climbing.generation_session_cost import (
     StairGenerationSessionCostContractLike,
     StairGenerationSessionCostContractV2,
     StairGenerationSessionCostContractV3,
+    StairGenerationSessionCostContractV4,
+    StairGenerationSessionCostContractV5,
     build_stair_generation_scientific_cost_basis,
     create_stair_generation_session_cost_contract,
+    imported_reference_operation_cost_reserves,
     load_stair_generation_session_cost_contract,
     replay_stair_generation_combined_cost_chain,
     replay_stair_generation_formal_cost_chain,
@@ -231,7 +250,7 @@ from true_rl_agent.tasks.stair_climbing.phased_evaluation import (
     canonical_stair_phase_result_summary,
 )
 from true_rl_agent.tasks.stair_climbing.unified_scoring import (
-    build_unified_score_projection,
+    objective_family_mask_from_public_result,
 )
 from true_rl_agent.tasks.stair_climbing.provider_readiness import (
     STAIR_PROVIDER_READINESS_SCHEMA_VERSION,
@@ -268,6 +287,8 @@ STAIR_GENERATION_SOURCE_CHECKOUT_SCHEMA_VERSION = (
     "true_rl_agent.stair.generation_source_checkout.v1"
 )
 STAIR_GENERATION_SOURCE_CHECKOUT_FILENAME = "generation_source_checkout.json"
+_FINAL_SOURCE_CHECKOUT_FILENAME = "source_checkout.json"
+_FINAL_SOURCE_CHECKOUT_SCHEMA = "true_rl_agent.stair.finalization_source_checkout.v1"
 STAIR_GENERATION_PROVIDER_TIMEOUT_S = 300
 STAIR_GENERATION_PROVIDER_MODEL = "deepseek-v4-flash"
 STAIR_GENERATION_PROVIDER_REASONING_EFFORT = "max"
@@ -304,6 +325,9 @@ class StairGenerationPilotConfig:
     max_allocated_active_gpu_hours: float
     max_simulated_control_steps: int
     max_output_bytes: int
+    source_reference_genesis_dir: Path | None = None
+    source_reference_session_id: str | None = None
+    cell_variant_id: str = STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID
     nvidia_smi_executable: str = "nvidia-smi"
     resume_existing: bool = False
     session_mode: str = DEVELOPMENT_GENERATION_PILOT_MODE
@@ -321,8 +345,32 @@ class StairGenerationPilotConfig:
                 raise TypeError(f"{field_name} must be a Path")
         if not self.output_dir.is_absolute() or not self.lease_root.is_absolute():
             raise ValueError("generation output_dir and lease_root must be absolute")
+        if (self.source_reference_genesis_dir is None) != (
+            self.source_reference_session_id is None
+        ):
+            raise ValueError(
+                "source reference Genesis directory and session_id must be provided together"
+            )
+        if self.source_reference_genesis_dir is not None:
+            if not isinstance(self.source_reference_genesis_dir, Path):
+                raise TypeError("source_reference_genesis_dir must be a Path")
+            if not self.source_reference_genesis_dir.is_absolute():
+                raise ValueError("source_reference_genesis_dir must be absolute")
+            if self.source_reference_genesis_dir.resolve() == self.output_dir.resolve():
+                raise ValueError(
+                    "source reference Genesis directory must differ from output_dir"
+                )
+            if (
+                not isinstance(self.source_reference_session_id, str)
+                or not self.source_reference_session_id
+            ):
+                raise ValueError("source_reference_session_id is required")
         if not isinstance(self.session_id, str) or not self.session_id:
             raise ValueError("generation session_id is required")
+        if self.cell_variant_id not in active_unified_stair_cell_variant_ids():
+            raise ValueError(
+                "generation cell_variant_id must select an active unified Stair row"
+            )
         if _SOURCE_COMMIT.fullmatch(self.expected_source_commit) is None:
             raise ValueError("expected_source_commit must be a lowercase Git SHA")
         if not isinstance(self.machine_id, str) or not self.machine_id.strip():
@@ -395,6 +443,10 @@ class StairGenerationPilotConfig:
             ),
         }[self.session_mode]
 
+    @property
+    def imports_reference_genesis(self) -> bool:
+        return self.source_reference_genesis_dir is not None
+
 
 @dataclass(frozen=True)
 class StairGenerationSessionFoundation:
@@ -413,6 +465,28 @@ class StairGenerationSessionFoundation:
     provider_policy: Mapping[str, Any]
     final_confirmation_policy: Mapping[str, Any]
     final_confirmation_plan: StairFinalConfirmationPlanV2 | None
+
+
+@dataclass(frozen=True)
+class CompletedStairGenerationSession:
+    """Read-only typed base closure of one completed three-generation session.
+
+    ``report`` is identity-checked input, not trusted proof of its own claims.
+    Callers must independently replay acceptance and terminal/scientific claims.
+    """
+
+    output_dir: Path
+    source_checkout: Mapping[str, Any]
+    resolved_cell_manifest: ResolvedCellManifestV1
+    session_genesis: SessionGenesisArtifact
+    session_contract: GenerationSessionContract
+    cost_contract: StairGenerationSessionCostContractV2
+    continuation_policy: GenerationContinuationPolicy
+    ledger: tuple[Mapping[str, Any], ...]
+    lifecycle: GenerationLifecycleAudit
+    actual_cost_receipts: tuple[StairGenerationActualCostReceiptRef, ...]
+    generation_execution_receipts: tuple[GenerationReceiptRef, ...]
+    report: Mapping[str, Any]
 
 
 @dataclass(frozen=True)
@@ -514,6 +588,20 @@ def preflight_stair_generation_pilot(
         session_genesis_identity_hash(
             foundation.composition.genesis_identity_snapshot()
         )
+        imported_reference_verified = not foundation.config.imports_reference_genesis
+        if foundation.config.imports_reference_genesis:
+            imported = _prepare_foundation_session_genesis(
+                foundation,
+                require_existing=False,
+            )
+            import_ref = imported.reference_genesis_import_ref
+            if (
+                import_ref is None
+                or import_ref.source_session_id
+                != foundation.config.source_reference_session_id
+            ):
+                raise ValueError("preflight imported reference Genesis identity mismatch")
+            imported_reference_verified = True
         persistence_checks = _exercise_preflight_persistence_contracts(
             foundation,
             scratch_root=scratch_root / "persistence",
@@ -527,6 +615,7 @@ def preflight_stair_generation_pilot(
         "source_gpu_and_credential_preflight_read_only": True,
         "scratch_foundation_create_once_verified": True,
         "genesis_identity_snapshot_hashable": True,
+        "imported_reference_genesis_verified": imported_reference_verified,
         **persistence_checks,
     }
     return {
@@ -634,6 +723,8 @@ def run_stair_generation_pilot(
         expected_commit=config.expected_source_commit,
     )
     final_report_path = config.output_dir / STAIR_GENERATION_REPORT_FILENAME
+    if config.resume_existing and config.session_mode == FORMAL_GENERATION_SESSION_MODE:
+        source_commit = _formal_resume_generation_source(config, source_commit)
     if (
         config.resume_existing
         and config.session_mode
@@ -730,25 +821,6 @@ def run_stair_generation_pilot(
         contract=foundation.cost_contract,
     )
     cost_journal.publish_reservation()
-    genesis_identity_snapshot = foundation.composition.genesis_identity_snapshot()
-    genesis_identity_hash = session_genesis_identity_hash(genesis_identity_snapshot)
-    reference_train_scope = _session_genesis_attempt_scope(
-        journal_root=config.output_dir / "job_attempts",
-        session_id=config.session_id,
-        genesis_identity_hash=genesis_identity_hash,
-        session_contract_hash=foundation.session_contract.contract_hash,
-        lane_id="lane-a",
-        invocation_segment_id="session-genesis",
-        budget_contract_hash=foundation.cost_contract.contract_hash,
-        resource_binding_hash=foundation.gpu_bindings[0].resource_binding_hash,
-        max_infrastructure_retries=(
-            STAIR_GENERATION_MAX_INFRASTRUCTURE_RETRIES_PER_ELIGIBLE_JOB
-        ),
-    )
-    reference_evaluation_kwargs = _session_genesis_reference_evaluation_kwargs(
-        foundation,
-        genesis_identity_hash=genesis_identity_hash,
-    )
     genesis_exists = (config.output_dir / SESSION_GENESIS_FILENAME).exists()
     if final_report_path.exists() and not genesis_exists:
         raise ValueError("generation report exists without Session Genesis")
@@ -757,33 +829,12 @@ def run_stair_generation_pilot(
             raise FileNotFoundError("provider env file does not exist")
         _preflight_provider_credential(config.provider_env_file)
     try:
-        genesis = prepare_session_genesis(
-            output_dir=config.output_dir,
-            session_id=config.session_id,
-            task_plugin=foundation.composition.task_plugin,
-            backend_adapter=foundation.composition.backend_adapter,
-            runner=foundation.runner,
-            policy_initialization=foundation.composition.policy_initialization,
-            genesis_identity_snapshot=genesis_identity_snapshot,
-            baseline_manifest=foundation.composition.baseline_manifest,
-            reference_program_artifact=(
-                foundation.composition.reference_program_artifact
-            ),
-            bootstrap_initial_best_score=(
-                foundation.composition.bootstrap_initial_best_score
-            ),
-            bootstrap_initial_policy_state_hash=(
-                foundation.composition.bootstrap_initial_policy_state_hash
-            ),
-            bind_backend_execution_environment=True,
-            generation_session_contract_ref=foundation.session_contract_ref,
-            gpu_process_binding=foundation.gpu_bindings[0],
-            reference_train_attempt_scope=reference_train_scope,
-            **reference_evaluation_kwargs,
+        genesis = _prepare_foundation_session_genesis(
+            foundation,
             require_existing=final_report_path.exists(),
         )
     except BaseException:
-        usage, charges, _ = _collect_actual_cost_usage(
+        usage, charges, _ = collect_actual_cost_usage(
             foundation,
             genesis=None,
             ledger=[],
@@ -828,7 +879,7 @@ def run_stair_generation_pilot(
     _preflight_provider_credential(config.provider_env_file)
     post_genesis = cost_journal.receipt_for_event("post-genesis")
     if post_genesis is None:
-        post_genesis_usage, post_genesis_charges, _ = _collect_actual_cost_usage(
+        post_genesis_usage, post_genesis_charges, _ = collect_actual_cost_usage(
             foundation,
             genesis=genesis,
             ledger=[],
@@ -882,27 +933,24 @@ def run_stair_generation_pilot(
 def _load_existing_session_genesis_for_terminal_audit(
     foundation: StairGenerationSessionFoundation,
 ) -> VerifiedSessionGenesis:
-    config = foundation.config
-    snapshot = foundation.composition.genesis_identity_snapshot()
-    identity_hash = session_genesis_identity_hash(snapshot)
-    reference_train_scope = _session_genesis_attempt_scope(
-        journal_root=config.output_dir / "job_attempts",
-        session_id=config.session_id,
-        genesis_identity_hash=identity_hash,
-        session_contract_hash=foundation.session_contract.contract_hash,
-        lane_id="lane-a",
-        invocation_segment_id="session-genesis",
-        budget_contract_hash=foundation.cost_contract.contract_hash,
-        resource_binding_hash=foundation.gpu_bindings[0].resource_binding_hash,
-        max_infrastructure_retries=(
-            STAIR_GENERATION_MAX_INFRASTRUCTURE_RETRIES_PER_ELIGIBLE_JOB
-        ),
-    )
-    reference_evaluation_kwargs = _session_genesis_reference_evaluation_kwargs(
+    genesis = _prepare_foundation_session_genesis(
         foundation,
-        genesis_identity_hash=identity_hash,
+        require_existing=True,
     )
-    genesis = prepare_session_genesis(
+    _bind_unified_objective_family_mask(foundation, genesis=genesis)
+    return genesis
+
+
+def _prepare_foundation_session_genesis(
+    foundation: StairGenerationSessionFoundation,
+    *,
+    require_existing: bool,
+) -> VerifiedSessionGenesis:
+    config = foundation.config
+    composition = foundation.composition
+    snapshot = composition.genesis_identity_snapshot()
+    identity_hash = session_genesis_identity_hash(snapshot)
+    return prepare_session_genesis(
         output_dir=config.output_dir,
         session_id=config.session_id,
         task_plugin=foundation.composition.task_plugin,
@@ -920,13 +968,12 @@ def _load_existing_session_genesis_for_terminal_audit(
         ),
         bind_backend_execution_environment=True,
         generation_session_contract_ref=foundation.session_contract_ref,
-        gpu_process_binding=foundation.gpu_bindings[0],
-        reference_train_attempt_scope=reference_train_scope,
-        **reference_evaluation_kwargs,
-        require_existing=True,
+        **_session_genesis_execution_kwargs(
+            foundation,
+            genesis_identity_hash=identity_hash,
+        ),
+        require_existing=require_existing,
     )
-    _bind_unified_objective_family_mask(foundation, genesis=genesis)
-    return genesis
 
 
 def _bind_unified_objective_family_mask(
@@ -943,10 +990,10 @@ def _bind_unified_objective_family_mask(
         return
     evidence = genesis.initial_anchor_public_evidence()
     public_result = evidence.get("public_result") if isinstance(evidence, Mapping) else None
-    metrics = public_result.get("metrics") if isinstance(public_result, Mapping) else None
-    mask = metrics.get("objective_family_mask") if isinstance(metrics, Mapping) else None
-    if not isinstance(mask, Mapping):
-        raise ValueError("unified Stair Session Genesis lacks objective family mask")
+    mask = objective_family_mask_from_public_result(
+        suite=plugin.config.ordered_evaluation_suite,
+        public_result=public_result,
+    )
     plugin.bind_objective_family_mask(mask)
 
 
@@ -1040,6 +1087,7 @@ def _create_foundation(
 ) -> StairGenerationSessionFoundation:
     provider = StairClimbingCompositionProvider()
     values = dict(provider.cli_defaults())
+    values["cell_variant_id"] = config.cell_variant_id
     formal_final_plan: StairFinalConfirmationPlanV2 | None = None
     final_plan_path: Path | None = None
     if config.session_mode == FORMAL_GENERATION_SESSION_MODE:
@@ -1091,6 +1139,10 @@ def _create_foundation(
             output_dir=config.output_dir,
         ),
     )
+    if composition.resolved_cell_manifest is None:
+        raise ValueError("Stair generation requires a resolved cell manifest")
+    if composition.resolved_cell_manifest.cell_variant_id != config.cell_variant_id:
+        raise ValueError("Stair generation resolved a different robot row")
     if not isinstance(composition.runner, SubprocessRunner):
         raise TypeError("Stair generation requires the production SubprocessRunner")
     if composition.genesis_anchor_kind != "reference_program":
@@ -1126,8 +1178,40 @@ def _create_foundation(
     ):
         raise ValueError("Stair phased evaluation cost source drifted")
     if config.session_mode == DEVELOPMENT_GENERATION_VALIDATION_MODE:
-        cost: StairGenerationSessionCostContractLike = (
-            StairGenerationSessionCostContractV2(
+        if config.imports_reference_genesis:
+            if not scientific_cost_basis.reuses_reference_public_dev_receipt:
+                raise ValueError(
+                    "Stair imported reference requires unified phased evaluation"
+                )
+            cost: StairGenerationSessionCostContractLike = (
+                StairGenerationSessionCostContractV4(
+                    session_mode=DEVELOPMENT_GENERATION_VALIDATION_MODE,
+                    max_generations=3,
+                    scientific_cost_basis=scientific_cost_basis,
+                    retry_train_jobs=0,
+                    retry_eval_seed_units=(
+                        scientific_cost_basis.sealed_validation_seed_units_per_job
+                    ),
+                    successful_allocated_active_gpu_hours=(
+                        STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS
+                    ),
+                    retry_allocated_active_gpu_hours=(
+                        STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_ALLOCATED_ACTIVE_GPU_HOURS
+                    ),
+                    successful_output_bytes=(
+                        STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_OUTPUT_BYTES
+                    ),
+                    retry_output_bytes=(
+                        STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_OUTPUT_BYTES
+                    ),
+                    candidate_train_process_timeout_s=runner.timeout_s,
+                    termination_cleanup_margin_s=(
+                        3 * runner.termination_grace_s + 1
+                    ),
+                )
+            )
+        else:
+            cost = StairGenerationSessionCostContractV2(
                 session_mode=DEVELOPMENT_GENERATION_VALIDATION_MODE,
                 max_generations=3,
                 scientific_cost_basis=scientific_cost_basis,
@@ -1144,7 +1228,6 @@ def _create_foundation(
                 ),
                 retry_output_bytes=STAIR_GENERATION_VALIDATION_RETRY_OUTPUT_BYTES,
             )
-        )
         if (
             float(config.max_allocated_active_gpu_hours)
             != cost.max_allocated_active_gpu_hours
@@ -1155,23 +1238,52 @@ def _create_foundation(
                 "Stair bounded generation operator caps must exactly match the frozen physical cost contract"
             )
     elif config.session_mode == FORMAL_GENERATION_SESSION_MODE:
-        cost = StairGenerationSessionCostContractV3(
-            session_mode=FORMAL_GENERATION_SESSION_MODE,
-            max_generations=STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS,
-            scientific_cost_basis=scientific_cost_basis,
-            retry_train_jobs=STAIR_GENERATION_RETRY_TRAIN_JOBS,
-            retry_eval_seed_units=STAIR_GENERATION_RETRY_EVAL_SEED_UNITS,
-            successful_allocated_active_gpu_hours=(
-                STAIR_GENERATION_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS
-            ),
-            retry_allocated_active_gpu_hours=(
-                STAIR_GENERATION_FORMAL_RETRY_ALLOCATED_ACTIVE_GPU_HOURS
-            ),
-            successful_output_bytes=(
-                STAIR_GENERATION_FORMAL_SUCCESSFUL_OUTPUT_BYTES
-            ),
-            retry_output_bytes=STAIR_GENERATION_FORMAL_RETRY_OUTPUT_BYTES,
-        )
+        if config.imports_reference_genesis:
+            if not scientific_cost_basis.reuses_reference_public_dev_receipt:
+                raise ValueError(
+                    "Stair imported reference requires unified phased evaluation"
+                )
+            cost = StairGenerationSessionCostContractV5(
+                session_mode=FORMAL_GENERATION_SESSION_MODE,
+                max_generations=STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS,
+                scientific_cost_basis=scientific_cost_basis,
+                retry_train_jobs=0,
+                retry_eval_seed_units=(
+                    scientific_cost_basis.sealed_validation_seed_units_per_job
+                ),
+                successful_allocated_active_gpu_hours=(
+                    STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS
+                ),
+                retry_allocated_active_gpu_hours=(
+                    STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_ALLOCATED_ACTIVE_GPU_HOURS
+                ),
+                successful_output_bytes=(
+                    STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_OUTPUT_BYTES
+                ),
+                retry_output_bytes=(
+                    STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_OUTPUT_BYTES
+                ),
+                candidate_train_process_timeout_s=runner.timeout_s,
+                termination_cleanup_margin_s=(3 * runner.termination_grace_s + 1),
+            )
+        else:
+            cost = StairGenerationSessionCostContractV3(
+                session_mode=FORMAL_GENERATION_SESSION_MODE,
+                max_generations=STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS,
+                scientific_cost_basis=scientific_cost_basis,
+                retry_train_jobs=STAIR_GENERATION_RETRY_TRAIN_JOBS,
+                retry_eval_seed_units=STAIR_GENERATION_RETRY_EVAL_SEED_UNITS,
+                successful_allocated_active_gpu_hours=(
+                    STAIR_GENERATION_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS
+                ),
+                retry_allocated_active_gpu_hours=(
+                    STAIR_GENERATION_FORMAL_RETRY_ALLOCATED_ACTIVE_GPU_HOURS
+                ),
+                successful_output_bytes=(
+                    STAIR_GENERATION_FORMAL_SUCCESSFUL_OUTPUT_BYTES
+                ),
+                retry_output_bytes=STAIR_GENERATION_FORMAL_RETRY_OUTPUT_BYTES,
+            )
         if (
             float(config.max_allocated_active_gpu_hours)
             != cost.max_allocated_active_gpu_hours
@@ -1191,6 +1303,13 @@ def _create_foundation(
             max_allocated_active_gpu_hours=(config.max_allocated_active_gpu_hours),
             max_simulated_control_steps=config.max_simulated_control_steps,
             max_output_bytes=config.max_output_bytes,
+        )
+    if (
+        isinstance(cost, StairGenerationSessionCostContractV2)
+        and cost.imports_reference_evidence != config.imports_reference_genesis
+    ):
+        raise ValueError(
+            "Stair session cost reference-import semantics differ from the launch"
         )
     if cost.physical_train_step_cap > config.max_simulated_control_steps:
         raise ValueError(
@@ -1287,7 +1406,7 @@ def _create_foundation(
             "resource_plan": generation_resource_plan_hash(
                 resource_assignments  # type: ignore[arg-type]
             ),
-            "retry_policy": canonical_json_hash(_retry_policy()),
+            "retry_policy": canonical_json_hash(_retry_policy(cost)),
             "selector": canonical_json_hash(phased_adapter.selection_contract()),
             "session_cost": cost.contract_hash,
         },
@@ -1915,7 +2034,7 @@ def _run_one_generation(
             invocation_segment_id=segment.segment_id,
             startup_observation=startup_resource_observation,
         )
-        usage, conservative_charges, open_reservations = _collect_actual_cost_usage(
+        usage, conservative_charges, open_reservations = collect_actual_cost_usage(
             foundation,
             genesis=genesis,
             ledger=ledger,
@@ -1949,7 +2068,7 @@ def _run_one_generation(
             try:
                 failed_ledger = load_ledger(ledger_path)
                 usage, conservative_charges, open_reservations = (
-                    _collect_actual_cost_usage(
+                    collect_actual_cost_usage(
                         foundation,
                         genesis=genesis,
                         ledger=failed_ledger,
@@ -2623,7 +2742,7 @@ def _run_bounded_generation_session(
             try:
                 failed_ledger = load_ledger(ledger_path)
                 usage, conservative_charges, open_reservations = (
-                    _collect_actual_cost_usage(
+                    collect_actual_cost_usage(
                         foundation,
                         genesis=genesis,
                         ledger=failed_ledger,
@@ -2888,6 +3007,14 @@ def _finalize_formal_generation_session(
         role="final",
         eval_plan=pair.final_plan,
     )
+    objective_family_mask = (
+        foundation.composition.task_plugin.objective_family_mask()
+    )
+    if (
+        foundation.composition.task_plugin.config.is_unified_protocol
+        and not isinstance(objective_family_mask, Mapping)
+    ):
+        raise ValueError("P6-D final confirmation lacks its frozen objective mask")
     result = build_stair_generation_final_confirmation_result(
         plan=plan,
         reservation=reservation,
@@ -2896,6 +3023,7 @@ def _finalize_formal_generation_session(
         final_execution=final_execution,
         genesis_summary=genesis_summary,
         final_summary=final_summary,
+        objective_family_mask=objective_family_mask,
     )
     result_path = stair_final_confirmation_result_path(
         foundation.config.output_dir
@@ -2906,6 +3034,7 @@ def _finalize_formal_generation_session(
             plan=plan,
             reservation=reservation,
             config=foundation.composition.task_plugin.config,
+            objective_family_mask=objective_family_mask,
         )
         if stored_result != result:
             raise ValueError("P6-D final confirmation Result differs from replay")
@@ -2916,6 +3045,7 @@ def _finalize_formal_generation_session(
             plan=plan,
             reservation=reservation,
             config=foundation.composition.task_plugin.config,
+            objective_family_mask=objective_family_mask,
         )
 
     ledger_checksum_after_result = file_sha256(ledger_path)
@@ -2952,7 +3082,7 @@ def _finalize_formal_generation_session(
         result=result,
         resource_evidence=final_resource_evidence,
     )
-    current_usage, _, current_open_reservations = _collect_actual_cost_usage(
+    current_usage, _, current_open_reservations = collect_actual_cost_usage(
         foundation,
         genesis=genesis,
         ledger=ledger,
@@ -3121,7 +3251,7 @@ def _bind_formal_final_eval_plan(
     if plan is None:
         raise ValueError("P6-D final eval plan is missing")
     checkpoint = target.execution_checkpoint()
-    subject_manifest_hash = require_sha256_digest(
+    require_sha256_digest(
         target.subject_manifest_hash,
         "P6-D final eval subject manifest hash",
     )
@@ -3149,42 +3279,28 @@ def _bind_formal_final_eval_plan(
         / "summary.json"
     ).resolve(strict=False)
     summary_path_text = summary_path.as_posix()
-    raw_argv = template.metadata.get("cli_argv")
-    if not isinstance(raw_argv, list) or not all(
-        isinstance(item, str) for item in raw_argv
-    ):
-        raise ValueError("P6-D final eval template lacks structured argv")
-    argv = list(raw_argv)
-    replacements = {
-        "--job-id": base_job_id,
-        "--round": base_job_id,
-        "--subject-kind": target.subject.kind,
-        "--subject-id": target.subject.subject_id,
-        "--subject-manifest-hash": subject_manifest_hash,
-        "--program-source-checksum": target.program_source_checksum,
-        "--training-binding-hash": target.training_binding_hash,
-        "--capability-profile-hash": target.capability_profile_hash,
-        "--checkpoint": str(local_checkpoint),
-        "--checkpoint-sha256": checkpoint.checksum,
-        "--seed-cohort-hash": binding.seed_cohort_hash,
-        "--evaluation-binding-hash": binding.binding_hash,
-        "--summary-path": summary_path_text,
-        "--device": gpu_binding.process_execution_device,
-        "--gpu-host-execution-device": gpu_binding.host_execution_device,
-        "--gpu-process-execution-device": gpu_binding.process_execution_device,
-        "--gpu-resource-binding-hash": gpu_binding.resource_binding_hash,
-    }
-    for option, value in replacements.items():
-        argv = _replace_formal_final_cli_option(argv, option, value)
-    if "--stair-eval-purpose" in argv:
+    if template.metadata.get("stair_eval_purpose") is not None:
         raise ValueError("P6-D final eval template already declares a purpose")
+    bound = foundation.composition.backend_adapter.rematerialize_eval_plan(
+        eval_plan=replace(
+            target,
+            job_id=base_job_id,
+            evaluation_binding=binding,
+            execution_device=gpu_binding.process_execution_device,
+            attempt_scope=None,
+            gpu_process_binding=gpu_binding,
+        ),
+        round_id=base_job_id,
+        summary_path=summary_path_text,
+    )
+    argv = list(bound.metadata["cli_argv"])
     argv.extend(
         [
             "--stair-eval-purpose",
             STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION,
         ]
     )
-    metadata = dict(template.metadata)
+    metadata = dict(bound.metadata)
     metadata.update(
         {
             "cli_argv": argv,
@@ -3193,28 +3309,7 @@ def _bind_formal_final_eval_plan(
             "stair_eval_purpose": STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION,
         }
     )
-    return replace(
-        target,
-        job_id=base_job_id,
-        evaluation_binding=binding,
-        execution_device=gpu_binding.process_execution_device,
-        metadata=metadata,
-        attempt_scope=None,
-        gpu_process_binding=gpu_binding,
-    )
-
-
-def _replace_formal_final_cli_option(
-    argv: list[str],
-    option: str,
-    value: str,
-) -> list[str]:
-    positions = [index for index, item in enumerate(argv) if item == option]
-    if len(positions) != 1 or positions[0] + 1 >= len(argv):
-        raise ValueError(f"P6-D final eval requires exactly one {option}")
-    updated = list(argv)
-    updated[positions[0] + 1] = value
-    return updated
+    return replace(bound, metadata=metadata)
 
 
 def _load_formal_source_checkout_identity(
@@ -3244,6 +3339,78 @@ def _load_formal_source_checkout_identity(
     return payload
 
 
+def _formal_resume_generation_source(
+    config: StairGenerationPilotConfig, executable_commit: str,
+) -> str:
+    """A closed session may use a repaired finalizer, never new generation code."""
+    source = load_strict_json_object(
+        config.output_dir / STAIR_GENERATION_SOURCE_CHECKOUT_FILENAME,
+        context="P6-D original generation source",
+    )
+    original_commit = source.get("source_commit")
+    if original_commit == executable_commit:
+        return executable_commit
+    # Reuse the launch gate's full lifecycle/cost/ledger inspection. A partial
+    # generation or a continuable segment cannot cross the source boundary.
+    from .launch_readiness import (
+        STAIR_FORMAL_LAUNCH_SUBJECT_TERMINAL_AUDIT_ONLY,
+        STAIR_FORMAL_LAUNCH_SUBJECT_TERMINAL_FINALIZATION,
+        _inspect_v3_launch_subject_values,
+    )
+    subject = _inspect_v3_launch_subject_values(
+        formal_output_dir=config.output_dir,
+        source_root=config.project_root,
+        session_id=config.session_id,
+        expected_source_commit=executable_commit,
+        subject_mode=(
+            STAIR_FORMAL_LAUNCH_SUBJECT_TERMINAL_AUDIT_ONLY
+            if config.terminal_audit_only
+            else STAIR_FORMAL_LAUNCH_SUBJECT_TERMINAL_FINALIZATION
+        ),
+    )
+    return subject["source_identity"]["source_commit"]
+
+
+def _formal_final_execution_source(
+    foundation: StairGenerationSessionFoundation, *, publish: bool = False,
+) -> Mapping[str, Any]:
+    """Bind the finalizer separately without rewriting generation provenance."""
+    generation_source = _load_formal_source_checkout_identity(foundation)
+    path = (
+        foundation.config.output_dir / STAIR_FINAL_CONFIRMATION_DIRNAME
+        / _FINAL_SOURCE_CHECKOUT_FILENAME
+    )
+    executable_commit = foundation.config.expected_source_commit
+    body = {
+        "schema_version": _FINAL_SOURCE_CHECKOUT_SCHEMA,
+        "source_commit": executable_commit,
+        "generation_source_checkout_hash": generation_source["source_checkout_hash"],
+    }
+    if path.is_file():
+        stored = _load_completed_stair_canonical_json(
+            path, context="P6-D finalizer source checkout",
+        )
+        stored_body = {key: stored.get(key) for key in body}
+        if (
+            set(stored) != {*body, "source_checkout_hash"}
+            or stored_body["schema_version"] != _FINAL_SOURCE_CHECKOUT_SCHEMA
+            or _SOURCE_COMMIT.fullmatch(str(stored_body["source_commit"])) is None
+            or stored_body["generation_source_checkout_hash"]
+            != generation_source["source_checkout_hash"]
+            or stored["source_checkout_hash"] != canonical_json_hash(stored_body)
+            or (publish and stored_body != body)
+        ):
+            raise ValueError("P6-D finalizer source checkout mismatch")
+        return stored
+    if not publish or executable_commit == foundation.source_commit:
+        return generation_source
+    if stair_final_confirmation_reservation_path(foundation.config.output_dir).exists():
+        raise ValueError("P6-D finalizer source cannot change after reservation")
+    payload = {**body, "source_checkout_hash": canonical_json_hash(body)}
+    create_once_bytes(path, canonical_json_bytes(payload, trailing_newline=True))
+    return payload
+
+
 def _create_or_load_formal_final_reservation(
     foundation: StairGenerationSessionFoundation,
     *,
@@ -3253,7 +3420,7 @@ def _create_or_load_formal_final_reservation(
     terminal: GenerationTerminalBinding,
     ledger_checksum: str,
 ) -> StairFinalConfirmationReservationV2:
-    source = _load_formal_source_checkout_identity(foundation)
+    source = _formal_final_execution_source(foundation, publish=True)
     reservation = _build_formal_final_reservation(
         foundation,
         genesis=genesis,
@@ -3378,7 +3545,7 @@ def _validate_formal_final_reservation_against_terminal_replay(
     ledger_checksum = file_sha256(foundation.config.output_dir / "ledger.jsonl")
     if ledger_checksum is None:
         raise ValueError("P6-D terminal audit ledger checksum is unavailable")
-    source = _load_formal_source_checkout_identity(foundation)
+    source = _formal_final_execution_source(foundation)
     replayed = _build_formal_final_reservation(
         foundation,
         genesis=genesis,
@@ -3599,7 +3766,7 @@ def _build_formal_report(
         != generation_cost_receipt.payload_hash
     ):
         raise ValueError("P6-D report final cost chain binding mismatch")
-    usage, charges, open_reservations = _collect_actual_cost_usage(
+    usage, charges, open_reservations = collect_actual_cost_usage(
         foundation,
         genesis=genesis,
         ledger=ledger,
@@ -3715,12 +3882,10 @@ def _build_formal_report(
             and lifecycle.cost_chain_head_hash
             == generation_cost_receipt.payload_hash
         ),
-        "normal_segment_topology_is_3_6_9_12_15": (
-            topology["normal_closed_generation_boundaries"]
-            == [
-                *STAIR_FORMAL_GENERATION_PAUSE_BOUNDARIES,
-                STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS,
-            ]
+        "normal_segment_topology_uses_precommitted_boundaries_and_ends_at_15": (
+            _formal_normal_closed_generation_boundaries_are_valid(
+                topology["normal_closed_generation_boundaries"]
+            )
         ),
         "final_plan_reservation_result_are_single_bound_chain": (
             reservation.plan_hash == plan.plan_hash
@@ -3757,11 +3922,27 @@ def _build_formal_report(
             == 0
             and resource_evidence.get("lease_reacquire", {}).get("passed") is True
         ),
+        "imported_reference_has_zero_local_genesis_workload": (
+            _imported_reference_has_zero_local_genesis_workload(
+                genesis,
+                post_genesis.payload["actual"],
+            )
+        ),
     }
     if not all(checks.values()):
         failed = sorted(name for name, passed in checks.items() if not passed)
         raise ValueError("P6-D formal report checks failed: " + ", ".join(failed))
     provider = _provider_actuals(foundation, ledger=ledger)
+    final_exploration = _generation_exploration_for_ledger(
+        foundation,
+        genesis=genesis,
+        ledger=ledger,
+    )
+    selector_metrics = _validation_selector_reversal_metrics(
+        foundation,
+        ledger=ledger,
+        final_exploration=final_exploration,
+    )
     return {
         "schema_version": STAIR_GENERATION_FORMAL_REPORT_SCHEMA_VERSION,
         "created_at_utc": created_at_utc,
@@ -3769,6 +3950,9 @@ def _build_formal_report(
         "session_mode": FORMAL_GENERATION_SESSION_MODE,
         "source_commit": foundation.source_commit,
         "session_genesis_hash": genesis.session_genesis_hash,
+        "reference_genesis_import_ref": _reference_genesis_import_projection(
+            genesis
+        ),
         "generation_session_contract_hash": foundation.session_contract.contract_hash,
         "generation_cost_contract_hash": foundation.cost_contract.contract_hash,
         "ledger_checksum": ledger_checksum,
@@ -3808,6 +3992,7 @@ def _build_formal_report(
             foundation,
             genesis=genesis,
             ledger=ledger,
+            selector_metrics=selector_metrics,
         ),
         "authoring": _validation_authoring_metrics(foundation),
         "final_confirmation": {
@@ -3816,6 +4001,12 @@ def _build_formal_report(
             "result": result.to_dict(),
             "result_checksum": result_checksum,
             "diagnostic_only": True,
+            **(
+                {"execution_source": dict(_formal_final_execution_source(foundation))}
+                if (foundation.config.output_dir / STAIR_FINAL_CONFIRMATION_DIRNAME
+                    / _FINAL_SOURCE_CHECKOUT_FILENAME).is_file()
+                else {}
+            ),
         },
         "resource_evidence": dict(resource_evidence),
         "resource_evidence_hash": canonical_json_hash(resource_evidence),
@@ -3895,6 +4086,24 @@ def _formal_lifecycle_topology(
         "normal_segment_count": len(normal_boundaries),
         "recovery_or_failure_segment_count": len(segments) - len(normal_boundaries),
     }
+
+
+def _formal_normal_closed_generation_boundaries_are_valid(
+    boundaries: Sequence[Any],
+) -> bool:
+    """Accept any explicitly requested formal pauses plus the terminal boundary."""
+
+    normalized = list(boundaries)
+    allowed = {
+        *STAIR_FORMAL_GENERATION_PAUSE_BOUNDARIES,
+        STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS,
+    }
+    return (
+        bool(normalized)
+        and normalized[-1] == STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS
+        and normalized == sorted(set(normalized))
+        and set(normalized).issubset(allowed)
+    )
 
 
 def _validate_formal_final_result_receipts(
@@ -4150,11 +4359,20 @@ class _StairOperationAllocationState:
 def _strict_operation_reserves_by_class(
     cost_contract: StairGenerationSessionCostContractV2,
 ) -> dict[str, StairGenerationOperationCostReserve]:
-    frozen = (
-        stair_formal_generation_operation_cost_reserves()
-        if isinstance(cost_contract, StairGenerationSessionCostContractV3)
-        else stair_generation_operation_cost_reserves()
-    )
+    if cost_contract.imports_reference_evidence:
+        timeout_envelope = cost_contract.imported_reference_timeout_envelope
+        if timeout_envelope is None:
+            raise ValueError("imported-reference timeout envelope is missing")
+        process_timeout_s, cleanup_margin_s = timeout_envelope
+        frozen = imported_reference_operation_cost_reserves(
+            candidate_train_process_timeout_s=process_timeout_s,
+            termination_cleanup_margin_s=cleanup_margin_s,
+            session_mode=cost_contract.session_mode,
+        )
+    elif isinstance(cost_contract, StairGenerationSessionCostContractV3):
+        frozen = stair_formal_generation_operation_cost_reserves()
+    else:
+        frozen = stair_generation_operation_cost_reserves()
     result = {item.operation_class: item for item in frozen}
     if len(result) != len(frozen):
         raise ValueError("strict operation reserve classes are duplicated")
@@ -4217,8 +4435,14 @@ def _strict_operation_slot(
         cost_contract.scientific_cost_basis.reuses_reference_public_dev_receipt
     )
     reserves = _strict_operation_reserves_by_class(cost_contract)
+    if cost_contract.imports_reference_evidence and isinstance(
+        scope, PreGenesisExecutionScope
+    ):
+        raise ValueError(
+            "Stair imported-reference session cannot execute pre-Genesis work"
+        )
     max_generations = cost_contract.max_generations
-    expected_retries = 0
+    allowed_retries = frozenset({0})
     retry_class: str | None = None
     if logical_job_id == f"{session_id}-train":
         if (
@@ -4231,7 +4455,7 @@ def _strict_operation_slot(
         success_slot = "reference_train"
         success_class = "reference_train"
         retry_class = "reference_train_retry"
-        expected_retries = 1
+        allowed_retries = frozenset({1})
     elif logical_job_id == f"{session_id}-eval":
         if (
             reuses_reference_public_dev
@@ -4306,7 +4530,7 @@ def _strict_operation_slot(
         success_slot = f"final-confirmation:{role}"
         success_class = "sealed_validation"
         retry_class = "sealed_validation_retry"
-        expected_retries = 1
+        allowed_retries = frozenset({0, 1})
     else:
         match = re.fullmatch(
             re.escape(session_id) + r"-generation-([0-9]{3})-lane-(a|b)-"
@@ -4333,21 +4557,33 @@ def _strict_operation_slot(
             success_slot = f"generation-{generation_index:03d}:{lane_id}:public_dev"
         elif operation_suffix == "eval-public-accept":
             expected_kind = "eval_phase"
-            success_class = f"lane_{lane_suffix}_public_accept"
-            success_slot = f"generation-{generation_index:03d}:{lane_id}:public_accept"
+            if "selected_public_accept" in reserves:
+                success_class = "selected_public_accept"
+                success_slot = (
+                    f"generation-{generation_index:03d}:selected:public_accept"
+                )
+            else:
+                success_class = f"lane_{lane_suffix}_public_accept"
+                success_slot = (
+                    f"generation-{generation_index:03d}:{lane_id}:public_accept"
+                )
         else:
             expected_kind = "eval_phase"
             success_class = "sealed_validation"
             success_slot = f"generation-{generation_index:03d}:sealed_validation"
             retry_class = "sealed_validation_retry"
-            expected_retries = 1
+            allowed_retries = frozenset({0, 1})
         if job_kind != expected_kind:
             raise ValueError("Stair bounded generation attempt job kind differs from its operation")
-    if scope.max_infrastructure_retries != expected_retries:
+    if scope.max_infrastructure_retries not in allowed_retries:
         raise ValueError("Stair bounded generation attempt retry authority differs from its operation")
     if attempt_index == 0:
         return success_slot, reserves[success_class]
-    if attempt_index == 1 and retry_class is not None:
+    if (
+        attempt_index == 1
+        and retry_class is not None
+        and scope.max_infrastructure_retries == 1
+    ):
         return retry_class, reserves[retry_class]
     raise ValueError("Stair bounded generation attempt index has no frozen operation allocation")
 
@@ -4435,36 +4671,46 @@ def _strict_success_operation_slots(
     cost_contract: StairGenerationSessionCostContractV2,
 ) -> dict[str, StairGenerationOperationCostReserve]:
     reserves = _strict_operation_reserves_by_class(cost_contract)
-    slots = {
-        "reference_train": reserves["reference_train"],
-    }
+    slots: dict[str, StairGenerationOperationCostReserve] = {}
     reuses_reference_public_dev = (
         cost_contract.scientific_cost_basis.reuses_reference_public_dev_receipt
     )
-    if reuses_reference_public_dev:
-        slots.update(
-            {
-                f"reference_qualification:{phase.value}": reserve
-                for phase, reserve in _reference_qualification_phase_reserves(
-                    cost_contract
-                ).items()
-            }
-        )
-    else:
-        slots["reference_qualification"] = reserves["reference_qualification"]
-        slots["parent_public_dev"] = reserves["parent_public_dev"]
+    if not cost_contract.imports_reference_evidence:
+        slots["reference_train"] = reserves["reference_train"]
+        if reuses_reference_public_dev:
+            slots.update(
+                {
+                    f"reference_qualification:{phase.value}": reserve
+                    for phase, reserve in _reference_qualification_phase_reserves(
+                        cost_contract
+                    ).items()
+                }
+            )
+        else:
+            slots["reference_qualification"] = reserves[
+                "reference_qualification"
+            ]
+            slots["parent_public_dev"] = reserves["parent_public_dev"]
     max_generations = cost_contract.max_generations
+    selected_public_accept = "selected_public_accept" in reserves
     for generation_index in range(1, max_generations + 1):
         for lane_suffix in ("a", "b"):
             lane_id = f"lane-{lane_suffix}"
             for suffix, operation_class in (
                 ("train", f"lane_{lane_suffix}_train"),
                 ("public_dev", f"lane_{lane_suffix}_public_dev"),
-                ("public_accept", f"lane_{lane_suffix}_public_accept"),
             ):
                 slots[f"generation-{generation_index:03d}:{lane_id}:{suffix}"] = (
                     reserves[operation_class]
                 )
+            if not selected_public_accept:
+                slots[
+                    f"generation-{generation_index:03d}:{lane_id}:public_accept"
+                ] = reserves[f"lane_{lane_suffix}_public_accept"]
+        if selected_public_accept:
+            slots[
+                f"generation-{generation_index:03d}:selected:public_accept"
+            ] = reserves["selected_public_accept"]
         slots[f"generation-{generation_index:03d}:sealed_validation"] = reserves[
             "sealed_validation"
         ]
@@ -4527,7 +4773,8 @@ def _strict_retry_is_still_possible(
         for slot in slots
     )
     retryable_active_slot_exists = any(
-        slot.endswith(":sealed_validation")
+        slot in slots
+        and slots[slot].operation_class == "sealed_validation"
         and (
             result is None
             or (
@@ -4568,7 +4815,12 @@ def _strict_remaining_operation_reserves(
             continue
         remaining.append(reserve)
     reserves = _strict_operation_reserves_by_class(cost_contract)
-    for retry_class in ("reference_train_retry", "sealed_validation_retry"):
+    retry_classes = tuple(
+        operation_class
+        for operation_class, reserve in reserves.items()
+        if reserve.budget_class == "retry_reserve"
+    )
+    for retry_class in retry_classes:
         if _strict_retry_is_still_possible(
             operation_class=retry_class,
             closed_generation_count=closed_generation_count,
@@ -4632,6 +4884,17 @@ class _StairOperationAdmission:
             or self.termination_grace_s <= 0
         ):
             raise ValueError("Stair bounded generation operation termination grace must be positive")
+        if self.cost_contract.imports_reference_evidence:
+            timeout_envelope = (
+                self.cost_contract.imported_reference_timeout_envelope
+            )
+            if timeout_envelope is None:
+                raise ValueError("imported-reference timeout envelope is missing")
+            _, cleanup_margin_s = timeout_envelope
+            if cleanup_margin_s != 3 * self.termination_grace_s + 1:
+                raise ValueError(
+                    "Stair imported-reference cleanup margin differs from the runner"
+                )
 
     def __call__(
         self,
@@ -4639,7 +4902,7 @@ class _StairOperationAdmission:
         logical_job_id: str,
         job_kind: str,
         attempt_index: int,
-    ) -> int:
+    ) -> int | None:
         if (
             scope.budget_contract_hash != self.cost_contract.contract_hash
             or scope.session_contract_hash != self.session_contract_hash
@@ -4687,6 +4950,8 @@ class _StairOperationAdmission:
         # and one proving process-group quiescence.  Keep those windows plus
         # one second inside this operation's frozen one-GPU wall-time slot.
         cleanup_margin_s = 3 * max(self.termination_grace_s, 1) + 1
+        if self.cost_contract.imports_reference_evidence and job_kind == "train":
+            return None
         slot_wall_time_s = (
             reserve.allocated_gpu_capacity_ns_per_attempt // 1_000_000_000
         )
@@ -4708,7 +4973,7 @@ def _assert_generation_admission(
     if generation_index != len(ledger) + 1:
         raise ValueError("Stair bounded generation admission generation index is not contiguous")
     generation_id = f"{foundation.config.session_id}-generation-{generation_index:03d}"
-    usage, _, _ = _collect_actual_cost_usage(
+    usage, _, _ = collect_actual_cost_usage(
         foundation,
         genesis=genesis,
         ledger=ledger,
@@ -5225,6 +5490,45 @@ def _session_genesis_attempt_scope(**kwargs: Any) -> PreGenesisExecutionScope:
     )
 
 
+def _session_genesis_execution_kwargs(
+    foundation: StairGenerationSessionFoundation,
+    *,
+    genesis_identity_hash: str,
+) -> dict[str, Any]:
+    """Bind either fresh reference work or one verified direct import."""
+
+    config = foundation.config
+    if config.imports_reference_genesis:
+        assert config.source_reference_genesis_dir is not None
+        assert config.source_reference_session_id is not None
+        return {
+            "source_reference_genesis_dir": config.source_reference_genesis_dir,
+            "source_reference_session_id": config.source_reference_session_id,
+            "reference_phased_evaluation_adapter": foundation.phased_adapter,
+        }
+    reference_train_scope = _session_genesis_attempt_scope(
+        journal_root=config.output_dir / "job_attempts",
+        session_id=config.session_id,
+        genesis_identity_hash=genesis_identity_hash,
+        session_contract_hash=foundation.session_contract.contract_hash,
+        lane_id="lane-a",
+        invocation_segment_id="session-genesis",
+        budget_contract_hash=foundation.cost_contract.contract_hash,
+        resource_binding_hash=foundation.gpu_bindings[0].resource_binding_hash,
+        max_infrastructure_retries=(
+            STAIR_GENERATION_MAX_INFRASTRUCTURE_RETRIES_PER_ELIGIBLE_JOB
+        ),
+    )
+    return {
+        "gpu_process_binding": foundation.gpu_bindings[0],
+        "reference_train_attempt_scope": reference_train_scope,
+        **_session_genesis_reference_evaluation_kwargs(
+            foundation,
+            genesis_identity_hash=genesis_identity_hash,
+        ),
+    }
+
+
 def _session_genesis_reference_evaluation_kwargs(
     foundation: StairGenerationSessionFoundation,
     *,
@@ -5501,7 +5805,7 @@ def _settle_generation_cost(
     event_id: str,
     previous_cost_chain_head_hash: str,
 ) -> tuple[StairGenerationActualCostReceiptRef, tuple[Path, ...]]:
-    usage, conservative_charges, open_reservations = _collect_actual_cost_usage(
+    usage, conservative_charges, open_reservations = collect_actual_cost_usage(
         foundation,
         genesis=genesis,
         ledger=ledger,
@@ -5566,7 +5870,7 @@ def _current_validation_boundary_cost_receipt(
     if not chain:
         raise ValueError("Stair bounded generation boundary has no actual-cost chain")
     latest = chain[-1]
-    usage, conservative_charges, open_reservations = _collect_actual_cost_usage(
+    usage, conservative_charges, open_reservations = collect_actual_cost_usage(
         foundation,
         genesis=genesis,
         ledger=ledger,
@@ -5647,7 +5951,7 @@ def _publish_or_load_parent_bootstrap_cost_boundary(
         raise ValueError(
             "Stair bounded generation closed generation prefix lacks its parent-bootstrap cost boundary"
         )
-    usage, conservative_charges, open_reservations = _collect_actual_cost_usage(
+    usage, conservative_charges, open_reservations = collect_actual_cost_usage(
         foundation,
         genesis=genesis,
         ledger=[],
@@ -5666,12 +5970,14 @@ def _publish_or_load_parent_bootstrap_cost_boundary(
     return receipt
 
 
-def _collect_actual_cost_usage(
+def collect_actual_cost_usage(
     foundation: StairGenerationSessionFoundation,
     *,
     genesis: VerifiedSessionGenesis | None,
     ledger: list[dict[str, Any]],
 ) -> tuple[StairGenerationActualCostUsage, tuple[str, ...], tuple[Path, ...]]:
+    """Recompute actual cost usage from authoritative session artifacts without mutation."""
+
     provider = _provider_actuals(foundation, ledger=ledger)
     scientific_cost = foundation.cost_contract.scientific_cost_basis
     if genesis is None:
@@ -6267,6 +6573,78 @@ def _validated_job_cost_artifacts(
     train_steps: dict[str, int] = {}
     eval_costs: dict[str, tuple[int, int]] = {}
     evidence: list[dict[str, Any]] = []
+    if genesis.reference_genesis_import_ref is None:
+        _append_local_reference_job_cost_artifacts(
+            foundation,
+            genesis=genesis,
+            train_steps=train_steps,
+            eval_costs=eval_costs,
+            evidence=evidence,
+        )
+    elif genesis.reference_eval_artifact_path() is None:
+        raise ValueError("imported reference Genesis has no verified private artifact")
+    for root in (
+        foundation.config.output_dir / "parent_public_dev_receipts",
+        foundation.config.output_dir / "trial_receipts",
+        foundation.config.output_dir
+        / STAIR_FINAL_CONFIRMATION_DIRNAME
+        / "phase_receipts",
+    ):
+        if not root.exists():
+            continue
+        if root.is_symlink() or not root.is_dir():
+            raise ValueError("trial receipt root is invalid")
+        for path in sorted(root.rglob("train.json")):
+            ref = _trial_receipt_ref(path, kind="train")
+            loaded = load_trial_train_receipt(ref)
+            _insert_unique_cost(
+                train_steps,
+                loaded.result.job_id,
+                _train_planned_steps(
+                    loaded.result.summary,
+                    expected_steps=(
+                        foundation.cost_contract.scientific_cost_basis.train_steps_per_job
+                    ),
+                ),
+            )
+            evidence.append(
+                _job_cost_evidence_projection(
+                    foundation,
+                    path=path,
+                    kind="trial-train-receipt",
+                    job_identity={"job_id": loaded.result.job_id},
+                )
+            )
+        for path in sorted(root.rglob("eval_phases/*.json")):
+            ref = _trial_receipt_ref(path, kind="eval_phase")
+            loaded = load_trial_eval_phase_receipt(ref)
+            _insert_unique_cost(
+                eval_costs,
+                loaded.result.job_id,
+                _execution_cost_totals(loaded.result.execution_cost),
+            )
+            evidence.append(
+                _job_cost_evidence_projection(
+                    foundation,
+                    path=path,
+                    kind="trial-eval-phase-receipt",
+                    job_identity={"job_id": loaded.result.job_id},
+                )
+            )
+    evidence.sort(key=lambda item: (item["relative_path"], item["kind"]))
+    return train_steps, eval_costs, canonical_json_hash(evidence)
+
+
+def _append_local_reference_job_cost_artifacts(
+    foundation: StairGenerationSessionFoundation,
+    *,
+    genesis: VerifiedSessionGenesis,
+    train_steps: dict[str, int],
+    eval_costs: dict[str, tuple[int, int]],
+    evidence: list[dict[str, Any]],
+) -> None:
+    """Count only reference work executed inside this session output."""
+
     private_path = foundation.config.output_dir / REFERENCE_EVAL_ARTIFACT_FILENAME
     private = load_strict_json_object(
         private_path,
@@ -6327,103 +6705,53 @@ def _validated_job_cost_artifacts(
                 job_identity={"job_id": eval_plan.job_id},
             )
         )
-    else:
-        if not isinstance(reference_assembly, Mapping):
-            raise TypeError("reference evaluation assembly is invalid")
-        raw_receipts = reference_assembly.get("phase_receipts")
-        if not isinstance(raw_receipts, list) or len(raw_receipts) != len(
-            EvaluationPhase
-        ):
-            raise ValueError("reference evaluation phase receipts are incomplete")
-        expected_plan_hash = canonical_json_hash(eval_plan.to_public_dict())
-        observed_phases: set[EvaluationPhase] = set()
-        for raw_binding in raw_receipts:
-            if not isinstance(raw_binding, Mapping):
-                raise TypeError("reference evaluation phase receipt is invalid")
-            phase = EvaluationPhase.parse(raw_binding.get("phase"))
-            if phase in observed_phases:
-                raise ValueError("reference evaluation phase receipt is duplicated")
-            observed_phases.add(phase)
-            ref = TrialReceiptRef(
-                kind="eval_phase",
-                path=str(raw_binding.get("path")),
-                checksum=str(raw_binding.get("checksum")),
-                size_bytes=raw_binding.get("size_bytes"),
-                schema_version=str(raw_binding.get("ref_schema_version")),
-            )
-            loaded = load_trial_eval_phase_receipt(ref)
-            result = loaded.result
-            if (
-                result.phase is not phase
-                or result.job_id != raw_binding.get("job_id")
-                or result.evaluation_plan_hash != expected_plan_hash
-            ):
-                raise ValueError("reference evaluation phase receipt identity mismatch")
-            _insert_unique_cost(
-                eval_costs,
-                result.job_id,
-                _execution_cost_totals(result.execution_cost),
-            )
-            evidence.append(
-                _job_cost_evidence_projection(
-                    foundation,
-                    path=Path(ref.path),
-                    kind="reference-eval-phase-receipt",
-                    job_identity={"job_id": result.job_id},
-                )
-            )
-        if observed_phases != set(EvaluationPhase):
-            raise ValueError("reference evaluation phase receipts are incomplete")
-    for root in (
-        foundation.config.output_dir / "parent_public_dev_receipts",
-        foundation.config.output_dir / "trial_receipts",
-        foundation.config.output_dir
-        / STAIR_FINAL_CONFIRMATION_DIRNAME
-        / "phase_receipts",
+        return
+    if not isinstance(reference_assembly, Mapping):
+        raise TypeError("reference evaluation assembly is invalid")
+    raw_receipts = reference_assembly.get("phase_receipts")
+    if not isinstance(raw_receipts, list) or len(raw_receipts) != len(
+        EvaluationPhase
     ):
-        if not root.exists():
-            continue
-        if root.is_symlink() or not root.is_dir():
-            raise ValueError("trial receipt root is invalid")
-        for path in sorted(root.rglob("train.json")):
-            ref = _trial_receipt_ref(path, kind="train")
-            loaded = load_trial_train_receipt(ref)
-            _insert_unique_cost(
-                train_steps,
-                loaded.result.job_id,
-                _train_planned_steps(
-                    loaded.result.summary,
-                    expected_steps=(
-                        foundation.cost_contract.scientific_cost_basis.train_steps_per_job
-                    ),
-                ),
+        raise ValueError("reference evaluation phase receipts are incomplete")
+    expected_plan_hash = canonical_json_hash(eval_plan.to_public_dict())
+    observed_phases: set[EvaluationPhase] = set()
+    for raw_binding in raw_receipts:
+        if not isinstance(raw_binding, Mapping):
+            raise TypeError("reference evaluation phase receipt is invalid")
+        phase = EvaluationPhase.parse(raw_binding.get("phase"))
+        if phase in observed_phases:
+            raise ValueError("reference evaluation phase receipt is duplicated")
+        observed_phases.add(phase)
+        ref = TrialReceiptRef(
+            kind="eval_phase",
+            path=str(raw_binding.get("path")),
+            checksum=str(raw_binding.get("checksum")),
+            size_bytes=raw_binding.get("size_bytes"),
+            schema_version=str(raw_binding.get("ref_schema_version")),
+        )
+        loaded = load_trial_eval_phase_receipt(ref)
+        result = loaded.result
+        if (
+            result.phase is not phase
+            or result.job_id != raw_binding.get("job_id")
+            or result.evaluation_plan_hash != expected_plan_hash
+        ):
+            raise ValueError("reference evaluation phase receipt identity mismatch")
+        _insert_unique_cost(
+            eval_costs,
+            result.job_id,
+            _execution_cost_totals(result.execution_cost),
+        )
+        evidence.append(
+            _job_cost_evidence_projection(
+                foundation,
+                path=Path(ref.path),
+                kind="reference-eval-phase-receipt",
+                job_identity={"job_id": result.job_id},
             )
-            evidence.append(
-                _job_cost_evidence_projection(
-                    foundation,
-                    path=path,
-                    kind="trial-train-receipt",
-                    job_identity={"job_id": loaded.result.job_id},
-                )
-            )
-        for path in sorted(root.rglob("eval_phases/*.json")):
-            ref = _trial_receipt_ref(path, kind="eval_phase")
-            loaded = load_trial_eval_phase_receipt(ref)
-            _insert_unique_cost(
-                eval_costs,
-                loaded.result.job_id,
-                _execution_cost_totals(loaded.result.execution_cost),
-            )
-            evidence.append(
-                _job_cost_evidence_projection(
-                    foundation,
-                    path=path,
-                    kind="trial-eval-phase-receipt",
-                    job_identity={"job_id": loaded.result.job_id},
-                )
-            )
-    evidence.sort(key=lambda item: (item["relative_path"], item["kind"]))
-    return train_steps, eval_costs, canonical_json_hash(evidence)
+        )
+    if observed_phases != set(EvaluationPhase):
+        raise ValueError("reference evaluation phase receipts are incomplete")
 
 
 def _job_cost_evidence_projection(
@@ -7141,23 +7469,44 @@ def _authoring_policy(
     }
 
 
-def _retry_policy() -> dict[str, Any]:
-    return {
-        "schema_version": "true_rl_agent.stair.generation_retry_policy.v1",
+def _retry_policy(
+    cost_contract: StairGenerationSessionCostContractLike,
+) -> dict[str, Any]:
+    reference_train_retries = (
+        STAIR_GENERATION_MAX_INFRASTRUCTURE_RETRIES_PER_ELIGIBLE_JOB
+        if cost_contract.retry_train_jobs > 0
+        else 0
+    )
+    common = {
         "logical_job_max_infrastructure_retries": (
             STAIR_GENERATION_MAX_INFRASTRUCTURE_RETRIES_PER_ELIGIBLE_JOB
         ),
-        "reference_train_retry_entitlement": (
-            STAIR_GENERATION_MAX_INFRASTRUCTURE_RETRIES_PER_ELIGIBLE_JOB
-        ),
+        "reference_train_retry_entitlement": reference_train_retries,
         "reference_eval_retry_entitlement": 0,
         "parent_and_public_phase_retry_entitlement": 0,
+        "retry_train_job_reserve": cost_contract.retry_train_jobs,
+        "retry_eval_seed_unit_reserve": cost_contract.retry_eval_seed_units,
+        "candidate_or_contract_failure_retryable": False,
+    }
+    if isinstance(cost_contract, StairGenerationSessionCostContractV3):
+        return {
+            "schema_version": "true_rl_agent.stair.generation_retry_policy.v2",
+            **common,
+            "session_wide_sealed_validation_retry_entitlement": (
+                STAIR_GENERATION_MAX_INFRASTRUCTURE_RETRIES_PER_ELIGIBLE_JOB
+            ),
+            "eligible_sealed_validation_roles": [
+                "generation_winner",
+                "final_confirmation_genesis",
+                "final_confirmation_final",
+            ],
+        }
+    return {
+        "schema_version": "true_rl_agent.stair.generation_retry_policy.v1",
+        **common,
         "winner_sealed_validation_retry_entitlement": (
             STAIR_GENERATION_MAX_INFRASTRUCTURE_RETRIES_PER_ELIGIBLE_JOB
         ),
-        "retry_train_job_reserve": STAIR_GENERATION_RETRY_TRAIN_JOBS,
-        "retry_eval_seed_unit_reserve": (STAIR_GENERATION_RETRY_EVAL_SEED_UNITS),
-        "candidate_or_contract_failure_retryable": False,
     }
 
 
@@ -7207,6 +7556,82 @@ def _validation_workload_delta(
     return workload_delta
 
 
+_IMPORTED_REFERENCE_ZERO_LOCAL_WORKLOAD_FIELDS = (
+    "job_attempts",
+    "train_jobs",
+    "train_steps",
+    "eval_seed_units",
+    "simulated_control_steps",
+    "resource_lease_wall_duration_ns",
+)
+
+
+def _reference_genesis_import_projection(
+    genesis: VerifiedSessionGenesis,
+) -> dict[str, Any] | None:
+    ref = genesis.reference_genesis_import_ref
+    return ref.to_dict() if ref is not None else None
+
+
+def _imported_reference_has_zero_local_genesis_workload(
+    genesis: VerifiedSessionGenesis,
+    actual: Mapping[str, Any],
+) -> bool:
+    if genesis.reference_genesis_import_ref is None:
+        return True
+    return all(
+        actual.get(field_name) == 0
+        for field_name in _IMPORTED_REFERENCE_ZERO_LOCAL_WORKLOAD_FIELDS
+    )
+
+
+def _reference_genesis_report_binding_is_valid(
+    foundation: StairGenerationSessionFoundation,
+    *,
+    genesis: VerifiedSessionGenesis,
+) -> bool:
+    if genesis.artifact.genesis_kind != "reference_program":
+        return False
+    eval_plan = genesis.reference_eval_plan()
+    if eval_plan is None:
+        return False
+    if genesis.reference_genesis_import_ref is not None:
+        return genesis.reference_eval_artifact_path() is not None
+    return eval_plan.gpu_process_binding == foundation.gpu_bindings[0]
+
+
+def _selected_generation_lane_id(record: Mapping[str, Any]) -> str | None:
+    """Resolve the selected lane from the formal projection or trial identity."""
+
+    formal = record.get("formal")
+    if isinstance(formal, Mapping):
+        lane_id = formal.get("selected_lane_id")
+        if lane_id in GENERATION_LANE_IDS:
+            return str(lane_id)
+        if lane_id is not None:
+            raise ValueError("Stair generation formal selected lane is invalid")
+    selection = record.get("selection")
+    if not isinstance(selection, Mapping):
+        return None
+    selected_trial_id = selection.get("selected_trial_id")
+    if selected_trial_id is None:
+        return None
+    trials = record.get("trials")
+    matches = (
+        [
+            trial.get("lane_id")
+            for trial in trials
+            if isinstance(trial, Mapping)
+            and trial.get("trial_id") == selected_trial_id
+        ]
+        if isinstance(trials, list)
+        else []
+    )
+    if len(matches) != 1 or matches[0] not in GENERATION_LANE_IDS:
+        raise ValueError("Stair generation selected trial has no unique lane")
+    return str(matches[0])
+
+
 def _build_validation_report(
     foundation: StairGenerationSessionFoundation,
     *,
@@ -7228,7 +7653,6 @@ def _build_validation_report(
         contract=foundation.cost_contract,
     )
     generation_details: list[dict[str, Any]] = []
-    prompt_payload_bytes = 0
     paired_ready_count = 0
     zero_train_count = 0
     post_genesis_cost = cost_journal.receipt_for_event("post-genesis")
@@ -7304,19 +7728,6 @@ def _build_validation_report(
             for trial in trials
         ):
             zero_train_count += 1
-        for artifact in artifacts:
-            if isinstance(artifact, Mapping) and artifact.get("kind") in {
-                "lane-a_prompt_payload",
-                "lane-b_prompt_payload",
-            }:
-                size_bytes = artifact.get("size_bytes")
-                if (
-                    isinstance(size_bytes, bool)
-                    or not isinstance(size_bytes, int)
-                    or size_bytes < 0
-                ):
-                    raise ValueError("Stair bounded generation prompt payload size is invalid")
-                prompt_payload_bytes += size_bytes
         generation_details.append(
             {
                 "generation_id": expected_id,
@@ -7324,11 +7735,7 @@ def _build_validation_report(
                 "generation_outcome": record["generation_outcome"],
                 "parent_current_best_hash": record["parent_current_best_hash"],
                 "resulting_current_best_hash": record["resulting_current_best_hash"],
-                "selected_lane_id": (
-                    record.get("selection", {}).get("selected_lane_id")
-                    if isinstance(record.get("selection"), Mapping)
-                    else None
-                ),
+                "selected_lane_id": _selected_generation_lane_id(record),
                 "generation_record_hash": canonical_json_hash(record),
                 "generation_execution_receipt": execution_ref.to_dict(),
                 "generation_closure": closure,
@@ -7420,6 +7827,12 @@ def _build_validation_report(
         "parent_gpu_environment_unchanged": not any(
             key in os.environ for key in _PARENT_GPU_REMAP_KEYS
         ),
+        "imported_reference_has_zero_local_genesis_workload": (
+            _imported_reference_has_zero_local_genesis_workload(
+                genesis,
+                post_genesis_cost.payload["actual"],
+            )
+        ),
     }
     if not all(checks.values()):
         failed = sorted(name for name, passed in checks.items() if not passed)
@@ -7444,8 +7857,8 @@ def _build_validation_report(
         "negative_equivalent_trained_repeat_is_zero": (
             exploration_metrics["negative_equivalent_trained_repeat_count"] == 0
         ),
-        "selector_material_reversal_absent": (
-            selector_metrics["blocking_reversal_count"] == 0
+        "public_accept_is_selected_lane_only": (
+            selector_metrics.get("routing_violation_count", 0) == 0
         ),
     }
     return {
@@ -7456,6 +7869,9 @@ def _build_validation_report(
         "source_commit": foundation.source_commit,
         "output_dir": str(foundation.config.output_dir.resolve()),
         "session_genesis_hash": genesis.session_genesis_hash,
+        "reference_genesis_import_ref": _reference_genesis_import_projection(
+            genesis
+        ),
         "generation_session_contract_hash": (foundation.session_contract.contract_hash),
         "session_cost_contract_hash": foundation.cost_contract.contract_hash,
         "provider_policy_hash": canonical_json_hash(foundation.provider_policy),
@@ -7485,7 +7901,12 @@ def _build_validation_report(
             "paired_ready_generation_count": paired_ready_count,
             "paired_ready_rate": paired_ready_count / len(generation_details),
             "zero_train_authoring_incomplete_generation_count": zero_train_count,
-            "immutable_prompt_payload_bytes": prompt_payload_bytes,
+            "immutable_prompt_payload_count": authoring_metrics[
+                "prompt_payloads"
+            ]["count"],
+            "immutable_prompt_payload_bytes": authoring_metrics[
+                "prompt_payloads"
+            ]["total_bytes"],
             "retry_train_jobs_consumed": retry_train_jobs,
             "retry_eval_seed_units_consumed": retry_eval_seed_units,
             "additional_eval_seed_units_vs_success_plan": max(
@@ -7784,6 +8205,8 @@ def _validation_authoring_metrics(
     measured_closed_authoring_wall_duration_ns = 0
     stopped_timing_attempt_count = 0
     incomplete_timing_attempt_count = 0
+    prompt_payload_count = 0
+    prompt_payload_bytes = 0
     for generation_index in range(1, foundation.session_contract.max_generations + 1):
         generation_id = (
             f"{foundation.config.session_id}-generation-{generation_index:03d}"
@@ -7828,6 +8251,10 @@ def _validation_authoring_metrics(
                 round_dir,
                 round_id=f"{generation_id}-{lane_id}",
             ).snapshot()
+            prompt_payload_count += len(snapshot.prompt_payload_refs)
+            prompt_payload_bytes += sum(
+                ref.size_bytes for ref in snapshot.prompt_payload_refs
+            )
             lane_had_sibling_block = False
             lane_repaired_after_block = False
             for attempt in snapshot.attempts:
@@ -7898,6 +8325,11 @@ def _validation_authoring_metrics(
             "stopped_attempt_count": stopped_timing_attempt_count,
             "incomplete_attempt_count": incomplete_timing_attempt_count,
             "generations": timing_by_generation,
+        },
+        "prompt_payloads": {
+            "source": "all_round_authoring_journal_attempts",
+            "count": prompt_payload_count,
+            "total_bytes": prompt_payload_bytes,
         },
     }
 
@@ -8008,124 +8440,56 @@ def _unified_validation_selector_reversal_metrics(
     *,
     ledger: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    """Audit the public-dev selector against runner-private public-accept receipts."""
+    """Verify that public-accept is routed only to a public-dev winner."""
 
-    config = foundation.composition.task_plugin.config
-    protocol = config.acceptance_protocol
-    mask = foundation.composition.task_plugin.objective_family_mask()
-    if mask is None:
-        raise ValueError(
-            "unified validation selector metrics lack Genesis objective family mask"
-        )
-    complete_pair_count = 0
-    reversals: list[dict[str, Any]] = []
+    _ = foundation
+    violations: list[dict[str, Any]] = []
+    selected_confirmation_count = 0
+    no_selection_count = 0
     for record in ledger:
         selection = record.get("selection")
         trials = record.get("trials")
         if not isinstance(selection, Mapping) or not isinstance(trials, list):
             continue
         selected_trial_id = selection.get("selected_trial_id")
-        if not isinstance(selected_trial_id, str):
-            continue
-        by_id = {
-            str(trial.get("trial_id")): trial
+        confirmed_trial_ids = [
+            str(trial.get("trial_id"))
             for trial in trials
             if isinstance(trial, Mapping)
-        }
-        winner = by_id.get(selected_trial_id)
-        losers = [trial for trial_id, trial in by_id.items() if trial_id != selected_trial_id]
-        if winner is None or len(losers) != 1:
-            continue
-        loser = losers[0]
-        if winner.get("public_accept") is None or loser.get("public_accept") is None:
-            continue
-        projections: dict[str, Mapping[str, Any]] = {}
-        for label, trial in (("winner", winner), ("loser", loser)):
-            loaded = load_bound_generation_trial_phase_receipt(
-                record,
-                trial_id=str(trial["trial_id"]),
-                phase=EvaluationPhase.PUBLIC_ACCEPT,
-            )
-            summary = canonical_stair_phase_result_summary(
-                config=config,
-                expected_phase=EvaluationPhase.PUBLIC_ACCEPT,
-                result=loaded.result,
-            )
-            projections[label] = build_unified_score_projection(
-                summary,
-                objective_family_mask=mask,
-            )
-        winner_projection = projections["winner"]
-        loser_projection = projections["loser"]
-        winner_objective = winner_projection["j_primary"]
-        loser_objective = loser_projection["j_primary"]
-        winner_score = float(winner_objective["score_stats"]["mean"])
-        loser_score = float(loser_objective["score_stats"]["mean"])
-        threshold = acceptance_threshold(
-            protocol,
-            candidate_score=loser_score,
-            best_score=winner_score,
-            candidate_score_samples=loser_objective["seed_macro_scores"],
-            best_score_samples=winner_objective["seed_macro_scores"],
-        )
-        loser_advantage = loser_score - winner_score
-        material_reversal = acceptance_delta_met(
-            protocol,
-            loser_advantage,
-            threshold.threshold,
-        )
-        guard_checks: dict[str, bool] = {}
-        for guard in protocol.named_guards:
-            winner_guard = winner_projection[guard.name]
-            loser_guard = loser_projection[guard.name]
-            guard_threshold = named_guard_regression_threshold(
-                protocol,
-                guard,
-                candidate_guard_score=float(
-                    loser_guard["score_stats"]["mean"]
-                ),
-                best_guard_score=float(winner_guard["score_stats"]["mean"]),
-                candidate_guard_score_samples=loser_guard["seed_macro_scores"],
-                best_guard_score_samples=winner_guard["seed_macro_scores"],
-            )
-            guard_checks[guard.name] = (
-                float(loser_guard["score_stats"]["mean"])
-                - float(winner_guard["score_stats"]["mean"])
-                >= -guard_threshold.threshold
-            )
-        complete_pair_count += 1
-        blocking = material_reversal and all(guard_checks.values())
-        if blocking:
-            reversals.append(
+            and trial.get("public_accept") is not None
+        ]
+        if selected_trial_id is None:
+            no_selection_count += 1
+            valid = not confirmed_trial_ids
+        else:
+            valid = confirmed_trial_ids in ([], [str(selected_trial_id)])
+            if confirmed_trial_ids == [str(selected_trial_id)]:
+                selected_confirmation_count += 1
+        if not valid:
+            violations.append(
                 {
                     "generation_index": record.get("generation_index"),
                     "selected_trial_id": selected_trial_id,
-                    "loser_trial_id": loser["trial_id"],
-                    "selected_public_accept_objective": winner_score,
-                    "loser_public_accept_objective": loser_score,
-                    "loser_advantage": loser_advantage,
-                    "materiality_threshold": threshold.threshold,
-                    "named_guard_checks": guard_checks,
+                    "public_accept_trial_ids": confirmed_trial_ids,
                 }
             )
-    consistent_count = complete_pair_count - len(reversals)
     return {
-        "comparison_source": "runner_private_public_accept_phase_receipts",
-        "complete_dual_public_generation_count": complete_pair_count,
-        "observed_reversal_count": len(reversals),
-        "blocking_reversal_count": (
-            len(reversals) if complete_pair_count >= 2 else 0
-        ),
+        "status": "pass" if not violations else "fail",
+        "comparison_source": "selected_lane_only_public_accept_routing",
+        "selected_confirmation_generation_count": selected_confirmation_count,
+        "no_selection_generation_count": no_selection_count,
+        "routing_violation_count": len(violations),
+        "complete_dual_public_generation_count": 0,
+        "observed_reversal_count": 0,
+        "blocking_reversal_count": 0,
         "public_dev_accept_consistency": {
-            "numerator": consistent_count,
-            "denominator": complete_pair_count,
-            "rate": (
-                consistent_count / complete_pair_count
-                if complete_pair_count
-                else None
-            ),
+            "status": "not_collected_by_design",
+            "numerator": 0,
+            "denominator": 0,
+            "rate": None,
         },
-        "reversals": reversals,
+        "reversals": [],
+        "routing_violations": violations,
     }
 
 
@@ -8149,16 +8513,22 @@ def _build_report(
     elif not isinstance(created_at_utc, str) or not created_at_utc:
         raise ValueError("Stair generation report timestamp is invalid")
     bindings = [binding.to_dict() for binding in foundation.gpu_bindings]
+    post_genesis_cost = StairGenerationActualCostJournal(
+        foundation.config.output_dir,
+        contract=foundation.cost_contract,
+    ).receipt_for_event("post-genesis")
+    if post_genesis_cost is None:
+        raise ValueError("Stair generation report has no post-Genesis cost boundary")
     checks = {
         "mode_is_development_generation_pilot": (
             foundation.session_contract.session_mode
             == DEVELOPMENT_GENERATION_PILOT_MODE
         ),
         "fresh_reference_genesis_bound": (
-            genesis.artifact.genesis_kind == "reference_program"
-            and genesis.reference_eval_plan() is not None
-            and genesis.reference_eval_plan().gpu_process_binding
-            == foundation.gpu_bindings[0]
+            _reference_genesis_report_binding_is_valid(
+                foundation,
+                genesis=genesis,
+            )
         ),
         "two_distinct_host_gpu_bindings": (
             bindings[0]["host_execution_device"] == "cuda:0"
@@ -8192,6 +8562,12 @@ def _build_report(
         "parent_gpu_environment_unchanged": not any(
             key in os.environ for key in _PARENT_GPU_REMAP_KEYS
         ),
+        "imported_reference_has_zero_local_genesis_workload": (
+            _imported_reference_has_zero_local_genesis_workload(
+                genesis,
+                post_genesis_cost.payload["actual"],
+            )
+        ),
     }
     if not all(checks.values()):
         raise ValueError("Stair generation session report checks failed")
@@ -8203,6 +8579,9 @@ def _build_report(
         "source_commit": foundation.source_commit,
         "output_dir": str(foundation.config.output_dir.resolve()),
         "session_genesis_hash": genesis.session_genesis_hash,
+        "reference_genesis_import_ref": _reference_genesis_import_projection(
+            genesis
+        ),
         "generation_session_contract_hash": (foundation.session_contract.contract_hash),
         "session_cost_contract_hash": foundation.cost_contract.contract_hash,
         "allocated_gpu_capacity_time_basis": (_ALLOCATED_GPU_CAPACITY_TIME_BASIS),
@@ -8290,7 +8669,7 @@ def _load_and_validate_existing_report(
         raise ValueError("Stair generation report has no actual-cost chain")
     cost_ref = chain[-1]
     current_usage, conservative_charges, open_reservations = (
-        _collect_actual_cost_usage(
+        collect_actual_cost_usage(
             foundation,
             genesis=genesis,
             ledger=ledger,
@@ -8358,7 +8737,7 @@ def _assert_validation_cost_receipt_is_current(
     )
     if combined_head != cost_ref.payload_hash:
         raise ValueError("Stair bounded generation terminal actual-cost chain head mismatch")
-    current_usage, conservative_charges, open_reservations = _collect_actual_cost_usage(
+    current_usage, conservative_charges, open_reservations = collect_actual_cost_usage(
         foundation,
         genesis=genesis,
         ledger=ledger,
@@ -8610,6 +8989,9 @@ def _load_and_validate_existing_formal_report(
         plan=plan,
         reservation=reservation,
         config=foundation.composition.task_plugin.config,
+        objective_family_mask=(
+            foundation.composition.task_plugin.objective_family_mask()
+        ),
     )
     generation_cost = _cost_receipt_by_hash(
         cost_journal,
@@ -8708,6 +9090,313 @@ def _verify_source_checkout(
     return checkout.head_commit
 
 
+def load_completed_stair_generation_session(
+    *,
+    output_dir: Path,
+    expected_session_id: str,
+    expected_cell_variant_id: str,
+    expected_source_commit: str,
+) -> CompletedStairGenerationSession:
+    """Replay one completed P6-C session without creating or publishing files.
+
+    This deliberately does not call the live/resume entrypoint or construct a
+    ``StairGenerationSessionFoundation``. It only loads already-published typed
+    contracts and replays their identity, lifecycle, receipt and cost chains.
+    The terminal report is returned only after identity checks; higher-level
+    acceptance, scoring and report-claim replay remain with the verifier.
+    """
+
+    if not isinstance(output_dir, Path):
+        raise TypeError("completed Stair generation output_dir must be a Path")
+    if not output_dir.is_absolute():
+        raise ValueError("completed Stair generation output_dir must be absolute")
+    if output_dir.is_symlink() or not output_dir.is_dir():
+        raise FileNotFoundError(
+            "completed Stair generation output_dir must be an existing regular directory"
+        )
+    resolved_output_dir = output_dir.resolve(strict=True)
+    if (
+        not isinstance(expected_session_id, str)
+        or not expected_session_id
+        or expected_session_id != expected_session_id.strip()
+    ):
+        raise ValueError("completed Stair generation expected_session_id is invalid")
+    if (
+        not isinstance(expected_cell_variant_id, str)
+        or not expected_cell_variant_id
+        or expected_cell_variant_id != expected_cell_variant_id.strip()
+    ):
+        raise ValueError(
+            "completed Stair generation expected_cell_variant_id is invalid"
+        )
+    if (
+        not isinstance(expected_source_commit, str)
+        or _SOURCE_COMMIT.fullmatch(expected_source_commit) is None
+    ):
+        raise ValueError("completed Stair generation expected source commit is invalid")
+
+    required_files = (
+        STAIR_GENERATION_SOURCE_CHECKOUT_FILENAME,
+        GENERATION_SESSION_CONTRACT_FILENAME,
+        STAIR_GENERATION_SESSION_COST_FILENAME,
+        GENERATION_CONTINUATION_POLICY_FILENAME,
+        RESOLVED_CELL_MANIFEST_FILENAME,
+        SESSION_GENESIS_FILENAME,
+        "ledger.jsonl",
+        STAIR_GENERATION_REPORT_FILENAME,
+    )
+    missing = [
+        name
+        for name in required_files
+        if not _completed_stair_regular_file(resolved_output_dir / name)
+    ]
+    if missing:
+        raise FileNotFoundError(
+            "completed Stair generation session is missing required artifacts: "
+            + ", ".join(missing)
+        )
+
+    source_checkout = _load_completed_stair_source_checkout(
+        resolved_output_dir,
+        expected_source_commit=expected_source_commit,
+    )
+    report = _load_completed_stair_canonical_json(
+        resolved_output_dir / STAIR_GENERATION_REPORT_FILENAME,
+        context="completed Stair generation validation report",
+    )
+    if (
+        report.get("schema_version")
+        != STAIR_GENERATION_VALIDATION_REPORT_SCHEMA_VERSION
+        or report.get("session_mode")
+        != DEVELOPMENT_GENERATION_VALIDATION_MODE
+        or report.get("session_id") != expected_session_id
+        or report.get("source_commit") != expected_source_commit
+        or report.get("output_dir") != str(resolved_output_dir)
+        or report.get("acceptance_authority") is not False
+    ):
+        raise ValueError("completed Stair generation report identity mismatch")
+
+    manifest_path = (resolved_output_dir / RESOLVED_CELL_MANIFEST_FILENAME).resolve(
+        strict=True
+    )
+    resolved_cell_manifest = load_resolved_cell_manifest(
+        manifest_path,
+        expected_task_id=STAIR_TASK_ID,
+    )
+    if resolved_cell_manifest.cell_variant_id != expected_cell_variant_id:
+        raise ValueError("completed Stair generation robot row mismatch")
+
+    genesis_payload = _load_completed_stair_canonical_json(
+        resolved_output_dir / SESSION_GENESIS_FILENAME,
+        context="completed Stair generation Session Genesis",
+    )
+    session_genesis = SessionGenesisArtifact.from_mapping(genesis_payload)
+    if (
+        session_genesis.session_id != expected_session_id
+        or session_genesis.task_id != STAIR_TASK_ID
+        or session_genesis.session_genesis_hash
+        != report.get("session_genesis_hash")
+        or session_genesis.evaluation_binding.task_protocol_hash
+        != resolved_cell_manifest.resolved_cell_task_protocol_hash
+    ):
+        raise ValueError("completed Stair generation Session Genesis identity mismatch")
+    contract_ref = session_genesis.generation_session_contract_ref
+    if contract_ref is None:
+        raise ValueError(
+            "completed Stair generation Session Genesis has no generation contract"
+        )
+    session_contract = load_generation_session_contract(
+        resolved_output_dir,
+        contract_ref,
+    )
+    if (
+        session_contract.schema_version
+        != GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION
+        or session_contract.session_mode
+        != DEVELOPMENT_GENERATION_VALIDATION_MODE
+        or session_contract.session_id != expected_session_id
+        or session_contract.task_id != STAIR_TASK_ID
+        or session_contract.backend_id != session_genesis.backend_id
+        or session_contract.max_generations != 3
+        or session_contract.bound_contract_hashes.get("evaluation_protocol")
+        != session_genesis.evaluation_binding.eval_protocol_hash
+        or report.get("generation_session_contract_hash")
+        != session_contract.contract_hash
+    ):
+        raise ValueError("completed Stair generation session contract mismatch")
+
+    cost_contract = load_stair_generation_session_cost_contract(
+        resolved_output_dir / STAIR_GENERATION_SESSION_COST_FILENAME
+    )
+    if (
+        type(cost_contract)
+        not in {
+            StairGenerationSessionCostContractV2,
+            StairGenerationSessionCostContractV4,
+        }
+        or cost_contract.session_mode
+        != DEVELOPMENT_GENERATION_VALIDATION_MODE
+        or cost_contract.max_generations != 3
+        or (
+            type(cost_contract) is StairGenerationSessionCostContractV4
+            and session_genesis.reference_genesis_import_ref is None
+        )
+        or session_contract.bound_contract_hashes.get("session_cost")
+        != cost_contract.contract_hash
+        or session_contract.bound_contract_hashes.get("retry_policy")
+        != canonical_json_hash(_retry_policy(cost_contract))
+        or report.get("session_cost_contract_hash") != cost_contract.contract_hash
+    ):
+        raise ValueError("completed Stair generation cost contract mismatch")
+    continuation_policy = load_generation_continuation_policy(resolved_output_dir)
+    if (
+        session_contract.bound_contract_hashes.get("continuation_policy")
+        != continuation_policy.policy_hash
+    ):
+        raise ValueError("completed Stair generation continuation policy mismatch")
+
+    ledger = load_ledger(resolved_output_dir / "ledger.jsonl")
+    if len(ledger) != session_contract.max_generations:
+        raise ValueError("completed Stair generation ledger height mismatch")
+    ledger_epoch_hash = primary_ledger_epoch_hash(
+        str(session_genesis.session_genesis_hash)
+    )
+    execution_receipts: list[GenerationReceiptRef] = []
+    for generation_index, record in enumerate(ledger, start=1):
+        generation_id = f"{expected_session_id}-generation-{generation_index:03d}"
+        if (
+            record.get("schema_version") != session_contract.ledger_record_schema
+            or record.get("generation_index") != generation_index
+            or record.get("generation_id") != generation_id
+            or record.get("session_genesis_hash")
+            != session_genesis.session_genesis_hash
+            or record.get("generation_session_contract_hash")
+            != session_contract.contract_hash
+            or record.get("ledger_epoch_hash") != ledger_epoch_hash
+        ):
+            raise ValueError("completed Stair generation ledger identity mismatch")
+        generation_manifest = load_bound_generation_manifest(record)
+        if (
+            generation_manifest.generation_id != generation_id
+            or generation_manifest.generation_index != generation_index
+            or generation_manifest.session_genesis_hash
+            != session_genesis.session_genesis_hash
+            or generation_manifest.generation_session_contract_hash
+            != session_contract.contract_hash
+            or generation_manifest.ledger_epoch_hash != ledger_epoch_hash
+            or generation_manifest.evaluation_binding_hash
+            != session_genesis.evaluation_binding.binding_hash
+            or generation_resource_plan_hash(generation_manifest.lanes)
+            != session_contract.bound_contract_hashes.get("resource_plan")
+        ):
+            raise ValueError(
+                "completed Stair generation record/manifest identity mismatch"
+            )
+        journal = GenerationReceiptJournal(
+            resolved_output_dir / "generation_receipts" / generation_id,
+            manifest=generation_manifest,
+        )
+        loaded_execution = journal.load_execution()
+        if loaded_execution is None or loaded_execution[0] != record:
+            raise ValueError(
+                "completed Stair generation execution receipt is missing or drifted"
+            )
+        execution_ref = loaded_execution[1]
+        execution_receipts.append(execution_ref)
+
+    lifecycle_identity = GenerationLifecycleIdentity(
+        session_id=expected_session_id,
+        session_genesis_hash=str(session_genesis.session_genesis_hash),
+        generation_session_contract_hash=session_contract.contract_hash,
+        final_confirmation_plan_hash=session_contract.bound_contract_hashes[
+            "final_confirmation_plan"
+        ],
+        ledger_epoch_hash=ledger_epoch_hash,
+        output_root=str(resolved_output_dir),
+    )
+    lifecycle = audit_generation_lifecycle(
+        output_dir=resolved_output_dir,
+        identity=lifecycle_identity,
+        policy=continuation_policy,
+        require_closed=True,
+    )
+    if (
+        not lifecycle.terminal
+        or lifecycle.active_segment_id is not None
+        or lifecycle.closed_generation_count != session_contract.max_generations
+    ):
+        raise ValueError("completed Stair generation lifecycle is not terminal")
+
+    cost_journal = StairGenerationActualCostJournal(
+        resolved_output_dir,
+        contract=cost_contract,
+    )
+    actual_cost_receipts = cost_journal.load_chain()
+    if not actual_cost_receipts:
+        raise ValueError("completed Stair generation actual-cost chain is missing")
+    combined_cost_head = replay_stair_generation_combined_cost_chain(
+        contract=cost_contract,
+        actual_cost_receipts=actual_cost_receipts,
+        lifecycle=lifecycle,
+    )
+    if combined_cost_head != lifecycle.cost_chain_head_hash:
+        raise ValueError("completed Stair generation actual-cost head mismatch")
+
+    return CompletedStairGenerationSession(
+        output_dir=resolved_output_dir,
+        source_checkout=dict(source_checkout),
+        resolved_cell_manifest=resolved_cell_manifest,
+        session_genesis=session_genesis,
+        session_contract=session_contract,
+        cost_contract=cost_contract,
+        continuation_policy=continuation_policy,
+        ledger=tuple(dict(record) for record in ledger),
+        lifecycle=lifecycle,
+        actual_cost_receipts=tuple(actual_cost_receipts),
+        generation_execution_receipts=tuple(execution_receipts),
+        report=dict(report),
+    )
+
+
+def _completed_stair_regular_file(path: Path) -> bool:
+    return not path.is_symlink() and path.is_file()
+
+
+def _load_completed_stair_canonical_json(
+    path: Path,
+    *,
+    context: str,
+) -> dict[str, Any]:
+    payload = load_strict_json_object(path, context=context)
+    if path.read_bytes() != canonical_json_bytes(payload, trailing_newline=True):
+        raise ValueError(f"{context} is not canonical JSON")
+    return payload
+
+
+def _load_completed_stair_source_checkout(
+    output_dir: Path,
+    *,
+    expected_source_commit: str,
+) -> dict[str, Any]:
+    payload = _load_completed_stair_canonical_json(
+        output_dir / STAIR_GENERATION_SOURCE_CHECKOUT_FILENAME,
+        context="completed Stair generation source checkout",
+    )
+    body = {
+        "schema_version": STAIR_GENERATION_SOURCE_CHECKOUT_SCHEMA_VERSION,
+        "source_commit": expected_source_commit,
+    }
+    if (
+        set(payload) != {*body, "source_checkout_hash"}
+        or payload.get("schema_version")
+        != STAIR_GENERATION_SOURCE_CHECKOUT_SCHEMA_VERSION
+        or payload.get("source_commit") != expected_source_commit
+        or payload.get("source_checkout_hash") != canonical_json_hash(body)
+    ):
+        raise ValueError("completed Stair generation source checkout mismatch")
+    return payload
+
+
 def _publish_or_verify_source_checkout_identity(
     output_dir: Path,
     *,
@@ -8744,6 +9433,7 @@ def _publish_or_verify_source_checkout_identity(
 
 
 __all__ = [
+    "CompletedStairGenerationSession",
     "STAIR_GENERATION_PREFLIGHT_SCHEMA_VERSION",
     "STAIR_GENERATION_REPORT_FILENAME",
     "STAIR_GENERATION_REPORT_SCHEMA_VERSION",
@@ -8751,7 +9441,9 @@ __all__ = [
     "STAIR_GENERATION_SOURCE_CHECKOUT_SCHEMA_VERSION",
     "StairGenerationPilotConfig",
     "StairGenerationSessionFoundation",
+    "collect_actual_cost_usage",
     "discover_two_gpu_inventory",
+    "load_completed_stair_generation_session",
     "preflight_stair_generation_pilot",
     "run_stair_generation_pilot",
 ]

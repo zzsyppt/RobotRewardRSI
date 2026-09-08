@@ -289,6 +289,12 @@ class StairCompleteRewardContractTests(unittest.TestCase):
         )
         self.assertIn("episode-time", progress_fraction["candidate_usage"])
         self.assertIn("does not", progress_fraction["candidate_usage"])
+        goal_progress = prompt["field_semantics_constraints"][
+            "goal_progress_fraction"
+        ]
+        self.assertIn("instantaneous", goal_progress["semantics"])
+        self.assertIn("may decrease", goal_progress["temporal_behavior"])
+        self.assertIn("not latched", goal_progress["temporal_behavior"])
         base_height = prompt["field_semantics_constraints"]["base_height"]
         self.assertEqual(
             base_height["source_equivalence"],
@@ -799,8 +805,9 @@ class StairCompleteRewardContractTests(unittest.TestCase):
 
             def to_dict(self) -> dict[str, object]:
                 return {
-                    "policy": dict(vars(self.policy)),
-                    "algorithm": dict(vars(self.algorithm)),
+                    "actor": self.actor,
+                    "critic": self.critic,
+                    "algorithm": self.algorithm,
                 }
 
         agent_cfg = FakeAgentCfg()
@@ -853,8 +860,9 @@ class StairCompleteRewardContractTests(unittest.TestCase):
 
             def to_dict(self) -> dict[str, object]:
                 return {
-                    "policy": dict(vars(self.policy)),
-                    "algorithm": dict(vars(self.algorithm)),
+                    "actor": self.actor,
+                    "critic": self.critic,
+                    "algorithm": self.algorithm,
                 }
 
         execution = config.protocol_v2.to_public_dict()["training_execution"]

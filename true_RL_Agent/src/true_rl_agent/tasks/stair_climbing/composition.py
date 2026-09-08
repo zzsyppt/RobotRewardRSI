@@ -11,6 +11,7 @@ from true_rl_agent.backends.isaac_lab_rsl_rl import (
     IsaacLabRslRlBackendAdapter,
     IsaacLabRslRlBackendConfig,
 )
+from true_rl_agent.backends.isaac_lab_runtime import DEFAULT_ISAAC_LAB_PYTHON
 from true_rl_agent.candidates.capability_readiness import (
     COMPLETE_REWARD_PROGRAM_CAPABILITY_ID,
 )
@@ -73,11 +74,13 @@ from true_rl_agent.tasks.stair_climbing.unified_protocol import (
 )
 from true_rl_agent.training_programs import VerifiedReferenceProgramArtifact
 
-DEFAULT_ISAAC_PYTHON = "/data/yuyangliu/envs/isaaclab/bin/python"
+DEFAULT_ISAAC_PYTHON = DEFAULT_ISAAC_LAB_PYTHON
 DEFAULT_STAIR_TRAIN_ENTRYPOINT = "scripts/isaaclab_stair_rsl_rl_train.py"
 DEFAULT_STAIR_EVAL_ENTRYPOINT = "scripts/isaaclab_stair_rsl_rl_eval.py"
 DEFAULT_STAIR_PROTOCOL_V2 = STAIR_UNIFIED_PROTOCOL_RELATIVE_PATH
 DEFAULT_EXECUTION_DEVICE = "cuda:0"
+# Execution placement allowance for the frozen full workload on Sim 6.
+DEFAULT_RUNNER_TIMEOUT_S = 36000
 
 
 @dataclass(frozen=True)
@@ -193,7 +196,7 @@ class StairClimbingCompositionConfig:
             train_max_iterations=task.train_max_iterations,
             train_steps_per_iteration=task.train_steps_per_iteration,
             eval_num_envs=task.eval_num_envs,
-            runner_timeout_s=task.runner_timeout_s,
+            runner_timeout_s=DEFAULT_RUNNER_TIMEOUT_S,
             cell_variant_id=STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
         )
 
@@ -215,6 +218,12 @@ class StairClimbingCompositionConfig:
         project_root: Path,
         resolved_cell_task_protocol_hash: str | None = None,
     ) -> StairClimbingTaskConfig:
+        # The frozen protocol retains its historical timeout field for reading
+        # old evidence. The live process deadline belongs to this composition
+        # and is passed directly to the runner / execution placement below.
+        protocol_defaults = StairClimbingTaskConfig.defaults(
+            project_root / self.runtime_config, cell_variant_id=self.cell_variant_id
+        )
         return StairClimbingTaskConfig(
             protocol_v2_path=project_root / self.runtime_config,
             budget_steps=self.budget_steps,
@@ -227,7 +236,7 @@ class StairClimbingCompositionConfig:
             sealed_validation_seed_count=self.sealed_validation_seed_count,
             eval_protocol_version=self.eval_protocol_version,
             train_seed=self.train_seed,
-            runner_timeout_s=self.runner_timeout_s,
+            protocol_runner_timeout_s=protocol_defaults.protocol_runner_timeout_s,
             train_profile=self.train_profile,
             eval_profile=self.eval_profile,
             cell_variant_id=self.cell_variant_id,
@@ -261,7 +270,6 @@ class StairClimbingCompositionConfig:
             train_max_iterations=selected.train_max_iterations,
             train_steps_per_iteration=selected.train_steps_per_iteration,
             eval_num_envs=selected.eval_num_envs,
-            runner_timeout_s=selected.runner_timeout_s,
         )
 
     def to_task_defaults(self) -> dict[str, Any]:
@@ -369,7 +377,7 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
             task_protocol_hash=task_config.task_protocol_hash,
             training_binding_hash=str(training_binding.binding_hash),
         )
-        confirmation_commitment: Mapping[str, Any] | None = None
+        legacy_live_confirmation_commitment: Mapping[str, Any] | None = None
         mode = values.get("mode")
         if mode in {
             "live",
@@ -425,7 +433,15 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
                     expected_session_id=session_id,
                     expected_config=task_config,
                 )
-            confirmation_commitment = confirmation_plan.genesis_commitment()
+            # The width-one live path has no generation-session contract, so its
+            # terminal plan still needs this direct Genesis commitment.  Formal
+            # generation binds the plan through the generation-contract ref and
+            # must keep that session-local commitment out of the reusable
+            # scientific runtime snapshot.
+            if mode == "live":
+                legacy_live_confirmation_commitment = (
+                    confirmation_plan.genesis_commitment()
+                )
         elif values.get("final_confirmation_plan") is not None:
             raise ValueError(
                 "Stair final confirmation plan is only valid for reference-program Genesis"
@@ -488,9 +504,9 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
         resolved_task_defaults["cell_variant_id"] = (
             resolved_cell_manifest.cell_variant_id
         )
-        if confirmation_commitment is not None:
+        if legacy_live_confirmation_commitment is not None:
             resolved_task_defaults["final_confirmation_precommit"] = dict(
-                confirmation_commitment
+                legacy_live_confirmation_commitment
             )
         return ResolvedTaskComposition(
             task_id=self.task_id,
@@ -509,6 +525,21 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
             policy_initialization=PolicyInitialization.random(),
             genesis_anchor_kind=start_profile.genesis_anchor_kind,
             task_defaults=resolved_task_defaults,
+            scientific_parameters={
+                "training_agent_configuration_hash": backend.training_agent_configuration.agent_configuration_hash,
+                "session_start_profile": start_profile.to_public_dict(),
+                **({"final_confirmation_precommit": dict(legacy_live_confirmation_commitment)}
+                   if legacy_live_confirmation_commitment is not None else {}),
+            },
+            execution_placement={
+                "project_root": str(context.project_root.resolve()),
+                "output_dir": str(context.output_dir.resolve()),
+                "isaac_python": composition_config.isaac_python,
+                "execution_device": composition_config.execution_device,
+                "runner_timeout_s": composition_config.runner_timeout_s,
+                "train_entrypoint": backend.train_entrypoint,
+                "eval_entrypoint": backend.eval_entrypoint,
+            },
             reference_program_artifact=reference_program_artifact,
             bootstrap_initial_best_score=(
                 start_profile.bootstrap_initial_best_score
@@ -623,6 +654,16 @@ def _build_stair_backend_config(
             admission.execution_authorization_schema_version
         ),
         candidate_failure_contract=STAIR_CANDIDATE_FAILURE_CONTRACT,
+        training_binding_task_protocol_hash=(
+            task_config.training_binding_task_protocol_hash
+            if task_config.is_unified_protocol
+            else None
+        ),
+        training_predecessor_manifest_hash=(
+            task_config.training_predecessor_manifest_hash
+            if task_config.is_unified_protocol
+            else None
+        ),
         train_seed=task_config.train_seed,
         runtime_config_path=composition_config.runtime_config,
         train_runtime_dynamics_hash=(

@@ -1,0 +1,20 @@
+ActorCritic.__init__ got unexpected arguments, which will be ignored: ['class_name']
+Actor MLP: MLP(
+  (0): Linear(in_features=235, out_features=512, bias=True)
+  (1): ELU(alpha=1.0)
+  (2): Linear(in_features=512, out_features=256, bias=True)
+  (3): ELU(alpha=1.0)
+  (4): Linear(in_features=256, out_features=128, bias=True)
+  (5): ELU(alpha=1.0)
+  (6): Linear(in_features=128, out_features=12, bias=True)
+)
+Critic MLP: MLP(
+  (0): Linear(in_features=235, out_features=512, bias=True)
+  (1): ELU(alpha=1.0)
+  (2): Linear(in_features=512, out_features=256, bias=True)
+  (3): ELU(alpha=1.0)
+  (4): Linear(in_features=256, out_features=128, bias=True)
+  (5): ELU(alpha=1.0)
+  (6): Linear(in_features=128, out_features=1, bias=True)
+)
+{"robot": "go2", "device": "cpu", "rsl_rl": "3.0.1", "checkpoint_sha256": "fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729", "actor_observation_dim": 235, "critic_observation_dim": 235, "num_actions": 12, "legacy_optimizer_migration": "unsupported"}

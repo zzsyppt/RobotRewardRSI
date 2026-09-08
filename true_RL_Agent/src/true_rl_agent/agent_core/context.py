@@ -230,7 +230,9 @@ def build_public_context_from_projected(
         "pure_knob_streak": _pure_knob_streak(sanitized_records),
         "public_history_limits": {
             "max_recent_rounds": PUBLIC_HISTORY_MAX_RECENT_ROUNDS,
-            "max_serialized_bytes": PUBLIC_HISTORY_MAX_SERIALIZED_BYTES,
+            "max_recent_outcomes_serialized_bytes": (
+                PUBLIC_HISTORY_MAX_SERIALIZED_BYTES
+            ),
         },
         "public_history_omitted_round_count": omitted_round_count,
         "recent_outcomes": recent_outcomes,
@@ -250,7 +252,7 @@ def build_public_history_section(public_context: Mapping[str, Any]) -> dict[str,
     )
     return sanitize_prompt_public_context(
         {
-            "schema_version": "true_rl_agent.public_history.v3",
+            "schema_version": "true_rl_agent.public_history.v4",
             "previous_rounds": public_context.get("previous_rounds", 0),
             "best_public_score": public_context.get("best_public_score"),
             "public_score_source": public_context.get("public_score_source"),
@@ -258,7 +260,9 @@ def build_public_history_section(public_context: Mapping[str, Any]) -> dict[str,
             "pure_knob_streak": public_context.get("pure_knob_streak", 0),
             "limits": {
                 "max_recent_rounds": PUBLIC_HISTORY_MAX_RECENT_ROUNDS,
-                "max_serialized_bytes": PUBLIC_HISTORY_MAX_SERIALIZED_BYTES,
+                "max_recent_outcomes_serialized_bytes": (
+                    PUBLIC_HISTORY_MAX_SERIALIZED_BYTES
+                ),
             },
             "omitted_round_count": omitted_count,
             "recent_outcomes": recent,

@@ -40,7 +40,7 @@ class TaskPromptAdapter(Protocol):
         ...
 
     def build_prompt_capacity_preflight_sections(self) -> Mapping[str, Any]:
-        """Return the task-owned maximum minimum-core shape for startup checks."""
+        """Return a deterministic task-owned stress projection for startup checks."""
         ...
 
     def prompt_public_record_scrub_policy(self) -> Mapping[str, Sequence[str]]:

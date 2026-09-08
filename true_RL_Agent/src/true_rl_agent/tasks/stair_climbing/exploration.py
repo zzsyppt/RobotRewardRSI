@@ -7,11 +7,11 @@ does not accept candidates and never reads sealed rollout detail.
 from __future__ import annotations
 
 import math
-import statistics
 from dataclasses import dataclass
 from typing import Any, Mapping, Protocol
 
 from true_rl_agent.agent_core.exploration import TaskExplorationAssessment
+from true_rl_agent.evaluation.derived_statistics import sample_mean
 from true_rl_agent.evaluation.acceptance_protocol import (
     AcceptanceProtocol,
     acceptance_delta_met,
@@ -28,6 +28,9 @@ from true_rl_agent.tasks.stair_climbing.evaluation_contract import (
 from true_rl_agent.tasks.stair_climbing.generalization_contract import (
     validate_stair_generalization_summary,
 )
+from true_rl_agent.tasks.stair_climbing.public_projection import (
+    require_stair_candidate_runtime_effect_evidence,
+)
 from true_rl_agent.tasks.stair_climbing.unified_scoring import (
     UNIFIED_STAIR_PROMPT_OBJECTIVE_SCORE_SOURCE,
     build_unified_score_projection,
@@ -37,7 +40,7 @@ from true_rl_agent.tasks.stair_climbing.unified_scoring import (
 
 
 STAIR_EXPLORATION_PROJECTOR_SCHEMA_VERSION = (
-    "true_rl_agent.task.stair_climbing.exploration_projector.v3"
+    "true_rl_agent.task.stair_climbing.exploration_projector.v4"
 )
 
 
@@ -81,7 +84,7 @@ class StairExplorationProjector:
             "evaluation_protocol_hash": self.config.evaluation_protocol().protocol_hash,
             "acceptance_protocol_hash": self.config.acceptance_protocol.protocol_hash,
             "rule": (
-                "unified_public_dev_parent_relative_objective_and_named_guards_v1"
+                "unified_public_dev_runtime_effect_then_parent_relative_scores_v2"
                 if self.config.is_unified_protocol
                 else "public_accept_headroom_guard_with_public_dev_consistency_v1"
             ),
@@ -389,13 +392,14 @@ class StairExplorationProjector:
                 ),
                 "candidate": candidate_guard,
             }
-        candidate_guard_floor = statistics.fmean(
-            min(values[index] for values in guard_seed_vectors)
-            for index in range(len(guard_seed_vectors[0]))
+        candidate_guard_floor = sample_mean(
+            (
+                min(values[index] for values in guard_seed_vectors)
+                for index in range(len(guard_seed_vectors[0]))
+            ),
+            statistics_version=objective["score_stats"].get("statistics_version"),
         )
-        projected_reference = _mapping(
-            generation.get("public_dev_parent_reference")
-        )
+        projected_reference = _mapping(generation.get("public_dev_parent_reference"))
         projected_reference_is_public_dev = (
             projected_reference.get("source_split") == "public_dev"
             and projected_reference.get("acceptance_authority") is False
@@ -433,6 +437,7 @@ class StairExplorationProjector:
             )
         objective_delta = candidate_score - parent_score
         guard_delta = candidate_guard_floor - parent_guard_floor
+        runtime_effect = _candidate_runtime_effect_evidence(trial)
         objective_improved = objective_delta > 0.0 and not math.isclose(
             objective_delta, 0.0, rel_tol=0.0, abs_tol=1.0e-12
         )
@@ -445,13 +450,19 @@ class StairExplorationProjector:
         guard_regressed = guard_delta < 0.0 and not math.isclose(
             guard_delta, 0.0, rel_tol=0.0, abs_tol=1.0e-12
         )
-        if objective_improved and not guard_regressed:
+        if runtime_effect is not None and runtime_effect["status"] == "fail":
+            effect, value, reasons = (
+                "negative",
+                "low",
+                (str(runtime_effect["reason"]),),
+            )
+        elif objective_improved and not guard_regressed:
             effect = "strong_positive" if selected else "positive"
             value = "high" if selected else "medium"
             reasons = (
-                "selected_public_dev_objective_improved_without_guard_regression",
-            ) if selected else (
-                "public_dev_objective_improved_without_guard_regression",
+                ("selected_public_dev_objective_improved_without_guard_regression",)
+                if selected
+                else ("public_dev_objective_improved_without_guard_regression",)
             )
         elif objective_improved or guard_improved:
             effect, value, reasons = (
@@ -474,12 +485,8 @@ class StairExplorationProjector:
         summary = {
             "status": "public_complete",
             "source_split": "public_dev",
-            "objective_family_mask_hash": projection[
-                "objective_family_mask_hash"
-            ],
-            "qualified_ood_families": list(
-                projection["qualified_ood_families"]
-            ),
+            "objective_family_mask_hash": projection["objective_family_mask_hash"],
+            "qualified_ood_families": list(projection["qualified_ood_families"]),
             "objective": {
                 "score_source": UNIFIED_STAIR_PROMPT_OBJECTIVE_SCORE_SOURCE,
                 "candidate": candidate_score,
@@ -488,15 +495,15 @@ class StairExplorationProjector:
             },
             "named_guards": guard_evidence,
             "guard_floor": {
-                "score_source": (
-                    "minimum_named_guard_per_seed_then_mean"
-                ),
+                "score_source": ("minimum_named_guard_per_seed_then_mean"),
                 "candidate": candidate_guard_floor,
                 "parent": parent_guard_floor,
                 "delta": guard_delta,
             },
             "selection_status": "selected" if selected else "not_selected",
         }
+        if runtime_effect is not None:
+            summary["runtime_effect_evidence"] = runtime_effect
         return TaskExplorationAssessment(
             observed_effect=effect,
             value_label=value,
@@ -563,6 +570,16 @@ def _phase_summary(
     if not isinstance(summary, Mapping):
         raise ValueError(f"Stair exploration {phase_name} summary is missing")
     return summary
+
+
+def _candidate_runtime_effect_evidence(
+    trial: Mapping[str, Any],
+) -> dict[str, Any] | None:
+    screen = _mapping(trial.get("selection_screen"))
+    value = screen.get("runtime_effect_evidence")
+    if value is None:
+        return None
+    return require_stair_candidate_runtime_effect_evidence(value)
 
 
 def _mapping(value: Any) -> Mapping[str, Any]:

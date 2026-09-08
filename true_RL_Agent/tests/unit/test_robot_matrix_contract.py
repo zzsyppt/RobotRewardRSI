@@ -41,6 +41,7 @@ from true_rl_agent.robots.defaults import (
     build_default_robot_registry,
 )
 from true_rl_agent.robots.registry import RobotRegistry
+from true_rl_agent.robots.rsl_rl_runtime import rsl_rl_agent_configuration
 from true_rl_agent.runner.specs import CheckpointRef
 from true_rl_agent.runner.subprocess_runner import SubprocessRunner
 from true_rl_agent.tasks.push_recovery.composition import (
@@ -59,6 +60,11 @@ from true_rl_agent.tasks.stair_climbing.robot_binding import (
     STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID,
     build_stair_cell_catalog,
     resolve_stair_cell_manifest,
+)
+from true_rl_agent.tasks.stair_climbing.row_catalog import (
+    STAIR_G1_37DOF_UNIFIED_V1_CELL_VARIANT_ID,
+    STAIR_GO2_12DOF_UNIFIED_V1_CELL_VARIANT_ID,
+    stair_robot_row,
 )
 from true_rl_agent.training_binding import (
     TRAINING_BINDING_V1_SCHEMA_VERSION,
@@ -126,6 +132,28 @@ class RobotMatrixContractTests(unittest.TestCase):
         )
         self.assertNotIn(".tasks.", g1_29_adapter.articulation_source)
 
+    def test_archived_stair_training_predecessors_are_identity_frozen(self) -> None:
+        for cell_variant_id in (
+            STAIR_G1_37DOF_UNIFIED_V1_CELL_VARIANT_ID,
+            STAIR_GO2_12DOF_UNIFIED_V1_CELL_VARIANT_ID,
+        ):
+            row = stair_robot_row(cell_variant_id)
+            config = StairClimbingTaskConfig.defaults(
+                PROJECT_ROOT / row.protocol_relative_path,
+                cell_variant_id=cell_variant_id,
+            )
+            self.assertFalse(row.active)
+            self.assertEqual(
+                config.base_task_protocol_hash,
+                row.frozen_task_protocol_hash,
+            )
+            self.assertEqual(
+                row.load_binding(project_root=PROJECT_ROOT).binding_hash,
+                row.frozen_binding_hash,
+            )
+            with self.assertRaisesRegex(ValueError, "predecessor protocol identity"):
+                row.require_frozen_protocol_identity("0" * 64)
+
     def test_task_owned_bindings_preserve_phase0_projection(self) -> None:
         facts_by_cell = {
             item["cell_key"]: item for item in self.receipt["legacy_cell_binding_facts"]
@@ -178,6 +206,27 @@ class RobotMatrixContractTests(unittest.TestCase):
             text = path.read_text(encoding="utf-8")
             self.assertNotIn('"height_scanner"', text)
             self.assertNotIn('"policy_observation"', text)
+
+    def test_push_agent_configuration_is_robot_row_owned(self) -> None:
+        manifest = resolve_push_cell_manifest(
+            cell_variant_id=PUSH_G1_29DOF_LEGACY_CELL_VARIANT_ID,
+            config=self.push_config,
+            plugin=self.push_plugin,
+        )
+        agent = rsl_rl_agent_configuration(
+            manifest.runtime_adapter["runtime_adapter_id"]
+        )
+        self.assertEqual(
+            manifest.contract_hashes["agent_configuration_hash"],
+            agent.agent_configuration_hash,
+        )
+        self.assertTrue(
+            {
+                "policy_architecture_hash",
+                "optimizer_training_profile_hash",
+                "agent_configuration_hash",
+            }.isdisjoint(self.push_plugin.task_spec.fixed_train_protocol)
+        )
 
     def test_duplicate_capability_declarations_are_rejected_before_compilation(
         self,
@@ -471,19 +520,20 @@ sys.stdout.buffer.write(canonical_json_bytes(manifest.to_dict(), trailing_newlin
             "body",
             ("torso_link", "left_ankle_roll_link"),
         )
-        conflicting_profile = replace(
-            profile,
-            semantic_roles=conflicting_roles,
-            profile_hash=None,
+        with self.assertRaisesRegex(ValueError, "physical support bodies"):
+            replace(profile, semantic_roles=conflicting_roles, profile_hash=None)
+        # Keep physical support membership valid while exercising the compiler's
+        # separate prohibition on overlapping task roles.
+        conflicting_roles = dict(profile.semantic_roles)
+        conflicting_roles["forbidden_contact"] = SemanticRole(
+            "forbidden_contact", "body", ("left_ankle_roll_link",),
         )
+        conflicting_profile = replace(profile, semantic_roles=conflicting_roles, profile_hash=None)
         conflicting_binding = replace(
             definition.robot_task_binding,
             role_bindings={
                 **definition.robot_task_binding.role_bindings,
-                "support_effector": (
-                    "torso_link",
-                    "left_ankle_roll_link",
-                ),
+                "forbidden_contact": ("left_ankle_roll_link",),
             },
             binding_hash=None,
         )
@@ -507,7 +557,7 @@ sys.stdout.buffer.write(canonical_json_bytes(manifest.to_dict(), trailing_newlin
             base_task_protocol_hash=self.stair_config.task_protocol_hash,
         )
         self.assertIn(
-            "conflicting_role_target:forbidden_contact:support_effector:torso_link",
+            "conflicting_role_target:forbidden_contact:support_effector:left_ankle_roll_link",
             conflicting.reasons,
         )
 
@@ -711,10 +761,10 @@ sys.stdout.buffer.write(canonical_json_bytes(manifest.to_dict(), trailing_newlin
             snapshot = composition.genesis_identity_snapshot()
             self.assertEqual(
                 snapshot["schema_version"],
-                "true_rl_agent.runtime_composition_snapshot.v2",
+                "true_rl_agent.runtime_composition_snapshot.v3",
             )
             self.assertEqual(
-                snapshot["resolved_cell"]["manifest_hash"],
+                snapshot["scientific"]["resolved_cell"]["manifest_hash"],
                 config.resolved_cell_manifest_hash,
             )
             candidate = make_verified_candidate_artifact(
@@ -860,6 +910,28 @@ sys.stdout.buffer.write(canonical_json_bytes(manifest.to_dict(), trailing_newlin
                     checkpoint_path_option="--checkpoint",
                     checkpoint_checksum_option="--checkpoint-sha256",
                 )
+            runner._validate_checkpoint_before_launch(
+                checkpoint=checkpoint,
+                metadata={
+                    "work_dir": str(PROJECT_ROOT),
+                    "training_predecessor_manifest_hash": "0" * 64,
+                },
+                job_id="p1-evaluation-successor",
+                argv=[
+                    sys.executable,
+                    "child.py",
+                    "--checkpoint",
+                    str(checkpoint_path),
+                    "--checkpoint-sha256",
+                    checkpoint_hash,
+                    "--resolved-cell-manifest-path",
+                    str(path),
+                    "--resolved-cell-manifest-hash",
+                    str(manifest.manifest_hash),
+                ],
+                checkpoint_path_option="--checkpoint",
+                checkpoint_checksum_option="--checkpoint-sha256",
+            )
 
             future_manifest = replace(
                 manifest,

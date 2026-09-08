@@ -1,0 +1,1007 @@
+{
+  "agent_configuration_hash": "f2cf1a2644ecdf61f3629f65c211ab29c274e06b6043c9067420e9e87a204789",
+  "backend_execution_environment_verification": {
+    "actual_manifest_hash": "3e314c3aa47a414cb84bafcb55d7bafe7bf64f3cb7f775933600dfb05cb6aeda",
+    "backend_id": "isaac_lab_rsl_rl",
+    "expected_manifest_hash": "3e314c3aa47a414cb84bafcb55d7bafe7bf64f3cb7f775933600dfb05cb6aeda",
+    "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+    "status": "pass"
+  },
+  "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+  "checkpoint": {
+    "checksum": "sha256:fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729",
+    "metadata": {
+      "local_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p5_go2_derived_reference_ef6826e/runner/p5-go2-derived-reference-ef6826e/checkpoints/best.pt",
+      "source_latest_checkpoint": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p5_go2_derived_reference_ef6826e/runner/p5-go2-derived-reference-ef6826e/train/run/attempt-cae0d47c9b7c4877b9d1c0fab59f5fba/rsl_rl/model_1999.pt",
+      "source_latest_checkpoint_sha256": "sha256:fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729"
+    },
+    "role": "train_output",
+    "uri": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p5_go2_derived_reference_ef6826e/runner/p5-go2-derived-reference-ef6826e/checkpoints/best.pt"
+  },
+  "created_at_utc": "2026-08-29T17:04:16.498859+00:00",
+  "environment_source_preflight": {
+    "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+    "source_manifest_hash": "c17e19b1378a9574becad09bdea791a47f8ac2950510df509753cb011811b5d0",
+    "status": "pass",
+    "task_protocol_hash": "1dc2cca08e123f21d5fb6203ba8ab20f84a2daa051e732eae62e5d3e77667c00"
+  },
+  "errors": [],
+  "execution_device": "cuda:0",
+  "formal_training_executed": true,
+  "initialization_seed_schedule_hash": "8f4c7a40dfdfe3ef85f624b3d9bb7344256e0de56e68d835a406051e116209b0",
+  "job_id": "p5-go2-derived-reference-ef6826e-train",
+  "optimizer_training_profile_hash": "39b8576bcd7749447f62728d6854bd0e3632be7845eee26db316d54fb096d68b",
+  "policy_architecture_hash": "a02a7e06b7e87699dde132fd5f8ae8ac1de438c88b694ea774d958faa9d0f159",
+  "program_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+  "resolved_cell_identity": {
+    "cell_variant_id": "stair.go2_12dof.unified_v1",
+    "environment_id": "stair_go2_12dof_unified_environment_v1",
+    "resolved_cell_task_protocol_hash": "1dc2cca08e123f21d5fb6203ba8ab20f84a2daa051e732eae62e5d3e77667c00",
+    "robot_profile_id": "unitree_go2_12dof_isaaclab_v1",
+    "robot_task_binding_id": "stair_go2_12dof_unified_binding_v1",
+    "robot_task_cell_id": "unitree_stair_climbing.go2_12dof_v1",
+    "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1"
+  },
+  "resolved_cell_manifest_hash": "54cd180c9f39f65bffd71482ec8a87cda912d0e378e8b434d0c44c839a3ab1c2",
+  "reward_program_qualification_hash": "e6fa2c439b66e672cca94cf930be5013192d68a97637e5dbd186d4ea86dc08e4",
+  "run": {
+    "round_id": "p5-go2-derived-reference-ef6826e",
+    "seed_policy": "runner_owned_not_public",
+    "train_attempt_id": "cae0d47c9b7c4877b9d1c0fab59f5fba"
+  },
+  "runtime_activation_summary": {
+    "activation_preflight": {
+      "real_transition_dispatcher_calls": 1,
+      "repeat_count": 2,
+      "schema_version": "true_rl_agent.task.stair_climbing.reward_activation_preflight.v2",
+      "status": "pass",
+      "term_names": [
+        "track_lin_vel_xy_exp",
+        "track_ang_vel_z_exp",
+        "ang_vel_xy_l2",
+        "flat_orientation_l2",
+        "dof_torques_l2",
+        "dof_acc_l2",
+        "action_rate_l2",
+        "feet_air_time"
+      ],
+      "transition_common_step": 1
+    },
+    "capability_activation_records": [
+      "complete_reward_program"
+    ],
+    "component_activation_records": [
+      {
+        "call_count": 48001,
+        "component_kind": "reward_term",
+        "last_weighted_mean": 3.30803156,
+        "max_abs_weighted_contribution": 3.5,
+        "name": "track_lin_vel_xy_exp",
+        "observation_count": 2001
+      },
+      {
+        "call_count": 48001,
+        "component_kind": "reward_term",
+        "last_weighted_mean": 0.63007671,
+        "max_abs_weighted_contribution": 0.75,
+        "name": "track_ang_vel_z_exp",
+        "observation_count": 2001
+      },
+      {
+        "call_count": 48001,
+        "component_kind": "reward_term",
+        "last_weighted_mean": -0.12918536,
+        "max_abs_weighted_contribution": 16.07071495,
+        "name": "ang_vel_xy_l2",
+        "observation_count": 2001
+      },
+      {
+        "call_count": 48001,
+        "component_kind": "reward_term",
+        "last_weighted_mean": -0.02881617,
+        "max_abs_weighted_contribution": 2.50000024,
+        "name": "flat_orientation_l2",
+        "observation_count": 2001
+      },
+      {
+        "call_count": 48001,
+        "component_kind": "reward_term",
+        "last_weighted_mean": -0.12497799,
+        "max_abs_weighted_contribution": 1.2115972,
+        "name": "dof_torques_l2",
+        "observation_count": 2001
+      },
+      {
+        "call_count": 48001,
+        "component_kind": "reward_term",
+        "last_weighted_mean": -0.1586749,
+        "max_abs_weighted_contribution": 25.64592743,
+        "name": "dof_acc_l2",
+        "observation_count": 2001
+      },
+      {
+        "call_count": 48001,
+        "component_kind": "reward_term",
+        "last_weighted_mean": -0.13882257,
+        "max_abs_weighted_contribution": 2.21801019,
+        "name": "action_rate_l2",
+        "observation_count": 2001
+      },
+      {
+        "call_count": 48001,
+        "component_kind": "reward_term",
+        "last_weighted_mean": -0.01587972,
+        "max_abs_weighted_contribution": 3.56382418,
+        "name": "feet_air_time",
+        "observation_count": 2001
+      }
+    ],
+    "declared_term_count": 8,
+    "diagnostic_calls": 0,
+    "diagnostic_outputs": {},
+    "dispatcher_calls": 48001,
+    "feature_activation_records": [],
+    "input_fingerprint": {
+      "fields": [
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "base_height",
+          "shape": [
+            4096
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "roll",
+          "shape": [
+            4096
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "pitch",
+          "shape": [
+            4096
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "base_pos_xy",
+          "shape": [
+            4096,
+            2
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "base_lin_vel",
+          "shape": [
+            4096,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "base_ang_vel",
+          "shape": [
+            4096,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "projected_gravity",
+          "shape": [
+            4096,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "commanded_base_vel",
+          "shape": [
+            4096,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "joint_pos",
+          "shape": [
+            4096,
+            12
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "joint_vel",
+          "shape": [
+            4096,
+            12
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "joint_pos_error",
+          "shape": [
+            4096,
+            12
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "last_action",
+          "shape": [
+            4096,
+            12
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "prev_action",
+          "shape": [
+            4096,
+            12
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "action_delta",
+          "shape": [
+            4096,
+            12
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "progress_fraction",
+          "shape": [
+            4096
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "joint_acc",
+          "shape": [
+            4096,
+            12
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "joint_torque",
+          "shape": [
+            4096,
+            12
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "soft_joint_pos_limits",
+          "shape": [
+            4096,
+            12,
+            2
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "base_lin_vel_yaw",
+          "shape": [
+            4096,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "base_ang_vel_world",
+          "shape": [
+            4096,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "base_quat_world",
+          "shape": [
+            4096,
+            4
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "support_air_time",
+          "shape": [
+            4096,
+            4
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "support_contact_time",
+          "shape": [
+            4096,
+            4
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "support_last_air_time",
+          "shape": [
+            4096,
+            4
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.bool",
+          "name": "support_first_contact",
+          "shape": [
+            4096,
+            4
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "support_contact_force_history",
+          "shape": [
+            4096,
+            3,
+            4,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "support_contact_force",
+          "shape": [
+            4096,
+            4,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.bool",
+          "name": "support_contact",
+          "shape": [
+            4096,
+            4
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "support_lin_vel",
+          "shape": [
+            4096,
+            4,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "support_pos_relative_to_terrain_origin",
+          "shape": [
+            4096,
+            4,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "base_pos_relative_to_terrain_origin",
+          "shape": [
+            4096,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "forbidden_contact_force",
+          "shape": [
+            4096,
+            1,
+            3
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "height_scan",
+          "shape": [
+            4096,
+            187
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "forward_progress_m",
+          "shape": [
+            4096
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "remaining_goal_distance_m",
+          "shape": [
+            4096
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.float32",
+          "name": "goal_progress_fraction",
+          "shape": [
+            4096
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.bool",
+          "name": "terminated_non_timeout",
+          "shape": [
+            4096
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.bool",
+          "name": "time_out",
+          "shape": [
+            4096
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        },
+        {
+          "detached": true,
+          "device": "cuda:0",
+          "dtype": "torch.bool",
+          "name": "forbidden_contact",
+          "shape": [
+            4096
+          ],
+          "storage_unique": true,
+          "version_tracked": true
+        }
+      ],
+      "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93"
+    },
+    "input_guard": "pass",
+    "last_common_step": 48001,
+    "last_total_rate_mean": 3.34175158,
+    "max_abs_total_rate": 24.16030312,
+    "nonzero_reward_contribution": true,
+    "program": {
+      "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+      "program_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+      "program_source_size_bytes": 2326,
+      "qualification_hash": "e6fa2c439b66e672cca94cf930be5013192d68a97637e5dbd186d4ea86dc08e4",
+      "schema_version": "true_rl_agent.task.stair_climbing.qualified_reward_program.v1",
+      "static_verifier_policy_hash": "310e04b305b2744a1ea62a6d5416e993905bdff401ffd33187fa1028bc402275",
+      "subject": {
+        "id": "go2-stair-official-flat-derived-v1",
+        "kind": "reference",
+        "schema_version": "true_rl_agent.experiment.subject.v2"
+      },
+      "subject_manifest_hash": "ece5ad653267f11e5b791403208472f42622e44661fdbc7162776799a370dbd4",
+      "term_names": [
+        "track_lin_vel_xy_exp",
+        "track_ang_vel_z_exp",
+        "ang_vel_xy_l2",
+        "flat_orientation_l2",
+        "dof_torques_l2",
+        "dof_acc_l2",
+        "action_rate_l2",
+        "feet_air_time"
+      ]
+    },
+    "reward_manager_active_terms": [
+      "complete_reward"
+    ],
+    "reward_manager_term_weight": 1.0,
+    "reward_output_stats": {
+      "complete_reward": {
+        "last_mean": 3.34175158,
+        "max_abs": 24.16030312
+      }
+    },
+    "reward_term_calls": 384008,
+    "rng_guard": "pass",
+    "runtime_projection": {
+      "action_joint_names": [
+        "FL_hip_joint",
+        "FR_hip_joint",
+        "RL_hip_joint",
+        "RR_hip_joint",
+        "FL_thigh_joint",
+        "FR_thigh_joint",
+        "RL_thigh_joint",
+        "RR_thigh_joint",
+        "FL_calf_joint",
+        "FR_calf_joint",
+        "RL_calf_joint",
+        "RR_calf_joint"
+      ],
+      "binding_facts_hash": "1160a2a4544eb3cb8d55aa436988a73eca46019296d2b559eab246749798a53f",
+      "cell_variant_id": "stair.go2_12dof.unified_v1",
+      "contact_history_length": 3,
+      "contact_sensor_name": "contact_forces",
+      "height_scan_ray_count": 187,
+      "height_sensor_name": "height_scanner",
+      "joint_groups": {},
+      "joint_names": [
+        "FL_hip_joint",
+        "FR_hip_joint",
+        "RL_hip_joint",
+        "RR_hip_joint",
+        "FL_thigh_joint",
+        "FR_thigh_joint",
+        "RL_thigh_joint",
+        "RR_thigh_joint",
+        "FL_calf_joint",
+        "FR_calf_joint",
+        "RL_calf_joint",
+        "RR_calf_joint"
+      ],
+      "kinematic_base_source": "articulation_root",
+      "legacy_reward_adapter_id": null,
+      "policy_io_schema_hash": "5fdd774448ee18f6d37040380efabe6c9fbcb4229cfb5675818ea388e447dca1",
+      "projection_hash": "0f56f1687dd040e94fb78c2e0375570a3be43c894f8899212a156ad978132a15",
+      "resolved_cell_manifest_hash": "54cd180c9f39f65bffd71482ec8a87cda912d0e378e8b434d0c44c839a3ab1c2",
+      "resolved_roles": {
+        "base": [
+          "base"
+        ],
+        "forbidden_contact": [
+          "base"
+        ],
+        "support_effector": [
+          "FL_foot",
+          "FR_foot",
+          "RL_foot",
+          "RR_foot"
+        ]
+      },
+      "resolved_runtime": {
+        "base_body_ids": [
+          0
+        ],
+        "contact_forbidden_body_ids": [
+          0
+        ],
+        "contact_support_body_ids": [
+          4,
+          8,
+          14,
+          18
+        ],
+        "joint_ids": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "support_body_ids": [
+          15,
+          16,
+          17,
+          18
+        ]
+      },
+      "reward_capability_hash_vnext": "658069454a3972110a78c6c6ee217ec2ee14cd3a9fbcf07c37017fceeecb0c7d",
+      "reward_input_schema_hash_vnext": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+      "robot_profile_hash": "3e9c110449be639fceb48d6792fc8f683f43bd34978286325bba99547d20f1c0",
+      "robot_profile_id": "unitree_go2_12dof_isaaclab_v1",
+      "robot_task_binding_hash": "97de2d11aa349dec4bc75d34f9ad153eb4aaf49dfd1b71e7dcd9aa4e659dec71",
+      "runtime_adapter_hash": "14f03caebe810885d5681d73812987b2d31706cf432c4de5597b14a9dbfcd3f0",
+      "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1",
+      "schema_version": "true_rl_agent.task.stair_climbing.runtime_projection.vnext.v1",
+      "sensor_schema_hash": "47c42e91348ce1d49e0988040d0941317afe1b16cb90692d73e02ba7d065896d",
+      "support_transition_inputs": true,
+      "task_scales": {
+        "horizontal": 1.0,
+        "vertical": 0.589087
+      }
+    },
+    "runtime_status": "active_pre_reset_complete_reward_v1",
+    "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_runtime_evidence.v1",
+    "source_alias_guard": "pass",
+    "status": "pass",
+    "term_calls": 384008,
+    "term_records": [
+      {
+        "call_count": 48001,
+        "last_raw_mean": 0.94515193,
+        "last_weighted_mean": 3.30803156,
+        "max_abs_weighted_rate": 3.5,
+        "name": "track_lin_vel_xy_exp",
+        "sample_count": 2001
+      },
+      {
+        "call_count": 48001,
+        "last_raw_mean": 0.84010231,
+        "last_weighted_mean": 0.63007671,
+        "max_abs_weighted_rate": 0.75,
+        "name": "track_ang_vel_z_exp",
+        "sample_count": 2001
+      },
+      {
+        "call_count": 48001,
+        "last_raw_mean": 2.58370733,
+        "last_weighted_mean": -0.12918536,
+        "max_abs_weighted_rate": 16.07071495,
+        "name": "ang_vel_xy_l2",
+        "sample_count": 2001
+      },
+      {
+        "call_count": 48001,
+        "last_raw_mean": 0.01152647,
+        "last_weighted_mean": -0.02881617,
+        "max_abs_weighted_rate": 2.50000024,
+        "name": "flat_orientation_l2",
+        "sample_count": 2001
+      },
+      {
+        "call_count": 48001,
+        "last_raw_mean": 624.89001465,
+        "last_weighted_mean": -0.12497799,
+        "max_abs_weighted_rate": 1.2115972,
+        "name": "dof_torques_l2",
+        "sample_count": 2001
+      },
+      {
+        "call_count": 48001,
+        "last_raw_mean": 634699.625,
+        "last_weighted_mean": -0.1586749,
+        "max_abs_weighted_rate": 25.64592743,
+        "name": "dof_acc_l2",
+        "sample_count": 2001
+      },
+      {
+        "call_count": 48001,
+        "last_raw_mean": 13.88225746,
+        "last_weighted_mean": -0.13882257,
+        "max_abs_weighted_rate": 2.21801019,
+        "name": "action_rate_l2",
+        "sample_count": 2001
+      },
+      {
+        "call_count": 48001,
+        "last_raw_mean": -0.06351888,
+        "last_weighted_mean": -0.01587972,
+        "max_abs_weighted_rate": 3.56382418,
+        "name": "feet_air_time",
+        "sample_count": 2001
+      }
+    ],
+    "termination_manager_resolution": {
+      "active_terms": [
+        "time_out",
+        "base_contact"
+      ],
+      "forbidden_contact": {
+        "body_count": 1,
+        "force_threshold_n": 1.0,
+        "role_id": "forbidden_contact",
+        "scene_entity_name": "contact_forces"
+      },
+      "schema_version": "true_rl_agent.task.stair_climbing.termination_manager_resolution.vnext.v1",
+      "status": "pass"
+    },
+    "training_recorder_enabled": false
+  },
+  "schema_version": "true_rl_agent.task.stair_climbing.train_summary.v1",
+  "status": "pass",
+  "subject_id": "go2-stair-official-flat-derived-v1",
+  "subject_kind": "reference",
+  "subject_manifest_hash": "ece5ad653267f11e5b791403208472f42622e44661fdbc7162776799a370dbd4",
+  "task_id": "unitree_stair_climbing",
+  "training": {
+    "budget_accounting": {
+      "budget_steps": 196608000,
+      "config_derived_total_timesteps": 196608000,
+      "max_iterations": 2000,
+      "num_envs": 4096,
+      "num_steps_per_env": 24,
+      "planned_env_steps": 196608000,
+      "status": "pass"
+    },
+    "budget_steps": 196608000,
+    "device": "cuda:0",
+    "effective_agent_execution": {
+      "agent_configuration_hash": "f2cf1a2644ecdf61f3629f65c211ab29c274e06b6043c9067420e9e87a204789",
+      "clip_actions": null,
+      "device": "cuda:0",
+      "empirical_normalization": null,
+      "experiment_name": "true_rl_agent_stair",
+      "logger": "tensorboard",
+      "max_iterations": 2000,
+      "num_steps_per_env": 24,
+      "observation_groups": {
+        "critic": [
+          "policy"
+        ],
+        "policy": [
+          "policy"
+        ]
+      },
+      "optimizer_training_profile_hash": "39b8576bcd7749447f62728d6854bd0e3632be7845eee26db316d54fb096d68b",
+      "policy_architecture_hash": "a02a7e06b7e87699dde132fd5f8ae8ac1de438c88b694ea774d958faa9d0f159",
+      "resolved_observation_groups": {
+        "critic": [
+          "policy"
+        ],
+        "policy": [
+          "policy"
+        ]
+      },
+      "resume": false,
+      "run_name": "true_rl_agent_p5-go2-derived-reference-ef6826e",
+      "runner_contract_mode": "explicit",
+      "save_interval": 50,
+      "seed": 1262835026
+    },
+    "execution_contract": {
+      "checkpoint_save_interval_iterations": 50,
+      "checkpoint_selector": "final_iteration",
+      "clip_actions": null,
+      "cudnn_allow_tf32": true,
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": false,
+      "empirical_normalization": null,
+      "init_at_random_episode_length": true,
+      "logger": "tensorboard",
+      "observation_groups": {
+        "critic": [
+          "policy"
+        ],
+        "policy": [
+          "policy"
+        ]
+      },
+      "resume": false,
+      "runner": "rsl_rl_on_policy_runner",
+      "torch_matmul_allow_tf32": true
+    },
+    "expected_initial_policy_state_hash": null,
+    "initial_policy_state_hash": "a32148c6a89fbbefbacc5336c95979aa844e4b888b8ed4932af09ce327910744",
+    "initial_policy_state_match": null,
+    "initial_terrain_assignment": {
+      "maximum_initial_level": {
+        "c0_regular": 5,
+        "c1_irregular_flat": 1
+      },
+      "num_envs": 4096,
+      "regime_counts": {
+        "c0_regular": 2048,
+        "c1_irregular_flat": 2048
+      },
+      "schema_version": "true_rl_agent.task.stair_climbing.unified_initial_assignment.v1",
+      "terrain_type_counts": {
+        "0": 2048,
+        "1": 228,
+        "2": 228,
+        "3": 228,
+        "4": 228,
+        "5": 228,
+        "6": 227,
+        "7": 227,
+        "8": 227,
+        "9": 227
+      },
+      "training_profile_hash": "081f65711be0708e005f6b04f94743e64446994380ee1b4f58fa3eed173b6164"
+    },
+    "latest_checkpoint_iteration": 1999,
+    "log_dir": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p5_go2_derived_reference_ef6826e/runner/p5-go2-derived-reference-ef6826e/train/run/attempt-cae0d47c9b7c4877b9d1c0fab59f5fba/rsl_rl",
+    "max_iterations": 2000,
+    "num_envs": 4096,
+    "num_steps_per_env": 24,
+    "training_distribution": {
+      "column_ids": [
+        "c0_regular",
+        "c1_alternating_tread_0.37",
+        "c1_alternating_tread_0.40",
+        "c1_alternating_tread_0.43",
+        "c1_front_loaded_tread_0.37",
+        "c1_front_loaded_tread_0.40",
+        "c1_front_loaded_tread_0.43",
+        "c1_back_loaded_tread_0.37",
+        "c1_back_loaded_tread_0.40",
+        "c1_back_loaded_tread_0.43"
+      ],
+      "curriculum": {
+        "goal_progress_m_by_terrain_type": [
+          4.35,
+          4.11,
+          4.35,
+          4.59,
+          4.11,
+          4.35,
+          4.59,
+          4.11,
+          4.35,
+          4.59
+        ],
+        "level_update_term": "true_rl_agent.tasks.stair_climbing.isaaclab_unified_terrain.stair_goal_progress_levels",
+        "terrain_type_is_fixed": true
+      },
+      "regime_allocation": {
+        "c0_regular_fraction": 0.5,
+        "c1_irregular_flat_fraction": 0.5
+      },
+      "schema_version": "true_rl_agent.task.stair_climbing.training_distribution_evidence.unified.v1",
+      "status": "unified_c0_c1",
+      "terrain_cols": 10,
+      "terrain_rows": 10,
+      "training_exposure": {
+        "allowed_regimes": [
+          "c0_regular",
+          "c1_irregular_flat"
+        ],
+        "evaluation_only_cohorts": [
+          "sealed_validation"
+        ],
+        "forbidden_regimes": [
+          "c2_rough"
+        ]
+      },
+      "training_profile_hash": "081f65711be0708e005f6b04f94743e64446994380ee1b4f58fa3eed173b6164",
+      "training_profile_id": "stair_unified_go2_12dof_c0_c1_training_v1"
+    },
+    "workload_kind": "production"
+  },
+  "training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98"
+}

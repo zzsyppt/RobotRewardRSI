@@ -79,6 +79,14 @@ class JobAttemptRecoveryRequiredError(ValueError):
     """An existing reservation may only be closed by lifecycle inspection."""
 
 
+class JobAttemptTerminalResultError(ValueError):
+    """The logical job already has a validated terminal attempt result."""
+
+    def __init__(self, message: str, *, result: "JobAttemptReceiptRef") -> None:
+        super().__init__(message)
+        self.result = result
+
+
 @dataclass(frozen=True)
 class JobAttemptScope:
     """Immutable authority and budget shared by every attempt of one job."""
@@ -594,7 +602,10 @@ class JobAttemptJournal:
             first_result.payload.get("outcome") == "infrastructure_failure"
             and first_result.payload.get("retryable") is True
         ):
-            raise ValueError("existing logical job already has a terminal result")
+            raise JobAttemptTerminalResultError(
+                "existing logical job already has a terminal result",
+                result=first_result,
+            )
         if self.scope.max_infrastructure_retries < 1:
             raise ValueError("existing logical job has no retry reserve")
         retry_path = self._reservation_path(1)
@@ -604,8 +615,11 @@ class JobAttemptJournal:
                 raise JobAttemptRecoveryRequiredError(
                     "existing retry reservation requires recovery inspection"
                 )
-            self.load_result(1)
-            raise ValueError("existing logical job already exhausted its retry")
+            retry_result = self.load_result(1)
+            raise JobAttemptTerminalResultError(
+                "existing logical job already exhausted its retry",
+                result=retry_result,
+            )
         return 1, first_result
 
     @classmethod
@@ -820,6 +834,7 @@ __all__ = [
     "RESOURCE_LEASE_ATTEMPT_RESULT_SCHEMA_VERSION",
     "JobAttemptExecutionScope",
     "JobAttemptRecoveryRequiredError",
+    "JobAttemptTerminalResultError",
     "JobAttemptJournal",
     "JobAttemptReceiptRef",
     "JobAttemptScope",

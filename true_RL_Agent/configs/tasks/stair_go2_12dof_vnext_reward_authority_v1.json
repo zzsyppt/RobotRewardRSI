@@ -44,25 +44,39 @@
   "reference_equivalence": {
     "upstream_project": "IsaacLab",
     "upstream_revision": "v2.3.0",
-    "upstream_source_path": "isaaclab_tasks/manager_based/locomotion/velocity/config/go2/rough_env_cfg.py",
+    "upstream_source_path": "isaaclab_tasks/manager_based/locomotion/velocity/config/go2/flat_env_cfg.py",
     "absolute_tolerance": 1e-06,
     "relative_tolerance": 1e-06,
     "active_term_names": [
       "track_lin_vel_xy_exp",
       "track_ang_vel_z_exp",
-      "lin_vel_z_l2",
       "ang_vel_xy_l2",
+      "flat_orientation_l2",
       "dof_torques_l2",
       "dof_acc_l2",
       "action_rate_l2",
       "feet_air_time"
     ],
     "zero_weight_term_names": [
-      "flat_orientation_l2",
+      "lin_vel_z_l2",
       "dof_pos_limits"
     ],
     "disabled_term_names": [
       "undesired_contacts"
+    ],
+    "weight_adaptations": [
+      {
+        "term_name": "track_lin_vel_xy_exp",
+        "upstream_weight": 1.5,
+        "reference_weight": 3.5,
+        "rationale_id": "forward_only_command_advantage_normalization"
+      },
+      {
+        "term_name": "lin_vel_z_l2",
+        "upstream_weight": -2.0,
+        "reference_weight": 0.0,
+        "rationale_id": "stair_ascent_vertical_motion_not_penalized"
+      }
     ]
   },
   "performance_gate": {
@@ -71,5 +85,5 @@
     "measured_control_steps": 128,
     "minimum_dispatcher_throughput_ratio": 0.85
   },
-  "authority_hash": "b79cd8c8923e17a3c45033f7b092243b5b2bd44729c01aa5afe98be63999e067"
+  "authority_hash": "de4380225e9620dc3d541c7aa4ca813b6face10d36cdacdc4ea28bbf72c84855"
 }

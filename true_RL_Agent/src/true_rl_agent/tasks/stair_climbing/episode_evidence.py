@@ -11,7 +11,10 @@ from true_rl_agent.tasks.stair_climbing.ordered_evaluation import (
     OrderedStairEvaluationCell,
 )
 from true_rl_agent.tasks.stair_climbing.evaluation_semantics import (
+    FIRST_VALID_TOP_ARRIVAL_COMPLETION_MODE,
+    STABLE_TOP_TRAVERSAL_COMPLETION_MODE,
     StairEvaluationSemantics,
+    stair_legacy_fall_signal_name,
 )
 from true_rl_agent.tasks.stair_climbing.phase0_contract import StairProtocolV1
 
@@ -253,6 +256,22 @@ class StairEpisodeTracker:
         self.env_index = env_index
         self.bin_id = bin_id
         self._outcomes = semantics.to_dict()["episode_outcomes"]
+        self._legacy_fall_signal_name = stair_legacy_fall_signal_name(
+            self._outcomes
+        )
+        success_contract = self._outcomes["success"]
+        self._completion_mode = str(success_contract["completion_mode"])
+        if self._completion_mode not in {
+            FIRST_VALID_TOP_ARRIVAL_COMPLETION_MODE,
+            STABLE_TOP_TRAVERSAL_COMPLETION_MODE,
+        }:
+            raise StairEpisodeEvidenceError(
+                "stair completion mode is not supported by the episode tracker"
+            )
+        self._pre_arrival_blocking_latches = tuple(
+            str(name)
+            for name in success_contract["pre_arrival_blocking_latches"]
+        )
         goal = payload["terrain"]["goal"] if payload is not None else None
         self._progress_start_m = (
             float(goal["progress_start_m_from_origin"])
@@ -362,10 +381,10 @@ class StairEpisodeTracker:
         self._last_step = transition.episode_step
         self._max_progress_m = max(self._max_progress_m, transition.progress_m)
         self._update_state(transition)
-        if self._top_platform_stability_latched:
-            # Stable success is absorbing: closing on this transition preserves the
-            # contract that a successful outcome cannot later gain a post-arrival
-            # safety-failure diagnostic.
+        if self._success_latched():
+            # Completion is absorbing.  First-arrival protocols close on the
+            # arrival transition; historical protocols close after their stable
+            # traversal requirement is met.
             outcome = self._finalize(transition)
             self._complete = True
             return outcome
@@ -388,14 +407,20 @@ class StairEpisodeTracker:
     def _update_state(self, transition: StairEnvTransition) -> None:
         signals = self._outcomes["signals"]
         success = self._outcomes["success"]
-        stability = self._outcomes["top_platform_stability_requirement"]
+        legacy_fall_signal = (
+            signals[self._legacy_fall_signal_name]
+            if self._legacy_fall_signal_name is not None
+            else None
+        )
         arrival_was_latched = self._top_arrival_latched
 
         self._forbidden_contact_latched |= transition.forbidden_contact
-        self._fall_streak = _next_streak(
-            self._fall_streak,
-            transition.base_clearance_m < float(signals["fall"]["threshold"]),
-        )
+        if legacy_fall_signal is not None:
+            self._fall_streak = _next_streak(
+                self._fall_streak,
+                transition.base_clearance_m
+                < float(legacy_fall_signal["threshold"]),
+            )
         self._orientation_streak = _next_streak(
             self._orientation_streak,
             max(transition.abs_roll_rad, transition.abs_pitch_rad)
@@ -425,9 +450,10 @@ class StairEpisodeTracker:
         )
         self._off_course_latched |= off_course
 
-        self._fall_latched |= self._fall_streak >= int(
-            signals["fall"]["consecutive_control_steps"]
-        )
+        if legacy_fall_signal is not None:
+            self._fall_latched |= self._fall_streak >= int(
+                legacy_fall_signal["consecutive_control_steps"]
+            )
         self._orientation_diagnostic_latched |= self._orientation_streak >= int(
             signals["base_orientation_instability"]["consecutive_control_steps"]
         )
@@ -474,18 +500,24 @@ class StairEpisodeTracker:
             )
         )
         top_support_count = sum(top_support_evidence)
-        maximum_support_speed = float(
-            stability["maximum_support_effector_planar_speed_mps"]
+        requires_base_clearance = bool(
+            success.get("requires_kinematic_base_clearance_above_top", False)
         )
-        stable_top_support_count = sum(
-            supported and speed <= maximum_support_speed
-            for supported, speed in zip(
-                top_support_evidence,
-                transition.support_planar_speeds_mps,
-                strict=True,
+        base_clearance_valid = True
+        if requires_base_clearance:
+            raw_minimum_base_clearance_above_top = success.get(
+                "minimum_kinematic_base_clearance_above_top_m"
             )
-        )
-        base_clearance_above_top = transition.base_height_m - self._top_height_m
+            if raw_minimum_base_clearance_above_top is None:
+                if legacy_fall_signal is None:
+                    raise StairEpisodeEvidenceError(
+                        "stair legal arrival base clearance is not defined"
+                    )
+                raw_minimum_base_clearance_above_top = legacy_fall_signal["threshold"]
+            base_clearance_valid = (
+                transition.base_height_m - self._top_height_m
+                >= float(raw_minimum_base_clearance_above_top)
+            )
         orientation_stable = max(
             transition.abs_roll_rad,
             transition.abs_pitch_rad,
@@ -494,36 +526,65 @@ class StairEpisodeTracker:
             transition.progress_m >= required_progress
             and transition.progress_m <= self._course_max_progress_m
             and abs(transition.lateral_m) <= self._course_half_width_m
-            and base_clearance_above_top >= float(signals["fall"]["threshold"])
+            and base_clearance_valid
             and orientation_stable
             and top_support_count >= int(success["minimum_support_effectors_on_top"])
         )
-        pre_arrival_blocked = (
-            self._forbidden_contact_latched
-            or self._fall_latched
-            or self._off_course_latched
-        )
+        pre_arrival_blocked = self._pre_arrival_blocked()
         if valid_top_arrival and not pre_arrival_blocked:
             self._top_arrival_latched = True
 
-        if arrival_was_latched and pre_arrival_blocked:
-            self._post_arrival_safety_failure_latched = True
+        if self._completion_mode == STABLE_TOP_TRAVERSAL_COMPLETION_MODE:
+            stability = self._outcomes["top_platform_stability_requirement"]
+            if arrival_was_latched and pre_arrival_blocked:
+                self._post_arrival_safety_failure_latched = True
+            maximum_support_speed = float(
+                stability["maximum_support_effector_planar_speed_mps"]
+            )
+            stable_top_support_count = sum(
+                supported and speed <= maximum_support_speed
+                for supported, speed in zip(
+                    top_support_evidence,
+                    transition.support_planar_speeds_mps,
+                    strict=True,
+                )
+            )
+            stable_top_traversal = (
+                self._top_arrival_latched
+                and valid_top_arrival
+                and stable_top_support_count
+                >= int(success["minimum_support_effectors_on_top"])
+                and not pre_arrival_blocked
+            )
+            self._top_platform_stability_streak = _next_streak(
+                self._top_platform_stability_streak,
+                stable_top_traversal,
+            )
+            self._top_platform_stability_latched |= (
+                self._top_platform_stability_streak
+                >= int(stability["consecutive_control_steps"])
+            )
 
-        stable_top_traversal = (
-            self._top_arrival_latched
-            and valid_top_arrival
-            and stable_top_support_count
-            >= int(success["minimum_support_effectors_on_top"])
-            and not pre_arrival_blocked
-        )
-        self._top_platform_stability_streak = _next_streak(
-            self._top_platform_stability_streak,
-            stable_top_traversal,
-        )
-        self._top_platform_stability_latched |= (
-            self._top_platform_stability_streak
-            >= int(stability["consecutive_control_steps"])
-        )
+    def _pre_arrival_blocked(self) -> bool:
+        latch_state = {
+            "forbidden_contact": self._forbidden_contact_latched,
+            "off_course": self._off_course_latched,
+        }
+        if self._legacy_fall_signal_name is not None:
+            latch_state[self._legacy_fall_signal_name] = self._fall_latched
+        try:
+            return any(
+                latch_state[name] for name in self._pre_arrival_blocking_latches
+            )
+        except KeyError as exc:
+            raise StairEpisodeEvidenceError(
+                "stair pre-arrival blocker is not implemented"
+            ) from exc
+
+    def _success_latched(self) -> bool:
+        if self._completion_mode == FIRST_VALID_TOP_ARRIVAL_COMPLETION_MODE:
+            return self._top_arrival_latched
+        return self._top_platform_stability_latched
 
     def _finalize(
         self,
@@ -531,7 +592,7 @@ class StairEpisodeTracker:
         *,
         additional_active_reasons: tuple[str, ...] = (),
     ) -> StairEpisodeOutcome:
-        succeeded = self._top_platform_stability_latched
+        succeeded = self._success_latched()
         active_reasons = set(additional_active_reasons)
         unknown_terms: list[str] = []
         for term in transition.termination_terms:
@@ -553,7 +614,6 @@ class StairEpisodeTracker:
             reason_flags = {
                 "forbidden_contact": self._forbidden_contact_latched
                 or "forbidden_contact" in active_reasons,
-                "fall": self._fall_latched,
                 "off_course": self._off_course_latched,
                 "base_orientation_instability": self._orientation_streak
                 >= int(
@@ -565,6 +625,8 @@ class StairEpisodeTracker:
                 >= int(signals["insufficient_clearance"]["consecutive_control_steps"]),
                 "timeout": "timeout" in active_reasons,
             }
+            if self._legacy_fall_signal_name is not None:
+                reason_flags[self._legacy_fall_signal_name] = self._fall_latched
             primary_reason = next(
                 (
                     reason
@@ -578,7 +640,7 @@ class StairEpisodeTracker:
                     "stair done transition has no classifiable primary reason"
                 )
 
-        diagnostics = {
+        diagnostics: dict[str, bool] = {
             "base_orientation_instability_detected": (
                 self._orientation_diagnostic_latched
             ),
@@ -589,11 +651,16 @@ class StairEpisodeTracker:
                 not succeeded and self._max_progress_m < self._goal_m
             ),
             "first_valid_top_arrival_achieved": self._top_arrival_latched,
-            "post_arrival_safety_failure_detected": (
-                self._post_arrival_safety_failure_latched
-            ),
         }
         declared = tuple(self._outcomes["diagnostic_flags"])
+        if self._legacy_fall_signal_name is not None:
+            legacy_fall_diagnostic = f"{self._legacy_fall_signal_name}_detected"
+            if legacy_fall_diagnostic in declared:
+                diagnostics[legacy_fall_diagnostic] = self._fall_latched
+        if "post_arrival_safety_failure_detected" in declared:
+            diagnostics["post_arrival_safety_failure_detected"] = (
+                self._post_arrival_safety_failure_latched
+            )
         if set(diagnostics) != set(declared):
             raise StairEpisodeEvidenceError(
                 "stair diagnostic implementation does not match protocol"
@@ -625,23 +692,29 @@ def validate_stair_success_diagnostic_relations(
     *,
     declared_diagnostic_flags: Sequence[str],
 ) -> None:
-    """Validate the active stable-success contract without rewriting legacy outcomes."""
+    """Validate first-arrival and historical stable-success relations."""
 
     declared = set(declared_diagnostic_flags)
     arrival_flag = "first_valid_top_arrival_achieved"
     post_arrival_failure_flag = "post_arrival_safety_failure_detected"
     if arrival_flag not in declared:
         return
-    if post_arrival_failure_flag not in declared:
-        raise StairEpisodeEvidenceError(
-            "stair stable-success diagnostics are incomplete"
-        )
     for outcome in outcomes:
         diagnostics = set(outcome.diagnostic_flags)
         if outcome.success and arrival_flag not in diagnostics:
             raise StairEpisodeEvidenceError(
-                "stair stable-top success requires first valid top arrival evidence"
+                (
+                    "stair stable-top success requires first valid top arrival evidence"
+                    if post_arrival_failure_flag in declared
+                    else "stair first-arrival success requires top arrival evidence"
+                )
             )
+        if post_arrival_failure_flag not in declared:
+            if (arrival_flag in diagnostics) != outcome.success:
+                raise StairEpisodeEvidenceError(
+                    "stair first-arrival completion disagrees with success"
+                )
+            continue
         if post_arrival_failure_flag in diagnostics and arrival_flag not in diagnostics:
             raise StairEpisodeEvidenceError(
                 "stair post-arrival safety failure requires top arrival evidence"

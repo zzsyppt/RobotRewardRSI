@@ -1,0 +1,49 @@
+{
+  "status": "PASS",
+  "started_at_unix": 1788848905.9919987,
+  "train": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit3_go2_full_train",
+  "eval_dir": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit_completion_checkpoint_native",
+  "steps": [
+    {
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/native_eval_job_probe.py",
+        "--robot",
+        "go2",
+        "--device",
+        "cuda:1",
+        "--output",
+        "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit_completion_checkpoint_native",
+        "--checkpoint",
+        "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit3_go2_full_train/runner/audit3_go2_full_train/checkpoints/best.pt",
+        "--checkpoint-summary",
+        "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit3_go2_full_train/runner/audit3_go2_full_train/train/summary.json"
+      ],
+      "started_at_unix": 1788857336.2771873,
+      "log": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/audit_completion_checkpoint_native.log",
+      "returncode": 0,
+      "ended_at_unix": 1788857599.03805
+    },
+    {
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/verify_native_video.py",
+        "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit_completion_checkpoint_native"
+      ],
+      "started_at_unix": 1788857599.0385973,
+      "log": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/audit_completion_checkpoint_video_verification.log",
+      "returncode": 0,
+      "ended_at_unix": 1788857607.3662043
+    }
+  ],
+  "checkpoint": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit3_go2_full_train/runner/audit3_go2_full_train/checkpoints/best.pt",
+  "checkpoint_checksum": "sha256:7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+  "summary": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit3_go2_full_train/runner/audit3_go2_full_train/train/summary.json",
+  "ended_at_unix": 1788857607.3668454,
+  "automated_stage_status": "EVAL_AND_DECODE_PASS_PENDING_VISUAL_REVIEW_AND_DEPLOYMENT",
+  "post_evaluation_verified_at_utc": "2026-09-08T09:03:56.486513+00:00",
+  "visual_review": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit_completion_checkpoint_visual_review.json",
+  "deployment": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit_deployment_result.json",
+  "deployed_video_off_comparison": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit_completion_deployed_video_on_off_comparison.json",
+  "resource_closure": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit_completion_resource_closure.json"
+}

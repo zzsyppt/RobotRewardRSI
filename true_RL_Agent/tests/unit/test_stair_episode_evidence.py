@@ -196,6 +196,130 @@ class StairEpisodeEvidenceTests(unittest.TestCase):
                 )
             )
 
+    def test_first_arrival_v2_records_recovered_low_clearance_without_blocking(self) -> None:
+        config = StairClimbingTaskConfig.defaults(
+            ROOT / "configs" / "tasks" / "stair_unified_protocol_v2.json"
+        )
+        assert config.evaluation_semantics is not None
+        cell = config.ordered_evaluation_suite.runtime_cells("public_dev")[0]
+        tracker = StairEpisodeTracker(
+            None,
+            config.evaluation_semantics,
+            env_index=0,
+            bin_id=cell.bin_id,
+            evaluation_cell=cell,
+        )
+
+        for step in range(1, 6):
+            self.assertIsNone(
+                tracker.observe(
+                    _transition(
+                        bin_id=cell.bin_id,
+                        step=step,
+                        evaluation_cell_id=cell.cell_id,
+                        root_height_m=0.4,
+                        root_clearance_m=0.2,
+                    )
+                )
+            )
+
+        outcome = tracker.observe(
+            _transition(
+                bin_id=cell.bin_id,
+                step=6,
+                evaluation_cell_id=cell.cell_id,
+                progress_m=cell.progress_goal_m,
+                root_height_m=cell.total_height_m + 0.8,
+                root_clearance_m=0.8,
+                foot_progress_m=(cell.progress_goal_m, cell.progress_goal_m),
+                foot_surface_levels=(cell.step_count, cell.step_count),
+                done=True,
+                termination_terms=("time_out",),
+            )
+        )
+
+        assert outcome is not None
+        self.assertTrue(outcome.success)
+        self.assertEqual(outcome.primary_reason, "success")
+        self.assertEqual(outcome.episode_steps, 6)
+        self.assertNotIn("low_base_clearance_detected", outcome.diagnostic_flags)
+        self.assertIn("first_valid_top_arrival_achieved", outcome.diagnostic_flags)
+        self.assertNotIn(
+            "post_arrival_safety_failure_detected",
+            config.episode_outcomes()["diagnostic_flags"],
+        )
+
+        failed_tracker = StairEpisodeTracker(
+            None,
+            config.evaluation_semantics,
+            env_index=0,
+            bin_id=cell.bin_id,
+            evaluation_cell=cell,
+        )
+        failed_outcome = None
+        for step in range(1, 6):
+            failed_outcome = failed_tracker.observe(
+                _transition(
+                    bin_id=cell.bin_id,
+                    step=step,
+                    evaluation_cell_id=cell.cell_id,
+                    root_height_m=0.4,
+                    root_clearance_m=0.2,
+                    done=step == 5,
+                    termination_terms=("time_out",) if step == 5 else (),
+                )
+            )
+        assert failed_outcome is not None
+        self.assertFalse(failed_outcome.success)
+        self.assertEqual(failed_outcome.primary_reason, "timeout")
+        self.assertNotIn("low_base_clearance_detected", failed_outcome.diagnostic_flags)
+
+    def test_go2_legal_arrival_clearance_is_independent_of_running_gait(self) -> None:
+        config = StairClimbingTaskConfig.defaults(
+            ROOT
+            / "configs"
+            / "tasks"
+            / "stair_go2_12dof_unified_protocol_v2.json"
+        )
+        assert config.evaluation_semantics is not None
+        cell = config.ordered_evaluation_suite.runtime_cells("public_dev")[0]
+        tracker = StairEpisodeTracker(
+            None,
+            config.evaluation_semantics,
+            env_index=0,
+            bin_id=cell.bin_id,
+            evaluation_cell=cell,
+        )
+
+        for step in range(1, 6):
+            self.assertIsNone(
+                tracker.observe(
+                    _transition(
+                        bin_id=cell.bin_id,
+                        step=step,
+                        evaluation_cell_id=cell.cell_id,
+                        root_height_m=0.2,
+                        root_clearance_m=0.2,
+                    )
+                )
+            )
+        outcome = tracker.observe(
+            _transition(
+                bin_id=cell.bin_id,
+                step=6,
+                evaluation_cell_id=cell.cell_id,
+                progress_m=cell.progress_goal_m,
+                root_height_m=cell.total_height_m + 0.3,
+                root_clearance_m=0.3,
+                foot_progress_m=(cell.progress_goal_m, cell.progress_goal_m),
+                foot_surface_levels=(cell.step_count, cell.step_count),
+            )
+        )
+
+        assert outcome is not None
+        self.assertTrue(outcome.success)
+        self.assertNotIn("low_base_clearance_detected", outcome.diagnostic_flags)
+
     def test_safety_failure_on_twentieth_stable_step_blocks_success(self) -> None:
         tracker = self._tracker()
         for step in range(1, 20):
@@ -756,6 +880,7 @@ def _transition(
     done: bool = False,
     termination_terms: tuple[str, ...] = (),
     forbidden_contact: bool = False,
+    evaluation_cell_id: str | None = None,
     foot_contacts: tuple[bool, bool] = (True, True),
     foot_progress_m: tuple[float, float] = (4.35, 4.35),
     foot_surface_levels: tuple[int, int] = (0, 0),
@@ -784,6 +909,7 @@ def _transition(
         support_upward_forces_n=foot_upward_forces_n,
         done=done,
         termination_terms=termination_terms,
+        evaluation_cell_id=evaluation_cell_id,
     )
 
 

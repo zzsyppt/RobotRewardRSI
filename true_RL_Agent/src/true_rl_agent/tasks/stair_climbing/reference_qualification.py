@@ -7,12 +7,14 @@ import statistics
 from typing import Any, Mapping
 
 from true_rl_agent.evaluation.binding import canonical_json_hash
+from true_rl_agent.evaluation.derived_statistics import sample_mean
 from true_rl_agent.evaluation.public_result import PublicEvalResult
 from true_rl_agent.tasks.reference_qualification import (
     REFERENCE_QUALIFICATION_GATE_SCHEMA_VERSION,
     ReferenceQualificationResult,
 )
 from true_rl_agent.tasks.stair_climbing.config import StairClimbingTaskConfig
+from true_rl_agent.tasks.stair_climbing.ordered_summary import ordered_summary_statistics_version
 from true_rl_agent.tasks.stair_climbing.evaluation_contract import (
     validate_stair_split_summary,
 )
@@ -216,18 +218,24 @@ def _qualify_unified_stair_reference(
         raise ValueError("unified Stair reference seed count mismatch")
 
     ordered = split["ordered_summary"]
+    statistics_version = ordered_summary_statistics_version(ordered["schema_version"])
     success_by_cell = ordered["aggregate_success_rate_by_cell"]
     progress_by_cell = ordered["aggregate_mean_progress_fraction_by_cell"]
     easy_measurements: dict[str, Any] = {}
     easy_pass = True
     for stratum in readiness["easy_strata"]:
         cell_ids = split["stratum_cell_ids"][stratum]
-        success = statistics.fmean(float(success_by_cell[cell]) for cell in cell_ids)
-        progress = statistics.fmean(float(progress_by_cell[cell]) for cell in cell_ids)
-        passed = (
-            success >= float(readiness["minimum_macro_success_rate"])
-            and progress >= float(readiness["minimum_macro_goal_progress_fraction"])
+        success = sample_mean(
+            (success_by_cell[cell] for cell in cell_ids),
+            statistics_version=statistics_version,
         )
+        progress = sample_mean(
+            (progress_by_cell[cell] for cell in cell_ids),
+            statistics_version=statistics_version,
+        )
+        passed = success >= float(
+            readiness["minimum_macro_success_rate"]
+        ) and progress >= float(readiness["minimum_macro_goal_progress_fraction"])
         easy_measurements[str(stratum)] = {
             "cell_ids": list(cell_ids),
             "macro_success_rate": success,

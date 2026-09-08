@@ -193,7 +193,7 @@ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
         root_pos = origins.clone()
         root_pos[:, 2] += 0.8
         root_quat = torch.zeros((num_envs, 4), dtype=torch.float32)
-        root_quat[:, 0] = 1.0
+        root_quat[:, 3] = 1.0  # Native Isaac Lab 3 buffers use XYZW.
         foot_pos = origins[:, None, :].repeat(1, 2, 1)
         foot_pos[:, 0, 1] -= 0.1
         foot_pos[:, 1, 1] += 0.1

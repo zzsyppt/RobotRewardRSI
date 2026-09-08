@@ -914,6 +914,7 @@ def _comparison_reasons(
             try:
                 threshold_result = guard_regression_threshold(
                     acceptance_protocol,
+                    statistics_version=acceptance_evidence.guard_score_stats.get("statistics_version"),
                     candidate_guard_score=candidate_guard,
                     best_guard_score=best_guard,
                     candidate_guard_score_samples=(
@@ -1005,6 +1006,7 @@ def _comparison_reasons(
                 threshold_result = named_guard_regression_threshold(
                     acceptance_protocol,
                     guard,
+                    statistics_version=_mapping(evidence.get("score_stats")).get("statistics_version"),
                     candidate_guard_score=candidate_guard,
                     best_guard_score=best_guard,
                     candidate_guard_score_samples=evidence.get("score_samples"),

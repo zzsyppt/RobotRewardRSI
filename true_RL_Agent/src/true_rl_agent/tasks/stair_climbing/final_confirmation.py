@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import math
-import statistics
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 
+from true_rl_agent.evaluation.derived_statistics import DERIVED_STATISTICS_VERSION, sample_statistics
 from true_rl_agent.agent_core.generation_lifecycle import GenerationTerminalBinding
 from true_rl_agent.backends.base import (
     BACKEND_EXECUTION_ENVIRONMENT_VERIFICATION_SCHEMA_VERSION,
@@ -45,6 +45,12 @@ from true_rl_agent.tasks.stair_climbing.training_distribution import (
     STAIR_EXECUTION_SOURCE_PREFLIGHT_SCHEMA_VERSION,
     stair_training_distribution_upstream_source_evidence,
 )
+from true_rl_agent.tasks.stair_climbing.unified_scoring import (
+    STAIR_UNIFIED_SUMMARY_SCHEMA_VERSION,
+    UNIFIED_SUMMARY_SCHEMA_VERSIONS,
+    build_unified_score_projection,
+    validate_unified_stair_summary,
+)
 
 STAIR_FINAL_CONFIRMATION_PLAN_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.final_confirmation_plan.v1"
@@ -78,9 +84,9 @@ STAIR_FINAL_CONFIRMATION_FORMAL_SESSION_MODE = "formal_generation_session"
 STAIR_FINAL_CONFIRMATION_SPLIT = "sealed_validation"
 MAX_STAIR_FINAL_CONFIRMATION_PLAN_BYTES = 64 * 1024
 MAX_STAIR_FINAL_CONFIRMATION_RESERVATION_BYTES = 64 * 1024
-# Two canonical v4 7-seed x 35-cell summaries currently encode to about 116 KiB.
-# Keep bounded headroom for task-contract growth without permitting unbounded reads.
-MAX_STAIR_FINAL_CONFIRMATION_RESULT_BYTES = 256 * 1024
+# Two current unified 7-seed summaries plus their receipt metadata can exceed
+# 256 KiB. Keep one bounded 512 KiB envelope; summaries remain schema-validated.
+MAX_STAIR_FINAL_CONFIRMATION_RESULT_BYTES = 512 * 1024
 
 _COMPARISON = {
     "genesis_role": "reference_program_genesis_checkpoint",
@@ -110,6 +116,10 @@ _STATISTICS = {
         "paired_delta_standard_error",
     ],
     "decision_rule": "none_diagnostic_report_only",
+}
+_GENERATION_STATISTICS = {
+    **_STATISTICS,
+    "unit": "one_frozen_objective_mask_j_primary_score_per_seed",
 }
 
 
@@ -335,7 +345,10 @@ class StairFinalConfirmationPlanV2(StairFinalConfirmationPlan):
             raise ValueError(
                 "Stair generation final confirmation comparison mismatch"
             )
-        if dict(_mapping(mapping.get("statistics"), "statistics")) != _STATISTICS:
+        if (
+            dict(_mapping(mapping.get("statistics"), "statistics"))
+            != _GENERATION_STATISTICS
+        ):
             raise ValueError(
                 "Stair generation final confirmation statistics mismatch"
             )
@@ -423,8 +436,8 @@ class StairFinalConfirmationPlanV2(StairFinalConfirmationPlan):
                 "execution_order": list(_GENERATION_COMPARISON["execution_order"]),
             },
             "statistics": {
-                **_STATISTICS,
-                "reported": list(_STATISTICS["reported"]),
+                **_GENERATION_STATISTICS,
+                "reported": list(_GENERATION_STATISTICS["reported"]),
             },
             "required_closed_generations": (
                 STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS
@@ -442,18 +455,20 @@ def build_stair_final_confirmation_plan(
     if not isinstance(config, StairClimbingTaskConfig):
         raise TypeError("Stair final confirmation requires StairClimbingTaskConfig")
     resolver = config.seed_resolver()
-    profile = config.evaluation_profile
+    evaluation_shape_hash, cell_count, episodes_per_seed_per_cell = (
+        _final_confirmation_evaluation_shape(config)
+    )
     return StairFinalConfirmationPlan(
         session_id=session_id,
         task_protocol_hash=config.task_protocol_hash,
         eval_protocol_hash=config.evaluation_protocol().protocol_hash,
-        evaluation_profile_hash=profile.profile_hash,
+        evaluation_profile_hash=evaluation_shape_hash,
         seed_cohort_hash=resolver.namespace_cohort_hash(
             STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE
         ),
         seed_count=config.sealed_validation_seed_count,
-        cell_count=len(profile.cells),
-        episodes_per_seed_per_cell=profile.episodes_per_seed_per_cell,
+        cell_count=cell_count,
+        episodes_per_seed_per_cell=episodes_per_seed_per_cell,
     )
 
 
@@ -519,18 +534,47 @@ def build_stair_generation_final_confirmation_plan(
             "Stair generation final confirmation requires StairClimbingTaskConfig"
         )
     resolver = config.seed_resolver()
-    profile = config.evaluation_profile
+    evaluation_shape_hash, cell_count, episodes_per_seed_per_cell = (
+        _final_confirmation_evaluation_shape(config)
+    )
     return StairFinalConfirmationPlanV2(
         session_id=session_id,
         task_protocol_hash=config.task_protocol_hash,
         eval_protocol_hash=config.evaluation_protocol().protocol_hash,
-        evaluation_profile_hash=profile.profile_hash,
+        evaluation_profile_hash=evaluation_shape_hash,
         seed_cohort_hash=resolver.namespace_cohort_hash(
             STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE
         ),
         seed_count=config.sealed_validation_seed_count,
-        cell_count=len(profile.cells),
-        episodes_per_seed_per_cell=profile.episodes_per_seed_per_cell,
+        cell_count=cell_count,
+        episodes_per_seed_per_cell=episodes_per_seed_per_cell,
+    )
+
+
+def _final_confirmation_evaluation_shape(
+    config: StairClimbingTaskConfig,
+) -> tuple[str, int, int]:
+    """Return the task-owned sealed evaluation shape for either protocol ABI.
+
+    The plan's historical ``evaluation_profile_hash`` field carries this shape
+    identity; unified protocols bind their exact sealed cohort hash there.
+    """
+
+    if config.is_unified_protocol:
+        suite = config.ordered_evaluation_suite
+        cells = suite.cells_for_cohort(STAIR_FINAL_CONFIRMATION_SPLIT)
+        if not cells:
+            raise ValueError("Stair final confirmation sealed cohort is empty")
+        return (
+            suite.cohort_hash(STAIR_FINAL_CONFIRMATION_SPLIT),
+            len(cells),
+            suite.episodes_per_seed_per_cell,
+        )
+    profile = config.evaluation_profile
+    return (
+        profile.profile_hash,
+        len(profile.cells),
+        profile.episodes_per_seed_per_cell,
     )
 
 
@@ -1372,6 +1416,7 @@ class StairFinalConfirmationResultV2:
         plan: StairFinalConfirmationPlanV2,
         reservation: StairFinalConfirmationReservationV2,
         config: StairClimbingTaskConfig,
+        objective_family_mask: Mapping[str, Any] | None = None,
     ) -> "StairFinalConfirmationResultV2":
         mapping = _exact_mapping(
             value,
@@ -1460,6 +1505,7 @@ class StairFinalConfirmationResultV2:
             plan=plan,
             reservation=reservation,
             config=config,
+            objective_family_mask=objective_family_mask,
         )
         if dict(mapping) != result.to_dict():
             raise ValueError(
@@ -1509,22 +1555,39 @@ def build_stair_generation_final_confirmation_result(
     final_execution: StairFinalConfirmationPhaseExecution,
     genesis_summary: Mapping[str, Any],
     final_summary: Mapping[str, Any],
+    objective_family_mask: Mapping[str, Any] | None = None,
 ) -> StairFinalConfirmationResultV2:
     _require_generation_plan_reservation_binding(plan, reservation)
     _require_generation_plan_config_binding(plan, config)
-    canonical_genesis = _canonical_confirmation_summary(config, genesis_summary)
-    canonical_final = _canonical_confirmation_summary(config, final_summary)
+    canonical_genesis = _canonical_confirmation_summary(
+        config,
+        genesis_summary,
+        objective_family_mask=objective_family_mask,
+    )
+    canonical_final = _canonical_confirmation_summary(
+        config,
+        final_summary,
+        objective_family_mask=objective_family_mask,
+    )
     genesis_scores = _summary_seed_scores(
         canonical_genesis,
         plan.seed_count,
         "genesis",
+        config=config,
+        objective_family_mask=objective_family_mask,
     )
-    final_scores = _summary_seed_scores(canonical_final, plan.seed_count, "final")
+    final_scores = _summary_seed_scores(
+        canonical_final,
+        plan.seed_count,
+        "final",
+        config=config,
+        objective_family_mask=objective_family_mask,
+    )
     deltas = tuple(
         right - left
         for left, right in zip(genesis_scores, final_scores, strict=True)
     )
-    delta_std = statistics.stdev(deltas) if len(deltas) > 1 else 0.0
+    paired_stats = _paired_statistics(deltas, canonical_genesis)
     result = StairFinalConfirmationResultV2(
         plan_hash=require_sha256_digest(plan.plan_hash, "plan_hash"),
         reservation_hash=require_sha256_digest(
@@ -1541,14 +1604,15 @@ def build_stair_generation_final_confirmation_result(
         genesis_summary=canonical_genesis,
         final_summary=canonical_final,
         paired_seed_deltas=deltas,
-        paired_mean=statistics.fmean(deltas),
-        paired_standard_error=delta_std / math.sqrt(len(deltas)),
+        paired_mean=paired_stats["mean"],
+        paired_standard_error=paired_stats["standard_error"],
     )
     _validate_generation_final_confirmation_result(
         result,
         plan=plan,
         reservation=reservation,
         config=config,
+        objective_family_mask=objective_family_mask,
     )
     return result
 
@@ -1587,7 +1651,7 @@ def build_stair_final_confirmation_result(
         right - left
         for left, right in zip(genesis_scores, final_scores, strict=True)
     ]
-    delta_std = statistics.stdev(deltas) if len(deltas) > 1 else 0.0
+    paired_stats = sample_statistics(deltas, statistics_version=None)
     return StairFinalConfirmationResult(
         plan_hash=require_sha256_digest(plan.plan_hash, "plan_hash"),
         reservation_hash=require_sha256_digest(
@@ -1602,8 +1666,8 @@ def build_stair_final_confirmation_result(
         genesis_summary=genesis,
         final_summary=final,
         paired_seed_deltas=tuple(deltas),
-        paired_mean=statistics.fmean(deltas),
-        paired_standard_error=delta_std / math.sqrt(len(deltas)),
+        paired_mean=paired_stats["mean"],
+        paired_standard_error=paired_stats["standard_error"],
     )
 
 
@@ -1814,18 +1878,18 @@ class StairFinalConfirmationResult:
             right - left
             for left, right in zip(genesis_scores, final_scores, strict=True)
         )
-        expected_std = statistics.stdev(expected_deltas) if len(expected_deltas) > 1 else 0.0
+        expected_stats = sample_statistics(expected_deltas, statistics_version=None)
         if (
             result.paired_seed_deltas != expected_deltas
             or not math.isclose(
                 result.paired_mean,
-                statistics.fmean(expected_deltas),
+                expected_stats["mean"],
                 rel_tol=0.0,
                 abs_tol=1.0e-12,
             )
             or not math.isclose(
                 result.paired_standard_error,
-                expected_std / math.sqrt(len(expected_deltas)),
+                expected_stats["standard_error"],
                 rel_tol=0.0,
                 abs_tol=1.0e-12,
             )
@@ -2098,12 +2162,14 @@ def write_stair_generation_final_confirmation_result(
     plan: StairFinalConfirmationPlanV2,
     reservation: StairFinalConfirmationReservationV2,
     config: StairClimbingTaskConfig,
+    objective_family_mask: Mapping[str, Any] | None = None,
 ) -> Path:
     verified = StairFinalConfirmationResultV2.from_mapping(
         result.to_dict(),
         plan=plan,
         reservation=reservation,
         config=config,
+        objective_family_mask=objective_family_mask,
     )
     output_dir = output_dir.resolve()
     stored_plan = load_stair_generation_final_confirmation_plan(
@@ -2131,6 +2197,7 @@ def write_stair_generation_final_confirmation_result(
         plan=plan,
         reservation=reservation,
         config=config,
+        objective_family_mask=objective_family_mask,
     )
     if loaded != verified:
         raise RuntimeError(
@@ -2145,6 +2212,7 @@ def load_stair_generation_final_confirmation_result(
     plan: StairFinalConfirmationPlanV2,
     reservation: StairFinalConfirmationReservationV2,
     config: StairClimbingTaskConfig,
+    objective_family_mask: Mapping[str, Any] | None = None,
 ) -> StairFinalConfirmationResultV2:
     return StairFinalConfirmationResultV2.from_mapping(
         _load_bounded_canonical_json_object(
@@ -2155,6 +2223,7 @@ def load_stair_generation_final_confirmation_result(
         plan=plan,
         reservation=reservation,
         config=config,
+        objective_family_mask=objective_family_mask,
     )
 
 
@@ -2340,6 +2409,7 @@ def _validate_generation_final_confirmation_result(
     plan: StairFinalConfirmationPlanV2,
     reservation: StairFinalConfirmationReservationV2,
     config: StairClimbingTaskConfig,
+    objective_family_mask: Mapping[str, Any] | None = None,
 ) -> None:
     if not isinstance(result, StairFinalConfirmationResultV2):
         raise TypeError("Stair generation final confirmation result is invalid")
@@ -2383,7 +2453,11 @@ def _validate_generation_final_confirmation_result(
         checkpoint_hash,
         summary,
     ) in role_expectations:
-        canonical_summary = _canonical_confirmation_summary(config, summary)
+        canonical_summary = _canonical_confirmation_summary(
+            config,
+            summary,
+            objective_family_mask=objective_family_mask,
+        )
         if (
             execution.role != role
             or execution.job_id != job_id
@@ -2402,30 +2476,36 @@ def _validate_generation_final_confirmation_result(
         result.genesis_summary,
         plan.seed_count,
         "genesis",
+        config=config,
+        objective_family_mask=objective_family_mask,
     )
     final_scores = _summary_seed_scores(
         result.final_summary,
         plan.seed_count,
         "final",
+        config=config,
+        objective_family_mask=objective_family_mask,
     )
     expected_deltas = tuple(
         right - left
         for left, right in zip(genesis_scores, final_scores, strict=True)
     )
-    expected_std = (
-        statistics.stdev(expected_deltas) if len(expected_deltas) > 1 else 0.0
-    )
+    expected_stats = _paired_statistics(expected_deltas, result.genesis_summary)
+    if result.genesis_summary.get("schema_version") == STAIR_UNIFIED_SUMMARY_SCHEMA_VERSION and (
+        result.paired_mean != expected_stats["mean"] or result.paired_standard_error != expected_stats["standard_error"]
+    ):
+        raise ValueError("Stair generation final confirmation canonical paired statistics mismatch")
     if (
         result.paired_seed_deltas != expected_deltas
         or not math.isclose(
             result.paired_mean,
-            statistics.fmean(expected_deltas),
+            expected_stats["mean"],
             rel_tol=0.0,
             abs_tol=1.0e-12,
         )
         or not math.isclose(
             result.paired_standard_error,
-            expected_std / math.sqrt(len(expected_deltas)),
+            expected_stats["standard_error"],
             rel_tol=0.0,
             abs_tol=1.0e-12,
         )
@@ -2433,6 +2513,19 @@ def _validate_generation_final_confirmation_result(
         raise ValueError(
             "Stair generation final confirmation paired statistics mismatch"
         )
+
+
+def _paired_statistics(
+    deltas: Sequence[float], summary: Mapping[str, Any]
+) -> dict[str, Any]:
+    return sample_statistics(
+        deltas,
+        statistics_version=(
+            DERIVED_STATISTICS_VERSION
+            if summary.get("schema_version") == STAIR_UNIFIED_SUMMARY_SCHEMA_VERSION
+            else None
+        ),
+    )
 
 
 def _require_plan_config_binding(
@@ -2452,7 +2545,25 @@ def _require_plan_config_binding(
 def _canonical_confirmation_summary(
     config: StairClimbingTaskConfig,
     summary: Mapping[str, Any],
+    *,
+    objective_family_mask: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
+    if config.is_unified_protocol:
+        canonical = validate_unified_stair_summary(
+            suite=config.ordered_evaluation_suite,
+            semantics=config.evaluation_semantics,
+            split=STAIR_FINAL_CONFIRMATION_SPLIT,
+            summary=summary,
+        )
+        if objective_family_mask is None:
+            raise ValueError(
+                "unified Stair final confirmation requires its frozen objective mask"
+            )
+        build_unified_score_projection(
+            canonical,
+            objective_family_mask=objective_family_mask,
+        )
+        return canonical
     if summary.get("schema_version") != STAIR_GENERALIZATION_SUMMARY_SCHEMA_VERSION:
         raise ValueError(
             "Stair final confirmation requires the current generalization summary schema"
@@ -2470,8 +2581,26 @@ def _summary_seed_scores(
     summary: Mapping[str, Any],
     expected_count: int,
     role: str,
+    *,
+    config: StairClimbingTaskConfig | None = None,
+    objective_family_mask: Mapping[str, Any] | None = None,
 ) -> list[float]:
-    raw_scores = summary.get("seed_macro_scores")
+    if summary.get("schema_version") in UNIFIED_SUMMARY_SCHEMA_VERSIONS:
+        if (
+            config is None
+            or not config.is_unified_protocol
+            or objective_family_mask is None
+        ):
+            raise ValueError(
+                "unified Stair final confirmation seed scores lack their mask"
+            )
+        projection = build_unified_score_projection(
+            summary,
+            objective_family_mask=objective_family_mask,
+        )
+        raw_scores = projection["j_primary"]["seed_macro_scores"]
+    else:
+        raw_scores = summary.get("seed_macro_scores")
     if not isinstance(raw_scores, list) or len(raw_scores) != expected_count:
         raise ValueError(f"Stair final confirmation {role} seed scores mismatch")
     scores = [_finite_number(value, f"{role} seed score") for value in raw_scores]

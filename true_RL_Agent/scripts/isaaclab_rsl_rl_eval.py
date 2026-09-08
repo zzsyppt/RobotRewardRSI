@@ -41,7 +41,14 @@ from true_rl_agent.runner.eval_isolation import (  # noqa: E402
 )
 from true_rl_agent.runner.evidence import evidence_artifact_from_json  # noqa: E402
 from true_rl_agent.runner.isaac_app_lifecycle import (  # noqa: E402
+    bind_isaac_log_path,
     close_isaac_app_on_success,
+)
+from true_rl_agent.backends.isaac_lab_arrays import as_torch  # noqa: E402
+from true_rl_agent.backends.isaac_lab_runtime import require_physx_success  # noqa: E402
+from true_rl_agent.backends.rsl_rl_checkpoint import load_inference_checkpoint  # noqa: E402
+from true_rl_agent.robots.unitree_locomotion import (  # noqa: E402
+    instantiate_g1_29_environment_cfg, instantiate_g1_29_runner_cfg,
 )
 from true_rl_agent.runner.job_identity import JobIdentity  # noqa: E402
 from true_rl_agent.runner.specs import require_execution_device  # noqa: E402
@@ -203,6 +210,7 @@ try:
 except ValueError as exc:
     print(str(exc), file=sys.stderr)
     raise SystemExit(2) from exc
+bind_isaac_log_path(args_cli, args_cli.summary_path)
 app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
@@ -221,14 +229,8 @@ from isaaclab.utils.math import (
 from isaaclab_rl.rsl_rl import (
     RslRlVecEnvWrapper,  # type: ignore[import-not-found]  # noqa: E402
 )
-from isaaclab_tasks.utils.parse_cfg import (
-    load_cfg_from_registry,  # type: ignore[import-not-found]  # noqa: E402
-)
 from rsl_rl.runners import (
     OnPolicyRunner,  # type: ignore[import-not-found]  # noqa: E402
-)
-from unitree_rl_lab.utils.parser_cfg import (
-    parse_env_cfg,  # type: ignore[import-not-found]  # noqa: E402
 )
 
 from true_rl_agent.tasks.push_recovery.diagnostics import (
@@ -280,7 +282,7 @@ def main() -> int:
         args_cli.task = task
         if args_cli.policy == "checkpoint":
             assert_safe_checkpoint(Path(args_cli.checkpoint), checkpoint_safety_report=checkpoint_safety_report)
-        env_cfg = parse_env_cfg(task, device=args_cli.device, num_envs=args_cli.num_envs, entry_point_key="env_cfg_entry_point")
+        env_cfg = instantiate_g1_29_environment_cfg(device=args_cli.device, num_envs=args_cli.num_envs)
         apply_push_recovery_overlay(env_cfg, config, args_cli)
         apply_eval_overrides(env_cfg, config)
         base_env = gym.make(task, cfg=env_cfg, render_mode=None)
@@ -292,8 +294,9 @@ def main() -> int:
             )
 
         inference_policy = None
+        checkpoint_loading = None
         if args_cli.policy == "checkpoint":
-            agent_cfg = load_cfg_from_registry(task, "rsl_rl_cfg_entry_point")
+            agent_cfg = instantiate_g1_29_runner_cfg()
             if hasattr(agent_cfg, "device") and args_cli.device is not None:
                 agent_cfg.device = args_cli.device
             if str(agent_cfg.device) != args_cli.device:
@@ -302,7 +305,7 @@ def main() -> int:
                 )
             env = RslRlVecEnvWrapper(base_env, clip_actions=agent_cfg.clip_actions)
             runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=None, device=agent_cfg.device)
-            runner.load(args_cli.checkpoint)
+            checkpoint_loading = load_inference_checkpoint(runner, args_cli.checkpoint)
             inference_policy = runner.get_inference_policy(device=env.unwrapped.device)
         else:
             env = base_env
@@ -314,6 +317,7 @@ def main() -> int:
             inference_policy=inference_policy,
             checkpoint_safety_report=checkpoint_safety_report,
         )
+        summary["checkpoint_loading"] = checkpoint_loading
     except Exception as exc:  # noqa: BLE001
         summary = {
             "schema_version": "true_rl_agent.push_recovery.eval_summary.v1",
@@ -350,6 +354,8 @@ def main() -> int:
             base_env.close()
 
     summary.update(resolved_cell_summary_fields(args_cli.resolved_cell_manifest))
+    if summary.get("status") == "pass":
+        require_physx_success(summary_path.with_suffix(".kit.log"))
     summary_path.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     if args_cli.status_file:
         Path(args_cli.status_file).write_text(str(summary.get("status", "fail")) + "\n", encoding="utf-8")
@@ -538,7 +544,7 @@ def run_rollout(
         active_idx = active.nonzero(as_tuple=False).squeeze(-1)
         if len(active_idx) > 0:
             root_pos = robot.data.root_pos_w
-            root_quat = robot.data.root_quat_w
+            root_quat = as_torch(robot.data.root_quat_w)
             root_vel = robot.data.root_lin_vel_w
             pre_step_root_lin_vel_xy = root_vel[:, :2].clone()
             roll, pitch, _ = euler_xyz_from_quat(root_quat)
@@ -600,7 +606,7 @@ def run_rollout(
     active_idx = active.nonzero(as_tuple=False).squeeze(-1)
     if len(active_idx) > 0:
         root_pos = robot.data.root_pos_w
-        root_quat = robot.data.root_quat_w
+        root_quat = as_torch(robot.data.root_quat_w)
         root_vel = robot.data.root_lin_vel_w
         roll, pitch, _ = euler_xyz_from_quat(root_quat)
         drift = torch.linalg.vector_norm(root_pos[:, :2] - initial_xy, dim=1)

@@ -63,7 +63,7 @@ legacy clean manifest 仍为 `af7590cee2960116a24902c5b4baac7641551d166b302f6611
 
 旧 calibration receipt hash `330f9b52ac1ccb5d7cb6a3873946986f897aeee2fb4e8e9461437f5a76480ca4` 的四个角色结果仍是有价值的地形可行性证据：easy/target/hard/coverage-probe mean progress 分别约为 `0.9493 / 0.9507 / 0.8053 / 0.9961`。但由于 RobotProfile、reward ABI、课程和 manifest 身份已经版本化，它不能直接授权当前 cell。
 
-旧 `P3A_C1_IRREGULAR_SNAPSHOT.json` 与旧 runtime receipts 由 source closure 确定性拒绝，属于预期失效，不应通过重算自有 hash 或复制旧 checkpoint 恢复为 PASS。
+旧 `P3A_C1_IRREGULAR_SNAPSHOT.json` 与旧 runtime receipts 现在只作为历史 NO-GO 证据验其 canonical receipt、记录的 source closure 结构和原始回执字节，不再拿当前产品文件逐字节对比。当前 unified Stair 是否回归由 P3B/P4/P5 的活契约门重算；不得通过重签旧 snapshot 或复制旧 checkpoint 把 P3A 恢复为当前能力证据。
 
 ## 6. 迁移后的严格处置
 

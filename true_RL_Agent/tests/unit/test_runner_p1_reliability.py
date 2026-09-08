@@ -684,6 +684,78 @@ class JobAttemptJournalTests(unittest.TestCase):
                 ["infrastructure_failure", "completed"],
             )
 
+    def test_terminal_timeout_replays_typed_failure_without_relaunch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            scope = replace(
+                _scope(Path(tmp)),
+                attempt_budget_units=1,
+                max_infrastructure_retries=0,
+            )
+            spec = _FakeSpec(scope)
+            runner = SubprocessRunner((sys.executable,), timeout_s=10)
+            calls = 0
+
+            def operation(
+                _log_dir: Path | None,
+                _execution_context,
+                _timeout_s: int,
+            ) -> _FakeResult:
+                nonlocal calls
+                calls += 1
+                raise RunnerExecutionError(
+                    "timed out",
+                    failure_kind=RunnerFailureKind.TIMEOUT,
+                )
+
+            for _invocation in range(2):
+                with self.assertRaises(RunnerExecutionError) as raised:
+                    runner._execute_with_attempts(
+                        spec,
+                        job_kind="train",
+                        operation=operation,
+                    )
+                self.assertEqual(
+                    raised.exception.failure_kind,
+                    RunnerFailureKind.TIMEOUT,
+                )
+            self.assertEqual(calls, 1)
+
+    def test_terminal_contract_failure_remains_invalid_without_relaunch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            scope = replace(
+                _scope(Path(tmp)),
+                attempt_budget_units=1,
+                max_infrastructure_retries=0,
+            )
+            spec = _FakeSpec(scope)
+            runner = SubprocessRunner((sys.executable,), timeout_s=10)
+            calls = 0
+
+            def operation(
+                _log_dir: Path | None,
+                _execution_context,
+                _timeout_s: int,
+            ) -> _FakeResult:
+                nonlocal calls
+                calls += 1
+                raise RunnerExecutionError(
+                    "invalid contract",
+                    failure_kind=RunnerFailureKind.CONTRACT_INVALID,
+                )
+
+            for _invocation in range(2):
+                with self.assertRaises(RunnerExecutionError) as raised:
+                    runner._execute_with_attempts(
+                        spec,
+                        job_kind="train",
+                        operation=operation,
+                    )
+                self.assertEqual(
+                    raised.exception.failure_kind,
+                    RunnerFailureKind.CONTRACT_INVALID,
+                )
+            self.assertEqual(calls, 1)
+
     def test_runner_without_admission_hook_passes_runner_timeout_to_operation(
         self,
     ) -> None:

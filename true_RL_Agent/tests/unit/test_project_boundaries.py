@@ -174,7 +174,8 @@ class ProjectBoundaryTests(unittest.TestCase):
     def test_orchestration_does_not_read_legacy_provider_context(self) -> None:
         paths = (
             PACKAGE_ROOT / "agent_core" / "authoring_loop.py",
-            PACKAGE_ROOT / "agent_core" / "loop.py",
+            PACKAGE_ROOT / "agent_core" / "live_loop.py",
+            PACKAGE_ROOT / "agent_core" / "generation.py",
             PACKAGE_ROOT / "tasks" / "push_recovery" / "loop_audit.py",
         )
         violations: list[str] = []

@@ -24,7 +24,7 @@ from true_rl_agent.tasks.component_smoke import (
     SmokeTensor,
 )
 
-COMPONENT_SMOKE_SCHEMA_VERSION = "true_rl_agent.component_smoke_result.v1"
+COMPONENT_SMOKE_SCHEMA_VERSION = "true_rl_agent.component_smoke_result.v2"
 DEFAULT_COMPONENT_SMOKE_TIMEOUT_S = 2.0
 DEFAULT_COMPONENT_SMOKE_LOAD_TIMEOUT_S = 2.0
 DEFAULT_COMPONENT_SMOKE_WORKER_STARTUP_TIMEOUT_S = 60.0
@@ -297,18 +297,28 @@ def _component_smoke_worker(
             )
             return
 
+    advisory_rewards = [
+        item for item in reward_results if item["status"] == "advisory"
+    ]
     result_queue.put(
         _public_result(
             {
                 "schema_version": COMPONENT_SMOKE_SCHEMA_VERSION,
-                "status": "pass",
-                "reason": "component_smoke_passed",
+                "status": "advisory" if advisory_rewards else "pass",
+                "reason": (
+                    "reward_term_suppressed_by_declared_clip_and_weight"
+                    if advisory_rewards
+                    else "component_smoke_passed"
+                ),
                 "task_id": fixture.task_id,
                 "checked_reward_terms": len(reward_results),
                 "checked_diagnostics": len(diagnostic_results),
                 "fixture_summary": dict(fixture.public_summary),
                 "reward_results": reward_results,
                 "diagnostic_results": diagnostic_results,
+                "advisory_reward_term_names": [
+                    str(item["name"]) for item in advisory_rewards
+                ],
             }
         )
     )
@@ -452,6 +462,39 @@ def _smoke_reward_term(term: RewardTerm, fixture: ComponentSmokeFixture) -> dict
                 "observed_shape": output["shape"],
             }
         )
+    effective_max_abs = _declared_effective_max_abs(
+        output["values"],
+        term=term,
+    )
+    if not math.isfinite(effective_max_abs):
+        return _public_result(
+            {
+                "name": term.name,
+                "kind": "RewardTerm",
+                "status": "fail",
+                "reason": "reward_effective_output_nonfinite",
+                "observed_shape": output["shape"],
+            }
+        )
+    # A zero raw value can be valid on one synthetic fixture (for example, a
+    # tracking error at its target). Advise only when declared runtime
+    # semantics erase a signal the callable actually produced.
+    if output["max_abs"] > 0.0 and effective_max_abs == 0.0:
+        return _public_result(
+            {
+                "name": term.name,
+                "kind": "RewardTerm",
+                "status": "advisory",
+                "reason": "reward_term_suppressed_by_declared_clip_and_weight",
+                "observed_shape": output["shape"],
+                "raw_max_abs": output["max_abs"],
+                "effective_max_abs_after_clip_and_weight": effective_max_abs,
+                "declared_weight": float(term.weight),
+                "declared_clip_min": term.clip_min,
+                "declared_clip_max": term.clip_max,
+                "blocking": False,
+            }
+        )
     return _public_result(
         {
             "name": term.name,
@@ -459,6 +502,8 @@ def _smoke_reward_term(term: RewardTerm, fixture: ComponentSmokeFixture) -> dict
             "status": "pass",
             "reason": "reward_callable_returned_finite_expected_shape",
             "observed_shape": output["shape"],
+            "raw_max_abs": output["max_abs"],
+            "effective_max_abs_after_clip_and_weight": effective_max_abs,
         }
     )
 
@@ -492,7 +537,25 @@ def _output_summary(value: Any) -> dict[str, Any]:
     return {
         "shape": list(shape),
         "finite": all(math.isfinite(item) for item in flattened),
+        "max_abs": max((abs(item) for item in flattened), default=0.0),
+        "values": flattened,
     }
+
+
+def _declared_effective_max_abs(
+    values: tuple[float, ...],
+    *,
+    term: RewardTerm,
+) -> float:
+    weighted: list[float] = []
+    for raw_value in values:
+        value = raw_value
+        if term.clip_min is not None and value < term.clip_min:
+            value = float(term.clip_min)
+        if term.clip_max is not None and value > term.clip_max:
+            value = float(term.clip_max)
+        weighted.append(value * float(term.weight))
+    return max((abs(value) for value in weighted), default=0.0)
 
 
 def _shape_and_values(value: Any) -> tuple[tuple[int, ...], tuple[float, ...]]:

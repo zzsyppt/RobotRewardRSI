@@ -1,0 +1,3226 @@
+{
+  "evaluation_summaries": {
+    "public_dev": {
+      "aggregate_stratum_scores": {
+        "c0_id": 0.9503271075925926,
+        "c1_conditional_frontier": 0.6917380705555556,
+        "c1_id": 0.6289269953703703,
+        "c2_mechanism_ood": 0.6448154498148149,
+        "height_ood": 0.6796744612962963,
+        "joint_ood": 0.6399061753703703,
+        "phase_composition_ood": 0.7201697568518518,
+        "tread_ood": 0.7661317738888889
+      },
+      "aggregation_order": "episode_to_cell_to_stratum_to_paired_seed",
+      "cell_score_formula": "0.5*success_rate+0.5*goal_progress_fraction",
+      "family_scores": {
+        "F_c1": 0.7059539137037036,
+        "F_c2": 0.6448154498148149,
+        "F_scalar": 0.6952374701851851
+      },
+      "j_id": 0.7896270514814815,
+      "j_ood": 0.6820022779012346,
+      "j_primary": 0.7178772024279835,
+      "named_guard_scores": {
+        "c0_id": 0.9503271075925926,
+        "c1_id": 0.6289269953703703,
+        "j_ood": 0.6820022779012346
+      },
+      "ordered_suite_hash": "4ee307fe359122671cf4f7056b601135b28679818a9b4bd419f3e7697891ceb7",
+      "ordered_summary": {
+        "aggregate_mean_progress_fraction_by_cell": {
+          "public_dev.c0_id_01": 0.9241848677777778,
+          "public_dev.c0_id_02": 1.0,
+          "public_dev.c0_id_03": 1.0,
+          "public_dev.c1_frontier_01": 1.0,
+          "public_dev.c1_frontier_02": 0.7808441688888889,
+          "public_dev.c1_frontier_03": 0.92513981,
+          "public_dev.c1_id_01": 0.60290219,
+          "public_dev.c1_id_02": 0.8635477244444444,
+          "public_dev.c1_id_03": 0.9737787244444445,
+          "public_dev.c2_rough_01": 0.6987099088888888,
+          "public_dev.c2_rough_02": 0.9506754422222222,
+          "public_dev.c2_rough_03": 0.9972851255555556,
+          "public_dev.height_ood_01": 1.0,
+          "public_dev.height_ood_02": 0.9129122233333333,
+          "public_dev.height_ood_03": 0.4984678777777778,
+          "public_dev.joint_ood_01": 0.9820827711111111,
+          "public_dev.joint_ood_02": 0.8905212566666666,
+          "public_dev.joint_ood_03": 0.52238858,
+          "public_dev.phase_ood_01": 0.9189728633333333,
+          "public_dev.phase_ood_02": 0.9576012333333334,
+          "public_dev.phase_ood_03": 1.0,
+          "public_dev.tread_ood_01": 0.6257928388888889,
+          "public_dev.tread_ood_02": 0.9709978044444444,
+          "public_dev.tread_ood_03": 1.0
+        },
+        "aggregate_success_rate_by_cell": {
+          "public_dev.c0_id_01": 0.7777777777777778,
+          "public_dev.c0_id_02": 1.0,
+          "public_dev.c0_id_03": 1.0,
+          "public_dev.c1_frontier_01": 1.0,
+          "public_dev.c1_frontier_02": 0.1111111111111111,
+          "public_dev.c1_frontier_03": 0.3333333333333333,
+          "public_dev.c1_id_01": 0.0,
+          "public_dev.c1_id_02": 0.4444444444444444,
+          "public_dev.c1_id_03": 0.8888888888888888,
+          "public_dev.c2_rough_01": 0.0,
+          "public_dev.c2_rough_02": 0.3333333333333333,
+          "public_dev.c2_rough_03": 0.8888888888888888,
+          "public_dev.height_ood_01": 1.0,
+          "public_dev.height_ood_02": 0.6666666666666666,
+          "public_dev.height_ood_03": 0.0,
+          "public_dev.joint_ood_01": 0.8888888888888888,
+          "public_dev.joint_ood_02": 0.5555555555555556,
+          "public_dev.joint_ood_03": 0.0,
+          "public_dev.phase_ood_01": 0.2222222222222222,
+          "public_dev.phase_ood_02": 0.4444444444444444,
+          "public_dev.phase_ood_03": 0.7777777777777778,
+          "public_dev.tread_ood_01": 0.1111111111111111,
+          "public_dev.tread_ood_02": 0.8888888888888888,
+          "public_dev.tread_ood_03": 1.0
+        },
+        "cell_aggregation": "equal_weight_mean_over_explicit_cells",
+        "cell_ids": [
+          "public_dev.c0_id_01",
+          "public_dev.c0_id_02",
+          "public_dev.c0_id_03",
+          "public_dev.c1_id_01",
+          "public_dev.c1_id_02",
+          "public_dev.c1_id_03",
+          "public_dev.height_ood_01",
+          "public_dev.height_ood_02",
+          "public_dev.height_ood_03",
+          "public_dev.tread_ood_01",
+          "public_dev.tread_ood_02",
+          "public_dev.tread_ood_03",
+          "public_dev.joint_ood_01",
+          "public_dev.joint_ood_02",
+          "public_dev.joint_ood_03",
+          "public_dev.phase_ood_01",
+          "public_dev.phase_ood_02",
+          "public_dev.phase_ood_03",
+          "public_dev.c1_frontier_01",
+          "public_dev.c1_frontier_02",
+          "public_dev.c1_frontier_03",
+          "public_dev.c2_rough_01",
+          "public_dev.c2_rough_02",
+          "public_dev.c2_rough_03"
+        ],
+        "diagnostic_flag_counts_by_cell": {
+          "public_dev.c0_id_01": {
+            "base_orientation_instability_detected": 0,
+            "first_valid_top_arrival_achieved": 7,
+            "goal_not_reached_detected": 2,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 0,
+            "slip_detected": 1
+          },
+          "public_dev.c0_id_02": {
+            "base_orientation_instability_detected": 0,
+            "first_valid_top_arrival_achieved": 9,
+            "goal_not_reached_detected": 0,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 0,
+            "slip_detected": 1
+          },
+          "public_dev.c0_id_03": {
+            "base_orientation_instability_detected": 0,
+            "first_valid_top_arrival_achieved": 9,
+            "goal_not_reached_detected": 0,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 0,
+            "slip_detected": 7
+          },
+          "public_dev.c1_frontier_01": {
+            "base_orientation_instability_detected": 0,
+            "first_valid_top_arrival_achieved": 9,
+            "goal_not_reached_detected": 0,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 0,
+            "slip_detected": 0
+          },
+          "public_dev.c1_frontier_02": {
+            "base_orientation_instability_detected": 0,
+            "first_valid_top_arrival_achieved": 1,
+            "goal_not_reached_detected": 8,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 8,
+            "slip_detected": 5
+          },
+          "public_dev.c1_frontier_03": {
+            "base_orientation_instability_detected": 1,
+            "first_valid_top_arrival_achieved": 3,
+            "goal_not_reached_detected": 5,
+            "insufficient_clearance_detected": 5,
+            "off_course_detected": 5,
+            "slip_detected": 3
+          },
+          "public_dev.c1_id_01": {
+            "base_orientation_instability_detected": 1,
+            "first_valid_top_arrival_achieved": 0,
+            "goal_not_reached_detected": 9,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 6,
+            "slip_detected": 4
+          },
+          "public_dev.c1_id_02": {
+            "base_orientation_instability_detected": 1,
+            "first_valid_top_arrival_achieved": 4,
+            "goal_not_reached_detected": 5,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 4,
+            "slip_detected": 3
+          },
+          "public_dev.c1_id_03": {
+            "base_orientation_instability_detected": 1,
+            "first_valid_top_arrival_achieved": 8,
+            "goal_not_reached_detected": 1,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 0,
+            "slip_detected": 1
+          },
+          "public_dev.c2_rough_01": {
+            "base_orientation_instability_detected": 2,
+            "first_valid_top_arrival_achieved": 0,
+            "goal_not_reached_detected": 8,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 8,
+            "slip_detected": 5
+          },
+          "public_dev.c2_rough_02": {
+            "base_orientation_instability_detected": 0,
+            "first_valid_top_arrival_achieved": 3,
+            "goal_not_reached_detected": 4,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 6,
+            "slip_detected": 2
+          },
+          "public_dev.c2_rough_03": {
+            "base_orientation_instability_detected": 0,
+            "first_valid_top_arrival_achieved": 8,
+            "goal_not_reached_detected": 1,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 0,
+            "slip_detected": 1
+          },
+          "public_dev.height_ood_01": {
+            "base_orientation_instability_detected": 0,
+            "first_valid_top_arrival_achieved": 9,
+            "goal_not_reached_detected": 0,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 0,
+            "slip_detected": 4
+          },
+          "public_dev.height_ood_02": {
+            "base_orientation_instability_detected": 0,
+            "first_valid_top_arrival_achieved": 6,
+            "goal_not_reached_detected": 3,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 0,
+            "slip_detected": 6
+          },
+          "public_dev.height_ood_03": {
+            "base_orientation_instability_detected": 0,
+            "first_valid_top_arrival_achieved": 0,
+            "goal_not_reached_detected": 9,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 0,
+            "slip_detected": 7
+          },
+          "public_dev.joint_ood_01": {
+            "base_orientation_instability_detected": 0,
+            "first_valid_top_arrival_achieved": 8,
+            "goal_not_reached_detected": 1,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 0,
+            "slip_detected": 5
+          },
+          "public_dev.joint_ood_02": {
+            "base_orientation_instability_detected": 0,
+            "first_valid_top_arrival_achieved": 5,
+            "goal_not_reached_detected": 4,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 0,
+            "slip_detected": 6
+          },
+          "public_dev.joint_ood_03": {
+            "base_orientation_instability_detected": 1,
+            "first_valid_top_arrival_achieved": 0,
+            "goal_not_reached_detected": 9,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 0,
+            "slip_detected": 7
+          },
+          "public_dev.phase_ood_01": {
+            "base_orientation_instability_detected": 1,
+            "first_valid_top_arrival_achieved": 2,
+            "goal_not_reached_detected": 4,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 6,
+            "slip_detected": 3
+          },
+          "public_dev.phase_ood_02": {
+            "base_orientation_instability_detected": 1,
+            "first_valid_top_arrival_achieved": 4,
+            "goal_not_reached_detected": 1,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 4,
+            "slip_detected": 3
+          },
+          "public_dev.phase_ood_03": {
+            "base_orientation_instability_detected": 0,
+            "first_valid_top_arrival_achieved": 7,
+            "goal_not_reached_detected": 0,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 2,
+            "slip_detected": 1
+          },
+          "public_dev.tread_ood_01": {
+            "base_orientation_instability_detected": 2,
+            "first_valid_top_arrival_achieved": 1,
+            "goal_not_reached_detected": 8,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 5,
+            "slip_detected": 4
+          },
+          "public_dev.tread_ood_02": {
+            "base_orientation_instability_detected": 1,
+            "first_valid_top_arrival_achieved": 8,
+            "goal_not_reached_detected": 1,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 0,
+            "slip_detected": 2
+          },
+          "public_dev.tread_ood_03": {
+            "base_orientation_instability_detected": 0,
+            "first_valid_top_arrival_achieved": 9,
+            "goal_not_reached_detected": 0,
+            "insufficient_clearance_detected": 0,
+            "off_course_detected": 0,
+            "slip_detected": 2
+          }
+        },
+        "episodes_per_seed_per_cell": 3,
+        "factor_diagnostics": {
+          "phase": {
+            "p0": {
+              "cell_count": 21,
+              "cell_ids": [
+                "public_dev.c0_id_01",
+                "public_dev.c0_id_02",
+                "public_dev.c0_id_03",
+                "public_dev.c1_id_01",
+                "public_dev.c1_id_02",
+                "public_dev.c1_id_03",
+                "public_dev.height_ood_01",
+                "public_dev.height_ood_02",
+                "public_dev.height_ood_03",
+                "public_dev.tread_ood_01",
+                "public_dev.tread_ood_02",
+                "public_dev.tread_ood_03",
+                "public_dev.joint_ood_01",
+                "public_dev.joint_ood_02",
+                "public_dev.joint_ood_03",
+                "public_dev.c1_frontier_01",
+                "public_dev.c1_frontier_02",
+                "public_dev.c1_frontier_03",
+                "public_dev.c2_rough_01",
+                "public_dev.c2_rough_02",
+                "public_dev.c2_rough_03"
+              ],
+              "mean_progress_fraction": 0.8628681578306878,
+              "success_rate": 0.5661375661375662
+            },
+            "p1": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.phase_ood_01"
+              ],
+              "mean_progress_fraction": 0.9189728633333333,
+              "success_rate": 0.2222222222222222
+            },
+            "p2": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.phase_ood_02"
+              ],
+              "mean_progress_fraction": 0.9576012333333334,
+              "success_rate": 0.4444444444444444
+            },
+            "p4": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.phase_ood_03"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 0.7777777777777778
+            }
+          },
+          "riser_band": {
+            "0.100": {
+              "cell_count": 3,
+              "cell_ids": [
+                "public_dev.c1_id_01",
+                "public_dev.tread_ood_01",
+                "public_dev.c2_rough_01"
+              ],
+              "mean_progress_fraction": 0.6424683125925926,
+              "success_rate": 0.037037037037037035
+            },
+            "0.120": {
+              "cell_count": 2,
+              "cell_ids": [
+                "public_dev.c0_id_01",
+                "public_dev.phase_ood_01"
+              ],
+              "mean_progress_fraction": 0.9215788655555555,
+              "success_rate": 0.5
+            },
+            "0.140": {
+              "cell_count": 4,
+              "cell_ids": [
+                "public_dev.c1_id_02",
+                "public_dev.c1_frontier_02",
+                "public_dev.c1_frontier_03",
+                "public_dev.c2_rough_02"
+              ],
+              "mean_progress_fraction": 0.8800517863888888,
+              "success_rate": 0.3055555555555555
+            },
+            "0.150": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.phase_ood_02"
+              ],
+              "mean_progress_fraction": 0.9576012333333334,
+              "success_rate": 0.4444444444444444
+            },
+            "0.180": {
+              "cell_count": 3,
+              "cell_ids": [
+                "public_dev.c1_id_03",
+                "public_dev.phase_ood_03",
+                "public_dev.c2_rough_03"
+              ],
+              "mean_progress_fraction": 0.9903546166666667,
+              "success_rate": 0.8518518518518519
+            },
+            "0.200": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.tread_ood_02"
+              ],
+              "mean_progress_fraction": 0.9709978044444444,
+              "success_rate": 0.8888888888888888
+            },
+            "0.220": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c0_id_02"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.225": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c1_frontier_01"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.300": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.tread_ood_03"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.320": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c0_id_03"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.375": {
+              "cell_count": 2,
+              "cell_ids": [
+                "public_dev.height_ood_01",
+                "public_dev.joint_ood_01"
+              ],
+              "mean_progress_fraction": 0.9910413855555555,
+              "success_rate": 0.9444444444444444
+            },
+            "0.400": {
+              "cell_count": 2,
+              "cell_ids": [
+                "public_dev.height_ood_02",
+                "public_dev.joint_ood_02"
+              ],
+              "mean_progress_fraction": 0.9017167399999999,
+              "success_rate": 0.6111111111111112
+            },
+            "0.425": {
+              "cell_count": 2,
+              "cell_ids": [
+                "public_dev.height_ood_03",
+                "public_dev.joint_ood_03"
+              ],
+              "mean_progress_fraction": 0.5104282288888888,
+              "success_rate": 0.0
+            }
+          },
+          "roughness_band": {
+            "0.000": {
+              "cell_count": 21,
+              "cell_ids": [
+                "public_dev.c0_id_01",
+                "public_dev.c0_id_02",
+                "public_dev.c0_id_03",
+                "public_dev.c1_id_01",
+                "public_dev.c1_id_02",
+                "public_dev.c1_id_03",
+                "public_dev.height_ood_01",
+                "public_dev.height_ood_02",
+                "public_dev.height_ood_03",
+                "public_dev.tread_ood_01",
+                "public_dev.tread_ood_02",
+                "public_dev.tread_ood_03",
+                "public_dev.joint_ood_01",
+                "public_dev.joint_ood_02",
+                "public_dev.joint_ood_03",
+                "public_dev.phase_ood_01",
+                "public_dev.phase_ood_02",
+                "public_dev.phase_ood_03",
+                "public_dev.c1_frontier_01",
+                "public_dev.c1_frontier_02",
+                "public_dev.c1_frontier_03"
+              ],
+              "mean_progress_fraction": 0.8738159492592592,
+              "success_rate": 0.5767195767195767
+            },
+            "0.004": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c2_rough_01"
+              ],
+              "mean_progress_fraction": 0.6987099088888888,
+              "success_rate": 0.0
+            },
+            "0.006": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c2_rough_02"
+              ],
+              "mean_progress_fraction": 0.9506754422222222,
+              "success_rate": 0.3333333333333333
+            },
+            "0.008": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c2_rough_03"
+              ],
+              "mean_progress_fraction": 0.9972851255555556,
+              "success_rate": 0.8888888888888888
+            }
+          },
+          "sequence_pattern": {
+            "alternating": {
+              "cell_count": 4,
+              "cell_ids": [
+                "public_dev.c1_id_01",
+                "public_dev.phase_ood_01",
+                "public_dev.c1_frontier_01",
+                "public_dev.c2_rough_01"
+              ],
+              "mean_progress_fraction": 0.8051462405555555,
+              "success_rate": 0.3055555555555556
+            },
+            "back_loaded": {
+              "cell_count": 4,
+              "cell_ids": [
+                "public_dev.c1_id_03",
+                "public_dev.phase_ood_03",
+                "public_dev.c1_frontier_03",
+                "public_dev.c2_rough_03"
+              ],
+              "mean_progress_fraction": 0.9740509150000001,
+              "success_rate": 0.7222222222222222
+            },
+            "front_loaded": {
+              "cell_count": 4,
+              "cell_ids": [
+                "public_dev.c1_id_02",
+                "public_dev.phase_ood_02",
+                "public_dev.c1_frontier_02",
+                "public_dev.c2_rough_02"
+              ],
+              "mean_progress_fraction": 0.8881671422222222,
+              "success_rate": 0.3333333333333333
+            },
+            "regular": {
+              "cell_count": 12,
+              "cell_ids": [
+                "public_dev.c0_id_01",
+                "public_dev.c0_id_02",
+                "public_dev.c0_id_03",
+                "public_dev.height_ood_01",
+                "public_dev.height_ood_02",
+                "public_dev.height_ood_03",
+                "public_dev.tread_ood_01",
+                "public_dev.tread_ood_02",
+                "public_dev.tread_ood_03",
+                "public_dev.joint_ood_01",
+                "public_dev.joint_ood_02",
+                "public_dev.joint_ood_03"
+              ],
+              "mean_progress_fraction": 0.8606123516666666,
+              "success_rate": 0.6574074074074074
+            }
+          },
+          "surface_pattern": {
+            "flat": {
+              "cell_count": 21,
+              "cell_ids": [
+                "public_dev.c0_id_01",
+                "public_dev.c0_id_02",
+                "public_dev.c0_id_03",
+                "public_dev.c1_id_01",
+                "public_dev.c1_id_02",
+                "public_dev.c1_id_03",
+                "public_dev.height_ood_01",
+                "public_dev.height_ood_02",
+                "public_dev.height_ood_03",
+                "public_dev.tread_ood_01",
+                "public_dev.tread_ood_02",
+                "public_dev.tread_ood_03",
+                "public_dev.joint_ood_01",
+                "public_dev.joint_ood_02",
+                "public_dev.joint_ood_03",
+                "public_dev.phase_ood_01",
+                "public_dev.phase_ood_02",
+                "public_dev.phase_ood_03",
+                "public_dev.c1_frontier_01",
+                "public_dev.c1_frontier_02",
+                "public_dev.c1_frontier_03"
+              ],
+              "mean_progress_fraction": 0.8738159492592592,
+              "success_rate": 0.5767195767195767
+            },
+            "l1_y1": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c2_rough_01"
+              ],
+              "mean_progress_fraction": 0.6987099088888888,
+              "success_rate": 0.0
+            },
+            "l1_y2": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c2_rough_03"
+              ],
+              "mean_progress_fraction": 0.9972851255555556,
+              "success_rate": 0.8888888888888888
+            },
+            "l2_y1": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c2_rough_02"
+              ],
+              "mean_progress_fraction": 0.9506754422222222,
+              "success_rate": 0.3333333333333333
+            }
+          },
+          "tread_band": {
+            "0.277": {
+              "cell_count": 2,
+              "cell_ids": [
+                "public_dev.tread_ood_03",
+                "public_dev.joint_ood_03"
+              ],
+              "mean_progress_fraction": 0.7611942899999999,
+              "success_rate": 0.5
+            },
+            "0.295": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c1_frontier_03"
+              ],
+              "mean_progress_fraction": 0.92513981,
+              "success_rate": 0.3333333333333333
+            },
+            "0.327": {
+              "cell_count": 2,
+              "cell_ids": [
+                "public_dev.tread_ood_01",
+                "public_dev.joint_ood_01"
+              ],
+              "mean_progress_fraction": 0.803937805,
+              "success_rate": 0.5
+            },
+            "0.370": {
+              "cell_count": 3,
+              "cell_ids": [
+                "public_dev.c1_id_01",
+                "public_dev.phase_ood_01",
+                "public_dev.c2_rough_01"
+              ],
+              "mean_progress_fraction": 0.7401949874074074,
+              "success_rate": 0.07407407407407407
+            },
+            "0.400": {
+              "cell_count": 10,
+              "cell_ids": [
+                "public_dev.c0_id_01",
+                "public_dev.c0_id_02",
+                "public_dev.c0_id_03",
+                "public_dev.c1_id_02",
+                "public_dev.height_ood_01",
+                "public_dev.height_ood_02",
+                "public_dev.height_ood_03",
+                "public_dev.phase_ood_02",
+                "public_dev.c1_frontier_01",
+                "public_dev.c2_rough_02"
+              ],
+              "mean_progress_fraction": 0.9107389368888889,
+              "success_rate": 0.6666666666666666
+            },
+            "0.430": {
+              "cell_count": 3,
+              "cell_ids": [
+                "public_dev.c1_id_03",
+                "public_dev.phase_ood_03",
+                "public_dev.c2_rough_03"
+              ],
+              "mean_progress_fraction": 0.9903546166666667,
+              "success_rate": 0.8518518518518519
+            },
+            "0.480": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c1_frontier_02"
+              ],
+              "mean_progress_fraction": 0.7808441688888889,
+              "success_rate": 0.1111111111111111
+            },
+            "0.498": {
+              "cell_count": 2,
+              "cell_ids": [
+                "public_dev.tread_ood_02",
+                "public_dev.joint_ood_02"
+              ],
+              "mean_progress_fraction": 0.9307595305555555,
+              "success_rate": 0.7222222222222222
+            }
+          }
+        },
+        "ordered_suite_hash": "4ee307fe359122671cf4f7056b601135b28679818a9b4bd419f3e7697891ceb7",
+        "primary_outcome_counts": {
+          "base_orientation_instability": 0,
+          "forbidden_contact": 44,
+          "insufficient_clearance": 0,
+          "off_course": 51,
+          "slip": 0,
+          "success": 120,
+          "timeout": 1
+        },
+        "primary_outcome_counts_by_cell": {
+          "public_dev.c0_id_01": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 2,
+            "insufficient_clearance": 0,
+            "off_course": 0,
+            "slip": 0,
+            "success": 7,
+            "timeout": 0
+          },
+          "public_dev.c0_id_02": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 0,
+            "insufficient_clearance": 0,
+            "off_course": 0,
+            "slip": 0,
+            "success": 9,
+            "timeout": 0
+          },
+          "public_dev.c0_id_03": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 0,
+            "insufficient_clearance": 0,
+            "off_course": 0,
+            "slip": 0,
+            "success": 9,
+            "timeout": 0
+          },
+          "public_dev.c1_frontier_01": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 0,
+            "insufficient_clearance": 0,
+            "off_course": 0,
+            "slip": 0,
+            "success": 9,
+            "timeout": 0
+          },
+          "public_dev.c1_frontier_02": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 1,
+            "insufficient_clearance": 0,
+            "off_course": 7,
+            "slip": 0,
+            "success": 1,
+            "timeout": 0
+          },
+          "public_dev.c1_frontier_03": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 1,
+            "insufficient_clearance": 0,
+            "off_course": 5,
+            "slip": 0,
+            "success": 3,
+            "timeout": 0
+          },
+          "public_dev.c1_id_01": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 3,
+            "insufficient_clearance": 0,
+            "off_course": 6,
+            "slip": 0,
+            "success": 0,
+            "timeout": 0
+          },
+          "public_dev.c1_id_02": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 1,
+            "insufficient_clearance": 0,
+            "off_course": 4,
+            "slip": 0,
+            "success": 4,
+            "timeout": 0
+          },
+          "public_dev.c1_id_03": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 1,
+            "insufficient_clearance": 0,
+            "off_course": 0,
+            "slip": 0,
+            "success": 8,
+            "timeout": 0
+          },
+          "public_dev.c2_rough_01": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 3,
+            "insufficient_clearance": 0,
+            "off_course": 6,
+            "slip": 0,
+            "success": 0,
+            "timeout": 0
+          },
+          "public_dev.c2_rough_02": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 0,
+            "insufficient_clearance": 0,
+            "off_course": 6,
+            "slip": 0,
+            "success": 3,
+            "timeout": 0
+          },
+          "public_dev.c2_rough_03": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 0,
+            "insufficient_clearance": 0,
+            "off_course": 0,
+            "slip": 0,
+            "success": 8,
+            "timeout": 1
+          },
+          "public_dev.height_ood_01": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 0,
+            "insufficient_clearance": 0,
+            "off_course": 0,
+            "slip": 0,
+            "success": 9,
+            "timeout": 0
+          },
+          "public_dev.height_ood_02": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 3,
+            "insufficient_clearance": 0,
+            "off_course": 0,
+            "slip": 0,
+            "success": 6,
+            "timeout": 0
+          },
+          "public_dev.height_ood_03": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 9,
+            "insufficient_clearance": 0,
+            "off_course": 0,
+            "slip": 0,
+            "success": 0,
+            "timeout": 0
+          },
+          "public_dev.joint_ood_01": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 1,
+            "insufficient_clearance": 0,
+            "off_course": 0,
+            "slip": 0,
+            "success": 8,
+            "timeout": 0
+          },
+          "public_dev.joint_ood_02": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 4,
+            "insufficient_clearance": 0,
+            "off_course": 0,
+            "slip": 0,
+            "success": 5,
+            "timeout": 0
+          },
+          "public_dev.joint_ood_03": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 9,
+            "insufficient_clearance": 0,
+            "off_course": 0,
+            "slip": 0,
+            "success": 0,
+            "timeout": 0
+          },
+          "public_dev.phase_ood_01": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 1,
+            "insufficient_clearance": 0,
+            "off_course": 6,
+            "slip": 0,
+            "success": 2,
+            "timeout": 0
+          },
+          "public_dev.phase_ood_02": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 1,
+            "insufficient_clearance": 0,
+            "off_course": 4,
+            "slip": 0,
+            "success": 4,
+            "timeout": 0
+          },
+          "public_dev.phase_ood_03": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 0,
+            "insufficient_clearance": 0,
+            "off_course": 2,
+            "slip": 0,
+            "success": 7,
+            "timeout": 0
+          },
+          "public_dev.tread_ood_01": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 3,
+            "insufficient_clearance": 0,
+            "off_course": 5,
+            "slip": 0,
+            "success": 1,
+            "timeout": 0
+          },
+          "public_dev.tread_ood_02": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 1,
+            "insufficient_clearance": 0,
+            "off_course": 0,
+            "slip": 0,
+            "success": 8,
+            "timeout": 0
+          },
+          "public_dev.tread_ood_03": {
+            "base_orientation_instability": 0,
+            "forbidden_contact": 0,
+            "insufficient_clearance": 0,
+            "off_course": 0,
+            "slip": 0,
+            "success": 9,
+            "timeout": 0
+          }
+        },
+        "schema_version": "true_rl_agent.task.stair_climbing.ordered_evaluation_summary.v3",
+        "score_stats": {
+          "count": 3,
+          "eval_protocol_hash": "aaea86a49cb01ea488eb3508685509dbee55c31589a268a922afd24ed082a942",
+          "mean": 0.5555555555555556,
+          "standard_error": 0.013888888888888914,
+          "statistics_version": "true_rl_agent.derived_statistics.v1",
+          "std": 0.02405626121623445
+        },
+        "seed_count": 3,
+        "seed_macro_scores": [
+          0.5833333333333334,
+          0.5416666666666666,
+          0.5416666666666666
+        ],
+        "seed_summaries": [
+          {
+            "diagnostic_flag_counts_by_cell": {
+              "public_dev.c0_id_01": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 2,
+                "goal_not_reached_detected": 1,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 0
+              },
+              "public_dev.c0_id_02": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 1
+              },
+              "public_dev.c0_id_03": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 2
+              },
+              "public_dev.c1_frontier_01": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 0
+              },
+              "public_dev.c1_frontier_02": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 0,
+                "goal_not_reached_detected": 3,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 3,
+                "slip_detected": 1
+              },
+              "public_dev.c1_frontier_03": {
+                "base_orientation_instability_detected": 1,
+                "first_valid_top_arrival_achieved": 1,
+                "goal_not_reached_detected": 2,
+                "insufficient_clearance_detected": 1,
+                "off_course_detected": 1,
+                "slip_detected": 1
+              },
+              "public_dev.c1_id_01": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 0,
+                "goal_not_reached_detected": 3,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 3,
+                "slip_detected": 2
+              },
+              "public_dev.c1_id_02": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 2,
+                "goal_not_reached_detected": 1,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 1,
+                "slip_detected": 1
+              },
+              "public_dev.c1_id_03": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 0
+              },
+              "public_dev.c2_rough_01": {
+                "base_orientation_instability_detected": 1,
+                "first_valid_top_arrival_achieved": 0,
+                "goal_not_reached_detected": 3,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 2,
+                "slip_detected": 1
+              },
+              "public_dev.c2_rough_02": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 0,
+                "goal_not_reached_detected": 3,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 3,
+                "slip_detected": 1
+              },
+              "public_dev.c2_rough_03": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 0
+              },
+              "public_dev.height_ood_01": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 1
+              },
+              "public_dev.height_ood_02": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 2
+              },
+              "public_dev.height_ood_03": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 0,
+                "goal_not_reached_detected": 3,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 3
+              },
+              "public_dev.joint_ood_01": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 0
+              },
+              "public_dev.joint_ood_02": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 2,
+                "goal_not_reached_detected": 1,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 1
+              },
+              "public_dev.joint_ood_03": {
+                "base_orientation_instability_detected": 1,
+                "first_valid_top_arrival_achieved": 0,
+                "goal_not_reached_detected": 3,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 2
+              },
+              "public_dev.phase_ood_01": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 0,
+                "goal_not_reached_detected": 1,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 3,
+                "slip_detected": 1
+              },
+              "public_dev.phase_ood_02": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 2,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 1,
+                "slip_detected": 1
+              },
+              "public_dev.phase_ood_03": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 1
+              },
+              "public_dev.tread_ood_01": {
+                "base_orientation_instability_detected": 1,
+                "first_valid_top_arrival_achieved": 0,
+                "goal_not_reached_detected": 3,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 2,
+                "slip_detected": 1
+              },
+              "public_dev.tread_ood_02": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 0
+              },
+              "public_dev.tread_ood_03": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 1
+              }
+            },
+            "macro_score": 0.5833333333333334,
+            "mean_progress_fraction_by_cell": {
+              "public_dev.c0_id_01": 0.8148444333333333,
+              "public_dev.c0_id_02": 1.0,
+              "public_dev.c0_id_03": 1.0,
+              "public_dev.c1_frontier_01": 1.0,
+              "public_dev.c1_frontier_02": 0.7808911166666667,
+              "public_dev.c1_frontier_03": 0.8617441233333334,
+              "public_dev.c1_id_01": 0.6975938700000001,
+              "public_dev.c1_id_02": 0.8734020733333333,
+              "public_dev.c1_id_03": 1.0,
+              "public_dev.c2_rough_01": 0.4000193733333333,
+              "public_dev.c2_rough_02": 0.8722001366666666,
+              "public_dev.c2_rough_03": 1.0,
+              "public_dev.height_ood_01": 1.0,
+              "public_dev.height_ood_02": 1.0,
+              "public_dev.height_ood_03": 0.57016099,
+              "public_dev.joint_ood_01": 1.0,
+              "public_dev.joint_ood_02": 0.9623507033333333,
+              "public_dev.joint_ood_03": 0.5057643566666667,
+              "public_dev.phase_ood_01": 0.9242968466666667,
+              "public_dev.phase_ood_02": 1.0,
+              "public_dev.phase_ood_03": 1.0,
+              "public_dev.tread_ood_01": 0.5195684166666666,
+              "public_dev.tread_ood_02": 1.0,
+              "public_dev.tread_ood_03": 1.0
+            },
+            "primary_outcome_counts": {
+              "base_orientation_instability": 0,
+              "forbidden_contact": 12,
+              "insufficient_clearance": 0,
+              "off_course": 18,
+              "slip": 0,
+              "success": 42,
+              "timeout": 0
+            },
+            "primary_outcome_counts_by_cell": {
+              "public_dev.c0_id_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 1,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 2,
+                "timeout": 0
+              },
+              "public_dev.c0_id_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.c0_id_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.c1_frontier_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.c1_frontier_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 3,
+                "slip": 0,
+                "success": 0,
+                "timeout": 0
+              },
+              "public_dev.c1_frontier_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 1,
+                "insufficient_clearance": 0,
+                "off_course": 1,
+                "slip": 0,
+                "success": 1,
+                "timeout": 0
+              },
+              "public_dev.c1_id_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 3,
+                "slip": 0,
+                "success": 0,
+                "timeout": 0
+              },
+              "public_dev.c1_id_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 1,
+                "slip": 0,
+                "success": 2,
+                "timeout": 0
+              },
+              "public_dev.c1_id_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.c2_rough_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 2,
+                "insufficient_clearance": 0,
+                "off_course": 1,
+                "slip": 0,
+                "success": 0,
+                "timeout": 0
+              },
+              "public_dev.c2_rough_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 3,
+                "slip": 0,
+                "success": 0,
+                "timeout": 0
+              },
+              "public_dev.c2_rough_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.height_ood_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.height_ood_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.height_ood_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 3,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 0,
+                "timeout": 0
+              },
+              "public_dev.joint_ood_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.joint_ood_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 1,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 2,
+                "timeout": 0
+              },
+              "public_dev.joint_ood_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 3,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 0,
+                "timeout": 0
+              },
+              "public_dev.phase_ood_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 3,
+                "slip": 0,
+                "success": 0,
+                "timeout": 0
+              },
+              "public_dev.phase_ood_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 1,
+                "slip": 0,
+                "success": 2,
+                "timeout": 0
+              },
+              "public_dev.phase_ood_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.tread_ood_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 1,
+                "insufficient_clearance": 0,
+                "off_course": 2,
+                "slip": 0,
+                "success": 0,
+                "timeout": 0
+              },
+              "public_dev.tread_ood_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.tread_ood_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              }
+            },
+            "seed_index": 1,
+            "success_rate_by_cell": {
+              "public_dev.c0_id_01": 0.6666666666666666,
+              "public_dev.c0_id_02": 1.0,
+              "public_dev.c0_id_03": 1.0,
+              "public_dev.c1_frontier_01": 1.0,
+              "public_dev.c1_frontier_02": 0.0,
+              "public_dev.c1_frontier_03": 0.3333333333333333,
+              "public_dev.c1_id_01": 0.0,
+              "public_dev.c1_id_02": 0.6666666666666666,
+              "public_dev.c1_id_03": 1.0,
+              "public_dev.c2_rough_01": 0.0,
+              "public_dev.c2_rough_02": 0.0,
+              "public_dev.c2_rough_03": 1.0,
+              "public_dev.height_ood_01": 1.0,
+              "public_dev.height_ood_02": 1.0,
+              "public_dev.height_ood_03": 0.0,
+              "public_dev.joint_ood_01": 1.0,
+              "public_dev.joint_ood_02": 0.6666666666666666,
+              "public_dev.joint_ood_03": 0.0,
+              "public_dev.phase_ood_01": 0.0,
+              "public_dev.phase_ood_02": 0.6666666666666666,
+              "public_dev.phase_ood_03": 1.0,
+              "public_dev.tread_ood_01": 0.0,
+              "public_dev.tread_ood_02": 1.0,
+              "public_dev.tread_ood_03": 1.0
+            }
+          },
+          {
+            "diagnostic_flag_counts_by_cell": {
+              "public_dev.c0_id_01": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 2,
+                "goal_not_reached_detected": 1,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 0
+              },
+              "public_dev.c0_id_02": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 0
+              },
+              "public_dev.c0_id_03": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 2
+              },
+              "public_dev.c1_frontier_01": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 0
+              },
+              "public_dev.c1_frontier_02": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 1,
+                "goal_not_reached_detected": 2,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 2,
+                "slip_detected": 2
+              },
+              "public_dev.c1_frontier_03": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 1,
+                "goal_not_reached_detected": 2,
+                "insufficient_clearance_detected": 2,
+                "off_course_detected": 2,
+                "slip_detected": 2
+              },
+              "public_dev.c1_id_01": {
+                "base_orientation_instability_detected": 1,
+                "first_valid_top_arrival_achieved": 0,
+                "goal_not_reached_detected": 3,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 1,
+                "slip_detected": 2
+              },
+              "public_dev.c1_id_02": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 2,
+                "goal_not_reached_detected": 1,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 1,
+                "slip_detected": 1
+              },
+              "public_dev.c1_id_03": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 0
+              },
+              "public_dev.c2_rough_01": {
+                "base_orientation_instability_detected": 1,
+                "first_valid_top_arrival_achieved": 0,
+                "goal_not_reached_detected": 3,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 3,
+                "slip_detected": 3
+              },
+              "public_dev.c2_rough_02": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 1,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 2,
+                "slip_detected": 0
+              },
+              "public_dev.c2_rough_03": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 2,
+                "goal_not_reached_detected": 1,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 1
+              },
+              "public_dev.height_ood_01": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 1
+              },
+              "public_dev.height_ood_02": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 2,
+                "goal_not_reached_detected": 1,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 3
+              },
+              "public_dev.height_ood_03": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 0,
+                "goal_not_reached_detected": 3,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 3
+              },
+              "public_dev.joint_ood_01": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 2
+              },
+              "public_dev.joint_ood_02": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 1,
+                "goal_not_reached_detected": 2,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 3
+              },
+              "public_dev.joint_ood_03": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 0,
+                "goal_not_reached_detected": 3,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 2
+              },
+              "public_dev.phase_ood_01": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 1,
+                "goal_not_reached_detected": 1,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 2,
+                "slip_detected": 0
+              },
+              "public_dev.phase_ood_02": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 1,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 2,
+                "slip_detected": 1
+              },
+              "public_dev.phase_ood_03": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 1,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 2,
+                "slip_detected": 0
+              },
+              "public_dev.tread_ood_01": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 1,
+                "goal_not_reached_detected": 2,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 2,
+                "slip_detected": 2
+              },
+              "public_dev.tread_ood_02": {
+                "base_orientation_instability_detected": 1,
+                "first_valid_top_arrival_achieved": 2,
+                "goal_not_reached_detected": 1,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 2
+              },
+              "public_dev.tread_ood_03": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 1
+              }
+            },
+            "macro_score": 0.5416666666666666,
+            "mean_progress_fraction_by_cell": {
+              "public_dev.c0_id_01": 0.95771017,
+              "public_dev.c0_id_02": 1.0,
+              "public_dev.c0_id_03": 1.0,
+              "public_dev.c1_frontier_01": 1.0,
+              "public_dev.c1_frontier_02": 0.89734276,
+              "public_dev.c1_frontier_03": 0.9206135433333333,
+              "public_dev.c1_id_01": 0.47260547333333336,
+              "public_dev.c1_id_02": 0.93549328,
+              "public_dev.c1_id_03": 1.0,
+              "public_dev.c2_rough_01": 0.8177094166666666,
+              "public_dev.c2_rough_02": 1.0,
+              "public_dev.c2_rough_03": 0.9918553766666667,
+              "public_dev.height_ood_01": 1.0,
+              "public_dev.height_ood_02": 0.8912710533333333,
+              "public_dev.height_ood_03": 0.5357907566666666,
+              "public_dev.joint_ood_01": 1.0,
+              "public_dev.joint_ood_02": 0.7787472566666667,
+              "public_dev.joint_ood_03": 0.5534755666666666,
+              "public_dev.phase_ood_01": 0.9875426633333333,
+              "public_dev.phase_ood_02": 1.0,
+              "public_dev.phase_ood_03": 1.0,
+              "public_dev.tread_ood_01": 0.8785537833333333,
+              "public_dev.tread_ood_02": 0.9129934133333333,
+              "public_dev.tread_ood_03": 1.0
+            },
+            "primary_outcome_counts": {
+              "base_orientation_instability": 0,
+              "forbidden_contact": 14,
+              "insufficient_clearance": 0,
+              "off_course": 18,
+              "slip": 0,
+              "success": 39,
+              "timeout": 1
+            },
+            "primary_outcome_counts_by_cell": {
+              "public_dev.c0_id_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 1,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 2,
+                "timeout": 0
+              },
+              "public_dev.c0_id_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.c0_id_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.c1_frontier_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.c1_frontier_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 2,
+                "slip": 0,
+                "success": 1,
+                "timeout": 0
+              },
+              "public_dev.c1_frontier_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 2,
+                "slip": 0,
+                "success": 1,
+                "timeout": 0
+              },
+              "public_dev.c1_id_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 2,
+                "insufficient_clearance": 0,
+                "off_course": 1,
+                "slip": 0,
+                "success": 0,
+                "timeout": 0
+              },
+              "public_dev.c1_id_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 1,
+                "slip": 0,
+                "success": 2,
+                "timeout": 0
+              },
+              "public_dev.c1_id_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.c2_rough_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 1,
+                "insufficient_clearance": 0,
+                "off_course": 2,
+                "slip": 0,
+                "success": 0,
+                "timeout": 0
+              },
+              "public_dev.c2_rough_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 2,
+                "slip": 0,
+                "success": 1,
+                "timeout": 0
+              },
+              "public_dev.c2_rough_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 2,
+                "timeout": 1
+              },
+              "public_dev.height_ood_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.height_ood_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 1,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 2,
+                "timeout": 0
+              },
+              "public_dev.height_ood_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 3,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 0,
+                "timeout": 0
+              },
+              "public_dev.joint_ood_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.joint_ood_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 2,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 1,
+                "timeout": 0
+              },
+              "public_dev.joint_ood_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 3,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 0,
+                "timeout": 0
+              },
+              "public_dev.phase_ood_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 2,
+                "slip": 0,
+                "success": 1,
+                "timeout": 0
+              },
+              "public_dev.phase_ood_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 2,
+                "slip": 0,
+                "success": 1,
+                "timeout": 0
+              },
+              "public_dev.phase_ood_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 2,
+                "slip": 0,
+                "success": 1,
+                "timeout": 0
+              },
+              "public_dev.tread_ood_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 2,
+                "slip": 0,
+                "success": 1,
+                "timeout": 0
+              },
+              "public_dev.tread_ood_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 1,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 2,
+                "timeout": 0
+              },
+              "public_dev.tread_ood_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              }
+            },
+            "seed_index": 2,
+            "success_rate_by_cell": {
+              "public_dev.c0_id_01": 0.6666666666666666,
+              "public_dev.c0_id_02": 1.0,
+              "public_dev.c0_id_03": 1.0,
+              "public_dev.c1_frontier_01": 1.0,
+              "public_dev.c1_frontier_02": 0.3333333333333333,
+              "public_dev.c1_frontier_03": 0.3333333333333333,
+              "public_dev.c1_id_01": 0.0,
+              "public_dev.c1_id_02": 0.6666666666666666,
+              "public_dev.c1_id_03": 1.0,
+              "public_dev.c2_rough_01": 0.0,
+              "public_dev.c2_rough_02": 0.3333333333333333,
+              "public_dev.c2_rough_03": 0.6666666666666666,
+              "public_dev.height_ood_01": 1.0,
+              "public_dev.height_ood_02": 0.6666666666666666,
+              "public_dev.height_ood_03": 0.0,
+              "public_dev.joint_ood_01": 1.0,
+              "public_dev.joint_ood_02": 0.3333333333333333,
+              "public_dev.joint_ood_03": 0.0,
+              "public_dev.phase_ood_01": 0.3333333333333333,
+              "public_dev.phase_ood_02": 0.3333333333333333,
+              "public_dev.phase_ood_03": 0.3333333333333333,
+              "public_dev.tread_ood_01": 0.3333333333333333,
+              "public_dev.tread_ood_02": 0.6666666666666666,
+              "public_dev.tread_ood_03": 1.0
+            }
+          },
+          {
+            "diagnostic_flag_counts_by_cell": {
+              "public_dev.c0_id_01": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 1
+              },
+              "public_dev.c0_id_02": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 0
+              },
+              "public_dev.c0_id_03": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 3
+              },
+              "public_dev.c1_frontier_01": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 0
+              },
+              "public_dev.c1_frontier_02": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 0,
+                "goal_not_reached_detected": 3,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 3,
+                "slip_detected": 2
+              },
+              "public_dev.c1_frontier_03": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 1,
+                "goal_not_reached_detected": 1,
+                "insufficient_clearance_detected": 2,
+                "off_course_detected": 2,
+                "slip_detected": 0
+              },
+              "public_dev.c1_id_01": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 0,
+                "goal_not_reached_detected": 3,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 2,
+                "slip_detected": 0
+              },
+              "public_dev.c1_id_02": {
+                "base_orientation_instability_detected": 1,
+                "first_valid_top_arrival_achieved": 0,
+                "goal_not_reached_detected": 3,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 2,
+                "slip_detected": 1
+              },
+              "public_dev.c1_id_03": {
+                "base_orientation_instability_detected": 1,
+                "first_valid_top_arrival_achieved": 2,
+                "goal_not_reached_detected": 1,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 1
+              },
+              "public_dev.c2_rough_01": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 0,
+                "goal_not_reached_detected": 2,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 3,
+                "slip_detected": 1
+              },
+              "public_dev.c2_rough_02": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 2,
+                "goal_not_reached_detected": 1,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 1,
+                "slip_detected": 1
+              },
+              "public_dev.c2_rough_03": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 0
+              },
+              "public_dev.height_ood_01": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 2
+              },
+              "public_dev.height_ood_02": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 1,
+                "goal_not_reached_detected": 2,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 1
+              },
+              "public_dev.height_ood_03": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 0,
+                "goal_not_reached_detected": 3,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 1
+              },
+              "public_dev.joint_ood_01": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 2,
+                "goal_not_reached_detected": 1,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 3
+              },
+              "public_dev.joint_ood_02": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 2,
+                "goal_not_reached_detected": 1,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 2
+              },
+              "public_dev.joint_ood_03": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 0,
+                "goal_not_reached_detected": 3,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 3
+              },
+              "public_dev.phase_ood_01": {
+                "base_orientation_instability_detected": 1,
+                "first_valid_top_arrival_achieved": 1,
+                "goal_not_reached_detected": 2,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 1,
+                "slip_detected": 2
+              },
+              "public_dev.phase_ood_02": {
+                "base_orientation_instability_detected": 1,
+                "first_valid_top_arrival_achieved": 1,
+                "goal_not_reached_detected": 1,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 1,
+                "slip_detected": 1
+              },
+              "public_dev.phase_ood_03": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 0
+              },
+              "public_dev.tread_ood_01": {
+                "base_orientation_instability_detected": 1,
+                "first_valid_top_arrival_achieved": 0,
+                "goal_not_reached_detected": 3,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 1,
+                "slip_detected": 1
+              },
+              "public_dev.tread_ood_02": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 0
+              },
+              "public_dev.tread_ood_03": {
+                "base_orientation_instability_detected": 0,
+                "first_valid_top_arrival_achieved": 3,
+                "goal_not_reached_detected": 0,
+                "insufficient_clearance_detected": 0,
+                "off_course_detected": 0,
+                "slip_detected": 0
+              }
+            },
+            "macro_score": 0.5416666666666666,
+            "mean_progress_fraction_by_cell": {
+              "public_dev.c0_id_01": 1.0,
+              "public_dev.c0_id_02": 1.0,
+              "public_dev.c0_id_03": 1.0,
+              "public_dev.c1_frontier_01": 1.0,
+              "public_dev.c1_frontier_02": 0.66429863,
+              "public_dev.c1_frontier_03": 0.9930617633333333,
+              "public_dev.c1_id_01": 0.6385072266666666,
+              "public_dev.c1_id_02": 0.78174782,
+              "public_dev.c1_id_03": 0.9213361733333333,
+              "public_dev.c2_rough_01": 0.8784009366666666,
+              "public_dev.c2_rough_02": 0.97982619,
+              "public_dev.c2_rough_03": 1.0,
+              "public_dev.height_ood_01": 1.0,
+              "public_dev.height_ood_02": 0.8474656166666666,
+              "public_dev.height_ood_03": 0.3894518866666667,
+              "public_dev.joint_ood_01": 0.9462483133333334,
+              "public_dev.joint_ood_02": 0.93046581,
+              "public_dev.joint_ood_03": 0.5079258166666667,
+              "public_dev.phase_ood_01": 0.84507908,
+              "public_dev.phase_ood_02": 0.8728037,
+              "public_dev.phase_ood_03": 1.0,
+              "public_dev.tread_ood_01": 0.4792563166666666,
+              "public_dev.tread_ood_02": 1.0,
+              "public_dev.tread_ood_03": 1.0
+            },
+            "primary_outcome_counts": {
+              "base_orientation_instability": 0,
+              "forbidden_contact": 18,
+              "insufficient_clearance": 0,
+              "off_course": 15,
+              "slip": 0,
+              "success": 39,
+              "timeout": 0
+            },
+            "primary_outcome_counts_by_cell": {
+              "public_dev.c0_id_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.c0_id_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.c0_id_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.c1_frontier_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.c1_frontier_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 1,
+                "insufficient_clearance": 0,
+                "off_course": 2,
+                "slip": 0,
+                "success": 0,
+                "timeout": 0
+              },
+              "public_dev.c1_frontier_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 2,
+                "slip": 0,
+                "success": 1,
+                "timeout": 0
+              },
+              "public_dev.c1_id_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 1,
+                "insufficient_clearance": 0,
+                "off_course": 2,
+                "slip": 0,
+                "success": 0,
+                "timeout": 0
+              },
+              "public_dev.c1_id_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 1,
+                "insufficient_clearance": 0,
+                "off_course": 2,
+                "slip": 0,
+                "success": 0,
+                "timeout": 0
+              },
+              "public_dev.c1_id_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 1,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 2,
+                "timeout": 0
+              },
+              "public_dev.c2_rough_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 3,
+                "slip": 0,
+                "success": 0,
+                "timeout": 0
+              },
+              "public_dev.c2_rough_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 1,
+                "slip": 0,
+                "success": 2,
+                "timeout": 0
+              },
+              "public_dev.c2_rough_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.height_ood_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.height_ood_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 2,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 1,
+                "timeout": 0
+              },
+              "public_dev.height_ood_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 3,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 0,
+                "timeout": 0
+              },
+              "public_dev.joint_ood_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 1,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 2,
+                "timeout": 0
+              },
+              "public_dev.joint_ood_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 1,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 2,
+                "timeout": 0
+              },
+              "public_dev.joint_ood_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 3,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 0,
+                "timeout": 0
+              },
+              "public_dev.phase_ood_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 1,
+                "insufficient_clearance": 0,
+                "off_course": 1,
+                "slip": 0,
+                "success": 1,
+                "timeout": 0
+              },
+              "public_dev.phase_ood_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 1,
+                "insufficient_clearance": 0,
+                "off_course": 1,
+                "slip": 0,
+                "success": 1,
+                "timeout": 0
+              },
+              "public_dev.phase_ood_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.tread_ood_01": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 2,
+                "insufficient_clearance": 0,
+                "off_course": 1,
+                "slip": 0,
+                "success": 0,
+                "timeout": 0
+              },
+              "public_dev.tread_ood_02": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              },
+              "public_dev.tread_ood_03": {
+                "base_orientation_instability": 0,
+                "forbidden_contact": 0,
+                "insufficient_clearance": 0,
+                "off_course": 0,
+                "slip": 0,
+                "success": 3,
+                "timeout": 0
+              }
+            },
+            "seed_index": 3,
+            "success_rate_by_cell": {
+              "public_dev.c0_id_01": 1.0,
+              "public_dev.c0_id_02": 1.0,
+              "public_dev.c0_id_03": 1.0,
+              "public_dev.c1_frontier_01": 1.0,
+              "public_dev.c1_frontier_02": 0.0,
+              "public_dev.c1_frontier_03": 0.3333333333333333,
+              "public_dev.c1_id_01": 0.0,
+              "public_dev.c1_id_02": 0.0,
+              "public_dev.c1_id_03": 0.6666666666666666,
+              "public_dev.c2_rough_01": 0.0,
+              "public_dev.c2_rough_02": 0.6666666666666666,
+              "public_dev.c2_rough_03": 1.0,
+              "public_dev.height_ood_01": 1.0,
+              "public_dev.height_ood_02": 0.3333333333333333,
+              "public_dev.height_ood_03": 0.0,
+              "public_dev.joint_ood_01": 0.6666666666666666,
+              "public_dev.joint_ood_02": 0.6666666666666666,
+              "public_dev.joint_ood_03": 0.0,
+              "public_dev.phase_ood_01": 0.3333333333333333,
+              "public_dev.phase_ood_02": 0.3333333333333333,
+              "public_dev.phase_ood_03": 1.0,
+              "public_dev.tread_ood_01": 0.0,
+              "public_dev.tread_ood_02": 1.0,
+              "public_dev.tread_ood_03": 1.0
+            }
+          }
+        ],
+        "split": "public_dev",
+        "split_cohort_hash": "4c22d308a908d592ba0ba2239ba20b334989c52edc5f81784a6167a3d00350cb",
+        "total_episode_count": 216
+      },
+      "qualification_status": "pre_reference_all_declared_strata",
+      "schema_version": "true_rl_agent.task.stair_climbing.unified_evaluation_summary.v2",
+      "seed_summaries": [
+        {
+          "cell_scores": {
+            "public_dev.c0_id_01": 0.74075555,
+            "public_dev.c0_id_02": 1.0,
+            "public_dev.c0_id_03": 1.0,
+            "public_dev.c1_frontier_01": 1.0,
+            "public_dev.c1_frontier_02": 0.39044555833333333,
+            "public_dev.c1_frontier_03": 0.5975387283333333,
+            "public_dev.c1_id_01": 0.34879693500000003,
+            "public_dev.c1_id_02": 0.77003437,
+            "public_dev.c1_id_03": 1.0,
+            "public_dev.c2_rough_01": 0.20000968666666666,
+            "public_dev.c2_rough_02": 0.4361000683333333,
+            "public_dev.c2_rough_03": 1.0,
+            "public_dev.height_ood_01": 1.0,
+            "public_dev.height_ood_02": 1.0,
+            "public_dev.height_ood_03": 0.285080495,
+            "public_dev.joint_ood_01": 1.0,
+            "public_dev.joint_ood_02": 0.814508685,
+            "public_dev.joint_ood_03": 0.2528821783333334,
+            "public_dev.phase_ood_01": 0.46214842333333334,
+            "public_dev.phase_ood_02": 0.8333333333333333,
+            "public_dev.phase_ood_03": 1.0,
+            "public_dev.tread_ood_01": 0.2597842083333333,
+            "public_dev.tread_ood_02": 1.0,
+            "public_dev.tread_ood_03": 1.0
+          },
+          "family_scores": {
+            "F_c1": 0.7139110072222222,
+            "F_c2": 0.5453699183333334,
+            "F_scalar": 0.7346950629629629
+          },
+          "j_id": 0.8099311425,
+          "j_ood": 0.6646586628395061,
+          "j_primary": 0.7130828227263374,
+          "named_guard_scores": {
+            "c0_id": 0.9135851833333334,
+            "c1_id": 0.7062771016666667,
+            "j_ood": 0.6646586628395061
+          },
+          "qualification_status": "pre_reference_all_declared_strata",
+          "seed_index": 1,
+          "stratum_scores": {
+            "c0_id": 0.9135851833333334,
+            "c1_conditional_frontier": 0.6626614288888889,
+            "c1_id": 0.7062771016666667,
+            "c2_mechanism_ood": 0.5453699183333334,
+            "height_ood": 0.7616934983333333,
+            "joint_ood": 0.6891302877777777,
+            "phase_composition_ood": 0.7651605855555556,
+            "tread_ood": 0.7532614027777778
+          }
+        },
+        {
+          "cell_scores": {
+            "public_dev.c0_id_01": 0.8121884183333333,
+            "public_dev.c0_id_02": 1.0,
+            "public_dev.c0_id_03": 1.0,
+            "public_dev.c1_frontier_01": 1.0,
+            "public_dev.c1_frontier_02": 0.6153380466666667,
+            "public_dev.c1_frontier_03": 0.6269734383333333,
+            "public_dev.c1_id_01": 0.23630273666666668,
+            "public_dev.c1_id_02": 0.8010799733333334,
+            "public_dev.c1_id_03": 1.0,
+            "public_dev.c2_rough_01": 0.4088547083333333,
+            "public_dev.c2_rough_02": 0.6666666666666666,
+            "public_dev.c2_rough_03": 0.8292610216666667,
+            "public_dev.height_ood_01": 1.0,
+            "public_dev.height_ood_02": 0.77896886,
+            "public_dev.height_ood_03": 0.2678953783333333,
+            "public_dev.joint_ood_01": 1.0,
+            "public_dev.joint_ood_02": 0.556040295,
+            "public_dev.joint_ood_03": 0.2767377833333333,
+            "public_dev.phase_ood_01": 0.6604379983333333,
+            "public_dev.phase_ood_02": 0.6666666666666666,
+            "public_dev.phase_ood_03": 0.6666666666666666,
+            "public_dev.tread_ood_01": 0.6059435583333334,
+            "public_dev.tread_ood_02": 0.78983004,
+            "public_dev.tread_ood_03": 1.0
+          },
+          "family_scores": {
+            "F_c1": 0.7060138027777778,
+            "F_c2": 0.6349274655555556,
+            "F_scalar": 0.697268435
+          },
+          "j_id": 0.8082618547222222,
+          "j_ood": 0.6794032344444445,
+          "j_primary": 0.7223561078703704,
+          "named_guard_scores": {
+            "c0_id": 0.9373961394444444,
+            "c1_id": 0.67912757,
+            "j_ood": 0.6794032344444445
+          },
+          "qualification_status": "pre_reference_all_declared_strata",
+          "seed_index": 2,
+          "stratum_scores": {
+            "c0_id": 0.9373961394444444,
+            "c1_conditional_frontier": 0.7474371616666666,
+            "c1_id": 0.67912757,
+            "c2_mechanism_ood": 0.6349274655555556,
+            "height_ood": 0.6822880794444445,
+            "joint_ood": 0.6109260261111111,
+            "phase_composition_ood": 0.6645904438888889,
+            "tread_ood": 0.7985911994444445
+          }
+        },
+        {
+          "cell_scores": {
+            "public_dev.c0_id_01": 1.0,
+            "public_dev.c0_id_02": 1.0,
+            "public_dev.c0_id_03": 1.0,
+            "public_dev.c1_frontier_01": 1.0,
+            "public_dev.c1_frontier_02": 0.332149315,
+            "public_dev.c1_frontier_03": 0.6631975483333333,
+            "public_dev.c1_id_01": 0.3192536133333333,
+            "public_dev.c1_id_02": 0.39087391,
+            "public_dev.c1_id_03": 0.79400142,
+            "public_dev.c2_rough_01": 0.4392004683333333,
+            "public_dev.c2_rough_02": 0.8232464283333334,
+            "public_dev.c2_rough_03": 1.0,
+            "public_dev.height_ood_01": 1.0,
+            "public_dev.height_ood_02": 0.590399475,
+            "public_dev.height_ood_03": 0.19472594333333335,
+            "public_dev.joint_ood_01": 0.80645749,
+            "public_dev.joint_ood_02": 0.7985662383333333,
+            "public_dev.joint_ood_03": 0.25396290833333335,
+            "public_dev.phase_ood_01": 0.5892062066666667,
+            "public_dev.phase_ood_02": 0.6030685166666666,
+            "public_dev.phase_ood_03": 1.0,
+            "public_dev.tread_ood_01": 0.2396281583333333,
+            "public_dev.tread_ood_02": 1.0,
+            "public_dev.tread_ood_03": 1.0
+          },
+          "family_scores": {
+            "F_c1": 0.6979369311111111,
+            "F_c2": 0.7541489655555556,
+            "F_scalar": 0.6537489125925926
+          },
+          "j_id": 0.7506881572222222,
+          "j_ood": 0.7019449364197531,
+          "j_primary": 0.7181926766872427,
+          "named_guard_scores": {
+            "c0_id": 1.0,
+            "c1_id": 0.5013763144444444,
+            "j_ood": 0.7019449364197531
+          },
+          "qualification_status": "pre_reference_all_declared_strata",
+          "seed_index": 3,
+          "stratum_scores": {
+            "c0_id": 1.0,
+            "c1_conditional_frontier": 0.6651156211111111,
+            "c1_id": 0.5013763144444444,
+            "c2_mechanism_ood": 0.7541489655555556,
+            "height_ood": 0.5950418061111111,
+            "joint_ood": 0.6196622122222222,
+            "phase_composition_ood": 0.7307582411111111,
+            "tread_ood": 0.7465427194444444
+          }
+        }
+      ],
+      "split": "public_dev",
+      "stratum_cell_ids": {
+        "c0_id": [
+          "public_dev.c0_id_01",
+          "public_dev.c0_id_02",
+          "public_dev.c0_id_03"
+        ],
+        "c1_conditional_frontier": [
+          "public_dev.c1_frontier_01",
+          "public_dev.c1_frontier_02",
+          "public_dev.c1_frontier_03"
+        ],
+        "c1_id": [
+          "public_dev.c1_id_01",
+          "public_dev.c1_id_02",
+          "public_dev.c1_id_03"
+        ],
+        "c2_mechanism_ood": [
+          "public_dev.c2_rough_01",
+          "public_dev.c2_rough_02",
+          "public_dev.c2_rough_03"
+        ],
+        "height_ood": [
+          "public_dev.height_ood_01",
+          "public_dev.height_ood_02",
+          "public_dev.height_ood_03"
+        ],
+        "joint_ood": [
+          "public_dev.joint_ood_01",
+          "public_dev.joint_ood_02",
+          "public_dev.joint_ood_03"
+        ],
+        "phase_composition_ood": [
+          "public_dev.phase_ood_01",
+          "public_dev.phase_ood_02",
+          "public_dev.phase_ood_03"
+        ],
+        "tread_ood": [
+          "public_dev.tread_ood_01",
+          "public_dev.tread_ood_02",
+          "public_dev.tread_ood_03"
+        ]
+      }
+    }
+  },
+  "execution": {
+    "backend_execution_environment_verification": {
+      "actual_manifest_hash": "f15dc4233b706dbfd2f8e7f1bee296af4209bdb0b3d0610fb09e8d959fb423c2",
+      "backend_id": "isaac_lab_rsl_rl",
+      "expected_manifest_hash": "f15dc4233b706dbfd2f8e7f1bee296af4209bdb0b3d0610fb09e8d959fb423c2",
+      "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+      "status": "pass"
+    },
+    "checkpoint_hash": "sha256:3fbbf80d5e7e4ee559420ea06759231c00e2d90316101ace4db6e24ec25810b2",
+    "environment_source_preflight": {
+      "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+      "source_manifest_hash": "361d9fa6c7d5b8653363b33f47f41471809af138f147e805250eea0eb291f9d4",
+      "status": "pass",
+      "task_protocol_hash": "32d7f3c9855b04a826dcbfe958bf12fc44d7be09275285295e12f80f3abc0332"
+    },
+    "execution_device": "cuda:1",
+    "schema_version": "true_rl_agent.task.stair_climbing.eval_execution_identity.v1",
+    "seed_cohort_hash": "1fb55c41146a4d46f561858eb4650111eafc6a4ee96df4b8e0c5cbaf1e9453e2",
+    "seed_namespace": "formal_reference_candidate_eval",
+    "splits": [
+      "public_dev"
+    ]
+  },
+  "recordings": [
+    {
+      "control_dt_s": 0.02,
+      "env_index": 0,
+      "file": "public_dev_seed_1.mp4",
+      "fps": 50,
+      "frame_count": 708,
+      "seed": 2070607434,
+      "sha256": "a35e6fde50bf472a3597150be901e073c6bd0fac8b7c44dc2b57d938f6a0d88a",
+      "simulated_duration_s": 14.16
+    },
+    {
+      "control_dt_s": 0.02,
+      "env_index": 0,
+      "file": "public_dev_seed_2.mp4",
+      "fps": 50,
+      "frame_count": 708,
+      "seed": 1279433311,
+      "sha256": "9aebc9265ce58df537a91bf7dd19f6a8cb4e41d1872b252ca892c4fd02434394",
+      "simulated_duration_s": 14.16
+    },
+    {
+      "control_dt_s": 0.02,
+      "env_index": 0,
+      "file": "public_dev_seed_3.mp4",
+      "fps": 50,
+      "frame_count": 708,
+      "seed": 1365921760,
+      "sha256": "db7c03a6c2cbb2c1eb7b971d14c011542e4de5b0a9743ae23499e5bdbc3ae493",
+      "simulated_duration_s": 14.16
+    }
+  ],
+  "resolved_cell_manifest": {
+    "base_task_protocol_hash": "fc84b8eece40372afd6680acf711cb3b754bba660608318e5a334492d9587ded",
+    "cell_variant_id": "stair.g1_37dof.unified_v2",
+    "contract_hashes": {
+      "acceptance_protocol_hash": "d18b5345c8b3112546af401a8dd1560e6c6e840ad8c5ef4d102bd3e1ea5b4c24",
+      "action_content_hash": "d0c6f46d0f75f3cebdc75664945b9b1892375f506e195ead2a9afcd1c886842d",
+      "agent_configuration_hash": "8a5d64c47ac034695d2eec23ff60a89ecbf1253694edb8c373a4da86872bb450",
+      "binding_facts_hash": "01ac5380ca24821668655a582d0ce911fb4de30ef166f518c4ae0c68698f9d7e",
+      "candidate_capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+      "evaluation_protocol_hash": "aaea86a49cb01ea488eb3508685509dbee55c31589a268a922afd24ed082a942",
+      "evaluation_suite_hash": "4ee307fe359122671cf4f7056b601135b28679818a9b4bd419f3e7697891ceb7",
+      "observation_content_hash": "9259fb4329c8ac4ef06e9434d7ca997b19ff353e382ea584ec8e0edbf41b5c81",
+      "ordered_cell_set_hash": "f062e3913236a674988af769d41bcb8a4328e90e0cda3e0bcab37b6645748a24",
+      "policy_io_schema_hash": "33c29649a0bfd26c458a764a598a38212f7e66c1207a2fbb073baa117ae69ca3",
+      "protocol_state_hash": "ab1354dc48710c2951cc2048fefb231e73e588a02e3e2b0eca0f29eb61da9ef5",
+      "reference_capability_gate_hash": "66860e03fda611aba1cd330fc94da70cac850b57b7186052a6452a2fed80f15b",
+      "reward_capability_vnext_hash": "261d858cac8449d131146f16c57559fc758599b6384779db12b9ca3f79ff0bb5",
+      "reward_input_schema_hash": "1e8010af97ca3d384316e9c4987a9093bd719e72fa3adecf379cf7d2d51d9b56",
+      "reward_input_vnext_schema_hash": "1e8010af97ca3d384316e9c4987a9093bd719e72fa3adecf379cf7d2d51d9b56",
+      "sensor_schema_hash": "92878ccd57f5ab852a5beeaed049d1ca4632341c4a5887cd006fd90487429558",
+      "training_profile_hash": "d222a1ddc2ed52ed6feae43d8413b6364576880ac4febbc09e6ac7a9122028d1",
+      "vnext_reward_authority_hash": "b4cbca68377eec8a0f10a3fe6724067c8adec4b774fda89ecaf8f6a58189c186"
+    },
+    "environment": {
+      "cell_variant_id": "stair.g1_37dof.unified_v2",
+      "environment_hash": "0bdbeaadeeb790eff6f32dbe28862da96156f5d69f9f50aad3c2ca663de3a385",
+      "environment_id": "stair_unified_c0_c1_environment_v2",
+      "payload": {
+        "cohort_hashes": {
+          "calibration": "9404baa5e2ae99bbbe4398d99dbb0dd163b4d69644497a4d7b36e26c7c8fd08d",
+          "public_accept": "c600fe0b23cb898035d764f971d60756d4670e51f378833a2eb824cb5490e826",
+          "public_dev": "4c22d308a908d592ba0ba2239ba20b334989c52edc5f81784a6167a3d00350cb",
+          "sealed_validation": "fc15c2f4b61462505e15babbeff19c83ac40aeb7f78d18ea45a5006813cdabd0"
+        },
+        "eval_runtime_dynamics_hash": "sha256:11013c613961d18c45ad1285f2bd6e9fd6d013198ea1249dcbb4a9452feb37ae",
+        "evaluation_suite_hash": "4ee307fe359122671cf4f7056b601135b28679818a9b4bd419f3e7697891ceb7",
+        "ordered_cell_set_hash": "f062e3913236a674988af769d41bcb8a4328e90e0cda3e0bcab37b6645748a24",
+        "train_runtime_dynamics_hash": "sha256:a3f61ff163d04e444017b32a8968728aeecb5f603f76c7c31b190d61a97a6cca",
+        "training_profile_hash": "d222a1ddc2ed52ed6feae43d8413b6364576880ac4febbc09e6ac7a9122028d1"
+      },
+      "schema_version": "true_rl_agent.cell_environment.v1",
+      "task_id": "unitree_stair_climbing"
+    },
+    "legacy_training_binding_v1_grant_hash": null,
+    "manifest_hash": "dbd79e0074ce64f23ae447d3e50ebcf1997593fe121fa209b4efd61b410c79a1",
+    "provided_capabilities": [
+      "articulation_runtime",
+      "base_state",
+      "contact_sensor_runtime",
+      "height_scan",
+      "joint_position_action",
+      "joint_state",
+      "policy_observation_projection",
+      "support_contact",
+      "support_effector_state"
+    ],
+    "resolved_cell_task_protocol_hash": "32d7f3c9855b04a826dcbfe958bf12fc44d7be09275285295e12f80f3abc0332",
+    "resolved_roles": {
+      "base": [
+        "torso_link"
+      ],
+      "forbidden_contact": [
+        "torso_link"
+      ],
+      "support_effector": [
+        "left_ankle_roll_link",
+        "right_ankle_roll_link"
+      ]
+    },
+    "robot_profile": {
+      "asset_closure": {
+        "closure_hash": "660130ec88b6d500cfa7d9528d67c1450504d07ef3efff8b911cb4c2c2648cc7",
+        "entries": [
+          {
+            "content_version": "59b4aaae2661e38c97507637b48acf2e-3",
+            "identity": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/IsaacLab/Robots/Unitree/G1/g1_minimal.usd",
+            "sha256": "4f5e0600f24bed04d4c45b3921b6f3d7b6205463b0b1ac051cf2883dd3aaee67",
+            "size_bytes": 22195512
+          }
+        ],
+        "file_count": 1,
+        "kind": "usd_used_layer_closure_v1",
+        "root_identity": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/IsaacLab/Robots/Unitree/G1/g1_minimal.usd",
+        "total_bytes": 22195512,
+        "unresolved": []
+      },
+      "body_count": 44,
+      "joint_count": 37,
+      "profile_hash": "1bc05d6728d1eac4b30dd24eb3c20cc44ed51573b10a494ea41fbed276861478",
+      "robot_family_id": "unitree_g1",
+      "robot_profile_id": "unitree_g1_37dof_isaaclab_v2",
+      "runtime_facts_hash": "93adedbe9022a62d19fda14057775bd39e15705757d18287e494ce18855c16c2",
+      "semantic_roles": {
+        "base": {
+          "target_kind": "body",
+          "targets": [
+            "torso_link"
+          ]
+        },
+        "forbidden_contact": {
+          "target_kind": "body",
+          "targets": [
+            "torso_link"
+          ]
+        },
+        "joint_group.all": {
+          "target_kind": "joint",
+          "targets": [
+            "left_hip_pitch_joint",
+            "right_hip_pitch_joint",
+            "torso_joint",
+            "left_hip_roll_joint",
+            "right_hip_roll_joint",
+            "left_shoulder_pitch_joint",
+            "right_shoulder_pitch_joint",
+            "left_hip_yaw_joint",
+            "right_hip_yaw_joint",
+            "left_shoulder_roll_joint",
+            "right_shoulder_roll_joint",
+            "left_knee_joint",
+            "right_knee_joint",
+            "left_shoulder_yaw_joint",
+            "right_shoulder_yaw_joint",
+            "left_ankle_pitch_joint",
+            "right_ankle_pitch_joint",
+            "left_elbow_pitch_joint",
+            "right_elbow_pitch_joint",
+            "left_ankle_roll_joint",
+            "right_ankle_roll_joint",
+            "left_elbow_roll_joint",
+            "right_elbow_roll_joint",
+            "left_five_joint",
+            "left_three_joint",
+            "left_zero_joint",
+            "right_five_joint",
+            "right_three_joint",
+            "right_zero_joint",
+            "left_six_joint",
+            "left_four_joint",
+            "left_one_joint",
+            "right_six_joint",
+            "right_four_joint",
+            "right_one_joint",
+            "left_two_joint",
+            "right_two_joint"
+          ]
+        },
+        "joint_group.ankle": {
+          "target_kind": "joint",
+          "targets": [
+            "left_ankle_pitch_joint",
+            "right_ankle_pitch_joint",
+            "left_ankle_roll_joint",
+            "right_ankle_roll_joint"
+          ]
+        },
+        "joint_group.arm": {
+          "target_kind": "joint",
+          "targets": [
+            "left_shoulder_pitch_joint",
+            "right_shoulder_pitch_joint",
+            "left_shoulder_roll_joint",
+            "right_shoulder_roll_joint",
+            "left_shoulder_yaw_joint",
+            "right_shoulder_yaw_joint",
+            "left_elbow_pitch_joint",
+            "right_elbow_pitch_joint",
+            "left_elbow_roll_joint",
+            "right_elbow_roll_joint"
+          ]
+        },
+        "joint_group.finger": {
+          "target_kind": "joint",
+          "targets": [
+            "left_five_joint",
+            "left_three_joint",
+            "left_zero_joint",
+            "right_five_joint",
+            "right_three_joint",
+            "right_zero_joint",
+            "left_six_joint",
+            "left_four_joint",
+            "left_one_joint",
+            "right_six_joint",
+            "right_four_joint",
+            "right_one_joint",
+            "left_two_joint",
+            "right_two_joint"
+          ]
+        },
+        "joint_group.hip_knee": {
+          "target_kind": "joint",
+          "targets": [
+            "left_hip_pitch_joint",
+            "right_hip_pitch_joint",
+            "left_hip_roll_joint",
+            "right_hip_roll_joint",
+            "left_hip_yaw_joint",
+            "right_hip_yaw_joint",
+            "left_knee_joint",
+            "right_knee_joint"
+          ]
+        },
+        "joint_group.hip_yaw_roll": {
+          "target_kind": "joint",
+          "targets": [
+            "left_hip_roll_joint",
+            "right_hip_roll_joint",
+            "left_hip_yaw_joint",
+            "right_hip_yaw_joint"
+          ]
+        },
+        "joint_group.locomotion": {
+          "target_kind": "joint",
+          "targets": [
+            "left_hip_pitch_joint",
+            "right_hip_pitch_joint",
+            "left_hip_roll_joint",
+            "right_hip_roll_joint",
+            "left_hip_yaw_joint",
+            "right_hip_yaw_joint",
+            "left_knee_joint",
+            "right_knee_joint",
+            "left_ankle_pitch_joint",
+            "right_ankle_pitch_joint",
+            "left_ankle_roll_joint",
+            "right_ankle_roll_joint"
+          ]
+        },
+        "joint_group.torso": {
+          "target_kind": "joint",
+          "targets": [
+            "torso_joint"
+          ]
+        },
+        "support_effector": {
+          "target_kind": "body",
+          "targets": [
+            "left_ankle_roll_link",
+            "right_ankle_roll_link"
+          ]
+        }
+      }
+    },
+    "robot_task_binding": {
+      "binding_hash": "8c365050b542dde24f7687c2f222f51942c5fb0855aa95d93dcf228be74abb80",
+      "binding_id": "stair_g1_37dof_unified_binding_v2",
+      "cell_variant_id": "stair.g1_37dof.unified_v2",
+      "provided_capabilities": [
+        "height_scan",
+        "joint_position_action",
+        "policy_observation_projection",
+        "support_contact"
+      ],
+      "robot_profile_id": "unitree_g1_37dof_isaaclab_v2",
+      "role_bindings": {
+        "base": [
+          "torso_link"
+        ],
+        "forbidden_contact": [
+          "torso_link"
+        ],
+        "support_effector": [
+          "left_ankle_roll_link",
+          "right_ankle_roll_link"
+        ]
+      },
+      "runtime_adapter_id": "g1_37dof_isaaclab_adapter_v2",
+      "schema_version": "true_rl_agent.robot_task_binding.v1",
+      "task_id": "unitree_stair_climbing",
+      "task_projection": {
+        "phase0_binding_facts": {
+          "actions": [
+            {
+              "asset_name": "robot",
+              "class": "isaaclab.envs.mdp.actions.actions_cfg.JointPositionActionCfg",
+              "joint_names": [
+                ".*"
+              ],
+              "name": "joint_pos",
+              "scale": 0.5,
+              "use_default_offset": true
+            }
+          ],
+          "binding_facts_hash": "01ac5380ca24821668655a582d0ce911fb4de30ef166f518c4ae0c68698f9d7e",
+          "cell_key": "stair.g1_37dof.unified_v2",
+          "control": {
+            "control_dt_s": 0.02,
+            "decimation": 4,
+            "simulation_dt_s": 0.005
+          },
+          "policy_io_schema_hash": "33c29649a0bfd26c458a764a598a38212f7e66c1207a2fbb073baa117ae69ca3",
+          "policy_observation": {
+            "concatenate_terms": true,
+            "enable_corruption_by_mode": {
+              "eval": false,
+              "train": true
+            },
+            "history_length": null,
+            "terms": [
+              {
+                "callable": "isaaclab.envs.mdp.observations.base_lin_vel",
+                "clip": null,
+                "name": "base_lin_vel",
+                "noise": {
+                  "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+                  "n_max": 0.1,
+                  "n_min": -0.1,
+                  "operation": "add"
+                },
+                "params": {},
+                "scale": null
+              },
+              {
+                "callable": "isaaclab.envs.mdp.observations.base_ang_vel",
+                "clip": null,
+                "name": "base_ang_vel",
+                "noise": {
+                  "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+                  "n_max": 0.2,
+                  "n_min": -0.2,
+                  "operation": "add"
+                },
+                "params": {},
+                "scale": null
+              },
+              {
+                "callable": "isaaclab.envs.mdp.observations.projected_gravity",
+                "clip": null,
+                "name": "projected_gravity",
+                "noise": {
+                  "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+                  "n_max": 0.05,
+                  "n_min": -0.05,
+                  "operation": "add"
+                },
+                "params": {},
+                "scale": null
+              },
+              {
+                "callable": "isaaclab.envs.mdp.observations.generated_commands",
+                "clip": null,
+                "name": "velocity_commands",
+                "noise": null,
+                "params": {
+                  "command_name": "base_velocity"
+                },
+                "scale": null
+              },
+              {
+                "callable": "isaaclab.envs.mdp.observations.joint_pos_rel",
+                "clip": null,
+                "name": "joint_pos",
+                "noise": {
+                  "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+                  "n_max": 0.01,
+                  "n_min": -0.01,
+                  "operation": "add"
+                },
+                "params": {},
+                "scale": null
+              },
+              {
+                "callable": "isaaclab.envs.mdp.observations.joint_vel_rel",
+                "clip": null,
+                "name": "joint_vel",
+                "noise": {
+                  "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+                  "n_max": 1.5,
+                  "n_min": -1.5,
+                  "operation": "add"
+                },
+                "params": {},
+                "scale": null
+              },
+              {
+                "callable": "isaaclab.envs.mdp.observations.last_action",
+                "clip": null,
+                "name": "actions",
+                "noise": null,
+                "params": {},
+                "scale": null
+              },
+              {
+                "callable": "isaaclab.envs.mdp.observations.height_scan",
+                "clip": [
+                  -1.0,
+                  1.0
+                ],
+                "name": "height_scan",
+                "noise": {
+                  "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+                  "n_max": 0.1,
+                  "n_min": -0.1,
+                  "operation": "add"
+                },
+                "params": {
+                  "sensor_cfg": {
+                    "body_ids": "slice(None, None, None)",
+                    "body_names": null,
+                    "fixed_tendon_ids": "slice(None, None, None)",
+                    "fixed_tendon_names": null,
+                    "joint_ids": "slice(None, None, None)",
+                    "joint_names": null,
+                    "name": "height_scanner",
+                    "object_collection_ids": "slice(None, None, None)",
+                    "object_collection_names": null,
+                    "preserve_order": false
+                  }
+                },
+                "scale": null
+              }
+            ]
+          },
+          "schema_version": "true_rl_agent.variant_construction.phase0_cell_binding_facts.v2",
+          "sensor_schema_hash": "92878ccd57f5ab852a5beeaed049d1ca4632341c4a5887cd006fd90487429558",
+          "sensors": {
+            "contact_forces": {
+              "class": "isaaclab.sensors.contact_sensor.contact_sensor_cfg.ContactSensorCfg",
+              "history_length": 3,
+              "prim_path": "{ENV_REGEX_NS}/Robot/.*",
+              "track_air_time": true,
+              "update_period_s": 0.005
+            },
+            "height_scanner": {
+              "class": "isaaclab.sensors.ray_caster.ray_caster_cfg.RayCasterCfg",
+              "mesh_prim_paths": [
+                "/World/ground"
+              ],
+              "offset_pos_m": [
+                0.0,
+                0.0,
+                20.0
+              ],
+              "offset_rot_wxyz": [
+                1.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              "pattern": {
+                "class": "isaaclab.sensors.ray_caster.patterns.patterns_cfg.GridPatternCfg",
+                "direction": [
+                  0.0,
+                  0.0,
+                  -1.0
+                ],
+                "ordering": "xy",
+                "resolution_m": 0.1,
+                "size_m": [
+                  1.6,
+                  1.0
+                ]
+              },
+              "prim_path": "{ENV_REGEX_NS}/Robot/torso_link",
+              "ray_alignment": "yaw",
+              "update_period_s": 0.02
+            }
+          },
+          "source_config": "true_rl_agent.tasks.stair_climbing.build_stair_env_cfg",
+          "source_hashes": {
+            "isaac_velocity_env": "962c09406c4347b0488020ac0e1d8800740c5bbc3035f4d14af9aeaeb2441b58",
+            "stair_env": "75df9c216f9b24d0bdae91f47b10a58dadb75100e33a246fa667b868647ecf66",
+            "stair_protocol": "e80241c56b65ea287566381aa30025ab5c5b13faf321178532610dc46bb301c7"
+          }
+        },
+        "stair_runtime_projection": {
+          "kinematic_base": {
+            "source": "articulation_root"
+          },
+          "legacy_reward_adapter_id": null,
+          "reward_joint_group_inputs": [
+            {
+              "role_id": "joint_group.ankle",
+              "source": "joint_pos"
+            },
+            {
+              "role_id": "joint_group.ankle",
+              "source": "soft_joint_pos_limits"
+            },
+            {
+              "role_id": "joint_group.locomotion",
+              "source": "joint_torque"
+            },
+            {
+              "role_id": "joint_group.hip_knee",
+              "source": "joint_acc"
+            },
+            {
+              "role_id": "joint_group.hip_yaw_roll",
+              "source": "joint_pos_error"
+            },
+            {
+              "role_id": "joint_group.arm",
+              "source": "joint_pos_error"
+            },
+            {
+              "role_id": "joint_group.finger",
+              "source": "joint_pos_error"
+            },
+            {
+              "role_id": "joint_group.torso",
+              "source": "joint_pos_error"
+            }
+          ],
+          "schema_version": "true_rl_agent.task.stair_climbing.runtime_binding.v1"
+        }
+      }
+    },
+    "robot_task_cell_id": "unitree_stair_climbing.g1_37dof_v1",
+    "runtime_adapter": {
+      "adapter_hash": "e638bbea6c9a4560285d40992998524f7596d2d172f1907fbee35f47edf590ca",
+      "articulation_source": "isaaclab_assets:G1_MINIMAL_CFG",
+      "backend_id": "isaac_lab_rsl_rl",
+      "provided_capabilities": [
+        "articulation_runtime",
+        "contact_sensor_runtime"
+      ],
+      "robot_profile_id": "unitree_g1_37dof_isaaclab_v2",
+      "runtime_adapter_id": "g1_37dof_isaaclab_adapter_v2",
+      "runtime_provider": "isaac_lab_2.3.0",
+      "schema_version": "true_rl_agent.robot_runtime_adapter.v1",
+      "upstream_revision": "3c6e67bb5c7ada942a6d1884ab69338f57596f77"
+    },
+    "schema_version": "true_rl_agent.resolved_cell_manifest.v1",
+    "task_id": "unitree_stair_climbing",
+    "task_requirements": {
+      "capabilities": [
+        "articulation_runtime",
+        "base_state",
+        "height_scan",
+        "joint_position_action",
+        "joint_state",
+        "policy_observation_projection",
+        "support_contact"
+      ],
+      "roles": [
+        {
+          "maximum_count": 1,
+          "minimum_count": 1,
+          "role_id": "base",
+          "target_kind": "body"
+        },
+        {
+          "maximum_count": null,
+          "minimum_count": 1,
+          "require_all_profile_targets": true,
+          "role_id": "support_effector",
+          "target_kind": "body"
+        },
+        {
+          "maximum_count": null,
+          "minimum_count": 1,
+          "role_id": "forbidden_contact",
+          "target_kind": "body"
+        }
+      ],
+      "schema_version": "true_rl_agent.robot_requirements.v1"
+    }
+  },
+  "schema_version": "true_rl_agent.stair_native_video.v1"
+}

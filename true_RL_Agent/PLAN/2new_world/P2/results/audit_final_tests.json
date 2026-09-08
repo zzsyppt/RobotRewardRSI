@@ -1,0 +1,38 @@
+{
+  "status": "PASS",
+  "local_full_regression": {
+    "command": ".venv/Scripts/python.exe -m unittest discover -s tests -t .",
+    "tests": 1611,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 19,
+    "elapsed_s": 363.688,
+    "log": "local_audit_regression_final.log",
+    "sha256": "e21766db596723533c1657d061213b9a5e708cd7350be5c588790c627fbedb27",
+    "cwd": "D:\\humanoid_agent\\true_RL_Agent"
+  },
+  "target_tests": {
+    "status": "PASS",
+    "argv": [
+      "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+      "-m",
+      "unittest",
+      "tests.unit.test_isaac_lab_execution_environment",
+      "tests.unit.test_stair_phased_evaluation",
+      "tests.unit.test_stair_complete_reward_contract",
+      "tests.unit.test_rsl_rl_checkpoint",
+      "tests.unit.test_native_video",
+      "tests.integration.test_stair_generation_session.StairGenerationSessionProductionShapeTests.test_three_generations_pause_resume_and_hard_crash_recovery",
+      "-v"
+    ],
+    "cwd": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent",
+    "pythonpath": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/src",
+    "tests": 56,
+    "elapsed_s": 564.558,
+    "returncode": 0,
+    "skipped": 0,
+    "log": "audit2_target_tests.log",
+    "log_sha256": "baa745477d281d148ff154e33500ad8924b0a25195ac0f2b4d1ffb013fccf5d1"
+  },
+  "fixture_note": "The first capacity-guard full regression correctly rejected a missing fake Kit log. Its close-order test now supplies the successful fake app log; production checks remain strict."
+}

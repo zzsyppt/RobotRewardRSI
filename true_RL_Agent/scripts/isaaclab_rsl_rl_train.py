@@ -25,6 +25,7 @@ from isaaclab.app import AppLauncher  # type: ignore[import-not-found]  # noqa: 
 from true_rl_agent.backends.isaac_lab_execution_environment import (  # noqa: E402
     verify_current_isaac_lab_execution_environment,
 )
+from true_rl_agent.backends.isaac_lab_runtime import require_physx_success  # noqa: E402
 from true_rl_agent.backends.rsl_rl_training_config import (  # noqa: E402
     RslRlAgentConfiguration,
 )
@@ -38,7 +39,12 @@ from true_rl_agent.evaluation.binding import (
 )
 from true_rl_agent.evaluation.subject import ExperimentSubject  # noqa: E402
 from true_rl_agent.runner.isaac_app_lifecycle import (  # noqa: E402
+    bind_isaac_log_path,
     close_isaac_app_on_success,
+)
+from true_rl_agent.backends.rsl_rl_checkpoint import load_training_checkpoint  # noqa: E402
+from true_rl_agent.robots.unitree_locomotion import (  # noqa: E402
+    instantiate_g1_29_environment_cfg, instantiate_g1_29_runner_cfg,
 )
 from true_rl_agent.runner.job_identity import JobIdentity  # noqa: E402
 from true_rl_agent.runner.specs import require_execution_device  # noqa: E402
@@ -210,6 +216,7 @@ backend_execution_environment_verification = (
     else None
 )
 train_attempt_id = uuid.uuid4().hex
+bind_isaac_log_path(args_cli, args_cli.summary_path)
 app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
@@ -226,17 +233,11 @@ from isaaclab.utils.io import dump_yaml  # type: ignore[import-not-found]  # noq
 from isaaclab_rl.rsl_rl import (
     RslRlVecEnvWrapper,  # type: ignore[import-not-found]  # noqa: E402
 )
-from isaaclab_tasks.utils.parse_cfg import (
-    load_cfg_from_registry,  # type: ignore[import-not-found]  # noqa: E402
-)
 from rsl_rl.runners import (
     OnPolicyRunner,  # type: ignore[import-not-found]  # noqa: E402
 )
 from unitree_rl_lab.utils.export_deploy_cfg import (
     export_deploy_cfg,  # type: ignore[import-not-found]  # noqa: E402
-)
-from unitree_rl_lab.utils.parser_cfg import (
-    parse_env_cfg,  # type: ignore[import-not-found]  # noqa: E402
 )
 
 from true_rl_agent.runner.budget import build_budget_accounting  # noqa: E402
@@ -298,10 +299,10 @@ def main() -> int:
             )
         task = args_cli.task or config["task"]["gym_id"]
         args_cli.task = task
-        env_cfg = parse_env_cfg(task, device=args_cli.device, num_envs=args_cli.num_envs, entry_point_key="env_cfg_entry_point")
+        env_cfg = instantiate_g1_29_environment_cfg(device=args_cli.device, num_envs=args_cli.num_envs)
         apply_push_recovery_overlay(env_cfg, config, args_cli)
-        agent_cfg = load_cfg_from_registry(task, "rsl_rl_cfg_entry_point")
-        training_agent_configuration.apply_and_verify(agent_cfg)
+        agent_cfg = instantiate_g1_29_runner_cfg()
+        training_agent_configuration.apply_to(agent_cfg)
         if getattr(agent_cfg, "experiment_name", "") == "":
             agent_cfg.experiment_name = task.lower().replace("-", "_")
         agent_cfg.seed = args_cli.seed
@@ -358,9 +359,10 @@ def main() -> int:
 
         log_dir = run_dir / "rsl_rl"
         runner = OnPolicyRunner(wrapped_env, agent_cfg.to_dict(), log_dir=str(log_dir), device=agent_cfg.device)
+        constructed_learner = training_agent_configuration.verify_runner(runner)
         runner.add_git_repo_to_log(__file__)
         if args_cli.init == "warm_start":
-            runner.load(args_cli.init_checkpoint)
+            load_training_checkpoint(runner, args_cli.init_checkpoint)
 
         params_dir = log_dir / "params"
         params_dir.mkdir(parents=True, exist_ok=True)
@@ -395,6 +397,7 @@ def main() -> int:
             candidate=candidate_summary,
             runtime_activation_summary=runtime_activation,
             training={
+                "constructed_learner": constructed_learner,
                 "num_envs": args_cli.num_envs,
                 "budget_steps": args_cli.budget_steps,
                 "num_steps_per_env": num_steps_per_env,
@@ -448,6 +451,8 @@ def main() -> int:
             except Exception:
                 pass
 
+    if summary["status"] == "pass":
+        require_physx_success(summary_path.with_suffix(".kit.log"))
     write_json(summary_path, summary)
     print(json.dumps({"summary_path": str(summary_path), "status": summary["status"]}, sort_keys=True))
     return 0 if summary["status"] == "pass" else 1

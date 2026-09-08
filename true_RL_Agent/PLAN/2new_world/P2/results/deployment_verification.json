@@ -1,0 +1,119 @@
+{
+  "status": "PASS",
+  "checked_at_utc": "2026-09-07T13:03:04.801738+00:00",
+  "root": "/data/yuyangliu/AGENT",
+  "baseline_commit": "1da2effbcc4720fcd8ed216f9fec56b0d757697e",
+  "git_commit_created": false,
+  "delivery": {
+    "status": "APPLIED",
+    "root": "/data/yuyangliu/AGENT",
+    "baseline_commit": "1da2effbcc4720fcd8ed216f9fec56b0d757697e",
+    "entries": 580,
+    "deleted_files": [
+      "scripts/smoke_dual_gpu.sh",
+      "scripts/smoke_official_rl.sh",
+      "scripts/smoke_unitree_rl.sh",
+      "true_RL_Agent/scripts/isaaclab_stair_checkpoint_video.py",
+      "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/video_renderer_environment.py",
+      "true_RL_Agent/tests/unit/test_stair_checkpoint_video.py",
+      "true_RL_Agent/tests/unit/test_stair_video_renderer_environment.py"
+    ],
+    "archive_sha256": "77b8f827a6ea238195a29392114cae7e2be85b69f6faf06465123d530adf57a6"
+  },
+  "execution_identity": {
+    "manifest_hash": "2e84250513e77257c113713ff498abd310e2d120f973238f6097e53e3310ae64",
+    "project_source_hash": "ccdab71ac4fb7cac1c45a09d550acc0d23facfb97dfcf14bac8a7adee2de3893",
+    "file_count": 326
+  },
+  "target_tests": {
+    "count": 20,
+    "returncode": 0,
+    "skipped": 0,
+    "unittest_elapsed_s": 0.762,
+    "log": "deployment_tests.log"
+  },
+  "entrypoint_checks": [
+    {
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "scripts/launch_stair_generation_session.py",
+        "--help"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "scripts/run_stair_generation_session.py",
+        "--help"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "scripts/create_stair_reference_genesis.py",
+        "--help"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "scripts/run_stair_generation_launch_readiness.py",
+        "--help"
+      ],
+      "returncode": 0
+    }
+  ],
+  "shell_checks": [
+    {
+      "script": "activate_environment.sh",
+      "bash_n": 0
+    },
+    {
+      "script": "smoke_isaac_headless.sh",
+      "bash_n": 0
+    }
+  ],
+  "isaaclab_source_files_rechecked": 2333,
+  "isaaclab_source_changes": [],
+  "history_preservation": "history_preservation_after_deployment.json",
+  "resource_release": {
+    "leases": [
+      {
+        "gpu_uuid": "GPU-06661cdd-1a0e-904e-a2e3-705eda5fb65b",
+        "host_execution_device": "cuda:0",
+        "lease_reacquired": true
+      },
+      {
+        "gpu_uuid": "GPU-8cd998f2-d42e-394e-7aae-a6701bb9b187",
+        "host_execution_device": "cuda:1",
+        "lease_reacquired": true
+      }
+    ],
+    "compute_processes": ""
+  },
+  "active_project_jobs_before_deployment": [],
+  "training_and_video_jobs_completed": true,
+  "final_documentation": {
+    "archive_sha256": "8c5eaa67ad1be122aee0dccff1779d7e895c40c61d16a6fbfba57b0cd528ccb5",
+    "files": [
+      {
+        "path": "true_RL_Agent/PLAN/2new_world/P2/ACCEPTANCE_ZH.md",
+        "before_sha256": "e8e5e70f42f638b8def104e94d67fd84acd139566a7ae2e2c52383c78a90515b",
+        "after_sha256": "e421b0958b40dff68d81f3282a185e894406a446faec69dc4dcbd0385eab5ab8"
+      },
+      {
+        "path": "true_RL_Agent/PLAN/2new_world/P2/DEVELOPMENT_LOG_ZH.md",
+        "before_sha256": "d3591e6292749101098de86fe2de5399e07c76a454b68bcb3b4e1a241e9e42b2",
+        "after_sha256": "c32c3e4af404114391d6d0fdb1fefe66753b7b1d8176416ed30ef99414ecf170"
+      },
+      {
+        "path": "true_RL_Agent/PLAN/2new_world/P2/IMPLEMENTATION_PLAN_ZH.md",
+        "before_sha256": "c62c958a519844724f445d3562ae4ca9f2cbb4b2efa196bf0343d675b5d4541d",
+        "after_sha256": "04afcc780ec02113c0f4c9126d5871768cd0ad601bfa8f2e13021155700ac107"
+      }
+    ]
+  }
+}

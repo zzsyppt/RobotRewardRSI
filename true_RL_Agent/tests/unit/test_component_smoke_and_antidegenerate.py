@@ -29,6 +29,7 @@ from true_rl_agent.candidates.authoring_policy import (  # noqa: E402
     ANTI_DEGENERATE_ASSESSMENT_SCHEMA_VERSION,
     canonical_mechanism_runtime_identity,
     format_canonical_mechanism_id,
+    mechanism_operation_effect,
     require_canonical_mechanism_delta,
 )
 from true_rl_agent.candidates.component_smoke_runtime import (  # noqa: E402
@@ -392,6 +393,43 @@ def build_training_components():
         self.assertEqual(result["checked_reward_terms"], 1)
         self.assertEqual(result["task_id"], "unit_test_task")
         self.assertEqual(result["fixture_summary"]["fixture_owner"], "task_owned_test")
+
+    def test_component_smoke_advises_when_declared_semantics_erase_signal(
+        self,
+    ) -> None:
+        source = """
+from true_rl_agent.candidates.components import RewardTerm, TrainingComponents
+
+def suppressed_height_reward(inp):
+    return -inp.base_height
+
+def build_training_components():
+    return TrainingComponents(
+        name="suppressed_height_reward",
+        reward_terms=[
+            RewardTerm(
+                name="suppressed_height_reward",
+                weight=1.0,
+                fn=suppressed_height_reward,
+                clip_min=0.0,
+            )
+        ],
+        rationale="A declared clip erases the callable's nonzero signal.",
+    )
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            candidate = _write_candidate(Path(tmp), "candidate-suppressed", source)
+            result = run_component_smoke_check(candidate, _SmokeAdapter())
+
+        self.assertEqual(result["status"], "advisory")
+        self.assertEqual(
+            result["reason"],
+            "reward_term_suppressed_by_declared_clip_and_weight",
+        )
+        term = result["reward_results"][0]
+        self.assertGreater(term["raw_max_abs"], 0.0)
+        self.assertEqual(term["effective_max_abs_after_clip_and_weight"], 0.0)
+        self.assertFalse(term["blocking"])
 
     def test_component_smoke_accepts_torch_like_comparison_masks(self) -> None:
         source = """
@@ -2001,6 +2039,10 @@ def build_training_components():
                     anchor_source=anchor,
                 )
                 self.assertEqual(projected["operation"], operation)
+                self.assertEqual(
+                    mechanism_operation_effect(projected),
+                    "rename_and_modify" if operation == "rename" else operation,
+                )
                 self.assertEqual(
                     projected["before_component"]["mechanism_id"]
                     if projected["before_component"] is not None

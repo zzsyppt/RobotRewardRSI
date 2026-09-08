@@ -57,21 +57,6 @@ _SEED_MEASUREMENT_FIELDS = {
     "low_step_macro_success_rate",
     "low_step_macro_max_progress_m",
 }
-_GATE_FIELDS = {
-    "schema_version",
-    "status",
-    "predicate",
-    "minimum_macro_mean_success_rate",
-    "minimum_macro_mean_max_progress_m",
-    "observed_macro_mean_success_rate",
-    "observed_macro_mean_max_progress_m",
-    "success_floor_met",
-    "progress_floor_met",
-    "threshold_relaxation_allowed",
-    "reason",
-}
-
-
 def build_stair_pilot_config(
     protocol_v2_path: Path,
 ) -> StairClimbingTaskConfig:

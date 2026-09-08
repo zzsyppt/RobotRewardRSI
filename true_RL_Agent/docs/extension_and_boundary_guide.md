@@ -11,7 +11,8 @@ Use this path for new tasks such as redirection, reach, stair climbing, or anoth
 3. Implement `TaskPlugin.task_spec` only. The task plugin declares `TaskSpec`, `TaskInvariantSpec`, `fixed_train_protocol`, `fixed_eval_protocol`, supported policy initializations, and optional future curriculum capability metadata.
 4. Add public metric projection and a task-owned failure classifier.
 5. Optionally add a `TaskMemoryAdapter` that compresses only public eval metrics into a task-specific public summary.
-6. Register the plugin through `TaskRegistry`.
+6. Add a `TaskCompositionProvider` for the task/backend pairing and register that
+   provider through the product `TaskCompositionRegistry`.
 7. Add tests for registration, invariant rejection, public metric projection, and the task-specific memory summary.
 
 Task plugins must not create training commands, run training, choose checkpoints, change eval seeds, make accept/reject decisions, append the ledger, or expose private/trusted eval artifacts to prompt context.
@@ -26,7 +27,8 @@ Use this path for a new backend or a new Isaac Lab materialization mode:
 4. Preserve `TaskInvariantSpec` in the returned job bundle; do not weaken task semantics.
 5. Generate CLI job metadata instead of importing or executing training scripts in the adapter.
 6. Keep public seed count and trusted seed count in job specs; do not project trusted seed data into public prompt context.
-7. Register the adapter through `BackendRegistry`.
+7. Select the adapter from the owning `TaskCompositionProvider`; there is no
+   parallel backend registry in the production route.
 8. Add dry-run tests for random initialization, warm_start materialization when supported, unsupported task failure, unsupported initialization failure, and fixed protocol metadata.
 
 Backend adapters materialize jobs. They do not run training, run eval, select accepted candidates, write ledger records, or expose decision authority.
@@ -132,14 +134,17 @@ Do not add task-specific branches to AgentCore. Add task semantics through TaskP
 Required coverage currently maps to these test files:
 
 - `tests/unit/test_project_boundaries.py`: independent package and no parent runtime dependency.
-- `tests/unit/test_plugin_registries.py`: TaskRegistry, BackendRegistry, compatibility, and plugin authority boundaries.
+- `tests/unit/test_composition.py`: production `TaskCompositionRegistry` routing.
+- `tests/unit/test_plugin_registries.py`: task/backend compatibility and plugin authority boundaries.
 - `tests/unit/test_core_schema.py`: core schema, random/warm_start policy initialization, decision outcomes, public result projection, and task invariant checks.
 - `tests/unit/test_baseline_management.py`: baseline manifest, warm_start compatibility, safe-load, and failure cases.
 - `tests/unit/test_runner_jobs.py`: job specs, artifact layout, checkpoint sealing, fixed budget, isolation policy, and trusted eval seal.
 - `tests/unit/test_candidate_package.py`: candidate loader, static verifier, controlled entrypoint, and candidate authority limits.
 - `tests/unit/test_prompt_projection_and_mechanism.py`: prompt-facing controls, public reward inputs, mechanism evidence gate, and anti-tuning shadow.
 - `tests/unit/test_curriculum_phase9.py`: CurriculumPlan modes, disabled LLM curriculum proposals, capability registry, and schedule-only classification.
-- `tests/integration/test_agent_core_loop.py`: replay loop and public context construction.
+- `tests/integration/test_round_public_boundaries.py`: public-context sanitization and rejection without runtime activation.
+- `tests/integration/test_live_loop.py`: current authoring lifecycle and public feedback.
+- `tests/integration/test_session_genesis_live_loop.py`: Genesis, ledger replay, resume identity, and rejection before provider calls.
 - `tests/integration/test_fake_round.py`: fake vertical round from candidate to ledger.
 - `tests/unit/test_push_recovery_task.py`: push task invariants, push job materialization, random path, schedule-only reject, code-level accept with runtime evidence, and public push metrics.
 - `tests/unit/test_memory_context_phase13.py`: public-only next context, prompt payload saving, private artifact separation, and task memory adapter extension.

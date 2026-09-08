@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import json
+import math
 import statistics
 import sys
 import unittest
@@ -207,6 +208,49 @@ class StairOrderedEvaluationTests(unittest.TestCase):
             ),
             canonical_round_trip,
         )
+        one_ulp = copy.deepcopy(canonical_round_trip)
+        one_ulp["score_stats"]["std"] = math.nextafter(
+            one_ulp["score_stats"]["std"],
+            math.inf,
+        )
+        with self.assertRaisesRegex(ValueError, "canonical score statistics"):
+            validate_ordered_stair_summary(
+                suite=self.suite,
+                semantics=self.semantics,
+                split="public_dev",
+                summary=one_ulp,
+            )
+        # Read actual frozen v2 evidence instead of relabeling a current summary.
+        frozen = json.loads(
+            (
+                ROOT / "tests/fixtures/stair_summaries/p5_legacy_public_dev.json"
+            ).read_text(encoding="utf-8")
+        )["g1"]
+        legacy_config = StairClimbingTaskConfig.defaults(
+            ROOT / "configs/tasks" / frozen["protocol"]
+        )
+        one_ulp = copy.deepcopy(frozen["summary"]["ordered_summary"])
+        one_ulp["score_stats"]["std"] = math.nextafter(
+            one_ulp["score_stats"]["std"], math.inf
+        )
+        self.assertEqual(
+            validate_ordered_stair_summary(
+                suite=legacy_config.ordered_evaluation_suite,
+                semantics=legacy_config.evaluation_semantics,
+                split="public_dev",
+                summary=one_ulp,
+            ),
+            one_ulp,
+        )
+        changed_score_stats = copy.deepcopy(canonical_round_trip)
+        changed_score_stats["score_stats"]["std"] += 2.0e-12
+        with self.assertRaisesRegex(ValueError, "score statistics"):
+            validate_ordered_stair_summary(
+                suite=self.suite,
+                semantics=self.semantics,
+                split="public_dev",
+                summary=changed_score_stats,
+            )
         changed = copy.deepcopy(summary)
         first_cell = summary["cell_ids"][0]
         changed["aggregate_success_rate_by_cell"][first_cell] = 1.0
@@ -230,7 +274,7 @@ class StairOrderedEvaluationTests(unittest.TestCase):
                 summary=changed_diagnostics,
             )
 
-        legacy = copy.deepcopy(summary)
+        legacy = copy.deepcopy(frozen["summary"]["ordered_summary"])
         legacy["schema_version"] = (
             "true_rl_agent.task.stair_climbing.ordered_evaluation_summary.v1"
         )
@@ -239,8 +283,8 @@ class StairOrderedEvaluationTests(unittest.TestCase):
             seed.pop("diagnostic_flag_counts_by_cell")
         self.assertEqual(
             validate_ordered_stair_summary(
-                suite=self.suite,
-                semantics=self.semantics,
+                suite=legacy_config.ordered_evaluation_suite,
+                semantics=legacy_config.evaluation_semantics,
                 split="public_dev",
                 summary=legacy,
             ),

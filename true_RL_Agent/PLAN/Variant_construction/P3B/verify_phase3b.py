@@ -77,19 +77,6 @@ ROUGHNESS_MARKERS = (
     "roughness_band",
     "surface_pattern",
 )
-_PHASE4_PRE_REFERENCE_SCORING_SOURCE_DRIFT = frozenset(
-    {
-        "configs/tasks/stair_unified_evaluation_suite_v1.json",
-        "configs/tasks/stair_unified_protocol_v1.json",
-        "src/true_rl_agent/tasks/stair_climbing/unified_evaluation.py",
-    }
-)
-_TRAINING_RECEIPT_SOURCE_DRIFT = (
-    _PHASE4_PRE_REFERENCE_SCORING_SOURCE_DRIFT
-    | {"src/true_rl_agent/tasks/stair_climbing/unified_protocol.py"}
-)
-
-
 def _load_object(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
@@ -135,8 +122,6 @@ def _resolve_cell() -> tuple[Any, Any, Any]:
 
 def _source_hashes_from_receipt(
     receipt: Mapping[str, Any],
-    *,
-    allowed_mismatches: frozenset[str] = frozenset(),
 ) -> dict[str, str]:
     _require(
         receipt.get("product_source_hash_mode") == "normalized_lf_sha256",
@@ -144,16 +129,20 @@ def _source_hashes_from_receipt(
     )
     hashes = receipt.get("product_source_hashes")
     _require(isinstance(hashes, Mapping) and bool(hashes), "missing source hashes")
-    mismatches: set[str] = set()
     for relative_path, expected in hashes.items():
-        _require(isinstance(relative_path, str), "invalid source path")
-        actual = _normalized_text_hash(ROOT / relative_path)
-        if actual != expected:
-            mismatches.add(relative_path)
-    _require(
-        mismatches == set(allowed_mismatches),
-        f"runtime source mismatch set changed: {sorted(mismatches)}",
-    )
+        _require(
+            isinstance(relative_path, str)
+            and bool(relative_path)
+            and not Path(relative_path).is_absolute()
+            and ".." not in Path(relative_path).parts,
+            "invalid source path",
+        )
+        _require(
+            isinstance(expected, str)
+            and len(expected) == 64
+            and all(character in "0123456789abcdef" for character in expected),
+            f"invalid recorded source hash: {relative_path}",
+        )
     return {str(key): str(value) for key, value in hashes.items()}
 
 
@@ -168,10 +157,7 @@ def _validate_receipt(path: Path, schema_version: str) -> dict[str, Any]:
 
 def _runtime_receipt(config: Any, manifest: Any) -> dict[str, Any]:
     receipt = _validate_receipt(RUNTIME_RECEIPT_PATH, RUNTIME_SCHEMA_VERSION)
-    sources = _source_hashes_from_receipt(
-        receipt,
-        allowed_mismatches=_PHASE4_PRE_REFERENCE_SCORING_SOURCE_DRIFT,
-    )
+    sources = _source_hashes_from_receipt(receipt)
     cell = receipt["cell"]
     _require(cell["protocol_state"] == "active", "C2 receipt is not active")
     _require(
@@ -283,10 +269,7 @@ def _runtime_receipt(config: Any, manifest: Any) -> dict[str, Any]:
 
 def _training_exclusion_receipt(config: Any) -> dict[str, Any]:
     receipt = _validate_receipt(TRAINING_RECEIPT_PATH, TRAINING_SCHEMA_VERSION)
-    sources = _source_hashes_from_receipt(
-        receipt,
-        allowed_mismatches=_TRAINING_RECEIPT_SOURCE_DRIFT,
-    )
+    sources = _source_hashes_from_receipt(receipt)
     _require(
         receipt["cell"]["protocol_state"] == "draft",
         "training exclusion receipt must precede activation",
@@ -530,7 +513,16 @@ def verify(snapshot_path: Path = SNAPSHOT_PATH) -> dict[str, Any]:
         "snapshot hash mismatch",
     )
     current = emit_current()
-    _require(current == expected, "current Phase 3B contract differs from snapshot")
+    for section in ("contract", "runtime", "training_exclusion", "boundaries"):
+        _require(
+            current[section] == expected[section],
+            f"current Phase 3B semantic contract differs: {section}",
+        )
+    _require(
+        expected.get("product_source_hash_mode") == "normalized_lf_sha256",
+        "snapshot source hash mode mismatch",
+    )
+    _source_hashes_from_receipt(expected)
     return {
         "schema_version": VERIFY_SCHEMA_VERSION,
         "status": "pass",

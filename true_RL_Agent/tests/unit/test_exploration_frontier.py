@@ -320,6 +320,10 @@ class ExplorationFrontierTests(unittest.TestCase):
             plan.index.cards[0].verifier_equivalence_key,
         )
         self.assertEqual(hypothesis["public_input_field_count"], len(input_fields))
+        self.assertEqual(
+            hypothesis["operation_effect"],
+            hypothesis["operation"],
+        )
         self.assertGreater(hypothesis["omitted_public_input_field_count"], 0)
         self.assertTrue(hypothesis["public_evidence_summary_omitted"])
         self.assertIsNone(hypothesis["public_evidence_summary"])

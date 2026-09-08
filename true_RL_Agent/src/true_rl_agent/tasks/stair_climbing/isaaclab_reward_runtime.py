@@ -14,6 +14,7 @@ from isaaclab.utils.math import (
     quat_apply_inverse,
     yaw_quat,
 )
+from true_rl_agent.backends.isaac_lab_arrays import as_torch, quaternion_wxyz
 
 from true_rl_agent.tasks.stair_climbing.protocol_v2 import (
     StairCompleteRewardRuntimeContract,
@@ -57,7 +58,7 @@ class StairKinematicBaseState:
     """One explicitly selected kinematic frame shared by reward and evaluation."""
 
     pos_w: Any
-    quat_w: Any
+    quat_xyzw: Any
     lin_vel_w: Any
     ang_vel_w: Any
     lin_vel_b: Any
@@ -76,25 +77,25 @@ def stair_kinematic_base_state(
     source = runtime_projection.kinematic_base_source
     if source == STAIR_KINEMATIC_BASE_ARTICULATION_ROOT:
         return StairKinematicBaseState(
-            pos_w=robot_data.root_pos_w,
-            quat_w=robot_data.root_quat_w,
-            lin_vel_w=robot_data.root_lin_vel_w[:, :3],
-            ang_vel_w=robot_data.root_ang_vel_w[:, :3],
-            lin_vel_b=robot_data.root_lin_vel_b[:, :3],
-            ang_vel_b=robot_data.root_ang_vel_b[:, :3],
-            projected_gravity_b=robot_data.projected_gravity_b[:, :3],
+            pos_w=as_torch(robot_data.root_pos_w),
+            quat_xyzw=as_torch(robot_data.root_quat_w),
+            lin_vel_w=as_torch(robot_data.root_lin_vel_w)[:, :3],
+            ang_vel_w=as_torch(robot_data.root_ang_vel_w)[:, :3],
+            lin_vel_b=as_torch(robot_data.root_lin_vel_b)[:, :3],
+            ang_vel_b=as_torch(robot_data.root_ang_vel_b)[:, :3],
+            projected_gravity_b=as_torch(robot_data.projected_gravity_b)[:, :3],
         )
     if source == STAIR_KINEMATIC_BASE_BODY_ROLE:
         base_id = resolved_projection.base_body_ids[0]
-        pos_w = robot_data.body_pos_w[:, base_id, :]
-        quat_w = robot_data.body_quat_w[:, base_id, :]
-        lin_vel_w = robot_data.body_lin_vel_w[:, base_id, :]
-        ang_vel_w = robot_data.body_ang_vel_w[:, base_id, :]
+        pos_w = as_torch(robot_data.body_pos_w)[:, base_id, :]
+        quat_w = as_torch(robot_data.body_quat_w)[:, base_id, :]
+        lin_vel_w = as_torch(robot_data.body_lin_vel_w)[:, base_id, :]
+        ang_vel_w = as_torch(robot_data.body_ang_vel_w)[:, base_id, :]
         gravity_w = torch.zeros_like(pos_w)
         gravity_w[:, 2] = -1.0
         return StairKinematicBaseState(
             pos_w=pos_w,
-            quat_w=quat_w,
+            quat_xyzw=quat_w,
             lin_vel_w=lin_vel_w,
             ang_vel_w=ang_vel_w,
             lin_vel_b=quat_apply_inverse(quat_w, lin_vel_w),
@@ -201,25 +202,25 @@ class StairRewardInputBuilder:
             resolved_projection=resolved,
         )
         base_pos = kinematic_base.pos_w
-        base_quat = kinematic_base.quat_w
+        base_quat = kinematic_base.quat_xyzw
         base_lin_vel_world = kinematic_base.lin_vel_w
         base_ang_vel_world = kinematic_base.ang_vel_w
         base_lin_vel_body = kinematic_base.lin_vel_b
         base_ang_vel_body = kinematic_base.ang_vel_b
         projected_gravity = kinematic_base.projected_gravity_b
         base_relative = base_pos - terrain_origins
-        support_pos = robot_data.body_pos_w[:, resolved.support_body_ids, :]
+        support_pos = as_torch(robot_data.body_pos_w)[:, resolved.support_body_ids, :]
         support_relative = support_pos - terrain_origins.unsqueeze(1)
-        command = env.command_manager.get_command("base_velocity")
-        action = env.action_manager.action
-        previous_action = env.action_manager.prev_action
-        joint_pos = robot_data.joint_pos[:, resolved.joint_ids]
-        joint_vel = robot_data.joint_vel[:, resolved.joint_ids]
-        default_joint_pos = robot_data.default_joint_pos[:, resolved.joint_ids]
+        command = as_torch(env.command_manager.get_command("base_velocity"))
+        action = as_torch(env.action_manager.action)
+        previous_action = as_torch(env.action_manager.prev_action)
+        joint_pos = as_torch(robot_data.joint_pos)[:, resolved.joint_ids]
+        joint_vel = as_torch(robot_data.joint_vel)[:, resolved.joint_ids]
+        default_joint_pos = as_torch(robot_data.default_joint_pos)[:, resolved.joint_ids]
         joint_error = joint_pos - default_joint_pos
-        joint_acc = robot_data.joint_acc[:, resolved.joint_ids]
-        joint_torque = robot_data.applied_torque[:, resolved.joint_ids]
-        soft_joint_pos_limits = robot_data.soft_joint_pos_limits[
+        joint_acc = as_torch(robot_data.joint_acc)[:, resolved.joint_ids]
+        joint_torque = as_torch(robot_data.applied_torque)[:, resolved.joint_ids]
+        soft_joint_pos_limits = as_torch(robot_data.soft_joint_pos_limits)[
             :, resolved.joint_ids, :
         ]
         roll, pitch, _ = euler_xyz_from_quat(base_quat)
@@ -227,10 +228,10 @@ class StairRewardInputBuilder:
             yaw_quat(base_quat),
             base_lin_vel_world,
         )
-        force_history = contact_data.net_forces_w_history[
+        force_history = as_torch(contact_data.net_forces_w_history)[
             :, :, resolved.contact_support_body_ids, :
         ]
-        current_forces = contact_data.net_forces_w
+        current_forces = as_torch(contact_data.net_forces_w)
         if current_forces is None:
             raise StairRewardProgramError(
                 "Stair reward inputs require current contact forces"
@@ -242,8 +243,8 @@ class StairRewardInputBuilder:
             > self._support_contact_threshold
         )
         raw_height_scan = (
-            height_data.pos_w[:, 2].unsqueeze(1)
-            - height_data.ray_hits_w[..., 2]
+            as_torch(height_data.pos_w)[:, 2].unsqueeze(1)
+            - as_torch(height_data.ray_hits_w)[..., 2]
             - self._height_scan_offset_m
         )
         # Ray misses are +/-inf in Isaac Lab. Clamp saturates those misses while
@@ -294,17 +295,17 @@ class StairRewardInputBuilder:
             "progress_fraction": episode_fraction,
             "base_lin_vel_yaw": base_lin_vel_yaw,
             "base_ang_vel_world": base_ang_vel_world,
-            "base_quat_world": base_quat,
-            "support_air_time": contact_data.current_air_time[
+            "base_quat_world": quaternion_wxyz(base_quat),
+            "support_air_time": as_torch(contact_data.current_air_time)[
                 :, resolved.contact_support_body_ids
             ],
-            "support_contact_time": contact_data.current_contact_time[
+            "support_contact_time": as_torch(contact_data.current_contact_time)[
                 :, resolved.contact_support_body_ids
             ],
             "support_contact_force_history": force_history,
             "support_contact_force": support_forces,
             "support_contact": support_contact,
-            "support_lin_vel": robot_data.body_lin_vel_w[
+            "support_lin_vel": as_torch(robot_data.body_lin_vel_w)[
                 :, resolved.support_body_ids, :
             ],
             "support_pos_relative_to_terrain_origin": support_relative,
@@ -319,11 +320,11 @@ class StairRewardInputBuilder:
             "forbidden_contact": base_contact,
         }
         if self.runtime_projection.support_transition_inputs:
-            vnext_values["support_last_air_time"] = contact_data.last_air_time[
+            vnext_values["support_last_air_time"] = as_torch(contact_data.last_air_time)[
                 :, resolved.contact_support_body_ids
             ]
             vnext_values["support_first_contact"] = (
-                contact_sensor.compute_first_contact(env.step_dt)[
+                as_torch(contact_sensor.compute_first_contact(env.step_dt)).bool()[
                     :, resolved.contact_support_body_ids
                 ]
             )

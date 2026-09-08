@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import unittest
+import tempfile
+from pathlib import Path
+from types import SimpleNamespace
 
-from true_rl_agent.runner.isaac_app_lifecycle import close_isaac_app_on_success
+from true_rl_agent.runner.isaac_app_lifecycle import bind_isaac_log_path, close_isaac_app_on_success
 
 
 class _FakeSimulationApp:
@@ -17,6 +20,18 @@ class _FakeSimulationApp:
 
 
 class IsaacAppLifecycleTests(unittest.TestCase):
+    def test_lane_logs_are_derived_from_their_job_outputs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            first = SimpleNamespace(kit_args="--/log/level=warning")
+            second = SimpleNamespace(kit_args="")
+            a = bind_isaac_log_path(first, Path(tmp) / "lane_a/summary.json")
+            b = bind_isaac_log_path(second, Path(tmp) / "lane_b/summary.json")
+            self.assertNotEqual(a, b)
+            self.assertTrue(a.parent.is_dir())
+            self.assertIn(a.as_posix(), first.kit_args)
+            self.assertIn("--/log/level=warning", first.kit_args)
+            self.assertNotIn(b.as_posix(), first.kit_args)
+
     def test_failed_business_status_skips_close_and_preserves_code(self) -> None:
         app = _FakeSimulationApp()
 

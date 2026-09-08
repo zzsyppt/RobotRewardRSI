@@ -1,0 +1,22 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1788778275.500609  502662 descriptor_database.cc:633] File already exists in database: grpc/health/v1/health.proto
+W0000 00:00:1788778275.500666  502662 message.cc:301] Protobuf GeneratedMessageFactory: File is already registered: grpc/health/v1/health.proto
+[ISAACLAB] AppLauncher initialization complete
+Traceback (most recent call last):
+  File "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/PLAN/2new_world/P2/stair_runtime_probe.py", line 87, in <module>
+    result = execute_stair_evaluation(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_execution.py", line 1225, in execute_stair_evaluation
+    split_execution = run_stair_split_execution(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/evaluation_runtime.py", line 201, in run_stair_split_execution
+    seed_execution = _execute_stair_seed_rollout(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/evaluation_runtime.py", line 287, in _execute_stair_seed_rollout
+    on_seed_reset(run_index, runner_seed)
+  File "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_execution.py", line 1237, in <lambda>
+    (lambda index, seed: recorder.start(f"{split}_seed_{index}", seed))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/PLAN/2new_world/P2/reset_capture_probe.py", line 19, in capture
+    raise RuntimeError('P2 intentional stop after reset render capture')
+RuntimeError: P2 intentional stop after reset render capture

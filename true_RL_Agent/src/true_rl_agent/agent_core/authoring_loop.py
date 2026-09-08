@@ -706,6 +706,28 @@ class CandidateAuthoringLoop:
                 self.component_smoke_adapter,
             )
             attempt_record["component_smoke"] = smoke_result
+            advisory_repair_already_offered = any(
+                isinstance(record.get("component_smoke"), Mapping)
+                and record["component_smoke"].get("status") == "advisory"
+                for record in attempt_records[:-1]
+            )
+            if (
+                smoke_result.get("status") == "advisory"
+                and attempt < max_provider_attempts
+                and not advisory_repair_already_offered
+            ):
+                # A synthetic fixture can reveal an obviously inert declared
+                # term but cannot prove inactivity over the training state
+                # distribution. Offer one normal repair opportunity; if the
+                # next attempt remains advisory, runtime evidence retains the
+                # authority and the candidate is allowed to train.
+                repair_feedback = build_component_smoke_repair_feedback(
+                    candidate=candidate,
+                    smoke_result=smoke_result,
+                )
+                latest_failed_candidate = candidate
+                complete_attempt(disposition="continue")
+                continue
             if smoke_result.get("status") == "fail":
                 repair_feedback = build_component_smoke_repair_feedback(
                     candidate=candidate,

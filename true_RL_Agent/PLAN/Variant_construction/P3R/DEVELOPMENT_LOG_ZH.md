@@ -69,6 +69,8 @@ Phase 3A 的 joint groups、C1 mesh/surface query、ordered evidence 与 identit
 
 完工后二次审计按产品入口、配置加载者和不可替代覆盖三项检查剩余代码。结果是：活动树没有旧 Phase 3A 入口或配置引用；所有 unified 配置均被运行时直接加载；P3R 新模块的公开 API 均有多处调用。除 `f8c5348` 已完成的 10 路径/3512 行退役清理外，没有新的无主代码或重复套件，因此没有继续删除仍被统一 cell 消费的底层 primitive 和验收器。
 
+后续 Phase 5 生命周期审计进一步删除了 P3R verifier 中 400 余行已不可达的“重建当前 draft / 重签 snapshot”脚手架。保留的 verifier 只验证历史 snapshot 与真实 smoke 回执自洽；P3B/P4/P5 分别承担当前 active protocol、G1 LOOP 与机器人行的活语义回归，避免把合法扩展误判成历史 Phase 失效。
+
 ## 4. 真实运行时验证
 
 服务器环境：Isaac Lab 2.3.0 对应运行环境、RTX 5090、`cuda:0`。运行 `capture_phase3r_runtime_smoke.py` 得到：

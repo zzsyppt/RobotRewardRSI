@@ -47,6 +47,10 @@ from true_rl_agent.tasks.stair_climbing.config import (
 from true_rl_agent.tasks.stair_climbing.evaluation_profile import (
     StairEvaluationProfile,
 )
+from true_rl_agent.tasks.stair_climbing.evaluation_semantics import (
+    FIRST_VALID_TOP_ARRIVAL_COMPLETION_MODE,
+    STABLE_TOP_TRAVERSAL_COMPLETION_MODE,
+)
 from true_rl_agent.tasks.stair_climbing.exploration import (
     StairComparisonStats,
     StairExplorationProjector,
@@ -54,6 +58,10 @@ from true_rl_agent.tasks.stair_climbing.exploration import (
 from true_rl_agent.tasks.stair_climbing.public_projection import (
     build_stair_prompt_feedback,
     build_stair_prompt_score_semantics,
+)
+from true_rl_agent.tasks.stair_climbing.selection import (
+    classify_stair_selector_trial_eligibility,
+    stair_selection_contract,
 )
 from true_rl_agent.tasks.stair_climbing.reward_inputs import (
     stair_reward_input_prompt_contract,
@@ -90,6 +98,9 @@ _TASK_PROMPT_RESERVED_HEADROOM_BYTES = 512
 _COMPACT_FEEDBACK_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.prompt_feedback.v9"
 )
+_FIRST_ARRIVAL_FEEDBACK_SCHEMA_VERSION = (
+    "true_rl_agent.task.stair_climbing.prompt_feedback.v10"
+)
 _LEGACY_COMPACT_FEEDBACK_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.prompt_feedback.v8"
 )
@@ -97,12 +108,19 @@ _COMPACT_FEEDBACK_PROJECTION_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.feedback_entry_projection.v6"
 )
 _STRATUM_FEEDBACK_TABLE_SCHEMA_VERSION = (
-    "true_rl_agent.task.stair_climbing.stratum_feedback_table.v2"
+    "true_rl_agent.task.stair_climbing.stratum_feedback_table.v3"
 )
+_FACTOR_FEEDBACK_TABLE_SCHEMA_VERSION = (
+    "true_rl_agent.task.stair_climbing.factor_feedback_table.v1"
+)
+_FIRST_ARRIVAL_DERIVED_DIAGNOSTIC_RATES = {
+    "first_valid_top_arrival_achieved": "success_rate",
+}
 _COMPACT_FEEDBACK_SOURCE_SPLIT = "public_dev"
 _COMPACT_COUNT_GRID_ROW_SEPARATOR = ";"
 _COMPACT_COUNT_GRID_COLUMN_SEPARATOR = ","
 _COMPACT_FEEDBACK_KEYS = (
+    "climb_completion_summary",
     "stable_success_summary",
     "diagnostic_flag_rates",
     "dominant_failure",
@@ -126,6 +144,28 @@ _COMPACT_GENERALIZATION_KEYS = (
     "success_rate_by_cell",
     "factor_diagnostics",
     "stratum_diagnostics",
+)
+_UNIFIED_SELECTOR_TRIAL_SUMMARY_KEYS = frozenset(
+    {
+        "trial_id",
+        "lane_id",
+        "candidate_id",
+        "program_source_checksum",
+        "selected",
+        "trial_status",
+        "objective_score",
+        "objective_delta",
+        "named_guard_scores",
+        "selector_guard_floor_score",
+        "selector_guard_regression",
+        "selector_guard_max_regression",
+        "selector_eligible",
+        "selector_status",
+        "generation_selector_reason",
+        "runtime_effect_evidence",
+        "observed_effect",
+        "reason_codes",
+    }
 )
 
 
@@ -155,10 +195,35 @@ def _unified_suite_prompt_projection(suite: Any) -> dict[str, Any]:
     unique_counts = set(cell_counts.values())
     if len(unique_counts) != 1:
         raise ValueError("unified Stair prompt requires equal cells per stratum")
+    factor_names = tuple(str(name) for name in cells[0].factor_levels)
+    if not factor_names or any(
+        tuple(str(name) for name in cell.factor_levels) != factor_names
+        for cell in cells[1:]
+    ):
+        raise ValueError("unified Stair prompt factor vocabulary drifted")
     return {
         "strata": strata,
         "cells_per_stratum": unique_counts.pop(),
         "claim_kinds_by_stratum": claim_kinds,
+        "factor_names": list(factor_names),
+    }
+
+
+def _unified_claim_prompt_semantics(claim_kind: str) -> dict[str, Any]:
+    """Explain one frozen suite claim without redefining suite geometry."""
+
+    if claim_kind == "joint_scalar_extrapolation":
+        return {
+            "protocol_claim_kind": claim_kind,
+            "meaning": (
+                "simultaneous scalar extrapolation of stair riser height and "
+                "stair tread depth"
+            ),
+            "robot_joint_state_ood": False,
+        }
+    return {
+        "protocol_claim_kind": claim_kind,
+        "meaning": claim_kind,
     }
 
 
@@ -175,7 +240,7 @@ _HISTORICAL_COMPARISON_DETAIL_OMISSIONS = (
     "historical_progress_summary",
 )
 _PUBLIC_FEEDBACK_SUMMARY_SCHEMA_VERSION = (
-    "true_rl_agent.task.stair_climbing.public_feedback_summary.v10"
+    "true_rl_agent.task.stair_climbing.public_feedback_summary.v12"
 )
 _MAX_LATEST_GENERATION_TRIAL_COMPARISONS = 2
 _MAX_GENERATION_HISTORY_ID_CHARS = 128
@@ -301,7 +366,7 @@ class StairClimbingPromptAdapter:
         return sanitize_task_prompt_sections(sections)
 
     def build_prompt_capacity_preflight_sections(self) -> Mapping[str, Any]:
-        """Return the task-owned maximum minimum-core shape for startup checks."""
+        """Stress the task-owned minimum-core path before live work starts."""
 
         sections = self._prompt_sections(
             public_feedback=_stair_capacity_preflight_feedback(
@@ -329,19 +394,23 @@ class StairClimbingPromptAdapter:
         public_feedback: Mapping[str, Any],
         runtime_feedback: Mapping[str, Any],
     ) -> dict[str, Any]:
+        reward_inputs_contract = stair_reward_input_prompt_contract(
+            StairClimbingComponentSmokeAdapter(
+                self.config,
+                resolved_cell_manifest=self.resolved_cell_manifest,
+            ).contract
+        )
+        input_type_name = str(reward_inputs_contract["input_type"]).rsplit(".", 1)[-1]
         return {
             "task": self._task_section(),
-            "reward_inputs_contract": stair_reward_input_prompt_contract(
-                StairClimbingComponentSmokeAdapter(
-                    self.config,
-                    resolved_cell_manifest=self.resolved_cell_manifest,
-                ).contract
-            ),
+            "reward_inputs_contract": reward_inputs_contract,
             "public_eval_contract": self._public_eval_contract(),
             "public_feedback_summary": dict(public_feedback),
             "runtime_feedback_summary": dict(runtime_feedback),
             "known_good_examples": [],
-            "selection_guidance": self._selection_guidance(),
+            "selection_guidance": self._selection_guidance(
+                input_type_name=input_type_name
+            ),
         }
 
     def nonaccepted_authoring_tiebreak_key(
@@ -351,7 +420,7 @@ class StairClimbingPromptAdapter:
         _ = public_record
         return ()
 
-    def _selection_guidance(self) -> list[str]:
+    def _selection_guidance(self, *, input_type_name: str) -> list[str]:
         profile = self.session_start_profile
         if not isinstance(profile, StairSessionStartProfile):
             raise RuntimeError("stair prompt session start profile is unresolved")
@@ -361,17 +430,40 @@ class StairClimbingPromptAdapter:
             "mechanism or weight only with public evidence.",
             "Keep each candidate attributable: change one reward mechanism, preserve "
             "current-best coefficients, and avoid unrelated retuning.",
-            "Prefer a recent-untried causal family when evidence permits; guidance "
-            "only, never a gate.",
+            "Prefer a recent-untried mechanism only when task score, failure, or "
+            "progress evidence supports it. Diagnostic rates, even extreme ones, are "
+            "correlates rather than optimization targets or causal proof; judge a "
+            "hypothesis by objective and guard movement.",
             "Code plus verifier/runtime evidence are authoritative over prose rationale; "
             "claim a maximum weighted contribution only with conditions, clips, weight, "
             "and an analytic bound.",
-            "Stable success is stable_success_summary.stable_top_success_rate; "
-            "valid_top_arrival_rate is diagnostic-only, and their gap means arrival "
-            "without stable success.",
-            "post_arrival_safety_failure_detected marks failure after top arrival and "
-            "before stable success.",
         ]
+        completion_mode = str(
+            self.config.episode_outcomes()["success"]["completion_mode"]
+        )
+        if completion_mode == FIRST_VALID_TOP_ARRIVAL_COMPLETION_MODE:
+            guidance.extend(
+                [
+                    "Success is the first physically valid top-platform arrival; "
+                    "post-arrival stopping position and settling are not evaluated.",
+                    "climb_completion_summary.success_rate and "
+                    "first_valid_top_arrival_rate describe the same absorbing task "
+                    "completion event.",
+                ]
+            )
+        elif completion_mode == STABLE_TOP_TRAVERSAL_COMPLETION_MODE:
+            guidance.extend(
+                [
+                    "Stable success is "
+                    "stable_success_summary.stable_top_success_rate; "
+                    "valid_top_arrival_rate is diagnostic-only, and their gap means "
+                    "arrival without stable success.",
+                    "post_arrival_safety_failure_detected marks failure after top "
+                    "arrival and before stable success.",
+                ]
+            )
+        else:
+            raise ValueError("unsupported Stair completion mode")
         if self.config.is_unified_protocol:
             guidance.append(
                 "Optimize J_primary=(2*J_OOD+J_ID)/3 while all three runner-owned "
@@ -395,8 +487,8 @@ class StairClimbingPromptAdapter:
                 [
                     "This session starts without a reference reward program or hidden "
                     "base reward; the first candidate has no parent reward source.",
-                    "Author the complete reward from the declared StairRewardInputsV2 "
-                    "contract and validated public evidence only.",
+                    "Author the complete reward from the declared "
+                    f"{input_type_name} contract and validated public evidence only.",
                 ]
             )
         else:  # Defensive: the profile validates the closed mode set.
@@ -406,7 +498,7 @@ class StairClimbingPromptAdapter:
                 "When the shared candidate_capabilities section marks "
                 "complete_reward_program prompt-visible, return a complete replacement "
                 "reward program, not an additive patch.",
-                "Use only fields declared by the StairRewardInputsV2 contract.",
+                f"Use only fields declared by the {input_type_name} contract.",
                 "Do not change training budget, PPO, seeds, terrain bins, termination "
                 "rules, or acceptance rules.",
             ]
@@ -632,8 +724,9 @@ class StairClimbingPromptAdapter:
                 raise ValueError(
                     "unified Stair C2 prompt claim requires zero training exposure"
                 )
+            selector_contract = stair_selection_contract(self.config)
             return {
-                "schema_version": "true_rl_agent.public_eval_contract.stair.unified.v3",
+                "schema_version": "true_rl_agent.public_eval_contract.stair.unified.v5",
                 "prompt_score_semantics": {
                     "score_sources_by_role": {
                         "objective_score": (
@@ -669,16 +762,81 @@ class StairClimbingPromptAdapter:
                 "named_non_regression_guards": list(
                     score_contract["named_guards"]
                 ),
+                "public_dev_selector": {
+                    "rule": selector_contract["rule"],
+                    "objective_score_source": selector_contract[
+                        "primary_score_source"
+                    ],
+                    "guard_seed_score_source": selector_contract[
+                        "guard_score_source"
+                    ],
+                    "guard_anchor_aggregation": (
+                        "mean_across_seeds_of_minimum_named_guard_per_seed"
+                    ),
+                    "guard_rule": selector_contract["guard_rule"],
+                    "guard_max_regression": selector_contract[
+                        "guard_max_regression"
+                    ],
+                    "runtime_effect_rule": selector_contract[
+                        "runtime_effect_rule"
+                    ],
+                    "ranking_policy": selector_contract["ranking_policy"],
+                    "acceptance_authority": False,
+                },
                 "aggregation": "episode_to_cell_to_stratum_to_paired_seed",
                 "generalization_claims": dict(
                     suite_projection["claim_kinds_by_stratum"]
                 ),
+                "generalization_claim_semantics": {
+                    stratum: _unified_claim_prompt_semantics(claim_kind)
+                    for stratum, claim_kind in suite_projection[
+                        "claim_kinds_by_stratum"
+                    ].items()
+                },
                 "c2_evidence_scope": (
                     "current evaluation-only surface/contact mechanism shift; "
                     "zero training exposure; height-scan policy salience not claimed"
                 ),
+                "factor_diagnostic_table": {
+                    "schema_version": _FACTOR_FEEDBACK_TABLE_SCHEMA_VERSION,
+                    "role": "diagnostic_only_overlapping_group_aggregates",
+                    "factor_names": suite_projection["factor_names"],
+                    "columns": [
+                        "factor_name",
+                        "factor_level",
+                        "cell_count",
+                        "success_rate",
+                        "mean_progress_fraction",
+                    ],
+                    "cell_membership_source": "fixed_ordered_public_dev_suite",
+                    "cell_ids_repeated_per_candidate": False,
+                    "interpretation": (
+                        "groups overlap and are not objective weights; saturated "
+                        "groups remain visible as capabilities to preserve"
+                    ),
+                },
+                "stratum_diagnostic_table": {
+                    "schema_version": _STRATUM_FEEDBACK_TABLE_SCHEMA_VERSION,
+                    "role": "task_owned_failure_and_diagnostic_breakdown",
+                    "cell_membership_source": "fixed_ordered_public_dev_suite",
+                    "cell_ids_repeated_per_candidate": False,
+                    "omitted_rate_columns_are_zero": True,
+                },
+                "completion_derived_diagnostic_rates": (
+                    dict(_FIRST_ARRIVAL_DERIVED_DIAGNOSTIC_RATES)
+                    if self.config.episode_outcomes()["success"][
+                        "completion_mode"
+                    ]
+                    == FIRST_VALID_TOP_ARRIVAL_COMPLETION_MODE
+                    else {}
+                ),
                 "public_feedback_source": "public_dev_unified_stratum_projection",
                 "primary_failure_is_mutually_exclusive": True,
+                "diagnostic_flags_may_overlap": True,
+                "diagnostic_interpretation": (
+                    "latched or recent-history correlates for hypothesis formation; "
+                    "they may coexist with success and do not prove failure causality"
+                ),
                 "classification_warnings_block_pass": True,
             }
         if self.config.evaluation_profile_config is None:
@@ -732,6 +890,7 @@ def _public_feedback_summary(
         if anchor is not None:
             entries.append(anchor)
     entries.extend(selected)
+    entries = [_project_feedback_entry_for_prompt(entry) for entry in entries]
     comparisons = [
         dict(value)
         for value in latest_generation_trial_comparisons[
@@ -764,7 +923,11 @@ def _public_feedback_summary(
         }
         if comparisons:
             summary["latest_generation_trial_comparisons"] = comparisons
-            if any("objective_delta" in item for item in comparisons):
+            if any("selector_guard_regression" in item for item in comparisons):
+                summary["latest_generation_trial_comparison_basis"] = (
+                    "public_dev_selector_vs_parent"
+                )
+            elif any("objective_delta" in item for item in comparisons):
                 summary["latest_generation_trial_comparison_basis"] = (
                     "public_accept_vs_parent"
                 )
@@ -952,8 +1115,25 @@ def _generation_public_dev_trial_summaries(
         Callable[[], Mapping[str, Any] | None] | None
     ),
 ) -> list[dict[str, Any]]:
-    selection = _mapping(generation.get("selection"))
+    raw_selection = generation.get("selection")
+    if raw_selection is None:
+        return []
+    if not isinstance(raw_selection, Mapping):
+        raise ValueError("Stair public_dev selector evidence must be an object or null")
+    selection = raw_selection
     selected_trial_id = selection.get("selected_trial_id")
+    selection_reason = selection.get("reason")
+    selector_contract = stair_selection_contract(config)
+    if selection_reason not in selector_contract["reason_codes"]:
+        raise ValueError("Stair public_dev selector reason is invalid")
+    raw_guard_regressions = _mapping(
+        selection.get("guard_regression_by_trial")
+    )
+    raw_eligible_trial_ids = selection.get("selection_eligible_trial_ids")
+    if not isinstance(raw_eligible_trial_ids, list | tuple):
+        raise ValueError("Stair public_dev selector eligibility is missing")
+    eligible_trial_ids = {str(trial_id) for trial_id in raw_eligible_trial_ids}
+    guard_max_regression = float(selector_contract["guard_max_regression"])
     projector = StairExplorationProjector(
         config,
         objective_family_mask=(
@@ -981,6 +1161,10 @@ def _generation_public_dev_trial_summaries(
             continue
         objective = _mapping(summary.get("objective"))
         objective_score = _finite_score(objective.get("candidate"))
+        objective_delta = _finite_score(objective.get("delta"))
+        guard_floor = _mapping(summary.get("guard_floor"))
+        selector_guard_floor_score = _finite_score(guard_floor.get("candidate"))
+        guard_floor_delta = _finite_score(guard_floor.get("delta"))
         raw_guards = _mapping(summary.get("named_guards"))
         named_guard_scores = {
             str(name): score
@@ -988,20 +1172,71 @@ def _generation_public_dev_trial_summaries(
             for score in [_finite_score(_mapping(item).get("candidate"))]
             if score is not None
         }
-        if objective_score is None or set(named_guard_scores) != {
-            guard.name for guard in config.acceptance_protocol.named_guards
-        }:
+        if (
+            objective_score is None
+            or objective_delta is None
+            or selector_guard_floor_score is None
+            or guard_floor_delta is None
+            or set(named_guard_scores)
+            != {guard.name for guard in config.acceptance_protocol.named_guards}
+        ):
             raise ValueError("Stair public_dev generation summary is incomplete")
         identity = _generation_prompt_trial_identity(
             trial,
             selected_trial_id=selected_trial_id,
         )
+        trial_id = str(identity["trial_id"])
+        selector_guard_regression = _finite_score(
+            raw_guard_regressions.get(trial_id)
+        )
+        if selector_guard_regression is None or not math.isclose(
+            selector_guard_regression,
+            -guard_floor_delta,
+            rel_tol=1.0e-12,
+            abs_tol=1.0e-12,
+        ):
+            raise ValueError("Stair public_dev selector guard evidence drifted")
+        runtime_effect = _mapping(summary.get("runtime_effect_evidence"))
+        if runtime_effect.get("status") not in {"pass", "fail"} or not isinstance(
+            runtime_effect.get("reason"), str
+        ):
+            raise ValueError("Stair public_dev runtime-effect evidence is missing")
+        selector_eligible = trial_id in eligible_trial_ids
+        eligibility_status = classify_stair_selector_trial_eligibility(
+            guard_regression=selector_guard_regression,
+            guard_max_regression=guard_max_regression,
+            runtime_effect_status=str(runtime_effect["status"]),
+        )
+        if selector_eligible != (eligibility_status == "eligible"):
+            raise ValueError("Stair public_dev selector eligibility evidence drifted")
+        if selector_eligible:
+            selector_status = (
+                "selected"
+                if trial_id == selected_trial_id
+                else "eligible_not_selected"
+                if selected_trial_id is not None
+                else "inconclusive"
+            )
+        else:
+            selector_status = eligibility_status
         summaries.append(
-            {
-                **identity,
-                "objective_score": objective_score,
-                "named_guard_scores": named_guard_scores,
-            }
+            _validated_unified_selector_trial_summary(
+                {
+                    **identity,
+                    "objective_score": objective_score,
+                    "objective_delta": objective_delta,
+                    "named_guard_scores": named_guard_scores,
+                    "selector_guard_floor_score": selector_guard_floor_score,
+                    "selector_guard_regression": selector_guard_regression,
+                    "selector_guard_max_regression": guard_max_regression,
+                    "selector_eligible": selector_eligible,
+                    "selector_status": selector_status,
+                    "generation_selector_reason": selection_reason,
+                    "runtime_effect_evidence": dict(runtime_effect),
+                    "observed_effect": assessment.observed_effect,
+                    "reason_codes": list(assessment.reason_codes),
+                }
+            )
         )
     if len(summaries) > _MAX_LATEST_GENERATION_TRIAL_COMPARISONS:
         raise ValueError("Stair generation prompt comparison width exceeds two")
@@ -1030,6 +1265,7 @@ def _generation_prompt_trial_identity(
     if not isinstance(candidate, Mapping):
         raise ValueError("Stair generation prompt candidate identity is absent")
     return {
+        "trial_id": trial_id,
         "lane_id": lane_id,
         "candidate_id": require_candidate_id(
             candidate.get("candidate_id"),
@@ -1040,7 +1276,16 @@ def _generation_prompt_trial_identity(
             "Stair generation prompt program_source_checksum",
         ),
         "selected": trial_id == selected_trial_id,
+        "trial_status": trial_status,
     }
+
+
+def _validated_unified_selector_trial_summary(
+    value: Mapping[str, Any],
+) -> dict[str, Any]:
+    if set(value) != _UNIFIED_SELECTOR_TRIAL_SUMMARY_KEYS:
+        raise ValueError("Stair unified selector trial summary fields drifted")
+    return dict(value)
 
 
 @dataclass(frozen=True)
@@ -1232,7 +1477,7 @@ def _public_parent_comparison(
 def _stair_capacity_preflight_feedback(
     config: StairClimbingTaskConfig,
 ) -> dict[str, Any]:
-    """Build the largest bounded shape retained by Stair minimum-core."""
+    """Build a conservative bounded shape retained by Stair minimum-core."""
 
     if config.is_unified_protocol:
         return _stair_unified_capacity_preflight_feedback(config)
@@ -1333,9 +1578,32 @@ def _stair_unified_capacity_preflight_feedback(
     suite = config.ordered_evaluation_suite
     cells = suite.cells_for_cohort("public_dev")
     # Unified scores, rates, and normalized progress are contract-bounded to
-    # [0, 1]; model the largest legal prompt shape instead of an impossible
-    # IEEE-754 magnitude.
-    maximum_number = 1.0
+    # [0, 1]. Use a long, non-integral legal representation so the stress shape
+    # does not collapse to the unusually short JSON encoding of 0.0 or 1.0.
+    maximum_number = 0.12345678901234568
+    completion_mode = str(
+        config.episode_outcomes()["success"]["completion_mode"]
+    )
+    if completion_mode == FIRST_VALID_TOP_ARRIVAL_COMPLETION_MODE:
+        completion_feedback = {
+            "schema_version": _FIRST_ARRIVAL_FEEDBACK_SCHEMA_VERSION,
+            "climb_completion_summary": {
+                "completion_mode": completion_mode,
+                "success_rate": maximum_number,
+                "first_valid_top_arrival_rate": maximum_number,
+            },
+        }
+    elif completion_mode == STABLE_TOP_TRAVERSAL_COMPLETION_MODE:
+        completion_feedback = {
+            "schema_version": _COMPACT_FEEDBACK_SCHEMA_VERSION,
+            "stable_success_summary": {
+                "stable_top_success_rate": maximum_number,
+                "valid_top_arrival_rate": None,
+                "top_arrival_without_stable_success_rate": None,
+            },
+        }
+    else:
+        raise ValueError("unsupported Stair completion mode")
     cell_values = {cell.cell_id: maximum_number for cell in cells}
     stratum_diagnostics = {
         stratum: {
@@ -1377,7 +1645,7 @@ def _stair_unified_capacity_preflight_feedback(
             factor_diagnostics[str(factor)] = levels
 
     def entry(*, fill: str, accepted: bool, selection_basis: list[str]) -> dict[str, Any]:
-        return {
+        return _project_feedback_entry_for_prompt({
             "source_kind": "candidate",
             "source_public_result_hash": fill * 64,
             "candidate_id": fill * MAX_CANDIDATE_ID_CHARS,
@@ -1387,13 +1655,8 @@ def _stair_unified_capacity_preflight_feedback(
             "accepted": accepted,
             "selection_basis": selection_basis,
             "feedback": {
-                "schema_version": _COMPACT_FEEDBACK_SCHEMA_VERSION,
+                **completion_feedback,
                 "source_split": _COMPACT_FEEDBACK_SOURCE_SPLIT,
-                "stable_success_summary": {
-                    "stable_top_success_rate": maximum_number,
-                    "valid_top_arrival_rate": None,
-                    "top_arrival_without_stable_success_rate": None,
-                },
                 "dominant_failure": {
                     "reason": "goal_not_reached_detected",
                     "rate": maximum_number,
@@ -1433,7 +1696,7 @@ def _stair_unified_capacity_preflight_feedback(
                     "mean_progress_fraction_by_cell": dict(cell_values),
                 },
             },
-        }
+        })
 
     return {
         "schema_version": _PUBLIC_FEEDBACK_SUMMARY_SCHEMA_VERSION,
@@ -1451,22 +1714,57 @@ def _stair_unified_capacity_preflight_feedback(
             ),
         ],
         "latest_generation_trial_comparisons": [
-            {
-                "lane_id": lane_id,
-                "candidate_id": fill * MAX_CANDIDATE_ID_CHARS,
-                "program_source_checksum": f"sha256:{fill * 64}",
-                "selected": selected,
-                "objective_score": maximum_number,
-                "named_guard_scores": {
-                    guard.name: maximum_number
-                    for guard in config.acceptance_protocol.named_guards
-                },
-            }
+            _validated_unified_selector_trial_summary(
+                {
+                    "trial_id": fill * _MAX_GENERATION_TRIAL_ID_CHARS,
+                    "lane_id": lane_id,
+                    "candidate_id": fill * MAX_CANDIDATE_ID_CHARS,
+                    "program_source_checksum": f"sha256:{fill * 64}",
+                    "trial_status": "qualified_not_selected",
+                    "selected": selected,
+                    "objective_score": maximum_number,
+                    "objective_delta": maximum_number,
+                    "named_guard_scores": {
+                        guard.name: maximum_number
+                        for guard in config.acceptance_protocol.named_guards
+                    },
+                    "selector_guard_floor_score": maximum_number,
+                    "selector_guard_regression": maximum_number,
+                    "selector_guard_max_regression": maximum_number,
+                    "selector_eligible": selected,
+                    "selector_status": (
+                        "selected" if selected else "guard_and_runtime_ineligible"
+                    ),
+                    "generation_selector_reason": "public_dev_guard_filter",
+                    "runtime_effect_evidence": {
+                        "schema_version": (
+                            "true_rl_agent.task.stair_climbing."
+                            "candidate_runtime_effect_evidence.v1"
+                        ),
+                        "status": "pass" if selected else "fail",
+                        "reason": (
+                            "candidate_reward_operation_runtime_effect_observed"
+                            if selected
+                            else "candidate_reward_operation_runtime_effect_not_observed"
+                        ),
+                        "acceptance_authority": False,
+                    },
+                    "observed_effect": "positive" if selected else "negative",
+                    "reason_codes": [
+                        "selected_public_dev_objective_improved_without_guard_regression"
+                        if selected
+                        else "candidate_reward_operation_runtime_effect_not_observed"
+                    ],
+                }
+            )
             for fill, lane_id, selected in (
                 ("c", "lane-a", False),
                 ("d", "lane-b", True),
             )
         ],
+        "latest_generation_trial_comparison_basis": (
+            "public_dev_selector_vs_parent"
+        ),
         "omitted_candidate_feedback_entry_count": 28,
         "byte_budget_compaction_applied": True,
     }
@@ -1479,15 +1777,33 @@ def _compact_public_feedback_to_fit_task_sections(
 ) -> dict[str, Any]:
     """Drop lower-priority detailed history before the shared hard limit."""
 
-    bounded = dict(sections)
-    feedback = _mapping(bounded.get("public_feedback_summary"))
-    raw_entries = feedback.get("feedback_entries")
+    original = dict(sections)
+    bounded = dict(original)
 
     target_bytes = (
         MAX_TASK_PROMPT_SECTIONS_BYTES - _TASK_PROMPT_RESERVED_HEADROOM_BYTES
     )
     if canonical_prompt_json_bytes(bounded) <= target_bytes:
         return bounded
+
+    # Static task and ABI prose is repeated every generation. Compact it before
+    # touching validated feedback so scarce capacity is spent on measured evidence.
+    if isinstance(original.get("public_feedback_summary"), Mapping):
+        bounded = _static_core_stair_prompt_sections(original)
+        if canonical_prompt_json_bytes(bounded) <= target_bytes:
+            return bounded
+
+        # Further feedback compaction changes the visible projection. Remove
+        # the static-only receipt now and publish one receipt for the final
+        # combined projection below.
+        feedback_without_receipt = dict(
+            _mapping(bounded.get("public_feedback_summary"))
+        )
+        feedback_without_receipt.pop("capacity_projection_receipt", None)
+        bounded["public_feedback_summary"] = feedback_without_receipt
+
+    feedback = _mapping(bounded.get("public_feedback_summary"))
+    raw_entries = feedback.get("feedback_entries")
 
     entries = (
         [dict(entry) for entry in raw_entries if isinstance(entry, Mapping)]
@@ -1572,12 +1888,54 @@ def _compact_public_feedback_to_fit_task_sections(
         }
         bounded["public_feedback_summary"] = feedback
 
-    if canonical_prompt_json_bytes(bounded) > target_bytes:
-        bounded = _minimum_core_stair_prompt_sections(
+    if canonical_prompt_json_bytes(bounded) <= target_bytes:
+        _attach_stair_capacity_receipt(
             bounded,
-            target_bytes=target_bytes,
+            original=original,
+            projection_id=(
+                "stair_climbing.static_contract_and_feedback_core.v1"
+            ),
+            omitted=(
+                "reward_field_descriptions",
+                "duplicated_task_identity_detail",
+                "feedback_detail_for_capacity",
+            ),
         )
-    return bounded
+        if canonical_prompt_json_bytes(bounded) <= target_bytes:
+            return bounded
+
+    # Minimum-core must bind directly to the original unprojected sections;
+    # layering receipts or using an already compacted value creates a second
+    # source of truth for what was omitted.
+    return _minimum_core_stair_prompt_sections(
+        original,
+        target_bytes=target_bytes,
+    )
+
+
+def _static_core_stair_prompt_sections(
+    sections: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Compact repeated static contracts while preserving all runtime evidence."""
+
+    original = copy.deepcopy(dict(sections))
+    projected = copy.deepcopy(original)
+    projected["task"] = _minimum_core_task_section(
+        _mapping(original.get("task"))
+    )
+    projected["reward_inputs_contract"] = _minimum_core_reward_inputs_contract(
+        _mapping(original.get("reward_inputs_contract"))
+    )
+    _attach_stair_capacity_receipt(
+        projected,
+        original=original,
+        projection_id="stair_climbing.static_contract_core.v1",
+        omitted=(
+            "reward_field_descriptions",
+            "duplicated_task_identity_detail",
+        ),
+    )
+    return projected
 
 
 def _minimum_core_stair_prompt_sections(
@@ -1631,15 +1989,20 @@ def _minimum_core_stair_prompt_sections(
         if entry is not None and entry not in selected:
             selected.append(entry)
     minimum_entries = []
+    preferred_minimum_entry: dict[str, Any] | None = None
     for entry in selected:
         compact = _minimum_core_feedback_entry(entry)
         if current_best is not None and entry is latest and entry is not current_best:
             # Unified feedback must keep the latest trial's family/stratum
-            # deltas: those are the causal signal for the next reward edit.
+            # deltas: those are the comparative signal for the next reward edit.
             # Legacy feedback has no bounded stratum table and stays a compact
             # scalar comparison.
             compact = _compact_latest_feedback_entry(compact)
         minimum_entries.append(compact)
+        if entry is latest:
+            preferred_minimum_entry = compact
+    if preferred_minimum_entry is None and minimum_entries:
+        preferred_minimum_entry = minimum_entries[0]
     raw_omitted_count = feedback.get("omitted_candidate_feedback_entry_count", 0)
     omitted_count = (
         raw_omitted_count
@@ -1651,7 +2014,7 @@ def _minimum_core_stair_prompt_sections(
     if minimum_entries or comparisons:
         minimum_feedback: dict[str, Any] = {
             "schema_version": (
-                "true_rl_agent.task.stair_climbing.public_feedback_minimum_core.v4"
+                "true_rl_agent.task.stair_climbing.public_feedback_minimum_core.v5"
             ),
             "status": "available",
             "feedback_entries": minimum_entries,
@@ -1665,7 +2028,7 @@ def _minimum_core_stair_prompt_sections(
     else:
         minimum_feedback = {
             "schema_version": (
-                "true_rl_agent.task.stair_climbing.public_feedback_minimum_core.v4"
+                "true_rl_agent.task.stair_climbing.public_feedback_minimum_core.v5"
             ),
             "status": "no_closed_outcome",
             "reason": "no_validated_public_stair_evaluation",
@@ -1676,7 +2039,11 @@ def _minimum_core_stair_prompt_sections(
         }
     if comparisons:
         minimum_feedback["latest_generation_trial_comparisons"] = comparisons
-        if any("objective_delta" in item for item in comparisons):
+        if any("selector_guard_regression" in item for item in comparisons):
+            minimum_feedback["latest_generation_trial_comparison_basis"] = (
+                "public_dev_selector_vs_parent"
+            )
+        elif any("objective_delta" in item for item in comparisons):
             minimum_feedback["latest_generation_trial_comparison_basis"] = (
                 "public_accept_vs_parent"
             )
@@ -1699,29 +2066,75 @@ def _minimum_core_stair_prompt_sections(
             original.get("selection_guidance")
         ),
     }
-    content_without_receipt = copy.deepcopy(minimum)
-    receipt = build_prompt_capacity_receipt(
-        original=original,
-        projected_content=content_without_receipt,
-        projection_id="stair_climbing.minimum_core.v4",
-        omitted=(
-            "historical_feedback_entries",
-            "feedback_cell_grids",
-            "feedback_diagnostic_detail",
-            "reward_field_descriptions",
-            "duplicated_eval_identity_detail",
-            "guidance_prose_detail",
-            "runtime_activation_detail",
-        ),
+    base_omissions = (
+        "historical_feedback_entries",
+        "feedback_cell_grids",
+        "feedback_diagnostic_detail",
+        "reward_field_descriptions",
+        "duplicated_eval_identity_detail",
+        "guidance_prose_detail",
+        "runtime_activation_detail",
     )
-    minimum_feedback["capacity_projection_receipt"] = receipt
+    _attach_stair_capacity_receipt(
+        minimum,
+        original=original,
+        projection_id="stair_climbing.minimum_core.v5",
+        omitted=base_omissions,
+    )
     measured_bytes = canonical_prompt_json_bytes(minimum)
+    if (
+        measured_bytes > target_bytes
+        and len(minimum_entries) > 1
+        and preferred_minimum_entry is not None
+    ):
+        removed = [
+            entry
+            for entry in minimum_entries
+            if entry is not preferred_minimum_entry
+        ]
+        omitted_candidates = sum(
+            entry.get("source_kind") != "reference_anchor" for entry in removed
+        )
+        minimum_feedback["feedback_entries"] = [preferred_minimum_entry]
+        minimum_feedback["omitted_candidate_feedback_entry_count"] = (
+            int(minimum_feedback["omitted_candidate_feedback_entry_count"])
+            + omitted_candidates
+        )
+        minimum_feedback["feedback_entries_omitted_for_capacity"] = len(removed)
+        minimum_feedback["projection_level"] = "minimum_core_single_entry"
+        _attach_stair_capacity_receipt(
+            minimum,
+            original=original,
+            projection_id="stair_climbing.minimum_core_single_entry.v1",
+            omitted=(*base_omissions, "one_feedback_entry_for_capacity"),
+        )
+        measured_bytes = canonical_prompt_json_bytes(minimum)
     if measured_bytes > target_bytes:
         raise ValueError(
             "Stair minimum-core prompt sections exceed reserved task-section "
             f"capacity: {measured_bytes} > {target_bytes} bytes"
         )
     return minimum
+
+
+def _attach_stair_capacity_receipt(
+    minimum: dict[str, Any],
+    *,
+    original: Mapping[str, Any],
+    projection_id: str,
+    omitted: Sequence[str],
+) -> None:
+    feedback = minimum.get("public_feedback_summary")
+    if not isinstance(feedback, dict):
+        raise ValueError("Stair minimum-core feedback is missing")
+    feedback.pop("capacity_projection_receipt", None)
+    content_without_receipt = copy.deepcopy(minimum)
+    feedback["capacity_projection_receipt"] = build_prompt_capacity_receipt(
+        original=original,
+        projected_content=content_without_receipt,
+        projection_id=projection_id,
+        omitted=omitted,
+    )
 
 
 def _minimum_core_reward_inputs_contract(
@@ -1778,6 +2191,7 @@ def _minimum_core_task_section(value: Mapping[str, Any]) -> dict[str, Any]:
             key: success[key]
             for key in (
                 "completion_mode",
+                "minimum_kinematic_base_clearance_above_top_m",
                 "minimum_progress_fraction",
                 "pre_arrival_blocking_latches",
                 "maximum_abs_roll_or_pitch_rad",
@@ -1852,6 +2266,9 @@ def _minimum_core_feedback_entry(entry: Mapping[str, Any]) -> dict[str, Any]:
         _mapping(generalization.get("stratum_diagnostics"))
     )
     compact_feedback = {
+        "climb_completion_summary": _mapping(
+            feedback.get("climb_completion_summary")
+        ),
         "stable_success_summary": _mapping(
             feedback.get("stable_success_summary")
         ),
@@ -2005,7 +2422,12 @@ def _compact_required_feedback_entry(
     core["progress_summary"] = compact_progress
     for key in ("primary_failure_breakdown", "diagnostic_flag_rates"):
         core[key] = _without_numeric_zero_values(_mapping(core.get(key)))
-    if "valid_top_arrival_rate" in _mapping(core.get("stable_success_summary")):
+    completion_summary = _mapping(core.get("climb_completion_summary"))
+    stable_summary = _mapping(core.get("stable_success_summary"))
+    if (
+        "first_valid_top_arrival_rate" in completion_summary
+        or "valid_top_arrival_rate" in stable_summary
+    ):
         core["diagnostic_flag_rates"].pop(
             "first_valid_top_arrival_achieved",
             None,
@@ -2014,21 +2436,136 @@ def _compact_required_feedback_entry(
     return {**dict(entry), "feedback": core}
 
 
-def _compact_unified_stratum_diagnostics(
+def _project_feedback_entry_for_prompt(
+    entry: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Remove fixed suite membership repetition without changing measured values."""
+
+    projected = copy.deepcopy(dict(entry))
+    feedback = _mapping(projected.get("feedback"))
+    if not feedback:
+        return projected
+    projected_feedback = dict(feedback)
+    completion_summary = _mapping(
+        projected_feedback.get("climb_completion_summary")
+    )
+    derived_diagnostic_names = (
+        tuple(_FIRST_ARRIVAL_DERIVED_DIAGNOSTIC_RATES)
+        if completion_summary.get("completion_mode")
+        == FIRST_VALID_TOP_ARRIVAL_COMPLETION_MODE
+        else ()
+    )
+    diagnostic_rates = dict(
+        _mapping(projected_feedback.get("diagnostic_flag_rates"))
+    )
+    for name in derived_diagnostic_names:
+        diagnostic_rates.pop(name, None)
+    if diagnostic_rates or "diagnostic_flag_rates" in projected_feedback:
+        projected_feedback["diagnostic_flag_rates"] = diagnostic_rates
+    generalization = dict(
+        _mapping(projected_feedback.get("generalization_summary"))
+    )
+    factor_diagnostics = _mapping(generalization.get("factor_diagnostics"))
+    if factor_diagnostics:
+        generalization["factor_diagnostics"] = (
+            _compact_unified_factor_diagnostics(factor_diagnostics)
+        )
+    stratum_diagnostics = _mapping(generalization.get("stratum_diagnostics"))
+    if stratum_diagnostics:
+        projected_strata = copy.deepcopy(dict(stratum_diagnostics))
+        for raw_item in projected_strata.values():
+            if not isinstance(raw_item, dict):
+                continue
+            rates = dict(_mapping(raw_item.get("diagnostic_flag_rates")))
+            for name in derived_diagnostic_names:
+                rates.pop(name, None)
+            raw_item["diagnostic_flag_rates"] = rates
+        generalization["stratum_diagnostics"] = (
+            _compact_unified_stratum_diagnostics(
+                projected_strata,
+                derived_diagnostic_names=derived_diagnostic_names,
+            )
+        )
+    if generalization:
+        projected_feedback["generalization_summary"] = generalization
+    projected["feedback"] = projected_feedback
+    return projected
+
+
+def _compact_unified_factor_diagnostics(
     value: Mapping[str, Any],
 ) -> dict[str, Any]:
-    """Keep causal per-stratum feedback as one bounded self-describing table."""
+    """Keep factor aggregates while omitting repeated fixed-suite cell IDs."""
+
+    if value.get("schema_version") == _FACTOR_FEEDBACK_TABLE_SCHEMA_VERSION:
+        return copy.deepcopy(dict(value))
+
+    rows: list[list[Any]] = []
+    for raw_factor, raw_levels in value.items():
+        if not isinstance(raw_levels, Mapping):
+            raise ValueError("Stair factor diagnostics levels must be an object")
+        for raw_level, raw_item in raw_levels.items():
+            if not isinstance(raw_item, Mapping):
+                raise ValueError("Stair factor diagnostic row must be an object")
+            cell_count = raw_item.get("cell_count")
+            success_rate = _finite_score(raw_item.get("success_rate"))
+            mean_progress = _finite_score(
+                raw_item.get("mean_progress_fraction")
+            )
+            if (
+                isinstance(cell_count, bool)
+                or not isinstance(cell_count, int)
+                or cell_count <= 0
+                or success_rate is None
+                or mean_progress is None
+            ):
+                raise ValueError("Stair factor diagnostic row is incomplete")
+            rows.append(
+                [
+                    str(raw_factor),
+                    str(raw_level),
+                    cell_count,
+                    success_rate,
+                    mean_progress,
+                ]
+            )
+    if not rows:
+        return {}
+    return {
+        "schema_version": _FACTOR_FEEDBACK_TABLE_SCHEMA_VERSION,
+        "columns": [
+            "factor_name",
+            "factor_level",
+            "cell_count",
+            "success_rate",
+            "mean_progress_fraction",
+        ],
+        "fixed_suite_cell_membership_omitted": True,
+        "rows": rows,
+    }
+
+
+def _compact_unified_stratum_diagnostics(
+    value: Mapping[str, Any],
+    *,
+    derived_diagnostic_names: Sequence[str] = (),
+) -> dict[str, Any]:
+    """Keep comparative per-stratum feedback as one bounded self-describing table."""
 
     schema_version = _STRATUM_FEEDBACK_TABLE_SCHEMA_VERSION
     if value.get("schema_version") == schema_version:
-        return copy.deepcopy(dict(value))
+        result = copy.deepcopy(dict(value))
+        if derived_diagnostic_names:
+            result["derived_diagnostic_rate_columns_omitted"] = list(
+                derived_diagnostic_names
+            )
+        return result
 
     normalized: list[
         tuple[
             str,
             dict[str, float | None],
             dict[str, float],
-            frozenset[str],
             dict[str, float],
         ]
     ] = []
@@ -2041,31 +2578,23 @@ def _compact_unified_stratum_diagnostics(
         for key in ("score", "success_rate", "mean_progress_fraction"):
             raw_number = raw_item.get(key)
             numbers[key] = (
-                round(float(raw_number), 6)
+                float(raw_number)
                 if isinstance(raw_number, int | float)
                 and not isinstance(raw_number, bool)
                 else None
             )
-        all_failure_pairs = sorted(
-            (
-                (str(name), round(float(rate), 6))
-                for name, rate in _mapping(
-                    raw_item.get("primary_failure_breakdown")
-                ).items()
-                if isinstance(rate, int | float)
-                and not isinstance(rate, bool)
-                and float(rate) != 0.0
-            ),
-            key=lambda pair: (-pair[1], pair[0]),
-        )
-        failure_pairs = all_failure_pairs[:2]
-        failures = dict(failure_pairs)
-        truncated_failures = frozenset(
-            name for name, _rate in all_failure_pairs[2:]
-        )
+        failures = {
+            str(name): float(rate)
+            for name, rate in _mapping(
+                raw_item.get("primary_failure_breakdown")
+            ).items()
+            if isinstance(rate, int | float)
+            and not isinstance(rate, bool)
+            and float(rate) != 0.0
+        }
         failure_names.update(failures)
         diagnostics = {
-            str(name): round(float(rate), 6)
+            str(name): float(rate)
             for name, rate in _mapping(
                 raw_item.get("diagnostic_flag_rates")
             ).items()
@@ -2080,7 +2609,6 @@ def _compact_unified_stratum_diagnostics(
                     str(raw_name),
                     numbers,
                     failures,
-                    truncated_failures,
                     diagnostics,
                 )
             )
@@ -2089,7 +2617,7 @@ def _compact_unified_stratum_diagnostics(
 
     ordered_failures = sorted(failure_names)
     ordered_diagnostics = sorted(diagnostic_names)
-    return {
+    result = {
         "schema_version": schema_version,
         "columns": [
             "stratum_id",
@@ -2101,8 +2629,7 @@ def _compact_unified_stratum_diagnostics(
         ],
         "primary_failure_rate_columns": ordered_failures,
         "diagnostic_flag_rate_columns": ordered_diagnostics,
-        "primary_failure_projection": "top_2_per_stratum",
-        "truncated_rates_are_null": True,
+        "omitted_primary_failure_rates_are_zero": True,
         "omitted_diagnostic_rates_are_zero": True,
         "rows": [
             [
@@ -2111,11 +2638,7 @@ def _compact_unified_stratum_diagnostics(
                 numbers["success_rate"],
                 numbers["mean_progress_fraction"],
                 [
-                    failures[reason]
-                    if reason in failures
-                    else None
-                    if reason in truncated_failures
-                    else 0.0
+                    failures.get(reason, 0.0)
                     for reason in ordered_failures
                 ],
                 [diagnostics.get(flag, 0.0) for flag in ordered_diagnostics],
@@ -2124,20 +2647,27 @@ def _compact_unified_stratum_diagnostics(
                 name,
                 numbers,
                 failures,
-                truncated_failures,
                 diagnostics,
             ) in normalized
         ],
     }
+    if derived_diagnostic_names:
+        result["derived_diagnostic_rate_columns_omitted"] = list(
+            derived_diagnostic_names
+        )
+    return result
 
 
 def _normalize_supported_prompt_feedback(
     feedback: Mapping[str, Any],
 ) -> dict[str, Any]:
-    """Normalize sealed v8 feedback into the current prompt-only vocabulary."""
+    """Normalize supported historical feedback without rewriting task semantics."""
 
     schema_version = feedback.get("schema_version")
-    if schema_version == _COMPACT_FEEDBACK_SCHEMA_VERSION:
+    if schema_version in {
+        _COMPACT_FEEDBACK_SCHEMA_VERSION,
+        _FIRST_ARRIVAL_FEEDBACK_SCHEMA_VERSION,
+    }:
         return dict(feedback)
     if schema_version != _LEGACY_COMPACT_FEEDBACK_SCHEMA_VERSION:
         return {}
@@ -2211,7 +2741,7 @@ def _compact_historical_comparison_entry(
 def _compact_latest_feedback_entry(
     entry: Mapping[str, Any],
 ) -> dict[str, Any]:
-    """Keep bounded unified causal evidence; compact legacy latest feedback."""
+    """Keep bounded unified comparative evidence; compact legacy latest feedback."""
 
     generalization = _mapping(
         _mapping(entry.get("feedback")).get("generalization_summary")
@@ -2359,22 +2889,6 @@ def _without_numeric_zero_values(value: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def _is_required_feedback_entry(entry: Mapping[str, Any]) -> bool:
-    basis = entry.get("selection_basis")
-    if not isinstance(basis, list | tuple):
-        return False
-    labels = {str(item) for item in basis}
-    return bool(
-        labels
-        & {
-            "reference_current_best",
-            "accepted_current_best",
-            "best_observed_nonaccepted",
-            "latest_evaluated",
-        }
-    )
-
-
 def _is_detailed_feedback_entry(entry: Mapping[str, Any]) -> bool:
     basis = entry.get("selection_basis")
     if not isinstance(basis, list | tuple):
@@ -2413,14 +2927,21 @@ def _project_unified_prompt_public_record(
             score=score,
         )
 
+    raw_generation = _mapping(projected.get("generation"))
+    no_formal_generation_outcome = None
+    if raw_generation and raw_generation.get("formal") is None:
+        generation_outcome = raw_generation.get("generation_outcome")
+        if isinstance(generation_outcome, str) and generation_outcome.strip():
+            no_formal_generation_outcome = generation_outcome
+
     raw_decision = _mapping(projected.get("decision"))
     if raw_decision:
         projected["decision"] = _project_unified_prompt_decision(
             raw_decision,
             score=score,
+            no_formal_generation_outcome=no_formal_generation_outcome,
         )
 
-    raw_generation = _mapping(projected.get("generation"))
     if raw_generation:
         projected["generation"] = _project_unified_prompt_generation(
             raw_generation
@@ -2493,18 +3014,22 @@ def _project_unified_prompt_decision(
     decision: Mapping[str, Any],
     *,
     score: float | None,
+    no_formal_generation_outcome: str | None = None,
 ) -> dict[str, Any]:
     accepted = decision.get("accepted")
+    if accepted is True:
+        reason = "runner_accepted_candidate"
+    elif accepted is False:
+        reason = (
+            no_formal_generation_outcome
+            or "runner_did_not_accept_candidate"
+        )
+    else:
+        reason = "runner_decision_unavailable"
     projected: dict[str, Any] = {
         "outcome": decision.get("outcome"),
         "accepted": accepted,
-        "reason": (
-            "runner_accepted_candidate"
-            if accepted is True
-            else "runner_did_not_accept_candidate"
-            if accepted is False
-            else "runner_decision_unavailable"
-        ),
+        "reason": reason,
         "surface_classification": decision.get("surface_classification"),
     }
     gate_statuses = _mapping(decision.get("gate_statuses"))
@@ -2585,24 +3110,37 @@ def _project_unified_prompt_generation(
     trials = generation.get("trials")
     if isinstance(trials, list | tuple):
         projected["trials"] = [
-            {
-                key: copy.deepcopy(trial[key])
-                for key in (
-                    "schema_version",
-                    "lane_id",
-                    "trial_id",
-                    "trial_status",
-                    "candidate",
-                    "candidate_surface",
-                    "mechanism_operation_delta",
-                    "public_dev",
-                    "lane_intent",
-                )
-                if key in trial
-            }
+            _project_unified_prompt_trial(trial)
             for trial in trials
             if isinstance(trial, Mapping)
         ]
+    return projected
+
+
+def _project_unified_prompt_trial(trial: Mapping[str, Any]) -> dict[str, Any]:
+    projected = {
+        key: copy.deepcopy(trial[key])
+        for key in (
+            "schema_version",
+            "lane_id",
+            "trial_id",
+            "trial_status",
+            "candidate",
+            "candidate_surface",
+            "mechanism_operation_delta",
+            "public_dev",
+            "lane_intent",
+        )
+        if key in trial
+    }
+    screen = _mapping(trial.get("selection_screen"))
+    runtime_effect = screen.get("runtime_effect_evidence")
+    if isinstance(runtime_effect, Mapping):
+        # Full screen vectors stay in the internal public history. The provider
+        # only needs the task-owned runtime-effect result used by the selector.
+        projected["selection_screen"] = {
+            "runtime_effect_evidence": copy.deepcopy(dict(runtime_effect))
+        }
     return projected
 
 
@@ -2919,13 +3457,19 @@ def _success_criteria_prompt_contract(
     signals = _mapping(outcomes.get("signals"))
     stability = _mapping(outcomes.get("top_platform_stability_requirement"))
     orientation = _mapping(signals.get("base_orientation_instability"))
-    fall = _mapping(signals.get("fall"))
-    return {
+    legacy_fall = _mapping(signals.get("fall"))
+    result = {
         **dict(success),
         "maximum_abs_roll_or_pitch_rad": orientation.get("threshold"),
-        "minimum_kinematic_base_clearance_above_top_m": fall.get("threshold"),
-        "top_platform_stability_requirement": dict(stability),
     }
+    if success.get("requires_kinematic_base_clearance_above_top") is True:
+        result["minimum_kinematic_base_clearance_above_top_m"] = success.get(
+            "minimum_kinematic_base_clearance_above_top_m",
+            legacy_fall.get("threshold"),
+        )
+    if stability:
+        result["top_platform_stability_requirement"] = dict(stability)
+    return result
 
 
 __all__ = ["StairClimbingPromptAdapter"]

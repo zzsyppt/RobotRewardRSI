@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from unittest import mock
 
+from true_rl_agent.composition import TaskCompositionContext, resolve_task_composition
 from true_rl_agent.evaluation.binding import canonical_json_hash
 from true_rl_agent.json_contract import canonical_json_bytes
 from true_rl_agent.runner.gpu_lease import GpuLeaseManager, PreGenesisGpuLeaseHolder
@@ -35,6 +36,14 @@ from true_rl_agent.tasks.stair_climbing.launch_readiness import (
     collect_stair_generation_launch_readiness_v3,
     load_stair_generation_launch_readiness_receipt,
     resolve_stair_nvidia_smi_executable,
+    _resolved_formal_task_config,
+    _validate_probe_source_identity,
+)
+from true_rl_agent.tasks.stair_climbing.composition import (
+    StairClimbingCompositionProvider,
+)
+from true_rl_agent.tasks.stair_climbing.row_catalog import (
+    STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
 )
 
 _COMMIT = "a" * 40
@@ -64,6 +73,68 @@ class _FakeClock:
 
 
 class StairGenerationLaunchReadinessTests(unittest.TestCase):
+    def test_terminal_probe_source_reuse_requires_unchanged_measured_bytes(self) -> None:
+        with tempfile.TemporaryDirectory() as raw_root:
+            root = Path(raw_root).resolve()
+            measured = root / "runner.py"
+            measured.write_bytes(b"measured cleanup implementation\n")
+            checksums = {
+                "runner.py": "sha256:" + hashlib.sha256(measured.read_bytes()).hexdigest()
+            }
+            binding = {"source_commit": "b" * 40, "source_root": str(root)}
+            for mode in (
+                STAIR_FORMAL_LAUNCH_SUBJECT_TERMINAL_FINALIZATION,
+                STAIR_FORMAL_LAUNCH_SUBJECT_TERMINAL_AUDIT_ONLY,
+            ):
+                with self.subTest(mode=mode):
+                    subject = {
+                        "subject_mode": mode,
+                        "source_identity": {"source_commit": _COMMIT},
+                    }
+                    _validate_probe_source_identity(
+                        _COMMIT, checksums, binding=binding, subject=subject
+                    )
+            measured.write_bytes(b"changed cleanup implementation\n")
+            with self.assertRaisesRegex(ValueError, "terminal probe source bytes changed"):
+                _validate_probe_source_identity(
+                    _COMMIT, checksums, binding=binding, subject=subject
+                )
+
+    def test_historical_probe_reuse_requires_terminal_and_original_generation_sha(self) -> None:
+        with tempfile.TemporaryDirectory() as raw_root:
+            root = Path(raw_root).resolve()
+            measured = root / "runner.py"
+            measured.write_bytes(b"unchanged source\n")
+            checksums = {
+                "runner.py": "sha256:" + hashlib.sha256(measured.read_bytes()).hexdigest()
+            }
+            binding = {"source_commit": "b" * 40, "source_root": str(root)}
+            for mode in (
+                None,
+                STAIR_FORMAL_LAUNCH_SUBJECT_FRESH_ABSENT,
+                STAIR_FORMAL_LAUNCH_SUBJECT_NONTERMINAL_RESUME,
+            ):
+                with self.subTest(mode=mode):
+                    subject = (
+                        {
+                            "subject_mode": mode,
+                            "source_identity": {"source_commit": _COMMIT},
+                        }
+                        if mode is not None else None
+                    )
+                    with self.assertRaisesRegex(ValueError, "probe source binding mismatch"):
+                        _validate_probe_source_identity(
+                            _COMMIT, checksums, binding=binding, subject=subject
+                        )
+            with self.assertRaisesRegex(ValueError, "probe source binding mismatch"):
+                _validate_probe_source_identity(
+                    "c" * 40, checksums, binding=binding,
+                    subject={
+                        "subject_mode": STAIR_FORMAL_LAUNCH_SUBJECT_TERMINAL_FINALIZATION,
+                        "source_identity": {"source_commit": _COMMIT},
+                    },
+                )
+
     def _inventory(
         self,
     ) -> tuple[NvidiaGpuInventoryEntry, NvidiaGpuInventoryEntry]:
@@ -87,6 +158,38 @@ class StairGenerationLaunchReadinessTests(unittest.TestCase):
                 machine_id=_MACHINE_ID,
             ),
         )
+
+    def test_formal_subject_rebuilds_selected_go2_task_from_manifest(self) -> None:
+        with tempfile.TemporaryDirectory() as raw_root:
+            output_dir = (Path(raw_root) / "formal-output").resolve()
+            provider = StairClimbingCompositionProvider()
+            values = dict(provider.cli_defaults())
+            values["cell_variant_id"] = STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID
+            resolved = resolve_task_composition(
+                provider=provider,
+                values=values,
+                context=TaskCompositionContext(
+                    project_root=_ROOT,
+                    output_dir=output_dir,
+                ),
+            )
+
+            config = _resolved_formal_task_config(
+                output_dir=output_dir,
+                project_root=_ROOT,
+            )
+            self.assertEqual(
+                config.cell_variant_id,
+                STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+            )
+            self.assertEqual(
+                config.task_protocol_hash,
+                resolved.resolved_cell_manifest.resolved_cell_task_protocol_hash,
+            )
+            self.assertEqual(
+                config.ordered_evaluation_suite.suite_hash,
+                resolved.task_plugin.config.ordered_evaluation_suite.suite_hash,
+            )
 
     def test_config_rejects_foreign_source_root_even_with_copied_module(self) -> None:
         with tempfile.TemporaryDirectory() as raw_root:
@@ -870,6 +973,32 @@ class StairGenerationLaunchReadinessTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "binding mismatch"):
                         load(config.receipt_path, **overrides)
 
+    def test_fresh_probe_boot_and_cross_probe_boot_must_match(self) -> None:
+        for mutation, message in (
+            ("current_boot", "fresh launch requires"),
+            ("teardown_boot", "probes belong to different boots"),
+        ):
+            with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as tmp:
+                config = self._config_v3(
+                    Path(tmp), subject_mode=STAIR_FORMAL_LAUNCH_SUBJECT_FRESH_ABSENT
+                )
+                new_boot = "99999999-8888-7777-6666-555555555555"
+                if mutation == "current_boot":
+                    config.base.boot_id_path.write_text(
+                        new_boot + "\n", encoding="utf-8"
+                    )
+                else:
+                    payload = json.loads(
+                        config.stair_train_teardown_result.read_text(encoding="utf-8")
+                    )
+                    payload["host"]["boot_id"] = new_boot
+                    config.stair_train_teardown_result.write_bytes(
+                        canonical_json_bytes(payload, trailing_newline=True)
+                    )
+                with self.assertRaisesRegex(ValueError, message):
+                    self._collect_v3(config)
+                self.assertFalse(config.base.receipt_path.exists())
+
     def test_v3_fresh_is_local_only_and_uses_remaining_output_formula(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             config = self._config_v3(
@@ -880,7 +1009,7 @@ class StairGenerationLaunchReadinessTests(unittest.TestCase):
 
             self.assertEqual(
                 receipt.payload["schema_version"],
-                "true_rl_agent.stair.generation_launch_readiness.v3",
+                "true_rl_agent.stair.generation_launch_readiness.v4",
             )
             self.assertEqual(
                 receipt.payload["subject"],
@@ -955,6 +1084,9 @@ class StairGenerationLaunchReadinessTests(unittest.TestCase):
                 output_dir = config.base.formal_output_dir
                 output_dir.mkdir()
                 subject = self._formal_subject(output_dir, subject_mode=mode)
+                # Probes remain from boot A while this invocation samples boot B.
+                new_boot = "99999999-8888-7777-6666-555555555555"
+                config.base.boot_id_path.write_text(new_boot + "\n", encoding="utf-8")
                 before = {
                     path.relative_to(output_dir): path.read_bytes()
                     for path in output_dir.rglob("*")
@@ -970,6 +1102,8 @@ class StairGenerationLaunchReadinessTests(unittest.TestCase):
                     if path.is_file()
                 }
                 self.assertEqual(after, before)
+                self.assertEqual(receipt.payload["binding"]["boot_id"], new_boot)
+                self.assertEqual(receipt.payload["prelaunch_evidence"]["probe_boot_id"], _BOOT_ID)
                 self.assertEqual(receipt.payload["subject"]["subject_mode"], mode)
                 self.assertFalse(
                     receipt.payload["observations"]["formal_output_absent_before"]
@@ -988,6 +1122,46 @@ class StairGenerationLaunchReadinessTests(unittest.TestCase):
                 ):
                     loaded = load_stair_generation_launch_readiness_receipt(
                         config.base.receipt_path,
+                        **{**self._loader_kwargs(config.base), "expected_boot_id": new_boot},
+                        expected_subject_mode=mode,
+                        expected_formal_generation_command_sha256=(
+                            config.formal_generation_command_sha256
+                        ),
+                    )
+                self.assertEqual(loaded.receipt_hash, receipt.receipt_hash)
+
+    def test_v3_separates_terminal_finalizer_from_generation_source(self) -> None:
+        for mode in (
+            STAIR_FORMAL_LAUNCH_SUBJECT_NONTERMINAL_RESUME,
+            STAIR_FORMAL_LAUNCH_SUBJECT_TERMINAL_FINALIZATION,
+            STAIR_FORMAL_LAUNCH_SUBJECT_TERMINAL_AUDIT_ONLY,
+        ):
+            with self.subTest(mode=mode), tempfile.TemporaryDirectory() as tmp:
+                config = self._config_v3(Path(tmp), subject_mode=mode)
+                config.base.formal_output_dir.mkdir()
+                subject = self._formal_subject(
+                    config.base.formal_output_dir, subject_mode=mode,
+                )
+                subject["source_identity"]["source_commit"] = "b" * 40
+                subject["snapshot_hash"] = canonical_json_hash({
+                    key: value for key, value in subject.items()
+                    if key != "snapshot_hash"
+                })
+                if mode == STAIR_FORMAL_LAUNCH_SUBJECT_NONTERMINAL_RESUME:
+                    with self.assertRaisesRegex(ValueError, "source identity commit"):
+                        self._collect_v3(
+                            config, formal_subject_inspector=lambda _: subject,
+                        )
+                    continue
+                receipt = self._collect_v3(
+                    config, formal_subject_inspector=lambda _: subject,
+                )
+                with mock.patch(
+                    "true_rl_agent.tasks.stair_climbing.launch_readiness."
+                    "_inspect_v3_launch_subject_values", return_value=subject,
+                ):
+                    loaded = load_stair_generation_launch_readiness_receipt(
+                        config.base.receipt_path,
                         **self._loader_kwargs(config.base),
                         expected_subject_mode=mode,
                         expected_formal_generation_command_sha256=(
@@ -995,6 +1169,10 @@ class StairGenerationLaunchReadinessTests(unittest.TestCase):
                         ),
                     )
                 self.assertEqual(loaded.receipt_hash, receipt.receipt_hash)
+                self.assertEqual(
+                    loaded.payload["subject"]["source_identity"]["source_commit"],
+                    "b" * 40,
+                )
 
     def test_v3_rejects_missing_credential_and_wrong_frozen_output_cap(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

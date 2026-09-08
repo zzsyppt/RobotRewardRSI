@@ -205,11 +205,8 @@ def build_prompt_source_context_from_projected(
     best_observed_aliases_latest = (
         best_observed_index is not None
         and latest_failed_index is not None
-        and (
-            best_observed_index == latest_failed_index
-            or _sources_share_content(
-                _mapping(best_observed.get("source")), latest_failed
-            )
+        and _sources_share_content(
+            _mapping(best_observed.get("source")), latest_failed
         )
     )
     catalog = _source_catalog(
@@ -254,8 +251,17 @@ def _assert_projected_history_alignment(
     for index, (record, projected) in enumerate(
         zip(records, projected_records, strict=True)
     ):
-        raw_round_id = _public_record(record).get("round_id")
-        projected_round_id = projected.get("round_id")
+        raw_record = _public_record(record)
+        raw_round_id = (
+            raw_record.get("generation_id")
+            if raw_record.get("record_kind") == "generation"
+            else raw_record.get("round_id")
+        )
+        projected_round_id = (
+            projected.get("generation_id")
+            if projected.get("record_kind") == "generation"
+            else projected.get("round_id")
+        )
         if raw_round_id != projected_round_id:
             raise ValueError(
                 "records and projected history round_id mismatch at "
@@ -1633,6 +1639,14 @@ def _resolve_latest_failed_source(candidate: Any) -> dict[str, Any]:
 
 
 def _resolve_latest_failed_record_source(record: Any) -> dict[str, Any]:
+    return _resolve_record_candidate_source(record)
+
+
+def _resolve_record_candidate_source(
+    record: Any,
+    *,
+    expected_candidate: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
     if record is None:
         return {
             "status": "pending",
@@ -1641,8 +1655,23 @@ def _resolve_latest_failed_record_source(record: Any) -> dict[str, Any]:
             "source_origin": NO_FAILED_SOURCE_OWNER,
         }
     public_record = _public_record(record)
-    candidate = _mapping(public_record.get("candidate"))
-    root = _candidate_package_root(record)
+    generation_source = (
+        _generation_trial_source_for_candidate(
+            record,
+            public_record=public_record,
+            expected_candidate=expected_candidate,
+        )
+        if expected_candidate is not None
+        else _latest_failed_generation_trial_source(
+            record,
+            public_record=public_record,
+        )
+    )
+    if generation_source is not None:
+        candidate, root = generation_source
+    else:
+        candidate = _mapping(public_record.get("candidate"))
+        root = _candidate_package_root(record)
     if root is None or not candidate.get("artifact_hash"):
         return {
             "status": "pending",
@@ -1678,6 +1707,92 @@ def _resolve_latest_failed_record_source(record: Any) -> dict[str, Any]:
         }
 
 
+def _latest_failed_generation_trial_source(
+    record: Any,
+    *,
+    public_record: Mapping[str, Any],
+) -> tuple[dict[str, Any], Path | None] | None:
+    """Resolve the most recently authored nonaccepted lane in a generation."""
+
+    if public_record.get("record_kind") != "generation":
+        return None
+    trials = public_record.get("trials")
+    if not isinstance(trials, list | tuple):
+        return ({}, None)
+    for trial in reversed(trials):
+        if not isinstance(trial, Mapping) or trial.get("trial_status") == "accepted":
+            continue
+        candidate = _mapping(trial.get("candidate"))
+        lane_id = trial.get("lane_id")
+        if not candidate.get("artifact_hash") or not isinstance(lane_id, str):
+            continue
+        return (
+            candidate,
+            _private_artifact_root(
+                record,
+                expected_kind=f"{lane_id}_candidate_artifact",
+            ),
+        )
+    return ({}, None)
+
+
+def _generation_trial_source_for_candidate(
+    record: Any,
+    *,
+    public_record: Mapping[str, Any],
+    expected_candidate: Mapping[str, Any],
+) -> tuple[dict[str, Any], Path | None] | None:
+    """Resolve the sealed lane source that owns one projected candidate identity."""
+
+    if public_record.get("record_kind") != "generation":
+        return None
+    candidate_id = expected_candidate.get("candidate_id")
+    artifact_hash = expected_candidate.get("artifact_hash")
+    program_checksum = expected_candidate.get("program_source_checksum")
+    if not isinstance(candidate_id, str) or not candidate_id:
+        return ({}, None)
+    if not any(
+        isinstance(value, str) and bool(value)
+        for value in (artifact_hash, program_checksum)
+    ):
+        return ({}, None)
+    trials = public_record.get("trials")
+    if not isinstance(trials, list | tuple):
+        return ({}, None)
+    matches: list[tuple[dict[str, Any], Path | None]] = []
+    for trial in trials:
+        if not isinstance(trial, Mapping):
+            continue
+        candidate = dict(_mapping(trial.get("candidate")))
+        lane_id = trial.get("lane_id")
+        if not candidate.get("artifact_hash") or not isinstance(lane_id, str):
+            continue
+        if candidate.get("candidate_id") != candidate_id:
+            continue
+        if (
+            isinstance(artifact_hash, str)
+            and artifact_hash
+            and candidate.get("artifact_hash") != artifact_hash
+        ):
+            continue
+        if (
+            isinstance(program_checksum, str)
+            and program_checksum
+            and candidate.get("program_source_checksum") != program_checksum
+        ):
+            continue
+        matches.append(
+            (
+                candidate,
+                _private_artifact_root(
+                    record,
+                    expected_kind=f"{lane_id}_candidate_artifact",
+                ),
+            )
+        )
+    return matches[0] if len(matches) == 1 else ({}, None)
+
+
 def resolve_candidate_components_source_from_record(record: Any) -> dict[str, Any]:
     """Resolve one record's candidate source through the prompt-safe source boundary."""
 
@@ -1707,7 +1822,10 @@ def _best_observed_experiment(
             for name, status in _mapping(decision.get("gate_statuses")).items()
             if status != "pass"
         ),
-        "source": _resolve_latest_failed_record_source(records[index]),
+        "source": _resolve_record_candidate_source(
+            records[index],
+            expected_candidate=candidate,
+        ),
     }
 
 
@@ -2104,7 +2222,13 @@ def _immediate_previous_nonaccepted_index(
 ) -> int | None:
     if not canonical_public_records:
         return None
-    decision = _mapping(canonical_public_records[-1].get("decision"))
+    latest = canonical_public_records[-1]
+    if latest.get("record_kind") == "generation":
+        outcome = _mapping(latest.get("generation")).get("generation_outcome")
+        if isinstance(outcome, str) and outcome != "accepted":
+            return len(canonical_public_records) - 1
+        return None
+    decision = _mapping(latest.get("decision"))
     if (
         decision.get("accepted") is False
         and decision.get("reason") != "decision_record_invalid"
@@ -2147,6 +2271,35 @@ def _candidate_artifact_roots(record: Any) -> list[Path]:
             seen.add(uri)
             roots.append(Path(uri))
     return roots
+
+
+def _private_artifact_root(
+    record: Any,
+    *,
+    expected_kind: str,
+) -> Path | None:
+    matches: list[Path] = []
+    raw_artifacts = getattr(record, "private_artifacts", None)
+    if raw_artifacts is None and isinstance(record, Mapping):
+        raw_artifacts = record.get("private_artifacts")
+    for artifact in raw_artifacts or ():
+        kind = (
+            artifact.get("kind")
+            if isinstance(artifact, Mapping)
+            else getattr(artifact, "kind", None)
+        )
+        uri = (
+            artifact.get("uri")
+            if isinstance(artifact, Mapping)
+            else getattr(artifact, "uri", None)
+        )
+        if (
+            kind == expected_kind
+            and isinstance(uri, str)
+            and _looks_like_local_path(uri)
+        ):
+            matches.append(Path(uri))
+    return matches[0] if len(matches) == 1 else None
 
 
 def _latest_failed_candidate_root(candidate: Any) -> Path | None:

@@ -21,7 +21,7 @@ LLM 权限没有扩大：当前 cell 只开放完整 reward program；PPO、预�
 6. 初版尝试将 official G1 rough reward 投影到 VNext；后续审计证明该投影缺少关节组和 single-stance 门控，不能称为官方等价。该问题及源头修复记录在 3.5。
 7. train/eval 子进程先重载 exact manifest；runtime projection、reward program、checkpoint lineage、TrainingBindingV2 与 EvaluationBinding 对 cell identity 做真实强制。
 8. 新增三段 reference assembly。reference 不伪装 candidate selection，`selection_kind=reference_program_qualification` 且无 acceptance authority；每个 split 仍由 runner 创建一次 phase receipt 后再组装。
-9. 新增 calibration/reference/runtime capture 和 Phase 3A snapshot verifier。HEAD 只记录 provenance；内容门使用 normalized-LF source closure、canonical receipts 与实时重算的 suite/geometry/contracts/manifests。
+9. 新增 calibration/reference/runtime capture 和 Phase 3A snapshot verifier。该 verifier 在 Phase 3A 当时使用 normalized-LF source closure、canonical receipts 与实时重算的 suite/geometry/contracts/manifests；协议退役后收敛为历史证据完整性门，当前 unified 语义改由 P3B/P4/P5 重算。
 
 上述第 4 项只说明同一历史 cell 内四条身份链一致。后续复审发现其 base hash 仍传递性包含 V2 固定 G1-37 reward schema，且部分 materializer 继续读取 V1 `policy_compatibility`；它不再被解释为 task/robot 协议已完全解耦，源头迁移列入 Phase 3R-W1。
 
@@ -87,7 +87,7 @@ attempt2 使用相同 suite、门、reward、预算和 seed policy，只修正�
 - 旧字节曾完成 C1 contract/ordered/phased 32/32 与全仓 1522 tests、29 skipped；这些只证明当时工程闭合，不证明奖励语义正确；
 - 根修后服务器全量单元回归：`1438 passed, 2 skipped, 1140 subtests passed`，211.82 s；新增 reward AST 等价与 profile-group 定向测试通过；
 - shared 层没有 C1/riser/tread/roughness 语义；唯一共享改动只选择 legacy base hash 或 non-legacy resolved hash；
-- 旧 evaluation/PPO/runtime receipts 与 snapshot 因 source closure 和 manifest 漂移被确定性拒绝，符合设计；不得重算自有 hash 使其恢复为当前证据；
+- 旧 evaluation/PPO/runtime receipts 与 snapshot 保留为历史 NO-GO 闭包，不因后续合法产品演进变红；当前能力由后继 Phase 的活契约门判定，且不得重算旧自有 hash 使其冒充当前证据；
 - 独立 C1 的 fresh calibration、evaluation scene、PPO smoke 与完整 reference qualification 已因架构修正取消；这不是资源阻塞；
 - `git diff --check` 最终复核通过。
 

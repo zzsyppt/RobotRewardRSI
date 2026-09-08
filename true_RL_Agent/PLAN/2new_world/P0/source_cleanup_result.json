@@ -1,0 +1,86 @@
+{
+  "deleted": [
+    {
+      "path": "scripts/audit_stair_p6b_historical_loader_replay.py",
+      "bytes": 19351,
+      "sha256": "cce0fa4ee157cdce868990e77e9286c8e4e407e4007ddd29d0364619a9ce201e"
+    },
+    {
+      "path": "scripts/compile_stair_reward_benchmark.py",
+      "bytes": 1979,
+      "sha256": "87a6c613310d0747a68f32ed58401da78a1aa29a2e05db6c20afd5b9db9b4d45"
+    },
+    {
+      "path": "scripts/freeze_stair_protocol_v2.py",
+      "bytes": 4173,
+      "sha256": "2c1a08abf3987af0ba519acb86fbaa55e81436f3b86126e9d107e0b5d1d61f4b"
+    },
+    {
+      "path": "scripts/isaaclab_stair_reward_benchmark.py",
+      "bytes": 7387,
+      "sha256": "5b5f84ebca9c259fbc7c2052eb2bb70500ab519f822bbb3ea16e0412c3410094"
+    },
+    {
+      "path": "scripts/isaaclab_stair_reward_oracle_probe.py",
+      "bytes": 15550,
+      "sha256": "b38fecbc996ae5903babc45ce16425613a53fa35c65ad6c4b00ca9d95a4d2290"
+    },
+    {
+      "path": "scripts/isaaclab_stair_reward_phasec_probe.py",
+      "bytes": 9428,
+      "sha256": "33bb8f19d84773d6cb71bfa1f942396e1752b9a45748bfdff15cd897a8ef80b0"
+    },
+    {
+      "path": "scripts/stair_phase_d_prompt_preflight.py",
+      "bytes": 1861,
+      "sha256": "4599351bf00de6b785623c1f5dd45301ffd9cad975bed8542c1254fc3b6873a5"
+    },
+    {
+      "path": "scripts/stair_reward_cuda_fault_probe.py",
+      "bytes": 5088,
+      "sha256": "24bfd3d98b494c0f0247c463b520108cb04e27eea048e955e79f0a867c38bcc2"
+    },
+    {
+      "path": "src/true_rl_agent/agent_core/loop.py",
+      "bytes": 6577,
+      "sha256": "689fafdbd4603a85323155afd11e854054a75ccdd2b40c97b5f47c4d718d08fa"
+    },
+    {
+      "path": "src/true_rl_agent/agent_core/session.py",
+      "bytes": 791,
+      "sha256": "e8f37808b7e4835ab179b8a5e4370096408d2a3b2f9a5f3da0c84b80eafc1c26"
+    },
+    {
+      "path": "tests/integration/test_agent_core_loop.py",
+      "bytes": 12600,
+      "sha256": "98a057dc1c626c0160bb2a1941859df09e39e1c42114c46efd26d84c54bfb2bd"
+    }
+  ],
+  "deleted_bytes": 84785,
+  "retained_behavior_tests": "tests/integration/test_round_public_boundaries.py",
+  "retired_wrapper_tests": 3,
+  "baseline_tests_passed": 1609,
+  "product_retirement": {
+    "files": 10,
+    "lines": 1948,
+    "bytes": 72185
+  },
+  "final_local_tests": {
+    "run": 1606,
+    "skipped": 30,
+    "failures": 0,
+    "errors": 0,
+    "evidence": "local_final_tests.log"
+  },
+  "final_full_regression": "local_final_tests_result.json",
+  "fixture_output_isolation": {
+    "modules": [
+      "tests/unit/test_curriculum_phase9.py",
+      "tests/unit/test_push_recovery_task.py",
+      "tests/unit/test_stair_final_confirmation.py",
+      "tests/unit/test_stair_phase_b_composition.py"
+    ],
+    "regression": "fixture_output_isolation_tests_result.json",
+    "product_logic_changed": false
+  }
+}

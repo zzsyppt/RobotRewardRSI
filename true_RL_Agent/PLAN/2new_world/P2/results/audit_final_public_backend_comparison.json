@@ -1,0 +1,161 @@
+{
+  "purpose": "Corrected backend on unchanged public-dev seeds/cells; diagnostic anchors only",
+  "thresholds": {
+    "j_primary_absolute": 0.03,
+    "stratum_success_rate_absolute": 0.1
+  },
+  "robots": {
+    "g1": {
+      "status": "DIAGNOSTIC_THRESHOLD_EXCEEDED",
+      "old_j_primary": 0.686291412047325,
+      "new_j_primary": 0.7124098944855968,
+      "j_primary_difference": 0.02611848243827175,
+      "old_success": 116,
+      "new_success": 118,
+      "episodes": 216,
+      "strata": [
+        {
+          "stratum": "c0_id",
+          "episodes": 27,
+          "old_success": 20,
+          "new_success": 23,
+          "success_rate_difference": 0.11111111111111105,
+          "within_threshold": false
+        },
+        {
+          "stratum": "c1_conditional_frontier",
+          "episodes": 27,
+          "old_success": 16,
+          "new_success": 13,
+          "success_rate_difference": -0.1111111111111111,
+          "within_threshold": false
+        },
+        {
+          "stratum": "c1_id",
+          "episodes": 27,
+          "old_success": 9,
+          "new_success": 13,
+          "success_rate_difference": 0.14814814814814814,
+          "within_threshold": false
+        },
+        {
+          "stratum": "c2_mechanism_ood",
+          "episodes": 27,
+          "old_success": 11,
+          "new_success": 11,
+          "success_rate_difference": 0.0,
+          "within_threshold": true
+        },
+        {
+          "stratum": "height_ood",
+          "episodes": 27,
+          "old_success": 18,
+          "new_success": 15,
+          "success_rate_difference": -0.11111111111111105,
+          "within_threshold": false
+        },
+        {
+          "stratum": "joint_ood",
+          "episodes": 27,
+          "old_success": 12,
+          "new_success": 13,
+          "success_rate_difference": 0.037037037037037035,
+          "within_threshold": true
+        },
+        {
+          "stratum": "phase_composition_ood",
+          "episodes": 27,
+          "old_success": 14,
+          "new_success": 13,
+          "success_rate_difference": -0.037037037037037035,
+          "within_threshold": true
+        },
+        {
+          "stratum": "tread_ood",
+          "episodes": 27,
+          "old_success": 16,
+          "new_success": 17,
+          "success_rate_difference": 0.03703703703703709,
+          "within_threshold": true
+        }
+      ],
+      "new_summary": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit2_g1_video_off_frames/evaluation/public_dev/summary.json"
+    },
+    "go2": {
+      "status": "DIAGNOSTIC_THRESHOLD_EXCEEDED",
+      "old_j_primary": 0.9344384820576132,
+      "new_j_primary": 0.9490025176954733,
+      "j_primary_difference": 0.014564035637860129,
+      "old_success": 187,
+      "new_success": 192,
+      "episodes": 216,
+      "strata": [
+        {
+          "stratum": "c0_id",
+          "episodes": 27,
+          "old_success": 27,
+          "new_success": 27,
+          "success_rate_difference": 0.0,
+          "within_threshold": true
+        },
+        {
+          "stratum": "c1_conditional_frontier",
+          "episodes": 27,
+          "old_success": 27,
+          "new_success": 27,
+          "success_rate_difference": 0.0,
+          "within_threshold": true
+        },
+        {
+          "stratum": "c1_id",
+          "episodes": 27,
+          "old_success": 27,
+          "new_success": 27,
+          "success_rate_difference": 0.0,
+          "within_threshold": true
+        },
+        {
+          "stratum": "c2_mechanism_ood",
+          "episodes": 27,
+          "old_success": 27,
+          "new_success": 27,
+          "success_rate_difference": 0.0,
+          "within_threshold": true
+        },
+        {
+          "stratum": "height_ood",
+          "episodes": 27,
+          "old_success": 23,
+          "new_success": 23,
+          "success_rate_difference": 1.1102230246251565e-16,
+          "within_threshold": true
+        },
+        {
+          "stratum": "joint_ood",
+          "episodes": 27,
+          "old_success": 11,
+          "new_success": 10,
+          "success_rate_difference": -0.03703703703703709,
+          "within_threshold": true
+        },
+        {
+          "stratum": "phase_composition_ood",
+          "episodes": 27,
+          "old_success": 27,
+          "new_success": 27,
+          "success_rate_difference": 0.0,
+          "within_threshold": true
+        },
+        {
+          "stratum": "tread_ood",
+          "episodes": 27,
+          "old_success": 18,
+          "new_success": 24,
+          "success_rate_difference": 0.2222222222222222,
+          "within_threshold": false
+        }
+      ],
+      "new_summary": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit2_go2_video_off_frames/evaluation/public_dev/summary.json"
+    }
+  }
+}

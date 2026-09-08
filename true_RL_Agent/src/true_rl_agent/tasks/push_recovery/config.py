@@ -6,9 +6,6 @@ import math
 from dataclasses import dataclass
 from typing import Any
 
-from true_rl_agent.backends.rsl_rl_training_config import (
-    RslRlAgentConfiguration,
-)
 from true_rl_agent.evaluation.acceptance_protocol import (
     PUBLIC_SCORE_BINDING_ACCEPTANCE_MEAN,
     AcceptanceProtocol,
@@ -24,38 +21,6 @@ PHASE8B_TRAIN_MAX_ITERATIONS = 500
 PHASE8B_TRAIN_STEPS_PER_ITERATION = 24
 PHASE8B_ENV_STEP_BUDGET = PHASE8B_TRAIN_NUM_ENVS * PHASE8B_TRAIN_MAX_ITERATIONS * PHASE8B_TRAIN_STEPS_PER_ITERATION
 PHASE8B_RUNNER_TIMEOUT_S = 7200
-
-PUSH_RECOVERY_RSL_RL_AGENT_CONFIGURATION = RslRlAgentConfiguration(
-    policy={
-        "class_name": "ActorCritic",
-        "init_noise_std": 1.0,
-        "noise_std_type": "scalar",
-        "actor_obs_normalization": False,
-        "critic_obs_normalization": False,
-        "actor_hidden_dims": [512, 256, 128],
-        "critic_hidden_dims": [512, 256, 128],
-        "activation": "elu",
-    },
-    algorithm={
-        "class_name": "PPO",
-        "num_learning_epochs": 5,
-        "num_mini_batches": 4,
-        "learning_rate": 1.0e-3,
-        "schedule": "adaptive",
-        "gamma": 0.99,
-        "lam": 0.95,
-        "entropy_coef": 0.01,
-        "desired_kl": 0.01,
-        "max_grad_norm": 1.0,
-        "value_loss_coef": 1.0,
-        "use_clipped_value_loss": True,
-        "clip_param": 0.2,
-        "normalize_advantage_per_mini_batch": False,
-        "rnd_cfg": None,
-        "symmetry_cfg": None,
-    },
-)
-
 
 @dataclass(frozen=True)
 class PushRecoveryTaskConfig:
@@ -162,9 +127,6 @@ class PushRecoveryTaskConfig:
         )
 
         return load_public_runtime_dynamics(self.runtime_config_path, self.train_profile)
-
-    def training_agent_configuration(self) -> RslRlAgentConfiguration:
-        return PUSH_RECOVERY_RSL_RL_AGENT_CONFIGURATION
 
     def eval_runtime_dynamics(self) -> dict:
         from true_rl_agent.tasks.push_recovery.isaac_config import (

@@ -224,13 +224,60 @@ def stair_reward_input_prompt_contract(
     public_contract = contract.to_public_dict()
     source_transforms = public_contract["input_schema"]["source_transforms"]
     source_semantics = stair_reward_source_semantics_policy(contract)
+    fields_by_name = {field.name: field for field in contract.input_fields}
+    field_names = set(fields_by_name)
+    is_vnext = "support_contact_force_history" in field_names
+    if is_vnext:
+        input_type = (
+            "true_rl_agent.tasks.stair_climbing.reward_inputs."
+            "StairRewardInputsVNext"
+        )
+        history_field = "support_contact_force_history"
+        forbidden_force_field = "forbidden_contact_force"
+        forbidden_force_semantics = {
+            "semantics": (
+                "current resolved forbidden-contact role force vectors in Newtons"
+            ),
+            "binary_alternative": "forbidden_contact",
+            "candidate_usage": (
+                "Use forbidden_contact for the task-owned binary failure signal; "
+                "dense force terms follow raw_physical_magnitudes."
+            ),
+        }
+        termination_field = "forbidden_contact"
+        support_force_field = "support_contact_force"
+    else:
+        input_type = (
+            "true_rl_agent.tasks.stair_climbing.reward_inputs.StairRewardInputsV2"
+        )
+        history_field = "foot_contact_force_history"
+        forbidden_force_field = "base_contact_force"
+        forbidden_force_semantics = {
+            "semantics": "current torso contact-force vector in Newtons",
+            "binary_alternative": "base_contact",
+            "candidate_usage": (
+                "Use base_contact for binary torso contact; dense force terms follow "
+                "raw_physical_magnitudes."
+            ),
+        }
+        termination_field = "base_contact"
+        support_force_field = "foot_contact_force"
+    history_length = int(fields_by_name[history_field].trailing_shape[0])
+    support_axis = "support(opaque members)" if is_vnext else "foot(0 left;1 right)"
+    history_semantics = (
+        f"axes=[env,history(0 newest; larger older),{support_axis},xyz]; "
+        f"contact=norm xyz,max all {history_length} history,then threshold; "
+        "air-to-contact=index0 contact and older air"
+    )
     return {
-        "schema_version": "true_rl_agent.reward_inputs_contract.stair.v12",
+        "schema_version": (
+            "true_rl_agent.reward_inputs_contract.stair.v13"
+            if is_vnext
+            else "true_rl_agent.reward_inputs_contract.stair.v12"
+        ),
         "status": "available",
         "input_schema_hash": contract.input_schema_hash,
-        "input_type": (
-            "true_rl_agent.tasks.stair_climbing.reward_inputs.StairRewardInputsV2"
-        ),
+        "input_type": input_type,
         "field_semantics_constraints": {
             "high_risk_axis_semantics": {
                 "environment": (
@@ -238,11 +285,7 @@ def stair_reward_input_prompt_contract(
                     "from input[i]; no diff/roll/cumsum/sort/index/reduction across "
                     "dim0; declared history fields carry time"
                 ),
-                "foot_contact_force_history": (
-                    "axes=[env,history(0 newest; larger older),foot(0 left;1 right),"
-                    "xyz]; contact=norm xyz,max all 3 history,then threshold; "
-                    "air-to-contact=index0 contact and older air"
-                ),
+                history_field: history_semantics,
                 "spatial_vectors": (
                     "components=[x,y,z]; world +x stair-forward,+y left,+z up; "
                     "body/yaw +x robot-forward,+y left,+z up"
@@ -291,22 +334,15 @@ def stair_reward_input_prompt_contract(
             "raw_physical_magnitudes": source_semantics[
                 "raw_physical_magnitude_contract"
             ],
-            "base_contact_force": {
-                "semantics": "current torso contact-force vector in Newtons",
-                "binary_alternative": "base_contact",
-                "candidate_usage": (
-                    "Use base_contact for binary torso contact; dense force terms follow "
-                    "raw_physical_magnitudes."
-                ),
-            },
+            forbidden_force_field: forbidden_force_semantics,
             "termination_masks": {
-                "fixed_active_terms": ["time_out", "base_contact"],
+                "fixed_active_terms": ["time_out", termination_field],
                 "equivalent_fields": {
-                    "terminated_non_timeout": "base_contact",
+                    "terminated_non_timeout": termination_field,
                 },
                 "candidate_usage": (
-                    "Frozen Stair: base_contact and terminated_non_timeout are identical "
-                    "masks; do not add both."
+                    f"Frozen Stair: {termination_field} and "
+                    "terminated_non_timeout are identical masks; do not add both."
                 ),
             },
             "progress_fraction": {
@@ -318,7 +354,18 @@ def stair_reward_input_prompt_contract(
                     "progress is goal_progress_fraction."
                 ),
             },
-            "foot_contact_force": {
+            "goal_progress_fraction": {
+                "semantics": (
+                    "instantaneous clamped spatial position from the frozen start "
+                    "coordinate toward the frozen goal coordinate"
+                ),
+                "temporal_behavior": (
+                    "recomputed every control step; may decrease when the robot "
+                    "moves backward; not latched, absorbing, or a completion event"
+                ),
+                "completion_alternative": "task-owned first_valid_top_arrival event",
+            },
+            support_force_field: {
                 "semantics": (
                     "support/contact force in Newtons; nonzero is required for support"
                 ),
@@ -326,6 +373,22 @@ def stair_reward_input_prompt_contract(
                     "Contact is not inherently bad; normalize force-derived terms."
                 ),
             },
+            **(
+                {
+                    "support_contact": {
+                        "semantics": (
+                            "boolean contact threshold over the maximum force in the "
+                            f"configured {history_length}-sample "
+                            "support_contact_force_history window"
+                        ),
+                        "temporal_behavior": (
+                            "recent-history indicator, not current-sample-only contact"
+                        ),
+                    }
+                }
+                if is_vnext
+                else {}
+            ),
         },
         "fields": [item.to_public_dict() for item in contract.input_fields],
         "source_transforms": source_transforms,

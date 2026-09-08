@@ -17,6 +17,20 @@ from true_rl_agent.tasks.stair_climbing.protocol_v2 import StairProtocolV2
 STAIR_EVALUATION_SEMANTICS_RELATIVE_PATH = (
     "configs/tasks/stair_evaluation_semantics_v7.json"
 )
+FIRST_VALID_TOP_ARRIVAL_COMPLETION_MODE = "first_valid_top_arrival_latched"
+STABLE_TOP_TRAVERSAL_COMPLETION_MODE = (
+    "stable_top_traversal_after_first_valid_top_arrival"
+)
+STAIR_LEGACY_FALL_SIGNAL = "fall"
+
+
+def stair_legacy_fall_signal_name(
+    episode_outcomes: Mapping[str, Any],
+) -> str | None:
+    """Return the frozen V1 fall signal, absent from first-arrival protocols."""
+
+    signals = _mapping(episode_outcomes.get("signals"), "episode_outcomes signals")
+    return STAIR_LEGACY_FALL_SIGNAL if STAIR_LEGACY_FALL_SIGNAL in signals else None
 
 
 @dataclass(frozen=True)
@@ -476,6 +490,8 @@ def _thaw_json(value: Any) -> Any:
 
 __all__ = [
     "STAIR_EVALUATION_SEMANTICS_RELATIVE_PATH",
+    "STAIR_LEGACY_FALL_SIGNAL",
     "StairEvaluationSemantics",
     "effective_stair_task_protocol_hash",
+    "stair_legacy_fall_signal_name",
 ]

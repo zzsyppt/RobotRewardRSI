@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import copy
 import tempfile
 import unittest
+from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
 
 from true_rl_agent.json_contract import canonical_json_bytes
 from true_rl_agent.tasks.stair_climbing.config import StairClimbingTaskConfig
+from true_rl_agent.tasks.stair_climbing.row_catalog import (
+    STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+)
 from true_rl_agent.tasks.stair_climbing.generation_session_cost import (
     DEVELOPMENT_GENERATION_PILOT_MODE,
     DEVELOPMENT_GENERATION_VALIDATION_MODE,
@@ -15,9 +20,20 @@ from true_rl_agent.tasks.stair_climbing.generation_session_cost import (
     STAIR_GENERATION_FORMAL_RETRY_OUTPUT_BYTES,
     STAIR_GENERATION_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS,
     STAIR_GENERATION_FORMAL_SUCCESSFUL_OUTPUT_BYTES,
+    STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_ALLOCATED_ACTIVE_GPU_HOURS,
+    STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_OUTPUT_BYTES,
+    STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS,
+    STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_OUTPUT_BYTES,
+    STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_OPERATION_RESERVES_SCHEMA_VERSION,
+    STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_ALLOCATED_ACTIVE_GPU_HOURS,
+    STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_OUTPUT_BYTES,
+    STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS,
+    STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_OUTPUT_BYTES,
     STAIR_GENERATION_SESSION_COST_SCHEMA_VERSION,
     STAIR_GENERATION_SESSION_COST_V2_SCHEMA_VERSION,
     STAIR_GENERATION_SESSION_COST_V3_SCHEMA_VERSION,
+    STAIR_GENERATION_SESSION_COST_V4_SCHEMA_VERSION,
+    STAIR_GENERATION_SESSION_COST_V5_SCHEMA_VERSION,
     STAIR_GENERATION_VALIDATION_RETRY_ALLOCATED_ACTIVE_GPU_HOURS,
     STAIR_GENERATION_VALIDATION_RETRY_OUTPUT_BYTES,
     STAIR_GENERATION_VALIDATION_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS,
@@ -28,6 +44,8 @@ from true_rl_agent.tasks.stair_climbing.generation_session_cost import (
     StairGenerationSessionCostContract,
     StairGenerationSessionCostContractV2,
     StairGenerationSessionCostContractV3,
+    StairGenerationSessionCostContractV4,
+    StairGenerationSessionCostContractV5,
     build_stair_generation_scientific_cost_basis,
     create_stair_generation_session_cost_contract,
     load_stair_generation_session_cost_contract,
@@ -46,6 +64,20 @@ CURRENT_V1_COST_CONTRACT_HASH = (
 def _scientific_cost_basis():
     config = StairClimbingTaskConfig.defaults(
         PROJECT_ROOT / "configs" / "tasks" / "stair_protocol_v2.json"
+    )
+    return build_stair_generation_scientific_cost_basis(
+        session_id="cost-contract-test",
+        config=config,
+    )
+
+
+def _go2_scientific_cost_basis():
+    config = StairClimbingTaskConfig.defaults(
+        PROJECT_ROOT
+        / "configs"
+        / "tasks"
+        / "stair_go2_12dof_unified_protocol_v2.json",
+        cell_variant_id=STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
     )
     return build_stair_generation_scientific_cost_basis(
         session_id="cost-contract-test",
@@ -105,6 +137,59 @@ def _formal_contract_v3() -> StairGenerationSessionCostContractV3:
         ),
         successful_output_bytes=STAIR_GENERATION_FORMAL_SUCCESSFUL_OUTPUT_BYTES,
         retry_output_bytes=STAIR_GENERATION_FORMAL_RETRY_OUTPUT_BYTES,
+    )
+
+
+def _imported_reference_validation_contract_v4(
+) -> StairGenerationSessionCostContractV4:
+    return StairGenerationSessionCostContractV4(
+        session_mode=DEVELOPMENT_GENERATION_VALIDATION_MODE,
+        max_generations=3,
+        scientific_cost_basis=replace(
+            _scientific_cost_basis(),
+            parent_bootstrap_seed_units=0,
+        ),
+        retry_train_jobs=0,
+        retry_eval_seed_units=7,
+        successful_allocated_active_gpu_hours=(
+            STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS
+        ),
+        retry_allocated_active_gpu_hours=(
+            STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_ALLOCATED_ACTIVE_GPU_HOURS
+        ),
+        successful_output_bytes=(
+            STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_OUTPUT_BYTES
+        ),
+        retry_output_bytes=(
+            STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_OUTPUT_BYTES
+        ),
+        candidate_train_process_timeout_s=7_200,
+        termination_cleanup_margin_s=16,
+    )
+
+
+def _imported_reference_formal_contract_v5(
+) -> StairGenerationSessionCostContractV5:
+    return StairGenerationSessionCostContractV5(
+        session_mode=FORMAL_GENERATION_SESSION_MODE,
+        max_generations=15,
+        scientific_cost_basis=_go2_scientific_cost_basis(),
+        retry_train_jobs=0,
+        retry_eval_seed_units=7,
+        successful_allocated_active_gpu_hours=(
+            STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS
+        ),
+        retry_allocated_active_gpu_hours=(
+            STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_ALLOCATED_ACTIVE_GPU_HOURS
+        ),
+        successful_output_bytes=(
+            STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_OUTPUT_BYTES
+        ),
+        retry_output_bytes=(
+            STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_OUTPUT_BYTES
+        ),
+        candidate_train_process_timeout_s=7_200,
+        termination_cleanup_margin_s=16,
     )
 
 
@@ -482,6 +567,221 @@ class StairGenerationSessionCostTests(unittest.TestCase):
             path.write_bytes(canonical_json_bytes(mixed, trailing_newline=True))
             with self.assertRaisesRegex(ValueError, "schema is unsupported"):
                 load_stair_generation_session_cost_contract(path)
+
+    def test_imported_reference_v4_binds_timeout_and_executed_work_only(
+        self,
+    ) -> None:
+        contract = _imported_reference_validation_contract_v4()
+        payload = contract.to_dict()
+
+        self.assertEqual(
+            payload["schema_version"],
+            STAIR_GENERATION_SESSION_COST_V4_SCHEMA_VERSION,
+        )
+        self.assertNotIn(
+            "reference_qualification",
+            payload["successful_session"],
+        )
+        self.assertEqual(
+            payload["successful_session"]["imported_reference_evidence"],
+            {
+                "execution": "imported_verified_receipts",
+                "local_train_jobs": 0,
+                "local_train_steps": 0,
+                "local_eval_seed_units": 0,
+            },
+        )
+        self.assertEqual(payload["successful_session"]["train_jobs"], 6)
+        self.assertEqual(payload["successful_session"]["train_steps"], 1_179_648_000)
+        self.assertEqual(payload["successful_session"]["eval_seed_units"], 69)
+        self.assertEqual(payload["retry_reserve"]["train_jobs"], 0)
+        self.assertEqual(payload["retry_reserve"]["eval_seed_units"], 7)
+        self.assertEqual(
+            payload["physical_cap"],
+            {
+                "train_jobs": 6,
+                "train_steps": 1_179_648_000,
+                "eval_seed_units": 76,
+                "episodes": 21_280,
+                "allocated_active_gpu_hours": 13.8,
+                "simulated_control_steps": 1_194_756_800,
+                "output_bytes": 3_758_096_384,
+                "conservative_eval_control_steps_per_seed_unit": 198_800,
+            },
+        )
+        plan = payload["operation_reserves"]
+        classes = {entry["operation_class"] for entry in plan["entries"]}
+        self.assertEqual(
+            classes,
+            {
+                "lane_a_train",
+                "lane_b_train",
+                "lane_a_public_dev",
+                "lane_b_public_dev",
+                "lane_a_public_accept",
+                "lane_b_public_accept",
+                "sealed_validation",
+                "sealed_validation_retry",
+            },
+        )
+        train_entries = [
+            entry for entry in plan["entries"] if entry["operation_class"].endswith("_train")
+        ]
+        self.assertEqual(len(train_entries), 2)
+        self.assertTrue(
+            all(
+                entry["multiplicity"] == 3
+                and entry["allocated_gpu_capacity_ns_per_attempt"]
+                == 7_216_000_000_000
+                and entry["allocated_gpu_capacity_authority"]
+                == "runner_timeout_plus_cleanup"
+                for entry in train_entries
+            )
+        )
+        self.assertEqual(
+            plan["totals"]["successful_session"][
+                "reserved_allocated_gpu_capacity_ns"
+            ],
+            48_677_128_540_422,
+        )
+        self.assertEqual(
+            plan["totals"]["retry_reserve"][
+                "reserved_allocated_gpu_capacity_ns"
+            ],
+            546_316_044_602,
+        )
+        self.assertEqual(
+            payload["candidate_train_timeout_envelope"]["process_timeout_s"],
+            7_200,
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            path = create_stair_generation_session_cost_contract(Path(tmp), contract)
+            loaded = load_stair_generation_session_cost_contract(path)
+            self.assertIs(type(loaded), StairGenerationSessionCostContractV4)
+            self.assertEqual(loaded, contract)
+
+    def test_imported_reference_formal_v5_binds_exact_executable_topology(
+        self,
+    ) -> None:
+        contract = _imported_reference_formal_contract_v5()
+        payload = contract.to_dict()
+
+        self.assertEqual(
+            payload["schema_version"],
+            STAIR_GENERATION_SESSION_COST_V5_SCHEMA_VERSION,
+        )
+        self.assertEqual(
+            payload["operation_reserves"]["schema_version"],
+            (
+                STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_OPERATION_RESERVES_SCHEMA_VERSION
+            ),
+        )
+        self.assertEqual(payload["successful_session"]["train_jobs"], 30)
+        self.assertEqual(payload["successful_session"]["eval_seed_units"], 359)
+        self.assertEqual(payload["retry_reserve"]["train_jobs"], 0)
+        self.assertEqual(payload["retry_reserve"]["eval_seed_units"], 7)
+        self.assertEqual(
+            payload["physical_cap"]["simulated_control_steps"],
+            5_917_055_328,
+        )
+        self.assertEqual(
+            payload["physical_cap"]["allocated_active_gpu_hours"],
+            68.3,
+        )
+        self.assertEqual(
+            payload["physical_cap"]["output_bytes"],
+            14_495_514_624,
+        )
+        classes = {
+            entry["operation_class"]
+            for entry in payload["operation_reserves"]["entries"]
+        }
+        self.assertNotIn("reference_train", classes)
+        self.assertNotIn("reference_qualification", classes)
+        self.assertNotIn("parent_public_dev", classes)
+        self.assertEqual(
+            sum(
+                entry["multiplicity"]
+                for entry in payload["operation_reserves"]["entries"]
+                if entry["operation_class"].endswith("_train")
+            ),
+            30,
+        )
+        self.assertEqual(
+            payload["candidate_train_timeout_envelope"]["process_timeout_s"],
+            7_200,
+        )
+        self.assertEqual(
+            payload["candidate_train_timeout_envelope"][
+                "successful_budget_headroom_ns"
+            ],
+            573_172_952_643,
+        )
+        self.assertEqual(
+            payload["operation_reserves"]["totals"]["successful_session"][
+                "reserved_allocated_gpu_capacity_ns"
+            ],
+            244_586_827_047_356,
+        )
+        self.assertEqual(
+            payload["operation_reserves"]["totals"]["retry_reserve"][
+                "reserved_allocated_gpu_capacity_ns"
+            ],
+            514_589_053_558,
+        )
+        self.assertEqual(
+            payload["operation_reserves"]["physical_unallocated_headroom"],
+            {
+                "allocated_gpu_capacity_ns": 778_583_899_085,
+                "output_bytes": 1_958_201_499,
+            },
+        )
+        formal_entries = payload["operation_reserves"]["entries"]
+        formal_classes = {entry["operation_class"] for entry in formal_entries}
+        self.assertIn("selected_public_accept", formal_classes)
+        self.assertNotIn("lane_a_public_accept", formal_classes)
+        self.assertNotIn("lane_b_public_accept", formal_classes)
+        public_dev_entries = [
+            entry
+            for entry in formal_entries
+            if entry["operation_class"]
+            in {"lane_a_public_dev", "lane_b_public_dev"}
+        ]
+        self.assertEqual(len(public_dev_entries), 2)
+        self.assertTrue(
+            all(
+                entry["allocated_gpu_capacity_ns_per_attempt"]
+                == 436_000_000_000
+                and entry["allocated_gpu_capacity_authority"]
+                == "runner_timeout_plus_cleanup"
+                for entry in public_dev_entries
+            )
+        )
+        self.assertEqual(
+            payload["operation_reserves"]["derivation"][
+                "formal_public_dev_process_timeout_s"
+            ],
+            420,
+        )
+        self.assertEqual(
+            payload["operation_reserves"]["derivation"][
+                "formal_public_accept_execution"
+            ],
+            "selected_lane_only",
+        )
+
+        tampered = copy.deepcopy(payload)
+        tampered["operation_reserves"]["totals"]["successful_session"][
+            "reserved_allocated_gpu_capacity_ns"
+        ] += 1
+        with self.assertRaisesRegex(ValueError, "v5 projection mismatch"):
+            StairGenerationSessionCostContractV5.from_mapping(tampered)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = create_stair_generation_session_cost_contract(Path(tmp), contract)
+            loaded = load_stair_generation_session_cost_contract(path)
+            self.assertIs(type(loaded), StairGenerationSessionCostContractV5)
+            self.assertEqual(loaded, contract)
 
     def test_v2_actual_cost_journal_uses_single_session_physical_cap(self) -> None:
         contract = _validation_contract_v2()

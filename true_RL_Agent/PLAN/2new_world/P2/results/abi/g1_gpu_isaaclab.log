@@ -1,0 +1,20 @@
+ActorCritic.__init__ got unexpected arguments, which will be ignored: ['class_name']
+Actor MLP: MLP(
+  (0): Linear(in_features=310, out_features=512, bias=True)
+  (1): ELU(alpha=1.0)
+  (2): Linear(in_features=512, out_features=256, bias=True)
+  (3): ELU(alpha=1.0)
+  (4): Linear(in_features=256, out_features=128, bias=True)
+  (5): ELU(alpha=1.0)
+  (6): Linear(in_features=128, out_features=37, bias=True)
+)
+Critic MLP: MLP(
+  (0): Linear(in_features=310, out_features=512, bias=True)
+  (1): ELU(alpha=1.0)
+  (2): Linear(in_features=512, out_features=256, bias=True)
+  (3): ELU(alpha=1.0)
+  (4): Linear(in_features=256, out_features=128, bias=True)
+  (5): ELU(alpha=1.0)
+  (6): Linear(in_features=128, out_features=1, bias=True)
+)
+{"robot": "g1", "device": "cuda:1", "rsl_rl": "3.0.1", "checkpoint_sha256": "3fbbf80d5e7e4ee559420ea06759231c00e2d90316101ace4db6e24ec25810b2", "actor_observation_dim": 310, "critic_observation_dim": 310, "num_actions": 37, "legacy_optimizer_migration": "unsupported"}

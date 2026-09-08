@@ -52,15 +52,16 @@ PROMPT_PAYLOAD_SECTION_ORDER = (
     "control_effectiveness_contract",
     "known_good_examples",
     "selection_guidance",
-    "required_candidate_package",
-    "authoring_context_frame",
     "source_catalog",
     "candidate_lineage",
     "source_payloads",
     "public_feedback_summary",
     "runtime_feedback_summary",
     "public_history",
+    "public_context",
     "exploration_directive",
+    "required_candidate_package",
+    "authoring_context_frame",
     "provider_or_runtime_repair_feedback",
 )
 LEGACY_PROMPT_PAYLOAD_ALIAS_SECTIONS = (
@@ -222,7 +223,7 @@ def build_prompt_payload(
             task_sections.get("selection_guidance")
         ),
         "provider_or_runtime_repair_feedback": safe_context.get("candidate_repair_feedback"),
-        "schema_version": "true_rl_agent.prompt_payload.v3",
+        "schema_version": "true_rl_agent.prompt_payload.v4",
     }
     section_values, frame_omissions = project_sections_for_authoring_frame(
         section_values,
@@ -252,20 +253,23 @@ def build_prompt_payload(
         section_order=PROMPT_PAYLOAD_SECTION_ORDER,
         omitted_sections=omitted_sections,
     )
-    payload = {
-        section: section_values[section]
-        for section in PROMPT_PAYLOAD_SECTION_ORDER
-        if section in section_values
-        and (
-            section != "provider_or_runtime_repair_feedback"
-            or section_values[section] is not None
-        )
-    }
-
     # Compatibility ref for older provider/test adapters that still inspect the
     # sanitized public context directly. Canonical contracts stay in the ordered
     # top-level sections above.
-    payload["public_context"] = _legacy_public_context_alias(safe_context)
+    legacy_public_context = _legacy_public_context_alias(safe_context)
+    payload: dict[str, Any] = {}
+    for section in PROMPT_PAYLOAD_SECTION_ORDER:
+        if section == "public_context":
+            # Keep the small stable compatibility alias in the shared prefix as
+            # well; lane/attempt-specific sections start at this boundary.
+            payload["public_context"] = legacy_public_context
+            continue
+        if section not in section_values or (
+            section == "provider_or_runtime_repair_feedback"
+            and section_values[section] is None
+        ):
+            continue
+        payload[section] = section_values[section]
     payload["authoring_context_frame"] = with_final_prompt_budget(
         payload["authoring_context_frame"],
         prompt_payload=payload,

@@ -139,7 +139,8 @@ def build_unified_train_terrain_generator(
         border_width=0.0,
         num_rows=int(grid["terrain_rows"]),
         num_cols=int(grid["terrain_cols"]),
-        color_scheme="height",
+        # Uniform material: target trimesh lacks Lab's height-color "jet" map.
+        color_scheme="none",
         sub_terrains=sub_terrains,
         difficulty_range=tuple(float(value) for value in grid["difficulty_range"]),
         use_cache=False,

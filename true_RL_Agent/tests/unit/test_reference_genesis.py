@@ -6,6 +6,7 @@ import sys
 import tempfile
 import unittest
 from concurrent.futures import ThreadPoolExecutor
+from copy import deepcopy
 from dataclasses import replace
 from pathlib import Path
 from threading import Event
@@ -41,6 +42,7 @@ from true_rl_agent.agent_core.ledger import (
 from true_rl_agent.agent_core.live_loop import run_live_loop
 from true_rl_agent.agent_core.session_genesis import (
     GPU_BOUND_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION,
+    IMPORTED_REFERENCE_SESSION_GENESIS_SCHEMA_VERSION,
     LEGACY_SESSION_GENESIS_SCHEMA_VERSION,
     PHASED_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION,
     SESSION_GENESIS_CREATION_LEASE_FILENAME,
@@ -802,13 +804,19 @@ def _reference_program_for_task(
     )
 
 
-def _reference_fixture(tmp_path: Path) -> dict[str, object]:
+def _reference_fixture(tmp_path: Path, *, scientific: bool = False) -> dict[str, object]:
     task = _ReferenceTaskPlugin()
     backend = _ReferenceBackend()
     runner = _ReferenceRunner()
     binding = backend.evaluation_binding_for(task.task_spec)
     source, reference = _reference_program_for_task(tmp_path, task)
     genesis_identity_snapshot = {"fixture": "reference-session-v1"}
+    if scientific:
+        genesis_identity_snapshot = {
+            "schema_version": "true_rl_agent.runtime_composition_snapshot.v3",
+            "scientific": {"fixture": "reference-session-v1", "budget_steps": 128},
+            "execution_placement": {"project_root": str(tmp_path), "execution_device": "cuda:0"},
+        }
     genesis = prepare_session_genesis(
         output_dir=tmp_path,
         session_id="reference-session",
@@ -832,6 +840,39 @@ def _reference_fixture(tmp_path: Path) -> dict[str, object]:
         "private_path": Path(genesis.artifact.anchor.private_eval_artifact.uri),
         "genesis": genesis,
     }
+
+
+def _publish_test_generation_contract(
+    output_dir: Path,
+    *,
+    session_id: str,
+    task: TaskPlugin,
+    backend: FakeBackendAdapter,
+):
+    contract = GenerationSessionContract(
+        schema_version=GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION,
+        session_mode="development_generation_pilot",
+        session_id=session_id,
+        task_id=task.task_spec.task_id,
+        backend_id=backend.backend_id,
+        max_generations=1,
+        max_trials=2,
+        max_train_jobs=2,
+        bound_contract_hashes={
+            "authoring_policy": "1" * 64,
+            "continuation_policy": "2" * 64,
+            "evaluation_cost": "3" * 64,
+            "evaluation_protocol": "4" * 64,
+            "exploration_projector": "5" * 64,
+            "final_confirmation_plan": "6" * 64,
+            "provider_policy": "7" * 64,
+            "resource_plan": "8" * 64,
+            "retry_policy": "9" * 64,
+            "selector": "a" * 64,
+            "session_cost": "b" * 64,
+        },
+    )
+    return publish_generation_session_contract(output_dir, contract)
 
 
 def _load_reference_genesis(
@@ -1042,6 +1083,89 @@ def _run_reference_live_case(
 
 
 class ReferenceGenesisContractTests(unittest.TestCase):
+    def test_scientific_import_owns_checkpoint_and_preserves_origin_on_resume(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_dir = root / "source"
+            source_dir.mkdir()
+            fixture = _reference_fixture(source_dir, scientific=True)
+            source = fixture["genesis"]
+            origin_bytes = source.artifact_path.read_bytes()
+            target = root / "new-session"
+            contract_ref = _publish_test_generation_contract(
+                target,
+                session_id="import-owned",
+                task=fixture["task"],
+                backend=fixture["backend"],
+            )
+            snapshot = deepcopy(fixture["genesis_identity_snapshot"])
+            snapshot["execution_placement"] = {
+                "project_root": "/relocated/project",
+                "execution_device": "cuda:1",
+            }
+            kwargs = dict(
+                output_dir=target,
+                session_id="import-owned",
+                task_plugin=fixture["task"],
+                backend_adapter=fixture["backend"],
+                runner=fixture["runner"],
+                policy_initialization=PolicyInitialization.random(),
+                genesis_identity_snapshot=snapshot,
+                reference_program_artifact=fixture["reference"],
+                generation_session_contract_ref=contract_ref,
+                source_reference_genesis_dir=source_dir,
+                source_reference_session_id="reference-session",
+            )
+            imported = prepare_session_genesis(**kwargs)
+            self.assertEqual(
+                imported.artifact.runtime_snapshot_hash,
+                source.artifact.runtime_snapshot_hash,
+            )
+            local_checkpoint = Path(
+                imported.reference_eval_plan().checkpoint.metadata["local_path"]
+            )
+            self.assertEqual(local_checkpoint, target / "reference_checkpoint.pt")
+            self.assertEqual(
+                file_sha256(local_checkpoint), source.artifact.anchor.checkpoint_hash
+            )
+            self.assertEqual(imported.artifact.anchor, source.artifact.anchor)
+            for original in {
+                Path(source.artifact.anchor.checkpoint_artifact.uri),
+                source_dir / "reference_checkpoint.pt",
+            }:
+                original.chmod(0o600)
+                original.unlink()
+            reloaded = prepare_session_genesis(**kwargs, require_existing=True)
+            self.assertEqual(
+                reloaded.reference_eval_plan().checkpoint.metadata["local_path"],
+                str(local_checkpoint),
+            )
+            self.assertEqual(
+                reloaded.session_genesis_hash, imported.session_genesis_hash
+            )
+            self.assertEqual(source.artifact_path.read_bytes(), origin_bytes)
+            self.assertEqual(
+                (fixture["runner"].train_calls, fixture["runner"].eval_calls), (1, 1)
+            )
+            changed = deepcopy(snapshot)
+            changed["scientific"]["budget_steps"] += 1
+            with self.assertRaisesRegex(ValueError, "identity drift"):
+                prepare_session_genesis(
+                    **{**kwargs, "genesis_identity_snapshot": changed},
+                    require_existing=True,
+                )
+            local_checkpoint.chmod(0o600)
+            content = local_checkpoint.read_bytes()
+            local_checkpoint.write_bytes(bytes([content[0] ^ 1]) + content[1:])
+            with self.assertRaisesRegex(ValueError, "checkpoint copy bytes changed"):
+                prepare_session_genesis(**kwargs, require_existing=True)
+            self.assertEqual(
+                (fixture["runner"].train_calls, fixture["runner"].eval_calls), (1, 1)
+            )
+            self.assertEqual(source.artifact_path.read_bytes(), origin_bytes)
+
     def test_reference_eval_plan_restores_private_checkpoint_for_process_preflight(
         self,
     ) -> None:
@@ -1237,6 +1361,229 @@ class ReferenceGenesisContractTests(unittest.TestCase):
                 fixture["genesis"].session_genesis_hash,
             )
 
+    def test_imported_reference_genesis_creates_fresh_session_without_runner(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_dir = root / "qualified-reference"
+            target_dir = root / "fresh-generation"
+            source_dir.mkdir()
+            fixture = _reference_fixture(source_dir)
+            task = fixture["task"]
+            backend = fixture["backend"]
+            runner = fixture["runner"]
+            source = fixture["genesis"]
+            source_files = {
+                path.relative_to(source_dir): path.read_bytes()
+                for path in source_dir.rglob("*")
+                if path.is_file()
+            }
+            target_session_id = "fresh-generation-session"
+            contract_ref = _publish_test_generation_contract(
+                target_dir,
+                session_id=target_session_id,
+                task=task,
+                backend=backend,
+            )
+            kwargs = {
+                "output_dir": target_dir,
+                "session_id": target_session_id,
+                "task_plugin": task,
+                "backend_adapter": backend,
+                "runner": runner,
+                "policy_initialization": PolicyInitialization.random(),
+                "genesis_identity_snapshot": fixture["genesis_identity_snapshot"],
+                "reference_program_artifact": fixture["reference"],
+                "generation_session_contract_ref": contract_ref,
+                "source_reference_genesis_dir": source_dir,
+                "source_reference_session_id": "reference-session",
+            }
+
+            imported = prepare_session_genesis(**kwargs)
+
+            self.assertEqual((runner.train_calls, runner.eval_calls), (1, 1))
+            self.assertEqual(
+                imported.artifact.schema_version,
+                IMPORTED_REFERENCE_SESSION_GENESIS_SCHEMA_VERSION,
+            )
+            self.assertEqual(imported.artifact.session_id, target_session_id)
+            self.assertNotEqual(
+                imported.session_genesis_hash,
+                source.session_genesis_hash,
+            )
+            self.assertEqual(imported.artifact.anchor, source.artifact.anchor)
+            self.assertEqual(
+                imported.initial_current_best,
+                source.initial_current_best,
+            )
+            import_ref = imported.reference_genesis_import_ref
+            self.assertIsNotNone(import_ref)
+            self.assertEqual(import_ref.source_session_id, "reference-session")
+            self.assertEqual(
+                import_ref.source_session_genesis_hash,
+                source.session_genesis_hash,
+            )
+            self.assertEqual(
+                Path(import_ref.source_session_genesis_uri),
+                source.artifact_path,
+            )
+            self.assertEqual(
+                import_ref.source_session_genesis_checksum,
+                file_sha256(source.artifact_path),
+            )
+            self.assertFalse(
+                (target_dir / "reference_eval_artifact.json").exists()
+            )
+            self.assertEqual(
+                imported.reference_eval_artifact_path(),
+                source.reference_eval_artifact_path(),
+            )
+            self.assertEqual(
+                imported.reference_eval_plan(),
+                source.reference_eval_plan(),
+            )
+            self.assertEqual(
+                imported.reference_program_source(),
+                fixture["source"],
+            )
+            self.assertEqual(
+                source_files,
+                {
+                    path.relative_to(source_dir): path.read_bytes()
+                    for path in source_dir.rglob("*")
+                    if path.is_file()
+                },
+            )
+            target_genesis_bytes = (
+                target_dir / SESSION_GENESIS_FILENAME
+            ).read_bytes()
+
+            reloaded = prepare_session_genesis(**kwargs, require_existing=True)
+
+            self.assertEqual((runner.train_calls, runner.eval_calls), (1, 1))
+            self.assertEqual(
+                reloaded.session_genesis_hash,
+                imported.session_genesis_hash,
+            )
+            self.assertEqual(
+                (target_dir / SESSION_GENESIS_FILENAME).read_bytes(),
+                target_genesis_bytes,
+            )
+            self.assertEqual(
+                source_files,
+                {
+                    path.relative_to(source_dir): path.read_bytes()
+                    for path in source_dir.rglob("*")
+                    if path.is_file()
+                },
+            )
+            environment_bound = replace(
+                imported.artifact,
+                backend_execution_environment={"manifest_hash": "e" * 64},
+                session_genesis_hash=None,
+            )
+            environment_round_trip = SessionGenesisArtifact.from_mapping(
+                environment_bound.to_dict()
+            )
+            self.assertEqual(
+                dict(environment_round_trip.backend_execution_environment),
+                {"manifest_hash": "e" * 64},
+            )
+
+    def test_imported_reference_genesis_rejects_import_chains(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_dir = root / "qualified-reference"
+            first_target_dir = root / "first-generation"
+            second_target_dir = root / "second-generation"
+            source_dir.mkdir()
+            fixture = _reference_fixture(source_dir)
+            first_session_id = "first-generation-session"
+            first_contract_ref = _publish_test_generation_contract(
+                first_target_dir,
+                session_id=first_session_id,
+                task=fixture["task"],
+                backend=fixture["backend"],
+            )
+            prepare_session_genesis(
+                output_dir=first_target_dir,
+                session_id=first_session_id,
+                task_plugin=fixture["task"],
+                backend_adapter=fixture["backend"],
+                runner=fixture["runner"],
+                policy_initialization=PolicyInitialization.random(),
+                genesis_identity_snapshot=fixture["genesis_identity_snapshot"],
+                reference_program_artifact=fixture["reference"],
+                generation_session_contract_ref=first_contract_ref,
+                source_reference_genesis_dir=source_dir,
+                source_reference_session_id="reference-session",
+            )
+            second_session_id = "second-generation-session"
+            second_contract_ref = _publish_test_generation_contract(
+                second_target_dir,
+                session_id=second_session_id,
+                task=fixture["task"],
+                backend=fixture["backend"],
+            )
+
+            with self.assertRaisesRegex(ValueError, "import chains are forbidden"):
+                prepare_session_genesis(
+                    output_dir=second_target_dir,
+                    session_id=second_session_id,
+                    task_plugin=fixture["task"],
+                    backend_adapter=fixture["backend"],
+                    runner=fixture["runner"],
+                    policy_initialization=PolicyInitialization.random(),
+                    genesis_identity_snapshot=(
+                        fixture["genesis_identity_snapshot"]
+                    ),
+                    reference_program_artifact=fixture["reference"],
+                    generation_session_contract_ref=second_contract_ref,
+                    source_reference_genesis_dir=first_target_dir,
+                    source_reference_session_id=first_session_id,
+                )
+
+            self.assertFalse(
+                (second_target_dir / SESSION_GENESIS_FILENAME).exists()
+            )
+
+    def test_imported_reference_genesis_rejects_source_checkpoint_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_dir = root / "qualified-reference"
+            target_dir = root / "fresh-generation"
+            source_dir.mkdir()
+            fixture = _reference_fixture(source_dir)
+            checkpoint_path = Path(
+                fixture["genesis"].artifact.anchor.checkpoint_artifact.uri
+            )
+            checkpoint_path.write_bytes(checkpoint_path.read_bytes() + b"drift")
+            target_session_id = "fresh-generation-session"
+            contract_ref = _publish_test_generation_contract(
+                target_dir,
+                session_id=target_session_id,
+                task=fixture["task"],
+                backend=fixture["backend"],
+            )
+
+            with self.assertRaisesRegex(ValueError, "checkpoint.*changed"):
+                prepare_session_genesis(
+                    output_dir=target_dir,
+                    session_id=target_session_id,
+                    task_plugin=fixture["task"],
+                    backend_adapter=fixture["backend"],
+                    runner=fixture["runner"],
+                    policy_initialization=PolicyInitialization.random(),
+                    genesis_identity_snapshot=(
+                        fixture["genesis_identity_snapshot"]
+                    ),
+                    reference_program_artifact=fixture["reference"],
+                    generation_session_contract_ref=contract_ref,
+                    source_reference_genesis_dir=source_dir,
+                    source_reference_session_id="reference-session",
+                )
+
+            self.assertFalse((target_dir / SESSION_GENESIS_FILENAME).exists())
+
     def test_gpu_bound_reference_v3_round_trips_private_binding(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = Path(tmp)
@@ -1359,6 +1706,47 @@ class ReferenceGenesisContractTests(unittest.TestCase):
                     gpu_process_binding.to_public_dict(),
                 )
                 self.assertNotIn("host_execution_device", public_binding)
+
+    def test_unscoped_phased_reference_round_trips_three_receipts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            task = _ReferenceTaskPlugin()
+            backend = _CountingReferenceBackend()
+            runner = _PhasedReferenceRunner()
+            _, reference = _reference_program_for_task(output_dir, task)
+            kwargs = {
+                "output_dir": output_dir,
+                "session_id": "unscoped-phased-reference-session",
+                "task_plugin": task,
+                "backend_adapter": backend,
+                "runner": runner,
+                "policy_initialization": PolicyInitialization.random(),
+                "genesis_identity_snapshot": {
+                    "fixture": "unscoped-phased-reference-session-v1"
+                },
+                "reference_program_artifact": reference,
+                "reference_phased_evaluation_adapter": _ReferencePhasedAdapter(),
+            }
+
+            created = prepare_session_genesis(**kwargs)
+            payload = json.loads(
+                (output_dir / "reference_eval_artifact.json").read_text("utf-8")
+            )
+            self.assertEqual(
+                payload["schema_version"],
+                PHASED_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION,
+            )
+            self.assertEqual(
+                {item["phase"] for item in payload["evaluation_assembly"]["phase_receipts"]},
+                {phase.value for phase in EvaluationPhase},
+            )
+            self.assertEqual(runner.phase_calls, list(EvaluationPhase))
+            self.assertEqual(runner.eval_calls, 0)
+            self.assertEqual(runner.projection_calls, 1)
+
+            loaded = prepare_session_genesis(**kwargs, require_existing=True)
+            self.assertEqual(loaded.session_genesis_hash, created.session_genesis_hash)
+            self.assertEqual(runner.phase_calls, list(EvaluationPhase))
 
     def test_gpu_bound_phased_reference_round_trips_three_receipts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

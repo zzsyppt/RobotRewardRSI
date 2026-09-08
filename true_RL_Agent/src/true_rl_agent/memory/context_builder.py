@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 
@@ -79,7 +79,7 @@ def preflight_task_prompt_capacity(
     task_prompt_adapter: TaskPromptAdapter,
     candidate_capability_profile: CandidateCapabilityProfile | None,
 ) -> dict[str, Any]:
-    """Validate a task-owned worst-case shape before a live invocation exists."""
+    """Validate a task-owned stress shape and its bounded fallback before work."""
 
     preflight_builder = getattr(
         task_prompt_adapter,
@@ -308,14 +308,11 @@ class PublicContextBuilder:
                 or history.public_score_source
             ),
         )
-        projected_experiment_records = [
-            replace(record, public_record=public_record)
-            for record, public_record in zip(
-                experiment_records, public_records, strict=True
-            )
-        ]
         return _PreparedRecords(
-            experiment_records=projected_experiment_records,
+            # Source resolution needs the validated ledger identity and its
+            # runner-owned artifact refs. Prompt feedback continues to use the
+            # task-projected ``sanitized_history`` above.
+            experiment_records=experiment_records,
             sanitized_history=sanitized_history,
             validated_history=history,
             prompt_score_source=prompt_projection.public_score_source,

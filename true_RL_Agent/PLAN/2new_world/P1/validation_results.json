@@ -1,0 +1,182 @@
+{
+  "phase": "P1",
+  "status": "GO",
+  "completed_at_utc": "2026-09-06T15:06:32.352251+00:00",
+  "scope": "Evidence identity, execution placement and journal recovery; task x robot matrix unchanged",
+  "base_commit": "0773a9a815e5a0ccd151f351fca0e369f157fa05",
+  "project_source": {
+    "files": 323,
+    "hash": "01fcdfd24f1fafac3139b0ea15896408cb8e433df94d474db953fe02ac122fdc"
+  },
+  "tests": [
+    {
+      "log": "local_regression.log",
+      "status": "PASS",
+      "run": 1609,
+      "passed": 1578,
+      "skipped": 31,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 313.999
+    },
+    {
+      "log": "recovery_identity_tests.log",
+      "status": "PASS",
+      "run": 89,
+      "passed": 89,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 47.53
+    },
+    {
+      "log": "composition_environment_tests.log",
+      "status": "PASS",
+      "run": 33,
+      "passed": 33,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 8.18
+    },
+    {
+      "log": "final_confirmation_tests.log",
+      "status": "PASS",
+      "run": 14,
+      "passed": 14,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 3.12
+    },
+    {
+      "log": "linux_identity_recovery_py311.log",
+      "status": "PASS",
+      "run": 200,
+      "passed": 200,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 80.681
+    },
+    {
+      "log": "linux_identity_recovery_py312.log",
+      "status": "PASS",
+      "run": 200,
+      "passed": 200,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 83.126
+    },
+    {
+      "log": "linux_reference_head_tests.log",
+      "status": "PASS",
+      "run": 1,
+      "passed": 1,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 490.514
+    }
+  ],
+  "linux_formal_scenarios": {
+    "status": "PASS",
+    "unique_scenarios": 3,
+    "initial_run": {
+      "log": "linux_formal_tests.log",
+      "run": 3,
+      "passed": 2,
+      "failures": 1,
+      "seconds": 1737.477,
+      "failed_case": "test_formal_fifteen_generations_keep_reference_head_and_finalize_twice"
+    },
+    "initial_passed_cases": [
+      "test_three_generations_pause_resume_and_hard_crash_recovery",
+      "test_formal_fifteen_generation_continuous_run_and_finalization"
+    ],
+    "reference_head_rerun": {
+      "log": "linux_reference_head_tests.log",
+      "status": "PASS",
+      "seconds": 490.514,
+      "test_source_sha256": "427609112cc8c69938e70060a96e0ba3eaf208c4818fcb1e6e3d2dfa2023c187"
+    },
+    "fixture_fixes": [
+      "Generate final fixture success by actual subject",
+      "Remove unused duplicate audit report write"
+    ],
+    "product_source_unchanged_between_formal_runs": true
+  },
+  "cross_python_numeric_identity": {
+    "status": "PASS",
+    "interpreters": [
+      "Windows CPython 3.12.14",
+      "Linux CPython 3.11.15",
+      "Linux CPython 3.12.14"
+    ],
+    "canonical_identity": "87008c86094d86a4169e3171507f270ca0f6002fe8a1a80cda9d9de7f8b94008",
+    "legacy_readers_preserve_original_representation": true
+  },
+  "backend_child_admission": {
+    "status": "PASS",
+    "evidence": "backend_admission_py311.json",
+    "manifest_hash": "cf40b8090202c69f04bc9d50c73f4f0bbfb1a4774eb5e2ec325dfa9d2321c8ec",
+    "real_training_jobs": 0
+  },
+  "protected_artifacts": {
+    "changes": [],
+    "formal_checkpoints_stat_checked": 71,
+    "formal_evidence_hashes_checked": 801,
+    "reference_artifacts_hashed": 6,
+    "status": "PASS"
+  },
+  "closed_findings": [
+    "F11",
+    "F13",
+    "F18",
+    "F19",
+    "F26",
+    "F48",
+    "F50",
+    "F55",
+    "F56"
+  ],
+  "scope_audit": {
+    "protocol_configs_changed": false,
+    "new_task_robot_axes": false,
+    "task_semantics_added_to_shared_modules": false
+  },
+  "cleanup": {
+    "status": "PASS",
+    "evidence": "cleanup_result.json",
+    "local_files": 8,
+    "remote_directories": 2,
+    "total_bytes": 92610264,
+    "protected_checkpoints_deleted": 0,
+    "temporary_artifact_removal_required_each_run": false
+  },
+  "limitations": [
+    "No deployment to production server checkout",
+    "No real RL training, provider, physics evaluation, recording or host reboot",
+    "Cross-boot readiness uses injected host/probe facts; Linux process recovery uses real subprocesses",
+    "Owned reference removes external checkpoint dependency, not source Genesis or source evaluation receipt dependencies",
+    "P2 backend migration and later phases remain outside this acceptance"
+  ],
+  "evidence_sha256": {
+    "backend_admission_py311.json": "f2d0d2a5d16cf3f38d3642bf48708236d1c78068d8908eea7dd026cc4af9b9b0",
+    "cleanup_result.json": "2eaacad4e0893f8b41af27372c2c00ed3dd611d065efa9db47180eb727abe143",
+    "composition_environment_tests.log": "e6257a51476235fb47b50f04d0b437c8618457fab452ada9b4cbc341f704a94d",
+    "final_confirmation_tests.log": "5b94483e126293429bb313e6a21fbba192b7efc598a9c3a5626b4405dca53a8a",
+    "linux_formal_tests.log": "d58bffcfbc5112d3a60f7bf4457a7449db4ad6234a68c5812584321761e9deaa",
+    "linux_identity_recovery_py311.log": "5a150fe5161e003839f380da22178d84f53505554e07b3b9ec7ba3a697e69817",
+    "linux_identity_recovery_py312.log": "4244778568b8dbb142f41582cb0cb567e725ee558c37ac98284a4f3d1d7fefff",
+    "linux_reference_head_tests.log": "d24d59f8df30d0b1f2df58a5eac0443543c2f74f30abd1fb44b4ef7a48c8bda4",
+    "local_regression.log": "5741174c3d272b623f78cbb89f39a70f073b34370186389bb70bfd7528a5541d",
+    "numeric_identity_local.json": "12d0541f82a2536de63c5f9321de0a737b2fba437f9f4a28448debfef634a896",
+    "numeric_identity_probe.py": "677d4c55c2b6952017e440e82f46df04d44efe5a99c4bc6f8305e99f77e5e94c",
+    "numeric_identity_py311.json": "60f5746928b70ff7686938ba450f0116aa141ad72c9d1dc3e9ceb7a9fbb212cd",
+    "numeric_identity_py312.json": "5146860b2c21be8b946855f528de3e75577a514c3cc0f589fab57ff7e585ad56",
+    "protected_artifacts_check.json": "57a9866e22b242e6ea5b065eab6a5e10d6596d378c0e7eefb7dbd1d5ef2aa7e9",
+    "recovery_identity_tests.log": "a8c6f21c1c0b97fd5a7e8770094ab04a5d0bd5e3cdad9369fadf6953e761cb8c"
+  }
+}

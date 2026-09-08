@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+import json
 from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
@@ -22,6 +23,7 @@ from true_rl_agent.agent_core.trial_receipts import (
 from true_rl_agent.backends.base import BackendAdapter
 from true_rl_agent.evaluation.binding import EvaluationBindingV1, canonical_json_hash
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
+from true_rl_agent.evaluation.derived_statistics import DERIVED_STATISTICS_VERSION
 from true_rl_agent.evaluation.phases import (
     EvaluationAssembly,
     EvaluationPhase,
@@ -104,6 +106,231 @@ class StairPhasedEvaluationTests(unittest.TestCase):
         cls.config = StairClimbingTaskConfig.defaults(
             ROOT / "configs" / "tasks" / "stair_protocol_v2.json"
         )
+
+    def test_frozen_p5_reference_and_current_candidates_share_comparison_statistics(
+        self,
+    ) -> None:
+        fixtures = json.loads(
+            (
+                ROOT / "tests/fixtures/stair_summaries/p5_legacy_public_dev.json"
+            ).read_text(encoding="utf-8")
+        )
+        for robot, fixture in fixtures.items():
+            self.config = StairClimbingTaskConfig.defaults(
+                ROOT / "configs/tasks" / fixture["protocol"]
+            )
+            adapter = StairPhasedEvaluationAdapter(
+                self.config, lambda: fixture["objective_family_mask"]
+            )
+            for old_parent, old_candidates in (
+                (True, False),
+                (True, True),
+                (False, True),
+            ):
+                with (
+                    self.subTest(
+                        robot=robot,
+                        old_parent=old_parent,
+                        old_candidates=old_candidates,
+                    ),
+                    tempfile.TemporaryDirectory() as tmp,
+                ):
+                    parent_plan = replace(
+                        self._eval_plan("parent"),
+                        subject=ExperimentSubject.reference("p5-reference"),
+                    )
+                    parent_phase = self._phase_result_for(
+                        plan=parent_plan,
+                        phase=EvaluationPhase.PUBLIC_DEV,
+                        successes=[3] * 3,
+                    )
+                    if old_parent:
+                        parent_phase = replace(
+                            parent_phase,
+                            task_evidence={
+                                **parent_phase.task_evidence,
+                                "summary": fixture["summary"],
+                            },
+                        )
+                    before = canonical_json_hash(parent_phase.to_private_dict())
+                    journal = TrialReceiptJournal(
+                        Path(tmp),
+                        contract={
+                            "schema_version": "true_rl_agent.trial_execution_contract.v1",
+                            "round_id": "imported-reference",
+                            "session_genesis_hash": "7" * 64,
+                            "ledger_epoch_hash": "8" * 64,
+                        },
+                    )
+                    ref = journal.publish_eval_phase(
+                        EvalPhaseJobSpec(
+                            job_id=parent_phase.job_id,
+                            evaluation_plan=parent_plan,
+                            phase=EvaluationPhase.PUBLIC_DEV,
+                        ),
+                        parent_phase,
+                    )
+                    parent = Mock(
+                        spec=CurrentBestEvalStats,
+                        anchor_kind="reference",
+                        anchor_id="p5-reference",
+                        checkpoint_hash=parent_phase.checkpoint_hash,
+                        training_binding_hash=parent_phase.training_binding_hash,
+                        capability_profile_hash=parent_phase.capability_profile_hash,
+                        evaluation_binding_hash=parent_phase.evaluation_binding_hash,
+                    )
+                    genesis = Mock(spec=VerifiedSessionGenesis)
+                    genesis.reference_eval_plan.return_value = parent_plan
+                    genesis.evaluation_binding = parent_plan.evaluation_binding
+                    genesis.initial_current_best = parent
+                    genesis.reference_eval_phase_receipt.return_value = SimpleNamespace(
+                        result=parent_phase, receipt_ref=ref
+                    )
+                    backend, runner = Mock(spec=BackendAdapter), Mock(spec=Runner)
+                    guard = run_genesis_parent_public_dev(
+                        genesis=genesis,
+                        adapter=adapter,
+                        backend=backend,
+                        runner=runner,
+                        receipt_root=Path(tmp) / "unused",
+                        generation_session_contract_hash="8" * 64,
+                    )
+                    backend.materialize_eval_phase.assert_not_called()
+                    runner.run_eval_phase.assert_not_called()
+                    screens = []
+                    for trial_id, count in (("trial-a", 3), ("trial-b", 2)):
+                        phase = self._phase_result_for(
+                            plan=self._eval_plan(trial_id),
+                            phase=EvaluationPhase.PUBLIC_DEV,
+                            successes=[count] * 3,
+                        )
+                        if old_candidates:
+                            phase = replace(
+                                phase,
+                                task_evidence={
+                                    **phase.task_evidence,
+                                    "summary": fixture["summary"],
+                                },
+                            )
+                        screens.append(
+                            self._candidate_screen(
+                                build_stair_public_dev_screen_evidence(
+                                    config=self.config,
+                                    trial_id=trial_id,
+                                    phase_result=phase,
+                                    screen_role="guard_reference",
+                                    objective_family_mask=fixture[
+                                        "objective_family_mask"
+                                    ],
+                                )
+                            )
+                        )
+                    selected = adapter.select(screens, guard_reference=guard.evidence)
+                    if not old_candidates:
+                        self.assertEqual(selected.selected_trial_id, "trial-a")
+                    for screen in (*screens, guard.evidence):
+                        self.assertEqual(
+                            screen.generalization_score_stats["statistics_version"],
+                            DERIVED_STATISTICS_VERSION,
+                        )
+                        self.assertEqual(
+                            screen.anchor_score_stats["statistics_version"],
+                            DERIVED_STATISTICS_VERSION,
+                        )
+                    self.assertEqual(
+                        canonical_json_hash(parent_phase.to_private_dict()), before
+                    )
+                    self.assertEqual(guard.evidence.phase_result_hash, before)
+                    mismatched = dict(guard.evidence.generalization_score_stats)
+                    mismatched.pop("statistics_version")
+                    with self.assertRaisesRegex(
+                        ValueError, "statistics versions differ"
+                    ):
+                        adapter.select(
+                            screens,
+                            guard_reference=replace(
+                                guard.evidence, generalization_score_stats=mismatched
+                            ),
+                        )
+
+    def test_historical_screen_statistics_replay_through_formal_assembly(self) -> None:
+        fixture = json.loads(
+            (
+                ROOT / "tests/fixtures/stair_summaries/p5_legacy_public_dev.json"
+            ).read_text(encoding="utf-8")
+        )["go2"]
+        self.config = StairClimbingTaskConfig.defaults(
+            ROOT / "configs/tasks" / fixture["protocol"]
+        )
+        mask = fixture["objective_family_mask"]
+        plans = {
+            name: self._eval_plan(name) for name in ("trial-a", "trial-b", "parent")
+        }
+        phases = {}
+        for name, plan in plans.items():
+            phase = self._phase_result_for(
+                plan=plan, phase=EvaluationPhase.PUBLIC_DEV, successes=[3] * 3
+            )
+            phases[name] = replace(
+                phase,
+                task_evidence={**phase.task_evidence, "summary": fixture["summary"]},
+            )
+        screens = {
+            name: build_stair_public_dev_screen_evidence(
+                config=self.config,
+                trial_id=name,
+                phase_result=phase,
+                screen_role="guard_reference",
+                objective_family_mask=mask,
+                statistics_version=None,
+            )
+            for name, phase in phases.items()
+        }
+        candidates = [
+            self._candidate_screen(screens["trial-a"]),
+            self._candidate_screen(screens["trial-b"], runtime_status="fail"),
+        ]
+        # Serialized historical screens retain their absent marker and original identity.
+        candidates = [
+            StairPublicDevScreenEvidence.from_mapping(screen.to_selector_dict())
+            for screen in candidates
+        ]
+        selection = select_stair_public_dev_winner(
+            config=self.config, screens=candidates, guard_reference=screens["parent"]
+        )
+        self.assertEqual(selection.selected_trial_id, "trial-a")
+        self.assertNotIn("statistics_version", candidates[0].generalization_score_stats)
+        results = [
+            phases["trial-a"],
+            *[
+                self._phase_result_for(
+                    plan=plans["trial-a"],
+                    phase=phase,
+                    successes=[3] * self._seed_count(phase),
+                )
+                for phase in (
+                    EvaluationPhase.PUBLIC_ACCEPT,
+                    EvaluationPhase.SEALED_VALIDATION,
+                )
+            ],
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            refs = self._publish_phase_receipts(
+                root=Path(tmp), plan=plans["trial-a"], phase_results=results
+            )
+            assembly = assemble_stair_eval_phase_results(
+                config=self.config,
+                eval_plan=plans["trial-a"],
+                trial_id="trial-a",
+                selection_result=selection,
+                selection_screens=candidates,
+                guard_reference=screens["parent"],
+                phase_results=results,
+                phase_receipt_refs=refs,
+                objective_family_mask=mask,
+            )
+        self.assertEqual(assembly.selected_trial_id, "trial-a")
+        self.assertEqual(assembly.selection, selection.to_public_dict())
 
     def test_generation_cost_and_genesis_guard_bootstrap_are_separate(self) -> None:
         cost = stair_phased_evaluation_cost_contract(self.config)

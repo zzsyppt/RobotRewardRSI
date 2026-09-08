@@ -599,6 +599,7 @@ def _sequence_reasons(
             try:
                 guard_threshold_result = guard_regression_threshold(
                     acceptance_protocol,
+                    statistics_version=evidence.guard_score_stats.get("statistics_version"),
                     candidate_guard_score=candidate_guard,
                     best_guard_score=best_guard,
                     candidate_guard_score_samples=evidence.guard_score_samples,
@@ -669,6 +670,7 @@ def _sequence_reasons(
                     threshold_result = named_guard_regression_threshold(
                         acceptance_protocol,
                         guard,
+                        statistics_version=candidate_stats.get("statistics_version"),
                         candidate_guard_score=candidate_value,
                         best_guard_score=best_value,
                         candidate_guard_score_samples=candidate_item.get(
@@ -753,6 +755,7 @@ def _sequence_reasons(
         try:
             threshold_result = acceptance_threshold(
                 acceptance_protocol,
+                statistics_version=evidence.score_stats.get("statistics_version"),
                 candidate_score=candidate_score,
                 best_score=best_score,
                 candidate_score_samples=evidence.score_samples,

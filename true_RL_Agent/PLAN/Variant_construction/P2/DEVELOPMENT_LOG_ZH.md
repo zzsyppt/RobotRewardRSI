@@ -74,7 +74,7 @@ Phase 2 有意改变 Stair role requirement，因此当前 legacy cell 的组合
 - runtime projection hash：`69405038c92b4a679cd58205a95d003f22af7cb174a079eb574111fe5e6367ff`；
 - evaluation semantics v7 hash：`df35aa0fb8c24983570e2c634fd0cc40f8d39beefc191d400c37f099aa8cb766`。
 
-因此 P1 snapshot verifier 会按设计因受保护产品树/组合身份改变而失败；P2 当前入口改为 `verify_phase2_snapshot.py`，不能回写 P1 历史快照。旧 artifact 仍可在其冻结源码/身份下审计，但不能被当前 manifest 冒充续跑。
+P1/P2 snapshot 中的旧组合 hash 与源码闭包仍是历史 provenance，不回写。持续验收不再要求当前源码字节或扩展后的 manifest hash 等于旧值：P1 守护 legacy G1 profiles/cell axes 与 Push 证据，P2 守护当前 Stair 的角色语义、2/4/6 基数、ownership 与真实 runtime ABI。旧 artifact 仍只能在其冻结源码/身份下审计，不能被当前 manifest 冒充续跑。
 
 旧 G1 执行行为保持：observation `[1,310]`、action `[1,37]`、transition V2、42-field reward ABI、15 个官方 reference terms、35-cell 与 evaluation 数值阈值均未改变。公开形态词汇迁移到 v7，因此当前 task identity 按设计改变，历史 v6 不被回写。
 

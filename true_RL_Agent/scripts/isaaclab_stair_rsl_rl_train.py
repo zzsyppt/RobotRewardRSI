@@ -20,7 +20,9 @@ if str(SRC_ROOT) not in sys.path:
 from true_rl_agent.backends.isaac_lab_execution_environment import (  # noqa: E402
     verify_current_isaac_lab_execution_environment,
 )
+from true_rl_agent.backends.isaac_lab_runtime import require_physx_success  # noqa: E402
 from true_rl_agent.runner.isaac_app_lifecycle import (  # noqa: E402
+    bind_isaac_log_path,
     close_isaac_app_on_success,
 )
 from true_rl_agent.runner.specs import require_execution_device  # noqa: E402
@@ -205,6 +207,7 @@ def main(argv: list[str] | None = None) -> int:
 
     from isaaclab.app import AppLauncher
 
+    bind_isaac_log_path(args, summary_path)
     simulation_app = (
         AppLauncher(args, multi_gpu=False).app
         if gpu_runtime_binding is not None
@@ -328,6 +331,8 @@ def _run_training(
         **fields,
     )
 
+    if summary["status"] == "pass":
+        require_physx_success(summary_path.with_suffix(".kit.log"))
     _write_json(summary_path, summary)
     print(
         json.dumps(

@@ -25,9 +25,13 @@ TASK_PROMPT_SECTION_KEYS = frozenset(PROVIDER_TASK_PROMPT_SECTION_KEYS).union(
     _TASK_ONLY_PROMPT_SECTION_KEYS
 )
 DISALLOWED_TASK_PROMPT_KEY_PARTS = ("curriculum", "stage_list")
-MAX_TASK_PROMPT_SECTIONS_BYTES = 32 * 1024
-PROVIDER_TASK_PROMPT_RECEIPT_SCHEMA_VERSION = (
+_LEGACY_MAX_TASK_PROMPT_SECTIONS_BYTES = 32 * 1024
+MAX_TASK_PROMPT_SECTIONS_BYTES = 56 * 1024
+_LEGACY_PROVIDER_TASK_PROMPT_RECEIPT_SCHEMA_VERSION = (
     "true_rl_agent.prompt.provider_task_sections_receipt.v1"
+)
+PROVIDER_TASK_PROMPT_RECEIPT_SCHEMA_VERSION = (
+    "true_rl_agent.prompt.provider_task_sections_receipt.v2"
 )
 _PROVIDER_TASK_PROMPT_RECEIPT_FIELDS = frozenset(
     {
@@ -83,21 +87,34 @@ def build_provider_task_prompt_receipt(
 ) -> dict[str, Any]:
     """Measure the canonical task sections that are actually sent to a provider."""
 
+    return _build_provider_task_prompt_receipt(
+        prompt_payload,
+        schema_version=PROVIDER_TASK_PROMPT_RECEIPT_SCHEMA_VERSION,
+        max_serialized_bytes=MAX_TASK_PROMPT_SECTIONS_BYTES,
+    )
+
+
+def _build_provider_task_prompt_receipt(
+    prompt_payload: Mapping[str, Any],
+    *,
+    schema_version: str,
+    max_serialized_bytes: int,
+) -> dict[str, Any]:
     sections = provider_task_prompt_sections(prompt_payload)
     serialized_bytes = canonical_prompt_json_bytes(sections)
-    if serialized_bytes > MAX_TASK_PROMPT_SECTIONS_BYTES:
+    if serialized_bytes > max_serialized_bytes:
         raise ValueError(
             "provider-facing task prompt sections exceed "
-            f"{MAX_TASK_PROMPT_SECTIONS_BYTES} bytes: {serialized_bytes}"
+            f"{max_serialized_bytes} bytes: {serialized_bytes}"
         )
     return {
-        "schema_version": PROVIDER_TASK_PROMPT_RECEIPT_SCHEMA_VERSION,
+        "schema_version": schema_version,
         "serializer": "canonical_prompt_json.v1",
         "section_keys": list(sections),
         "content_hash": canonical_json_hash(sections),
         "serialized_bytes": serialized_bytes,
-        "max_serialized_bytes": MAX_TASK_PROMPT_SECTIONS_BYTES,
-        "headroom_bytes": MAX_TASK_PROMPT_SECTIONS_BYTES - serialized_bytes,
+        "max_serialized_bytes": max_serialized_bytes,
+        "headroom_bytes": max_serialized_bytes - serialized_bytes,
     }
 
 
@@ -112,7 +129,11 @@ def validate_provider_task_prompt_receipt(
         raise TypeError("provider task prompt receipt must be a mapping")
     if set(receipt) != _PROVIDER_TASK_PROMPT_RECEIPT_FIELDS:
         raise ValueError("provider task prompt receipt fields mismatch")
-    if receipt.get("schema_version") != PROVIDER_TASK_PROMPT_RECEIPT_SCHEMA_VERSION:
+    schema_version = receipt.get("schema_version")
+    if schema_version not in {
+        _LEGACY_PROVIDER_TASK_PROMPT_RECEIPT_SCHEMA_VERSION,
+        PROVIDER_TASK_PROMPT_RECEIPT_SCHEMA_VERSION,
+    }:
         raise ValueError("provider task prompt receipt schema mismatch")
     if receipt.get("serializer") != "canonical_prompt_json.v1":
         raise ValueError("provider task prompt receipt serializer mismatch")
@@ -120,7 +141,16 @@ def validate_provider_task_prompt_receipt(
         receipt.get("content_hash"),
         "provider task prompt content_hash",
     )
-    expected = build_provider_task_prompt_receipt(prompt_payload)
+    max_serialized_bytes = (
+        _LEGACY_MAX_TASK_PROMPT_SECTIONS_BYTES
+        if schema_version == _LEGACY_PROVIDER_TASK_PROMPT_RECEIPT_SCHEMA_VERSION
+        else MAX_TASK_PROMPT_SECTIONS_BYTES
+    )
+    expected = _build_provider_task_prompt_receipt(
+        prompt_payload,
+        schema_version=str(schema_version),
+        max_serialized_bytes=max_serialized_bytes,
+    )
     if dict(receipt) != expected:
         raise ValueError("provider task prompt receipt does not match payload")
     return expected

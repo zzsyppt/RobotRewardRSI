@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import os
 import re
 import subprocess
@@ -13,6 +14,11 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+SRC_ROOT = PROJECT_ROOT / "src"
+if str(SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(SRC_ROOT))
 
 from tests.fakes.backend_environment import (
     TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_VERIFICATION,
@@ -98,7 +104,6 @@ from true_rl_agent.tasks.stair_climbing.unified_scoring import (
 )
 from true_rl_agent.training_programs import CANONICAL_TRAINING_COMPONENTS_PATH
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SESSION_ID = "p6c-production-shaped-fixture"
 FORMAL_SESSION_ID = "p6d-production-shaped-fixture"
 SOURCE_COMMIT = "a" * 40
@@ -115,6 +120,12 @@ def _torch_runtime_importable() -> bool:
     except (ImportError, OSError):
         return False
     return True
+
+
+def _isaac_assets_source_available() -> bool:
+    """Detect the installed source package without requiring a live Kit app."""
+
+    return importlib.util.find_spec("isaaclab_assets") is not None
 
 
 _CANDIDATE_TERMS = {
@@ -192,6 +203,10 @@ def _nvidia_smi_name() -> str:
 
 def _foundation(root: Path, *, pause_after_generation: int | None, crash: bool):
     config = _config(root, pause_after_generation=pause_after_generation)
+    generation_session._publish_or_verify_source_checkout_identity(
+        config.output_dir,
+        source_commit=SOURCE_COMMIT,
+    )
     with use_test_isaac_lab_execution_environment():
         foundation = generation_session._create_foundation(
             config,
@@ -354,6 +369,7 @@ class _FixtureProvider:
 
 
 class _FormalFixtureProvider(_FixtureProvider):
+    reference_only = False
     """Accept one real pair, then close the remaining formal generations cheaply."""
 
     def next_authoring_response(
@@ -361,7 +377,7 @@ class _FormalFixtureProvider(_FixtureProvider):
         *,
         prompt_payload: dict[str, Any],
     ) -> CandidateDraftResponse:
-        if self.generation_index == 1:
+        if self.generation_index == 1 and not self.reference_only:
             return super().next_authoring_response(prompt_payload=prompt_payload)
         if not isinstance(prompt_payload, dict) or not prompt_payload:
             raise AssertionError(
@@ -380,7 +396,7 @@ def _formal_wrapper_component_load_check(candidate, smoke_adapter, **_kwargs: An
 
     components = load_training_components(Path(candidate.path))
     return {
-        "schema_version": "true_rl_agent.component_smoke_result.v1",
+        "schema_version": "true_rl_agent.component_smoke_result.v2",
         "status": "skip",
         "reason": "formal_wrapper_fixture_torch_runtime_absent",
         "task_id": smoke_adapter.task_id,
@@ -1073,7 +1089,9 @@ def _success_count(eval_spec: EvalPhaseJobSpec) -> int:
     if f"{FORMAL_SESSION_ID}-generation-001-lane-b" in job_id:
         return 2
     if f"{FORMAL_SESSION_ID}-final-confirmation-final-eval" in job_id:
-        return 3
+        # The final slot may still evaluate the reference checkpoint. Synthetic
+        # performance follows the evaluated subject, not the name of the slot.
+        return 3 if eval_spec.subject.kind == "candidate" else 2
     if f"{SESSION_ID}-generation-001-lane-a" in job_id:
         return 3
     if f"{SESSION_ID}-generation-001-lane-b" in job_id:
@@ -1139,7 +1157,7 @@ def _run_worker(root: Path, action: str) -> None:
         )
         journal.publish_reservation()
         genesis = _prepare_or_load_genesis(foundation, require_existing=False)
-        usage, charges, _ = generation_session._collect_actual_cost_usage(
+        usage, charges, _ = generation_session.collect_actual_cost_usage(
             foundation,
             genesis=genesis,
             ledger=[],
@@ -1182,6 +1200,7 @@ def _run_worker(root: Path, action: str) -> None:
 
 
 def _run_formal_worker(root: Path, action: str) -> None:
+    _FormalFixtureProvider.reference_only = (root / "reference-only").is_file()
     pause = {
         "pause3": 3,
         "pause6": 6,
@@ -1203,7 +1222,7 @@ def _run_formal_worker(root: Path, action: str) -> None:
         )
         journal.publish_reservation()
         genesis = _prepare_or_load_genesis(foundation, require_existing=False)
-        usage, charges, _ = generation_session._collect_actual_cost_usage(
+        usage, charges, _ = generation_session.collect_actual_cost_usage(
             foundation,
             genesis=genesis,
             ledger=[],
@@ -1224,11 +1243,12 @@ def _run_formal_worker(root: Path, action: str) -> None:
         contract=foundation.cost_contract,
     )
     if action == "audit":
-        result = generation_session._load_and_validate_existing_formal_report(
+        generation_session._load_and_validate_existing_formal_report(
             foundation,
             genesis=genesis,
             cost_journal=journal,
         )
+        return
     else:
         with ExitStack() as stack:
             stack.enter_context(
@@ -1281,8 +1301,8 @@ def _run_formal_worker(root: Path, action: str) -> None:
 
 class StairGenerationSessionProductionShapeTests(unittest.TestCase):
     @unittest.skipUnless(
-        _torch_runtime_importable(),
-        "production Stair candidate qualification requires Torch",
+        _torch_runtime_importable() and _isaac_assets_source_available(),
+        "production Stair candidate qualification requires Torch and Isaac source closure",
     )
     def test_three_generations_pause_resume_and_hard_crash_recovery(self) -> None:
         import tempfile
@@ -1504,11 +1524,49 @@ class StairGenerationSessionProductionShapeTests(unittest.TestCase):
                 ],
                 0,
             )
+            before_replay = {
+                path.relative_to(output).as_posix(): path.read_bytes()
+                for path in output.rglob("*")
+                if path.is_file()
+            }
+            before_shape = {
+                path.relative_to(output).as_posix(): (
+                    "directory" if path.is_dir() else "file"
+                )
+                for path in output.rglob("*")
+            }
+            completed = generation_session.load_completed_stair_generation_session(
+                output_dir=output,
+                expected_session_id=SESSION_ID,
+                expected_cell_variant_id=(
+                    generation_session.STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID
+                ),
+                expected_source_commit=SOURCE_COMMIT,
+            )
+            after_replay = {
+                path.relative_to(output).as_posix(): path.read_bytes()
+                for path in output.rglob("*")
+                if path.is_file()
+            }
+            after_shape = {
+                path.relative_to(output).as_posix(): (
+                    "directory" if path.is_dir() else "file"
+                )
+                for path in output.rglob("*")
+            }
+            self.assertEqual(before_replay, after_replay)
+            self.assertEqual(before_shape, after_shape)
+            self.assertEqual(completed.output_dir, output)
+            self.assertEqual(completed.session_contract.max_generations, 3)
+            self.assertEqual(len(completed.ledger), 3)
+            self.assertTrue(completed.lifecycle.terminal)
+            self.assertEqual(completed.report, report)
 
-    @unittest.skip(
-        "Phase 3R keeps the unified Stair protocol draft; Phase 3B re-enables formal generation"
+    @unittest.skipUnless(
+        _isaac_assets_source_available(),
+        "formal Stair source closure requires the Isaac Lab runtime",
     )
-    def test_formal_fifteen_generation_boundaries_and_finalization(self) -> None:
+    def test_formal_fifteen_generation_continuous_run_and_finalization(self) -> None:
         import tempfile
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -1519,26 +1577,7 @@ class StairGenerationSessionProductionShapeTests(unittest.TestCase):
             )
             _write_fake_nvidia_smi(root / _nvidia_smi_name())
 
-            for action in (
-                "setup",
-                "pause3",
-                "pause6",
-                "pause9",
-                "pause12",
-            ):
-                self._formal_worker(root, action)
-                if action.startswith("pause"):
-                    subject = _inspect_v3_launch_subject_values(
-                        formal_output_dir=root / "formal-output",
-                        source_root=PROJECT_ROOT,
-                        session_id=FORMAL_SESSION_ID,
-                        expected_source_commit=SOURCE_COMMIT,
-                        subject_mode=(STAIR_FORMAL_LAUNCH_SUBJECT_NONTERMINAL_RESUME),
-                    )
-                    self.assertEqual(
-                        subject["subject_mode"],
-                        STAIR_FORMAL_LAUNCH_SUBJECT_NONTERMINAL_RESUME,
-                    )
+            self._formal_worker(root, "setup")
 
             crashed = self._formal_worker(
                 root,
@@ -1710,19 +1749,15 @@ class StairGenerationSessionProductionShapeTests(unittest.TestCase):
                     (output / "generation_segments").glob("segment-*/exit.json")
                 )
             ]
-            self.assertEqual(len(starts), 5)
-            self.assertEqual(len(exits), 5)
+            self.assertEqual(len(starts), 1)
+            self.assertEqual(len(exits), 1)
             self.assertEqual(
                 [item["generations_at_end"] for item in exits],
-                [3, 6, 9, 12, 15],
+                [15],
             )
             self.assertEqual(
                 [(item["status"], item["reason"]) for item in exits],
                 [
-                    ("paused", "operator_pause"),
-                    ("paused", "operator_pause"),
-                    ("paused", "operator_pause"),
-                    ("paused", "operator_pause"),
                     ("completed", "normal"),
                 ],
             )
@@ -1847,6 +1882,49 @@ class StairGenerationSessionProductionShapeTests(unittest.TestCase):
                 [],
             )
 
+    @unittest.skipUnless(_isaac_assets_source_available(), "formal Stair source closure requires the Isaac Lab runtime")
+    def test_formal_fifteen_generations_keep_reference_head_and_finalize_twice(self) -> None:
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            (root / "reference-only").write_text("fixture", encoding="utf-8")
+            (root / "provider.env").write_text("DEEPSEEK_API_KEY=fixture-only\n", encoding="utf-8")
+            _write_fake_nvidia_smi(root / _nvidia_smi_name())
+            self._formal_worker(root, "setup")
+            self._formal_worker(root, "final-crash", expected=HARD_CRASH_EXIT_CODE)
+            self._formal_worker(root, "finish")
+            output = root / "formal-output"
+            report_path = output / generation_session.STAIR_GENERATION_REPORT_FILENAME
+            report = load_strict_json_object(report_path, context="reference head report")
+            ledger_path = output / "ledger.jsonl"
+            ledger = generation_session.load_ledger(ledger_path)
+            self.assertEqual(len(ledger), 15)
+            scientific = report["scientific_output"]
+            self.assertEqual(scientific["accepted_generation_count"], 0)
+            self.assertFalse(scientific["head_moved_from_session_start"])
+            self.assertEqual(scientific["initial_head_hash"], scientific["final_head_hash"])
+            final = report["final_confirmation"]
+            copies = final["reservation"]["checkpoints"]
+            self.assertEqual(copies["genesis"]["checkpoint_hash"], copies["final"]["checkpoint_hash"])
+            self.assertEqual(final["result"]["paired"]["mean"], 0.0)
+            self.assertEqual(final["result"]["paired"]["standard_error"], 0.0)
+            jobs = []
+            for role in ("genesis", "final"):
+                receipts = list((output / STAIR_FINAL_CONFIRMATION_DIRNAME / "phase_receipts" / role).glob("*/eval_phases/sealed_validation.json"))
+                self.assertEqual(len(receipts), 1)
+                phase = load_strict_json_object(receipts[0], context="reference head final phase")["phase_result"]
+                self.assertEqual(phase["subject"]["kind"], "reference")
+                self.assertEqual(phase["checkpoint_hash"], copies[role]["checkpoint_hash"])
+            markers = [load_strict_json_object(path, context="runner marker") for path in (output / "fixture_runner_outputs").glob("actual-*.json")]
+            jobs = [item["job_id"] for item in markers if "-final-confirmation-" in item["job_id"]]
+            self.assertEqual(len(jobs), 2)
+            self.assertEqual(len(set(jobs)), 2)
+            before = {path: path.read_bytes() for path in (ledger_path, report_path)}
+            self._formal_worker(root, "audit")
+            self._formal_worker(root, "audit")
+            self.assertEqual(before, {path: path.read_bytes() for path in before})
+            self.assertEqual(len(list((output / "fixture_runner_outputs").glob("actual-*.json"))), len(markers))
+
     def _worker(
         self,
         root: Path,
@@ -1887,6 +1965,9 @@ class StairGenerationSessionProductionShapeTests(unittest.TestCase):
         *,
         expected: int = 0,
     ) -> subprocess.CompletedProcess[str]:
+        # The continuous formal fixture now executes all fifteen generations in
+        # one worker; its former 240-second ceiling applied to one short segment.
+        timeout_s = {"final-crash": 900, "finish": 360}.get(action, 240)
         completed = subprocess.run(
             [
                 sys.executable,
@@ -1899,7 +1980,7 @@ class StairGenerationSessionProductionShapeTests(unittest.TestCase):
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
-            timeout=240,
+            timeout=timeout_s,
             start_new_session=(os.name != "nt"),
             check=False,
         )

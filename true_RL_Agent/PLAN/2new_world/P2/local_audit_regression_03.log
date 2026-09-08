@@ -1,0 +1,37 @@
+.........................................................................sss...............................................................................................s....................................................................................................................................................................................................................................................................s...................s............Isaac SimulationApp close failed: close failed
+custom-source-policy
+custom-source-policy
+custom-source-policy
+custom-source-policy
+custom-source-policy
+.............................................................s.................................................................................................................s..................................................................................................................................................................................................................................s...................................................................................................s.ss.....................................................................................Stair bound child CUDA_VISIBLE_DEVICES must be one full GPU UUID
+Stair bound child CUDA_VISIBLE_DEVICES must be one full GPU UUID
+....stair evaluation evidence publication failed: [Errno 2] No such file or directory: 'C:\\Users\\lover\\AppData\\Local\\Temp\\tmp0spd36om\\eval-summary.kit.log'
+Ebackend execution environment drift
+backend execution environment drift
+.......installed source bytes drifted
+installed source bytes drifted
+............................................................................................................................s.................................................................................................ssss.s..................................................................................................................................................................................................................................{"error":"RuntimeError","message":"synthetic owned-child failure","status":"fail"}
+...{"error":"FileNotFoundError","message":"[WinError 2] ϵͳ�Ҳ���ָ�����ļ���: 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpvxo_j553\\\\leases'","status":"fail"}
+{"error":"ValueError","message":"shared GPU lease root must be an existing disjoint directory","status":"fail"}
+....................................................................s.................
+======================================================================
+ERROR: test_eval_summary_is_written_before_simulation_app_close (tests.unit.test_stair_entrypoint_materialization.StairEntrypointMaterializationTests.test_eval_summary_is_written_before_simulation_app_close)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_stair_entrypoint_materialization.py", line 807, in test_eval_summary_is_written_before_simulation_app_close
+    stair_eval_main(
+  File "D:\humanoid_agent\true_RL_Agent\scripts\isaaclab_stair_rsl_rl_eval.py", line 249, in main
+    require_physx_success(summary_path.with_suffix(".kit.log"))
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\backends\isaac_lab_runtime.py", line 42, in require_physx_success
+    with Path(kit_log_path).open(encoding="utf-8", errors="replace") as log:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\lover\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\lover\\AppData\\Local\\Temp\\tmp0spd36om\\eval-summary.kit.log'
+
+----------------------------------------------------------------------
+Ran 1611 tests in 409.573s
+
+FAILED (errors=1, skipped=19)

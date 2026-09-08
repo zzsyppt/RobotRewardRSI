@@ -16,7 +16,6 @@ from tests.fakes.evaluation import (
     make_verified_candidate_artifact,
 )
 from true_rl_agent.backends.base import BackendAdapter
-from true_rl_agent.backends.registry import BackendRegistry
 from true_rl_agent.backends.specs import BackendSpec
 from true_rl_agent.candidates.artifact import VerifiedCandidateArtifactRef
 from true_rl_agent.candidates.schema import CandidateChangeSet
@@ -29,7 +28,6 @@ from true_rl_agent.runner.specs import (
 )
 from true_rl_agent.tasks.base import TaskInvariantSpec, TaskPlugin, TaskSpec
 from true_rl_agent.tasks.compatibility import check_task_backend_compatibility
-from true_rl_agent.tasks.registry import TaskRegistry
 
 
 class MinimalTaskPlugin(TaskPlugin):
@@ -121,33 +119,6 @@ class MinimalBackendAdapter(BackendAdapter):
 
 
 class PluginRegistryTests(unittest.TestCase):
-    def test_task_registry_resolves_registered_task_and_rejects_duplicates(self) -> None:
-        registry = TaskRegistry()
-        plugin = MinimalTaskPlugin()
-
-        registry.register(plugin)
-
-        self.assertIs(registry.get("unitree_push_recovery"), plugin)
-        with self.assertRaises(ValueError):
-            registry.register(plugin)
-        with self.assertRaises(KeyError):
-            registry.get("missing-task")
-
-    def test_backend_registry_resolves_registered_backend_and_rejects_duplicates(self) -> None:
-        registry = BackendRegistry()
-        adapter = MinimalBackendAdapter()
-
-        self.assertFalse(
-            hasattr(adapter, "requires_verified_candidate_artifact")
-        )
-        registry.register(adapter)
-
-        self.assertIs(registry.get("isaac_lab_rsl_rl"), adapter)
-        with self.assertRaises(ValueError):
-            registry.register(adapter)
-        with self.assertRaises(KeyError):
-            registry.get("missing-backend")
-
     def test_compatibility_check_combines_task_and_backend_capabilities(self) -> None:
         task = MinimalTaskPlugin()
         backend = MinimalBackendAdapter()

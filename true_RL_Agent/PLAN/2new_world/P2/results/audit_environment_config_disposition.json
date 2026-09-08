@@ -1,0 +1,2473 @@
+{
+  "scope": "Complete config-difference inventory, not a numerical-equivalence certificate",
+  "normalization": "Only sim.physx container is renamed to sim.physics before leaf comparison",
+  "configurations": {
+    "g1_train": {
+      "contact_effective_fields_equal": {
+        "update_period": true,
+        "force_threshold": true,
+        "max_contact_data_count_per_prim": true,
+        "history_length": true,
+        "track_air_time": true
+      },
+      "changes": [
+        {
+          "path": "commands.base_velocity.cmd_kind",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "command_metadata",
+          "reason": "New names/thresholds describe command metrics. Command ranges, resampling and reward formulas are unchanged."
+        },
+        {
+          "path": "commands.base_velocity.current_vel_visualizer_cfg.markers.arrow.physics_material",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.current_vel_visualizer_cfg.markers.arrow.physics_material_path",
+          "old": "MISSING",
+          "new": "material",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.current_vel_visualizer_cfg.markers.arrow.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.current_vel_visualizer_cfg.markers.arrow.usd_path",
+          "old": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/UIElements/arrow_x.usd",
+          "new": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/Props/UIElements/arrow_x.usd",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.element_names",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "command_metadata",
+          "reason": "New names/thresholds describe command metrics. Command ranges, resampling and reward formulas are unchanged."
+        },
+        {
+          "path": "commands.base_velocity.goal_vel_visualizer_cfg.markers.arrow.physics_material",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.goal_vel_visualizer_cfg.markers.arrow.physics_material_path",
+          "old": "MISSING",
+          "new": "material",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.goal_vel_visualizer_cfg.markers.arrow.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.goal_vel_visualizer_cfg.markers.arrow.usd_path",
+          "old": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/UIElements/arrow_x.usd",
+          "new": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/Props/UIElements/arrow_x.usd",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.vel_xy_success_threshold",
+          "old": "MISSING",
+          "new": 0.5,
+          "disposition": "command_metadata",
+          "reason": "New names/thresholds describe command metrics. Command ranges, resampling and reward formulas are unchanged."
+        },
+        {
+          "path": "commands.base_velocity.vel_yaw_success_threshold",
+          "old": "MISSING",
+          "new": 0.8,
+          "disposition": "command_metadata",
+          "reason": "New names/thresholds describe command metrics. Command ranges, resampling and reward formulas are unchanged."
+        },
+        {
+          "path": "io_descriptors_output_dir",
+          "old": null,
+          "new": "MISSING",
+          "disposition": "execution_metadata",
+          "reason": "Logging/IO metadata or disabled teleoperation; no dynamics or workload change."
+        },
+        {
+          "path": "isaac_teleop",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "execution_metadata",
+          "reason": "Logging/IO metadata or disabled teleoperation; no dynamics or workload change."
+        },
+        {
+          "path": "num_rerenders_on_reset",
+          "old": "MISSING",
+          "new": 0,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "scene.contact_forces.class_type",
+          "old": "isaaclab.sensors.contact_sensor.contact_sensor:ContactSensor",
+          "new": "true_rl_agent.backends.isaac_lab_contact_sensor:SampledContactSensor",
+          "disposition": "contact_sampling",
+          "reason": "PhysX kernel retained; sampled sensor restores history/timing cadence. See audit_contact_sampling_comparison.json."
+        },
+        {
+          "path": "scene.contact_forces.track_friction_forces",
+          "old": "MISSING",
+          "new": false,
+          "disposition": "inactive_sensor_feature",
+          "reason": "New tangential-force feature remains disabled."
+        },
+        {
+          "path": "scene.contact_forces.visualizer_cfg.markers.contact.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "scene.contact_forces.visualizer_cfg.markers.no_contact.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "scene.height_scanner.attach_yaw_only",
+          "old": null,
+          "new": "MISSING",
+          "disposition": "retired_inactive_field",
+          "reason": "Old unused alias / zero history removed; ray_alignment and update_period are unchanged."
+        },
+        {
+          "path": "scene.height_scanner.history_length",
+          "old": 0,
+          "new": "MISSING",
+          "disposition": "retired_inactive_field",
+          "reason": "Old unused alias / zero history removed; ray_alignment and update_period are unchanged."
+        },
+        {
+          "path": "scene.height_scanner.offset.rot",
+          "old": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "new": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "disposition": "rotation_representation",
+          "reason": "Same identity rotation, WXYZ to XYZW. Root/body policy projection and fixed-state traces verified."
+        },
+        {
+          "path": "scene.height_scanner.spawn.copy_from_source",
+          "old": "MISSING",
+          "new": true,
+          "disposition": "ray_frame",
+          "reason": "Lab 3 creates a FrameView for the same ray attachment. Ray layout and same-state height scan were measured."
+        },
+        {
+          "path": "scene.height_scanner.spawn.func",
+          "old": "MISSING",
+          "new": "isaaclab.sim.spawners.sensors.sensors:spawn_sensor_frame",
+          "disposition": "ray_frame",
+          "reason": "Lab 3 creates a FrameView for the same ray attachment. Ray layout and same-state height scan were measured."
+        },
+        {
+          "path": "scene.height_scanner.spawn.semantic_tags",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "ray_frame",
+          "reason": "Lab 3 creates a FrameView for the same ray attachment. Ray layout and same-state height scan were measured."
+        },
+        {
+          "path": "scene.height_scanner.spawn.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "ray_frame",
+          "reason": "Lab 3 creates a FrameView for the same ray attachment. Ray layout and same-state height scan were measured."
+        },
+        {
+          "path": "scene.height_scanner.spawn.visible",
+          "old": "MISSING",
+          "new": true,
+          "disposition": "ray_frame",
+          "reason": "Lab 3 creates a FrameView for the same ray attachment. Ray layout and same-state height scan were measured."
+        },
+        {
+          "path": "scene.height_scanner.visualizer_cfg.markers.hit.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "scene.robot.disable_shape_checks",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.robot.init_state.rot",
+          "old": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "new": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "disposition": "rotation_representation",
+          "reason": "Same identity rotation, WXYZ to XYZW. Root/body policy projection and fixed-state traces verified."
+        },
+        {
+          "path": "scene.robot.spawn.articulation_props._usd_applied_schema",
+          "old": "MISSING",
+          "new": "PhysxArticulationAPI",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.articulation_props._usd_field_exceptions.PhysxArticulationAPI",
+          "old": "MISSING",
+          "new": [
+            "physxArticulation",
+            [
+              "articulation_enabled"
+            ]
+          ],
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.articulation_props._usd_namespace",
+          "old": "MISSING",
+          "new": "physxArticulation",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.physics_material",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.robot.spawn.physics_material_path",
+          "old": "MISSING",
+          "new": "material",
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.robot.spawn.rigid_props._usd_applied_schema",
+          "old": "MISSING",
+          "new": "PhysxRigidBodyAPI",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.rigid_props._usd_field_exceptions.PhysxRigidBodyAPI",
+          "old": "MISSING",
+          "new": [
+            "physxRigidBody",
+            [
+              "disable_gravity"
+            ]
+          ],
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.rigid_props._usd_namespace",
+          "old": "MISSING",
+          "new": "physxRigidBody",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.sky_light.disable_shape_checks",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.sky_light.init_state.rot",
+          "old": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "new": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "disposition": "rotation_representation",
+          "reason": "Same identity rotation, WXYZ to XYZW. Root/body policy projection and fixed-state traces verified."
+        },
+        {
+          "path": "scene.sky_light.spawn.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.sky_light.spawn.texture_file",
+          "old": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Materials/Textures/Skies/PolyHaven/kloofendal_43d_clear_puresky_4k.hdr",
+          "new": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/Materials/Textures/Skies/PolyHaven/kloofendal_43d_clear_puresky_4k.hdr",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "scene.terrain.physics_material._usd_applied_schema",
+          "old": "MISSING",
+          "new": "PhysxMaterialAPI",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.terrain.physics_material._usd_namespace",
+          "old": "MISSING",
+          "new": "physxMaterial",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.terrain.physics_material.compliant_contact_damping",
+          "old": 0.0,
+          "new": null,
+          "disposition": "physx_default",
+          "reason": "None leaves the PhysX rigid-material default at zero; compliant contacts are not enabled."
+        },
+        {
+          "path": "scene.terrain.physics_material.compliant_contact_stiffness",
+          "old": 0.0,
+          "new": null,
+          "disposition": "physx_default",
+          "reason": "None leaves the PhysX rigid-material default at zero; compliant contacts are not enabled."
+        },
+        {
+          "path": "scene.terrain.terrain_generator.color_scheme",
+          "old": "height",
+          "new": "none",
+          "disposition": "declared_visual_change",
+          "reason": "Uniform material replaces vertex height colors: target trimesh lacks Lab's jet map. No RGB policy input; geometry and collision meshes unchanged."
+        },
+        {
+          "path": "scene.terrain.use_terrain_origins",
+          "old": "MISSING",
+          "new": true,
+          "disposition": "explicit_scene_default",
+          "reason": "True preserves terrain-origin placement; recorded initial terrain assignment is unchanged."
+        },
+        {
+          "path": "scene.terrain.visual_material.mdl_path",
+          "old": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/IsaacLab/Materials/TilesMarbleSpiderWhiteBrickBondHoned/TilesMarbleSpiderWhiteBrickBondHoned.mdl",
+          "new": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/IsaacLab/Materials/TilesMarbleSpiderWhiteBrickBondHoned/TilesMarbleSpiderWhiteBrickBondHoned.mdl",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "sim.device",
+          "old": "cuda:1",
+          "new": "cuda:0",
+          "disposition": "execution_placement",
+          "reason": "Probe uses the logical device exposed by its GPU lease; this is not a physics parameter."
+        },
+        {
+          "path": "sim.log_dir",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "execution_metadata",
+          "reason": "Logging/IO metadata or disabled teleoperation; no dynamics or workload change."
+        },
+        {
+          "path": "sim.logging_level",
+          "old": "MISSING",
+          "new": "WARNING",
+          "disposition": "execution_metadata",
+          "reason": "Logging/IO metadata or disabled teleoperation; no dynamics or workload change."
+        },
+        {
+          "path": "sim.physics.class_type",
+          "old": "MISSING",
+          "new": "isaaclab_physx.physics.physx_manager:PhysxManager",
+          "disposition": "backend_selection",
+          "reason": "Explicit sole PhysX backend; Newton actuators and scene query support disabled as before."
+        },
+        {
+          "path": "sim.physics.enable_external_forces_every_iteration",
+          "old": "MISSING",
+          "new": false,
+          "disposition": "explicit_physics_default",
+          "reason": "False equals the measured legacy USD setting; see timeout_bootstrap_source_audit and physics probes."
+        },
+        {
+          "path": "sim.physics.enable_scene_query_support",
+          "old": "MISSING",
+          "new": false,
+          "disposition": "backend_selection",
+          "reason": "Explicit sole PhysX backend; Newton actuators and scene query support disabled as before."
+        },
+        {
+          "path": "sim.physics.gpu_total_aggregate_pairs_capacity",
+          "old": 2097152,
+          "new": 8388608,
+          "disposition": "measured_capacity_fix",
+          "reason": "Raise GPU allocation from 2**21 to 2**23 after the 4096-env job exhausted aggregate pairs. Overflowed runs are invalid; task dynamics and layout stay fixed."
+        },
+        {
+          "path": "sim.physics_material._usd_applied_schema",
+          "old": "MISSING",
+          "new": "PhysxMaterialAPI",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "sim.physics_material._usd_namespace",
+          "old": "MISSING",
+          "new": "physxMaterial",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "sim.physics_material.compliant_contact_damping",
+          "old": 0.0,
+          "new": null,
+          "disposition": "physx_default",
+          "reason": "None leaves the PhysX rigid-material default at zero; compliant contacts are not enabled."
+        },
+        {
+          "path": "sim.physics_material.compliant_contact_stiffness",
+          "old": 0.0,
+          "new": null,
+          "disposition": "physx_default",
+          "reason": "None leaves the PhysX rigid-material default at zero; compliant contacts are not enabled."
+        },
+        {
+          "path": "sim.render.ambient_light_intensity",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.ambient_occlusion_denoiser_mode",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.max_bounces",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.split_clearcoat",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.split_glass",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.split_rough_reflection",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.view_tile_limit",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.save_logs_to_file",
+          "old": "MISSING",
+          "new": true,
+          "disposition": "execution_metadata",
+          "reason": "Logging/IO metadata or disabled teleoperation; no dynamics or workload change."
+        },
+        {
+          "path": "sim.use_newton_actuators",
+          "old": "MISSING",
+          "new": false,
+          "disposition": "backend_selection",
+          "reason": "Explicit sole PhysX backend; Newton actuators and scene query support disabled as before."
+        },
+        {
+          "path": "sim.visualizer_cfgs",
+          "old": "MISSING",
+          "new": [],
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "video_recorder.backend_source",
+          "old": "MISSING",
+          "new": "visualizer",
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.class_type",
+          "old": "MISSING",
+          "new": "isaaclab.envs.utils.video_recorder:VideoRecorder",
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.env_render_mode",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.eye",
+          "old": "MISSING",
+          "new": [
+            7.5,
+            7.5,
+            7.5
+          ],
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.lookat",
+          "old": "MISSING",
+          "new": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.window_height",
+          "old": "MISSING",
+          "new": 720,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.window_width",
+          "old": "MISSING",
+          "new": 1280,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        }
+      ],
+      "unresolved_paths": []
+    },
+    "g1_eval": {
+      "contact_effective_fields_equal": {
+        "update_period": true,
+        "force_threshold": true,
+        "max_contact_data_count_per_prim": true,
+        "history_length": true,
+        "track_air_time": true
+      },
+      "changes": [
+        {
+          "path": "commands.base_velocity.cmd_kind",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "command_metadata",
+          "reason": "New names/thresholds describe command metrics. Command ranges, resampling and reward formulas are unchanged."
+        },
+        {
+          "path": "commands.base_velocity.current_vel_visualizer_cfg.markers.arrow.physics_material",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.current_vel_visualizer_cfg.markers.arrow.physics_material_path",
+          "old": "MISSING",
+          "new": "material",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.current_vel_visualizer_cfg.markers.arrow.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.current_vel_visualizer_cfg.markers.arrow.usd_path",
+          "old": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/UIElements/arrow_x.usd",
+          "new": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/Props/UIElements/arrow_x.usd",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.element_names",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "command_metadata",
+          "reason": "New names/thresholds describe command metrics. Command ranges, resampling and reward formulas are unchanged."
+        },
+        {
+          "path": "commands.base_velocity.goal_vel_visualizer_cfg.markers.arrow.physics_material",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.goal_vel_visualizer_cfg.markers.arrow.physics_material_path",
+          "old": "MISSING",
+          "new": "material",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.goal_vel_visualizer_cfg.markers.arrow.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.goal_vel_visualizer_cfg.markers.arrow.usd_path",
+          "old": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/UIElements/arrow_x.usd",
+          "new": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/Props/UIElements/arrow_x.usd",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.vel_xy_success_threshold",
+          "old": "MISSING",
+          "new": 0.5,
+          "disposition": "command_metadata",
+          "reason": "New names/thresholds describe command metrics. Command ranges, resampling and reward formulas are unchanged."
+        },
+        {
+          "path": "commands.base_velocity.vel_yaw_success_threshold",
+          "old": "MISSING",
+          "new": 0.8,
+          "disposition": "command_metadata",
+          "reason": "New names/thresholds describe command metrics. Command ranges, resampling and reward formulas are unchanged."
+        },
+        {
+          "path": "io_descriptors_output_dir",
+          "old": null,
+          "new": "MISSING",
+          "disposition": "execution_metadata",
+          "reason": "Logging/IO metadata or disabled teleoperation; no dynamics or workload change."
+        },
+        {
+          "path": "isaac_teleop",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "execution_metadata",
+          "reason": "Logging/IO metadata or disabled teleoperation; no dynamics or workload change."
+        },
+        {
+          "path": "num_rerenders_on_reset",
+          "old": "MISSING",
+          "new": 0,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "recorders.dataset_compression",
+          "old": "MISSING",
+          "new": true,
+          "disposition": "inactive_dataset_export",
+          "reason": "Both configs select EXPORT_NONE; dataset compression/close export do not affect the task's transition recorder."
+        },
+        {
+          "path": "recorders.export_in_close",
+          "old": "MISSING",
+          "new": false,
+          "disposition": "inactive_dataset_export",
+          "reason": "Both configs select EXPORT_NONE; dataset compression/close export do not affect the task's transition recorder."
+        },
+        {
+          "path": "scene.contact_forces.class_type",
+          "old": "isaaclab.sensors.contact_sensor.contact_sensor:ContactSensor",
+          "new": "true_rl_agent.backends.isaac_lab_contact_sensor:SampledContactSensor",
+          "disposition": "contact_sampling",
+          "reason": "PhysX kernel retained; sampled sensor restores history/timing cadence. See audit_contact_sampling_comparison.json."
+        },
+        {
+          "path": "scene.contact_forces.track_friction_forces",
+          "old": "MISSING",
+          "new": false,
+          "disposition": "inactive_sensor_feature",
+          "reason": "New tangential-force feature remains disabled."
+        },
+        {
+          "path": "scene.contact_forces.visualizer_cfg.markers.contact.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "scene.contact_forces.visualizer_cfg.markers.no_contact.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "scene.height_scanner.attach_yaw_only",
+          "old": null,
+          "new": "MISSING",
+          "disposition": "retired_inactive_field",
+          "reason": "Old unused alias / zero history removed; ray_alignment and update_period are unchanged."
+        },
+        {
+          "path": "scene.height_scanner.history_length",
+          "old": 0,
+          "new": "MISSING",
+          "disposition": "retired_inactive_field",
+          "reason": "Old unused alias / zero history removed; ray_alignment and update_period are unchanged."
+        },
+        {
+          "path": "scene.height_scanner.offset.rot",
+          "old": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "new": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "disposition": "rotation_representation",
+          "reason": "Same identity rotation, WXYZ to XYZW. Root/body policy projection and fixed-state traces verified."
+        },
+        {
+          "path": "scene.height_scanner.spawn.copy_from_source",
+          "old": "MISSING",
+          "new": true,
+          "disposition": "ray_frame",
+          "reason": "Lab 3 creates a FrameView for the same ray attachment. Ray layout and same-state height scan were measured."
+        },
+        {
+          "path": "scene.height_scanner.spawn.func",
+          "old": "MISSING",
+          "new": "isaaclab.sim.spawners.sensors.sensors:spawn_sensor_frame",
+          "disposition": "ray_frame",
+          "reason": "Lab 3 creates a FrameView for the same ray attachment. Ray layout and same-state height scan were measured."
+        },
+        {
+          "path": "scene.height_scanner.spawn.semantic_tags",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "ray_frame",
+          "reason": "Lab 3 creates a FrameView for the same ray attachment. Ray layout and same-state height scan were measured."
+        },
+        {
+          "path": "scene.height_scanner.spawn.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "ray_frame",
+          "reason": "Lab 3 creates a FrameView for the same ray attachment. Ray layout and same-state height scan were measured."
+        },
+        {
+          "path": "scene.height_scanner.spawn.visible",
+          "old": "MISSING",
+          "new": true,
+          "disposition": "ray_frame",
+          "reason": "Lab 3 creates a FrameView for the same ray attachment. Ray layout and same-state height scan were measured."
+        },
+        {
+          "path": "scene.height_scanner.visualizer_cfg.markers.hit.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "scene.robot.disable_shape_checks",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.robot.init_state.rot",
+          "old": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "new": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "disposition": "rotation_representation",
+          "reason": "Same identity rotation, WXYZ to XYZW. Root/body policy projection and fixed-state traces verified."
+        },
+        {
+          "path": "scene.robot.spawn.articulation_props._usd_applied_schema",
+          "old": "MISSING",
+          "new": "PhysxArticulationAPI",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.articulation_props._usd_field_exceptions.PhysxArticulationAPI",
+          "old": "MISSING",
+          "new": [
+            "physxArticulation",
+            [
+              "articulation_enabled"
+            ]
+          ],
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.articulation_props._usd_namespace",
+          "old": "MISSING",
+          "new": "physxArticulation",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.physics_material",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.robot.spawn.physics_material_path",
+          "old": "MISSING",
+          "new": "material",
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.robot.spawn.rigid_props._usd_applied_schema",
+          "old": "MISSING",
+          "new": "PhysxRigidBodyAPI",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.rigid_props._usd_field_exceptions.PhysxRigidBodyAPI",
+          "old": "MISSING",
+          "new": [
+            "physxRigidBody",
+            [
+              "disable_gravity"
+            ]
+          ],
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.rigid_props._usd_namespace",
+          "old": "MISSING",
+          "new": "physxRigidBody",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.sky_light.disable_shape_checks",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.sky_light.init_state.rot",
+          "old": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "new": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "disposition": "rotation_representation",
+          "reason": "Same identity rotation, WXYZ to XYZW. Root/body policy projection and fixed-state traces verified."
+        },
+        {
+          "path": "scene.sky_light.spawn.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.sky_light.spawn.texture_file",
+          "old": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Materials/Textures/Skies/PolyHaven/kloofendal_43d_clear_puresky_4k.hdr",
+          "new": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/Materials/Textures/Skies/PolyHaven/kloofendal_43d_clear_puresky_4k.hdr",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "scene.terrain.physics_material._usd_applied_schema",
+          "old": "MISSING",
+          "new": "PhysxMaterialAPI",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.terrain.physics_material._usd_namespace",
+          "old": "MISSING",
+          "new": "physxMaterial",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.terrain.physics_material.compliant_contact_damping",
+          "old": 0.0,
+          "new": null,
+          "disposition": "physx_default",
+          "reason": "None leaves the PhysX rigid-material default at zero; compliant contacts are not enabled."
+        },
+        {
+          "path": "scene.terrain.physics_material.compliant_contact_stiffness",
+          "old": 0.0,
+          "new": null,
+          "disposition": "physx_default",
+          "reason": "None leaves the PhysX rigid-material default at zero; compliant contacts are not enabled."
+        },
+        {
+          "path": "scene.terrain.terrain_generator.color_scheme",
+          "old": "height",
+          "new": "none",
+          "disposition": "declared_visual_change",
+          "reason": "Uniform material replaces vertex height colors: target trimesh lacks Lab's jet map. No RGB policy input; geometry and collision meshes unchanged."
+        },
+        {
+          "path": "scene.terrain.use_terrain_origins",
+          "old": "MISSING",
+          "new": true,
+          "disposition": "explicit_scene_default",
+          "reason": "True preserves terrain-origin placement; recorded initial terrain assignment is unchanged."
+        },
+        {
+          "path": "scene.terrain.visual_material.mdl_path",
+          "old": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/IsaacLab/Materials/TilesMarbleSpiderWhiteBrickBondHoned/TilesMarbleSpiderWhiteBrickBondHoned.mdl",
+          "new": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/IsaacLab/Materials/TilesMarbleSpiderWhiteBrickBondHoned/TilesMarbleSpiderWhiteBrickBondHoned.mdl",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "sim.device",
+          "old": "cuda:1",
+          "new": "cuda:0",
+          "disposition": "execution_placement",
+          "reason": "Probe uses the logical device exposed by its GPU lease; this is not a physics parameter."
+        },
+        {
+          "path": "sim.log_dir",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "execution_metadata",
+          "reason": "Logging/IO metadata or disabled teleoperation; no dynamics or workload change."
+        },
+        {
+          "path": "sim.logging_level",
+          "old": "MISSING",
+          "new": "WARNING",
+          "disposition": "execution_metadata",
+          "reason": "Logging/IO metadata or disabled teleoperation; no dynamics or workload change."
+        },
+        {
+          "path": "sim.physics.class_type",
+          "old": "MISSING",
+          "new": "isaaclab_physx.physics.physx_manager:PhysxManager",
+          "disposition": "backend_selection",
+          "reason": "Explicit sole PhysX backend; Newton actuators and scene query support disabled as before."
+        },
+        {
+          "path": "sim.physics.enable_external_forces_every_iteration",
+          "old": "MISSING",
+          "new": false,
+          "disposition": "explicit_physics_default",
+          "reason": "False equals the measured legacy USD setting; see timeout_bootstrap_source_audit and physics probes."
+        },
+        {
+          "path": "sim.physics.enable_scene_query_support",
+          "old": "MISSING",
+          "new": false,
+          "disposition": "backend_selection",
+          "reason": "Explicit sole PhysX backend; Newton actuators and scene query support disabled as before."
+        },
+        {
+          "path": "sim.physics.gpu_total_aggregate_pairs_capacity",
+          "old": 2097152,
+          "new": 8388608,
+          "disposition": "measured_capacity_fix",
+          "reason": "Raise GPU allocation from 2**21 to 2**23 after the 4096-env job exhausted aggregate pairs. Overflowed runs are invalid; task dynamics and layout stay fixed."
+        },
+        {
+          "path": "sim.physics_material._usd_applied_schema",
+          "old": "MISSING",
+          "new": "PhysxMaterialAPI",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "sim.physics_material._usd_namespace",
+          "old": "MISSING",
+          "new": "physxMaterial",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "sim.physics_material.compliant_contact_damping",
+          "old": 0.0,
+          "new": null,
+          "disposition": "physx_default",
+          "reason": "None leaves the PhysX rigid-material default at zero; compliant contacts are not enabled."
+        },
+        {
+          "path": "sim.physics_material.compliant_contact_stiffness",
+          "old": 0.0,
+          "new": null,
+          "disposition": "physx_default",
+          "reason": "None leaves the PhysX rigid-material default at zero; compliant contacts are not enabled."
+        },
+        {
+          "path": "sim.render.ambient_light_intensity",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.ambient_occlusion_denoiser_mode",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.max_bounces",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.split_clearcoat",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.split_glass",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.split_rough_reflection",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.view_tile_limit",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.save_logs_to_file",
+          "old": "MISSING",
+          "new": true,
+          "disposition": "execution_metadata",
+          "reason": "Logging/IO metadata or disabled teleoperation; no dynamics or workload change."
+        },
+        {
+          "path": "sim.use_newton_actuators",
+          "old": "MISSING",
+          "new": false,
+          "disposition": "backend_selection",
+          "reason": "Explicit sole PhysX backend; Newton actuators and scene query support disabled as before."
+        },
+        {
+          "path": "sim.visualizer_cfgs",
+          "old": "MISSING",
+          "new": [],
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "video_recorder.backend_source",
+          "old": "MISSING",
+          "new": "visualizer",
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.class_type",
+          "old": "MISSING",
+          "new": "isaaclab.envs.utils.video_recorder:VideoRecorder",
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.env_render_mode",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.eye",
+          "old": "MISSING",
+          "new": [
+            7.5,
+            7.5,
+            7.5
+          ],
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.lookat",
+          "old": "MISSING",
+          "new": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.window_height",
+          "old": "MISSING",
+          "new": 720,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.window_width",
+          "old": "MISSING",
+          "new": 1280,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        }
+      ],
+      "unresolved_paths": []
+    },
+    "go2_train": {
+      "contact_effective_fields_equal": {
+        "update_period": true,
+        "force_threshold": true,
+        "max_contact_data_count_per_prim": true,
+        "history_length": true,
+        "track_air_time": true
+      },
+      "changes": [
+        {
+          "path": "commands.base_velocity.cmd_kind",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "command_metadata",
+          "reason": "New names/thresholds describe command metrics. Command ranges, resampling and reward formulas are unchanged."
+        },
+        {
+          "path": "commands.base_velocity.current_vel_visualizer_cfg.markers.arrow.physics_material",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.current_vel_visualizer_cfg.markers.arrow.physics_material_path",
+          "old": "MISSING",
+          "new": "material",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.current_vel_visualizer_cfg.markers.arrow.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.current_vel_visualizer_cfg.markers.arrow.usd_path",
+          "old": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/UIElements/arrow_x.usd",
+          "new": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/Props/UIElements/arrow_x.usd",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.element_names",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "command_metadata",
+          "reason": "New names/thresholds describe command metrics. Command ranges, resampling and reward formulas are unchanged."
+        },
+        {
+          "path": "commands.base_velocity.goal_vel_visualizer_cfg.markers.arrow.physics_material",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.goal_vel_visualizer_cfg.markers.arrow.physics_material_path",
+          "old": "MISSING",
+          "new": "material",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.goal_vel_visualizer_cfg.markers.arrow.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.goal_vel_visualizer_cfg.markers.arrow.usd_path",
+          "old": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/UIElements/arrow_x.usd",
+          "new": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/Props/UIElements/arrow_x.usd",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.vel_xy_success_threshold",
+          "old": "MISSING",
+          "new": 0.5,
+          "disposition": "command_metadata",
+          "reason": "New names/thresholds describe command metrics. Command ranges, resampling and reward formulas are unchanged."
+        },
+        {
+          "path": "commands.base_velocity.vel_yaw_success_threshold",
+          "old": "MISSING",
+          "new": 0.4,
+          "disposition": "command_metadata",
+          "reason": "New names/thresholds describe command metrics. Command ranges, resampling and reward formulas are unchanged."
+        },
+        {
+          "path": "events.add_base_mass.params.distribution",
+          "old": "MISSING",
+          "new": "uniform",
+          "disposition": "explicit_default",
+          "reason": "Old function default uniform is now explicit. Distribution parameters are unchanged; CPU/GPU RNG sampling change remains declared."
+        },
+        {
+          "path": "io_descriptors_output_dir",
+          "old": null,
+          "new": "MISSING",
+          "disposition": "execution_metadata",
+          "reason": "Logging/IO metadata or disabled teleoperation; no dynamics or workload change."
+        },
+        {
+          "path": "isaac_teleop",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "execution_metadata",
+          "reason": "Logging/IO metadata or disabled teleoperation; no dynamics or workload change."
+        },
+        {
+          "path": "num_rerenders_on_reset",
+          "old": "MISSING",
+          "new": 0,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "scene.contact_forces.class_type",
+          "old": "isaaclab.sensors.contact_sensor.contact_sensor:ContactSensor",
+          "new": "true_rl_agent.backends.isaac_lab_contact_sensor:SampledContactSensor",
+          "disposition": "contact_sampling",
+          "reason": "PhysX kernel retained; sampled sensor restores history/timing cadence. See audit_contact_sampling_comparison.json."
+        },
+        {
+          "path": "scene.contact_forces.track_friction_forces",
+          "old": "MISSING",
+          "new": false,
+          "disposition": "inactive_sensor_feature",
+          "reason": "New tangential-force feature remains disabled."
+        },
+        {
+          "path": "scene.contact_forces.visualizer_cfg.markers.contact.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "scene.contact_forces.visualizer_cfg.markers.no_contact.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "scene.height_scanner.attach_yaw_only",
+          "old": null,
+          "new": "MISSING",
+          "disposition": "retired_inactive_field",
+          "reason": "Old unused alias / zero history removed; ray_alignment and update_period are unchanged."
+        },
+        {
+          "path": "scene.height_scanner.history_length",
+          "old": 0,
+          "new": "MISSING",
+          "disposition": "retired_inactive_field",
+          "reason": "Old unused alias / zero history removed; ray_alignment and update_period are unchanged."
+        },
+        {
+          "path": "scene.height_scanner.offset.rot",
+          "old": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "new": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "disposition": "rotation_representation",
+          "reason": "Same identity rotation, WXYZ to XYZW. Root/body policy projection and fixed-state traces verified."
+        },
+        {
+          "path": "scene.height_scanner.spawn.copy_from_source",
+          "old": "MISSING",
+          "new": true,
+          "disposition": "ray_frame",
+          "reason": "Lab 3 creates a FrameView for the same ray attachment. Ray layout and same-state height scan were measured."
+        },
+        {
+          "path": "scene.height_scanner.spawn.func",
+          "old": "MISSING",
+          "new": "isaaclab.sim.spawners.sensors.sensors:spawn_sensor_frame",
+          "disposition": "ray_frame",
+          "reason": "Lab 3 creates a FrameView for the same ray attachment. Ray layout and same-state height scan were measured."
+        },
+        {
+          "path": "scene.height_scanner.spawn.semantic_tags",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "ray_frame",
+          "reason": "Lab 3 creates a FrameView for the same ray attachment. Ray layout and same-state height scan were measured."
+        },
+        {
+          "path": "scene.height_scanner.spawn.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "ray_frame",
+          "reason": "Lab 3 creates a FrameView for the same ray attachment. Ray layout and same-state height scan were measured."
+        },
+        {
+          "path": "scene.height_scanner.spawn.visible",
+          "old": "MISSING",
+          "new": true,
+          "disposition": "ray_frame",
+          "reason": "Lab 3 creates a FrameView for the same ray attachment. Ray layout and same-state height scan were measured."
+        },
+        {
+          "path": "scene.height_scanner.visualizer_cfg.markers.hit.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "scene.robot.disable_shape_checks",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.robot.init_state.rot",
+          "old": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "new": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "disposition": "rotation_representation",
+          "reason": "Same identity rotation, WXYZ to XYZW. Root/body policy projection and fixed-state traces verified."
+        },
+        {
+          "path": "scene.robot.spawn.articulation_props._usd_applied_schema",
+          "old": "MISSING",
+          "new": "PhysxArticulationAPI",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.articulation_props._usd_field_exceptions.PhysxArticulationAPI",
+          "old": "MISSING",
+          "new": [
+            "physxArticulation",
+            [
+              "articulation_enabled"
+            ]
+          ],
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.articulation_props._usd_namespace",
+          "old": "MISSING",
+          "new": "physxArticulation",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.physics_material",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.robot.spawn.physics_material_path",
+          "old": "MISSING",
+          "new": "material",
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.robot.spawn.rigid_props._usd_applied_schema",
+          "old": "MISSING",
+          "new": "PhysxRigidBodyAPI",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.rigid_props._usd_field_exceptions.PhysxRigidBodyAPI",
+          "old": "MISSING",
+          "new": [
+            "physxRigidBody",
+            [
+              "disable_gravity"
+            ]
+          ],
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.rigid_props._usd_namespace",
+          "old": "MISSING",
+          "new": "physxRigidBody",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.sky_light.disable_shape_checks",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.sky_light.init_state.rot",
+          "old": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "new": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "disposition": "rotation_representation",
+          "reason": "Same identity rotation, WXYZ to XYZW. Root/body policy projection and fixed-state traces verified."
+        },
+        {
+          "path": "scene.sky_light.spawn.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.sky_light.spawn.texture_file",
+          "old": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Materials/Textures/Skies/PolyHaven/kloofendal_43d_clear_puresky_4k.hdr",
+          "new": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/Materials/Textures/Skies/PolyHaven/kloofendal_43d_clear_puresky_4k.hdr",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "scene.terrain.physics_material._usd_applied_schema",
+          "old": "MISSING",
+          "new": "PhysxMaterialAPI",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.terrain.physics_material._usd_namespace",
+          "old": "MISSING",
+          "new": "physxMaterial",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.terrain.physics_material.compliant_contact_damping",
+          "old": 0.0,
+          "new": null,
+          "disposition": "physx_default",
+          "reason": "None leaves the PhysX rigid-material default at zero; compliant contacts are not enabled."
+        },
+        {
+          "path": "scene.terrain.physics_material.compliant_contact_stiffness",
+          "old": 0.0,
+          "new": null,
+          "disposition": "physx_default",
+          "reason": "None leaves the PhysX rigid-material default at zero; compliant contacts are not enabled."
+        },
+        {
+          "path": "scene.terrain.terrain_generator.color_scheme",
+          "old": "height",
+          "new": "none",
+          "disposition": "declared_visual_change",
+          "reason": "Uniform material replaces vertex height colors: target trimesh lacks Lab's jet map. No RGB policy input; geometry and collision meshes unchanged."
+        },
+        {
+          "path": "scene.terrain.use_terrain_origins",
+          "old": "MISSING",
+          "new": true,
+          "disposition": "explicit_scene_default",
+          "reason": "True preserves terrain-origin placement; recorded initial terrain assignment is unchanged."
+        },
+        {
+          "path": "scene.terrain.visual_material.mdl_path",
+          "old": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/IsaacLab/Materials/TilesMarbleSpiderWhiteBrickBondHoned/TilesMarbleSpiderWhiteBrickBondHoned.mdl",
+          "new": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/IsaacLab/Materials/TilesMarbleSpiderWhiteBrickBondHoned/TilesMarbleSpiderWhiteBrickBondHoned.mdl",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "sim.device",
+          "old": "cuda:1",
+          "new": "cuda:0",
+          "disposition": "execution_placement",
+          "reason": "Probe uses the logical device exposed by its GPU lease; this is not a physics parameter."
+        },
+        {
+          "path": "sim.log_dir",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "execution_metadata",
+          "reason": "Logging/IO metadata or disabled teleoperation; no dynamics or workload change."
+        },
+        {
+          "path": "sim.logging_level",
+          "old": "MISSING",
+          "new": "WARNING",
+          "disposition": "execution_metadata",
+          "reason": "Logging/IO metadata or disabled teleoperation; no dynamics or workload change."
+        },
+        {
+          "path": "sim.physics.class_type",
+          "old": "MISSING",
+          "new": "isaaclab_physx.physics.physx_manager:PhysxManager",
+          "disposition": "backend_selection",
+          "reason": "Explicit sole PhysX backend; Newton actuators and scene query support disabled as before."
+        },
+        {
+          "path": "sim.physics.enable_external_forces_every_iteration",
+          "old": "MISSING",
+          "new": false,
+          "disposition": "explicit_physics_default",
+          "reason": "False equals the measured legacy USD setting; see timeout_bootstrap_source_audit and physics probes."
+        },
+        {
+          "path": "sim.physics.enable_scene_query_support",
+          "old": "MISSING",
+          "new": false,
+          "disposition": "backend_selection",
+          "reason": "Explicit sole PhysX backend; Newton actuators and scene query support disabled as before."
+        },
+        {
+          "path": "sim.physics.gpu_total_aggregate_pairs_capacity",
+          "old": 2097152,
+          "new": 8388608,
+          "disposition": "measured_capacity_fix",
+          "reason": "Raise GPU allocation from 2**21 to 2**23 after the 4096-env job exhausted aggregate pairs. Overflowed runs are invalid; task dynamics and layout stay fixed."
+        },
+        {
+          "path": "sim.physics_material._usd_applied_schema",
+          "old": "MISSING",
+          "new": "PhysxMaterialAPI",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "sim.physics_material._usd_namespace",
+          "old": "MISSING",
+          "new": "physxMaterial",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "sim.physics_material.compliant_contact_damping",
+          "old": 0.0,
+          "new": null,
+          "disposition": "physx_default",
+          "reason": "None leaves the PhysX rigid-material default at zero; compliant contacts are not enabled."
+        },
+        {
+          "path": "sim.physics_material.compliant_contact_stiffness",
+          "old": 0.0,
+          "new": null,
+          "disposition": "physx_default",
+          "reason": "None leaves the PhysX rigid-material default at zero; compliant contacts are not enabled."
+        },
+        {
+          "path": "sim.render.ambient_light_intensity",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.ambient_occlusion_denoiser_mode",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.max_bounces",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.split_clearcoat",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.split_glass",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.split_rough_reflection",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.view_tile_limit",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.save_logs_to_file",
+          "old": "MISSING",
+          "new": true,
+          "disposition": "execution_metadata",
+          "reason": "Logging/IO metadata or disabled teleoperation; no dynamics or workload change."
+        },
+        {
+          "path": "sim.use_newton_actuators",
+          "old": "MISSING",
+          "new": false,
+          "disposition": "backend_selection",
+          "reason": "Explicit sole PhysX backend; Newton actuators and scene query support disabled as before."
+        },
+        {
+          "path": "sim.visualizer_cfgs",
+          "old": "MISSING",
+          "new": [],
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "video_recorder.backend_source",
+          "old": "MISSING",
+          "new": "visualizer",
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.class_type",
+          "old": "MISSING",
+          "new": "isaaclab.envs.utils.video_recorder:VideoRecorder",
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.env_render_mode",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.eye",
+          "old": "MISSING",
+          "new": [
+            7.5,
+            7.5,
+            7.5
+          ],
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.lookat",
+          "old": "MISSING",
+          "new": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.window_height",
+          "old": "MISSING",
+          "new": 720,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.window_width",
+          "old": "MISSING",
+          "new": 1280,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        }
+      ],
+      "unresolved_paths": []
+    },
+    "go2_eval": {
+      "contact_effective_fields_equal": {
+        "update_period": true,
+        "force_threshold": true,
+        "max_contact_data_count_per_prim": true,
+        "history_length": true,
+        "track_air_time": true
+      },
+      "changes": [
+        {
+          "path": "commands.base_velocity.cmd_kind",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "command_metadata",
+          "reason": "New names/thresholds describe command metrics. Command ranges, resampling and reward formulas are unchanged."
+        },
+        {
+          "path": "commands.base_velocity.current_vel_visualizer_cfg.markers.arrow.physics_material",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.current_vel_visualizer_cfg.markers.arrow.physics_material_path",
+          "old": "MISSING",
+          "new": "material",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.current_vel_visualizer_cfg.markers.arrow.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.current_vel_visualizer_cfg.markers.arrow.usd_path",
+          "old": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/UIElements/arrow_x.usd",
+          "new": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/Props/UIElements/arrow_x.usd",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.element_names",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "command_metadata",
+          "reason": "New names/thresholds describe command metrics. Command ranges, resampling and reward formulas are unchanged."
+        },
+        {
+          "path": "commands.base_velocity.goal_vel_visualizer_cfg.markers.arrow.physics_material",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.goal_vel_visualizer_cfg.markers.arrow.physics_material_path",
+          "old": "MISSING",
+          "new": "material",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.goal_vel_visualizer_cfg.markers.arrow.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.goal_vel_visualizer_cfg.markers.arrow.usd_path",
+          "old": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/UIElements/arrow_x.usd",
+          "new": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/Props/UIElements/arrow_x.usd",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "commands.base_velocity.vel_xy_success_threshold",
+          "old": "MISSING",
+          "new": 0.5,
+          "disposition": "command_metadata",
+          "reason": "New names/thresholds describe command metrics. Command ranges, resampling and reward formulas are unchanged."
+        },
+        {
+          "path": "commands.base_velocity.vel_yaw_success_threshold",
+          "old": "MISSING",
+          "new": 0.4,
+          "disposition": "command_metadata",
+          "reason": "New names/thresholds describe command metrics. Command ranges, resampling and reward formulas are unchanged."
+        },
+        {
+          "path": "events.add_base_mass.params.distribution",
+          "old": "MISSING",
+          "new": "uniform",
+          "disposition": "explicit_default",
+          "reason": "Old function default uniform is now explicit. Distribution parameters are unchanged; CPU/GPU RNG sampling change remains declared."
+        },
+        {
+          "path": "io_descriptors_output_dir",
+          "old": null,
+          "new": "MISSING",
+          "disposition": "execution_metadata",
+          "reason": "Logging/IO metadata or disabled teleoperation; no dynamics or workload change."
+        },
+        {
+          "path": "isaac_teleop",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "execution_metadata",
+          "reason": "Logging/IO metadata or disabled teleoperation; no dynamics or workload change."
+        },
+        {
+          "path": "num_rerenders_on_reset",
+          "old": "MISSING",
+          "new": 0,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "recorders.dataset_compression",
+          "old": "MISSING",
+          "new": true,
+          "disposition": "inactive_dataset_export",
+          "reason": "Both configs select EXPORT_NONE; dataset compression/close export do not affect the task's transition recorder."
+        },
+        {
+          "path": "recorders.export_in_close",
+          "old": "MISSING",
+          "new": false,
+          "disposition": "inactive_dataset_export",
+          "reason": "Both configs select EXPORT_NONE; dataset compression/close export do not affect the task's transition recorder."
+        },
+        {
+          "path": "scene.contact_forces.class_type",
+          "old": "isaaclab.sensors.contact_sensor.contact_sensor:ContactSensor",
+          "new": "true_rl_agent.backends.isaac_lab_contact_sensor:SampledContactSensor",
+          "disposition": "contact_sampling",
+          "reason": "PhysX kernel retained; sampled sensor restores history/timing cadence. See audit_contact_sampling_comparison.json."
+        },
+        {
+          "path": "scene.contact_forces.track_friction_forces",
+          "old": "MISSING",
+          "new": false,
+          "disposition": "inactive_sensor_feature",
+          "reason": "New tangential-force feature remains disabled."
+        },
+        {
+          "path": "scene.contact_forces.visualizer_cfg.markers.contact.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "scene.contact_forces.visualizer_cfg.markers.no_contact.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "scene.height_scanner.attach_yaw_only",
+          "old": null,
+          "new": "MISSING",
+          "disposition": "retired_inactive_field",
+          "reason": "Old unused alias / zero history removed; ray_alignment and update_period are unchanged."
+        },
+        {
+          "path": "scene.height_scanner.history_length",
+          "old": 0,
+          "new": "MISSING",
+          "disposition": "retired_inactive_field",
+          "reason": "Old unused alias / zero history removed; ray_alignment and update_period are unchanged."
+        },
+        {
+          "path": "scene.height_scanner.offset.rot",
+          "old": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "new": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "disposition": "rotation_representation",
+          "reason": "Same identity rotation, WXYZ to XYZW. Root/body policy projection and fixed-state traces verified."
+        },
+        {
+          "path": "scene.height_scanner.spawn.copy_from_source",
+          "old": "MISSING",
+          "new": true,
+          "disposition": "ray_frame",
+          "reason": "Lab 3 creates a FrameView for the same ray attachment. Ray layout and same-state height scan were measured."
+        },
+        {
+          "path": "scene.height_scanner.spawn.func",
+          "old": "MISSING",
+          "new": "isaaclab.sim.spawners.sensors.sensors:spawn_sensor_frame",
+          "disposition": "ray_frame",
+          "reason": "Lab 3 creates a FrameView for the same ray attachment. Ray layout and same-state height scan were measured."
+        },
+        {
+          "path": "scene.height_scanner.spawn.semantic_tags",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "ray_frame",
+          "reason": "Lab 3 creates a FrameView for the same ray attachment. Ray layout and same-state height scan were measured."
+        },
+        {
+          "path": "scene.height_scanner.spawn.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "ray_frame",
+          "reason": "Lab 3 creates a FrameView for the same ray attachment. Ray layout and same-state height scan were measured."
+        },
+        {
+          "path": "scene.height_scanner.spawn.visible",
+          "old": "MISSING",
+          "new": true,
+          "disposition": "ray_frame",
+          "reason": "Lab 3 creates a FrameView for the same ray attachment. Ray layout and same-state height scan were measured."
+        },
+        {
+          "path": "scene.height_scanner.visualizer_cfg.markers.hit.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "scene.robot.disable_shape_checks",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.robot.init_state.rot",
+          "old": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "new": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "disposition": "rotation_representation",
+          "reason": "Same identity rotation, WXYZ to XYZW. Root/body policy projection and fixed-state traces verified."
+        },
+        {
+          "path": "scene.robot.spawn.articulation_props._usd_applied_schema",
+          "old": "MISSING",
+          "new": "PhysxArticulationAPI",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.articulation_props._usd_field_exceptions.PhysxArticulationAPI",
+          "old": "MISSING",
+          "new": [
+            "physxArticulation",
+            [
+              "articulation_enabled"
+            ]
+          ],
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.articulation_props._usd_namespace",
+          "old": "MISSING",
+          "new": "physxArticulation",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.physics_material",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.robot.spawn.physics_material_path",
+          "old": "MISSING",
+          "new": "material",
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.robot.spawn.rigid_props._usd_applied_schema",
+          "old": "MISSING",
+          "new": "PhysxRigidBodyAPI",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.rigid_props._usd_field_exceptions.PhysxRigidBodyAPI",
+          "old": "MISSING",
+          "new": [
+            "physxRigidBody",
+            [
+              "disable_gravity"
+            ]
+          ],
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.rigid_props._usd_namespace",
+          "old": "MISSING",
+          "new": "physxRigidBody",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.robot.spawn.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.sky_light.disable_shape_checks",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.sky_light.init_state.rot",
+          "old": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "new": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "disposition": "rotation_representation",
+          "reason": "Same identity rotation, WXYZ to XYZW. Root/body policy projection and fixed-state traces verified."
+        },
+        {
+          "path": "scene.sky_light.spawn.spawn_path",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "inactive_spawn_option",
+          "reason": "New optional spawn/validation fields; no material override or alternate spawn path selected."
+        },
+        {
+          "path": "scene.sky_light.spawn.texture_file",
+          "old": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Materials/Textures/Skies/PolyHaven/kloofendal_43d_clear_puresky_4k.hdr",
+          "new": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/Materials/Textures/Skies/PolyHaven/kloofendal_43d_clear_puresky_4k.hdr",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "scene.terrain.physics_material._usd_applied_schema",
+          "old": "MISSING",
+          "new": "PhysxMaterialAPI",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.terrain.physics_material._usd_namespace",
+          "old": "MISSING",
+          "new": "physxMaterial",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "scene.terrain.physics_material.compliant_contact_damping",
+          "old": 0.0,
+          "new": null,
+          "disposition": "physx_default",
+          "reason": "None leaves the PhysX rigid-material default at zero; compliant contacts are not enabled."
+        },
+        {
+          "path": "scene.terrain.physics_material.compliant_contact_stiffness",
+          "old": 0.0,
+          "new": null,
+          "disposition": "physx_default",
+          "reason": "None leaves the PhysX rigid-material default at zero; compliant contacts are not enabled."
+        },
+        {
+          "path": "scene.terrain.terrain_generator.color_scheme",
+          "old": "height",
+          "new": "none",
+          "disposition": "declared_visual_change",
+          "reason": "Uniform material replaces vertex height colors: target trimesh lacks Lab's jet map. No RGB policy input; geometry and collision meshes unchanged."
+        },
+        {
+          "path": "scene.terrain.use_terrain_origins",
+          "old": "MISSING",
+          "new": true,
+          "disposition": "explicit_scene_default",
+          "reason": "True preserves terrain-origin placement; recorded initial terrain assignment is unchanged."
+        },
+        {
+          "path": "scene.terrain.visual_material.mdl_path",
+          "old": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/IsaacLab/Materials/TilesMarbleSpiderWhiteBrickBondHoned/TilesMarbleSpiderWhiteBrickBondHoned.mdl",
+          "new": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.0/Isaac/IsaacLab/Materials/TilesMarbleSpiderWhiteBrickBondHoned/TilesMarbleSpiderWhiteBrickBondHoned.mdl",
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "sim.device",
+          "old": "cuda:1",
+          "new": "cuda:0",
+          "disposition": "execution_placement",
+          "reason": "Probe uses the logical device exposed by its GPU lease; this is not a physics parameter."
+        },
+        {
+          "path": "sim.log_dir",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "execution_metadata",
+          "reason": "Logging/IO metadata or disabled teleoperation; no dynamics or workload change."
+        },
+        {
+          "path": "sim.logging_level",
+          "old": "MISSING",
+          "new": "WARNING",
+          "disposition": "execution_metadata",
+          "reason": "Logging/IO metadata or disabled teleoperation; no dynamics or workload change."
+        },
+        {
+          "path": "sim.physics.class_type",
+          "old": "MISSING",
+          "new": "isaaclab_physx.physics.physx_manager:PhysxManager",
+          "disposition": "backend_selection",
+          "reason": "Explicit sole PhysX backend; Newton actuators and scene query support disabled as before."
+        },
+        {
+          "path": "sim.physics.enable_external_forces_every_iteration",
+          "old": "MISSING",
+          "new": false,
+          "disposition": "explicit_physics_default",
+          "reason": "False equals the measured legacy USD setting; see timeout_bootstrap_source_audit and physics probes."
+        },
+        {
+          "path": "sim.physics.enable_scene_query_support",
+          "old": "MISSING",
+          "new": false,
+          "disposition": "backend_selection",
+          "reason": "Explicit sole PhysX backend; Newton actuators and scene query support disabled as before."
+        },
+        {
+          "path": "sim.physics.gpu_total_aggregate_pairs_capacity",
+          "old": 2097152,
+          "new": 8388608,
+          "disposition": "measured_capacity_fix",
+          "reason": "Raise GPU allocation from 2**21 to 2**23 after the 4096-env job exhausted aggregate pairs. Overflowed runs are invalid; task dynamics and layout stay fixed."
+        },
+        {
+          "path": "sim.physics_material._usd_applied_schema",
+          "old": "MISSING",
+          "new": "PhysxMaterialAPI",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "sim.physics_material._usd_namespace",
+          "old": "MISSING",
+          "new": "physxMaterial",
+          "disposition": "usd_schema_metadata",
+          "reason": "Lab 3 property serialization declares USD API/namespace; shared physical field values are unchanged."
+        },
+        {
+          "path": "sim.physics_material.compliant_contact_damping",
+          "old": 0.0,
+          "new": null,
+          "disposition": "physx_default",
+          "reason": "None leaves the PhysX rigid-material default at zero; compliant contacts are not enabled."
+        },
+        {
+          "path": "sim.physics_material.compliant_contact_stiffness",
+          "old": 0.0,
+          "new": null,
+          "disposition": "physx_default",
+          "reason": "None leaves the PhysX rigid-material default at zero; compliant contacts are not enabled."
+        },
+        {
+          "path": "sim.render.ambient_light_intensity",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.ambient_occlusion_denoiser_mode",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.max_bounces",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.split_clearcoat",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.split_glass",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.split_rough_reflection",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.render.view_tile_limit",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "sim.save_logs_to_file",
+          "old": "MISSING",
+          "new": true,
+          "disposition": "execution_metadata",
+          "reason": "Logging/IO metadata or disabled teleoperation; no dynamics or workload change."
+        },
+        {
+          "path": "sim.use_newton_actuators",
+          "old": "MISSING",
+          "new": false,
+          "disposition": "backend_selection",
+          "reason": "Explicit sole PhysX backend; Newton actuators and scene query support disabled as before."
+        },
+        {
+          "path": "sim.visualizer_cfgs",
+          "old": "MISSING",
+          "new": [],
+          "disposition": "presentation",
+          "reason": "Renderer assets/options; debug markers disabled, no policy RGB input. Native recordings use the same scene geometry."
+        },
+        {
+          "path": "video_recorder.backend_source",
+          "old": "MISSING",
+          "new": "visualizer",
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.class_type",
+          "old": "MISSING",
+          "new": "isaaclab.envs.utils.video_recorder:VideoRecorder",
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.env_render_mode",
+          "old": "MISSING",
+          "new": null,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.eye",
+          "old": "MISSING",
+          "new": [
+            7.5,
+            7.5,
+            7.5
+          ],
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.lookat",
+          "old": "MISSING",
+          "new": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.window_height",
+          "old": "MISSING",
+          "new": 720,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        },
+        {
+          "path": "video_recorder.window_width",
+          "old": "MISSING",
+          "new": 1280,
+          "disposition": "render_configuration",
+          "reason": "New optional renderer fields; upstream video recorder not invoked. Viewport RGB needs its own annotator warmup; scene RTX reset loop is inactive."
+        }
+      ],
+      "unresolved_paths": []
+    }
+  },
+  "inventory_complete": true
+}

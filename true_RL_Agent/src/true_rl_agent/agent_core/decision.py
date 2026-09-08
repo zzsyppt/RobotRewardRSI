@@ -446,6 +446,7 @@ def _acceptance_threshold(
     best_se = _standard_error(current_best.public_accept_stats)
     return acceptance_threshold(
         acceptance_protocol,
+        statistics_version=acceptance_validation.score_stats.get("statistics_version"),
         candidate_score=acceptance_validation.score_mean,
         best_score=current_best.score_for_comparison(),
         candidate_score_samples=acceptance_validation.score_samples,
@@ -465,6 +466,7 @@ def _guard_regression_threshold(
 ) -> GuardRegressionThreshold:
     return guard_regression_threshold(
         acceptance_protocol,
+        statistics_version=acceptance_validation.guard_score_stats.get("statistics_version"),
         candidate_guard_score=acceptance_validation.guard_score_mean,
         best_guard_score=current_best.guard_score_for_comparison(),
         candidate_guard_score_samples=acceptance_validation.guard_score_samples,
@@ -485,6 +487,7 @@ def _named_guard_regression_threshold(
     return named_guard_regression_threshold(
         acceptance_protocol,
         guard,
+        statistics_version=_mapping(item.get("score_stats")).get("statistics_version"),
         candidate_guard_score=_candidate_named_guard_score(
             acceptance_validation, guard.name
         ),

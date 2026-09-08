@@ -42,6 +42,7 @@ from true_rl_agent.tasks.stair_climbing.seed_policy import (
     STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
     STAIR_FORMAL_EVAL_NAMESPACE,
 )
+from true_rl_agent.tasks.stair_climbing.row_catalog import stair_robot_row
 from true_rl_agent.training_binding import TrainingBinding
 from true_rl_agent.tasks.stair_climbing.unified_protocol import (
     STAIR_UNIFIED_PROTOCOL_RELATIVE_PATH,
@@ -94,7 +95,11 @@ def validate_stair_train_invocation(
 ) -> StairTrainEntrypointContext:
     """Reject any train argv that differs from the task-owned config snapshot."""
 
-    config_path = _canonical_config_path(args.config, project_root=project_root)
+    config_path = _canonical_config_path(
+        args.config,
+        project_root=project_root,
+        resolved_cell_manifest=resolved_cell_manifest,
+    )
     defaults = _resolved_stair_config(
         config_path,
         resolved_cell_manifest=resolved_cell_manifest,
@@ -116,7 +121,7 @@ def validate_stair_train_invocation(
         sealed_validation_seed_count=defaults.sealed_validation_seed_count,
         eval_protocol_version=defaults.eval_protocol_version,
         train_seed=_nonnegative_int(args.seed, "seed"),
-        runner_timeout_s=defaults.runner_timeout_s,
+        protocol_runner_timeout_s=defaults.protocol_runner_timeout_s,
         train_profile=_text(args.profile, "profile"),
         eval_profile=defaults.eval_profile,
         cell_variant_id=defaults.cell_variant_id,
@@ -292,7 +297,9 @@ def validate_stair_train_invocation(
             "stair capability profile hash",
         ),
         task_protocol_hash=(
-            config.task_protocol_hash if config.is_unified_protocol else None
+            config.training_binding_task_protocol_hash
+            if config.is_unified_protocol
+            else None
         ),
         binding_hash=require_sha256_digest(
             args.training_binding_hash,
@@ -335,7 +342,11 @@ def validate_stair_eval_invocation(
 ) -> StairEvalEntrypointContext:
     """Bind an eval invocation to one immutable Stair comparison domain."""
 
-    config_path = _canonical_config_path(args.config, project_root=project_root)
+    config_path = _canonical_config_path(
+        args.config,
+        project_root=project_root,
+        resolved_cell_manifest=resolved_cell_manifest,
+    )
     config = _resolved_stair_config(
         config_path,
         resolved_cell_manifest=resolved_cell_manifest,
@@ -470,13 +481,25 @@ def validate_stair_eval_invocation(
     )
 
 
-def _canonical_config_path(value: Any, *, project_root: Path) -> Path:
+def _canonical_config_path(
+    value: Any,
+    *,
+    project_root: Path,
+    resolved_cell_manifest: ResolvedCellManifestV1 | None,
+) -> Path:
     if not isinstance(project_root, Path):
         raise TypeError("project_root must be a Path")
-    if value != STAIR_UNIFIED_PROTOCOL_RELATIVE_PATH:
+    expected = STAIR_UNIFIED_PROTOCOL_RELATIVE_PATH
+    if resolved_cell_manifest is not None:
+        if not isinstance(resolved_cell_manifest, ResolvedCellManifestV1):
+            raise TypeError("resolved Stair cell manifest is invalid")
+        expected = stair_robot_row(
+            resolved_cell_manifest.cell_variant_id
+        ).protocol_relative_path
+    if value != expected:
         raise ValueError("stair entrypoint config path is not canonical")
     return resolve_existing_file(
-        project_root / STAIR_UNIFIED_PROTOCOL_RELATIVE_PATH,
+        project_root / expected,
         field_name="stair entrypoint config",
     )
 

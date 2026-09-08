@@ -54,7 +54,9 @@ class Phase14ExtensionDocsTests(unittest.TestCase):
             "tests/unit/test_candidate_package.py",
             "tests/unit/test_prompt_projection_and_mechanism.py",
             "tests/unit/test_curriculum_phase9.py",
-            "tests/integration/test_agent_core_loop.py",
+            "tests/integration/test_round_public_boundaries.py",
+            "tests/integration/test_live_loop.py",
+            "tests/integration/test_session_genesis_live_loop.py",
             "tests/integration/test_fake_round.py",
             "tests/unit/test_push_recovery_task.py",
             "tests/unit/test_memory_context_phase13.py",
@@ -67,7 +69,7 @@ class Phase14ExtensionDocsTests(unittest.TestCase):
 
     def test_existing_tests_cover_phase14_acceptance_categories(self) -> None:
         coverage_sources = {
-            "registration": PROJECT_ROOT / "tests" / "unit" / "test_plugin_registries.py",
+            "registration": PROJECT_ROOT / "tests" / "unit" / "test_composition.py",
             "job materialization": PROJECT_ROOT / "tests" / "unit" / "test_isaac_lab_backend.py",
             "policy initialization": PROJECT_ROOT / "tests" / "unit" / "test_baseline_management.py",
             "public projection": PROJECT_ROOT / "tests" / "unit" / "test_memory_context_phase13.py",
@@ -77,7 +79,7 @@ class Phase14ExtensionDocsTests(unittest.TestCase):
         }
 
         expected_terms = {
-            "registration": ("TaskRegistry", "BackendRegistry"),
+            "registration": ("TaskCompositionRegistry", "register"),
             "job materialization": ("materializes_random_train", "materializes_warm_start_train"),
             "policy initialization": ("warm_start", "random"),
             "public projection": ("PublicContextBuilder", "private_seed", "checkpoint_selector"),

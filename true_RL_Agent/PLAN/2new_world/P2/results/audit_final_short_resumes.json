@@ -1,0 +1,147 @@
+{
+  "audit2_g1_resume": {
+    "robot": "g1",
+    "purpose": "P2 diagnostic native resume",
+    "constructed_learner": {
+      "schema_version": "true_rl_agent.rsl_rl_constructed_learner.v1",
+      "configuration_mapping_version": "rsl_rl_3_actor_critic_to_rsl_rl_5_mlp.v1",
+      "models": {
+        "actor": {
+          "input_dim": 310,
+          "output_dim": 37,
+          "hidden_dims": [
+            512,
+            256,
+            128
+          ],
+          "activation": "ELU",
+          "obs_normalization": false,
+          "obs_groups": [
+            "policy"
+          ]
+        },
+        "critic": {
+          "input_dim": 310,
+          "output_dim": 1,
+          "hidden_dims": [
+            512,
+            256,
+            128
+          ],
+          "activation": "ELU",
+          "obs_normalization": false,
+          "obs_groups": [
+            "policy"
+          ]
+        }
+      },
+      "algorithm": {
+        "num_learning_epochs": 5,
+        "num_mini_batches": 4,
+        "learning_rate": 0.001,
+        "schedule": "adaptive",
+        "gamma": 0.99,
+        "lam": 0.95,
+        "entropy_coef": 0.008,
+        "desired_kl": 0.01,
+        "max_grad_norm": 1.0,
+        "value_loss_coef": 1.0,
+        "use_clipped_value_loss": true,
+        "clip_param": 0.2,
+        "normalize_advantage_per_mini_batch": false
+      },
+      "optimizer": "Adam",
+      "optimizer_source": "frozen_v1_PPO_implicit_Adam",
+      "noise_std_type": "scalar",
+      "initial_noise_std": 1.0
+    },
+    "constructed_learner_drift_rejected": true,
+    "status": "PASS",
+    "train_control_steps": 384,
+    "evaluation_vector_steps": 16,
+    "optimizer_exact_roundtrip": true,
+    "actor_critic_normalizer_exact_roundtrip": true,
+    "saved_iteration": 1,
+    "action_dim": 37,
+    "observation_shapes": {
+      "policy": [
+        16,
+        310
+      ]
+    },
+    "source": "results\\audit2_g1_resume\\result.json",
+    "sha256": "81bfc5fd1254577ed4bcfa4c1fe6e125f478e23701b48e96471845723d94679a"
+  },
+  "audit2_push_resume": {
+    "constructed_learner": {
+      "schema_version": "true_rl_agent.rsl_rl_constructed_learner.v1",
+      "configuration_mapping_version": "rsl_rl_3_actor_critic_to_rsl_rl_5_mlp.v1",
+      "models": {
+        "actor": {
+          "input_dim": 480,
+          "output_dim": 29,
+          "hidden_dims": [
+            512,
+            256,
+            128
+          ],
+          "activation": "ELU",
+          "obs_normalization": false,
+          "obs_groups": [
+            "policy"
+          ]
+        },
+        "critic": {
+          "input_dim": 495,
+          "output_dim": 1,
+          "hidden_dims": [
+            512,
+            256,
+            128
+          ],
+          "activation": "ELU",
+          "obs_normalization": false,
+          "obs_groups": [
+            "critic"
+          ]
+        }
+      },
+      "algorithm": {
+        "num_learning_epochs": 5,
+        "num_mini_batches": 4,
+        "learning_rate": 0.001,
+        "schedule": "adaptive",
+        "gamma": 0.99,
+        "lam": 0.95,
+        "entropy_coef": 0.01,
+        "desired_kl": 0.01,
+        "max_grad_norm": 1.0,
+        "value_loss_coef": 1.0,
+        "use_clipped_value_loss": true,
+        "clip_param": 0.2,
+        "normalize_advantage_per_mini_batch": false
+      },
+      "optimizer": "Adam",
+      "optimizer_source": "frozen_v1_PPO_implicit_Adam",
+      "noise_std_type": "scalar",
+      "initial_noise_std": 1.0
+    },
+    "status": "PASS",
+    "action_dim": 29,
+    "observation_shapes": {
+      "policy": [
+        16,
+        480
+      ],
+      "critic": [
+        16,
+        495
+      ]
+    },
+    "train_control_steps": 384,
+    "evaluation_vector_steps": 100,
+    "velocity_delta_near_push_max": 0.7878223061561584,
+    "source": "results\\audit2_push_resume\\result.json",
+    "sha256": "836363e5b0b9ae38514d84a144a6671f976554c928df9aad051689d5723c347a"
+  }
+}

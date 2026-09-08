@@ -1,0 +1,144 @@
+{
+  "status": "PASS",
+  "p2_engineering_decision": "GO",
+  "verified_at_utc": "2026-09-08T09:03:56.486955+00:00",
+  "scope": "Finish the authorized P2 acceptance using the already frozen audit repairs; no P3/P4 changes, LLM calls, or reference promotion.",
+  "project_source_hash": "2e9958ef288164b0da8285876f057bc40ed809a1a576acb3c917d6540e895525",
+  "execution_manifest_hash": "2d42240c8a2d34d8b67816ca23e2226ac2a2f146800f4f35f22de1b3d58bac31",
+  "training": {
+    "seed": 1262835026,
+    "iterations": 2000,
+    "control_steps": 196608000,
+    "last_checkpoint_iteration": 1999,
+    "core_physx_errors": 0,
+    "checkpoint": {
+      "checksum": "sha256:7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+      "metadata": {
+        "local_path": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit3_go2_full_train/runner/audit3_go2_full_train/checkpoints/best.pt",
+        "source_latest_checkpoint": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit3_go2_full_train/runner/audit3_go2_full_train/train/run/attempt-8398d445d3c34dc5af179ee71d20c69e/rsl_rl/model_1999.pt",
+        "source_latest_checkpoint_sha256": "sha256:7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c"
+      },
+      "role": "train_output",
+      "uri": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit3_go2_full_train/runner/audit3_go2_full_train/checkpoints/best.pt"
+    },
+    "gpu_lease_s": 8472.390263615
+  },
+  "new_checkpoint_public_dev": {
+    "training_seed_count": 1,
+    "evaluation_seed_count": 3,
+    "episodes": 216,
+    "successes": 165,
+    "success_rate": 0.7638888888888888,
+    "j_primary": 0.883938290781893,
+    "outcomes": {
+      "base_orientation_instability": 12,
+      "forbidden_contact": 26,
+      "insufficient_clearance": 0,
+      "off_course": 0,
+      "slip": 0,
+      "success": 165,
+      "timeout": 13
+    },
+    "admission": "production_runner",
+    "checkpoint_loading": {
+      "actor_loaded": true,
+      "checkpoint_format": "rsl_rl_5",
+      "critic_loaded": true,
+      "iteration_loaded": false,
+      "optimizer_loaded": false
+    }
+  },
+  "native_video": {
+    "recordings": 3,
+    "frame_counts": [
+      309,
+      304,
+      300
+    ],
+    "fps": 50,
+    "maximum_frame_delta": 0,
+    "first_middle_last_images_viewed": 9,
+    "same_full_public_summary_with_video_off": true
+  },
+  "deployment": {
+    "root": "/data/yuyangliu/AGENT/true_RL_Agent",
+    "exact_changed_files": 33,
+    "entrypoint_test_passed": true,
+    "manifest_matches_validated_run": true
+  },
+  "protected_history": {
+    "checkpoint_sha256_count": 71,
+    "formal_evidence_sha256_count": 801,
+    "reference_sha256_count": 6,
+    "lab_source_sha256_count": 2333,
+    "changes": []
+  },
+  "reused_tests": {
+    "local": {
+      "tests_run": 1611,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 19
+    },
+    "target": {
+      "tests_run": 56,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "remaining_boundaries": {
+    "old_new_numerical_equivalence": "NOT_ESTABLISHED; original fixed thresholds and negative comparison retained",
+    "new_reference_qualification": "P3; this P2 engineering run does not establish it",
+    "new_generation_cost_contract": "P4; old frozen v4/v5 budgets are not promoted",
+    "go2_push_complete_budget_and_task_loop": "later matrix-cell qualification"
+  },
+  "current_completion_gpu_lease_total_h": 2.4619837725005556,
+  "gpu_cost_note": "Only this resumed acceptance run: one full train and two full public-dev evaluations. Not the complete historical P2 development cost.",
+  "evidence": [
+    {
+      "path": "results/audit_completion_full_training_launch.json",
+      "sha256": "9204e26688675cbd5153e18519fed0ab87647bf766228b56a4143c1dd9cba307"
+    },
+    {
+      "path": "results/audit_completion_checkpoint_followup.json",
+      "sha256": "5825cbaf771b829726f4046a93a3cb2eac5682b9edecdcab19d18f0a9c10b41a"
+    },
+    {
+      "path": "results/audit_completion_checkpoint_visual_review.json",
+      "sha256": "72d993f924e218c6bb5f998a68879d7df3c84d7813f2e184b869651df5044179"
+    },
+    {
+      "path": "results/audit_deployment_result.json",
+      "sha256": "93794fc5d6ec8ada2809bff98a6cebdc9df44e834b9bc7d8a4c1ff99662a0e4a"
+    },
+    {
+      "path": "results/audit_after_deployment_verification.json",
+      "sha256": "318dc286b0c9a672ade0ad15de7c5c4597f6df0d68f559faa9e0daac55688588"
+    },
+    {
+      "path": "results/audit_completion_deployed_entrypoint_test.json",
+      "sha256": "f1c31e822d464665fef62b06747e61d390fc5dc4c244babd839d4c4a7af52cb2"
+    },
+    {
+      "path": "results/audit_completion_deployed_eval_launch.json",
+      "sha256": "40bd633b698955aacc45acc7802c472848c98ef646ccc7ffa2446ef9c9f69cda"
+    },
+    {
+      "path": "results/audit_completion_deployed_video_on_off_comparison.json",
+      "sha256": "2c78e5c07bdb538823b86a76e917d290d327f441af0d4b835d2817bc8ad97926"
+    },
+    {
+      "path": "results/audit_completion_resource_closure.json",
+      "sha256": "71dcc6ad0bed59638dfc58f11fb74663069b958f628391809d662d1a9ffa8ec0"
+    },
+    {
+      "path": "results/audit_final_tests.json",
+      "sha256": "ac02e317590d641621539ebfa278b0dda290ab6c95424ed5be7d86d801fa092e"
+    },
+    {
+      "path": "results/audit_final_target_tests.json",
+      "sha256": "37398d1198ce8939d9d69c3e7c9c6bbd594b58cb3dee06d0249f7c4a5302e666"
+    }
+  ]
+}

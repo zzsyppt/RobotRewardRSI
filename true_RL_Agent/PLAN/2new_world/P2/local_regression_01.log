@@ -1,0 +1,81 @@
+Isaac SimulationApp close failed: close failed
+Stair bound child CUDA_VISIBLE_DEVICES must be one full GPU UUID
+Stair bound child CUDA_VISIBLE_DEVICES must be one full GPU UUID
+{"status": "pass", "summary_path": "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp82fue1gz\\eval-summary.json"}
+{"status": "pass", "summary_path": "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp82fue1gz\\eval-summary.json"}
+stair evaluation evidence publication failed: summary publication failed
+backend execution environment drift
+backend execution environment drift
+installed source bytes drifted
+installed source bytes drifted
+{"error":"RuntimeError","message":"synthetic owned-child failure","status":"fail"}
+{"error":"FileNotFoundError","message":"[WinError 2] ϵͳ�Ҳ���ָ�����ļ���: 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmp4ae8o0l2\\\\leases'","status":"fail"}
+{"error":"ValueError","message":"shared GPU lease root must be an existing disjoint directory","status":"fail"}
+======================================================================
+ERROR: test_compiler_returns_deterministic_unsupported_reasons (unit.test_robot_matrix_contract.RobotMatrixContractTests.test_compiler_returns_deterministic_unsupported_reasons)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_robot_matrix_contract.py", line 523, in test_compiler_returns_deterministic_unsupported_reasons
+    conflicting_profile = replace(
+                          ^^^^^^^^
+  File "C:\Users\lover\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\dataclasses.py", line 1588, in replace
+    return obj.__class__(**changes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 10, in __init__
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\robots\base.py", line 223, in __post_init__
+    raise ValueError("support-effector targets must be physical support bodies")
+ValueError: support-effector targets must be physical support bodies
+
+======================================================================
+ERROR: setUpClass (unit.test_stair_baseline_adapter.StairBaselineAdapterTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_stair_baseline_adapter.py", line 27, in setUpClass
+    cls.report = cls.bundle.load_report(require_admitted=True)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\stair_climbing\phase0_contract.py", line 306, in load_report
+    report.assert_matches(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\stair_climbing\phase0_contract.py", line 236, in assert_matches
+    _validate_report_source_artifacts(self.to_dict(), Path(project_root))
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\stair_climbing\phase0_contract.py", line 2607, in _validate_report_source_artifacts
+    raise ValueError(f"Phase 0 report source artifact mismatch: {ref}")
+ValueError: Phase 0 report source artifact mismatch: src/true_rl_agent/tasks/stair_climbing/isaaclab_terrain.py
+
+======================================================================
+ERROR: test_frozen_bundle_and_admitted_report_load (unit.test_stair_phase0_contract.StairPhase0ContractTests.test_frozen_bundle_and_admitted_report_load)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_stair_phase0_contract.py", line 147, in test_frozen_bundle_and_admitted_report_load
+    report = self.bundle.load_report()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\stair_climbing\phase0_contract.py", line 306, in load_report
+    report.assert_matches(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\stair_climbing\phase0_contract.py", line 236, in assert_matches
+    _validate_report_source_artifacts(self.to_dict(), Path(project_root))
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\stair_climbing\phase0_contract.py", line 2607, in _validate_report_source_artifacts
+    raise ValueError(f"Phase 0 report source artifact mismatch: {ref}")
+ValueError: Phase 0 report source artifact mismatch: src/true_rl_agent/tasks/stair_climbing/isaaclab_terrain.py
+
+======================================================================
+FAIL: test_isaac_trusted_eval_summary_records_no_candidate_code_loaded (unit.test_push_recovery_task.PushRecoveryTaskTests.test_isaac_trusted_eval_summary_records_no_candidate_code_loaded)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_push_recovery_task.py", line 2860, in test_isaac_trusted_eval_summary_records_no_candidate_code_loaded
+    self.assertGreaterEqual(load_index, 0)
+AssertionError: -1 not greater than or equal to 0
+
+======================================================================
+FAIL: test_v2_success_semantics_reuse_v1_training_identity_for_both_rows (unit.test_stair_phase5_contract.StairPhase5ContractTests.test_v2_success_semantics_reuse_v1_training_identity_for_both_rows)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_stair_phase5_contract.py", line 445, in test_v2_success_semantics_reuse_v1_training_identity_for_both_rows
+    self.assertEqual(v1_binding.binding_hash, expected_binding_hash)
+AssertionError: '61ebe53c430474abb154f41eb0743ad810cb45e1696f7821f4dc123e35872526' != 'd7aea85d7742c57eae1753b8b236b32555269d9bcd8c25ed2b3742d2e045e14c'
+- 61ebe53c430474abb154f41eb0743ad810cb45e1696f7821f4dc123e35872526
++ d7aea85d7742c57eae1753b8b236b32555269d9bcd8c25ed2b3742d2e045e14c
+
+
+----------------------------------------------------------------------
+Ran 1614 tests in 324.211s
+
+FAILED (failures=2, errors=3, skipped=31)

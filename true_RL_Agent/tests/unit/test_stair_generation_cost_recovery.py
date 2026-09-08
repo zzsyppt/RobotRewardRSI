@@ -87,7 +87,7 @@ class StairGenerationCostRecoveryTests(unittest.TestCase):
             with (
                 patch(
                     "true_rl_agent.tasks.stair_climbing.generation_session."
-                    "_collect_actual_cost_usage",
+                    "collect_actual_cost_usage",
                     return_value=(usage, (), ()),
                 ),
                 patch.object(
@@ -173,7 +173,7 @@ class StairGenerationCostRecoveryTests(unittest.TestCase):
             with (
                 patch(
                     "true_rl_agent.tasks.stair_climbing.generation_session."
-                    "_collect_actual_cost_usage",
+                    "collect_actual_cost_usage",
                     return_value=(usage, (), ()),
                 ),
                 patch.object(
@@ -266,7 +266,7 @@ class StairGenerationCostRecoveryTests(unittest.TestCase):
             with (
                 patch(
                     "true_rl_agent.tasks.stair_climbing.generation_session."
-                    "_collect_actual_cost_usage",
+                    "collect_actual_cost_usage",
                     return_value=(usage, (), ()),
                 ),
                 patch.object(
@@ -327,7 +327,7 @@ class StairGenerationCostRecoveryTests(unittest.TestCase):
 
             with patch(
                 "true_rl_agent.tasks.stair_climbing.generation_session."
-                "_collect_actual_cost_usage",
+                "collect_actual_cost_usage",
                 return_value=(usage, charges, ()),
             ):
                 replayed = _assert_validation_cost_receipt_is_current(
@@ -678,7 +678,7 @@ class StairGenerationCostRecoveryTests(unittest.TestCase):
                 ),
                 patch(
                     "true_rl_agent.tasks.stair_climbing.generation_session."
-                    "_collect_actual_cost_usage",
+                    "collect_actual_cost_usage",
                     return_value=(usage, (), ()),
                 ),
                 patch(

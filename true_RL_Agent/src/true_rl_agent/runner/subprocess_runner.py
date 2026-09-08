@@ -83,6 +83,7 @@ from true_rl_agent.runner.job_attempts import (
     JobAttemptJournal,
     JobAttemptRecoveryRequiredError,
     JobAttemptScope,
+    JobAttemptTerminalResultError,
     PreGenesisExecutionScope,
 )
 from true_rl_agent.runner.job_argv import (
@@ -783,6 +784,32 @@ class SubprocessRunner(Runner):
                     raise ValueError("completed attempt output hash mismatch")
                 return recovered
             attempt_index, previous_result = journal.next_runnable_attempt()
+        except JobAttemptTerminalResultError as exc:
+            payload = exc.result.payload
+            try:
+                if (
+                    payload.get("outcome") != "infrastructure_failure"
+                    or payload.get("retryable") is not False
+                    or payload.get("output_hash") is not None
+                ):
+                    raise ValueError(
+                        "terminal attempt is not a reusable infrastructure failure"
+                    )
+                failure_kind = RunnerFailureKind(payload.get("failure_kind"))
+                terminal_error = RunnerExecutionError(
+                    f"{spec.job_id}: prior terminal infrastructure failure",
+                    failure_kind=failure_kind,
+                )
+                if not terminal_error.retryable_infrastructure_failure:
+                    raise ValueError(
+                        "terminal infrastructure failure kind is not resumable"
+                    )
+            except (TypeError, ValueError) as validation_error:
+                raise RunnerExecutionError(
+                    f"{spec.job_id}: attempt evidence contract is invalid",
+                    failure_kind=RunnerFailureKind.CONTRACT_INVALID,
+                ) from validation_error
+            raise terminal_error from exc
         except JobAttemptRecoveryRequiredError as exc:
             raise RunnerExecutionError(
                 f"{spec.job_id}: requires recovery inspection",
@@ -1091,6 +1118,17 @@ class SubprocessRunner(Runner):
                 checkpoint_cell_hash = checkpoint.metadata.get(
                     "resolved_cell_manifest_hash"
                 )
+                predecessor_manifest_hash = metadata.get(
+                    "training_predecessor_manifest_hash"
+                )
+                allowed_checkpoint_manifest_hashes = {expected_cell_hash}
+                if predecessor_manifest_hash is not None:
+                    allowed_checkpoint_manifest_hashes.add(
+                        require_sha256_digest(
+                            predecessor_manifest_hash,
+                            "training predecessor manifest hash",
+                        )
+                    )
                 if (
                     checkpoint_cell_hash is None
                     and not manifest.uses_legacy_training_binding_v1
@@ -1100,7 +1138,8 @@ class SubprocessRunner(Runner):
                     )
                 if (
                     checkpoint_cell_hash is not None
-                    and checkpoint_cell_hash != expected_cell_hash
+                    and checkpoint_cell_hash
+                    not in allowed_checkpoint_manifest_hashes
                 ):
                     raise ValueError("checkpoint resolved cell manifest hash mismatch")
         except ValueError as exc:

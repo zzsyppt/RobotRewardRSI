@@ -342,20 +342,21 @@ class StairCompleteRewardRuntimeContract:
         _require_text(dispatcher["rng_guard"], "Stair dispatcher RNG guard")
 
         equivalence = _mapping(raw["reference_equivalence"])
-        _require_exact_fields(
-            equivalence,
-            {
-                "upstream_project",
-                "upstream_revision",
-                "upstream_source_path",
-                "absolute_tolerance",
-                "relative_tolerance",
-                "active_term_names",
-                "zero_weight_term_names",
-                "disabled_term_names",
-            },
-            "Stair reference equivalence",
-        )
+        equivalence_fields = {
+            "upstream_project",
+            "upstream_revision",
+            "upstream_source_path",
+            "absolute_tolerance",
+            "relative_tolerance",
+            "active_term_names",
+            "zero_weight_term_names",
+            "disabled_term_names",
+        }
+        if set(equivalence) not in {
+            frozenset(equivalence_fields),
+            frozenset((*equivalence_fields, "weight_adaptations")),
+        }:
+            raise ValueError("Stair reference equivalence fields mismatch")
         for key in (
             "upstream_project",
             "upstream_revision",
@@ -387,6 +388,47 @@ class StairCompleteRewardRuntimeContract:
             for right in term_groups[index + 1 :]
         ):
             raise ValueError("Stair equivalence term groups must be disjoint")
+        adaptations = equivalence.get("weight_adaptations", [])
+        if not isinstance(adaptations, list):
+            raise ValueError("Stair reference weight adaptations are invalid")
+        adapted_names: set[str] = set()
+        declared_names = term_groups[0] | term_groups[1]
+        for adaptation in adaptations:
+            if not isinstance(adaptation, Mapping) or set(adaptation) != {
+                "term_name",
+                "upstream_weight",
+                "reference_weight",
+                "rationale_id",
+            }:
+                raise ValueError("Stair reference weight adaptation is invalid")
+            term_name = _require_text(
+                adaptation["term_name"],
+                "Stair reference adapted term",
+            )
+            if term_name in adapted_names or term_name not in declared_names:
+                raise ValueError("Stair reference adapted term is not unique and declared")
+            upstream_weight = _finite_number(
+                adaptation["upstream_weight"],
+                "Stair reference upstream weight",
+            )
+            reference_weight = _finite_number(
+                adaptation["reference_weight"],
+                "Stair reference adapted weight",
+            )
+            if math.isclose(
+                upstream_weight,
+                reference_weight,
+                rel_tol=0.0,
+                abs_tol=0.0,
+            ):
+                raise ValueError("Stair reference weight adaptation has no effect")
+            if (reference_weight == 0.0) != (term_name in term_groups[1]):
+                raise ValueError("Stair reference adapted weight/term group mismatch")
+            _require_text(
+                adaptation["rationale_id"],
+                "Stair reference weight adaptation rationale",
+            )
+            adapted_names.add(term_name)
 
         performance = _mapping(raw["performance_gate"])
         _require_exact_fields(

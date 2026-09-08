@@ -1,0 +1,17 @@
+======================================================================
+FAIL: test_fresh_probe_boot_and_cross_probe_boot_must_match (tests.unit.test_stair_generation_launch_readiness.StairGenerationLaunchReadinessTests.test_fresh_probe_boot_and_cross_probe_boot_must_match) (mutation='teardown_boot')
+----------------------------------------------------------------------
+ValueError: real Stair train teardown probe result is not canonical JSON
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_stair_generation_launch_readiness.py", line 987, in test_fresh_probe_boot_and_cross_probe_boot_must_match
+    with self.assertRaisesRegex(ValueError, message):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "probes belong to different boots" does not match "real Stair train teardown probe result is not canonical JSON"
+
+----------------------------------------------------------------------
+Ran 62 tests in 13.627s
+
+FAILED (failures=1)

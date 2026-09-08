@@ -52,7 +52,6 @@ from true_rl_agent.tasks.stair_climbing.selection import (
 from true_rl_agent.tasks.stair_climbing.unified_scoring import (
     build_unified_reference_score_projection,
     build_reference_objective_family_mask,
-    build_unified_score_projection,
     validate_objective_family_mask,
     validate_unified_stair_summary,
 )
@@ -98,6 +97,8 @@ def build_stair_eval_phase_summary(
         ),
         "environment_source_preflight": dict(execution.source_manifest_preflight),
         "evaluation_execution_cost": execution.execution_cost_artifact(),
+        **({"checkpoint_loading": dict(execution.checkpoint_loading)}
+           if execution.checkpoint_loading is not None else {}),
         "status": "pass",
         "task_evidence": task_evidence,
         "task_evidence_hash": canonical_json_hash(task_evidence),
@@ -173,7 +174,7 @@ def build_stair_full_eval_summary(
         phase=EvaluationPhase.SEALED_VALIDATION,
         summary=summaries[EvaluationPhase.SEALED_VALIDATION.value],
     )
-    return _build_complete_stair_eval_summary(
+    summary = _build_complete_stair_eval_summary(
         config=config,
         identity=identity,
         evaluation_binding=evaluation_binding,
@@ -195,6 +196,9 @@ def build_stair_full_eval_summary(
         sealed_summary=sealed,
         objective_family_mask=objective_family_mask,
     )
+    if execution.checkpoint_loading is not None:
+        summary["checkpoint_loading"] = dict(execution.checkpoint_loading)
+    return summary
 
 
 def assemble_stair_eval_phase_results(
@@ -234,19 +238,20 @@ def assemble_stair_eval_phase_results(
         raise ValueError("Stair formal assembly selection replay mismatch")
     if selection_result.selected_trial_id != trial_id:
         raise ValueError("Stair formal assembly is not bound to the selected trial")
-    phase_projection = build_stair_public_dev_screen_evidence(
-        config=config,
-        trial_id=trial_id,
-        phase_result=by_phase[EvaluationPhase.PUBLIC_DEV],
-        screen_role="guard_reference",
-        objective_family_mask=objective_family_mask,
-    )
     selected_matches = [
         screen for screen in selection_screens if screen.trial_id == trial_id
     ]
     if len(selected_matches) != 1:
         raise ValueError("Stair formal assembly selected screen is not unique")
     selected_screen = selected_matches[0]
+    phase_projection = build_stair_public_dev_screen_evidence(
+        config=config,
+        trial_id=trial_id,
+        phase_result=by_phase[EvaluationPhase.PUBLIC_DEV],
+        screen_role="guard_reference",
+        objective_family_mask=objective_family_mask,
+        statistics_version=selected_screen.generalization_score_stats.get("statistics_version"),
+    )
     selected_phase_fields = selected_screen.to_selector_dict()
     expected_phase_fields = phase_projection.to_selector_dict()
     for field_name in (

@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import os
+import shutil
+import tempfile
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from types import MappingProxyType
@@ -116,7 +118,11 @@ from true_rl_agent.training_programs import (
 
 SESSION_GENESIS_SCHEMA_VERSION = "true_rl_agent.session_genesis.v3"
 GENERATION_SESSION_GENESIS_SCHEMA_VERSION = "true_rl_agent.session_genesis.v4"
+IMPORTED_REFERENCE_SESSION_GENESIS_SCHEMA_VERSION = (
+    "true_rl_agent.session_genesis.v5"
+)
 LEGACY_SESSION_GENESIS_SCHEMA_VERSION = "true_rl_agent.session_genesis.v2"
+SCIENTIFIC_SESSION_GENESIS_SCHEMA_VERSION = "true_rl_agent.session_genesis.v6"
 BASELINE_EVAL_ARTIFACT_SCHEMA_VERSION = (
     "true_rl_agent.session_genesis.baseline_eval_artifact.v1"
 )
@@ -602,6 +608,87 @@ class ReferenceProgramGenesisAnchor:
         }
 
 
+REFERENCE_GENESIS_IMPORT_REF_SCHEMA_VERSION = (
+    "true_rl_agent.session_genesis.reference_import_ref.v1"
+)
+
+
+@dataclass(frozen=True)
+class ReferenceGenesisImportRef:
+    """Immutable provenance for one direct, already-verified reference Genesis."""
+
+    source_session_id: str
+    source_session_genesis_hash: str
+    source_session_genesis_uri: str
+    source_session_genesis_checksum: str
+    schema_version: str = REFERENCE_GENESIS_IMPORT_REF_SCHEMA_VERSION
+
+    def __post_init__(self) -> None:
+        if self.schema_version != REFERENCE_GENESIS_IMPORT_REF_SCHEMA_VERSION:
+            raise ValueError("reference Genesis import ref schema_version mismatch")
+        validate_experiment_subject_id(self.source_session_id)
+        require_sha256_digest(
+            self.source_session_genesis_hash,
+            "source reference session Genesis hash",
+        )
+        if not isinstance(self.source_session_genesis_uri, str) or not (
+            PurePosixPath(self.source_session_genesis_uri).is_absolute()
+            or PureWindowsPath(self.source_session_genesis_uri).is_absolute()
+        ):
+            raise ValueError("source reference session Genesis uri must be absolute")
+        require_sha256_checksum(
+            self.source_session_genesis_checksum,
+            "source reference session Genesis checksum",
+        )
+
+    @classmethod
+    def from_mapping(cls, value: Any) -> "ReferenceGenesisImportRef":
+        mapping = _exact_mapping(
+            value,
+            {
+                "schema_version",
+                "source_session_id",
+                "source_session_genesis_hash",
+                "source_session_genesis_uri",
+                "source_session_genesis_checksum",
+            },
+            "reference Genesis import ref",
+        )
+        return cls(
+            schema_version=_nonempty_text(
+                mapping.get("schema_version"),
+                "reference Genesis import ref schema_version",
+            ),
+            source_session_id=_nonempty_text(
+                mapping.get("source_session_id"),
+                "source reference session_id",
+            ),
+            source_session_genesis_hash=require_sha256_digest(
+                mapping.get("source_session_genesis_hash"),
+                "source reference session Genesis hash",
+            ),
+            source_session_genesis_uri=_nonempty_text(
+                mapping.get("source_session_genesis_uri"),
+                "source reference session Genesis uri",
+            ),
+            source_session_genesis_checksum=require_sha256_checksum(
+                mapping.get("source_session_genesis_checksum"),
+                "source reference session Genesis checksum",
+            ),
+        )
+
+    def to_dict(self) -> dict[str, str]:
+        return {
+            "schema_version": self.schema_version,
+            "source_session_id": self.source_session_id,
+            "source_session_genesis_hash": self.source_session_genesis_hash,
+            "source_session_genesis_uri": self.source_session_genesis_uri,
+            "source_session_genesis_checksum": (
+                self.source_session_genesis_checksum
+            ),
+        }
+
+
 GenesisAnchor = (
     BootstrapGenesisAnchor
     | BaselineGenesisAnchor
@@ -620,6 +707,8 @@ class SessionGenesisArtifact:
     backend_execution_environment: Mapping[str, Any] | None
     anchor: GenesisAnchor
     generation_session_contract_ref: GenerationSessionContractRef | None = None
+    reference_genesis_import_ref: ReferenceGenesisImportRef | None = None
+    runtime_snapshot: Mapping[str, Any] | None = None
     session_genesis_hash: str | None = None
     schema_version: str = SESSION_GENESIS_SCHEMA_VERSION
 
@@ -643,6 +732,8 @@ class SessionGenesisArtifact:
             "session genesis runtime_snapshot_hash",
         )
         if self.schema_version not in {
+            SCIENTIFIC_SESSION_GENESIS_SCHEMA_VERSION,
+            IMPORTED_REFERENCE_SESSION_GENESIS_SCHEMA_VERSION,
             GENERATION_SESSION_GENESIS_SCHEMA_VERSION,
             SESSION_GENESIS_SCHEMA_VERSION,
             LEGACY_SESSION_GENESIS_SCHEMA_VERSION,
@@ -667,7 +758,10 @@ class SessionGenesisArtifact:
                 "backend_execution_environment",
                 _freeze_json_value(normalized_environment),
             )
-        if self.schema_version == GENERATION_SESSION_GENESIS_SCHEMA_VERSION:
+        if self.schema_version in {
+            IMPORTED_REFERENCE_SESSION_GENESIS_SCHEMA_VERSION,
+            GENERATION_SESSION_GENESIS_SCHEMA_VERSION,
+        }:
             if not isinstance(
                 self.generation_session_contract_ref,
                 GenerationSessionContractRef,
@@ -675,10 +769,41 @@ class SessionGenesisArtifact:
                 raise TypeError(
                     "generation session Genesis requires a generation contract ref"
                 )
-        elif self.generation_session_contract_ref is not None:
+        elif (
+            self.generation_session_contract_ref is not None
+            and self.schema_version != SCIENTIFIC_SESSION_GENESIS_SCHEMA_VERSION
+        ):
             raise ValueError(
                 "legacy/width-one session Genesis cannot carry a generation contract ref"
             )
+        if self.schema_version == IMPORTED_REFERENCE_SESSION_GENESIS_SCHEMA_VERSION or (
+            self.schema_version == SCIENTIFIC_SESSION_GENESIS_SCHEMA_VERSION
+            and self.reference_genesis_import_ref is not None
+        ):
+            if not isinstance(
+                self.reference_genesis_import_ref,
+                ReferenceGenesisImportRef,
+            ):
+                raise TypeError(
+                    "imported reference session Genesis requires an import ref"
+                )
+            if not isinstance(self.anchor, ReferenceProgramGenesisAnchor):
+                raise TypeError(
+                    "imported session Genesis requires a reference-program anchor"
+                )
+        elif self.reference_genesis_import_ref is not None:
+            raise ValueError(
+                "non-imported session Genesis cannot carry a reference import ref"
+            )
+        if self.schema_version == SCIENTIFIC_SESSION_GENESIS_SCHEMA_VERSION:
+            snapshot = _json_object(self.runtime_snapshot, "runtime snapshot")
+            if snapshot.get("schema_version") != "true_rl_agent.runtime_composition_snapshot.v3":
+                raise ValueError("scientific Genesis requires runtime snapshot v3")
+            if session_genesis_identity_hash(snapshot) != self.runtime_snapshot_hash:
+                raise ValueError("session Genesis scientific snapshot hash mismatch")
+            object.__setattr__(self, "runtime_snapshot", _freeze_json_value(snapshot))
+        elif self.runtime_snapshot is not None:
+            raise ValueError("legacy Genesis cannot carry a new runtime snapshot")
         if not isinstance(self.evaluation_binding, EvaluationBindingV1):
             raise TypeError("session genesis evaluation_binding must be EvaluationBindingV1")
         if not isinstance(
@@ -723,6 +848,8 @@ class SessionGenesisArtifact:
                 "session_genesis_hash",
             }
         elif schema_version in {
+            SCIENTIFIC_SESSION_GENESIS_SCHEMA_VERSION,
+            IMPORTED_REFERENCE_SESSION_GENESIS_SCHEMA_VERSION,
             SESSION_GENESIS_SCHEMA_VERSION,
             GENERATION_SESSION_GENESIS_SCHEMA_VERSION,
         }:
@@ -738,8 +865,19 @@ class SessionGenesisArtifact:
                 "anchor",
                 "session_genesis_hash",
             }
-            if schema_version == GENERATION_SESSION_GENESIS_SCHEMA_VERSION:
+            if schema_version in {
+                IMPORTED_REFERENCE_SESSION_GENESIS_SCHEMA_VERSION,
+                GENERATION_SESSION_GENESIS_SCHEMA_VERSION,
+            }:
                 expected_keys.add("generation_session_contract_ref")
+            if schema_version == IMPORTED_REFERENCE_SESSION_GENESIS_SCHEMA_VERSION:
+                expected_keys.add("reference_genesis_import_ref")
+            if schema_version == SCIENTIFIC_SESSION_GENESIS_SCHEMA_VERSION:
+                expected_keys.update({
+                    "runtime_snapshot",
+                    "generation_session_contract_ref",
+                    "reference_genesis_import_ref",
+                })
         else:
             raise ValueError("session genesis schema_version mismatch")
         mapping = _exact_mapping(
@@ -778,6 +916,8 @@ class SessionGenesisArtifact:
                     "session Genesis backend execution environment",
                 )
                 if schema_version in {
+                    SCIENTIFIC_SESSION_GENESIS_SCHEMA_VERSION,
+                    IMPORTED_REFERENCE_SESSION_GENESIS_SCHEMA_VERSION,
                     SESSION_GENESIS_SCHEMA_VERSION,
                     GENERATION_SESSION_GENESIS_SCHEMA_VERSION,
                 }
@@ -789,9 +929,27 @@ class SessionGenesisArtifact:
                 GenerationSessionContractRef.from_mapping(
                     mapping.get("generation_session_contract_ref")
                 )
-                if schema_version == GENERATION_SESSION_GENESIS_SCHEMA_VERSION
+                if schema_version
+                in {
+                    SCIENTIFIC_SESSION_GENESIS_SCHEMA_VERSION,
+                    IMPORTED_REFERENCE_SESSION_GENESIS_SCHEMA_VERSION,
+                    GENERATION_SESSION_GENESIS_SCHEMA_VERSION,
+                }
+                and mapping.get("generation_session_contract_ref") is not None
                 else None
             ),
+            reference_genesis_import_ref=(
+                ReferenceGenesisImportRef.from_mapping(
+                    mapping.get("reference_genesis_import_ref")
+                )
+                if schema_version in {
+                    IMPORTED_REFERENCE_SESSION_GENESIS_SCHEMA_VERSION,
+                    SCIENTIFIC_SESSION_GENESIS_SCHEMA_VERSION,
+                }
+                and mapping.get("reference_genesis_import_ref") is not None
+                else None
+            ),
+            runtime_snapshot=mapping.get("runtime_snapshot"),
             session_genesis_hash=require_sha256_digest(
                 mapping.get("session_genesis_hash"),
                 "session_genesis_hash",
@@ -818,6 +976,8 @@ class SessionGenesisArtifact:
             "anchor": self.anchor.to_dict(),
         }
         if self.schema_version in {
+            SCIENTIFIC_SESSION_GENESIS_SCHEMA_VERSION,
+            IMPORTED_REFERENCE_SESSION_GENESIS_SCHEMA_VERSION,
             SESSION_GENESIS_SCHEMA_VERSION,
             GENERATION_SESSION_GENESIS_SCHEMA_VERSION,
         }:
@@ -826,18 +986,40 @@ class SessionGenesisArtifact:
                 if self.backend_execution_environment is not None
                 else None
             )
-        if self.schema_version == GENERATION_SESSION_GENESIS_SCHEMA_VERSION:
+        if self.schema_version in {
+            IMPORTED_REFERENCE_SESSION_GENESIS_SCHEMA_VERSION,
+            GENERATION_SESSION_GENESIS_SCHEMA_VERSION,
+        }:
             assert self.generation_session_contract_ref is not None
             payload["generation_session_contract_ref"] = (
                 self.generation_session_contract_ref.to_dict()
             )
+        if self.schema_version == IMPORTED_REFERENCE_SESSION_GENESIS_SCHEMA_VERSION:
+            assert self.reference_genesis_import_ref is not None
+            payload["reference_genesis_import_ref"] = (
+                self.reference_genesis_import_ref.to_dict()
+            )
+        if self.schema_version == SCIENTIFIC_SESSION_GENESIS_SCHEMA_VERSION:
+            payload.update({
+                "runtime_snapshot": _json_copy(self.runtime_snapshot),
+                "generation_session_contract_ref": (
+                    self.generation_session_contract_ref.to_dict()
+                    if self.generation_session_contract_ref is not None else None
+                ),
+                "reference_genesis_import_ref": (
+                    self.reference_genesis_import_ref.to_dict()
+                    if self.reference_genesis_import_ref is not None else None
+                ),
+            })
         return payload
 
 
 class VerifiedSessionGenesis:
     """Opaque result of contextual Genesis verification."""
 
-    __slots__ = ("_artifact", "_artifact_path", "_initial_current_best")
+    __slots__ = (
+        "_artifact", "_artifact_path", "_initial_current_best", "_checkpoint_path_override",
+    )
     _TOKEN = object()
 
     def __init__(
@@ -847,12 +1029,14 @@ class VerifiedSessionGenesis:
         artifact_path: Path,
         initial_current_best: CurrentBestEvalStats,
         _token: object,
+        checkpoint_path_override: Path | None = None,
     ) -> None:
         if _token is not self._TOKEN:
             raise TypeError("VerifiedSessionGenesis must come from the Genesis validator")
         object.__setattr__(self, "_artifact", artifact)
         object.__setattr__(self, "_artifact_path", artifact_path)
         object.__setattr__(self, "_initial_current_best", initial_current_best)
+        object.__setattr__(self, "_checkpoint_path_override", checkpoint_path_override)
 
     def __setattr__(self, name: str, value: object) -> None:
         _ = name, value
@@ -865,11 +1049,13 @@ class VerifiedSessionGenesis:
         artifact: SessionGenesisArtifact,
         artifact_path: Path,
         initial_current_best: CurrentBestEvalStats,
+        checkpoint_path_override: Path | None = None,
     ) -> "VerifiedSessionGenesis":
         return cls(
             artifact=artifact,
             artifact_path=artifact_path,
             initial_current_best=initial_current_best,
+            checkpoint_path_override=checkpoint_path_override,
             _token=cls._TOKEN,
         )
 
@@ -910,6 +1096,12 @@ class VerifiedSessionGenesis:
         self,
     ) -> GenerationSessionContractRef | None:
         return self._artifact.generation_session_contract_ref
+
+    @property
+    def reference_genesis_import_ref(
+        self,
+    ) -> ReferenceGenesisImportRef | None:
+        return self._artifact.reference_genesis_import_ref
 
     @property
     def initial_current_best(self) -> CurrentBestEvalStats:
@@ -1002,10 +1194,25 @@ class VerifiedSessionGenesis:
             return None
         return _reference_program_source_from_private_artifact(
             anchor=anchor,
-            expected_path=(
-                self._artifact_path.parent / REFERENCE_EVAL_ARTIFACT_FILENAME
-            ),
+            expected_path=self._reference_eval_artifact_path(),
         )
+
+    def reference_eval_artifact_path(self) -> Path | None:
+        """Return the verified private reference evidence path, including imports."""
+
+        if not isinstance(self._artifact.anchor, ReferenceProgramGenesisAnchor):
+            return None
+        return self._reference_eval_artifact_path()
+
+    def _reference_eval_artifact_path(self) -> Path:
+        anchor = self._artifact.anchor
+        if not isinstance(anchor, ReferenceProgramGenesisAnchor):
+            raise ValueError("session Genesis has no reference eval artifact")
+        if self._artifact.reference_genesis_import_ref is not None:
+            return Path(anchor.private_eval_artifact.uri).resolve()
+        return (
+            self._artifact_path.parent / REFERENCE_EVAL_ARTIFACT_FILENAME
+        ).resolve()
 
     def reference_eval_plan(self) -> EvalJobSpec | None:
         """Return the already-validated reference EvalJobSpec used by Genesis."""
@@ -1015,15 +1222,27 @@ class VerifiedSessionGenesis:
             return None
         private_payload = _read_bound_reference_private_artifact(
             anchor=anchor,
-            expected_path=(
-                self._artifact_path.parent / REFERENCE_EVAL_ARTIFACT_FILENAME
-            ),
+            expected_path=self._reference_eval_artifact_path(),
         )
-        return _reference_eval_spec_from_private_artifact(
+        plan = _reference_eval_spec_from_private_artifact(
             private_payload,
             anchor=anchor,
             evaluation_binding=self.evaluation_binding,
         )
+        owned_path = self._checkpoint_path_override or _owned_reference_checkpoint_path(
+            self._artifact, self._artifact_path.parent
+        )
+        if owned_path is not None:
+            if file_sha256(owned_path) != anchor.checkpoint_hash:
+                raise ValueError("reference checkpoint copy bytes changed")
+            plan = replace(
+                plan,
+                checkpoint=replace(
+                    plan.checkpoint,
+                    metadata={**plan.checkpoint.metadata, "local_path": str(owned_path)},
+                ),
+            )
+        return plan
 
     def reference_eval_phase_receipt(
         self,
@@ -1037,9 +1256,7 @@ class VerifiedSessionGenesis:
         resolved_phase = EvaluationPhase.parse(phase)
         private_payload = _read_bound_reference_private_artifact(
             anchor=anchor,
-            expected_path=(
-                self._artifact_path.parent / REFERENCE_EVAL_ARTIFACT_FILENAME
-            ),
+            expected_path=self._reference_eval_artifact_path(),
         )
         eval_spec = _reference_eval_spec_from_private_artifact(
             private_payload,
@@ -1091,6 +1308,8 @@ def prepare_session_genesis(
     require_existing: bool = False,
     bind_backend_execution_environment: bool = False,
     generation_session_contract_ref: GenerationSessionContractRef | None = None,
+    source_reference_genesis_dir: Path | None = None,
+    source_reference_session_id: str | None = None,
     gpu_process_binding: GpuProcessBinding | None = None,
     reference_train_attempt_scope: PreGenesisExecutionScope | None = None,
     reference_eval_attempt_scope: PreGenesisExecutionScope | None = None,
@@ -1101,12 +1320,28 @@ def prepare_session_genesis(
         Mapping[EvaluationPhase | str, PreGenesisExecutionScope] | None
     ) = None,
     baseline_eval_attempt_scope: PreGenesisExecutionScope | None = None,
+    _reference_checkpoint_path_override: Path | None = None,
 ) -> VerifiedSessionGenesis:
     """Create a Genesis once, or validate the existing one without rerunning eval."""
 
     if not isinstance(genesis_identity_snapshot, Mapping):
         raise TypeError("genesis_identity_snapshot must be an object")
     session_id = validate_experiment_subject_id(session_id)
+    import_requested = (
+        source_reference_genesis_dir is not None
+        or source_reference_session_id is not None
+    )
+    if (source_reference_genesis_dir is None) != (
+        source_reference_session_id is None
+    ):
+        raise ValueError(
+            "source reference Genesis directory and session_id must be provided together"
+        )
+    normalized_source_session_id = (
+        validate_experiment_subject_id(source_reference_session_id)
+        if source_reference_session_id is not None
+        else None
+    )
     if (
         baseline_manifest is not None
         and reference_program_artifact is not None
@@ -1170,9 +1405,18 @@ def prepare_session_genesis(
         reference_eval_phase_attempt_scopes
     )
     phased_reference_eval = reference_phased_evaluation_adapter is not None
-    if phased_reference_eval != (phase_attempt_scopes is not None):
+    if phase_attempt_scopes is not None and not phased_reference_eval:
         raise ValueError(
-            "phased reference evaluation requires both an adapter and all phase scopes"
+            "reference evaluation phase scopes require a phased adapter"
+        )
+    if (
+        phased_reference_eval
+        and phase_attempt_scopes is None
+        and generation_session_contract_ref is not None
+        and not import_requested
+    ):
+        raise ValueError(
+            "generation-scoped phased reference evaluation requires all phase scopes"
         )
     if phased_reference_eval and not callable(
         getattr(
@@ -1208,7 +1452,23 @@ def prepare_session_genesis(
             "baseline pre-Genesis attempt scope requires a baseline manifest"
         )
     output_dir = output_dir.resolve()
+    source_reference_dir = (
+        Path(source_reference_genesis_dir).resolve()
+        if source_reference_genesis_dir is not None
+        else None
+    )
+    if source_reference_dir == output_dir:
+        raise ValueError(
+            "source reference Genesis directory must differ from target output_dir"
+        )
     genesis_path = output_dir / SESSION_GENESIS_FILENAME
+    if genesis_path.is_file():
+        existing_checkpoint = _owned_reference_checkpoint_path(
+            SessionGenesisArtifact.from_mapping(_read_json(genesis_path)), output_dir,
+            override=_reference_checkpoint_path_override,
+        )
+        if existing_checkpoint is not None:
+            _reference_checkpoint_path_override = existing_checkpoint
     if require_existing and not genesis_path.is_file():
         raise FileNotFoundError(
             f"existing session Genesis is required: {genesis_path}"
@@ -1254,6 +1514,68 @@ def prepare_session_genesis(
                 "GPU-bound/pre-Genesis execution requires a generation session "
                 "contract v3 with session_cost"
             )
+    source_reference_genesis: VerifiedSessionGenesis | None = None
+    if import_requested:
+        if reference_program_artifact is None or baseline_manifest is not None:
+            raise ValueError(
+                "reference Genesis import requires only a reference program artifact"
+            )
+        if generation_session_contract_ref is None:
+            raise ValueError(
+                "reference Genesis import requires a generation session contract"
+            )
+        if (
+            gpu_process_binding is not None
+            or reference_train_attempt_scope is not None
+            or reference_eval_attempt_scope is not None
+            or phase_attempt_scopes is not None
+            or baseline_eval_attempt_scope is not None
+        ):
+            raise ValueError(
+                "reference Genesis import cannot request pre-Genesis execution"
+            )
+        assert source_reference_dir is not None
+        assert normalized_source_session_id is not None
+        source_genesis_path = source_reference_dir / SESSION_GENESIS_FILENAME
+        if not source_genesis_path.is_file():
+            raise FileNotFoundError(
+                f"source reference session Genesis is required: {source_genesis_path}"
+            )
+        source_artifact = SessionGenesisArtifact.from_mapping(
+            _read_json(source_genesis_path)
+        )
+        if (
+            source_artifact.schema_version not in {
+                SESSION_GENESIS_SCHEMA_VERSION, SCIENTIFIC_SESSION_GENESIS_SCHEMA_VERSION,
+            }
+            or source_artifact.reference_genesis_import_ref is not None
+            or source_artifact.generation_session_contract_ref is not None
+        ):
+            raise ValueError(
+                "source reference Genesis must be a direct v3 or v6 reference session; "
+                "import chains are forbidden"
+            )
+        if source_artifact.session_id != normalized_source_session_id:
+            raise ValueError("source reference Genesis session_id mismatch")
+        if not isinstance(source_artifact.anchor, ReferenceProgramGenesisAnchor):
+            raise ValueError("source session Genesis is not reference-program anchored")
+        source_reference_genesis = prepare_session_genesis(
+            output_dir=source_reference_dir,
+            session_id=normalized_source_session_id,
+            task_plugin=task_plugin,
+            backend_adapter=backend_adapter,
+            runner=runner,
+            policy_initialization=policy_initialization,
+            genesis_identity_snapshot=genesis_identity_snapshot,
+            reference_program_artifact=reference_program_artifact,
+            require_existing=True,
+            bind_backend_execution_environment=False,
+            reference_phased_evaluation_adapter=(
+                reference_phased_evaluation_adapter
+            ),
+            _reference_checkpoint_path_override=_reference_checkpoint_path_override,
+        )
+        source_reference_genesis.assert_file_unchanged(source_reference_dir)
     genesis_identity_hash = session_genesis_identity_hash(
         genesis_identity_snapshot
     )
@@ -1363,6 +1685,11 @@ def prepare_session_genesis(
             policy_initialization=policy_initialization,
             genesis_identity_hash=genesis_identity_hash,
             baseline_manifest=baseline_manifest,
+            runtime_snapshot=(
+                _json_copy(genesis_identity_snapshot)
+                if genesis_identity_snapshot.get("schema_version") == "true_rl_agent.runtime_composition_snapshot.v3"
+                else None
+            ),
             reference_program_artifact=reference_program_artifact,
             bootstrap_initial_best_score=normalized_bootstrap_score,
             bootstrap_initial_policy_state_hash=(
@@ -1375,6 +1702,8 @@ def prepare_session_genesis(
                 else None
             ),
             generation_session_contract_ref=generation_session_contract_ref,
+            source_reference_genesis=source_reference_genesis,
+            reference_checkpoint_path_override=_reference_checkpoint_path_override,
             gpu_process_binding=gpu_process_binding,
             reference_train_attempt_scope=reference_train_attempt_scope,
             reference_eval_attempt_scope=reference_eval_attempt_scope,
@@ -1431,7 +1760,9 @@ def prepare_session_genesis(
             allow_pre_genesis_state=allow_pre_genesis_state,
         )
         context = resolve_context(allow_create=True)
-        if context.genesis_anchor_kind == "reference_program":
+        if context.source_reference_genesis is not None:
+            artifact = _create_imported_reference_genesis(context=context)
+        elif context.genesis_anchor_kind == "reference_program":
             artifact = _create_reference_genesis(
                 output_dir=output_dir,
                 context=context,
@@ -1448,6 +1779,22 @@ def prepare_session_genesis(
                 context=context,
             )
         creation_lease.assert_owned()
+        if artifact.schema_version == SCIENTIFIC_SESSION_GENESIS_SCHEMA_VERSION and isinstance(
+            artifact.anchor, ReferenceProgramGenesisAnchor
+        ):
+            source_path = (
+                context.source_reference_genesis.reference_eval_plan().checkpoint.metadata["local_path"]
+                if context.source_reference_genesis is not None
+                else artifact.anchor.checkpoint_artifact.uri
+            )
+            copy_ref = _copy_reference_checkpoint(
+                Path(source_path), output_dir, artifact.anchor.checkpoint_hash
+            )
+            snapshot = _json_copy(artifact.runtime_snapshot)
+            snapshot["execution_placement"]["reference_checkpoint"] = copy_ref
+            artifact = replace(
+                artifact, runtime_snapshot=snapshot, session_genesis_hash=None
+            )
         _atomic_create_json(genesis_path, artifact.to_dict())
         return _load_verified_session_genesis(genesis_path, context=context)
     finally:
@@ -1525,6 +1872,7 @@ class _GenesisContext:
     backend_adapter: BackendAdapter
     policy_initialization: PolicyInitialization
     genesis_identity_hash: str
+    runtime_snapshot: Mapping[str, Any] | None
     baseline_manifest: BaselineManifest | None
     reference_program_artifact: VerifiedReferenceProgramArtifact | None
     bootstrap_initial_best_score: float | None
@@ -1532,6 +1880,8 @@ class _GenesisContext:
     evaluation_binding: EvaluationBindingV1
     backend_execution_environment: Mapping[str, Any] | None
     generation_session_contract_ref: GenerationSessionContractRef | None
+    source_reference_genesis: VerifiedSessionGenesis | None
+    reference_checkpoint_path_override: Path | None
     gpu_process_binding: GpuProcessBinding | None
     reference_train_attempt_scope: PreGenesisExecutionScope | None
     reference_eval_attempt_scope: PreGenesisExecutionScope | None
@@ -1562,13 +1912,21 @@ class _GenesisContext:
                 raise TypeError(f"Genesis {field_name} is invalid")
         phased_reference_eval = self.reference_phased_evaluation_adapter is not None
         phase_scopes = self.reference_eval_phase_attempt_scopes
-        if phased_reference_eval != (phase_scopes is not None):
+        if phase_scopes is not None and not phased_reference_eval:
             raise ValueError("Genesis phased reference evaluation is incomplete")
         if phased_reference_eval:
             if self.reference_eval_attempt_scope is not None:
                 raise ValueError("Genesis reference eval scopes are ambiguous")
-            if set(phase_scopes or {}) != set(EvaluationPhase):
+            if phase_scopes is not None and set(phase_scopes) != set(EvaluationPhase):
                 raise ValueError("Genesis reference eval phase scopes are incomplete")
+            if (
+                phase_scopes is None
+                and self.generation_session_contract_ref is not None
+                and self.source_reference_genesis is None
+            ):
+                raise ValueError(
+                    "generation-scoped phased reference evaluation lacks phase scopes"
+                )
         if (
             self.gpu_process_binding is not None
             and self.generation_session_contract_ref is None
@@ -1612,6 +1970,72 @@ class _GenesisContext:
                 raise ValueError("reference Genesis manifest capability profile mismatch")
         else:
             raise ValueError("Genesis anchor policy is invalid")
+        source = self.source_reference_genesis
+        if source is not None:
+            if not isinstance(source, VerifiedSessionGenesis):
+                raise TypeError("source reference Genesis is invalid")
+            if self.generation_session_contract_ref is None:
+                raise ValueError(
+                    "reference Genesis import requires a generation contract"
+                )
+            if (
+                self.gpu_process_binding is not None
+                or self.reference_train_attempt_scope is not None
+                or self.reference_eval_attempt_scope is not None
+                or self.reference_eval_phase_attempt_scopes is not None
+                or self.baseline_eval_attempt_scope is not None
+            ):
+                raise ValueError(
+                    "reference Genesis import cannot carry pre-Genesis execution"
+                )
+            source_artifact = source.artifact
+            if (
+                source_artifact.schema_version not in {
+                    SESSION_GENESIS_SCHEMA_VERSION,
+                    SCIENTIFIC_SESSION_GENESIS_SCHEMA_VERSION,
+                }
+                or source_artifact.reference_genesis_import_ref is not None
+            ):
+                raise ValueError(
+                    "source reference Genesis must be a direct v3 or v6 reference session"
+                )
+            if source_artifact.session_id == self.session_id:
+                raise ValueError(
+                    "source and target reference Genesis sessions must differ"
+                )
+            expected_identity = {
+                "task_id": self.task_spec.task_id,
+                "backend_id": self.backend_adapter.backend_id,
+                "policy_initialization_kind": self.policy_initialization.kind,
+                "runtime_snapshot_hash": self.genesis_identity_hash,
+                "evaluation_binding": self.evaluation_binding,
+                "backend_execution_environment": _json_copy(
+                    self.backend_execution_environment
+                ),
+            }
+            actual_identity = {
+                "task_id": source_artifact.task_id,
+                "backend_id": source_artifact.backend_id,
+                "policy_initialization_kind": (
+                    source_artifact.policy_initialization_kind
+                ),
+                "runtime_snapshot_hash": source_artifact.runtime_snapshot_hash,
+                "evaluation_binding": source_artifact.evaluation_binding,
+                "backend_execution_environment": _json_copy(
+                    source_artifact.backend_execution_environment
+                ),
+            }
+            if actual_identity != expected_identity:
+                raise ValueError(
+                    "source reference Genesis runtime/evaluation identity mismatch"
+                )
+            source_anchor = source_artifact.anchor
+            if not isinstance(source_anchor, ReferenceProgramGenesisAnchor):
+                raise ValueError(
+                    "source session Genesis is not reference-program anchored"
+                )
+            if source_anchor.reference_manifest != self.reference_program_manifest:
+                raise ValueError("source reference Genesis manifest mismatch")
 
     @property
     def task_spec(self) -> TaskSpec:
@@ -1652,6 +2076,7 @@ def _create_bootstrap_genesis(
         backend_id=context.backend_adapter.backend_id,
         policy_initialization_kind=context.policy_initialization.kind,
         runtime_snapshot_hash=context.genesis_identity_hash,
+        runtime_snapshot=context.runtime_snapshot,
         evaluation_binding=context.evaluation_binding,
         backend_execution_environment=context.backend_execution_environment,
         anchor=BootstrapGenesisAnchor(
@@ -1728,10 +2153,52 @@ def _create_baseline_genesis(
         backend_id=context.backend_adapter.backend_id,
         policy_initialization_kind=context.policy_initialization.kind,
         runtime_snapshot_hash=context.genesis_identity_hash,
+        runtime_snapshot=context.runtime_snapshot,
         evaluation_binding=context.evaluation_binding,
         backend_execution_environment=context.backend_execution_environment,
         anchor=anchor,
         generation_session_contract_ref=context.generation_session_contract_ref,
+        schema_version=_context_session_genesis_schema_version(context),
+    )
+
+
+def _reference_genesis_import_ref(
+    source: VerifiedSessionGenesis,
+) -> ReferenceGenesisImportRef:
+    source.assert_file_unchanged(source.artifact_path.parent)
+    source_checksum = file_sha256(source.artifact_path)
+    if not is_sha256_checksum(source_checksum):
+        raise ValueError("source reference session Genesis checksum is unavailable")
+    return ReferenceGenesisImportRef(
+        source_session_id=source.artifact.session_id,
+        source_session_genesis_hash=source.session_genesis_hash,
+        source_session_genesis_uri=str(source.artifact_path.resolve()),
+        source_session_genesis_checksum=source_checksum,
+    )
+
+
+def _create_imported_reference_genesis(
+    *,
+    context: _GenesisContext,
+) -> SessionGenesisArtifact:
+    source = context.source_reference_genesis
+    if source is None:
+        raise ValueError("reference Genesis import has no verified source")
+    source_anchor = source.artifact.anchor
+    if not isinstance(source_anchor, ReferenceProgramGenesisAnchor):
+        raise ValueError("source session Genesis is not reference-program anchored")
+    return SessionGenesisArtifact(
+        session_id=context.session_id,
+        task_id=context.task_spec.task_id,
+        backend_id=context.backend_adapter.backend_id,
+        policy_initialization_kind=context.policy_initialization.kind,
+        runtime_snapshot_hash=context.genesis_identity_hash,
+        runtime_snapshot=context.runtime_snapshot,
+        evaluation_binding=context.evaluation_binding,
+        backend_execution_environment=context.backend_execution_environment,
+        anchor=source_anchor,
+        generation_session_contract_ref=context.generation_session_contract_ref,
+        reference_genesis_import_ref=_reference_genesis_import_ref(source),
         schema_version=_context_session_genesis_schema_version(context),
     )
 
@@ -1889,6 +2356,7 @@ def _create_reference_genesis(
         backend_id=context.backend_adapter.backend_id,
         policy_initialization_kind=context.policy_initialization.kind,
         runtime_snapshot_hash=context.genesis_identity_hash,
+        runtime_snapshot=context.runtime_snapshot,
         evaluation_binding=context.evaluation_binding,
         backend_execution_environment=context.backend_execution_environment,
         anchor=anchor,
@@ -1906,7 +2374,7 @@ def _run_reference_phased_evaluation(
 ) -> tuple[EvaluationAssembly, PublicEvalResult]:
     adapter = context.reference_phased_evaluation_adapter
     phase_scopes = context.reference_eval_phase_attempt_scopes
-    if adapter is None or phase_scopes is None:
+    if adapter is None:
         raise ValueError("reference phased evaluation context is incomplete")
     manifest = context.reference_program_manifest
     if manifest is None:
@@ -1936,7 +2404,7 @@ def _run_reference_phased_evaluation(
     phase_results: list[EvaluationPhaseResult] = []
     phase_receipt_refs: dict[EvaluationPhase, Mapping[str, Any]] = {}
     for phase in EvaluationPhase:
-        scope = phase_scopes[phase]
+        scope = phase_scopes[phase] if phase_scopes is not None else None
         phase_spec = context.backend_adapter.materialize_eval_phase(
             eval_plan=eval_plan,
             phase=phase,
@@ -1971,6 +2439,10 @@ def _run_reference_phased_evaluation(
 
 
 def _context_session_genesis_schema_version(context: _GenesisContext) -> str:
+    if context.runtime_snapshot is not None:
+        return SCIENTIFIC_SESSION_GENESIS_SCHEMA_VERSION
+    if context.source_reference_genesis is not None:
+        return IMPORTED_REFERENCE_SESSION_GENESIS_SCHEMA_VERSION
     return (
         GENERATION_SESSION_GENESIS_SCHEMA_VERSION
         if context.generation_session_contract_ref is not None
@@ -2085,12 +2557,80 @@ def _reference_checkpoint_path(train_result: TrainJobResult) -> Path:
     return path
 
 
+def _copy_reference_checkpoint(
+    source: Path, output_dir: Path, checksum: str
+) -> dict[str, Any]:
+    """Seal one independent copy; the original train/eval receipts keep their URIs."""
+    destination = output_dir / "reference_checkpoint.pt"
+    if not destination.exists():
+        with tempfile.NamedTemporaryFile(
+            dir=output_dir, prefix=".reference-checkpoint-", delete=False
+        ) as target:
+            temporary = Path(target.name)
+            try:
+                with source.open("rb") as original:
+                    shutil.copyfileobj(original, target, length=1024 * 1024)
+                target.flush()
+                os.fsync(target.fileno())
+            except BaseException:
+                target.close()
+                temporary.unlink(missing_ok=True)
+                raise
+        try:
+            if file_sha256(temporary) != checksum:
+                raise ValueError("reference checkpoint changed during copy")
+            os.link(temporary, destination)
+        finally:
+            temporary.unlink(missing_ok=True)
+        destination.chmod(0o444)
+    if file_sha256(destination) != checksum:
+        raise ValueError("session reference checkpoint copy checksum mismatch")
+    return {
+        "path": destination.name,
+        "checksum": checksum,
+        "size_bytes": destination.stat().st_size,
+    }
+
+
+def _owned_reference_checkpoint_path(
+    artifact: SessionGenesisArtifact,
+    output_dir: Path,
+    *,
+    override: Path | None = None,
+) -> Path | None:
+    if artifact.runtime_snapshot is None or not isinstance(
+        artifact.anchor, ReferenceProgramGenesisAnchor
+    ):
+        return None
+    ref = artifact.runtime_snapshot["execution_placement"].get("reference_checkpoint")
+    if ref is None:
+        raise ValueError("session reference checkpoint copy binding is missing")
+    if (
+        set(ref) != {"path", "checksum", "size_bytes"}
+        or ref["path"] != "reference_checkpoint.pt"
+        or ref["checksum"] != artifact.anchor.checkpoint_hash
+    ):
+        raise ValueError("session reference checkpoint copy binding mismatch")
+    target = override or (output_dir / ref["path"])
+    if (
+        file_sha256(target) != ref["checksum"]
+        or target.stat().st_size != ref["size_bytes"]
+    ):
+        raise ValueError("session reference checkpoint copy bytes changed")
+    return target.resolve()
+
+
 def _load_verified_session_genesis(
     path: Path,
     *,
     context: _GenesisContext,
 ) -> VerifiedSessionGenesis:
     artifact = SessionGenesisArtifact.from_mapping(_read_json(path))
+    owned_checkpoint = _owned_reference_checkpoint_path(
+        artifact, path.parent, override=context.reference_checkpoint_path_override
+    )
+    if owned_checkpoint is not None:
+        context = replace(context, reference_checkpoint_path_override=owned_checkpoint)
     expected_schema = _context_session_genesis_schema_version(context)
     if artifact.schema_version != expected_schema:
         if artifact.schema_version == LEGACY_SESSION_GENESIS_SCHEMA_VERSION:
@@ -2223,35 +2763,55 @@ def _load_verified_session_genesis(
             public_result=public_result,
             evaluation_binding=context.evaluation_binding,
         )
-        private_payload = _validate_private_reference_artifact(
-            anchor=anchor,
-            expected_path=path.parent / REFERENCE_EVAL_ARTIFACT_FILENAME,
-            context=context,
-        )
-        eval_spec = _reference_eval_spec_from_private_artifact(
-            private_payload,
-            anchor=anchor,
-            evaluation_binding=context.evaluation_binding,
-        )
-        _validate_reference_evaluation_assembly(
-            private_payload,
-            eval_spec=eval_spec,
-            expected_phased=(
-                context.reference_phased_evaluation_adapter is not None
-            ),
-        )
-        if eval_spec.gpu_process_binding != context.gpu_process_binding:
-            raise ValueError("reference private eval GPU process binding mismatch")
-        if (
-            private_payload["train_result"].get("execution_device")
-            != eval_spec.execution_device
-        ):
-            raise ValueError("reference Genesis train/eval execution device mismatch")
-        if (
-            public_result.metrics.get("execution_device")
-            != eval_spec.execution_device
-        ):
-            raise ValueError("reference Genesis public execution device mismatch")
+        source = context.source_reference_genesis
+        if source is None:
+            if artifact.reference_genesis_import_ref is not None:
+                raise ValueError(
+                    "imported reference Genesis requires its verified source"
+                )
+            private_payload = _validate_private_reference_artifact(
+                anchor=anchor,
+                expected_path=path.parent / REFERENCE_EVAL_ARTIFACT_FILENAME,
+                context=context,
+            )
+            eval_spec = _reference_eval_spec_from_private_artifact(
+                private_payload,
+                anchor=anchor,
+                evaluation_binding=context.evaluation_binding,
+            )
+            _validate_reference_evaluation_assembly(
+                private_payload,
+                eval_spec=eval_spec,
+                expected_phased=(
+                    context.reference_phased_evaluation_adapter is not None
+                ),
+            )
+            if eval_spec.gpu_process_binding != context.gpu_process_binding:
+                raise ValueError("reference private eval GPU process binding mismatch")
+            if (
+                private_payload["train_result"].get("execution_device")
+                != eval_spec.execution_device
+            ):
+                raise ValueError(
+                    "reference Genesis train/eval execution device mismatch"
+                )
+            if (
+                public_result.metrics.get("execution_device")
+                != eval_spec.execution_device
+            ):
+                raise ValueError(
+                    "reference Genesis public execution device mismatch"
+                )
+        else:
+            if artifact.reference_genesis_import_ref != (
+                _reference_genesis_import_ref(source)
+            ):
+                raise ValueError("source reference Genesis import ref drift")
+            if anchor != source.artifact.anchor:
+                raise ValueError("imported reference Genesis anchor drift")
+            eval_spec = source.reference_eval_plan()
+            if eval_spec is None:
+                raise ValueError("source reference Genesis has no evaluation plan")
         expected_seal = _build_reference_seal(
             eval_spec=eval_spec,
             task_spec=context.task_spec,
@@ -2276,6 +2836,7 @@ def _load_verified_session_genesis(
         artifact=artifact,
         artifact_path=path.resolve(),
         initial_current_best=initial_current_best,
+        checkpoint_path_override=context.reference_checkpoint_path_override,
     )
 
 
@@ -2850,9 +3411,12 @@ def _validate_private_reference_artifact(
         "checksum": anchor.checkpoint_hash,
     }:
         raise ValueError("reference private checkpoint artifact mismatch")
-    checkpoint_path = _reference_checkpoint_path(train_result)
-    if checkpoint_path != Path(anchor.checkpoint_artifact.uri).resolve():
+    original_path = Path(str(train_result.checkpoint.metadata.get("local_path"))).resolve()
+    if original_path != Path(anchor.checkpoint_artifact.uri).resolve():
         raise ValueError("reference checkpoint path drift")
+    checkpoint_path = (
+        context.reference_checkpoint_path_override or _reference_checkpoint_path(train_result)
+    )
     if file_sha256(checkpoint_path) != anchor.checkpoint_hash:
         raise ValueError("reference checkpoint bytes changed after Genesis")
 
@@ -3982,7 +4546,19 @@ def session_genesis_identity_hash(
 ) -> str:
     """Hash the canonical JSON projection used by Session Genesis."""
 
-    return canonical_json_hash(_json_copy(genesis_identity_snapshot))
+    snapshot = _json_copy(genesis_identity_snapshot)
+    if snapshot.get("schema_version") == "true_rl_agent.runtime_composition_snapshot.v3":
+        if set(snapshot) != {"schema_version", "scientific", "execution_placement"}:
+            raise ValueError("runtime composition snapshot fields mismatch")
+        if not isinstance(snapshot["scientific"], dict) or not isinstance(
+            snapshot["execution_placement"], dict
+        ):
+            raise ValueError("runtime composition snapshot sections must be objects")
+        return canonical_json_hash({
+            "schema_version": snapshot["schema_version"],
+            "scientific": snapshot["scientific"],
+        })
+    return canonical_json_hash(snapshot)
 
 
 def _json_copy(value: Any) -> Any:
@@ -4041,6 +4617,8 @@ __all__ = [
     "BASELINE_EVAL_ARTIFACT_FILENAME",
     "LEGACY_SESSION_GENESIS_SCHEMA_VERSION",
     "GENERATION_SESSION_GENESIS_SCHEMA_VERSION",
+    "IMPORTED_REFERENCE_SESSION_GENESIS_SCHEMA_VERSION",
+    "REFERENCE_GENESIS_IMPORT_REF_SCHEMA_VERSION",
     "REFERENCE_EVAL_ARTIFACT_FILENAME",
     "REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION",
     "GPU_BOUND_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION",
@@ -4052,6 +4630,7 @@ __all__ = [
     "BaselineGenesisAnchor",
     "BootstrapGenesisAnchor",
     "ReferenceProgramGenesisAnchor",
+    "ReferenceGenesisImportRef",
     "ReferencePhasedEvaluationAdapter",
     "SessionGenesisCreationInProgressError",
     "SessionGenesisArtifact",

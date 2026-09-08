@@ -466,6 +466,8 @@ class PushRecoveryTaskTests(unittest.TestCase):
                     )
 
     def _backend(self) -> IsaacLabRslRlBackendAdapter:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
         provider = PushRecoveryCompositionProvider()
         values = dict(provider.cli_defaults())
         values.update(
@@ -479,7 +481,7 @@ class PushRecoveryTaskTests(unittest.TestCase):
             values=values,
             context=TaskCompositionContext(
                 project_root=PROJECT_ROOT,
-                output_dir=PROJECT_ROOT / "outputs" / "test-push-backend",
+                output_dir=Path(temporary.name),
             ),
         )
         self.assertIsInstance(
@@ -2644,7 +2646,12 @@ class PushRecoveryTaskTests(unittest.TestCase):
             ):
                 self.assertNotIn(forbidden, public_text)
             private_text = json.dumps(ledger[1]["private_artifacts"], sort_keys=True)
-            self.assertIn("outputs/runner/push-round-002-train/checkpoints/best.pt", private_text)
+            # The dry runner declares a checkpoint but does not create its bytes.
+            self.assertNotIn("outputs/runner/push-round-002-train/checkpoints/best.pt", private_text)
+            self.assertEqual(
+                [artifact["kind"] for artifact in ledger[1]["private_artifacts"]],
+                ["candidate_artifact"],
+            )
 
     def test_push_round_eval_cli_uses_runner_sealed_checkpoint(self) -> None:
         plugin = PushRecoveryTaskPlugin()
@@ -2848,7 +2855,7 @@ class PushRecoveryTaskTests(unittest.TestCase):
         self.assertIn('"evidence_manifest": build_eval_evidence_manifest(checkpoint_safety_report)', source)
         self.assertIn("--checkpoint-sha256", source)
         report_index = source.find("build_checkpoint_safety_report(")
-        load_index = source.find("runner.load(args_cli.checkpoint)")
+        load_index = source.find("load_inference_checkpoint(runner, args_cli.checkpoint)")
         self.assertGreaterEqual(report_index, 0)
         self.assertGreaterEqual(load_index, 0)
         self.assertLess(report_index, load_index)

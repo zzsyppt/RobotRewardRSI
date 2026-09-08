@@ -61,19 +61,19 @@ probe 在隔离内容覆盖目录运行，未修改服务器主 checkout；完�
 
 当前语义身份有意升级到 morphology-neutral v7：公开失败名 `torso_contact` 改为 `forbidden_contact`，descriptor 使用 `kinematic_base` / `support_effector` / resolved forbidden role，不再向 Go2/六足的 LLM feedback 声称 ankle 或 torso。其 protocol hash 为 `df35aa0…`，当前 effective task protocol hash 为 `d82aae04…`；历史 v6 artifact 不被重写。
 
-发生预期变化的是当前组合身份：support requirement 从固定 2 改为 profile-exact variable cardinality，因而 manifest/grant/resolved protocol hash 必须变化。P1 verifier 从此会按设计失败，不再是当前入口门；P2 verifier 取代它。旧 session 只在其冻结源码和 manifest 下审计，不能用当前 Phase 2 identity 续跑。
+发生预期变化的是当前组合身份：support requirement 从固定 2 改为 profile-exact variable cardinality，因而 manifest/grant/resolved protocol hash 必须变化。P1 冻结 hash 仍只描述当时身份，但其验收器现将历史源码/manifest hash 视为 provenance，并继续守护 legacy G1 profiles、cell axes 与 Push dry-run；P2 验收器负责当前 Stair 角色、2/4/6 基数、ownership 和真实 runtime 语义。旧 session 只在其冻结源码和 manifest 下审计，不能用当前 Phase 2 identity 续跑。
 
 ## 5. 回归与可复算验收
 
 - P2 snapshot verifier：PASS，snapshot receipt hash `077a3dc3a6c9113492ca90b92a8379f6cc65a2c29b45010ae45484b36dab8654`；
-- verifier self-tests：5/5 PASS（Windows 工作树与 Linux 无 `.git` 归档均通过）；
+- verifier self-tests：7/7 PASS；冻结源码闭包只作 provenance，当前 G1 legacy 语义与 registry 扩展边界分别有正/负测试；
 - 本阶段相关本地回归：100 tests PASS，2 skipped；
 - server static contract tests：42/42 PASS；
 - 真实 Isaac 单场景 capture：PASS，legacy/VNext kinematic-base exact parity；
 - 全量仓库：1505 tests PASS，29 skipped，987.665 s，exit code 0；
 - `git diff --check`：PASS；本轮没有把本机未安装的 Ruff 伪写成验收证据，语法与执行回归由上述 1505 项测试及本阶段定向测试覆盖。
 
-当前 snapshot 文件为 `P2_MORPHOLOGY_DECOUPLING_SNAPSHOT.json`；冻结的 29 文件 product-tree hash 为 `148984daa4fa917f104bcb8a65bce348fc2c7760d472f24b11df1cb356bc4a11`。文档和 Git HEAD 不进入产品内容门，因此后续提交不会使回执自锁。
+当前 snapshot 文件为 `P2_MORPHOLOGY_DECOUPLING_SNAPSHOT.json`；冻结的 29 文件 product-tree hash 为 `148984daa4fa917f104bcb8a65bce348fc2c7760d472f24b11df1cb356bc4a11`。验收器复核该历史闭包自身、真实 GPU receipt 及当前 legacy G1 的角色/关节/动作/基数/ownership 语义，不再提供 `--emit-current` 重签入口，也不把后续 Phase 的合法源码演进判成 P2 回归。
 
 ## 6. 不应误读为已完成的能力
 

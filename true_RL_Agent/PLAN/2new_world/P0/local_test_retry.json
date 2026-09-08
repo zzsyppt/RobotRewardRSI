@@ -1,0 +1,132 @@
+{
+  "stdin_runner_aborted": "Windows multiprocessing spawn cannot reload <stdin>; switched to the standard python -m unittest entrypoint. No product failure inferred.",
+  "first_full_run_result": {
+    "started_utc": "2026-09-05T10:21:40.5829370+00:00",
+    "ended_utc": "2026-09-05T10:26:09.8281116+00:00",
+    "command": "python -m unittest discover -s tests -t . -v",
+    "exit_code": 1
+  },
+  "failure_tail": "\n======================================================================\nFAIL: test_testing_matrix_references_current_required_coverage (tests.unit.test_phase14_extension_docs.Phase14ExtensionDocsTests.test_testing_matrix_references_current_required_coverage)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\humanoid_agent\\true_RL_Agent\\tests\\unit\\test_phase14_extension_docs.py\", line 65, in test_testing_matrix_references_current_required_coverage\n    self.assertTrue((PROJECT_ROOT / relative).is_file(), relative)\nAssertionError: False is not true : tests/integration/test_agent_core_loop.py\n\n======================================================================\nFAIL: test_orchestration_does_not_read_legacy_provider_context (tests.unit.test_project_boundaries.ProjectBoundaryTests.test_orchestration_does_not_read_legacy_provider_context)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\humanoid_agent\\true_RL_Agent\\tests\\unit\\test_project_boundaries.py\", line 182, in test_orchestration_does_not_read_legacy_provider_context\n    self.assertTrue(path.exists(), str(path))\nAssertionError: False is not true : D:\\humanoid_agent\\true_RL_Agent\\src\\true_rl_agent\\agent_core\\loop.py\n\n----------------------------------------------------------------------\nRan 1606 tests in 268.183s\n\nFAILED (failures=2, skipped=30)\n",
+  "skips": [
+    {
+      "id": "tests.integration.test_stair_generation_session.StairGenerationSessionProductionShapeTests.test_formal_fifteen_generation_continuous_run_and_finalization",
+      "reason": "'formal Stair source closure requires the Isaac Lab runtime'"
+    },
+    {
+      "id": "tests.integration.test_stair_generation_session.StairGenerationSessionProductionShapeTests.test_three_generations_pause_resume_and_hard_crash_recovery",
+      "reason": "'production Stair candidate qualification requires Torch'"
+    },
+    {
+      "id": "tests.unit.test_candidate_package.CandidatePackageTests.test_candidate_package_preflight_rejects_nonregular_and_symlink_files",
+      "reason": "\"file symlinks are unavailable: [WinError 1314] \ufffd\u037b\ufffd\ufffd\ufffd\u00fb\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\u0228\ufffd\ufffd: 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmpkmmm_1pe\\\\\\\\outside.md' -> 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmpkmmm_1pe\\\\\\\\symlinked\\\\\\\\candidate\\\\\\\\rationale.md'\""
+    },
+    {
+      "id": "tests.unit.test_fs_contract.FileSystemContractTests.test_bounded_reader_rejects_final_symlink",
+      "reason": "\"symlinks unavailable: [WinError 1314] \ufffd\u037b\ufffd\ufffd\ufffd\u00fb\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\u0228\ufffd\ufffd: 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmpycgmjkha\\\\\\\\target.bin' -> 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmpycgmjkha\\\\\\\\link.bin'\""
+    },
+    {
+      "id": "tests.unit.test_generation_lifecycle.GenerationLifecycleTests.test_linux_process_incarnation_and_process_group_liveness",
+      "reason": "'requires real Linux procfs'"
+    },
+    {
+      "id": "tests.unit.test_live_invocation.LiveInvocationJournalTests.test_live_summary_writer_replaces_symlink_without_touching_target",
+      "reason": "\"symlinks unavailable: [WinError 1314] \ufffd\u037b\ufffd\ufffd\ufffd\u00fb\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\u0228\ufffd\ufffd: 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmpx1dn3el5\\\\\\\\external.json' -> 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmpx1dn3el5\\\\\\\\live_summary.json'\""
+    },
+    {
+      "id": "tests.unit.test_p6b_attempt_chain_fault_probe.P6BAttemptChainFaultProbeTests.test_real_retry_chain_and_owned_process_groups_are_closed",
+      "reason": "'Linux production probe'"
+    },
+    {
+      "id": "tests.unit.test_reference_artifact.ReferenceArtifactTests.test_symlink_root_is_rejected_before_publication",
+      "reason": "\"directory symlinks are unavailable: [WinError 1314] \ufffd\u037b\ufffd\ufffd\ufffd\u00fb\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\u0228\ufffd\ufffd: 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmp2j7hpfyr\\\\\\\\real-artifacts' -> 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmp2j7hpfyr\\\\\\\\linked-artifacts'\""
+    },
+    {
+      "id": "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_incomplete_process_group_cleanup_is_typed",
+      "reason": "'Linux process-group contract'"
+    },
+    {
+      "id": "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_linux_parent_death_signal_stops_owned_job",
+      "reason": "'Linux parent-death contract'"
+    },
+    {
+      "id": "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_normal_exit_quiesces_grandchild_before_logs_are_returned",
+      "reason": "'Linux process-group contract'"
+    },
+    {
+      "id": "tests.unit.test_stair_candidate_admission.StairCandidateAdmissionTests.test_environment_axis_locality_rejects_middle_row_dependency",
+      "reason": "'environment-axis qualification requires Torch'"
+    },
+    {
+      "id": "tests.unit.test_stair_candidate_admission.StairCandidateAdmissionTests.test_environment_axis_reverse_permutation_rejects_cross_row_anchor",
+      "reason": "'environment-axis qualification requires Torch'"
+    },
+    {
+      "id": "tests.unit.test_stair_candidate_admission.StairCandidateAdmissionTests.test_legacy_official_r0_admits_but_cannot_enter_unified_cell",
+      "reason": "'production Stair qualification requires Torch'"
+    },
+    {
+      "id": "tests.unit.test_stair_candidate_admission.StairCandidateAdmissionTests.test_sealed_qualification_uses_actual_static_source_policy",
+      "reason": "'production Stair qualification requires Torch'"
+    },
+    {
+      "id": "tests.unit.test_stair_checkpoint_video.StairCheckpointVideoTests.test_trajectory_capture_continues_after_automatic_reset",
+      "reason": "'numpy is unavailable'"
+    },
+    {
+      "id": "tests.unit.test_stair_complete_reward_contract.StairCompleteRewardContractTests.test_resource_failures_are_not_wrapped_as_reward_program_failures",
+      "reason": "'torch is unavailable'"
+    },
+    {
+      "id": "tests.unit.test_stair_complete_reward_contract.StairCompleteRewardContractTests.test_reward_output_fault_is_normal_and_tensor_runtime_survives",
+      "reason": "'torch is unavailable'"
+    },
+    {
+      "id": "tests.unit.test_stair_complete_reward_contract.StairCompleteRewardContractTests.test_runtime_guards_input_mutation_and_restores_rng",
+      "reason": "'torch is unavailable'"
+    },
+    {
+      "id": "tests.unit.test_stair_complete_reward_contract.StairCompleteRewardContractTests.test_stair_runtime_evidence_satisfies_shared_mechanism_contract",
+      "reason": "'torch is unavailable'"
+    },
+    {
+      "id": "tests.unit.test_stair_generation_launcher.StairGenerationLauncherTests.test_sigterm_cleans_child_group_before_publishing_stable_receipt",
+      "reason": "'Linux signal contract'"
+    },
+    {
+      "id": "tests.unit.test_stair_isaaclab_runtime_env.StairIsaacLabRuntimeEnvTests.test_real_recorder_payload_decodes_tracks_and_aggregates",
+      "reason": "'Isaac Lab runtime unavailable: set TRUE_RL_AGENT_ISAAC_DYNAMIC_TEST=1 to run Isaac integration'"
+    },
+    {
+      "id": "tests.unit.test_stair_isaaclab_runtime_env.StairIsaacLabRuntimeEnvTests.test_train_and_eval_builders_install_only_the_declared_runtime",
+      "reason": "'Isaac Lab runtime unavailable: set TRUE_RL_AGENT_ISAAC_DYNAMIC_TEST=1 to run Isaac integration'"
+    },
+    {
+      "id": "tests.unit.test_stair_local_paths.StairLocalPathTests.test_existing_inputs_reject_leaf_symlinks_before_resolve",
+      "reason": "\"symlink creation is unavailable: [WinError 1314] \ufffd\u037b\ufffd\ufffd\ufffd\u00fb\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\u0228\ufffd\ufffd: 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmpjlnp051e\\\\\\\\target.json' -> 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmpjlnp051e\\\\\\\\file-link.json'\""
+    },
+    {
+      "id": "tests.unit.test_stair_local_paths.StairLocalPathTests.test_output_guards_reject_dangling_symlinks",
+      "reason": "\"symlink creation is unavailable: [WinError 1314] \ufffd\u037b\ufffd\ufffd\ufffd\u00fb\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\u0228\ufffd\ufffd: 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmpz3rop_oe\\\\\\\\missing-target.json' -> 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmpz3rop_oe\\\\\\\\output.json'\""
+    },
+    {
+      "id": "tests.unit.test_stair_local_paths.StairLocalPathTests.test_stair_config_rejects_protocol_symlink",
+      "reason": "\"symlink creation is unavailable: [WinError 1314] \ufffd\u037b\ufffd\ufffd\ufffd\u00fb\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\u0228\ufffd\ufffd: 'D:\\\\\\\\humanoid_agent\\\\\\\\true_RL_Agent\\\\\\\\configs\\\\\\\\tasks\\\\\\\\stair_protocol_v2_draft_r2.json' -> 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmp52qu7sif\\\\\\\\stair_protocol_v2_draft_r2.json'\""
+    },
+    {
+      "id": "tests.unit.test_stair_phase0_probe_behavior.StairPhase0ProbeBehaviorTests.test_simultaneous_timeout_and_contact_use_declared_priority",
+      "reason": "'torch is required for dynamic Phase 0 probe tests'"
+    },
+    {
+      "id": "tests.unit.test_stair_phase0_probe_behavior.StairPhase0ProbeBehaviorTests.test_terminal_transition_uses_pre_reset_state",
+      "reason": "'torch is required for dynamic Phase 0 probe tests'"
+    },
+    {
+      "id": "tests.unit.test_stair_phase0_probe_behavior.StairPhase0ProbeBehaviorTests.test_wrapper_done_and_manager_masks_must_match",
+      "reason": "'torch is required for dynamic Phase 0 probe tests'"
+    },
+    {
+      "id": "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_train_rejects_symlinked_checkpoint_output_without_following_it",
+      "reason": "'file symlinks unavailable: OSError'"
+    }
+  ]
+}

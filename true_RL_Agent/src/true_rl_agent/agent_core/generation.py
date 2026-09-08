@@ -433,18 +433,11 @@ def execute_fixed_width_generation(
             ),
         )
 
-    # This barrier is deliberate: public-accept evidence cannot influence selection.
-    public_accept_lanes = [
-        state
-        for state in states
-        if state.status != "candidate_failed" and state.screen is not None
-    ]
-    _parallel_apply(
-        public_accept_lanes,
-        lambda state: _run_phase(inputs, state, EvaluationPhase.PUBLIC_ACCEPT),
-    )
-
     selected_state = _selected_state(states, selection)
+    # Public-accept confirms the public-dev winner; it is not a second selector.
+    # A no-selection generation therefore pays no confirmation cost.
+    if selected_state is not None and selected_state.status != "candidate_failed":
+        _run_phase(inputs, selected_state, EvaluationPhase.PUBLIC_ACCEPT)
     if selected_state is not None and selected_state.status != "candidate_failed":
         _run_phase(inputs, selected_state, EvaluationPhase.SEALED_VALIDATION)
         if selected_state.status != "candidate_failed":
@@ -774,7 +767,7 @@ def _run_train_lane(state: _LaneState) -> None:
     if prepared.reused_execution is not None:
         reused = prepared.reused_execution
         state.trial_execution = reused
-        if reused.train_result is None or reused.public_result is None:
+        if reused.train_result is None:
             state.status = "candidate_failed"
             state.status_reason = reused.decision.reason
             return
@@ -805,8 +798,12 @@ def _run_train_lane(state: _LaneState) -> None:
         state.status = "candidate_failed"
         state.status_reason = "candidate_runtime_failed"
         return
-    except RunnerExecutionError:
-        raise
+    except RunnerExecutionError as exc:
+        if not exc.retryable_infrastructure_failure:
+            raise
+        state.status = "candidate_failed"
+        state.status_reason = "train_incomplete"
+        return
     state.status = "trained"
     state.status_reason = "train_complete"
 
@@ -838,6 +835,16 @@ def _run_phase(
     loaded = prepared.trial_journal.load_eval_phase(phase_spec)
     try:
         if loaded is None:
+            if prepared.reused_execution is not None:
+                # Rebuild the completed prefix from the trial journal. A sealed
+                # failed trial is terminal, even when the generation was not sealed.
+                if prepared.reused_execution.public_result is not None:
+                    raise ValueError("completed trial execution has no phase receipt")
+                state.status = "candidate_failed"
+                state.status_reason = (
+                    f"{prepared.reused_execution.decision.reason}_{phase.value}"
+                )
+                return
             result = prepared.inputs.runner.run_eval_phase(phase_spec)
             receipt_ref = prepared.trial_journal.publish_eval_phase(phase_spec, result)
         else:
@@ -852,8 +859,18 @@ def _run_phase(
         state.status = "candidate_failed"
         state.status_reason = f"candidate_runtime_failed_{phase.value}"
         return
-    except RunnerExecutionError:
-        raise
+    except RunnerExecutionError as exc:
+        if not exc.retryable_infrastructure_failure:
+            raise
+        state.trial_execution = finalize_prepared_candidate_trial(
+            prepared,
+            train_execution=state.train_execution,
+            failure_reason="eval_incomplete",
+            runner_error=project_public_runner_error(exc),
+        )
+        state.status = "candidate_failed"
+        state.status_reason = f"eval_incomplete_{phase.value}"
+        return
     assert (
         state.phase_results is not None
         and state.phase_refs is not None

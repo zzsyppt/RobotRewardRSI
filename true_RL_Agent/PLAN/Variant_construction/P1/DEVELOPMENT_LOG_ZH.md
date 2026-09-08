@@ -66,7 +66,7 @@ role target 不做全局唯一：`base` 与 `forbidden_contact` 可以合法重�
 
 ### 4.3 Push legacy 占位 schema 标签不能直接替换
 
-把 `push_recovery_obs_v1` / `unitree_actions_v1` 直接换成新内容 hash 会破坏 legacy job/baseline 身份。处理方式不是打兼容分支，而是在新 manifest 的 contract hashes 中同时加入 P0 `policy_io_schema_hash`、observation/action content hash；旧标签只作为 legacy backend 兼容字段保留。首个 non-legacy Push cell（Extension B：Go2 × Push）必须改用 manifest observation/action content hash，未完成前不得运行。
+把 `push_recovery_obs_v1` / `unitree_actions_v1` 直接换成新内容 hash 会破坏 legacy job/baseline 身份。处理方式不是打兼容分支，而是在新 manifest 的 contract hashes 中同时加入 P0 `policy_io_schema_hash`、observation/action content hash；旧标签只作为 legacy backend 兼容字段保留。首个 non-legacy Push cell（Extension A：Go2 × Push）必须改用 manifest observation/action content hash，未完成前不得运行。
 
 ### 4.4 dry-run 产物不应成为长期脚手架
 
@@ -99,7 +99,7 @@ role target 不做全局唯一：`base` 与 `forbidden_contact` 可以合法重�
   grant hash；cell 任一输入变化而未重新授权时确定拒绝，其他 cell 默认 V2；
 - B6：G1-29 `articulation_source` 改为真实资产符号
   `unitree_rl_lab.assets.robots.unitree:UNITREE_G1_29DOF_CFG`，task env module 只留在 Push task-owned runtime；
-- B7：legacy 占位 policy-I/O 标签继续只为历史身份保留；清除执行路径的责任与验收门已明确归 Extension B，
+- B7：legacy 占位 policy-I/O 标签继续只为历史身份保留；清除执行路径的责任与验收门已明确归 Extension A，
   Go2 × Push 必须直接消费 manifest content hashes。
 
 ### 4.9 P1 回执可复验性与后续边界审计
@@ -108,8 +108,9 @@ role target 不做全局唯一：`base` 与 `forbidden_contact` 可以合法重�
   `evidence_closure_hash` 改成解析后 canonical hash 不能根治：sealed candidate manifest 还保存了
   `components.py`、`candidate_manifest.yaml` 的原始字节 hash 与大小；外层通过后内层身份仍会失效。
 - 根修为在 `.gitattributes` 对小型冻结目录 `PUSH_SHARED_LOOP_DRY_RUN/**` 使用 `-text -eol`，保留证据原始字节；
-  新增永久 `verify_phase1_snapshot.py`，同时复算产品树、profiles/cells、24 文件闭包、Git 属性、sealed candidate
-  内部源码身份和 frozen/current Push manifest。自测用临时 Git 仓库设置 `core.autocrlf=true`，真实 add +
+  新增永久 `verify_phase1_snapshot.py`：冻结产品树只校验内部闭包，当前门精确复算两份 legacy G1 profiles 与
+  两个 legacy cell 的机器人/任务轴，并复算 24 文件闭包、Git 属性、sealed candidate 内部源码身份及
+  frozen/current Push cell axes。这样新增机器人行或后续任务协议演进不会注销 P1 历史证据。自测用临时 Git 仓库设置 `core.autocrlf=true`，真实 add +
   checkout 后 24/24 字节相同，另有语义篡改拒绝测试。收尾时把 29 个产品文件与 24 个证据文件一起做同样的
   全新检出探针，53/53 均保持原字节；产品文件原有 LF 规则有效，无需增加更广的行尾策略。
 - 确认 P1 原先缺少自动验收器；现已与 Phase 0 一样提供可重复 CLI，而不是依赖人工复算。

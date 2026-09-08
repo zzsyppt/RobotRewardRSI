@@ -1,0 +1,28 @@
+Traceback (most recent call last):
+  File "/data/yuyangliu/isolated/new_world_p2_audit/true_RL_Agent/src/true_rl_agent/runner/subprocess_runner.py", line 1240, in _execute_summary_job
+    summary = self._read_summary(metadata, job_id=identity.job_id)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/isolated/new_world_p2_audit/true_RL_Agent/src/true_rl_agent/runner/subprocess_runner.py", line 1487, in _read_summary
+    raise RunnerExecutionError(
+true_rl_agent.runner.base.RunnerExecutionError: audit_go2_full_train_01-train: summary file was not created: /data/yuyangliu/isolated/new_world_p2_audit/true_RL_Agent/PLAN/2new_world/P2/results/audit_go2_full_train_01/runner/audit_go2_full_train_01/train/summary.json
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/data/yuyangliu/isolated/new_world_p2_audit/true_RL_Agent/PLAN/2new_world/P2/native_eval_job_probe.py", line 172, in <module>
+    result = runner.run_train(spec) if args.train else runner.run_eval_phase(spec)
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/isolated/new_world_p2_audit/true_RL_Agent/src/true_rl_agent/runner/subprocess_runner.py", line 209, in run_train
+    return self._execute_with_attempts(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/isolated/new_world_p2_audit/true_RL_Agent/src/true_rl_agent/runner/subprocess_runner.py", line 918, in _execute_with_attempts
+    result = operation(
+             ^^^^^^^^^^
+  File "/data/yuyangliu/isolated/new_world_p2_audit/true_RL_Agent/src/true_rl_agent/runner/subprocess_runner.py", line 213, in <lambda>
+    self._run_train_once(
+  File "/data/yuyangliu/isolated/new_world_p2_audit/true_RL_Agent/src/true_rl_agent/runner/subprocess_runner.py", line 253, in _run_train_once
+    completion = self._execute_summary_job(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/isolated/new_world_p2_audit/true_RL_Agent/src/true_rl_agent/runner/subprocess_runner.py", line 1280, in _execute_summary_job
+    raise error from exc
+true_rl_agent.runner.base.RunnerExecutionError: audit_go2_full_train_01-train: structured summary invalid: summary file was not created: /data/yuyangliu/isolated/new_world_p2_audit/true_RL_Agent/PLAN/2new_world/P2/results/audit_go2_full_train_01/runner/audit_go2_full_train_01/train/summary.json

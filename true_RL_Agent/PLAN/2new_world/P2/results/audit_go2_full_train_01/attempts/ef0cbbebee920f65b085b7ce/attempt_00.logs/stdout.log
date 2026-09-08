@@ -1,0 +1,2716 @@
+[INFO]: Base environment:
+	Environment device    : cuda:0
+	Environment seed      : 1262835026
+	Physics step-size     : 0.005
+	Rendering step-size   : 0.02
+	Environment step-size : 0.02
+[INFO]: Registered backend 'physx' for factory Articulation.
+[INFO] Generating terrains based on curriculum took Last: 0.806395 s
+[INFO]: Registered backend 'physx' for factory FrameView.
+[INFO]: Registered backend 'physx' for factory RayCaster.
+[INFO]: Physics scene prim path: /physicsScene
+[INFO]: Time taken for scene creation Last: 15.761717 s, Mean: 15.761717 s, Std: 0.000000 s, N: 1
+[INFO]: Scene manager:  <class InteractiveScene>
+	Number of environments: 4096
+	Environment spacing   : 2.5
+	Source prim name      : /World/envs/env_0
+	Global prim paths     : ['/World/ground']
+	Replicate physics     : True
+[INFO]: Simulation parameters for joints in /World/envs/env_.*/Robot:
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|                                                  Simulation Joint Information (Prim path: /World/envs/env_.*/Robot)                                                  |
++-------+----------------+-----------+---------+----------+-----------------+------------------+------------------+------------------+-----------------+---------------+
+| Index | Name           | Stiffness | Damping | Armature | Static Friction | Dynamic Friction | Viscous Friction | Position Limits  | Velocity Limits | Effort Limits |
++-------+----------------+-----------+---------+----------+-----------------+------------------+------------------+------------------+-----------------+---------------+
+|   0   | FL_hip_joint   |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-1.047, 1.047]  |      30.100     |    1.0e+09    |
+|   1   | FR_hip_joint   |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-1.047, 1.047]  |      30.100     |    1.0e+09    |
+|   2   | RL_hip_joint   |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-1.047, 1.047]  |      30.100     |    1.0e+09    |
+|   3   | RR_hip_joint   |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-1.047, 1.047]  |      30.100     |    1.0e+09    |
+|   4   | FL_thigh_joint |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-1.571, 3.491]  |      30.100     |    1.0e+09    |
+|   5   | FR_thigh_joint |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-1.571, 3.491]  |      30.100     |    1.0e+09    |
+|   6   | RL_thigh_joint |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-0.524, 4.538]  |      30.100     |    1.0e+09    |
+|   7   | RR_thigh_joint |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-0.524, 4.538]  |      30.100     |    1.0e+09    |
+|   8   | FL_calf_joint  |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-2.723, -0.838] |      15.700     |    1.0e+09    |
+|   9   | FR_calf_joint  |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-2.723, -0.838] |      15.700     |    1.0e+09    |
+|   10  | RL_calf_joint  |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-2.723, -0.838] |      15.700     |    1.0e+09    |
+|   11  | RR_calf_joint  |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-2.723, -0.838] |      15.700     |    1.0e+09    |
++-------+----------------+-----------+---------+----------+-----------------+------------------+------------------+------------------+-----------------+---------------+
+[INFO]: Read mesh prim: /World/ground/terrain/mesh with 8032 vertices and 36024 faces.
+[INFO]: Time taken for simulation start Last: 51.778025 s, Mean: 51.778025 s, Std: 0.000000 s, N: 1
+[INFO] Command Manager:  <CommandManager> contains 1 active terms.
++------------------------------------------------+
+|              Active Command Terms              |
++-------+---------------+------------------------+
+| Index | Name          |          Type          |
++-------+---------------+------------------------+
+|   0   | base_velocity | UniformVelocityCommand |
++-------+---------------+------------------------+
+
+[INFO] Event Manager:  <EventManager> contains 2 active terms.
++--------------------------------------+
+| Active Event Terms in Mode: 'startup' |
++----------+---------------------------+
+|  Index   | Name                      |
++----------+---------------------------+
+|    0     | physics_material          |
+|    1     | add_base_mass             |
++----------+---------------------------+
++-------------------------------------+
+| Active Event Terms in Mode: 'reset' |
++---------+---------------------------+
+|  Index  | Name                      |
++---------+---------------------------+
+|    0    | reset_base                |
+|    1    | reset_robot_joints        |
++---------+---------------------------+
+
+[INFO] Recorder Manager:  <RecorderManager> contains 0 active terms.
++---------------------+
+| Active Recorder Terms |
++-----------+---------+
+|   Index   | Name    |
++-----------+---------+
++-----------+---------+
+
+[INFO]: Resolved joint names for the action term JointPositionAction: ['FL_hip_joint', 'FR_hip_joint', 'RL_hip_joint', 'RR_hip_joint', 'FL_thigh_joint', 'FR_thigh_joint', 'RL_thigh_joint', 'RR_thigh_joint', 'FL_calf_joint', 'FR_calf_joint', 'RL_calf_joint', 'RR_calf_joint'] [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]]
+[INFO] Action Manager:  <ActionManager> contains 1 active terms.
++------------------------------------+
+|  Active Action Terms (shape: 12)   |
++--------+-------------+-------------+
+| Index  | Name        |   Dimension |
++--------+-------------+-------------+
+|   0    | joint_pos   |          12 |
++--------+-------------+-------------+
+
+[INFO] Observation Manager: <ObservationManager> contains 1 groups.
++----------------------------------------------------------+
+| Active Observation Terms in Group: 'policy' (shape: (235,)) |
++-----------+--------------------------------+-------------+
+|   Index   | Name                           |    Shape    |
++-----------+--------------------------------+-------------+
+|     0     | base_lin_vel                   |     (3,)    |
+|     1     | base_ang_vel                   |     (3,)    |
+|     2     | projected_gravity              |     (3,)    |
+|     3     | velocity_commands              |     (3,)    |
+|     4     | joint_pos                      |    (12,)    |
+|     5     | joint_vel                      |    (12,)    |
+|     6     | actions                        |    (12,)    |
+|     7     | height_scan                    |    (187,)   |
++-----------+--------------------------------+-------------+
+
+[INFO] Termination Manager:  <TerminationManager> contains 2 active terms.
++---------------------------------+
+|     Active Termination Terms    |
++-------+--------------+----------+
+| Index | Name         | Time Out |
++-------+--------------+----------+
+|   0   | time_out     |   True   |
+|   1   | base_contact |  False   |
++-------+--------------+----------+
+
+[INFO] Reward Manager:  <RewardManager> contains 1 active terms.
++----------------------------------+
+|       Active Reward Terms        |
++-------+-----------------+--------+
+| Index | Name            | Weight |
++-------+-----------------+--------+
+|   0   | complete_reward |    1.0 |
++-------+-----------------+--------+
+
+[INFO] Curriculum Manager:  <CurriculumManager> contains 1 active terms.
++---------------------------+
+|  Active Curriculum Terms  |
++--------+------------------+
+| Index  | Name             |
++--------+------------------+
+|   0    | terrain_levels   |
++--------+------------------+
+
+[INFO]: Completed setting up the environment...
+--------------------------------------------------------------------------------
+Resolved observation sets: 
+	 actor :  ['policy']
+	 critic :  ['policy']
+--------------------------------------------------------------------------------
+Actor Model: MLPModel(
+  (obs_normalizer): Identity()
+  (distribution): GaussianDistribution()
+  (mlp): MLP(
+    (0): Linear(in_features=235, out_features=512, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=512, out_features=256, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=256, out_features=128, bias=True)
+    (5): ELU(alpha=1.0)
+    (6): Linear(in_features=128, out_features=12, bias=True)
+  )
+)
+Critic Model: MLPModel(
+  (obs_normalizer): Identity()
+  (mlp): MLP(
+    (0): Linear(in_features=235, out_features=512, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=512, out_features=256, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=256, out_features=128, bias=True)
+    (5): ELU(alpha=1.0)
+    (6): Linear(in_features=128, out_features=1, bias=True)
+  )
+)
+Could not find git repository in /data/yuyangliu/envs/isaaclab6_validation/lib/python3.12/site-packages/rsl_rl/__init__.py. Skipping.
+Could not find git repository in /data/yuyangliu/isolated/new_world_p2_audit/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_execution.py. Skipping.
+################################################################################
+[1m                           Learning iteration 0/2000                            [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 98304 
+                       Steps per second: 4123 
+                        Collection time: 23.418s 
+                          Learning time: 0.422s 
+                        Mean value loss: 0.0542
+                    Mean surrogate loss: 0.0059
+                      Mean entropy loss: 17.0194
+                            Mean reward: 0.20
+                    Mean episode length: 16.77
+                        Mean action std: 1.00
+         Episode_Reward/complete_reward: 0.0141
+              Curriculum/terrain_levels: 0.8227
+                   Metrics/success_rate: 0.3369
+     Metrics/base_velocity/error_vel_xy: 0.4152
+    Metrics/base_velocity/error_vel_yaw: 0.4172
+           Episode_Termination/time_out: 0.0227
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 23.84s
+                           Time elapsed: 00:00:23
+                                    ETA: 13:14:15
+
+################################################################################
+[1m                           Learning iteration 1/2000                            [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 196608 
+                       Steps per second: 6477 
+                        Collection time: 15.028s 
+                          Learning time: 0.147s 
+                        Mean value loss: 0.0340
+                    Mean surrogate loss: -0.0051
+                      Mean entropy loss: 16.9635
+                            Mean reward: 0.19
+                    Mean episode length: 39.99
+                        Mean action std: 0.99
+         Episode_Reward/complete_reward: 0.0142
+              Curriculum/terrain_levels: 0.8072
+                   Metrics/success_rate: 0.0083
+     Metrics/base_velocity/error_vel_xy: 0.5460
+    Metrics/base_velocity/error_vel_yaw: 0.6164
+           Episode_Termination/time_out: 0.0617
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 15.18s
+                           Time elapsed: 00:00:39
+                                    ETA: 10:49:36
+
+################################################################################
+[1m                           Learning iteration 2/2000                            [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 294912 
+                       Steps per second: 7806 
+                        Collection time: 12.445s 
+                          Learning time: 0.148s 
+                        Mean value loss: 0.0322
+                    Mean surrogate loss: -0.0061
+                      Mean entropy loss: 16.8475
+                            Mean reward: 0.17
+                    Mean episode length: 65.69
+                        Mean action std: 0.98
+         Episode_Reward/complete_reward: 0.0103
+              Curriculum/terrain_levels: 0.7930
+                   Metrics/success_rate: 0.0069
+     Metrics/base_velocity/error_vel_xy: 0.5858
+    Metrics/base_velocity/error_vel_yaw: 0.6078
+           Episode_Termination/time_out: 0.1008
+       Episode_Termination/base_contact: 0.0004
+--------------------------------------------------------------------------------
+                         Iteration time: 12.59s
+                           Time elapsed: 00:00:51
+                                    ETA: 09:32:34
+
+################################################################################
+[1m                           Learning iteration 3/2000                            [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 393216 
+                       Steps per second: 8269 
+                        Collection time: 11.742s 
+                          Learning time: 0.146s 
+                        Mean value loss: 0.0449
+                    Mean surrogate loss: -0.0061
+                      Mean entropy loss: 16.7776
+                            Mean reward: 0.12
+                    Mean episode length: 91.97
+                        Mean action std: 0.98
+         Episode_Reward/complete_reward: 0.0042
+              Curriculum/terrain_levels: 0.7784
+                   Metrics/success_rate: 0.0069
+     Metrics/base_velocity/error_vel_xy: 0.6065
+    Metrics/base_velocity/error_vel_yaw: 0.6281
+           Episode_Termination/time_out: 0.1431
+       Episode_Termination/base_contact: 0.0077
+--------------------------------------------------------------------------------
+                         Iteration time: 11.89s
+                           Time elapsed: 00:01:03
+                                    ETA: 08:48:04
+
+################################################################################
+[1m                           Learning iteration 4/2000                            [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 491520 
+                       Steps per second: 8436 
+                        Collection time: 11.507s 
+                          Learning time: 0.145s 
+                        Mean value loss: 0.0629
+                    Mean surrogate loss: -0.0056
+                      Mean entropy loss: 16.7164
+                            Mean reward: 0.25
+                    Mean episode length: 116.47
+                        Mean action std: 0.97
+         Episode_Reward/complete_reward: -0.0070
+              Curriculum/terrain_levels: 0.7633
+                   Metrics/success_rate: 0.0046
+     Metrics/base_velocity/error_vel_xy: 0.6096
+    Metrics/base_velocity/error_vel_yaw: 0.6388
+           Episode_Termination/time_out: 0.1792
+       Episode_Termination/base_contact: 0.0376
+--------------------------------------------------------------------------------
+                         Iteration time: 11.65s
+                           Time elapsed: 00:01:15
+                                    ETA: 08:19:44
+
+################################################################################
+[1m                           Learning iteration 5/2000                            [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 589824 
+                       Steps per second: 8463 
+                        Collection time: 11.470s 
+                          Learning time: 0.146s 
+                        Mean value loss: 0.0957
+                    Mean surrogate loss: -0.0052
+                      Mean entropy loss: 16.6826
+                            Mean reward: 0.33
+                    Mean episode length: 139.68
+                        Mean action std: 0.97
+         Episode_Reward/complete_reward: 0.0213
+              Curriculum/terrain_levels: 0.7484
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.5707
+    Metrics/base_velocity/error_vel_yaw: 0.6296
+           Episode_Termination/time_out: 0.2127
+       Episode_Termination/base_contact: 0.0907
+--------------------------------------------------------------------------------
+                         Iteration time: 11.62s
+                           Time elapsed: 00:01:26
+                                    ETA: 08:00:34
+
+################################################################################
+[1m                           Learning iteration 6/2000                            [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 688128 
+                       Steps per second: 8278 
+                        Collection time: 11.715s 
+                          Learning time: 0.160s 
+                        Mean value loss: 0.0963
+                    Mean surrogate loss: -0.0060
+                      Mean entropy loss: 16.6325
+                            Mean reward: 0.96
+                    Mean episode length: 162.42
+                        Mean action std: 0.97
+         Episode_Reward/complete_reward: 0.0442
+              Curriculum/terrain_levels: 0.7325
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.5541
+    Metrics/base_velocity/error_vel_yaw: 0.6341
+           Episode_Termination/time_out: 0.2396
+       Episode_Termination/base_contact: 0.1484
+--------------------------------------------------------------------------------
+                         Iteration time: 11.88s
+                           Time elapsed: 00:01:38
+                                    ETA: 07:48:03
+
+################################################################################
+[1m                           Learning iteration 7/2000                            [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 786432 
+                       Steps per second: 8194 
+                        Collection time: 11.813s 
+                          Learning time: 0.184s 
+                        Mean value loss: 0.1354
+                    Mean surrogate loss: -0.0057
+                      Mean entropy loss: 16.6256
+                            Mean reward: 0.42
+                    Mean episode length: 183.58
+                        Mean action std: 0.97
+         Episode_Reward/complete_reward: 0.0455
+              Curriculum/terrain_levels: 0.7129
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.5626
+    Metrics/base_velocity/error_vel_yaw: 0.6316
+           Episode_Termination/time_out: 0.2646
+       Episode_Termination/base_contact: 0.1996
+--------------------------------------------------------------------------------
+                         Iteration time: 12.00s
+                           Time elapsed: 00:01:50
+                                    ETA: 07:39:08
+
+################################################################################
+[1m                           Learning iteration 8/2000                            [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 884736 
+                       Steps per second: 7907 
+                        Collection time: 12.278s 
+                          Learning time: 0.154s 
+                        Mean value loss: 0.1538
+                    Mean surrogate loss: -0.0018
+                      Mean entropy loss: 16.6453
+                            Mean reward: 0.57
+                    Mean episode length: 201.04
+                        Mean action std: 0.97
+         Episode_Reward/complete_reward: 0.0588
+              Curriculum/terrain_levels: 0.6878
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.5313
+    Metrics/base_velocity/error_vel_yaw: 0.6560
+           Episode_Termination/time_out: 0.2828
+       Episode_Termination/base_contact: 0.2522
+--------------------------------------------------------------------------------
+                         Iteration time: 12.43s
+                           Time elapsed: 00:02:03
+                                    ETA: 07:33:45
+
+################################################################################
+[1m                           Learning iteration 9/2000                            [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 983040 
+                       Steps per second: 7540 
+                        Collection time: 12.894s 
+                          Learning time: 0.144s 
+                        Mean value loss: 0.1473
+                    Mean surrogate loss: -0.0032
+                      Mean entropy loss: 16.6713
+                            Mean reward: 0.61
+                    Mean episode length: 215.61
+                        Mean action std: 0.97
+         Episode_Reward/complete_reward: 0.0922
+              Curriculum/terrain_levels: 0.6530
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.4864
+    Metrics/base_velocity/error_vel_yaw: 0.6448
+           Episode_Termination/time_out: 0.2921
+       Episode_Termination/base_contact: 0.3210
+--------------------------------------------------------------------------------
+                         Iteration time: 13.04s
+                           Time elapsed: 00:02:16
+                                    ETA: 07:31:24
+
+################################################################################
+[1m                           Learning iteration 10/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 1081344 
+                       Steps per second: 6987 
+                        Collection time: 13.924s 
+                          Learning time: 0.145s 
+                        Mean value loss: 0.1599
+                    Mean surrogate loss: -0.0051
+                      Mean entropy loss: 16.6859
+                            Mean reward: 1.19
+                    Mean episode length: 227.37
+                        Mean action std: 0.97
+         Episode_Reward/complete_reward: 0.1048
+              Curriculum/terrain_levels: 0.6125
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.4989
+    Metrics/base_velocity/error_vel_yaw: 0.6470
+           Episode_Termination/time_out: 0.2894
+       Episode_Termination/base_contact: 0.4017
+--------------------------------------------------------------------------------
+                         Iteration time: 14.07s
+                           Time elapsed: 00:02:30
+                                    ETA: 07:32:34
+
+################################################################################
+[1m                           Learning iteration 11/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 1179648 
+                       Steps per second: 6682 
+                        Collection time: 14.564s 
+                          Learning time: 0.148s 
+                        Mean value loss: 0.1666
+                    Mean surrogate loss: -0.0051
+                      Mean entropy loss: 16.6951
+                            Mean reward: 1.50
+                    Mean episode length: 216.52
+                        Mean action std: 0.97
+         Episode_Reward/complete_reward: 0.1231
+              Curriculum/terrain_levels: 0.5703
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.4831
+    Metrics/base_velocity/error_vel_yaw: 0.6305
+           Episode_Termination/time_out: 0.2775
+       Episode_Termination/base_contact: 0.4855
+--------------------------------------------------------------------------------
+                         Iteration time: 14.71s
+                           Time elapsed: 00:02:44
+                                    ETA: 07:35:15
+
+################################################################################
+[1m                           Learning iteration 12/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 1277952 
+                       Steps per second: 6557 
+                        Collection time: 14.844s 
+                          Learning time: 0.147s 
+                        Mean value loss: 0.1490
+                    Mean surrogate loss: -0.0033
+                      Mean entropy loss: 16.7087
+                            Mean reward: 1.17
+                    Mean episode length: 237.48
+                        Mean action std: 0.97
+         Episode_Reward/complete_reward: 0.0910
+              Curriculum/terrain_levels: 0.5304
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.5288
+    Metrics/base_velocity/error_vel_yaw: 0.6237
+           Episode_Termination/time_out: 0.2569
+       Episode_Termination/base_contact: 0.5622
+--------------------------------------------------------------------------------
+                         Iteration time: 14.99s
+                           Time elapsed: 00:02:59
+                                    ETA: 07:38:13
+
+################################################################################
+[1m                           Learning iteration 13/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 1376256 
+                       Steps per second: 6299 
+                        Collection time: 15.449s 
+                          Learning time: 0.155s 
+                        Mean value loss: 0.1217
+                    Mean surrogate loss: -0.0060
+                      Mean entropy loss: 16.6939
+                            Mean reward: 1.21
+                    Mean episode length: 244.75
+                        Mean action std: 0.97
+         Episode_Reward/complete_reward: 0.0944
+              Curriculum/terrain_levels: 0.4969
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.6032
+    Metrics/base_velocity/error_vel_yaw: 0.6122
+           Episode_Termination/time_out: 0.2385
+       Episode_Termination/base_contact: 0.6253
+--------------------------------------------------------------------------------
+                         Iteration time: 15.60s
+                           Time elapsed: 00:03:15
+                                    ETA: 07:42:10
+
+################################################################################
+[1m                           Learning iteration 14/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 1474560 
+                       Steps per second: 6243 
+                        Collection time: 15.599s 
+                          Learning time: 0.145s 
+                        Mean value loss: 0.1130
+                    Mean surrogate loss: -0.0073
+                      Mean entropy loss: 16.6669
+                            Mean reward: 1.03
+                    Mean episode length: 251.10
+                        Mean action std: 0.97
+         Episode_Reward/complete_reward: 0.0466
+              Curriculum/terrain_levels: 0.4736
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.7646
+    Metrics/base_velocity/error_vel_yaw: 0.6044
+           Episode_Termination/time_out: 0.2272
+       Episode_Termination/base_contact: 0.6653
+--------------------------------------------------------------------------------
+                         Iteration time: 15.74s
+                           Time elapsed: 00:03:31
+                                    ETA: 07:45:52
+
+################################################################################
+[1m                           Learning iteration 15/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 1572864 
+                       Steps per second: 6281 
+                        Collection time: 15.504s 
+                          Learning time: 0.145s 
+                        Mean value loss: 0.1056
+                    Mean surrogate loss: -0.0076
+                      Mean entropy loss: 16.6509
+                            Mean reward: 2.86
+                    Mean episode length: 251.41
+                        Mean action std: 0.97
+         Episode_Reward/complete_reward: 0.2148
+              Curriculum/terrain_levels: 0.4554
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.7269
+    Metrics/base_velocity/error_vel_yaw: 0.6036
+           Episode_Termination/time_out: 0.2210
+       Episode_Termination/base_contact: 0.6939
+--------------------------------------------------------------------------------
+                         Iteration time: 15.65s
+                           Time elapsed: 00:03:46
+                                    ETA: 07:48:52
+
+################################################################################
+[1m                           Learning iteration 16/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 1671168 
+                       Steps per second: 6397 
+                        Collection time: 15.215s 
+                          Learning time: 0.151s 
+                        Mean value loss: 0.1140
+                    Mean surrogate loss: -0.0062
+                      Mean entropy loss: 16.6414
+                            Mean reward: 1.74
+                    Mean episode length: 278.99
+                        Mean action std: 0.97
+         Episode_Reward/complete_reward: 0.1467
+              Curriculum/terrain_levels: 0.4417
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 1.0709
+    Metrics/base_velocity/error_vel_yaw: 0.6024
+           Episode_Termination/time_out: 0.2137
+       Episode_Termination/base_contact: 0.7162
+--------------------------------------------------------------------------------
+                         Iteration time: 15.37s
+                           Time elapsed: 00:04:02
+                                    ETA: 07:50:56
+
+################################################################################
+[1m                           Learning iteration 17/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 1769472 
+                       Steps per second: 6407 
+                        Collection time: 15.195s 
+                          Learning time: 0.146s 
+                        Mean value loss: 0.0836
+                    Mean surrogate loss: -0.0060
+                      Mean entropy loss: 16.6219
+                            Mean reward: -0.17
+                    Mean episode length: 311.40
+                        Mean action std: 0.97
+         Episode_Reward/complete_reward: 0.0604
+              Curriculum/terrain_levels: 0.4353
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 1.9850
+    Metrics/base_velocity/error_vel_yaw: 0.6362
+           Episode_Termination/time_out: 0.2151
+       Episode_Termination/base_contact: 0.7260
+--------------------------------------------------------------------------------
+                         Iteration time: 15.34s
+                           Time elapsed: 00:04:17
+                                    ETA: 07:52:42
+
+################################################################################
+[1m                           Learning iteration 18/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 1867776 
+                       Steps per second: 6600 
+                        Collection time: 14.747s 
+                          Learning time: 0.147s 
+                        Mean value loss: 0.0628
+                    Mean surrogate loss: -0.0038
+                      Mean entropy loss: 16.5785
+                            Mean reward: -1.48
+                    Mean episode length: 335.59
+                        Mean action std: 0.96
+         Episode_Reward/complete_reward: -0.1083
+              Curriculum/terrain_levels: 0.4290
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 2.5986
+    Metrics/base_velocity/error_vel_yaw: 0.6210
+           Episode_Termination/time_out: 0.2186
+       Episode_Termination/base_contact: 0.7329
+--------------------------------------------------------------------------------
+                         Iteration time: 14.89s
+                           Time elapsed: 00:04:32
+                                    ETA: 07:53:29
+
+################################################################################
+[1m                           Learning iteration 19/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 1966080 
+                       Steps per second: 6794 
+                        Collection time: 14.321s 
+                          Learning time: 0.147s 
+                        Mean value loss: 0.0494
+                    Mean surrogate loss: -0.0055
+                      Mean entropy loss: 16.5255
+                            Mean reward: -1.08
+                    Mean episode length: 364.87
+                        Mean action std: 0.96
+         Episode_Reward/complete_reward: -0.0175
+              Curriculum/terrain_levels: 0.4248
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 2.6659
+    Metrics/base_velocity/error_vel_yaw: 0.6214
+           Episode_Termination/time_out: 0.2237
+       Episode_Termination/base_contact: 0.7356
+--------------------------------------------------------------------------------
+                         Iteration time: 14.47s
+                           Time elapsed: 00:04:46
+                                    ETA: 07:53:27
+
+################################################################################
+[1m                           Learning iteration 20/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 2064384 
+                       Steps per second: 6933 
+                        Collection time: 14.033s 
+                          Learning time: 0.145s 
+                        Mean value loss: 0.0887
+                    Mean surrogate loss: -0.0030
+                      Mean entropy loss: 16.4460
+                            Mean reward: -1.05
+                    Mean episode length: 388.91
+                        Mean action std: 0.95
+         Episode_Reward/complete_reward: -0.2249
+              Curriculum/terrain_levels: 0.4224
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 4.2011
+    Metrics/base_velocity/error_vel_yaw: 0.6827
+           Episode_Termination/time_out: 0.2290
+       Episode_Termination/base_contact: 0.7377
+--------------------------------------------------------------------------------
+                         Iteration time: 14.18s
+                           Time elapsed: 00:05:01
+                                    ETA: 07:52:57
+
+################################################################################
+[1m                           Learning iteration 21/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 2162688 
+                       Steps per second: 7073 
+                        Collection time: 13.750s 
+                          Learning time: 0.148s 
+                        Mean value loss: 0.0440
+                    Mean surrogate loss: -0.0038
+                      Mean entropy loss: 16.3663
+                            Mean reward: -3.44
+                    Mean episode length: 440.07
+                        Mean action std: 0.95
+         Episode_Reward/complete_reward: -0.3155
+              Curriculum/terrain_levels: 0.4196
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 6.0628
+    Metrics/base_velocity/error_vel_yaw: 0.7394
+           Episode_Termination/time_out: 0.2348
+       Episode_Termination/base_contact: 0.7383
+--------------------------------------------------------------------------------
+                         Iteration time: 13.90s
+                           Time elapsed: 00:05:15
+                                    ETA: 07:52:03
+
+################################################################################
+[1m                           Learning iteration 22/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 2260992 
+                       Steps per second: 7298 
+                        Collection time: 13.326s 
+                          Learning time: 0.143s 
+                        Mean value loss: 0.0456
+                    Mean surrogate loss: -0.0051
+                      Mean entropy loss: 16.2624
+                            Mean reward: -2.57
+                    Mean episode length: 470.53
+                        Mean action std: 0.94
+         Episode_Reward/complete_reward: 0.2349
+              Curriculum/terrain_levels: 0.4165
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 2.3911
+    Metrics/base_velocity/error_vel_yaw: 0.5641
+           Episode_Termination/time_out: 0.2420
+       Episode_Termination/base_contact: 0.7387
+--------------------------------------------------------------------------------
+                         Iteration time: 13.47s
+                           Time elapsed: 00:05:28
+                                    ETA: 07:50:35
+
+################################################################################
+[1m                           Learning iteration 23/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 2359296 
+                       Steps per second: 7390 
+                        Collection time: 13.152s 
+                          Learning time: 0.149s 
+                        Mean value loss: 0.0372
+                    Mean surrogate loss: -0.0041
+                      Mean entropy loss: 16.1587
+                            Mean reward: -2.72
+                    Mean episode length: 514.26
+                        Mean action std: 0.93
+         Episode_Reward/complete_reward: -0.6505
+              Curriculum/terrain_levels: 0.4140
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 8.6612
+    Metrics/base_velocity/error_vel_yaw: 0.8007
+           Episode_Termination/time_out: 0.2491
+       Episode_Termination/base_contact: 0.7390
+--------------------------------------------------------------------------------
+                         Iteration time: 13.30s
+                           Time elapsed: 00:05:41
+                                    ETA: 07:49:00
+
+################################################################################
+[1m                           Learning iteration 24/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 2457600 
+                       Steps per second: 7716 
+                        Collection time: 12.590s 
+                          Learning time: 0.150s 
+                        Mean value loss: 0.0492
+                    Mean surrogate loss: -0.0031
+                      Mean entropy loss: 16.0119
+                            Mean reward: -1.90
+                    Mean episode length: 546.14
+                        Mean action std: 0.92
+         Episode_Reward/complete_reward: -0.0791
+              Curriculum/terrain_levels: 0.4102
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 7.2767
+    Metrics/base_velocity/error_vel_yaw: 0.7207
+           Episode_Termination/time_out: 0.2572
+       Episode_Termination/base_contact: 0.7395
+--------------------------------------------------------------------------------
+                         Iteration time: 12.74s
+                           Time elapsed: 00:05:54
+                                    ETA: 07:46:47
+
+################################################################################
+[1m                           Learning iteration 25/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 2555904 
+                       Steps per second: 7918 
+                        Collection time: 12.268s 
+                          Learning time: 0.146s 
+                        Mean value loss: 0.0408
+                    Mean surrogate loss: -0.0041
+                      Mean entropy loss: 15.9465
+                            Mean reward: -3.58
+                    Mean episode length: 564.59
+                        Mean action std: 0.92
+         Episode_Reward/complete_reward: 0.1282
+              Curriculum/terrain_levels: 0.4077
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 7.2606
+    Metrics/base_velocity/error_vel_yaw: 0.6980
+           Episode_Termination/time_out: 0.2605
+       Episode_Termination/base_contact: 0.7397
+--------------------------------------------------------------------------------
+                         Iteration time: 12.41s
+                           Time elapsed: 00:06:06
+                                    ETA: 07:44:19
+
+################################################################################
+[1m                           Learning iteration 26/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 2654208 
+                       Steps per second: 8239 
+                        Collection time: 11.785s 
+                          Learning time: 0.146s 
+                        Mean value loss: 0.0333
+                    Mean surrogate loss: -0.0061
+                      Mean entropy loss: 15.8535
+                            Mean reward: -1.46
+                    Mean episode length: 580.13
+                        Mean action std: 0.91
+         Episode_Reward/complete_reward: 0.3514
+              Curriculum/terrain_levels: 0.4061
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 3.9487
+    Metrics/base_velocity/error_vel_yaw: 0.5483
+           Episode_Termination/time_out: 0.2605
+       Episode_Termination/base_contact: 0.7397
+--------------------------------------------------------------------------------
+                         Iteration time: 11.93s
+                           Time elapsed: 00:06:18
+                                    ETA: 07:41:25
+
+################################################################################
+[1m                           Learning iteration 27/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 2752512 
+                       Steps per second: 8565 
+                        Collection time: 11.328s 
+                          Learning time: 0.149s 
+                        Mean value loss: 0.0544
+                    Mean surrogate loss: -0.0030
+                      Mean entropy loss: 15.7230
+                            Mean reward: 2.87
+                    Mean episode length: 593.98
+                        Mean action std: 0.90
+         Episode_Reward/complete_reward: 0.3500
+              Curriculum/terrain_levels: 0.4036
+                   Metrics/success_rate: 0.0417
+     Metrics/base_velocity/error_vel_xy: 3.0473
+    Metrics/base_velocity/error_vel_yaw: 0.5812
+           Episode_Termination/time_out: 0.2605
+       Episode_Termination/base_contact: 0.7397
+--------------------------------------------------------------------------------
+                         Iteration time: 11.48s
+                           Time elapsed: 00:06:30
+                                    ETA: 07:38:11
+
+################################################################################
+[1m                           Learning iteration 28/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 2850816 
+                       Steps per second: 8937 
+                        Collection time: 10.854s 
+                          Learning time: 0.145s 
+                        Mean value loss: 0.0597
+                    Mean surrogate loss: -0.0035
+                      Mean entropy loss: 15.6464
+                            Mean reward: 8.63
+                    Mean episode length: 596.62
+                        Mean action std: 0.89
+         Episode_Reward/complete_reward: 0.8469
+              Curriculum/terrain_levels: 0.4017
+                   Metrics/success_rate: 0.0139
+     Metrics/base_velocity/error_vel_xy: 0.5876
+    Metrics/base_velocity/error_vel_yaw: 0.4741
+           Episode_Termination/time_out: 0.2614
+       Episode_Termination/base_contact: 0.7389
+--------------------------------------------------------------------------------
+                         Iteration time: 11.00s
+                           Time elapsed: 00:06:41
+                                    ETA: 07:34:37
+
+################################################################################
+[1m                           Learning iteration 29/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 2949120 
+                       Steps per second: 9119 
+                        Collection time: 10.636s 
+                          Learning time: 0.144s 
+                        Mean value loss: 0.0581
+                    Mean surrogate loss: -0.0036
+                      Mean entropy loss: 15.5424
+                            Mean reward: 9.77
+                    Mean episode length: 596.96
+                        Mean action std: 0.88
+         Episode_Reward/complete_reward: 0.8986
+              Curriculum/terrain_levels: 0.3995
+                   Metrics/success_rate: 0.0139
+     Metrics/base_velocity/error_vel_xy: 0.5779
+    Metrics/base_velocity/error_vel_yaw: 0.4718
+           Episode_Termination/time_out: 0.2686
+       Episode_Termination/base_contact: 0.7317
+--------------------------------------------------------------------------------
+                         Iteration time: 10.78s
+                           Time elapsed: 00:06:52
+                                    ETA: 07:31:03
+
+################################################################################
+[1m                           Learning iteration 30/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 3047424 
+                       Steps per second: 9419 
+                        Collection time: 10.291s 
+                          Learning time: 0.145s 
+                        Mean value loss: 0.0442
+                    Mean surrogate loss: -0.0043
+                      Mean entropy loss: 15.4601
+                            Mean reward: 12.50
+                    Mean episode length: 600.00
+                        Mean action std: 0.88
+         Episode_Reward/complete_reward: 1.0267
+              Curriculum/terrain_levels: 0.3963
+                   Metrics/success_rate: 0.0813
+     Metrics/base_velocity/error_vel_xy: 0.5216
+    Metrics/base_velocity/error_vel_yaw: 0.4503
+           Episode_Termination/time_out: 0.2801
+       Episode_Termination/base_contact: 0.7202
+--------------------------------------------------------------------------------
+                         Iteration time: 10.44s
+                           Time elapsed: 00:07:02
+                                    ETA: 07:27:19
+
+################################################################################
+[1m                           Learning iteration 31/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 3145728 
+                       Steps per second: 9738 
+                        Collection time: 9.948s 
+                          Learning time: 0.146s 
+                        Mean value loss: 0.0811
+                    Mean surrogate loss: -0.0024
+                      Mean entropy loss: 15.3910
+                            Mean reward: 10.21
+                    Mean episode length: 600.00
+                        Mean action std: 0.88
+         Episode_Reward/complete_reward: 0.9318
+              Curriculum/terrain_levels: 0.3927
+                   Metrics/success_rate: 0.0413
+     Metrics/base_velocity/error_vel_xy: 0.4045
+    Metrics/base_velocity/error_vel_yaw: 0.4497
+           Episode_Termination/time_out: 0.2982
+       Episode_Termination/base_contact: 0.7020
+--------------------------------------------------------------------------------
+                         Iteration time: 10.09s
+                           Time elapsed: 00:07:12
+                                    ETA: 07:23:28
+
+################################################################################
+[1m                           Learning iteration 32/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 3244032 
+                       Steps per second: 9843 
+                        Collection time: 9.785s 
+                          Learning time: 0.202s 
+                        Mean value loss: 0.0847
+                    Mean surrogate loss: -0.0029
+                      Mean entropy loss: 15.3564
+                            Mean reward: 13.91
+                    Mean episode length: 600.00
+                        Mean action std: 0.87
+         Episode_Reward/complete_reward: 1.2275
+              Curriculum/terrain_levels: 0.3850
+                   Metrics/success_rate: 0.0742
+     Metrics/base_velocity/error_vel_xy: 0.3500
+    Metrics/base_velocity/error_vel_yaw: 0.4374
+           Episode_Termination/time_out: 0.3197
+       Episode_Termination/base_contact: 0.6805
+--------------------------------------------------------------------------------
+                         Iteration time: 9.99s
+                           Time elapsed: 00:07:22
+                                    ETA: 07:19:44
+
+################################################################################
+[1m                           Learning iteration 33/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 3342336 
+                       Steps per second: 10066 
+                        Collection time: 9.623s 
+                          Learning time: 0.143s 
+                        Mean value loss: 0.0951
+                    Mean surrogate loss: -0.0028
+                      Mean entropy loss: 15.3262
+                            Mean reward: 13.57
+                    Mean episode length: 600.00
+                        Mean action std: 0.87
+         Episode_Reward/complete_reward: 1.1495
+              Curriculum/terrain_levels: 0.3735
+                   Metrics/success_rate: 0.1042
+     Metrics/base_velocity/error_vel_xy: 0.3790
+    Metrics/base_velocity/error_vel_yaw: 0.4318
+           Episode_Termination/time_out: 0.3526
+       Episode_Termination/base_contact: 0.6476
+--------------------------------------------------------------------------------
+                         Iteration time: 9.77s
+                           Time elapsed: 00:07:32
+                                    ETA: 07:16:00
+
+################################################################################
+[1m                           Learning iteration 34/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 3440640 
+                       Steps per second: 10049 
+                        Collection time: 9.636s 
+                          Learning time: 0.146s 
+                        Mean value loss: 0.1358
+                    Mean surrogate loss: -0.0031
+                      Mean entropy loss: 15.3221
+                            Mean reward: 15.20
+                    Mean episode length: 600.00
+                        Mean action std: 0.87
+         Episode_Reward/complete_reward: 1.1938
+              Curriculum/terrain_levels: 0.3542
+                   Metrics/success_rate: 0.1040
+     Metrics/base_velocity/error_vel_xy: 0.3768
+    Metrics/base_velocity/error_vel_yaw: 0.4282
+           Episode_Termination/time_out: 0.4063
+       Episode_Termination/base_contact: 0.5940
+--------------------------------------------------------------------------------
+                         Iteration time: 9.78s
+                           Time elapsed: 00:07:42
+                                    ETA: 07:12:28
+
+################################################################################
+[1m                           Learning iteration 35/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 3538944 
+                       Steps per second: 9596 
+                        Collection time: 10.099s 
+                          Learning time: 0.144s 
+                        Mean value loss: 0.1445
+                    Mean surrogate loss: -0.0029
+                      Mean entropy loss: 15.3381
+                            Mean reward: 13.33
+                    Mean episode length: 600.00
+                        Mean action std: 0.87
+         Episode_Reward/complete_reward: 1.2196
+              Curriculum/terrain_levels: 0.3300
+                   Metrics/success_rate: 0.1267
+     Metrics/base_velocity/error_vel_xy: 0.3806
+    Metrics/base_velocity/error_vel_yaw: 0.4236
+           Episode_Termination/time_out: 0.4867
+       Episode_Termination/base_contact: 0.5135
+--------------------------------------------------------------------------------
+                         Iteration time: 10.24s
+                           Time elapsed: 00:07:52
+                                    ETA: 07:09:34
+
+################################################################################
+[1m                           Learning iteration 36/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 3637248 
+                       Steps per second: 8869 
+                        Collection time: 10.926s 
+                          Learning time: 0.157s 
+                        Mean value loss: 0.1485
+                    Mean surrogate loss: -0.0031
+                      Mean entropy loss: 15.3461
+                            Mean reward: 14.53
+                    Mean episode length: 600.00
+                        Mean action std: 0.88
+         Episode_Reward/complete_reward: 1.2481
+              Curriculum/terrain_levels: 0.3031
+                   Metrics/success_rate: 0.1802
+     Metrics/base_velocity/error_vel_xy: 0.3796
+    Metrics/base_velocity/error_vel_yaw: 0.4176
+           Episode_Termination/time_out: 0.5823
+       Episode_Termination/base_contact: 0.4180
+--------------------------------------------------------------------------------
+                         Iteration time: 11.08s
+                           Time elapsed: 00:08:03
+                                    ETA: 07:07:32
+
+################################################################################
+[1m                           Learning iteration 37/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 3735552 
+                       Steps per second: 7980 
+                        Collection time: 12.174s 
+                          Learning time: 0.144s 
+                        Mean value loss: 0.1387
+                    Mean surrogate loss: -0.0000
+                      Mean entropy loss: 15.3974
+                            Mean reward: 16.61
+                    Mean episode length: 600.00
+                        Mean action std: 0.88
+         Episode_Reward/complete_reward: 1.2306
+              Curriculum/terrain_levels: 0.2753
+                   Metrics/success_rate: 0.1904
+     Metrics/base_velocity/error_vel_xy: 0.3889
+    Metrics/base_velocity/error_vel_yaw: 0.4131
+           Episode_Termination/time_out: 0.6849
+       Episode_Termination/base_contact: 0.3153
+--------------------------------------------------------------------------------
+                         Iteration time: 12.32s
+                           Time elapsed: 00:08:15
+                                    ETA: 07:06:41
+
+################################################################################
+[1m                           Learning iteration 38/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 3833856 
+                       Steps per second: 7159 
+                        Collection time: 13.587s 
+                          Learning time: 0.145s 
+                        Mean value loss: 0.1137
+                    Mean surrogate loss: -0.0032
+                      Mean entropy loss: 15.4125
+                            Mean reward: 16.52
+                    Mean episode length: 600.00
+                        Mean action std: 0.88
+         Episode_Reward/complete_reward: 1.3267
+              Curriculum/terrain_levels: 0.2522
+                   Metrics/success_rate: 0.2537
+     Metrics/base_velocity/error_vel_xy: 0.3737
+    Metrics/base_velocity/error_vel_yaw: 0.4087
+           Episode_Termination/time_out: 0.7797
+       Episode_Termination/base_contact: 0.2205
+--------------------------------------------------------------------------------
+                         Iteration time: 13.73s
+                           Time elapsed: 00:08:29
+                                    ETA: 07:07:02
+
+################################################################################
+[1m                           Learning iteration 39/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 3932160 
+                       Steps per second: 6770 
+                        Collection time: 14.368s 
+                          Learning time: 0.151s 
+                        Mean value loss: 0.1047
+                    Mean surrogate loss: -0.0015
+                      Mean entropy loss: 15.4240
+                            Mean reward: 16.75
+                    Mean episode length: 600.00
+                        Mean action std: 0.88
+         Episode_Reward/complete_reward: 1.3238
+              Curriculum/terrain_levels: 0.2366
+                   Metrics/success_rate: 0.3056
+     Metrics/base_velocity/error_vel_xy: 0.3789
+    Metrics/base_velocity/error_vel_yaw: 0.4049
+           Episode_Termination/time_out: 0.8485
+       Episode_Termination/base_contact: 0.1517
+--------------------------------------------------------------------------------
+                         Iteration time: 14.52s
+                           Time elapsed: 00:08:44
+                                    ETA: 07:08:00
+
+################################################################################
+[1m                           Learning iteration 40/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 4030464 
+                       Steps per second: 6329 
+                        Collection time: 15.387s 
+                          Learning time: 0.144s 
+                        Mean value loss: 0.0957
+                    Mean surrogate loss: -0.0017
+                      Mean entropy loss: 15.4399
+                            Mean reward: 15.48
+                    Mean episode length: 600.00
+                        Mean action std: 0.88
+         Episode_Reward/complete_reward: 1.2947
+              Curriculum/terrain_levels: 0.2238
+                   Metrics/success_rate: 0.4026
+     Metrics/base_velocity/error_vel_xy: 0.3881
+    Metrics/base_velocity/error_vel_yaw: 0.3969
+           Episode_Termination/time_out: 0.9030
+       Episode_Termination/base_contact: 0.0970
+--------------------------------------------------------------------------------
+                         Iteration time: 15.53s
+                           Time elapsed: 00:08:59
+                                    ETA: 07:09:43
+
+################################################################################
+[1m                           Learning iteration 41/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 4128768 
+                       Steps per second: 6063 
+                        Collection time: 16.057s 
+                          Learning time: 0.156s 
+                        Mean value loss: 0.0733
+                    Mean surrogate loss: -0.0019
+                      Mean entropy loss: 15.4404
+                            Mean reward: 17.55
+                    Mean episode length: 600.00
+                        Mean action std: 0.88
+         Episode_Reward/complete_reward: 1.4651
+              Curriculum/terrain_levels: 0.2136
+                   Metrics/success_rate: 0.3648
+     Metrics/base_velocity/error_vel_xy: 0.3567
+    Metrics/base_velocity/error_vel_yaw: 0.4002
+           Episode_Termination/time_out: 0.9427
+       Episode_Termination/base_contact: 0.0573
+--------------------------------------------------------------------------------
+                         Iteration time: 16.21s
+                           Time elapsed: 00:09:15
+                                    ETA: 07:11:52
+
+################################################################################
+[1m                           Learning iteration 42/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 4227072 
+                       Steps per second: 5877 
+                        Collection time: 16.578s 
+                          Learning time: 0.147s 
+                        Mean value loss: 0.0487
+                    Mean surrogate loss: -0.0038
+                      Mean entropy loss: 15.3956
+                            Mean reward: 16.12
+                    Mean episode length: 600.00
+                        Mean action std: 0.88
+         Episode_Reward/complete_reward: 1.2879
+              Curriculum/terrain_levels: 0.2088
+                   Metrics/success_rate: 0.5077
+     Metrics/base_velocity/error_vel_xy: 0.4015
+    Metrics/base_velocity/error_vel_yaw: 0.3845
+           Episode_Termination/time_out: 0.9636
+       Episode_Termination/base_contact: 0.0364
+--------------------------------------------------------------------------------
+                         Iteration time: 16.72s
+                           Time elapsed: 00:09:32
+                                    ETA: 07:14:18
+
+################################################################################
+[1m                           Learning iteration 43/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 4325376 
+                       Steps per second: 5744 
+                        Collection time: 16.948s 
+                          Learning time: 0.165s 
+                        Mean value loss: 0.0558
+                    Mean surrogate loss: -0.0014
+                      Mean entropy loss: 15.3069
+                            Mean reward: 13.90
+                    Mean episode length: 600.00
+                        Mean action std: 0.87
+         Episode_Reward/complete_reward: 1.1957
+              Curriculum/terrain_levels: 0.2051
+                   Metrics/success_rate: 0.3653
+     Metrics/base_velocity/error_vel_xy: 0.4273
+    Metrics/base_velocity/error_vel_yaw: 0.3841
+           Episode_Termination/time_out: 0.9785
+       Episode_Termination/base_contact: 0.0215
+--------------------------------------------------------------------------------
+                         Iteration time: 17.11s
+                           Time elapsed: 00:09:49
+                                    ETA: 07:16:53
+
+################################################################################
+[1m                           Learning iteration 44/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 4423680 
+                       Steps per second: 5582 
+                        Collection time: 17.456s 
+                          Learning time: 0.153s 
+                        Mean value loss: 0.0487
+                    Mean surrogate loss: -0.0024
+                      Mean entropy loss: 15.2387
+                            Mean reward: 15.43
+                    Mean episode length: 600.00
+                        Mean action std: 0.87
+         Episode_Reward/complete_reward: 1.3793
+              Curriculum/terrain_levels: 0.2032
+                   Metrics/success_rate: 0.4618
+     Metrics/base_velocity/error_vel_xy: 0.3884
+    Metrics/base_velocity/error_vel_yaw: 0.3904
+           Episode_Termination/time_out: 0.9872
+       Episode_Termination/base_contact: 0.0128
+--------------------------------------------------------------------------------
+                         Iteration time: 17.61s
+                           Time elapsed: 00:10:07
+                                    ETA: 07:19:42
+
+################################################################################
+[1m                           Learning iteration 45/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 4521984 
+                       Steps per second: 5599 
+                        Collection time: 17.387s 
+                          Learning time: 0.168s 
+                        Mean value loss: 0.0424
+                    Mean surrogate loss: -0.0023
+                      Mean entropy loss: 15.1426
+                            Mean reward: 17.46
+                    Mean episode length: 600.00
+                        Mean action std: 0.86
+         Episode_Reward/complete_reward: 1.5168
+              Curriculum/terrain_levels: 0.2012
+                   Metrics/success_rate: 0.5972
+     Metrics/base_velocity/error_vel_xy: 0.3766
+    Metrics/base_velocity/error_vel_yaw: 0.3816
+           Episode_Termination/time_out: 0.9933
+       Episode_Termination/base_contact: 0.0067
+--------------------------------------------------------------------------------
+                         Iteration time: 17.55s
+                           Time elapsed: 00:10:24
+                                    ETA: 07:22:21
+
+################################################################################
+[1m                           Learning iteration 46/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 4620288 
+                       Steps per second: 5527 
+                        Collection time: 17.635s 
+                          Learning time: 0.148s 
+                        Mean value loss: 0.0477
+                    Mean surrogate loss: -0.0022
+                      Mean entropy loss: 15.0637
+                            Mean reward: 17.19
+                    Mean episode length: 600.00
+                        Mean action std: 0.85
+         Episode_Reward/complete_reward: 1.2632
+              Curriculum/terrain_levels: 0.1989
+                   Metrics/success_rate: 0.4861
+     Metrics/base_velocity/error_vel_xy: 0.4347
+    Metrics/base_velocity/error_vel_yaw: 0.3790
+           Episode_Termination/time_out: 0.9958
+       Episode_Termination/base_contact: 0.0042
+--------------------------------------------------------------------------------
+                         Iteration time: 17.78s
+                           Time elapsed: 00:10:42
+                                    ETA: 07:25:02
+
+################################################################################
+[1m                           Learning iteration 47/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 4718592 
+                       Steps per second: 5624 
+                        Collection time: 17.302s 
+                          Learning time: 0.177s 
+                        Mean value loss: 0.0437
+                    Mean surrogate loss: -0.0034
+                      Mean entropy loss: 14.9583
+                            Mean reward: 16.19
+                    Mean episode length: 600.00
+                        Mean action std: 0.85
+         Episode_Reward/complete_reward: 1.2612
+              Curriculum/terrain_levels: 0.1965
+                   Metrics/success_rate: 0.4931
+     Metrics/base_velocity/error_vel_xy: 0.4121
+    Metrics/base_velocity/error_vel_yaw: 0.3695
+           Episode_Termination/time_out: 0.9970
+       Episode_Termination/base_contact: 0.0030
+--------------------------------------------------------------------------------
+                         Iteration time: 17.48s
+                           Time elapsed: 00:11:00
+                                    ETA: 07:27:23
+
+################################################################################
+[1m                           Learning iteration 48/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 4816896 
+                       Steps per second: 5718 
+                        Collection time: 17.043s 
+                          Learning time: 0.147s 
+                        Mean value loss: 0.0482
+                    Mean surrogate loss: -0.0025
+                      Mean entropy loss: 14.8927
+                            Mean reward: 15.71
+                    Mean episode length: 600.00
+                        Mean action std: 0.84
+         Episode_Reward/complete_reward: 1.4108
+              Curriculum/terrain_levels: 0.1945
+                   Metrics/success_rate: 0.5903
+     Metrics/base_velocity/error_vel_xy: 0.4162
+    Metrics/base_velocity/error_vel_yaw: 0.3689
+           Episode_Termination/time_out: 0.9975
+       Episode_Termination/base_contact: 0.0025
+--------------------------------------------------------------------------------
+                         Iteration time: 17.19s
+                           Time elapsed: 00:11:17
+                                    ETA: 07:29:27
+
+################################################################################
+[1m                           Learning iteration 49/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 4915200 
+                       Steps per second: 5902 
+                        Collection time: 16.496s 
+                          Learning time: 0.158s 
+                        Mean value loss: 0.0294
+                    Mean surrogate loss: -0.0009
+                      Mean entropy loss: 14.8193
+                            Mean reward: 17.77
+                    Mean episode length: 600.00
+                        Mean action std: 0.84
+         Episode_Reward/complete_reward: 1.8860
+              Curriculum/terrain_levels: 0.1918
+                   Metrics/success_rate: 0.7778
+     Metrics/base_velocity/error_vel_xy: 0.3248
+    Metrics/base_velocity/error_vel_yaw: 0.3568
+           Episode_Termination/time_out: 0.9981
+       Episode_Termination/base_contact: 0.0019
+--------------------------------------------------------------------------------
+                         Iteration time: 16.65s
+                           Time elapsed: 00:11:33
+                                    ETA: 07:31:03
+
+################################################################################
+[1m                           Learning iteration 50/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 5013504 
+                       Steps per second: 5863 
+                        Collection time: 16.606s 
+                          Learning time: 0.160s 
+                        Mean value loss: 0.0479
+                    Mean surrogate loss: -0.0045
+                      Mean entropy loss: 14.7159
+                            Mean reward: 19.64
+                    Mean episode length: 600.00
+                        Mean action std: 0.83
+         Episode_Reward/complete_reward: 1.6344
+              Curriculum/terrain_levels: 0.1902
+                   Metrics/success_rate: 0.6861
+     Metrics/base_velocity/error_vel_xy: 0.3697
+    Metrics/base_velocity/error_vel_yaw: 0.3619
+           Episode_Termination/time_out: 0.9988
+       Episode_Termination/base_contact: 0.0012
+--------------------------------------------------------------------------------
+                         Iteration time: 16.77s
+                           Time elapsed: 00:11:50
+                                    ETA: 07:32:40
+
+################################################################################
+[1m                           Learning iteration 51/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 5111808 
+                       Steps per second: 6294 
+                        Collection time: 15.464s 
+                          Learning time: 0.153s 
+                        Mean value loss: 0.0427
+                    Mean surrogate loss: -0.0035
+                      Mean entropy loss: 14.5944
+                            Mean reward: 19.35
+                    Mean episode length: 600.00
+                        Mean action std: 0.82
+         Episode_Reward/complete_reward: 1.5864
+              Curriculum/terrain_levels: 0.1892
+                   Metrics/success_rate: 0.6542
+     Metrics/base_velocity/error_vel_xy: 0.3665
+    Metrics/base_velocity/error_vel_yaw: 0.3528
+           Episode_Termination/time_out: 0.9990
+       Episode_Termination/base_contact: 0.0010
+--------------------------------------------------------------------------------
+                         Iteration time: 15.62s
+                           Time elapsed: 00:12:06
+                                    ETA: 07:33:29
+
+################################################################################
+[1m                           Learning iteration 52/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 5210112 
+                       Steps per second: 6450 
+                        Collection time: 15.085s 
+                          Learning time: 0.154s 
+                        Mean value loss: 0.0496
+                    Mean surrogate loss: -0.0021
+                      Mean entropy loss: 14.5219
+                            Mean reward: 19.39
+                    Mean episode length: 600.00
+                        Mean action std: 0.82
+         Episode_Reward/complete_reward: 1.5586
+              Curriculum/terrain_levels: 0.1877
+                   Metrics/success_rate: 0.7639
+     Metrics/base_velocity/error_vel_xy: 0.3681
+    Metrics/base_velocity/error_vel_yaw: 0.3547
+           Episode_Termination/time_out: 0.9990
+       Episode_Termination/base_contact: 0.0010
+--------------------------------------------------------------------------------
+                         Iteration time: 15.24s
+                           Time elapsed: 00:12:21
+                                    ETA: 07:34:01
+
+################################################################################
+[1m                           Learning iteration 53/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 5308416 
+                       Steps per second: 6608 
+                        Collection time: 14.729s 
+                          Learning time: 0.146s 
+                        Mean value loss: 0.0452
+                    Mean surrogate loss: -0.0012
+                      Mean entropy loss: 14.4507
+                            Mean reward: 18.37
+                    Mean episode length: 600.00
+                        Mean action std: 0.82
+         Episode_Reward/complete_reward: 1.4004
+              Curriculum/terrain_levels: 0.1859
+                   Metrics/success_rate: 0.5667
+     Metrics/base_velocity/error_vel_xy: 0.3928
+    Metrics/base_velocity/error_vel_yaw: 0.3496
+           Episode_Termination/time_out: 0.9994
+       Episode_Termination/base_contact: 0.0006
+--------------------------------------------------------------------------------
+                         Iteration time: 14.88s
+                           Time elapsed: 00:12:36
+                                    ETA: 07:34:19
+
+################################################################################
+[1m                           Learning iteration 54/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 5406720 
+                       Steps per second: 6915 
+                        Collection time: 14.059s 
+                          Learning time: 0.157s 
+                        Mean value loss: 0.1204
+                    Mean surrogate loss: -0.0024
+                      Mean entropy loss: 14.3755
+                            Mean reward: 18.95
+                    Mean episode length: 600.00
+                        Mean action std: 0.81
+         Episode_Reward/complete_reward: 1.5922
+              Curriculum/terrain_levels: 0.1845
+                   Metrics/success_rate: 0.7146
+     Metrics/base_velocity/error_vel_xy: 0.3583
+    Metrics/base_velocity/error_vel_yaw: 0.3514
+           Episode_Termination/time_out: 0.9998
+       Episode_Termination/base_contact: 0.0002
+--------------------------------------------------------------------------------
+                         Iteration time: 14.22s
+                           Time elapsed: 00:12:50
+                                    ETA: 07:34:13
+
+################################################################################
+[1m                           Learning iteration 55/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 5505024 
+                       Steps per second: 7227 
+                        Collection time: 13.452s 
+                          Learning time: 0.150s 
+                        Mean value loss: 0.0492
+                    Mean surrogate loss: -0.0014
+                      Mean entropy loss: 14.3567
+                            Mean reward: 18.40
+                    Mean episode length: 600.00
+                        Mean action std: 0.81
+         Episode_Reward/complete_reward: 1.6079
+              Curriculum/terrain_levels: 0.1824
+                   Metrics/success_rate: 0.7250
+     Metrics/base_velocity/error_vel_xy: 0.3533
+    Metrics/base_velocity/error_vel_yaw: 0.3528
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 13.60s
+                           Time elapsed: 00:13:04
+                                    ETA: 07:33:44
+
+################################################################################
+[1m                           Learning iteration 56/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 5603328 
+                       Steps per second: 7366 
+                        Collection time: 13.194s 
+                          Learning time: 0.150s 
+                        Mean value loss: 0.0736
+                    Mean surrogate loss: -0.0037
+                      Mean entropy loss: 14.3304
+                            Mean reward: 20.06
+                    Mean episode length: 600.00
+                        Mean action std: 0.81
+         Episode_Reward/complete_reward: 1.7030
+              Curriculum/terrain_levels: 0.1799
+                   Metrics/success_rate: 0.7476
+     Metrics/base_velocity/error_vel_xy: 0.3382
+    Metrics/base_velocity/error_vel_yaw: 0.3459
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 13.34s
+                           Time elapsed: 00:13:17
+                                    ETA: 07:33:08
+
+################################################################################
+[1m                           Learning iteration 57/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 5701632 
+                       Steps per second: 7440 
+                        Collection time: 13.050s 
+                          Learning time: 0.161s 
+                        Mean value loss: 0.1836
+                    Mean surrogate loss: -0.0038
+                      Mean entropy loss: 14.3055
+                            Mean reward: 18.53
+                    Mean episode length: 600.00
+                        Mean action std: 0.81
+         Episode_Reward/complete_reward: 1.6050
+              Curriculum/terrain_levels: 0.1754
+                   Metrics/success_rate: 0.7402
+     Metrics/base_velocity/error_vel_xy: 0.3599
+    Metrics/base_velocity/error_vel_yaw: 0.3429
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 13.21s
+                           Time elapsed: 00:13:30
+                                    ETA: 07:32:28
+
+################################################################################
+[1m                           Learning iteration 58/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 5799936 
+                       Steps per second: 7536 
+                        Collection time: 12.884s 
+                          Learning time: 0.160s 
+                        Mean value loss: 0.1485
+                    Mean surrogate loss: -0.0028
+                      Mean entropy loss: 14.3124
+                            Mean reward: 19.11
+                    Mean episode length: 600.00
+                        Mean action std: 0.81
+         Episode_Reward/complete_reward: 1.5541
+              Curriculum/terrain_levels: 0.1689
+                   Metrics/success_rate: 0.6848
+     Metrics/base_velocity/error_vel_xy: 0.3710
+    Metrics/base_velocity/error_vel_yaw: 0.3426
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 13.04s
+                           Time elapsed: 00:13:43
+                                    ETA: 07:31:43
+
+################################################################################
+[1m                           Learning iteration 59/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 5898240 
+                       Steps per second: 7325 
+                        Collection time: 13.257s 
+                          Learning time: 0.162s 
+                        Mean value loss: 0.1815
+                    Mean surrogate loss: -0.0030
+                      Mean entropy loss: 14.3383
+                            Mean reward: 20.04
+                    Mean episode length: 600.00
+                        Mean action std: 0.81
+         Episode_Reward/complete_reward: 1.4433
+              Curriculum/terrain_levels: 0.1575
+                   Metrics/success_rate: 0.6171
+     Metrics/base_velocity/error_vel_xy: 0.3986
+    Metrics/base_velocity/error_vel_yaw: 0.3399
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 13.42s
+                           Time elapsed: 00:13:57
+                                    ETA: 07:31:11
+
+################################################################################
+[1m                           Learning iteration 60/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 5996544 
+                       Steps per second: 6876 
+                        Collection time: 14.107s 
+                          Learning time: 0.188s 
+                        Mean value loss: 0.1942
+                    Mean surrogate loss: -0.0029
+                      Mean entropy loss: 14.3991
+                            Mean reward: 21.81
+                    Mean episode length: 600.00
+                        Mean action std: 0.82
+         Episode_Reward/complete_reward: 1.5881
+              Curriculum/terrain_levels: 0.1415
+                   Metrics/success_rate: 0.7047
+     Metrics/base_velocity/error_vel_xy: 0.3674
+    Metrics/base_velocity/error_vel_yaw: 0.3381
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 14.30s
+                           Time elapsed: 00:14:11
+                                    ETA: 07:31:08
+
+################################################################################
+[1m                           Learning iteration 61/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 6094848 
+                       Steps per second: 6376 
+                        Collection time: 15.269s 
+                          Learning time: 0.148s 
+                        Mean value loss: 0.1643
+                    Mean surrogate loss: -0.0029
+                      Mean entropy loss: 14.4782
+                            Mean reward: 17.10
+                    Mean episode length: 600.00
+                        Mean action std: 0.82
+         Episode_Reward/complete_reward: 1.5762
+              Curriculum/terrain_levels: 0.1235
+                   Metrics/success_rate: 0.6921
+     Metrics/base_velocity/error_vel_xy: 0.3704
+    Metrics/base_velocity/error_vel_yaw: 0.3378
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 15.42s
+                           Time elapsed: 00:14:26
+                                    ETA: 07:31:40
+
+################################################################################
+[1m                           Learning iteration 62/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 6193152 
+                       Steps per second: 5744 
+                        Collection time: 16.952s 
+                          Learning time: 0.159s 
+                        Mean value loss: 0.1500
+                    Mean surrogate loss: -0.0040
+                      Mean entropy loss: 14.5243
+                            Mean reward: 19.93
+                    Mean episode length: 600.00
+                        Mean action std: 0.83
+         Episode_Reward/complete_reward: 1.5569
+              Curriculum/terrain_levels: 0.1061
+                   Metrics/success_rate: 0.6796
+     Metrics/base_velocity/error_vel_xy: 0.3768
+    Metrics/base_velocity/error_vel_yaw: 0.3362
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 17.11s
+                           Time elapsed: 00:14:44
+                                    ETA: 07:33:02
+
+################################################################################
+[1m                           Learning iteration 63/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 6291456 
+                       Steps per second: 5304 
+                        Collection time: 18.370s 
+                          Learning time: 0.161s 
+                        Mean value loss: 0.1091
+                    Mean surrogate loss: -0.0022
+                      Mean entropy loss: 14.5556
+                            Mean reward: 17.73
+                    Mean episode length: 600.00
+                        Mean action std: 0.83
+         Episode_Reward/complete_reward: 1.5354
+              Curriculum/terrain_levels: 0.0910
+                   Metrics/success_rate: 0.6894
+     Metrics/base_velocity/error_vel_xy: 0.3824
+    Metrics/base_velocity/error_vel_yaw: 0.3359
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 18.53s
+                           Time elapsed: 00:15:02
+                                    ETA: 07:35:04
+
+################################################################################
+[1m                           Learning iteration 64/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 6389760 
+                       Steps per second: 5036 
+                        Collection time: 19.363s 
+                          Learning time: 0.155s 
+                        Mean value loss: 0.0699
+                    Mean surrogate loss: -0.0040
+                      Mean entropy loss: 14.5707
+                            Mean reward: 19.55
+                    Mean episode length: 600.00
+                        Mean action std: 0.83
+         Episode_Reward/complete_reward: 1.6716
+              Curriculum/terrain_levels: 0.0799
+                   Metrics/success_rate: 0.7572
+     Metrics/base_velocity/error_vel_xy: 0.3531
+    Metrics/base_velocity/error_vel_yaw: 0.3344
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 19.52s
+                           Time elapsed: 00:15:22
+                                    ETA: 07:37:31
+
+################################################################################
+[1m                           Learning iteration 65/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 6488064 
+                       Steps per second: 4774 
+                        Collection time: 20.440s 
+                          Learning time: 0.150s 
+                        Mean value loss: 0.0934
+                    Mean surrogate loss: -0.0024
+                      Mean entropy loss: 14.5699
+                            Mean reward: 18.40
+                    Mean episode length: 600.00
+                        Mean action std: 0.83
+         Episode_Reward/complete_reward: 1.4639
+              Curriculum/terrain_levels: 0.0720
+                   Metrics/success_rate: 0.6166
+     Metrics/base_velocity/error_vel_xy: 0.4010
+    Metrics/base_velocity/error_vel_yaw: 0.3330
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 20.59s
+                           Time elapsed: 00:15:42
+                                    ETA: 07:40:25
+
+################################################################################
+[1m                           Learning iteration 66/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 6586368 
+                       Steps per second: 4517 
+                        Collection time: 21.596s 
+                          Learning time: 0.165s 
+                        Mean value loss: 0.0572
+                    Mean surrogate loss: -0.0037
+                      Mean entropy loss: 14.5589
+                            Mean reward: 18.11
+                    Mean episode length: 600.00
+                        Mean action std: 0.83
+         Episode_Reward/complete_reward: 1.6495
+              Curriculum/terrain_levels: 0.0665
+                   Metrics/success_rate: 0.7480
+     Metrics/base_velocity/error_vel_xy: 0.3604
+    Metrics/base_velocity/error_vel_yaw: 0.3330
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 21.76s
+                           Time elapsed: 00:16:04
+                                    ETA: 07:43:46
+
+################################################################################
+[1m                           Learning iteration 67/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 6684672 
+                       Steps per second: 4411 
+                        Collection time: 22.131s 
+                          Learning time: 0.153s 
+                        Mean value loss: 0.0474
+                    Mean surrogate loss: -0.0032
+                      Mean entropy loss: 14.5406
+                            Mean reward: 19.76
+                    Mean episode length: 600.00
+                        Mean action std: 0.83
+         Episode_Reward/complete_reward: 1.5838
+              Curriculum/terrain_levels: 0.0642
+                   Metrics/success_rate: 0.6863
+     Metrics/base_velocity/error_vel_xy: 0.3771
+    Metrics/base_velocity/error_vel_yaw: 0.3282
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 22.28s
+                           Time elapsed: 00:16:26
+                                    ETA: 07:47:16
+
+################################################################################
+[1m                           Learning iteration 68/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 6782976 
+                       Steps per second: 4413 
+                        Collection time: 22.119s 
+                          Learning time: 0.155s 
+                        Mean value loss: 0.0481
+                    Mean surrogate loss: -0.0035
+                      Mean entropy loss: 14.5068
+                            Mean reward: 19.77
+                    Mean episode length: 600.00
+                        Mean action std: 0.82
+         Episode_Reward/complete_reward: 1.4656
+              Curriculum/terrain_levels: 0.0623
+                   Metrics/success_rate: 0.6914
+     Metrics/base_velocity/error_vel_xy: 0.4004
+    Metrics/base_velocity/error_vel_yaw: 0.3252
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 22.27s
+                           Time elapsed: 00:16:49
+                                    ETA: 07:50:38
+
+################################################################################
+[1m                           Learning iteration 69/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 6881280 
+                       Steps per second: 4443 
+                        Collection time: 21.972s 
+                          Learning time: 0.150s 
+                        Mean value loss: 0.0409
+                    Mean surrogate loss: -0.0032
+                      Mean entropy loss: 14.4467
+                            Mean reward: 18.71
+                    Mean episode length: 600.00
+                        Mean action std: 0.82
+         Episode_Reward/complete_reward: 1.4924
+              Curriculum/terrain_levels: 0.0612
+                   Metrics/success_rate: 0.6528
+     Metrics/base_velocity/error_vel_xy: 0.3969
+    Metrics/base_velocity/error_vel_yaw: 0.3306
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 22.12s
+                           Time elapsed: 00:17:11
+                                    ETA: 07:53:51
+
+################################################################################
+[1m                           Learning iteration 70/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 6979584 
+                       Steps per second: 4526 
+                        Collection time: 21.571s 
+                          Learning time: 0.148s 
+                        Mean value loss: 0.0376
+                    Mean surrogate loss: -0.0022
+                      Mean entropy loss: 14.3992
+                            Mean reward: 19.28
+                    Mean episode length: 600.00
+                        Mean action std: 0.82
+         Episode_Reward/complete_reward: 1.7472
+              Curriculum/terrain_levels: 0.0606
+                   Metrics/success_rate: 0.6597
+     Metrics/base_velocity/error_vel_xy: 0.3447
+    Metrics/base_velocity/error_vel_yaw: 0.3279
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 21.72s
+                           Time elapsed: 00:17:32
+                                    ETA: 07:56:46
+
+################################################################################
+[1m                           Learning iteration 71/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 7077888 
+                       Steps per second: 4628 
+                        Collection time: 21.088s 
+                          Learning time: 0.149s 
+                        Mean value loss: 0.0376
+                    Mean surrogate loss: -0.0030
+                      Mean entropy loss: 14.3456
+                            Mean reward: 18.31
+                    Mean episode length: 600.00
+                        Mean action std: 0.82
+         Episode_Reward/complete_reward: 1.6163
+              Curriculum/terrain_levels: 0.0592
+                   Metrics/success_rate: 0.7014
+     Metrics/base_velocity/error_vel_xy: 0.3778
+    Metrics/base_velocity/error_vel_yaw: 0.3233
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 21.24s
+                           Time elapsed: 00:17:54
+                                    ETA: 07:59:22
+
+################################################################################
+[1m                           Learning iteration 72/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 7176192 
+                       Steps per second: 4732 
+                        Collection time: 20.626s 
+                          Learning time: 0.148s 
+                        Mean value loss: 0.0328
+                    Mean surrogate loss: -0.0030
+                      Mean entropy loss: 14.2723
+                            Mean reward: 18.42
+                    Mean episode length: 600.00
+                        Mean action std: 0.81
+         Episode_Reward/complete_reward: 1.5818
+              Curriculum/terrain_levels: 0.0582
+                   Metrics/success_rate: 0.6597
+     Metrics/base_velocity/error_vel_xy: 0.3780
+    Metrics/base_velocity/error_vel_yaw: 0.3221
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 20.77s
+                           Time elapsed: 00:18:14
+                                    ETA: 08:01:42
+
+################################################################################
+[1m                           Learning iteration 73/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 7274496 
+                       Steps per second: 4786 
+                        Collection time: 20.393s 
+                          Learning time: 0.145s 
+                        Mean value loss: 0.0398
+                    Mean surrogate loss: -0.0017
+                      Mean entropy loss: 14.2169
+                            Mean reward: 18.39
+                    Mean episode length: 600.00
+                        Mean action std: 0.81
+         Episode_Reward/complete_reward: 1.6339
+              Curriculum/terrain_levels: 0.0570
+                   Metrics/success_rate: 0.7222
+     Metrics/base_velocity/error_vel_xy: 0.3719
+    Metrics/base_velocity/error_vel_yaw: 0.3259
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 20.54s
+                           Time elapsed: 00:18:35
+                                    ETA: 08:03:51
+
+################################################################################
+[1m                           Learning iteration 74/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 7372800 
+                       Steps per second: 4864 
+                        Collection time: 20.065s 
+                          Learning time: 0.144s 
+                        Mean value loss: 0.0363
+                    Mean surrogate loss: -0.0040
+                      Mean entropy loss: 14.1625
+                            Mean reward: 20.72
+                    Mean episode length: 600.00
+                        Mean action std: 0.80
+         Episode_Reward/complete_reward: 2.0585
+              Curriculum/terrain_levels: 0.0555
+                   Metrics/success_rate: 0.8368
+     Metrics/base_velocity/error_vel_xy: 0.2915
+    Metrics/base_velocity/error_vel_yaw: 0.3199
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 20.21s
+                           Time elapsed: 00:18:55
+                                    ETA: 08:05:48
+
+################################################################################
+[1m                           Learning iteration 75/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 7471104 
+                       Steps per second: 4941 
+                        Collection time: 19.747s 
+                          Learning time: 0.147s 
+                        Mean value loss: 0.0316
+                    Mean surrogate loss: -0.0005
+                      Mean entropy loss: 14.0991
+                            Mean reward: 21.69
+                    Mean episode length: 600.00
+                        Mean action std: 0.80
+         Episode_Reward/complete_reward: 1.6721
+              Curriculum/terrain_levels: 0.0541
+                   Metrics/success_rate: 0.6701
+     Metrics/base_velocity/error_vel_xy: 0.3727
+    Metrics/base_velocity/error_vel_yaw: 0.3192
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 19.89s
+                           Time elapsed: 00:19:15
+                                    ETA: 08:07:33
+
+################################################################################
+[1m                           Learning iteration 76/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 7569408 
+                       Steps per second: 5057 
+                        Collection time: 19.290s 
+                          Learning time: 0.149s 
+                        Mean value loss: 0.0284
+                    Mean surrogate loss: -0.0003
+                      Mean entropy loss: 14.0216
+                            Mean reward: 22.88
+                    Mean episode length: 600.00
+                        Mean action std: 0.80
+         Episode_Reward/complete_reward: 2.1017
+              Curriculum/terrain_levels: 0.0534
+                   Metrics/success_rate: 0.8792
+     Metrics/base_velocity/error_vel_xy: 0.2840
+    Metrics/base_velocity/error_vel_yaw: 0.3120
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 19.44s
+                           Time elapsed: 00:19:34
+                                    ETA: 08:09:04
+
+################################################################################
+[1m                           Learning iteration 77/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 7667712 
+                       Steps per second: 5097 
+                        Collection time: 19.125s 
+                          Learning time: 0.158s 
+                        Mean value loss: 0.0249
+                    Mean surrogate loss: -0.0040
+                      Mean entropy loss: 13.9815
+                            Mean reward: 20.56
+                    Mean episode length: 600.00
+                        Mean action std: 0.79
+         Episode_Reward/complete_reward: 1.4922
+              Curriculum/terrain_levels: 0.0531
+                   Metrics/success_rate: 0.7326
+     Metrics/base_velocity/error_vel_xy: 0.4040
+    Metrics/base_velocity/error_vel_yaw: 0.3125
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 19.28s
+                           Time elapsed: 00:19:54
+                                    ETA: 08:10:28
+
+################################################################################
+[1m                           Learning iteration 78/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 7766016 
+                       Steps per second: 5205 
+                        Collection time: 18.736s 
+                          Learning time: 0.149s 
+                        Mean value loss: 0.0329
+                    Mean surrogate loss: -0.0039
+                      Mean entropy loss: 13.9056
+                            Mean reward: 17.82
+                    Mean episode length: 600.00
+                        Mean action std: 0.79
+         Episode_Reward/complete_reward: 1.2514
+              Curriculum/terrain_levels: 0.0524
+                   Metrics/success_rate: 0.4743
+     Metrics/base_velocity/error_vel_xy: 0.4544
+    Metrics/base_velocity/error_vel_yaw: 0.3134
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 18.89s
+                           Time elapsed: 00:20:13
+                                    ETA: 08:11:39
+
+################################################################################
+[1m                           Learning iteration 79/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 7864320 
+                       Steps per second: 5324 
+                        Collection time: 18.316s 
+                          Learning time: 0.145s 
+                        Mean value loss: 0.0380
+                    Mean surrogate loss: -0.0043
+                      Mean entropy loss: 13.8501
+                            Mean reward: 17.60
+                    Mean episode length: 600.00
+                        Mean action std: 0.79
+         Episode_Reward/complete_reward: 1.5203
+              Curriculum/terrain_levels: 0.0518
+                   Metrics/success_rate: 0.6736
+     Metrics/base_velocity/error_vel_xy: 0.4045
+    Metrics/base_velocity/error_vel_yaw: 0.3170
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 18.46s
+                           Time elapsed: 00:20:31
+                                    ETA: 08:12:38
+
+################################################################################
+[1m                           Learning iteration 80/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 7962624 
+                       Steps per second: 5385 
+                        Collection time: 18.111s 
+                          Learning time: 0.144s 
+                        Mean value loss: 0.0895
+                    Mean surrogate loss: -0.0035
+                      Mean entropy loss: 13.8225
+                            Mean reward: 19.79
+                    Mean episode length: 600.00
+                        Mean action std: 0.79
+         Episode_Reward/complete_reward: 1.6252
+              Curriculum/terrain_levels: 0.0505
+                   Metrics/success_rate: 0.7010
+     Metrics/base_velocity/error_vel_xy: 0.3814
+    Metrics/base_velocity/error_vel_yaw: 0.3135
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 18.25s
+                           Time elapsed: 00:20:49
+                                    ETA: 08:13:31
+
+################################################################################
+[1m                           Learning iteration 81/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 8060928 
+                       Steps per second: 5508 
+                        Collection time: 17.696s 
+                          Learning time: 0.149s 
+                        Mean value loss: 0.0672
+                    Mean surrogate loss: -0.0035
+                      Mean entropy loss: 13.8174
+                            Mean reward: 18.56
+                    Mean episode length: 600.00
+                        Mean action std: 0.79
+         Episode_Reward/complete_reward: 1.6011
+              Curriculum/terrain_levels: 0.0493
+                   Metrics/success_rate: 0.6114
+     Metrics/base_velocity/error_vel_xy: 0.3886
+    Metrics/base_velocity/error_vel_yaw: 0.3118
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 17.85s
+                           Time elapsed: 00:21:07
+                                    ETA: 08:14:12
+
+################################################################################
+[1m                           Learning iteration 82/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 8159232 
+                       Steps per second: 5617 
+                        Collection time: 17.331s 
+                          Learning time: 0.168s 
+                        Mean value loss: 0.0740
+                    Mean surrogate loss: -0.0018
+                      Mean entropy loss: 13.8331
+                            Mean reward: 21.15
+                    Mean episode length: 600.00
+                        Mean action std: 0.79
+         Episode_Reward/complete_reward: 1.8096
+              Curriculum/terrain_levels: 0.0466
+                   Metrics/success_rate: 0.7599
+     Metrics/base_velocity/error_vel_xy: 0.3488
+    Metrics/base_velocity/error_vel_yaw: 0.3116
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 17.50s
+                           Time elapsed: 00:21:25
+                                    ETA: 08:14:43
+
+################################################################################
+[1m                           Learning iteration 83/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 8257536 
+                       Steps per second: 5718 
+                        Collection time: 17.042s 
+                          Learning time: 0.150s 
+                        Mean value loss: 0.0856
+                    Mean surrogate loss: -0.0032
+                      Mean entropy loss: 13.8504
+                            Mean reward: 20.96
+                    Mean episode length: 600.00
+                        Mean action std: 0.79
+         Episode_Reward/complete_reward: 1.7712
+              Curriculum/terrain_levels: 0.0438
+                   Metrics/success_rate: 0.7127
+     Metrics/base_velocity/error_vel_xy: 0.3575
+    Metrics/base_velocity/error_vel_yaw: 0.3137
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 17.19s
+                           Time elapsed: 00:21:42
+                                    ETA: 08:15:07
+
+################################################################################
+[1m                           Learning iteration 84/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 8355840 
+                       Steps per second: 5758 
+                        Collection time: 16.919s 
+                          Learning time: 0.152s 
+                        Mean value loss: 0.1196
+                    Mean surrogate loss: -0.0045
+                      Mean entropy loss: 13.8927
+                            Mean reward: 22.48
+                    Mean episode length: 600.00
+                        Mean action std: 0.79
+         Episode_Reward/complete_reward: 1.7856
+              Curriculum/terrain_levels: 0.0385
+                   Metrics/success_rate: 0.7521
+     Metrics/base_velocity/error_vel_xy: 0.3550
+    Metrics/base_velocity/error_vel_yaw: 0.3108
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 17.07s
+                           Time elapsed: 00:21:59
+                                    ETA: 08:15:27
+
+################################################################################
+[1m                           Learning iteration 85/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 8454144 
+                       Steps per second: 5612 
+                        Collection time: 17.368s 
+                          Learning time: 0.147s 
+                        Mean value loss: 0.1296
+                    Mean surrogate loss: -0.0031
+                      Mean entropy loss: 13.9387
+                            Mean reward: 21.11
+                    Mean episode length: 600.00
+                        Mean action std: 0.79
+         Episode_Reward/complete_reward: 1.7647
+              Curriculum/terrain_levels: 0.0305
+                   Metrics/success_rate: 0.7161
+     Metrics/base_velocity/error_vel_xy: 0.3593
+    Metrics/base_velocity/error_vel_yaw: 0.3112
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 17.52s
+                           Time elapsed: 00:22:16
+                                    ETA: 08:15:55
+
+################################################################################
+[1m                           Learning iteration 86/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 8552448 
+                       Steps per second: 5346 
+                        Collection time: 18.236s 
+                          Learning time: 0.149s 
+                        Mean value loss: 0.1222
+                    Mean surrogate loss: -0.0055
+                      Mean entropy loss: 13.9485
+                            Mean reward: 21.41
+                    Mean episode length: 600.00
+                        Mean action std: 0.79
+         Episode_Reward/complete_reward: 1.7311
+              Curriculum/terrain_levels: 0.0226
+                   Metrics/success_rate: 0.7142
+     Metrics/base_velocity/error_vel_xy: 0.3663
+    Metrics/base_velocity/error_vel_yaw: 0.3117
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 18.39s
+                           Time elapsed: 00:22:35
+                                    ETA: 08:16:42
+
+################################################################################
+[1m                           Learning iteration 87/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 8650752 
+                       Steps per second: 4875 
+                        Collection time: 20.016s 
+                          Learning time: 0.146s 
+                        Mean value loss: 0.1450
+                    Mean surrogate loss: -0.0049
+                      Mean entropy loss: 13.9778
+                            Mean reward: 21.24
+                    Mean episode length: 600.00
+                        Mean action std: 0.80
+         Episode_Reward/complete_reward: 1.7297
+              Curriculum/terrain_levels: 0.0165
+                   Metrics/success_rate: 0.6911
+     Metrics/base_velocity/error_vel_xy: 0.3679
+    Metrics/base_velocity/error_vel_yaw: 0.3111
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 20.16s
+                           Time elapsed: 00:22:55
+                                    ETA: 08:18:06
+Loading user config located at: '/data/yuyangliu/envs/isaaclab6_validation/lib/python3.12/site-packages/isaacsim/kit/data/Kit/IsaacLab/3.0/user.config.json'
+2026-09-07T15:02:53Z [0ms] [Warning] [omni.ext.plugin] [ext: isaaclab_visualizers] Extensions config 'extension.toml' doesn't exist '/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab_visualizers' or '/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab_visualizers/config'
+2026-09-07T15:02:54Z [725ms] [Warning] [omni.usd_config.extension] Enable omni.materialx.libs extension to use MaterialX
+2026-09-07T15:02:54Z [748ms] [Warning] [omni.platforminfo.plugin] failed to open the default display.  Can't verify X Server version.
+2026-09-07T15:03:02Z [9,257ms] [Warning] [isaaclab_physx.physics.physx_manager] TGS solver with enable_external_forces_every_iteration=False may cause noisy velocities.
+2026-09-07T15:03:53Z [60,336ms] [Warning] [usdrt.population.plugin] Last global time was not created. Did you call setEnableUsdNoticeHandling?
+2026-09-07T15:04:10Z [76,810ms] [Warning] [isaaclab.envs.mdp.commands.velocity_command] The velocity command has the 'ranges.heading' attribute set to '(-3.141592653589793, 3.141592653589793)' but the heading command is not active. Consider setting the flag for the heading command to True.
+
+################################################################################
+[1m                           Learning iteration 88/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 8749056 
+                       Steps per second: 4628 
+                        Collection time: 21.093s 
+                          Learning time: 0.147s 
+                        Mean value loss: 0.1076
+                    Mean surrogate loss: -0.0054
+                      Mean entropy loss: 14.0243
+                            Mean reward: 20.89
+                    Mean episode length: 600.00
+                        Mean action std: 0.80
+         Episode_Reward/complete_reward: 1.7083
+              Curriculum/terrain_levels: 0.0120
+                   Metrics/success_rate: 0.7029
+     Metrics/base_velocity/error_vel_xy: 0.3722
+    Metrics/base_velocity/error_vel_yaw: 0.3116
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 21.24s
+                           Time elapsed: 00:23:16
+                                    ETA: 08:19:51
+
+################################################################################
+[1m                           Learning iteration 89/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 8847360 
+                       Steps per second: 4517 
+                        Collection time: 21.617s 
+                          Learning time: 0.144s 
+                        Mean value loss: 0.0892
+                    Mean surrogate loss: -0.0045
+                      Mean entropy loss: 14.0553
+                            Mean reward: 20.54
+                    Mean episode length: 600.00
+                        Mean action std: 0.80
+         Episode_Reward/complete_reward: 1.7682
+              Curriculum/terrain_levels: 0.0081
+                   Metrics/success_rate: 0.7682
+     Metrics/base_velocity/error_vel_xy: 0.3594
+    Metrics/base_velocity/error_vel_yaw: 0.3105
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 21.76s
+                           Time elapsed: 00:23:38
+                                    ETA: 08:21:44
+
+################################################################################
+[1m                           Learning iteration 90/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 8945664 
+                       Steps per second: 4446 
+                        Collection time: 21.948s 
+                          Learning time: 0.158s 
+                        Mean value loss: 0.0704
+                    Mean surrogate loss: -0.0039
+                      Mean entropy loss: 14.0669
+                            Mean reward: 19.68
+                    Mean episode length: 600.00
+                        Mean action std: 0.80
+         Episode_Reward/complete_reward: 1.7522
+              Curriculum/terrain_levels: 0.0058
+                   Metrics/success_rate: 0.7020
+     Metrics/base_velocity/error_vel_xy: 0.3662
+    Metrics/base_velocity/error_vel_yaw: 0.3098
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 22.11s
+                           Time elapsed: 00:24:00
+                                    ETA: 08:23:41
+
+################################################################################
+[1m                           Learning iteration 91/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 9043968 
+                       Steps per second: 4398 
+                        Collection time: 22.201s 
+                          Learning time: 0.148s 
+                        Mean value loss: 0.0507
+                    Mean surrogate loss: -0.0025
+                      Mean entropy loss: 14.0864
+                            Mean reward: 21.69
+                    Mean episode length: 600.00
+                        Mean action std: 0.80
+         Episode_Reward/complete_reward: 1.8157
+              Curriculum/terrain_levels: 0.0045
+                   Metrics/success_rate: 0.7217
+     Metrics/base_velocity/error_vel_xy: 0.3521
+    Metrics/base_velocity/error_vel_yaw: 0.3120
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 22.35s
+                           Time elapsed: 00:24:22
+                                    ETA: 08:25:41
+
+################################################################################
+[1m                           Learning iteration 92/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 9142272 
+                       Steps per second: 4352 
+                        Collection time: 22.434s 
+                          Learning time: 0.152s 
+                        Mean value loss: 0.0348
+                    Mean surrogate loss: -0.0041
+                      Mean entropy loss: 14.0601
+                            Mean reward: 21.63
+                    Mean episode length: 600.00
+                        Mean action std: 0.80
+         Episode_Reward/complete_reward: 1.8576
+              Curriculum/terrain_levels: 0.0039
+                   Metrics/success_rate: 0.7373
+     Metrics/base_velocity/error_vel_xy: 0.3468
+    Metrics/base_velocity/error_vel_yaw: 0.3102
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 22.59s
+                           Time elapsed: 00:24:45
+                                    ETA: 08:27:42
+
+################################################################################
+[1m                           Learning iteration 93/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 9240576 
+                       Steps per second: 4390 
+                        Collection time: 22.245s 
+                          Learning time: 0.147s 
+                        Mean value loss: 0.0317
+                    Mean surrogate loss: -0.0050
+                      Mean entropy loss: 14.0256
+                            Mean reward: 21.94
+                    Mean episode length: 600.00
+                        Mean action std: 0.80
+         Episode_Reward/complete_reward: 1.9208
+              Curriculum/terrain_levels: 0.0034
+                   Metrics/success_rate: 0.8100
+     Metrics/base_velocity/error_vel_xy: 0.3327
+    Metrics/base_velocity/error_vel_yaw: 0.3057
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 22.39s
+                           Time elapsed: 00:25:07
+                                    ETA: 08:29:36
+
+################################################################################
+[1m                           Learning iteration 94/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 9338880 
+                       Steps per second: 4266 
+                        Collection time: 22.889s 
+                          Learning time: 0.150s 
+                        Mean value loss: 0.0263
+                    Mean surrogate loss: -0.0052
+                      Mean entropy loss: 13.9723
+                            Mean reward: 21.73
+                    Mean episode length: 600.00
+                        Mean action std: 0.80
+         Episode_Reward/complete_reward: 1.8228
+              Curriculum/terrain_levels: 0.0031
+                   Metrics/success_rate: 0.7743
+     Metrics/base_velocity/error_vel_xy: 0.3514
+    Metrics/base_velocity/error_vel_yaw: 0.3108
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 23.04s
+                           Time elapsed: 00:25:31
+                                    ETA: 08:31:40
+
+################################################################################
+[1m                           Learning iteration 95/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 9437184 
+                       Steps per second: 4214 
+                        Collection time: 23.179s 
+                          Learning time: 0.144s 
+                        Mean value loss: 0.0178
+                    Mean surrogate loss: -0.0043
+                      Mean entropy loss: 13.8837
+                            Mean reward: 21.27
+                    Mean episode length: 600.00
+                        Mean action std: 0.79
+         Episode_Reward/complete_reward: 1.7824
+              Curriculum/terrain_levels: 0.0029
+                   Metrics/success_rate: 0.7951
+     Metrics/base_velocity/error_vel_xy: 0.3649
+    Metrics/base_velocity/error_vel_yaw: 0.3073
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 23.32s
+                           Time elapsed: 00:25:54
+                                    ETA: 08:33:47
+
+################################################################################
+[1m                           Learning iteration 96/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 9535488 
+                       Steps per second: 4174 
+                        Collection time: 23.401s 
+                          Learning time: 0.145s 
+                        Mean value loss: 0.0191
+                    Mean surrogate loss: -0.0048
+                      Mean entropy loss: 13.8094
+                            Mean reward: 20.92
+                    Mean episode length: 600.00
+                        Mean action std: 0.79
+         Episode_Reward/complete_reward: 1.8440
+              Curriculum/terrain_levels: 0.0021
+                   Metrics/success_rate: 0.6944
+     Metrics/base_velocity/error_vel_xy: 0.3525
+    Metrics/base_velocity/error_vel_yaw: 0.3079
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 23.55s
+                           Time elapsed: 00:26:17
+                                    ETA: 08:35:55
+
+################################################################################
+[1m                           Learning iteration 97/2000                           [0m 
+
+                               Run name: true_rl_agent_audit_go2_full_train_01
+                            Total steps: 9633792 
+                       Steps per second: 4100 
+                        Collection time: 23.817s 
+                          Learning time: 0.154s 
+                        Mean value loss: 0.0153
+                    Mean surrogate loss: -0.0032
+                      Mean entropy loss: 13.7268
+                            Mean reward: 21.30
+                    Mean episode length: 600.00
+                        Mean action std: 0.78
+         Episode_Reward/complete_reward: 1.8415
+              Curriculum/terrain_levels: 0.0014
+                   Metrics/success_rate: 0.7431
+     Metrics/base_velocity/error_vel_xy: 0.3527
+    Metrics/base_velocity/error_vel_yaw: 0.3139
+           Episode_Termination/time_out: 1.0000
+       Episode_Termination/base_contact: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 23.97s
+                           Time elapsed: 00:26:41
+                                    ETA: 08:38:09
+

@@ -1,9 +1,9 @@
 """Canonical execution identity for the Isaac Lab + RSL-RL backend.
 
-The manifest is deliberately narrow.  It binds the Python ABI, a fixed set of
-distribution versions, and the five Python modules that implement the policy
-optimization hot path.  Machine hardware and driver state are diagnostics, not
-experiment identity, and therefore do not appear here.
+The manifest binds the Python ABI, selected distribution versions, and the
+installed learner's execution modules. Version 2 also freezes the project's executable
+source bytes under relative paths. Machine resource diagnostics and placement
+are recorded separately; moving the same bytes does not change this identity.
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ import importlib.metadata
 import importlib.util
 import platform
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Callable, Mapping
@@ -26,10 +26,14 @@ from true_rl_agent.evaluation.binding import (
     require_sha256_digest,
 )
 from true_rl_agent.fs_contract import read_bounded_regular_file
+from true_rl_agent.runner.source_snapshot import running_project_source_snapshot
 
 ISAAC_LAB_RSL_RL_BACKEND_ID = "isaac_lab_rsl_rl"
 ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_SCHEMA_VERSION = (
     "true_rl_agent.backend_execution_environment_manifest.isaac_lab_rsl_rl.v1"
+)
+ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_V2_SCHEMA_VERSION = (
+    "true_rl_agent.backend_execution_environment_manifest.isaac_lab_rsl_rl.v2"
 )
 _PACKAGE_DISTRIBUTIONS = (
     "isaaclab",
@@ -101,6 +105,33 @@ _MODULE_SOURCE_SPECS = (
     ),
 )
 
+# Frozen v1/v2 records retain their RSL-RL 3 module set. The serialized package
+# version already identifies this ABI; no path, host, or task-specific switch is
+# needed. New production manifests are built only from the pinned RSL-RL 5 stack.
+_MODULE_SOURCE_BY_NAME = {spec.logical_name: spec for spec in _MODULE_SOURCE_SPECS}
+_RSL5_MODULE_SOURCE_SPECS = (
+    _MODULE_SOURCE_BY_NAME["OnPolicyRunner"],
+    _MODULE_SOURCE_BY_NAME["PPO"],
+    _ModuleSourceSpec(
+        logical_name="MLPModel", import_name="rsl_rl.models.mlp_model",
+        symbol_name="MLPModel", top_level_package="rsl_rl",
+        package_relative_path="models/mlp_model.py", distribution="rsl-rl-lib",
+    ),
+    _ModuleSourceSpec(
+        logical_name="GaussianDistribution", import_name="rsl_rl.modules.distribution",
+        symbol_name="GaussianDistribution", top_level_package="rsl_rl",
+        package_relative_path="modules/distribution.py", distribution="rsl-rl-lib",
+    ),
+    _MODULE_SOURCE_BY_NAME["RolloutStorage"],
+    _MODULE_SOURCE_BY_NAME["RslRlVecEnvWrapper"],
+)
+_PRODUCTION_VERSIONS = {"isaacsim": "6.0.1.0", "isaaclab": "6.1.14", "rsl-rl-lib": "5.0.1"}
+
+
+def _module_specs(package_versions: Mapping[str, str]) -> tuple[_ModuleSourceSpec, ...]:
+    return (_RSL5_MODULE_SOURCE_SPECS if package_versions["rsl-rl-lib"].startswith("5.")
+            else _MODULE_SOURCE_SPECS)
+
 
 @dataclass(frozen=True)
 class IsaacLabExecutionEnvironmentManifest:
@@ -110,11 +141,28 @@ class IsaacLabExecutionEnvironmentManifest:
     packages: tuple[Mapping[str, str], ...]
     modules: tuple[Mapping[str, Any], ...]
     manifest_hash: str | None = None
+    project_source: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
         python_identity = _validate_python_identity(self.python)
         packages = _validate_package_entries(self.packages)
-        modules = _validate_module_entries(self.modules)
+        modules = _validate_module_entries(
+            self.modules, _module_specs({item["distribution"]: item["version"] for item in packages})
+        )
+        if self.project_source is not None:
+            source = dict(self.project_source)
+            if set(source) != {"schema_version", "files"} or source["schema_version"] != "true_rl_agent.project_source_snapshot.v1":
+                raise ValueError("project source snapshot schema mismatch")
+            files = _require_mapping(source["files"], "project source files")
+            if not files:
+                raise ValueError("project source snapshot is empty")
+            for path, checksum in files.items():
+                if not isinstance(path, str) or path.startswith("/") or "\\" in path or ":" in path or ".." in path.split("/"):
+                    raise ValueError("project source identity requires relative logical paths")
+                require_sha256_digest(checksum, "project source checksum")
+            object.__setattr__(self, "project_source", MappingProxyType({
+                "schema_version": source["schema_version"], "files": MappingProxyType(dict(files)),
+            }))
         object.__setattr__(self, "python", MappingProxyType(python_identity))
         object.__setattr__(
             self,
@@ -148,11 +196,20 @@ class IsaacLabExecutionEnvironmentManifest:
             "modules",
             "manifest_hash",
         }
+        has_source = (
+            value.get("schema_version")
+            == ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_V2_SCHEMA_VERSION
+        )
+        if has_source:
+            expected_keys.add("project_source")
         if set(value) != expected_keys:
             raise ValueError("backend execution environment manifest fields mismatch")
         if (
             value.get("schema_version")
-            != ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_SCHEMA_VERSION
+            not in {
+                ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_SCHEMA_VERSION,
+                ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_V2_SCHEMA_VERSION,
+            }
         ):
             raise ValueError(
                 "backend execution environment manifest schema_version mismatch"
@@ -168,6 +225,10 @@ class IsaacLabExecutionEnvironmentManifest:
         if not isinstance(raw_modules, list | tuple):
             raise ValueError("backend execution environment modules must be an array")
         return cls(
+            project_source=(
+                _require_mapping(value["project_source"], "project source snapshot")
+                if has_source else None
+            ),
             python=_require_mapping(value.get("python"), "python identity"),
             packages=tuple(
                 _require_mapping(item, "package identity") for item in raw_packages
@@ -189,13 +250,23 @@ class IsaacLabExecutionEnvironmentManifest:
         }
 
     def _hash_payload(self) -> dict[str, Any]:
-        return {
-            "schema_version": (ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_SCHEMA_VERSION),
+        payload = {
+            "schema_version": (
+                ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_SCHEMA_VERSION
+                if self.project_source is None
+                else ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_V2_SCHEMA_VERSION
+            ),
             "backend_id": ISAAC_LAB_RSL_RL_BACKEND_ID,
             "python": dict(self.python),
             "packages": [dict(item) for item in self.packages],
             "modules": [dict(item) for item in self.modules],
         }
+        if self.project_source is not None:
+            payload["project_source"] = {
+                "schema_version": self.project_source["schema_version"],
+                "files": dict(self.project_source["files"]),
+            }
+        return payload
 
 
 def build_isaac_lab_execution_environment_manifest_from_components(
@@ -208,12 +279,14 @@ def build_isaac_lab_execution_environment_manifest_from_components(
 
     This is also the stable, dependency-free construction seam used by tests.
     The accepted package and module sets are fixed; callers cannot broaden the
-    identity to an accidental ``pip freeze`` or source-tree hash.
+    identity to an accidental ``pip freeze``. The production builder adds the
+    project source snapshot separately; this seam retains the v1 fixture shape.
     """
 
     if set(package_versions) != set(_PACKAGE_DISTRIBUTIONS):
         raise ValueError("backend execution environment package set mismatch")
-    expected_module_names = {item.logical_name for item in _MODULE_SOURCE_SPECS}
+    specs = _module_specs(package_versions)
+    expected_module_names = {item.logical_name for item in specs}
     if set(module_sources) != expected_module_names:
         raise ValueError("backend execution environment module set mismatch")
     packages = tuple(
@@ -227,7 +300,7 @@ def build_isaac_lab_execution_environment_manifest_from_components(
         for distribution in _PACKAGE_DISTRIBUTIONS
     )
     modules: list[dict[str, Any]] = []
-    for spec in _MODULE_SOURCE_SPECS:
+    for spec in specs:
         source = module_sources[spec.logical_name]
         if not isinstance(source, bytes):
             raise TypeError(f"{spec.logical_name} module source must be bytes")
@@ -271,15 +344,21 @@ def build_current_isaac_lab_execution_environment_manifest() -> (
                 f"backend execution environment package is unavailable: {distribution}"
             ) from exc
         package_versions[distribution] = version
+    for distribution, expected in _PRODUCTION_VERSIONS.items():
+        if package_versions[distribution] != expected:
+            raise ValueError(
+                f"production Isaac runtime requires {distribution}=={expected}; "
+                f"found {package_versions[distribution]}"
+            )
     module_sources = {
         spec.logical_name: _read_installed_module_source(spec)
-        for spec in _MODULE_SOURCE_SPECS
+        for spec in _module_specs(package_versions)
     }
-    return build_isaac_lab_execution_environment_manifest_from_components(
+    return replace(build_isaac_lab_execution_environment_manifest_from_components(
         python_identity=python_identity,
         package_versions=package_versions,
         module_sources=module_sources,
-    )
+    ), manifest_hash=None, project_source=running_project_source_snapshot())
 
 
 def verify_current_isaac_lab_execution_environment(
@@ -376,6 +455,7 @@ def _validate_package_entries(
 
 def _validate_module_entries(
     values: tuple[Mapping[str, Any], ...],
+    specs: tuple[_ModuleSourceSpec, ...],
 ) -> tuple[dict[str, Any], ...]:
     if not isinstance(values, tuple):
         raise TypeError("backend execution environment modules must be a tuple")
@@ -389,9 +469,9 @@ def _validate_module_entries(
         "source_sha256",
     }
     entries: list[dict[str, Any]] = []
-    if len(values) != len(_MODULE_SOURCE_SPECS):
+    if len(values) != len(specs):
         raise ValueError("backend execution environment module count mismatch")
-    for value, spec in zip(values, _MODULE_SOURCE_SPECS, strict=True):
+    for value, spec in zip(values, specs, strict=True):
         mapping = _require_mapping(value, "module source identity")
         if set(mapping) != expected_fields:
             raise ValueError("backend execution environment module fields mismatch")

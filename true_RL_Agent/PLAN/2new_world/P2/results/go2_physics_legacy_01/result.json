@@ -1,0 +1,232 @@
+{
+  "status": "PASS",
+  "robot": "go2",
+  "current_runtime": false,
+  "physics_dt": 0.005,
+  "control_dt": 0.02,
+  "decimation": 4,
+  "train_seed": 1262835026,
+  "source_root": "/data/yuyangliu/AGENT/true_RL_Agent",
+  "cell_manifest_hash": "193fa9038a6f46539fb71a7e73edc44bdc024be2b899785394b8f82113c91f37",
+  "joint_names": [
+    "FL_hip_joint",
+    "FR_hip_joint",
+    "RL_hip_joint",
+    "RR_hip_joint",
+    "FL_thigh_joint",
+    "FR_thigh_joint",
+    "RL_thigh_joint",
+    "RR_thigh_joint",
+    "FL_calf_joint",
+    "FR_calf_joint",
+    "RL_calf_joint",
+    "RR_calf_joint"
+  ],
+  "body_names": [
+    "base",
+    "FL_hip",
+    "FR_hip",
+    "Head_upper",
+    "RL_hip",
+    "RR_hip",
+    "FL_thigh",
+    "FR_thigh",
+    "Head_lower",
+    "RL_thigh",
+    "RR_thigh",
+    "FL_calf",
+    "FR_calf",
+    "RL_calf",
+    "RR_calf",
+    "FL_foot",
+    "FR_foot",
+    "RL_foot",
+    "RR_foot"
+  ],
+  "resolved_projection": {
+    "schema_version": "true_rl_agent.task.stair_climbing.runtime_projection.vnext.v1",
+    "cell_variant_id": "stair.go2_12dof.unified_v2",
+    "robot_profile_id": "unitree_go2_12dof_isaaclab_v1",
+    "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1",
+    "robot_profile_hash": "3e9c110449be639fceb48d6792fc8f683f43bd34978286325bba99547d20f1c0",
+    "runtime_adapter_hash": "14f03caebe810885d5681d73812987b2d31706cf432c4de5597b14a9dbfcd3f0",
+    "robot_task_binding_hash": "c2e568571b86072bdcb218bb38cfc579a3189265a0de5dc60fb606e3d813915d",
+    "resolved_roles": {
+      "base": [
+        "base"
+      ],
+      "support_effector": [
+        "FL_foot",
+        "FR_foot",
+        "RL_foot",
+        "RR_foot"
+      ],
+      "forbidden_contact": [
+        "base"
+      ]
+    },
+    "joint_names": [
+      "FL_hip_joint",
+      "FR_hip_joint",
+      "RL_hip_joint",
+      "RR_hip_joint",
+      "FL_thigh_joint",
+      "FR_thigh_joint",
+      "RL_thigh_joint",
+      "RR_thigh_joint",
+      "FL_calf_joint",
+      "FR_calf_joint",
+      "RL_calf_joint",
+      "RR_calf_joint"
+    ],
+    "joint_groups": {},
+    "action_joint_names": [
+      "FL_hip_joint",
+      "FR_hip_joint",
+      "RL_hip_joint",
+      "RR_hip_joint",
+      "FL_thigh_joint",
+      "FR_thigh_joint",
+      "RL_thigh_joint",
+      "RR_thigh_joint",
+      "FL_calf_joint",
+      "FR_calf_joint",
+      "RL_calf_joint",
+      "RR_calf_joint"
+    ],
+    "contact_sensor_name": "contact_forces",
+    "height_sensor_name": "height_scanner",
+    "contact_history_length": 3,
+    "height_scan_ray_count": 187,
+    "policy_io_schema_hash": "5fdd774448ee18f6d37040380efabe6c9fbcb4229cfb5675818ea388e447dca1",
+    "sensor_schema_hash": "47c42e91348ce1d49e0988040d0941317afe1b16cb90692d73e02ba7d065896d",
+    "binding_facts_hash": "1160a2a4544eb3cb8d55aa436988a73eca46019296d2b559eab246749798a53f",
+    "kinematic_base_source": "articulation_root",
+    "legacy_reward_adapter_id": null,
+    "support_transition_inputs": true,
+    "task_scales": {
+      "horizontal": 1.0,
+      "vertical": 0.589087
+    },
+    "resolved_cell_manifest_hash": "193fa9038a6f46539fb71a7e73edc44bdc024be2b899785394b8f82113c91f37",
+    "projection_hash": "83b7227d92e3c69da94a4ff2cff40145c57b315866cc3667320c940197ecf42b",
+    "reward_input_schema_hash_vnext": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+    "reward_capability_hash_vnext": "658069454a3972110a78c6c6ee217ec2ee14cd3a9fbcf07c37017fceeecb0c7d",
+    "resolved_runtime": {
+      "joint_ids": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "base_body_ids": [
+        0
+      ],
+      "support_body_ids": [
+        15,
+        16,
+        17,
+        18
+      ],
+      "contact_support_body_ids": [
+        4,
+        8,
+        14,
+        18
+      ],
+      "contact_forbidden_body_ids": [
+        0
+      ]
+    }
+  },
+  "terrain_origins": [
+    [
+      -39.25,
+      -18.0,
+      0.0
+    ],
+    [
+      -39.25,
+      -6.0,
+      0.0
+    ],
+    [
+      -39.25,
+      -14.0,
+      0.0
+    ],
+    [
+      -31.25,
+      -2.0,
+      0.0
+    ],
+    [
+      0.75,
+      -18.0,
+      0.0
+    ],
+    [
+      -7.25,
+      -18.0,
+      0.0
+    ],
+    [
+      -31.25,
+      14.0,
+      0.0
+    ],
+    [
+      -39.25,
+      10.0,
+      0.0
+    ],
+    [
+      -31.25,
+      -18.0,
+      0.0
+    ],
+    [
+      -39.25,
+      -18.0,
+      0.0
+    ],
+    [
+      -39.25,
+      2.0,
+      0.0
+    ],
+    [
+      -31.25,
+      -18.0,
+      0.0
+    ],
+    [
+      -15.25,
+      -18.0,
+      0.0
+    ],
+    [
+      -31.25,
+      -10.0,
+      0.0
+    ],
+    [
+      -23.25,
+      -18.0,
+      0.0
+    ],
+    [
+      -31.25,
+      6.0,
+      0.0
+    ]
+  ]
+}

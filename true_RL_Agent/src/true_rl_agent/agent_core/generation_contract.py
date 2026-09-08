@@ -37,7 +37,7 @@ GENERATION_LEDGER_RECORD_SCHEMA_VERSION = (
     "true_rl_agent.generation_ledger_record.v1"
 )
 GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION = (
-    "true_rl_agent.generation_public_history_projection.v2"
+    "true_rl_agent.generation_public_history_projection.v3"
 )
 GENERATION_SESSION_CONTRACT_FILENAME = "generation_session_contract.json"
 GENERATION_WIDTH = 2

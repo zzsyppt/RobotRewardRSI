@@ -17,6 +17,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from true_rl_agent.evaluation.binding import canonical_json_hash
+from true_rl_agent.prompting.serialization import canonical_prompt_json_bytes
 from true_rl_agent.tasks.stair_climbing.config import StairClimbingTaskConfig
 from true_rl_agent.tasks.stair_climbing.episode_evidence import StairEpisodeOutcome
 from true_rl_agent.tasks.stair_climbing.plugin import StairClimbingTaskPlugin
@@ -24,6 +25,7 @@ from true_rl_agent.tasks.stair_climbing.prompt_adapter import (
     StairClimbingPromptAdapter,
     _compact_latest_feedback_entry,
     _compact_required_feedback_entry,
+    _project_feedback_entry_for_prompt,
 )
 from true_rl_agent.tasks.stair_climbing.robot_binding import (
     build_stair_cell_catalog,
@@ -448,6 +450,58 @@ class StairPhase3BContractTests(unittest.TestCase):
             ],
             0.0,
         )
+        raw_feedback = copy.deepcopy(feedback)
+        prompt_feedback = _project_feedback_entry_for_prompt(
+            {"feedback": feedback}
+        )["feedback"]
+        self.assertEqual(feedback, raw_feedback)
+        projected_generalization = prompt_feedback["generalization_summary"]
+        factor_table = projected_generalization["factor_diagnostics"]
+        self.assertEqual(
+            factor_table["schema_version"],
+            "true_rl_agent.task.stair_climbing.factor_feedback_table.v1",
+        )
+        self.assertEqual(
+            factor_table["columns"],
+            [
+                "factor_name",
+                "factor_level",
+                "cell_count",
+                "success_rate",
+                "mean_progress_fraction",
+            ],
+        )
+        self.assertTrue(factor_table["fixed_suite_cell_membership_omitted"])
+        self.assertNotIn("cell_ids", json.dumps(factor_table, sort_keys=True))
+        raw_factor_group_count = sum(
+            len(levels)
+            for levels in raw_feedback["generalization_summary"][
+                "factor_diagnostics"
+            ].values()
+        )
+        self.assertEqual(len(factor_table["rows"]), raw_factor_group_count)
+        self.assertLess(
+            canonical_prompt_json_bytes(factor_table),
+            canonical_prompt_json_bytes(
+                raw_feedback["generalization_summary"]["factor_diagnostics"]
+            ),
+        )
+        projected_strata = projected_generalization["stratum_diagnostics"]
+        self.assertEqual(
+            {row[0] for row in projected_strata["rows"]},
+            set(success_counts),
+        )
+        self.assertNotIn("cell_ids", json.dumps(projected_strata, sort_keys=True))
+        projected_c2 = {
+            row[0]: row for row in projected_strata["rows"]
+        }["c2_mechanism_ood"]
+        projected_diagnostic_index = projected_strata[
+            "diagnostic_flag_rate_columns"
+        ].index("insufficient_clearance_detected")
+        self.assertAlmostEqual(
+            projected_c2[5][projected_diagnostic_index],
+            2.0 / 3.0,
+        )
         compact = _compact_required_feedback_entry(
             {"feedback": feedback},
             evaluation_profile=None,
@@ -462,7 +516,7 @@ class StairPhase3BContractTests(unittest.TestCase):
         )
         self.assertAlmostEqual(
             rows_by_stratum["c2_mechanism_ood"][5][diagnostic_index],
-            round(2.0 / 3.0, 6),
+            2.0 / 3.0,
         )
         self.assertIn("F_c2", compact["generalization_summary"]["family_scores"])
 
@@ -542,10 +596,12 @@ class StairPhase3BContractTests(unittest.TestCase):
         self.assertAlmostEqual(raw_c2["slip"], 1.0 / 3.0)
         self.assertEqual(
             table["schema_version"],
-            "true_rl_agent.task.stair_climbing.stratum_feedback_table.v2",
+            "true_rl_agent.task.stair_climbing.stratum_feedback_table.v3",
         )
-        self.assertTrue(table["truncated_rates_are_null"])
-        self.assertIsNone(c2_rates["slip"])
+        self.assertNotIn("truncated_rates_are_null", table)
+        self.assertTrue(table["omitted_primary_failure_rates_are_zero"])
+        self.assertTrue(table["omitted_diagnostic_rates_are_zero"])
+        self.assertAlmostEqual(c2_rates["slip"], 1.0 / 3.0)
         self.assertEqual(c2_rates["timeout"], 0.0)
         self.assertEqual(c0_rates["fall"], 0.0)
         self.assertEqual(c0_rates["slip"], 1.0)
@@ -611,6 +667,10 @@ class StairPhase3BContractTests(unittest.TestCase):
             "feedback_entries"
         ]
         self.assertEqual(len(preflight_entries), 2)
+        self.assertEqual(
+            [entry["selection_basis"] for entry in preflight_entries],
+            [["accepted_current_best"], ["latest_evaluated"]],
+        )
         for entry in preflight_entries:
             preflight_generalization = entry["feedback"][
                 "generalization_summary"
@@ -654,6 +714,26 @@ class StairPhase3BContractTests(unittest.TestCase):
         self.assertEqual(
             sections["public_eval_contract"]["primary_objective"],
             self.config.ordered_evaluation_suite.score_contract["j_primary"],
+        )
+        factor_contract = sections["public_eval_contract"][
+            "factor_diagnostic_table"
+        ]
+        self.assertEqual(
+            factor_contract["factor_names"],
+            list(
+                next(
+                    iter(
+                        self.config.ordered_evaluation_suite.cells_for_cohort(
+                            "public_dev"
+                        )
+                    )
+                ).factor_levels
+            ),
+        )
+        self.assertFalse(factor_contract["cell_ids_repeated_per_candidate"])
+        self.assertEqual(
+            sections["public_eval_contract"]["schema_version"],
+            "true_rl_agent.public_eval_contract.stair.unified.v5",
         )
         self.assertEqual(
             sections["public_eval_contract"]["objective_structure"][
@@ -699,6 +779,19 @@ class StairPhase3BContractTests(unittest.TestCase):
         self.assertIn("c2_mechanism_ood", eval_summary["strata"])
         claims = sections["public_eval_contract"]["generalization_claims"]
         self.assertEqual(claims, expected_claims)
+        joint_semantics = sections["public_eval_contract"][
+            "generalization_claim_semantics"
+        ]["joint_ood"]
+        self.assertEqual(
+            joint_semantics["meaning"],
+            "simultaneous scalar extrapolation of stair riser height and "
+            "stair tread depth",
+        )
+        self.assertFalse(joint_semantics["robot_joint_state_ood"])
+        self.assertIn(
+            "correlates",
+            sections["public_eval_contract"]["diagnostic_interpretation"],
+        )
         self.assertEqual(
             sections["public_eval_contract"]["c2_evidence_scope"],
             "current evaluation-only surface/contact mechanism shift; "

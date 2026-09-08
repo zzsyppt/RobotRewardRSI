@@ -1,0 +1,3239 @@
+{
+  "started_at": "2026-09-06T03:30:39.4333295Z",
+  "status": "PASS",
+  "baseline_files": [
+    {
+      "path": ".claude/settings.json",
+      "bytes": 1418,
+      "sha256": "fd800022cef9be4be6cd05e3efb9d5517be5889049676fdf6d6f69e42024a71d"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1644,
+      "sha256": "59cdbc98adbe4f53aab0db0d499b78e06b965060876243086f4c06169fb1a1ea"
+    },
+    {
+      "path": "true_RL_Agent/configs/agent/loop.yaml",
+      "bytes": 255,
+      "sha256": "8202de179d128dbe792bbe5dcde6ce61866bb5d7eee2fd200954520faf93856b"
+    },
+    {
+      "path": "true_RL_Agent/configs/agent/safety.yaml",
+      "bytes": 391,
+      "sha256": "420f0e8b3af241a628f1ac8e64679bf584fddbf18171baa88ce8c4c9a562df37"
+    },
+    {
+      "path": "true_RL_Agent/configs/backends/isaac_lab_rsl_rl.yaml",
+      "bytes": 734,
+      "sha256": "1464e6a2b2495ff9f6d01d1d0b73c25e3ae46500bffab73f143f6fa603d484c3"
+    },
+    {
+      "path": "true_RL_Agent/configs/baselines/isaaclab_g1_rough_stair_v1.json",
+      "bytes": 1660,
+      "sha256": "2953a7185729963d25576b9196b84afbd2916e95a7bee75bb037f1a724133747"
+    },
+    {
+      "path": "true_RL_Agent/configs/robots/unitree_g1_29dof_unitree_rl_lab_v1.json",
+      "bytes": 47575,
+      "sha256": "4fb8a12ec32cacd064faf1ac437089fc3f9e1dd2b879d70a646f2e19b864e7ed"
+    },
+    {
+      "path": "true_RL_Agent/configs/robots/unitree_g1_37dof_isaaclab_v1.json",
+      "bytes": 15925,
+      "sha256": "35ea824bdead1691861e43ee4460ea4ac2084140c5e973a2a287b213ebd5cffe"
+    },
+    {
+      "path": "true_RL_Agent/configs/robots/unitree_g1_37dof_isaaclab_v2.json",
+      "bytes": 17519,
+      "sha256": "0c91b93bc80f69bcdafc14500a66d66b717f5abffe98cd59f9239c40c33d0d81"
+    },
+    {
+      "path": "true_RL_Agent/configs/robots/unitree_go2_12dof_isaaclab_v1.json",
+      "bytes": 6068,
+      "sha256": "970783e60cee799890028e0303ad2470cb9a257e27890bdf87564dadab55b804"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/push_g1_29dof_legacy_binding_v1.json",
+      "bytes": 3523,
+      "sha256": "c366aa5110facfd6ea14bdb69a80447da816727cc52cfba6327c4fc8ce62f117"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/push_recovery.yaml",
+      "bytes": 526,
+      "sha256": "eec5edf4807cdef9800f8726c57472275e596c7dda2b4bb3ab908c56422f1d36"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_acceptance_protocol_v5.json",
+      "bytes": 724,
+      "sha256": "e6a7a099978bc16d2b5c9b13a4aa3f0169e021e21477fa56d17dfecc0b0dde22"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_evaluation_profile_v5.json",
+      "bytes": 818,
+      "sha256": "d01d73b7cf9b0772aa2f0542f45f257f3fd68490a82f5ecca8e2f47539916825"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_evaluation_semantics_v6.json",
+      "bytes": 4237,
+      "sha256": "0aa176d8959624ec074981e357470781d8300778df698ef997acf859e68fe607"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_evaluation_semantics_v7.json",
+      "bytes": 4321,
+      "sha256": "c325b851013477a786cde1187eacce97e8faf7cb17aff2370502008b588cb384"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_extension_schema.json",
+      "bytes": 657,
+      "sha256": "ab95485985fed01d5f4891c268581c3b869097e772397601ba31a73a4fc280d5"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_g1_37dof_clean_legacy_binding_v1.json",
+      "bytes": 4686,
+      "sha256": "685a0d6063efe6f4657610aebcb5af96cef0b7376e842a8c36a005e7f7ce7e0c"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_g1_37dof_unified_binding_v1.json",
+      "bytes": 5145,
+      "sha256": "15b497507affc2e0e7066ed5238b3aee4cc30799cab2352349b129690d3464e6"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_g1_37dof_unified_binding_v2.json",
+      "bytes": 5145,
+      "sha256": "8763e420533d28aeb92e7f215e0aaf1cfecee1b771643d9494102e938cbacf8e"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_go2_12dof_unified_binding_v1.json",
+      "bytes": 4657,
+      "sha256": "b30848fd57c621a5528208dbc386338a6184ec16f839b053bdc542604445badb"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_go2_12dof_unified_binding_v2.json",
+      "bytes": 4657,
+      "sha256": "d4ac671d02528575424bb94bc91e09f5d7489e407d707880088776a6f919c88b"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_go2_12dof_unified_evaluation_suite_v1.json",
+      "bytes": 20651,
+      "sha256": "49378848cf721dc11b1aa791bfc392b30cccf3a4550cc2bb07e7cd935c20707d"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_go2_12dof_unified_protocol_v1.json",
+      "bytes": 8509,
+      "sha256": "6c8de5bfba2d31adb20f9b27398dc2cde4742fdf5bfe0d336aa6d8ecb3cb055c"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_go2_12dof_unified_protocol_v2.json",
+      "bytes": 8317,
+      "sha256": "5bdfaea36413c96fb853055201c75e06cdf9146d467d63953f20cdd8adca3993"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_go2_12dof_unified_training_profile_v1.json",
+      "bytes": 2385,
+      "sha256": "de83c135fd0cc9ad5462af84a79a30104ea0f56804a1360162adcb9dfd052714"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_go2_12dof_vnext_reward_authority_v1.json",
+      "bytes": 2572,
+      "sha256": "42a7330728d0eb67ffd95c4450100805408a80b9dfe6273d0895357aa7341b75"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_protocol_v1.json",
+      "bytes": 13366,
+      "sha256": "e80241c56b65ea287566381aa30025ab5c5b13faf321178532610dc46bb301c7"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_protocol_v2_draft_r2.json",
+      "bytes": 16277,
+      "sha256": "e315b08df7027f2108b452f69dfd7e01573bb45b408e642038b5deb8cc51819b"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_protocol_v2_draft.json",
+      "bytes": 12603,
+      "sha256": "1afe51ba902bab885bf44f888c3ee56a66ceffccb98b7f2a3159941c3be70b74"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_protocol_v2_pilot_artifact_manifest.json",
+      "bytes": 11638,
+      "sha256": "9a0f33a3a3d3783d9ba6c186da3754cd06cebf99912dd2a0a2a3b9e281a0cc08"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_protocol_v2.json",
+      "bytes": 16065,
+      "sha256": "9763d898cf087b87fc3f68dc3096a7b95d053881f61f5d328a59da0652a0f559"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_unified_acceptance_protocol_v6.json",
+      "bytes": 1239,
+      "sha256": "c97aacb7aba24605d38092acf64f55baaa0b55eb8165a72581e0f400f83cd45a"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_unified_evaluation_suite_v1.json",
+      "bytes": 15529,
+      "sha256": "7ca40d15263923d10f588f4d2d3b8a33a4f9411612996268ce0f6dd5fdc642bd"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_unified_protocol_v1.json",
+      "bytes": 8076,
+      "sha256": "45b637067561468975bd72ee1a4371ef6445aad772a97f9c2e2947256460b26d"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_unified_protocol_v2.json",
+      "bytes": 7892,
+      "sha256": "708b584e65a637fb74c06201f056aa64ee593eec27b20462c6c516a891cb9427"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_unified_training_profile_v1.json",
+      "bytes": 1914,
+      "sha256": "04aa81b507091c615c4fe3aed25a9f4878c0d3833c1172c55091a189bab201b7"
+    },
+    {
+      "path": "true_RL_Agent/configs/tasks/stair_vnext_reward_authority_v1.json",
+      "bytes": 2826,
+      "sha256": "b226a1a2dc1528bbfc010fd7d6067f3be6261f446e3ed78f4757a037685164f4"
+    },
+    {
+      "path": "true_RL_Agent/docs/system_overview_zh.md",
+      "bytes": 37359,
+      "sha256": "7680f26848a6fd43fc3f9ed97d7da5a1fefbeb831a066c620859e829a6b1e12a"
+    },
+    {
+      "path": "true_RL_Agent/docs/task_extension_guides/stair_climbing.md",
+      "bytes": 11596,
+      "sha256": "f43621ac3af26de3f3c834ae2e3558d1d95b0df7b315b4ce1641bf0a02020a17"
+    },
+    {
+      "path": "true_RL_Agent/PLAN/Variant_construction/P1/DEVELOPMENT_LOG_ZH.md",
+      "bytes": 12593,
+      "sha256": "7cb7f91b848bc7e92c66da50484e00c0d70420795fce40f037e36426f17f7add"
+    },
+    {
+      "path": "true_RL_Agent/PLAN/Variant_construction/P1/PHASE1_ACCEPTANCE_REPORT_ZH.md",
+      "bytes": 11872,
+      "sha256": "99e1547ab9ac2c2325de5e4b32ce7ad4ad2abdc2d00f133f8adcd4cce5a7a5f1"
+    },
+    {
+      "path": "true_RL_Agent/PLAN/Variant_construction/P1/PHASE1_INDEPENDENT_AUDIT_ZH.md",
+      "bytes": 27786,
+      "sha256": "9c1f380684790835f230da80f4230e8d764bb2afd448facdbdc5f180229be8ed"
+    },
+    {
+      "path": "true_RL_Agent/PLAN/Variant_construction/P6/PHASE6_FOLLOWUP_OBSERVATIONS_ZH.md",
+      "bytes": 20572,
+      "sha256": "fc887216ea58b628e59e42519a5831853b86ec0d0abec43053038a7f42a248b2"
+    },
+    {
+      "path": "true_RL_Agent/README.md",
+      "bytes": 4043,
+      "sha256": "b56812e70ca2b33aaa597b8f95890ef96142aa13c7c3d168a5e5bcfbb4ae79ec"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/__init__.py",
+      "bytes": 314,
+      "sha256": "bc5a11baa7db840e313bc37682b2eddde4b20dd056ee164cabfe82059c9a0161"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/_boundary.py",
+      "bytes": 513,
+      "sha256": "4679c77dce525b7e64df885112c70ec883abf82ab8db0b0bfa27a1430b35cfb5"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/__init__.py",
+      "bytes": 76,
+      "sha256": "f5d0c9ff947c2c7547b3541fb3fd8730f9ef5429a36c941acdeaaaa156909d47"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/authoring_loop.py",
+      "bytes": 75037,
+      "sha256": "218f99a7fe317b61bdd06ad535802e482be25effd17624036150f01aeed6a001"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/authoring_response.py",
+      "bytes": 7810,
+      "sha256": "9388b4ed4a44f3c64757f85c00ecc73d544b07745a1f72c4930b96ecc7777239"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/context.py",
+      "bytes": 32626,
+      "sha256": "e3e85c068296e42fa2cd6aa5fd029851a24caf7733bae117e56282f0404a3a22"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/decision.py",
+      "bytes": 27041,
+      "sha256": "a4bce800c908ba0a6c4f0f345f907b3fd3056ea167f54fd434557a8ab80897f1"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/eval_run_audit.py",
+      "bytes": 21032,
+      "sha256": "369d1f84458a7fdff0acc5490cf779955d07aa5cfa838419070a0f1e44df4c0c"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/experiment_memory.py",
+      "bytes": 24709,
+      "sha256": "a79f08476799d706d36ba31a7bb032bab681334c82ec39f487e5ee35c5deec85"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/exploration_projection.py",
+      "bytes": 15149,
+      "sha256": "3b6b1122db65ce6fdf961784eae7f31be35c3d6b5f2ba2ccf33c69453b972a42"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/exploration.py",
+      "bytes": 58618,
+      "sha256": "01ae14ac07166658356c5e350f810f4d600253613fbf73aeb81801d907891fc2"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/generation_contract.py",
+      "bytes": 29506,
+      "sha256": "2bff42a3c9a34c35547c07bd6c1f6ad741e76c67006aef1e79f615793eddfaa0"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/generation_lifecycle.py",
+      "bytes": 69883,
+      "sha256": "24217324b1c1ff5889d52b5ba95c3f9b47489b767ecd4630489c3c377a045bfe"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/generation_receipts.py",
+      "bytes": 16441,
+      "sha256": "af7a3be3484fb2a9acd527de202271790fb19a42be4cb8dd2b51805eeb960e21"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/generation_record.py",
+      "bytes": 58564,
+      "sha256": "c7e1d5202143b811591f7412195372fdb1dea4094d92095f9d8afef5199ef6f2"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/generation.py",
+      "bytes": 52167,
+      "sha256": "77e5287d93c5c65ce3f049a9fb390a43816cb86236e9442642c07844d1f42a1c"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/ledger.py",
+      "bytes": 13571,
+      "sha256": "38e9a26490a083f647ca411deeb4f75905fb599ba20fc464ea74f8fb8a6ffb82"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/live_invocation.py",
+      "bytes": 32784,
+      "sha256": "762f7268944d6e815421c4a7ea1514ac1c927abf4737bf8317f79e5885894036"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/live_loop.py",
+      "bytes": 41384,
+      "sha256": "7f5c4366ac41be53032c5ca63d635050d9621e31cd1214426b5854e20ddb079d"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/openai_compatible_provider.py",
+      "bytes": 39493,
+      "sha256": "7dfa5cfc3c65a455e02c4052a0086d9af2468f63bb3c881785b63233e79dca2c"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/process_lock.py",
+      "bytes": 5145,
+      "sha256": "58b2b6110d62b4977d9c6e6f4f1b3f6fa1b36ce7dd2142b70cad839a8a79d837"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/provider_contract.py",
+      "bytes": 10909,
+      "sha256": "1d72956d65438d3398e0884fcc3b4d2d677804eb4584119515b15f6a52b51edb"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/provider_errors.py",
+      "bytes": 9945,
+      "sha256": "a43d3624f76ecfc1e24204e51caf9da50f70b50c337759f63204fe2380943be4"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/provider_limits.py",
+      "bytes": 1565,
+      "sha256": "0b699c94d5f121a4516184ba167b67405c2036643d0a86f615668220d0c0dd7f"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/provider.py",
+      "bytes": 1102,
+      "sha256": "70220f929dae86b8707250832617a97dc0dcee4fb4c00b2f83bb229fbac7ab2c"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/public_safety.py",
+      "bytes": 8045,
+      "sha256": "a58707c4663e8feef088a52d9a9a9bb55bdf70d000b2d0386ab216d48f19cab6"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/round.py",
+      "bytes": 47935,
+      "sha256": "83d95dfa30d4964f3ec7eed8bfbdfe6396bba69421a15a0f91b1a0ce393246c0"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/session_epoch.py",
+      "bytes": 18323,
+      "sha256": "81b9dd6a85a8026e4a628d67413880299dc4f290b7b936429e8b8b22ee8e5ca2"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/session_genesis.py",
+      "bytes": 179045,
+      "sha256": "84a4f8da031b9388215ef838eb4dcffc03fd91429f73f637d08ed310daf72d2e"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/source_request_feedback.py",
+      "bytes": 9637,
+      "sha256": "6558493e7d3c3bacdefe2baea06e6bed723b1e7243fa523375404e6b4505991f"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/source_request_limits.py",
+      "bytes": 1283,
+      "sha256": "111341b0324f4338aeeebd88428e97aa9232c1ea426d0272294740c27f78d792"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/source_request_service.py",
+      "bytes": 8965,
+      "sha256": "3fa734f03f96454aa385581cad7d799a435cffa1e82b1c83a2a6ef3cb35f587e"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/trial_receipts.py",
+      "bytes": 37172,
+      "sha256": "0dc68e443103947f28dd8faf1e7f56cab552e0e30139f8e6e7f4d08fd1045f7d"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/authoring_artifact_contract.py",
+      "bytes": 2240,
+      "sha256": "ac9532320bd4593cb1cdcf8afe615a1e06cb66624ee9b05d3da6f915c9501d3b"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/backends/__init__.py",
+      "bytes": 81,
+      "sha256": "57389e88838a02363aca3d3387638f4b70aa1095aeae0d949353a8178f3f253b"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/backends/base.py",
+      "bytes": 7670,
+      "sha256": "a7dd26d47223836278fbbb20dd0f77d447ab2feb73194d2759deaa52768ab73c"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/backends/isaac_lab_execution_environment.py",
+      "bytes": 16644,
+      "sha256": "cbd4c0ee8df9ec69bacf8c1010924bf3f96e1a9209bb8a008d30a9b513caa5fc"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/backends/isaac_lab_rsl_rl.py",
+      "bytes": 70669,
+      "sha256": "a4110baded61b9731fa7b54af1369be2356e0651863f0e0212d8d69b0eef9d9a"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/backends/rsl_rl_training_config.py",
+      "bytes": 9009,
+      "sha256": "2df33e9f2b6a3366e2ab122d46fb009871034c1d770e4d7e4ff994325bb3a803"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/backends/specs.py",
+      "bytes": 1091,
+      "sha256": "8dcd516cac8b6c7711ed1bf6e366f07378456a0586c0d86f2ce6a5dd9489e273"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/candidates/__init__.py",
+      "bytes": 80,
+      "sha256": "781ac6c61cd4da1f28e864ff2ff5f1f900cd7ae80cfa8039fd2aa502f63476d9"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/candidates/artifact.py",
+      "bytes": 26192,
+      "sha256": "60972a0ad3cab0b1a9744d451f4bd98a6f8c2b3d0d3ba63c18f2a31514d7c674"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/candidates/authoring_checks.py",
+      "bytes": 5904,
+      "sha256": "5c2c68c9ac66fc4d7e7198755fa3c267e3c926d21a36187f88160b5fb502fae3"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/candidates/authoring_policy.py",
+      "bytes": 15262,
+      "sha256": "d10e48f979b6e592130a7ad3d405b7070ab9eb98140c80aaa8a55f993a083436"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/candidates/authoring_public_result.py",
+      "bytes": 654,
+      "sha256": "5df7aacaf3c094ed67ad5790a03801db5b7d11df2c052a7e966e7e79f0e3a6b5"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/candidates/capability_profile.py",
+      "bytes": 4289,
+      "sha256": "f5be008566c878af98771b682f85596edc218ad7a630e9d7ab04fc8a3c3b930b"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/candidates/capability_readiness.py",
+      "bytes": 11233,
+      "sha256": "215bd3ab512a9bb271c5a898bd0d227669a2994f595a9f99678875710d6af423"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/candidates/component_smoke_runtime.py",
+      "bytes": 22261,
+      "sha256": "5d6aaa52bb7dc1b3b3ecaab18b0577fc55d68e3bda3798c60b85a442a8eb141a"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/candidates/component_source_semantics.py",
+      "bytes": 70237,
+      "sha256": "0a39b80ef527ab3410d68674f4fdc6cf751e1808f1b2a00a3c26868575829e4e"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/candidates/components.py",
+      "bytes": 3724,
+      "sha256": "7ad7e0eb7fae3bb127a292fd0387e9fa93c45edccc8e6f7a085c5254d96869cc"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/candidates/isolated_worker.py",
+      "bytes": 4118,
+      "sha256": "f2fa923c4346890dc131aaff7435dca88d33f6460db9b75bd2c38a5322965925"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/candidates/loader.py",
+      "bytes": 6287,
+      "sha256": "c0fd8526bd5c22c5e43f155bfb4b0745226dea0476985fcf0835442850379163"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/candidates/mechanism.py",
+      "bytes": 8513,
+      "sha256": "542a5e507a2d75204046dc37e2d2b812b198c8e8558ad31f95764ef032389c77"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/candidates/package_contract.py",
+      "bytes": 17582,
+      "sha256": "7b8186bca57a11b76559b1c7a2842f405b7275e31c2d467897095f10f4185246"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/candidates/prompt_projection.py",
+      "bytes": 856,
+      "sha256": "3b12a215c3fef0c86fd043defbbe033d55154d44cb43a16d26d0521bf724b986"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/candidates/schedule_contract.py",
+      "bytes": 2112,
+      "sha256": "489eb9023a53c8215eec3fb06baeaa5836b9ab73d6846b5a87eefc0283d33af0"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/candidates/schema.py",
+      "bytes": 5376,
+      "sha256": "227df661b806a402158436a2051b5ea6edd2af031da38266169ecafb73f70854"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/candidates/sibling_exclusion.py",
+      "bytes": 10347,
+      "sha256": "4e831614c0e0f4e13881b730e6f862f72a3c87818b4839810bf7c719f32b0ac4"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/candidates/verifier.py",
+      "bytes": 59770,
+      "sha256": "b97e777ad82ef9f4aa677a0e924bafe9d68c3aa096b5de23824ac999b0fd4889"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/composition/__init__.py",
+      "bytes": 1125,
+      "sha256": "0ecadbfc0e585115cca67a30d9468d1d916f57360248f6c05b6e2cc29ceedd3b"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/composition/base.py",
+      "bytes": 16729,
+      "sha256": "459ebfc766f3998e9820299ae799827828df39ab22ca8573e011e69f5a0740fc"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/composition/cell_manifest.py",
+      "bytes": 37569,
+      "sha256": "d7d1faf120d1e6a6d93c45c0a4556c1ccfc7efd3af4eac11aee0f49db4dab67d"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/composition/cli.py",
+      "bytes": 4292,
+      "sha256": "b6574e3f6deffab436919b1ade5d66b79421e340e27bdaa17d75f98558c6491e"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/composition/defaults.py",
+      "bytes": 1169,
+      "sha256": "94e521a96ecd53489f373c2840037ce1b8f80ae96b59671d96e3d3f46854c08a"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/composition/lazy.py",
+      "bytes": 2855,
+      "sha256": "c9e4f1cebad4c37ec54278553c8b649d94b9abe3d997bd9166c41254a97e567f"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/composition/registry.py",
+      "bytes": 1804,
+      "sha256": "305814bc6de72e316833edaa59f5456ab0aabb84ed504cb21c87dc7d3b43ee53"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/curriculum/__init__.py",
+      "bytes": 74,
+      "sha256": "5eb70b8f6af9a13f9734cbe577414dfe3872fbb6bc32942b716b6087f55b5fe7"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/curriculum/capabilities.py",
+      "bytes": 4271,
+      "sha256": "401a2d4b201b6521864252548b1718cebe545193b312ad00f7ec7c5a1e3f6a81"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/curriculum/compiler.py",
+      "bytes": 6016,
+      "sha256": "f7f4d8d3ceec8fd3ecf599b4b90c8942c4fb5afc72de9e8912f7ba551d76269e"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/curriculum/schema.py",
+      "bytes": 931,
+      "sha256": "afb0216ba6b57b82c8d5384fe1aa6fa8163e12a8907db1c0595245988323d0a6"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/evaluation/__init__.py",
+      "bytes": 422,
+      "sha256": "1ef8a8e20be264bf05a9d41306d60346a7bd45079b4d57c66c34a4e75751dc7f"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/evaluation/acceptance_contract.py",
+      "bytes": 38097,
+      "sha256": "d2d0828dfa0e50e6c0f211b576ac92044b322d53d1ecd03048055be40a55af60"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/evaluation/acceptance_phase.py",
+      "bytes": 398,
+      "sha256": "f506cffb0c0d32f8a45f9cf0fd2dfc2a62767d66c206921417843b1e2deaca73"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/evaluation/acceptance_protocol.py",
+      "bytes": 40972,
+      "sha256": "4b8232c9f2fef757dbb517113de8ca64a9becd8e7acfd66ee0c31739fde40e5a"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/evaluation/acceptance_replay.py",
+      "bytes": 41187,
+      "sha256": "3bc2e041582ef2b126991966fca0591b6dadfc162a926d07684e779a0c37be07"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/evaluation/binding.py",
+      "bytes": 5296,
+      "sha256": "a59c8dfe51a9ff4197a23f76e3a895f8bd5e3de638f8cf2876266e5733912e3a"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/evaluation/current_best.py",
+      "bytes": 33474,
+      "sha256": "f404389bef77f8757ff114154366452af3de05f34fedf85d801f100a6cdc050a"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/evaluation/decision_record_contract.py",
+      "bytes": 52080,
+      "sha256": "4a3a434dc240eeac1082be2a4dc9b032dab3fab48471709e5d50030622d02bf5"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/evaluation/phases.py",
+      "bytes": 19506,
+      "sha256": "5479f555e2acb390ab69990d61ce48d30b87d7ca5fc62d7dcd21d07acf0c4dc1"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/evaluation/protocol.py",
+      "bytes": 4767,
+      "sha256": "01c25ebf3ba7ea5a4347f8f716c21c67d9fb16bd9c5dc219527723a569af66c6"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/evaluation/public_metric_contract.py",
+      "bytes": 824,
+      "sha256": "8d46a4490d37b25c5370c4f0b3f326f99aeee9ad00e9681cf8ecbf2f41149c54"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/evaluation/public_projection.py",
+      "bytes": 5790,
+      "sha256": "db58aeb4ec7f3fa76f220578a658b7826678d70bee5985e75e8a7e6642df212b"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/evaluation/public_result.py",
+      "bytes": 1157,
+      "sha256": "d5795252b5a01d2a7b9477108bb9f9c9da108a8ad27d703005293f908fb4f006"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/evaluation/result_contract.py",
+      "bytes": 2712,
+      "sha256": "bca34eaa3e5a20a80b6a7b55cd6c04ed4e3017cae553daa3f4215fea96bc8ab2"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/evaluation/round_stage_contract.py",
+      "bytes": 5045,
+      "sha256": "814da7c19342df9204335ade59be52b4d3b0ce9234f353a7a93a5d950df4ac90"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/evaluation/score_stats.py",
+      "bytes": 3058,
+      "sha256": "d2952c2b333b812031a6020a81d32f3354d7306638b8fa860e40dfcc394f0ca4"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/evaluation/sealed_validation.py",
+      "bytes": 25760,
+      "sha256": "509105d1329fdb3a1b4ce552c7b9c5625768dfc342f099f05e7896acd216da2d"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/evaluation/subject.py",
+      "bytes": 3060,
+      "sha256": "efd6aa1d9e04d2253cac146e22a8e9ee200e0ebb94268ed79356bcb45c8717ec"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/fs_contract.py",
+      "bytes": 2516,
+      "sha256": "b654c6404ed6cef607f0fe5259035c4867d84de93e355fd5719a2627da49b5ea"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/json_contract.py",
+      "bytes": 3057,
+      "sha256": "4e5e110015b4a098365462137a1ea1c2a535266a3282f75755ac0777982f09e0"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/memory/__init__.py",
+      "bytes": 587,
+      "sha256": "272da9debd888a3188cdad4fe6ed946e0359fceb38932bc2aa433d7f03665273"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/memory/context_builder.py",
+      "bytes": 30009,
+      "sha256": "636bd8da5de4d391e32d8813fdb87b2fa80784ace0be1ee75ca4ad65d2df550a"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/memory/records.py",
+      "bytes": 7079,
+      "sha256": "40b8f96cfd62926664ed0f7da6706ce44bc0ff7bbffc70857850bcf58e16e265"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/memory/task_adapter.py",
+      "bytes": 493,
+      "sha256": "5060977cbbb225ddea297b4e4536f9674782de5213c4713c1b7e617d486dbb7c"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/policy_baselines.py",
+      "bytes": 9562,
+      "sha256": "35a9ab53bd13bde26f63e4e0258d63a58cbbc2b6e8a78aa00f2ad7194f4d7fd7"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/policy.py",
+      "bytes": 1306,
+      "sha256": "4650bc242c78b63f1e237805a00d535e2b84b11b32b516f7f844aa5e6df3ed69"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/prompt_artifacts.py",
+      "bytes": 85953,
+      "sha256": "71653bba2529b5c982b4dc8221af8979db8575105879046d28310b7a87324939"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/prompt_serialization.py",
+      "bytes": 624,
+      "sha256": "68ad83bb91c4009c0a5be40de4994aee9198202ef9aff10c525638309aa60993"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/prompting/__init__.py",
+      "bytes": 1157,
+      "sha256": "65a32d0ce3120a2cc8d7d1b75e37526ffe3afb1ee1ff4c20570b16ee0610378c"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/prompting/authoring_frame.py",
+      "bytes": 17511,
+      "sha256": "b4a27f8d6d3117b19226dc8117a2c819289e1f861e43781200a33fd78196d579"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/prompting/capabilities.py",
+      "bytes": 30441,
+      "sha256": "27d015f5b840249ad0c2e066b038c275720f6367737151beb06e5e7f655bf103"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/prompting/capacity.py",
+      "bytes": 5548,
+      "sha256": "8a40cf0601de3c9209e91fa04b1a6503acadac344041c0cb9cb0bd85d720c009"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/prompting/payload.py",
+      "bytes": 18806,
+      "sha256": "0f5fdfd5050b90302a864ac31cb7afb65758e00312689504a8bf664403a55934"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/prompting/public_safety.py",
+      "bytes": 535,
+      "sha256": "bf2b571f1f57268dd139b8df36905f6870d29fe560cef7e4e0071e1c6b9d540d"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/prompting/runner_capability_schemas.py",
+      "bytes": 13131,
+      "sha256": "b1e492c820485666f56bc025f000232bc310c848d322cc0b4625c268de75f59e"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/prompting/serialization.py",
+      "bytes": 288,
+      "sha256": "deb1ef4746a0cbdf1b46c6fb782711cfccdd112ec2bc13905722adbc95f4c175"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/prompting/source_catalog.py",
+      "bytes": 96966,
+      "sha256": "6eff2a1b441ff6ce16650f244ae5c7351ba5c5ca8ec942d0054a4e71aaa6a97e"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/prompting/task_sections.py",
+      "bytes": 7155,
+      "sha256": "dc1cc64b2906e4dc5658be8e69239aa4705bc4e62d6a53648a3287628da482e2"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/reference_artifact.py",
+      "bytes": 13882,
+      "sha256": "78230274bf23ec6c938afe51ebf0226389a8eb5e2094a6e3e26a177461abc379"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/robots/__init__.py",
+      "bytes": 706,
+      "sha256": "15f744a0a8ae1f5c0665219ba36c0bb57bf8206d2ec24846ad79f958db775cea"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/robots/base.py",
+      "bytes": 16696,
+      "sha256": "611ede324eefa064750f783ec4c376db94719cb00f6d9b255684328a7b0c65c9"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/robots/defaults.py",
+      "bytes": 4804,
+      "sha256": "6244b16085847a679882457948a0a32c13b33e1e8749b8ef2e3a055a4d6492a5"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/robots/isaaclab_locomotion.py",
+      "bytes": 9150,
+      "sha256": "abe1a90bfe56333a1a2740814f1fa1d0a7507c693a8516753611beb6e0afb9af"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/robots/registry.py",
+      "bytes": 2660,
+      "sha256": "12b5b160cc3e3866d207ff0b5769dd5b66b30cd03f27a98a224a43581f7aea81"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/robots/rsl_rl_runtime.py",
+      "bytes": 2358,
+      "sha256": "082b7fa2487474eb2e40512a0b9b9239abe3445088f45eb5e3cf32e8ef252434"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/__init__.py",
+      "bytes": 79,
+      "sha256": "7fd02dccc2fbd7051f707c6a7e8404bda8c884b79544e47dcee6fc5417507c49"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/argv_contract.py",
+      "bytes": 2079,
+      "sha256": "2a80863897162092ebcabd0fd237e8bf5d8a59b7f5a915654ebb980e61e2fa34"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/artifacts.py",
+      "bytes": 719,
+      "sha256": "01376c680b41f656c0da891e3a43a37439b0b1c7184c7d6305e2942870c49588"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/base.py",
+      "bytes": 9913,
+      "sha256": "41c208763e1298b142c840ee0fee111f57cbdd18206419d67b9882f096cb80be"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/budget.py",
+      "bytes": 1855,
+      "sha256": "c00ce1005fa19e56c7acc440d8104cd172a363f0fbdae80af44ee9f51140fa3a"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/candidate_failure.py",
+      "bytes": 11616,
+      "sha256": "7720c5156958089a67a3067f034259360b760695ac04f88c2ea0b384aebdb190"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/checkpoint_preflight.py",
+      "bytes": 3181,
+      "sha256": "0b04acbc1c63c64542ef8101579c1e4ffe363c36e193ebce8e3acd097c20142e"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/checkpoint.py",
+      "bytes": 10772,
+      "sha256": "0958cb020889ffbde2906c0dcf5ce675908527b591536000e4be32b6158faefa"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/dry_run.py",
+      "bytes": 5259,
+      "sha256": "03e57c6972e39e6effe0150b6fbabac0303939e7cdb12f453da8ba9e63a8b39b"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/eval_binding.py",
+      "bytes": 4676,
+      "sha256": "d249df0b8d06eada491ce076fe16e87ceded39ae3f343db3dcafc9853dea1329"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/eval_isolation.py",
+      "bytes": 2860,
+      "sha256": "994b1f598b145b632036903b5d1b40191f397c58d2ec03b001e132d4ce51f4de"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/evidence.py",
+      "bytes": 7663,
+      "sha256": "50976b7178fffd3012c49b71df13249f52917790515d160065e63429e3f76e9d"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/gpu_lease.py",
+      "bytes": 9565,
+      "sha256": "7e520a6a4a5134ade56a15f4e2420d69473fffd87366e5842a6692ce0ef118f5"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/initial_policy.py",
+      "bytes": 4970,
+      "sha256": "a6e719b2de18c65071ce20b0526aaf04a2581fe50cfd817a834eb3bc6651c6b9"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/isaac_app_lifecycle.py",
+      "bytes": 1281,
+      "sha256": "010b7585d7bfd9536bd7295df28024fce43dd3956ab445f738d582cf9f5248eb"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/isolation.py",
+      "bytes": 555,
+      "sha256": "bed9fed0a0cab1c209ad111f819185c0eb20613fe9d14800361f2cf5bfefb1f5"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/job_argv.py",
+      "bytes": 11291,
+      "sha256": "653bf23a90be5b60866f2430a5f1a67ad7222b3c85897dd687ee702d9d02532a"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/job_attempts.py",
+      "bytes": 33713,
+      "sha256": "60541487c2cc192853c5631da00ac9566ddc02dffdb79a6c0bd849ea7d028c04"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/job_identity.py",
+      "bytes": 3514,
+      "sha256": "0503fd80b6ca805c316701ffce72ebd055d8752e86aaf82289332318171f89e9"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/jobs.py",
+      "bytes": 2180,
+      "sha256": "ec0899a21c555abf7712bf0e89046ff4ebff6cad6c0063b5b4c96bbbfc941aca"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/process_guard.py",
+      "bytes": 1134,
+      "sha256": "df4755a6c8c397af6b4665a5201123f9afd0da16a59f6e0967811bbb18cfd653"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/process_handle.py",
+      "bytes": 21126,
+      "sha256": "89efdb6425ef3a55e2273c24c649618edfe5f32b1f97bf20e872c4f9869971d9"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/resource_shadow.py",
+      "bytes": 50797,
+      "sha256": "6b0b6625fa8b03bb7e89743099fe51471bb90d5b1cf947fcacf8710c7a010c39"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/specs.py",
+      "bytes": 35456,
+      "sha256": "266ce6fc3dbdefbf48f6241791b9e3a25b394266fb7ced3660a630ac9e350aaf"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/runner/subprocess_runner.py",
+      "bytes": 92994,
+      "sha256": "0bf572dc594ddfc2fa30b42c161dc4a8d58acb0819383559b54dbe12285bf248"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/safety/__init__.py",
+      "bytes": 72,
+      "sha256": "03da6ef72a18c7755ab17ebb6b7e3cdfb58aac7f02086cb389aff9e6e80aaac7"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/safety/eval_seal.py",
+      "bytes": 8084,
+      "sha256": "4a65904850590fd6340231c07e429b78a86f609575506ca5fbe8a2a9c747f203"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/safety/invariants.py",
+      "bytes": 277,
+      "sha256": "dcb7388797ea0e7450fde1f13a59b792de1650a5dc0d47ef90063b6f6a8896cc"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/__init__.py",
+      "bytes": 378,
+      "sha256": "3a0bfd532cf85712341f9e6884aaab728e49c7993645898910e2a25d6faf4ddc"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/base.py",
+      "bytes": 8653,
+      "sha256": "327e3ee173f4872c18623e926ea00c3344a0eea7c5e0fbef1e4d0e5ae08acd68"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/compatibility.py",
+      "bytes": 1177,
+      "sha256": "605cc80254bf5c8eca0aba749a99fc48c3924daf4b141b9a20023ec2e033d905"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/component_smoke.py",
+      "bytes": 11515,
+      "sha256": "5a6f5c38d4ff2c3eda3cd2ae2c2b5213446c9fb3dfe166aa666e601b35e52fe2"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/prompt_adapter.py",
+      "bytes": 6097,
+      "sha256": "a0c2c5e6cbb69b977cd36f6c2ce0ffbdfa624ac6a5c57330259ddb50c8d65efa"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/__init__.py",
+      "bytes": 797,
+      "sha256": "aa18bf741ee21fe94e5a77da2c0afa34cf5e56f2332980a51a43e0fadf0829c3"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/candidate_failure.py",
+      "bytes": 1191,
+      "sha256": "895f98bfe6cb79b9836ad8b8cad38a1a82fee5e37985583f47c29485bd0c10bd"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/candidate_surface.py",
+      "bytes": 1010,
+      "sha256": "4877a886922f4a16a56920cd3a5133507d7cf52b9a6479ad0fd8501e66721fbf"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/component_smoke.py",
+      "bytes": 2912,
+      "sha256": "fad5dff142a6b0d3769a8b168d0f661c0c935e27704194f7f1bd81ad258538da"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/composition.py",
+      "bytes": 13296,
+      "sha256": "34e1be9e8dd088261b77b5e0b1e2cb0836bda6f8fbfa35b79a709aba55e619bd"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/config.py",
+      "bytes": 6204,
+      "sha256": "436c92059df2bda3e676c9ebdc9230e17a5facfc2be3d1bc25ae4704670dc616"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/diagnostics.py",
+      "bytes": 5178,
+      "sha256": "d169b9105a39fd5e6f81baa2bedfc261779b63a7bc0840361d3c5a6aa653362c"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/dry_run_eval.py",
+      "bytes": 8235,
+      "sha256": "31f1bbb4ea328443d93c02bd9d7d3276ac1b6499b5de412be82719627de9ff46"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/failure_classifier.py",
+      "bytes": 3739,
+      "sha256": "17b6d44564a249a16dac9439665e744317bb66b1e52fdb3fcdba589b866c246d"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/isaac_config.py",
+      "bytes": 15946,
+      "sha256": "f0412e101222bfedf0893323fd3b4baebc176ad8ab340a17162bceedc3fe8a2d"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/isaac_overlay.py",
+      "bytes": 3657,
+      "sha256": "1719a32e3b3d6a72f76d84f572c0f9f981f255466d64745c181228ca3ab7b396"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/loop_audit.py",
+      "bytes": 25808,
+      "sha256": "39dd43ce095a7ce6449c6e6d773f80ffe92cf15211b375d8201ef0c056f0a94d"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/memory.py",
+      "bytes": 3935,
+      "sha256": "1502ea90c4c43e774c6911929a97aa0cc80ea081d494f25b314da1bc786c68ca"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/metrics.py",
+      "bytes": 38145,
+      "sha256": "cc2ba6bbee6a209c867380b6da039a3e32541f62bc5a8352acd8855bd41f1301"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/plugin.py",
+      "bytes": 6865,
+      "sha256": "85dc81751d1cbd94467b36ded1173e5f33fa5565e4dda2b71f128a198d33597a"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/prompt_adapter.py",
+      "bytes": 56717,
+      "sha256": "022ae74ab1e58a846ee9d829db9e7df32d93234528e0fd7569cc152e051df960"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/reward_input_contract.py",
+      "bytes": 1747,
+      "sha256": "4b9ebc0d5fb843f6a6462cd336669835b11cae185741bf5875edfbcdf706ba96"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/reward_inputs.py",
+      "bytes": 397,
+      "sha256": "015e404601434c98f05d8c9cb362bc01efdd54027620dfefbff2040b64d75f4e"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/robot_binding.py",
+      "bytes": 5490,
+      "sha256": "e92ac8666ea7da71d28c04a596f0028a92e310cff1c50f94d23768572a7b5613"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/runtime_adapter.py",
+      "bytes": 48274,
+      "sha256": "2b490e3c3c0f272dcf8e56e5eb4bd6de1b9b16f26b275d751cb051c14ee62e68"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/seed_policy.py",
+      "bytes": 2926,
+      "sha256": "29c56ad19c100720b66a579a62f6148a8982275647c1fe8a32ce92b79075609c"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/reference_qualification.py",
+      "bytes": 3570,
+      "sha256": "22edb30ca29803bd657bb4854655486b43af19d275dad29e502d89a74c505d0d"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/__init__.py",
+      "bytes": 1182,
+      "sha256": "e49399b71f8e722928c69c907690d52ac69b5c48b79b21625fa02645f1f60d5c"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/baseline_adapter.py",
+      "bytes": 2632,
+      "sha256": "043a25544b5d777c53387509224370c75339018bdc3491e93cf43bb29c035e76"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/candidate_admission.py",
+      "bytes": 37461,
+      "sha256": "fd58c55f8ae8e7494f1c97610b31d34bbfad839cf063824f1354470a204b449d"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/candidate_failure.py",
+      "bytes": 2878,
+      "sha256": "388820b4ac5e55501b4d32e63a54c7908d2c91b7df7101742f1828bc9a971279"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/candidate_surface.py",
+      "bytes": 903,
+      "sha256": "4695b05e55a92a9d01a71e76166b8f2fcfb8c2721449764eb59d772fb9be5903"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/component_smoke.py",
+      "bytes": 6713,
+      "sha256": "534663fdf17f1482ee0eace2662272d7182afecd683ffbd351e77e93c742334c"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/composition.py",
+      "bytes": 28211,
+      "sha256": "c4a6b3730fe9b7b12aca779bd66d9bea5a9e5a66cce6fd443d74edde7a50ff3f"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/config.py",
+      "bytes": 42164,
+      "sha256": "8937f00de7a887644bb5325bb93b54316a9b27dfb5a7ab9f8362abd34d80b813"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/entrypoint_contract.py",
+      "bytes": 21918,
+      "sha256": "d537fd802b4286473f4e78c9ef30826247da2891d445e408cb0a1335bddd655b"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/episode_evidence.py",
+      "bytes": 32211,
+      "sha256": "eb5ffa16992b3a610820c44fd0ef8c374528c5bb54d52117ac15a5e6ebdd605f"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/evaluation_contract.py",
+      "bytes": 34801,
+      "sha256": "efb58a722366825b0c6d78938b2ce58fe3bce6d721db35303f83ee38d835ead8"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/evaluation_profile.py",
+      "bytes": 13817,
+      "sha256": "ec2920a8f6056ae0e3fd374c987b63e6a4f445bbfe3f828e33a1ea263a66d222"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/evaluation_runtime.py",
+      "bytes": 20400,
+      "sha256": "84efc5f9bfaf2a015edf786835f4044578bbace1c665e6af1b8a3e00370c1dc8"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/evaluation_semantics.py",
+      "bytes": 18570,
+      "sha256": "05dbc0772fa4ad5cb7df10bc9fd457250a565290a25d70589cd497374a213b00"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/exploration.py",
+      "bytes": 23053,
+      "sha256": "a27266574e9d7265be559499a529d03ad3e4268a187bd4e59b1b61c8074650ec"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/final_confirmation.py",
+      "bytes": 103304,
+      "sha256": "16b5b68e71b30b0a2d3262564e1ebc537bb637cfd3883fe0fa6157353d8630b5"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/generalization_contract.py",
+      "bytes": 30770,
+      "sha256": "b7caab57941854f0d705c966b1cca3dd60fe3afbfa921d1b67b6d1a90fc03612"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/generation_attempt_scopes.py",
+      "bytes": 11336,
+      "sha256": "d2566f0ac5e0c5eac1b206f0be539eccf75f6c59764d04d73be9bc3fff672546"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/generation_authoring_timing.py",
+      "bytes": 19268,
+      "sha256": "5aafdc6036216bfc603d3028152d84197a3615ebff9265feaab6e18844621726"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/generation_bootstrap.py",
+      "bytes": 10610,
+      "sha256": "f17022d40f89784231ecfbf4efd938e0524ce99109e9cc12f6e045d622f217fd"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/generation_session_cost.py",
+      "bytes": 121685,
+      "sha256": "f05f84c54f52e16b2440bcf48e159970396b15589ee44c26163d399d2290faaa"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/generation_session.py",
+      "bytes": 390494,
+      "sha256": "9e07da0c3876603b991f862dd50b4b1e16df9d2618f91c8a66d4a069443ddc34"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/gpu_process_binding.py",
+      "bytes": 15360,
+      "sha256": "76a4a23fbadd6a1af34a495a5ede4354004e19f85019f971ecbebe9c42672475"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_env_cfg.py",
+      "bytes": 6749,
+      "sha256": "75df9c216f9b24d0bdae91f47b10a58dadb75100e33a246fa667b868647ecf66"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_evaluation_terrain.py",
+      "bytes": 4753,
+      "sha256": "618cf39def0a7925ec1590a3789bb34cfea036a655ed190a8171f708a7406d84"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_execution.py",
+      "bytes": 59680,
+      "sha256": "6758e017a33cedfbfcb890e2179d435497b7f6ed1588c634b42fd868b34342a5"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_irregular_terrain.py",
+      "bytes": 5994,
+      "sha256": "47fd5068b94d50711d11c1df33d5b16ccd39d6f8d56a1867a8306eba0a4a3caa"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_phase0_probe.py",
+      "bytes": 21411,
+      "sha256": "06268a2a850e756f9024ff91efbff3fb23b729e03ff07b8d2cc149ce48521ad7"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_reward_oracle.py",
+      "bytes": 8659,
+      "sha256": "4da6f6b25eaaafbfc285448cbe00589454619c0b55e9d676defa64c55eb4d796"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_reward_runtime.py",
+      "bytes": 25895,
+      "sha256": "74576dd9baa84dd67ff8d05dddd103aeab172a33b2ca66de64ba8a3106676c36"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_rough_terrain.py",
+      "bytes": 9894,
+      "sha256": "27b12a7f21fdf6f77ee4964eb098ab2379f1511c1ca725e05fb72bca18cc0315"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_runtime_env.py",
+      "bytes": 23531,
+      "sha256": "1975f50accc35fc2e3b4bf8246f294a5085fa1a2e3a8a64b5a9ebcb4b043892e"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_terrain.py",
+      "bytes": 8614,
+      "sha256": "cccdfcf6119fefef0415c93974401bbd430fb4853b08d2552cd179acc499bfb4"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_training.py",
+      "bytes": 6396,
+      "sha256": "a124ba937bfa616f094e6c50d7768b732042006f9800872f06c37c23950ca796"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_unified_terrain.py",
+      "bytes": 8340,
+      "sha256": "b3b89d378eabfc2a3a7aaeca3ca67aea721f7571f97f4cf060832806804bc3b8"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/launch_context.py",
+      "bytes": 11686,
+      "sha256": "b9f97da5b0fb7b4fcd01d8556527207a284681f404acdc63ef70bc49f2ff8839"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/launch_readiness.py",
+      "bytes": 151008,
+      "sha256": "eaec97c7ab9737c8600fd8681e64c9725549e9ba4172465716e5142017e82140"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/legacy_reward_adapter.py",
+      "bytes": 8092,
+      "sha256": "a7e99bc9f672b81f7df861ee1f1e19472a4f9a22bfbed15d81bb9730efb2856d"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/legacy_runtime_projection.py",
+      "bytes": 1897,
+      "sha256": "b058e393fc3620396ac6bb14f120c1f7b54a6d9508d62c707c09170c93415b20"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/legacy_transition_reader.py",
+      "bytes": 4467,
+      "sha256": "d08bab08b279e41224e55296b49441b4094a1aed9096403e92db007c5da47493"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/local_paths.py",
+      "bytes": 1666,
+      "sha256": "eab22848afa7efa7eafbfe162544c20bb5d80e6c263b9ef23336c7b2ce38196f"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/memory.py",
+      "bytes": 11769,
+      "sha256": "9a74e5cac26dc3e25862299c0d3dd1e933c489c964b3ec6db63aab333c041812"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/ordered_evaluation.py",
+      "bytes": 11965,
+      "sha256": "8bc8d3e3e89b3a42b8c351b715e159078a6c431ae4210d914ea1283c37d51201"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/ordered_summary.py",
+      "bytes": 23900,
+      "sha256": "f51ba8b1c6ca6d447d79370d1bf95ee783cd7dcf921e1dae2109749ca7d0ba80"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/phase_contract.py",
+      "bytes": 246,
+      "sha256": "008a12c974935e04ad5ea59d01a615c7044250a47b6d0310edda101424301a55"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/phase_d_prompt_preflight.py",
+      "bytes": 3952,
+      "sha256": "e8b3b5f09fb884f4ce485ec5ea1acdb84f736483fc8b4db70491c0473d730788"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/phase_d_run.py",
+      "bytes": 12851,
+      "sha256": "1eebd565e0e47c632180db01aade2b4493651c29dbeea1dd3d7337fea855da61"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/phase0_contract.py",
+      "bytes": 109326,
+      "sha256": "c441d47ce26777687646117af08f9e50163b0bbef8bfbc07abc9a682c6cfad31"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/phased_adapter.py",
+      "bytes": 5155,
+      "sha256": "48d0b99c3fa794f08e32470b7b6c2a21c59c81b3a74144e61135f7047dd429d1"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/phased_cost.py",
+      "bytes": 3839,
+      "sha256": "1b7c7201b19dc067821786489dfc37cabd7b20a4e6e34639f00bb833c7057187"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/phased_evaluation.py",
+      "bytes": 36218,
+      "sha256": "b881ed5f6f84341a34bb290aee83a5419c6fa631a6fbedeca110386e5c3edc8c"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/pilot_artifact_store.py",
+      "bytes": 11434,
+      "sha256": "733da9cdc491af879cf088f79884fff011b8a6cf86c2ed7a061a6da444eadd62"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/pilot_artifacts.py",
+      "bytes": 73224,
+      "sha256": "163d7b0af1fa7fd2626220ffc327027ab12b79563ddcb569dd8031d422de7a5b"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/plugin.py",
+      "bytes": 20721,
+      "sha256": "009e583f42a841f48946be2c72b97cc8464f791c84b6ddb625421d6443338855"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/prompt_adapter.py",
+      "bytes": 134641,
+      "sha256": "6581b749df0959da13c046ad08832521c8bf3522577ef19d0484b8db27d24120"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/protocol_v2_freeze.py",
+      "bytes": 13700,
+      "sha256": "6642b2fe8b9b40827dfc3e4e11f40f680f76d6ea4d1772bf3133d9f597845f29"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/protocol_v2.py",
+      "bytes": 57252,
+      "sha256": "320b703496f6e153f21bd07c3f8bd03b68c576cffde1ee32b747b34f7d7c2655"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/provider_readiness.py",
+      "bytes": 7280,
+      "sha256": "3dada5e4afb4e5c5145537dc285794dbae7318e09330e7fa2c95897b5ca6bc97"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/public_projection.py",
+      "bytes": 46173,
+      "sha256": "9745ea12a7720dd7f989f43d7a10c0910159a8a7362ea2da853b5ccd70237166"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/reference_pilot.py",
+      "bytes": 22347,
+      "sha256": "f40a570f0fafd6085c00b0facc515294a09a1ade606e5e1f4d8ff2fb1f1e441c"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/reference_program.py",
+      "bytes": 5492,
+      "sha256": "93ae3da27cc7d3e2e5067cee45dc8410dec460e1130104028fcfc5a527f1cfce"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/reference_programs/go2_stair_official_flat_derived_v1/training_code/components.py",
+      "bytes": 2326,
+      "sha256": "10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/reference_programs/official_g1_rough_v1/training_code/components.py",
+      "bytes": 4978,
+      "sha256": "a1255b585ffc6752df710be648cf0439017d5220a41853b9dfdebc778c3c03a3"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/reference_programs/official_g1_rough_vnext_v1/training_code/components.py",
+      "bytes": 4126,
+      "sha256": "3462bdf78d874ce2e4ab527cea3c1530ebc93cf9750d2b4fc64292e3a63adfb8"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/reference_qualification.py",
+      "bytes": 15131,
+      "sha256": "ce98456fbf1533473cc481e58164439a7aff04ca916af556b396a81029071f3a"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/resource_shadow.py",
+      "bytes": 27855,
+      "sha256": "badd44f1253786dc9a5b34c4ed18e6151469e3ed793aed41c279c15a043e2358"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/reward_inputs.py",
+      "bytes": 16473,
+      "sha256": "9dfd2017baf91fb5e0c95184f21d6397125e487395f6cdf05dd77ee1cd60fd47"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/reward_performance.py",
+      "bytes": 10984,
+      "sha256": "ec7d23125505eda2ae4e9be08144e56d16fc5ee7ae12bd5c7f733084ca88b6a8"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/reward_program.py",
+      "bytes": 43806,
+      "sha256": "03ac8834a3e0fc6877123e10cdd36979f5690cd00deda5a533af97df0db5d8af"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/reward_source_semantics.py",
+      "bytes": 31098,
+      "sha256": "3e6ffc19688c89bfa894b5c6b7dae268f79e49069e74090c0b448bc9fc9b7788"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/robot_binding.py",
+      "bytes": 12061,
+      "sha256": "fbf9ae6bc8ebf3a1ed235202da744cb4ea06117455fe6ee5c3ec8b33767cd2c9"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/rough_surface.py",
+      "bytes": 7646,
+      "sha256": "285eab5a5a31bac3ab9e50234ba008ef16839b5781ab906c8504c5c39a488a64"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/row_catalog.py",
+      "bytes": 6270,
+      "sha256": "c86295c1ca282c945fb878c4c85e41f2aa4f98a9bed52893b78ba197d0e3bbbe"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/runtime_profile.py",
+      "bytes": 6520,
+      "sha256": "ff7ab8d714e0c67124be2ef988b3e5542727fbcd893ee32dd611e8e63b8d6760"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/runtime_projection.py",
+      "bytes": 36828,
+      "sha256": "84241a6de8aa164057f76dc4563590d7503e5e236a9b371f89d6107cd2490122"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/seed_policy.py",
+      "bytes": 26056,
+      "sha256": "9ccb4fe217caf8178a81b3b44ee1e0534065f485a2e5f7364da6230eb8a0f36b"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/selection.py",
+      "bytes": 45846,
+      "sha256": "fba1e620855237aa482a733802fd1d36312c827a0148f7badfde2b61bd647491"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/session_start.py",
+      "bytes": 4772,
+      "sha256": "b5e87d1a16f820b30b4c3972fd2631f090430d0b4f5e3fbb378c354852490af3"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/source_checkout.py",
+      "bytes": 2392,
+      "sha256": "1983d9402738769232499c8c0263f5fd36be8128c06376122e3d4a6e7238acb4"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/termination_capture.py",
+      "bytes": 24710,
+      "sha256": "29583533ba0d4c6ea9d8332a18c0b498f56a86f89f5de6066c34f6805f473859"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/terrain_evidence.py",
+      "bytes": 13496,
+      "sha256": "ab9acad54f8cb1d086bb94383697e7fe8674fe539e5075168943be19ce4c6c2f"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/training_distribution.py",
+      "bytes": 26700,
+      "sha256": "51781c69b7fc1b65fb1be2d801f23c5c73c5aa0714b1008a6ba438d0ce9f9323"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/transition_decoder.py",
+      "bytes": 31381,
+      "sha256": "9774b51f59fdb86098c01ddba8815bfe7f1d96ed768245b19e795cda3f1420fb"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/unified_evaluation.py",
+      "bytes": 26463,
+      "sha256": "3d55e0351fdff1a304019cc9f99bbf89d9ac9423966859192100bac6d326e48c"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/unified_protocol.py",
+      "bytes": 24567,
+      "sha256": "b6571de8390d7a4002e872be989bde3f0470fd408591e9615ef3637c9f4b3006"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/unified_scoring.py",
+      "bytes": 24040,
+      "sha256": "bd30298c927c180855b2f0d54c7cef3ace095b4b9fbe40570e9adf2055885be8"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/unified_training.py",
+      "bytes": 19250,
+      "sha256": "1d2f5fcabd55aeb33fe2faa7e119d548d6689cb495adcde028a6f620423fcc21"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/video_renderer_environment.py",
+      "bytes": 14668,
+      "sha256": "aa5e83fb3b28cb3e14d36d692dbdee7cb44a48a36e7018ea60d9312bd67e77c2"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/vnext_reward_authority.py",
+      "bytes": 4760,
+      "sha256": "3fd9bbcdeb48d5b187ea19aeee0a515a48754f64a3c19ba5f4a30cfb089a0736"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/vnext_reward_contract.py",
+      "bytes": 3124,
+      "sha256": "2e78f4caa5ab0b738f89c5b50ed6460943152330322d04b565fd483dcf870743"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/training_binding.py",
+      "bytes": 12262,
+      "sha256": "e30eff12b1329542ee6df9e65d9a5679df1c4160384f40223096884133d1f2d4"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/training_programs.py",
+      "bytes": 15213,
+      "sha256": "b64097382df32ef4e962ace26cb4cb7fdd7668073e9ccf8f1a797a0e196af10d"
+    }
+  ],
+  "deleted": [
+    "true_RL_Agent/docs/reference_inventory.md",
+    "true_RL_Agent/tests/unit/test_reference_inventory.py",
+    "true_RL_Agent/PLAN/2new_world/P0/RUN_LOCAL_CLEANUP.ps1",
+    "true_RL_Agent/outputs/formal_15round_38818b5_evalv6_followups.md",
+    "true_RL_Agent/outputs/fresh_formal_15round_20260813T102722Z_followups.md",
+    "true_RL_Agent/outputs/formal_15round_9e23252_evalv5_followups.md",
+    "true_RL_Agent/outputs/resolved_cell_manifest.json",
+    "true_RL_Agent/outputs/p5_go2_geometry_scale_retrain_20260830",
+    "true_RL_Agent/outputs/runtime_dependencies",
+    "true_RL_Agent/src/true_rl_agent.egg-info",
+    ".tmp/phase_d_prep_281bef3_full.bundle",
+    ".tmp/phase_d_prep_a576420_full.bundle",
+    "artifacts/stair_checkpoint_videos",
+    "true_RL_Agent/outputs/stair_checkpoint_videos",
+    "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/comparisons",
+    "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r4_stair035_env404347",
+    "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r4_stair040_env485155",
+    "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r5_r11_stair040_exact_env_485053_20260809",
+    "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r5_stair035_env404347",
+    "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r5_stair040_env485155",
+    "true_RL_Agent/docs/superpowers",
+    "true_RL_Agent/outputs/author_only_paired_ready_probe_20260817/__pycache__",
+    "true_RL_Agent/outputs/diagnostics/__pycache__",
+    "true_RL_Agent/outputs/p5_loser_heuristic_audit_20260818/__pycache__",
+    "true_RL_Agent/outputs/production_exclusion_recheck_20260817/__pycache__",
+    "true_RL_Agent/PLAN/Variant_construction/P0/__pycache__",
+    "true_RL_Agent/PLAN/Variant_construction/P1/__pycache__",
+    "true_RL_Agent/PLAN/Variant_construction/P2/__pycache__",
+    "true_RL_Agent/PLAN/Variant_construction/P3A/__pycache__",
+    "true_RL_Agent/PLAN/Variant_construction/P3B/__pycache__",
+    "true_RL_Agent/PLAN/Variant_construction/P3R/__pycache__",
+    "true_RL_Agent/PLAN/Variant_construction/P4/__pycache__",
+    "true_RL_Agent/PLAN/Variant_construction/P5/__pycache__",
+    "true_RL_Agent/PLAN/Variant_construction/P6/__pycache__"
+  ],
+  "retained": [
+    {
+      "path": "true_RL_Agent/outputs/current_38818b5_ledger.jsonl",
+      "bytes": 114420,
+      "sha256": "b8ef9b47d19c5350fe16a3e390e3d977e644dcd847b78584111b6c09dcc265ea"
+    },
+    {
+      "path": "true_RL_Agent/outputs/formal_15round_821c961_evalv5_ledger.jsonl",
+      "bytes": 290787,
+      "sha256": "2a1fd7878678bcbc9069add66683b05fc00a998e37791b1f927c3f82318e3250"
+    },
+    {
+      "path": "true_RL_Agent/outputs/formal_15round_b445125_evalv5_followups.md",
+      "bytes": 11285,
+      "sha256": "c25c4b2f2595edab544c85a7d08624776f8b1ce31592b599dfe1475ab61b0753"
+    },
+    {
+      "path": ".tmp/phase_d_e24f899_full.bundle",
+      "bytes": 52075789,
+      "sha256": "60371710f60b005ced46abc68251bf84551674a094f242598d1d77bc276255a0"
+    },
+    {
+      "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos",
+      "files": 14,
+      "bytes": 6314239,
+      "purpose": "Two R1 terminal-classification audit groups linked from PLAN/stair/formal_15round_e24777b_followups.md"
+    }
+  ],
+  "deletion_plan": [
+    {
+      "path": "true_RL_Agent/docs/reference_inventory.md",
+      "kind": "file",
+      "file_count": 1,
+      "bytes": 6220.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/docs/reference_inventory.md",
+          "bytes": 6220,
+          "sha256": "3d5afe41d49fc9ee03b066f0382d5fbd9039cdd6c181291b3a98cc4b0ea26705"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/tests/unit/test_reference_inventory.py",
+      "kind": "file",
+      "file_count": 1,
+      "bytes": 1371.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/tests/unit/test_reference_inventory.py",
+          "bytes": 1371,
+          "sha256": "5ca4df6fbb8c5dfd9a916698b99f40e8939a8545c835b634f87891c9450d81c5"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/PLAN/2new_world/P0/RUN_LOCAL_CLEANUP.ps1",
+      "kind": "file",
+      "file_count": 1,
+      "bytes": 12688.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/PLAN/2new_world/P0/RUN_LOCAL_CLEANUP.ps1",
+          "bytes": 12688,
+          "sha256": "7af1987c512e48d212418ed16570f6c7cffa99c0cbc5a2b8853f9606bf89f550"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/outputs/formal_15round_38818b5_evalv6_followups.md",
+      "kind": "file",
+      "file_count": 1,
+      "bytes": 14863.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/outputs/formal_15round_38818b5_evalv6_followups.md",
+          "bytes": 14863,
+          "sha256": "f1623b8d57a0a7574fe467538827a0c6479410dd132ab832cb9435a5e9c7c53c"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/outputs/fresh_formal_15round_20260813T102722Z_followups.md",
+      "kind": "file",
+      "file_count": 1,
+      "bytes": 11037.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/outputs/fresh_formal_15round_20260813T102722Z_followups.md",
+          "bytes": 11037,
+          "sha256": "d03056a5c2740e91d6379e3085cfa6be451d931cdd042a9bdd213f22842205bb"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/outputs/formal_15round_9e23252_evalv5_followups.md",
+      "kind": "file",
+      "file_count": 1,
+      "bytes": 2053.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/outputs/formal_15round_9e23252_evalv5_followups.md",
+          "bytes": 2053,
+          "sha256": "78c89fa83637a48d08a70f0af830c410de4fedf387c10f5cd4a88cd0fcf9da6f"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/outputs/resolved_cell_manifest.json",
+      "kind": "file",
+      "file_count": 1,
+      "bytes": 42419.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/outputs/resolved_cell_manifest.json",
+          "bytes": 42419,
+          "sha256": "dff9159af529a84f0186e87da93bc06c7d9aa45d559a0cbf54adf4700b388918"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/outputs/p5_go2_geometry_scale_retrain_20260830",
+      "kind": "directory",
+      "file_count": 0,
+      "bytes": null,
+      "files": []
+    },
+    {
+      "path": "true_RL_Agent/outputs/runtime_dependencies",
+      "kind": "directory",
+      "file_count": 0,
+      "bytes": null,
+      "files": []
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent.egg-info",
+      "kind": "directory",
+      "file_count": 4,
+      "bytes": 7838.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/src/true_rl_agent.egg-info/dependency_links.txt",
+          "bytes": 1,
+          "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+        },
+        {
+          "path": "true_RL_Agent/src/true_rl_agent.egg-info/PKG-INFO",
+          "bytes": 1708,
+          "sha256": "e0e7e08c4b5bd8e3c7e858322275cca3190db293dc1a1afeec7d4e7fa84b12c5"
+        },
+        {
+          "path": "true_RL_Agent/src/true_rl_agent.egg-info/SOURCES.txt",
+          "bytes": 6115,
+          "sha256": "9d44029460f9ef1e1a9b0de643ccf99c3462ae4091bba3dcee6ed69dafae24b4"
+        },
+        {
+          "path": "true_RL_Agent/src/true_rl_agent.egg-info/top_level.txt",
+          "bytes": 14,
+          "sha256": "e27ebbcdec694f7870c861f08ce9d0fe92a3403e4edf7481f6ef682cf81a6f23"
+        }
+      ]
+    },
+    {
+      "path": ".tmp/phase_d_prep_281bef3_full.bundle",
+      "kind": "file",
+      "file_count": 1,
+      "bytes": 39890937.0,
+      "files": [
+        {
+          "path": ".tmp/phase_d_prep_281bef3_full.bundle",
+          "bytes": 39890937,
+          "sha256": "7fce1eec1d4f8c6146831c6513a565d2e2a2eb1f84fdf0527030768129dffa10"
+        }
+      ]
+    },
+    {
+      "path": ".tmp/phase_d_prep_a576420_full.bundle",
+      "kind": "file",
+      "file_count": 1,
+      "bytes": 39907374.0,
+      "files": [
+        {
+          "path": ".tmp/phase_d_prep_a576420_full.bundle",
+          "bytes": 39907374,
+          "sha256": "41f83b0e4da38acf8836d94ce891747af4a0bb40c587d2b2c8d906abd2306fd0"
+        }
+      ]
+    },
+    {
+      "path": "artifacts/stair_checkpoint_videos",
+      "kind": "directory",
+      "file_count": 150,
+      "bytes": 90877681.0,
+      "files": [
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix.tar",
+          "bytes": 42598400,
+          "sha256": "0d915ff5507c6e4f82dfa5c7af9cf4034f47faede24af66e534160f12a187ffd"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r00_stair030_run1_env35/capture_result.json",
+          "bytes": 1479,
+          "sha256": "713430f323c03020bd655ccead0bfdf70e5a48d77f133bc5c20a3d64a2820f33"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r00_stair030_run1_env35/manifest.json",
+          "bytes": 3823,
+          "sha256": "09e4b062b76654e5c37d3cf93fd388f0f6f09d0ffe4ca5bc8e43b420d0252dc0"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r00_stair030_run1_env35/r00-stair030-run1-env35.mp4",
+          "bytes": 307024,
+          "sha256": "3d02160c169f7cddd42d72c4865caab768903b042bfb2669f40ee3e48bc53a96"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r00_stair030_run1_env35/trajectory.npz",
+          "bytes": 18196,
+          "sha256": "2c7507f87895808fac241df1beef722942f29daf863d434d839641f5d2340b8c"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r00_stair030_run1_env35/inspection_frames/t00.png",
+          "bytes": 42484,
+          "sha256": "68b8db2542bcad186cf81e60617060df6ba42ecd069a1e95c21ca644e9682675"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r00_stair030_run1_env35/inspection_frames/t02.png",
+          "bytes": 43932,
+          "sha256": "debf252444249c2ea66c6e895bf5cefb7da22bc01acbb8b32cb299009ba82113"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r00_stair030_run1_env35/inspection_frames/t04.png",
+          "bytes": 42345,
+          "sha256": "ca8d736606f98f478d6c5efde190766ed9ac6c50b6e9a6517628f8aef522d0e9"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r09_stair030_run1_env35/capture_result.json",
+          "bytes": 1433,
+          "sha256": "c5a9dfd15b35f29666eb5f95df20a2be8368ee42f14c2e67e7501b8bb138f6eb"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r09_stair030_run1_env35/manifest.json",
+          "bytes": 3809,
+          "sha256": "664b1fc56b6fcf92e08a0d958918b0614edba1aa239af39cec44d0a31088b04b"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r09_stair030_run1_env35/r09-stair030-run1-env35.mp4",
+          "bytes": 962850,
+          "sha256": "6d4e876aa8afa7a5d2b832e312e60feb142a6b1d204681cfd7c41f4641933025"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r09_stair030_run1_env35/trajectory.npz",
+          "bytes": 100609,
+          "sha256": "b1ba57f5386398a982d25f80f4313392fcb9f2e7c402f4e6154033df56b153c6"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r09_stair030_run1_env35/inspection_frames/t00.png",
+          "bytes": 42425,
+          "sha256": "b0a1383c17277a2c9b1b39bf850bc9c46a2ffa55c2d235b31b8f8903fe39a81d"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r09_stair030_run1_env35/inspection_frames/t10.png",
+          "bytes": 40488,
+          "sha256": "e794bd10447434712abcccee548fc1a6a82aa42c3b57d3e8dc289e8901c466da"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r09_stair030_run1_env35/inspection_frames/t19.png",
+          "bytes": 41790,
+          "sha256": "2fa57c930f5594eb9d872c94b8fa224bed5f0d6a7be83a641a6535fd7657b8f2"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair030/manifest.json",
+          "bytes": 3801,
+          "sha256": "7e8198d781e7b6ae7d2feadb5ae66565b88f52e2069be94c3da87082e275d435"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair030/r14-stair030-run1-env35.mp4",
+          "bytes": 721596,
+          "sha256": "d37a50c99867dc973f28bee257744913ff72afb4f40ba8c01bd44381388cb3a6"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair030/inspection_frames/t00.png",
+          "bytes": 34381,
+          "sha256": "acf591d7fc3f773a17db80d2c85022e9bcae8c18100bbe478b3da028093e22c1"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair030/inspection_frames/t05.png",
+          "bytes": 35866,
+          "sha256": "bd8d971dfa05193165e1bed94c9162a5751d40b07cabfd621b2dae1f2a13b899"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair030/inspection_frames/t10.png",
+          "bytes": 32822,
+          "sha256": "98e76e3fbf691d9b9b035f41cd9219cdbc48c7c82200131188115a6dc8f35da7"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair030/inspection_frames/t15.png",
+          "bytes": 35094,
+          "sha256": "1ee7874e825f6a2bfbc4554f1b9acde859bd58eb0eeb77b5f9ab331a2ecaf8ef"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair030/inspection_frames/t19.png",
+          "bytes": 33899,
+          "sha256": "ece01d1ce46bcb2260921da3a794842b614db9b1cbe6457e7ccdc8e32cd97f50"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair030_final/manifest.json",
+          "bytes": 3811,
+          "sha256": "879103d2e6e0a7ad6bc3f453db0414965d341867f6334bc5ad2320ddcf3dd684"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair030_final/r14-stair030-run1-env35.mp4",
+          "bytes": 992899,
+          "sha256": "37caad224193b16173e2a96c8a58a0701affd98e2327d76e1faedc65651e7621"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair030_final/inspection_frames/t00.png",
+          "bytes": 42136,
+          "sha256": "ea167183a9a82c6f2917f15bc74955a4de5b1ebacdb01a853ed9d9c4cae90c37"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair030_final/inspection_frames/t10.png",
+          "bytes": 39826,
+          "sha256": "35b3c94389cab5fcd745aa3fbfece5e8c2b5d7e220e3e764656f101c965309d5"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair030_final/inspection_frames/t19.png",
+          "bytes": 41982,
+          "sha256": "2d158ef054a11c738d907505c8f653ef1ce0d76569a8a75b45ef45f67ccfad5a"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair035_run1_env43/capture_result.json",
+          "bytes": 1433,
+          "sha256": "75a8a7a79ab598f80cfd8e1be5947b9e8be1bc6b628bb7d5192023cec82ccb51"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair035_run1_env43/manifest.json",
+          "bytes": 3797,
+          "sha256": "7f7a22b2c001a23cbe298c785236248b7a35c91fb4b2562e12349fedfe8915f0"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair035_run1_env43/r14-stair035-run1-env43.mp4",
+          "bytes": 1039942,
+          "sha256": "138df567e8748186277871897bcc2415b5cedb11e2d386c5795c78e216d1b284"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair035_run1_env43/trajectory.npz",
+          "bytes": 101049,
+          "sha256": "8de03e0af138fe44a3b63f452bc0cc4ad69eaf3aa30230da0535ad9c237b9b7f"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair035_run1_env43/inspection_frames/t00.png",
+          "bytes": 43528,
+          "sha256": "5ab0ade2c73bd2ec8c987731ee44b1ed1da73db2af99f65413d7e89b78c20613"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair035_run1_env43/inspection_frames/t10.png",
+          "bytes": 43751,
+          "sha256": "59cd44f904dfe34fc8808a33dc4174f81694a1a3d293bffdb593f5c10e3bb3a4"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair035_run1_env43/inspection_frames/t19.png",
+          "bytes": 43763,
+          "sha256": "87abb09f15ad10b44f2bc143320db960b743ffe84455e3cacef0fe3ace3b3a0c"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair040_run1_env51/capture_result.json",
+          "bytes": 1503,
+          "sha256": "d55865738c04ab168552156fb2cd1899a97d5a801033c27e8be6bc6c82c6138d"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair040_run1_env51/manifest.json",
+          "bytes": 3879,
+          "sha256": "5158bee3442dd8f781e04b260c69b8a6d5fb21e38a5ed6c78413e25c8475ca04"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair040_run1_env51/r14-stair040-run1-env51.mp4",
+          "bytes": 307459,
+          "sha256": "109c7d19eea9a623600586aceb23ebc33cb42d2c2de653d4f05119af137592c1"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair040_run1_env51/trajectory.npz",
+          "bytes": 18861,
+          "sha256": "c8c021a638bbc722e9da6a46a8a507ff5f3db7caf61a6946af16a46a17a40bf2"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair040_run1_env51/inspection_frames/t00.png",
+          "bytes": 43839,
+          "sha256": "534c598fa20622096986b921ad49f0812980d45f1180f7921613ccf8a73b452e"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair040_run1_env51/inspection_frames/t02.png",
+          "bytes": 45425,
+          "sha256": "dcb4be5539ef6985ce0b9d4f2ad38569c2cd2aeb6d0a6f32ac3ecb7f07c41e2c"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804/r14_stair040_run1_env51/inspection_frames/t04.png",
+          "bytes": 42911,
+          "sha256": "279761848efc446d959ef8b53ea65bd0bc1018ba827f9cab6ce0f46f36b161e5"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/matrix_contact_sheet_end.jpg",
+          "bytes": 241992,
+          "sha256": "c5a200f507103f185df646bce9079a02d62a28009b11d02a0cf474965681d055"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/matrix_contact_sheet_midpoint.jpg",
+          "bytes": 238048,
+          "sha256": "1afc8c4d47a0019ffa4e93e8e294dfd9e1b14a6fc524ff47a5d4eaf447a37a5d"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/matrix_contact_sheet_start.jpg",
+          "bytes": 236029,
+          "sha256": "b22196465f912b57af1e7a341dfd4fe66d693b33d037c9b69a67debbdd01e220"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/matrix_index.json",
+          "bytes": 48992,
+          "sha256": "a1d19a2818e62f24938a1ebdad0afad87259ead06da234daa35bbab9847e7fe0"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/prototype_frames/frame_0_00.png",
+          "bytes": 67584,
+          "sha256": "4facab783cf25533e9f222159e2b36f87cd287cc4d17aef0571c6dba6794becf"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/prototype_frames/frame_1_05.png",
+          "bytes": 74681,
+          "sha256": "b6f61547fe0902d1820eeb94329e1357ae8bf83a1dbde32857299fa2fa983d0b"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/prototype_frames/frame_2_10.png",
+          "bytes": 77177,
+          "sha256": "52eb713ffe35484290c93fcea03dd67c45124a517f6656143931395687b76fe0"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/prototype_frames/frame_3_15.png",
+          "bytes": 79367,
+          "sha256": "ca745aa8515f4575bd08d782aabfcfe62dc42a4f364db8ee84666d6e52baf245"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/prototype_frames/frame_4_19.png",
+          "bytes": 67480,
+          "sha256": "567943f08e497aa27fbfadd3142359eacc189c9710192cc7c50a756d88819a9b"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r00_stair010_env000307/capture_result.json",
+          "bytes": 2094,
+          "sha256": "144f2aef742c828dc6e26ea66a64f73d3498d59cbcc81216c0fa6a921111fd34"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r00_stair010_env000307/manifest.json",
+          "bytes": 5450,
+          "sha256": "45c075e00397360d5375b500f4d487c83f900fd05bf41047df91fb81843adde1"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r00_stair010_env000307/r00-stair010-three-envs.mp4",
+          "bytes": 1217715,
+          "sha256": "16785a36d98924924e8b2843a6452b7b58f2f7046931c6530126147a7400b0ac"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r00_stair010_env000307/trajectory.npz",
+          "bytes": 298735,
+          "sha256": "64e5997a31297af735e7ac116159c0d5b79bafe62cbe1d27eb3e02408241ac6c"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r00_stair020_env161923/capture_result.json",
+          "bytes": 1946,
+          "sha256": "f47096efc27f9295ec2a443cca1bba8e28df03541f3b76e9ec53851992f73fca"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r00_stair020_env161923/manifest.json",
+          "bytes": 5285,
+          "sha256": "7e896db2d12eb2535809d83f7fcf0f67929cd7ece589244e0d8436dad3583c88"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r00_stair020_env161923/r00-stair020-three-envs.mp4",
+          "bytes": 1308876,
+          "sha256": "6cd184ce2b6823d208405597f042d32ef84e01f7ac25fd234e7a534e7877f6ee"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r00_stair020_env161923/trajectory.npz",
+          "bytes": 299029,
+          "sha256": "e340658251d923d302525485464237d85e19c477488676e266e2dcea3a7eb402"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r00_stair030_env323539/capture_result.json",
+          "bytes": 2095,
+          "sha256": "3c4ae967b6f27159ec981ff2e81858fa11e43007f1891adc674cca66d2fad5f5"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r00_stair030_env323539/manifest.json",
+          "bytes": 5462,
+          "sha256": "a4b086c39f9ea7e7d1d07e2eb8686eaad9ae56c831f0ae01ba676a475a365143"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r00_stair030_env323539/r00-stair030-three-envs.mp4",
+          "bytes": 1367682,
+          "sha256": "d900fda9f933b5d544bddaa3eb537aa70831ee57794ffbe94dbbaca08f2e2a7f"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r00_stair030_env323539/trajectory.npz",
+          "bytes": 299115,
+          "sha256": "96db98a0fcb5a50b262065a3805d679eea41aa81f95821a95f0fb159ba09c169"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r00_stair035_env404347/capture_result.json",
+          "bytes": 2165,
+          "sha256": "716d48db960a9e14cce663af6bcfa4263e0b1505baec25207f6974246cacb981"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r00_stair035_env404347/manifest.json",
+          "bytes": 5523,
+          "sha256": "54c10b56c2a1ac3e5311940e1d01d46505cfeff37d2d8d31760dabf87f2959fb"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r00_stair035_env404347/r00-stair035-three-envs.mp4",
+          "bytes": 1367781,
+          "sha256": "022f7a1ff2555ddd5702e0b1adc15f86756714301dadc3cb67dbc9eb216bc014"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r00_stair035_env404347/trajectory.npz",
+          "bytes": 297361,
+          "sha256": "7a0931abca8bb55c671cb2464a3bf7b2f82378dcc435b3c28892913095389711"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r00_stair040_env485155/capture_result.json",
+          "bytes": 2166,
+          "sha256": "69d14b94c892cbc906ea1b1c07327a8d0c66e2d4e1f492fbf6f2ac8711b24d76"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r00_stair040_env485155/manifest.json",
+          "bytes": 5537,
+          "sha256": "161ddc8f82a732c79ff57ed1f3625fd649794d541f08d8e1919dbe2b179abcb5"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r00_stair040_env485155/r00-stair040-three-envs.mp4",
+          "bytes": 1240288,
+          "sha256": "166d2e40a649284e535c81687cbe0124307468271cc9d35405d6b9b4bf3f1e61"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r00_stair040_env485155/trajectory.npz",
+          "bytes": 296461,
+          "sha256": "b18d1ddd5090359189f70f2c5a0aeb8dfe92788657d0b72124c7ab5829b2b1df"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r04_stair010_env000307/capture_result.json",
+          "bytes": 1945,
+          "sha256": "18e6a5a5182b68ada417b2341b92dbab7c3c765327649e1ffb37e1e5a130f97d"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r04_stair010_env000307/manifest.json",
+          "bytes": 5321,
+          "sha256": "4f63e74bbede22df2c14da737c41ff01013cd7716d31c7a5f8bc75ba6cbbdb77"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r04_stair010_env000307/r04-stair010-three-envs.mp4",
+          "bytes": 1204685,
+          "sha256": "899cde1148ea0036a75a710a5af131e7b9caf00fb52c11f2900cf2031c2f40d4"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r04_stair010_env000307/trajectory.npz",
+          "bytes": 296520,
+          "sha256": "2e4c64813e7d02d40f546d1ffb59ffcc0c638af89e38b13e7178df491f950939"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r04_stair020_env161923/capture_result.json",
+          "bytes": 2057,
+          "sha256": "37a357cf07c4b555922af84f6a938d6b7d54f6fbd79e69e609f4b5407ddd275d"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r04_stair020_env161923/manifest.json",
+          "bytes": 5438,
+          "sha256": "12a3a73f2132c67c97c56241561f4646e0c60bbc7ed864d746caedf5000d0ee9"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r04_stair020_env161923/r04-stair020-three-envs.mp4",
+          "bytes": 1471816,
+          "sha256": "e60771a189bba0d3fedcdd1432d78395c8bb2a7a1020d1f8cd00ddf029c48716"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r04_stair020_env161923/trajectory.npz",
+          "bytes": 297278,
+          "sha256": "a30c8ef95b48054feb95075d9b97bbbd2c7d2666cb9c108ae4f9d9a3cf5b7f67"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r04_stair030_env323539/capture_result.json",
+          "bytes": 2171,
+          "sha256": "1a271d7da1ad84c86bf7b45bf7c1f9707536cdc5212869fc6ec19ccc072163d0"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r04_stair030_env323539/manifest.json",
+          "bytes": 5572,
+          "sha256": "efe9ef64776b9084d302dafdc806626fcffb1b8bbccab3c99f507bf80b649dc9"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r04_stair030_env323539/r04-stair030-three-envs.mp4",
+          "bytes": 1665067,
+          "sha256": "2f8a1021dd1b27c662f2444ccbcc1b684e226558081fdf0bd22515b8f21e699b"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r04_stair030_env323539/trajectory.npz",
+          "bytes": 297680,
+          "sha256": "3ff3857584c492c3d559c6fedee49f110a9d0ec14a5b29682154920a12e553a6"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r04_stair035_env404347/capture_result.json",
+          "bytes": 2116,
+          "sha256": "758de3f3e13bc94044d1db030c4a0ace42e1b4929f3bdfb1573fe13ee485b312"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r04_stair035_env404347/manifest.json",
+          "bytes": 5502,
+          "sha256": "bb6926687b9e84fb4104197d26f3056c2934a805940c505e294e55fff0274fad"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r04_stair035_env404347/r04-stair035-three-envs.mp4",
+          "bytes": 1564606,
+          "sha256": "285c7935446d0202816470261e1254c8a22443f1b24d5c0f4221cd43b93ed763"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r04_stair035_env404347/trajectory.npz",
+          "bytes": 297159,
+          "sha256": "0c408999734ca946e8bc8a57691bc1535e8a2d5562c24e40957b3aa24dbb3079"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r04_stair040_env485155/capture_result.json",
+          "bytes": 2166,
+          "sha256": "34747352cc53e58a7741bbf7735d9b1a27aa29014770f1bccdb78a428cbc9e46"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r04_stair040_env485155/manifest.json",
+          "bytes": 5569,
+          "sha256": "06299a073f8299478436923c9dda23ad9f6daaeec14d1f1cd2d94e7da7fc90c4"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r04_stair040_env485155/r04-stair040-three-envs.mp4",
+          "bytes": 1391072,
+          "sha256": "13dc2f7bdf27960c4e3d75f6df9c3ad6cc4f40b7fce6aad93da1131661f6eb15"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r04_stair040_env485155/trajectory.npz",
+          "bytes": 296238,
+          "sha256": "5a23f36a81641ea325cfbda721536c00431394bc6617782f8e6888457ababb79"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r09_stair010_env000307/capture_result.json",
+          "bytes": 1946,
+          "sha256": "be9c507114396aae9744e246ba1d3ad07305145a046a7d6dac673b723cbde737"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r09_stair010_env000307/manifest.json",
+          "bytes": 5322,
+          "sha256": "e660b82664a60f63bfeb556f45d01d6859491944cc1176993f242f7a475fef71"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r09_stair010_env000307/r09-stair010-three-envs.mp4",
+          "bytes": 1299056,
+          "sha256": "0aa0255254ef5d9b2ed3757513b5e38708691b39f052a9a6a5820d7e01e9c14b"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r09_stair010_env000307/trajectory.npz",
+          "bytes": 296449,
+          "sha256": "528f241edbef3c25b05548adba27846507fdfac121611407a0239c93ddd8e3ee"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r09_stair020_env161923/capture_result.json",
+          "bytes": 1946,
+          "sha256": "067a2132216baa4a8884f3a7c05057f6bba07bfb9327a8c7b0f76f93b1f939e1"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r09_stair020_env161923/manifest.json",
+          "bytes": 5317,
+          "sha256": "2af54e0e4d62675924137ab6c746375a99b9b23e0a5fc006f288614e7590d95f"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r09_stair020_env161923/r09-stair020-three-envs.mp4",
+          "bytes": 1375962,
+          "sha256": "7651d72e0f1f9a7df8f910a07d5c980a431e865b69c22d05821b16e32c081406"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r09_stair020_env161923/trajectory.npz",
+          "bytes": 297401,
+          "sha256": "0c5d8c96acdf2746fdad771fe668adeca97f20186732f88c73d6c80da8fce0df"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r09_stair030_env323539/capture_result.json",
+          "bytes": 2022,
+          "sha256": "b98b4887552a8deaeb72274b980a044dd0a6e8dc7687791d4906208a3587ea8a"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r09_stair030_env323539/manifest.json",
+          "bytes": 5415,
+          "sha256": "11d030f8e6ff8b72f9181adc4ce1635c9bfffda471a3efdae75d1493a10c68d8"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r09_stair030_env323539/r09-stair030-three-envs.mp4",
+          "bytes": 1406140,
+          "sha256": "a36ffa7a6b446f8ee23b24ff5f29ff51daa31522d72b6cead23e5157e4ee3d07"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r09_stair030_env323539/trajectory.npz",
+          "bytes": 298088,
+          "sha256": "c063ecd545662f02f950d2433636ee2963ad09b3cf64ce57d17d0ec41d14b4e1"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r09_stair035_env404347/capture_result.json",
+          "bytes": 2167,
+          "sha256": "4589d2425d78d1fb1d8cbad72ee6d92cfd035b2ae5e68bae61bdef58b97bd1f0"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r09_stair035_env404347/manifest.json",
+          "bytes": 5557,
+          "sha256": "e7245efa997d5f0805bdd9c74861e047f70fe15d2c50d1cab02e37cacaaec383"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r09_stair035_env404347/r09-stair035-three-envs.mp4",
+          "bytes": 1335222,
+          "sha256": "7cfb4cf998fe3a43dc9287964bb8099b8f7fea717986d3acdf1f9b27ada903cf"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r09_stair035_env404347/trajectory.npz",
+          "bytes": 295925,
+          "sha256": "b23edb258d42742f0dcf3fe8a170b985e0440e64684eda3412e39c147103144c"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r09_stair040_env485155/capture_result.json",
+          "bytes": 2140,
+          "sha256": "773ce5918764240a59946919ae920e688f032ec7ee2b85082bdf6bb36c018568"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r09_stair040_env485155/manifest.json",
+          "bytes": 5541,
+          "sha256": "948c475a32c4405ccc0a082929fd7a734657cda67b26a0bb2dedec41f1799c22"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r09_stair040_env485155/r09-stair040-three-envs.mp4",
+          "bytes": 1282365,
+          "sha256": "5ed6b9b4af50e9dadbe411d47a606f05dd0744bfe041372ed7aa0b0652c0b20c"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r09_stair040_env485155/trajectory.npz",
+          "bytes": 296155,
+          "sha256": "6030ddb3afb66b98b47f8cc5fef718a915ed541c0e0c34d69fbaefcd0306a1b7"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r10_stair010_env000307/capture_result.json",
+          "bytes": 1975,
+          "sha256": "350bc1f4eaa4f41e7fa0a607ef3dbe3b950c86dd0141cb9bc293ad994fec89d2"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r10_stair010_env000307/manifest.json",
+          "bytes": 5355,
+          "sha256": "44581b0220fc73625703cae276751acf8412179bebe0a80a9a620f7cf47912eb"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r10_stair010_env000307/r10-stair010-three-envs.mp4",
+          "bytes": 1438899,
+          "sha256": "2ea5e93111e1c0c7c49239fecb4878ce86d3a42e0f0b23f38203fcab3a8ef908"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r10_stair010_env000307/trajectory.npz",
+          "bytes": 297285,
+          "sha256": "27879b9d2407672c9ec3eef8d6feb1a6b3886b411490533050696546f5b5c341"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r10_stair020_env161923/capture_result.json",
+          "bytes": 2153,
+          "sha256": "df748314ade22b468f00e1798df9899ce4194add31e75ae3fec95c972fd7af31"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r10_stair020_env161923/manifest.json",
+          "bytes": 5540,
+          "sha256": "fdeeca0eecf36b0e0610c20078bf7a7b6e3ff8e3941da985abf6cedb827511c0"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r10_stair020_env161923/r10-stair020-three-envs.mp4",
+          "bytes": 1414868,
+          "sha256": "d727098c38bd888241b67282809e83b0352b14fb484678fa8b751d84d5908b92"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r10_stair020_env161923/trajectory.npz",
+          "bytes": 297917,
+          "sha256": "1ed35bfc5aeefc573f8f8df5405028d619c0f822501d7aae13b6476ad566b045"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r10_stair030_env323539/capture_result.json",
+          "bytes": 2125,
+          "sha256": "2265d3780c23185b44593433bac8c46dde4a448c5a3eda32911ff0f1128b3d3e"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r10_stair030_env323539/manifest.json",
+          "bytes": 5526,
+          "sha256": "fd62963627192f14b1e8a33a94bf46e98bd3428c745b40063348f79cc12023ec"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r10_stair030_env323539/r10-stair030-three-envs.mp4",
+          "bytes": 1340779,
+          "sha256": "36f7177eae05c2f03c11154822c674de2720f3c6a464ea18971e63a222866d0d"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r10_stair030_env323539/trajectory.npz",
+          "bytes": 296992,
+          "sha256": "6d463da4b0dfb45c99d8ca691f166b0a0c2bdbe513eba6186741db91927d5eee"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r10_stair035_env404347/capture_result.json",
+          "bytes": 2174,
+          "sha256": "ebbc7597fe9e21534b040732b6521402bef6e539c691dad679a20c67551ac370"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r10_stair035_env404347/manifest.json",
+          "bytes": 5564,
+          "sha256": "d7b02cd7baa2116b23dc339212399aa6934ae628a8bd1b25edbef68e7ced4270"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r10_stair035_env404347/r10-stair035-three-envs.mp4",
+          "bytes": 1340086,
+          "sha256": "da0419ffc6e3a905e7f5bfda3a1d1f9055d432e3673e874591d611226d8b69bd"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r10_stair035_env404347/trajectory.npz",
+          "bytes": 297256,
+          "sha256": "fec030324be841dd27affe73ad3b0c63beb05b4cfc4fc36598d688a7a0f1dda3"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r10_stair040_env485155/capture_result.json",
+          "bytes": 2167,
+          "sha256": "efe64441ce65664bd0124a98650e421f1b4703230d89e0135635cc16f4959ba7"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r10_stair040_env485155/manifest.json",
+          "bytes": 5570,
+          "sha256": "e74bbf4d2f7438f07f71c2d5be07768636929610cb0bf9e6cd0219b25976a5e2"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r10_stair040_env485155/r10-stair040-three-envs.mp4",
+          "bytes": 1322527,
+          "sha256": "708d7facd280c8adc2914f7127eb9e8d0dcd66dc35826a92b561f39af9da5056"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r10_stair040_env485155/trajectory.npz",
+          "bytes": 296755,
+          "sha256": "c97a163da9d29f3c3618bf8c4969f9dd8dd007f2337d788da0ed687559b33097"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r14_stair010_env000307/capture_result.json",
+          "bytes": 2081,
+          "sha256": "258a7e35f0a5b120cf1c0d1e4b681be7d0b4d8d217a5e9cb045a2a8bef31f2a1"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r14_stair010_env000307/manifest.json",
+          "bytes": 5467,
+          "sha256": "425cbfd9f84f8c14f8b5b8935aa3d6555a670fdb8201a203f170f77301007250"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r14_stair010_env000307/r14-stair010-three-envs.mp4",
+          "bytes": 1361089,
+          "sha256": "c0338d3b7a9509a57b57dda87e1aa9d9fa3479016734196dd2916727f5a345e0"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r14_stair010_env000307/trajectory.npz",
+          "bytes": 298277,
+          "sha256": "881ded096b14dedcb7d3439f2ba2bd89cfa38792f78eebda1f437da8a2c21e71"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r14_stair020_env161923/capture_result.json",
+          "bytes": 1946,
+          "sha256": "d77c69e84b951c95cd7d922d93f728a98b4564aff813011456ddc44623ec04d2"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r14_stair020_env161923/manifest.json",
+          "bytes": 5317,
+          "sha256": "2c206f3dd6945d0dc2f812d43fb664ae35a73b2079907ac788177db3a092914e"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r14_stair020_env161923/r14-stair020-three-envs.mp4",
+          "bytes": 1423546,
+          "sha256": "2ea11b600c6483550a083c49701c7776bcfcc9b10af482d753b1780b64fac100"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r14_stair020_env161923/trajectory.npz",
+          "bytes": 298628,
+          "sha256": "0b234eb7d873ce3f7d035e1f1055f133fc8784a1e3b6e18bea98ac838e967195"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r14_stair030_env323539/capture_result.json",
+          "bytes": 1946,
+          "sha256": "e75ab218c9899a87dae3b2b67553d738bb351ce2cd996d53bc03ed1378fb55e9"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r14_stair030_env323539/manifest.json",
+          "bytes": 5331,
+          "sha256": "0d155be209b9842f5a8efc4695aad2ca40e6b97a45269821270f663dcc2a333d"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r14_stair030_env323539/r14-stair030-three-envs.mp4",
+          "bytes": 1383277,
+          "sha256": "f6043611459ff049d0f568a19d6db23424e79a69e9eac9a9793c97a85841d3d9"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r14_stair030_env323539/trajectory.npz",
+          "bytes": 298678,
+          "sha256": "0c86f2376928d5eb0079b5258a42d6f7114f81b829dcfdaf8da75faa8b29a352"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r14_stair035_env404347/capture_result.json",
+          "bytes": 2046,
+          "sha256": "a653175cf1aafc1885ca838eceecea186b1d1a06b65b5420fbb34165754754ae"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r14_stair035_env404347/manifest.json",
+          "bytes": 5428,
+          "sha256": "8c724fa669b0a7bfffa4f9d2b18e3727f40640667117c89e7a32d8e7623ec867"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r14_stair035_env404347/r14-stair035-three-envs.mp4",
+          "bytes": 1420723,
+          "sha256": "dcddcac8d7b5d972876f98ac3f9e357e421b7a68f3d8737ded8215827ff6b390"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r14_stair035_env404347/trajectory.npz",
+          "bytes": 299352,
+          "sha256": "c40e32053be35bd942b99167490cd8eb8c92201bd1476c37ae9f1fa14e98a4c7"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r14_stair040_env485155/capture_result.json",
+          "bytes": 2164,
+          "sha256": "b4954c48a0ced4cf7716771ec4d3ab811845d6ead11e4ba0f2929264d45c69b3"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r14_stair040_env485155/manifest.json",
+          "bytes": 5567,
+          "sha256": "32466c0d8a55dd414e52e4de00ab78bf9cd03c37f6e4a8e6609b478e3caaebac"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r14_stair040_env485155/r14-stair040-three-envs.mp4",
+          "bytes": 1167672,
+          "sha256": "2baca82719d7e75f991b2f86ee0b4c4d8c8dd754fe9d4d78131ddbc33b8ff955"
+        },
+        {
+          "path": "artifacts/stair_checkpoint_videos/formal_15round_20260804_3robot_matrix/r14_stair040_env485155/trajectory.npz",
+          "bytes": 295063,
+          "sha256": "9b7d41b8d3a94a440afb69b9e916d15586bad5646e3b2353b4dc44f5bf214e3d"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/outputs/stair_checkpoint_videos",
+      "kind": "directory",
+      "file_count": 35,
+      "bytes": 12193988.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair035_env404347/capture_result.json",
+          "bytes": 3776,
+          "sha256": "aef33676868416d169669f53d06fcc94777e41473e8f2f5b929e5e44c70dc10a"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair035_env404347/manifest.json",
+          "bytes": 7863,
+          "sha256": "a1b849512e864f021e1b65098c1b5a2902c49c2046b6621d2218669aefb57c3c"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair035_env404347/r3-stair035.mp4",
+          "bytes": 2694546,
+          "sha256": "0851c160d27f61bb6bb835572648730b3a3f65429007a1903c5148bc769c70ad"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair035_env404347/trajectory.npz",
+          "bytes": 300747,
+          "sha256": "9dd8c2753efe251b3d95629bd48f07e9779135602ccbf4854c6816985dec9992"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair035_env404347/audit_frames/frame_00s.png",
+          "bytes": 112395,
+          "sha256": "bee0901d5c37cc2c0765fa0eaf07e5228b6dafbff486989123e0cc64c06d8281"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair035_env404347/audit_frames/frame_10s.png",
+          "bytes": 107988,
+          "sha256": "5c0d4a310bba0c3f3f57af00172cf8cf327297985dee657be54641e7b39a044e"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair035_env404347/audit_frames/frame_20s.png",
+          "bytes": 107348,
+          "sha256": "47b8277d5b5b73d41fc114aad503d094485b2499f6dfecc4848d854aef3bb79d"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair035_env404347/audit_frames/frame_28s.png",
+          "bytes": 107715,
+          "sha256": "57b7b066bc861d6c41ec7db5bfe774f748db795c9648689cb1d4059ec7487270"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair035_env404347/audit_frames/frame_30s.png",
+          "bytes": 123194,
+          "sha256": "efef5b2e032972ab5e034f32ccef6d37ea35aa773793f3aa0cb32cf44e15f609"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair035_env404347/audit_frames/frame_35s.png",
+          "bytes": 128680,
+          "sha256": "c368b743078bc03a9c9559cecbe7d8c0507da87afdd91449b7bb1f3f0c8790b3"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair035_env404347/audit_frames/frame_39s.png",
+          "bytes": 126988,
+          "sha256": "ded43695911b30c23c57470c296338d88ce4ef8a94e764570ed8b2cbcc0250fe"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env485155/audit_contact_sheet.png",
+          "bytes": 298807,
+          "sha256": "6eff208bc75d9b65f85d603dc4b139245aa4b1ab31da55817551f840164931b8"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env485155/capture_result.json",
+          "bytes": 3776,
+          "sha256": "189fbeb0097100f59e2e155719f59763ea60f8a3efad133fc5c8ede95c5cabe5"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env485155/manifest.json",
+          "bytes": 7876,
+          "sha256": "f2464ff7322a3dec74730418c47bec517cd6626404af9474fb5f95b4629497a6"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env485155/r3-stair040.mp4",
+          "bytes": 2601033,
+          "sha256": "47f2c08d2b98e8020adc42376c19697d281478d3537fe0b0e04d8d5c610c16b2"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env485155/trajectory.npz",
+          "bytes": 300310,
+          "sha256": "6aa51afe0df839b1ed6a0e1edcc1c5ebf1d2bab1d776f4d3fd48698e8f7263f1"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env485155/audit_frames/frame_00s.png",
+          "bytes": 113986,
+          "sha256": "ba9aab941194ac5ae5b2fac62e64b3509fc458b01a7daa58b9a64f0f6bb87a30"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env485155/audit_frames/frame_10s.png",
+          "bytes": 112477,
+          "sha256": "be4ddaca964bb0c2dc897d523eacc614fcc1eb68f508b1c04d71c1f9f90715f7"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env485155/audit_frames/frame_20s.png",
+          "bytes": 103222,
+          "sha256": "6615ed8f7fc955266a020eee61c39f09472eb84a681a4ea210e78f837ddf685d"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env485155/audit_frames/frame_28s.png",
+          "bytes": 105629,
+          "sha256": "934d7098476053cd501865c513290128c43909886a4caadb9dc50f5df55d17f6"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env485155/audit_frames/frame_30s.png",
+          "bytes": 106632,
+          "sha256": "185419841aee672394b391e9ce2201e694b8159f8f006f08f65df294fb469397"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env485155/audit_frames/frame_35s.png",
+          "bytes": 129682,
+          "sha256": "a8a729dfdfe6cc4f9b6f42025ff3af1b367c5d0f1d7b647e428e241a1932f301"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env485155/audit_frames/frame_39s.png",
+          "bytes": 129812,
+          "sha256": "534651894c396053861ec45093910a33903ae47d4efbe422b03e4a534c7c6156"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env495052/audit_contact_sheet.png",
+          "bytes": 339795,
+          "sha256": "99a1087531e869c9eda64cab09790af646930a8b626d639332cdc7ed0d381294"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env495052/capture_result.json",
+          "bytes": 3957,
+          "sha256": "760abf073431c79ce02eb936f2eb4477f3106683f31b01195f9df6436d254160"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env495052/manifest.json",
+          "bytes": 8099,
+          "sha256": "8329759ff0e64fa38ea70aaac6ca95d7cef952c7f8d9f5a1f23039ddabc6320a"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env495052/r3-stair040-failure-audit.mp4",
+          "bytes": 2766518,
+          "sha256": "fd024c87cace5ef812bb7b8bb00c95b94aab8a5551af47589b3ff5ec573031e5"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env495052/trajectory.npz",
+          "bytes": 302292,
+          "sha256": "1c06ef4a85191717197c65a2d61de58cfe3a25506f0cf23ea997606330ebdf37"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env495052/audit_frames/frame_00s.png",
+          "bytes": 120457,
+          "sha256": "a6f54fd7a82763c57d5e024ba502e55350d774c32b006dd6a50018f02ac1ceeb"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env495052/audit_frames/frame_10s.png",
+          "bytes": 130836,
+          "sha256": "45c51afec257f275ce356607d38f55bfa962c9328c5446f38195bcbdcd445d87"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env495052/audit_frames/frame_20s.png",
+          "bytes": 124792,
+          "sha256": "0521dc11ac67c9b8d1adcc915ca57c753fc1031192c70fd25eabb40daeee14bd"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env495052/audit_frames/frame_28s.png",
+          "bytes": 135992,
+          "sha256": "feb163e81409e5f9c0d8a7e631ffa3b1536fa05afe3398ffd0204356a4699343"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env495052/audit_frames/frame_30s.png",
+          "bytes": 137014,
+          "sha256": "e9788652fa9fbcfca86cac8f44fb256e806a1d5dca1a448033e33a9c50e6a502"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env495052/audit_frames/frame_35s.png",
+          "bytes": 133849,
+          "sha256": "8f42e354d2e7df5e0a952b607d2ab6bed660d34f18a8061055bb95cdaf61e01e"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_checkpoint_videos/r3_stair040_env495052/audit_frames/frame_39s.png",
+          "bytes": 155905,
+          "sha256": "98e78db356f62e3d53ce0e7a9b7fb9207b9c508cd65b1ea2285a847b8d7026f8"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/comparisons",
+      "kind": "directory",
+      "file_count": 2,
+      "bytes": 2197872.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/comparisons/r1_r4_r5_stair035.mp4",
+          "bytes": 1119615,
+          "sha256": "65672a072c70430669b98f7331025e4e428ab2b850f89db61265a659a7e606c5"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/comparisons/r1_r4_r5_stair040.mp4",
+          "bytes": 1078257,
+          "sha256": "e2cc464dc90b6739f5bdeeb48d23e1cfebbca70b99821a52442fa791facb3a70"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r4_stair035_env404347",
+      "kind": "directory",
+      "file_count": 4,
+      "bytes": 3033544.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r4_stair035_env404347/capture_result.json",
+          "bytes": 3963,
+          "sha256": "44f9b1f96780d2c0539477e481e0dd564fb4332ad8470fd28fdea39ef693212c"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r4_stair035_env404347/manifest.json",
+          "bytes": 8081,
+          "sha256": "f97b0084ffb6b00dd0691984db672b30f67dd520edff0cf9b2d168004dddc1e8"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r4_stair035_env404347/r4-stair035-publicdev1.mp4",
+          "bytes": 2719620,
+          "sha256": "c0ad31b7158f1ab8addc8f3b7a712589f60d1dc97140ac4942c1e24614d28e9c"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r4_stair035_env404347/trajectory.npz",
+          "bytes": 301880,
+          "sha256": "46e19ca8b2fd37ac7776b434f980e109970595de0b34a8bfc308a334eae7efb5"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r4_stair040_env485155",
+      "kind": "directory",
+      "file_count": 4,
+      "bytes": 2846302.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r4_stair040_env485155/capture_result.json",
+          "bytes": 4120,
+          "sha256": "b4ed185efc9f013ca7773428691739b0e96638707202ef43b8b6b8d3eb054260"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r4_stair040_env485155/manifest.json",
+          "bytes": 8259,
+          "sha256": "709c1a7121ce0bb29ea5607716110209b99a3643a80c3ab7556755f5e2095dfd"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r4_stair040_env485155/r4-stair040-publicdev1.mp4",
+          "bytes": 2533013,
+          "sha256": "3276264feba56a711ba0d57a8ed102abc843fd1651453f4ef2a75a820a51ef34"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r4_stair040_env485155/trajectory.npz",
+          "bytes": 300910,
+          "sha256": "d13554a9c020c922c452842a0338b8abebf74bde1dc5da72dbe9d973d67b7176"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r5_r11_stair040_exact_env_485053_20260809",
+      "kind": "directory",
+      "file_count": 6,
+      "bytes": 6457547.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r5_r11_stair040_exact_env_485053_20260809/R11/manifest.json",
+          "bytes": 7907,
+          "sha256": "f9cb509c8d95c64f02b07b9d51e691938699c06e578ce3fd6ff9db1ff56e3eb6"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r5_r11_stair040_exact_env_485053_20260809/R11/r11-stair040-contrast.mp4",
+          "bytes": 2845755,
+          "sha256": "2fa137c81108bc0ccde00020ebf4c6cb6367526395ec2d02908285b10f76cfca"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r5_r11_stair040_exact_env_485053_20260809/R11/trajectory.npz",
+          "bytes": 296777,
+          "sha256": "d876f68847bdb3c272cdc40ada22a28f585b625fbfa7e4cd6442cada3b852ecc"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r5_r11_stair040_exact_env_485053_20260809/R5/manifest.json",
+          "bytes": 8066,
+          "sha256": "a9bbc9308b92be719e42c1c6eaa08267d35b973a7cdbbfb07638e6832f7252da"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r5_r11_stair040_exact_env_485053_20260809/R5/r5-stair040-contrast.mp4",
+          "bytes": 2999776,
+          "sha256": "6bb45c7523f38c47559cfb0abab49fc9e4cc083f02cca167cf32b4f3f805a016"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r5_r11_stair040_exact_env_485053_20260809/R5/trajectory.npz",
+          "bytes": 299266,
+          "sha256": "89a84e4778eee0c7f30ac38a9cb8bbfe10e7d50063b5c75290cbd749d909d1e3"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r5_stair035_env404347",
+      "kind": "directory",
+      "file_count": 4,
+      "bytes": 3366196.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r5_stair035_env404347/capture_result.json",
+          "bytes": 3838,
+          "sha256": "e9a717d139f2e5785ff145bf74ea1b8b9339e30c69a06298a3ba1d41a2e2fbc6"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r5_stair035_env404347/manifest.json",
+          "bytes": 7950,
+          "sha256": "e6279addef4796f2cb617f19e8af7852c27ca08c477f0ff402d332e43ecea9a0"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r5_stair035_env404347/r5-stair035-publicdev1.mp4",
+          "bytes": 3056099,
+          "sha256": "c5eb02be12f9e558f20ae1888d0a5cbec8f640badc54ee73db119c5585d05bd5"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r5_stair035_env404347/trajectory.npz",
+          "bytes": 298309,
+          "sha256": "04266c84bccb6e5066adcac078f21c408a99f1edad9a37707f28b797a7a6db8b"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r5_stair040_env485155",
+      "kind": "directory",
+      "file_count": 4,
+      "bytes": 3307052.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r5_stair040_env485155/capture_result.json",
+          "bytes": 3867,
+          "sha256": "fa08e548b916c0318c49fed359546f68576c70c8be2137f1824f2047c42f34d8"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r5_stair040_env485155/manifest.json",
+          "bytes": 7996,
+          "sha256": "d07e473253a740cfe99f81251eed43fd50b3378be64f15aafb408d247a91da90"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r5_stair040_env485155/r5-stair040-publicdev1.mp4",
+          "bytes": 2996531,
+          "sha256": "3af1dafbc1dd04b700ec00e66848d41d8a7689b4c019576eeef39d0fffcce061"
+        },
+        {
+          "path": "true_RL_Agent/outputs/stair_e24777b_diagnostic_videos/r5_stair040_env485155/trajectory.npz",
+          "bytes": 298658,
+          "sha256": "a9e2206ec9438d4991e7b5d7a88aa229ced6893d3746253643ca6307b38be1ac"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/docs/superpowers",
+      "kind": "directory",
+      "file_count": 2,
+      "bytes": 41016.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/docs/superpowers/plans/2026-07-10-authoring-memory-and-audit-boundaries.md",
+          "bytes": 24654,
+          "sha256": "561e808945c1ee6a0dd5eb57ce02c633f823ee3853f6840aa5b42408a7087c70"
+        },
+        {
+          "path": "true_RL_Agent/docs/superpowers/specs/2026-07-10-authoring-memory-and-audit-boundaries-design.md",
+          "bytes": 16362,
+          "sha256": "ff83d1bb5a231ec7ea708448442302fd76feade8c5c240bbd2acd5080436b85d"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/outputs/author_only_paired_ready_probe_20260817/__pycache__",
+      "kind": "directory",
+      "file_count": 1,
+      "bytes": 16694.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/outputs/author_only_paired_ready_probe_20260817/__pycache__/probe_one.cpython-312.pyc",
+          "bytes": 16694,
+          "sha256": "37d42eb8b2efbbce43b6a42dd950455f1e107f0aa7e18c4b603114bfa870f4de"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/outputs/diagnostics/__pycache__",
+      "kind": "directory",
+      "file_count": 1,
+      "bytes": 3441.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/outputs/diagnostics/__pycache__/replay_stair_smoke.cpython-314.pyc",
+          "bytes": 3441,
+          "sha256": "caf53583fe65d9c14f1a60088abb1c1cd7b3c3d34d706c2e43177d839d2e26dc"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/outputs/p5_loser_heuristic_audit_20260818/__pycache__",
+      "kind": "directory",
+      "file_count": 3,
+      "bytes": 23704.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/outputs/p5_loser_heuristic_audit_20260818/__pycache__/equivalence_collisions.cpython-312.pyc",
+          "bytes": 6486,
+          "sha256": "ebc6f3d6e9fe046fe597635321e23d0765335bbe99772454c7f2d5d10f069472"
+        },
+        {
+          "path": "true_RL_Agent/outputs/p5_loser_heuristic_audit_20260818/__pycache__/project_real_rounds.cpython-312.pyc",
+          "bytes": 9058,
+          "sha256": "79949c299b5370ed60e18cbf52619d4020403221056d01ddfb84caab383dcde1"
+        },
+        {
+          "path": "true_RL_Agent/outputs/p5_loser_heuristic_audit_20260818/__pycache__/scheduling_probe.cpython-312.pyc",
+          "bytes": 8160,
+          "sha256": "7445a7e01f538929c801b1df37a01164484a820124a137407d4dfcd86ecef683"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/outputs/production_exclusion_recheck_20260817/__pycache__",
+      "kind": "directory",
+      "file_count": 2,
+      "bytes": 17188.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/outputs/production_exclusion_recheck_20260817/__pycache__/production_recheck.cpython-312.pyc",
+          "bytes": 14975,
+          "sha256": "01a09428d76750d5437d841a029fcb1eb3d84fefe36ba7d728ae35e64caaea9f"
+        },
+        {
+          "path": "true_RL_Agent/outputs/production_exclusion_recheck_20260817/__pycache__/server_smoke_check.cpython-312.pyc",
+          "bytes": 2213,
+          "sha256": "97b4766700c9b523288ae236073904cdbc109e9fcfa7e8790b2e06a19fb77d82"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/PLAN/Variant_construction/P0/__pycache__",
+      "kind": "directory",
+      "file_count": 3,
+      "bytes": 71720.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P0/__pycache__/capture_phase0_runtime_receipt.cpython-312.pyc",
+          "bytes": 28080,
+          "sha256": "498bd7ad37ea7785f29f5b8660a9dfc668f54228903379c05833f84447e2c586"
+        },
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P0/__pycache__/test_verify_phase0_snapshot.cpython-312.pyc",
+          "bytes": 5996,
+          "sha256": "f189e3ac572e290fdc207a9a228c31e0a0159285483ae90325d0e6f84fdea541"
+        },
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P0/__pycache__/verify_phase0_snapshot.cpython-312.pyc",
+          "bytes": 37644,
+          "sha256": "957410b7e069f872f243b12b9a0af90e8d3cc53760d63754391bf07b1da1808c"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/PLAN/Variant_construction/P1/__pycache__",
+      "kind": "directory",
+      "file_count": 2,
+      "bytes": 27892.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P1/__pycache__/test_verify_phase1_snapshot.cpython-312.pyc",
+          "bytes": 6784,
+          "sha256": "dd66dc0ae2326ce7b5a0c713431e3196abe5a57165ce9958da09acb94844c86b"
+        },
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P1/__pycache__/verify_phase1_snapshot.cpython-312.pyc",
+          "bytes": 21108,
+          "sha256": "e26096caee0daec815980a43a241afb55cf495d803f66a99ae83cb008d6098b8"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/PLAN/Variant_construction/P2/__pycache__",
+      "kind": "directory",
+      "file_count": 2,
+      "bytes": 36085.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P2/__pycache__/test_verify_phase2_snapshot.cpython-312.pyc",
+          "bytes": 7205,
+          "sha256": "1bcbae05bf4d8df5307fa2ac560e48f79f2a8f54bc597acfe7130451a619db76"
+        },
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P2/__pycache__/verify_phase2_snapshot.cpython-312.pyc",
+          "bytes": 28880,
+          "sha256": "d1b695a77148d29a3df96e0053a762309281ac6a5c66b25bf0be3f08e0187726"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/PLAN/Variant_construction/P3A/__pycache__",
+      "kind": "directory",
+      "file_count": 5,
+      "bytes": 69882.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P3A/__pycache__/capture_phase3a_calibration_receipt.cpython-312.pyc",
+          "bytes": 9993,
+          "sha256": "53d1133c9ecc489b17806eb00b58ab8329bc3d1dab322338d4e51e04d860ae1e"
+        },
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P3A/__pycache__/capture_phase3a_reference_qualification.cpython-312.pyc",
+          "bytes": 21851,
+          "sha256": "212b399eb4c112ae74f7dbe12f7ced75c0d0fae52ed6b392d6de362520a0e0a1"
+        },
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P3A/__pycache__/capture_phase3a_runtime_receipt.cpython-312.pyc",
+          "bytes": 24522,
+          "sha256": "0337a1568f45b0b5836a09e1df5dc120fed779ff079fb64dff09d86128f3cb74"
+        },
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P3A/__pycache__/test_verify_phase3a.cpython-312.pyc",
+          "bytes": 3102,
+          "sha256": "47d5e4f275f8e6c67353e8921ce934516dfbd8ceff9a3463b2e1c4c48ce816d0"
+        },
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P3A/__pycache__/verify_phase3a.cpython-312.pyc",
+          "bytes": 10414,
+          "sha256": "88c0f51fa5371157da5790ab7088616af1215c976cda6158ef87a456190d80c7"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/PLAN/Variant_construction/P3B/__pycache__",
+      "kind": "directory",
+      "file_count": 3,
+      "bytes": 64366.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P3B/__pycache__/capture_phase3b_runtime_receipt.cpython-312.pyc",
+          "bytes": 30209,
+          "sha256": "4abeafd56203570c7c24ab4786962c088d87889d755690c1a0a6d8e9d8f0dd66"
+        },
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P3B/__pycache__/test_verify_phase3b.cpython-312.pyc",
+          "bytes": 5519,
+          "sha256": "32ea87b51ae23f1ffdc58373466595fc937a530a3f422e8b0445bc076646ba5b"
+        },
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P3B/__pycache__/verify_phase3b.cpython-312.pyc",
+          "bytes": 28638,
+          "sha256": "ce006b68903a141cfbfbc31bc9dc3d9ce0cbf4c1969f84e39880cb54a31dc48c"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/PLAN/Variant_construction/P3R/__pycache__",
+      "kind": "directory",
+      "file_count": 3,
+      "bytes": 37906.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P3R/__pycache__/capture_phase3r_runtime_smoke.cpython-312.pyc",
+          "bytes": 17457,
+          "sha256": "0932d7a97f704b1cfc839c1ea45c82d45a08484203aef29be5b5964fd8c05827"
+        },
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P3R/__pycache__/test_verify_phase3r.cpython-312.pyc",
+          "bytes": 4934,
+          "sha256": "9d7c726df01cfeff84c3fc5bfc59c29cd5facd869b7f20beb9af557e1bf07eff"
+        },
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P3R/__pycache__/verify_phase3r.cpython-312.pyc",
+          "bytes": 15515,
+          "sha256": "17ab9e78468b2986a3d5780e2d0d3d404646b5bf44d493b0d255a74ee2ac4550"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/PLAN/Variant_construction/P4/__pycache__",
+      "kind": "directory",
+      "file_count": 2,
+      "bytes": 41902.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P4/__pycache__/test_verify_phase4.cpython-312.pyc",
+          "bytes": 4315,
+          "sha256": "a7ef8cd2385dd937a29c39acabe0112001277a5fb76bbfb01c316c6242d066c1"
+        },
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P4/__pycache__/verify_phase4.cpython-312.pyc",
+          "bytes": 37587,
+          "sha256": "6e5be5f575b08ebd14e3e05aa76f3fb9841062a7dc8140bdb15d0cb0b0520f13"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/PLAN/Variant_construction/P5/__pycache__",
+      "kind": "directory",
+      "file_count": 5,
+      "bytes": 194732.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P5/__pycache__/.tmp_run_go2_geometry_scale_ablation.cpython-312.pyc",
+          "bytes": 29948,
+          "sha256": "1f9278d945865c3842e8a9ef835f02a9df840e19f00a10b17a2118bcf74c67bc"
+        },
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P5/__pycache__/.tmp_search_go2_geometry_scales.cpython-312.pyc",
+          "bytes": 29106,
+          "sha256": "4d7329d61be3d005bab3fcc1b3edabef15ce093c4dcb0d1cbe745ba7810e070e"
+        },
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P5/__pycache__/capture_phase5_go2_runtime.cpython-312.pyc",
+          "bytes": 31238,
+          "sha256": "a814e3c1bf2d3188b4a90baa8bb497d28f7815edca40f206e065686360f49888"
+        },
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P5/__pycache__/test_verify_phase5.cpython-312.pyc",
+          "bytes": 7233,
+          "sha256": "c0e0c0794ff5627d4198de245b13e4f746cd95bc1fa83681f9cc374119d0caee"
+        },
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P5/__pycache__/verify_phase5.cpython-312.pyc",
+          "bytes": 97207,
+          "sha256": "6d001500dd03e9a6908a9c00bb8895f7702e96982afd28130037cfe6d55db0b6"
+        }
+      ]
+    },
+    {
+      "path": "true_RL_Agent/PLAN/Variant_construction/P6/__pycache__",
+      "kind": "directory",
+      "file_count": 2,
+      "bytes": 159841.0,
+      "files": [
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P6/__pycache__/test_verify_phase6.cpython-312.pyc",
+          "bytes": 49956,
+          "sha256": "440e90730a739e42e22cd2b02888952e924b9ca2dca0d2a1e6f08f930b81aabb"
+        },
+        {
+          "path": "true_RL_Agent/PLAN/Variant_construction/P6/__pycache__/verify_phase6.cpython-312.pyc",
+          "bytes": 109885,
+          "sha256": "b3b4415687ae30b4b61d1de1a4b8744ac6838ed11c489ab8437a47d0fb8cb21c"
+        }
+      ]
+    }
+  ],
+  "tests": {
+    "command": "python -B -m unittest discover -s tests -t . -v",
+    "started_at": "2026-09-06T05:21:37.630558Z",
+    "finished_at": "2026-09-06T05:26:39.9476816Z",
+    "seconds": 302.3171236,
+    "exit_code": 0,
+    "tests_run": 1604,
+    "log": "audit_followup_tests.log",
+    "tail": [
+      "test_task_prompt_sections_reject_context_explosion (tests.unit.test_task_prompt_adapter.TaskPromptAdapterTests.test_task_prompt_sections_reject_context_explosion) ... ok",
+      "test_task_prompt_sections_reject_curriculum_interfaces (tests.unit.test_task_prompt_adapter.TaskPromptAdapterTests.test_task_prompt_sections_reject_curriculum_interfaces) ... ok",
+      "test_task_prompt_sections_scrub_absolute_paths (tests.unit.test_task_prompt_adapter.TaskPromptAdapterTests.test_task_prompt_sections_scrub_absolute_paths) ... ok",
+      "",
+      "----------------------------------------------------------------------",
+      "Ran 1604 tests in 299.420s",
+      "",
+      "OK (skipped=30)"
+    ],
+    "scope": "Full suite before final materialize-job test output isolation; fixture_fix_tests covers the subsequent edit.",
+    "test_seconds": 299.42
+  },
+  "regenerated_fixture_cleanup": {
+    "path": "true_RL_Agent/outputs/resolved_cell_manifest.json",
+    "bytes": 42419,
+    "sha256": "dff9159af529a84f0186e87da93bc06c7d9aa45d559a0cbf54adf4700b388918",
+    "producer": "tests.unit.test_materialize_job_script.MaterializeJobScriptTests.test_materialize_job_requires_an_explicit_candidate_package",
+    "deleted_again": true,
+    "counted_in_historical_cleanup_totals": false
+  },
+  "final_checks": {
+    "baseline_file_count": 307,
+    "unchanged": 302,
+    "authorized_changes": [
+      ".claude/settings.json",
+      "README.md",
+      "true_RL_Agent/docs/system_overview_zh.md",
+      "true_RL_Agent/docs/task_extension_guides/stair_climbing.md",
+      "true_RL_Agent/README.md"
+    ],
+    "deleted_targets_recreated": [],
+    "pycache_outside_installed_environment": 0,
+    "installed_environment_pycache": 1,
+    "current_documents_checked": 12,
+    "local_links_checked": 144,
+    "missing_local_links": [],
+    "product_source_and_task_configs_unchanged": true,
+    "original_user_P1_P6_changes_preserved": true
+  },
+  "fixture_fix_tests": {
+    "command": "python -B -m unittest tests.unit.test_materialize_job_script -v",
+    "tests_run": 6,
+    "test_seconds": 0.476,
+    "exit_code": 0,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "root_manifest_recreated": false,
+    "changed_tests": 2,
+    "new_tests": 0,
+    "original_assertions_preserved": true,
+    "before_sha256": "5e7b8242ff174a841ca58d02ccce09b16edd717a51f074d5fd813adfa1344667",
+    "after_sha256": "3e359d6e1a8b00b807de182e535b06ddd51e802978a4a3778cd47f2f88222618"
+  },
+  "totals": {
+    "targets": 34,
+    "files": 258.0,
+    "bytes": 204983351.0,
+    "checkpoint_files_deleted": 0,
+    "retired_document_only_tests": 2,
+    "remote_mutations_this_followup": 0
+  },
+  "completed_at": "2026-09-06T05:33:15.1119287Z"
+}

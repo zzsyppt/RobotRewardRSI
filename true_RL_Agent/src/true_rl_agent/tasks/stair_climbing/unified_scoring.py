@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 import math
-import statistics
 from typing import Any, Mapping, Sequence
 
 from true_rl_agent.evaluation.binding import canonical_json_hash, is_sha256_digest
+from true_rl_agent.evaluation.derived_statistics import (
+    DERIVED_STATISTICS_VERSION,
+    sample_mean,
+    sample_statistics,
+)
 from true_rl_agent.tasks.stair_climbing.episode_evidence import StairEpisodeOutcome
 from true_rl_agent.tasks.stair_climbing.evaluation_semantics import (
     StairEvaluationSemantics,
@@ -14,6 +18,7 @@ from true_rl_agent.tasks.stair_climbing.evaluation_semantics import (
 from true_rl_agent.tasks.stair_climbing.ordered_summary import (
     build_ordered_stair_prompt_feedback,
     build_ordered_stair_summary,
+    ordered_summary_statistics_version,
     validate_ordered_stair_summary,
 )
 from true_rl_agent.tasks.stair_climbing.unified_evaluation import (
@@ -21,8 +26,14 @@ from true_rl_agent.tasks.stair_climbing.unified_evaluation import (
 )
 
 STAIR_UNIFIED_SUMMARY_SCHEMA_VERSION = (
+    "true_rl_agent.task.stair_climbing.unified_evaluation_summary.v2"
+)
+LEGACY_UNIFIED_SUMMARY_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.unified_evaluation_summary.v1"
 )
+UNIFIED_SUMMARY_SCHEMA_VERSIONS = frozenset({
+    STAIR_UNIFIED_SUMMARY_SCHEMA_VERSION, LEGACY_UNIFIED_SUMMARY_SCHEMA_VERSION,
+})
 STAIR_OBJECTIVE_FAMILY_MASK_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.objective_family_mask.v2"
 )
@@ -99,7 +110,7 @@ def build_reference_objective_family_mask(
         raise TypeError("objective family mask requires its evaluation suite")
     if (
         public_accept_summary.get("schema_version")
-        != STAIR_UNIFIED_SUMMARY_SCHEMA_VERSION
+        not in UNIFIED_SUMMARY_SCHEMA_VERSIONS
         or public_accept_summary.get("split") != "public_accept"
         or public_accept_summary.get("ordered_suite_hash") != suite.suite_hash
     ):
@@ -107,6 +118,7 @@ def build_reference_objective_family_mask(
     rule = suite.qualification_rule
     minimum_score = float(rule["minimum_reference_score"])
     ordered = public_accept_summary["ordered_summary"]
+    statistics_version = ordered_summary_statistics_version(ordered["schema_version"])
     success_by_cell = ordered["aggregate_success_rate_by_cell"]
     family_measurements: dict[str, Any] = {}
     qualified: list[str] = []
@@ -121,7 +133,10 @@ def build_reference_objective_family_mask(
         if not cell_ids:
             raise ValueError(f"objective family {family} has no public_accept cells")
         score = float(public_accept_summary["family_scores"][family])
-        success = statistics.fmean(float(success_by_cell[cell]) for cell in cell_ids)
+        success = sample_mean(
+            (success_by_cell[cell] for cell in cell_ids),
+            statistics_version=statistics_version,
+        )
         # A family below the reference floor cannot provide a useful bounded
         # optimization signal.  A ceiling family is different: it is already a
         # demonstrated capability and must remain in J_OOD so a candidate cannot
@@ -245,15 +260,50 @@ def validate_objective_family_mask(
     return dict(mask)
 
 
+def objective_family_mask_from_public_result(
+    *,
+    suite: StairUnifiedEvaluationSuite,
+    public_result: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Load the one frozen objective mask carried by reference public evidence."""
+
+    if not isinstance(public_result, Mapping):
+        raise ValueError("unified Stair reference public result is unavailable")
+    metrics = public_result.get("metrics")
+    mask = metrics.get("objective_family_mask") if isinstance(metrics, Mapping) else None
+    if not isinstance(mask, Mapping):
+        raise ValueError("unified Stair reference public result lacks its objective mask")
+    return validate_objective_family_mask(
+        suite=suite,
+        mask=_thaw_json_value(mask),
+    )
+
+
+def _thaw_json_value(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return {str(key): _thaw_json_value(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_thaw_json_value(item) for item in value]
+    return value
+
+
 def build_unified_score_projection(
     summary: Mapping[str, Any],
     *,
     objective_family_mask: Mapping[str, Any] | None = None,
+    canonical_statistics: bool | None = None,
 ) -> dict[str, Any]:
-    """Expose paired seed vectors at the exact v6 acceptance source paths."""
+    """Project stored facts; a comparison may explicitly choose its arithmetic."""
 
-    if summary.get("schema_version") != STAIR_UNIFIED_SUMMARY_SCHEMA_VERSION:
+    if summary.get("schema_version") not in UNIFIED_SUMMARY_SCHEMA_VERSIONS:
         raise ValueError("unified Stair score projection summary is invalid")
+    statistics_version = (
+        ordered_summary_statistics_version(summary["ordered_summary"]["schema_version"])
+        if canonical_statistics is None
+        else DERIVED_STATISTICS_VERSION
+        if canonical_statistics
+        else None
+    )
     raw_seeds = summary.get("seed_summaries")
     if not isinstance(raw_seeds, list) or not raw_seeds:
         raise ValueError("unified Stair score projection has no paired seeds")
@@ -268,7 +318,10 @@ def build_unified_score_projection(
         )
         aggregation_mode = "frozen_reference_qualified_families"
     j_ood_scores = [
-        statistics.fmean(float(seed["family_scores"][name]) for name in qualified_families)
+        sample_mean(
+            (seed["family_scores"][name] for name in qualified_families),
+            statistics_version=statistics_version,
+        )
         for seed in raw_seeds
     ]
     j_id_scores = [float(seed["j_id"]) for seed in raw_seeds]
@@ -279,12 +332,8 @@ def build_unified_score_projection(
     sources = {
         "j_primary": j_primary_scores,
         "j_ood": j_ood_scores,
-        "c0_id": [
-            float(seed["named_guard_scores"]["c0_id"]) for seed in raw_seeds
-        ],
-        "c1_id": [
-            float(seed["named_guard_scores"]["c1_id"]) for seed in raw_seeds
-        ],
+        "c0_id": [float(seed["named_guard_scores"]["c0_id"]) for seed in raw_seeds],
+        "c1_id": [float(seed["named_guard_scores"]["c1_id"]) for seed in raw_seeds],
     }
     eval_protocol_hash = str(
         summary["ordered_summary"]["score_stats"]["eval_protocol_hash"]
@@ -294,6 +343,7 @@ def build_unified_score_projection(
             "score_stats": _score_stats(
                 values,
                 eval_protocol_hash=eval_protocol_hash,
+                canonical=statistics_version is not None,
             ),
             "seed_macro_scores": list(values),
         }
@@ -352,6 +402,7 @@ def build_unified_stair_prompt_feedback(
         summary=summary,
     )
     ordered = canonical["ordered_summary"]
+    statistics_version = ordered_summary_statistics_version(ordered["schema_version"])
     score_projection = (
         build_unified_reference_score_projection(
             canonical,
@@ -390,9 +441,13 @@ def build_unified_stair_prompt_feedback(
             "cell_count": len(cell_ids),
             "cell_ids": list(cell_ids),
             "score": float(canonical["aggregate_stratum_scores"][stratum]),
-            "success_rate": statistics.fmean(float(success[cell]) for cell in cell_ids),
-            "mean_progress_fraction": statistics.fmean(
-                float(progress[cell]) for cell in cell_ids
+            "success_rate": sample_mean(
+                (success[cell] for cell in cell_ids),
+                statistics_version=statistics_version,
+            ),
+            "mean_progress_fraction": sample_mean(
+                (progress[cell] for cell in cell_ids),
+                statistics_version=statistics_version,
             ),
             "primary_failure_breakdown": {
                 reason: count / stratum_total
@@ -401,9 +456,7 @@ def build_unified_stair_prompt_feedback(
             },
             "diagnostic_flag_rates": (
                 {
-                    flag: sum(
-                        int(diagnostic_counts[cell][flag]) for cell in cell_ids
-                    )
+                    flag: sum(int(diagnostic_counts[cell][flag]) for cell in cell_ids)
                     / (len(cell_ids) * per_cell_episode_count)
                     for flag in next(iter(diagnostic_counts.values()))
                 }
@@ -411,7 +464,6 @@ def build_unified_stair_prompt_feedback(
                 else {}
             ),
         }
-    feedback["schema_version"] = "true_rl_agent.task.stair_climbing.prompt_feedback.v9"
     feedback["generalization_summary"] = {
         "public_dev_objective_score": float(
             score_projection["j_primary"]["score_stats"]["mean"]
@@ -423,12 +475,8 @@ def build_unified_stair_prompt_feedback(
             for name in named_guard_names
         },
         "family_scores": dict(canonical["family_scores"]),
-        "qualified_ood_families": list(
-            score_projection["qualified_ood_families"]
-        ),
-        "objective_family_mask_hash": score_projection[
-            "objective_family_mask_hash"
-        ],
+        "qualified_ood_families": list(score_projection["qualified_ood_families"]),
+        "objective_family_mask_hash": score_projection["objective_family_mask_hash"],
         "ordered_suite_hash": suite.suite_hash,
         "split_cohort_hash": suite.cohort_hash("public_dev"),
         "success_rate_by_cell": dict(success),
@@ -444,13 +492,14 @@ def _build_unified_summary_from_ordered(
     split: str,
     ordered_summary: Mapping[str, Any],
 ) -> dict[str, Any]:
+    statistics_version = ordered_summary_statistics_version(
+        ordered_summary["schema_version"]
+    )
     cells = suite.cells_for_cohort(split)
     cells_by_stratum: dict[str, list[str]] = {}
     for cell in cells:
         cells_by_stratum.setdefault(cell.stratum_id, []).append(cell.cell_id)
-    minimum = int(
-        suite.qualification_rule["minimum_cells_per_stratum_per_cohort"]
-    )
+    minimum = int(suite.qualification_rule["minimum_cells_per_stratum_per_cohort"])
     if split != "calibration" and any(
         len(cell_ids) < minimum for cell_ids in cells_by_stratum.values()
     ):
@@ -464,7 +513,10 @@ def _build_unified_summary_from_ordered(
             for cell_id in seed["success_rate_by_cell"]
         }
         stratum_scores = {
-            stratum: statistics.fmean(cell_scores[cell_id] for cell_id in cell_ids)
+            stratum: sample_mean(
+                (cell_scores[cell_id] for cell_id in cell_ids),
+                statistics_version=statistics_version,
+            )
             for stratum, cell_ids in cells_by_stratum.items()
         }
         seed_views.append(
@@ -475,21 +527,28 @@ def _build_unified_summary_from_ordered(
                 **_provisional_objectives(
                     stratum_scores=stratum_scores,
                     score_contract=suite.score_contract,
+                    statistics_version=statistics_version,
                 ),
             }
         )
     aggregate_strata = {
-        stratum: statistics.fmean(
-            float(seed["stratum_scores"][stratum]) for seed in seed_views
+        stratum: sample_mean(
+            (seed["stratum_scores"][stratum] for seed in seed_views),
+            statistics_version=statistics_version,
         )
         for stratum in cells_by_stratum
     }
     objective = _provisional_objectives(
         stratum_scores=aggregate_strata,
         score_contract=suite.score_contract,
+        statistics_version=statistics_version,
     )
     return {
-        "schema_version": STAIR_UNIFIED_SUMMARY_SCHEMA_VERSION,
+        "schema_version": (
+            STAIR_UNIFIED_SUMMARY_SCHEMA_VERSION
+            if statistics_version is not None
+            else LEGACY_UNIFIED_SUMMARY_SCHEMA_VERSION
+        ),
         "ordered_summary": dict(ordered_summary),
         "ordered_suite_hash": suite.suite_hash,
         "split": split,
@@ -506,17 +565,13 @@ def _score_stats(
     values: Sequence[float],
     *,
     eval_protocol_hash: str,
+    canonical: bool,
 ) -> dict[str, Any]:
-    canonical = [float(value) for value in values]
-    count = len(canonical)
-    mean = statistics.fmean(canonical)
-    std = statistics.stdev(canonical) if count > 1 else 0.0
     return {
-        "count": count,
-        "mean": mean,
-        "std": std,
-        "standard_error": std / (count**0.5),
-        "values": canonical,
+        **sample_statistics(
+            values, statistics_version=DERIVED_STATISTICS_VERSION if canonical else None
+        ),
+        "values": [float(value) for value in values],
         "eval_protocol_hash": eval_protocol_hash,
     }
 
@@ -552,6 +607,7 @@ def _provisional_objectives(
     *,
     stratum_scores: Mapping[str, float],
     score_contract: Mapping[str, Any],
+    statistics_version: str | None,
 ) -> dict[str, Any]:
     if not {"c0_id", "c1_id"} <= set(stratum_scores):
         return {
@@ -562,23 +618,23 @@ def _provisional_objectives(
             "j_primary": None,
             "named_guard_scores": {},
         }
-    j_id = 0.5 * float(stratum_scores["c0_id"]) + 0.5 * float(
-        stratum_scores["c1_id"]
-    )
+    j_id = 0.5 * float(stratum_scores["c0_id"]) + 0.5 * float(stratum_scores["c1_id"])
     family_scores: dict[str, float] = {}
     for family, members in score_contract["families"].items():
-        available = [float(stratum_scores[name]) for name in members if name in stratum_scores]
+        available = [
+            float(stratum_scores[name]) for name in members if name in stratum_scores
+        ]
         if available:
-            family_scores[str(family)] = statistics.fmean(available)
+            family_scores[str(family)] = sample_mean(
+                available, statistics_version=statistics_version
+            )
     declared_families = tuple(str(name) for name in score_contract["families"])
     ood_values = [
-        family_scores[family]
-        for family in declared_families
-        if family in family_scores
+        family_scores[family] for family in declared_families if family in family_scores
     ]
     if not ood_values:
         raise ValueError("unified Stair formal summary has no OOD family")
-    j_ood = statistics.fmean(ood_values)
+    j_ood = sample_mean(ood_values, statistics_version=statistics_version)
     j_primary = (2.0 * j_ood + j_id) / 3.0
     return {
         "qualification_status": "pre_reference_all_declared_strata",
@@ -601,6 +657,7 @@ __all__ = [
     "build_unified_score_projection",
     "build_unified_stair_prompt_feedback",
     "build_unified_stair_summary",
+    "objective_family_mask_from_public_result",
     "validate_objective_family_mask",
     "validate_unified_stair_summary",
 ]

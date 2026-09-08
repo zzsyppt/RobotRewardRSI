@@ -13,6 +13,8 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from tests.fakes.reference_programs import make_verified_stair_reference  # noqa: E402
+from true_rl_agent.agent_core.session_genesis import session_genesis_identity_hash
+from true_rl_agent.tasks.push_recovery.composition import PushRecoveryCompositionProvider
 from true_rl_agent.composition.base import (  # noqa: E402
     TaskCompositionContext,
     resolve_task_composition,
@@ -33,6 +35,9 @@ from true_rl_agent.tasks.stair_climbing.config import (  # noqa: E402
 )
 from true_rl_agent.tasks.stair_climbing.runtime_profile import (  # noqa: E402
     STAIR_COMPLETE_REWARD_RUNTIME_STATUS,
+)
+from true_rl_agent.tasks.stair_climbing.row_catalog import (
+    STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
 )
 from true_rl_agent.tasks.stair_climbing.seed_policy import (  # noqa: E402
     STAIR_FORMAL_EVAL_NAMESPACE,
@@ -61,6 +66,12 @@ class StairPhaseBCompositionTests(unittest.TestCase):
             capability_profile_hash=(
                 self.unified_config.candidate_capability_profile.profile_hash
             ),
+        )
+
+    def _context(self) -> TaskCompositionContext:
+        return TaskCompositionContext(
+            project_root=ROOT,
+            output_dir=Path(self.temporary.name) / "composition",
         )
 
     def test_default_registry_registers_stair_lazily(self) -> None:
@@ -92,7 +103,7 @@ class StairPhaseBCompositionTests(unittest.TestCase):
             resolve_task_composition(
                 provider=provider,
                 values=provider.cli_defaults(),
-                context=_context(),
+                context=self._context(),
             )
 
     def test_composition_resolves_once_to_one_consistent_snapshot(self) -> None:
@@ -104,15 +115,18 @@ class StairPhaseBCompositionTests(unittest.TestCase):
         composition = resolve_task_composition(
             provider=provider,
             values=values,
-            context=_context(),
+            context=self._context(),
         )
-        snapshot = composition.genesis_identity_snapshot()
+        full_snapshot = composition.genesis_identity_snapshot()
+        snapshot = full_snapshot["scientific"]
         backend = composition.backend_adapter.config
         task = composition.task_plugin.config
 
         expected_snapshot_defaults = dict(values)
         expected_snapshot_defaults.pop("start_mode")
-        self.assertEqual(snapshot["task_defaults"], expected_snapshot_defaults)
+        self.assertEqual(composition.task_defaults, expected_snapshot_defaults)
+        self.assertEqual(snapshot["fixed_train_protocol"], dict(composition.task_plugin.task_spec.fixed_train_protocol))
+        self.assertEqual(full_snapshot["execution_placement"]["isaac_python"], values["isaac_python"])
         self.assertEqual(
             snapshot["task_protocol_hash"],
             task.task_protocol_hash,
@@ -162,6 +176,73 @@ class StairPhaseBCompositionTests(unittest.TestCase):
         self.assertNotIn("candidate_admission_policy", snapshot)
         self.assertNotIn("authoring_capability_readiness", snapshot)
 
+    def test_scientific_identity_is_owned_by_each_task_and_excludes_placement(
+        self,
+    ) -> None:
+        providers = (
+            PushRecoveryCompositionProvider(),
+            StairClimbingCompositionProvider(reference_program_artifact=self.reference),
+        )
+        for provider in providers:
+            with self.subTest(task=provider.task_id):
+                values = dict(provider.cli_defaults())
+
+                def resolve(changes, suffix):
+                    composition = provider.resolve(
+                        values={**values, **changes},
+                        context=TaskCompositionContext(
+                            project_root=ROOT,
+                            output_dir=Path(self.temporary.name)
+                            / provider.task_id
+                            / suffix,
+                        ),
+                    )
+                    snapshot = composition.genesis_identity_snapshot()
+                    requested_timeout = changes.get("runner_timeout_s", values["runner_timeout_s"])
+                    self.assertEqual(composition.runner.timeout_s, requested_timeout)
+                    self.assertEqual(
+                        snapshot["execution_placement"]["runner_timeout_s"], requested_timeout
+                    )
+                    for field in ("train_entrypoint", "eval_entrypoint"):
+                        self.assertEqual(
+                            snapshot["execution_placement"][field],
+                            getattr(composition.backend_adapter.config, field),
+                        )
+                    return snapshot
+
+                original = resolve({}, "first")
+                moved = resolve(
+                    {
+                        "isaac_python": "/relocated/env/bin/python",
+                        "execution_device": "cuda:1",
+                        "runner_timeout_s": values["runner_timeout_s"] + 1,
+                    },
+                    "moved",
+                )
+                identity = session_genesis_identity_hash(original)
+                self.assertEqual(identity, session_genesis_identity_hash(moved))
+                self.assertNotEqual(
+                    original["execution_placement"], moved["execution_placement"]
+                )
+                scientific_changes = (
+                    {"train_seed": values["train_seed"] + 1},
+                    {
+                        "budget_steps": values["budget_steps"] * 2,
+                        "train_max_iterations": values["train_max_iterations"] * 2,
+                    },
+                )
+                if isinstance(provider, StairClimbingCompositionProvider):
+                    # Stair fixes training inputs through its selected cell;
+                    # CLI defaults cannot redefine that scientific contract.
+                    scientific_changes = (
+                        {"cell_variant_id": STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID},
+                    )
+                for index, changes in enumerate(scientific_changes):
+                    changed = resolve(changes, f"changed-{index}")
+                    self.assertNotEqual(
+                        identity, session_genesis_identity_hash(changed)
+                    )
+
     def test_reward_cold_start_skips_reference_and_binds_initial_state(self) -> None:
         provider = StairClimbingCompositionProvider()
         values = dict(provider.cli_defaults())
@@ -174,7 +255,7 @@ class StairPhaseBCompositionTests(unittest.TestCase):
             composition = resolve_task_composition(
                 provider=provider,
                 values=values,
-                context=_context(),
+                context=self._context(),
             )
 
         resolver.assert_not_called()
@@ -185,13 +266,13 @@ class StairPhaseBCompositionTests(unittest.TestCase):
             composition.bootstrap_initial_policy_state_hash,
             STAIR_FORMAL_INITIAL_POLICY_STATE_HASH,
         )
-        snapshot = composition.genesis_identity_snapshot()
+        snapshot = composition.genesis_identity_snapshot()["scientific"]
         self.assertEqual(
             snapshot["bootstrap_initial_policy_state_hash"],
             STAIR_FORMAL_INITIAL_POLICY_STATE_HASH,
         )
         self.assertEqual(
-            snapshot["task_defaults"]["session_start_profile"]["profile_id"],
+            snapshot["parameters"]["session_start_profile"]["profile_id"],
             STAIR_REWARD_COLD_START_MODE,
         )
 
@@ -201,7 +282,7 @@ class StairPhaseBCompositionTests(unittest.TestCase):
         reference = resolve_task_composition(
             provider=reference_provider,
             values=reference_provider.cli_defaults(),
-            context=_context(),
+            context=self._context(),
         )
         self.assertEqual(
             composition.task_plugin.task_spec.fixed_train_protocol,
@@ -234,7 +315,7 @@ class StairPhaseBCompositionTests(unittest.TestCase):
             resolve_task_composition(
                 provider=provider,
                 values=values,
-                context=_context(),
+                context=self._context(),
             )
 
         provider = StairClimbingCompositionProvider()
@@ -243,7 +324,7 @@ class StairPhaseBCompositionTests(unittest.TestCase):
             resolve_task_composition(
                 provider=provider,
                 values=values,
-                context=_context(),
+                context=self._context(),
             )
 
     def test_reference_role_does_not_rewrite_authorship_provenance(self) -> None:
@@ -261,7 +342,7 @@ class StairPhaseBCompositionTests(unittest.TestCase):
         composition = resolve_task_composition(
             provider=provider,
             values=provider.cli_defaults(),
-            context=_context(),
+            context=self._context(),
         )
 
         self.assertEqual(composition.genesis_anchor_kind, "reference_program")
@@ -310,7 +391,7 @@ class StairPhaseBCompositionTests(unittest.TestCase):
             values=StairClimbingCompositionConfig.defaults(
                 project_root=ROOT
             ).to_task_defaults(),
-            context=_context(),
+            context=self._context(),
         )
         production = composition.task_plugin.config
         agent = production.training_agent_configuration()
@@ -353,13 +434,6 @@ class StairPhaseBCompositionTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "contains duplicates"):
             assert_seed_namespaces_disjoint(_CollidingResolver())
-
-def _context() -> TaskCompositionContext:
-    return TaskCompositionContext(
-        project_root=ROOT,
-        output_dir=ROOT / "outputs" / "phase-b-test",
-    )
-
 
 class _CollidingResolver:
     def _split_seed_count(self, split: str) -> int:

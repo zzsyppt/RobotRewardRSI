@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 import math
-import statistics
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
+from true_rl_agent.evaluation.derived_statistics import (
+    DERIVED_STATISTICS_VERSION,
+    sample_mean,
+    sample_statistics,
+)
 from true_rl_agent.evaluation.binding import (
     canonical_json_hash,
     require_sha256_checksum,
@@ -565,8 +569,13 @@ def build_stair_public_dev_screen_evidence(
     train_receipt_checksum: str | None = None,
     mechanism_operation_delta: Mapping[str, Any] | None = None,
     objective_family_mask: Mapping[str, Any] | None = None,
+    statistics_version: str | None = DERIVED_STATISTICS_VERSION,
 ) -> StairPublicDevScreenEvidence:
-    """Project one validated public-dev phase into selector-safe evidence."""
+    """Choose comparison arithmetic here; stored phase evidence stays unchanged.
+
+    New unified comparisons use v1 for both sides, including imported summaries.
+    Historical replay passes the version already sealed in its screen evidence.
+    """
 
     if phase_result.phase is not EvaluationPhase.PUBLIC_DEV:
         raise ValueError("Stair selector accepts public-dev phase results only")
@@ -619,24 +628,18 @@ def build_stair_public_dev_screen_evidence(
     if (
         set(raw_evidence)
         != {"schema_version", "phase", "execution_identity", "summary"}
-        or raw_evidence.get("schema_version")
-        != STAIR_PHASE_EVIDENCE_SCHEMA_VERSION
+        or raw_evidence.get("schema_version") != STAIR_PHASE_EVIDENCE_SCHEMA_VERSION
         or raw_evidence.get("phase") != EvaluationPhase.PUBLIC_DEV.value
     ):
         raise ValueError("Stair public-dev phase evidence contract mismatch")
     execution_identity = raw_evidence.get("execution_identity")
     if not isinstance(execution_identity, Mapping) or (
         execution_identity.get("checkpoint_hash") != phase_result.checkpoint_hash
-        or execution_identity.get("seed_namespace")
-        != STAIR_FORMAL_EVAL_NAMESPACE
+        or execution_identity.get("seed_namespace") != STAIR_FORMAL_EVAL_NAMESPACE
         or execution_identity.get("seed_cohort_hash")
-        != config.seed_resolver().namespace_cohort_hash(
-            STAIR_FORMAL_EVAL_NAMESPACE
-        )
-        or execution_identity.get("splits")
-        != [EvaluationPhase.PUBLIC_DEV.value]
-        or execution_identity.get("execution_device")
-        != phase_result.execution_device
+        != config.seed_resolver().namespace_cohort_hash(STAIR_FORMAL_EVAL_NAMESPACE)
+        or execution_identity.get("splits") != [EvaluationPhase.PUBLIC_DEV.value]
+        or execution_identity.get("execution_device") != phase_result.execution_device
         or execution_identity.get("environment_source_preflight")
         != dict(phase_result.environment_source_preflight)
         or execution_identity.get("backend_execution_environment_verification")
@@ -660,6 +663,7 @@ def build_stair_public_dev_screen_evidence(
         projection = build_unified_score_projection(
             canonical,
             objective_family_mask=objective_family_mask,
+            canonical_statistics=statistics_version is not None,
         )
         generalization = projection["j_primary"]
         guard_vectors = [
@@ -671,10 +675,13 @@ def build_stair_public_dev_screen_evidence(
             for index in range(config.public_seed_count)
         )
         anchor = {
-            "score_stats": _screen_score_stats(
-                anchor_scores,
-                eval_protocol_hash=config.evaluation_protocol().protocol_hash,
-            ),
+            "score_stats": {
+                **sample_statistics(
+                    anchor_scores, statistics_version=statistics_version
+                ),
+                "values": list(anchor_scores),
+                "eval_protocol_hash": config.evaluation_protocol().protocol_hash,
+            },
             "seed_macro_scores": list(anchor_scores),
         }
     else:
@@ -816,22 +823,32 @@ def stair_selection_contract(config: StairClimbingTaskConfig) -> dict[str, Any]:
     }
 
 
-def _screen_score_stats(
-    values: Sequence[float],
+def classify_stair_selector_trial_eligibility(
     *,
-    eval_protocol_hash: str,
-) -> dict[str, Any]:
-    canonical = [float(value) for value in values]
-    mean = statistics.fmean(canonical)
-    std = statistics.stdev(canonical) if len(canonical) > 1 else 0.0
-    return {
-        "count": len(canonical),
-        "mean": mean,
-        "std": std,
-        "standard_error": std / (len(canonical) ** 0.5),
-        "values": canonical,
-        "eval_protocol_hash": eval_protocol_hash,
-    }
+    guard_regression: float,
+    guard_max_regression: float,
+    runtime_effect_status: str | None,
+) -> str:
+    """Classify one trial using the selector's task-owned precheck semantics."""
+
+    regression = _finite_score(guard_regression, "Stair guard regression")
+    hard_cap = _finite_score(
+        guard_max_regression,
+        "Stair guard maximum regression",
+    )
+    if hard_cap < 0.0:
+        raise ValueError("Stair guard maximum regression must be non-negative")
+    if runtime_effect_status not in {None, "pass", "fail"}:
+        raise ValueError("Stair runtime-effect eligibility status is invalid")
+    guard_ineligible = regression > hard_cap
+    runtime_ineligible = runtime_effect_status != "pass"
+    if guard_ineligible and runtime_ineligible:
+        return "guard_and_runtime_ineligible"
+    if guard_ineligible:
+        return "guard_ineligible"
+    if runtime_ineligible:
+        return "runtime_ineligible"
+    return "eligible"
 
 
 def select_stair_public_dev_winner(
@@ -890,11 +907,9 @@ def _select_stair_public_dev_winner(
         raise ValueError("Stair selection guard must identify the frozen parent")
     if guard_reference.comparison_domain != ordered[0].comparison_domain:
         raise ValueError("Stair guard reference is not comparable")
-    if (
-        guard_reference.evidence_hash
-        in {item.evidence_hash for item in ordered}
-        or guard_reference.subject in {item.subject for item in ordered}
-    ):
+    if guard_reference.evidence_hash in {
+        item.evidence_hash for item in ordered
+    } or guard_reference.subject in {item.subject for item in ordered}:
         raise ValueError("Stair guard reference must identify the frozen parent")
     for evidence in (*ordered, guard_reference):
         if (
@@ -905,44 +920,66 @@ def _select_stair_public_dev_winner(
             raise ValueError("Stair screen paired seed evidence is incomplete")
     left_scores = ordered[0].generalization_seed_macro_scores
     right_scores = ordered[1].generalization_seed_macro_scores
-    if len(left_scores) != len(right_scores) or len(left_scores) != config.public_seed_count:
+    if (
+        len(left_scores) != len(right_scores)
+        or len(left_scores) != config.public_seed_count
+    ):
         raise ValueError("Stair screen paired seed evidence is incomplete")
 
     paired = tuple(left - right for left, right in zip(left_scores, right_scores))
-    mean_delta = statistics.fmean(paired)
-    standard_error = (
-        statistics.stdev(paired) / math.sqrt(len(paired))
-        if len(paired) > 1
-        else 0.0
-    )
+    statistics_versions = {
+        item.generalization_score_stats.get("statistics_version")
+        for item in (*ordered, guard_reference)
+    }
+    if len(statistics_versions) != 1:
+        raise ValueError("Stair selector statistics versions differ")
+    version = statistics_versions.pop()
+    paired_stats = sample_statistics(paired, statistics_version=version)
+    mean_delta = float(paired_stats["mean"])
+    standard_error = float(paired_stats["standard_error"])
     contract = stair_selection_contract(config)
     threshold = float(contract["paired_standard_error_multiplier"]) * standard_error
     magnitude = abs(mean_delta)
     outside_noise = magnitude > threshold and not math.isclose(
         magnitude, threshold, rel_tol=1.0e-12, abs_tol=1.0e-12
     )
-    reference_guard = statistics.fmean(guard_reference.anchor_seed_macro_scores)
+    reference_guard = sample_mean(
+        guard_reference.anchor_seed_macro_scores, statistics_version=version
+    )
     hard_guard_cap = float(contract["guard_max_regression"])
     guard_regressions = {
         item.trial_id: reference_guard
-        - statistics.fmean(item.anchor_seed_macro_scores)
+        - sample_mean(item.anchor_seed_macro_scores, statistics_version=version)
+        for item in ordered
+    }
+    eligibility_by_trial = {
+        item.trial_id: classify_stair_selector_trial_eligibility(
+            guard_regression=guard_regressions[item.trial_id],
+            guard_max_regression=hard_guard_cap,
+            runtime_effect_status=(
+                str(item.runtime_effect_evidence["status"])
+                if item.runtime_effect_evidence is not None
+                else None
+            ),
+        )
         for item in ordered
     }
     guard_eligible = tuple(
         item.trial_id
         for item in ordered
-        if guard_regressions[item.trial_id] <= hard_guard_cap
+        if eligibility_by_trial[item.trial_id]
+        not in {"guard_ineligible", "guard_and_runtime_ineligible"}
     )
     runtime_eligible = tuple(
         item.trial_id
         for item in ordered
-        if item.runtime_effect_evidence is not None
-        and item.runtime_effect_evidence["status"] == "pass"
+        if eligibility_by_trial[item.trial_id]
+        not in {"runtime_ineligible", "guard_and_runtime_ineligible"}
     )
     eligible = tuple(
         item.trial_id
         for item in ordered
-        if item.trial_id in guard_eligible and item.trial_id in runtime_eligible
+        if eligibility_by_trial[item.trial_id] == "eligible"
     )
     selected = None
     reason = (
@@ -974,15 +1011,13 @@ def _select_stair_public_dev_winner(
             )
         )
     elif len(eligible) == 2:
-        guard_delta = statistics.fmean(ordered[0].anchor_seed_macro_scores) - (
-            statistics.fmean(ordered[1].anchor_seed_macro_scores)
+        guard_delta = sample_mean(
+            ordered[0].anchor_seed_macro_scores, statistics_version=version
+        ) - (
+            sample_mean(ordered[1].anchor_seed_macro_scores, statistics_version=version)
         )
-        if not math.isclose(
-            guard_delta, 0.0, rel_tol=1.0e-12, abs_tol=1.0e-12
-        ):
-            selected = (
-                ordered[0].trial_id if guard_delta > 0.0 else ordered[1].trial_id
-            )
+        if not math.isclose(guard_delta, 0.0, rel_tol=1.0e-12, abs_tol=1.0e-12):
+            selected = ordered[0].trial_id if guard_delta > 0.0 else ordered[1].trial_id
             reason = "public_dev_guard_tiebreak"
             confidence = "guard_tiebreak"
         else:
@@ -1023,6 +1058,7 @@ __all__ = [
     "StairPublicDevScreenEvidence",
     "StairSelectionResult",
     "build_stair_public_dev_screen_evidence",
+    "classify_stair_selector_trial_eligibility",
     "replay_stair_public_dev_winner",
     "select_stair_public_dev_winner",
     "stair_selection_contract",

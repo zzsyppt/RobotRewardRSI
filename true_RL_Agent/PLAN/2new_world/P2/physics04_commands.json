@@ -1,0 +1,70 @@
+[
+  {
+    "argv": [
+      "/data/yuyangliu/envs/isaaclab/bin/python",
+      "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/PLAN/2new_world/P2/stair_physics_probe.py",
+      "--source-root",
+      "/data/yuyangliu/AGENT/true_RL_Agent",
+      "--robot",
+      "go2",
+      "--output",
+      "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/PLAN/2new_world/P2/results/go2_physics_legacy04",
+      "--device",
+      "cuda:1"
+    ],
+    "returncode": 0,
+    "child_pid": 460252
+  },
+  {
+    "argv": [
+      "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+      "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/PLAN/2new_world/P2/stair_physics_probe.py",
+      "--source-root",
+      "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent",
+      "--robot",
+      "go2",
+      "--output",
+      "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/PLAN/2new_world/P2/results/go2_physics_current04",
+      "--device",
+      "cuda:1",
+      "--initial-state",
+      "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/PLAN/2new_world/P2/results/go2_physics_legacy04/initial.npz"
+    ],
+    "returncode": 0,
+    "child_pid": 460582
+  },
+  {
+    "argv": [
+      "/data/yuyangliu/envs/isaaclab/bin/python",
+      "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/PLAN/2new_world/P2/stair_physics_probe.py",
+      "--source-root",
+      "/data/yuyangliu/AGENT/true_RL_Agent",
+      "--robot",
+      "g1",
+      "--output",
+      "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/PLAN/2new_world/P2/results/g1_physics_legacy04",
+      "--device",
+      "cuda:1"
+    ],
+    "returncode": 0,
+    "child_pid": 460838
+  },
+  {
+    "argv": [
+      "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+      "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/PLAN/2new_world/P2/stair_physics_probe.py",
+      "--source-root",
+      "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent",
+      "--robot",
+      "g1",
+      "--output",
+      "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/PLAN/2new_world/P2/results/g1_physics_current04",
+      "--device",
+      "cuda:1",
+      "--initial-state",
+      "/data/yuyangliu/isolated/new_world_p2/true_RL_Agent/PLAN/2new_world/P2/results/g1_physics_legacy04/initial.npz"
+    ],
+    "returncode": 0,
+    "child_pid": 461164
+  }
+]

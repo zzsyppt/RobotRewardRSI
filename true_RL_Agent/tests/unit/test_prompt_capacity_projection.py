@@ -40,9 +40,16 @@ from true_rl_agent.tasks.stair_climbing.prompt_adapter import (  # noqa: E402
     _minimum_core_selection_guidance,
     _minimum_core_stair_prompt_sections,
     _minimum_core_task_section,
+    _project_feedback_entry_for_prompt,
 )
 from true_rl_agent.tasks.stair_climbing.config import (  # noqa: E402
     StairClimbingTaskConfig,
+)
+from true_rl_agent.tasks.stair_climbing.plugin import (  # noqa: E402
+    StairClimbingTaskPlugin,
+)
+from true_rl_agent.tasks.stair_climbing.robot_binding import (  # noqa: E402
+    resolve_stair_cell_manifest,
 )
 
 
@@ -183,7 +190,7 @@ class TaskOwnedMinimumCoreTests(unittest.TestCase):
                 "selection_basis": ["accepted_current_best"],
                 "feedback": {
                     "schema_version": "unsupported.for.minimum-core-test",
-                    "oversized_detail": "x" * 20000,
+                    "oversized_detail": "x" * 30000,
                 },
             },
             {
@@ -192,7 +199,7 @@ class TaskOwnedMinimumCoreTests(unittest.TestCase):
                 "selection_basis": ["latest_evaluated"],
                 "feedback": {
                     "schema_version": "unsupported.for.minimum-core-test",
-                    "oversized_detail": "y" * 20000,
+                    "oversized_detail": "y" * 30000,
                 },
             },
         ]
@@ -274,7 +281,7 @@ class TaskOwnedMinimumCoreTests(unittest.TestCase):
         )
         sections["runtime_feedback_summary"] = {
             "status": "available",
-            "contract_valid_bounded_detail": "x" * 40000,
+            "contract_valid_bounded_detail": "x" * 70000,
         }
 
         projected = _compact_public_feedback_to_fit_task_sections(
@@ -297,11 +304,75 @@ class TaskOwnedMinimumCoreTests(unittest.TestCase):
             MAX_TASK_PROMPT_SECTIONS_BYTES,
         )
 
+    def test_stair_compacts_static_contract_before_measured_feedback(self) -> None:
+        feedback = {
+            "schema_version": (
+                "true_rl_agent.task.stair_climbing.public_feedback_summary.v12"
+            ),
+            "status": "available",
+            "feedback_entries": [
+                {
+                    "source_kind": "candidate",
+                    "candidate_id": "latest",
+                    "selection_basis": ["latest_evaluated"],
+                    "feedback": {"stratum_diagnostics": "d" * 5000},
+                }
+            ],
+        }
+        sections = _base_sections(feedback)
+        sections["reward_inputs_contract"]["fields"] = [
+            {
+                "name": f"field_{index}",
+                "dtype": "float",
+                "trailing_shape": [],
+                "unit": "unitless",
+                "description": "s" * 500,
+            }
+            for index in range(80)
+        ]
+        sections["runtime_feedback_summary"] = {
+            "status": "available",
+            "runtime_activation_detail": "r" * 5000,
+        }
+        self.assertGreater(
+            canonical_prompt_json_bytes(sections),
+            MAX_TASK_PROMPT_SECTIONS_BYTES - 512,
+        )
+
+        clean = sanitize_task_prompt_sections(
+            _compact_public_feedback_to_fit_task_sections(
+                sections,
+                evaluation_profile=None,
+            )
+        )
+
+        receipt = clean["public_feedback_summary"][
+            "capacity_projection_receipt"
+        ]
+        self.assertEqual(
+            receipt["projection_id"],
+            "stair_climbing.static_contract_core.v1",
+        )
+        self.assertEqual(
+            clean["public_feedback_summary"]["feedback_entries"][0]["feedback"][
+                "stratum_diagnostics"
+            ],
+            "d" * 5000,
+        )
+        self.assertEqual(
+            clean["runtime_feedback_summary"]["runtime_activation_detail"],
+            "r" * 5000,
+        )
+        self.assertLessEqual(
+            canonical_prompt_json_bytes(clean),
+            MAX_TASK_PROMPT_SECTIONS_BYTES - 512,
+        )
+
     def test_stair_minimum_core_retains_compacted_public_dev_feedback(self) -> None:
         sections = _base_sections(
             {
                 "schema_version": (
-                    "true_rl_agent.task.stair_climbing.public_feedback_summary.v10"
+                    "true_rl_agent.task.stair_climbing.public_feedback_summary.v12"
                 ),
                 "status": "available",
                 "feedback_entries": [
@@ -367,7 +438,7 @@ class TaskOwnedMinimumCoreTests(unittest.TestCase):
         # exceeds the reserved task-section budget.
         sections["runtime_feedback_summary"] = {
             "status": "available",
-            "contract_valid_bounded_detail": "x" * 40000,
+            "contract_valid_bounded_detail": "x" * 70000,
         }
 
         clean = sanitize_task_prompt_sections(
@@ -449,7 +520,7 @@ class TaskOwnedMinimumCoreTests(unittest.TestCase):
                     sections["public_feedback_summary"] = feedback
                 sections["runtime_feedback_summary"] = {
                     "status": "available",
-                    "contract_valid_bounded_detail": "x" * 40000,
+                    "contract_valid_bounded_detail": "x" * 70000,
                 }
 
                 clean = sanitize_task_prompt_sections(
@@ -520,25 +591,141 @@ class TaskOwnedMinimumCoreTests(unittest.TestCase):
             MAX_TASK_PROMPT_SECTIONS_BYTES,
         )
 
+    def test_provider_task_receipt_keeps_v1_32k_history_replayable(self) -> None:
+        task_sections = sanitize_task_prompt_sections(
+            _base_sections({"status": "no_closed_outcome"})
+        )
+        payload = build_prompt_payload(
+            public_context={"task_prompt_sections": task_sections},
+        )
+        current = build_provider_task_prompt_receipt(payload)
+        legacy = {
+            **current,
+            "schema_version": "true_rl_agent.prompt.provider_task_sections_receipt.v1",
+            "max_serialized_bytes": 32 * 1024,
+            "headroom_bytes": 32 * 1024 - current["serialized_bytes"],
+        }
+
+        self.assertEqual(
+            validate_provider_task_prompt_receipt(
+                legacy,
+                prompt_payload=payload,
+            ),
+            legacy,
+        )
+
     def test_stair_worst_case_preflight_is_deterministic_and_keeps_headroom(
         self,
     ) -> None:
-        config = StairClimbingTaskConfig.defaults(
-            ROOT / "configs" / "tasks" / "stair_protocol_v2.json"
-        )
-        adapter = StairClimbingPromptAdapter(config)
+        for protocol_name in (
+            "stair_unified_protocol_v2.json",
+            "stair_go2_12dof_unified_protocol_v2.json",
+        ):
+            with self.subTest(protocol=protocol_name):
+                protocol_path = ROOT / "configs" / "tasks" / protocol_name
+                base = StairClimbingTaskConfig.defaults(protocol_path)
+                manifest = resolve_stair_cell_manifest(
+                    cell_variant_id=base.cell_variant_id,
+                    config=base,
+                    plugin=StairClimbingTaskPlugin(base),
+                )
+                config = StairClimbingTaskConfig.defaults(
+                    protocol_path,
+                    resolved_cell_task_protocol_hash=(
+                        manifest.resolved_cell_task_protocol_hash
+                    ),
+                )
+                adapter = StairClimbingPromptAdapter(
+                    config,
+                    resolved_cell_manifest=manifest,
+                )
 
-        first = preflight_task_prompt_capacity(
-            task_prompt_adapter=adapter,
-            candidate_capability_profile=None,
-        )
-        second = preflight_task_prompt_capacity(
-            task_prompt_adapter=adapter,
-            candidate_capability_profile=None,
-        )
+                first = preflight_task_prompt_capacity(
+                    task_prompt_adapter=adapter,
+                    candidate_capability_profile=None,
+                )
+                second = preflight_task_prompt_capacity(
+                    task_prompt_adapter=adapter,
+                    candidate_capability_profile=None,
+                )
 
-        self.assertEqual(first, second)
-        self.assertGreaterEqual(first["headroom_bytes"], 512)
+                self.assertEqual(first, second)
+                self.assertGreaterEqual(first["headroom_bytes"], 512)
+                sections = adapter.build_prompt_capacity_preflight_sections()
+                feedback = sections["public_feedback_summary"]
+                self.assertEqual(
+                    feedback["projection_level"],
+                    "minimum_core",
+                )
+                self.assertEqual(len(feedback["feedback_entries"]), 2)
+                self.assertEqual(
+                    [entry["selection_basis"] for entry in feedback["feedback_entries"]],
+                    [["accepted_current_best"], ["latest_evaluated"]],
+                )
+                self.assertNotIn("feedback_entries_omitted_for_capacity", feedback)
+                self.assertIn("capacity_projection_receipt", feedback)
+                self.assertEqual(
+                    sections["public_eval_contract"][
+                        "completion_derived_diagnostic_rates"
+                    ],
+                    {
+                        "first_valid_top_arrival_achieved": "success_rate",
+                    },
+                )
+
+    def test_first_arrival_prompt_omits_only_exact_completion_diagnostics(
+        self,
+    ) -> None:
+        raw = {
+            "feedback": {
+                "climb_completion_summary": {
+                    "completion_mode": "first_valid_top_arrival_latched",
+                    "success_rate": 0.75,
+                    "first_valid_top_arrival_rate": 0.75,
+                },
+                "diagnostic_flag_rates": {
+                    "first_valid_top_arrival_achieved": 0.75,
+                    "goal_not_reached_detected": 0.1,
+                    "slip_detected": 0.5,
+                },
+                "generalization_summary": {
+                    "stratum_diagnostics": {
+                        "height_ood": {
+                            "score": 0.7,
+                            "success_rate": 0.75,
+                            "mean_progress_fraction": 0.8,
+                            "primary_failure_breakdown": {"timeout": 0.25},
+                            "diagnostic_flag_rates": {
+                                "first_valid_top_arrival_achieved": 0.75,
+                                "goal_not_reached_detected": 0.1,
+                                "slip_detected": 0.5,
+                            },
+                        }
+                    }
+                },
+            }
+        }
+        untouched = copy.deepcopy(raw)
+        projected = _project_feedback_entry_for_prompt(raw)["feedback"]
+
+        self.assertEqual(raw, untouched)
+        self.assertEqual(
+            projected["diagnostic_flag_rates"],
+            {
+                "goal_not_reached_detected": 0.1,
+                "slip_detected": 0.5,
+            },
+        )
+        table = projected["generalization_summary"]["stratum_diagnostics"]
+        self.assertEqual(
+            table["diagnostic_flag_rate_columns"],
+            ["goal_not_reached_detected", "slip_detected"],
+        )
+        self.assertEqual(
+            table["derived_diagnostic_rate_columns_omitted"],
+            ["first_valid_top_arrival_achieved"],
+        )
+        self.assertEqual(table["rows"][0][5], [0.1, 0.5])
 
     def test_push_uses_its_own_minimum_core_without_stair_fields(self) -> None:
         original = _base_sections(

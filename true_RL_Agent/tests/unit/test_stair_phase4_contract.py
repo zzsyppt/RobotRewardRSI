@@ -10,12 +10,17 @@ import sys
 import unittest
 from collections import Counter
 from pathlib import Path
+from types import MappingProxyType
 
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
+from true_rl_agent.agent_core.experiment_memory import build_experiment_memory
+from true_rl_agent.agent_core.generation_contract import (
+    GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION,
+)
 from true_rl_agent.evaluation.binding import canonical_json_hash
 from true_rl_agent.evaluation.public_result import PublicEvalResult
 from true_rl_agent.evaluation.subject import ExperimentSubject
@@ -27,6 +32,8 @@ from true_rl_agent.tasks.stair_climbing.plugin import StairClimbingTaskPlugin
 from true_rl_agent.tasks.stair_climbing.prompt_adapter import (
     StairClimbingPromptAdapter,
     _compact_required_feedback_entry,
+    _latest_generation_trial_comparisons,
+    _stair_unified_capacity_preflight_feedback,
 )
 from true_rl_agent.tasks.stair_climbing.reference_programs.official_g1_rough_v1.training_code import (
     components as legacy_official_components,
@@ -42,6 +49,7 @@ from true_rl_agent.tasks.stair_climbing.robot_binding import (
 )
 from true_rl_agent.tasks.stair_climbing.selection import (
     StairPublicDevScreenEvidence,
+    classify_stair_selector_trial_eligibility,
 )
 from true_rl_agent.tasks.stair_climbing.unified_scoring import (
     build_reference_objective_family_mask,
@@ -49,6 +57,7 @@ from true_rl_agent.tasks.stair_climbing.unified_scoring import (
     build_unified_score_projection,
     build_unified_stair_prompt_feedback,
     build_unified_stair_summary,
+    objective_family_mask_from_public_result,
     validate_objective_family_mask,
 )
 
@@ -179,6 +188,33 @@ class StairPhase4ContractTests(unittest.TestCase):
                 + self.summary["family_scores"]["F_c1"]
             )
             / 2.0,
+        )
+
+    def test_reference_mask_loader_accepts_frozen_genesis_public_result(self) -> None:
+        def freeze(value: object) -> object:
+            if isinstance(value, dict):
+                return MappingProxyType(
+                    {str(key): freeze(item) for key, item in value.items()}
+                )
+            if isinstance(value, list):
+                return tuple(freeze(item) for item in value)
+            return value
+
+        suite = self.config.ordered_evaluation_suite
+        mask = build_reference_objective_family_mask(
+            suite=suite,
+            public_accept_summary=self.summary,
+        )
+        public_result = freeze(
+            {"metrics": {"objective_family_mask": mask}}
+        )
+
+        self.assertEqual(
+            objective_family_mask_from_public_result(
+                suite=suite,
+                public_result=public_result,
+            ),
+            mask,
         )
 
     def test_all_floor_reference_returns_diagnostic_failure_not_exception(self) -> None:
@@ -347,6 +383,29 @@ class StairPhase4ContractTests(unittest.TestCase):
             "public_dev",
         )
         self.assertNotIn("materiality_threshold", str(assessment.public_evidence_summary))
+
+        trial["selection_screen"] = {
+            "runtime_effect_evidence": {
+                "schema_version": "true_rl_agent.task.stair_climbing.candidate_runtime_effect_evidence.v1",
+                "status": "fail",
+                "reason": "candidate_reward_operation_runtime_effect_not_observed",
+                "acceptance_authority": False,
+            }
+        }
+        runtime_failed = StairExplorationProjector(
+            self.config,
+            objective_family_mask=mask,
+        ).assess_trial(
+            generation=generation,
+            trial=trial,
+            parent=None,
+        )
+        self.assertEqual(runtime_failed.observed_effect, "negative")
+        self.assertEqual(runtime_failed.value_label, "low")
+        self.assertEqual(
+            runtime_failed.reason_codes,
+            ("candidate_reward_operation_runtime_effect_not_observed",),
+        )
 
         generation["guard_reference"]["acceptance_authority"] = True
         rejected_reference = StairExplorationProjector(
@@ -618,7 +677,7 @@ class StairPhase4ContractTests(unittest.TestCase):
             },
             "generation": {
                 "schema_version": (
-                    "true_rl_agent.generation_public_history_projection.v2"
+                    "true_rl_agent.generation_public_history_projection.v3"
                 ),
                 "generation_id": "phase4-generation-001",
                 "generation_index": 1,
@@ -639,7 +698,17 @@ class StairPhase4ContractTests(unittest.TestCase):
                     "decision_outcome": "reject",
                     "accepted": False,
                 },
-                "selection": {"selected_trial_id": "phase4-trial-a"},
+                "selection": {
+                    "selected_trial_id": "phase4-trial-a",
+                    "reason": "public_dev_runtime_activation_filter",
+                    "guard_regression_by_trial": {
+                        "phase4-trial-a": 0.0,
+                        "phase4-trial-b": 0.0,
+                    },
+                    "selection_eligible_trial_ids": [
+                        "phase4-trial-a",
+                    ],
+                },
                 "trials": [
                     {
                         "schema_version": "true_rl_agent.generation_trial.v1",
@@ -652,6 +721,14 @@ class StairPhase4ContractTests(unittest.TestCase):
                             "program_source_checksum": checksum,
                         },
                         "public_dev": {"public_summary": self.public_dev_summary},
+                        "selection_screen": {
+                            "runtime_effect_evidence": {
+                                "schema_version": "true_rl_agent.task.stair_climbing.candidate_runtime_effect_evidence.v1",
+                                "status": "pass",
+                                "reason": "candidate_reward_operation_runtime_effect_observed",
+                                "acceptance_authority": False,
+                            }
+                        },
                         "public_accept": {
                             "public_summary": self.summary,
                             "marker": hidden_marker,
@@ -667,6 +744,12 @@ class StairPhase4ContractTests(unittest.TestCase):
         sibling["candidate"] = {
             "candidate_id": "phase4-candidate-b",
             "program_source_checksum": "sha256:" + "d" * 64,
+        }
+        sibling["selection_screen"]["runtime_effect_evidence"] = {
+            "schema_version": "true_rl_agent.task.stair_climbing.candidate_runtime_effect_evidence.v1",
+            "status": "fail",
+            "reason": "candidate_reward_operation_runtime_effect_not_observed",
+            "acceptance_authority": False,
         }
         record["generation"]["trials"].append(sibling)
         adapter = StairClimbingPromptAdapter(
@@ -706,6 +789,10 @@ class StairPhase4ContractTests(unittest.TestCase):
         self.assertEqual(
             projected["decision"]["gate_statuses"],
             {"runtime_activation_gate": "pass"},
+        )
+        self.assertEqual(
+            projected["decision"]["reason"],
+            "runner_did_not_accept_candidate",
         )
         self.assertNotIn("parent_current_best", projected["generation"])
         self.assertNotIn("guard_reference", projected["generation"])
@@ -756,7 +843,35 @@ class StairPhase4ContractTests(unittest.TestCase):
             "latest_generation_trial_comparisons"
         ]
         self.assertEqual(comparisons[0]["objective_score"], public_dev_score)
-        self.assertNotIn("objective_delta", comparisons[0])
+        self.assertEqual(comparisons[0]["objective_delta"], 0.0)
+        self.assertEqual(comparisons[0]["selector_guard_regression"], 0.0)
+        self.assertEqual(comparisons[0]["selector_guard_max_regression"], 0.05)
+        self.assertTrue(comparisons[0]["selector_eligible"])
+        self.assertEqual(
+            comparisons[0]["generation_selector_reason"],
+            "public_dev_runtime_activation_filter",
+        )
+        self.assertEqual(
+            comparisons[0]["runtime_effect_evidence"]["status"],
+            "pass",
+        )
+        self.assertEqual(comparisons[1]["selector_status"], "runtime_ineligible")
+        self.assertEqual(comparisons[1]["observed_effect"], "negative")
+        self.assertEqual(
+            comparisons[1]["reason_codes"],
+            ["candidate_reward_operation_runtime_effect_not_observed"],
+        )
+        preflight_comparisons = _stair_unified_capacity_preflight_feedback(
+            self.config
+        )["latest_generation_trial_comparisons"]
+        self.assertEqual(len(preflight_comparisons), len(comparisons))
+        for preflight, actual in zip(
+            preflight_comparisons,
+            comparisons,
+            strict=True,
+        ):
+            self.assertEqual(set(preflight), set(actual))
+            self.assertEqual(len(actual), 18)
         self.assertNotIn("materiality_threshold", comparisons[0])
         for entry in sections["public_feedback_summary"]["feedback_entries"]:
             self.assertEqual(entry["objective_score"], public_dev_score)
@@ -790,6 +905,155 @@ class StairPhase4ContractTests(unittest.TestCase):
         self.assertEqual(
             memory["score_source"],
             "prompt_feedback.generalization_summary.public_dev_objective_score",
+        )
+
+    def test_provider_view_preserves_no_formal_generation_outcomes(self) -> None:
+        hidden_reason = "private-runner-detail-must-not-reach-provider"
+        adapter = StairClimbingPromptAdapter(
+            self.config,
+            resolved_cell_manifest=self.manifest,
+        )
+        for outcome in (
+            "paired_authoring_incomplete",
+            "candidate_execution_incomplete",
+            "no_selection",
+        ):
+            with self.subTest(outcome=outcome):
+                record = {
+                    "round_id": f"phase4-generation-{outcome}",
+                    "task": {"task_id": "unitree_stair_climbing"},
+                    "candidate_surface": {"classification": "code_level"},
+                    "decision": {
+                        "outcome": "generation_head_retained",
+                        "accepted": False,
+                        "reason": hidden_reason,
+                        "surface_classification": "code_level",
+                    },
+                    "generation": {
+                        "schema_version": (
+                            GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION
+                        ),
+                        "generation_id": f"phase4-generation-{outcome}",
+                        "generation_index": 1,
+                        "generation_outcome": outcome,
+                        "selection": None,
+                        "formal": None,
+                        "trials": [],
+                    },
+                }
+
+                projection = adapter.project_prompt_public_history(
+                    public_records=[record],
+                    initial_anchor_public_evidence=None,
+                )
+                replayed = adapter.project_prompt_public_history(
+                    public_records=projection.records,
+                    initial_anchor_public_evidence=None,
+                )
+
+                self.assertEqual(replayed, projection)
+                projected = projection.records[0]
+                self.assertEqual(projected["decision"]["reason"], outcome)
+                self.assertEqual(
+                    projected["generation"]["generation_outcome"],
+                    outcome,
+                )
+                memory = build_experiment_memory(projection.records)
+                self.assertEqual(memory["experiments"][0]["reason"], outcome)
+                self.assertNotIn(
+                    hidden_reason,
+                    json.dumps(projected, sort_keys=True),
+                )
+
+    def test_unified_selectionless_generation_is_not_selector_feedback(self) -> None:
+        cases = (
+            (
+                "paired_authoring_incomplete",
+                [],
+                True,
+            ),
+            (
+                "candidate_execution_incomplete",
+                [{"public_dev": {"public_summary": {}}}],
+                True,
+            ),
+            (
+                "candidate_execution_incomplete",
+                [],
+                False,
+            ),
+        )
+        for outcome, trials, include_selection in cases:
+            with self.subTest(
+                outcome=outcome,
+                include_selection=include_selection,
+            ):
+                generation = {
+                    "schema_version": (
+                        GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION
+                    ),
+                    "generation_id": "selectionless-generation",
+                    "generation_outcome": outcome,
+                    "trials": trials,
+                }
+                if include_selection:
+                    generation["selection"] = None
+                self.assertEqual(
+                    _latest_generation_trial_comparisons(
+                        [{"generation": generation}],
+                        config=self.config,
+                    ),
+                    [],
+                )
+
+        malformed = {
+            "schema_version": GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION,
+            "generation_id": "malformed-selection-generation",
+            "generation_outcome": "candidate_execution_incomplete",
+            "trials": [],
+            "selection": [],
+        }
+        with self.assertRaisesRegex(
+            ValueError,
+            "selector evidence must be an object or null",
+        ):
+            _latest_generation_trial_comparisons(
+                [{"generation": malformed}],
+                config=self.config,
+            )
+
+    def test_selector_eligibility_classifier_owns_boundary_semantics(self) -> None:
+        self.assertEqual(
+            classify_stair_selector_trial_eligibility(
+                guard_regression=0.05,
+                guard_max_regression=0.05,
+                runtime_effect_status="pass",
+            ),
+            "eligible",
+        )
+        self.assertEqual(
+            classify_stair_selector_trial_eligibility(
+                guard_regression=0.0500001,
+                guard_max_regression=0.05,
+                runtime_effect_status="pass",
+            ),
+            "guard_ineligible",
+        )
+        self.assertEqual(
+            classify_stair_selector_trial_eligibility(
+                guard_regression=0.0,
+                guard_max_regression=0.05,
+                runtime_effect_status="fail",
+            ),
+            "runtime_ineligible",
+        )
+        self.assertEqual(
+            classify_stair_selector_trial_eligibility(
+                guard_regression=0.1,
+                guard_max_regression=0.05,
+                runtime_effect_status=None,
+            ),
+            "guard_and_runtime_ineligible",
         )
 
     def test_reference_qualification_binds_the_replayed_mask(self) -> None:

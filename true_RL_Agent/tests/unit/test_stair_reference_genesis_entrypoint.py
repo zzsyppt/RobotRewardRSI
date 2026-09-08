@@ -233,7 +233,7 @@ class StairReferenceGenesisEntrypointTests(unittest.TestCase):
             def reject_legacy_identity(**kwargs):
                 self.assertNotIn(
                     "final_confirmation_precommit",
-                    kwargs["genesis_identity_snapshot"]["task_defaults"],
+                    kwargs["genesis_identity_snapshot"]["scientific"]["parameters"],
                 )
                 raise ValueError("session Genesis identity drift")
 

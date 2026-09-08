@@ -1096,7 +1096,7 @@ class MemoryContextPhase13Tests(unittest.TestCase):
 
         self.assertEqual(
             payload["public_history"]["schema_version"],
-            "true_rl_agent.public_history.v3",
+            "true_rl_agent.public_history.v4",
         )
         self.assertNotIn("candidate_package_loaded", entry)
         self.assertIs(
@@ -1395,7 +1395,7 @@ class MemoryContextPhase13Tests(unittest.TestCase):
         self.assertLessEqual(len(recent), history["limits"]["max_recent_rounds"])
         self.assertLessEqual(
             canonical_prompt_json_bytes(recent),
-            history["limits"]["max_serialized_bytes"],
+            history["limits"]["max_recent_outcomes_serialized_bytes"],
         )
         self.assertEqual(recent[-1]["round_id"], "round-011")
         self.assertGreater(history["omitted_round_count"], 0)
@@ -2146,7 +2146,7 @@ class MemoryContextPhase13Tests(unittest.TestCase):
         self.assertLessEqual(len(recent), history["limits"]["max_recent_rounds"])
         self.assertLessEqual(
             len(json.dumps(recent, sort_keys=True).encode("utf-8")),
-            history["limits"]["max_serialized_bytes"],
+            history["limits"]["max_recent_outcomes_serialized_bytes"],
         )
         self.assertEqual(recent[-1]["round_id"], "round-011")
         self.assertGreater(history["omitted_round_count"], 0)

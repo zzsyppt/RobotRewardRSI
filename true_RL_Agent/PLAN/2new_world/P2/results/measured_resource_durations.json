@@ -1,0 +1,75 @@
+{
+  "full_training_gpu_lease_s": 8667.010777618,
+  "full_checkpoint_evaluation_gpu_lease_s": 249.307177105,
+  "final_native_sequence_wall_s": 1266.0021328926086,
+  "timed_short_probes": [
+    {
+      "receipt": "results/g1_resume_concurrency/process/process.json",
+      "wall_s": 19.669246196746826
+    },
+    {
+      "receipt": "results/go2_physics_current06/process/process.json",
+      "wall_s": 15.822450876235962
+    },
+    {
+      "receipt": "results/g1_resume_final/process/process.json",
+      "wall_s": 23.42101550102234
+    },
+    {
+      "receipt": "results/reset_render_capture/process/process.json",
+      "wall_s": 28.057435274124146
+    },
+    {
+      "receipt": "results/push_smoke_06/process/process.json",
+      "wall_s": 22.174367904663086
+    },
+    {
+      "receipt": "results/g1_natural_reset_07/process/process.json",
+      "wall_s": 15.357173919677734
+    },
+    {
+      "receipt": "results/g1_resume_01/process/process.json",
+      "wall_s": 21.65227174758911
+    },
+    {
+      "receipt": "results/go2_resume_final/process/process.json",
+      "wall_s": 19.65482497215271
+    },
+    {
+      "receipt": "results/go2_resume_01/process/process.json",
+      "wall_s": 20.09891629219055
+    },
+    {
+      "receipt": "results/go2_physics_legacy06/process/process.json",
+      "wall_s": 18.607169151306152
+    }
+  ],
+  "scope_note": "These are measured process or lease durations, not an exhaustive stage GPU utilization ledger; missing setup and earlier untimed diagnostics are not zero.",
+  "stopped_training_prefixes": [
+    {
+      "case": "go2_full_train_01",
+      "source_dir": "/data/yuyangliu/isolated/new_world_p2_train/true_RL_Agent/PLAN/2new_world/P2/results/go2_full_train_01",
+      "process_receipt_sha256": "600437be80f50ed64308bf51cda200332cf1c80350d6a21a7cf8a5159011582b",
+      "operator_stop_sha256": "7a5b93eebec3f5c0af7f5aee82382e961d43b51c0fe1fd2f06bf0e823d316973",
+      "started_at_unix": 1788769590.555499,
+      "operator_stopped_at_unix": 1788770302.7692285,
+      "process_wall_s_until_operator_stop": 712.2137293815613,
+      "reason": "Stable observed iteration time 10-14 s cannot complete 2000 updates inside the provisional 4 h timeout. Preserve this prefix as throughput diagnostic; launch one complete budget with a 10 h wall limit.",
+      "status": "STOPPED_DIAGNOSTIC_PREFIX"
+    },
+    {
+      "case": "go2_full_train_02",
+      "source_dir": "/data/yuyangliu/isolated/new_world_p2_train/true_RL_Agent/PLAN/2new_world/P2/results/go2_full_train_02",
+      "process_receipt_sha256": "e150c4b76ea0e13a15af2fe50d3fcbb70e1d0e555f2e5cdef12a3fd6d2c36d31",
+      "operator_stop_sha256": "72436519160326358e2c85b0b269cf4047f85e5a5efb81b60309d5b34fe95e36",
+      "started_at_unix": 1788770411.0948546,
+      "operator_stopped_at_unix": 1788773975.8651817,
+      "process_wall_s_until_operator_stop": 3564.770327091217,
+      "reason": "Lab 3 upstream Go2 startup mass randomization/reset/CoM defaults differ from frozen locomotion contract; stop unaligned training before fixing robot adapter",
+      "status": "STOPPED_DIAGNOSTIC_PREFIX"
+    }
+  ],
+  "provider_calls": 0,
+  "initial_diagnostic_estimate_gpu_h": 4,
+  "exhaustive_diagnostic_gpu_h": null
+}

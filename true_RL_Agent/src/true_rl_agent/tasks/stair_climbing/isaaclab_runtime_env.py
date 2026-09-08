@@ -14,6 +14,7 @@ from isaaclab.managers import (
     SceneEntityCfg,
 )
 from isaaclab.utils import configclass
+from true_rl_agent.backends.isaac_lab_arrays import quaternion_wxyz
 
 from true_rl_agent.robots.isaaclab_locomotion import (
     isaaclab_locomotion_runtime_spec,
@@ -109,7 +110,7 @@ class StairEvalTransitionRecorder(RecorderTerm):
             resolved_projection=resolved,
         )
         base_pos_w = kinematic_base.pos_w
-        base_quat_w = kinematic_base.quat_w
+        base_quat_w = quaternion_wxyz(kinematic_base.quat_xyzw)
         common = {
             "joint_pos": robot_data.joint_pos[:, resolved.joint_ids].detach().clone(),
             "episode_length": self._env.episode_length_buf.detach().clone(),

@@ -22,6 +22,7 @@ from true_rl_agent.tasks.stair_climbing.episode_evidence import (  # noqa: E402
 )
 from true_rl_agent.tasks.stair_climbing.isaaclab_execution import (  # noqa: E402
     StairTrainingExecutionResult,
+    _retain_final_training_checkpoint,
 )
 from true_rl_agent.tasks.stair_climbing.phase_d_run import (  # noqa: E402
     build_stair_phase_d_process_event,
@@ -70,6 +71,36 @@ class StairPhaseDArtifactTests(unittest.TestCase):
             self.config,
             project_root=ROOT,
         )
+
+    def test_final_iteration_retention_removes_only_intermediate_checkpoints(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            log_dir = Path(tmp) / "rsl_rl"
+            run_dir = log_dir / "run"
+            run_dir.mkdir(parents=True)
+            checkpoints = []
+            for iteration in (0, 50, 1999):
+                checkpoint = run_dir / f"model_{iteration}.pt"
+                checkpoint.write_bytes(bytes([iteration % 251]) * (iteration + 1))
+                checkpoints.append(checkpoint)
+            unrelated = run_dir / "events.out"
+            unrelated.write_bytes(b"events")
+
+            receipt = _retain_final_training_checkpoint(
+                log_dir,
+                keep=checkpoints[-1],
+            )
+
+            self.assertFalse(checkpoints[0].exists())
+            self.assertFalse(checkpoints[1].exists())
+            self.assertTrue(checkpoints[2].exists())
+            self.assertTrue(unrelated.exists())
+            self.assertEqual(receipt["removed_checkpoint_count"], 2)
+            self.assertEqual(
+                receipt["removed_checkpoint_bytes"],
+                1 + 51,
+            )
 
     def test_fixed_budget_is_consumed_by_every_pilot_artifact(self) -> None:
         self.assertEqual(self.config.train_max_iterations, 2000)

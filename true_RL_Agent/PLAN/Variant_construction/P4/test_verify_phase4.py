@@ -35,24 +35,25 @@ class Phase4VerifierTests(unittest.TestCase):
             with self.assertRaisesRegex(AssertionError, "snapshot hash mismatch"):
                 verifier.verify(path)
 
-    def test_product_source_drift_is_rejected(self) -> None:
-        original = verifier._normalized_text_hash
-
-        def drift_one(path: Path) -> str:
-            if path.name == "generation_session.py":
-                return "0" * 64
-            return original(path)
-
+    def test_product_source_closure_is_historical_provenance(self) -> None:
         with mock.patch.object(
             verifier,
             "_normalized_text_hash",
-            side_effect=drift_one,
+            side_effect=AssertionError("current source bytes must not be read"),
         ):
-            with self.assertRaisesRegex(
-                AssertionError,
-                "product source drift: .*generation_session.py",
-            ):
-                verifier.verify()
+            result = verifier._verify_product_sources(
+                json.loads(verifier.SNAPSHOT_PATH.read_text(encoding="utf-8"))
+            )
+        self.assertEqual(result["identity_semantics"], "historical_provenance")
+
+    def test_malformed_recorded_product_hash_is_rejected(self) -> None:
+        with self.assertRaisesRegex(AssertionError, "recorded product source hash"):
+            verifier._verify_product_sources(
+                {
+                    "product_source_hash_mode": "normalized_lf_sha256",
+                    "product_source_hashes": {"src/example.py": "not-a-hash"},
+                }
+            )
 
 
 if __name__ == "__main__":

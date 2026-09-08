@@ -20,12 +20,12 @@
 | 编号 | 问题 | 严重度 | 何时爆炸 | 是否实测 |
 |---|---|---|---|---|
 | **B1** | `ambiguous_role_target` 规则会挡住 **Stair 自己的 Phase 2 角色集** | **高** | Phase 2 | ✅ 已实测 |
-| **B2** | Push 声明了它**根本不消费**的 `support_effector(2,2)` | **中高** | Extension B (Go2×Push) | ✅ 已实测 |
+| **B2** | Push 声明了它**根本不消费**的 `support_effector(2,2)` | **中高** | Extension A (Go2×Push) | ✅ 已实测 |
 | B3 | Stair 的 `(2,2)` 是第四处"2"，债务记录未点名 requirement 声明 | 中 | Phase 2/5 | — |
 | B4 | EvaluationBinding 未获得 TrainingBinding 那样的 legacy/VNext 分流 | 中 | Phase 3+ | — |
 | B5 | `legacy_training_binding_v1` 无结构性约束，未来 cell 可自行退回 V1 | 低-中 | 任意新 cell | — |
 | B6 | G1-29 的 `articulation_source` 指向**任务环境模块**而非关节体资产 | 低 | Phase 5/Extension | — |
-| B7 | Push 占位标签仍在执行路径上（已记录，但未指派责任 Phase） | 低 | Extension B | — |
+| B7 | Push 占位标签仍在执行路径上（已记录，但未指派责任 Phase） | 低 | Extension A | — |
 
 ---
 
@@ -36,12 +36,12 @@
 | 编号 | 修法 | 我的验证 |
 |---|---|---|
 | **B1** | 引入 `_MUTUALLY_EXCLUSIVE_ROLE_PAIRS`，只有 `support_effector × forbidden_contact` 结构性互斥；全局唯一规则删除 | ✅ 实测：`base+forbidden` 同为 `torso_link` → **supported**；`support+forbidden` 同为双踝 → 拒绝且原因指名两角色（`conflicting_role_target:forbidden_contact:support_effector:<target>`） |
-| **B2** | Push requirements 与 binding 双双只保留 `base`，同时移除 `support_contact` 能力 | ✅ 实测：真实 Go2（4 足）接 Push → **supported**，Extension B 解除阻塞。且 binding 同步清理，未留下 `unrequested_binding_role` |
+| **B2** | Push requirements 与 binding 双双只保留 `base`，同时移除 `support_contact` 能力 | ✅ 实测：真实 Go2（4 足）接 Push → **supported**，Extension A 解除阻塞。且 binding 同步清理，未留下 `unrequested_binding_role` |
 | B3 | 债务表点名 `StairClimbingTaskPlugin.robot_requirements()` 为"这四处属于同一 Phase 2 迁移" | ✅ 验收报告第 95 行 |
 | B4 | 做出显式决定：legacy 保留 base hash（否则改写历史 comparison identity）；**责任归 Phase 3A**；主计划 §3.3 同步改写 | ✅ 计划、实施计划、验收报告三处一致 |
 | B5 | 未采用我建议的白名单（会把任务 ID 写进任务中立编译器、违反其自有边界测试），改为**内容绑定 grant hash**，覆盖 profile/adapter/binding/environment/requirements/base-protocol/contract hashes | ✅ 实测：把合法 grant 原样复制到环境被改过的 cell → `unsupported: legacy_training_binding_v1_grant_mismatch`。**比我的建议更好** |
 | B6 | `articulation_source` 改为 `unitree_rl_lab.assets.robots.unitree:UNITREE_G1_29DOF_CFG` | ✅ 两个 profile 现在同为关节体配置 |
-| B7 | 责任明确归 Extension B，并加门："未完成前不得运行" | ✅ dev log §4.3 + 验收报告第 99 行 |
+| B7 | 责任明确归 Extension A，并加门："未完成前不得运行" | ✅ dev log §4.3 + 验收报告第 99 行 |
 
 **未引入新问题（逐项查过）**：
 
@@ -298,7 +298,7 @@ Stair 被拒是**诚实的**（decoder 确实只会两足，Phase 2 债务）。
 
 ### 为什么值得单独提
 
-计划把 **Extension B（Go2 × Push）** 定为"跨任务复用机器人行"的**强证明**。
+计划把 **Extension A（Go2 × Push）** 定为"跨任务复用机器人行"的**强证明**。
 现在这条路被 Push 自己的一行声明堵死了，而堵它的原因是 requirement 被从 Stair 复制过来，
 没有问"Push 真的需要这个角色吗"。
 
@@ -387,7 +387,7 @@ P0 回执单独哈希过 `unitree_rl_lab/assets/robots/unitree.py`，说明存�
 而真正内容绑定的 `policy_io_schema_hash`（`b9808edd…`）只存在于 manifest 里。
 dev log §4.3 给了充分理由（直接替换会破坏 legacy job/baseline 身份），验收报告 P1-G4 也写明了——
 **这是一个记录在案的决定，不是隐藏的补丁**。但它没有责任 Phase。
-建议指派给 Extension B（届时 Push 本来就要动）。
+建议指派给 Extension A（届时 Push 本来就要动）。
 
 ---
 
@@ -435,7 +435,7 @@ dev log §4.3 给了充分理由（直接替换会破坏 legacy job/baseline 身
 | 优先级 | 项 | 理由 |
 |---|---|---|
 | 1 | **B1** 歧义规则改为互斥角色对 | Phase 2 第一件事就会撞上；现在改只动 compiler + 1 个测试，Phase 2 再改要连带推翻已冻结的行为 |
-| 2 | **B2** 重新判定 Push 是否需要 `support_effector` | 决定 Extension B 能不能走通；且现在改只动一行声明 |
+| 2 | **B2** 重新判定 Push 是否需要 `support_effector` | 决定 Extension A 能不能走通；且现在改只动一行声明 |
 | 3 | B3 债务清单点名 `robot_requirements()` | 一句话，防止 Phase 2 漏改 |
 | 4 | B4 决定 eval 侧要不要同款分流（或修订计划文本） | 让代码与计划一致 |
 | 5 | B5 legacy 白名单约束 | 十行以内 |

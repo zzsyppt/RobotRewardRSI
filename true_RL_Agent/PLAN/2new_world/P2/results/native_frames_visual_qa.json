@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "inspected_recordings": 15,
+  "sampled_images": 45,
+  "new_training_checkpoint_images": "go2_full_checkpoint_native/video/public_dev_seed_{1,2,3}_{first,middle,last}.png",
+  "contact_sheets": [
+    "native_frames_contact_sheet_seed_1.png",
+    "native_frames_contact_sheet_seed_2.png",
+    "native_frames_contact_sheet_seed_3.png"
+  ],
+  "observations": [
+    "Selected robot is visible in the first control-step frame.",
+    "Only the selected clone is visible; geometry remains the actual evaluation geometry.",
+    "First/middle/last frames show motion and no terminal reset teleport.",
+    "G1 falling or contact behavior is retained as recorded; video does not reclassify outcomes."
+  ],
+  "limitation": "Camera is ahead of the robot; stair risers can be occluded by treads. No display-only terrain modification."
+}

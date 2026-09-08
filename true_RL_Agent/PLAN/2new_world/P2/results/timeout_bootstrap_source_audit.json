@@ -1,0 +1,52 @@
+{
+  "old_ppo": {
+    "path": "/data/yuyangliu/envs/isaaclab/lib/python3.11/site-packages/rsl_rl/algorithms/ppo.py",
+    "sha256": "deafc8c947eba4df3e91b393869426cdab8d7b71e05974c3734125d2331d7d1c",
+    "source": "def process_env_step(self, obs, rewards, dones, extras):\n        # update the normalizers\n        self.policy.update_normalization(obs)\n        if self.rnd:\n            self.rnd.update_normalization(obs)\n\n        # Record the rewards and dones\n        # Note: we clone here because later on we bootstrap the rewards based on timeouts\n        self.transition.rewards = rewards.clone()\n        self.transition.dones = dones\n\n        # Compute the intrinsic rewards and add to extrinsic rewards\n        if self.rnd:\n            # Compute the intrinsic rewards\n            self.intrinsic_rewards = self.rnd.get_intrinsic_reward(obs)\n            # Add intrinsic rewards to extrinsic rewards\n            self.transition.rewards += self.intrinsic_rewards\n\n        # Bootstrapping on time outs\n        if \"time_outs\" in extras:\n            self.transition.rewards += self.gamma * torch.squeeze(\n                self.transition.values * extras[\"time_outs\"].unsqueeze(1).to(self.device), 1\n            )\n\n        # record the transition\n        self.storage.add_transitions(self.transition)\n        self.transition.clear()\n        self.policy.reset(dones)"
+  },
+  "new_ppo": {
+    "path": "/data/yuyangliu/envs/isaaclab6_validation/lib/python3.12/site-packages/rsl_rl/algorithms/ppo.py",
+    "sha256": "a2d35e7ad7b884c80b7434e7d2ce785a6da1e18d93c96f1179fbd3a208669f8c",
+    "source": "def process_env_step(\n        self, obs: TensorDict, rewards: torch.Tensor, dones: torch.Tensor, extras: dict[str, torch.Tensor]\n    ) -> None:\n        \"\"\"Record one environment step and update the normalizers.\"\"\"\n        # Update the normalizers\n        self.actor.update_normalization(obs)\n        self.critic.update_normalization(obs)\n        if self.rnd:\n            self.rnd.update_normalization(obs)\n\n        # Record the rewards and dones\n        # Note: We clone here because later on we bootstrap the rewards based on timeouts\n        self.transition.rewards = rewards.clone()\n        self.transition.dones = dones\n\n        # Compute the intrinsic rewards and add to extrinsic rewards\n        if self.rnd:\n            # Compute the intrinsic rewards\n            self.intrinsic_rewards = self.rnd.get_intrinsic_reward(obs)\n            # Add intrinsic rewards to extrinsic rewards\n            self.transition.rewards += self.intrinsic_rewards\n\n        # Bootstrapping on time outs\n        if \"time_outs\" in extras:\n            self.transition.rewards += self.gamma * torch.squeeze(\n                self.transition.values * extras[\"time_outs\"].unsqueeze(1).to(self.device),  # type: ignore\n                1,\n            )\n\n        # Record the transition\n        self.storage.add_transition(self.transition)\n        self.transition.clear()\n        self.actor.reset(dones)\n        self.critic.reset(dones)"
+  },
+  "old_wrapper": {
+    "path": "/data/yuyangliu/vendor/IsaacLab/source/isaaclab_rl/isaaclab_rl/rsl_rl/vecenv_wrapper.py",
+    "sha256": "96fcd3a849a2b0996f16db15b38408b2fed3cc17be201f557b22df735421f1be",
+    "source": "def step(self, actions: torch.Tensor) -> tuple[TensorDict, torch.Tensor, torch.Tensor, dict]:\n        # clip actions\n        if self.clip_actions is not None:\n            actions = torch.clamp(actions, -self.clip_actions, self.clip_actions)\n        # record step information\n        obs_dict, rew, terminated, truncated, extras = self.env.step(actions)\n        # compute dones for compatibility with RSL-RL\n        dones = (terminated | truncated).to(dtype=torch.long)\n        # move time out information to the extras dict\n        # this is only needed for infinite horizon tasks\n        if not self.unwrapped.cfg.is_finite_horizon:\n            extras[\"time_outs\"] = truncated\n        # return the step information\n        return TensorDict(obs_dict, batch_size=[self.num_envs]), rew, dones, extras"
+  },
+  "new_wrapper": {
+    "path": "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab_rl/isaaclab_rl/rsl_rl/vecenv_wrapper.py",
+    "sha256": "931697cd7569d92742a5b351fb60769d09d9f8878204ea1f51ca4b500d2f7305",
+    "source": "def step(self, actions: torch.Tensor) -> tuple[TensorDict, torch.Tensor, torch.Tensor, dict]:\n        # clip actions\n        if self.clip_actions is not None:\n            actions = torch.clamp(actions, -self.clip_actions, self.clip_actions)\n        # record step information\n        obs_dict, rew, terminated, truncated, extras = self.env.step(actions)\n        # compute dones for compatibility with RSL-RL\n        dones = (terminated | truncated).to(dtype=torch.long)\n        # move time out information to the extras dict\n        # this is only needed for infinite horizon tasks\n        if not self.unwrapped.cfg.is_finite_horizon:\n            extras[\"time_outs\"] = truncated\n        # return the step information\n        return TensorDict(obs_dict, batch_size=[self.num_envs]), rew, dones, extras"
+  },
+  "status": "PASS",
+  "timeout_reward_update_ast_identical": true,
+  "scope": "Source comparison of installed PPO timeout reward update and wrapper termination transport; not an old/new optimizer trajectory equivalence claim.",
+  "wrapper_step_ast_identical": true,
+  "train_horizon_configurations": [
+    {
+      "path": "results/environment_cfg_new02/go2_train.json",
+      "is_finite_horizon": false
+    },
+    {
+      "path": "results/environment_cfg_new02/g1_train.json",
+      "is_finite_horizon": false
+    },
+    {
+      "path": "results/environment_cfg_old/go2_train.json",
+      "is_finite_horizon": false
+    },
+    {
+      "path": "results/environment_cfg_old/g1_train.json",
+      "is_finite_horizon": false
+    },
+    {
+      "path": "results/environment_cfg_new/go2_train.json",
+      "is_finite_horizon": false
+    },
+    {
+      "path": "results/environment_cfg_new/g1_train.json",
+      "is_finite_horizon": false
+    }
+  ]
+}

@@ -7,6 +7,7 @@ import math
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Mapping
+from true_rl_agent.backends.isaac_lab_arrays import as_torch, quaternion_wxyz
 
 from true_rl_agent.candidates.artifact import (
     SealedCandidateArtifactRef,
@@ -750,7 +751,7 @@ def roll_pitch(robot_data: Any, rewards: Any) -> tuple[Any, Any, bool]:
     if torch_mod is None or shape_tuple(quat)[-1:] != (4,):
         zero = constant_like(rewards, 0.0)
         return zero, zero, False
-    w, x, y, z = quat[:, 0], quat[:, 1], quat[:, 2], quat[:, 3]
+    w, x, y, z = quaternion_wxyz(quat).unbind(dim=-1)
     roll = torch_mod.atan2(2.0 * (w * x + y * z), 1.0 - 2.0 * (x * x + y * y))
     pitch_arg = torch_mod.clamp(2.0 * (w * y - z * x), -1.0, 1.0)
     return roll, torch_mod.asin(pitch_arg), True
@@ -761,7 +762,7 @@ def projected_gravity_from_quat(robot_data: Any, rewards: Any) -> tuple[Any, boo
     torch_mod = torch_for(quat)
     if torch_mod is None or shape_tuple(quat)[-1:] != (4,):
         return zero_matrix_like(rewards, width=3), False
-    w, x, y, z = quat[:, 0], quat[:, 1], quat[:, 2], quat[:, 3]
+    w, x, y, z = quaternion_wxyz(quat).unbind(dim=-1)
     return torch_mod.stack(
         (
             -2.0 * (x * z - w * y),
@@ -972,7 +973,7 @@ def first_attr(obj: Any, names: tuple[str, ...]) -> Any:
     for name in names:
         value = getattr(obj, name, None)
         if value is not None:
-            return value
+            return as_torch(value)
     return None
 
 

@@ -1,0 +1,174 @@
+{
+  "status": "GO",
+  "checked_at": "2026-09-07T05:08:59.230853+00:00",
+  "scope": "P1 audit follow-up: comparison statistics, deterministic aggregation, execution placement and bounded recovery checks",
+  "disposition": "AUDIT_FOLLOWUP_ZH.md",
+  "tests": [
+    {
+      "label": "Windows 3.12 full regression",
+      "log": "audit_full_regression.log",
+      "tests_run": 1615,
+      "skipped": 31,
+      "duration_seconds": 287.63,
+      "status": "PASS",
+      "log_sha256": "5fa4246cd509bb45feb09a4eb263441edb5c8aff881e65312b8acbbdd842a373"
+    },
+    {
+      "label": "Mixed statistics and targeted boundaries",
+      "log": "audit_mixed_version_tests.log",
+      "tests_run": 57,
+      "skipped": 0,
+      "duration_seconds": 9.862,
+      "status": "PASS",
+      "log_sha256": "f74fee8cd38030eb0321859a4d86f72541f8526f370fb6c6649f5cbd0d5040f8"
+    },
+    {
+      "label": "Final paired one-ULP assertion",
+      "log": "audit_final_confirmation_tests.log",
+      "tests_run": 14,
+      "skipped": 0,
+      "duration_seconds": 2.756,
+      "status": "PASS",
+      "log_sha256": "564a1e78bacf8147e32cdaf52aa8998ee7155f2887d97e6f14f0ea0b93e72873"
+    },
+    {
+      "label": "Linux 3.11 key suite",
+      "log": "audit_linux_py311_tests.log",
+      "tests_run": 250,
+      "skipped": 0,
+      "duration_seconds": 84.065,
+      "status": "PASS",
+      "log_sha256": "77386413c2108f5478f92723be3abdc0e560f68b650c1e27de4d2bf939fd75f6"
+    },
+    {
+      "label": "Linux 3.12 key suite",
+      "log": "audit_linux_py312_tests.log",
+      "tests_run": 250,
+      "skipped": 0,
+      "duration_seconds": 86.916,
+      "status": "PASS",
+      "log_sha256": "e4ffb975d592729d0d87205013b5fe1b880a90dcdc7d60a7c8ac1b1463f2a740"
+    },
+    {
+      "label": "Linux 15-generation candidate-head and final crash/resume",
+      "log": "audit_linux_formal_tests.log",
+      "tests_run": 1,
+      "skipped": 0,
+      "duration_seconds": 835.849,
+      "status": "PASS",
+      "log_sha256": "af36477d80e9a9acdb3f115a3653f73059da003eac87f2910b906ad0f5461484"
+    },
+    {
+      "label": "Windows final-source targeted suite",
+      "log": "audit_final_source_tests.log",
+      "tests_run": 22,
+      "skipped": 0,
+      "duration_seconds": 3.25,
+      "status": "PASS",
+      "log_sha256": "2c4855c986a1abe1eb965a06b1dd002dab61f7e5980a6a40b90678185f688720"
+    },
+    {
+      "label": "Linux 3.11 final-source targeted suite",
+      "log": "audit_final_source_py311_tests.log",
+      "tests_run": 22,
+      "skipped": 0,
+      "duration_seconds": 4.626,
+      "status": "PASS",
+      "log_sha256": "09d20f06ea3a4ccf914f2021a891c2764c183df7fc8196da7883d291d3dd0602"
+    },
+    {
+      "label": "Linux 3.12 final-source targeted suite",
+      "log": "audit_final_source_py312_tests.log",
+      "tests_run": 22,
+      "skipped": 0,
+      "duration_seconds": 4.593,
+      "status": "PASS",
+      "log_sha256": "606983d0d2a804ba62b8c004d7b4dabebdf2b7ccff4c46fa062bd798b3754b56"
+    }
+  ],
+  "source_identity": {
+    "status": "PASS",
+    "source_file_count": 323,
+    "full_regression_source_hash": "c2ce4f9f8fd50002e464ff47f10ea97a243d86efd7ecc51246982c8447516a0e",
+    "final_source_hash": "d0c45575636c7a30d87443069b110e36bd9085ca45641b012ed92d581da784ee",
+    "source_delta": [
+      "src/true_rl_agent/tasks/stair_climbing/phased_evaluation.py"
+    ],
+    "source_delta_verified": "exactly one unused import removed; executable function bodies unchanged",
+    "numeric_identity": "0366825ca7a2cb73ce42694b42d1e1bd38b76aff83310fb200495c89cab69c92",
+    "targeted_log": "audit_final_source_tests.log"
+  },
+  "numeric_identity": "0366825ca7a2cb73ce42694b42d1e1bd38b76aff83310fb200495c89cab69c92",
+  "numeric_records": [
+    "audit_numeric_local.json",
+    "audit_numeric_py311.json",
+    "audit_numeric_py312.json",
+    "audit_final_source_py311.json",
+    "audit_final_source_py312.json"
+  ],
+  "legacy_statistics": {
+    "summary_count": 24,
+    "legacy_mismatch_count": 0,
+    "current_representation_field_differences": 7,
+    "scope": "Stored seed vectors to legacy score_stats only; geometry-specific protocol reconstruction is not claimed",
+    "evidence": "audit_legacy_statistics.json"
+  },
+  "matrix_identity": {
+    "g1": {
+      "resolved_cell_manifest_hash": "dbd79e0074ce64f23ae447d3e50ebcf1997593fe121fa209b4efd61b410c79a1",
+      "ordered_evaluation_suite_hash": "4ee307fe359122671cf4f7056b601135b28679818a9b4bd419f3e7697891ceb7",
+      "cell_variant_id": "stair.g1_37dof.unified_v2",
+      "budget_steps": 196608000,
+      "train_max_iterations": 2000,
+      "train_num_envs": 4096,
+      "seed_counts": [
+        3,
+        5,
+        7
+      ]
+    },
+    "go2": {
+      "resolved_cell_manifest_hash": "193fa9038a6f46539fb71a7e73edc44bdc024be2b899785394b8f82113c91f37",
+      "ordered_evaluation_suite_hash": "f7d744df40eb9708ace9772b6f23f366090a6d312fcfef93e54e85cd4e0dd18b",
+      "cell_variant_id": "stair.go2_12dof.unified_v2",
+      "budget_steps": 196608000,
+      "train_max_iterations": 2000,
+      "train_num_envs": 4096,
+      "seed_counts": [
+        3,
+        5,
+        7
+      ]
+    }
+  },
+  "protected_artifacts": {
+    "status": "PASS",
+    "checked_at": "2026-09-07T04:59:44.830373+00:00",
+    "formal_checkpoint_stat_count": 71,
+    "formal_evidence_hash_count": 801,
+    "reference_artifact_hash_count": 6,
+    "changes": [],
+    "production_files_written": 0,
+    "checkpoint_files_deleted": 0
+  },
+  "static_checks": {
+    "ruff_rules": [
+      "F821",
+      "F823",
+      "F401"
+    ],
+    "status": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "limits": [
+    "Mixed-version test uses actual frozen P5 summaries and real phase/journal/bootstrap/screen/selector; verified Genesis locator is supplied by fixture. It does not qualify old P5 Genesis under a new runtime.",
+    "Formal long test uses fake runner: generation 1 paired lanes and acceptance; generations 2-15 authoring-incomplete closure; final hard-crash recovery and terminal audit.",
+    "All major tests ran against full_regression_source_hash. Final executable source differs by exactly one unused import removal; affected tests and numeric/source identity were rerun on all three environments.",
+    "Initial failed targeted log is retained. It is superseded by listed successful runs.",
+    "No actual RL training, provider, evaluation or video workload; production checkout not deployed.",
+    "No checkpoint or frozen evidence deleted or rewritten. Temporary source archive and isolated server validation copy retained.",
+    "P2 backend/reference qualification and P4 generic matrix orchestration remain separate planned work."
+  ],
+  "server_isolation_root": "/data/yuyangliu/AGENT/.tmp/p1_audit_fix_20260907",
+  "previous_validation_record": "validation_results.json"
+}

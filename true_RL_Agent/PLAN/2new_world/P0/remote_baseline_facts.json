@@ -1,0 +1,119 @@
+{
+  "formal": {
+    "session_id": "formal-go2-stair-15round-20260901-c6ab8ba",
+    "root": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/formal_go2_stair_15round_20260901_c6ab8ba",
+    "ledger_rows": 15,
+    "accepted_head": "7c2756aeb0ea21d1db378779d4db5fb3bade4081bd2e016302d889f750448eb9",
+    "accepted_candidate_id": "stair_swing_foot_level_sweep_penalty_v1",
+    "artifacts": {
+      "/data/yuyangliu/AGENT/true_RL_Agent/outputs/formal_go2_stair_15round_20260901_c6ab8ba/ledger.jsonl": {
+        "exists": true,
+        "bytes": 2642317,
+        "sha256": "052a71e7c438f80789fb22a2fcdf5b921dd864ed4c2cd35019bb82097f900845"
+      },
+      "/data/yuyangliu/AGENT/true_RL_Agent/outputs/formal_go2_stair_15round_20260901_c6ab8ba/generation_session_report.json": {
+        "exists": true,
+        "bytes": 868429,
+        "sha256": "4ad1e53cc72afa0a9fe20ab69a8b5bc41e4ed9249efda4a7958477eb0fc150ca"
+      },
+      "/data/yuyangliu/AGENT/true_RL_Agent/outputs/formal_go2_stair_15round_20260901_c6ab8ba/final_confirmation/result.json": {
+        "exists": true,
+        "bytes": 229267,
+        "sha256": "046582e2665e9c301cc88e6cc336d40f8e7bc85637d49f4a801006bc06e99b42"
+      },
+      "/data/yuyangliu/AGENT/true_RL_Agent/outputs/formal_go2_stair_15round_20260901_c6ab8ba/session_genesis.json": {
+        "exists": true,
+        "bytes": 176590,
+        "sha256": "f54b71412c4bda0fe54ee3f9e63780852b76d4e7d51cf9d1ca784bbf1afb8ee7"
+      },
+      "/data/yuyangliu/AGENT/true_RL_Agent/outputs/formal_go2_stair_15round_20260901_c6ab8ba/runner/formal-go2-stair-15round-20260901-c6ab8ba-generation-008-lane-a/checkpoints/best.pt": {
+        "exists": true,
+        "bytes": 6882293,
+        "sha256": "bcd8de3a9d0e6e6a6c84b8c7833dc4a1b0ed697758ddee6f9c9eb31416a2f93c"
+      },
+      "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p5_go2_derived_reference_ef6826e/runner/p5-go2-derived-reference-ef6826e/checkpoints/best.pt": {
+        "exists": true,
+        "bytes": 6882293,
+        "sha256": "fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729"
+      },
+      "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/formal_terminal_completion_audit_17e819d.json": {
+        "exists": true,
+        "bytes": 62218,
+        "sha256": "1b6e258faf2f874bce28e58190caf16440f8445b07ad8c19d2ca2978dc92d384"
+      }
+    }
+  },
+  "g1_stair_reference": {
+    "genesis": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/phase4_unified_validation_5a30129_20260829/session_genesis.json",
+    "sha256": "09a771de0b14b1666d53f20615e42d9095f6846c489e1c60164a53162d79e05c",
+    "refs": [
+      {
+        "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/phase4_unified_validation_5a30129_20260829/reference_eval_artifact.json",
+        "exists": true
+      },
+      {
+        "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/phase4_unified_validation_5a30129_20260829/runner/phase4-unified-validation-5a30129-20260829/checkpoints/best.pt",
+        "exists": true
+      }
+    ]
+  },
+  "production": {
+    "executable": "/data/yuyangliu/envs/isaaclab/bin/python",
+    "returncode": 0,
+    "versions": {
+      "python": "3.11.15 | packaged by conda-forge | (main, Jun 11 2026, 03:34:02) [GCC 14.3.0]",
+      "packages": {
+        "isaacsim": "5.1.0.0",
+        "isaaclab": "0.47.2",
+        "isaaclab-rl": "0.4.4",
+        "rsl-rl-lib": "3.0.1",
+        "torch": "2.7.0+cu128",
+        "gymnasium": "1.2.0"
+      }
+    }
+  },
+  "video_target": {
+    "executable": "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+    "returncode": 0,
+    "versions": {
+      "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "packages": {
+        "isaacsim": "6.0.1.0",
+        "isaaclab": "6.1.14",
+        "isaaclab-rl": "0.5.5",
+        "rsl-rl-lib": "5.0.1",
+        "torch": "2.11.0+cu128",
+        "gymnasium": "1.2.1"
+      }
+    }
+  },
+  "production_entrypoints": [
+    {
+      "script": "run_loop.py",
+      "exit_code": 0,
+      "stdout_bytes": 5056,
+      "stderr": ""
+    },
+    {
+      "script": "run_stair_generation_session.py",
+      "exit_code": 0,
+      "stdout_bytes": 4079,
+      "stderr": ""
+    },
+    {
+      "script": "launch_stair_generation_session.py",
+      "exit_code": 0,
+      "stdout_bytes": 1034,
+      "stderr": ""
+    },
+    {
+      "script": "create_stair_reference_genesis.py",
+      "exit_code": 0,
+      "stdout_bytes": 938,
+      "stderr": ""
+    }
+  ],
+  "source_commit": "0773a9a815e5a0ccd151f351fca0e369f157fa05",
+  "gpu_status": "0, GPU-06661cdd-1a0e-904e-a2e3-705eda5fb65b, 7 MiB, 0 %\n1, GPU-8cd998f2-d42e-394e-7aae-a6701bb9b187, 6 MiB, 0 %",
+  "gpu_processes": ""
+}

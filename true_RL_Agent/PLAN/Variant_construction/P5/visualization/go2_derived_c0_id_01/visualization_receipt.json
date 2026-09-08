@@ -1,0 +1,103 @@
+{
+  "cell_id": "public_dev.c0_id_01",
+  "checkpoint_hash": "sha256:fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729",
+  "render": {
+    "backend": "pybullet_tiny_renderer",
+    "episode_identity_overlaid": true,
+    "first_episode_outcome_overlaid": true,
+    "frame_mapping": "one_encoded_frame_per_control_step",
+    "joint_aliases_used": {},
+    "mapped_joint_count": 12,
+    "physics_recomputed": false,
+    "rendered_frame_count": 600,
+    "reset_behavior": "terminal_frame_then_labeled_new_episode",
+    "robot_colors_rgba": [
+      [
+        0.16,
+        0.43,
+        0.78,
+        1.0
+      ],
+      [
+        0.86,
+        0.27,
+        0.2,
+        1.0
+      ],
+      [
+        0.16,
+        0.58,
+        0.34,
+        1.0
+      ]
+    ],
+    "robot_count": 3,
+    "robot_urdf": "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_video_assets_p5/robots/go2_description/urdf/go2_description.urdf",
+    "robot_urdf_checksum": "sha256:252809b6d3ca5c3b66a0be01173441966e837f8f375e76e4f5b35d28f4fa31d6",
+    "source": "exact_task_owned_pre_reset_isaac_state_trajectory",
+    "terminal_states_preserved": true,
+    "tracked_env_indices": [
+      0,
+      1,
+      2
+    ],
+    "transition_recorder_schema_version": "true_rl_agent.task.stair_climbing.transition.v2",
+    "unmapped_visual_only_hand_joints": [],
+    "visual_lane_offsets_m": [
+      -1.2,
+      0.0,
+      1.2
+    ]
+  },
+  "schema_version": "true_rl_agent.variant_construction.phase5_go2_visualization.v1",
+  "status": "pass",
+  "tracked_outcomes": [
+    {
+      "bin_id": "public_dev.c0_id_01",
+      "diagnostic_flags": [
+        "base_orientation_instability_detected",
+        "slip_detected",
+        "insufficient_clearance_detected",
+        "off_course_detected"
+      ],
+      "episode_steps": 600,
+      "evaluation_cell_id": "public_dev.c0_id_01",
+      "max_progress_m": 9.2280736,
+      "primary_reason": "fall",
+      "progress_fraction": 1.0,
+      "success": false
+    },
+    {
+      "bin_id": "public_dev.c0_id_01",
+      "diagnostic_flags": [
+        "slip_detected",
+        "insufficient_clearance_detected",
+        "off_course_detected"
+      ],
+      "episode_steps": 497,
+      "evaluation_cell_id": "public_dev.c0_id_01",
+      "max_progress_m": 7.32928896,
+      "primary_reason": "forbidden_contact",
+      "progress_fraction": 1.0,
+      "success": false
+    },
+    {
+      "bin_id": "public_dev.c0_id_01",
+      "diagnostic_flags": [
+        "base_orientation_instability_detected",
+        "slip_detected",
+        "insufficient_clearance_detected",
+        "off_course_detected"
+      ],
+      "episode_steps": 600,
+      "evaluation_cell_id": "public_dev.c0_id_01",
+      "max_progress_m": 9.13975573,
+      "primary_reason": "fall",
+      "progress_fraction": 1.0,
+      "success": false
+    }
+  ],
+  "trajectory_hash": "sha256:b1a2400654f998dc4e9294f94b61dfac0e11a67938106eefff910a6e3d329884",
+  "video_filename": "go2-derived-c0-id-01.mp4",
+  "video_hash": "sha256:1674633a1c4ac1b2854cf12ff110b8e0c30a66cfce77e0f88542158fbb18bfff"
+}

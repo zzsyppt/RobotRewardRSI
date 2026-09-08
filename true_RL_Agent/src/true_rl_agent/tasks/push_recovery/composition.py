@@ -24,6 +24,7 @@ from true_rl_agent.evaluation.binding import EvaluationBindingV1
 from true_rl_agent.policy import PolicyInitialization
 from true_rl_agent.runner.specs import require_execution_device
 from true_rl_agent.runner.subprocess_runner import SubprocessRunner
+from true_rl_agent.robots.rsl_rl_runtime import rsl_rl_agent_configuration
 from true_rl_agent.tasks.push_recovery.candidate_failure import (
     PUSH_CANDIDATE_FAILURE_CONTRACT,
 )
@@ -41,7 +42,9 @@ PUSH_RECOVERY_ROBOT = "unitree_g1"
 PUSH_RECOVERY_OBSERVATION_SCHEMA_HASH = "push_recovery_obs_v1"
 PUSH_RECOVERY_ACTION_SCHEMA_HASH = "unitree_actions_v1"
 PUSH_RECOVERY_POLICY_ARCHITECTURE = "rsl_rl_ppo_mlp"
-DEFAULT_ISAAC_PYTHON = "/data/yuyangliu/envs/isaaclab/bin/python"
+from true_rl_agent.backends.isaac_lab_runtime import DEFAULT_ISAAC_LAB_PYTHON
+
+DEFAULT_ISAAC_PYTHON = DEFAULT_ISAAC_LAB_PYTHON
 DEFAULT_TRAIN_ENTRYPOINT = "scripts/isaaclab_rsl_rl_train.py"
 DEFAULT_EVAL_ENTRYPOINT = "scripts/isaaclab_rsl_rl_eval.py"
 DEFAULT_EXECUTION_DEVICE = "cuda:0"
@@ -222,6 +225,18 @@ class PushRecoveryCompositionProvider(TaskCompositionProvider):
                 **composition_config.to_task_defaults(),
                 "cell_variant_id": resolved_cell_manifest.cell_variant_id,
             },
+            scientific_parameters={
+                "training_agent_configuration_hash": backend_config.training_agent_configuration.agent_configuration_hash,
+            },
+            execution_placement={
+                "project_root": str(context.project_root.resolve()),
+                "output_dir": str(context.output_dir.resolve()),
+                "isaac_python": composition_config.isaac_python,
+                "execution_device": composition_config.execution_device,
+                "runner_timeout_s": composition_config.runner_timeout_s,
+                "train_entrypoint": backend_config.train_entrypoint,
+                "eval_entrypoint": backend_config.eval_entrypoint,
+            },
             resolved_cell_manifest=resolved_cell_manifest,
         )
 
@@ -292,8 +307,8 @@ def _build_push_backend_config(
         train_profile=task_config.train_profile,
         eval_profile=task_config.eval_profile,
         train_num_envs=task_config.train_num_envs,
-        training_agent_configuration=(
-            task_config.training_agent_configuration()
+        training_agent_configuration=rsl_rl_agent_configuration(
+            resolved_cell_manifest.runtime_adapter["runtime_adapter_id"]
         ),
         train_max_iterations=task_config.train_max_iterations,
         train_steps_per_iteration=task_config.train_steps_per_iteration,

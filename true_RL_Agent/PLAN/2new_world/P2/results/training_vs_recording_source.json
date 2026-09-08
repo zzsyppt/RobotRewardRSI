@@ -1,0 +1,58 @@
+{
+  "status": "PASS",
+  "frozen_source_unmodified": true,
+  "file_count": 326,
+  "release_source_differences": [
+    {
+      "path": "src/true_rl_agent/runner/native_video.py",
+      "training_sha256": "90c04e68b1dd890d5e63014ed1242160e9ddfc3ce6eec46e650b46442ef900ad",
+      "evaluation_sha256": "df679b88307363f8e361d7caf723f00e30c21efa7e7f179c926d29dfc5f4bc47",
+      "changed_top_level_symbols": [
+        "NativeVideoRecorder",
+        "_encode_frames"
+      ]
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/isaaclab_execution.py",
+      "training_sha256": "6aa71a58ea0d30a31fa20893fcf86ff5eb17a9e793dcd433fe93a88bc8371682",
+      "evaluation_sha256": "b706ac233cf6bad57760c643df4e7d71364db792d0dd90d7171e3b386c689e32",
+      "changed_top_level_symbols": [
+        "execute_stair_evaluation"
+      ]
+    }
+  ],
+  "retired_probe_override": "Restored the two unused legacy terrain color_scheme overrides; active unified train/eval use their own terrain generators.",
+  "training_functions_unchanged": true,
+  "superseded_moviepy_source_differences": [
+    {
+      "path": "src/true_rl_agent/runner/native_video.py",
+      "training_sha256": "90c04e68b1dd890d5e63014ed1242160e9ddfc3ce6eec46e650b46442ef900ad",
+      "evaluation_sha256": "9b0e449aa4d221189779af9593917786d5c26727e21aeb71ee7b3a4894d48a85",
+      "changed_top_level_symbols": [
+        "NativeVideoRecorder"
+      ]
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/isaaclab_terrain.py",
+      "training_sha256": "cccdfcf6119fefef0415c93974401bbd430fb4853b08d2552cd179acc499bfb4",
+      "evaluation_sha256": "63dbfd5d43e1b97fc9105ad907852162484d1004de6186749e35fb6338abf00c",
+      "changed_top_level_symbols": [
+        "build_eval_terrain_generator",
+        "build_train_terrain_generator"
+      ]
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/isaaclab_execution.py",
+      "training_sha256": "6aa71a58ea0d30a31fa20893fcf86ff5eb17a9e793dcd433fe93a88bc8371682",
+      "evaluation_sha256": "b706ac233cf6bad57760c643df4e7d71364db792d0dd90d7171e3b386c689e32",
+      "changed_top_level_symbols": [
+        "execute_stair_evaluation"
+      ]
+    }
+  ],
+  "training_function_ast_hashes": {
+    "execute_stair_training": "3f9e5c1ee1890c9c5ec36c5114c14ac167f2965edec5a0ffe8fe1e22006f675e",
+    "execute_stair_training_smoke": "d695326a7fdcfe10eed785abf56aec81fca7d4b557fb60d7de853bbc6a002865",
+    "_execute_stair_training": "e7ce06af65d3025bcf4b691a84cd5e7dd774812ce6273abbc3e3045e3569de31"
+  }
+}

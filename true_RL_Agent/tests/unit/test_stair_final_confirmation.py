@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import json
+import math
 import tempfile
 import unittest
 from pathlib import Path
@@ -12,6 +13,7 @@ from true_rl_agent.composition.base import (
 )
 from true_rl_agent.agent_core.generation_lifecycle import GenerationTerminalBinding
 from true_rl_agent.evaluation.binding import canonical_json_hash
+from true_rl_agent.json_contract import canonical_json_bytes
 from true_rl_agent.tasks.stair_climbing.composition import (
     StairClimbingCompositionProvider,
 )
@@ -23,6 +25,7 @@ from true_rl_agent.tasks.stair_climbing.final_confirmation import (
     MAX_STAIR_FINAL_CONFIRMATION_PLAN_BYTES,
     MAX_STAIR_FINAL_CONFIRMATION_RESERVATION_BYTES,
     MAX_STAIR_FINAL_CONFIRMATION_RESULT_BYTES,
+    STAIR_FINAL_CONFIRMATION_FORMAL_SESSION_MODE,
     STAIR_FINAL_CONFIRMATION_PLAN_V2_SCHEMA_VERSION,
     STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS,
     STAIR_FINAL_CONFIRMATION_REQUIRED_ROUNDS,
@@ -68,11 +71,18 @@ from true_rl_agent.tasks.stair_climbing.seed_policy import (
 from true_rl_agent.tasks.stair_climbing.session_start import (
     STAIR_REFERENCE_START_MODE,
 )
+from true_rl_agent.tasks.stair_climbing.row_catalog import (
+    STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+)
 from true_rl_agent.tasks.stair_climbing.training_distribution import (
     STAIR_EXECUTION_SOURCE_PREFLIGHT_SCHEMA_VERSION,
     stair_training_distribution_upstream_source_evidence,
 )
 from true_rl_agent.runner.specs import GpuProcessBinding
+from true_rl_agent.tasks.stair_climbing.unified_scoring import (
+    build_reference_objective_family_mask,
+    build_unified_stair_summary,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 SHA = "a" * 64
@@ -91,6 +101,13 @@ class StairFinalConfirmationTests(unittest.TestCase):
             stair_training_distribution_upstream_source_evidence(
                 cls.config.protocol_v2.runner_owned_training_distribution
             )["source_manifest_hash"]
+        )
+        cls.go2_config = StairClimbingTaskConfig.defaults(
+            ROOT
+            / "configs"
+            / "tasks"
+            / "stair_go2_12dof_unified_protocol_v2.json",
+            cell_variant_id=STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
         )
 
     def test_plan_is_exact_hashed_and_contains_no_raw_seed_values(self) -> None:
@@ -392,6 +409,153 @@ class StairFinalConfirmationTests(unittest.TestCase):
                 final_summary=final_summary,
             )
 
+    def test_go2_unified_generation_result_uses_frozen_objective_mask(self) -> None:
+        config = self.go2_config
+        plan = build_stair_generation_final_confirmation_plan(
+            session_id="stair-go2-generation-result-test",
+            config=config,
+        )
+        self.assertEqual(
+            plan.evaluation_profile_hash,
+            config.ordered_evaluation_suite.cohort_hash("sealed_validation"),
+        )
+        self.assertEqual(
+            plan.cell_count,
+            len(
+                config.ordered_evaluation_suite.cells_for_cohort(
+                    "sealed_validation"
+                )
+            ),
+        )
+        self.assertEqual(
+            plan.to_dict()["statistics"]["unit"],
+            "one_frozen_objective_mask_j_primary_score_per_seed",
+        )
+        reservation = self._generation_reservation_v2(plan)
+        mask = build_reference_objective_family_mask(
+            suite=config.ordered_evaluation_suite,
+            public_accept_summary=self._uniform_unified_summary(
+                config=config,
+                split="public_accept",
+                successes_per_cell=2,
+            ),
+        )
+        genesis_summary = self._uniform_unified_summary(
+            config=config,
+            split="sealed_validation",
+            successes_per_cell=1,
+        )
+        final_summary = self._uniform_unified_summary(
+            config=config,
+            split="sealed_validation",
+            successes_per_cell=2,
+        )
+        genesis_execution = StairFinalConfirmationPhaseExecution(
+            role="genesis",
+            job_id=reservation.genesis_job_id,
+            eval_phase_spec_hash=reservation.genesis_eval_phase_spec_hash,
+            evaluation_plan_hash=reservation.genesis_evaluation_plan_hash,
+            attempt_result_payload_hash="1" * 64,
+            receipt_checksum="sha256:" + "2" * 64,
+            resource_binding_hash=(
+                reservation.gpu_process_binding.resource_binding_hash
+            ),
+            checkpoint_hash=reservation.genesis_checkpoint_hash,
+            generalization_summary_hash=canonical_json_hash(genesis_summary),
+        )
+        final_execution = StairFinalConfirmationPhaseExecution(
+            role="final",
+            job_id=reservation.final_job_id,
+            eval_phase_spec_hash=reservation.final_eval_phase_spec_hash,
+            evaluation_plan_hash=reservation.final_evaluation_plan_hash,
+            attempt_result_payload_hash="3" * 64,
+            receipt_checksum="sha256:" + "4" * 64,
+            resource_binding_hash=(
+                reservation.gpu_process_binding.resource_binding_hash
+            ),
+            checkpoint_hash=reservation.final_checkpoint_hash,
+            generalization_summary_hash=canonical_json_hash(final_summary),
+        )
+        result = build_stair_generation_final_confirmation_result(
+            plan=plan,
+            reservation=reservation,
+            config=config,
+            genesis_execution=genesis_execution,
+            final_execution=final_execution,
+            genesis_summary=genesis_summary,
+            final_summary=final_summary,
+            objective_family_mask=mask,
+        )
+        self.assertEqual(len(result.paired_seed_deltas), 7)
+        self.assertGreater(result.paired_mean, 0.0)
+        self.assertLess(
+            len(canonical_json_bytes(result.to_dict())),
+            MAX_STAIR_FINAL_CONFIRMATION_RESULT_BYTES,
+        )
+        self.assertEqual(
+            StairFinalConfirmationResultV2.from_mapping(
+                result.to_dict(),
+                plan=plan,
+                reservation=reservation,
+                config=config,
+                objective_family_mask=mask,
+            ),
+            result,
+        )
+        with self.assertRaisesRegex(ValueError, "frozen objective mask"):
+            StairFinalConfirmationResultV2.from_mapping(
+                result.to_dict(),
+                plan=plan,
+                reservation=reservation,
+                config=config,
+            )
+        for field in ("mean", "standard_error"):
+            tampered = copy.deepcopy(result.to_dict())
+            tampered["paired"][field] = math.nextafter(
+                tampered["paired"][field], math.inf
+            )
+            tampered["result_hash"] = canonical_json_hash(
+                {key: value for key, value in tampered.items() if key != "result_hash"}
+            )
+            with self.subTest(field=field), self.assertRaisesRegex(
+                ValueError, "canonical paired statistics mismatch"
+            ):
+                StairFinalConfirmationResultV2.from_mapping(
+                    tampered, plan=plan, reservation=reservation,
+                    config=config, objective_family_mask=mask,
+                )
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp) / "formal-go2"
+            stored_plan, _ = create_stair_generation_final_confirmation_plan(
+                output_dir=output_dir,
+                session_id=plan.session_id,
+                config=config,
+            )
+            self.assertEqual(stored_plan, plan)
+            create_stair_generation_final_confirmation_reservation(
+                output_dir=output_dir,
+                plan=plan,
+                reservation=reservation,
+            )
+            path = write_stair_generation_final_confirmation_result(
+                output_dir=output_dir,
+                result=result,
+                plan=plan,
+                reservation=reservation,
+                config=config,
+                objective_family_mask=mask,
+            )
+            self.assertEqual(
+                load_stair_generation_final_confirmation_result(
+                    path,
+                    plan=plan,
+                    reservation=reservation,
+                    config=config,
+                    objective_family_mask=mask,
+                ),
+                result,
+            )
+
     def test_plan_is_create_once_and_must_precede_genesis_state(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = Path(tmp) / "fresh"
@@ -471,6 +635,9 @@ class StairFinalConfirmationTests(unittest.TestCase):
                 self.assertFalse(all_values[left] & all_values[right])
 
     def test_live_requires_plan_but_nonlive_composition_does_not(self) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        output_root = Path(temporary.name)
         provider = StairClimbingCompositionProvider()
         values = dict(provider.cli_defaults())
         values["start_mode"] = STAIR_REFERENCE_START_MODE
@@ -478,7 +645,7 @@ class StairFinalConfirmationTests(unittest.TestCase):
             values=values,
             context=TaskCompositionContext(
                 project_root=ROOT,
-                output_dir=ROOT / "outputs" / "final-confirmation-dry-test",
+                output_dir=output_root / "dry",
             ),
         )
         self.assertNotIn(
@@ -497,9 +664,96 @@ class StairFinalConfirmationTests(unittest.TestCase):
                 values=values,
                 context=TaskCompositionContext(
                     project_root=ROOT,
-                    output_dir=ROOT / "outputs" / "final-confirmation-live-test",
+                    output_dir=output_root / "live",
                 ),
             )
+
+    def test_formal_plan_does_not_pollute_reusable_runtime_snapshot(self) -> None:
+        provider = StairClimbingCompositionProvider()
+        reference_values = dict(provider.cli_defaults())
+        reference_values["start_mode"] = STAIR_REFERENCE_START_MODE
+        reference_values["cell_variant_id"] = (
+            STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            reference_composition = provider.resolve(
+                values=reference_values,
+                context=TaskCompositionContext(
+                    project_root=ROOT,
+                    output_dir=root / "reference",
+                ),
+            )
+            _, plan_path = create_stair_generation_final_confirmation_plan(
+                output_dir=root / "formal",
+                session_id="stair-formal-import",
+                config=reference_composition.task_plugin.config,
+            )
+            formal_values = {
+                **reference_values,
+                "mode": STAIR_FINAL_CONFIRMATION_FORMAL_SESSION_MODE,
+                "session_id": "stair-formal-import",
+                "max_generations": STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS,
+                "final_confirmation_plan": plan_path,
+            }
+            formal_composition = provider.resolve(
+                values=formal_values,
+                context=TaskCompositionContext(
+                    project_root=ROOT,
+                    output_dir=root / "formal",
+                ),
+            )
+
+        self.assertNotIn(
+            "final_confirmation_precommit", formal_composition.task_defaults
+        )
+        self.assertEqual(
+            formal_composition.genesis_identity_snapshot()["scientific"],
+            reference_composition.genesis_identity_snapshot()["scientific"],
+        )
+
+    def test_width_one_live_plan_remains_directly_genesis_bound(self) -> None:
+        provider = StairClimbingCompositionProvider()
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp).resolve()
+            base_values = dict(provider.cli_defaults())
+            base_values["start_mode"] = STAIR_REFERENCE_START_MODE
+            base_composition = provider.resolve(
+                values=base_values,
+                context=TaskCompositionContext(
+                    project_root=ROOT,
+                    output_dir=output_dir / "base",
+                ),
+            )
+            _, plan_path = create_stair_final_confirmation_plan(
+                output_dir=output_dir,
+                session_id="stair-live-legacy-binding",
+                config=base_composition.task_plugin.config,
+            )
+            values = {
+                **base_values,
+                "mode": "live",
+                "rounds": STAIR_FINAL_CONFIRMATION_REQUIRED_ROUNDS,
+                "session_id": "stair-live-legacy-binding",
+                "final_confirmation_plan": plan_path,
+            }
+            composition = provider.resolve(
+                values=values,
+                context=TaskCompositionContext(
+                    project_root=ROOT,
+                    output_dir=output_dir,
+                ),
+            )
+            expected_commitment = load_stair_final_confirmation_plan(
+                plan_path,
+                expected_session_id="stair-live-legacy-binding",
+                expected_config=base_composition.task_plugin.config,
+            ).genesis_commitment()
+
+        self.assertEqual(
+            composition.task_defaults["final_confirmation_precommit"],
+            expected_commitment,
+        )
 
     def test_reservation_is_fail_closed_single_use_and_result_is_non_authoritative(self) -> None:
         plan = build_stair_final_confirmation_plan(
@@ -919,6 +1173,50 @@ class StairFinalConfirmationTests(unittest.TestCase):
             semantics=self.config.evaluation_semantics,
             evaluation_protocol=self.config.evaluation_protocol(),
             split="sealed_validation",
+            per_seed_outcomes=per_seed,
+        )
+
+    @staticmethod
+    def _uniform_unified_summary(
+        *,
+        config: StairClimbingTaskConfig,
+        split: str,
+        successes_per_cell: int,
+    ) -> dict[str, object]:
+        suite = config.ordered_evaluation_suite
+        seed_count = suite.seed_count(split)
+        per_seed = []
+        for _ in range(seed_count):
+            occurrences: dict[str, int] = {}
+            outcomes = []
+            for env_index, cell in enumerate(suite.private_cell_assignment(split)):
+                occurrence = occurrences.get(cell.cell_id, 0)
+                occurrences[cell.cell_id] = occurrence + 1
+                success = occurrence < successes_per_cell
+                fraction = 1.0 if success else 0.1
+                outcomes.append(
+                    StairEpisodeOutcome(
+                        env_index=env_index,
+                        bin_id=cell.cell_id,
+                        episode_steps=cell.episode_horizon_control_steps,
+                        primary_reason="success" if success else "timeout",
+                        success=success,
+                        diagnostic_flags=(
+                            ("first_valid_top_arrival_achieved",)
+                            if success
+                            else ("goal_not_reached_detected",)
+                        ),
+                        max_progress_m=fraction * cell.progress_goal_m,
+                        progress_fraction=fraction,
+                        active_terminal_terms=() if success else ("time_out",),
+                        evaluation_cell_id=cell.cell_id,
+                    )
+                )
+            per_seed.append(outcomes)
+        return build_unified_stair_summary(
+            suite=suite,
+            semantics=config.evaluation_semantics,
+            split=split,
             per_seed_outcomes=per_seed,
         )
 

@@ -204,6 +204,7 @@ def main() -> int:
             runner,
             execution_contract=execution,
         )
+        effective_agent["constructed_learner"] = config.training_agent_configuration().verify_runner(runner)
         effective_agent["resolved_observation_groups"] = (
             resolved_observation_groups
         )

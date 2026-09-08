@@ -497,18 +497,7 @@ def project_generation_public_history_record(
         acceptance_protocol=acceptance_protocol,
         expected_parent=expected_parent,
     )
-    public_trials: list[dict[str, Any]] = []
-    for raw_trial in record["trials"]:
-        trial = _public_copy(raw_trial)
-        if trial.get("trial_status") != "not_started":
-            _evidence, lane_intent = _load_bound_authoring_evidence(
-                raw_trial,
-                private_artifacts=record.get("private_artifacts"),
-            )
-            trial["lane_intent"] = lane_intent
-        else:
-            trial["lane_intent"] = None
-        public_trials.append(trial)
+    selection_screens_by_trial: dict[str, dict[str, Any]] = {}
     guard_reference = None
     if record.get("selection") is not None:
         selection_ref = _find_private_generation_receipt(
@@ -521,7 +510,34 @@ def project_generation_public_history_record(
             selection_ref,
             manifest=load_bound_generation_manifest(record),
         )
+        for raw_screen in loaded_selection.screens:
+            if not isinstance(raw_screen, Mapping):
+                raise ValueError("generation selection screen is invalid")
+            trial_id = raw_screen.get("trial_id")
+            if not isinstance(trial_id, str) or not trial_id:
+                raise ValueError("generation selection screen trial_id is invalid")
+            if trial_id in selection_screens_by_trial:
+                raise ValueError("generation selection screen trial_id is not unique")
+            selection_screens_by_trial[trial_id] = _public_copy(raw_screen)
         guard_reference = _public_copy(loaded_selection.guard_reference)
+    public_trials: list[dict[str, Any]] = []
+    for raw_trial in record["trials"]:
+        trial = _public_copy(raw_trial)
+        if trial.get("trial_status") != "not_started":
+            _evidence, lane_intent = _load_bound_authoring_evidence(
+                raw_trial,
+                private_artifacts=record.get("private_artifacts"),
+            )
+            trial["lane_intent"] = lane_intent
+        else:
+            trial["lane_intent"] = None
+        selection_screen = selection_screens_by_trial.get(str(trial.get("trial_id")))
+        if selection_screen is not None:
+            # The generation layer carries the task-owned public screen without
+            # interpreting its semantics. Task prompt/memory adapters decide the
+            # bounded public projection they consume.
+            trial["selection_screen"] = selection_screen
+        public_trials.append(trial)
     generation_summary = {
         "schema_version": GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION,
         "generation_id": record["generation_id"],
@@ -1322,7 +1338,7 @@ def _validate_status_relationships(
     train_count = sum(item["train"] is not None for item in trials)
     dev_count = sum(item["public_dev"] is not None for item in trials)
     accept_count = sum(item["public_accept"] is not None for item in trials)
-    if train_count > 2 or accept_count > 2:
+    if train_count > GENERATION_WIDTH or accept_count > GENERATION_WIDTH:
         raise ValueError("generation execution count exceeds fixed width")
     if statuses == ["candidate_failed", "not_started"]:
         expected_outcome = "paired_authoring_incomplete"
@@ -1355,11 +1371,16 @@ def _validate_status_relationships(
         ):
             raise ValueError("generation selected trial evidence is incomplete")
         for item in trials:
-            if item is not selected and item["trial_status"] not in {
+            if item is selected:
+                continue
+            if item["trial_status"] not in {
                 "qualified_not_selected",
                 "candidate_failed",
             }:
                 raise ValueError("generation nonselected evaluated trial status mismatch")
+            # Completed pre-funnel ledgers may carry public_accept evidence for
+            # both lanes. New execution confirms only the selected lane, but
+            # historical evidence remains replayable and has no selector role.
     if outcome != expected_outcome:
         raise ValueError("generation outcome/status relationship mismatch")
     if expected_outcome == "paired_authoring_incomplete" and (
@@ -1370,12 +1391,14 @@ def _validate_status_relationships(
         or accept_count != 0
     ):
         raise ValueError("incomplete sibling authoring contains execution evidence")
+    # New staged generations stop after public_dev when no lane is selected;
+    # completed pre-funnel ledgers may contain public_accept for both lanes.
     if expected_outcome == "no_selection" and (
         not selection_present
         or selected_trial_id is not None
         or train_count != GENERATION_WIDTH
         or dev_count != GENERATION_WIDTH
-        or accept_count != GENERATION_WIDTH
+        or accept_count not in {0, GENERATION_WIDTH}
         or statuses
         != ["qualified_not_selected", "qualified_not_selected"]
     ):

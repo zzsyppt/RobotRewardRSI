@@ -216,6 +216,11 @@ class RobotProfile:
         ):
             raise ValueError("robot profile semantic role mapping is invalid")
         _validate_role_targets(roles, runtime_facts=runtime_facts)
+        support = roles.get(SUPPORT_EFFECTOR_ROLE)
+        if support is not None and not set(support.targets).issubset(
+            runtime_facts["support_body_names"]
+        ):
+            raise ValueError("support-effector targets must be physical support bodies")
         if not isinstance(self.provided_capabilities, frozenset):
             raise TypeError("robot profile provided_capabilities must be a frozenset")
         for capability_id in self.provided_capabilities:

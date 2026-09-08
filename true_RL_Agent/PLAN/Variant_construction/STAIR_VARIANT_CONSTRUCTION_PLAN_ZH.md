@@ -1,9 +1,9 @@
 # 机器人 × 任务矩阵与统一 Stair 分布自进化建设计划
 
 > 文档状态：**架构修正版，当前权威计划**
-> 更新日期：2026-08-29
-> 当前进度：Phase 0、Phase 1、Phase 2、Phase 3R、Phase 3B、Phase 4 已 GO；Phase 3A 的可复用能力已并入统一 Stair 单格，独立 C1 生命周期已退休
-> 下一工程门：**Phase 5：Go2 机器人行与统一 Stair 资格化**
+> 更新日期：2026-08-31
+> 当前进度：Phase 0、Phase 1、Phase 2、Phase 3R、Phase 3B、Phase 4、Phase 5、Phase 6 已 GO；Phase 3A 的可复用能力已并入统一 Stair 单格，独立 C1 生命周期已退休
+> 下一工程门：**Phase 7：矩阵报告、final holdout 与 formal readiness**
 > 总目标：在同一套受控 LLM LOOP 中扩展机器人 × 任务矩阵，而不是为每个机器人、任务或地形复制系统
 
 ---
@@ -526,7 +526,7 @@ GPU closure 均由 `PLAN/Variant_construction/P4/verify_phase4.py` 复核。
 
 - exact Go2 RobotProfile/RuntimeAdapter；
 - Go2 × Stair binding 与单一 active protocol；
-- faithful official Go2 rough reward reference；
+- 以官方 Go2 Flat reward 为来源、显式声明 Stair-context adaptations 的派生 reference；
 - Go2 unified D_train、ID/OOD suite 与 runtime/reference receipts。
 
 **严格验收**：
@@ -535,21 +535,40 @@ GPU closure 均由 `PLAN/Variant_construction/P4/verify_phase4.py` 复核。
 2. Stair TaskPlugin、C0/C1/C2 generator、surface/evaluation/acceptance 不出现 Go2 关节名或 USD 路径；
 3. Go2 binding 只声明任务需要的角色/组与少量尺度，thigh/calf 等接触目标按 profile 能力选择，不复制任务；
 4. Go2 只有一个 Stair active protocol，不执行 clean→irregular→rough 三次顺序资格化；
-5. official Go2 reward 按上游父配置与 overrides 得到完整 effective terms，并通过 source/数值等价检查；
+5. Go2 reference 的上游 raw functions、未改权重和两项显式 adaptations 都进入 authority/manifest，并通过 source/数值等价检查；禁止把派生项伪称为原封不动的 official reward；
 6. 统一 D_train 保持与 G1 相同的任务级分层原则，物理尺度边界可由 Go2 profile/binding 合法解析，但不能更改评测语义；
 7. G1/Go2 都保留一小组相同绝对几何 anchors 供跨机器人描述，其余 robot-scaled cells 只用于各自能力评测；不得把不同尺度套卷的分数直接宣称为机器人优劣；
 8. reference 从随机初始化训练，ID learnability、OOD telemetry、lineage 和真实 runtime 全部有效；
-9. G1 Stair 与 G1-29 Push 回归不退化；新增机器人只新增机器人 profile/runtime adapter、薄 binding/registry 项和该行的协议配置，可通过显式 component refs 复用统一 Stair loader；不得修改 Stair TaskPlugin、统一协议加载器或共享 LOOP/launcher。
+9. G1 Stair 与 G1-29 Push 回归不退化；Phase 5 允许一次性把原先固定 G1 的入口收敛为 row catalog、resolved adapter dispatch 与形态中立的任务提示词，但不得引入 Go2 专用 TaskPlugin、loader、LOOP 或 launcher 分支。该通用接缝冻结后，后续新增机器人只新增 profile/runtime adapter、薄 binding/registry 项和该行协议配置；若仍需改任务语义或共享 LOOP，则机器人轴尚未抽干净。
+
+**完成结果（2026-08-30）**：Go2 profile/runtime adapter、薄 binding、单一 active Stair 行、72 个互异
+formal geometry、1080-episode suite、reward 数值 oracle 与通用 train/eval harness 均已闭合。早期
+`sha256:2725…` baseline 的能力失败保留为历史诊断；后续 `sha256:fca6…` 派生 reference 已能上楼，旧分数的
+直接 blocker 是到顶后稳定停留要求超出了“首次合法到顶即完成”的任务目标。
+
+任务 completion semantics 收敛为 `first_valid_top_arrival_latched`；阈值敏感且不能证明物理跌倒的旧
+`fall/low_base_clearance` 及同源 base 到顶净离地门已从 active V2 删除，真实到顶仍由进度、平台边界、姿态
+与顶层支撑共同证明。V1 训练 cell→V2 evaluation-only successor 显式继承完全相同的 training profile、seed、
+PPO、reward、runtime dynamics 与 TrainingBinding。
+
+本轮未重训，Go2 与 G1-37 分别在 1080-episode 三相套卷上重评既有 checkpoint。Go2 public_accept/sealed
+J_primary 为 `0.933915/0.932641`；G1-V2 为 `0.694165/0.719514`；两行三个 OOD family 全部 qualified。
+两条标准 Genesis、successor import 与 load-only 重放通过，均 `go=true, cell_loop_ready=true`；provider/API
+调用为 0。G1-V2 与 Phase 4 的 G1-V1 是不同评测语义身份，不直接比较分数。
 
 ### Phase 6：Go2 × 统一 Stair LOOP 与矩阵闭环（6–9 人日 + GPU）
 
 **目标**：在 Go2 行上复用 Phase 4 的受控 reward LOOP，并证明机器人轴扩展没有复制系统。
 
+**入口条件**：Go2 reference 必须先取得可复算的 `cell_loop_ready=true`。Phase 5 已满足该入口门，因此
+Phase 6 可由后续独立指令启动；本阶段不因入口开放而自动运行 LLM/API 或 generation。
+
 **交付**：
 
 - Go2 1-generation pilot 与 fresh validation_3；
-- G1/Go2 跨机器人矩阵覆盖、成本和决策对照；
-- 共用入口、不同 profile/binding/reference lineage 的证据。
+- G1/Go2 共用入口、不同 profile/binding/reference lineage 的结构覆盖证据；
+- Go2 自身的成本、三代决策与 current-best 闭包。active G1-V2 的 LOOP/成本横向证据留在 Phase 7，
+  不把 G1-V1 与 Go2-V2 的跨协议数值拼成性能对照。
 
 **严格验收**：
 
@@ -560,6 +579,14 @@ GPU closure 均由 `PLAN/Variant_construction/P4/verify_phase4.py` 复核。
 5. pilot 成本通过后才进行固定 3-generation validation；能力失败不扩预算；
 6. loop_verified、sealed decision、checkpoint checksum 和 replay 可复算；
 7. improvement_observed 单独报告，不作为工程 GO 强制门。
+
+**完成状态（2026-08-31）**：GO。Go2 单代 pilot 完成共享生产闭环但因改善幅度不足被正式拒绝；随后
+fresh validation 固定运行 3 代，结果为 `accepted / no_selection / no_selection`。Gen1 正式
+`J_primary` 从 `0.933915` 提升到 `0.974711`，`J_OOD` 从 `0.900873` 提升到 `0.962066`，
+C0-ID/C1-ID 均保持 `1.0`，sealed 为 `0.975503`；六次训练、三相评测、current-best、成本、资源与
+全部 10 次 provider prompt 隐私链可复算。因此 `loop_verified=true`、`improvement_observed=true`。
+该结果只证明 Go2-V2 × Stair 的机器人行复用；active G1-V2、final holdout、Push parity 与矩阵最终报告仍由
+Phase 7 闭合。
 
 ### Phase 7：矩阵报告、final holdout 与 formal readiness（3–5 人日 + 条件式 GPU）
 

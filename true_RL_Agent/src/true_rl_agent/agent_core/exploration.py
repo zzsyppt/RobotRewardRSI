@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from typing import Any, Mapping, Protocol, Sequence
 
 from true_rl_agent.agent_core.exploration_projection import (
-    EXPLORATION_PROMPT_MAX_BYTES,
+    EXPLORATION_PROMPT_MAX_BYTES as EXPLORATION_PROMPT_MAX_BYTES,
     EXPLORATION_PROMPT_PROJECTION_SCHEMA_VERSION,
     MAX_EXPLORATION_PROMPT_INPUT_FIELDS,
     MAX_EXPLORATION_PROMPT_TEXT_CHARS,
@@ -23,6 +23,7 @@ from true_rl_agent.agent_core.generation_contract import (
 )
 from true_rl_agent.agent_core.public_safety import sanitize_prompt_public_value
 from true_rl_agent.candidates.authoring_policy import (
+    mechanism_operation_effect,
     require_mechanism_operation_delta,
     single_component_verifier_equivalence_key,
     verifier_equivalence_exclusion_set_hash,
@@ -1282,6 +1283,9 @@ def _revisit_lane_hypothesis_candidates(
         candidates.append({
             "verifier_equivalence_key": card.verifier_equivalence_key,
             "operation": card.mechanism_operation_delta["operation"],
+            "operation_effect": mechanism_operation_effect(
+                card.mechanism_operation_delta
+            ),
             "component_kind": str(component["mechanism_id"]).split(":", 1)[0],
             "public_input_fields": shown_fields,
             "public_input_field_count": len(all_input_fields),
@@ -1329,6 +1333,11 @@ def _prompt_card(
             "verifier_equivalence_key": card.verifier_equivalence_key,
             "operation": (
                 card.mechanism_operation_delta.get("operation")
+                if card.mechanism_operation_delta is not None
+                else None
+            ),
+            "operation_effect": (
+                mechanism_operation_effect(card.mechanism_operation_delta)
                 if card.mechanism_operation_delta is not None
                 else None
             ),

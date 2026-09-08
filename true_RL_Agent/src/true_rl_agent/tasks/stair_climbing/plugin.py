@@ -292,6 +292,18 @@ class StairClimbingTaskPlugin(TaskPlugin):
             "private_training_seed_resolver_hash": (
                 config.private_training_seed_resolver_hash()
             ),
+            "training_binding_task_protocol_hash": (
+                config.training_binding_task_protocol_hash
+            ),
+            **(
+                {
+                    "training_predecessor_manifest_hash": (
+                        config.training_predecessor_manifest_hash
+                    )
+                }
+                if config.training_predecessor_manifest_hash is not None
+                else {}
+            ),
             "runtime_profile": config.train_profile,
             "runtime_dynamics_hash": train_runtime.runtime_dynamics_hash,
             "policy_architecture_hash": agent.policy_architecture_hash,

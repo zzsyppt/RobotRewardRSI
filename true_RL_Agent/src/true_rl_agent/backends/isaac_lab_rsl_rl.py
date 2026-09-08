@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import posixpath
 import sys
-from dataclasses import InitVar, dataclass
+from dataclasses import InitVar, dataclass, replace
 from pathlib import Path
 from typing import Any, Callable, Mapping
 
@@ -37,6 +37,7 @@ from true_rl_agent.evaluation.subject import (
     validate_experiment_subject_id,
 )
 from true_rl_agent.policy import PolicyInitialization
+from true_rl_agent.runner.source_snapshot import running_project_source_snapshot
 from true_rl_agent.policy_baselines import (
     BaselineManifest,
     validate_baseline_compatibility,
@@ -96,6 +97,8 @@ class IsaacLabRslRlBackendConfig:
     candidate_execution_capability_ids: frozenset[str]
     candidate_execution_authorization_schema: str | None = None
     candidate_failure_contract: CandidateFailureContract | None = None
+    training_binding_task_protocol_hash: str | None = None
+    training_predecessor_manifest_hash: str | None = None
     train_seed: int = 42
     sealed_validation_seed_count: int | None = None
     artifact_root: str = "outputs/runner"
@@ -190,6 +193,16 @@ class IsaacLabRslRlBackendConfig:
         ):
             raise TypeError(
                 "candidate_failure_contract must be a CandidateFailureContract"
+            )
+        if self.training_binding_task_protocol_hash is not None:
+            require_sha256_digest(
+                self.training_binding_task_protocol_hash,
+                "backend training binding task protocol hash",
+            )
+        if self.training_predecessor_manifest_hash is not None:
+            require_sha256_digest(
+                self.training_predecessor_manifest_hash,
+                "backend training predecessor manifest hash",
             )
         for field_name in (
             "default_budget_steps",
@@ -317,6 +330,9 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
         self._uses_production_execution_environment_resolver = (
             execution_environment_resolver is None
         )
+        self._source_at_construction = (
+            running_project_source_snapshot() if execution_environment_resolver is None else None
+        )
         if execution_environment_resolver is None:
             execution_environment_resolver = (
                 build_current_isaac_lab_execution_environment_manifest
@@ -397,6 +413,8 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
 
     def _resolve_current_execution_environment(self) -> dict[str, Any]:
         if self._uses_production_execution_environment_resolver:
+            if running_project_source_snapshot() != self._source_at_construction:
+                raise ValueError("project source changed after backend construction")
             controller_python = Path(sys.executable).resolve(strict=True)
             backend_python = Path(self.config.isaac_lab_python).resolve(strict=True)
             if controller_python != backend_python:
@@ -680,6 +698,15 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
                     **dict(task_spec.fixed_train_protocol),
                     "budget_steps": self.config.default_budget_steps,
                 },
+                **(
+                    {
+                        "training_predecessor_manifest_hash": (
+                            self.config.training_predecessor_manifest_hash
+                        )
+                    }
+                    if self.config.training_predecessor_manifest_hash is not None
+                    else {}
+                ),
             },
         )
         eval_argv = self._eval_argv(
@@ -745,6 +772,15 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
                 "summary_path": eval_summary_path,
                 "work_dir": self.config.work_dir,
                 "checkpoint_policy": "runner_sealed_train_output_required",
+                **(
+                    {
+                        "training_predecessor_manifest_hash": (
+                            self.config.training_predecessor_manifest_hash
+                        )
+                    }
+                    if self.config.training_predecessor_manifest_hash is not None
+                    else {}
+                ),
                 "fixed_eval_protocol": {
                     "eval_protocol": "fixed_public_accept_and_sealed_validation",
                     **eval_protocol.to_public_dict(),
@@ -756,6 +792,48 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
             train_spec=train_spec,
             eval_spec=eval_spec,
             task_invariants=task_spec.invariants,
+        )
+
+    def rematerialize_eval_plan(
+        self,
+        *,
+        eval_plan: EvalJobSpec,
+        round_id: str,
+        summary_path: str,
+    ) -> EvalJobSpec:
+        """Rebuild executable metadata from a bound plan, not its previous argv."""
+
+        if eval_plan.evaluation_protocol() != self.config.evaluation_protocol():
+            raise ValueError("eval plan protocol differs from backend configuration")
+        argv = self._eval_argv(
+            job_id=eval_plan.job_id,
+            round_id=round_id,
+            task_id=eval_plan.task_id,
+            subject=eval_plan.subject,
+            checkpoint=eval_plan.execution_checkpoint(),
+            evaluation_binding=eval_plan.evaluation_binding,
+            summary_path=summary_path,
+            subject_manifest_hash=eval_plan.subject_manifest_hash,
+            program_source_checksum=eval_plan.program_source_checksum,
+            training_binding_hash=eval_plan.training_binding_hash,
+            capability_profile_hash=eval_plan.capability_profile_hash,
+            execution_environment_manifest_hash=eval_plan.metadata.get(
+                "backend_execution_environment_manifest_hash"
+            ),
+            gpu_process_binding=eval_plan.gpu_process_binding,
+        )
+        return replace(
+            eval_plan,
+            metadata={
+                **eval_plan.metadata,
+                **_cli_metadata(argv),
+                "evaluation_subject": eval_plan.subject.to_public_dict(),
+                "subject_manifest_hash": eval_plan.subject_manifest_hash,
+                "program_source_checksum": eval_plan.program_source_checksum,
+                "training_binding_hash": eval_plan.training_binding_hash,
+                "capability_profile_hash": eval_plan.capability_profile_hash,
+                "summary_path": summary_path,
+            },
         )
 
     def materialize_eval_phase(
@@ -1177,6 +1255,33 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
                 raise ValueError(
                     f"task_budget_mismatch:{key}:expected={expected}:actual={actual}"
                 )
+        expected_binding_task_hash = task_spec.fixed_train_protocol.get(
+            "training_binding_task_protocol_hash"
+        )
+        if expected_binding_task_hash is not None:
+            if (
+                self.config.training_binding_task_protocol_hash
+                != expected_binding_task_hash
+            ):
+                raise ValueError(
+                    "task_training_binding_protocol_mismatch:"
+                    f"expected={expected_binding_task_hash}:"
+                    f"actual={self.config.training_binding_task_protocol_hash}"
+                )
+        elif self.config.training_binding_task_protocol_hash is not None:
+            raise ValueError("task_training_binding_protocol_is_undeclared")
+        expected_predecessor_manifest_hash = task_spec.fixed_train_protocol.get(
+            "training_predecessor_manifest_hash"
+        )
+        if (
+            self.config.training_predecessor_manifest_hash
+            != expected_predecessor_manifest_hash
+        ):
+            raise ValueError(
+                "task_training_predecessor_manifest_mismatch:"
+                f"expected={expected_predecessor_manifest_hash}:"
+                f"actual={self.config.training_predecessor_manifest_hash}"
+            )
         agent_configuration = self.config.training_agent_configuration
         hash_checks = {
             "policy_architecture_hash": (agent_configuration.policy_architecture_hash),
@@ -1185,14 +1290,34 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
             ),
             "agent_configuration_hash": (agent_configuration.agent_configuration_hash),
         }
-        for key, actual in hash_checks.items():
-            expected = task_spec.fixed_train_protocol.get(key)
-            if expected is None:
-                raise ValueError(f"task_training_configuration_missing:{key}")
-            if expected != actual:
+        task_hashes = {
+            key: task_spec.fixed_train_protocol.get(key) for key in hash_checks
+        }
+        if all(value is not None for value in task_hashes.values()):
+            for key, actual in hash_checks.items():
+                expected = task_hashes[key]
+                if expected != actual:
+                    raise ValueError(
+                        "task_training_configuration_mismatch:"
+                        f"{key}:expected={expected}:actual={actual}"
+                    )
+        elif any(value is not None for value in task_hashes.values()):
+            raise ValueError("task_training_configuration_is_partial")
+        else:
+            if self.config.resolved_cell_manifest_path is None:
+                raise ValueError("cell_training_configuration_missing")
+            assert self.config.resolved_cell_manifest_hash is not None
+            manifest = load_resolved_cell_manifest(
+                self.config.resolved_cell_manifest_path,
+                expected_manifest_hash=self.config.resolved_cell_manifest_hash,
+            )
+            expected_agent_hash = manifest.contract_hashes.get(
+                "agent_configuration_hash"
+            )
+            if expected_agent_hash != agent_configuration.agent_configuration_hash:
                 raise ValueError(
-                    "task_training_configuration_mismatch:"
-                    f"{key}:expected={expected}:actual={actual}"
+                    "cell_training_configuration_mismatch:"
+                    "agent_configuration_hash"
                 )
         self._assert_eval_protocol_matches_task(task_spec)
 
@@ -1487,8 +1612,11 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
             checkpoint.checkpoint.checksum if checkpoint is not None else None
         )
         agent_configuration = self.config.training_agent_configuration
-        task_protocol_hash = None
-        if self.config.resolved_cell_manifest_path is not None:
+        task_protocol_hash = self.config.training_binding_task_protocol_hash
+        if (
+            task_protocol_hash is None
+            and self.config.resolved_cell_manifest_path is not None
+        ):
             assert self.config.resolved_cell_manifest_hash is not None
             manifest = load_resolved_cell_manifest(
                 self.config.resolved_cell_manifest_path,

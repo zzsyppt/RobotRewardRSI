@@ -37,6 +37,12 @@ STAIR_GENERATION_SESSION_COST_V2_SCHEMA_VERSION = (
 STAIR_GENERATION_SESSION_COST_V3_SCHEMA_VERSION = (
     "true_rl_agent.stair.generation_session_cost.v3"
 )
+STAIR_GENERATION_SESSION_COST_V4_SCHEMA_VERSION = (
+    "true_rl_agent.stair.generation_session_cost.v4"
+)
+STAIR_GENERATION_SESSION_COST_V5_SCHEMA_VERSION = (
+    "true_rl_agent.stair.generation_session_cost.v5"
+)
 STAIR_GENERATION_SESSION_COST_FILENAME = "generation_session_cost.json"
 STAIR_GENERATION_ACTUAL_COST_SCHEMA_VERSION = (
     "true_rl_agent.stair.generation_actual_cost.v1"
@@ -51,6 +57,12 @@ STAIR_GENERATION_OPERATION_RESERVES_SCHEMA_VERSION = (
 STAIR_GENERATION_FORMAL_OPERATION_RESERVES_SCHEMA_VERSION = (
     "true_rl_agent.stair.generation_operation_reserves.v2"
 )
+STAIR_GENERATION_IMPORTED_REFERENCE_OPERATION_RESERVES_SCHEMA_VERSION = (
+    "true_rl_agent.stair.generation_operation_reserves.v3"
+)
+STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_OPERATION_RESERVES_SCHEMA_VERSION = (
+    "true_rl_agent.stair.generation_operation_reserves.v5"
+)
 STAIR_GENERATION_FINALIZATION_OUTPUT_RESERVE_BYTES = 1024 * 1024
 STAIR_GENERATION_PROVIDER_ATTEMPTS_PER_LANE = 5
 STAIR_GENERATION_PROVIDER_INPUT_UNITS_PER_ATTEMPT = 300_000
@@ -62,10 +74,22 @@ STAIR_GENERATION_VALIDATION_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS = 11.0
 STAIR_GENERATION_VALIDATION_RETRY_ALLOCATED_ACTIVE_GPU_HOURS = 1.5
 STAIR_GENERATION_VALIDATION_SUCCESSFUL_OUTPUT_BYTES = 3 * 1024**3
 STAIR_GENERATION_VALIDATION_RETRY_OUTPUT_BYTES = 512 * 1024**2
+STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS = (
+    13.6
+)
+STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_ALLOCATED_ACTIVE_GPU_HOURS = 0.2
+STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_OUTPUT_BYTES = 3 * 1024**3
+STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_OUTPUT_BYTES = 512 * 1024**2
 STAIR_GENERATION_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS = 49.0
 STAIR_GENERATION_FORMAL_RETRY_ALLOCATED_ACTIVE_GPU_HOURS = 1.5
 STAIR_GENERATION_FORMAL_SUCCESSFUL_OUTPUT_BYTES = 13 * 1024**3
 STAIR_GENERATION_FORMAL_RETRY_OUTPUT_BYTES = 512 * 1024**2
+STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS = (
+    68.1
+)
+STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_ALLOCATED_ACTIVE_GPU_HOURS = 0.2
+STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_OUTPUT_BYTES = 13 * 1024**3
+STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_OUTPUT_BYTES = 512 * 1024**2
 _EMPTY_COST_EVIDENCE_HASH = canonical_json_hash([])
 
 DEVELOPMENT_GENERATION_PILOT_MODE = "development_generation_pilot"
@@ -96,6 +120,7 @@ _P6C_FORMAL_RESERVE_G4_AUDIT_SHA256 = (
     "ad691299c0ca5b08383f984a68f514d987c1831cdd3b24d367a9ca34d7266a93"
 )
 _P6C_FORMAL_SOURCE_NON_JOB_OUTPUT_BYTES = 13_448_831
+_IMPORTED_REFERENCE_FORMAL_PUBLIC_DEV_PROCESS_TIMEOUT_S = 420
 
 
 def _ceil_fraction(value: int, *, numerator: int, denominator: int) -> int:
@@ -168,6 +193,33 @@ class StairGenerationOperationCostReserve:
             "output_bytes_per_attempt": self.output_bytes_per_attempt,
             "allocated_gpu_capacity_ns": self.allocated_gpu_capacity_ns,
             "output_bytes": self.output_bytes,
+        }
+
+
+@dataclass(frozen=True)
+class StairGenerationTimeoutBoundOperationCostReserve(
+    StairGenerationOperationCostReserve
+):
+    """Historical cost evidence with a protocol-owned hard-timeout allocation."""
+
+    timeout_bound_allocated_gpu_capacity_ns_per_attempt: int
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        value = self.timeout_bound_allocated_gpu_capacity_ns_per_attempt
+        if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+            raise ValueError(
+                "timeout_bound_allocated_gpu_capacity_ns_per_attempt must be positive"
+            )
+
+    @property
+    def allocated_gpu_capacity_ns_per_attempt(self) -> int:
+        return self.timeout_bound_allocated_gpu_capacity_ns_per_attempt
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            **super().to_dict(),
+            "allocated_gpu_capacity_authority": "runner_timeout_plus_cleanup",
         }
 
 
@@ -432,6 +484,238 @@ def _operation_reserve_plan_payload(
             "rule": "ceil_per_operation",
             "headroom_numerator": _OPERATION_RESERVE_HEADROOM_NUMERATOR,
             "headroom_denominator": _OPERATION_RESERVE_HEADROOM_DENOMINATOR,
+            "capacity_time_unit": "allocated_gpu_capacity_ns",
+            "output_unit": "bytes",
+        },
+        "entries": entries,
+        "totals": totals,
+        "physical_unallocated_headroom": {
+            "allocated_gpu_capacity_ns": physical_gpu_ns - reserved_gpu_ns,
+            "output_bytes": physical_output_bytes - reserved_output_bytes,
+        },
+    }
+
+
+def imported_reference_operation_cost_reserves(
+    *,
+    candidate_train_process_timeout_s: int,
+    termination_cleanup_margin_s: int,
+    session_mode: str = DEVELOPMENT_GENERATION_VALIDATION_MODE,
+) -> tuple[StairGenerationOperationCostReserve, ...]:
+    for field_name, value in (
+        ("candidate_train_process_timeout_s", candidate_train_process_timeout_s),
+        ("termination_cleanup_margin_s", termination_cleanup_margin_s),
+    ):
+        if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+            raise ValueError(f"{field_name} must be positive")
+    if session_mode not in {
+        DEVELOPMENT_GENERATION_VALIDATION_MODE,
+        FORMAL_GENERATION_SESSION_MODE,
+    }:
+        raise ValueError("imported-reference operation reserve mode is unsupported")
+    excluded = {
+        "reference_train",
+        "reference_qualification",
+        "parent_public_dev",
+        "reference_train_retry",
+    }
+    train_allocation_ns = (
+        candidate_train_process_timeout_s + termination_cleanup_margin_s
+    ) * 1_000_000_000
+    active: list[StairGenerationOperationCostReserve] = []
+    source_reserves = (
+        _P6D_OPERATION_COST_RESERVES
+        if session_mode == FORMAL_GENERATION_SESSION_MODE
+        else _P6C_OPERATION_COST_RESERVES
+    )
+    formal = session_mode == FORMAL_GENERATION_SESSION_MODE
+    selected_public_accept_added = False
+    selected_public_accept_sources = tuple(
+        item
+        for item in source_reserves
+        if item.operation_class
+        in {"lane_a_public_accept", "lane_b_public_accept"}
+    )
+    for item in source_reserves:
+        if item.operation_class in excluded:
+            continue
+        if item.operation_class in {"lane_a_train", "lane_b_train"}:
+            active.append(
+                StairGenerationTimeoutBoundOperationCostReserve(
+                    operation_class=item.operation_class,
+                    budget_class=item.budget_class,
+                    multiplicity=item.multiplicity,
+                    source_allocated_gpu_capacity_ns=(
+                        item.source_allocated_gpu_capacity_ns
+                    ),
+                    source_output_bytes=item.source_output_bytes,
+                    timeout_bound_allocated_gpu_capacity_ns_per_attempt=(
+                        train_allocation_ns
+                    ),
+                )
+            )
+        elif formal and item.operation_class in {
+            "lane_a_public_dev",
+            "lane_b_public_dev",
+        }:
+            active.append(
+                StairGenerationTimeoutBoundOperationCostReserve(
+                    operation_class=item.operation_class,
+                    budget_class=item.budget_class,
+                    multiplicity=item.multiplicity,
+                    source_allocated_gpu_capacity_ns=(
+                        item.source_allocated_gpu_capacity_ns
+                    ),
+                    source_output_bytes=item.source_output_bytes,
+                    timeout_bound_allocated_gpu_capacity_ns_per_attempt=(
+                        (
+                            _IMPORTED_REFERENCE_FORMAL_PUBLIC_DEV_PROCESS_TIMEOUT_S
+                            + termination_cleanup_margin_s
+                        )
+                        * 1_000_000_000
+                    ),
+                )
+            )
+        elif formal and item.operation_class in {
+            "lane_a_public_accept",
+            "lane_b_public_accept",
+        }:
+            if selected_public_accept_added:
+                continue
+            active.append(
+                StairGenerationOperationCostReserve(
+                    operation_class="selected_public_accept",
+                    budget_class=item.budget_class,
+                    multiplicity=item.multiplicity,
+                    source_allocated_gpu_capacity_ns=max(
+                        reserve.source_allocated_gpu_capacity_ns
+                        for reserve in selected_public_accept_sources
+                    ),
+                    source_output_bytes=max(
+                        reserve.source_output_bytes
+                        for reserve in selected_public_accept_sources
+                    ),
+                )
+            )
+            selected_public_accept_added = True
+        else:
+            active.append(item)
+    return tuple(active)
+
+
+def _imported_reference_operation_reserve_plan_payload(
+    *,
+    candidate_train_process_timeout_s: int,
+    termination_cleanup_margin_s: int,
+    session_mode: str = DEVELOPMENT_GENERATION_VALIDATION_MODE,
+) -> dict[str, Any]:
+    """Project only work executed by a session with imported Genesis.
+
+    The P5 reference train and qualification receipts are immutable inputs to the
+    new session, not operations that the Phase 6 process can execute or retry.
+    Historical per-operation measurements remain useful as evidence. Candidate
+    train entries are instead allocated from the protocol timeout plus the
+    runner-owned cleanup margin, so the plan and admission accounting agree.
+    """
+
+    active_reserves = imported_reference_operation_cost_reserves(
+        candidate_train_process_timeout_s=candidate_train_process_timeout_s,
+        termination_cleanup_margin_s=termination_cleanup_margin_s,
+        session_mode=session_mode,
+    )
+    entries = [item.to_dict() for item in active_reserves]
+    totals: dict[str, dict[str, int]] = {}
+    for budget_class in ("successful_session", "retry_reserve"):
+        selected = tuple(
+            item for item in active_reserves if item.budget_class == budget_class
+        )
+        totals[budget_class] = {
+            "source_allocated_gpu_capacity_ns": sum(
+                item.multiplicity * item.source_allocated_gpu_capacity_ns
+                for item in selected
+            ),
+            "source_output_bytes": sum(
+                item.multiplicity * item.source_output_bytes for item in selected
+            ),
+            "reserved_allocated_gpu_capacity_ns": sum(
+                item.allocated_gpu_capacity_ns for item in selected
+            ),
+            "reserved_output_bytes": sum(item.output_bytes for item in selected),
+        }
+    formal = session_mode == FORMAL_GENERATION_SESSION_MODE
+    successful_gpu_hours = (
+        STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS
+        if formal
+        else STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS
+    )
+    retry_gpu_hours = (
+        STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_ALLOCATED_ACTIVE_GPU_HOURS
+        if formal
+        else STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_ALLOCATED_ACTIVE_GPU_HOURS
+    )
+    successful_output_bytes = (
+        STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_OUTPUT_BYTES
+        if formal
+        else STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_OUTPUT_BYTES
+    )
+    retry_output_bytes = (
+        STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_OUTPUT_BYTES
+        if formal
+        else STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_OUTPUT_BYTES
+    )
+    physical_gpu_ns = int(
+        successful_gpu_hours * 3_600_000_000_000
+    ) + int(retry_gpu_hours * 3_600_000_000_000)
+    physical_output_bytes = successful_output_bytes + retry_output_bytes
+    reserved_gpu_ns = sum(
+        item.allocated_gpu_capacity_ns for item in active_reserves
+    )
+    reserved_output_bytes = sum(item.output_bytes for item in active_reserves)
+    source = (
+        {
+            "session_id": _P6C_FORMAL_RESERVE_SOURCE_SESSION_ID,
+            "source_commit": _P6C_FORMAL_RESERVE_SOURCE_COMMIT,
+            "g4_audit_sha256": _P6C_FORMAL_RESERVE_G4_AUDIT_SHA256,
+        }
+        if formal
+        else {
+            "session_id": _P6B_OPERATION_RESERVE_SOURCE_SESSION_ID,
+            "source_commit": _P6B_OPERATION_RESERVE_SOURCE_COMMIT,
+            "actual_cost_receipt_sha256": (
+                _P6B_OPERATION_RESERVE_SOURCE_COST_RECEIPT_SHA256
+            ),
+        }
+    )
+    return {
+        "schema_version": (
+            STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_OPERATION_RESERVES_SCHEMA_VERSION
+            if formal
+            else STAIR_GENERATION_IMPORTED_REFERENCE_OPERATION_RESERVES_SCHEMA_VERSION
+        ),
+        "source": source,
+        "derivation": {
+            "rule": (
+                "imported_reference_excluded_timeout_bound_train_"
+                "formal_public_dev_selected_public_accept"
+                if formal
+                else "imported_reference_excluded_timeout_bound_train"
+            ),
+            "headroom_numerator": _OPERATION_RESERVE_HEADROOM_NUMERATOR,
+            "headroom_denominator": _OPERATION_RESERVE_HEADROOM_DENOMINATOR,
+            "candidate_train_process_timeout_s": (
+                candidate_train_process_timeout_s
+            ),
+            "termination_cleanup_margin_s": termination_cleanup_margin_s,
+            **(
+                {
+                    "formal_public_dev_process_timeout_s": (
+                        _IMPORTED_REFERENCE_FORMAL_PUBLIC_DEV_PROCESS_TIMEOUT_S
+                    ),
+                    "formal_public_accept_execution": "selected_lane_only",
+                }
+                if formal
+                else {}
+            ),
             "capacity_time_unit": "allocated_gpu_capacity_ns",
             "output_unit": "bytes",
         },
@@ -1131,6 +1415,14 @@ class StairGenerationSessionCostContractV2:
         return 0
 
     @property
+    def imports_reference_evidence(self) -> bool:
+        return False
+
+    @property
+    def imported_reference_timeout_envelope(self) -> tuple[int, int] | None:
+        return None
+
+    @property
     def provider_attempt_cap(self) -> int:
         return (
             self.max_generations
@@ -1509,10 +1801,514 @@ class StairGenerationSessionCostContractV3(
         return contract
 
 
+@dataclass(frozen=True)
+class StairGenerationSessionCostContractV4(
+    StairGenerationSessionCostContractV2
+):
+    """Validation budget for a session importing an already-qualified reference."""
+
+    candidate_train_process_timeout_s: int = 7_200
+    termination_cleanup_margin_s: int = 16
+    schema_version: str = STAIR_GENERATION_SESSION_COST_V4_SCHEMA_VERSION
+
+    def __post_init__(self) -> None:
+        if self.schema_version != STAIR_GENERATION_SESSION_COST_V4_SCHEMA_VERSION:
+            raise ValueError("Stair generation session cost v4 schema mismatch")
+        if self.session_mode != DEVELOPMENT_GENERATION_VALIDATION_MODE:
+            raise ValueError("Stair generation session cost v4 mode is unsupported")
+        if self.max_generations != _MODE_GENERATIONS[self.session_mode]:
+            raise ValueError("Stair generation count does not match session mode")
+        if not isinstance(
+            self.scientific_cost_basis,
+            StairGenerationScientificCostBasis,
+        ):
+            raise TypeError("Stair generation scientific cost basis is invalid")
+        if not self.scientific_cost_basis.reuses_reference_public_dev_receipt:
+            raise ValueError("Stair cost v4 requires imported reference evidence")
+        _nonnegative_int(self.retry_train_jobs, "retry_train_jobs")
+        _nonnegative_int(self.retry_eval_seed_units, "retry_eval_seed_units")
+        if (
+            self.retry_train_jobs != 0
+            or self.retry_eval_seed_units
+            != self.scientific_cost_basis.sealed_validation_seed_units_per_job
+        ):
+            raise ValueError("Stair imported-reference retry reserve mismatch")
+        _positive_int(
+            self.candidate_train_process_timeout_s,
+            "candidate_train_process_timeout_s",
+        )
+        _positive_int(
+            self.termination_cleanup_margin_s,
+            "termination_cleanup_margin_s",
+        )
+        _positive_float(
+            self.successful_allocated_active_gpu_hours,
+            "successful_allocated_active_gpu_hours",
+        )
+        _positive_float(
+            self.retry_allocated_active_gpu_hours,
+            "retry_allocated_active_gpu_hours",
+        )
+        _positive_int(self.successful_output_bytes, "successful_output_bytes")
+        _positive_int(self.retry_output_bytes, "retry_output_bytes")
+        if (
+            self.successful_allocated_active_gpu_hours
+            != STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS
+            or self.retry_allocated_active_gpu_hours
+            != STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_ALLOCATED_ACTIVE_GPU_HOURS
+            or self.successful_output_bytes
+            != STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_OUTPUT_BYTES
+            or self.retry_output_bytes
+            != STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_OUTPUT_BYTES
+        ):
+            raise ValueError(
+                "Stair imported-reference validation physical reserve mismatch"
+            )
+
+        operation_plan = _imported_reference_operation_reserve_plan_payload(
+            candidate_train_process_timeout_s=(
+                self.candidate_train_process_timeout_s
+            ),
+            termination_cleanup_margin_s=self.termination_cleanup_margin_s,
+        )
+        successful_entries = tuple(
+            entry
+            for entry in operation_plan["entries"]
+            if entry["budget_class"] == "successful_session"
+        )
+        retry_entries = tuple(
+            entry
+            for entry in operation_plan["entries"]
+            if entry["budget_class"] == "retry_reserve"
+        )
+        successful_train_multiplicity = sum(
+            int(entry["multiplicity"])
+            for entry in successful_entries
+            if str(entry["operation_class"]).endswith("_train")
+        )
+        if successful_train_multiplicity != self.successful_train_jobs:
+            raise ValueError(
+                "Stair imported-reference train reserve multiplicity mismatch"
+            )
+        nontrain_success_ns = sum(
+            int(entry["allocated_gpu_capacity_ns"])
+            for entry in successful_entries
+            if not str(entry["operation_class"]).endswith("_train")
+        )
+        train_lease_ceiling_ns = (
+            self.successful_train_jobs
+            * (
+                self.candidate_train_process_timeout_s
+                + self.termination_cleanup_margin_s
+            )
+            * 1_000_000_000
+        )
+        successful_cap_ns = int(
+            self.successful_allocated_active_gpu_hours * 3_600_000_000_000
+        )
+        retry_cap_ns = int(
+            self.retry_allocated_active_gpu_hours * 3_600_000_000_000
+        )
+        if train_lease_ceiling_ns + nontrain_success_ns > successful_cap_ns:
+            raise ValueError(
+                "Stair candidate-train timeout envelope exceeds successful budget"
+            )
+        if (
+            sum(int(entry["allocated_gpu_capacity_ns"]) for entry in retry_entries)
+            > retry_cap_ns
+        ):
+            raise ValueError("Stair evaluation retry reserve exceeds retry budget")
+        if (
+            operation_plan["totals"]["successful_session"]["reserved_output_bytes"]
+            > self.successful_output_bytes
+            or operation_plan["totals"]["retry_reserve"]["reserved_output_bytes"]
+            > self.retry_output_bytes
+        ):
+            raise ValueError("Stair imported-reference output reserves exceed budget")
+        if any(
+            value < 0
+            for value in operation_plan["physical_unallocated_headroom"].values()
+        ):
+            raise ValueError(
+                "Stair imported-reference operation reserve headroom is negative"
+            )
+
+    @property
+    def successful_train_jobs(self) -> int:
+        return self.max_generations * self.scientific_cost_basis.train_jobs_per_generation
+
+    @property
+    def imports_reference_evidence(self) -> bool:
+        return True
+
+    @property
+    def imported_reference_timeout_envelope(self) -> tuple[int, int]:
+        return (
+            self.candidate_train_process_timeout_s,
+            self.termination_cleanup_margin_s,
+        )
+
+    @property
+    def successful_eval_seed_units(self) -> int:
+        return (
+            self.max_generations
+            * self.scientific_cost_basis.eval_seed_units_per_generation
+        )
+
+    @property
+    def max_allocated_active_gpu_hours(self) -> float:
+        capacity_ns = int(
+            self.successful_allocated_active_gpu_hours * 3_600_000_000_000
+        ) + int(self.retry_allocated_active_gpu_hours * 3_600_000_000_000)
+        return capacity_ns / 3_600_000_000_000
+
+    def _hash_payload(self) -> dict[str, Any]:
+        payload = super()._hash_payload()
+        successful = payload["successful_session"]
+        successful.pop("reference_qualification")
+        successful["imported_reference_evidence"] = {
+            "execution": "imported_verified_receipts",
+            "local_train_jobs": 0,
+            "local_train_steps": 0,
+            "local_eval_seed_units": 0,
+        }
+        operation_plan = _imported_reference_operation_reserve_plan_payload(
+            candidate_train_process_timeout_s=(
+                self.candidate_train_process_timeout_s
+            ),
+            termination_cleanup_margin_s=self.termination_cleanup_margin_s,
+        )
+        payload["operation_reserves"] = operation_plan
+        nontrain_success_ns = sum(
+            int(entry["allocated_gpu_capacity_ns"])
+            for entry in operation_plan["entries"]
+            if entry["budget_class"] == "successful_session"
+            and not str(entry["operation_class"]).endswith("_train")
+        )
+        train_lease_ceiling_s = (
+            self.candidate_train_process_timeout_s
+            + self.termination_cleanup_margin_s
+        )
+        train_lease_ceiling_ns = (
+            self.successful_train_jobs * train_lease_ceiling_s * 1_000_000_000
+        )
+        success_cap_ns = int(
+            self.successful_allocated_active_gpu_hours * 3_600_000_000_000
+        )
+        payload["candidate_train_timeout_envelope"] = {
+            "timeout_authority": "runner_timeout_s",
+            "process_timeout_s": self.candidate_train_process_timeout_s,
+            "termination_cleanup_margin_s": self.termination_cleanup_margin_s,
+            "lease_ceiling_s_per_attempt": train_lease_ceiling_s,
+            "attempt_count": self.successful_train_jobs,
+            "allocated_gpu_capacity_ns": train_lease_ceiling_ns,
+            "nontrain_success_reserve_ns": nontrain_success_ns,
+            "successful_budget_headroom_ns": (
+                success_cap_ns - train_lease_ceiling_ns - nontrain_success_ns
+            ),
+        }
+        return payload
+
+    @classmethod
+    def from_mapping(
+        cls,
+        value: Mapping[str, Any],
+    ) -> StairGenerationSessionCostContractV4:
+        if not isinstance(value, Mapping):
+            raise TypeError("Stair generation session cost v4 must be an object")
+        successful = value.get("successful_session")
+        retry = value.get("retry_reserve")
+        scientific_cost_basis = value.get("scientific_cost_basis")
+        timeout_envelope = value.get("candidate_train_timeout_envelope")
+        if (
+            not isinstance(successful, Mapping)
+            or not isinstance(retry, Mapping)
+            or not isinstance(scientific_cost_basis, Mapping)
+            or not isinstance(timeout_envelope, Mapping)
+        ):
+            raise TypeError("Stair generation session cost v4 sections are invalid")
+        contract = cls(
+            schema_version=value.get("schema_version"),
+            session_mode=value.get("session_mode"),
+            max_generations=value.get("max_generations"),
+            scientific_cost_basis=(
+                StairGenerationScientificCostBasis.from_mapping(scientific_cost_basis)
+            ),
+            retry_train_jobs=retry.get("train_jobs"),
+            retry_eval_seed_units=retry.get("eval_seed_units"),
+            successful_allocated_active_gpu_hours=successful.get(
+                "allocated_active_gpu_hours"
+            ),
+            retry_allocated_active_gpu_hours=retry.get("allocated_active_gpu_hours"),
+            successful_output_bytes=successful.get("output_bytes"),
+            retry_output_bytes=retry.get("output_bytes"),
+            candidate_train_process_timeout_s=timeout_envelope.get(
+                "process_timeout_s"
+            ),
+            termination_cleanup_margin_s=timeout_envelope.get(
+                "termination_cleanup_margin_s"
+            ),
+        )
+        if dict(value) != contract.to_dict():
+            raise ValueError("Stair generation session cost v4 projection mismatch")
+        return contract
+
+
+@dataclass(frozen=True)
+class StairGenerationSessionCostContractV5(
+    StairGenerationSessionCostContractV3
+):
+    """Formal budget for a session importing an already-qualified reference."""
+
+    candidate_train_process_timeout_s: int = 7_200
+    termination_cleanup_margin_s: int = 16
+    schema_version: str = STAIR_GENERATION_SESSION_COST_V5_SCHEMA_VERSION
+
+    def __post_init__(self) -> None:
+        if self.schema_version != STAIR_GENERATION_SESSION_COST_V5_SCHEMA_VERSION:
+            raise ValueError("Stair generation session cost v5 schema mismatch")
+        if self.session_mode != FORMAL_GENERATION_SESSION_MODE:
+            raise ValueError("Stair generation session cost v5 mode is unsupported")
+        if self.max_generations != _MODE_GENERATIONS[self.session_mode]:
+            raise ValueError("Stair generation count does not match session mode")
+        if not isinstance(
+            self.scientific_cost_basis,
+            StairGenerationScientificCostBasis,
+        ):
+            raise TypeError("Stair generation scientific cost basis is invalid")
+        if not self.scientific_cost_basis.reuses_reference_public_dev_receipt:
+            raise ValueError("Stair cost v5 requires imported reference evidence")
+        _nonnegative_int(self.retry_train_jobs, "retry_train_jobs")
+        _nonnegative_int(self.retry_eval_seed_units, "retry_eval_seed_units")
+        if (
+            self.retry_train_jobs != 0
+            or self.retry_eval_seed_units
+            != self.scientific_cost_basis.sealed_validation_seed_units_per_job
+        ):
+            raise ValueError("Stair imported-reference retry reserve mismatch")
+        _positive_int(
+            self.candidate_train_process_timeout_s,
+            "candidate_train_process_timeout_s",
+        )
+        _positive_int(
+            self.termination_cleanup_margin_s,
+            "termination_cleanup_margin_s",
+        )
+        _positive_float(
+            self.successful_allocated_active_gpu_hours,
+            "successful_allocated_active_gpu_hours",
+        )
+        _positive_float(
+            self.retry_allocated_active_gpu_hours,
+            "retry_allocated_active_gpu_hours",
+        )
+        _positive_int(self.successful_output_bytes, "successful_output_bytes")
+        _positive_int(self.retry_output_bytes, "retry_output_bytes")
+        if (
+            self.successful_allocated_active_gpu_hours
+            != STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS
+            or self.retry_allocated_active_gpu_hours
+            != STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_ALLOCATED_ACTIVE_GPU_HOURS
+            or self.successful_output_bytes
+            != STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_OUTPUT_BYTES
+            or self.retry_output_bytes
+            != STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_OUTPUT_BYTES
+        ):
+            raise ValueError(
+                "Stair imported-reference formal physical reserve mismatch"
+            )
+
+        operation_plan = _imported_reference_operation_reserve_plan_payload(
+            candidate_train_process_timeout_s=(
+                self.candidate_train_process_timeout_s
+            ),
+            termination_cleanup_margin_s=self.termination_cleanup_margin_s,
+            session_mode=self.session_mode,
+        )
+        successful_entries = tuple(
+            entry
+            for entry in operation_plan["entries"]
+            if entry["budget_class"] == "successful_session"
+        )
+        retry_entries = tuple(
+            entry
+            for entry in operation_plan["entries"]
+            if entry["budget_class"] == "retry_reserve"
+        )
+        successful_train_multiplicity = sum(
+            int(entry["multiplicity"])
+            for entry in successful_entries
+            if str(entry["operation_class"]).endswith("_train")
+        )
+        if successful_train_multiplicity != self.successful_train_jobs:
+            raise ValueError(
+                "Stair imported-reference train reserve multiplicity mismatch"
+            )
+        nontrain_success_ns = sum(
+            int(entry["allocated_gpu_capacity_ns"])
+            for entry in successful_entries
+            if not str(entry["operation_class"]).endswith("_train")
+        )
+        train_lease_ceiling_ns = (
+            self.successful_train_jobs
+            * (
+                self.candidate_train_process_timeout_s
+                + self.termination_cleanup_margin_s
+            )
+            * 1_000_000_000
+        )
+        successful_cap_ns = int(
+            self.successful_allocated_active_gpu_hours * 3_600_000_000_000
+        )
+        retry_cap_ns = int(
+            self.retry_allocated_active_gpu_hours * 3_600_000_000_000
+        )
+        if train_lease_ceiling_ns + nontrain_success_ns > successful_cap_ns:
+            raise ValueError(
+                "Stair candidate-train timeout envelope exceeds successful budget"
+            )
+        if (
+            sum(int(entry["allocated_gpu_capacity_ns"]) for entry in retry_entries)
+            > retry_cap_ns
+        ):
+            raise ValueError("Stair evaluation retry reserve exceeds retry budget")
+        if (
+            operation_plan["totals"]["successful_session"]["reserved_output_bytes"]
+            > self.successful_output_bytes
+            or operation_plan["totals"]["retry_reserve"]["reserved_output_bytes"]
+            > self.retry_output_bytes
+        ):
+            raise ValueError("Stair imported-reference output reserves exceed budget")
+        if any(
+            value < 0
+            for value in operation_plan["physical_unallocated_headroom"].values()
+        ):
+            raise ValueError(
+                "Stair imported-reference operation reserve headroom is negative"
+            )
+
+    @property
+    def successful_train_jobs(self) -> int:
+        return self.max_generations * self.scientific_cost_basis.train_jobs_per_generation
+
+    @property
+    def successful_eval_seed_units(self) -> int:
+        return (
+            self.max_generations
+            * self.scientific_cost_basis.eval_seed_units_per_generation
+            + self.final_confirmation_seed_units
+        )
+
+    @property
+    def imports_reference_evidence(self) -> bool:
+        return True
+
+    @property
+    def imported_reference_timeout_envelope(self) -> tuple[int, int]:
+        return (
+            self.candidate_train_process_timeout_s,
+            self.termination_cleanup_margin_s,
+        )
+
+    def _hash_payload(self) -> dict[str, Any]:
+        payload = StairGenerationSessionCostContractV2._hash_payload(self)
+        successful = payload["successful_session"]
+        successful.pop("reference_qualification")
+        successful["imported_reference_evidence"] = {
+            "execution": "imported_verified_receipts",
+            "local_train_jobs": 0,
+            "local_train_steps": 0,
+            "local_eval_seed_units": 0,
+        }
+        operation_plan = _imported_reference_operation_reserve_plan_payload(
+            candidate_train_process_timeout_s=(
+                self.candidate_train_process_timeout_s
+            ),
+            termination_cleanup_margin_s=self.termination_cleanup_margin_s,
+            session_mode=self.session_mode,
+        )
+        payload["operation_reserves"] = operation_plan
+        nontrain_success_ns = sum(
+            int(entry["allocated_gpu_capacity_ns"])
+            for entry in operation_plan["entries"]
+            if entry["budget_class"] == "successful_session"
+            and not str(entry["operation_class"]).endswith("_train")
+        )
+        train_lease_ceiling_s = (
+            self.candidate_train_process_timeout_s
+            + self.termination_cleanup_margin_s
+        )
+        train_lease_ceiling_ns = (
+            self.successful_train_jobs * train_lease_ceiling_s * 1_000_000_000
+        )
+        success_cap_ns = int(
+            self.successful_allocated_active_gpu_hours * 3_600_000_000_000
+        )
+        payload["candidate_train_timeout_envelope"] = {
+            "timeout_authority": "runner_timeout_s",
+            "process_timeout_s": self.candidate_train_process_timeout_s,
+            "termination_cleanup_margin_s": self.termination_cleanup_margin_s,
+            "lease_ceiling_s_per_attempt": train_lease_ceiling_s,
+            "attempt_count": self.successful_train_jobs,
+            "allocated_gpu_capacity_ns": train_lease_ceiling_ns,
+            "nontrain_success_reserve_ns": nontrain_success_ns,
+            "successful_budget_headroom_ns": (
+                success_cap_ns - train_lease_ceiling_ns - nontrain_success_ns
+            ),
+        }
+        return payload
+
+    @classmethod
+    def from_mapping(
+        cls,
+        value: Mapping[str, Any],
+    ) -> StairGenerationSessionCostContractV5:
+        if not isinstance(value, Mapping):
+            raise TypeError("Stair generation session cost v5 must be an object")
+        successful = value.get("successful_session")
+        retry = value.get("retry_reserve")
+        scientific_cost_basis = value.get("scientific_cost_basis")
+        timeout_envelope = value.get("candidate_train_timeout_envelope")
+        if (
+            not isinstance(successful, Mapping)
+            or not isinstance(retry, Mapping)
+            or not isinstance(scientific_cost_basis, Mapping)
+            or not isinstance(timeout_envelope, Mapping)
+        ):
+            raise TypeError("Stair generation session cost v5 sections are invalid")
+        contract = cls(
+            schema_version=value.get("schema_version"),
+            session_mode=value.get("session_mode"),
+            max_generations=value.get("max_generations"),
+            scientific_cost_basis=(
+                StairGenerationScientificCostBasis.from_mapping(scientific_cost_basis)
+            ),
+            retry_train_jobs=retry.get("train_jobs"),
+            retry_eval_seed_units=retry.get("eval_seed_units"),
+            successful_allocated_active_gpu_hours=successful.get(
+                "allocated_active_gpu_hours"
+            ),
+            retry_allocated_active_gpu_hours=retry.get("allocated_active_gpu_hours"),
+            successful_output_bytes=successful.get("output_bytes"),
+            retry_output_bytes=retry.get("output_bytes"),
+            candidate_train_process_timeout_s=timeout_envelope.get(
+                "process_timeout_s"
+            ),
+            termination_cleanup_margin_s=timeout_envelope.get(
+                "termination_cleanup_margin_s"
+            ),
+        )
+        if dict(value) != contract.to_dict():
+            raise ValueError("Stair generation session cost v5 projection mismatch")
+        return contract
+
+
 StairGenerationSessionCostContractLike = (
     StairGenerationSessionCostContract
     | StairGenerationSessionCostContractV2
     | StairGenerationSessionCostContractV3
+    | StairGenerationSessionCostContractV4
+    | StairGenerationSessionCostContractV5
 )
 
 
@@ -1549,6 +2345,10 @@ def load_stair_generation_session_cost_contract(
         return StairGenerationSessionCostContractV2.from_mapping(payload)
     if schema_version == STAIR_GENERATION_SESSION_COST_V3_SCHEMA_VERSION:
         return StairGenerationSessionCostContractV3.from_mapping(payload)
+    if schema_version == STAIR_GENERATION_SESSION_COST_V4_SCHEMA_VERSION:
+        return StairGenerationSessionCostContractV4.from_mapping(payload)
+    if schema_version == STAIR_GENERATION_SESSION_COST_V5_SCHEMA_VERSION:
+        return StairGenerationSessionCostContractV5.from_mapping(payload)
     raise ValueError("Stair generation session cost schema is unsupported")
 
 
@@ -2112,6 +2912,16 @@ __all__ = [
     "STAIR_GENERATION_FORMAL_RETRY_OUTPUT_BYTES",
     "STAIR_GENERATION_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS",
     "STAIR_GENERATION_FORMAL_SUCCESSFUL_OUTPUT_BYTES",
+    "STAIR_GENERATION_IMPORTED_REFERENCE_OPERATION_RESERVES_SCHEMA_VERSION",
+    "STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_OPERATION_RESERVES_SCHEMA_VERSION",
+    "STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_ALLOCATED_ACTIVE_GPU_HOURS",
+    "STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_OUTPUT_BYTES",
+    "STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS",
+    "STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_OUTPUT_BYTES",
+    "STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_ALLOCATED_ACTIVE_GPU_HOURS",
+    "STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_OUTPUT_BYTES",
+    "STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS",
+    "STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_OUTPUT_BYTES",
     "STAIR_GENERATION_MAX_INFRASTRUCTURE_RETRIES_PER_ELIGIBLE_JOB",
     "STAIR_GENERATION_OPERATION_RESERVES_SCHEMA_VERSION",
     "STAIR_GENERATION_PROVIDER_ATTEMPTS_PER_LANE",
@@ -2124,6 +2934,8 @@ __all__ = [
     "STAIR_GENERATION_SESSION_COST_SCHEMA_VERSION",
     "STAIR_GENERATION_SESSION_COST_V2_SCHEMA_VERSION",
     "STAIR_GENERATION_SESSION_COST_V3_SCHEMA_VERSION",
+    "STAIR_GENERATION_SESSION_COST_V4_SCHEMA_VERSION",
+    "STAIR_GENERATION_SESSION_COST_V5_SCHEMA_VERSION",
     "STAIR_GENERATION_VALIDATION_RETRY_ALLOCATED_ACTIVE_GPU_HOURS",
     "STAIR_GENERATION_VALIDATION_RETRY_OUTPUT_BYTES",
     "STAIR_GENERATION_VALIDATION_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS",
@@ -2133,13 +2945,17 @@ __all__ = [
     "StairGenerationActualCostUsage",
     "StairGenerationActualCostUsageV2",
     "StairGenerationOperationCostReserve",
+    "StairGenerationTimeoutBoundOperationCostReserve",
     "StairGenerationScientificCostBasis",
     "StairGenerationSessionCostContract",
     "StairGenerationSessionCostContractLike",
     "StairGenerationSessionCostContractV2",
     "StairGenerationSessionCostContractV3",
+    "StairGenerationSessionCostContractV4",
+    "StairGenerationSessionCostContractV5",
     "build_stair_generation_scientific_cost_basis",
     "create_stair_generation_session_cost_contract",
+    "imported_reference_operation_cost_reserves",
     "load_stair_generation_session_cost_contract",
     "replay_stair_generation_combined_cost_chain",
     "replay_stair_generation_formal_cost_chain",

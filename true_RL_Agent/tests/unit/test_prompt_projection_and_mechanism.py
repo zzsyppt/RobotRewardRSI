@@ -374,6 +374,11 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         prefix_b = serialize_prompt_payload(lane_b).partition(marker)[0]
         self.assertEqual(prefix_a, prefix_b)
         self.assertGreater(len(prefix_a), 1000)
+        self.assertIn('"exploration_directive"', prefix_a)
+        self.assertLess(
+            PROMPT_PAYLOAD_SECTION_ORDER.index("exploration_directive"),
+            PROMPT_PAYLOAD_SECTION_ORDER.index("required_candidate_package"),
+        )
         self.assertNotEqual(
             lane_a["required_candidate_package"],
             lane_b["required_candidate_package"],
@@ -468,7 +473,8 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
                 public_context={
                     "public_only": True,
                     "task_prompt_sections": {
-                        "selection_guidance": ["x"] * 3638,
+                        "selection_guidance": ["x"]
+                        * (MAX_TASK_PROMPT_SECTIONS_BYTES // 4 + 2048),
                     },
                 }
             )
@@ -577,8 +583,16 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
             list(payload).index("authoring_context_frame"),
         )
         self.assertLess(
-            list(payload).index("authoring_context_frame"),
             list(payload).index("source_catalog"),
+            list(payload).index("required_candidate_package"),
+        )
+        self.assertLess(
+            list(payload).index("public_history"),
+            list(payload).index("authoring_context_frame"),
+        )
+        self.assertLess(
+            list(payload).index("public_context"),
+            list(payload).index("required_candidate_package"),
         )
         common_guidance = " ".join(payload["loop_contract"]["evidence_discipline"])
         self.assertIn("numeric-only", common_guidance)

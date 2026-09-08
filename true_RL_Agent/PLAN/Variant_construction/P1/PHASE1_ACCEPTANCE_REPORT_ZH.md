@@ -92,7 +92,7 @@ manifest 同时保留 `base_task_protocol_hash` 与派生的 `resolved_cell_task
 - Ruff `F` / `E9`：所有本阶段涉及的产品与测试文件通过；
 - `git diff --check`：通过。
 
-机器回执为 `P1_MATRIX_CONTRACT_SNAPSHOT.json`：冻结 29 个 Phase 1 产品/测试文件，`product_tree_hash=ef3b2c3316e041e0380b987e180f6cfe40f20051ef73aa1230dcced069a1a711`，`receipt_hash=59eb454bdcd6c504d887dda38a71dca3643e3e4d1d532861d95395afa55732d3`。入口 HEAD 只作 provenance 记录；后续提交文档不会使产品内容验收自失效。可复现验收命令为：
+机器回执为 `P1_MATRIX_CONTRACT_SNAPSHOT.json`：冻结 29 个 Phase 1 产品/测试文件，`product_tree_hash=ef3b2c3316e041e0380b987e180f6cfe40f20051ef73aa1230dcced069a1a711`，`receipt_hash=59eb454bdcd6c504d887dda38a71dca3643e3e4d1d532861d95395afa55732d3`。该源码闭包与入口 HEAD 只作历史 provenance；持续回归门校验两份 legacy G1 profile 的精确事实、两个 legacy cell 的机器人/任务轴、24 文件证据闭包与 sealed artifact，不要求后续 Phase 的源码字节等于 P1。可复现验收命令为：
 
 ```powershell
 .\.venv\Scripts\python.exe PLAN\Variant_construction\P1\verify_phase1_snapshot.py
@@ -115,7 +115,7 @@ Phase 1 有意让两个 legacy cell 的新 composition 从 `runtime_composition_
 - 35-cell 矩形网格、C1 irregular suite 和 C2 roughness 未改，仍按 Phase 3A/3B 处理；
 - Go2 profile/cell 未加入 Core V1，Phase 1 只使用 Phase 0 Go2 回执作为未来输入依据；
 - backend 已能对非 legacy manifest 产生 TrainingBinding V2；首个 non-legacy Stair cell 还必须在 Phase 3A 把 resolved hash 写入 effective TaskSpec/EvaluationBinding，真正的 child/runtime ABI 迁移仍需 Phase 2 配套；
-- Push legacy 的两个占位 policy-I/O 标签只保留历史 reader/path；Extension B 的 Go2 × Push 必须使用 manifest content hashes，不能复制占位标签；
+- Push legacy 的两个占位 policy-I/O 标签只保留历史 reader/path；Extension A 的 Go2 × Push 必须使用 manifest content hashes，不能复制占位标签；
 - 本阶段没有进行 GPU 策略性能实验，也没有把“观察到改进”设为验收条件。
 
 ## 7. 最终结论

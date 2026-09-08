@@ -74,6 +74,18 @@ class Phase1SnapshotVerifierTests(unittest.TestCase):
             with self.assertRaisesRegex(AssertionError, "P1 evidence entries"):
                 VERIFIER.verify(evidence_root=evidence)
 
+    def test_frozen_product_tree_internal_tamper_is_rejected(self) -> None:
+        snapshot = json.loads(VERIFIER.SNAPSHOT_PATH.read_text(encoding="utf-8"))
+        snapshot["product_tree"]["file_count"] += 1
+        snapshot["receipt_hash"] = VERIFIER.canonical_json_hash(
+            VERIFIER._without_hash(snapshot, "receipt_hash")
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "snapshot.json"
+            path.write_text(json.dumps(snapshot), encoding="utf-8")
+            with self.assertRaisesRegex(AssertionError, "frozen product file count"):
+                VERIFIER.verify(snapshot_path=path)
+
 
 if __name__ == "__main__":
     unittest.main()

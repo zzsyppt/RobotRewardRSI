@@ -881,7 +881,7 @@ class LiveLoopTests(unittest.TestCase):
         )
         self.assertTrue(all(Path(path).name == "prompt_payload.json" for path in summary["prompt_payload_paths"]))
         for payload in payloads:
-            self.assertEqual(payload["schema_version"], "true_rl_agent.prompt_payload.v3")
+            self.assertEqual(payload["schema_version"], "true_rl_agent.prompt_payload.v4")
             self.assertNotIn("trusted_seed", json.dumps(payload, sort_keys=True))
         self.assertEqual(summary["train_result_count"], 2)
         self.assertEqual(summary["public_result_count"], 2)

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import tempfile
 import unittest
@@ -29,6 +30,7 @@ from true_rl_agent.agent_core.session_genesis import (
 from true_rl_agent.candidates.prompt_projection import build_prompt_payload
 from true_rl_agent.evaluation.binding import canonical_json_hash
 from true_rl_agent.evaluation.phases import EvaluationPhase
+from true_rl_agent.evaluation.subject import ExperimentSubject
 from true_rl_agent.json_contract import canonical_json_bytes
 from true_rl_agent.prompt_artifacts import PromptPayloadRef
 from true_rl_agent.runner.job_attempts import (
@@ -36,6 +38,10 @@ from true_rl_agent.runner.job_attempts import (
     JobAttemptScope,
     PreGenesisExecutionScope,
 )
+from true_rl_agent.runner.eval_binding import bind_eval_spec_to_checkpoint
+from true_rl_agent.runner.job_argv import validate_eval_job_argv
+from true_rl_agent.runner.specs import CheckpointRef
+from true_rl_agent.tasks.stair_climbing import generation_session
 from true_rl_agent.tasks.stair_climbing.config import StairClimbingTaskConfig
 from true_rl_agent.tasks.stair_climbing.generation_session import (
     STAIR_GENERATION_PREFLIGHT_SCHEMA_VERSION,
@@ -44,12 +50,14 @@ from true_rl_agent.tasks.stair_climbing.generation_session import (
     STAIR_GENERATION_SOURCE_CHECKOUT_FILENAME,
     STAIR_GENERATION_SOURCE_CHECKOUT_SCHEMA_VERSION,
     STAIR_GENERATION_VALIDATION_REPORT_SCHEMA_VERSION,
+    CompletedStairGenerationSession,
     StairGenerationPilotConfig,
     _assert_target_gpus_compute_idle,
     _attempt_is_in_generation_prefix,
     _build_resource_closure_evidence,
     _completed_scientific_generation_count,
     _create_foundation,
+    _formal_normal_closed_generation_boundaries_are_valid,
     _generation_provider_readiness_required,
     _load_and_validate_existing_validation_report,
     _preflight_provider_credential,
@@ -69,10 +77,12 @@ from true_rl_agent.tasks.stair_climbing.generation_session import (
     _strict_operation_slot,
     _strict_retry_is_still_possible,
     _unified_validation_selector_reversal_metrics,
+    _validated_job_cost_artifacts,
     _validation_authoring_metrics,
     _validation_workload_delta,
     _verify_source_checkout,
     discover_two_gpu_inventory,
+    load_completed_stair_generation_session,
     preflight_stair_generation_pilot,
     preflight_stair_generation_provider_readiness,
     run_stair_generation_pilot,
@@ -81,17 +91,28 @@ from true_rl_agent.tasks.stair_climbing.generation_session_cost import (
     DEVELOPMENT_GENERATION_PILOT_MODE,
     DEVELOPMENT_GENERATION_VALIDATION_MODE,
     FORMAL_GENERATION_SESSION_MODE,
+    STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_ALLOCATED_ACTIVE_GPU_HOURS,
+    STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_OUTPUT_BYTES,
+    STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS,
+    STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_OUTPUT_BYTES,
     STAIR_GENERATION_VALIDATION_RETRY_ALLOCATED_ACTIVE_GPU_HOURS,
     STAIR_GENERATION_VALIDATION_RETRY_OUTPUT_BYTES,
     STAIR_GENERATION_VALIDATION_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS,
     STAIR_GENERATION_VALIDATION_SUCCESSFUL_OUTPUT_BYTES,
     StairGenerationSessionCostContractV2,
+    StairGenerationSessionCostContractV4,
+    StairGenerationSessionCostContractV5,
     build_stair_generation_scientific_cost_basis,
     stair_generation_operation_cost_reserves,
 )
+from true_rl_agent.tasks.stair_climbing.exploration import StairExplorationProjector
 from true_rl_agent.tasks.stair_climbing.launch_context import (
     STAIR_GENERATION_LAUNCH_START_PATH_ENV,
     STAIR_GENERATION_LAUNCH_START_SHA256_ENV,
+)
+from true_rl_agent.tasks.stair_climbing.row_catalog import (
+    STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
+    STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
 )
 from true_rl_agent.tasks.stair_climbing.phased_cost import (
     stair_phased_evaluation_cost_contract,
@@ -104,98 +125,121 @@ DIGEST = "b" * 64
 
 
 class StairGenerationSessionTests(unittest.TestCase):
-    def test_unified_terminal_selector_uses_private_public_accept_receipts(self) -> None:
+    def test_completed_session_loader_rejects_incomplete_root_without_writing(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = (Path(tmp) / "completed").resolve()
+            output_dir.mkdir()
+            before = tuple(output_dir.iterdir())
+
+            with self.assertRaisesRegex(FileNotFoundError, "missing required artifacts"):
+                load_completed_stair_generation_session(
+                    output_dir=output_dir,
+                    expected_session_id="p6c-completed",
+                    expected_cell_variant_id=STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
+                    expected_source_commit=SHA,
+                )
+
+            self.assertEqual(tuple(output_dir.iterdir()), before)
+            self.assertIn(
+                "CompletedStairGenerationSession",
+                generation_session.__all__,
+            )
+            self.assertIsNotNone(CompletedStairGenerationSession)
+
+    def test_actual_cost_usage_collector_is_public_and_read_only(self) -> None:
+        provider_actuals = {
+            "attempts": 2,
+            "request_units": 3,
+            "response_units": 5,
+            "total_units": 8,
+            "reasoning_units": 1,
+            "conservative_attempts": 1,
+            "conservative_charges": ["provider-reserve"],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            foundation = SimpleNamespace(
+                config=SimpleNamespace(output_dir=output_dir),
+                cost_contract=SimpleNamespace(
+                    scientific_cost_basis=SimpleNamespace(),
+                ),
+            )
+            before = tuple(output_dir.iterdir())
+            with patch(
+                "true_rl_agent.tasks.stair_climbing.generation_session."
+                "_provider_actuals",
+                return_value=provider_actuals,
+            ):
+                usage, charges, open_reservations = (
+                    generation_session.collect_actual_cost_usage(
+                        foundation,
+                        genesis=None,
+                        ledger=[],
+                    )
+                )
+
+            self.assertIn("collect_actual_cost_usage", generation_session.__all__)
+            self.assertEqual(usage.provider_attempts, 2)
+            self.assertEqual(usage.provider_total_units, 8)
+            self.assertEqual(usage.job_attempts, 0)
+            self.assertEqual(charges, ("provider-reserve",))
+            self.assertEqual(open_reservations, ())
+            self.assertEqual(tuple(output_dir.iterdir()), before)
+
+    def test_unified_terminal_selector_routes_public_accept_to_winner_only(self) -> None:
         config = StairClimbingTaskConfig.defaults(
             Path(__file__).resolve().parents[2]
             / "configs"
             / "tasks"
             / "stair_unified_protocol_v1.json"
         )
-        mask = {"frozen": True}
         foundation = SimpleNamespace(
             composition=SimpleNamespace(
                 task_plugin=SimpleNamespace(
                     config=config,
-                    objective_family_mask=lambda: mask,
+                    objective_family_mask=lambda: {"frozen": True},
                 )
             )
         )
         ledger = [
             {
-                "generation_index": index,
-                "selection": {"selected_trial_id": f"winner-{index}"},
+                "generation_index": 1,
+                "selection": {"selected_trial_id": "winner-1"},
                 "trials": [
                     {
-                        "trial_id": f"winner-{index}",
+                        "trial_id": "winner-1",
                         "public_accept": {"receipt": "private"},
                     },
                     {
-                        "trial_id": f"loser-{index}",
-                        "public_accept": {"receipt": "private"},
+                        "trial_id": "loser-1",
+                        "public_accept": None,
                     },
                 ],
-            }
-            for index in (1, 2)
+            },
+            {
+                "generation_index": 2,
+                "selection": {"selected_trial_id": None},
+                "trials": [
+                    {"trial_id": "lane-a-2", "public_accept": None},
+                    {"trial_id": "lane-b-2", "public_accept": None},
+                ],
+            },
         ]
-
-        def projection(score: float) -> dict[str, Any]:
-            samples = [score] * config.public_accept_seed_count
-            return {
-                "j_primary": {
-                    "score_stats": {"mean": score},
-                    "seed_macro_scores": samples,
-                },
-                **{
-                    guard.name: {
-                        "score_stats": {"mean": 0.7},
-                        "seed_macro_scores": [0.7]
-                        * config.public_accept_seed_count,
-                    }
-                    for guard in config.acceptance_protocol.named_guards
-                },
-            }
-
-        def load_receipt(_record: Any, *, trial_id: str, phase: Any) -> Any:
-            self.assertIs(phase, EvaluationPhase.PUBLIC_ACCEPT)
-            return SimpleNamespace(result=trial_id)
-
-        with (
-            patch(
-                "true_rl_agent.tasks.stair_climbing.generation_session."
-                "load_bound_generation_trial_phase_receipt",
-                side_effect=load_receipt,
-            ),
-            patch(
-                "true_rl_agent.tasks.stair_climbing.generation_session."
-                "canonical_stair_phase_result_summary",
-                side_effect=lambda **kwargs: kwargs["result"],
-            ),
-            patch(
-                "true_rl_agent.tasks.stair_climbing.generation_session."
-                "build_unified_score_projection",
-                side_effect=lambda summary, objective_family_mask: (
-                    projection(0.8) if str(summary).startswith("loser-") else projection(0.5)
-                ),
-            ),
-        ):
-            metrics = _unified_validation_selector_reversal_metrics(
-                foundation,
-                ledger=ledger,
-            )
+        metrics = _unified_validation_selector_reversal_metrics(
+            foundation,
+            ledger=ledger,
+        )
 
         self.assertEqual(
             metrics["comparison_source"],
-            "runner_private_public_accept_phase_receipts",
+            "selected_lane_only_public_accept_routing",
         )
-        self.assertEqual(metrics["complete_dual_public_generation_count"], 2)
-        self.assertEqual(metrics["observed_reversal_count"], 2)
-        self.assertEqual(metrics["blocking_reversal_count"], 2)
-        self.assertEqual(
-            metrics["public_dev_accept_consistency"],
-            {"numerator": 0, "denominator": 2, "rate": 0.0},
-        )
+        self.assertEqual(metrics["selected_confirmation_generation_count"], 1)
+        self.assertEqual(metrics["no_selection_generation_count"], 1)
+        self.assertEqual(metrics["routing_violation_count"], 0)
+        self.assertEqual(metrics["status"], "pass")
 
-    def test_unified_terminal_selector_requires_frozen_objective_family_mask(
+    def test_unified_terminal_selector_rejects_no_selection_public_accept(
         self,
     ) -> None:
         config = StairClimbingTaskConfig.defaults(
@@ -208,13 +252,25 @@ class StairGenerationSessionTests(unittest.TestCase):
             composition=SimpleNamespace(
                 task_plugin=SimpleNamespace(
                     config=config,
-                    objective_family_mask=lambda: None,
+                    objective_family_mask=lambda: {"frozen": True},
                 )
             )
         )
-
-        with self.assertRaisesRegex(ValueError, "lack Genesis objective family mask"):
-            _unified_validation_selector_reversal_metrics(foundation, ledger=[])
+        metrics = _unified_validation_selector_reversal_metrics(
+            foundation,
+            ledger=[
+                {
+                    "generation_index": 1,
+                    "selection": {"selected_trial_id": None},
+                    "trials": [
+                        {"trial_id": "lane-a", "public_accept": {}},
+                        {"trial_id": "lane-b", "public_accept": None},
+                    ],
+                }
+            ],
+        )
+        self.assertEqual(metrics["status"], "fail")
+        self.assertEqual(metrics["routing_violation_count"], 1)
 
     def test_completed_scientific_generation_count_includes_no_selection(self) -> None:
         self.assertEqual(
@@ -228,6 +284,24 @@ class StairGenerationSessionTests(unittest.TestCase):
             ),
             15,
         )
+
+    def test_formal_normal_boundaries_allow_continuous_or_optional_pauses(self) -> None:
+        self.assertTrue(
+            _formal_normal_closed_generation_boundaries_are_valid([15])
+        )
+        self.assertTrue(
+            _formal_normal_closed_generation_boundaries_are_valid(
+                [3, 6, 9, 12, 15]
+            )
+        )
+        self.assertTrue(
+            _formal_normal_closed_generation_boundaries_are_valid([6, 12, 15])
+        )
+        for invalid in ([], [3, 6, 9, 12], [4, 15], [3, 3, 15], [6, 3, 15]):
+            with self.subTest(invalid=invalid):
+                self.assertFalse(
+                    _formal_normal_closed_generation_boundaries_are_valid(invalid)
+                )
 
     def test_validation_workload_delta_includes_conservative_gpu_charge(self) -> None:
         fields = {
@@ -256,6 +330,26 @@ class StairGenerationSessionTests(unittest.TestCase):
             delta["conservatively_charged_gpu_capacity_ns"], 900_000_000_000
         )
         self.assertEqual(delta["allocated_active_gpu_hours"], 0.75)
+
+    def test_imported_reference_cost_excludes_source_reference_work(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp).resolve()
+            foundation = SimpleNamespace(
+                config=SimpleNamespace(output_dir=output_dir),
+            )
+            source_private = output_dir.parent / "source" / "reference_eval_artifact.json"
+            genesis = SimpleNamespace(
+                reference_genesis_import_ref=object(),
+                reference_eval_artifact_path=Mock(return_value=source_private),
+            )
+
+            train_steps, eval_costs, evidence_hash = (
+                _validated_job_cost_artifacts(foundation, genesis=genesis)
+            )
+
+            self.assertEqual(train_steps, {})
+            self.assertEqual(eval_costs, {})
+            self.assertEqual(evidence_hash, canonical_json_hash([]))
 
     def _config(self, root: Path) -> StairGenerationPilotConfig:
         env_file = root / "provider.env"
@@ -314,6 +408,75 @@ class StairGenerationSessionTests(unittest.TestCase):
         for option, value in replacements.items():
             argv[argv.index(option) + 1] = value
         return argv
+
+    def test_imported_reference_config_requires_one_absolute_source_pair(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            config = self._config(root)
+            source = (root / "qualified-reference").resolve()
+            imported = replace(
+                config,
+                source_reference_genesis_dir=source,
+                source_reference_session_id="qualified-reference-session",
+            )
+            self.assertTrue(imported.imports_reference_genesis)
+
+            with self.assertRaisesRegex(ValueError, "provided together"):
+                replace(config, source_reference_genesis_dir=source)
+            with self.assertRaisesRegex(ValueError, "must be absolute"):
+                replace(
+                    config,
+                    source_reference_genesis_dir=Path("relative-source"),
+                    source_reference_session_id="qualified-reference-session",
+                )
+            with self.assertRaisesRegex(ValueError, "must differ"):
+                replace(
+                    config,
+                    source_reference_genesis_dir=config.output_dir,
+                    source_reference_session_id="qualified-reference-session",
+                )
+
+    def test_cli_passes_imported_reference_identity_without_changing_row(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            source = (root / "qualified-reference").resolve()
+            argv = [
+                *self._cli_args(root, "--pilot-session"),
+                "--source-reference-genesis-dir",
+                str(source),
+                "--source-reference-session-id",
+                "qualified-reference-session",
+                "--cell-variant-id",
+                STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+            ]
+            with (
+                patch.object(
+                    stair_generation_script,
+                    "run_stair_generation_pilot",
+                    return_value={"checks": {"imported": True}},
+                ) as run,
+                patch("builtins.print"),
+            ):
+                self.assertEqual(stair_generation_script.main(argv), 0)
+
+            config = run.call_args.args[0]
+            self.assertEqual(config.source_reference_genesis_dir, source)
+            self.assertEqual(
+                config.source_reference_session_id,
+                "qualified-reference-session",
+            )
+            self.assertEqual(
+                config.cell_variant_id,
+                STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+            )
+
+            incomplete = [
+                *self._cli_args(root, "--pilot-session"),
+                "--source-reference-genesis-dir",
+                str(source),
+            ]
+            with patch("sys.stderr"), self.assertRaises(SystemExit):
+                stair_generation_script.parse_stair_generation_session_args(incomplete)
 
     def _readiness_report(self) -> dict[str, Any]:
         return {
@@ -556,7 +719,33 @@ class StairGenerationSessionTests(unittest.TestCase):
                     config = run.call_args.args[0]
                     self.assertEqual(config.session_mode, expected_mode)
                     self.assertEqual(config.max_generations, expected_generations)
+                    self.assertEqual(
+                        config.cell_variant_id,
+                        STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
+                    )
                     launch_context.assert_not_called()
+
+    def test_generation_cli_selects_go2_row(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            argv = self._cli_args(root, "--pilot-session") + [
+                "--cell-variant-id",
+                STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+            ]
+            with (
+                patch.object(
+                    stair_generation_script,
+                    "run_stair_generation_pilot",
+                    return_value={"checks": {"row": "go2"}},
+                ) as run,
+                patch("builtins.print"),
+            ):
+                self.assertEqual(stair_generation_script.main(argv), 0)
+
+            self.assertEqual(
+                run.call_args.args[0].cell_variant_id,
+                STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+            )
 
     def test_formal_cli_maps_fixed_mode_and_precommitted_pause(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -953,16 +1142,58 @@ class StairGenerationSessionTests(unittest.TestCase):
                 ),
             )
 
-    def test_validation_foundation_freezes_three_generations_and_v2_cost(
+    def test_foundation_resolves_selected_go2_row(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            config = replace(
+                self._config(Path(tmp)),
+                cell_variant_id=STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+            )
+            _publish_or_verify_source_checkout_identity(
+                config.output_dir,
+                source_commit=SHA,
+            )
+            foundation = _create_foundation(
+                config,
+                source_commit=SHA,
+                inventory=(GPU_A, GPU_B),
+            )
+
+            manifest = foundation.composition.resolved_cell_manifest
+            self.assertIsNotNone(manifest)
+            assert manifest is not None
+            self.assertEqual(
+                manifest.cell_variant_id,
+                STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+            )
+            projector = StairExplorationProjector(
+                foundation.composition.task_plugin.config
+            ).contract()
+            self.assertEqual(
+                foundation.session_contract.bound_contract_hashes[
+                    "exploration_projector"
+                ],
+                canonical_json_hash(projector),
+            )
+            self.assertEqual(
+                projector["task_protocol_hash"],
+                manifest.resolved_cell_task_protocol_hash,
+            )
+
+    # Frozen P6 cost fixtures use their original 7200 s train deadline.
+    # P2's current default is covered by composition/placement tests.
+    @patch("true_rl_agent.tasks.stair_climbing.composition.DEFAULT_RUNNER_TIMEOUT_S", 7200)
+    def test_validation_foundation_freezes_imported_reference_v4_cost(
         self,
     ) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             config = replace(
                 self._config(Path(tmp)),
                 session_mode=DEVELOPMENT_GENERATION_VALIDATION_MODE,
-                max_allocated_active_gpu_hours=12.5,
-                max_simulated_control_steps=1_577_542_128,
+                max_allocated_active_gpu_hours=13.8,
+                max_simulated_control_steps=1_183_555_008,
                 max_output_bytes=3_758_096_384,
+                source_reference_genesis_dir=(Path(tmp) / "source").resolve(),
+                source_reference_session_id="qualified-reference",
             )
             _publish_or_verify_source_checkout_identity(
                 config.output_dir,
@@ -982,33 +1213,360 @@ class StairGenerationSessionTests(unittest.TestCase):
             self.assertEqual(foundation.session_contract.max_trials, 6)
             self.assertEqual(foundation.session_contract.max_train_jobs, 6)
             self.assertEqual(foundation.continuation_policy.max_segments, 4)
-            self.assertIsInstance(
-                foundation.cost_contract,
-                StairGenerationSessionCostContractV2,
-            )
+            self.assertIs(type(foundation.cost_contract), StairGenerationSessionCostContractV4)
             self.assertEqual(foundation.cost_contract.provider_attempt_cap, 30)
-            self.assertEqual(foundation.cost_contract.physical_train_job_cap, 8)
+            self.assertEqual(foundation.cost_contract.physical_train_job_cap, 6)
             self.assertEqual(
                 foundation.cost_contract.physical_eval_seed_unit_cap,
-                91,
+                76,
             )
             self.assertEqual(
                 foundation.cost_contract.max_simulated_control_steps,
-                1_577_542_128,
+                1_183_555_008,
             )
             self.assertEqual(
                 foundation.cost_contract.max_output_bytes,
                 3_758_096_384,
             )
-            self.assertNotIn(
-                "parent_public_dev",
+            operation_classes = {
+                entry["operation_class"]
+                for entry in foundation.cost_contract.to_dict()[
+                    "operation_reserves"
+                ]["entries"]
+            }
+            self.assertTrue(
                 {
-                    entry["operation_class"]
-                    for entry in foundation.cost_contract.to_dict()[
-                        "operation_reserves"
-                    ]["entries"]
-                },
+                    "reference_train",
+                    "reference_qualification",
+                    "parent_public_dev",
+                    "reference_train_retry",
+                }.isdisjoint(operation_classes)
             )
+            self.assertEqual(
+                foundation.cost_contract.candidate_train_process_timeout_s,
+                foundation.runner.timeout_s,
+            )
+
+    @patch("true_rl_agent.tasks.stair_climbing.composition.DEFAULT_RUNNER_TIMEOUT_S", 7200)
+    def test_formal_go2_foundation_freezes_imported_reference_v5_cost(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            config = replace(
+                self._config(Path(tmp)),
+                session_mode=FORMAL_GENERATION_SESSION_MODE,
+                cell_variant_id=STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+                max_allocated_active_gpu_hours=(
+                    STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS
+                    + STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_ALLOCATED_ACTIVE_GPU_HOURS
+                ),
+                max_simulated_control_steps=5_917_055_328,
+                max_output_bytes=(
+                    STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_OUTPUT_BYTES
+                    + STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_OUTPUT_BYTES
+                ),
+                source_reference_genesis_dir=(Path(tmp) / "source").resolve(),
+                source_reference_session_id="qualified-go2-reference",
+            )
+            _publish_or_verify_source_checkout_identity(
+                config.output_dir,
+                source_commit=SHA,
+            )
+            foundation = _create_foundation(
+                config,
+                source_commit=SHA,
+                inventory=(GPU_A, GPU_B),
+            )
+
+            self.assertIs(
+                type(foundation.cost_contract),
+                StairGenerationSessionCostContractV5,
+            )
+            self.assertTrue(foundation.cost_contract.imports_reference_evidence)
+            self.assertEqual(foundation.cost_contract.physical_train_job_cap, 30)
+            self.assertEqual(
+                foundation.cost_contract.physical_eval_seed_unit_cap,
+                366,
+            )
+            self.assertEqual(
+                foundation.cost_contract.max_simulated_control_steps,
+                5_917_055_328,
+            )
+            self.assertEqual(
+                foundation.composition.resolved_cell_manifest.cell_variant_id,
+                STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+            )
+            self.assertNotIn(
+                "final_confirmation_precommit",
+                foundation.composition.task_defaults,
+            )
+            self.assertEqual(
+                foundation.session_contract.bound_contract_hashes[
+                    "final_confirmation_plan"
+                ],
+                foundation.final_confirmation_plan.plan_hash,
+            )
+            operation_classes = {
+                entry["operation_class"]
+                for entry in foundation.cost_contract.to_dict()[
+                    "operation_reserves"
+                ]["entries"]
+            }
+            self.assertTrue(
+                {
+                    "reference_train",
+                    "reference_qualification",
+                    "parent_public_dev",
+                    "reference_train_retry",
+                }.isdisjoint(operation_classes)
+            )
+
+    def test_formal_final_eval_rematerializes_imported_reference_gpu_binding(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = replace(
+                self._config(root),
+                cell_variant_id=STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+            )
+            foundation = _create_foundation(
+                config, source_commit=SHA, inventory=(GPU_A, GPU_B)
+            )
+            foundation = replace(
+                foundation,
+                final_confirmation_plan=SimpleNamespace(seed_cohort_hash="9" * 64),
+            )
+            composition = foundation.composition
+            backend = composition.backend_adapter
+            checkpoint_path = root / "best.pt"
+            checkpoint_path.write_bytes(b"sealed-checkpoint-fixture")
+            checkpoint_hash = "sha256:" + hashlib.sha256(
+                checkpoint_path.read_bytes()
+            ).hexdigest()
+            for previous_gpu in (None, foundation.gpu_bindings[1]):
+                with self.subTest(previous_gpu=previous_gpu):
+                    jobs = backend.materialize_reference_jobs(
+                        session_id="source-reference",
+                        task_spec=composition.task_plugin.task_spec,
+                        reference=composition.reference_program_artifact,
+                        artifact_root=root / "reference-artifacts",
+                        policy_initialization=composition.policy_initialization,
+                        backend_execution_environment_manifest_hash=DIGEST,
+                        gpu_process_binding=previous_gpu,
+                    )
+                    spec = jobs.eval_spec
+                    checkpoint = CheckpointRef(
+                        uri=spec.checkpoint_output_plan.uri,
+                        checksum=checkpoint_hash,
+                        role="eval",
+                        sealed=True,
+                        metadata={
+                            "local_path": str(checkpoint_path),
+                            "training_subject": spec.subject.to_public_dict(),
+                            "subject_manifest_hash": spec.subject_manifest_hash,
+                            "program_source_checksum": spec.program_source_checksum,
+                            "training_binding_hash": spec.training_binding_hash,
+                            "capability_profile_hash": spec.capability_profile_hash,
+                            "execution_device": spec.execution_device,
+                            "gpu_process_binding": (
+                                previous_gpu.to_dict() if previous_gpu else None
+                            ),
+                        },
+                    )
+                    template = bind_eval_spec_to_checkpoint(spec, checkpoint)
+                    original_argv = list(template.metadata["cli_argv"])
+                    self.assertEqual(
+                        "--gpu-host-execution-device" in original_argv,
+                        previous_gpu is not None,
+                    )
+                    target = replace(
+                        template,
+                        subject=ExperimentSubject.candidate("accepted-candidate"),
+                        subject_manifest_hash="c" * 64,
+                        program_source_checksum="sha256:" + "d" * 64,
+                        training_binding_hash="e" * 64,
+                    )
+                    bound = generation_session._bind_formal_final_eval_plan(
+                        foundation,
+                        template=template,
+                        target=target,
+                        role="final",
+                        base_job_id="formal-final-confirmation-final-eval",
+                    )
+                    phase = backend.materialize_eval_phase(
+                        eval_plan=bound, phase=EvaluationPhase.SEALED_VALIDATION
+                    )
+                    argv = phase.metadata["cli_argv"]
+                    validate_eval_job_argv(phase, argv)
+                    expected_options = {
+                        "--subject-kind": "candidate",
+                        "--subject-id": "accepted-candidate",
+                        "--subject-manifest-hash": target.subject_manifest_hash,
+                        "--program-source-checksum": target.program_source_checksum,
+                        "--training-binding-hash": target.training_binding_hash,
+                        "--checkpoint-sha256": checkpoint_hash,
+                        "--seed-cohort-hash": "9" * 64,
+                        "--gpu-host-execution-device": "cuda:0",
+                        "--gpu-process-execution-device": "cuda:0",
+                        "--gpu-resource-binding-hash": (
+                            foundation.gpu_bindings[0].resource_binding_hash
+                        ),
+                        "--stair-eval-purpose": "final_confirmation",
+                        "--backend-execution-environment-manifest-hash": DIGEST,
+                    }
+                    for option, value in expected_options.items():
+                        self.assertEqual(argv.count(option), 1, option)
+                        self.assertEqual(argv[argv.index(option) + 1], value, option)
+                    self.assertEqual(
+                        bound.metadata["evaluation_subject"],
+                        target.subject.to_public_dict(),
+                    )
+                    for name in (
+                        "subject_manifest_hash", "program_source_checksum",
+                        "training_binding_hash", "capability_profile_hash",
+                    ):
+                        self.assertEqual(bound.metadata[name], getattr(target, name))
+                    self.assertEqual(template.metadata["cli_argv"], original_argv)
+                    self.assertEqual(bound.checkpoint, target.checkpoint)
+                    self.assertIsNone(bound.attempt_scope)
+
+    def _final_source_fixture(self, root: Path, executable_commit: str):
+        config = replace(self._config(root), expected_source_commit=executable_commit)
+        source = _publish_or_verify_source_checkout_identity(
+            config.output_dir, source_commit=SHA
+        )
+        final_dir = config.output_dir / generation_session.STAIR_FINAL_CONFIRMATION_DIRNAME
+        final_dir.mkdir()
+        return (
+            SimpleNamespace(config=config, source_commit=SHA),
+            source,
+            final_dir / generation_session._FINAL_SOURCE_CHECKOUT_FILENAME,
+        )
+
+    def test_final_execution_source_preserves_old_receipt_without_sidecar(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            foundation, source, sidecar = self._final_source_fixture(Path(tmp), SHA)
+            original = (foundation.config.output_dir / STAIR_GENERATION_SOURCE_CHECKOUT_FILENAME).read_bytes()
+            for publish in (False, True):
+                self.assertEqual(
+                    generation_session._formal_final_execution_source(
+                        foundation, publish=publish
+                    ),
+                    source,
+                )
+            self.assertFalse(sidecar.exists())
+            self.assertEqual(
+                (foundation.config.output_dir / STAIR_GENERATION_SOURCE_CHECKOUT_FILENAME).read_bytes(),
+                original,
+            )
+
+    def test_final_execution_source_repair_hash_binds_unchanged_generation_source(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            foundation, source, sidecar = self._final_source_fixture(Path(tmp), "c" * 40)
+            original_path = foundation.config.output_dir / STAIR_GENERATION_SOURCE_CHECKOUT_FILENAME
+            original = original_path.read_bytes()
+            recorded = generation_session._formal_final_execution_source(
+                foundation, publish=True
+            )
+            body = dict(recorded)
+            checksum = body.pop("source_checkout_hash")
+            self.assertEqual(checksum, canonical_json_hash(body))
+            self.assertEqual(body["source_commit"], "c" * 40)
+            self.assertEqual(body["generation_source_checkout_hash"], source["source_checkout_hash"])
+            self.assertEqual(sidecar.read_bytes(), canonical_json_bytes(recorded, trailing_newline=True))
+            self.assertEqual(original_path.read_bytes(), original)
+            self.assertEqual(
+                generation_session._formal_final_execution_source(foundation, publish=True),
+                recorded,
+            )
+
+    def test_final_execution_source_cannot_change_after_legacy_reservation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            foundation, _, sidecar = self._final_source_fixture(Path(tmp), "c" * 40)
+            reservation_path = generation_session.stair_final_confirmation_reservation_path(
+                foundation.config.output_dir
+            )
+            reservation_path.write_bytes(b"{}\n")
+            with self.assertRaisesRegex(ValueError, "cannot change after reservation"):
+                generation_session._formal_final_execution_source(foundation, publish=True)
+            self.assertFalse(sidecar.exists())
+
+    def test_final_execution_source_bound_repair_is_immutable_but_audit_is_read_only(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            foundation, _, sidecar = self._final_source_fixture(Path(tmp), "c" * 40)
+            recorded = generation_session._formal_final_execution_source(foundation, publish=True)
+            recorded_bytes = sidecar.read_bytes()
+            later = SimpleNamespace(
+                config=replace(foundation.config, expected_source_commit="d" * 40),
+                source_commit=SHA,
+            )
+            with self.assertRaisesRegex(ValueError, "finalizer source checkout mismatch"):
+                generation_session._formal_final_execution_source(later, publish=True)
+            self.assertEqual(
+                generation_session._formal_final_execution_source(later), recorded
+            )
+            self.assertEqual(sidecar.read_bytes(), recorded_bytes)
+
+    def test_final_execution_source_rejects_rehashed_wrong_generation_reference(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            foundation, _, sidecar = self._final_source_fixture(Path(tmp), "c" * 40)
+            recorded = dict(generation_session._formal_final_execution_source(foundation, publish=True))
+            recorded.pop("source_checkout_hash")
+            recorded["generation_source_checkout_hash"] = "e" * 64
+            recorded["source_checkout_hash"] = canonical_json_hash(recorded)
+            sidecar.write_bytes(canonical_json_bytes(recorded, trailing_newline=True))
+            with self.assertRaisesRegex(ValueError, "finalizer source checkout mismatch"):
+                generation_session._formal_final_execution_source(foundation)
+
+    @patch("true_rl_agent.tasks.stair_climbing.composition.DEFAULT_RUNNER_TIMEOUT_S", 7200)
+    def test_formal_source_change_rejects_real_nonterminal_foundation_without_writes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = replace(
+                self._config(root),
+                session_mode=FORMAL_GENERATION_SESSION_MODE,
+                cell_variant_id=STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+                max_allocated_active_gpu_hours=(
+                    STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS
+                    + STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_ALLOCATED_ACTIVE_GPU_HOURS
+                ),
+                max_simulated_control_steps=5_917_055_328,
+                max_output_bytes=(
+                    STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_OUTPUT_BYTES
+                    + STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_OUTPUT_BYTES
+                ),
+                source_reference_genesis_dir=(root / "source").resolve(),
+                source_reference_session_id="qualified-go2-reference",
+            )
+            _publish_or_verify_source_checkout_identity(
+                config.output_dir, source_commit=SHA
+            )
+            _create_foundation(config, source_commit=SHA, inventory=(GPU_A, GPU_B))
+            before = {
+                str(path.relative_to(config.output_dir)): (
+                    path.read_bytes() if path.is_file() else None
+                )
+                for path in config.output_dir.rglob("*")
+            }
+            self.assertNotIn("session_genesis.json", before)
+            self.assertIn("final_confirmation/plan.json", {
+                key.replace("\\", "/") for key in before
+            })
+            repaired_config = replace(
+                config, resume_existing=True, expected_source_commit="c" * 40
+            )
+            with self.assertRaisesRegex(ValueError, "terminal readiness requires Session Genesis"):
+                generation_session._formal_resume_generation_source(
+                    repaired_config, "c" * 40
+                )
+            after = {
+                str(path.relative_to(config.output_dir)): (
+                    path.read_bytes() if path.is_file() else None
+                )
+                for path in config.output_dir.rglob("*")
+            }
+            self.assertEqual(after, before)
 
     def test_terminal_validation_audit_is_offline_before_gpu_and_provider(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -1361,6 +1919,8 @@ class StairGenerationSessionTests(unittest.TestCase):
                 cost_contract=SimpleNamespace(
                     contract_hash=cost_contract_hash,
                     max_generations=3,
+                    imports_reference_evidence=False,
+                    imported_reference_timeout_envelope=None,
                     scientific_cost_basis=SimpleNamespace(
                         reuses_reference_public_dev_receipt=False
                     ),
@@ -1797,7 +2357,7 @@ class StairGenerationSessionTests(unittest.TestCase):
                 ) as replay_closure,
                 patch(
                     "true_rl_agent.tasks.stair_climbing.generation_session."
-                    "_collect_actual_cost_usage",
+                    "collect_actual_cost_usage",
                     return_value=(Mock(), (), ()),
                 ),
                 patch(
@@ -1845,7 +2405,7 @@ class StairGenerationSessionTests(unittest.TestCase):
         with (
             patch(
                 "true_rl_agent.tasks.stair_climbing.generation_session."
-                "_collect_actual_cost_usage",
+                "collect_actual_cost_usage",
                 return_value=(usage, ("conservative",), ()),
             ) as collect,
             patch(
@@ -2100,6 +2660,8 @@ class StairGenerationSessionTests(unittest.TestCase):
 
             legacy_cost_contract = SimpleNamespace(
                 max_generations=3,
+                imports_reference_evidence=False,
+                imported_reference_timeout_envelope=None,
                 scientific_cost_basis=SimpleNamespace(
                     reuses_reference_public_dev_receipt=False
                 ),
@@ -2648,7 +3210,7 @@ class StairGenerationSessionTests(unittest.TestCase):
                     return_value=Mock(),
                 ) as attempt_scope,
                 patch(
-                    "true_rl_agent.tasks.stair_climbing.generation_session._collect_actual_cost_usage",
+                    "true_rl_agent.tasks.stair_climbing.generation_session.collect_actual_cost_usage",
                     return_value=(Mock(), (), ()),
                 ),
                 patch(
@@ -2748,7 +3310,7 @@ class StairGenerationSessionTests(unittest.TestCase):
                 ),
                 patch(
                     "true_rl_agent.tasks.stair_climbing.generation_session."
-                    "_collect_actual_cost_usage",
+                    "collect_actual_cost_usage",
                     return_value=(Mock(), (), ()),
                 ),
                 self.assertRaisesRegex(RuntimeError, "preflight-b3-wiring") as raised,
@@ -2891,7 +3453,7 @@ class StairGenerationSessionTests(unittest.TestCase):
                     return_value=(record, execution_ref),
                 ),
                 patch(
-                    "true_rl_agent.tasks.stair_climbing.generation_session._collect_actual_cost_usage",
+                    "true_rl_agent.tasks.stair_climbing.generation_session.collect_actual_cost_usage",
                     return_value=(Mock(), (), ()),
                 ),
                 patch(
@@ -3127,7 +3689,7 @@ class StairGenerationSessionTests(unittest.TestCase):
                 ),
                 patch(
                     "true_rl_agent.tasks.stair_climbing.generation_session."
-                    "_collect_actual_cost_usage",
+                    "collect_actual_cost_usage",
                     return_value=(Mock(), (), ()),
                 ),
                 patch(

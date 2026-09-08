@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from true_rl_agent.runner.native_video import NativeVideoOptions
+
 import hashlib
 import json
 import math
@@ -20,6 +22,11 @@ from true_rl_agent.backends.isaac_lab_execution_environment import (
     ISAAC_LAB_RSL_RL_BACKEND_ID,
 )
 from true_rl_agent.backends.rsl_rl_training_config import RslRlAgentConfiguration
+from true_rl_agent.backends.rsl_rl_checkpoint import (
+    INITIAL_MODEL_STATE_HASH_SCHEMA_VERSION,
+    initial_model_state_hash,
+    load_inference_checkpoint,
+)
 from true_rl_agent.composition.cell_manifest import ResolvedCellManifestV1
 from true_rl_agent.evaluation.binding import (
     canonical_json_hash,
@@ -336,6 +343,7 @@ class StairEvaluationExecutionResult:
     source_manifest_preflight: Mapping[str, str]
     backend_execution_environment_verification: Mapping[str, str]
     execution_device: str
+    checkpoint_loading: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.summaries, Mapping) or not self.summaries:
@@ -830,6 +838,9 @@ def _execute_stair_training(
             log_dir=str(log_dir),
             device=agent_cfg.device,
         )
+        effective_agent_execution["constructed_learner"] = (
+            config.training_agent_configuration().verify_runner(runner)
+        )
         resolved_observation_groups = verify_stair_rsl_rl_observation_groups(
             runner,
             execution_contract=execution,
@@ -838,10 +849,7 @@ def _execute_stair_training(
             effective_agent_execution["resolved_observation_groups"] = (
                 resolved_observation_groups
             )
-        initial_policy_state_hash = _hash_initial_policy_state(
-            runner.alg.policy,
-            torch_module=torch,
-        )
+        initial_policy_state_hash = initial_model_state_hash(runner)
         initial_policy_state_match = (
             None
             if expected_initial_policy_state_hash is None
@@ -852,6 +860,7 @@ def _execute_stair_training(
             "workload_kind": workload.kind,
             "device": str(agent_cfg.device),
             "initial_policy_state_hash": initial_policy_state_hash,
+            "initial_policy_state_hash_schema_version": INITIAL_MODEL_STATE_HASH_SCHEMA_VERSION,
             "expected_initial_policy_state_hash": (
                 expected_initial_policy_state_hash
             ),
@@ -904,6 +913,10 @@ def _execute_stair_training(
             num_steps_per_env=workload.num_steps_per_env,
             max_iterations=workload.max_iterations,
         )
+        checkpoint_retention = _retain_final_training_checkpoint(
+            log_dir,
+            keep=latest_checkpoint,
+        )
         training_summary = {
             "budget_accounting": budget,
             "workload_kind": workload.kind,
@@ -914,11 +927,13 @@ def _execute_stair_training(
             "device": str(agent_cfg.device),
             "log_dir": str(log_dir),
             "latest_checkpoint_iteration": latest_iteration,
+            "checkpoint_retention": checkpoint_retention,
             "execution_contract": dict(execution),
             "effective_agent_execution": effective_agent_execution,
             "training_distribution": training_distribution_evidence,
             "initial_terrain_assignment": initial_assignment_evidence,
             "initial_policy_state_hash": initial_policy_state_hash,
+            "initial_policy_state_hash_schema_version": INITIAL_MODEL_STATE_HASH_SCHEMA_VERSION,
             "expected_initial_policy_state_hash": (
                 expected_initial_policy_state_hash
             ),
@@ -1022,49 +1037,6 @@ def _execute_stair_reward_program_boundary(
         raise failure from exc
 
 
-def _hash_initial_policy_state(policy: Any, *, torch_module: Any) -> str:
-    """Hash the exact initialized policy tensors before the first learner step."""
-
-    state_dict_fn = getattr(policy, "state_dict", None)
-    if not callable(state_dict_fn):
-        raise TypeError("Stair RSL-RL policy must expose state_dict()")
-    state = state_dict_fn()
-    if not isinstance(state, Mapping) or not state:
-        raise ValueError("Stair RSL-RL initial policy state cannot be empty")
-
-    digest = hashlib.sha256()
-    digest.update(b"true_rl_agent.initial_policy_state.v1\x00")
-    for name in sorted(state):
-        if not isinstance(name, str) or not name:
-            raise ValueError("Stair RSL-RL policy state contains an invalid key")
-        tensor = state[name]
-        if not torch_module.is_tensor(tensor):
-            raise TypeError(
-                f"Stair RSL-RL policy state is not a tensor: {name}"
-            )
-        value = tensor.detach().cpu().contiguous()
-        if value.layout != torch_module.strided:
-            raise TypeError(
-                f"Stair RSL-RL policy state must be strided: {name}"
-            )
-        if value.is_floating_point() and not bool(
-            torch_module.isfinite(value).all().item()
-        ):
-            raise ValueError(
-                f"Stair RSL-RL initial policy state is non-finite: {name}"
-            )
-        encoded_name = name.encode("utf-8")
-        encoded_dtype = str(value.dtype).encode("ascii")
-        encoded_shape = ",".join(str(int(size)) for size in value.shape).encode(
-            "ascii"
-        )
-        raw = value.view(torch_module.uint8).numpy().tobytes(order="C")
-        for part in (encoded_name, encoded_dtype, encoded_shape, raw):
-            digest.update(len(part).to_bytes(8, byteorder="big", signed=False))
-            digest.update(part)
-    return digest.hexdigest()
-
-
 def execute_stair_evaluation(
     *,
     config: StairClimbingTaskConfig,
@@ -1076,9 +1048,14 @@ def execute_stair_evaluation(
     splits: tuple[str, ...],
     runtime_lease: StairEvaluationRuntimeLease | None = None,
     resolved_cell_manifest: ResolvedCellManifestV1 | None = None,
+    native_video: NativeVideoOptions | None = None,
 ) -> StairEvaluationExecutionResult:
     """Load one policy and evaluate explicit splits in one isolated runtime."""
 
+    if native_video is not None and resolved_cell_manifest is None:
+        raise ValueError("native recording requires an explicit resolved cell manifest")
+    if native_video is not None and splits != ("public_dev",):
+        raise ValueError("Stair native recording requires the public_dev evaluation phase")
     if not isinstance(config, StairClimbingTaskConfig):
         raise TypeError("Stair evaluation requires StairClimbingTaskConfig")
     _validate_source_manifest_preflight(
@@ -1159,7 +1136,18 @@ def execute_stair_evaluation(
             config.unified_protocol if config.is_unified_protocol else None
         ),
     )
-    base_env = gym.make(STAIR_EVAL_GYM_ID, cfg=env_cfg, render_mode=None)
+    if native_video is not None:
+        native_video.configure_viewer(env_cfg)
+    base_env = gym.make(
+        STAIR_EVAL_GYM_ID, cfg=env_cfg,
+        render_mode="rgb_array" if native_video is not None else None,
+    )
+    recorder = None
+    if native_video is not None:
+        from true_rl_agent.runner.native_video import NativeVideoRecorder
+
+        recorder = NativeVideoRecorder(base_env, native_video)
+        base_env = recorder.env
     if requires_runtime_lease:
         assert runtime_lease is not None
         runtime_lease.bind(base_env)
@@ -1183,7 +1171,7 @@ def execute_stair_evaluation(
         agent_cfg = isaaclab_locomotion_runtime_spec(
             runtime_projection.runtime_adapter_id
         ).instantiate_runner_cfg()
-        config.training_agent_configuration().apply_and_verify(agent_cfg)
+        config.training_agent_configuration().apply_to(agent_cfg)
         agent_cfg.seed = config.train_seed
         agent_cfg.device = device
         actual_env_device = str(base_env.unwrapped.device)
@@ -1216,7 +1204,8 @@ def execute_stair_evaluation(
             split_counts["calibration"] = (
                 config.ordered_evaluation_suite.calibration_seed_count
             )
-        runner.load(str(resolved_checkpoint))
+        config.training_agent_configuration().verify_runner(runner)
+        checkpoint_loading = load_inference_checkpoint(runner, resolved_checkpoint)
         inference_policy = runner.get_inference_policy(
             device=env.unwrapped.device
         )
@@ -1226,6 +1215,21 @@ def execute_stair_evaluation(
         split_wall_times_s: dict[str, float] = {}
         for split in splits:
             split_start_ns = time.perf_counter_ns()
+
+            def seed_completed(completed: int, total: int) -> None:
+                print(f"stair evaluation split={split} seed={completed}/{total}", flush=True)
+
+            def finish_seed_video(seed_outcomes: tuple[Any, ...]) -> None:
+                outcome = seed_outcomes[native_video.env_index]
+                # Gym's first frame follows control step 1. Exclude the
+                # terminal auto-reset frame and all later unscored episodes.
+                record = recorder.finish(frame_count=outcome.episode_steps - 1)
+                record["split"] = split
+                record["episode_outcome"] = outcome.to_public_dict()
+                if config.ordered_evaluation_suite_config is not None:
+                    course = config.ordered_evaluation_suite_config.cell(outcome.evaluation_cell_id)
+                    record["geometry_digest"] = course.geometry_digest
+
             split_execution = run_stair_split_execution(
                 env=env,
                 inference_policy=inference_policy,
@@ -1236,11 +1240,12 @@ def execute_stair_evaluation(
                 seed_count=split_counts[split],
                 seed_namespace=seed_namespace,
                 runtime_projection=runtime_projection,
-                progress_callback=lambda completed, total, split=split: print(
-                    "stair evaluation "
-                    f"split={split} seed={completed}/{total}",
-                    flush=True,
+                progress_callback=seed_completed,
+                on_seed_reset=(
+                    (lambda index, seed: recorder.start(f"{split}_seed_{index}", seed))
+                    if recorder is not None else None
                 ),
+                on_seed_completed=(finish_seed_video if recorder is not None else None),
             )
             per_seed = split_execution.per_seed_outcomes
             print(
@@ -1291,7 +1296,22 @@ def execute_stair_evaluation(
             source_manifest_preflight=source_manifest_preflight.to_summary_dict(),
             backend_execution_environment_verification=backend_verification,
             execution_device=actual_env_device,
+            checkpoint_loading=checkpoint_loading,
         )
+        if recorder is not None:
+            sidecar = {
+                "schema_version": "true_rl_agent.stair_native_video.v1",
+                "reclassified_by_video_exporter": False,
+                "recorded_interval": "first_episode_control_step_1_to_terminal_minus_1",
+                "execution": result.execution_identity(),
+                "checkpoint_loading": dict(checkpoint_loading),
+                "resolved_cell_manifest": resolved_cell_manifest.to_dict(),
+                "evaluation_summaries": result.public_summaries(),
+                "recordings": recorder.records,
+            }
+            (native_video.output_dir / "recordings.json").write_text(
+                json.dumps(sidecar, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+            )
         print("stair evaluation result=ready", flush=True)
         return result
     finally:
@@ -1324,6 +1344,30 @@ def _find_latest_checkpoint(log_dir: Path) -> Path | None:
         ),
     )
     return checkpoints[-1] if checkpoints else None
+
+
+def _retain_final_training_checkpoint(
+    log_dir: Path,
+    *,
+    keep: Path,
+) -> dict[str, Any]:
+    """Remove resumable intermediates after the authoritative final copy exists."""
+
+    keep_resolved = keep.resolve(strict=True)
+    removed_count = 0
+    removed_bytes = 0
+    for checkpoint in log_dir.rglob("model_*.pt"):
+        if checkpoint.resolve(strict=True) == keep_resolved:
+            continue
+        removed_bytes += checkpoint.stat().st_size
+        checkpoint.unlink()
+        removed_count += 1
+    return {
+        "policy": "retain_final_iteration_only_after_authoritative_copy",
+        "retained_checkpoint": str(keep),
+        "removed_checkpoint_count": removed_count,
+        "removed_checkpoint_bytes": removed_bytes,
+    }
 
 
 def _validate_source_manifest_preflight(

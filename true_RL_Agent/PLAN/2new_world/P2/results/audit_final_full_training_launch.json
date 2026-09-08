@@ -1,0 +1,38 @@
+{
+  "status": "STOPPED_BY_USER",
+  "source_root": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent",
+  "project_source_hash": "2e9958ef288164b0da8285876f057bc40ed809a1a576acb3c917d6540e895525",
+  "execution_environment_manifest_hash": "2d42240c8a2d34d8b67816ca23e2226ac2a2f146800f4f35f22de1b3d58bac31",
+  "argv": [
+    "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+    "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/native_eval_job_probe.py",
+    "--robot",
+    "go2",
+    "--device",
+    "cuda:0",
+    "--output",
+    "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit2_go2_full_train",
+    "--train",
+    "--timeout",
+    "36000"
+  ],
+  "pid": 673759,
+  "started_at_unix": 1788796151.6420326,
+  "budget_control_steps": 196608000,
+  "iterations": 2000,
+  "timeout_s": 36000,
+  "initialization": "random",
+  "supersedes_invalid_attempts": [
+    "go2_full_train_03",
+    "audit_go2_full_train_01"
+  ],
+  "raw_runner_status": "FAIL",
+  "stop_receipt": "results/audit_user_stop.json",
+  "last_logged_iteration": 630,
+  "latest_checkpoint": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit2_go2_full_train/runner/audit2_go2_full_train/train/run/attempt-00f71f7afcde4a98adac992876050176/rsl_rl/model_600.pt",
+  "full_training_qualified": false,
+  "final_checkpoint_evaluation": "CANCELLED_BY_USER",
+  "stop_requested_at_unix": 1788801393.8192427,
+  "resource_lease_wall_duration_s": 5246.150893621,
+  "raw_attempt_result": "results/audit2_go2_full_train/attempts/e9251554a9b0c9dad818677e/attempt_00.result.json"
+}

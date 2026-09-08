@@ -188,6 +188,8 @@ def run_stair_split_execution(
     seed_namespace: str,
     progress_callback: Callable[[int, int], None] | None = None,
     runtime_projection: StairRuntimeProjection | None = None,
+    on_seed_reset: Callable[[int, int], None] | None = None,
+    on_seed_completed: Callable[[tuple[StairEpisodeOutcome, ...]], None] | None = None,
 ) -> StairSplitRolloutExecution:
     """Collect outcomes and exact runner-owned control-step cost for one split."""
 
@@ -206,9 +208,12 @@ def run_stair_split_execution(
             run_index=run_index,
             seed_namespace=seed_namespace,
             runtime_projection=runtime_projection,
+            on_seed_reset=on_seed_reset,
         )
         outcomes.append(seed_execution.outcomes)
         vector_env_step_calls += seed_execution.vector_env_step_calls
+        if on_seed_completed is not None:
+            on_seed_completed(seed_execution.outcomes)
         if progress_callback is not None:
             progress_callback(run_index, seed_count)
     return StairSplitRolloutExecution(
@@ -264,6 +269,7 @@ def _execute_stair_seed_rollout(
     run_index: int,
     seed_namespace: str,
     runtime_projection: StairRuntimeProjection | None = None,
+    on_seed_reset: Callable[[int, int], None] | None = None,
 ) -> _StairSeedRolloutExecution:
     """Collect one seed and retain the exact number of env.step invocations."""
 
@@ -277,6 +283,8 @@ def _execute_stair_seed_rollout(
     _set_runner_seed(runner_seed)
     observation, _ = _reset_env(env, runner_seed)
     _assert_finite_tree(observation, "Stair reset observation")
+    if on_seed_reset is not None:
+        on_seed_reset(run_index, runner_seed)
 
     if isinstance(seed_resolver, StairOrderedEvaluationSeedResolver):
         assignment = seed_resolver.private_bin_assignment(split)

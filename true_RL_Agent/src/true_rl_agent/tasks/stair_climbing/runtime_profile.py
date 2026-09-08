@@ -17,6 +17,8 @@ STAIR_EVAL_PROFILE = "stair_v2_eval"
 STAIR_UNIFIED_TRAIN_PROFILE = "stair_unified_v1_train"
 STAIR_UNIFIED_EVAL_PROFILE = "stair_unified_v1_eval"
 STAIR_ENV_BUILDER_VERSION = "stair_g1_rough_env_v3"
+# This names the task's environment specification. The selected physical
+# implementation and its source bytes belong to the backend manifest.
 STAIR_UNIFIED_ENV_BUILDER_VERSION = "stair_unified_c0_c1_env_v1"
 STAIR_LEGACY_TRANSITION_RECORDER_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.transition.v1"
@@ -25,8 +27,8 @@ STAIR_TRANSITION_RECORDER_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.transition.v2"
 )
 STAIR_EVAL_TRANSITION_EXTRAS_KEY = "stair_eval_pre_reset_transition_v2"
-STAIR_TRAIN_GYM_ID = "TrueRL-Unitree-Stair-Climbing-G1-Train-v0"
-STAIR_EVAL_GYM_ID = "TrueRL-Unitree-Stair-Climbing-G1-Eval-v0"
+STAIR_TRAIN_GYM_ID = "TrueRL-Stair-Climbing-Train-v1"
+STAIR_EVAL_GYM_ID = "TrueRL-Stair-Climbing-Eval-v1"
 STAIR_COMPLETE_REWARD_RUNTIME_STATUS = "active_pre_reset_complete_reward_v1"
 STAIR_REWARD_ACTIVATION_PREFLIGHT_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.reward_activation_preflight.v2"

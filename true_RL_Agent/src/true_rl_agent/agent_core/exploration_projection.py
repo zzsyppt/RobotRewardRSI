@@ -22,6 +22,7 @@ _CARD_FIELDS = frozenset(
         "card_hash",
         "verifier_equivalence_key",
         "operation",
+        "operation_effect",
         "component_kind",
         "public_input_fields",
         "evidence_tier",
@@ -337,8 +338,16 @@ def _compact_cards(value: Any, *, maximum: int, label: str) -> list[dict[str, An
             item["verifier_equivalence_key"],
             f"{label} verifier equivalence key",
         )
-        for key in ("operation", "component_kind", "observed_effect", "value_label", "revisit_disposition"):
+        for key in (
+            "operation",
+            "component_kind",
+            "observed_effect",
+            "value_label",
+            "revisit_disposition",
+        ):
             _bounded_text(item[key], f"{label} {key}")
+        if "operation_effect" in item:
+            _bounded_text(item["operation_effect"], f"{label} operation effect")
         fields = item["public_input_fields"]
         if (
             not isinstance(fields, list)
@@ -364,7 +373,7 @@ def _compact_cards(value: Any, *, maximum: int, label: str) -> list[dict[str, An
 def minimal_exploration_prompt_card(value: Mapping[str, Any]) -> dict[str, Any]:
     return {
         key: value[key]
-        for key in _CARD_REQUIRED_FIELDS
+        for key in (*sorted(_CARD_REQUIRED_FIELDS), "operation_effect")
         if key in value
     }
 

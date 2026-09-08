@@ -21,6 +21,7 @@ from true_rl_agent.robots.defaults import (
     build_default_robot_registry,
 )
 from true_rl_agent.robots.registry import RobotRegistry
+from true_rl_agent.robots.rsl_rl_runtime import rsl_rl_agent_configuration
 from true_rl_agent.tasks.push_recovery.config import PushRecoveryTaskConfig
 from true_rl_agent.tasks.push_recovery.plugin import PushRecoveryTaskPlugin
 from true_rl_agent.tasks.push_recovery.reward_input_contract import (
@@ -70,9 +71,9 @@ def build_push_cell_catalog(
     contracts = {
         "acceptance_protocol_hash": config.acceptance_protocol().protocol_hash,
         "action_content_hash": canonical_json_hash(facts["actions"]),
-        "agent_configuration_hash": (
-            config.training_agent_configuration().agent_configuration_hash
-        ),
+        "agent_configuration_hash": rsl_rl_agent_configuration(
+            binding.runtime_adapter_id
+        ).agent_configuration_hash,
         "binding_facts_hash": facts["binding_facts_hash"],
         "candidate_capability_profile_hash": (
             plugin.task_spec.candidate_capability_profile.profile_hash

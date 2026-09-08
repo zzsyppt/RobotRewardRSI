@@ -183,6 +183,25 @@ def require_mechanism_operation_delta(value: Any) -> dict[str, Any]:
     }
 
 
+def mechanism_operation_effect(value: Any) -> str:
+    """Return a truthful human-readable effect without changing receipt identity."""
+
+    delta = require_mechanism_operation_delta(value)
+    operation = str(delta["operation"])
+    if operation != "rename":
+        return operation
+    before = delta["before_component"]
+    after = delta["after_component"]
+    assert before is not None and after is not None
+    unchanged_semantics = (
+        before["structure_hash"] == after["structure_hash"]
+        and before["parameter_normalized_structure_hash"]
+        == after["parameter_normalized_structure_hash"]
+        and before["input_fields"] == after["input_fields"]
+    )
+    return "pure_rename" if unchanged_semantics else "rename_and_modify"
+
+
 def single_component_verifier_equivalence_key(value: Any) -> str:
     """Hash the verifier-owned, name-insensitive meaning of one component delta.
 
@@ -377,6 +396,7 @@ __all__ = [
     "canonical_mechanism_runtime_identity",
     "component_name_contract",
     "format_canonical_mechanism_id",
+    "mechanism_operation_effect",
     "parse_canonical_mechanism_id",
     "require_canonical_mechanism_delta",
     "require_mechanism_operation_delta",

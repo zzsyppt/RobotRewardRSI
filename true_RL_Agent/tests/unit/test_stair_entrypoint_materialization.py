@@ -92,6 +92,9 @@ from true_rl_agent.tasks.stair_climbing.gpu_process_binding import (  # noqa: E4
 from true_rl_agent.tasks.stair_climbing.reference_program import (  # noqa: E402
     resolve_official_stair_reference_program,
 )
+from true_rl_agent.tasks.stair_climbing.row_catalog import (  # noqa: E402
+    STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+)
 from true_rl_agent.tasks.stair_climbing.reward_program import (  # noqa: E402
     STAIR_REWARD_ENVIRONMENT_AXIS_EVIDENCE_SCHEMA_VERSION,
     StairRewardProgramError,
@@ -715,6 +718,8 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
     def test_eval_summary_is_written_before_simulation_app_close(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             summary_path = Path(tmp) / "eval-summary.json"
+            # The fake SimulationApp has no logger; model its successful Kit log.
+            summary_path.with_suffix(".kit.log").write_text("", encoding="utf-8")
             argv = [
                 "--job-id",
                 "stair-eval-close-order",
@@ -1026,6 +1031,54 @@ class StairEntrypointMaterializationTests(unittest.TestCase):
                 resolved_cell_manifest=self.resolved_cell_manifest,
             )
             self.assertEqual(context.config.protocol_state, "active")
+
+    def test_go2_reference_materialization_uses_catalog_protocol_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            provider = StairClimbingCompositionProvider()
+            values = dict(provider.cli_defaults())
+            values["cell_variant_id"] = STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID
+            composition = resolve_task_composition(
+                provider=provider,
+                values=values,
+                context=TaskCompositionContext(
+                    project_root=ROOT,
+                    output_dir=output_dir,
+                ),
+            )
+            composition = self._with_test_execution_environment(composition)
+            reference = composition.reference_program_artifact
+            self.assertIsNotNone(reference)
+            binding = composition.backend_adapter.evaluation_binding_for(
+                composition.task_plugin.task_spec
+            )
+            jobs = composition.backend_adapter.materialize_reference_jobs(
+                session_id="stair-go2-reference-materialized",
+                task_spec=composition.task_plugin.task_spec,
+                reference=reference,
+                artifact_root=output_dir / "reference_artifacts",
+                policy_initialization=composition.policy_initialization,
+                evaluation_binding=binding,
+                backend_execution_environment_manifest_hash=(
+                    TEST_ISAAC_LAB_EXECUTION_ENVIRONMENT_MANIFEST_HASH
+                ),
+            )
+            train_argv = list(jobs.train_spec.metadata["cli_argv"])
+            config_index = train_argv.index("--config")
+            self.assertEqual(
+                train_argv[config_index + 1],
+                "configs/tasks/stair_go2_12dof_unified_protocol_v2.json",
+            )
+            args = build_train_parser().parse_args(train_argv[2:])
+            context = validate_stair_train_invocation(
+                args,
+                project_root=ROOT,
+                resolved_cell_manifest=composition.resolved_cell_manifest,
+            )
+            self.assertEqual(
+                context.config.cell_variant_id,
+                STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+            )
 
     def test_preflight_rejects_binding_and_config_drift(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

@@ -4,6 +4,7 @@ import copy
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "src"
@@ -1372,7 +1373,7 @@ class StairPublicProjectionTests(unittest.TestCase):
         summary = sections["public_feedback_summary"]
         self.assertEqual(
             summary["schema_version"],
-            "true_rl_agent.task.stair_climbing.public_feedback_summary.v10",
+            "true_rl_agent.task.stair_climbing.public_feedback_summary.v12",
         )
         self.assertEqual(len(summary["feedback_entries"]), 1)
         anchor_entry = summary["feedback_entries"][0]
@@ -1728,7 +1729,6 @@ class StairPublicProjectionTests(unittest.TestCase):
         self.assertIn("candidate-004", candidate_ids)
         self.assertIn("candidate-014", candidate_ids)
         self.assertEqual(len(candidate_ids), len(entries))
-        self.assertTrue(summary["byte_budget_compaction_applied"])
         self.assertEqual(
             summary["omitted_candidate_feedback_entry_count"],
             len(records) - len(entries),
@@ -1835,10 +1835,15 @@ class StairPublicProjectionTests(unittest.TestCase):
             ],
         }
 
-        sections = StairClimbingPromptAdapter(self.config).build_prompt_sections(
-            public_records=records,
-            public_context={},
-        )
+        with patch(
+            "true_rl_agent.tasks.stair_climbing.prompt_adapter."
+            "MAX_TASK_PROMPT_SECTIONS_BYTES",
+            32 * 1024,
+        ):
+            sections = StairClimbingPromptAdapter(self.config).build_prompt_sections(
+                public_records=records,
+                public_context={},
+            )
         summary = sections["public_feedback_summary"]
         entries = summary["feedback_entries"]
 
@@ -1932,7 +1937,9 @@ class StairPublicProjectionTests(unittest.TestCase):
             - summary["limits"]["reserved_task_prompt_headroom_bytes"],
         )
 
-    def test_required_eval_v8_feedback_is_normalized_before_compaction(self) -> None:
+    def test_static_contract_compaction_preserves_normalized_eval_v8_feedback(
+        self,
+    ) -> None:
         projected = project_stair_public_result(
             config=self.config,
             public_result=PublicEvalResult(
@@ -1966,16 +1973,21 @@ class StairPublicProjectionTests(unittest.TestCase):
                 copy.deepcopy(legacy),
             )
         ]
-        sections = StairClimbingPromptAdapter(self.config).build_prompt_sections(
-            public_records=records,
-            public_context={
-                "initial_anchor_public_evidence": {
-                    "anchor_kind": "reference_program",
-                    "public_result": copy.deepcopy(legacy),
-                    "public_result_hash": canonical_json_hash(legacy),
+        with patch(
+            "true_rl_agent.tasks.stair_climbing.prompt_adapter."
+            "MAX_TASK_PROMPT_SECTIONS_BYTES",
+            32 * 1024,
+        ):
+            sections = StairClimbingPromptAdapter(self.config).build_prompt_sections(
+                public_records=records,
+                public_context={
+                    "initial_anchor_public_evidence": {
+                        "anchor_kind": "reference_program",
+                        "public_result": copy.deepcopy(legacy),
+                        "public_result_hash": canonical_json_hash(legacy),
+                    }
                 }
-            },
-        )
+            )
 
         summary = sections["public_feedback_summary"]
         entries = summary["feedback_entries"]
@@ -1988,9 +2000,10 @@ class StairPublicProjectionTests(unittest.TestCase):
                 compact_generalization,
             )
             self.assertNotIn("score", compact_generalization)
+        self.assertNotIn("feedback_entry_projection", summary)
         self.assertEqual(
-            summary["feedback_entry_projection"]["schema_version"],
-            "true_rl_agent.task.stair_climbing.feedback_entry_projection.v6",
+            summary["capacity_projection_receipt"]["projection_id"],
+            "stair_climbing.static_contract_core.v1",
         )
         self.assertLessEqual(
             canonical_prompt_json_bytes(sections),
@@ -2047,7 +2060,9 @@ class StairPublicProjectionTests(unittest.TestCase):
             {"public_dev_objective_score": 0.205},
         )
 
-    def test_prompt_overflow_summarizes_only_historical_comparison(self) -> None:
+    def test_prompt_overflow_keeps_all_comparisons_after_static_compaction(
+        self,
+    ) -> None:
         projected = project_stair_public_result(
             config=self.config,
             public_result=PublicEvalResult(
@@ -2117,10 +2132,15 @@ class StairPublicProjectionTests(unittest.TestCase):
             ],
         }
 
-        sections = StairClimbingPromptAdapter(self.config).build_prompt_sections(
-            public_records=records,
-            public_context={},
-        )
+        with patch(
+            "true_rl_agent.tasks.stair_climbing.prompt_adapter."
+            "MAX_TASK_PROMPT_SECTIONS_BYTES",
+            32 * 1024,
+        ):
+            sections = StairClimbingPromptAdapter(self.config).build_prompt_sections(
+                public_records=records,
+                public_context={},
+            )
         summary = sections["public_feedback_summary"]
         entries = {
             entry["candidate_id"][0]: entry
@@ -2128,13 +2148,15 @@ class StairPublicProjectionTests(unittest.TestCase):
         }
 
         self.assertEqual(set(entries), {"a", "b", "c"})
-        self.assertEqual(
-            summary["feedback_entry_projection"][
-                "historical_comparison_detail_level"
-            ],
-            "summary",
+        self.assertNotIn(
+            "historical_comparison_detail_level",
+            summary["feedback_entry_projection"],
         )
-        for role in ("a", "c"):
+        self.assertEqual(
+            summary["capacity_projection_receipt"]["projection_id"],
+            "stair_climbing.static_contract_and_feedback_core.v1",
+        )
+        for role in ("a", "b", "c"):
             generalization = entries[role]["feedback"][
                 "generalization_summary"
             ]
@@ -2144,27 +2166,6 @@ class StairPublicProjectionTests(unittest.TestCase):
                 set(self.config.episode_outcomes()["failure_priority"]),
             )
             self.assertNotIn("detail_omissions", entries[role])
-        historical = entries["b"]
-        self.assertEqual(
-            historical["detail_omissions"],
-            [
-                "historical_cell_grids",
-                "historical_completion_and_diagnostic_summaries",
-                "historical_progress_summary",
-            ],
-        )
-        self.assertEqual(
-            set(historical["feedback"]),
-            {
-                "dominant_failure",
-                "generalization_summary",
-                "primary_failure_breakdown",
-            },
-        )
-        self.assertEqual(
-            set(historical["feedback"]["generalization_summary"]),
-            {"public_dev_objective_score"},
-        )
         self.assertLessEqual(
             canonical_prompt_json_bytes(sections),
             MAX_TASK_PROMPT_SECTIONS_BYTES
@@ -2266,12 +2267,16 @@ class StairPublicProjectionTests(unittest.TestCase):
 
         self.assertEqual(
             {entry["candidate_id"] for entry in summary["feedback_entries"]},
-            {candidate_ids[0], candidate_ids[-1]},
+            set(candidate_ids),
         )
         self.assertTrue(summary["byte_budget_compaction_applied"])
+        self.assertEqual(
+            summary["capacity_projection_receipt"]["projection_id"],
+            "stair_climbing.static_contract_and_feedback_core.v1",
+        )
         self.assertLessEqual(canonical_prompt_json_bytes(sections), target)
 
-    def test_reference_and_latest_feedback_retain_compact_failure_grids(
+    def test_static_contract_compaction_preserves_full_failure_grids(
         self,
     ) -> None:
         projected = project_stair_public_result(
@@ -2296,18 +2301,27 @@ class StairPublicProjectionTests(unittest.TestCase):
             0.4,
             copy.deepcopy(projected),
         )
-        sections = StairClimbingPromptAdapter(self.config).build_prompt_sections(
-            public_records=[record],
-            public_context={
-                "initial_anchor_public_evidence": {
-                    "anchor_kind": "reference_program",
-                    "public_result": copy.deepcopy(projected),
-                    "public_result_hash": canonical_json_hash(projected),
+        with patch(
+            "true_rl_agent.tasks.stair_climbing.prompt_adapter."
+            "MAX_TASK_PROMPT_SECTIONS_BYTES",
+            32 * 1024,
+        ):
+            sections = StairClimbingPromptAdapter(self.config).build_prompt_sections(
+                public_records=[record],
+                public_context={
+                    "initial_anchor_public_evidence": {
+                        "anchor_kind": "reference_program",
+                        "public_result": copy.deepcopy(projected),
+                        "public_result_hash": canonical_json_hash(projected),
+                    }
                 }
-            },
-        )
+            )
         summary = sections["public_feedback_summary"]
-        self.assertTrue(summary["byte_budget_compaction_applied"])
+        self.assertFalse(summary["byte_budget_compaction_applied"])
+        self.assertEqual(
+            summary["capacity_projection_receipt"]["projection_id"],
+            "stair_climbing.static_contract_core.v1",
+        )
         self.assertEqual(len(summary["feedback_entries"]), 2)
         expected_timeout_grid = projected["metrics"]["prompt_feedback"][
             "generalization_summary"
@@ -2318,22 +2332,12 @@ class StairPublicProjectionTests(unittest.TestCase):
         for entry in summary["feedback_entries"]:
             self.assertNotIn("detail_omissions", entry)
             generalization = entry["feedback"]["generalization_summary"]
-            success_rows = generalization["success_count_grid_string"].split(
-                ";"
-            )
             self.assertEqual(
-                [
-                    [int(value) for value in row.split(",")]
-                    for row in success_rows
-                ],
+                generalization["success_count_grid"],
                 expected_success_grid,
             )
-            encoded = generalization["primary_failure_count_grid_strings"]
-            self.assertEqual(set(encoded), {"timeout"})
-            rows = encoded["timeout"].split(";")
-            self.assertEqual(len(rows), 7)
             self.assertEqual(
-                [[int(value) for value in row.split(",")] for row in rows],
+                generalization["primary_failure_count_grids"]["timeout"],
                 expected_timeout_grid,
             )
         self.assertLessEqual(

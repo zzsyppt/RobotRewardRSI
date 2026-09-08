@@ -78,6 +78,7 @@ from true_rl_agent.evaluation.public_projection import (
 )
 from true_rl_agent.evaluation.public_result import PublicEvalResult
 from true_rl_agent.memory.records import PrivateArtifactRef, PromptPayloadRef
+from true_rl_agent.runner.checkpoint import file_sha256
 from true_rl_agent.policy import PolicyInitialization
 from true_rl_agent.prompt_artifacts import (
     AuthoringEvidenceRef,
@@ -1145,35 +1146,19 @@ def _private_artifacts_for_round(
 
 
 def _metadata_private_artifacts(metadata: Mapping[str, Any], *, phase: str) -> list[PrivateArtifactRef]:
-    refs: list[PrivateArtifactRef] = []
+    # Materialized paths describe intended outputs. Only produced files belong
+    # in evidence; directories and planned checkpoints remain in the job plan.
     summary_path = metadata.get("summary_path")
     if isinstance(summary_path, str) and summary_path:
-        refs.append(
-            PrivateArtifactRef(
+        checksum = file_sha256(summary_path)
+        if checksum is not None:
+            return [PrivateArtifactRef(
                 kind=f"runner_{phase}_summary",
                 uri=summary_path,
+                checksum=checksum,
                 reason=f"runner_{phase}_raw_summary",
-            )
-        )
-    work_dir = metadata.get("work_dir")
-    if isinstance(work_dir, str) and work_dir:
-        refs.append(
-            PrivateArtifactRef(
-                kind=f"runner_{phase}_work_dir",
-                uri=work_dir,
-                reason=f"runner_{phase}_execution_directory",
-            )
-        )
-    checkpoint_output = metadata.get("checkpoint_output_path")
-    if isinstance(checkpoint_output, str) and checkpoint_output:
-        refs.append(
-            PrivateArtifactRef(
-                kind="runner_checkpoint_output",
-                uri=checkpoint_output,
-                reason="runner_train_checkpoint_output",
-            )
-        )
-    return refs
+            )]
+    return []
 
 
 def _checkpoint_private_artifacts(checkpoint: CheckpointRef) -> list[PrivateArtifactRef]:
@@ -1184,6 +1169,11 @@ def _checkpoint_private_artifacts(checkpoint: CheckpointRef) -> list[PrivateArti
     ):
         value = checkpoint.metadata.get(key)
         if isinstance(value, str) and value:
+            actual_checksum = file_sha256(value)
+            if actual_checksum is None:
+                continue
+            if actual_checksum != checkpoint.checksum:
+                raise ValueError("private checkpoint artifact checksum mismatch")
             refs.append(PrivateArtifactRef(kind=kind, uri=value, checksum=checkpoint.checksum, reason=reason))
     return refs
 

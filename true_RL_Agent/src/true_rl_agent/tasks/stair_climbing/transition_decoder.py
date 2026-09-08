@@ -14,6 +14,7 @@ from true_rl_agent.tasks.stair_climbing.ordered_evaluation import (
 )
 from true_rl_agent.tasks.stair_climbing.evaluation_semantics import (
     StairEvaluationSemantics,
+    stair_legacy_fall_signal_name,
 )
 from true_rl_agent.tasks.stair_climbing.legacy_transition_reader import (
     STAIR_NORMALIZED_TRANSITION_SCHEMA_VERSION,
@@ -481,11 +482,23 @@ def decode_stair_transition_batch(
             "contact_force_threshold"
         ]
     )
-    maximum_projected_surface_penetration_m = float(
-        semantics_payload["episode_outcomes"]["signals"]["fall"][
-            "maximum_projected_surface_penetration_m"
-        ]
-    )
+    episode_outcomes = semantics_payload["episode_outcomes"]
+    support_surface_projection = episode_outcomes.get("support_surface_projection")
+    if isinstance(support_surface_projection, Mapping):
+        maximum_projected_surface_penetration_m = float(
+            support_surface_projection["maximum_projected_surface_penetration_m"]
+        )
+    else:
+        legacy_fall_signal_name = stair_legacy_fall_signal_name(episode_outcomes)
+        if legacy_fall_signal_name is None:
+            raise StairTransitionDecodeError(
+                "Stair support-surface projection is not defined"
+            )
+        maximum_projected_surface_penetration_m = float(
+            episode_outcomes["signals"][legacy_fall_signal_name][
+                "maximum_projected_surface_penetration_m"
+            ]
+        )
     base_contact_terms = tuple(
         name
         for name, reason in manager_to_reason.items()

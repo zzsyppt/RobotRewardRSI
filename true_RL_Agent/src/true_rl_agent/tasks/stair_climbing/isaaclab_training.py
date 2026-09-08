@@ -42,7 +42,7 @@ def configure_stair_rsl_rl_agent(
     if not isinstance(execution_contract, Mapping):
         raise TypeError("Stair RSL-RL execution contract must be an object")
 
-    configuration.apply_and_verify(agent_cfg)
+    configuration.apply_to(agent_cfg)
     agent_cfg.seed = seed
     agent_cfg.device = device
     agent_cfg.num_steps_per_env = num_steps_per_env
@@ -116,17 +116,19 @@ def apply_stair_rsl_rl_runner_contract(
         "critic": ["policy"],
     }:
         raise ValueError("Stair RSL-RL observation groups are invalid")
-    agent_cfg.obs_groups = {
-        name: list(groups)
-        for name, groups in expected["observation_groups"].items()
+    native_groups = {
+        "actor": list(expected["observation_groups"]["policy"]),
+        "critic": list(expected["observation_groups"]["critic"]),
     }
+    agent_cfg.obs_groups = native_groups
     agent_cfg.clip_actions = expected["clip_actions"]
     agent_cfg.empirical_normalization = expected["empirical_normalization"]
     agent_cfg.logger = expected["logger"]
     agent_cfg.resume = expected["resume"]
     effective = {
         "observation_groups": {
-            name: list(groups) for name, groups in agent_cfg.obs_groups.items()
+            "policy": list(agent_cfg.obs_groups["actor"]),
+            "critic": list(agent_cfg.obs_groups["critic"]),
         },
         "clip_actions": agent_cfg.clip_actions,
         "empirical_normalization": agent_cfg.empirical_normalization,
@@ -148,6 +150,7 @@ def verify_stair_rsl_rl_observation_groups(
     expected = execution_contract.get("observation_groups")
     if expected is None:
         return None
+    expected = {"actor": list(expected["policy"]), "critic": list(expected["critic"])}
     runner_cfg = getattr(runner, "cfg", None)
     if not isinstance(runner_cfg, Mapping):
         raise RuntimeError("Stair RSL-RL runner configuration is unavailable")
@@ -157,7 +160,9 @@ def verify_stair_rsl_rl_observation_groups(
     resolved = {name: list(groups) for name, groups in raw_groups.items()}
     if resolved != expected:
         raise RuntimeError("resolved Stair RSL-RL observation groups drifted")
-    return resolved
+    # Preserve the protocol's policy/critic vocabulary in its existing evidence
+    # fields. Constructed learner evidence records the native actor/critic names.
+    return {"policy": resolved["actor"], "critic": resolved["critic"]}
 
 
 def _positive_integer(value: Any, field_name: str) -> int:

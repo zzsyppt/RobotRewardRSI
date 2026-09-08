@@ -1,0 +1,61 @@
+.........................................................................sss...............................................................................................s....................................................................................................................................................................................................................................................................s...................s............Isaac SimulationApp close failed: close failed
+............................................................s................................................................................................................s..................................................................................................................................................................................................................................s...........................................ss.....................................................s.ss.......................................................ss.s....s...........s..s.s.s..Stair bound child CUDA_VISIBLE_DEVICES must be one full GPU UUID
+Stair bound child CUDA_VISIBLE_DEVICES must be one full GPU UUID
+{"status": "pass", "summary_path": "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp_k0rhloz\\eval-summary.json"}
+{"status": "pass", "summary_path": "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp_k0rhloz\\eval-summary.json"}
+....stair evaluation evidence publication failed: summary publication failed
+.backend execution environment drift
+backend execution environment drift
+.......installed source bytes drifted
+installed source bytes drifted
+............................................................................................................................s................................E.E...........................................E..................ssss.s......................................sss.........................................................................................................................................................................................{"error":"RuntimeError","message":"synthetic owned-child failure","status":"fail"}
+...{"error":"FileNotFoundError","message":"[WinError 2] ϵͳ�Ҳ���ָ�����ļ���: 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpz87plvsq\\\\leases'","status":"fail"}
+{"error":"ValueError","message":"shared GPU lease root must be an existing disjoint directory","status":"fail"}
+....................................................................s.................
+======================================================================
+ERROR: test_formal_go2_foundation_freezes_imported_reference_v5_cost (tests.unit.test_stair_generation_session.StairGenerationSessionTests.test_formal_go2_foundation_freezes_imported_reference_v5_cost)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_stair_generation_session.py", line 1271, in test_formal_go2_foundation_freezes_imported_reference_v5_cost
+    foundation = _create_foundation(
+                 ^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\stair_climbing\generation_session.py", line 1246, in _create_foundation
+    cost = StairGenerationSessionCostContractV5(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 15, in __init__
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\stair_climbing\generation_session_cost.py", line 2167, in __post_init__
+    raise ValueError(
+ValueError: Stair candidate-train timeout envelope exceeds successful budget
+
+======================================================================
+ERROR: test_formal_source_change_rejects_real_nonterminal_foundation_without_writes (tests.unit.test_stair_generation_session.StairGenerationSessionTests.test_formal_source_change_rejects_real_nonterminal_foundation_without_writes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_stair_generation_session.py", line 1540, in test_formal_source_change_rejects_real_nonterminal_foundation_without_writes
+    _create_foundation(config, source_commit=SHA, inventory=(GPU_A, GPU_B))
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\stair_climbing\generation_session.py", line 1246, in _create_foundation
+    cost = StairGenerationSessionCostContractV5(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 15, in __init__
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\stair_climbing\generation_session_cost.py", line 2167, in __post_init__
+    raise ValueError(
+ValueError: Stair candidate-train timeout envelope exceeds successful budget
+
+======================================================================
+ERROR: test_validation_foundation_freezes_imported_reference_v4_cost (tests.unit.test_stair_generation_session.StairGenerationSessionTests.test_validation_foundation_freezes_imported_reference_v4_cost)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_stair_generation_session.py", line 1199, in test_validation_foundation_freezes_imported_reference_v4_cost
+    foundation = _create_foundation(
+                 ^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\stair_climbing\generation_session.py", line 1187, in _create_foundation
+    StairGenerationSessionCostContractV4(
+  File "<string>", line 15, in __init__
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\stair_climbing\generation_session_cost.py", line 1913, in __post_init__
+    raise ValueError(
+ValueError: Stair candidate-train timeout envelope exceeds successful budget
+
+----------------------------------------------------------------------
+Ran 1608 tests in 329.992s
+
+FAILED (errors=3, skipped=32)

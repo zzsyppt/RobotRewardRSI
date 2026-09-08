@@ -1,7 +1,8 @@
 """Task-owned launch-resource readiness for formal Stair generation.
 
-The P6-D mainline produces and consumes only v3 readiness receipts.  The v1
-validator remains as the shared strict core used by v3; retired v2 evidence is
+The mainline produces v4 receipts, separating current boot readiness from
+historical probe boot identity. The v3 reader retains its original same-boot
+contract. The v1 validator remains their shared core; retired v2 evidence is
 audited from its source-bound historical commit rather than current mainline.
 Stair-specific thresholds intentionally remain here at the task leaf while
 inventory sampling and physical leases reuse runner-owned primitives.
@@ -42,6 +43,10 @@ from true_rl_agent.agent_core.session_genesis import (
     SESSION_GENESIS_FILENAME,
     SessionGenesisArtifact,
 )
+from true_rl_agent.composition.cell_manifest import (
+    RESOLVED_CELL_MANIFEST_FILENAME,
+    load_resolved_cell_manifest,
+)
 from true_rl_agent.evaluation.binding import (
     canonical_json_hash,
     require_sha256_checksum,
@@ -58,7 +63,10 @@ from true_rl_agent.runner.resource_shadow import (
 from true_rl_agent.tasks.stair_climbing.composition import (
     StairClimbingCompositionConfig,
 )
-from true_rl_agent.tasks.stair_climbing.config import STAIR_TASK_ID
+from true_rl_agent.tasks.stair_climbing.config import (
+    STAIR_TASK_ID,
+    StairClimbingTaskConfig,
+)
 from true_rl_agent.tasks.stair_climbing.final_confirmation import (
     STAIR_FINAL_CONFIRMATION_DIRNAME,
     STAIR_FINAL_CONFIRMATION_PLAN_FILENAME,
@@ -89,6 +97,9 @@ from true_rl_agent.tasks.stair_climbing.provider_readiness import (
 from true_rl_agent.tasks.stair_climbing.source_checkout import (
     inspect_stair_source_checkout,
 )
+from true_rl_agent.tasks.stair_climbing.unified_scoring import (
+    objective_family_mask_from_public_result,
+)
 
 STAIR_GENERATION_LAUNCH_READINESS_SCHEMA_VERSION = (
     "true_rl_agent.stair.generation_launch_readiness.v1"
@@ -96,6 +107,7 @@ STAIR_GENERATION_LAUNCH_READINESS_SCHEMA_VERSION = (
 STAIR_GENERATION_LAUNCH_READINESS_V3_SCHEMA_VERSION = (
     "true_rl_agent.stair.generation_launch_readiness.v3"
 )
+STAIR_GENERATION_LAUNCH_READINESS_V4_SCHEMA_VERSION = "true_rl_agent.stair.generation_launch_readiness.v4"
 STAIR_GENERATION_LAUNCH_READINESS_REF_SCHEMA_VERSION = (
     "true_rl_agent.stair.generation_launch_readiness_ref.v1"
 )
@@ -787,6 +799,7 @@ def _current_prelaunch_evidence(
     config: StairGenerationLaunchReadinessConfigV3,
     *,
     binding: Mapping[str, Any],
+    subject: Mapping[str, Any],
 ) -> dict[str, Any]:
     attempt_ref, attempt_report = _read_canonical_probe_evidence(
         config.attempt_chain_fault_probe_report,
@@ -796,13 +809,19 @@ def _current_prelaunch_evidence(
         config.stair_train_teardown_result,
         label="real Stair train teardown probe result",
     )
-    _validate_attempt_chain_probe_report(attempt_report, binding=binding)
+    probe_boot = attempt_report["host"]["boot_id"]
+    if teardown_result["host"]["boot_id"] != probe_boot:
+        raise ValueError("prelaunch capability probes belong to different boots")
+    probe_binding = _probe_binding(binding, subject=subject, probe_boot_id=probe_boot)
+    _validate_attempt_chain_probe_report(attempt_report, binding=probe_binding, subject=subject)
     _validate_stair_teardown_probe_result(
         teardown_result,
         result_path=Path(teardown_ref["path"]),
-        binding=binding,
+        binding=probe_binding,
+        subject=subject,
     )
     return {
+        "probe_boot_id": probe_boot,
         "attempt_chain_fault_probe_report": attempt_ref,
         "stair_train_teardown_result": teardown_ref,
     }
@@ -812,14 +831,19 @@ def _validate_prelaunch_evidence_mapping(
     value: Any,
     *,
     binding: Mapping[str, Any],
+    subject: Mapping[str, Any],
+    historical_probes: bool = False,
 ) -> dict[str, Any]:
     evidence = _exact_mapping(
         value,
-        _PRELAUNCH_EVIDENCE_KEYS,
+        _PRELAUNCH_EVIDENCE_KEYS | ({"probe_boot_id"} if historical_probes else set()),
         "readiness prelaunch evidence",
     )
     validated: dict[str, Any] = {}
     reports: dict[str, dict[str, Any]] = {}
+    if historical_probes:
+        binding = _probe_binding(binding, subject=subject, probe_boot_id=evidence["probe_boot_id"])
+        validated["probe_boot_id"] = evidence["probe_boot_id"]
     labels = {
         "attempt_chain_fault_probe_report": (
             "production-shaped attempt-chain fault probe report"
@@ -850,13 +874,23 @@ def _validate_prelaunch_evidence_mapping(
     _validate_attempt_chain_probe_report(
         reports["attempt_chain_fault_probe_report"],
         binding=binding,
+        subject=subject,
     )
     _validate_stair_teardown_probe_result(
         reports["stair_train_teardown_result"],
         result_path=Path(validated["stair_train_teardown_result"]["path"]),
         binding=binding,
+        subject=subject,
     )
     return validated
+
+
+def _probe_binding(binding: Mapping[str, Any], *, subject: Mapping[str, Any], probe_boot_id: str) -> dict[str, Any]:
+    """Keep the capability measurement's boot; readiness owns the current boot."""
+    _bounded_text(probe_boot_id, "prelaunch probe boot id", maximum=128)
+    if subject["subject_mode"] == STAIR_FORMAL_LAUNCH_SUBJECT_FRESH_ABSENT and probe_boot_id != binding["boot_id"]:
+        raise ValueError("fresh launch requires capability probes from the current boot")
+    return {**binding, "boot_id": probe_boot_id}
 
 
 def _read_canonical_probe_evidence(
@@ -889,6 +923,7 @@ def _validate_attempt_chain_probe_report(
     value: Any,
     *,
     binding: Mapping[str, Any],
+    subject: Mapping[str, Any] | None = None,
 ) -> None:
     report = _exact_mapping(
         value,
@@ -925,14 +960,11 @@ def _validate_attempt_chain_probe_report(
         _ATTEMPT_CHAIN_PROBE_SOURCE_KEYS,
         "attempt-chain probe source",
     )
-    if (
-        source["source_commit"] != binding["source_commit"]
-        or source["tracked_clean"] is not True
-    ):
+    if source["tracked_clean"] is not True:
         raise ValueError("attempt-chain probe source binding mismatch")
-    _validate_checksum_mapping(
-        source["source_file_sha256"],
-        "attempt-chain probe source checksums",
+    _validate_probe_source_identity(
+        source["source_commit"], source["source_file_sha256"],
+        binding=binding, subject=subject,
     )
     owned_python = report["owned_python_executable"]
     if not isinstance(owned_python, str) or not Path(owned_python).is_absolute():
@@ -1020,6 +1052,7 @@ def _validate_stair_teardown_probe_result(
     *,
     result_path: Path,
     binding: Mapping[str, Any],
+    subject: Mapping[str, Any] | None = None,
 ) -> None:
     result = _exact_mapping(
         value,
@@ -1042,12 +1075,11 @@ def _validate_stair_teardown_probe_result(
         _STAIR_TEARDOWN_SOURCE_KEYS,
         "Stair teardown source",
     )
-    if (
-        source["commit"] != binding["source_commit"]
-        or source["tracked_clean"] is not True
-    ):
+    if source["tracked_clean"] is not True:
         raise ValueError("Stair teardown source binding mismatch")
-    _validate_checksum_mapping(source["checksums"], "Stair teardown source checksums")
+    _validate_probe_source_identity(
+        source["commit"], source["checksums"], binding=binding, subject=subject,
+    )
 
     host = _exact_mapping(
         result["host"],
@@ -1213,6 +1245,32 @@ def _validate_checksum_mapping(value: Any, label: str) -> dict[str, str]:
         key = _bounded_text(raw_key, f"{label} path", maximum=4096)
         result[key] = require_sha256_checksum(raw_checksum, f"{label} checksum")
     return result
+
+
+def _validate_probe_source_identity(
+    source_commit: str, checksums: Any, *, binding: Mapping[str, Any],
+    subject: Mapping[str, Any] | None,
+) -> None:
+    sources = _validate_checksum_mapping(checksums, "probe source checksums")
+    if source_commit == binding["source_commit"]:
+        return
+    # Terminal finalization does not retrain. Reuse the original launch probes
+    # only while their measured cleanup implementation is byte-for-byte intact.
+    if (
+        subject is None
+        or subject["subject_mode"] not in {
+            STAIR_FORMAL_LAUNCH_SUBJECT_TERMINAL_FINALIZATION,
+            STAIR_FORMAL_LAUNCH_SUBJECT_TERMINAL_AUDIT_ONLY,
+        }
+        or source_commit != subject["source_identity"]["source_commit"]
+    ):
+        raise ValueError("probe source binding mismatch")
+    source_root = Path(binding["source_root"]).resolve(strict=True)
+    for relative, checksum in sources.items():
+        path = (source_root / relative).resolve(strict=True)
+        path.relative_to(source_root)
+        if _authoritative_file_evidence(path)["sha256"] != checksum:
+            raise ValueError(f"terminal probe source bytes changed: {relative}")
 
 
 @dataclass(frozen=True)
@@ -1406,10 +1464,6 @@ def _collect_stair_generation_launch_readiness_v3(
             v3_config.formal_generation_command_sha256
         ),
     )
-    prelaunch_evidence_before = _current_prelaunch_evidence(
-        v3_config,
-        binding=launch_binding,
-    )
     inspect_formal_subject = (
         _inspect_v3_launch_subject
         if formal_subject_inspector is None
@@ -1418,6 +1472,9 @@ def _collect_stair_generation_launch_readiness_v3(
     subject_before = _validated_v3_subject_mapping(
         inspect_formal_subject(v3_config),
         binding=launch_binding,
+    )
+    prelaunch_evidence_before = _current_prelaunch_evidence(
+        v3_config, binding=launch_binding, subject=subject_before,
     )
     provider_credential = _provider_credential_readiness(v3_config)
 
@@ -1548,6 +1605,7 @@ def _collect_stair_generation_launch_readiness_v3(
     prelaunch_evidence_after = _current_prelaunch_evidence(
         v3_config,
         binding=launch_binding,
+        subject=subject_after,
     )
     if prelaunch_evidence_after != prelaunch_evidence_before:
         raise RuntimeError(
@@ -1588,7 +1646,7 @@ def _collect_stair_generation_launch_readiness_v3(
         v3_config.subject_mode == STAIR_FORMAL_LAUNCH_SUBJECT_FRESH_ABSENT
     )
     body = {
-        "schema_version": STAIR_GENERATION_LAUNCH_READINESS_V3_SCHEMA_VERSION,
+        "schema_version": STAIR_GENERATION_LAUNCH_READINESS_V4_SCHEMA_VERSION,
         "status": "pass",
         "binding": _binding_mapping(
             config,
@@ -1776,8 +1834,8 @@ def load_stair_generation_launch_readiness_receipt(
     _assert_current_producer_sources(
         receipt.payload["producer"], source_root=source_root
     )
-    if schema_version != STAIR_GENERATION_LAUNCH_READINESS_V3_SCHEMA_VERSION:
-        raise ValueError("current launch readiness requires the v3 schema")
+    if schema_version not in {STAIR_GENERATION_LAUNCH_READINESS_V3_SCHEMA_VERSION, STAIR_GENERATION_LAUNCH_READINESS_V4_SCHEMA_VERSION}:
+        raise ValueError("current launch readiness requires a supported subject receipt schema")
     expected_command_sha256 = require_sha256_checksum(
         expected_formal_generation_command_sha256,
         "expected formal generation command sha256",
@@ -1943,6 +2001,29 @@ def _v3_subject_current_accounted_output_bytes(
     )
 
 
+def _resolved_formal_task_config(
+    *,
+    output_dir: Path,
+    project_root: Path,
+) -> StairClimbingTaskConfig:
+    manifest = load_resolved_cell_manifest(
+        (output_dir / RESOLVED_CELL_MANIFEST_FILENAME).resolve(),
+        expected_task_id=STAIR_TASK_ID,
+    )
+    defaults = StairClimbingCompositionConfig.defaults(project_root=project_root)
+    values = defaults.to_task_defaults()
+    values["cell_variant_id"] = manifest.cell_variant_id
+    composition = StairClimbingCompositionConfig.from_values(
+        values
+    ).bind_selected_cell_contract(project_root=project_root)
+    return composition.to_task_config(
+        project_root=project_root,
+        resolved_cell_task_protocol_hash=(
+            manifest.resolved_cell_task_protocol_hash
+        ),
+    )
+
+
 
 
 def _inspect_v3_launch_subject(
@@ -1998,12 +2079,16 @@ def _inspect_v3_launch_subject_values(
     )
     source_body = {
         "schema_version": STAIR_GENERATION_SOURCE_CHECKOUT_SCHEMA_VERSION,
-        "source_commit": expected_source_commit,
+        "source_commit": source_mapping["source_commit"],
     }
     if (
         source_mapping["schema_version"]
         != STAIR_GENERATION_SOURCE_CHECKOUT_SCHEMA_VERSION
-        or source_mapping["source_commit"] != expected_source_commit
+        or _COMMIT_PATTERN.fullmatch(str(source_mapping["source_commit"])) is None
+        or (
+            subject_mode == STAIR_FORMAL_LAUNCH_SUBJECT_NONTERMINAL_RESUME
+            and source_mapping["source_commit"] != expected_source_commit
+        )
         or source_mapping["source_checkout_hash"]
         != canonical_json_hash(source_body)
     ):
@@ -2038,8 +2123,10 @@ def _inspect_v3_launch_subject_values(
     policy_path = output_dir / GENERATION_CONTINUATION_POLICY_FILENAME
     policy_evidence = _authoritative_file_evidence(policy_path)
 
-    composition = StairClimbingCompositionConfig.defaults(project_root=project_root)
-    task_config = composition.to_task_config(project_root=project_root)
+    task_config = _resolved_formal_task_config(
+        output_dir=output_dir,
+        project_root=project_root,
+    )
     plan_path = (
         output_dir
         / STAIR_FINAL_CONFIRMATION_DIRNAME
@@ -2229,11 +2316,22 @@ def _inspect_v3_launch_subject_values(
     if result_file["exists"] is True:
         if reservation is None:
             raise ValueError("formal final result exists without its reservation")
+        objective_family_mask = None
+        if task_config.is_unified_protocol:
+            if genesis is None:
+                raise ValueError(
+                    "unified formal final result exists without Session Genesis"
+                )
+            objective_family_mask = objective_family_mask_from_public_result(
+                suite=task_config.ordered_evaluation_suite,
+                public_result=getattr(genesis.anchor, "public_result", None),
+            )
         result = load_stair_generation_final_confirmation_result(
             result_path,
             plan=plan,
             reservation=reservation,
             config=task_config,
+            objective_family_mask=objective_family_mask,
         )
     report_path = output_dir / STAIR_GENERATION_REPORT_FILENAME
     report_file = _optional_file_evidence(report_path)
@@ -2280,7 +2378,9 @@ def _inspect_v3_launch_subject_values(
         "subject_mode": subject_mode,
         "source_identity": {
             "file": source_evidence,
-            "source_commit": expected_source_commit,
+            # The closed generations retain their original source provenance.
+            # The readiness binding separately pins the executable finalizer.
+            "source_commit": source_mapping["source_commit"],
             "source_checkout_hash": source_mapping["source_checkout_hash"],
         },
         "session_genesis": {
@@ -2620,16 +2720,16 @@ def _validate_receipt_mapping(value: Any) -> dict[str, Any]:
     if not isinstance(value, Mapping):
         raise ValueError("Stair launch readiness receipt must be an object")
     schema_version = value.get("schema_version")
-    if schema_version == STAIR_GENERATION_LAUNCH_READINESS_V3_SCHEMA_VERSION:
-        return _validate_receipt_mapping_v3(value)
+    if schema_version in {STAIR_GENERATION_LAUNCH_READINESS_V3_SCHEMA_VERSION, STAIR_GENERATION_LAUNCH_READINESS_V4_SCHEMA_VERSION}:
+        return _validate_subject_receipt_mapping(value)
     raise ValueError("Stair launch readiness receipt schema mismatch")
 
 
 
 
-def _validate_receipt_mapping_v3(value: Any) -> dict[str, Any]:
+def _validate_subject_receipt_mapping(value: Any) -> dict[str, Any]:
     root = _exact_mapping(value, _V3_ROOT_KEYS, "Stair launch readiness v3 receipt")
-    if root["schema_version"] != STAIR_GENERATION_LAUNCH_READINESS_V3_SCHEMA_VERSION:
+    if root["schema_version"] not in {STAIR_GENERATION_LAUNCH_READINESS_V3_SCHEMA_VERSION, STAIR_GENERATION_LAUNCH_READINESS_V4_SCHEMA_VERSION}:
         raise ValueError("Stair launch readiness v3 receipt schema mismatch")
     if root["status"] != "pass":
         raise ValueError("Stair launch readiness v3 receipt status must be pass")
@@ -2637,12 +2737,14 @@ def _validate_receipt_mapping_v3(value: Any) -> dict[str, Any]:
     if binding.get("max_output_bytes") != FORMAL_MAX_OUTPUT_BYTES:
         raise ValueError("readiness v3 output cap binding mismatch")
     execution = _validate_v3_execution_mapping(root["execution"], binding=binding)
+    subject = _validated_v3_subject_mapping(root["subject"], binding=binding)
     prelaunch_evidence = _validate_prelaunch_evidence_mapping(
         root["prelaunch_evidence"],
         binding=binding,
+        subject=subject,
+        historical_probes=root["schema_version"] == STAIR_GENERATION_LAUNCH_READINESS_V4_SCHEMA_VERSION,
     )
     credential = _validate_provider_credential_mapping(root["provider_credential"])
-    subject = _validated_v3_subject_mapping(root["subject"], binding=binding)
     thresholds = _exact_mapping(
         root["thresholds"],
         _V3_THRESHOLD_KEYS,
@@ -3200,7 +3302,13 @@ def _validated_v3_subject_mapping(
         output_dir / STAIR_GENERATION_SOURCE_CHECKOUT_FILENAME,
         "readiness v3 source identity file",
     )
-    if source_identity["source_commit"] != source_commit:
+    if (
+        _COMMIT_PATTERN.fullmatch(str(source_identity["source_commit"])) is None
+        or (
+            subject_mode == STAIR_FORMAL_LAUNCH_SUBJECT_NONTERMINAL_RESUME
+            and source_identity["source_commit"] != source_commit
+        )
+    ):
         raise ValueError("readiness v3 source identity commit mismatch")
     require_sha256_digest(
         source_identity["source_checkout_hash"],

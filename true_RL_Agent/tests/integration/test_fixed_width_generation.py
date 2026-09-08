@@ -4,6 +4,7 @@ import hashlib
 import tempfile
 import threading
 import unittest
+from unittest.mock import patch
 from copy import deepcopy
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -85,7 +86,11 @@ from true_rl_agent.json_contract import canonical_json_bytes, strict_json_object
 from true_rl_agent.memory import ExperimentRecord, PublicContextBuilder
 from true_rl_agent.policy import PolicyInitialization
 from true_rl_agent.prompt_artifacts import RoundAuthoringJournal
-from true_rl_agent.runner.base import TrainJobResult
+from true_rl_agent.runner.base import (
+    RunnerExecutionError,
+    RunnerFailureKind,
+    TrainJobResult,
+)
 from true_rl_agent.runner.job_attempts import JobAttemptJournal, JobAttemptScope
 from true_rl_agent.runner.specs import EvalPhaseJobSpec, GpuProcessBinding
 from true_rl_agent.runner.subprocess_runner import SubprocessRunner
@@ -276,7 +281,7 @@ class _PhasedRunner(FakeRunner):
         self._train_barrier = threading.Barrier(2, timeout=5.0)
         self._phase_barriers = {
             EvaluationPhase.PUBLIC_DEV: threading.Barrier(2, timeout=5.0),
-            EvaluationPhase.PUBLIC_ACCEPT: threading.Barrier(2, timeout=5.0),
+            EvaluationPhase.PUBLIC_ACCEPT: threading.Barrier(1, timeout=5.0),
         }
         self.phase_calls: list[tuple[str, EvaluationPhase]] = []
         self.phase_scopes: list[tuple[EvaluationPhase, JobAttemptScope | None]] = []
@@ -355,13 +360,63 @@ class _PhasedRunner(FakeRunner):
                 raise AssertionError(
                     "public_accept started before selection was sealed"
                 )
-
     def project_assembled_eval_summary(self, eval_spec, assembly):
         if not isinstance(assembly, _Assembly):
             raise TypeError("test phased runner requires a bound assembly")
         if set(assembly.phase_receipt_refs) != set(EvaluationPhase):
             raise ValueError("test assembly is missing phase receipts")
         return super().run_eval(eval_spec)
+
+
+class _PublicDevFailureRunner(_PhasedRunner):
+    def __init__(
+        self,
+        events: list[str],
+        *,
+        failing_subject_id: str,
+        failure_kind: RunnerFailureKind,
+    ) -> None:
+        super().__init__(events)
+        self.failing_subject_id = failing_subject_id
+        self.failure_kind = failure_kind
+
+    def run_eval_phase(self, eval_spec: EvalPhaseJobSpec) -> EvaluationPhaseResult:
+        result = super().run_eval_phase(eval_spec)
+        if (
+            eval_spec.phase is EvaluationPhase.PUBLIC_DEV
+            and eval_spec.subject.subject_id == self.failing_subject_id
+        ):
+            raise RunnerExecutionError(
+                "injected public_dev runner failure",
+                failure_kind=self.failure_kind,
+            )
+        return result
+
+
+class _TrainFailureRunner(_PhasedRunner):
+    def __init__(
+        self,
+        events: list[str],
+        *,
+        failing_subject_id: str,
+        failure_kind: RunnerFailureKind,
+    ) -> None:
+        super().__init__(events)
+        self._phase_barriers[EvaluationPhase.PUBLIC_DEV] = threading.Barrier(
+            1,
+            timeout=5.0,
+        )
+        self.failing_subject_id = failing_subject_id
+        self.failure_kind = failure_kind
+
+    def run_train(self, train_spec):
+        result = super().run_train(train_spec)
+        if train_spec.subject.subject_id == self.failing_subject_id:
+            raise RunnerExecutionError(
+                "injected train runner failure",
+                failure_kind=self.failure_kind,
+            )
+        return result
 
 
 class _CrashAfterAttemptResult(RuntimeError):
@@ -1156,7 +1211,7 @@ class FixedWidthGenerationTests(unittest.TestCase):
                             if item[1] is EvaluationPhase.PUBLIC_ACCEPT
                         ]
                     ),
-                    2,
+                    1,
                 )
                 self.assertEqual(
                     len(
@@ -1495,8 +1550,9 @@ class FixedWidthGenerationTests(unittest.TestCase):
 
                 reservations = sorted(attempt_root.rglob("attempt_00.reservation.json"))
                 results = sorted(attempt_root.rglob("attempt_00.result.json"))
-                self.assertEqual(len(reservations), 7)
-                self.assertEqual(len(results), 7)
+                # Two train + two public_dev + one selected public_accept + one sealed.
+                self.assertEqual(len(reservations), 6)
+                self.assertEqual(len(results), 6)
                 logical_jobs: set[tuple[str, str, str]] = set()
                 segment_by_job: dict[tuple[str, str], str] = {}
                 for reservation_path in reservations:
@@ -1527,7 +1583,7 @@ class FixedWidthGenerationTests(unittest.TestCase):
                     segment_by_job[(journal.job_kind, journal.logical_job_id)] = (
                         journal.scope.invocation_segment_id
                     )
-                self.assertEqual(len(logical_jobs), 7)
+                self.assertEqual(len(logical_jobs), 6)
                 self.assertTrue(
                     all(
                         segment_id == first_segment.segment_id
@@ -1676,7 +1732,6 @@ class FixedWidthGenerationTests(unittest.TestCase):
                     [
                         EvaluationPhase.PUBLIC_DEV,
                         EvaluationPhase.PUBLIC_DEV,
-                        EvaluationPhase.PUBLIC_ACCEPT,
                         EvaluationPhase.PUBLIC_ACCEPT,
                         EvaluationPhase.SEALED_VALIDATION,
                     ],
@@ -2037,7 +2092,7 @@ class FixedWidthGenerationTests(unittest.TestCase):
                         phase is EvaluationPhase.PUBLIC_ACCEPT
                         for _, phase in tie_runner.phase_calls
                     ),
-                    2,
+                    0,
                 )
                 self.assertEqual(
                     sum(
@@ -2046,14 +2101,113 @@ class FixedWidthGenerationTests(unittest.TestCase):
                     ),
                     0,
                 )
-                tie_prompt = context_builder.build_prompt(
-                    [ExperimentRecord.from_ledger_record(tie_result.record)]
+                tie_experiment = ExperimentRecord.from_ledger_record(
+                    tie_result.record
                 )
+                self.assertTrue(
+                    tie_result.record["trials"][1]["candidate"]["artifact_hash"]
+                )
+                self.assertIn(
+                    "lane-b_candidate_artifact",
+                    {artifact.kind for artifact in tie_experiment.private_artifacts},
+                )
+                tie_prompt = context_builder.build_prompt([tie_experiment])
                 tie_memory = tie_prompt.round_public_context["experiment_memory"]
                 self.assertEqual(len(tie_memory["experiments"]), 1)
                 self.assertEqual(tie_memory["experiments"][0]["reason"], "no_selection")
                 self.assertNotIn("candidate_id", tie_memory["experiments"][0])
                 self.assertNotIn("candidate_components", tie_memory["experiments"][0])
+                latest_failed_payloads = [
+                    item
+                    for item in tie_prompt.provider_payload["source_payloads"]
+                    if item["logical_id"]
+                    == "attempt/latest_failed/training_code/components.py"
+                ]
+                self.assertEqual(
+                    len(latest_failed_payloads),
+                    1,
+                    tie_prompt.provider_payload["source_catalog"],
+                )
+                latest_failed_payload = latest_failed_payloads[0]
+                self.assertIn(
+                    "candidate-generation-b",
+                    latest_failed_payload["content"],
+                )
+
+            with self.subTest(
+                scenario="formal_reject_best_observed_source_matches_selected_lane"
+            ):
+                rejected_a = _write_candidate(
+                    root / "formal-reject-provider",
+                    candidate_id="candidate-formal-reject-a",
+                    reward_expression="inputs.base_height + inputs.roll",
+                    public_score=0.24,
+                )
+                rejected_b = _write_candidate(
+                    root / "formal-reject-provider",
+                    candidate_id="candidate-formal-reject-b",
+                    reward_expression="inputs.base_height + inputs.pitch",
+                    public_score=0.20,
+                )
+                reject_events: list[str] = []
+                reject_result = execute_fixed_width_generation(
+                    _build_inputs(
+                        case_id="formal-reject-source-binding",
+                        provider_a=_OneCandidateProvider(rejected_a),
+                        provider_b=_OneCandidateProvider(rejected_b),
+                        events=reject_events,
+                        runner=_PhasedRunner(reject_events),
+                        adapter=_PhasedAdapter(reject_events),
+                    )
+                )
+                self.assertEqual(
+                    reject_result.record["generation_outcome"],
+                    "formal_rejected",
+                )
+                reject_prompt = context_builder.build_prompt(
+                    [ExperimentRecord.from_ledger_record(reject_result.record)]
+                ).provider_payload
+                observed = reject_prompt["candidate_lineage"][
+                    "best_observed_experiment"
+                ]
+                payloads = {
+                    item["logical_id"]: item
+                    for item in reject_prompt["source_payloads"]
+                }
+                self.assertEqual(
+                    observed["candidate_id"],
+                    "candidate-formal-reject-a",
+                )
+                self.assertEqual(
+                    observed["source_logical_id"],
+                    "memory/best_observed/training_code/components.py",
+                )
+                self.assertIn(
+                    "candidate-formal-reject-a",
+                    payloads[
+                        "memory/best_observed/training_code/components.py"
+                    ]["content"],
+                )
+                self.assertIn(
+                    "candidate-formal-reject-b",
+                    payloads[
+                        "attempt/latest_failed/training_code/components.py"
+                    ]["content"],
+                )
+                self.assertEqual(
+                    observed["source_sha256"],
+                    payloads[
+                        "memory/best_observed/training_code/components.py"
+                    ]["content_sha256"],
+                )
+                self.assertNotEqual(
+                    payloads[
+                        "memory/best_observed/training_code/components.py"
+                    ]["content_sha256"],
+                    payloads[
+                        "attempt/latest_failed/training_code/components.py"
+                    ]["content_sha256"],
+                )
 
             with self.subTest(scenario="lane_b_repeat_closes_without_training"):
                 duplicate_b = _write_candidate(
@@ -2233,6 +2387,171 @@ class FixedWidthGenerationTests(unittest.TestCase):
                 self.assertEqual(resume_audit.segment_count, 2)
                 self.assertEqual(resume_audit.closed_generation_count, 1)
                 self.assertTrue(resume_audit.continuation_eligible)
+
+            with self.subTest(
+                scenario="train_timeout_closes_candidate_execution_incomplete"
+            ):
+                train_timeout_events: list[str] = []
+                train_timeout_runner = _TrainFailureRunner(
+                    train_timeout_events,
+                    failing_subject_id=candidate_a.candidate_id,
+                    failure_kind=RunnerFailureKind.TIMEOUT,
+                )
+                train_timeout_inputs = _build_inputs(
+                    case_id="train-timeout",
+                    provider_a=_OneCandidateProvider(candidate_a),
+                    provider_b=_OneCandidateProvider(candidate_b),
+                    events=train_timeout_events,
+                    runner=train_timeout_runner,
+                    adapter=_PhasedAdapter(train_timeout_events),
+                )
+                train_timeout_result = execute_fixed_width_generation(
+                    train_timeout_inputs
+                )
+                self.assertEqual(
+                    train_timeout_result.record["generation_outcome"],
+                    "candidate_execution_incomplete",
+                )
+                trials = train_timeout_result.record["trials"]
+                self.assertEqual(
+                    [trial["trial_status"] for trial in trials],
+                    ["candidate_failed", "screened_only"],
+                )
+                self.assertEqual(trials[0]["status_reason"], "train_incomplete")
+                self.assertIsNone(trials[0]["train"])
+                self.assertIsNone(trials[0]["public_dev"])
+                self.assertIsNotNone(trials[1]["train"])
+                self.assertIsNotNone(trials[1]["public_dev"])
+                self.assertIsNone(train_timeout_result.record["selection"])
+                self.assertIsNone(train_timeout_result.record["formal"])
+                self.assertEqual(
+                    train_timeout_runner.phase_calls,
+                    [(candidate_b.candidate_id, EvaluationPhase.PUBLIC_DEV)],
+                )
+
+            with self.subTest(
+                scenario="train_contract_failure_remains_fatal"
+            ):
+                train_contract_events: list[str] = []
+                train_contract_runner = _TrainFailureRunner(
+                    train_contract_events,
+                    failing_subject_id=candidate_a.candidate_id,
+                    failure_kind=RunnerFailureKind.CONTRACT_INVALID,
+                )
+                train_contract_inputs = _build_inputs(
+                    case_id="train-contract-failure",
+                    provider_a=_OneCandidateProvider(candidate_a),
+                    provider_b=_OneCandidateProvider(candidate_b),
+                    events=train_contract_events,
+                    runner=train_contract_runner,
+                    adapter=_PhasedAdapter(train_contract_events),
+                )
+                with self.assertRaisesRegex(
+                    RunnerExecutionError,
+                    "injected train runner failure",
+                ):
+                    execute_fixed_width_generation(train_contract_inputs)
+
+            with self.subTest(
+                scenario="public_dev_timeout_closes_candidate_execution_incomplete"
+            ):
+                timeout_events: list[str] = []
+                timeout_runner = _PublicDevFailureRunner(
+                    timeout_events,
+                    failing_subject_id=candidate_a.candidate_id,
+                    failure_kind=RunnerFailureKind.TIMEOUT,
+                )
+                timeout_provider_a = _OneCandidateProvider(candidate_a)
+                timeout_provider_b = _OneCandidateProvider(candidate_b)
+                timeout_inputs = _build_inputs(
+                    case_id="public-dev-timeout",
+                    provider_a=timeout_provider_a,
+                    provider_b=timeout_provider_b,
+                    events=timeout_events,
+                    runner=timeout_runner,
+                    adapter=_PhasedAdapter(timeout_events),
+                )
+                sealed_trial_record = []
+
+                def crash_before_generation_publish(_journal, record):
+                    sealed_trial_record.append(deepcopy(record))
+                    raise RuntimeError("exit after trial seal")
+
+                with patch(
+                    "true_rl_agent.agent_core.generation.GenerationReceiptJournal.publish_execution",
+                    crash_before_generation_publish,
+                ), self.assertRaisesRegex(RuntimeError, "exit after trial seal"):
+                    execute_fixed_width_generation(timeout_inputs)
+                calls_before_resume = list(timeout_runner.phase_calls)
+                execution_events_before_resume = [
+                    event for event in timeout_events if not event.startswith("author-")
+                ]
+                provider_calls_before_resume = (
+                    len(timeout_provider_a.payloads), len(timeout_provider_b.payloads)
+                )
+                timeout_result = execute_fixed_width_generation(timeout_inputs)
+                for key in ("trials", "generation_outcome", "selection", "formal"):
+                    self.assertEqual(timeout_result.record[key], sealed_trial_record[0][key])
+                self.assertEqual(timeout_runner.phase_calls, calls_before_resume)
+                self.assertEqual(
+                    [event for event in timeout_events if not event.startswith("author-")],
+                    execution_events_before_resume,
+                )
+                self.assertEqual(
+                    (len(timeout_provider_a.payloads), len(timeout_provider_b.payloads)),
+                    provider_calls_before_resume,
+                )
+                repeated = execute_fixed_width_generation(timeout_inputs)
+                self.assertEqual(repeated.record, timeout_result.record)
+                self.assertFalse(repeated.committed)
+                self.assertEqual(timeout_runner.phase_calls, calls_before_resume)
+                self.assertEqual(
+                    timeout_result.record["generation_outcome"],
+                    "candidate_execution_incomplete",
+                )
+                trials = timeout_result.record["trials"]
+                self.assertEqual(
+                    [trial["trial_status"] for trial in trials],
+                    ["candidate_failed", "screened_only"],
+                )
+                self.assertEqual(
+                    trials[0]["status_reason"],
+                    "eval_incomplete_public_dev",
+                )
+                self.assertIsNotNone(trials[0]["train"])
+                self.assertIsNone(trials[0]["public_dev"])
+                self.assertIsNotNone(trials[1]["public_dev"])
+                self.assertIsNone(timeout_result.record["selection"])
+                self.assertIsNone(timeout_result.record["formal"])
+                self.assertFalse(
+                    any(
+                        phase is not EvaluationPhase.PUBLIC_DEV
+                        for _, phase in timeout_runner.phase_calls
+                    )
+                )
+
+            with self.subTest(
+                scenario="public_dev_contract_failure_remains_fatal"
+            ):
+                contract_events: list[str] = []
+                contract_runner = _PublicDevFailureRunner(
+                    contract_events,
+                    failing_subject_id=candidate_a.candidate_id,
+                    failure_kind=RunnerFailureKind.CONTRACT_INVALID,
+                )
+                contract_inputs = _build_inputs(
+                    case_id="public-dev-contract-failure",
+                    provider_a=_OneCandidateProvider(candidate_a),
+                    provider_b=_OneCandidateProvider(candidate_b),
+                    events=contract_events,
+                    runner=contract_runner,
+                    adapter=_PhasedAdapter(contract_events),
+                )
+                with self.assertRaisesRegex(
+                    RunnerExecutionError,
+                    "injected public_dev runner failure",
+                ):
+                    execute_fixed_width_generation(contract_inputs)
 
             with self.subTest(scenario="lane_b_prompt_must_bind_exclusion"):
                 unbound_events: list[str] = []

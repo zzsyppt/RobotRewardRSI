@@ -3,7 +3,18 @@
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 from typing import Any
+
+
+def bind_isaac_log_path(args: Any, summary_path: str | Path) -> Path:
+    """Assign a job-local Kit log before SimulationApp is constructed."""
+
+    path = Path(summary_path).resolve().with_suffix(".kit.log")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    option = f'--/log/file="{path.as_posix()}"'
+    args.kit_args = " ".join(part for part in (getattr(args, "kit_args", ""), option) if part)
+    return path
 
 
 def close_isaac_app_on_success(
@@ -41,4 +52,4 @@ def _flush_standard_streams() -> None:
             pass
 
 
-__all__ = ["close_isaac_app_on_success"]
+__all__ = ["bind_isaac_log_path", "close_isaac_app_on_success"]

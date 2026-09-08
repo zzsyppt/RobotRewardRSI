@@ -53,7 +53,7 @@ python PLAN/Variant_construction/P3R/verify_phase3r.py
 - product closure：53 个关键文件；runtime source closure：21 个文件；
 - hash 模式：normalized LF SHA-256，提交/检出不会因 CRLF 改写而失效。
 
-验收器同时重算 protocol、manifest、bindings、训练分配、suite strata、score、named guards、reference manifest、draft 正式入口拒绝、退役路径与 generic ownership 边界，并校验真实 smoke 的源文件闭包。
+该命令验证 P3R 冻结 snapshot、53 文件历史 source closure 与真实 smoke 回执的内部闭合，并复核当时记录的 cell/runtime/训练分配/课程/几何/预算身份。P3R 已被 P3B 激活后的协议取代，因此它不再重建“当前 draft”或提供重签入口；当前 protocol、manifest、suite、guards 与 ownership 由 P3B/P4/P5 活契约门重算。
 
 它还机械检查 formal cohort 内/间 geometry digest 不重合、geometry identity 不含 cell/cohort 标签、phase OOD 相对训练相位确实改变 riser/tread 序列、训练/评测共享地形常量不分叉，以及训练 forward 上限与评测命令一致。
 

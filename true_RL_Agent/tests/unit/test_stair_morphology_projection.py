@@ -36,7 +36,7 @@ from true_rl_agent.tasks.stair_climbing.robot_binding import (  # noqa: E402
 from true_rl_agent.tasks.stair_climbing.config import (  # noqa: E402
     StairClimbingTaskConfig,
 )
-from true_rl_agent.tasks.stair_climbing.unified_protocol import (  # noqa: E402
+from true_rl_agent.tasks.stair_climbing.row_catalog import (  # noqa: E402
     STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
 )
 from true_rl_agent.tasks.stair_climbing.runtime_projection import (  # noqa: E402
@@ -202,7 +202,7 @@ class StairMorphologyProjectionTests(unittest.TestCase):
 
     def test_unified_cell_uses_versioned_profile_joint_groups(self) -> None:
         config = StairClimbingTaskConfig.defaults(
-            ROOT / "configs/tasks/stair_unified_protocol_v1.json",
+            ROOT / "configs/tasks/stair_unified_protocol_v2.json",
             cell_variant_id=STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
         )
         manifest = resolve_stair_cell_manifest(

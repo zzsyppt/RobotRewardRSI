@@ -1,0 +1,128 @@
+.........................................................................ssF...............................................................................................s....................................................................................................................................................................................................................................................................s...................s............Isaac SimulationApp close failed: close failed
+custom-source-policy
+custom-source-policy
+custom-source-policy
+custom-source-policy
+custom-source-policy
+............................................................s.................................................................................................................s..................................................................................................................................................................................................................................s...................................................................................................s.ss................................................E...................................Stair bound child CUDA_VISIBLE_DEVICES must be one full GPU UUID
+Stair bound child CUDA_VISIBLE_DEVICES must be one full GPU UUID
+{"status": "pass", "summary_path": "C:\\Users\\lover\\AppData\\Local\\Temp\\tmplcjcfw1f\\eval-summary.json"}
+{"status": "pass", "summary_path": "C:\\Users\\lover\\AppData\\Local\\Temp\\tmplcjcfw1f\\eval-summary.json"}
+....stair evaluation evidence publication failed: summary publication failed
+.backend execution environment drift
+backend execution environment drift
+.......installed source bytes drifted
+installed source bytes drifted
+............................................................................................................................s.................................................................................................ssss.s.....................E....................................................F.......................................................F...............................................................................................{"error":"RuntimeError","message":"synthetic owned-child failure","status":"fail"}
+...{"error":"FileNotFoundError","message":"[WinError 2] ϵͳ�Ҳ���ָ�����ļ���: 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpnmce3m1l\\\\leases'","status":"fail"}
+{"error":"ValueError","message":"shared GPU lease root must be an existing disjoint directory","status":"fail"}
+....................................................................s.................
+======================================================================
+ERROR: setUpClass (tests.unit.test_stair_baseline_adapter.StairBaselineAdapterTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_stair_baseline_adapter.py", line 27, in setUpClass
+    cls.report = cls.bundle.load_report(require_admitted=True)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\stair_climbing\phase0_contract.py", line 306, in load_report
+    report.assert_matches(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\stair_climbing\phase0_contract.py", line 236, in assert_matches
+    _validate_report_source_artifacts(self.to_dict(), Path(project_root))
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\stair_climbing\phase0_contract.py", line 2607, in _validate_report_source_artifacts
+    raise ValueError(f"Phase 0 report source artifact mismatch: {ref}")
+ValueError: Phase 0 report source artifact mismatch: src/true_rl_agent/tasks/stair_climbing/isaaclab_terrain.py
+
+======================================================================
+ERROR: test_frozen_bundle_and_admitted_report_load (tests.unit.test_stair_phase0_contract.StairPhase0ContractTests.test_frozen_bundle_and_admitted_report_load)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_stair_phase0_contract.py", line 147, in test_frozen_bundle_and_admitted_report_load
+    report = self.bundle.load_report()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\stair_climbing\phase0_contract.py", line 306, in load_report
+    report.assert_matches(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\stair_climbing\phase0_contract.py", line 236, in assert_matches
+    _validate_report_source_artifacts(self.to_dict(), Path(project_root))
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\stair_climbing\phase0_contract.py", line 2607, in _validate_report_source_artifacts
+    raise ValueError(f"Phase 0 report source artifact mismatch: {ref}")
+ValueError: Phase 0 report source artifact mismatch: src/true_rl_agent/tasks/stair_climbing/isaaclab_terrain.py
+
+======================================================================
+FAIL: test_three_generations_pause_resume_and_hard_crash_recovery (tests.integration.test_stair_generation_session.StairGenerationSessionProductionShapeTests.test_three_generations_pause_resume_and_hard_crash_recovery)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_stair_generation_session.py", line 1318, in test_three_generations_pause_resume_and_hard_crash_recovery
+    self._worker(root, "setup")
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_stair_generation_session.py", line 1955, in _worker
+    self.fail(
+AssertionError: fixture worker setup exited 1
+stdout:
+
+stderr:
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_stair_generation_session.py", line 2025, in <module>
+    _run_worker(Path(sys.argv[2]).resolve(), sys.argv[3])
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_stair_generation_session.py", line 1159, in _run_worker
+    genesis = _prepare_or_load_genesis(foundation, require_existing=False)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_stair_generation_session.py", line 288, in _prepare_or_load_genesis
+    genesis = prepare_session_genesis(
+              ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\session_genesis.py", line 1766, in prepare_session_genesis
+    artifact = _create_reference_genesis(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\session_genesis.py", line 2255, in _create_reference_genesis
+    train_result = runner.run_train(jobs.train_spec)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_stair_generation_session.py", line 557, in run_train
+    result = self.delegate._execute_with_attempts(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\runner\subprocess_runner.py", line 918, in _execute_with_attempts
+    result = operation(
+             ^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_stair_generation_session.py", line 560, in <lambda>
+    operation=lambda _logs, context, _timeout_s: self._run_train_once(
+                                                 ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_stair_generation_session.py", line 651, in _run_train_once
+    summary = self._train_summary(
+              ^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_stair_generation_session.py", line 829, in _train_summary
+    source_preflight = _source_preflight(config)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_stair_generation_session.py", line 1003, in _source_preflight
+    return preflight_stair_execution_source_manifest(config).to_summary_dict()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\stair_climbing\isaaclab_execution.py", line 200, in preflight_stair_execution_source_manifest
+    upstream_source_evidence=_unified_execution_source_evidence(config),
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\stair_climbing\isaaclab_execution.py", line 251, in _unified_execution_source_evidence
+    ).installed_source_evidence()
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\robots\isaaclab_locomotion.py", line 59, in installed_source_evidence
+    raise RuntimeError(
+RuntimeError: Isaac Lab runtime package is unavailable: isaaclab_assets
+
+
+======================================================================
+FAIL: test_go2_profile_and_runtime_adapter_preserve_phase0_facts (tests.unit.test_stair_phase5_contract.StairPhase5ContractTests.test_go2_profile_and_runtime_adapter_preserve_phase0_facts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_stair_phase5_contract.py", line 96, in test_go2_profile_and_runtime_adapter_preserve_phase0_facts
+    self.assertIn("config.go2.rough_env_cfg", runtime.environment_cfg_entrypoint)
+AssertionError: 'config.go2.rough_env_cfg' not found in 'true_rl_agent.robots.isaaclab_locomotion:_go2_environment_cfg'
+
+======================================================================
+FAIL: test_three_phase_assembly_matches_monolithic_scientific_summary (tests.unit.test_stair_phased_evaluation.StairPhasedEvaluationTests.test_three_phase_assembly_matches_monolithic_scientific_summary)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_stair_phased_evaluation.py", line 622, in test_three_phase_assembly_matches_monolithic_scientific_summary
+    self.assertEqual(assembled.summary, full_summary)
+AssertionError: {'sch[158349 chars]ment_present': False, 'errors': []} != {'sch[158349 chars]ment_present': False, 'errors': [], 'checkpoint_loading': None}
+Diff is 920146 characters long. Set self.maxDiff to None to see it.
+
+----------------------------------------------------------------------
+Ran 1608 tests in 331.303s
+
+FAILED (failures=3, errors=2, skipped=18)
