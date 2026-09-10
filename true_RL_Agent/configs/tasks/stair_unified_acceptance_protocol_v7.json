@@ -1,0 +1,52 @@
+{
+  "absolute_accept_floor": 0.2,
+  "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+  "decision_rule": "bootstrap_named_guard_floors_then_paired_headroom_delta_v1",
+  "headroom_reduction_fraction": 0.2,
+  "max_public_to_sealed_score_drop": 0.05,
+  "min_delta": 0.0,
+  "min_score_count": 5,
+  "named_guards": [
+    {
+      "absolute_accept_floor": 0.1,
+      "max_regression": 0.05,
+      "name": "j_ood",
+      "regression_margin": 0.02,
+      "score_source": "unified_score.j_ood.score_stats.mean"
+    },
+    {
+      "absolute_accept_floor": 0.1,
+      "max_regression": 0.05,
+      "name": "c0_id",
+      "regression_margin": 0.02,
+      "score_source": "unified_score.c0_id.score_stats.mean"
+    },
+    {
+      "absolute_accept_floor": 0.1,
+      "max_regression": 0.05,
+      "name": "c1_id",
+      "regression_margin": 0.02,
+      "score_source": "unified_score.c1_id.score_stats.mean"
+    },
+    {
+      "absolute_accept_floor": 0.1,
+      "max_regression": 0.05,
+      "name": "joint_ood",
+      "regression_margin": 0.02,
+      "score_source": "unified_score.joint_ood.score_stats.mean"
+    },
+    {
+      "absolute_accept_floor": 0.1,
+      "max_regression": 0.05,
+      "name": "phase_control",
+      "regression_margin": 0.02,
+      "score_source": "unified_score.phase_control.score_stats.mean"
+    }
+  ],
+  "paired_standard_error_multiplier": 1.5,
+  "protocol_id": "stair_unified_acceptance_v7",
+  "public_score_binding": "acceptance_score_mean",
+  "schema_version": "true_rl_agent.acceptance.protocol.v6",
+  "score_ceiling": 1.0,
+  "score_source": "unified_score.j_primary.score_stats.mean"
+}

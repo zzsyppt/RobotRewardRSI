@@ -1,0 +1,92 @@
+{
+  "status": "FAIL",
+  "tests_run": 1590,
+  "failures": [],
+  "errors": [
+    [
+      "test_mask_replay_and_plugin_binding_reject_drift (tests.unit.test_stair_phase4_contract.StairPhase4ContractTests.test_mask_replay_and_plugin_binding_reject_drift)",
+      "Traceback (most recent call last):\n  File \"D:\\humanoid_agent\\true_RL_Agent\\tests\\unit\\test_stair_phase4_contract.py\", line 536, in test_mask_replay_and_plugin_binding_reject_drift\n    memory._exploration_projector().objective_family_mask,\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'StairTaskMemoryAdapter' object has no attribute '_exploration_projector'. Did you mean: 'exploration_projector'?\n"
+    ]
+  ],
+  "skipped": [
+    [
+      "test_stair_accepted_head_resumes_and_closes_final (tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_accepted_head_resumes_and_closes_final)",
+      "Stair runtime source closure requires target Isaac installation"
+    ],
+    [
+      "test_stair_early_rejection_sealed_rejection_and_no_selection (tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_early_rejection_sealed_rejection_and_no_selection)",
+      "Stair runtime source closure requires target Isaac installation"
+    ],
+    [
+      "test_stair_reference_head_uses_shared_preparation_session_final_and_replay (tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_reference_head_uses_shared_preparation_session_final_and_replay)",
+      "Stair runtime source closure requires target Isaac installation"
+    ],
+    [
+      "test_stair_runtime_and_infrastructure_failures_keep_distinct_evidence (tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_runtime_and_infrastructure_failures_keep_distinct_evidence)",
+      "Stair runtime source closure requires target Isaac installation"
+    ],
+    [
+      "test_candidate_package_preflight_rejects_nonregular_and_symlink_files (tests.unit.test_candidate_package.CandidatePackageTests.test_candidate_package_preflight_rejects_nonregular_and_symlink_files)",
+      "file symlinks are unavailable: [WinError 1314] \u5ba2\u6237\u7aef\u6ca1\u6709\u6240\u9700\u7684\u7279\u6743\u3002: 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpauky4lnb\\\\outside.md' -> 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpauky4lnb\\\\symlinked\\\\candidate\\\\rationale.md'"
+    ],
+    [
+      "test_bounded_reader_rejects_final_symlink (tests.unit.test_fs_contract.FileSystemContractTests.test_bounded_reader_rejects_final_symlink)",
+      "symlinks unavailable: [WinError 1314] \u5ba2\u6237\u7aef\u6ca1\u6709\u6240\u9700\u7684\u7279\u6743\u3002: 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmp4101sis6\\\\target.bin' -> 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmp4101sis6\\\\link.bin'"
+    ],
+    [
+      "test_linux_process_incarnation_and_process_group_liveness (tests.unit.test_generation_lifecycle.GenerationLifecycleTests.test_linux_process_incarnation_and_process_group_liveness)",
+      "requires real Linux procfs"
+    ],
+    [
+      "test_live_summary_writer_replaces_symlink_without_touching_target (tests.unit.test_live_invocation.LiveInvocationJournalTests.test_live_summary_writer_replaces_symlink_without_touching_target)",
+      "symlinks unavailable: [WinError 1314] \u5ba2\u6237\u7aef\u6ca1\u6709\u6240\u9700\u7684\u7279\u6743\u3002: 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmp7m6vhctn\\\\external.json' -> 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmp7m6vhctn\\\\live_summary.json'"
+    ],
+    [
+      "test_real_retry_chain_and_owned_process_groups_are_closed (tests.unit.test_p6b_attempt_chain_fault_probe.P6BAttemptChainFaultProbeTests.test_real_retry_chain_and_owned_process_groups_are_closed)",
+      "Linux production probe"
+    ],
+    [
+      "test_symlink_root_is_rejected_before_publication (tests.unit.test_reference_artifact.ReferenceArtifactTests.test_symlink_root_is_rejected_before_publication)",
+      "directory symlinks are unavailable: [WinError 1314] \u5ba2\u6237\u7aef\u6ca1\u6709\u6240\u9700\u7684\u7279\u6743\u3002: 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpz742jbjg\\\\real-artifacts' -> 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpz742jbjg\\\\linked-artifacts'"
+    ],
+    [
+      "test_incomplete_process_group_cleanup_is_typed (tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_incomplete_process_group_cleanup_is_typed)",
+      "Linux process-group contract"
+    ],
+    [
+      "test_linux_parent_death_signal_stops_owned_job (tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_linux_parent_death_signal_stops_owned_job)",
+      "Linux parent-death contract"
+    ],
+    [
+      "test_normal_exit_quiesces_grandchild_before_logs_are_returned (tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_normal_exit_quiesces_grandchild_before_logs_are_returned)",
+      "Linux process-group contract"
+    ],
+    [
+      "test_real_recorder_payload_decodes_tracks_and_aggregates (tests.unit.test_stair_isaaclab_runtime_env.StairIsaacLabRuntimeEnvTests.test_real_recorder_payload_decodes_tracks_and_aggregates)",
+      "set TRUE_RL_AGENT_ISAAC_DYNAMIC_TEST=1 to run Isaac integration"
+    ],
+    [
+      "test_train_and_eval_builders_install_only_the_declared_runtime (tests.unit.test_stair_isaaclab_runtime_env.StairIsaacLabRuntimeEnvTests.test_train_and_eval_builders_install_only_the_declared_runtime)",
+      "set TRUE_RL_AGENT_ISAAC_DYNAMIC_TEST=1 to run Isaac integration"
+    ],
+    [
+      "test_existing_inputs_reject_leaf_symlinks_before_resolve (tests.unit.test_stair_local_paths.StairLocalPathTests.test_existing_inputs_reject_leaf_symlinks_before_resolve)",
+      "symlink creation is unavailable: [WinError 1314] \u5ba2\u6237\u7aef\u6ca1\u6709\u6240\u9700\u7684\u7279\u6743\u3002: 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpbs0cenh1\\\\target.json' -> 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpbs0cenh1\\\\file-link.json'"
+    ],
+    [
+      "test_output_guards_reject_dangling_symlinks (tests.unit.test_stair_local_paths.StairLocalPathTests.test_output_guards_reject_dangling_symlinks)",
+      "symlink creation is unavailable: [WinError 1314] \u5ba2\u6237\u7aef\u6ca1\u6709\u6240\u9700\u7684\u7279\u6743\u3002: 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpdowh2uqf\\\\missing-target.json' -> 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpdowh2uqf\\\\output.json'"
+    ],
+    [
+      "test_stair_config_rejects_protocol_symlink (tests.unit.test_stair_local_paths.StairLocalPathTests.test_stair_config_rejects_protocol_symlink)",
+      "symlink creation is unavailable: [WinError 1314] \u5ba2\u6237\u7aef\u6ca1\u6709\u6240\u9700\u7684\u7279\u6743\u3002: 'D:\\\\humanoid_agent\\\\true_RL_Agent\\\\configs\\\\tasks\\\\stair_protocol_v2_draft_r2.json' -> 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpesxq2wyl\\\\stair_protocol_v2_draft_r2.json'"
+    ],
+    [
+      "test_subprocess_train_rejects_symlinked_checkpoint_output_without_following_it (tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_train_rejects_symlinked_checkpoint_output_without_following_it)",
+      "file symlinks unavailable: OSError"
+    ]
+  ],
+  "wall_time_ns": 921439420300,
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "dynamic_isaac": false
+}

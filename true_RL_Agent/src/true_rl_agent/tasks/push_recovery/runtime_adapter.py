@@ -233,6 +233,23 @@ class CandidateRuntimeAdapter:
             "runtime_contract": runtime_contract(),
         }
 
+    @classmethod
+    def from_reference_program(
+        cls, program, *, num_envs: int, planned_training_steps: int,
+    ) -> "CandidateRuntimeAdapter":
+        from true_rl_agent.training_programs import VerifiedReferenceProgramArtifact
+
+        if not isinstance(program, VerifiedReferenceProgramArtifact):
+            raise TypeError("Push reference requires verified source bytes")
+        components = load_training_components_source_bytes(
+            program.source_bytes,
+            module_name=f"true_rl_reference_{program.manifest.reference_id}",
+            source_name=program.manifest.source_uri,
+        )
+        validate_training_components(components)
+        return cls(manifest=None, components=components, num_envs=num_envs,
+                   planned_training_steps=planned_training_steps)
+
     def runtime_summary(self) -> dict[str, Any]:
         reward_stats = _stats_from_last_terms(self.runtime.last_reward_terms)
         diagnostic_outputs = _diagnostic_output_map(self.runtime.last_diagnostics)

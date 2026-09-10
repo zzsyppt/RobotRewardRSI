@@ -25,6 +25,9 @@ from true_rl_agent.tasks.stair_climbing.ordered_evaluation import (
 STAIR_ORDERED_SUMMARY_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.ordered_evaluation_summary.v3"
 )
+STAIR_EPISODE_FACTS_ORDERED_SUMMARY_SCHEMA_VERSION = (
+    "true_rl_agent.task.stair_climbing.ordered_evaluation_summary.v4"
+)
 _STAIR_ORDERED_DIAGNOSTIC_SUMMARY_SCHEMA_VERSION = "true_rl_agent.task.stair_climbing.ordered_evaluation_summary.v2"
 _STAIR_ORDERED_LEGACY_SUMMARY_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.ordered_evaluation_summary.v1"
@@ -33,7 +36,9 @@ _STAIR_ORDERED_LEGACY_SUMMARY_SCHEMA_VERSION = (
 
 def ordered_summary_statistics_version(schema_version: str) -> str | None:
     """The ordered format owns the arithmetic of its stored aggregates."""
-    if schema_version == STAIR_ORDERED_SUMMARY_SCHEMA_VERSION:
+    if schema_version in {
+        STAIR_ORDERED_SUMMARY_SCHEMA_VERSION, STAIR_EPISODE_FACTS_ORDERED_SUMMARY_SCHEMA_VERSION
+    }:
         return DERIVED_STATISTICS_VERSION
     if schema_version in {
         _STAIR_ORDERED_DIAGNOSTIC_SUMMARY_SCHEMA_VERSION,
@@ -41,6 +46,34 @@ def ordered_summary_statistics_version(schema_version: str) -> str | None:
     }:
         return None
     raise ValueError("Stair ordered summary schema mismatch")
+
+
+def validate_episode_facts(
+    facts: Sequence[Mapping[str, Any]], *, horizon_steps: int,
+    semantics: StairEvaluationSemantics,
+) -> None:
+    """Validate stored outcome facts against their task-owned success contract."""
+    if not facts or isinstance(horizon_steps, bool) or not isinstance(horizon_steps, int) or horizon_steps <= 0:
+        raise ValueError("Stair episode facts require episodes and a positive horizon")
+    for fact in facts:
+        if not isinstance(fact, Mapping) or set(fact) != {
+            "primary_reason", "episode_steps", "progress_fraction", "diagnostic_flags"
+        }:
+            raise ValueError("Stair completion fact fields mismatch")
+        steps, progress = fact["episode_steps"], fact["progress_fraction"]
+        flags = fact["diagnostic_flags"]
+        if (
+            isinstance(steps, bool) or not isinstance(steps, int) or not 1 <= steps <= horizon_steps
+            or isinstance(progress, bool) or not isinstance(progress, int | float)
+            or not math.isfinite(progress) or not 0 <= progress <= 1
+            or not isinstance(fact["primary_reason"], str) or not fact["primary_reason"]
+            or not isinstance(flags, list) or any(not isinstance(flag, str) for flag in flags)
+            or len(flags) != len(set(flags))
+        ):
+            raise ValueError("Stair completion fact values are invalid")
+        success = fact["primary_reason"] == "success"
+        if success and progress < float(semantics.outcomes["success"]["minimum_progress_fraction"]):
+            raise ValueError("Stair success progress is below its evaluation semantics")
 
 
 def build_ordered_stair_summary(
@@ -64,6 +97,7 @@ def build_ordered_stair_summary(
     )
     cell_ids = tuple(cell.cell_id for cell in suite.runtime_cells(split))
     episodes = suite.episodes_per_seed_per_cell
+    has_episode_facts = suite.records_episode_facts
     seed_summaries: list[dict[str, Any]] = []
     aggregate_counts = {cell_id: Counter({reason: 0 for reason in reasons}) for cell_id in cell_ids}
     aggregate_diagnostics = {
@@ -79,6 +113,7 @@ def build_ordered_stair_summary(
             for cell_id in cell_ids
         }
         progress = {cell_id: [] for cell_id in cell_ids}
+        facts = {cell_id: [] for cell_id in cell_ids}
         for index, (outcome, cell) in enumerate(
             zip(outcomes, expected_assignment, strict=True)
         ):
@@ -100,6 +135,13 @@ def build_ordered_stair_summary(
                 raise ValueError("Stair ordered summary diagnostic flag is undeclared")
             diagnostics[cell.cell_id].update(outcome.diagnostic_flags)
             progress[cell.cell_id].append(float(outcome.progress_fraction))
+            if has_episode_facts:
+                facts[cell.cell_id].append({
+                    "primary_reason": outcome.primary_reason,
+                    "episode_steps": outcome.episode_steps,
+                    "progress_fraction": float(outcome.progress_fraction),
+                    "diagnostic_flags": list(outcome.diagnostic_flags),
+                })
             aggregate_counts[cell.cell_id][outcome.primary_reason] += 1
             aggregate_diagnostics[cell.cell_id].update(outcome.diagnostic_flags)
         if any(sum(value.values()) != episodes for value in counts.values()):
@@ -123,6 +165,7 @@ def build_ordered_stair_summary(
                 "diagnostic_flag_counts_by_cell": {
                     cell_id: dict(diagnostics[cell_id]) for cell_id in cell_ids
                 },
+                **({"episode_facts_by_cell": facts} if has_episode_facts else {}),
             }
         )
     aggregate_denominator = expected_seed_count * episodes
@@ -139,7 +182,10 @@ def build_ordered_stair_summary(
     }
     macro_scores = [float(seed["macro_score"]) for seed in seed_summaries]
     summary = {
-        "schema_version": STAIR_ORDERED_SUMMARY_SCHEMA_VERSION,
+        "schema_version": (
+            STAIR_EPISODE_FACTS_ORDERED_SUMMARY_SCHEMA_VERSION if has_episode_facts
+            else STAIR_ORDERED_SUMMARY_SCHEMA_VERSION
+        ),
         "ordered_suite_hash": suite.suite_hash,
         "split": split,
         "split_cohort_hash": suite.cohort_hash(split),
@@ -194,6 +240,9 @@ def validate_ordered_stair_summary(
         raise TypeError("Stair ordered summary must be an object")
     schema_version = summary.get("schema_version")
     statistics_version = ordered_summary_statistics_version(schema_version)
+    has_episode_facts = schema_version == STAIR_EPISODE_FACTS_ORDERED_SUMMARY_SCHEMA_VERSION
+    if has_episode_facts != suite.records_episode_facts:
+        raise ValueError("Stair ordered summary completion contract mismatch")
     has_diagnostic_counts = (
         schema_version != _STAIR_ORDERED_LEGACY_SUMMARY_SCHEMA_VERSION
     )
@@ -266,7 +315,26 @@ def validate_ordered_stair_summary(
             diagnostic_flags=diagnostic_flags,
             episodes=suite.episodes_per_seed_per_cell,
             has_diagnostic_counts=has_diagnostic_counts,
+            has_episode_facts=has_episode_facts,
         )
+        if has_episode_facts:
+            for cell in suite.runtime_cells(split):
+                facts = seed["episode_facts_by_cell"][cell.cell_id]
+                validate_episode_facts(facts, horizon_steps=cell.episode_horizon_control_steps,
+                                       semantics=semantics)
+                counts = Counter(fact["primary_reason"] for fact in facts)
+                flags = Counter(flag for fact in facts for flag in fact["diagnostic_flags"])
+                if (
+                    any(reason not in reasons for reason in counts)
+                    or any(flag not in diagnostic_flags for flag in flags)
+                    or {reason: counts[reason] for reason in reasons}
+                    != seed["primary_outcome_counts_by_cell"][cell.cell_id]
+                    or {flag: flags[flag] for flag in diagnostic_flags}
+                    != seed["diagnostic_flag_counts_by_cell"][cell.cell_id]
+                    or sample_mean(fact["progress_fraction"] for fact in facts)
+                    != seed["mean_progress_fraction_by_cell"][cell.cell_id]
+                ):
+                    raise ValueError("Stair ordered episode facts differ from aggregates")
         counts_by_cell = seed["primary_outcome_counts_by_cell"]
         success_by_cell = seed["success_rate_by_cell"]
         progress_by_cell = seed["mean_progress_fraction_by_cell"]
@@ -297,11 +365,11 @@ def validate_ordered_stair_summary(
     expected_score_stats = _score_stats(
         seed_scores,
         eval_protocol_hash=suite.evaluation_protocol.protocol_hash,
-        canonical=schema_version == STAIR_ORDERED_SUMMARY_SCHEMA_VERSION,
+        canonical=statistics_version is not None,
     )
     score_stats = summary.get("score_stats")
     if (
-        schema_version == STAIR_ORDERED_SUMMARY_SCHEMA_VERSION
+        statistics_version is not None
         and score_stats != expected_score_stats
     ):
         raise ValueError("Stair ordered canonical score statistics mismatch")
@@ -460,6 +528,7 @@ def _validate_seed_summary(
     diagnostic_flags: tuple[str, ...],
     episodes: int,
     has_diagnostic_counts: bool,
+    has_episode_facts: bool,
 ) -> None:
     fields = {
         "seed_index",
@@ -471,8 +540,17 @@ def _validate_seed_summary(
     }
     if has_diagnostic_counts:
         fields.add("diagnostic_flag_counts_by_cell")
+    if has_episode_facts:
+        fields.add("episode_facts_by_cell")
     if not isinstance(seed, Mapping) or set(seed) != fields or seed.get("seed_index") != seed_index:
         raise ValueError("Stair ordered seed summary fields mismatch")
+    if has_episode_facts and (
+        not isinstance(seed["episode_facts_by_cell"], Mapping)
+        or set(seed["episode_facts_by_cell"]) != set(cell_ids)
+        or any(not isinstance(facts, list) or len(facts) != episodes
+               for facts in seed["episode_facts_by_cell"].values())
+    ):
+        raise ValueError("Stair ordered episode facts coverage mismatch")
     for key in ("success_rate_by_cell", "mean_progress_fraction_by_cell", "primary_outcome_counts_by_cell"):
         if not isinstance(seed.get(key), Mapping) or set(seed[key]) != set(cell_ids):
             raise ValueError(f"Stair ordered seed {key} cell set mismatch")

@@ -36,12 +36,12 @@ from true_rl_agent.tasks.stair_climbing.entrypoint_contract import (  # noqa: E4
     StairTrainEntrypointContext,
     validate_stair_train_invocation,
 )
-from true_rl_agent.tasks.stair_climbing.gpu_process_binding import (  # noqa: E402
-    StairGpuRuntimeBinding,
-    add_stair_gpu_process_binding_arguments,
-    attach_stair_gpu_runtime_evidence,
-    capture_stair_gpu_compute_context,
-    validate_stair_gpu_process_binding_invocation,
+from true_rl_agent.runner.gpu_process_binding import (  # noqa: E402
+    GpuRuntimeBinding,
+    add_gpu_process_binding_arguments,
+    attach_gpu_runtime_evidence,
+    capture_gpu_compute_context,
+    validate_gpu_process_binding_invocation,
 )
 from true_rl_agent.tasks.stair_climbing.isaaclab_execution import (  # noqa: E402
     VerifiedStairExecutionSourceManifest,
@@ -129,7 +129,7 @@ def _build_parser() -> argparse.ArgumentParser:
         parser.add_argument("--device", required=True)
     else:
         AppLauncher.add_app_launcher_args(parser)
-    add_stair_gpu_process_binding_arguments(parser)
+    add_gpu_process_binding_arguments(parser)
     for action in required_actions:
         action.required = True
     artifact_group.required = True
@@ -144,7 +144,7 @@ def main(argv: list[str] | None = None) -> int:
             args.device,
             "stair train execution device",
         )
-        gpu_runtime_binding = validate_stair_gpu_process_binding_invocation(
+        gpu_runtime_binding = validate_gpu_process_binding_invocation(
             args,
             environment=os.environ,
         )
@@ -281,7 +281,7 @@ def _run_training(
     reward_program: QualifiedStairRewardProgram,
     summary_path: Path,
     checkpoint_output: Path,
-    gpu_runtime_binding: StairGpuRuntimeBinding | None,
+    gpu_runtime_binding: GpuRuntimeBinding | None,
 ) -> int:
     attempt_id = uuid.uuid4().hex
     run_dir = summary_path.parent / "run" / f"attempt-{attempt_id}"
@@ -302,7 +302,7 @@ def _run_training(
     )
     fields = result.to_summary_fields()
     compute_context_observation = (
-        capture_stair_gpu_compute_context(gpu_runtime_binding)
+        capture_gpu_compute_context(gpu_runtime_binding)
         if gpu_runtime_binding is not None
         else None
     )
@@ -354,7 +354,7 @@ def _status_summary(
     attempt_id: str,
     formal_training_executed: bool,
     execution_device: str,
-    gpu_runtime_binding: StairGpuRuntimeBinding | None = None,
+    gpu_runtime_binding: GpuRuntimeBinding | None = None,
     compute_context_observation: Mapping[str, Any] | None = None,
     **payload: Any,
 ) -> dict[str, Any]:
@@ -421,7 +421,7 @@ def _status_summary(
                 ),
             }
         )
-    return attach_stair_gpu_runtime_evidence(
+    return attach_gpu_runtime_evidence(
         summary,
         gpu_runtime_binding,
         compute_context_observation=compute_context_observation,
@@ -436,7 +436,7 @@ def _write_candidate_failure_summary(
     execution_environment_verification: Mapping[str, str],
     failure: StairCandidateProgramFailure,
     summary_path: Path,
-    gpu_runtime_binding: StairGpuRuntimeBinding | None,
+    gpu_runtime_binding: GpuRuntimeBinding | None,
 ) -> None:
     summary = _status_summary(
         "fail",

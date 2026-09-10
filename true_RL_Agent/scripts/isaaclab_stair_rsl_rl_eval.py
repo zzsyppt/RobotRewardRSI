@@ -41,12 +41,12 @@ from true_rl_agent.tasks.stair_climbing.entrypoint_contract import (  # noqa: E4
     StairEvalEntrypointContext,
     validate_stair_eval_invocation,
 )
-from true_rl_agent.tasks.stair_climbing.gpu_process_binding import (  # noqa: E402
-    StairGpuRuntimeBinding,
-    add_stair_gpu_process_binding_arguments,
-    attach_stair_gpu_runtime_evidence,
-    capture_stair_gpu_compute_context,
-    validate_stair_gpu_process_binding_invocation,
+from true_rl_agent.runner.gpu_process_binding import (  # noqa: E402
+    GpuRuntimeBinding,
+    add_gpu_process_binding_arguments,
+    attach_gpu_runtime_evidence,
+    capture_gpu_compute_context,
+    validate_gpu_process_binding_invocation,
 )
 from true_rl_agent.tasks.stair_climbing.phased_evaluation import (  # noqa: E402
     STAIR_FULL_EVAL_SUMMARY_SCHEMA_VERSION,
@@ -94,6 +94,7 @@ def _build_parser(app_launcher_class: Any) -> argparse.ArgumentParser:
     ):
         required_actions.append(parser.add_argument(option))
     parser.add_argument("--evaluation-phase")
+    parser.add_argument("--stair-final-plan", type=Path)
     parser.add_argument("--evaluation-plan-hash")
     parser.add_argument("--base-task-protocol-hash", default=None)
     parser.add_argument(
@@ -115,7 +116,7 @@ def _build_parser(app_launcher_class: Any) -> argparse.ArgumentParser:
     ):
         required_actions.append(parser.add_argument(option, type=int))
     app_launcher_class.add_app_launcher_args(parser)
-    add_stair_gpu_process_binding_arguments(parser)
+    add_gpu_process_binding_arguments(parser)
     for action in required_actions:
         action.required = True
     parser.set_defaults(headless=True)
@@ -147,7 +148,7 @@ def main(
             args.device,
             "stair eval execution device",
         )
-        gpu_runtime_binding = validate_stair_gpu_process_binding_invocation(
+        gpu_runtime_binding = validate_gpu_process_binding_invocation(
             args,
             environment=os.environ,
         )
@@ -231,11 +232,11 @@ def main(
                 gpu_runtime_binding=gpu_runtime_binding,
             )
         compute_context_observation = (
-            capture_stair_gpu_compute_context(gpu_runtime_binding)
+            capture_gpu_compute_context(gpu_runtime_binding)
             if gpu_runtime_binding is not None
             else None
         )
-        summary = attach_stair_gpu_runtime_evidence(
+        summary = attach_gpu_runtime_evidence(
             summary,
             gpu_runtime_binding,
             compute_context_observation=compute_context_observation,
@@ -346,7 +347,7 @@ def _failure_summary(
     error: BaseException,
     phase: EvaluationPhase | None = None,
     evaluation_plan_hash: str | None = None,
-    gpu_runtime_binding: StairGpuRuntimeBinding | None = None,
+    gpu_runtime_binding: GpuRuntimeBinding | None = None,
 ) -> dict[str, Any]:
     result = {
         "schema_version": (

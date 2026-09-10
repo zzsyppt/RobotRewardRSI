@@ -4,13 +4,15 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal
 
 from true_rl_agent.evaluation.phases import (
     EvaluationAssembly,
     EvaluationPhase,
     EvaluationPhaseResult,
 )
+from true_rl_agent.evaluation.phased_adapter import GenerationWorkload
+from true_rl_agent.composition.cell_manifest import ResolvedCellManifestV1
 from true_rl_agent.runner.base import TrainJobResult
 from true_rl_agent.runner.specs import EvalJobSpec
 from true_rl_agent.tasks.stair_climbing.config import StairClimbingTaskConfig
@@ -40,6 +42,14 @@ class StairPhasedEvaluationAdapter:
         Callable[[], Mapping[str, Any] | None] | None
     ) = None
 
+    @property
+    def task_protocol_hash(self) -> str:
+        return self.config.task_protocol_hash
+
+    @property
+    def parent_public_dev_source(self) -> Literal["genesis_receipt", "evaluate"]:
+        return "genesis_receipt" if self.config.is_unified_protocol else "evaluate"
+
     def _objective_family_mask(self) -> Mapping[str, Any] | None:
         if not self.config.is_unified_protocol:
             return None
@@ -55,6 +65,25 @@ class StairPhasedEvaluationAdapter:
 
     def cost_contract(self) -> dict[str, object]:
         return stair_phased_evaluation_cost_contract(self.config)
+
+    def generation_workload(self, *, cell_manifest: ResolvedCellManifestV1) -> GenerationWorkload:
+        if cell_manifest.base_task_protocol_hash != self.config.base_task_protocol_hash:
+            raise ValueError("Stair workload cell differs from its task protocol")
+        suite = self.config.ordered_evaluation_suite_config
+        if suite is None:
+            raise ValueError("new generation sessions require the current Stair suite")
+        return GenerationWorkload(
+            task_protocol_hash=self.task_protocol_hash,
+            phased_evaluation_cost_contract_hash=self.cost_contract()["contract_hash"],
+            train_steps_per_job=self.config.budget_steps,
+            public_dev_seed_units_per_job=self.config.public_seed_count,
+            public_accept_seed_units_per_job=self.config.public_accept_seed_count,
+            sealed_validation_seed_units_per_job=self.config.sealed_validation_seed_count,
+            max_eval_control_steps_per_seed_unit=(
+                len(suite.private_cell_assignment("public_dev"))
+                * suite.max_episode_horizon_control_steps
+            ),
+        )
 
     def project_public_dev_screen(
         self,
@@ -103,6 +132,25 @@ class StairPhasedEvaluationAdapter:
             expected_phase=phase_result.phase,
             result=phase_result,
         )
+
+    def project_public_accept_scores(self, *, phase_result):
+        from true_rl_agent.evaluation.public_accept_scores import PublicAcceptScores
+        from true_rl_agent.tasks.stair_climbing.unified_scoring import build_unified_score_projection
+
+        if phase_result.phase is not EvaluationPhase.PUBLIC_ACCEPT:
+            raise ValueError("score comparison requires public-accept evidence")
+        if not self.config.is_unified_protocol:
+            return None
+        summary = self.project_public_phase_summary(phase_result=phase_result)
+        projection = build_unified_score_projection(summary,
+            objective_family_mask=self._objective_family_mask())
+        primary = projection["j_primary"]
+        return PublicAcceptScores(score_stats=primary["score_stats"],
+            score_samples=tuple(primary["seed_macro_scores"]),
+            named_guard_evidence={guard.name: {
+                "score_stats": projection[guard.name]["score_stats"],
+                "score_samples": projection[guard.name]["seed_macro_scores"]}
+                for guard in self.config.acceptance_protocol.named_guards})
 
     def assemble_full_summary(
         self,

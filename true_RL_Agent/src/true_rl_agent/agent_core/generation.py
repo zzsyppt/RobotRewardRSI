@@ -12,7 +12,7 @@ from true_rl_agent.agent_core.authoring_loop import CandidateAuthoringResult
 from true_rl_agent.agent_core.context import sanitize_public_context
 from true_rl_agent.agent_core.generation_contract import (
     GENERATION_LANE_IDS,
-    GENERATION_LEDGER_RECORD_SCHEMA_VERSION,
+    GENERATION_LEDGER_RECORD_V2_SCHEMA_VERSION,
     GENERATION_MANIFEST_V2_SCHEMA_VERSION,
     GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION,
     GenerationManifest,
@@ -33,6 +33,7 @@ from true_rl_agent.agent_core.generation_record import (
     validate_generation_ledger_record,
 )
 from true_rl_agent.agent_core.ledger import PROVIDER_AUTHORING_MODE
+from true_rl_agent.agent_core.generation_early_rejection import build_early_rejection, SEALED_NOT_RUN
 from true_rl_agent.agent_core.round import (
     CandidateTrainExecution,
     PreparedCandidateTrial,
@@ -56,6 +57,11 @@ from true_rl_agent.evaluation.binding import (
     require_sha256_digest,
 )
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
+from true_rl_agent.evaluation.phased_adapter import (
+    GenerationSelection,
+    PhasedEvaluationAdapter,
+    PublicDevScreen,
+)
 from true_rl_agent.evaluation.phases import EvaluationPhase, EvaluationPhaseResult
 from true_rl_agent.evaluation.public_projection import project_public_runner_error
 from true_rl_agent.prompt_artifacts import (
@@ -64,64 +70,16 @@ from true_rl_agent.prompt_artifacts import (
     verify_prompt_payload,
 )
 from true_rl_agent.prompting import assert_public_only_prompt_payload
-from true_rl_agent.runner.base import (
-    CandidateRuntimeError,
-    RunnerExecutionError,
-    TrainJobResult,
-)
+from true_rl_agent.runner.base import CandidateRuntimeError, RunnerExecutionError
 from true_rl_agent.runner.eval_binding import bind_eval_spec_to_checkpoint
 from true_rl_agent.runner.job_attempts import JobAttemptScope
 
 
-class _ScreenEvidence(Protocol):
-    @property
-    def evidence_hash(self) -> str: ...
-
-    def to_selector_dict(self) -> dict[str, Any]: ...
-
-
-class _SelectionResult(Protocol):
-    selected_trial_id: str | None
-    reason: str
-
-    def to_public_dict(self) -> dict[str, Any]: ...
-
-
 class _GuardReference(Protocol):
-    evidence: _ScreenEvidence
+    evidence: PublicDevScreen
     phase_receipt_ref: TrialReceiptRef
 
     def assert_matches_parent(self, parent: CurrentBestEvalStats) -> None: ...
-
-
-class _PhasedEvaluationAdapter(Protocol):
-    def selection_contract(self) -> Mapping[str, Any]: ...
-
-    def cost_contract(self) -> Mapping[str, Any]: ...
-
-    def project_public_dev_screen(
-        self,
-        *,
-        trial_id: str,
-        phase_result: EvaluationPhaseResult,
-        screen_role: str,
-        train_result: TrainJobResult,
-        train_receipt_checksum: str,
-        mechanism_operation_delta: Mapping[str, Any] | None,
-    ) -> _ScreenEvidence: ...
-
-    def project_public_phase_summary(
-        self, *, phase_result: EvaluationPhaseResult
-    ) -> Mapping[str, Any]: ...
-
-    def select(
-        self,
-        screens: Sequence[_ScreenEvidence],
-        *,
-        guard_reference: _ScreenEvidence,
-    ) -> _SelectionResult: ...
-
-    def assemble_full_summary(self, **kwargs: Any) -> Any: ...
 
 
 @dataclass(frozen=True)
@@ -203,7 +161,7 @@ class FixedWidthGenerationInputs:
     session_contract: GenerationSessionContract
     lanes: tuple[GenerationLaneRuntime, GenerationLaneRuntime]
     guard_reference: _GuardReference
-    phased_adapter: _PhasedEvaluationAdapter
+    phased_adapter: PhasedEvaluationAdapter
     receipt_root: Path
     ledger_path: Path
     parent_current_best: CurrentBestEvalStats
@@ -252,7 +210,9 @@ class _LaneState:
     phase_results: dict[EvaluationPhase, EvaluationPhaseResult] | None = None
     phase_refs: dict[EvaluationPhase, TrialReceiptRef] | None = None
     phase_job_spec_hashes: dict[EvaluationPhase, str] | None = None
-    screen: _ScreenEvidence | None = None
+    screen: PublicDevScreen | None = None
+    early_rejection: Mapping[str, Any] | None = None
+    early_rejection_ref: GenerationReceiptRef | None = None
     status: str = "not_started"
     status_reason: str = "lane_not_started"
 
@@ -413,7 +373,7 @@ def execute_fixed_width_generation(
             state.status = "screened_only"
             state.status_reason = "public_dev_complete"
 
-    selection: _SelectionResult | None = None
+    selection: GenerationSelection | None = None
     selection_ref: GenerationReceiptRef | None = None
     screens = sorted(
         (state.screen for state in states if state.screen is not None),
@@ -439,6 +399,10 @@ def execute_fixed_width_generation(
     if selected_state is not None and selected_state.status != "candidate_failed":
         _run_phase(inputs, selected_state, EvaluationPhase.PUBLIC_ACCEPT)
     if selected_state is not None and selected_state.status != "candidate_failed":
+        if inputs.session_contract.ledger_record_schema == GENERATION_LEDGER_RECORD_V2_SCHEMA_VERSION:
+            _check_early_rejection(inputs, selected_state, journal=journal)
+    if (selected_state is not None and selected_state.status != "candidate_failed"
+            and selected_state.early_rejection is None):
         _run_phase(inputs, selected_state, EvaluationPhase.SEALED_VALIDATION)
         if selected_state.status != "candidate_failed":
             selected_state.trial_execution = _finalize_formal_trial(
@@ -476,6 +440,24 @@ def execute_fixed_width_generation(
         selection_ref=selection_ref,
         acceptance_protocol=acceptance_protocol,
     )
+
+
+def _check_early_rejection(inputs, state, *, journal):
+    scores = inputs.phased_adapter.project_public_accept_scores(
+        phase_result=state.phase_results[EvaluationPhase.PUBLIC_ACCEPT])
+    if scores is None:
+        return
+    evidence = build_early_rejection(manifest_hash=inputs.manifest.manifest_hash,
+        trial_id=state.runtime.trial_id,
+        phase_receipt_checksum=state.phase_refs[EvaluationPhase.PUBLIC_ACCEPT].checksum,
+        scores=scores.to_dict(), parent=inputs.parent_current_best,
+        protocol=inputs.acceptance_protocol)
+    if evidence is not None:
+        state.early_rejection_ref = journal.publish_early_rejection(evidence)
+        state.early_rejection = evidence
+        state.status = "formal_rejected"
+        # Private score magnitudes and the failed comparison are not feedback.
+        state.status_reason = SEALED_NOT_RUN
 
 
 def _validate_manifest_inputs(inputs: FixedWidthGenerationInputs) -> None:
@@ -884,7 +866,7 @@ def _run_phase(
 
 
 def _selected_state(
-    states: Sequence[_LaneState], selection: _SelectionResult | None
+    states: Sequence[_LaneState], selection: GenerationSelection | None
 ) -> _LaneState | None:
     if selection is None or selection.selected_trial_id is None:
         return None
@@ -902,8 +884,8 @@ def _finalize_formal_trial(
     inputs: FixedWidthGenerationInputs,
     state: _LaneState,
     *,
-    selection: _SelectionResult,
-    screens: Sequence[_ScreenEvidence],
+    selection: GenerationSelection,
+    screens: Sequence[PublicDevScreen],
 ) -> TrialExecution:
     assert state.prepared is not None and state.train_execution is not None
     if (
@@ -943,7 +925,7 @@ def _seal_and_commit(
     journal: GenerationReceiptJournal,
     manifest_ref: GenerationReceiptRef,
     states: Sequence[_LaneState],
-    selection: _SelectionResult | None,
+    selection: GenerationSelection | None,
     selection_ref: GenerationReceiptRef | None,
     acceptance_protocol: AcceptanceProtocol,
 ) -> GenerationExecutionResult:
@@ -984,7 +966,7 @@ def _build_generation_record(
     *,
     manifest_ref: GenerationReceiptRef,
     states: Sequence[_LaneState],
-    selection: _SelectionResult | None,
+    selection: GenerationSelection | None,
     selection_ref: GenerationReceiptRef | None,
     acceptance_protocol: AcceptanceProtocol,
 ) -> tuple[dict[str, Any], CurrentBestEvalStats]:
@@ -1003,10 +985,16 @@ def _build_generation_record(
     trials = []
     formal = None
     formal_round = None
+    early_rejection = None
     selected_id = selection.selected_trial_id if selection is not None else None
     for state in states:
         trial, artifacts = _project_trial(inputs, state)
         private_artifacts.extend(artifacts)
+        if state.early_rejection_ref is not None:
+            private_artifacts.append(_private_generation_ref("generation_early_rejection_receipt",
+                state.early_rejection_ref))
+            early_rejection = {"receipt_checksum": state.early_rejection_ref.checksum,
+                "selected_trial_id": state.runtime.trial_id, "sealed_validation": SEALED_NOT_RUN}
         if state.trial_execution is not None:
             execution = state.trial_execution
             execution_hash = canonical_json_hash(execution.record)
@@ -1073,9 +1061,9 @@ def _build_generation_record(
         )
         replay.raise_for_continuation()
         resulting = replay.current_best
-    outcome = _generation_outcome(trials, formal_round)
+    outcome = "formal_rejected" if early_rejection is not None else _generation_outcome(trials, formal_round)
     record = {
-        "schema_version": GENERATION_LEDGER_RECORD_SCHEMA_VERSION,
+        "schema_version": inputs.session_contract.ledger_record_schema,
         "record_kind": "generation",
         "authoring_mode": PROVIDER_AUTHORING_MODE,
         "generation_id": manifest.generation_id,
@@ -1100,6 +1088,8 @@ def _build_generation_record(
         "resulting_current_best_hash": canonical_json_hash(resulting.to_public_dict()),
         "private_artifacts": private_artifacts,
     }
+    if inputs.session_contract.ledger_record_schema == GENERATION_LEDGER_RECORD_V2_SCHEMA_VERSION:
+        record["early_rejection"] = early_rejection
     return record, resulting
 
 

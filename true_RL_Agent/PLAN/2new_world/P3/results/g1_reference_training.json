@@ -1,0 +1,31 @@
+{
+  "purpose": "P3 fixed calibration anchor; production random-init training through the existing P2 job harness; no reference promotion",
+  "status": "PASS",
+  "started_at_unix": 1788870604.7978325,
+  "budget_seconds": 36000,
+  "argv": [
+    "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+    "/data/yuyangliu/isolated/new_world_p3_reference/true_RL_Agent/PLAN/2new_world/P2/native_eval_job_probe.py",
+    "--robot",
+    "g1",
+    "--device",
+    "cuda:0",
+    "--train",
+    "--no-video",
+    "--timeout",
+    "36000",
+    "--output",
+    "/data/yuyangliu/isolated/new_world_p3_reference/true_RL_Agent/PLAN/2new_world/P3/results/g1_reference_train"
+  ],
+  "cwd": "/data/yuyangliu/isolated/new_world_p3_reference/true_RL_Agent",
+  "base_commit": "6f17a4218f3039657147f5bbf61ce034d95b396d",
+  "source_patch_sha256": "92a9ef09ff3f1c984ace0e768ad29cccd77486766b795cf708317debcd830699",
+  "preregistration_sha256": "d6d31d68d125233063f995a4ae26c45b694b7b20a074d159d38f3dc9646c01dc",
+  "pid": 1230470,
+  "returncode": 0,
+  "checkpoint": "/data/yuyangliu/isolated/new_world_p3_reference/true_RL_Agent/PLAN/2new_world/P3/results/g1_reference_train/runner/g1_reference_train/checkpoints/best.pt",
+  "checkpoint_sha256": "4f62db0e487cfc39c3cef61777bef9e4160b64f91f92fcca1cc795585ab8236c",
+  "training_summary": "/data/yuyangliu/isolated/new_world_p3_reference/true_RL_Agent/PLAN/2new_world/P3/results/g1_reference_train/runner/g1_reference_train/train/summary.json",
+  "training_summary_sha256": "a838d02206f277331d1c07a3288d4e5be54f1868edcec6f10e724ea1104e579b",
+  "finished_at_utc": "2026-09-08T13:45:09.646680+00:00"
+}

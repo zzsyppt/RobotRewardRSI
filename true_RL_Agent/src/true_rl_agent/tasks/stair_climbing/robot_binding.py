@@ -27,8 +27,8 @@ from true_rl_agent.tasks.stair_climbing.runtime_projection import (
 )
 from true_rl_agent.tasks.stair_climbing.row_catalog import (
     STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID,
-    STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
-    STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+    STAIR_G1_37DOF_UNIFIED_V2_CELL_VARIANT_ID,
+    STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID,
     stair_robot_row,
 )
 
@@ -226,6 +226,11 @@ def _build_unified_stair_cell_catalog(
         )
     facts = binding.task_projection["phase0_binding_facts"]
     suite = config.unified_protocol.evaluation_suite
+    if suite.is_calibrated:
+        from true_rl_agent.tasks.stair_climbing.calibration import stair_scale_context
+
+        if suite.to_dict()["scale_context"] != stair_scale_context(profile):
+            raise ValueError("Stair calibrated scale differs from the bound robot facts")
     training_profile = config.unified_training_profile
     environment = CellEnvironmentDescriptor(
         environment_id=row.environment_id,
@@ -315,10 +320,10 @@ def _build_unified_stair_cell_catalog(
 
 __all__ = [
     "STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID",
-    "STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID",
+    "STAIR_G1_37DOF_UNIFIED_V2_CELL_VARIANT_ID",
     "STAIR_G1_37DOF_ROBOT_TASK_CELL_ID",
     "STAIR_GO2_12DOF_ROBOT_TASK_CELL_ID",
-    "STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID",
+    "STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID",
     "build_stair_cell_catalog",
     "compile_stair_cell_manifest",
     "resolve_stair_cell_manifest",

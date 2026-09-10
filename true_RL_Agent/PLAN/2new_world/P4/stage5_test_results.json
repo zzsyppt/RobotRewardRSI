@@ -1,0 +1,21 @@
+{
+  "status": "FAIL",
+  "tests_run": 4,
+  "skipped": [],
+  "errors": [],
+  "failures": [
+    [
+      "test_stair_early_rejection_sealed_rejection_and_no_selection (tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_early_rejection_sealed_rejection_and_no_selection) (scenario='early_reject')",
+      "Traceback (most recent call last):\n  File \"/data/yuyangliu/p4_runtime_stage5/true_RL_Agent/tests/integration/test_generation_session.py\", line 207, in test_stair_early_rejection_sealed_rejection_and_no_selection\n    self.assertEqual(first[\"generation_outcome\"], outcome,\nAssertionError: 'no_selection' != 'formal_rejected'\n- no_selection\n+ formal_rejected\n : ['inconclusive_exact_tie', 'inconclusive_exact_tie']\n"
+    ],
+    [
+      "test_stair_early_rejection_sealed_rejection_and_no_selection (tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_early_rejection_sealed_rejection_and_no_selection) (scenario='sealed_rejected')",
+      "Traceback (most recent call last):\n  File \"/data/yuyangliu/p4_runtime_stage5/true_RL_Agent/tests/integration/test_generation_session.py\", line 207, in test_stair_early_rejection_sealed_rejection_and_no_selection\n    self.assertEqual(first[\"generation_outcome\"], outcome,\nAssertionError: 'no_selection' != 'formal_rejected'\n- no_selection\n+ formal_rejected\n : ['inconclusive_exact_tie', 'inconclusive_exact_tie']\n"
+    ],
+    [
+      "test_stair_accepted_head_resumes_and_closes_final (tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_accepted_head_resumes_and_closes_final)",
+      "Traceback (most recent call last):\n  File \"/data/yuyangliu/p4_runtime_stage5/true_RL_Agent/tests/integration/test_generation_session.py\", line 215, in test_stair_accepted_head_resumes_and_closes_final\n    self._accepted_head_session(StairClimbingCompositionProvider(), \"stair.g1_37dof.unified_v3\",\n  File \"/data/yuyangliu/p4_runtime_stage5/true_RL_Agent/tests/integration/test_generation_session.py\", line 255, in _accepted_head_session\n    self.assertEqual(first[\"generation_outcome\"], \"accepted\",\nAssertionError: 'no_selection' != 'accepted'\n- no_selection\n+ accepted\n : ['inconclusive_exact_tie', 'inconclusive_exact_tie']\n"
+    ]
+  ],
+  "wall_time_ns": 315263314953
+}

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import math
-from datetime import datetime, timezone
 from statistics import mean, stdev
 from typing import Any, Mapping, Sequence
 
@@ -88,6 +87,7 @@ def build_push_public_result_from_summaries(
     motion_limits: Mapping[str, float] | None = None,
     min_public_accept_count: int = DEFAULT_MIN_PUBLIC_ACCEPT_COUNT,
     acceptance_protocol: AcceptanceProtocol | None = None,
+    evaluation_protocol: EvaluationProtocol | None = None,
 ) -> PublicEvalResult:
     """Project push-recovery rollout summaries into a public-only eval result.
 
@@ -111,14 +111,14 @@ def build_push_public_result_from_summaries(
     errors: list[dict[str, Any]] = []
     limits = {**DEFAULT_MOTION_LIMITS, **dict(motion_limits or {})}
     public_accept_summaries = public_accept_summaries or []
-    dev = _project_split(public_dev_summaries, split_name="public_dev", errors=errors)
-    accept = _project_split(public_accept_summaries, split_name="public_accept", errors=errors)
-    motion_gate = _motion_quality_gate(
+    dev = project_push_split(public_dev_summaries, split_name="public_dev", errors=errors)
+    accept = project_push_split(public_accept_summaries, split_name="public_accept", errors=errors)
+    motion_gate = push_motion_quality_gate(
         [*public_dev_summaries, *public_accept_summaries],
         limits=limits,
         prior_errors=errors,
     )
-    behavior_gate = _behavior_quality_gate(
+    behavior_gate = push_behavior_quality_gate(
         public_dev_summaries=public_dev_summaries,
         public_accept_summaries=public_accept_summaries,
         limits=limits,
@@ -127,6 +127,11 @@ def build_push_public_result_from_summaries(
     budget_gate = _budget_accounting_gate(budget_summary)
     accept_stats = accept["score_stats"]
     dev_stats = dev["score_stats"]
+    # Executable projections bind statistics to the supplied evaluation domain.
+    # Unbound projections remain useful for raw rollout inspection only.
+    if evaluation_protocol is not None:
+        for stats in (dev_stats, accept_stats):
+            stats["eval_protocol_hash"] = evaluation_protocol.protocol_hash
     accept_evidence_gate = _accept_evidence_gate(
         accept_stats,
         min_public_accept_count=min_public_accept_count,
@@ -164,7 +169,6 @@ def build_push_public_result_from_summaries(
         },
         "acceptance": acceptance,
         "errors": errors,
-        "created_at_utc": datetime.now(timezone.utc).isoformat(),
     }
     if public_accept_summaries:
         metrics["public_accept"] = accept
@@ -186,16 +190,13 @@ def build_push_sealed_rollout_evidence(
     program_source_checksum: str | None = None,
     training_binding_hash: str | None = None,
     capability_profile_hash: str,
-    acceptance_protocol: AcceptanceProtocol | None = None,
+    acceptance_protocol: AcceptanceProtocol,
 ) -> dict[str, Any]:
     """Project runner-owned holdout rollouts without exposing per-run detail."""
 
-    protocol = acceptance_protocol or PushRecoveryTaskConfig(
-        public_accept_seed_count=evaluation_protocol.public_accept_seed_count,
-        sealed_validation_seed_count=evaluation_protocol.sealed_validation_seed_count,
-    ).acceptance_protocol()
+    protocol = acceptance_protocol
     errors: list[dict[str, Any]] = []
-    projected = _project_split(
+    projected = project_push_split(
         summaries,
         split_name="sealed_validation",
         errors=errors,
@@ -363,7 +364,7 @@ def _dominant_failure_prompt_feedback(
     }
 
 
-def _project_split(
+def project_push_split(
     summaries: Sequence[Mapping[str, Any]],
     *,
     split_name: str,
@@ -469,7 +470,7 @@ def _accept_evidence_gate(
     return gate
 
 
-def _motion_quality_gate(
+def push_motion_quality_gate(
     summaries: Sequence[Mapping[str, Any]],
     *,
     limits: Mapping[str, float],
@@ -500,7 +501,7 @@ def _motion_quality_gate(
     }
 
 
-def _behavior_quality_gate(
+def push_behavior_quality_gate(
     *,
     public_dev_summaries: Sequence[Mapping[str, Any]],
     public_accept_summaries: Sequence[Mapping[str, Any]],

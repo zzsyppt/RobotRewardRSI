@@ -379,7 +379,7 @@ class StairOrderedEvaluationSeedResolver:
                     "ordered_seed_namespace_cohort.v1"
                 ),
                 "resolver_version": self.resolver_version,
-                "suite_hash": self.evaluation_suite.suite_hash,
+                "suite_hash": self.evaluation_suite.source_suite_hash,
                 "task_protocol_hash": self.task_protocol_hash,
                 "namespace": namespace,
                 "split_cohort_hashes": {
@@ -420,6 +420,8 @@ class StairOrderedEvaluationSeedResolver:
             ),
             "complete_cell_coverage_required": True,
             "ordered_suite_hash": self.evaluation_suite.suite_hash,
+            **({"source_suite_hash": self.evaluation_suite.source_suite_hash}
+               if self.evaluation_suite.source_suite_hash != self.evaluation_suite.suite_hash else {}),
             "split_cohort_hash": self.evaluation_suite.cohort_hash(split),
             "seed_cohort_hash": self.namespace_cohort_hash(namespace),
         }
@@ -432,7 +434,7 @@ class StairOrderedEvaluationSeedResolver:
             ),
             "resolver_version": self.resolver_version,
             "task_protocol_hash": self.task_protocol_hash,
-            "ordered_suite_hash": self.evaluation_suite.suite_hash,
+            "ordered_suite_hash": self.evaluation_suite.source_suite_hash,
             "split": split,
             "split_cohort_hash": self.evaluation_suite.cohort_hash(split),
         }

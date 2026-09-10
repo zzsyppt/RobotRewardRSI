@@ -44,14 +44,14 @@ from true_rl_agent.tasks.stair_climbing.final_confirmation import (
     STAIR_FINAL_CONFIRMATION_REQUIRED_GENERATIONS,
     STAIR_FINAL_CONFIRMATION_REQUIRED_ROUNDS,
     load_stair_final_confirmation_plan,
-    load_stair_generation_final_confirmation_plan,
     stair_final_confirmation_plan_path,
 )
+from true_rl_agent.tasks.stair_climbing.generation_finalization import read_stair_final_plan
 from true_rl_agent.tasks.stair_climbing.memory import StairTaskMemoryAdapter
 from true_rl_agent.tasks.stair_climbing.plugin import StairClimbingTaskPlugin
 from true_rl_agent.tasks.stair_climbing.robot_binding import resolve_stair_cell_manifest
 from true_rl_agent.tasks.stair_climbing.row_catalog import (
-    STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
+    DEFAULT_STAIR_CELL_VARIANT_ID,
     active_unified_stair_cell_variant_ids,
     stair_robot_row,
 )
@@ -69,15 +69,12 @@ from true_rl_agent.tasks.stair_climbing.session_start import (
     StairSessionStartProfile,
     resolve_stair_session_start_profile,
 )
-from true_rl_agent.tasks.stair_climbing.unified_protocol import (
-    STAIR_UNIFIED_PROTOCOL_RELATIVE_PATH,
-)
 from true_rl_agent.training_programs import VerifiedReferenceProgramArtifact
 
 DEFAULT_ISAAC_PYTHON = DEFAULT_ISAAC_LAB_PYTHON
 DEFAULT_STAIR_TRAIN_ENTRYPOINT = "scripts/isaaclab_stair_rsl_rl_train.py"
 DEFAULT_STAIR_EVAL_ENTRYPOINT = "scripts/isaaclab_stair_rsl_rl_eval.py"
-DEFAULT_STAIR_PROTOCOL_V2 = STAIR_UNIFIED_PROTOCOL_RELATIVE_PATH
+DEFAULT_STAIR_PROTOCOL = stair_robot_row(DEFAULT_STAIR_CELL_VARIANT_ID).protocol_relative_path
 DEFAULT_EXECUTION_DEVICE = "cuda:0"
 # Execution placement allowance for the frozen full workload on Sim 6.
 DEFAULT_RUNNER_TIMEOUT_S = 36000
@@ -175,7 +172,7 @@ class StairClimbingCompositionConfig:
     @classmethod
     def defaults(cls, *, project_root: Path) -> "StairClimbingCompositionConfig":
         task = StairClimbingTaskConfig.defaults(
-            project_root / DEFAULT_STAIR_PROTOCOL_V2
+            project_root / DEFAULT_STAIR_PROTOCOL
         )
         return cls(
             isaac_python=DEFAULT_ISAAC_PYTHON,
@@ -189,7 +186,7 @@ class StairClimbingCompositionConfig:
             sealed_validation_seed_count=task.sealed_validation_seed_count,
             eval_protocol_version=task.eval_protocol_version,
             train_seed=task.train_seed,
-            runtime_config=DEFAULT_STAIR_PROTOCOL_V2,
+            runtime_config=DEFAULT_STAIR_PROTOCOL,
             train_profile=STAIR_UNIFIED_TRAIN_PROFILE,
             eval_profile=STAIR_UNIFIED_EVAL_PROFILE,
             train_num_envs=task.train_num_envs,
@@ -197,7 +194,7 @@ class StairClimbingCompositionConfig:
             train_steps_per_iteration=task.train_steps_per_iteration,
             eval_num_envs=task.eval_num_envs,
             runner_timeout_s=DEFAULT_RUNNER_TIMEOUT_S,
-            cell_variant_id=STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
+            cell_variant_id=DEFAULT_STAIR_CELL_VARIANT_ID,
         )
 
     @classmethod
@@ -218,12 +215,8 @@ class StairClimbingCompositionConfig:
         project_root: Path,
         resolved_cell_task_protocol_hash: str | None = None,
     ) -> StairClimbingTaskConfig:
-        # The frozen protocol retains its historical timeout field for reading
-        # old evidence. The live process deadline belongs to this composition
-        # and is passed directly to the runner / execution placement below.
-        protocol_defaults = StairClimbingTaskConfig.defaults(
-            project_root / self.runtime_config, cell_variant_id=self.cell_variant_id
-        )
+        # TaskConfig derives historical fields from its own protocol load.
+        # The live deadline goes directly to the runner / execution placement.
         return StairClimbingTaskConfig(
             protocol_v2_path=project_root / self.runtime_config,
             budget_steps=self.budget_steps,
@@ -236,7 +229,6 @@ class StairClimbingCompositionConfig:
             sealed_validation_seed_count=self.sealed_validation_seed_count,
             eval_protocol_version=self.eval_protocol_version,
             train_seed=self.train_seed,
-            protocol_runner_timeout_s=protocol_defaults.protocol_runner_timeout_s,
             train_profile=self.train_profile,
             eval_profile=self.eval_profile,
             cell_variant_id=self.cell_variant_id,
@@ -322,7 +314,7 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
         parser.add_argument(
             "--cell-variant-id",
             choices=active_unified_stair_cell_variant_ids(),
-            default=STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
+            default=DEFAULT_STAIR_CELL_VARIANT_ID,
         )
         parser.add_argument(
             "--start-mode",
@@ -428,7 +420,7 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
                     expected_config=task_config,
                 )
             else:
-                confirmation_plan = load_stair_generation_final_confirmation_plan(
+                confirmation_plan = read_stair_final_plan(
                     plan_path,
                     expected_session_id=session_id,
                     expected_config=task_config,
@@ -462,6 +454,7 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
         resolved_cell_manifest_path = materialize_resolved_cell_manifest(
             resolved_cell_manifest,
             output_dir=context.output_dir,
+            require_existing=context.read_only,
         )
         candidate_admission_policy = StairCandidateAdmissionPolicy(
             task_config,
@@ -681,7 +674,7 @@ def _build_stair_backend_config(
 
 __all__ = [
     "DEFAULT_STAIR_EVAL_ENTRYPOINT",
-    "DEFAULT_STAIR_PROTOCOL_V2",
+    "DEFAULT_STAIR_PROTOCOL",
     "DEFAULT_STAIR_TRAIN_ENTRYPOINT",
     "StairClimbingCompositionConfig",
     "StairClimbingCompositionProvider",

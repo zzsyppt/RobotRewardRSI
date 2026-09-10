@@ -45,7 +45,7 @@ from true_rl_agent.tasks.stair_climbing.seed_policy import (
 from true_rl_agent.tasks.stair_climbing.row_catalog import stair_robot_row
 from true_rl_agent.training_binding import TrainingBinding
 from true_rl_agent.tasks.stair_climbing.unified_protocol import (
-    STAIR_UNIFIED_PROTOCOL_RELATIVE_PATH,
+    STAIR_UNIFIED_V2_PROTOCOL_RELATIVE_PATH,
 )
 
 
@@ -121,7 +121,6 @@ def validate_stair_train_invocation(
         sealed_validation_seed_count=defaults.sealed_validation_seed_count,
         eval_protocol_version=defaults.eval_protocol_version,
         train_seed=_nonnegative_int(args.seed, "seed"),
-        protocol_runner_timeout_s=defaults.protocol_runner_timeout_s,
         train_profile=_text(args.profile, "profile"),
         eval_profile=defaults.eval_profile,
         cell_variant_id=defaults.cell_variant_id,
@@ -419,6 +418,26 @@ def validate_stair_eval_invocation(
     except (KeyError, TypeError) as exc:
         raise ValueError("stair eval purpose is invalid") from exc
 
+    final_plan_path = getattr(args, "stair_final_plan", None)
+    if final_plan_path is not None or (
+        config.requires_study_holdout
+        and eval_purpose == STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION
+    ):
+        if eval_purpose != STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION or final_plan_path is None:
+            raise ValueError("Stair study final requires its committed plan and final purpose")
+        from true_rl_agent.tasks.stair_climbing.generation_finalization import (
+            bind_stair_final_config,
+            read_stair_final_plan,
+        )
+
+        final_plan_path = Path(final_plan_path).resolve()
+        final_plan = read_stair_final_plan(
+            final_plan_path, expected_config=config,
+        )
+        config = bind_stair_final_config(
+            config, plan=final_plan, plan_path=final_plan_path,
+        )
+
     expected_binding = EvaluationBindingV1(
         eval_protocol_hash=config.evaluation_protocol().protocol_hash,
         acceptance_protocol_hash=config.acceptance_protocol.protocol_hash,
@@ -489,7 +508,9 @@ def _canonical_config_path(
 ) -> Path:
     if not isinstance(project_root, Path):
         raise TypeError("project_root must be a Path")
-    expected = STAIR_UNIFIED_PROTOCOL_RELATIVE_PATH
+    # Manifest-free invocations are the historical G1 V2 contract. New launches
+    # resolve the catalog default first and always supply their cell manifest.
+    expected = STAIR_UNIFIED_V2_PROTOCOL_RELATIVE_PATH
     if resolved_cell_manifest is not None:
         if not isinstance(resolved_cell_manifest, ResolvedCellManifestV1):
             raise TypeError("resolved Stair cell manifest is invalid")

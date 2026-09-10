@@ -2,7 +2,7 @@
 
 编写日期：2026-09-05。核对基线：本地及服务器 `0773a9a815e5a0ccd151f351fca0e369f157fa05`。
 
-本文是下一轮开发与实验的建设计划。制定计划时仅完成项目阅读与核对；后续执行状态以各 Phase 验收记录为准。清理和基线见 [P0 验收记录](P0/ACCEPTANCE_ZH.md)，身份、执行位置和恢复见 [P1 验收记录](P1/ACCEPTANCE_ZH.md)，统一后端见 [P2 验收记录](P2/ACCEPTANCE_ZH.md)。P2 的接触采样与 PhysX 容量问题已从源头修复；2026-09-08 完成有效完整训练、新 checkpoint 评测/原生录像、正式部署及交付核验，工程 GO。旧/新数值等价未成立，P3 仍需在新后端资格化 reference，P4 重签实测成本合同。执行时按验收结果推进，不把后续计划中的能力写成已经实现。
+本文是开发与实验的建设计划；实际执行状态以各 Phase 验收为准。清理、身份/恢复和统一后端分别见 [P0](P0/ACCEPTANCE_ZH.md)、[P1](P1/ACCEPTANCE_ZH.md)、[P2](P2/ACCEPTANCE_ZH.md)。P2 工程 GO，旧/新后端数值等价未成立。2026-09-09 的 [P3 当前验收](P3/ACCEPTANCE_ZH.md)在固定 C2 标定基底、重新冻结和测量后，记录 G1/Go2 均通过原 public-accept reference 资格门；目标全量 1640 项零失败、零跳过，部署及资源收尾完成。具体修订见 [卷间构造审计](P3/COHORT_ALIGNMENT_ZH.md)，此前工程修复见 [回归复审](P3/REGRESSION_FOLLOWUP_ZH.md)。当前资格通过不等于各卷区分力相同或全部泛化目标完成，不能根据已审阅的 accept/sealed/final 继续改题求通过。2026-09-10 的 [P4 工程验收](P4/ACCEPTANCE_ZH.md)及[复审](P4/AUDIT_FOLLOWUP_ZH.md)已闭合共享编排、成本、恢复和终态；复审最终代码本地与目标各跑完整 1599 项，目标零失败、零跳过，已同步并复核原实验保护；共享正式 CLI 要求显式 task/cell，Stair composition/reference 默认仍为 G1 V3。新物理研究需冻结实测成本合同，P5/P6/P7 尚未完成。
 
 ## 1. 对目标的确认
 
@@ -172,7 +172,7 @@
 - 每个被声明为优化对象的 family，至少有通过预注册 learnability 与余量标准的有效题层；饱和能力保留守卫。全零/全满且没有区分力时 NO-GO，不能进入 LLM 长跑碰运气。
 - 用成功、失败、到达但违规、短时异常后成功、提前终止等反例验证指标；诊断与成功可共存，不能自动当失败。原始 outcome 整数计数可独立重建所有聚合分数。
 - G1/Go2 的尺度只需改 profile/binding 和任务校准数据，TaskPlugin 算法没有新增机器人名称分支；确认 support-effector 候选属于实际可支撑 body 集合。
-- Dev、accept、sealed 几何/扰动题面与 seed 隔离且难度可比。新增 final holdout 在搜索前完成生成规则和隐藏身份预承诺，包含未消费的几何/扰动与 seed；协议冻结后一次性揭盲，不能依据搜索结果换题。
+- Dev、accept、sealed 的目标题面与 seed 按预声明规则隔离；难度可比性须用实测检验，并明确尚未达到的部分，不能把不同几何自动视为同难度。C2 保持标定基底、留出表面相位；其配对平面控制允许复用且不计入主目标，见 [卷间构造修订](P3/COHORT_ALIGNMENT_ZH.md)。新增 final holdout 在搜索前完成生成规则和隐藏身份预承诺，包含未消费的几何/扰动与 seed；协议冻结后一次性揭盲，不能依据搜索结果换题。已经审阅过的题面即使换了 hash，也不能重新宣称未见。
 - final 身份绑定独立 study/cohort namespace；同会话 resume 复用原 cohort，不同新研究不意外复用。主动重复某 cohort 时明确标记 replication，不再声称“从未使用”。
 
 ## P4：用 Stair 与 Push 提取最小共享编排
@@ -229,6 +229,7 @@
 - 先核实实际施扰方式：当前 overlay 配置 velocity-range 事件，capability 文案又含 external force。新协议选择并准确声明速度重置、速度增量或力/冲量中的实际机制，记录施扰前后状态与单位，不能把这些方式混称为同一个 push。
 - 冻结站立/指令、施扰方向/强度/时机、恢复窗口、稳定驻留、跌倒/姿态/越界与多次施扰计数。机器人尺度由绑定派生，任务定义不写死 G1 身高或 Go2 足数。
 - 定义 Push 的公开训练/评测信号边界。`push_active/push_vec_public` 若仍为 zero-fallback 则保持不可用声明；若启用，只公开协议允许、已经发生的事件信息并验证非零接线，不泄漏未来扰动计划或私有题目。
+- 按 Push 的恢复目标预声明接受门和独立验证域。现有 reference_v1 sealed 仅有绝对分数下限，没有 public→sealed 下降门；P4 工程闭合不证明候选对新扰动或新 seed 泛化。P6 应先明确需要约束的失效模式，再冻结对应判据，不能按已观察的 accept/sealed 成绩反复改门，也不机械照搬 Stair 阈值。
 - 补齐 random-init reference-program Genesis、固定预算训练、public-dev/accept/sealed、失败分类、task prompt/memory、科学录像和 phase receipt，走 P4 的共享 session。新 Push reward 权限明确为本协议所授予的 reward program，禁止由 Stair 私有类代建。
 
 **验收：**
@@ -305,8 +306,8 @@ P0 复核全部问题的当前适用性；各 Phase 的验收记录只列原编�
 - [55 项未解决工程问题及动态补充](D:/humanoid_agent/true_RL_Agent/PLAN/Variant_construction/15_rounds_formal/PHASE6_UNRESOLVED_FOLLOWUP_ZH.md)
 - [观察项及不同会话的证据边界](D:/humanoid_agent/true_RL_Agent/PLAN/Variant_construction/15_rounds_formal/PHASE6_OBSERVATIONS_ZH.md)
 - [矩阵主计划与 Extension A](D:/humanoid_agent/true_RL_Agent/PLAN/Variant_construction/STAIR_VARIANT_CONSTRUCTION_PLAN_ZH.md)
-- [共享双 lane 执行](D:/humanoid_agent/true_RL_Agent/src/true_rl_agent/agent_core/generation.py)、[组合合同](D:/humanoid_agent/true_RL_Agent/src/true_rl_agent/composition/base.py)、[Stair 会话装配](D:/humanoid_agent/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/generation_session.py)
+- [共享双 lane 执行](D:/humanoid_agent/true_RL_Agent/src/true_rl_agent/agent_core/generation.py)、[组合合同](D:/humanoid_agent/true_RL_Agent/src/true_rl_agent/composition/base.py)、[共享会话宿主](D:/humanoid_agent/true_RL_Agent/src/true_rl_agent/agent_core/generation_application.py)
 - [现有 Push binding](D:/humanoid_agent/true_RL_Agent/src/true_rl_agent/tasks/push_recovery/robot_binding.py)、[Push 配置](D:/humanoid_agent/true_RL_Agent/src/true_rl_agent/tasks/push_recovery/config.py)、[施扰 overlay](D:/humanoid_agent/true_RL_Agent/src/true_rl_agent/tasks/push_recovery/isaac_overlay.py)
-- [当前 Go2 Stair score contract](D:/humanoid_agent/true_RL_Agent/configs/tasks/stair_go2_12dof_unified_evaluation_suite_v1.json)
+- [当前 Go2 Stair score contract](D:/humanoid_agent/true_RL_Agent/configs/tasks/stair_go2_12dof_unified_evaluation_suite_v2.json)、[原 15 代冻结 score contract](D:/humanoid_agent/true_RL_Agent/configs/tasks/stair_go2_12dof_unified_evaluation_suite_v1.json)
 
-本次只读核对的服务器证据根为 `/data/yuyangliu/AGENT/true_RL_Agent/outputs/formal_go2_stair_15round_20260901_c6ab8ba`。终态报告 SHA256 为 `4ad1e53cc72afa0a9fe20ab69a8b5bc41e4ed9249efda4a7958477eb0fc150ca`；final Result SHA256 为 `046582e2665e9c301cc88e6cc336d40f8e7bc85637d49f4a801006bc06e99b42`。录像环境实测来自 `/data/yuyangliu/envs/isaaclab6_validation/bin/python` 的包元数据及已有录像 manifest；临时对齐脚本只作为迁移参考，不作为产品依赖。
+制定计划时只读核对的服务器证据根为 `/data/yuyangliu/AGENT/true_RL_Agent/outputs/formal_go2_stair_15round_20260901_c6ab8ba`。终态报告 SHA256 为 `4ad1e53cc72afa0a9fe20ab69a8b5bc41e4ed9249efda4a7958477eb0fc150ca`；final Result SHA256 为 `046582e2665e9c301cc88e6cc336d40f8e7bc85637d49f4a801006bc06e99b42`。录像环境实测来自 `/data/yuyangliu/envs/isaaclab6_validation/bin/python` 的包元数据及已有录像 manifest；临时对齐脚本只作为迁移参考，不作为产品依赖。

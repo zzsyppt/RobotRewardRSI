@@ -1,0 +1,10 @@
+{
+  "status": "ABORTED_AFTER_CONFIRMED_CODE_FAILURE",
+  "source_archive_sha256": "cafda0c5491cc62866139d3edfdb94b5e9e04667e2c370ed6cd284c02bfe4c04",
+  "failure": "NameError: assert_actual_cost_receipt_matches_usage missing import in generation_session._current_validation_boundary_cost_receipt",
+  "local_reproduction": "tests.integration.test_generation_session.SharedGenerationSessionTests.test_push_accepted_head_resumes_and_closes_final",
+  "target_batch_stopped_after_local_deterministic_reproduction": true,
+  "local_log": "audit_local_full.log",
+  "target_log": "audit_target_aborted.log",
+  "next_requirement": "Repeat complete local and target discovery after repair; do not union passing IDs"
+}

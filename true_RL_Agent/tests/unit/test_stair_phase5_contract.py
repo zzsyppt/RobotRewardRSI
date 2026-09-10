@@ -28,7 +28,7 @@ from true_rl_agent.tasks.stair_climbing.reference_program import (
     resolve_official_stair_reference_program,
 )
 from true_rl_agent.tasks.stair_climbing.robot_binding import (
-    STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+    STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID,
     resolve_stair_cell_manifest,
 )
 from true_rl_agent.tasks.stair_climbing.runtime_projection import (
@@ -104,7 +104,7 @@ class StairPhase5ContractTests(unittest.TestCase):
     def test_go2_binding_compiles_one_four_support_unified_cell(self) -> None:
         self.assertEqual(
             self.config.cell_variant_id,
-            STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+            STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID,
         )
         self.assertEqual(
             self.manifest.robot_profile["robot_profile_id"],
@@ -125,7 +125,7 @@ class StairPhase5ContractTests(unittest.TestCase):
         values = StairClimbingCompositionConfig.defaults(
             project_root=ROOT
         ).to_task_defaults()
-        values["cell_variant_id"] = STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID
+        values["cell_variant_id"] = STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID
         selected = StairClimbingCompositionConfig.from_values(
             values
         ).bind_selected_cell_contract(project_root=ROOT)

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from true_rl_agent.runner.native_video import NativeVideoOptions
-
 import hashlib
 import json
 import math
@@ -36,6 +34,7 @@ from true_rl_agent.evaluation.binding import (
 from true_rl_agent.runner.budget import build_budget_accounting
 from true_rl_agent.runner.candidate_failure import CandidateFailureEvidence
 from true_rl_agent.runner.checkpoint import file_sha256
+from true_rl_agent.runner.native_video import NativeVideoOptions
 from true_rl_agent.robots.isaaclab_locomotion import (
     isaaclab_locomotion_runtime_spec,
 )
@@ -72,6 +71,7 @@ from true_rl_agent.tasks.stair_climbing.runtime_projection import (
 )
 from true_rl_agent.tasks.stair_climbing.seed_policy import (
     STAIR_CALIBRATION_EVAL_NAMESPACE,
+    STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,
 )
 from true_rl_agent.tasks.stair_climbing.termination_capture import (
     verify_stair_termination_manager_resolution,
@@ -344,6 +344,7 @@ class StairEvaluationExecutionResult:
     backend_execution_environment_verification: Mapping[str, str]
     execution_device: str
     checkpoint_loading: Mapping[str, Any] | None = None
+    constructed_learner: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.summaries, Mapping) or not self.summaries:
@@ -1058,6 +1059,14 @@ def execute_stair_evaluation(
         raise ValueError("Stair native recording requires the public_dev evaluation phase")
     if not isinstance(config, StairClimbingTaskConfig):
         raise TypeError("Stair evaluation requires StairClimbingTaskConfig")
+    is_study_final = (
+        config.requires_study_holdout
+        and seed_namespace == STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE
+    )
+    if (config.final_holdout is not None) != is_study_final or (
+        is_study_final and splits != ("sealed_validation",)
+    ):
+        raise ValueError("Stair private study instance is required only for sealed final evaluation")
     _validate_source_manifest_preflight(
         config=config,
         source_manifest_preflight=source_manifest_preflight,
@@ -1204,7 +1213,7 @@ def execute_stair_evaluation(
             split_counts["calibration"] = (
                 config.ordered_evaluation_suite.calibration_seed_count
             )
-        config.training_agent_configuration().verify_runner(runner)
+        constructed_learner = config.training_agent_configuration().verify_runner(runner)
         checkpoint_loading = load_inference_checkpoint(runner, resolved_checkpoint)
         inference_policy = runner.get_inference_policy(
             device=env.unwrapped.device
@@ -1297,6 +1306,7 @@ def execute_stair_evaluation(
             backend_execution_environment_verification=backend_verification,
             execution_device=actual_env_device,
             checkpoint_loading=checkpoint_loading,
+            constructed_learner=constructed_learner,
         )
         if recorder is not None:
             sidecar = {
@@ -1305,6 +1315,7 @@ def execute_stair_evaluation(
                 "recorded_interval": "first_episode_control_step_1_to_terminal_minus_1",
                 "execution": result.execution_identity(),
                 "checkpoint_loading": dict(checkpoint_loading),
+                "constructed_learner": dict(constructed_learner),
                 "resolved_cell_manifest": resolved_cell_manifest.to_dict(),
                 "evaluation_summaries": result.public_summaries(),
                 "recordings": recorder.records,

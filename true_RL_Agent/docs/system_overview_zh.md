@@ -1,12 +1,12 @@
 # true_RL_Agent 系统概览
 
-核对日期：2026-09-06。本文说明当前主线的职责和证据入口；具体协议以活动 cell 解析出的配置为准，历史实验数值留在原始报告中。
+核对日期：2026-09-10。本文说明当前主线的职责和证据入口；具体协议以活动 cell 解析出的配置为准，历史实验数值留在原始报告中。
 
 ## 1. 系统要解决什么问题
 
 系统让 LLM 提出受控的 reward program 改动，再由可信系统验证、训练、评测和判决。机器人与任务是两个独立维度：机器人提供资产、形态和状态/动作事实，任务定义成功、失败、分布、指标与反馈。增加机器人不应把新机器人的关节名、体型阈值或任务规则写进共享编排层。
 
-当前已激活 `stair.g1_37dof.unified_v2` 和 `stair.go2_12dof.unified_v2`。Push 仍是 `push.g1_29dof.legacy_v1`，尚无 reference-program Genesis / generation session；Go2 × Push Recovery 尚未闭合。准确配置入口见 [README 活动格子表](../README.md)。
+P3 在 9 月 9 日固定 C2 标定基底并重新测量后，`stair.g1_37dof.unified_v3` 与 `stair.go2_12dof.unified_v3` 均通过原 public-accept reference 资格门；剩余卷间差异和泛化限制见 [当前验收](../PLAN/2new_world/P3/ACCEPTANCE_ZH.md)。V2 行保留已有证据解释。Stair composition/reference 入口默认 G1 V3，共享正式入口要求显式 task/cell，成本合同按所选协议的实际工作量和测量来源冻结。`push.g1_29dof.reference_v1` 已接入 reference-program Genesis、三阶段评测和共享 session；这是 P4 的工程通路，真实 Go2 × Push Recovery 资格仍归 P6。旧 `push.g1_29dof.legacy_v1` 保留原协议。准确配置入口见 [README 活动格子表](../README.md)。
 
 ## 2. 受控改进闭环
 
@@ -24,7 +24,7 @@
 写入 ledger、更新 accepted source parent、形成会话报告
 ```
 
-Stair 正式入口是 [launch_stair_generation_session.py](../scripts/launch_stair_generation_session.py) → [run_stair_generation_session.py](../scripts/run_stair_generation_session.py) 的 `--formal-session`，当前合同为 15 generations × width 2，并要求 launch-readiness。恢复、停止和终态确认按 [runbook](stair_fresh_15round_runbook.md) 执行。
+Stair 与 Push 的正式宿主是 [run_generation_session.py](../scripts/run_generation_session.py)，显式选择 task/cell，合同固定为 15 generations × width 2。任务拥有评分、reference、选择和 final cohort；公共层拥有生命周期、成本与作业。旧 Stair 命令名只转发共享入口。恢复和终态确认按 [runbook](stair_fresh_15round_runbook.md) 执行；旧 readiness 生成栈已经退役。
 
 候选从冻结的随机初始化协议重新训练；只有 accepted 奖励源码成为后续父代，accepted checkpoint 不作为下一候选的 warm-start。source、checkpoint、job、evaluation binding 和 ledger 的身份必须闭合。候选自述和 rationale 不能代替源码与 runtime activation evidence。
 
@@ -44,19 +44,19 @@ Stair 正式入口是 [launch_stair_generation_session.py](../scripts/launch_sta
 
 ## 4. 当前 Stair 协议
 
-当前 unified V2 的权威入口是：
+P3 unified V3 的权威入口是（V2 按原配置回放）：
 
-- G1：[task protocol](../configs/tasks/stair_unified_protocol_v2.json)。
-- Go2：[task protocol](../configs/tasks/stair_go2_12dof_unified_protocol_v2.json)。
+- G1：[task protocol](../configs/tasks/stair_unified_protocol_v3.json)。
+- Go2：[task protocol](../configs/tasks/stair_go2_12dof_unified_protocol_v3.json)。
 - 各 protocol 的 `component_refs` 指向训练 profile、ordered evaluation suite、acceptance protocol 和 reward authority；机器人阈值与几何不能从另一机器人的文档示例复制。
 
 `StairClimbingTaskConfig` 从所选协议的 `episode_outcomes` 构造结果语义。当前 completion mode 是 `first_valid_top_arrival_latched`：首次有效到顶需要平台边界、姿态和有效支撑满足该 cell 的合同，到顶后立即闭合 success；到顶前的 `forbidden_contact`、`off_course` latch 会阻断成功。没有额外 20-step 顶层稳定等待，成功闭合后也不继续重新判失败。
 
 当前 primary reason 集合是 `success / forbidden_contact / off_course / base_orientation_instability / slip / insufficient_clearance / timeout`；`fall` 不是 unified V2 的独立 primary reason。净空、支撑面投影、持续步数及 timeout 的精确规则由所选协议和 suite 拥有。
 
-当前 suite 采用 C0/C1/C2 相关分层，`J_primary = (2 × J_OOD + J_ID) / 3`，接受协议比较配对 seed 的 `J_primary`，另检查 `j_ood`、`c0_id`、`c1_id` guards。报告必须分别给出成功 n/N、成功率、J_primary 和 stratum/family 分数，不能把混合 progress 的分数写成成功率。完整说明见 [Stair 任务指南](task_extension_guides/stair_climbing.md)。
+当前 suite 采用 C0/C1/C2 相关分层，`J_primary = J_OOD`，接受协议比较配对 seed 的 `J_primary`，另检查 `j_ood`、`c0_id`、`c1_id`、`joint_ood`、`phase_control` guards。报告必须分别给出成功 n/N、成功率、J_primary 和 stratum/family 分数，不能把混合 progress 的分数写成成功率。完整说明见 [Stair 任务指南](task_extension_guides/stair_climbing.md)。
 
-当前 ordered summary v3 / unified summary v2 使用明确的派生算术；比较投影的统计版本由任务统一选择，原始摘要按其存储格式验证，历史判决按已封证据回放。数值表示版本不新增矩阵维度，也不授予旧 reference 新后端资格，见 [P1 复审](../PLAN/2new_world/P1/AUDIT_FOLLOWUP_ZH.md)。
+P3 ordered summary v4 / unified summary v3 保存可复算的 episode 事实；完成时间只作诊断，主分仍为 success/progress。三个 OOD family 等权，每个目标 stratum 必须实测存在成功率转折；饱和的 ID 和 phase 控制只保留独立能力守卫。题面先按 profile 的支撑高度尺度生成，再对各机器人用固定 reference 标定，详见 [P3 设计](../PLAN/2new_world/P3/IMPLEMENTATION_PLAN_ZH.md)。历史 ordered summary v3 / unified summary v2 保持原算术；比较投影的统计版本由任务统一选择，原始摘要按其存储格式验证，历史判决按已封证据回放。数值表示版本不新增矩阵维度，也不授予旧 reference 新后端资格，见 [P1 复审](../PLAN/2new_world/P1/AUDIT_FOLLOWUP_ZH.md)。
 
 旧七桶、35-cell 和 standalone evaluation-semantics v6/v7 属于兼容路径或历史合同。尤其 standalone v7 的 stable-top 规则不等于 active unified V2；不能靠修改文档中的版本号把两者合并。历史 checkpoint、结果和 ledger 始终按其原有 binding 解释，不混入新协议的 accepted lineage。
 
@@ -70,7 +70,7 @@ Phase 0 G1 checkpoint 探针等历史材料仍用于原协议下的兼容性与�
 
 ## 6. 训练后端和录像
 
-新生产入口统一使用 Sim 6.0.1 / Isaac Lab 3 / PhysX / RSL-RL 5。完整预算训练、新 checkpoint 评测及原生录像已完成 [P2 工程验收](../PLAN/2new_world/P2/ACCEPTANCE_ZH.md)。旧/新后端数值等价未成立；新正式搜索须先完成 P3 reference 资格化和 P4 成本合同更新。
+新生产入口统一使用 Sim 6.0.1 / Isaac Lab 3 / PhysX / RSL-RL 5。完整预算训练、新 checkpoint 评测及原生录像已完成 [P2 工程验收](../PLAN/2new_world/P2/ACCEPTANCE_ZH.md)。旧/新后端数值等价未成立；[P3 reference 资格化](../PLAN/2new_world/P3/ACCEPTANCE_ZH.md)在固定 C2 标定基底后两本体均通过，但这不表示三卷难度完全相等。新正式搜索仍须完成相应资格及 P4 编排和实测成本合同。
 
 Stair 原生录像由正式 eval 执行器的 `--video-dir` 呈现选项生成，使用相同策略、环境、题面、seed 与任务计数。旧的离线轨迹 renderer、独立 actor 与环境安装器已退役，见 [删除回执](../PLAN/2new_world/P2/retired_video_sources.json)。历史 MP4 和 checkpoint 保留原有诊断身份，不形成新的接受证据。
 

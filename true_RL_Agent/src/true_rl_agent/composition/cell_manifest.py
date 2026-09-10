@@ -16,6 +16,7 @@ from true_rl_agent.json_contract import (
     canonical_json_bytes,
     load_strict_json_object,
 )
+from true_rl_agent.fs_contract import create_once_bytes
 from true_rl_agent.robots.base import (
     RobotProfile,
     RobotRequirements,
@@ -774,16 +775,22 @@ def materialize_resolved_cell_manifest(
     manifest: ResolvedCellManifestV1,
     *,
     output_dir: Path,
+    require_existing: bool = False,
 ) -> Path:
-    output_dir.mkdir(parents=True, exist_ok=True)
+    """Publish a cell identity once, or verify its existing immutable bytes."""
     path = (output_dir / RESOLVED_CELL_MANIFEST_FILENAME).resolve()
     encoded = canonical_json_bytes(manifest.to_dict(), trailing_newline=True)
     try:
         current = path.read_bytes()
     except FileNotFoundError:
+        if require_existing:
+            raise
         current = None
-    if current != encoded:
-        path.write_bytes(encoded)
+    if current is None:
+        output_dir.mkdir(parents=True, exist_ok=True)
+        create_once_bytes(path, encoded)
+    elif current != encoded:
+        raise ValueError("existing resolved cell manifest differs from the requested cell")
     return path
 
 

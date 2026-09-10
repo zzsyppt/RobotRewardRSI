@@ -170,8 +170,7 @@ def _without_hash(payload: Mapping[str, Any], field: str) -> dict[str, Any]:
     return {key: value for key, value in payload.items() if key != field}
 
 
-def _resolved_contracts() -> dict[str, Any]:
-    output_dir = PROJECT_ROOT / "__P0_SENTINEL_OUTPUT__"
+def _resolved_contracts(*, output_dir: Path) -> dict[str, Any]:
     stair_config = StairClimbingTaskConfig.defaults(
         PROJECT_ROOT / "configs/tasks/stair_protocol_v2.json"
     )
@@ -605,7 +604,12 @@ def verify(*, snapshot_path: Path = SNAPSHOT_PATH, receipt_path: Path = RUNTIME_
         raise AssertionError("Phase 0 capture provenance heads disagree")
     _assert_equal(snapshot["matrix_scope"]["cells"], list(EXPECTED_CELLS), "Core cells")
     _assert_equal(snapshot["matrix_scope"]["cell_variants"], list(EXPECTED_VARIANTS), "Core variants")
-    _assert_equal(_resolved_contracts(), snapshot["local_contracts"], "resolved contracts")
+    with tempfile.TemporaryDirectory() as output_dir:
+        _assert_equal(
+            _resolved_contracts(output_dir=Path(output_dir)),
+            snapshot["local_contracts"],
+            "resolved contracts",
+        )
     _assert_equal(_runner_source_contract(), snapshot["runner_contract"]["source_hashes"], "runner source contract")
     _assert_equal(_source_file_contract(snapshot), snapshot["source_file_hashes"], "source file hashes")
     _verify_reward_abi(snapshot)

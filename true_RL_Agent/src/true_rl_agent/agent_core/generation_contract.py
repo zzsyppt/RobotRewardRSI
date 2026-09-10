@@ -36,6 +36,7 @@ GENERATION_MANIFEST_V2_SCHEMA_VERSION = "true_rl_agent.generation_manifest.v2"
 GENERATION_LEDGER_RECORD_SCHEMA_VERSION = (
     "true_rl_agent.generation_ledger_record.v1"
 )
+GENERATION_LEDGER_RECORD_V2_SCHEMA_VERSION = "true_rl_agent.generation_ledger_record.v2"
 GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION = (
     "true_rl_agent.generation_public_history_projection.v3"
 )
@@ -254,7 +255,9 @@ class GenerationSessionContract:
             raise ValueError("generation width must be exactly two")
         if tuple(self.authoring_order) != GENERATION_AUTHORING_ORDER:
             raise ValueError("generation authoring order must be lane-a then lane-b")
-        if self.ledger_record_schema != GENERATION_LEDGER_RECORD_SCHEMA_VERSION:
+        if self.ledger_record_schema not in {
+            GENERATION_LEDGER_RECORD_SCHEMA_VERSION, GENERATION_LEDGER_RECORD_V2_SCHEMA_VERSION,
+        }:
             raise ValueError("generation ledger writer schema mismatch")
         for field_name in ("max_generations", "max_trials", "max_train_jobs"):
             _positive_int(getattr(self, field_name), f"generation contract {field_name}")
@@ -347,11 +350,12 @@ class GenerationSessionContract:
 def publish_generation_session_contract(
     output_dir: Path,
     contract: GenerationSessionContract,
+    *,
+    require_existing: bool = False,
 ) -> GenerationSessionContractRef:
     if not isinstance(contract, GenerationSessionContract):
         raise TypeError("generation session contract is invalid")
     output_dir = Path(output_dir).resolve(strict=False)
-    output_dir.mkdir(parents=True, exist_ok=True)
     path = output_dir / GENERATION_SESSION_CONTRACT_FILENAME
     payload = canonical_json_bytes(contract.to_dict(), trailing_newline=True)
     if len(payload) > _MAX_CONTRACT_BYTES:
@@ -365,6 +369,9 @@ def publish_generation_session_contract(
         if existing != payload:
             raise FileExistsError("generation session contract already exists with different bytes")
     else:
+        if require_existing:
+            raise FileNotFoundError(path)
+        output_dir.mkdir(parents=True, exist_ok=True)
         create_once_bytes(path, payload)
     return GenerationSessionContractRef(
         logical_name=GENERATION_SESSION_CONTRACT_FILENAME,
@@ -705,6 +712,7 @@ __all__ = [
     "GENERATION_AUTHORING_ORDER",
     "GENERATION_LANE_IDS",
     "GENERATION_LEDGER_RECORD_SCHEMA_VERSION",
+    "GENERATION_LEDGER_RECORD_V2_SCHEMA_VERSION",
     "GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION",
     "GENERATION_MANIFEST_SCHEMA_VERSION",
     "GENERATION_MANIFEST_V2_SCHEMA_VERSION",

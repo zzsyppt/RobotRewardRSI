@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "source_snapshot": "audit_final_v2_source_snapshot.json",
+  "source_files_verified_after_full": 102,
+  "local_tests": 1599,
+  "local_skips": 19,
+  "target_tests": 1599,
+  "target_skips": 0,
+  "target_unique_success_ids": 1599,
+  "local_skip_ids_verified_successfully_on_target": [
+    "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_accepted_head_resumes_and_closes_final",
+    "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_early_rejection_sealed_rejection_and_no_selection",
+    "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_reference_head_uses_shared_preparation_session_final_and_replay",
+    "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_runtime_and_infrastructure_failures_keep_distinct_evidence",
+    "tests.unit.test_candidate_package.CandidatePackageTests.test_candidate_package_preflight_rejects_nonregular_and_symlink_files",
+    "tests.unit.test_fs_contract.FileSystemContractTests.test_bounded_reader_rejects_final_symlink",
+    "tests.unit.test_generation_lifecycle.GenerationLifecycleTests.test_linux_process_incarnation_and_process_group_liveness",
+    "tests.unit.test_live_invocation.LiveInvocationJournalTests.test_live_summary_writer_replaces_symlink_without_touching_target",
+    "tests.unit.test_p6b_attempt_chain_fault_probe.P6BAttemptChainFaultProbeTests.test_real_retry_chain_and_owned_process_groups_are_closed",
+    "tests.unit.test_reference_artifact.ReferenceArtifactTests.test_symlink_root_is_rejected_before_publication",
+    "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_incomplete_process_group_cleanup_is_typed",
+    "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_linux_parent_death_signal_stops_owned_job",
+    "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_normal_exit_quiesces_grandchild_before_logs_are_returned",
+    "tests.unit.test_stair_isaaclab_runtime_env.StairIsaacLabRuntimeEnvTests.test_real_recorder_payload_decodes_tracks_and_aggregates",
+    "tests.unit.test_stair_isaaclab_runtime_env.StairIsaacLabRuntimeEnvTests.test_train_and_eval_builders_install_only_the_declared_runtime",
+    "tests.unit.test_stair_local_paths.StairLocalPathTests.test_existing_inputs_reject_leaf_symlinks_before_resolve",
+    "tests.unit.test_stair_local_paths.StairLocalPathTests.test_output_guards_reject_dangling_symlinks",
+    "tests.unit.test_stair_local_paths.StairLocalPathTests.test_stair_config_rejects_protocol_symlink",
+    "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_train_rejects_symlinked_checkpoint_output_without_following_it"
+  ],
+  "full_results_and_log_hashes": {
+    "audit_local_full_v2.json": "bdf17421f3247a83a8f869a4d826feed4309f535db9c4f2d86cfe8218089f450",
+    "audit_local_full_v2.log": "99988f73becb54825b2b357e3481581b5e7b0ef84a314f2b3bd46983ccfa475f",
+    "audit_target_full_v2.json": "595eda0394913a80ee5d3c5837a0d1b22fa2851c2eaa4a593eaca8bbf11a35d7",
+    "audit_target_full_v2.log": "f64c62f56cb9a10294dae28c2493b84de74289c8dfdfa5a6e350c0164ae04824"
+  },
+  "coverage_basis": "one complete run of final v2 source in each environment; no union of earlier batches",
+  "log_parser_note": "unittest verbose descriptions may put a docstring between test ID and status; match each test block"
+}

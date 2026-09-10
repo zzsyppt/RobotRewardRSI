@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import tempfile
+import copy
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
@@ -34,9 +35,9 @@ from true_rl_agent.runner.specs import (
     TrainJobSpec,
 )
 from true_rl_agent.runner.subprocess_runner import SubprocessRunner
-from true_rl_agent.tasks.stair_climbing.gpu_process_binding import (
-    StairGpuRuntimeBinding,
-    validate_stair_gpu_runtime_summary_evidence,
+from true_rl_agent.runner.gpu_process_binding import (
+    GpuRuntimeBinding,
+    validate_gpu_runtime_summary_evidence,
 )
 
 
@@ -192,13 +193,13 @@ class GpuBindingProjectionContractTests(unittest.TestCase):
             "process_id": 1234,
             "process_group_id": 1234,
         }
-        runtime = StairGpuRuntimeBinding(
+        runtime = GpuRuntimeBinding(
             gpu_process_binding=binding,
             physical_gpu_uuid="GPU-00000000-0000-0000-0000-000000000001",
             renderer_active_gpu_ordinal=1,
         )
         with patch(
-            "true_rl_agent.tasks.stair_climbing.gpu_process_binding."
+            "true_rl_agent.runner.gpu_process_binding."
             "current_owned_process_identity",
             return_value=process_identity,
         ):
@@ -265,7 +266,7 @@ class GpuBindingProjectionContractTests(unittest.TestCase):
                 )
             ),
             "stair_runtime": GpuProcessBinding.from_mapping(
-                validate_stair_gpu_runtime_summary_evidence(
+                validate_gpu_runtime_summary_evidence(
                     runner_summary,
                     expected_binding=binding,
                     expected_physical_gpu_uuid=runtime.physical_gpu_uuid,
@@ -276,6 +277,30 @@ class GpuBindingProjectionContractTests(unittest.TestCase):
         for label, loaded_binding in strict_summary_readers.items():
             with self.subTest(strict_reader=label):
                 self.assertEqual(loaded_binding, binding)
+
+        # Historical receipt bytes keep their original wire schema. Decoding
+        # only changes the in-memory container key, never the hashed evidence.
+        historical = copy.deepcopy(runner_summary)
+        historical_evidence = historical.pop("gpu_runtime_evidence")
+        historical_evidence["schema_version"] = (
+            "true_rl_agent.task.stair_climbing.gpu_runtime_evidence.v2"
+        )
+        historical_evidence["external_compute_context_observation"] = {
+            "schema_version": "true_rl_agent.task.stair_climbing.gpu_compute_context_observation.v1",
+            "source": "nvidia-smi-query-compute-apps",
+            "monotonic_ns": 42,
+            "process_id": 1234,
+            "rows": [{"gpu_uuid": runtime.physical_gpu_uuid, "used_gpu_memory_mib": 10}],
+        }
+        historical["stair_gpu_runtime_evidence"] = historical_evidence
+        original_hash = canonical_json_hash(historical)
+        decoded = validate_gpu_runtime_summary_evidence(
+            historical, expected_binding=binding,
+            expected_physical_gpu_uuid=runtime.physical_gpu_uuid,
+            require_compute_context_observation=True,
+        )
+        self.assertEqual(decoded["gpu_runtime_evidence"], historical_evidence)
+        self.assertEqual(canonical_json_hash(historical), original_hash)
 
 
 if __name__ == "__main__":

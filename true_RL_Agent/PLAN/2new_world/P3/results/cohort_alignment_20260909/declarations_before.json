@@ -1,0 +1,3446 @@
+{
+  "stair_unified_protocol_v3.json": {
+    "candidate_authority": {
+      "capability_ids": [
+        "complete_reward_program"
+      ],
+      "mutable_components": [
+        "complete_reward_program"
+      ],
+      "runner_owned_components": [
+        "terrain_generator",
+        "training_distribution",
+        "curriculum",
+        "seed_policy",
+        "training_budget",
+        "ppo_hyperparameters",
+        "checkpoint_selector",
+        "evaluation_suite",
+        "success_definition",
+        "failure_thresholds",
+        "observation_space",
+        "action_space",
+        "acceptance_protocol"
+      ]
+    },
+    "cell_variant_id": "stair.g1_37dof.unified_v3",
+    "component_hashes": {
+      "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+      "evaluation_suite_hash": "26033e744b5bbfb6eee5097df7eaf901ff2184f2d70fe72440a3c02f3496c84e",
+      "training_profile_hash": "d222a1ddc2ed52ed6feae43d8413b6364576880ac4febbc09e6ac7a9122028d1",
+      "vnext_reward_authority_hash": "b4cbca68377eec8a0f10a3fe6724067c8adec4b774fda89ecaf8f6a58189c186"
+    },
+    "component_refs": {
+      "acceptance_protocol": "stair_unified_acceptance_protocol_v7.json",
+      "evaluation_suite": "stair_unified_evaluation_suite_v2.json",
+      "training_profile": "stair_unified_training_profile_v1.json",
+      "vnext_reward_authority": "stair_vnext_reward_authority_v1.json"
+    },
+    "episode_outcomes": {
+      "classification_warning_blocks_pass": true,
+      "counting_invariant": "success_count_plus_primary_failure_counts_equals_total_episode_count",
+      "diagnostic_flags": [
+        "base_orientation_instability_detected",
+        "slip_detected",
+        "insufficient_clearance_detected",
+        "off_course_detected",
+        "goal_not_reached_detected",
+        "first_valid_top_arrival_achieved"
+      ],
+      "failure_priority": [
+        "forbidden_contact",
+        "off_course",
+        "base_orientation_instability",
+        "slip",
+        "insufficient_clearance",
+        "timeout"
+      ],
+      "primary_reasons": [
+        "success",
+        "forbidden_contact",
+        "off_course",
+        "base_orientation_instability",
+        "slip",
+        "insufficient_clearance",
+        "timeout"
+      ],
+      "signals": {
+        "base_orientation_instability": {
+          "comparison": "greater_than",
+          "consecutive_control_steps": 10,
+          "source": "kinematic_base_roll_or_pitch_abs",
+          "threshold": 0.65,
+          "unit": "rad"
+        },
+        "forbidden_contact": {
+          "force_threshold_n": 1.0,
+          "manager_term": "base_contact",
+          "other_body_contacts_policy": "allowed_unless_another_failure_signal_triggers",
+          "source": "resolved_forbidden_contact_role_force",
+          "trigger": "manager_term_active"
+        },
+        "insufficient_clearance": {
+          "comparison": "less_than",
+          "consecutive_control_steps": 3,
+          "source": "noncontact_support_effector_clearance_above_projected_local_stair_surface",
+          "threshold": 0.03,
+          "unit": "m"
+        },
+        "off_course": {
+          "comparison": "outside",
+          "consecutive_control_steps": 1,
+          "source": "kinematic_base_xy_outside_own_terrain_patch",
+          "unit": "m"
+        },
+        "slip": {
+          "consecutive_control_steps": 5,
+          "contact_force_threshold": 1.0,
+          "force_unit": "N",
+          "source": "support_effector_planar_speed_while_in_contact",
+          "speed_threshold": 0.5,
+          "speed_unit": "m/s"
+        },
+        "timeout": {
+          "deadline_authority": "ordered_evaluation_suite",
+          "source": "evaluation_suite_cell_episode_horizon",
+          "unit": "s"
+        }
+      },
+      "success": {
+        "completion_mode": "first_valid_top_arrival_latched",
+        "minimum_progress_fraction": 1.0,
+        "minimum_support_effector_upward_force_n": 10.0,
+        "minimum_support_effectors_on_top": 1,
+        "post_arrival_failure_policy": "not_evaluated_outcome_closes_on_first_valid_top_arrival",
+        "pre_arrival_blocking_latches": [
+          "forbidden_contact",
+          "off_course"
+        ],
+        "requires_kinematic_base_within_top_platform_bounds": true,
+        "requires_orientation_stable": true,
+        "requires_support_effectors_within_top_platform_bounds": true,
+        "support_effector_surface_clearance_range_m": [
+          0.0,
+          0.12
+        ]
+      },
+      "support_surface_projection": {
+        "maximum_projected_surface_penetration_m": 0.03,
+        "no_contact_fallback": "lowest_vertically_feasible_projected_support_surface"
+      }
+    },
+    "protocol_hash": "8063114a3326a2518ed61273f663812104b7594b05c5ef1d268e2e23cde619a7",
+    "protocol_id": "unitree_stair_climbing_unified_v3",
+    "protocol_state": "active",
+    "reference_program": {
+      "entrypoint": "training_code.components:build_training_components",
+      "reference_id": "official-g1-rough-reward-vnext-v1",
+      "repository_source_path": "src/true_rl_agent/tasks/stair_climbing/reference_programs/official_g1_rough_vnext_v1/training_code/components.py",
+      "required_authorship_origin": "official_upstream",
+      "session_role": "reference"
+    },
+    "reference_readiness": {
+      "easy_strata": [
+        "c0_id",
+        "c1_id"
+      ],
+      "minimum_macro_goal_progress_fraction": 0.5,
+      "minimum_macro_success_rate": 0.05,
+      "ood_requirement": "finite_complete_non_structurally_degenerate_telemetry",
+      "predicate": "each_easy_stratum_meets_both_floors",
+      "seed_count": 5,
+      "source_cohort": "public_accept"
+    },
+    "required_pass_gates": [
+      "accept_evidence_gate",
+      "budget_accounting",
+      "runtime_activation_gate",
+      "stair_behavior_gate",
+      "sealed_validation_gate"
+    ],
+    "runtime_controls": {
+      "eval_observation_corruption_enabled": false,
+      "evaluation_command": {
+        "forward_mps": 0.8,
+        "lateral_mps": 0.0,
+        "yaw_radps": 0.0
+      },
+      "external_force_events_enabled": false,
+      "push_events_enabled": false,
+      "reset_velocity_ranges": {
+        "pitch": [
+          0.0,
+          0.0
+        ],
+        "roll": [
+          0.0,
+          0.0
+        ],
+        "x": [
+          0.0,
+          0.0
+        ],
+        "y": [
+          0.0,
+          0.0
+        ],
+        "yaw": [
+          0.0,
+          0.0
+        ],
+        "z": [
+          0.0,
+          0.0
+        ]
+      },
+      "spawn": {
+        "x_range_m_from_origin": [
+          -0.1,
+          0.1
+        ],
+        "y_range_m_from_origin": [
+          -0.1,
+          0.1
+        ],
+        "yaw_range_rad": [
+          0.0,
+          0.0
+        ]
+      },
+      "train_observation_corruption_enabled": true
+    },
+    "schema_version": "true_rl_agent.task.stair_climbing.unified_protocol.v1",
+    "task_id": "unitree_stair_climbing",
+    "task_protocol_hash": "2174f3961e70cf40ac82e1f7ff772dedde2befff745224e852a4d37366d68954",
+    "training": {
+      "budget_steps": 196608000,
+      "checkpoint_selector": "final_iteration",
+      "command": {
+        "forward_mps_range": [
+          0.0,
+          0.8
+        ],
+        "heading_command_enabled": false,
+        "lateral_command_mps": 0.0,
+        "standing_env_fraction": 0.02,
+        "yaw_command_radps": 0.0
+      },
+      "episode_horizon_s": 12.0,
+      "eval_profile": "stair_unified_v1_eval",
+      "max_iterations": 2000,
+      "num_envs": 4096,
+      "policy_initialization": "random",
+      "runner_timeout_s": 7200,
+      "steps_per_env": 24,
+      "train_profile": "stair_unified_v1_train"
+    },
+    "training_execution": {
+      "checkpoint_save_interval_iterations": 50,
+      "clip_actions": null,
+      "cudnn_allow_tf32": true,
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": false,
+      "empirical_normalization": null,
+      "init_at_random_episode_length": true,
+      "logger": "tensorboard",
+      "observation_groups": {
+        "critic": [
+          "policy"
+        ],
+        "policy": [
+          "policy"
+        ]
+      },
+      "resume": false,
+      "runner": "rsl_rl_on_policy_runner",
+      "torch_matmul_allow_tf32": true
+    },
+    "training_lineage": {
+      "mode": "evaluation_only_successor",
+      "source_base_task_protocol_hash": "fc84b8eece40372afd6680acf711cb3b754bba660608318e5a334492d9587ded",
+      "source_cell_variant_id": "stair.g1_37dof.unified_v2",
+      "source_resolved_cell_manifest_hash": "dbd79e0074ce64f23ae447d3e50ebcf1997593fe121fa209b4efd61b410c79a1",
+      "source_resolved_cell_task_protocol_hash": "32d7f3c9855b04a826dcbfe958bf12fc44d7be09275285295e12f80f3abc0332",
+      "source_training_profile_hash": "d222a1ddc2ed52ed6feae43d8413b6364576880ac4febbc09e6ac7a9122028d1"
+    }
+  },
+  "stair_unified_evaluation_suite_v2.json": {
+    "calibration_seed_count": 3,
+    "calibration_templates": [
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.095,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "c0_id",
+        "template_id": "c0_id_level_0",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.14300000000000002,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "c0_id",
+        "template_id": "c0_id_level_1",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.191,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "c0_id",
+        "template_id": "c0_id_level_2",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.239,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "c0_id",
+        "template_id": "c0_id_level_3",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.287,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "c0_id",
+        "template_id": "c0_id_level_4",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.33499999999999996,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "c0_id",
+        "template_id": "c0_id_level_5",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 0,
+          "riser_base_m": 0.098,
+          "tread_base_m": 0.37
+        },
+        "stratum_id": "c1_id",
+        "template_id": "c1_id_level_0",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.1172,
+          "tread_base_m": 0.4
+        },
+        "stratum_id": "c1_id",
+        "template_id": "c1_id_level_1",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.1364,
+          "tread_base_m": 0.43
+        },
+        "stratum_id": "c1_id",
+        "template_id": "c1_id_level_2",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 0,
+          "riser_base_m": 0.15560000000000002,
+          "tread_base_m": 0.37
+        },
+        "stratum_id": "c1_id",
+        "template_id": "c1_id_level_3",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.1748,
+          "tread_base_m": 0.4
+        },
+        "stratum_id": "c1_id",
+        "template_id": "c1_id_level_4",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.194,
+          "tread_base_m": 0.43
+        },
+        "stratum_id": "c1_id",
+        "template_id": "c1_id_level_5",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.385884,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "height_ood",
+        "template_id": "height_ood_level_0",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.38875472,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "height_ood",
+        "template_id": "height_ood_level_1",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.39162544,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "height_ood",
+        "template_id": "height_ood_level_2",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.39449616,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "height_ood",
+        "template_id": "height_ood_level_3",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.39736688,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "height_ood",
+        "template_id": "height_ood_level_4",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.40023759999999997,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "height_ood",
+        "template_id": "height_ood_level_5",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.29,
+          "tread_depth_m": 0.28
+        },
+        "stratum_id": "tread_ood",
+        "template_id": "tread_ood_level_0",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.29,
+          "tread_depth_m": 0.256
+        },
+        "stratum_id": "tread_ood",
+        "template_id": "tread_ood_level_1",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.29,
+          "tread_depth_m": 0.232
+        },
+        "stratum_id": "tread_ood",
+        "template_id": "tread_ood_level_2",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.29,
+          "tread_depth_m": 0.20800000000000002
+        },
+        "stratum_id": "tread_ood",
+        "template_id": "tread_ood_level_3",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.29,
+          "tread_depth_m": 0.184
+        },
+        "stratum_id": "tread_ood",
+        "template_id": "tread_ood_level_4",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.29,
+          "tread_depth_m": 0.15999999999999998
+        },
+        "stratum_id": "tread_ood",
+        "template_id": "tread_ood_level_5",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "joint_scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.35717679999999996,
+          "tread_depth_m": 0.34
+        },
+        "stratum_id": "joint_ood",
+        "template_id": "joint_ood_level_0",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "joint_scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.36076519999999995,
+          "tread_depth_m": 0.316
+        },
+        "stratum_id": "joint_ood",
+        "template_id": "joint_ood_level_1",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "joint_scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.36435359999999994,
+          "tread_depth_m": 0.29200000000000004
+        },
+        "stratum_id": "joint_ood",
+        "template_id": "joint_ood_level_2",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "joint_scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.367942,
+          "tread_depth_m": 0.268
+        },
+        "stratum_id": "joint_ood",
+        "template_id": "joint_ood_level_3",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "joint_scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.3715304,
+          "tread_depth_m": 0.244
+        },
+        "stratum_id": "joint_ood",
+        "template_id": "joint_ood_level_4",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "joint_scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.3751188,
+          "tread_depth_m": 0.22
+        },
+        "stratum_id": "joint_ood",
+        "template_id": "joint_ood_level_5",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "known_family_held_out_phase",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 1,
+          "riser_base_m": 0.17,
+          "tread_base_m": 0.37
+        },
+        "stratum_id": "phase_composition_ood",
+        "template_id": "phase_composition_ood_level_0",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "known_family_held_out_phase",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 2,
+          "riser_base_m": 0.1748,
+          "tread_base_m": 0.4
+        },
+        "stratum_id": "phase_composition_ood",
+        "template_id": "phase_composition_ood_level_1",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "known_family_held_out_phase",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 2,
+          "riser_base_m": 0.1796,
+          "tread_base_m": 0.43
+        },
+        "stratum_id": "phase_composition_ood",
+        "template_id": "phase_composition_ood_level_2",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "known_family_held_out_phase",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 1,
+          "riser_base_m": 0.1844,
+          "tread_base_m": 0.37
+        },
+        "stratum_id": "phase_composition_ood",
+        "template_id": "phase_composition_ood_level_3",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "known_family_held_out_phase",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 2,
+          "riser_base_m": 0.1892,
+          "tread_base_m": 0.4
+        },
+        "stratum_id": "phase_composition_ood",
+        "template_id": "phase_composition_ood_level_4",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "known_family_held_out_phase",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 2,
+          "riser_base_m": 0.194,
+          "tread_base_m": 0.43
+        },
+        "stratum_id": "phase_composition_ood",
+        "template_id": "phase_composition_ood_level_5",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "conditional_on_c1_support",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 0,
+          "riser_base_m": 0.35932495999999997,
+          "riser_offset_m": 0.05075472,
+          "tread_base_m": 0.37,
+          "tread_offset_m": 0.044554159999999995
+        },
+        "stratum_id": "c1_conditional_frontier",
+        "template_id": "c1_conditional_frontier_level_0",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "conditional_on_c1_support",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.28827464,
+          "riser_offset_m": 0.0317362,
+          "tread_base_m": 0.4,
+          "tread_offset_m": 0.032712439999999995
+        },
+        "stratum_id": "c1_conditional_frontier",
+        "template_id": "c1_conditional_frontier_level_1",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "conditional_on_c1_support",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.33133544,
+          "riser_offset_m": 0.04142488,
+          "tread_base_m": 0.43,
+          "tread_offset_m": 0.03988924
+        },
+        "stratum_id": "c1_conditional_frontier",
+        "template_id": "c1_conditional_frontier_level_2",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "conditional_on_c1_support",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 0,
+          "riser_base_m": 0.3937736,
+          "riser_offset_m": 0.062237600000000004,
+          "tread_base_m": 0.37,
+          "tread_offset_m": 0.050295599999999996
+        },
+        "stratum_id": "c1_conditional_frontier",
+        "template_id": "c1_conditional_frontier_level_3",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "conditional_on_c1_support",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.3399476,
+          "riser_offset_m": 0.04608979999999999,
+          "tread_base_m": 0.4,
+          "tread_offset_m": 0.041324599999999996
+        },
+        "stratum_id": "c1_conditional_frontier",
+        "template_id": "c1_conditional_frontier_level_4",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "conditional_on_c1_support",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.3830084,
+          "riser_offset_m": 0.0586492,
+          "tread_base_m": 0.43,
+          "tread_offset_m": 0.0485014
+        },
+        "stratum_id": "c1_conditional_frontier",
+        "template_id": "c1_conditional_frontier_level_5",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "surface_mechanism_shift",
+        "geometry": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.33499999999999996,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.033499999999999995,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 8,
+            "lateral_vertices": 33,
+            "longitudinal_cycles": 2,
+            "longitudinal_vertices": 9,
+            "phase_count": 8,
+            "phase_index": 1,
+            "step_phase_stride": 1
+          }
+        },
+        "stratum_id": "c2_mechanism_ood",
+        "template_id": "c2_mechanism_ood_level_0",
+        "terrain_regime_id": "c2_rough"
+      },
+      {
+        "claim_kind": "surface_mechanism_shift",
+        "geometry": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.33499999999999996,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.044219999999999995,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 8,
+            "lateral_vertices": 33,
+            "longitudinal_cycles": 2,
+            "longitudinal_vertices": 9,
+            "phase_count": 8,
+            "phase_index": 1,
+            "step_phase_stride": 1
+          }
+        },
+        "stratum_id": "c2_mechanism_ood",
+        "template_id": "c2_mechanism_ood_level_1",
+        "terrain_regime_id": "c2_rough"
+      },
+      {
+        "claim_kind": "surface_mechanism_shift",
+        "geometry": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.33499999999999996,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.054939999999999996,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 8,
+            "lateral_vertices": 33,
+            "longitudinal_cycles": 2,
+            "longitudinal_vertices": 9,
+            "phase_count": 8,
+            "phase_index": 1,
+            "step_phase_stride": 1
+          }
+        },
+        "stratum_id": "c2_mechanism_ood",
+        "template_id": "c2_mechanism_ood_level_2",
+        "terrain_regime_id": "c2_rough"
+      },
+      {
+        "claim_kind": "surface_mechanism_shift",
+        "geometry": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.33499999999999996,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.06566,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 8,
+            "lateral_vertices": 33,
+            "longitudinal_cycles": 2,
+            "longitudinal_vertices": 9,
+            "phase_count": 8,
+            "phase_index": 1,
+            "step_phase_stride": 1
+          }
+        },
+        "stratum_id": "c2_mechanism_ood",
+        "template_id": "c2_mechanism_ood_level_3",
+        "terrain_regime_id": "c2_rough"
+      },
+      {
+        "claim_kind": "surface_mechanism_shift",
+        "geometry": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.33499999999999996,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.07638,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 8,
+            "lateral_vertices": 33,
+            "longitudinal_cycles": 2,
+            "longitudinal_vertices": 9,
+            "phase_count": 8,
+            "phase_index": 1,
+            "step_phase_stride": 1
+          }
+        },
+        "stratum_id": "c2_mechanism_ood",
+        "template_id": "c2_mechanism_ood_level_4",
+        "terrain_regime_id": "c2_rough"
+      },
+      {
+        "claim_kind": "surface_mechanism_shift",
+        "geometry": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.33499999999999996,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.0871,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 8,
+            "lateral_vertices": 33,
+            "longitudinal_cycles": 2,
+            "longitudinal_vertices": 9,
+            "phase_count": 8,
+            "phase_index": 1,
+            "step_phase_stride": 1
+          }
+        },
+        "stratum_id": "c2_mechanism_ood",
+        "template_id": "c2_mechanism_ood_level_5",
+        "terrain_regime_id": "c2_rough"
+      }
+    ],
+    "cell_set_hash": "c9287da24f1943e409720e864e5ee29f33ff02266ab8766fc51f06d751b964e3",
+    "cell_templates": [
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.22392871999999997,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "c0_id",
+        "template_id": "c0_id_level_3",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.29202375999999997,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "c0_id",
+        "template_id": "c0_id_level_4",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.34849336,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "c0_id",
+        "template_id": "c0_id_level_5",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "conditional_on_c1_support",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 0,
+          "riser_base_m": 0.34425367999999995,
+          "riser_offset_m": 0.05075472,
+          "tread_base_m": 0.387942,
+          "tread_offset_m": 0.044554159999999995
+        },
+        "stratum_id": "c1_conditional_frontier",
+        "template_id": "c1_conditional_frontier_level_0",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "conditional_on_c1_support",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.34497136,
+          "riser_offset_m": 0.04608979999999999,
+          "tread_base_m": 0.382058,
+          "tread_offset_m": 0.041324599999999996
+        },
+        "stratum_id": "c1_conditional_frontier",
+        "template_id": "c1_conditional_frontier_level_4",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "conditional_on_c1_support",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.39951504000000004,
+          "riser_offset_m": 0.0586492,
+          "tread_base_m": 0.43645912,
+          "tread_offset_m": 0.0485014
+        },
+        "stratum_id": "c1_conditional_frontier",
+        "template_id": "c1_conditional_frontier_level_5",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 0,
+          "riser_base_m": 0.14052872000000002,
+          "tread_base_m": 0.37
+        },
+        "stratum_id": "c1_id",
+        "template_id": "c1_id_level_3",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.17982376,
+          "tread_base_m": 0.4
+        },
+        "stratum_id": "c1_id",
+        "template_id": "c1_id_level_4",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.18949336,
+          "tread_base_m": 0.43
+        },
+        "stratum_id": "c1_id",
+        "template_id": "c1_id_level_5",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "surface_mechanism_shift",
+        "geometry": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.34849336,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.06830469856,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 8,
+            "lateral_vertices": 33,
+            "longitudinal_cycles": 2,
+            "longitudinal_vertices": 9,
+            "phase_count": 8,
+            "phase_index": 1,
+            "step_phase_stride": 1
+          }
+        },
+        "stratum_id": "c2_mechanism_ood",
+        "template_id": "c2_mechanism_ood_level_3",
+        "terrain_regime_id": "c2_rough"
+      },
+      {
+        "claim_kind": "surface_mechanism_shift",
+        "geometry": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.34849336,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.07945648608000001,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 8,
+            "lateral_vertices": 33,
+            "longitudinal_cycles": 2,
+            "longitudinal_vertices": 9,
+            "phase_count": 8,
+            "phase_index": 1,
+            "step_phase_stride": 1
+          }
+        },
+        "stratum_id": "c2_mechanism_ood",
+        "template_id": "c2_mechanism_ood_level_4",
+        "terrain_regime_id": "c2_rough"
+      },
+      {
+        "claim_kind": "surface_mechanism_shift",
+        "geometry": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.34849336,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.09060827360000001,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 8,
+            "lateral_vertices": 33,
+            "longitudinal_cycles": 2,
+            "longitudinal_vertices": 9,
+            "phase_count": 8,
+            "phase_index": 1,
+            "step_phase_stride": 1
+          }
+        },
+        "stratum_id": "c2_mechanism_ood",
+        "template_id": "c2_mechanism_ood_level_5",
+        "terrain_regime_id": "c2_rough"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.37655415999999997,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "height_ood",
+        "template_id": "height_ood_level_2",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.39951992,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "height_ood",
+        "template_id": "height_ood_level_3",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.41387352,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "height_ood",
+        "template_id": "height_ood_level_4",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "joint_scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.35071768000000003,
+          "tread_depth_m": 0.30994200000000005
+        },
+        "stratum_id": "joint_ood",
+        "template_id": "joint_ood_level_2",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "joint_scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.37296576,
+          "tread_depth_m": 0.250058
+        },
+        "stratum_id": "joint_ood",
+        "template_id": "joint_ood_level_3",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "joint_scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.38803704,
+          "tread_depth_m": 0.25045912000000004
+        },
+        "stratum_id": "joint_ood",
+        "template_id": "joint_ood_level_4",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "known_family_held_out_phase",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 1,
+          "riser_base_m": 0.16932872000000002,
+          "tread_base_m": 0.37
+        },
+        "stratum_id": "phase_composition_ood",
+        "template_id": "phase_composition_ood_level_3",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "known_family_held_out_phase",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 2,
+          "riser_base_m": 0.19422376,
+          "tread_base_m": 0.4
+        },
+        "stratum_id": "phase_composition_ood",
+        "template_id": "phase_composition_ood_level_4",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "known_family_held_out_phase",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 2,
+          "riser_base_m": 0.18949336,
+          "tread_base_m": 0.43
+        },
+        "stratum_id": "phase_composition_ood",
+        "template_id": "phase_composition_ood_level_5",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.27492871999999996,
+          "tread_depth_m": 0.249942
+        },
+        "stratum_id": "tread_ood",
+        "template_id": "tread_ood_level_2",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.29502375999999997,
+          "tread_depth_m": 0.190058
+        },
+        "stratum_id": "tread_ood",
+        "template_id": "tread_ood_level_3",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.30650664,
+          "tread_depth_m": 0.19045912
+        },
+        "stratum_id": "tread_ood",
+        "template_id": "tread_ood_level_4",
+        "terrain_regime_id": "c0_regular"
+      }
+    ],
+    "cohort_geometry_overrides": {
+      "public_accept": {
+        "c0_id_level_3": {
+          "kind": "regular",
+          "riser_height_m": 0.24402375999999998,
+          "tread_depth_m": 0.4
+        },
+        "c0_id_level_4": {
+          "kind": "regular",
+          "riser_height_m": 0.30350664,
+          "tread_depth_m": 0.4
+        },
+        "c0_id_level_5": {
+          "kind": "regular",
+          "riser_height_m": 0.31992871999999994,
+          "tread_depth_m": 0.4
+        },
+        "c1_conditional_frontier_level_0": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 0,
+          "riser_base_m": 0.36434871999999996,
+          "riser_offset_m": 0.05075472,
+          "tread_base_m": 0.352058,
+          "tread_offset_m": 0.044554159999999995
+        },
+        "c1_conditional_frontier_level_4": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.35645424000000003,
+          "riser_offset_m": 0.04608979999999999,
+          "tread_base_m": 0.40645912,
+          "tread_offset_m": 0.041324599999999996
+        },
+        "c1_conditional_frontier_level_5": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.36793712,
+          "riser_offset_m": 0.0586492,
+          "tread_base_m": 0.447942,
+          "tread_offset_m": 0.0485014
+        },
+        "c1_id_level_3": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 0,
+          "riser_base_m": 0.16062376,
+          "tread_base_m": 0.37
+        },
+        "c1_id_level_4": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.19130664,
+          "tread_base_m": 0.4
+        },
+        "c1_id_level_5": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.17892872,
+          "tread_base_m": 0.43
+        },
+        "c2_mechanism_ood_level_3": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.31992871999999994,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.06270602911999999,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 8,
+            "lateral_vertices": 33,
+            "longitudinal_cycles": 2,
+            "longitudinal_vertices": 9,
+            "phase_count": 8,
+            "phase_index": 3,
+            "step_phase_stride": 1
+          }
+        },
+        "c2_mechanism_ood_level_4": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.31992871999999994,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.07294374816,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 8,
+            "lateral_vertices": 33,
+            "longitudinal_cycles": 2,
+            "longitudinal_vertices": 9,
+            "phase_count": 8,
+            "phase_index": 3,
+            "step_phase_stride": 1
+          }
+        },
+        "c2_mechanism_ood_level_5": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.31992871999999994,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.08318146719999998,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 8,
+            "lateral_vertices": 33,
+            "longitudinal_cycles": 2,
+            "longitudinal_vertices": 9,
+            "phase_count": 8,
+            "phase_index": 3,
+            "step_phase_stride": 1
+          }
+        },
+        "height_ood_level_2": {
+          "kind": "regular",
+          "riser_height_m": 0.3966492,
+          "tread_depth_m": 0.4
+        },
+        "height_ood_level_3": {
+          "kind": "regular",
+          "riser_height_m": 0.4110028,
+          "tread_depth_m": 0.4
+        },
+        "height_ood_level_4": {
+          "kind": "regular",
+          "riser_height_m": 0.38229559999999996,
+          "tread_depth_m": 0.4
+        },
+        "joint_ood_level_2": {
+          "kind": "regular",
+          "riser_height_m": 0.36937735999999993,
+          "tread_depth_m": 0.274058
+        },
+        "joint_ood_level_3": {
+          "kind": "regular",
+          "riser_height_m": 0.38444864,
+          "tread_depth_m": 0.27445912000000006
+        },
+        "joint_ood_level_4": {
+          "kind": "regular",
+          "riser_height_m": 0.35645911999999996,
+          "tread_depth_m": 0.261942
+        },
+        "phase_composition_ood_level_3": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 1,
+          "riser_base_m": 0.18942376,
+          "tread_base_m": 0.37
+        },
+        "phase_composition_ood_level_4": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 2,
+          "riser_base_m": 0.19429336000000003,
+          "tread_base_m": 0.4
+        },
+        "phase_composition_ood_level_5": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 2,
+          "riser_base_m": 0.17892872,
+          "tread_base_m": 0.43
+        },
+        "tread_ood_level_2": {
+          "kind": "regular",
+          "riser_height_m": 0.29502375999999997,
+          "tread_depth_m": 0.21405800000000003
+        },
+        "tread_ood_level_3": {
+          "kind": "regular",
+          "riser_height_m": 0.30650664,
+          "tread_depth_m": 0.21445912000000003
+        },
+        "tread_ood_level_4": {
+          "kind": "regular",
+          "riser_height_m": 0.27492871999999996,
+          "tread_depth_m": 0.201942
+        }
+      },
+      "sealed_validation": {
+        "c0_id_level_3": {
+          "kind": "regular",
+          "riser_height_m": 0.25550664,
+          "tread_depth_m": 0.4
+        },
+        "c0_id_level_4": {
+          "kind": "regular",
+          "riser_height_m": 0.27192871999999996,
+          "tread_depth_m": 0.4
+        },
+        "c0_id_level_5": {
+          "kind": "regular",
+          "riser_height_m": 0.34002375999999995,
+          "tread_depth_m": 0.4
+        },
+        "c1_conditional_frontier_level_0": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 0,
+          "riser_base_m": 0.3758316,
+          "riser_offset_m": 0.05075472,
+          "tread_base_m": 0.37645912,
+          "tread_offset_m": 0.044554159999999995
+        },
+        "c1_conditional_frontier_level_4": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.32487632,
+          "riser_offset_m": 0.04608979999999999,
+          "tread_base_m": 0.41794200000000004,
+          "tread_offset_m": 0.041324599999999996
+        },
+        "c1_conditional_frontier_level_5": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.38803216,
+          "riser_offset_m": 0.0586492,
+          "tread_base_m": 0.412058,
+          "tread_offset_m": 0.0485014
+        },
+        "c1_id_level_3": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 0,
+          "riser_base_m": 0.17210664,
+          "tread_base_m": 0.37
+        },
+        "c1_id_level_4": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.15972872000000002,
+          "tread_base_m": 0.4
+        },
+        "c1_id_level_5": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.19902376,
+          "tread_base_m": 0.43
+        },
+        "c2_mechanism_ood_level_3": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.34002375999999995,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.06664465696,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 8,
+            "lateral_vertices": 33,
+            "longitudinal_cycles": 2,
+            "longitudinal_vertices": 9,
+            "phase_count": 8,
+            "phase_index": 5,
+            "step_phase_stride": 1
+          }
+        },
+        "c2_mechanism_ood_level_4": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.34002375999999995,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.07752541728000001,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 8,
+            "lateral_vertices": 33,
+            "longitudinal_cycles": 2,
+            "longitudinal_vertices": 9,
+            "phase_count": 8,
+            "phase_index": 5,
+            "step_phase_stride": 1
+          }
+        },
+        "c2_mechanism_ood_level_5": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.34002375999999995,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.0884061776,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 8,
+            "lateral_vertices": 33,
+            "longitudinal_cycles": 2,
+            "longitudinal_vertices": 9,
+            "phase_count": 8,
+            "phase_index": 5,
+            "step_phase_stride": 1
+          }
+        },
+        "height_ood_level_2": {
+          "kind": "regular",
+          "riser_height_m": 0.40813208,
+          "tread_depth_m": 0.4
+        },
+        "height_ood_level_3": {
+          "kind": "regular",
+          "riser_height_m": 0.37942487999999996,
+          "tread_depth_m": 0.4
+        },
+        "height_ood_level_4": {
+          "kind": "regular",
+          "riser_height_m": 0.40239063999999997,
+          "tread_depth_m": 0.4
+        },
+        "joint_ood_level_2": {
+          "kind": "regular",
+          "riser_height_m": 0.38086023999999996,
+          "tread_depth_m": 0.29845912
+        },
+        "joint_ood_level_3": {
+          "kind": "regular",
+          "riser_height_m": 0.35287071999999997,
+          "tread_depth_m": 0.28594200000000003
+        },
+        "joint_ood_level_4": {
+          "kind": "regular",
+          "riser_height_m": 0.37655415999999997,
+          "tread_depth_m": 0.22605799999999998
+        },
+        "phase_composition_ood_level_3": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 1,
+          "riser_base_m": 0.19909336000000002,
+          "tread_base_m": 0.37
+        },
+        "phase_composition_ood_level_4": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 2,
+          "riser_base_m": 0.17412872000000001,
+          "tread_base_m": 0.4
+        },
+        "phase_composition_ood_level_5": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 2,
+          "riser_base_m": 0.19902376,
+          "tread_base_m": 0.43
+        },
+        "tread_ood_level_2": {
+          "kind": "regular",
+          "riser_height_m": 0.30650664,
+          "tread_depth_m": 0.23845912000000002
+        },
+        "tread_ood_level_3": {
+          "kind": "regular",
+          "riser_height_m": 0.27492871999999996,
+          "tread_depth_m": 0.22594200000000003
+        },
+        "tread_ood_level_4": {
+          "kind": "regular",
+          "riser_height_m": 0.29502375999999997,
+          "tread_depth_m": 0.16605799999999998
+        }
+      }
+    },
+    "cohort_hashes": {
+      "calibration": "a6c3c9b6ef50c26ff9b57add8d9238419c6943b1c146d09817e09c1e249eaf8a",
+      "public_accept": "d612dabb0e054a7d7a4e991e868db5df5f14063de5681d45f3202c5d4d897aa8",
+      "public_dev": "32ae9190fc894118439ea0319cc2a79b36ab4d8781a2930979bf89bbff4bcb8a",
+      "sealed_validation": "8de4e36c0e22d084be9049c0584a69254ac4a1e8df51e5c39462a9a506d5b377"
+    },
+    "episodes_per_seed_per_cell": 12,
+    "evaluation_protocol_version": "stair_calibrated_terrain_eval_v2",
+    "final_holdout_policy": {
+      "generator": "sha256_study_nonce_per_base_geometry_v3",
+      "height_and_tread_shift_over_support_length": [
+        0.025,
+        0.045
+      ],
+      "replication_must_be_declared": true,
+      "roughness_scaling": "preserve_amplitude_over_minimum_riser",
+      "schema_version": "true_rl_agent.task.stair_climbing.final_holdout_policy.v2",
+      "seed_namespace": "study_scoped_final_v1",
+      "source_cohort": "sealed_validation"
+    },
+    "formal_cohorts": [
+      "public_dev",
+      "public_accept",
+      "sealed_validation"
+    ],
+    "geometry_policy": {
+      "anchor_horizon_control_steps": 600,
+      "control_dt_s": 0.02
+    },
+    "qualification_rule": {
+      "family_mask_mode": "require_all_objective_strata_with_success_transition",
+      "maximum_learnable_success_rate": 0.8,
+      "minimum_cells_per_stratum_per_cohort": 3,
+      "minimum_learnable_success_rate": 0.2,
+      "minimum_reference_score": 0.1,
+      "requires_at_least_one_qualified_ood_family": true
+    },
+    "scale_context": {
+      "gravity_mps2": 9.81,
+      "length_source": "nominal_root_to_support_body_center_z_m",
+      "robot_profile_hash": "1bc05d6728d1eac4b30dd24eb3c20cc44ed51573b10a494ea41fbed276861478",
+      "support_length_m": 0.71768
+    },
+    "schema_version": "true_rl_agent.task.stair_climbing.unified_evaluation_suite.v2",
+    "score_contract": {
+      "cell_score": "0.5*success_rate+0.5*mean_goal_progress_fraction",
+      "cell_to_stratum": "equal_weight_mean_over_cells",
+      "episode_to_cell": "equal_weight_mean_over_episodes",
+      "families": {
+        "F_c1": [
+          "c1_conditional_frontier"
+        ],
+        "F_c2": [
+          "c2_mechanism_ood"
+        ],
+        "F_scalar": [
+          "height_ood",
+          "tread_ood",
+          "joint_ood"
+        ]
+      },
+      "j_id": "0.5*S_C0-ID+0.5*S_C1-ID",
+      "j_ood": "equal_weight_mean_over_qualified_nonempty_families",
+      "j_primary": "J_OOD",
+      "named_guards": [
+        "j_ood",
+        "c0_id",
+        "c1_id",
+        "joint_ood",
+        "phase_control"
+      ],
+      "stratum_to_seed": "preserve_paired_seed_vector"
+    },
+    "seed_counts": {
+      "public_accept": 5,
+      "public_dev": 3,
+      "sealed_validation": 7
+    },
+    "suite_hash": "26033e744b5bbfb6eee5097df7eaf901ff2184f2d70fe72440a3c02f3496c84e",
+    "suite_id": "stair_unified_unitree_g1_37dof_isaaclab_v2_refined_calibrated_formal_ratio_aligned_v2",
+    "training_profile_hash": "d222a1ddc2ed52ed6feae43d8413b6364576880ac4febbc09e6ac7a9122028d1"
+  },
+  "stair_go2_12dof_unified_protocol_v3.json": {
+    "candidate_authority": {
+      "capability_ids": [
+        "complete_reward_program"
+      ],
+      "mutable_components": [
+        "complete_reward_program"
+      ],
+      "runner_owned_components": [
+        "terrain_generator",
+        "training_distribution",
+        "curriculum",
+        "seed_policy",
+        "training_budget",
+        "ppo_hyperparameters",
+        "checkpoint_selector",
+        "evaluation_suite",
+        "success_definition",
+        "failure_thresholds",
+        "observation_space",
+        "action_space",
+        "acceptance_protocol"
+      ]
+    },
+    "cell_variant_id": "stair.go2_12dof.unified_v3",
+    "component_hashes": {
+      "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+      "evaluation_suite_hash": "291bafe09ad9136c3e7e7902d0f2ea75d196b9979060692ea27cdf0f62c3c04b",
+      "training_profile_hash": "081f65711be0708e005f6b04f94743e64446994380ee1b4f58fa3eed173b6164",
+      "vnext_reward_authority_hash": "de4380225e9620dc3d541c7aa4ca813b6face10d36cdacdc4ea28bbf72c84855"
+    },
+    "component_refs": {
+      "acceptance_protocol": "stair_unified_acceptance_protocol_v7.json",
+      "evaluation_suite": "stair_go2_12dof_unified_evaluation_suite_v2.json",
+      "training_profile": "stair_go2_12dof_unified_training_profile_v1.json",
+      "vnext_reward_authority": "stair_go2_12dof_vnext_reward_authority_v1.json"
+    },
+    "episode_outcomes": {
+      "classification_warning_blocks_pass": true,
+      "counting_invariant": "success_count_plus_primary_failure_counts_equals_total_episode_count",
+      "diagnostic_flags": [
+        "base_orientation_instability_detected",
+        "slip_detected",
+        "insufficient_clearance_detected",
+        "off_course_detected",
+        "goal_not_reached_detected",
+        "first_valid_top_arrival_achieved"
+      ],
+      "failure_priority": [
+        "forbidden_contact",
+        "off_course",
+        "base_orientation_instability",
+        "slip",
+        "insufficient_clearance",
+        "timeout"
+      ],
+      "primary_reasons": [
+        "success",
+        "forbidden_contact",
+        "off_course",
+        "base_orientation_instability",
+        "slip",
+        "insufficient_clearance",
+        "timeout"
+      ],
+      "signals": {
+        "base_orientation_instability": {
+          "comparison": "greater_than",
+          "consecutive_control_steps": 10,
+          "source": "kinematic_base_roll_or_pitch_abs",
+          "threshold": 0.65,
+          "unit": "rad"
+        },
+        "forbidden_contact": {
+          "force_threshold_n": 1.0,
+          "manager_term": "base_contact",
+          "other_body_contacts_policy": "allowed_unless_another_failure_signal_triggers",
+          "source": "resolved_forbidden_contact_role_force",
+          "trigger": "manager_term_active"
+        },
+        "insufficient_clearance": {
+          "comparison": "less_than",
+          "consecutive_control_steps": 3,
+          "source": "noncontact_support_effector_clearance_above_projected_local_stair_surface",
+          "threshold": 0.018,
+          "unit": "m"
+        },
+        "off_course": {
+          "comparison": "outside",
+          "consecutive_control_steps": 1,
+          "source": "kinematic_base_xy_outside_own_terrain_patch",
+          "unit": "m"
+        },
+        "slip": {
+          "consecutive_control_steps": 5,
+          "contact_force_threshold": 1.0,
+          "force_unit": "N",
+          "source": "support_effector_planar_speed_while_in_contact",
+          "speed_threshold": 0.5,
+          "speed_unit": "m/s"
+        },
+        "timeout": {
+          "deadline_authority": "ordered_evaluation_suite",
+          "source": "evaluation_suite_cell_episode_horizon",
+          "unit": "s"
+        }
+      },
+      "success": {
+        "completion_mode": "first_valid_top_arrival_latched",
+        "minimum_progress_fraction": 1.0,
+        "minimum_support_effector_upward_force_n": 10.0,
+        "minimum_support_effectors_on_top": 1,
+        "post_arrival_failure_policy": "not_evaluated_outcome_closes_on_first_valid_top_arrival",
+        "pre_arrival_blocking_latches": [
+          "forbidden_contact",
+          "off_course"
+        ],
+        "requires_kinematic_base_within_top_platform_bounds": true,
+        "requires_orientation_stable": true,
+        "requires_support_effectors_within_top_platform_bounds": true,
+        "support_effector_surface_clearance_range_m": [
+          0.0,
+          0.071
+        ]
+      },
+      "support_surface_projection": {
+        "maximum_projected_surface_penetration_m": 0.018,
+        "no_contact_fallback": "lowest_vertically_feasible_projected_support_surface"
+      }
+    },
+    "protocol_hash": "c55b5de9f1685cf5eed413dcf5b2222795d556f585f6da131de54195de84a9be",
+    "protocol_id": "unitree_go2_stair_climbing_unified_v3",
+    "protocol_state": "active",
+    "reference_program": {
+      "entrypoint": "training_code.components:build_training_components",
+      "reference_id": "go2-stair-official-flat-derived-v1",
+      "repository_source_path": "src/true_rl_agent/tasks/stair_climbing/reference_programs/go2_stair_official_flat_derived_v1/training_code/components.py",
+      "required_authorship_origin": "human_authored",
+      "session_role": "reference"
+    },
+    "reference_readiness": {
+      "easy_strata": [
+        "c0_id",
+        "c1_id"
+      ],
+      "minimum_macro_goal_progress_fraction": 0.5,
+      "minimum_macro_success_rate": 0.05,
+      "ood_requirement": "finite_complete_non_structurally_degenerate_telemetry",
+      "predicate": "each_easy_stratum_meets_both_floors",
+      "seed_count": 5,
+      "source_cohort": "public_accept"
+    },
+    "required_pass_gates": [
+      "accept_evidence_gate",
+      "budget_accounting",
+      "runtime_activation_gate",
+      "stair_behavior_gate",
+      "sealed_validation_gate"
+    ],
+    "runtime_controls": {
+      "eval_observation_corruption_enabled": false,
+      "evaluation_command": {
+        "forward_mps": 0.8,
+        "lateral_mps": 0.0,
+        "yaw_radps": 0.0
+      },
+      "external_force_events_enabled": false,
+      "push_events_enabled": false,
+      "reset_velocity_ranges": {
+        "pitch": [
+          0.0,
+          0.0
+        ],
+        "roll": [
+          0.0,
+          0.0
+        ],
+        "x": [
+          0.0,
+          0.0
+        ],
+        "y": [
+          0.0,
+          0.0
+        ],
+        "yaw": [
+          0.0,
+          0.0
+        ],
+        "z": [
+          0.0,
+          0.0
+        ]
+      },
+      "spawn": {
+        "x_range_m_from_origin": [
+          -0.1,
+          0.1
+        ],
+        "y_range_m_from_origin": [
+          -0.1,
+          0.1
+        ],
+        "yaw_range_rad": [
+          0.0,
+          0.0
+        ]
+      },
+      "train_observation_corruption_enabled": true
+    },
+    "schema_version": "true_rl_agent.task.stair_climbing.unified_protocol.v1",
+    "task_id": "unitree_stair_climbing",
+    "task_protocol_hash": "c44716cb7a4c5af7575a96c78de724bf115f15776085c9380b960e4dee59c244",
+    "training": {
+      "budget_steps": 196608000,
+      "checkpoint_selector": "final_iteration",
+      "command": {
+        "forward_mps_range": [
+          0.0,
+          0.8
+        ],
+        "heading_command_enabled": false,
+        "lateral_command_mps": 0.0,
+        "standing_env_fraction": 0.02,
+        "yaw_command_radps": 0.0
+      },
+      "episode_horizon_s": 12.0,
+      "eval_profile": "stair_unified_v1_eval",
+      "max_iterations": 2000,
+      "num_envs": 4096,
+      "policy_initialization": "random",
+      "runner_timeout_s": 7200,
+      "steps_per_env": 24,
+      "train_profile": "stair_unified_v1_train"
+    },
+    "training_execution": {
+      "checkpoint_save_interval_iterations": 50,
+      "clip_actions": null,
+      "cudnn_allow_tf32": true,
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": false,
+      "empirical_normalization": null,
+      "init_at_random_episode_length": true,
+      "logger": "tensorboard",
+      "observation_groups": {
+        "critic": [
+          "policy"
+        ],
+        "policy": [
+          "policy"
+        ]
+      },
+      "resume": false,
+      "runner": "rsl_rl_on_policy_runner",
+      "torch_matmul_allow_tf32": true
+    },
+    "training_lineage": {
+      "mode": "evaluation_only_successor",
+      "source_base_task_protocol_hash": "7c70f5ba42bd307b276001efa1765ece78d24e02dca9ae7e538323d3552bb032",
+      "source_cell_variant_id": "stair.go2_12dof.unified_v2",
+      "source_resolved_cell_manifest_hash": "193fa9038a6f46539fb71a7e73edc44bdc024be2b899785394b8f82113c91f37",
+      "source_resolved_cell_task_protocol_hash": "fb0a30071b27af5b600a7dba65dd03d8a1184ab195c9fd987f770e5eeb667429",
+      "source_training_profile_hash": "081f65711be0708e005f6b04f94743e64446994380ee1b4f58fa3eed173b6164"
+    }
+  },
+  "stair_go2_12dof_unified_evaluation_suite_v2.json": {
+    "calibration_seed_count": 3,
+    "calibration_templates": [
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.05639999999999999,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "c0_id",
+        "template_id": "c0_id_level_0",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.08456,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "c0_id",
+        "template_id": "c0_id_level_1",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.11271999999999999,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "c0_id",
+        "template_id": "c0_id_level_2",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.14088,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "c0_id",
+        "template_id": "c0_id_level_3",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.16904,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "c0_id",
+        "template_id": "c0_id_level_4",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.1972,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "c0_id",
+        "template_id": "c0_id_level_5",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 0,
+          "riser_base_m": 0.05765,
+          "tread_base_m": 0.37
+        },
+        "stratum_id": "c1_id",
+        "template_id": "c1_id_level_0",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.06901,
+          "tread_base_m": 0.4
+        },
+        "stratum_id": "c1_id",
+        "template_id": "c1_id_level_1",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.08037,
+          "tread_base_m": 0.43
+        },
+        "stratum_id": "c1_id",
+        "template_id": "c1_id_level_2",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 0,
+          "riser_base_m": 0.09173,
+          "tread_base_m": 0.37
+        },
+        "stratum_id": "c1_id",
+        "template_id": "c1_id_level_3",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.10309,
+          "tread_base_m": 0.4
+        },
+        "stratum_id": "c1_id",
+        "template_id": "c1_id_level_4",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.11445,
+          "tread_base_m": 0.43
+        },
+        "stratum_id": "c1_id",
+        "template_id": "c1_id_level_5",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.21022775999999999,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "height_ood",
+        "template_id": "height_ood_level_0",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.21234164,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "height_ood",
+        "template_id": "height_ood_level_1",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.21445551999999998,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "height_ood",
+        "template_id": "height_ood_level_2",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.2165694,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "height_ood",
+        "template_id": "height_ood_level_3",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.21868327999999998,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "height_ood",
+        "template_id": "height_ood_level_4",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.22079716,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "height_ood",
+        "template_id": "height_ood_level_5",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.1708,
+          "tread_depth_m": 0.3577224
+        },
+        "stratum_id": "tread_ood",
+        "template_id": "tread_ood_level_0",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.1708,
+          "tread_depth_m": 0.34081136
+        },
+        "stratum_id": "tread_ood",
+        "template_id": "tread_ood_level_1",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.1708,
+          "tread_depth_m": 0.32390032
+        },
+        "stratum_id": "tread_ood",
+        "template_id": "tread_ood_level_2",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.1708,
+          "tread_depth_m": 0.30698928000000003
+        },
+        "stratum_id": "tread_ood",
+        "template_id": "tread_ood_level_3",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.1708,
+          "tread_depth_m": 0.29007824000000004
+        },
+        "stratum_id": "tread_ood",
+        "template_id": "tread_ood_level_4",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.1708,
+          "tread_depth_m": 0.27316720000000005
+        },
+        "stratum_id": "tread_ood",
+        "template_id": "tread_ood_level_5",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "joint_scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.20811388,
+          "tread_depth_m": 0.3894306
+        },
+        "stratum_id": "joint_ood",
+        "template_id": "joint_ood_level_0",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "joint_scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.209382208,
+          "tread_depth_m": 0.37463344000000004
+        },
+        "stratum_id": "joint_ood",
+        "template_id": "joint_ood_level_1",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "joint_scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.210650536,
+          "tread_depth_m": 0.35983628
+        },
+        "stratum_id": "joint_ood",
+        "template_id": "joint_ood_level_2",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "joint_scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.21191886399999998,
+          "tread_depth_m": 0.34503912000000003
+        },
+        "stratum_id": "joint_ood",
+        "template_id": "joint_ood_level_3",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "joint_scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.213187192,
+          "tread_depth_m": 0.33024196
+        },
+        "stratum_id": "joint_ood",
+        "template_id": "joint_ood_level_4",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "joint_scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.21445551999999998,
+          "tread_depth_m": 0.3154448
+        },
+        "stratum_id": "joint_ood",
+        "template_id": "joint_ood_level_5",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "known_family_held_out_phase",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 1,
+          "riser_base_m": 0.10024999999999999,
+          "tread_base_m": 0.37
+        },
+        "stratum_id": "phase_composition_ood",
+        "template_id": "phase_composition_ood_level_0",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "known_family_held_out_phase",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 2,
+          "riser_base_m": 0.10309,
+          "tread_base_m": 0.4
+        },
+        "stratum_id": "phase_composition_ood",
+        "template_id": "phase_composition_ood_level_1",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "known_family_held_out_phase",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 2,
+          "riser_base_m": 0.10593,
+          "tread_base_m": 0.43
+        },
+        "stratum_id": "phase_composition_ood",
+        "template_id": "phase_composition_ood_level_2",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "known_family_held_out_phase",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 1,
+          "riser_base_m": 0.10876999999999999,
+          "tread_base_m": 0.37
+        },
+        "stratum_id": "phase_composition_ood",
+        "template_id": "phase_composition_ood_level_3",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "known_family_held_out_phase",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 2,
+          "riser_base_m": 0.11161,
+          "tread_base_m": 0.4
+        },
+        "stratum_id": "phase_composition_ood",
+        "template_id": "phase_composition_ood_level_4",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "known_family_held_out_phase",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 2,
+          "riser_base_m": 0.11445,
+          "tread_base_m": 0.43
+        },
+        "stratum_id": "phase_composition_ood",
+        "template_id": "phase_composition_ood_level_5",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "conditional_on_c1_support",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 0,
+          "riser_base_m": 0.147382932,
+          "riser_offset_m": 0.012987863999999998,
+          "tread_base_m": 0.37,
+          "tread_offset_m": 0.022439148
+        },
+        "stratum_id": "c1_conditional_frontier",
+        "template_id": "c1_conditional_frontier_level_0",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "conditional_on_c1_support",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.170001448,
+          "riser_offset_m": 0.018695339999999998,
+          "tread_base_m": 0.4,
+          "tread_offset_m": 0.026666907999999996
+        },
+        "stratum_id": "c1_conditional_frontier",
+        "template_id": "c1_conditional_frontier_level_1",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "conditional_on_c1_support",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.19536800799999998,
+          "riser_offset_m": 0.024402815999999997,
+          "tread_base_m": 0.43,
+          "tread_offset_m": 0.030894667999999997
+        },
+        "stratum_id": "c1_conditional_frontier",
+        "template_id": "c1_conditional_frontier_level_2",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "conditional_on_c1_support",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 0,
+          "riser_base_m": 0.1761317,
+          "riser_offset_m": 0.019752279999999997,
+          "tread_base_m": 0.37,
+          "tread_offset_m": 0.02751246
+        },
+        "stratum_id": "c1_conditional_frontier",
+        "template_id": "c1_conditional_frontier_level_3",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "conditional_on_c1_support",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.20044131999999998,
+          "riser_offset_m": 0.027150860000000002,
+          "tread_base_m": 0.4,
+          "tread_offset_m": 0.03174022
+        },
+        "stratum_id": "c1_conditional_frontier",
+        "template_id": "c1_conditional_frontier_level_4",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "conditional_on_c1_support",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.22580788,
+          "riser_offset_m": 0.03454944,
+          "tread_base_m": 0.43,
+          "tread_offset_m": 0.03596798
+        },
+        "stratum_id": "c1_conditional_frontier",
+        "template_id": "c1_conditional_frontier_level_5",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "surface_mechanism_shift",
+        "geometry": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.1972,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.067048,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 14,
+            "lateral_vertices": 57,
+            "longitudinal_cycles": 3,
+            "longitudinal_vertices": 13,
+            "phase_count": 8,
+            "phase_index": 1,
+            "step_phase_stride": 1
+          }
+        },
+        "stratum_id": "c2_mechanism_ood",
+        "template_id": "c2_mechanism_ood_level_0",
+        "terrain_regime_id": "c2_rough"
+      },
+      {
+        "claim_kind": "surface_mechanism_shift",
+        "geometry": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.1972,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.0702032,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 14,
+            "lateral_vertices": 57,
+            "longitudinal_cycles": 3,
+            "longitudinal_vertices": 13,
+            "phase_count": 8,
+            "phase_index": 1,
+            "step_phase_stride": 1
+          }
+        },
+        "stratum_id": "c2_mechanism_ood",
+        "template_id": "c2_mechanism_ood_level_1",
+        "terrain_regime_id": "c2_rough"
+      },
+      {
+        "claim_kind": "surface_mechanism_shift",
+        "geometry": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.1972,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.07335839999999999,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 14,
+            "lateral_vertices": 57,
+            "longitudinal_cycles": 3,
+            "longitudinal_vertices": 13,
+            "phase_count": 8,
+            "phase_index": 1,
+            "step_phase_stride": 1
+          }
+        },
+        "stratum_id": "c2_mechanism_ood",
+        "template_id": "c2_mechanism_ood_level_2",
+        "terrain_regime_id": "c2_rough"
+      },
+      {
+        "claim_kind": "surface_mechanism_shift",
+        "geometry": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.1972,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.0765136,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 14,
+            "lateral_vertices": 57,
+            "longitudinal_cycles": 3,
+            "longitudinal_vertices": 13,
+            "phase_count": 8,
+            "phase_index": 1,
+            "step_phase_stride": 1
+          }
+        },
+        "stratum_id": "c2_mechanism_ood",
+        "template_id": "c2_mechanism_ood_level_3",
+        "terrain_regime_id": "c2_rough"
+      },
+      {
+        "claim_kind": "surface_mechanism_shift",
+        "geometry": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.1972,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.0796688,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 14,
+            "lateral_vertices": 57,
+            "longitudinal_cycles": 3,
+            "longitudinal_vertices": 13,
+            "phase_count": 8,
+            "phase_index": 1,
+            "step_phase_stride": 1
+          }
+        },
+        "stratum_id": "c2_mechanism_ood",
+        "template_id": "c2_mechanism_ood_level_4",
+        "terrain_regime_id": "c2_rough"
+      },
+      {
+        "claim_kind": "surface_mechanism_shift",
+        "geometry": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.1972,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.082824,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 14,
+            "lateral_vertices": 57,
+            "longitudinal_cycles": 3,
+            "longitudinal_vertices": 13,
+            "phase_count": 8,
+            "phase_index": 1,
+            "step_phase_stride": 1
+          }
+        },
+        "stratum_id": "c2_mechanism_ood",
+        "template_id": "c2_mechanism_ood_level_5",
+        "terrain_regime_id": "c2_rough"
+      }
+    ],
+    "cell_set_hash": "44653fe772a646ecc26e6b67b03a940fc6ab1822e3eb3a7ae098f12674d83150",
+    "cell_templates": [
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.132001704,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "c0_id",
+        "template_id": "c0_id_level_3",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.171999432,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "c0_id",
+        "template_id": "c0_id_level_4",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.20507615199999998,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "c0_id",
+        "template_id": "c0_id_level_5",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "conditional_on_c1_support",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 0,
+          "riser_base_m": 0.167253404,
+          "riser_offset_m": 0.019752279999999997,
+          "tread_base_m": 0.3805694,
+          "tread_offset_m": 0.02751246
+        },
+        "stratum_id": "c1_conditional_frontier",
+        "template_id": "c1_conditional_frontier_level_3",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "conditional_on_c1_support",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.203400752,
+          "riser_offset_m": 0.027150860000000002,
+          "tread_base_m": 0.3894306,
+          "tread_offset_m": 0.03174022
+        },
+        "stratum_id": "c1_conditional_frontier",
+        "template_id": "c1_conditional_frontier_level_4",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "conditional_on_c1_support",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.235531728,
+          "riser_offset_m": 0.03454944,
+          "tread_base_m": 0.433804984,
+          "tread_offset_m": 0.03596798
+        },
+        "stratum_id": "c1_conditional_frontier",
+        "template_id": "c1_conditional_frontier_level_5",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 0,
+          "riser_base_m": 0.082851704,
+          "tread_base_m": 0.37
+        },
+        "stratum_id": "c1_id",
+        "template_id": "c1_id_level_3",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.106049432,
+          "tread_base_m": 0.4
+        },
+        "stratum_id": "c1_id",
+        "template_id": "c1_id_level_4",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "in_distribution",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.11182615199999998,
+          "tread_base_m": 0.43
+        },
+        "stratum_id": "c1_id",
+        "template_id": "c1_id_level_5",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "surface_mechanism_shift",
+        "geometry": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.20507615199999998,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.076288328544,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 14,
+            "lateral_vertices": 57,
+            "longitudinal_cycles": 3,
+            "longitudinal_vertices": 13,
+            "phase_count": 8,
+            "phase_index": 1,
+            "step_phase_stride": 1
+          }
+        },
+        "stratum_id": "c2_mechanism_ood",
+        "template_id": "c2_mechanism_ood_level_2",
+        "terrain_regime_id": "c2_rough"
+      },
+      {
+        "claim_kind": "surface_mechanism_shift",
+        "geometry": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.20507615199999998,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.082850765408,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 14,
+            "lateral_vertices": 57,
+            "longitudinal_cycles": 3,
+            "longitudinal_vertices": 13,
+            "phase_count": 8,
+            "phase_index": 1,
+            "step_phase_stride": 1
+          }
+        },
+        "stratum_id": "c2_mechanism_ood",
+        "template_id": "c2_mechanism_ood_level_4",
+        "terrain_regime_id": "c2_rough"
+      },
+      {
+        "claim_kind": "surface_mechanism_shift",
+        "geometry": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.20507615199999998,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.08613198384,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 14,
+            "lateral_vertices": 57,
+            "longitudinal_cycles": 3,
+            "longitudinal_vertices": 13,
+            "phase_count": 8,
+            "phase_index": 1,
+            "step_phase_stride": 1
+          }
+        },
+        "stratum_id": "c2_mechanism_ood",
+        "template_id": "c2_mechanism_ood_level_5",
+        "terrain_regime_id": "c2_rough"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.208536656,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "height_ood",
+        "template_id": "height_ood_level_1",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.221642712,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "height_ood",
+        "template_id": "height_ood_level_4",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.230521008,
+          "tread_depth_m": 0.4
+        },
+        "stratum_id": "height_ood",
+        "template_id": "height_ood_level_5",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "joint_scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.211496088,
+          "tread_depth_m": 0.38520284000000005
+        },
+        "stratum_id": "joint_ood",
+        "template_id": "joint_ood_level_1",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "joint_scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.213609968,
+          "tread_depth_m": 0.34926688
+        },
+        "stratum_id": "joint_ood",
+        "template_id": "joint_ood_level_2",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "joint_scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.221642712,
+          "tread_depth_m": 0.34884410400000004
+        },
+        "stratum_id": "joint_ood",
+        "template_id": "joint_ood_level_3",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "known_family_held_out_phase",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 1,
+          "riser_base_m": 0.099891704,
+          "tread_base_m": 0.37
+        },
+        "stratum_id": "phase_composition_ood",
+        "template_id": "phase_composition_ood_level_3",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "known_family_held_out_phase",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 2,
+          "riser_base_m": 0.114569432,
+          "tread_base_m": 0.4
+        },
+        "stratum_id": "phase_composition_ood",
+        "template_id": "phase_composition_ood_level_4",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "known_family_held_out_phase",
+        "geometry": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 2,
+          "riser_base_m": 0.11182615199999998,
+          "tread_base_m": 0.43
+        },
+        "stratum_id": "phase_composition_ood",
+        "template_id": "phase_composition_ood_level_5",
+        "terrain_regime_id": "c1_irregular_flat"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.161921704,
+          "tread_depth_m": 0.33446972
+        },
+        "stratum_id": "tread_ood",
+        "template_id": "tread_ood_level_2",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.17375943200000002,
+          "tread_depth_m": 0.29641988
+        },
+        "stratum_id": "tread_ood",
+        "template_id": "tread_ood_level_3",
+        "terrain_regime_id": "c0_regular"
+      },
+      {
+        "claim_kind": "scalar_extrapolation",
+        "geometry": {
+          "kind": "regular",
+          "riser_height_m": 0.18052384800000001,
+          "tread_depth_m": 0.27697218400000007
+        },
+        "stratum_id": "tread_ood",
+        "template_id": "tread_ood_level_5",
+        "terrain_regime_id": "c0_regular"
+      }
+    ],
+    "cohort_geometry_overrides": {
+      "public_accept": {
+        "c0_id_level_3": {
+          "kind": "regular",
+          "riser_height_m": 0.14383943200000002,
+          "tread_depth_m": 0.4
+        },
+        "c0_id_level_4": {
+          "kind": "regular",
+          "riser_height_m": 0.178763848,
+          "tread_depth_m": 0.4
+        },
+        "c0_id_level_5": {
+          "kind": "regular",
+          "riser_height_m": 0.18832170399999998,
+          "tread_depth_m": 0.4
+        },
+        "c1_conditional_frontier_level_3": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 0,
+          "riser_base_m": 0.17909113200000001,
+          "riser_offset_m": 0.019752279999999997,
+          "tread_base_m": 0.3594306,
+          "tread_offset_m": 0.02751246
+        },
+        "c1_conditional_frontier_level_4": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.21016516799999999,
+          "riser_offset_m": 0.027150860000000002,
+          "tread_base_m": 0.40380498400000003,
+          "tread_offset_m": 0.03174022
+        },
+        "c1_conditional_frontier_level_5": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.21692958399999998,
+          "riser_offset_m": 0.03454944,
+          "tread_base_m": 0.4405694,
+          "tread_offset_m": 0.03596798
+        },
+        "c1_id_level_3": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 0,
+          "riser_base_m": 0.094689432,
+          "tread_base_m": 0.37
+        },
+        "c1_id_level_4": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.112813848,
+          "tread_base_m": 0.4
+        },
+        "c1_id_level_5": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.10557170399999999,
+          "tread_base_m": 0.43
+        },
+        "c2_mechanism_ood_level_2": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.18832170399999998,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.07005567388799998,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 14,
+            "lateral_vertices": 57,
+            "longitudinal_cycles": 3,
+            "longitudinal_vertices": 13,
+            "phase_count": 8,
+            "phase_index": 3,
+            "step_phase_stride": 1
+          }
+        },
+        "c2_mechanism_ood_level_4": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.18832170399999998,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.076081968416,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 14,
+            "lateral_vertices": 57,
+            "longitudinal_cycles": 3,
+            "longitudinal_vertices": 13,
+            "phase_count": 8,
+            "phase_index": 3,
+            "step_phase_stride": 1
+          }
+        },
+        "c2_mechanism_ood_level_5": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.18832170399999998,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.07909511568,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 14,
+            "lateral_vertices": 57,
+            "longitudinal_cycles": 3,
+            "longitudinal_vertices": 13,
+            "phase_count": 8,
+            "phase_index": 3,
+            "step_phase_stride": 1
+          }
+        },
+        "height_ood_level_1": {
+          "kind": "regular",
+          "riser_height_m": 0.215301072,
+          "tread_depth_m": 0.4
+        },
+        "height_ood_level_4": {
+          "kind": "regular",
+          "riser_height_m": 0.228407128,
+          "tread_depth_m": 0.4
+        },
+        "height_ood_level_5": {
+          "kind": "regular",
+          "riser_height_m": 0.21191886399999998,
+          "tread_depth_m": 0.4
+        },
+        "joint_ood_level_1": {
+          "kind": "regular",
+          "riser_height_m": 0.21234164,
+          "tread_depth_m": 0.36406404000000003
+        },
+        "joint_ood_level_2": {
+          "kind": "regular",
+          "riser_height_m": 0.220374384,
+          "tread_depth_m": 0.363641264
+        },
+        "joint_ood_level_3": {
+          "kind": "regular",
+          "riser_height_m": 0.208959432,
+          "tread_depth_m": 0.35560852000000004
+        },
+        "phase_composition_ood_level_3": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 1,
+          "riser_base_m": 0.11172943199999999,
+          "tread_base_m": 0.37
+        },
+        "phase_composition_ood_level_4": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 2,
+          "riser_base_m": 0.114666152,
+          "tread_base_m": 0.4
+        },
+        "phase_composition_ood_level_5": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 2,
+          "riser_base_m": 0.10557170399999999,
+          "tread_base_m": 0.43
+        },
+        "tread_ood_level_2": {
+          "kind": "regular",
+          "riser_height_m": 0.17375943200000002,
+          "tread_depth_m": 0.31333092
+        },
+        "tread_ood_level_3": {
+          "kind": "regular",
+          "riser_height_m": 0.18052384800000001,
+          "tread_depth_m": 0.31079426400000004
+        },
+        "tread_ood_level_5": {
+          "kind": "regular",
+          "riser_height_m": 0.161921704,
+          "tread_depth_m": 0.28373660000000006
+        }
+      },
+      "sealed_validation": {
+        "c0_id_level_3": {
+          "kind": "regular",
+          "riser_height_m": 0.150603848,
+          "tread_depth_m": 0.4
+        },
+        "c0_id_level_4": {
+          "kind": "regular",
+          "riser_height_m": 0.160161704,
+          "tread_depth_m": 0.4
+        },
+        "c0_id_level_5": {
+          "kind": "regular",
+          "riser_height_m": 0.200159432,
+          "tread_depth_m": 0.4
+        },
+        "c1_conditional_frontier_level_3": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 0,
+          "riser_base_m": 0.185855548,
+          "riser_offset_m": 0.019752279999999997,
+          "tread_base_m": 0.373804984,
+          "tread_offset_m": 0.02751246
+        },
+        "c1_conditional_frontier_level_4": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.19156302399999997,
+          "riser_offset_m": 0.027150860000000002,
+          "tread_base_m": 0.41056940000000003,
+          "tread_offset_m": 0.03174022
+        },
+        "c1_conditional_frontier_level_5": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.228767312,
+          "riser_offset_m": 0.03454944,
+          "tread_base_m": 0.4194306,
+          "tread_offset_m": 0.03596798
+        },
+        "c1_id_level_3": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 0,
+          "riser_base_m": 0.10145384800000001,
+          "tread_base_m": 0.37
+        },
+        "c1_id_level_4": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.09421170400000001,
+          "tread_base_m": 0.4
+        },
+        "c1_id_level_5": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 0,
+          "riser_base_m": 0.117409432,
+          "tread_base_m": 0.43
+        },
+        "c2_mechanism_ood_level_2": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.200159432,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.074459308704,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 14,
+            "lateral_vertices": 57,
+            "longitudinal_cycles": 3,
+            "longitudinal_vertices": 13,
+            "phase_count": 8,
+            "phase_index": 5,
+            "step_phase_stride": 1
+          }
+        },
+        "c2_mechanism_ood_level_4": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.200159432,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.080864410528,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 14,
+            "lateral_vertices": 57,
+            "longitudinal_cycles": 3,
+            "longitudinal_vertices": 13,
+            "phase_count": 8,
+            "phase_index": 5,
+            "step_phase_stride": 1
+          }
+        },
+        "c2_mechanism_ood_level_5": {
+          "base_geometry": {
+            "kind": "regular",
+            "riser_height_m": 0.200159432,
+            "tread_depth_m": 0.4
+          },
+          "kind": "c2",
+          "surface_profile": {
+            "amplitude_m": 0.08406696144,
+            "kind": "bounded_piecewise_linear_v1",
+            "lateral_cycles": 14,
+            "lateral_vertices": 57,
+            "longitudinal_cycles": 3,
+            "longitudinal_vertices": 13,
+            "phase_count": 8,
+            "phase_index": 5,
+            "step_phase_stride": 1
+          }
+        },
+        "height_ood_level_1": {
+          "kind": "regular",
+          "riser_height_m": 0.222065488,
+          "tread_depth_m": 0.4
+        },
+        "height_ood_level_4": {
+          "kind": "regular",
+          "riser_height_m": 0.20980498399999997,
+          "tread_depth_m": 0.4
+        },
+        "height_ood_level_5": {
+          "kind": "regular",
+          "riser_height_m": 0.223756592,
+          "tread_depth_m": 0.4
+        },
+        "joint_ood_level_1": {
+          "kind": "regular",
+          "riser_height_m": 0.219106056,
+          "tread_depth_m": 0.37843842400000005
+        },
+        "joint_ood_level_2": {
+          "kind": "regular",
+          "riser_height_m": 0.21022775999999999,
+          "tread_depth_m": 0.37040568
+        },
+        "joint_ood_level_3": {
+          "kind": "regular",
+          "riser_height_m": 0.214878296,
+          "tread_depth_m": 0.33446972
+        },
+        "phase_composition_ood_level_3": {
+          "kind": "c1",
+          "pattern_id": "alternating",
+          "phase_steps": 1,
+          "riser_base_m": 0.117506152,
+          "tread_base_m": 0.37
+        },
+        "phase_composition_ood_level_4": {
+          "kind": "c1",
+          "pattern_id": "front_loaded",
+          "phase_steps": 2,
+          "riser_base_m": 0.10273170400000001,
+          "tread_base_m": 0.4
+        },
+        "phase_composition_ood_level_5": {
+          "kind": "c1",
+          "pattern_id": "back_loaded",
+          "phase_steps": 2,
+          "riser_base_m": 0.117409432,
+          "tread_base_m": 0.43
+        },
+        "tread_ood_level_2": {
+          "kind": "regular",
+          "riser_height_m": 0.18052384800000001,
+          "tread_depth_m": 0.32770530400000003
+        },
+        "tread_ood_level_3": {
+          "kind": "regular",
+          "riser_height_m": 0.161921704,
+          "tread_depth_m": 0.31755868000000004
+        },
+        "tread_ood_level_5": {
+          "kind": "regular",
+          "riser_height_m": 0.17375943200000002,
+          "tread_depth_m": 0.26259780000000005
+        }
+      }
+    },
+    "cohort_hashes": {
+      "calibration": "e2ae7796d925dae1ad7d022bd152318aa487973e519a3f18a2b3bbc8c607d102",
+      "public_accept": "791e9305b6a8418f160cb0752cec6999ee6f1b6a6c13ba3944f592c610691890",
+      "public_dev": "5614820b4ad70732e7f037929c0a346934878a86b94224357afa7d12c5da4abd",
+      "sealed_validation": "27de330ad2dcae025a1c7ae685b2a3d864e73138ee4161813db890846e359037"
+    },
+    "episodes_per_seed_per_cell": 12,
+    "evaluation_protocol_version": "stair_calibrated_terrain_eval_v2",
+    "final_holdout_policy": {
+      "generator": "sha256_study_nonce_per_base_geometry_v3",
+      "height_and_tread_shift_over_support_length": [
+        0.025,
+        0.045
+      ],
+      "replication_must_be_declared": true,
+      "roughness_scaling": "preserve_amplitude_over_minimum_riser",
+      "schema_version": "true_rl_agent.task.stair_climbing.final_holdout_policy.v2",
+      "seed_namespace": "study_scoped_final_v1",
+      "source_cohort": "sealed_validation"
+    },
+    "formal_cohorts": [
+      "public_dev",
+      "public_accept",
+      "sealed_validation"
+    ],
+    "geometry_policy": {
+      "anchor_horizon_control_steps": 600,
+      "control_dt_s": 0.02
+    },
+    "qualification_rule": {
+      "family_mask_mode": "require_all_objective_strata_with_success_transition",
+      "maximum_learnable_success_rate": 0.8,
+      "minimum_cells_per_stratum_per_cohort": 3,
+      "minimum_learnable_success_rate": 0.2,
+      "minimum_reference_score": 0.1,
+      "requires_at_least_one_qualified_ood_family": true
+    },
+    "scale_context": {
+      "gravity_mps2": 9.81,
+      "length_source": "nominal_root_to_support_body_center_z_m",
+      "robot_profile_hash": "3e9c110449be639fceb48d6792fc8f683f43bd34978286325bba99547d20f1c0",
+      "support_length_m": 0.422776
+    },
+    "schema_version": "true_rl_agent.task.stair_climbing.unified_evaluation_suite.v2",
+    "score_contract": {
+      "cell_score": "0.5*success_rate+0.5*mean_goal_progress_fraction",
+      "cell_to_stratum": "equal_weight_mean_over_cells",
+      "episode_to_cell": "equal_weight_mean_over_episodes",
+      "families": {
+        "F_c1": [
+          "c1_conditional_frontier"
+        ],
+        "F_c2": [
+          "c2_mechanism_ood"
+        ],
+        "F_scalar": [
+          "height_ood",
+          "tread_ood",
+          "joint_ood"
+        ]
+      },
+      "j_id": "0.5*S_C0-ID+0.5*S_C1-ID",
+      "j_ood": "equal_weight_mean_over_qualified_nonempty_families",
+      "j_primary": "J_OOD",
+      "named_guards": [
+        "j_ood",
+        "c0_id",
+        "c1_id",
+        "joint_ood",
+        "phase_control"
+      ],
+      "stratum_to_seed": "preserve_paired_seed_vector"
+    },
+    "seed_counts": {
+      "public_accept": 5,
+      "public_dev": 3,
+      "sealed_validation": 7
+    },
+    "suite_hash": "291bafe09ad9136c3e7e7902d0f2ea75d196b9979060692ea27cdf0f62c3c04b",
+    "suite_id": "stair_unified_unitree_go2_12dof_isaaclab_v1_refined_calibrated_formal_ratio_aligned_v2",
+    "training_profile_hash": "081f65711be0708e005f6b04f94743e64446994380ee1b4f58fa3eed173b6164"
+  }
+}

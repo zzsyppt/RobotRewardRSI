@@ -1,0 +1,46 @@
+{
+  "started_at_unix": 1788960800.3593087,
+  "total_gpu_lease_budget_hours": 2,
+  "jobs": [
+    {
+      "robot": "go2_12dof",
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "-X",
+        "utf8",
+        "/data/yuyangliu/isolated/p3_cohort_alignment_20260909/true_RL_Agent/PLAN/2new_world/P3/qualify_reference.py",
+        "--cell",
+        "stair.go2_12dof.unified_v3",
+        "--device",
+        "cuda:0",
+        "--output",
+        "/data/yuyangliu/isolated/p3_cohort_alignment_20260909/true_RL_Agent/PLAN/2new_world/P3/results/cohort_alignment_20260909/go2_12dof_qualification",
+        "--checkpoint",
+        "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit3_go2_full_train/runner/audit3_go2_full_train/checkpoints/best.pt",
+        "--checkpoint-summary",
+        "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit3_go2_full_train/runner/audit3_go2_full_train/train/summary.json"
+      ],
+      "wall_timeout_s": 3600
+    },
+    {
+      "robot": "g1_37dof",
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "-X",
+        "utf8",
+        "/data/yuyangliu/isolated/p3_cohort_alignment_20260909/true_RL_Agent/PLAN/2new_world/P3/qualify_reference.py",
+        "--cell",
+        "stair.g1_37dof.unified_v3",
+        "--device",
+        "cuda:1",
+        "--output",
+        "/data/yuyangliu/isolated/p3_cohort_alignment_20260909/true_RL_Agent/PLAN/2new_world/P3/results/cohort_alignment_20260909/g1_37dof_qualification",
+        "--checkpoint",
+        "/data/yuyangliu/isolated/new_world_p3_reference/true_RL_Agent/PLAN/2new_world/P3/results/g1_reference_train/runner/g1_reference_train/checkpoints/best.pt",
+        "--checkpoint-summary",
+        "/data/yuyangliu/isolated/new_world_p3_reference/true_RL_Agent/PLAN/2new_world/P3/results/g1_reference_train/runner/g1_reference_train/train/summary.json"
+      ],
+      "wall_timeout_s": 3600
+    }
+  ]
+}

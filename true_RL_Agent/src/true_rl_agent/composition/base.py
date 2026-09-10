@@ -36,6 +36,7 @@ class TaskCompositionError(ValueError):
 class TaskCompositionContext:
     project_root: Path
     output_dir: Path
+    read_only: bool = False
 
 
 @dataclass(frozen=True)

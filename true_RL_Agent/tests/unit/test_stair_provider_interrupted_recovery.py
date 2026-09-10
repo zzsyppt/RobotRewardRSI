@@ -6,8 +6,8 @@ from pathlib import Path
 from unittest.mock import Mock
 
 from true_rl_agent.prompt_artifacts import RoundAuthoringJournal
-from true_rl_agent.tasks.stair_climbing.generation_session import (
-    _StairCostGuardedProvider,
+from true_rl_agent.agent_core.generation_provider_budget import (
+    CostGuardedProvider,
 )
 
 
@@ -54,8 +54,9 @@ class StairProviderInterruptedRecoveryTests(unittest.TestCase):
                 ["interrupted_after_prompt", "interrupted_after_prompt"],
             )
             delegate = Mock()
-            provider = _StairCostGuardedProvider(
+            provider = CostGuardedProvider(
                 delegate=delegate,
+                provider_caps={"attempts_per_lane_per_generation": 5, "input_units_per_attempt_reserve": 300000, "output_units_per_attempt_cap": 32768},
                 output_dir=output_dir,
                 generation_id="pilot-generation-001",
                 lane_id="lane-a",
@@ -85,8 +86,9 @@ class StairProviderInterruptedRecoveryTests(unittest.TestCase):
             expected = object()
             delegate = Mock()
             delegate.next_authoring_response.return_value = expected
-            provider = _StairCostGuardedProvider(
+            provider = CostGuardedProvider(
                 delegate=delegate,
+                provider_caps={"attempts_per_lane_per_generation": 5, "input_units_per_attempt_reserve": 300000, "output_units_per_attempt_cap": 32768},
                 output_dir=output_dir,
                 generation_id="pilot-generation-001",
                 lane_id="lane-a",

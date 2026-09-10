@@ -45,8 +45,11 @@ class PushRecoveryTaskConfig:
     runtime_config_path: str | None = None
     train_profile: str = "strong_push"
     eval_profile: str = "strong_push"
+    reference_program_genesis: bool = False
 
     def __post_init__(self) -> None:
+        if not isinstance(self.reference_program_genesis, bool):
+            raise TypeError("reference_program_genesis must be boolean")
         for field_name in (
             "success_predicate",
             "eval_seed_visibility",

@@ -1,0 +1,37 @@
+{
+  "status": "PASS",
+  "current_test_count": 1594,
+  "unit_test_count": 1503,
+  "integration_test_count": 91,
+  "current_tests_with_target_success": 1594,
+  "missing_target_success": [],
+  "test_id_inventory_sha256": "7504eb912419081d297ac5eaabd987593aabf50344d26efd2e480a0f422d19a9",
+  "target_evidence_logs": [
+    {
+      "log": "target_full_results.log",
+      "sha256": "81ab547e7f80eb7f50d8556fbd8d87b80b604362ff82b24c2c2a66faa938d905",
+      "successful_test_ids": 1588
+    },
+    {
+      "log": "target_unit_after_migration.log",
+      "sha256": "be126492fade9a659cb08acd4691565cb74a2eebfe5cc71a5d88c8478cf6f759",
+      "successful_test_ids": 1499
+    },
+    {
+      "log": "target_cli_provider_followup.log",
+      "sha256": "a6af47a23a9212fdfe089c613119ab5bcb5b72f02ed9468bfb58bd3356d26673",
+      "successful_test_ids": 62
+    },
+    {
+      "log": "target_holdout_followup.log",
+      "sha256": "9c9ec62f65616e8c43ccdc60c71fdb895dddd44d90903beb96780682ae2e1054",
+      "successful_test_ids": 27
+    },
+    {
+      "log": "target_finalization_followup.log",
+      "sha256": "67fdf5685b652156f82490b6d278cba91943c0d76af3eda473ca56ae5af92ad8",
+      "successful_test_ids": 4
+    }
+  ],
+  "scope": "Full target run followed by complete corrected unit suite, CLI/provider checks, holdout fix plus failed integration scenario, and restored final contracts. The raw first full run remains FAIL (two errors); counts are unique current test IDs, not summed test executions."
+}

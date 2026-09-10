@@ -106,8 +106,12 @@ class StairUnifiedTrainingProfile:
         tread_base_m: float,
         pattern_id: str,
         phase_steps: int,
+        riser_offset_m: float | None = None,
+        tread_offset_m: float | None = None,
     ) -> dict[str, Any]:
         c1 = _mapping(self.terrain["c1"], "terrain.c1")
+        riser_offset = float(c1["riser_offset_m"] if riser_offset_m is None else riser_offset_m)
+        tread_offset = float(c1["tread_offset_m"] if tread_offset_m is None else tread_offset_m)
         values = tuple(
             float(value) for value in self.pattern(pattern_id)["multipliers"]
         )
@@ -118,14 +122,14 @@ class StairUnifiedTrainingProfile:
             "phase_steps": int(phase_steps),
             "riser_heights_m": [
                 round(
-                    float(riser_base_m) + value * float(c1["riser_offset_m"]),
+                    float(riser_base_m) + value * riser_offset,
                     6,
                 )
                 for value in rotated
             ],
             "tread_depths_m": [
                 round(
-                    float(tread_base_m) + value * float(c1["tread_offset_m"]),
+                    float(tread_base_m) + value * tread_offset,
                     6,
                 )
                 for value in tread_pattern

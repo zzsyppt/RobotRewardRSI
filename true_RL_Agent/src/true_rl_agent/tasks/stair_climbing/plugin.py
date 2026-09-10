@@ -475,5 +475,38 @@ class StairClimbingTaskPlugin(TaskPlugin):
             objective_family_mask_provider=self.objective_family_mask,
         )
 
+    def bind_genesis_evidence(self, public_evidence: Mapping[str, Any]) -> None:
+        if self.config.is_unified_protocol:
+            from true_rl_agent.tasks.stair_climbing.unified_scoring import objective_family_mask_from_public_result
+
+            self.bind_objective_family_mask(objective_family_mask_from_public_result(
+                suite=self.config.ordered_evaluation_suite,
+                public_result=public_evidence.get("public_result"),
+            ))
+
+    def bind_final_eval_plan(self, eval_plan, *, plan, plan_path):
+        from true_rl_agent.tasks.stair_climbing.generation_finalization import bind_stair_final_job
+
+        return bind_stair_final_job(eval_plan, config=self.config, plan=plan, plan_path=plan_path)
+
+    def summarize_final_comparison(self, *, plan, plan_path, reference, final):
+        from true_rl_agent.tasks.stair_climbing.generation_finalization import summarize_stair_final_comparison
+
+        return summarize_stair_final_comparison(config=self.config, plan=plan,
+            plan_path=plan_path, reference=reference, final=final,
+            objective_family_mask=self.objective_family_mask())
+
+    def prepare_final_confirmation(
+        self, *, output_dir, session_id, required_closed_generations,
+        resume_existing, replication_source=None,
+    ):
+        from true_rl_agent.tasks.stair_climbing.generation_finalization import prepare_stair_final_plan
+
+        return prepare_stair_final_plan(
+            output_dir=output_dir, session_id=session_id, config=self.config,
+            required_closed_generations=required_closed_generations,
+            resume_existing=resume_existing, replication_source=replication_source,
+        )
+
 
 __all__ = ["StairClimbingTaskPlugin"]

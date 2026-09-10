@@ -104,6 +104,17 @@ def validate_owned_process_identity(
     }
 
 
+def isolate_orchestrator_process_group() -> None:
+    """Give a Linux execution entrypoint its own recoverable process group.
+
+    Call before starting jobs or threads. An inherited shell/supervisor group
+    must not be recorded as a session-owned group in lifecycle evidence.
+    Windows lifecycle ownership uses the process and job objects instead.
+    """
+    if sys.platform.startswith("linux") and os.getpgid(0) != os.getpid():
+        os.setsid()
+
+
 def run_owned_process(
     argv: Sequence[str],
     *,

@@ -6,11 +6,15 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 from true_rl_agent.evaluation.binding import canonical_json_hash
+from true_rl_agent.evaluation.phase_assembly import (
+    bind_phase_receipts,
+    merge_phase_costs,
+    require_phase_result_matches_plan,
+)
 from true_rl_agent.evaluation.phases import (
     EVALUATION_PHASE_SUMMARY_SCHEMA_VERSION,
     EvaluationAssembly,
     EvaluationPhase,
-    EvaluationPhaseReceiptBinding,
     EvaluationPhaseResult,
 )
 from true_rl_agent.evaluation.sealed_validation import (
@@ -20,7 +24,7 @@ from true_rl_agent.evaluation.sealed_validation import (
 from true_rl_agent.runner.checkpoint import validate_checkpoint_safety_report
 from true_rl_agent.runner.eval_isolation import build_candidate_isolation_gate
 from true_rl_agent.runner.job_identity import JobIdentity
-from true_rl_agent.runner.specs import EvalJobSpec, EvalPhaseJobSpec
+from true_rl_agent.runner.specs import EvalJobSpec
 from true_rl_agent.tasks.stair_climbing.config import (
     STAIR_TASK_ID,
     StairClimbingTaskConfig,
@@ -99,6 +103,8 @@ def build_stair_eval_phase_summary(
         "evaluation_execution_cost": execution.execution_cost_artifact(),
         **({"checkpoint_loading": dict(execution.checkpoint_loading)}
            if execution.checkpoint_loading is not None else {}),
+        **({"constructed_learner": dict(execution.constructed_learner)}
+           if execution.constructed_learner is not None else {}),
         "status": "pass",
         "task_evidence": task_evidence,
         "task_evidence_hash": canonical_json_hash(task_evidence),
@@ -198,6 +204,8 @@ def build_stair_full_eval_summary(
     )
     if execution.checkpoint_loading is not None:
         summary["checkpoint_loading"] = dict(execution.checkpoint_loading)
+    if execution.constructed_learner is not None:
+        summary["constructed_learner"] = dict(execution.constructed_learner)
     return summary
 
 
@@ -266,7 +274,7 @@ def assemble_stair_eval_phase_results(
     if selected_screen.evidence_hash not in selection_result.screen_evidence_hashes:
         raise ValueError("Stair formal assembly selection evidence mismatch")
 
-    bindings = _phase_receipt_bindings(
+    bindings = bind_phase_receipts(
         eval_plan=eval_plan,
         by_phase=by_phase,
         phase_receipt_refs=phase_receipt_refs,
@@ -297,7 +305,7 @@ def assemble_stair_reference_eval_phase_results(
         phase_results=phase_results,
         objective_family_mask=None,
     )
-    bindings = _phase_receipt_bindings(
+    bindings = bind_phase_receipts(
         eval_plan=eval_plan,
         by_phase=by_phase,
         phase_receipt_refs=phase_receipt_refs,
@@ -337,7 +345,7 @@ def _validated_complete_phase_summary(
             raise TypeError("Stair phase assembly received an invalid result")
         if result.phase in by_phase:
             raise ValueError("Stair phase assembly contains a duplicate phase")
-        _require_phase_result_matches_plan(result, eval_plan)
+        require_phase_result_matches_plan(result, eval_plan)
         by_phase[result.phase] = result
     if set(by_phase) != set(EvaluationPhase):
         raise ValueError(
@@ -371,7 +379,7 @@ def _validated_complete_phase_summary(
         backend_execution_environment_verification=(
             first.backend_execution_environment_verification
         ),
-        evaluation_execution_cost=_merge_phase_costs(by_phase),
+        evaluation_execution_cost=merge_phase_costs(by_phase),
         checkpoint_safety_report=first.checkpoint_safety_report,
         evaluation_subject=eval_plan.subject,
         subject_manifest_hash=eval_plan.subject_manifest_hash,
@@ -385,58 +393,6 @@ def _validated_complete_phase_summary(
         objective_family_mask=objective_family_mask,
     )
     return by_phase, summary
-
-
-def _phase_receipt_bindings(
-    *,
-    eval_plan: EvalJobSpec,
-    by_phase: Mapping[EvaluationPhase, EvaluationPhaseResult],
-    phase_receipt_refs: Mapping[EvaluationPhase | str, Mapping[str, Any]],
-) -> tuple[EvaluationPhaseReceiptBinding, ...]:
-    receipt_refs: dict[EvaluationPhase, Mapping[str, Any]] = {}
-    if not isinstance(phase_receipt_refs, Mapping):
-        raise TypeError("Stair phase receipt refs must be an object")
-    for raw_phase, raw_ref in phase_receipt_refs.items():
-        phase = EvaluationPhase.parse(raw_phase)
-        if phase in receipt_refs:
-            raise ValueError("Stair phase receipt refs contain a duplicate phase")
-        if not isinstance(raw_ref, Mapping):
-            raise TypeError("Stair phase receipt ref must be an object")
-        receipt_refs[phase] = raw_ref
-    if set(receipt_refs) != set(EvaluationPhase):
-        raise ValueError("Stair assembly requires one receipt ref per phase")
-
-    bindings: list[EvaluationPhaseReceiptBinding] = []
-    for phase in EvaluationPhase:
-        raw_ref = receipt_refs[phase]
-        if set(raw_ref) != {
-            "schema_version",
-            "kind",
-            "path",
-            "checksum",
-            "size_bytes",
-        } or raw_ref.get("kind") != "eval_phase":
-            raise ValueError("Stair phase receipt ref contract mismatch")
-        result = by_phase[phase]
-        phase_spec = EvalPhaseJobSpec(
-            job_id=result.job_id,
-            evaluation_plan=eval_plan,
-            phase=phase,
-        )
-        bindings.append(
-            EvaluationPhaseReceiptBinding(
-                phase=phase,
-                job_id=result.job_id,
-                path=raw_ref.get("path"),
-                checksum=raw_ref.get("checksum"),
-                size_bytes=raw_ref.get("size_bytes"),
-                ref_schema_version=raw_ref.get("schema_version"),
-                job_spec_hash=canonical_json_hash(phase_spec.to_public_dict()),
-                phase_result_hash=canonical_json_hash(result.to_private_dict()),
-                resource_binding_hash=result.resource_binding_hash,
-            )
-        )
-    return tuple(bindings)
 
 
 def _build_complete_stair_eval_summary(
@@ -777,28 +733,6 @@ def canonical_stair_phase_result_summary(
     )
 
 
-def _require_phase_result_matches_plan(
-    result: EvaluationPhaseResult,
-    eval_plan: EvalJobSpec,
-) -> None:
-    checkpoint = eval_plan.execution_checkpoint()
-    expected = {
-        "evaluation_plan_hash": canonical_json_hash(eval_plan.to_public_dict()),
-        "task_id": eval_plan.task_id,
-        "subject": eval_plan.subject,
-        "subject_manifest_hash": eval_plan.subject_manifest_hash,
-        "program_source_checksum": eval_plan.program_source_checksum,
-        "training_binding_hash": eval_plan.training_binding_hash,
-        "capability_profile_hash": eval_plan.capability_profile_hash,
-        "checkpoint_hash": checkpoint.checksum,
-        "eval_protocol_hash": eval_plan.evaluation_protocol().protocol_hash,
-        "evaluation_binding_hash": eval_plan.evaluation_binding.binding_hash,
-        "execution_device": eval_plan.execution_device,
-    }
-    if any(getattr(result, name) != value for name, value in expected.items()):
-        raise ValueError("Stair phase result differs from its evaluation plan")
-
-
 def _require_eval_plan_matches_config(
     config: StairClimbingTaskConfig,
     eval_plan: EvalJobSpec,
@@ -840,32 +774,6 @@ def _require_stair_execution_domain(
     )
     if execution.seed_cohort_hash != expected_cohort:
         raise ValueError("Stair phased evaluation seed cohort mismatch")
-
-
-def _merge_phase_costs(
-    by_phase: Mapping[EvaluationPhase, EvaluationPhaseResult],
-) -> dict[str, Any]:
-    merged_splits: dict[str, Any] = {}
-    common: dict[str, Any] | None = None
-    for phase in EvaluationPhase:
-        cost = by_phase[phase].execution_cost
-        if set(cost) != {"schema_version", "clock_source", "measurement_scope", "splits"}:
-            raise ValueError("Stair phase execution cost fields mismatch")
-        phase_common = {
-            "schema_version": cost["schema_version"],
-            "clock_source": cost["clock_source"],
-            "measurement_scope": cost["measurement_scope"],
-        }
-        if common is None:
-            common = phase_common
-        elif common != phase_common:
-            raise ValueError("Stair phase execution cost contracts differ")
-        split_costs = cost.get("splits")
-        if not isinstance(split_costs, Mapping) or set(split_costs) != {phase.value}:
-            raise ValueError("Stair phase execution cost split mismatch")
-        merged_splits[phase.value] = dict(split_costs[phase.value])
-    assert common is not None
-    return {**common, "splits": merged_splits}
 
 
 __all__ = [

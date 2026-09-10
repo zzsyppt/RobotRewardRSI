@@ -13,8 +13,9 @@ STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID = (
 )
 STAIR_G1_37DOF_UNIFIED_V1_CELL_VARIANT_ID = "stair.g1_37dof.unified_v1"
 STAIR_GO2_12DOF_UNIFIED_V1_CELL_VARIANT_ID = "stair.go2_12dof.unified_v1"
-STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID = "stair.g1_37dof.unified_v2"
-STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID = "stair.go2_12dof.unified_v2"
+STAIR_G1_37DOF_UNIFIED_V2_CELL_VARIANT_ID = "stair.g1_37dof.unified_v2"
+STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID = "stair.go2_12dof.unified_v2"
+DEFAULT_STAIR_CELL_VARIANT_ID = "stair.g1_37dof.unified_v3"
 
 
 @dataclass(frozen=True)
@@ -104,8 +105,8 @@ _ROWS = {
             "97de2d11aa349dec4bc75d34f9ad153eb4aaf49dfd1b71e7dcd9aa4e659dec71"
         ),
     ),
-    STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID: StairRobotRow(
-        cell_variant_id=STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID,
+    STAIR_G1_37DOF_UNIFIED_V2_CELL_VARIANT_ID: StairRobotRow(
+        cell_variant_id=STAIR_G1_37DOF_UNIFIED_V2_CELL_VARIANT_ID,
         robot_task_cell_id="unitree_stair_climbing.g1_37dof_v1",
         protocol_relative_path="configs/tasks/stair_unified_protocol_v2.json",
         binding_relative_path=(
@@ -115,8 +116,8 @@ _ROWS = {
         unified=True,
         active=True,
     ),
-    STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID: StairRobotRow(
-        cell_variant_id=STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+    STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID: StairRobotRow(
+        cell_variant_id=STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID,
         robot_task_cell_id="unitree_stair_climbing.go2_12dof_v1",
         protocol_relative_path=(
             "configs/tasks/stair_go2_12dof_unified_protocol_v2.json"
@@ -125,6 +126,24 @@ _ROWS = {
             "configs/tasks/stair_go2_12dof_unified_binding_v2.json"
         ),
         environment_id="stair_go2_12dof_unified_environment_v2",
+        unified=True,
+        active=True,
+    ),
+    "stair.g1_37dof.unified_v3": StairRobotRow(
+        cell_variant_id="stair.g1_37dof.unified_v3",
+        robot_task_cell_id="unitree_stair_climbing.g1_37dof_v1",
+        protocol_relative_path="configs/tasks/stair_unified_protocol_v3.json",
+        binding_relative_path="configs/tasks/stair_g1_37dof_unified_binding_v3.json",
+        environment_id="stair_unified_c0_c1_environment_v3",
+        unified=True,
+        active=True,
+    ),
+    "stair.go2_12dof.unified_v3": StairRobotRow(
+        cell_variant_id="stair.go2_12dof.unified_v3",
+        robot_task_cell_id="unitree_stair_climbing.go2_12dof_v1",
+        protocol_relative_path="configs/tasks/stair_go2_12dof_unified_protocol_v3.json",
+        binding_relative_path="configs/tasks/stair_go2_12dof_unified_binding_v3.json",
+        environment_id="stair_go2_12dof_unified_environment_v3",
         unified=True,
         active=True,
     ),
@@ -154,10 +173,11 @@ def active_unified_stair_cell_variant_ids() -> tuple[str, ...]:
 
 
 __all__ = [
+    "DEFAULT_STAIR_CELL_VARIANT_ID",
     "STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID",
-    "STAIR_G1_37DOF_UNIFIED_CELL_VARIANT_ID",
+    "STAIR_G1_37DOF_UNIFIED_V2_CELL_VARIANT_ID",
     "STAIR_G1_37DOF_UNIFIED_V1_CELL_VARIANT_ID",
-    "STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID",
+    "STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID",
     "STAIR_GO2_12DOF_UNIFIED_V1_CELL_VARIANT_ID",
     "StairRobotRow",
     "active_unified_stair_cell_variant_ids",

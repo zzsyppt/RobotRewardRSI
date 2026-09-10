@@ -11,6 +11,7 @@ from typing import Any, Callable, Sequence
 
 from true_rl_agent.agent_core.generation_contract import (
     GENERATION_LEDGER_RECORD_SCHEMA_VERSION,
+    GENERATION_LEDGER_RECORD_V2_SCHEMA_VERSION,
 )
 
 from true_rl_agent.agent_core.process_lock import acquire_process_file_lock
@@ -126,9 +127,9 @@ def dispatch_ledger_record_schema(
             round_authoring_anchor_bound=False,
             current=False,
         )
-    if schema_version == GENERATION_LEDGER_RECORD_SCHEMA_VERSION:
+    if schema_version in {GENERATION_LEDGER_RECORD_SCHEMA_VERSION, GENERATION_LEDGER_RECORD_V2_SCHEMA_VERSION}:
         return LedgerRecordSchemaDescriptor(
-            schema_version=GENERATION_LEDGER_RECORD_SCHEMA_VERSION,
+            schema_version=schema_version,
             authoring_mode=PROVIDER_AUTHORING_MODE,
             authoring_evidence_verifiable=True,
             ledger_epoch_bound=True,

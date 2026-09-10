@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "target_root": "/data/yuyangliu/AGENT",
+  "baseline_commit": "cd48221384c7b658eac18c275298a393e1d7b381",
+  "before_tracked_tree_clean": true,
+  "source_archive_sha256": "ac8bfb1457ba12f1f06ddd848bf85f04b1fe1a9fe09da0335cfbca76576a7287",
+  "source_files_verified": 98,
+  "deleted_files_verified": 11,
+  "source_scope": "P4 current implementation and tests; documentation/evidence synchronized separately",
+  "entrypoint_checks": [
+    {
+      "script": "run_generation_session.py",
+      "exit_code": 0,
+      "explicit_task_and_cell_options": true
+    },
+    {
+      "script": "run_stair_generation_session.py",
+      "exit_code": 0,
+      "explicit_task_and_cell_options": true
+    },
+    {
+      "script": "launch_stair_generation_session.py",
+      "exit_code": 0,
+      "explicit_task_and_cell_options": true
+    }
+  ],
+  "git_commit_created": false,
+  "outputs_or_checkpoints_in_write_or_delete_set": false,
+  "checked_at_unix_s": 1789022108.7151868
+}

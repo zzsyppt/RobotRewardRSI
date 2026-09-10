@@ -37,7 +37,7 @@ from true_rl_agent.tasks.stair_climbing.runtime_profile import (  # noqa: E402
     STAIR_COMPLETE_REWARD_RUNTIME_STATUS,
 )
 from true_rl_agent.tasks.stair_climbing.row_catalog import (
-    STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+    STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID,
 )
 from true_rl_agent.tasks.stair_climbing.seed_policy import (  # noqa: E402
     STAIR_FORMAL_EVAL_NAMESPACE,
@@ -235,7 +235,7 @@ class StairPhaseBCompositionTests(unittest.TestCase):
                     # Stair fixes training inputs through its selected cell;
                     # CLI defaults cannot redefine that scientific contract.
                     scientific_changes = (
-                        {"cell_variant_id": STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID},
+                        {"cell_variant_id": STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID},
                     )
                 for index, changes in enumerate(scientific_changes):
                     changed = resolve(changes, f"changed-{index}")

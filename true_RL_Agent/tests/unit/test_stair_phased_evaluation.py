@@ -47,9 +47,9 @@ from true_rl_agent.tasks.stair_climbing.episode_evidence import StairEpisodeOutc
 from true_rl_agent.tasks.stair_climbing.evaluation_contract import (
     build_stair_evaluation_summary,
 )
-from true_rl_agent.tasks.stair_climbing.generation_bootstrap import (
-    StairGenerationGuardReference,
-    replay_stair_generation_guard_chain,
+from true_rl_agent.agent_core.generation_guard import (
+    GenerationGuardReference,
+    replay_generation_guard_chain,
     run_genesis_parent_public_dev,
 )
 from true_rl_agent.tasks.stair_climbing.isaaclab_execution import (
@@ -106,6 +106,84 @@ class StairPhasedEvaluationTests(unittest.TestCase):
         cls.config = StairClimbingTaskConfig.defaults(
             ROOT / "configs" / "tasks" / "stair_protocol_v2.json"
         )
+
+    def test_real_v3_public_accept_projection_preserves_distinct_guards_and_paired_order(self):
+        from true_rl_agent.tasks.stair_climbing.unified_scoring import build_reference_objective_family_mask
+
+        counts = {"c0_id": 6, "c1_id": 9, "height_ood": 3, "tread_ood": 6,
+                  "joint_ood": 9, "c1_conditional_frontier": 6, "c2_mechanism_ood": 3,
+                  "phase_composition_ood": 10}
+        for stem in ("stair", "stair_go2_12dof"):
+            with self.subTest(robot=stem):
+                self.config = StairClimbingTaskConfig.defaults(ROOT / f"configs/tasks/{stem}_unified_protocol_v3.json")
+                suite = self.config.ordered_evaluation_suite
+                self.assertEqual(suite.episodes_per_seed_per_cell, 12)
+                reference = self._execution({EvaluationPhase.PUBLIC_ACCEPT: [6] * 5})
+                mask = build_reference_objective_family_mask(suite=suite,
+                    public_accept_summary=reference.summaries["public_accept"])
+                adapter = StairPhasedEvaluationAdapter(self.config, objective_family_mask_provider=lambda: mask)
+                original_outcomes = self._unified_outcomes
+
+                def outcomes(*, split, successes_per_cell):
+                    occurrences = {}
+                    result = []
+                    for item in original_outcomes(split=split, successes_per_cell=12):
+                        cell = suite.cell(item.evaluation_cell_id)
+                        index = occurrences.get(cell.cell_id, 0)
+                        occurrences[cell.cell_id] = index + 1
+                        if index >= counts[cell.stratum_id] + successes_per_cell:
+                            item = replace(item, success=False, primary_reason="timeout",
+                                diagnostic_flags=("goal_not_reached_detected",),
+                                max_progress_m=0.1 * cell.progress_goal_m, progress_fraction=0.1,
+                                active_terminal_terms=("time_out",))
+                        result.append(item)
+                    return result
+
+                with patch.object(self, "_unified_outcomes", side_effect=outcomes):
+                    phase = self._phase_result_for(plan=self._eval_plan("actual-v3-projection"),
+                        phase=EvaluationPhase.PUBLIC_ACCEPT, successes=[0, 1, 0, 1, 0])
+                scores = adapter.project_public_accept_scores(phase_result=phase)
+                # Each success scores 1 and each timeout with 10% progress scores
+                # 0.05. Scalar family mean is 6/12, F_c1 is 6/12, F_c2 is 3/12;
+                # J_primary=J_OOD is the equal mean of those three families.
+                expected_primary = [0.05 + 0.95 * (5 + offset) / 12 for offset in (0, 1, 0, 1, 0)]
+                for actual, expected in zip(scores.score_samples, expected_primary):
+                    self.assertAlmostEqual(actual, expected, places=12)
+                self.assertEqual(set(scores.named_guard_evidence), {"j_ood", "c0_id", "c1_id", "joint_ood", "phase_control"})
+                for name, successes in (("c0_id", 6), ("c1_id", 9), ("joint_ood", 9), ("phase_control", 10), ("j_ood", 5)):
+                    guard = scores.named_guard_evidence[name]
+                    expected = [0.05 + 0.95 * (successes + offset) / 12 for offset in (0, 1, 0, 1, 0)]
+                    for actual, value in zip(guard["score_samples"], expected):
+                        self.assertAlmostEqual(actual, value, places=12)
+                    self.assertAlmostEqual(guard["score_stats"]["mean"], sum(expected) / 5, places=12)
+                    self.assertEqual(guard["score_stats"]["eval_protocol_hash"], self.config.evaluation_protocol().protocol_hash)
+                self.assertEqual(scores.score_stats["count"], 5)
+                self.assertEqual(scores.score_stats["statistics_version"], DERIVED_STATISTICS_VERSION)
+                self.assertNotIn("sealed", json.dumps(scores.to_dict()))
+
+    def test_phase_summary_preserves_learner_evidence_outside_task_semantics(self) -> None:
+        plan = self._eval_plan("learner-evidence")
+        phase = EvaluationPhase.PUBLIC_DEV
+        execution = self._execution({phase: [5, 6, 5]})
+        learner = {
+            "schema_version": "true_rl_agent.rsl_rl_constructed_learner.v1",
+            "initial_noise_std": 1.0,
+        }
+        summaries = [
+            build_stair_eval_phase_summary(
+                config=self.config,
+                identity=plan.job_identity(),
+                evaluation_plan_hash=canonical_json_hash(plan.to_public_dict()),
+                phase=phase,
+                execution=item,
+                evaluation_binding=plan.evaluation_binding,
+                checkpoint_safety_report=self._checkpoint_report(),
+            )
+            for item in (execution, replace(execution, constructed_learner=learner))
+        ]
+        self.assertEqual(summaries[1]["constructed_learner"], learner)
+        self.assertEqual(summaries[0]["task_evidence"], summaries[1]["task_evidence"])
+        self.assertEqual(summaries[0]["task_evidence_hash"], summaries[1]["task_evidence_hash"])
 
     def test_frozen_p5_reference_and_current_candidates_share_comparison_statistics(
         self,
@@ -419,8 +497,8 @@ class StairPhasedEvaluationTests(unittest.TestCase):
         expected = object()
 
         with patch(
-            "true_rl_agent.tasks.stair_climbing.generation_bootstrap."
-            "build_stair_generation_guard_reference",
+            "true_rl_agent.agent_core.generation_guard."
+            "build_generation_guard_reference",
             return_value=expected,
         ) as build:
             actual = run_genesis_parent_public_dev(
@@ -449,8 +527,8 @@ class StairPhasedEvaluationTests(unittest.TestCase):
     def test_guard_chain_replay_updates_only_after_accepted_generation(self) -> None:
         initial_parent = Mock(spec=CurrentBestEvalStats)
         accepted_parent = Mock(spec=CurrentBestEvalStats)
-        initial_guard = Mock(spec=StairGenerationGuardReference)
-        accepted_guard = Mock(spec=StairGenerationGuardReference)
+        initial_guard = Mock(spec=GenerationGuardReference)
+        accepted_guard = Mock(spec=GenerationGuardReference)
         acceptance_protocol = self.config.acceptance_protocol
         adapter = StairPhasedEvaluationAdapter(self.config)
         records = (
@@ -464,12 +542,12 @@ class StairPhasedEvaluationTests(unittest.TestCase):
         )
         expected_contract_hash = "9" * 64
         validator_target = (
-            "true_rl_agent.tasks.stair_climbing.generation_bootstrap."
+            "true_rl_agent.agent_core.generation_guard."
             "validate_generation_ledger_record"
         )
         loader_target = (
-            "true_rl_agent.tasks.stair_climbing.generation_bootstrap."
-            "load_stair_next_generation_guard_reference"
+            "true_rl_agent.agent_core.generation_guard."
+            "load_next_generation_guard_reference"
         )
 
         with (
@@ -484,7 +562,7 @@ class StairPhasedEvaluationTests(unittest.TestCase):
             ) as validate_record,
             patch(loader_target, return_value=accepted_guard) as load_guard,
         ):
-            current_parent, current_guard = replay_stair_generation_guard_chain(
+            current_parent, current_guard = replay_generation_guard_chain(
                 generation_records=records,
                 initial_parent=initial_parent,
                 initial_guard_reference=initial_guard,
@@ -531,15 +609,15 @@ class StairPhasedEvaluationTests(unittest.TestCase):
     def test_guard_chain_replay_rejects_nonaccepted_head_transition(self) -> None:
         initial_parent = Mock(spec=CurrentBestEvalStats)
         changed_parent = Mock(spec=CurrentBestEvalStats)
-        initial_guard = Mock(spec=StairGenerationGuardReference)
+        initial_guard = Mock(spec=GenerationGuardReference)
         record = {"generation_outcome": "formal_rejected"}
         validator_target = (
-            "true_rl_agent.tasks.stair_climbing.generation_bootstrap."
+            "true_rl_agent.agent_core.generation_guard."
             "validate_generation_ledger_record"
         )
         loader_target = (
-            "true_rl_agent.tasks.stair_climbing.generation_bootstrap."
-            "load_stair_next_generation_guard_reference"
+            "true_rl_agent.agent_core.generation_guard."
+            "load_next_generation_guard_reference"
         )
 
         with (
@@ -547,7 +625,7 @@ class StairPhasedEvaluationTests(unittest.TestCase):
             patch(loader_target) as load_guard,
             self.assertRaisesRegex(ValueError, "non-accepted generation changed"),
         ):
-            replay_stair_generation_guard_chain(
+            replay_generation_guard_chain(
                 generation_records=(record,),
                 initial_parent=initial_parent,
                 initial_guard_reference=initial_guard,
@@ -717,7 +795,15 @@ class StairPhasedEvaluationTests(unittest.TestCase):
         self.assertEqual(result.status, "pass")
 
     def test_reference_does_not_consume_candidate_public_to_sealed_guard(self) -> None:
-        protocol_path = ROOT / "configs/tasks/stair_unified_protocol_v1.json"
+        self._check_reference_and_candidate_sealed_guard("stair_unified_protocol_v1.json")
+
+    def test_current_robot_rows_enforce_candidate_sealed_consistency(self) -> None:
+        for filename in ("stair_unified_protocol_v3.json", "stair_go2_12dof_unified_protocol_v3.json"):
+            with self.subTest(protocol=filename):
+                self._check_reference_and_candidate_sealed_guard(filename)
+
+    def _check_reference_and_candidate_sealed_guard(self, filename: str) -> None:
+        protocol_path = ROOT / "configs/tasks" / filename
         base = StairClimbingTaskConfig.defaults(protocol_path)
         manifest = resolve_stair_cell_manifest(
             cell_variant_id=base.cell_variant_id,
@@ -734,10 +820,11 @@ class StairPhasedEvaluationTests(unittest.TestCase):
             self._eval_plan("reference-sealed-boundary"),
             subject=ExperimentSubject.reference("reference-sealed-boundary"),
         )
+        episodes = self.config.ordered_evaluation_suite.episodes_per_seed_per_cell
         split_successes = {
-            EvaluationPhase.PUBLIC_DEV: [2, 2, 2],
-            EvaluationPhase.PUBLIC_ACCEPT: [2, 2, 2, 2, 2],
-            EvaluationPhase.SEALED_VALIDATION: [1, 1, 1, 1, 1, 1, 1],
+            EvaluationPhase.PUBLIC_DEV: [2 * episodes // 3] * 3,
+            EvaluationPhase.PUBLIC_ACCEPT: [2 * episodes // 3] * 5,
+            EvaluationPhase.SEALED_VALIDATION: [episodes // 3] * 7,
         }
         checkpoint_report = self._checkpoint_report()
         phase_results = []
@@ -808,6 +895,7 @@ class StairPhasedEvaluationTests(unittest.TestCase):
             objective_family_mask=reference["metrics"]["objective_family_mask"],
         )
         self.assertEqual(candidate["sealed_validation_evidence"]["status"], "fail")
+        self.assertEqual(candidate["sealed_validation_gate"]["status"], "fail")
         self.assertEqual(
             candidate["sealed_validation_evidence"]["reason"],
             "unified_stair_sealed_public_consistency_failed",
@@ -817,6 +905,10 @@ class StairPhasedEvaluationTests(unittest.TestCase):
             candidate["sealed_validation_evidence"],
             public_mean=candidate["public_score"],
         )
+        forged = dict(candidate["sealed_validation_evidence"], status="pass",
+                      reason="unified_stair_sealed_primary_complete")
+        with self.assertRaisesRegex(ValueError, "verdict differs"):
+            _validate_unified_sealed_score_verdict(self.config, forged, public_mean=candidate["public_score"])
 
     def test_selector_uses_public_dev_only_and_can_return_no_selection(self) -> None:
         guard_reference = self._screen_with_scores(

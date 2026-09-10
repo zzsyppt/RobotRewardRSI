@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import math
+from copy import deepcopy
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 from true_rl_agent.agent_core.ledger import (
@@ -140,6 +141,31 @@ class ProjectedPublicHistory:
     acceptance_protocol_hash: str | None
     current_best: CurrentBestEvalStats | None = None
     public_score_source: str | None = None
+    _current_best_after: tuple[CurrentBestEvalStats | None, ...] = field(
+        default=(), repr=False, compare=False
+    )
+
+    def prefix(self, length: int) -> "ProjectedPublicHistory":
+        """Reuse this replay's validated heads; never read claimed ledger heads.
+
+        This is an in-memory view for consumers of the same projection. A new
+        independent replay still calls project_public_history and reads evidence.
+        """
+        if not 0 <= length <= len(self.records):
+            raise ValueError("public history prefix is outside the replay")
+        if length == len(self.records):
+            return self
+        if len(self._current_best_after) != len(self.records):
+            raise ValueError("public history has no replayed prefix heads")
+        return replace(
+            self,
+            records=self.records[:length],
+            current_best=(
+                self._current_best_after[length - 1]
+                if length else self.initial_current_best
+            ),
+            _current_best_after=self._current_best_after[:length],
+        )
 
 
 def project_public_history(
@@ -154,6 +180,8 @@ def project_public_history(
 ) -> ProjectedPublicHistory:
     """Project a full ordered history once before any public consumer sees it."""
 
+    # Own the input snapshot so later caller edits cannot change its projection.
+    records = deepcopy(tuple(records))
     has_evaluated_history = any(
         (
             isinstance(record.get("public_result"), Mapping)
@@ -174,7 +202,9 @@ def project_public_history(
             }
             for record in records
         )
-        return ProjectedPublicHistory(projected, None, None, None, None, None)
+        return ProjectedPublicHistory(
+            projected, None, None, None, None, None, (None,) * len(projected)
+        )
     _require_replay_anchor(
         initial_current_best=initial_current_best,
         expected_session_genesis_hash=expected_session_genesis_hash,
@@ -208,6 +238,7 @@ def project_public_history(
         acceptance_protocol.protocol_hash,
         replay.current_best,
         acceptance_protocol.public_score_source,
+        tuple(entry.current_best_after for entry in replay.entries),
     )
 
 

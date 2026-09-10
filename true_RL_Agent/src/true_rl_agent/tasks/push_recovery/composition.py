@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, fields, replace
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -33,6 +33,7 @@ from true_rl_agent.tasks.push_recovery.memory import PushTaskMemoryAdapter
 from true_rl_agent.tasks.push_recovery.plugin import PushRecoveryTaskPlugin
 from true_rl_agent.tasks.push_recovery.robot_binding import (
     PUSH_G1_29DOF_LEGACY_CELL_VARIANT_ID,
+    PUSH_G1_29DOF_REFERENCE_CELL_VARIANT_ID,
     resolve_push_cell_manifest,
 )
 
@@ -72,6 +73,7 @@ class PushRecoveryCompositionConfig:
     train_steps_per_iteration: int
     eval_num_envs: int
     runner_timeout_s: int
+    reference_program_genesis: bool = False
 
     def __post_init__(self) -> None:
         for field_name in (
@@ -126,15 +128,17 @@ class PushRecoveryCompositionConfig:
         values: Mapping[str, Any],
     ) -> "PushRecoveryCompositionConfig":
         field_names = tuple(field.name for field in fields(cls))
-        missing = [name for name in field_names if name not in values]
+        missing = [name for name in field_names if name not in values
+                   and name != "reference_program_genesis"]
         if missing:
             raise ValueError(
                 "push composition values missing: " + ", ".join(missing)
             )
-        return cls(**{name: values[name] for name in field_names})
+        return cls(**{name: values[name] for name in field_names if name in values})
 
     def to_task_config(self) -> PushRecoveryTaskConfig:
         return PushRecoveryTaskConfig(
+            reference_program_genesis=self.reference_program_genesis,
             budget_steps=self.budget_steps,
             train_num_envs=self.train_num_envs,
             train_max_iterations=self.train_max_iterations,
@@ -171,7 +175,8 @@ class PushRecoveryCompositionProvider(TaskCompositionProvider):
     def add_cli_arguments(self, parser: Any) -> None:
         parser.add_argument(
             "--cell-variant-id",
-            choices=(PUSH_G1_29DOF_LEGACY_CELL_VARIANT_ID,),
+            choices=(PUSH_G1_29DOF_LEGACY_CELL_VARIANT_ID,
+                     PUSH_G1_29DOF_REFERENCE_CELL_VARIANT_ID),
             default=PUSH_G1_29DOF_LEGACY_CELL_VARIANT_ID,
         )
 
@@ -182,21 +187,20 @@ class PushRecoveryCompositionProvider(TaskCompositionProvider):
         context: TaskCompositionContext,
     ) -> ResolvedTaskComposition:
         composition_config = PushRecoveryCompositionConfig.from_values(values)
+        cell_variant_id = str(values.get("cell_variant_id", PUSH_G1_29DOF_LEGACY_CELL_VARIANT_ID))
+        composition_config = replace(composition_config, reference_program_genesis=(
+            cell_variant_id == PUSH_G1_29DOF_REFERENCE_CELL_VARIANT_ID))
         task_config = composition_config.to_task_config()
         task_plugin = PushRecoveryTaskPlugin(task_config)
         resolved_cell_manifest = resolve_push_cell_manifest(
-            cell_variant_id=str(
-                values.get(
-                    "cell_variant_id",
-                    PUSH_G1_29DOF_LEGACY_CELL_VARIANT_ID,
-                )
-            ),
+            cell_variant_id=cell_variant_id,
             config=task_config,
             plugin=task_plugin,
         )
         resolved_cell_manifest_path = materialize_resolved_cell_manifest(
             resolved_cell_manifest,
             output_dir=context.output_dir,
+            require_existing=context.read_only,
         )
         candidate_admission_policy = StaticCandidateVerifier()
         backend_config = _build_push_backend_config(
@@ -208,10 +212,18 @@ class PushRecoveryCompositionProvider(TaskCompositionProvider):
             resolved_cell_manifest=resolved_cell_manifest,
             resolved_cell_manifest_path=resolved_cell_manifest_path,
         )
+        reference = None
+        if task_config.reference_program_genesis:
+            from true_rl_agent.tasks.push_recovery.reference_program import resolve_push_reference_program
+
+            reference = resolve_push_reference_program(
+                project_root=context.project_root,
+                capability_profile_hash=task_plugin.task_spec.candidate_capability_profile.profile_hash,
+            )
         return ResolvedTaskComposition(
             task_id=self.task_id,
             task_plugin=task_plugin,
-            task_memory_adapter=PushTaskMemoryAdapter(),
+            task_memory_adapter=PushTaskMemoryAdapter(config=task_config),
             backend_adapter=IsaacLabRslRlBackendAdapter(backend_config),
             runner=SubprocessRunner(
                 allowed_executables=(composition_config.isaac_python,),
@@ -220,7 +232,8 @@ class PushRecoveryCompositionProvider(TaskCompositionProvider):
             ),
             candidate_admission_policy=candidate_admission_policy,
             policy_initialization=PolicyInitialization.random(),
-            genesis_anchor_kind="bootstrap",
+            genesis_anchor_kind=task_plugin.task_spec.genesis_anchor_kind_for("random"),
+            reference_program_artifact=reference,
             task_defaults={
                 **composition_config.to_task_defaults(),
                 "cell_variant_id": resolved_cell_manifest.cell_variant_id,

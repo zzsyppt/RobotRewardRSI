@@ -41,6 +41,7 @@ from true_rl_agent.tasks.stair_climbing.final_confirmation import (
     build_stair_generation_final_confirmation_plan,
     build_stair_generation_final_confirmation_result,
     build_stair_final_confirmation_result,
+    bind_stair_generation_final_config,
     create_stair_final_confirmation_plan,
     create_stair_generation_final_confirmation_plan,
     create_stair_final_confirmation_reservation,
@@ -72,7 +73,7 @@ from true_rl_agent.tasks.stair_climbing.session_start import (
     STAIR_REFERENCE_START_MODE,
 )
 from true_rl_agent.tasks.stair_climbing.row_catalog import (
-    STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+    STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID,
 )
 from true_rl_agent.tasks.stair_climbing.training_distribution import (
     STAIR_EXECUTION_SOURCE_PREFLIGHT_SCHEMA_VERSION,
@@ -107,7 +108,7 @@ class StairFinalConfirmationTests(unittest.TestCase):
             / "configs"
             / "tasks"
             / "stair_go2_12dof_unified_protocol_v2.json",
-            cell_variant_id=STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID,
+            cell_variant_id=STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID,
         )
 
     def test_plan_is_exact_hashed_and_contains_no_raw_seed_values(self) -> None:
@@ -673,7 +674,7 @@ class StairFinalConfirmationTests(unittest.TestCase):
         reference_values = dict(provider.cli_defaults())
         reference_values["start_mode"] = STAIR_REFERENCE_START_MODE
         reference_values["cell_variant_id"] = (
-            STAIR_GO2_12DOF_UNIFIED_CELL_VARIANT_ID
+            STAIR_GO2_12DOF_UNIFIED_V2_CELL_VARIANT_ID
         )
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp).resolve()
@@ -1006,6 +1007,60 @@ class StairFinalConfirmationTests(unittest.TestCase):
                         genesis_execution=execution,
                         final_execution=valid_final,
                     )
+
+    def test_current_v3_results_publish_and_reload_with_all_episode_facts(self) -> None:
+        for stem in ("stair", "stair_go2_12dof"):
+            with self.subTest(robot=stem), tempfile.TemporaryDirectory() as tmp:
+                base = StairClimbingTaskConfig.defaults(
+                    ROOT / f"configs/tasks/{stem}_unified_protocol_v3.json"
+                )
+                output = Path(tmp)
+                plan, plan_path = create_stair_generation_final_confirmation_plan(
+                    output_dir=output, session_id="v3-result-roundtrip", config=base,
+                )
+                config = bind_stair_generation_final_config(base, plan=plan, plan_path=plan_path)
+                reservation = self._generation_reservation_v2(plan)
+                create_stair_generation_final_confirmation_reservation(
+                    output_dir=output, plan=plan, reservation=reservation,
+                )
+                mask = build_reference_objective_family_mask(
+                    suite=base.ordered_evaluation_suite,
+                    public_accept_summary=self._uniform_unified_summary(
+                        config=base, split="public_accept", successes_per_cell=8,
+                    ),
+                )
+                summaries, executions = {}, {}
+                for role, successes in (("genesis", 4), ("final", 8)):
+                    summaries[role] = self._uniform_unified_summary(
+                        config=config, split="sealed_validation", successes_per_cell=successes,
+                    )
+                    executions[role] = StairFinalConfirmationPhaseExecution(
+                        role=role, job_id=getattr(reservation, f"{role}_job_id"),
+                        eval_phase_spec_hash=getattr(reservation, f"{role}_eval_phase_spec_hash"),
+                        evaluation_plan_hash=getattr(reservation, f"{role}_evaluation_plan_hash"),
+                        attempt_result_payload_hash=SHA, receipt_checksum=CHECKSUM,
+                        resource_binding_hash=reservation.gpu_process_binding.resource_binding_hash,
+                        checkpoint_hash=getattr(reservation, f"{role}_checkpoint_hash"),
+                        generalization_summary_hash=canonical_json_hash(summaries[role]),
+                    )
+                result = build_stair_generation_final_confirmation_result(
+                    plan=plan, reservation=reservation, config=config,
+                    genesis_execution=executions["genesis"], final_execution=executions["final"],
+                    genesis_summary=summaries["genesis"], final_summary=summaries["final"],
+                    objective_family_mask=mask,
+                )
+                size = len(canonical_json_bytes(result.to_dict(), trailing_newline=True))
+                self.assertGreater(size, 512 * 1024)
+                self.assertLessEqual(size, MAX_STAIR_FINAL_CONFIRMATION_RESULT_BYTES)
+                path = write_stair_generation_final_confirmation_result(
+                    output_dir=output, result=result, plan=plan, reservation=reservation,
+                    config=config, objective_family_mask=mask,
+                )
+                self.assertEqual(path.stat().st_size, size)
+                self.assertEqual(load_stair_generation_final_confirmation_result(
+                    path, plan=plan, reservation=reservation, config=config,
+                    objective_family_mask=mask,
+                ), result)
 
     def test_task_artifact_loaders_reject_oversize_before_json_parse(self) -> None:
         plan = build_stair_final_confirmation_plan(

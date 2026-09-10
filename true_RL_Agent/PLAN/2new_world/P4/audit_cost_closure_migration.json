@@ -1,0 +1,69 @@
+{
+  "scope": "P4 first delivery archive to audit final v2; seven moved cost/closure functions",
+  "normalization": "only declared public symbol renames and function docstring removal; compares complete function AST including signature and branches",
+  "symbol_renames": {
+    "_cost_receipt_by_hash": "cost_receipt_by_hash",
+    "_load_existing_generation_execution": "load_existing_generation_execution",
+    "_generation_cost_receipt_projection": "generation_cost_receipt_projection",
+    "_publish_or_validate_generation_closure": "publish_or_validate_generation_closure",
+    "_settle_generation_cost": "settle_generation_cost",
+    "_assert_actual_cost_receipt_matches_usage": "assert_actual_cost_receipt_matches_usage",
+    "_actual_cost_projection": "project_actual_generation_cost",
+    "_event_id": "require_cost_event_id",
+    "_nonnegative_int": "require_nonnegative_cost_integer",
+    "_validate_stored_resource_closure_evidence": "validate_stored_resource_closure_evidence"
+  },
+  "comparisons": [
+    {
+      "before": "agent_core/generation_session.py:_cost_receipt_by_hash",
+      "after": "agent_core/generation_cost_journal.py:cost_receipt_by_hash",
+      "ast_equal_after_declared_symbol_renames": true,
+      "old_module_sha256": "232d8c3688b67a2c3ac94888b7616e0764d7294f0c41a7a599872c25bfba6f90",
+      "new_module_sha256": "ac202dc62460b37b77eb05b46cccc20a8291d5b0a60ba3958b8b8a23d5e7b297"
+    },
+    {
+      "before": "agent_core/generation_session.py:_load_existing_generation_execution",
+      "after": "agent_core/generation_closure.py:load_existing_generation_execution",
+      "ast_equal_after_declared_symbol_renames": true,
+      "old_module_sha256": "232d8c3688b67a2c3ac94888b7616e0764d7294f0c41a7a599872c25bfba6f90",
+      "new_module_sha256": "aefa10dd060506acc7fb29611086e2a227fec7a1afb808919a2a5228a91756a2"
+    },
+    {
+      "before": "agent_core/generation_session.py:_generation_cost_receipt_projection",
+      "after": "agent_core/generation_cost_journal.py:generation_cost_receipt_projection",
+      "ast_equal_after_declared_symbol_renames": true,
+      "old_module_sha256": "232d8c3688b67a2c3ac94888b7616e0764d7294f0c41a7a599872c25bfba6f90",
+      "new_module_sha256": "ac202dc62460b37b77eb05b46cccc20a8291d5b0a60ba3958b8b8a23d5e7b297"
+    },
+    {
+      "before": "agent_core/generation_session.py:_publish_or_validate_generation_closure",
+      "after": "agent_core/generation_closure.py:publish_or_validate_generation_closure",
+      "ast_equal_after_declared_symbol_renames": true,
+      "old_module_sha256": "232d8c3688b67a2c3ac94888b7616e0764d7294f0c41a7a599872c25bfba6f90",
+      "new_module_sha256": "aefa10dd060506acc7fb29611086e2a227fec7a1afb808919a2a5228a91756a2"
+    },
+    {
+      "before": "agent_core/generation_session.py:_settle_generation_cost",
+      "after": "agent_core/generation_accounting.py:settle_generation_cost",
+      "ast_equal_after_declared_symbol_renames": true,
+      "old_module_sha256": "232d8c3688b67a2c3ac94888b7616e0764d7294f0c41a7a599872c25bfba6f90",
+      "new_module_sha256": "455973d0dddc47b425c70c52840eb9a44a5e4c0ece808d9bf894115c142ee474"
+    },
+    {
+      "before": "agent_core/generation_session.py:_assert_actual_cost_receipt_matches_usage",
+      "after": "agent_core/generation_cost_journal.py:assert_actual_cost_receipt_matches_usage",
+      "ast_equal_after_declared_symbol_renames": true,
+      "old_module_sha256": "232d8c3688b67a2c3ac94888b7616e0764d7294f0c41a7a599872c25bfba6f90",
+      "new_module_sha256": "ac202dc62460b37b77eb05b46cccc20a8291d5b0a60ba3958b8b8a23d5e7b297"
+    },
+    {
+      "before": "agent_core/generation_cost_journal.py:_actual_cost_projection",
+      "after": "agent_core/generation_cost_journal.py:project_actual_generation_cost",
+      "ast_equal_after_declared_symbol_renames": true,
+      "old_module_sha256": "b262318673fa6897db773cb8d27e2f3cc2bfe56238ebeccec0efb4abcbc9b24a",
+      "new_module_sha256": "ac202dc62460b37b77eb05b46cccc20a8291d5b0a60ba3958b8b8a23d5e7b297"
+    }
+  ],
+  "all_equal": true,
+  "old_archive_sha256": "ac8bfb1457ba12f1f06ddd848bf85f04b1fe1a9fe09da0335cfbca76576a7287"
+}

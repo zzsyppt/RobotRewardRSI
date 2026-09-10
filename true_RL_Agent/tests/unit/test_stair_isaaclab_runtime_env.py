@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
+import traceback
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
@@ -33,8 +35,9 @@ from true_rl_agent.tasks.stair_climbing.transition_decoder import (  # noqa: E40
 )
 
 _DYNAMIC_ENABLED = os.environ.get("TRUE_RL_AGENT_ISAAC_DYNAMIC_TEST") == "1"
+_ISAAC_CHILD = os.environ.get("TRUE_RL_AGENT_ISAAC_TEST_CHILD") == "1"
 _SIMULATION_APP = None
-if _DYNAMIC_ENABLED:
+if _DYNAMIC_ENABLED and _ISAAC_CHILD:
     try:
         from isaaclab.app import AppLauncher
 
@@ -49,28 +52,37 @@ if _DYNAMIC_ENABLED:
             isaaclab_runtime_env as isaac_runtime,
         )
     except BaseException:
+        traceback.print_exc()
         if _SIMULATION_APP is not None:
-            _SIMULATION_APP.close()
+            _SIMULATION_APP.close(exit_code=1)
             _SIMULATION_APP = None
         raise
-    else:
-        ISAAC_IMPORT_ERROR = None
 else:
     torch = None
     isaac_runtime = None
-    ISAAC_IMPORT_ERROR = RuntimeError(
-        "set TRUE_RL_AGENT_ISAAC_DYNAMIC_TEST=1 to run Isaac integration"
+
+
+def _run_in_isaac_subprocess(test_name: str) -> None:
+    # Kit owns process shutdown. Keep it outside the unittest discovery process;
+    # the child prints its complete result before closing with that exit status.
+    result = subprocess.run(
+        [sys.executable, str(Path(__file__).resolve()), test_name, "-v"],
+        cwd=ROOT,
+        env={**os.environ, "TRUE_RL_AGENT_ISAAC_TEST_CHILD": "1"},
+        capture_output=True,
+        text=True,
+        timeout=120,
     )
-
-
-def tearDownModule() -> None:
-    if _SIMULATION_APP is not None:
-        _SIMULATION_APP.close()
+    output = result.stdout + result.stderr
+    if result.returncode != 0 or "\nOK\n" not in output:
+        raise AssertionError(
+            f"Isaac test child exited {result.returncode}:\n{output[-12000:]}"
+        )
 
 
 @unittest.skipUnless(
-    isaac_runtime is not None and torch is not None,
-    f"Isaac Lab runtime unavailable: {ISAAC_IMPORT_ERROR}",
+    _DYNAMIC_ENABLED,
+    "set TRUE_RL_AGENT_ISAAC_DYNAMIC_TEST=1 to run Isaac integration",
 )
 class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -82,6 +94,9 @@ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
         self.semantics = self.config.evaluation_semantics
 
     def test_train_and_eval_builders_install_only_the_declared_runtime(self) -> None:
+        if not _ISAAC_CHILD:
+            _run_in_isaac_subprocess(f"{type(self).__name__}.{self._testMethodName}")
+            return
         reward_program = resolve_official_stair_reference_program(
             self.config,
             project_root=ROOT,
@@ -168,6 +183,9 @@ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
                 )
 
     def test_real_recorder_payload_decodes_tracks_and_aggregates(self) -> None:
+        if not _ISAAC_CHILD:
+            _run_in_isaac_subprocess(f"{type(self).__name__}.{self._testMethodName}")
+            return
         public_dev = self.protocol.to_dict()["evaluation"]["splits"]["public_dev"]
         episodes_per_bin = int(public_dev["episodes_per_seed_per_bin"])
         assignment = tuple(
@@ -208,6 +226,11 @@ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
         robot_data = SimpleNamespace(
             root_pos_w=root_pos,
             root_quat_w=root_quat,
+            root_lin_vel_w=torch.zeros_like(root_pos),
+            root_ang_vel_w=torch.zeros_like(root_pos),
+            root_lin_vel_b=torch.zeros_like(root_pos),
+            root_ang_vel_b=torch.zeros_like(root_pos),
+            projected_gravity_b=torch.tensor([0.0, 0.0, -1.0]).repeat(num_envs, 1),
             joint_pos=torch.zeros((num_envs, 37), dtype=torch.float32),
             body_pos_w=robot_body_pos,
             body_lin_vel_w=torch.zeros_like(robot_body_pos),
@@ -279,6 +302,11 @@ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
             recorder.record_post_step()
 
         raw = env.extras[isaac_runtime.STAIR_EVAL_TRANSITION_EXTRAS_KEY]
+        self.assertTrue(torch.equal(raw["root_pos_w"], root_pos))
+        self.assertTrue(torch.equal(
+            raw["root_quat_w"],
+            torch.tensor([1.0, 0.0, 0.0, 0.0]).repeat(num_envs, 1),
+        ))
         self.assertEqual(tuple(raw["joint_pos"].shape), (num_envs, 37))
         self.assertTrue(torch.equal(raw["terrain_env_origins_w"], origins))
         self.assertTrue(torch.equal(raw["terrain_types"], terrain_types))
@@ -335,4 +363,10 @@ class _FakeAsset:
 
 
 if __name__ == "__main__":
-    unittest.main()
+    program = unittest.main(exit=False)
+    exit_code = 0 if program.result.wasSuccessful() else 1
+    sys.stdout.flush()
+    sys.stderr.flush()
+    if _SIMULATION_APP is not None:
+        _SIMULATION_APP.close(exit_code=exit_code)
+    raise SystemExit(exit_code)

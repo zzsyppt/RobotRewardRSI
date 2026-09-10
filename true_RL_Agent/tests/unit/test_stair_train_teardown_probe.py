@@ -62,8 +62,8 @@ def _write_bound_smoke_report(
             "process_id": CHILD_PID,
             "process_group_id": CHILD_PID,
         },
-        "stair_gpu_runtime_evidence": {
-            "schema_version": "true_rl_agent.task.stair_climbing.gpu_runtime_evidence.v2",
+        "gpu_runtime_evidence": {
+            "schema_version": "true_rl_agent.runner.gpu_runtime_evidence.v1",
             "cuda_visibility_binding": "single_physical_gpu_uuid",
             "physical_gpu_uuid": GPU_UUID,
             "renderer_active_gpu_ordinal": 1,
@@ -264,13 +264,13 @@ class StairTrainTeardownProbeTests(unittest.TestCase):
             self.assertTrue(probe._paths_overlap(root / "a", root / "a/formal"))
         smoke = SMOKE_PATH.read_text(encoding="utf-8")
         self.assertLess(
-            smoke.index("gpu_runtime_binding = validate_stair_gpu_process_binding_invocation"),
+            smoke.index("gpu_runtime_binding = validate_gpu_process_binding_invocation"),
             smoke.index("simulation_app ="),
         )
         self.assertIn("if gpu_runtime_binding is None", smoke)
         self.assertIn("AppLauncher(args, multi_gpu=False).app", smoke)
         self.assertIn(
-            "if gpu_runtime_binding is not None:\n        report = attach_stair_gpu_runtime_evidence",
+            "if gpu_runtime_binding is not None:\n        report = attach_gpu_runtime_evidence",
             smoke,
         )
         parent = PROBE_PATH.read_text(encoding="utf-8")

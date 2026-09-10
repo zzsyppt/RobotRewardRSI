@@ -7,10 +7,10 @@ from pathlib import Path
 
 from true_rl_agent.json_contract import canonical_json_bytes, strict_json_object_loads
 from true_rl_agent.runner.job_attempts import JobAttemptJournal, JobAttemptScope
-from true_rl_agent.tasks.stair_climbing.generation_attempt_scopes import (
-    StairGenerationLaneOperationScopes,
-    recover_stair_generation_lane_operation_scopes,
-    recover_stair_parent_bootstrap_attempt_scope,
+from true_rl_agent.agent_core.generation_attempt_scopes import (
+    GenerationLaneOperationScopes,
+    recover_generation_lane_operation_scopes,
+    recover_parent_bootstrap_attempt_scope,
 )
 
 _SESSION_GENESIS_HASH = "1" * 64
@@ -44,9 +44,9 @@ def _scope(
     return JobAttemptScope(**values)
 
 
-def _scopes(root: Path, *, segment_id: str) -> StairGenerationLaneOperationScopes:
+def _scopes(root: Path, *, segment_id: str) -> GenerationLaneOperationScopes:
     base = _scope(root, segment_id=segment_id)
-    return StairGenerationLaneOperationScopes(
+    return GenerationLaneOperationScopes(
         train=base,
         public_dev=base,
         public_accept=base,
@@ -99,7 +99,7 @@ class StairGenerationAttemptScopeTests(unittest.TestCase):
                 generation_id="generation-parent-public-dev-bootstrap",
             )
             self.assertEqual(
-                recover_stair_parent_bootstrap_attempt_scope(
+                recover_parent_bootstrap_attempt_scope(
                     attempt_journal_root=root,
                     session_id="stair-session",
                     current_invocation_segment_id="segment-current",
@@ -121,7 +121,7 @@ class StairGenerationAttemptScopeTests(unittest.TestCase):
             journal.reserve(0, previous_result=None)
 
             self.assertEqual(
-                recover_stair_parent_bootstrap_attempt_scope(
+                recover_parent_bootstrap_attempt_scope(
                     attempt_journal_root=root,
                     session_id="stair-session",
                     current_invocation_segment_id="segment-current",
@@ -150,7 +150,7 @@ class StairGenerationAttemptScopeTests(unittest.TestCase):
                 returncode=None,
             )
 
-            resolved = recover_stair_generation_lane_operation_scopes(
+            resolved = recover_generation_lane_operation_scopes(
                 attempt_journal_root=root,
                 generation_id=_GENERATION_ID,
                 lane_id=_LANE_ID,
@@ -186,7 +186,7 @@ class StairGenerationAttemptScopeTests(unittest.TestCase):
             root = Path(tmp) / "attempts"
             current = _scopes(root, segment_id="segment-current")
 
-            resolved = recover_stair_generation_lane_operation_scopes(
+            resolved = recover_generation_lane_operation_scopes(
                 attempt_journal_root=root,
                 generation_id=_GENERATION_ID,
                 lane_id=_LANE_ID,
@@ -197,7 +197,7 @@ class StairGenerationAttemptScopeTests(unittest.TestCase):
             self.assertEqual(resolved, current)
             self.assertFalse(root.exists())
             with self.assertRaisesRegex(ValueError, "lane identity mismatch"):
-                recover_stair_generation_lane_operation_scopes(
+                recover_generation_lane_operation_scopes(
                     attempt_journal_root=root,
                     generation_id=_GENERATION_ID,
                     lane_id=_LANE_ID,
@@ -234,7 +234,7 @@ class StairGenerationAttemptScopeTests(unittest.TestCase):
             )
             journal.reserve(1, previous_result=first_result)
 
-            resolved = recover_stair_generation_lane_operation_scopes(
+            resolved = recover_generation_lane_operation_scopes(
                 attempt_journal_root=root,
                 generation_id=_GENERATION_ID,
                 lane_id=_LANE_ID,
@@ -263,7 +263,7 @@ class StairGenerationAttemptScopeTests(unittest.TestCase):
                 ValueError,
                 "public_accept operation has multiple attempt journals",
             ):
-                recover_stair_generation_lane_operation_scopes(
+                recover_generation_lane_operation_scopes(
                     attempt_journal_root=root,
                     generation_id=_GENERATION_ID,
                     lane_id=_LANE_ID,
@@ -295,7 +295,7 @@ class StairGenerationAttemptScopeTests(unittest.TestCase):
                 journal.reserve(0, previous_result=None)
 
                 with self.assertRaisesRegex(ValueError, f"{field_name} mismatch"):
-                    recover_stair_generation_lane_operation_scopes(
+                    recover_generation_lane_operation_scopes(
                         attempt_journal_root=root,
                         generation_id=_GENERATION_ID,
                         lane_id=_LANE_ID,
@@ -315,7 +315,7 @@ class StairGenerationAttemptScopeTests(unittest.TestCase):
             journal.reserve(0, previous_result=None)
 
             with self.assertRaisesRegex(ValueError, "job identity mismatch"):
-                recover_stair_generation_lane_operation_scopes(
+                recover_generation_lane_operation_scopes(
                     attempt_journal_root=root,
                     generation_id=_GENERATION_ID,
                     lane_id=_LANE_ID,

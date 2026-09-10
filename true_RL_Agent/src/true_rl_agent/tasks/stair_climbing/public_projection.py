@@ -555,13 +555,16 @@ def _validate_environment_source_preflight_pair(
         train_evidence = dict(observed_train)
         eval_evidence = dict(eval_preflight)
         train_task_hash = train_evidence.get("task_protocol_hash")
+        lineage = config.unified_protocol.training_lineage
+        predecessor_task_hash = (
+            lineage["source_resolved_cell_task_protocol_hash"] if lineage is not None else None
+        )
         predecessor_training = (
-            train_task_hash == config.training_binding_task_protocol_hash
+            train_task_hash == predecessor_task_hash
             and train_task_hash != config.task_protocol_hash
         )
         predecessor_identity_matches = True
         if predecessor_training:
-            lineage = config.unified_protocol.training_lineage
             resolved_identity = train_summary.get("resolved_cell_identity")
             predecessor_identity_matches = bool(
                 lineage is not None
@@ -572,7 +575,7 @@ def _validate_environment_source_preflight_pair(
                 and resolved_identity.get("cell_variant_id")
                 == lineage["source_cell_variant_id"]
                 and resolved_identity.get("resolved_cell_task_protocol_hash")
-                == config.training_binding_task_protocol_hash
+                == predecessor_task_hash
             )
         source_manifests_match = (
             predecessor_training
@@ -584,7 +587,7 @@ def _validate_environment_source_preflight_pair(
             or eval_evidence.get("status") != "pass"
             or train_task_hash
             not in {
-                config.training_binding_task_protocol_hash,
+                predecessor_task_hash,
                 config.task_protocol_hash,
             }
             or eval_evidence.get("task_protocol_hash") != config.task_protocol_hash

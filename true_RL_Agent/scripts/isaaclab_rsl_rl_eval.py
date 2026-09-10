@@ -9,6 +9,7 @@ import os
 import platform
 import socket
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -51,6 +52,12 @@ from true_rl_agent.robots.unitree_locomotion import (  # noqa: E402
     instantiate_g1_29_environment_cfg, instantiate_g1_29_runner_cfg,
 )
 from true_rl_agent.runner.job_identity import JobIdentity  # noqa: E402
+from true_rl_agent.runner.gpu_process_binding import (  # noqa: E402
+    add_gpu_process_binding_arguments,
+    attach_gpu_runtime_evidence,
+    capture_gpu_compute_context,
+    validate_gpu_process_binding_invocation,
+)
 from true_rl_agent.runner.specs import require_execution_device  # noqa: E402
 from true_rl_agent.tasks.push_recovery.seed_policy import (  # noqa: E402
     SEED_POLICY_NAME,
@@ -121,6 +128,11 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--acceptance-protocol-hash", required=True)
     parser.add_argument("--seed-cohort-hash", required=True)
     parser.add_argument("--evaluation-binding-hash", required=True)
+    parser.add_argument(
+        "--evaluation-phase",
+        choices=("public_dev", "public_accept", "sealed_validation"),
+    )
+    parser.add_argument("--evaluation-plan-hash")
     parser.add_argument("--training-binding-hash", default=None)
     parser.add_argument("--program-source-checksum", default=None)
     parser.add_argument("--capability-profile-hash", required=True)
@@ -140,6 +152,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--action-scale", type=float, default=None)
     parser.add_argument("--status-file", default=None)
     add_resolved_cell_manifest_arguments(parser)
+    add_gpu_process_binding_arguments(parser)
     AppLauncher.add_app_launcher_args(parser)
     parser.set_defaults(headless=True)
     return parser
@@ -147,9 +160,14 @@ def _build_parser() -> argparse.ArgumentParser:
 
 args_cli = _build_parser().parse_args()
 try:
+    if bool(args_cli.evaluation_phase) != bool(args_cli.evaluation_plan_hash):
+        raise ValueError("evaluation phase and plan hash must be supplied together")
     args_cli.device = require_execution_device(
         args_cli.device,
         "push eval execution device",
+    )
+    gpu_runtime_binding = validate_gpu_process_binding_invocation(
+        args_cli, environment=os.environ,
     )
     args_cli.evaluation_subject = ExperimentSubject(
         kind=args_cli.subject_kind,
@@ -295,7 +313,12 @@ def main() -> int:
 
         inference_policy = None
         checkpoint_loading = None
+        constructed_learner = None
         if args_cli.policy == "checkpoint":
+            from true_rl_agent.robots.rsl_rl_runtime import (
+                G1_29DOF_UNITREE_RL_LAB_AGENT_CONFIGURATION,
+            )
+
             agent_cfg = instantiate_g1_29_runner_cfg()
             if hasattr(agent_cfg, "device") and args_cli.device is not None:
                 agent_cfg.device = args_cli.device
@@ -305,6 +328,9 @@ def main() -> int:
                 )
             env = RslRlVecEnvWrapper(base_env, clip_actions=agent_cfg.clip_actions)
             runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=None, device=agent_cfg.device)
+            constructed_learner = (
+                G1_29DOF_UNITREE_RL_LAB_AGENT_CONFIGURATION.verify_runner(runner)
+            )
             checkpoint_loading = load_inference_checkpoint(runner, args_cli.checkpoint)
             inference_policy = runner.get_inference_policy(device=env.unwrapped.device)
         else:
@@ -318,6 +344,14 @@ def main() -> int:
             checkpoint_safety_report=checkpoint_safety_report,
         )
         summary["checkpoint_loading"] = checkpoint_loading
+        summary["constructed_learner"] = constructed_learner
+        summary = attach_gpu_runtime_evidence(
+            summary, gpu_runtime_binding,
+            compute_context_observation=(
+                capture_gpu_compute_context(gpu_runtime_binding)
+                if gpu_runtime_binding is not None else None
+            ),
+        )
     except Exception as exc:  # noqa: BLE001
         summary = {
             "schema_version": "true_rl_agent.push_recovery.eval_summary.v1",
@@ -373,6 +407,35 @@ def run_public_eval(
     if checkpoint_safety_report is None:
         raise ValueError("checkpoint_safety_report is required")
     evaluation_protocol = evaluation_protocol_from_args(args)
+    if args.evaluation_phase is not None:
+        from true_rl_agent.evaluation.phases import EvaluationPhase
+        from true_rl_agent.tasks.push_recovery.phased_evaluation import build_push_phase_summary
+
+        phase = EvaluationPhase.parse(args.evaluation_phase)
+        seed_count = {
+            EvaluationPhase.PUBLIC_DEV: evaluation_protocol.public_seed_count,
+            EvaluationPhase.PUBLIC_ACCEPT: evaluation_protocol.public_accept_seed_count,
+            EvaluationPhase.SEALED_VALIDATION: evaluation_protocol.sealed_validation_seed_count,
+        }[phase]
+        started_ns = time.perf_counter_ns()
+        summaries = [
+            run_rollout(
+                env, config, args, inference_policy=inference_policy,
+                split_name=phase.value, run_index=index + 1,
+            )
+            for index in range(seed_count)
+        ]
+        return build_push_phase_summary(
+            phase=phase,
+            evaluation_plan_hash=args.evaluation_plan_hash,
+            seed_summaries=summaries,
+            expected_seed_count=seed_count,
+            wall_time_ns=time.perf_counter_ns() - started_ns,
+            identity=eval_summary_binding(args),
+            execution_device=str(args.device),
+            checkpoint_safety_report=checkpoint_safety_report,
+            runtime_dynamics_hash=public_runtime_dynamics(config)["runtime_dynamics_hash"],
+        )
     public_dev_summaries = [
         run_rollout(env, config, args, inference_policy=inference_policy, split_name="public_dev", run_index=index + 1)
         for index in range(evaluation_protocol.public_seed_count)
@@ -414,6 +477,7 @@ def run_public_eval(
         public_accept_summaries=public_accept_summaries,
         budget_summary=None,
         min_public_accept_count=evaluation_protocol.public_accept_seed_count,
+        evaluation_protocol=evaluation_protocol,
     )
     first_summary = public_accept_summaries[0] if public_accept_summaries else public_dev_summaries[0]
     summary = {
@@ -539,6 +603,7 @@ def run_rollout(
     action_samples = torch.zeros(num_envs, device=device)
 
     first_step_seen = False
+    vector_env_step_calls = 0
     for step in range(max_steps):
         time_s = step * step_dt
         active_idx = active.nonzero(as_tuple=False).squeeze(-1)
@@ -583,6 +648,7 @@ def run_rollout(
 
         active_before_step = active.clone()
         obs, reward, terminated, truncated, _extras = step_env(env, actions)
+        vector_env_step_calls += 1
         observation_finite = observation_finite and all_finite_tree(obs)
         reward_finite = reward_finite and bool(torch.isfinite(reward).all().item())
         cumulative_reward += reward * active_float
@@ -727,6 +793,11 @@ def run_rollout(
             "success_thresholds": thresholds,
         },
         "environment": {"num_envs": num_envs, "device": str(device), "step_dt": step_dt, "max_steps": max_steps},
+        "execution_cost": {
+            "evaluation_env_count": num_envs,
+            "vector_env_step_calls": vector_env_step_calls,
+            "closed_first_episode_control_steps": int(done_step.sum().item()),
+        },
         "evidence": {
             "reset_ok": True,
             "observation_finite": observation_finite,

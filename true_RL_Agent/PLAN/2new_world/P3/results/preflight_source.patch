@@ -1,0 +1,443 @@
+diff --git a/true_RL_Agent/PLAN/Variant_construction/P0/verify_phase0_snapshot.py b/true_RL_Agent/PLAN/Variant_construction/P0/verify_phase0_snapshot.py
+index 8e55fce..9a68a06 100644
+--- a/true_RL_Agent/PLAN/Variant_construction/P0/verify_phase0_snapshot.py
++++ b/true_RL_Agent/PLAN/Variant_construction/P0/verify_phase0_snapshot.py
+@@ -170,8 +170,7 @@ def _without_hash(payload: Mapping[str, Any], field: str) -> dict[str, Any]:
+     return {key: value for key, value in payload.items() if key != field}
+ 
+ 
+-def _resolved_contracts() -> dict[str, Any]:
+-    output_dir = PROJECT_ROOT / "__P0_SENTINEL_OUTPUT__"
++def _resolved_contracts(*, output_dir: Path) -> dict[str, Any]:
+     stair_config = StairClimbingTaskConfig.defaults(
+         PROJECT_ROOT / "configs/tasks/stair_protocol_v2.json"
+     )
+@@ -605,7 +604,12 @@ def verify(*, snapshot_path: Path = SNAPSHOT_PATH, receipt_path: Path = RUNTIME_
+         raise AssertionError("Phase 0 capture provenance heads disagree")
+     _assert_equal(snapshot["matrix_scope"]["cells"], list(EXPECTED_CELLS), "Core cells")
+     _assert_equal(snapshot["matrix_scope"]["cell_variants"], list(EXPECTED_VARIANTS), "Core variants")
+-    _assert_equal(_resolved_contracts(), snapshot["local_contracts"], "resolved contracts")
++    with tempfile.TemporaryDirectory() as output_dir:
++        _assert_equal(
++            _resolved_contracts(output_dir=Path(output_dir)),
++            snapshot["local_contracts"],
++            "resolved contracts",
++        )
+     _assert_equal(_runner_source_contract(), snapshot["runner_contract"]["source_hashes"], "runner source contract")
+     _assert_equal(_source_file_contract(snapshot), snapshot["source_file_hashes"], "source file hashes")
+     _verify_reward_abi(snapshot)
+diff --git a/true_RL_Agent/README.md b/true_RL_Agent/README.md
+index 6baf1a0..3eddc1d 100644
+--- a/true_RL_Agent/README.md
++++ b/true_RL_Agent/README.md
+@@ -49,4 +49,6 @@ uv pip install --python .venv/Scripts/python.exe -e '.[test]'
+ 
+ `run_loop.py` 是已有组合/audit 入口；`run_stair_live.py` 和 V1 final-confirmation CLI 是历史 compatibility 工具，均不等于双 lane 正式 generation。编码与 checkpoint tensor 测试属于本地必跑项；Isaac 仿真验证在固定服务器运行时执行，不能用缺依赖的 skip 代替。
+ 
++冻结的 `scripts/isaaclab_stair_phase0_probe.py` 仅属于旧 RSL-RL 3 历史验证，不能在目标后端运行；其文件字节继续保留，当前评测使用正式 Stair eval 入口。
++
+ 训练、评测、原生录像统一使用 `/data/yuyangliu/envs/isaaclab6_validation/bin/python`（Sim 6.0.1 / Lab 3 / PhysX / RSL-RL 5.0.1）。P2 审计修复已部署，完整 196608000 步训练、新 checkpoint 评测/录像、部署后对照、历史保护与资源收尾均通过，**工程 GO**，见 [P2 验收](PLAN/2new_world/P2/ACCEPTANCE_ZH.md)。旧/新后端数值等价未成立；新正式搜索须先完成 P3 reference 资格化和 P4 成本合同更新。旧 Sim 5.1 环境只保留冻结历史对照用途，新生产入口不接受它。
+diff --git a/true_RL_Agent/docs/task_extension_guides/stair_climbing.md b/true_RL_Agent/docs/task_extension_guides/stair_climbing.md
+index a3b6790..ab5819b 100644
+--- a/true_RL_Agent/docs/task_extension_guides/stair_climbing.md
++++ b/true_RL_Agent/docs/task_extension_guides/stair_climbing.md
+@@ -78,6 +78,8 @@ It must not expose hidden evaluation results, private seeds, checkpoint selector
+ 
+ The historical baseline manifest [isaaclab_g1_rough_stair_v1.json](../../configs/baselines/isaaclab_g1_rough_stair_v1.json), [Phase 0 descriptor](../../configs/tasks/stair_extension_schema.json), [V1 protocol](../../configs/tasks/stair_protocol_v1.json), and [Phase 0 report](../../PLAN/stair/phase0_report.json) retain their original identities.
+ 
++The byte-frozen `scripts/isaaclab_stair_phase0_probe.py` targets the historical RSL-RL 3 runtime. Do not run it on the current Sim 6 / Lab 3 / RSL-RL 5 backend: its `runner.load()` has the old checkpoint semantics. Keep its bytes unchanged for historical verification; current evaluation uses `scripts/isaaclab_stair_rsl_rl_eval.py` and the shared inference-checkpoint loader.
++
+ The official G1 rough-locomotion checkpoint was admitted only for compatibility and evaluation-chain smoke evidence. Its frozen probe had 0/56 Stair successes; it does not become current-best, Session Genesis, or a warm-start for complete-reward training. Checkpoint safety/structure and runtime compatibility remain separate from task viability.
+ 
+ The old seven-height bins and parameter-only stair-height classifications belong to that compatibility contract. They cannot authorize a unified V2 reward generation. The frozen descriptor must stay byte-stable because historical evidence binds its hash; extending a task requires its current TaskPlugin, task config, robot binding, and shared contracts, not a second authority in this descriptor.
+diff --git a/true_RL_Agent/scripts/isaaclab_rsl_rl_eval.py b/true_RL_Agent/scripts/isaaclab_rsl_rl_eval.py
+index 47351fb..70dc7af 100644
+--- a/true_RL_Agent/scripts/isaaclab_rsl_rl_eval.py
++++ b/true_RL_Agent/scripts/isaaclab_rsl_rl_eval.py
+@@ -295,7 +295,12 @@ def main() -> int:
+ 
+         inference_policy = None
+         checkpoint_loading = None
++        constructed_learner = None
+         if args_cli.policy == "checkpoint":
++            from true_rl_agent.robots.rsl_rl_runtime import (
++                G1_29DOF_UNITREE_RL_LAB_AGENT_CONFIGURATION,
++            )
++
+             agent_cfg = instantiate_g1_29_runner_cfg()
+             if hasattr(agent_cfg, "device") and args_cli.device is not None:
+                 agent_cfg.device = args_cli.device
+@@ -305,6 +310,9 @@ def main() -> int:
+                 )
+             env = RslRlVecEnvWrapper(base_env, clip_actions=agent_cfg.clip_actions)
+             runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=None, device=agent_cfg.device)
++            constructed_learner = (
++                G1_29DOF_UNITREE_RL_LAB_AGENT_CONFIGURATION.verify_runner(runner)
++            )
+             checkpoint_loading = load_inference_checkpoint(runner, args_cli.checkpoint)
+             inference_policy = runner.get_inference_policy(device=env.unwrapped.device)
+         else:
+@@ -318,6 +326,7 @@ def main() -> int:
+             checkpoint_safety_report=checkpoint_safety_report,
+         )
+         summary["checkpoint_loading"] = checkpoint_loading
++        summary["constructed_learner"] = constructed_learner
+     except Exception as exc:  # noqa: BLE001
+         summary = {
+             "schema_version": "true_rl_agent.push_recovery.eval_summary.v1",
+diff --git a/true_RL_Agent/src/true_rl_agent/backends/rsl_rl_training_config.py b/true_RL_Agent/src/true_rl_agent/backends/rsl_rl_training_config.py
+index 500972d..bda437a 100644
+--- a/true_RL_Agent/src/true_rl_agent/backends/rsl_rl_training_config.py
++++ b/true_RL_Agent/src/true_rl_agent/backends/rsl_rl_training_config.py
+@@ -163,7 +163,11 @@ class RslRlAgentConfiguration:
+             agent_cfg.policy = None
+ 
+     def verify_runner(self, runner: Any) -> dict[str, Any]:
+-        """Inspect the constructed learner before loading weights or learning."""
++        """Inspect a fresh learner before any checkpoint load or learning.
++
++        This checks initial noise and configured learning rate. The returned
++        evidence describes construction, not the checkpoint's learned state.
++        """
+         import torch
+         from rsl_rl.utils import resolve_nn_activation
+ 
+diff --git a/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/composition.py b/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/composition.py
+index 5192070..1347ee6 100644
+--- a/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/composition.py
++++ b/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/composition.py
+@@ -218,12 +218,8 @@ class StairClimbingCompositionConfig:
+         project_root: Path,
+         resolved_cell_task_protocol_hash: str | None = None,
+     ) -> StairClimbingTaskConfig:
+-        # The frozen protocol retains its historical timeout field for reading
+-        # old evidence. The live process deadline belongs to this composition
+-        # and is passed directly to the runner / execution placement below.
+-        protocol_defaults = StairClimbingTaskConfig.defaults(
+-            project_root / self.runtime_config, cell_variant_id=self.cell_variant_id
+-        )
++        # TaskConfig derives historical fields from its own protocol load.
++        # The live deadline goes directly to the runner / execution placement.
+         return StairClimbingTaskConfig(
+             protocol_v2_path=project_root / self.runtime_config,
+             budget_steps=self.budget_steps,
+@@ -236,7 +232,6 @@ class StairClimbingCompositionConfig:
+             sealed_validation_seed_count=self.sealed_validation_seed_count,
+             eval_protocol_version=self.eval_protocol_version,
+             train_seed=self.train_seed,
+-            protocol_runner_timeout_s=protocol_defaults.protocol_runner_timeout_s,
+             train_profile=self.train_profile,
+             eval_profile=self.eval_profile,
+             cell_variant_id=self.cell_variant_id,
+diff --git a/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/config.py b/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/config.py
+index 865626b..92cb74c 100644
+--- a/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/config.py
++++ b/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/config.py
+@@ -106,7 +106,8 @@ class StairClimbingTaskConfig:
+     sealed_validation_seed_count: int
+     eval_protocol_version: str
+     train_seed: int
+-    protocol_runner_timeout_s: int  # Historical JSON runner_timeout_s, not a process deadline.
++    # Derived from the loaded historical protocol; never a process deadline input.
++    protocol_runner_timeout_s: int = field(init=False)
+     train_profile: str
+     eval_profile: str
+     cell_variant_id: str = STAIR_G1_37DOF_CLEAN_LEGACY_CELL_VARIANT_ID
+@@ -167,6 +168,10 @@ class StairClimbingTaskConfig:
+             raise ValueError("unsupported Stair cell_variant_id")
+         protocol_v2 = _load_stair_protocol_v2(path)
+         protocol_v1 = StairProtocolV1.load(path.with_name("stair_protocol_v1.json"))
++        object.__setattr__(
++            self, "protocol_runner_timeout_s",
++            int(protocol_v1.to_dict()["training"]["runner_timeout_s"]),
++        )
+         evaluation_semantics = (
+             StairEvaluationSemantics.load(
+                 path.with_name(Path(STAIR_EVALUATION_SEMANTICS_RELATIVE_PATH).name),
+@@ -462,6 +467,9 @@ class StairClimbingTaskConfig:
+         if self.cell_variant_id != protocol.cell_variant_id:
+             raise ValueError("Stair unified config/cell identity mismatch")
+         training = protocol.training
++        object.__setattr__(
++            self, "protocol_runner_timeout_s", int(training["runner_timeout_s"])
++        )
+         evaluation = protocol.evaluation_suite.evaluation_protocol
+         expected = {
+             "budget_steps": int(training["budget_steps"]),
+@@ -473,7 +481,6 @@ class StairClimbingTaskConfig:
+             "public_accept_seed_count": evaluation.public_accept_seed_count,
+             "sealed_validation_seed_count": evaluation.sealed_validation_seed_count,
+             "eval_protocol_version": evaluation.eval_protocol_version,
+-            "protocol_runner_timeout_s": int(training["runner_timeout_s"]),
+             "train_profile": str(training["train_profile"]),
+             "eval_profile": str(training["eval_profile"]),
+         }
+@@ -590,7 +597,6 @@ class StairClimbingTaskConfig:
+                 ),
+                 eval_protocol_version=evaluation_protocol.eval_protocol_version,
+                 train_seed=train_seed,
+-                protocol_runner_timeout_s=int(training["runner_timeout_s"]),
+                 train_profile=str(training["train_profile"]),
+                 eval_profile=str(training["eval_profile"]),
+                 cell_variant_id=cell_variant_id,
+@@ -666,7 +672,6 @@ class StairClimbingTaskConfig:
+             ),
+             eval_protocol_version=evaluation_protocol.eval_protocol_version,
+             train_seed=train_seed,
+-            protocol_runner_timeout_s=int(training["runner_timeout_s"]),
+             train_profile=train_profile,
+             eval_profile=eval_profile,
+             cell_variant_id=cell_variant_id,
+diff --git a/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/entrypoint_contract.py b/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/entrypoint_contract.py
+index 6d40179..094bf9c 100644
+--- a/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/entrypoint_contract.py
++++ b/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/entrypoint_contract.py
+@@ -121,7 +121,6 @@ def validate_stair_train_invocation(
+         sealed_validation_seed_count=defaults.sealed_validation_seed_count,
+         eval_protocol_version=defaults.eval_protocol_version,
+         train_seed=_nonnegative_int(args.seed, "seed"),
+-        protocol_runner_timeout_s=defaults.protocol_runner_timeout_s,
+         train_profile=_text(args.profile, "profile"),
+         eval_profile=defaults.eval_profile,
+         cell_variant_id=defaults.cell_variant_id,
+diff --git a/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_execution.py b/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_execution.py
+index 413b39a..a890ee0 100644
+--- a/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_execution.py
++++ b/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_execution.py
+@@ -2,8 +2,6 @@
+ 
+ from __future__ import annotations
+ 
+-from true_rl_agent.runner.native_video import NativeVideoOptions
+-
+ import hashlib
+ import json
+ import math
+@@ -36,6 +34,7 @@ from true_rl_agent.evaluation.binding import (
+ from true_rl_agent.runner.budget import build_budget_accounting
+ from true_rl_agent.runner.candidate_failure import CandidateFailureEvidence
+ from true_rl_agent.runner.checkpoint import file_sha256
++from true_rl_agent.runner.native_video import NativeVideoOptions
+ from true_rl_agent.robots.isaaclab_locomotion import (
+     isaaclab_locomotion_runtime_spec,
+ )
+@@ -344,6 +343,7 @@ class StairEvaluationExecutionResult:
+     backend_execution_environment_verification: Mapping[str, str]
+     execution_device: str
+     checkpoint_loading: Mapping[str, Any] | None = None
++    constructed_learner: Mapping[str, Any] | None = None
+ 
+     def __post_init__(self) -> None:
+         if not isinstance(self.summaries, Mapping) or not self.summaries:
+@@ -1204,7 +1204,7 @@ def execute_stair_evaluation(
+             split_counts["calibration"] = (
+                 config.ordered_evaluation_suite.calibration_seed_count
+             )
+-        config.training_agent_configuration().verify_runner(runner)
++        constructed_learner = config.training_agent_configuration().verify_runner(runner)
+         checkpoint_loading = load_inference_checkpoint(runner, resolved_checkpoint)
+         inference_policy = runner.get_inference_policy(
+             device=env.unwrapped.device
+@@ -1297,6 +1297,7 @@ def execute_stair_evaluation(
+             backend_execution_environment_verification=backend_verification,
+             execution_device=actual_env_device,
+             checkpoint_loading=checkpoint_loading,
++            constructed_learner=constructed_learner,
+         )
+         if recorder is not None:
+             sidecar = {
+@@ -1305,6 +1306,7 @@ def execute_stair_evaluation(
+                 "recorded_interval": "first_episode_control_step_1_to_terminal_minus_1",
+                 "execution": result.execution_identity(),
+                 "checkpoint_loading": dict(checkpoint_loading),
++                "constructed_learner": dict(constructed_learner),
+                 "resolved_cell_manifest": resolved_cell_manifest.to_dict(),
+                 "evaluation_summaries": result.public_summaries(),
+                 "recordings": recorder.records,
+diff --git a/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/phased_evaluation.py b/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/phased_evaluation.py
+index a3dae87..5870863 100644
+--- a/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/phased_evaluation.py
++++ b/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/phased_evaluation.py
+@@ -99,6 +99,8 @@ def build_stair_eval_phase_summary(
+         "evaluation_execution_cost": execution.execution_cost_artifact(),
+         **({"checkpoint_loading": dict(execution.checkpoint_loading)}
+            if execution.checkpoint_loading is not None else {}),
++        **({"constructed_learner": dict(execution.constructed_learner)}
++           if execution.constructed_learner is not None else {}),
+         "status": "pass",
+         "task_evidence": task_evidence,
+         "task_evidence_hash": canonical_json_hash(task_evidence),
+@@ -198,6 +200,8 @@ def build_stair_full_eval_summary(
+     )
+     if execution.checkpoint_loading is not None:
+         summary["checkpoint_loading"] = dict(execution.checkpoint_loading)
++    if execution.constructed_learner is not None:
++        summary["constructed_learner"] = dict(execution.constructed_learner)
+     return summary
+ 
+ 
+diff --git a/true_RL_Agent/tests/unit/test_stair_isaaclab_runtime_env.py b/true_RL_Agent/tests/unit/test_stair_isaaclab_runtime_env.py
+index 7d2a80b..f52e76b 100644
+--- a/true_RL_Agent/tests/unit/test_stair_isaaclab_runtime_env.py
++++ b/true_RL_Agent/tests/unit/test_stair_isaaclab_runtime_env.py
+@@ -1,7 +1,9 @@
+ from __future__ import annotations
+ 
+ import os
++import subprocess
+ import sys
++import traceback
+ import unittest
+ from pathlib import Path
+ from types import SimpleNamespace
+@@ -33,8 +35,9 @@ from true_rl_agent.tasks.stair_climbing.transition_decoder import (  # noqa: E40
+ )
+ 
+ _DYNAMIC_ENABLED = os.environ.get("TRUE_RL_AGENT_ISAAC_DYNAMIC_TEST") == "1"
++_ISAAC_CHILD = os.environ.get("TRUE_RL_AGENT_ISAAC_TEST_CHILD") == "1"
+ _SIMULATION_APP = None
+-if _DYNAMIC_ENABLED:
++if _DYNAMIC_ENABLED and _ISAAC_CHILD:
+     try:
+         from isaaclab.app import AppLauncher
+ 
+@@ -49,28 +52,37 @@ if _DYNAMIC_ENABLED:
+             isaaclab_runtime_env as isaac_runtime,
+         )
+     except BaseException:
++        traceback.print_exc()
+         if _SIMULATION_APP is not None:
+-            _SIMULATION_APP.close()
++            _SIMULATION_APP.close(exit_code=1)
+             _SIMULATION_APP = None
+         raise
+-    else:
+-        ISAAC_IMPORT_ERROR = None
+ else:
+     torch = None
+     isaac_runtime = None
+-    ISAAC_IMPORT_ERROR = RuntimeError(
+-        "set TRUE_RL_AGENT_ISAAC_DYNAMIC_TEST=1 to run Isaac integration"
+-    )
+ 
+ 
+-def tearDownModule() -> None:
+-    if _SIMULATION_APP is not None:
+-        _SIMULATION_APP.close()
++def _run_in_isaac_subprocess(test_name: str) -> None:
++    # Kit owns process shutdown. Keep it outside the unittest discovery process;
++    # the child prints its complete result before closing with that exit status.
++    result = subprocess.run(
++        [sys.executable, str(Path(__file__).resolve()), test_name, "-v"],
++        cwd=ROOT,
++        env={**os.environ, "TRUE_RL_AGENT_ISAAC_TEST_CHILD": "1"},
++        capture_output=True,
++        text=True,
++        timeout=120,
++    )
++    output = result.stdout + result.stderr
++    if result.returncode != 0 or "\nOK\n" not in output:
++        raise AssertionError(
++            f"Isaac test child exited {result.returncode}:\n{output[-12000:]}"
++        )
+ 
+ 
+ @unittest.skipUnless(
+-    isaac_runtime is not None and torch is not None,
+-    f"Isaac Lab runtime unavailable: {ISAAC_IMPORT_ERROR}",
++    _DYNAMIC_ENABLED,
++    "set TRUE_RL_AGENT_ISAAC_DYNAMIC_TEST=1 to run Isaac integration",
+ )
+ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
+     def setUp(self) -> None:
+@@ -82,6 +94,9 @@ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
+         self.semantics = self.config.evaluation_semantics
+ 
+     def test_train_and_eval_builders_install_only_the_declared_runtime(self) -> None:
++        if not _ISAAC_CHILD:
++            _run_in_isaac_subprocess(f"{type(self).__name__}.{self._testMethodName}")
++            return
+         reward_program = resolve_official_stair_reference_program(
+             self.config,
+             project_root=ROOT,
+@@ -168,6 +183,9 @@ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
+                 )
+ 
+     def test_real_recorder_payload_decodes_tracks_and_aggregates(self) -> None:
++        if not _ISAAC_CHILD:
++            _run_in_isaac_subprocess(f"{type(self).__name__}.{self._testMethodName}")
++            return
+         public_dev = self.protocol.to_dict()["evaluation"]["splits"]["public_dev"]
+         episodes_per_bin = int(public_dev["episodes_per_seed_per_bin"])
+         assignment = tuple(
+@@ -208,6 +226,11 @@ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
+         robot_data = SimpleNamespace(
+             root_pos_w=root_pos,
+             root_quat_w=root_quat,
++            root_lin_vel_w=torch.zeros_like(root_pos),
++            root_ang_vel_w=torch.zeros_like(root_pos),
++            root_lin_vel_b=torch.zeros_like(root_pos),
++            root_ang_vel_b=torch.zeros_like(root_pos),
++            projected_gravity_b=torch.tensor([0.0, 0.0, -1.0]).repeat(num_envs, 1),
+             joint_pos=torch.zeros((num_envs, 37), dtype=torch.float32),
+             body_pos_w=robot_body_pos,
+             body_lin_vel_w=torch.zeros_like(robot_body_pos),
+@@ -279,6 +302,11 @@ class StairIsaacLabRuntimeEnvTests(unittest.TestCase):
+             recorder.record_post_step()
+ 
+         raw = env.extras[isaac_runtime.STAIR_EVAL_TRANSITION_EXTRAS_KEY]
++        self.assertTrue(torch.equal(raw["root_pos_w"], root_pos))
++        self.assertTrue(torch.equal(
++            raw["root_quat_w"],
++            torch.tensor([1.0, 0.0, 0.0, 0.0]).repeat(num_envs, 1),
++        ))
+         self.assertEqual(tuple(raw["joint_pos"].shape), (num_envs, 37))
+         self.assertTrue(torch.equal(raw["terrain_env_origins_w"], origins))
+         self.assertTrue(torch.equal(raw["terrain_types"], terrain_types))
+@@ -335,4 +363,10 @@ class _FakeAsset:
+ 
+ 
+ if __name__ == "__main__":
+-    unittest.main()
++    program = unittest.main(exit=False)
++    exit_code = 0 if program.result.wasSuccessful() else 1
++    sys.stdout.flush()
++    sys.stderr.flush()
++    if _SIMULATION_APP is not None:
++        _SIMULATION_APP.close(exit_code=exit_code)
++    raise SystemExit(exit_code)
+diff --git a/true_RL_Agent/tests/unit/test_stair_phased_evaluation.py b/true_RL_Agent/tests/unit/test_stair_phased_evaluation.py
+index d8e529c..4fb7ff0 100644
+--- a/true_RL_Agent/tests/unit/test_stair_phased_evaluation.py
++++ b/true_RL_Agent/tests/unit/test_stair_phased_evaluation.py
+@@ -107,6 +107,30 @@ class StairPhasedEvaluationTests(unittest.TestCase):
+             ROOT / "configs" / "tasks" / "stair_protocol_v2.json"
+         )
+ 
++    def test_phase_summary_preserves_learner_evidence_outside_task_semantics(self) -> None:
++        plan = self._eval_plan("learner-evidence")
++        phase = EvaluationPhase.PUBLIC_DEV
++        execution = self._execution({phase: [5, 6, 5]})
++        learner = {
++            "schema_version": "true_rl_agent.rsl_rl_constructed_learner.v1",
++            "initial_noise_std": 1.0,
++        }
++        summaries = [
++            build_stair_eval_phase_summary(
++                config=self.config,
++                identity=plan.job_identity(),
++                evaluation_plan_hash=canonical_json_hash(plan.to_public_dict()),
++                phase=phase,
++                execution=item,
++                evaluation_binding=plan.evaluation_binding,
++                checkpoint_safety_report=self._checkpoint_report(),
++            )
++            for item in (execution, replace(execution, constructed_learner=learner))
++        ]
++        self.assertEqual(summaries[1]["constructed_learner"], learner)
++        self.assertEqual(summaries[0]["task_evidence"], summaries[1]["task_evidence"])
++        self.assertEqual(summaries[0]["task_evidence_hash"], summaries[1]["task_evidence_hash"])
++
+     def test_frozen_p5_reference_and_current_candidates_share_comparison_statistics(
+         self,
+     ) -> None:

@@ -21,6 +21,7 @@ from true_rl_agent.tasks.stair_climbing.evaluation_contract import (
 from true_rl_agent.tasks.stair_climbing.unified_scoring import (
     validate_objective_family_mask,
     validate_unified_stair_summary,
+    learnable_cell_ids,
 )
 
 STAIR_REFERENCE_QUALIFICATION_EVIDENCE_SCHEMA_VERSION = (
@@ -236,11 +237,16 @@ def _qualify_unified_stair_reference(
         passed = success >= float(
             readiness["minimum_macro_success_rate"]
         ) and progress >= float(readiness["minimum_macro_goal_progress_fraction"])
+        learnable = None
+        if config.ordered_evaluation_suite.is_calibrated:
+            learnable = learnable_cell_ids(suite=config.ordered_evaluation_suite,
+                                           summary=split, cell_ids=cell_ids)
         easy_measurements[str(stratum)] = {
             "cell_ids": list(cell_ids),
             "macro_success_rate": success,
             "macro_goal_progress_fraction": progress,
             "status": "pass" if passed else "fail",
+            **({"learnable_cell_ids": learnable} if learnable is not None else {}),
         }
         easy_pass = easy_pass and passed
 
@@ -259,9 +265,11 @@ def _qualify_unified_stair_reference(
     ood_pass = bool(objective_family_mask["qualified_ood_families"])
     passed = easy_pass and ood_pass
     task_gate = {
-        "schema_version": "true_rl_agent.task.stair_climbing.reference_readiness.v1",
+        "schema_version": ("true_rl_agent.task.stair_climbing.reference_readiness.v2"
+                           if suite.is_calibrated else "true_rl_agent.task.stair_climbing.reference_readiness.v1"),
         "status": "pass" if passed else "fail",
-        "predicate": "easy_strata_floors_and_one_reference_supported_ood_family",
+        "predicate": ("id_capability_floors_and_success_transition_in_every_objective_stratum"
+                      if suite.is_calibrated else "easy_strata_floors_and_one_reference_supported_ood_family"),
         "easy_strata_status": "pass" if easy_pass else "fail",
         "ood_family_status": "pass" if ood_pass else "fail",
         "threshold_relaxation_allowed": False,

@@ -17,7 +17,6 @@ from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 
 from true_rl_agent.agent_core.generation_contract import (
-    GENERATION_LEDGER_RECORD_SCHEMA_VERSION,
     GenerationSessionContract,
 )
 from true_rl_agent.agent_core.ledger import PROVIDER_AUTHORING_MODE, load_ledger
@@ -616,6 +615,8 @@ class GenerationSegmentJournal:
 def publish_generation_continuation_policy(
     output_dir: Path,
     policy: GenerationContinuationPolicy,
+    *,
+    require_existing: bool = False,
 ) -> Path:
     if not isinstance(policy, GenerationContinuationPolicy):
         raise TypeError("generation continuation policy is invalid")
@@ -625,7 +626,6 @@ def publish_generation_continuation_policy(
     payload = canonical_json_bytes(policy.to_dict(), trailing_newline=True)
     if len(payload) > _MAX_POLICY_BYTES:
         raise ValueError("generation continuation policy exceeds its byte limit")
-    path.parent.mkdir(parents=True, exist_ok=True)
     if path.exists() or path.is_symlink():
         existing = read_bounded_regular_file(
             path,
@@ -637,6 +637,9 @@ def publish_generation_continuation_policy(
                 "generation continuation policy already exists with different bytes"
             )
         return path
+    if require_existing:
+        raise FileNotFoundError(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
     try:
         create_once_bytes(path, payload)
     except FileExistsError:
@@ -924,7 +927,7 @@ def _require_generation_ledger_identity(
 
     for expected_index, record in enumerate(records, start=1):
         if (
-            record.get("schema_version") != GENERATION_LEDGER_RECORD_SCHEMA_VERSION
+            record.get("schema_version") != session_contract.ledger_record_schema
             or record.get("record_kind") != "generation"
         ):
             raise ValueError("generation continuation requires generation ledger records")

@@ -1,0 +1,68 @@
+{
+  "removed_old_host_tests": [
+    "test_clean_closed_boundary_rejects_duplicate_pause_without_starting_segment",
+    "test_cli_passes_imported_reference_identity_without_changing_row",
+    "test_cli_rejects_helper_control_conflicts_and_abbreviations",
+    "test_closed_ledger_resume_only_settles_without_provider_or_gpu_work",
+    "test_direct_fresh_formal_cli_requires_tracked_launcher_context",
+    "test_driver_calls_existing_generation_coordinator_once_and_closes_one_row",
+    "test_final_execution_source_cannot_change_after_legacy_reservation",
+    "test_final_execution_source_repair_hash_binds_unchanged_generation_source",
+    "test_formal_cli_maps_fixed_mode_and_precommitted_pause",
+    "test_formal_final_eval_rematerializes_imported_reference_gpu_binding",
+    "test_formal_go2_foundation_freezes_imported_reference_v5_cost",
+    "test_formal_source_change_rejects_real_nonterminal_foundation_without_writes",
+    "test_formal_terminal_audit_consumes_v3_launch_context",
+    "test_foundation_freezes_two_host_bindings_and_fixed_pilot_contract",
+    "test_foundation_rejects_self_consistent_phased_cost_science_drift",
+    "test_foundation_resolves_selected_go2_row",
+    "test_foundation_resume_is_exact_and_cost_drift_is_rejected",
+    "test_fresh_development_balance_failure_precedes_output_and_gpu_work",
+    "test_fresh_formal_session_does_not_call_network_provider_readiness",
+    "test_generation_cli_selects_go2_row",
+    "test_generation_exception_exit_receives_the_original_exception",
+    "test_inventory_requires_exact_ordinals_and_uuids",
+    "test_offline_validation_report_uses_strict_lifecycle_audit",
+    "test_phase4_pilot_and_validation_cli_map_fixed_modes",
+    "test_preflight_only_cli_dispatches_without_session_runner",
+    "test_preflight_only_round_trips_scratch_without_formal_state",
+    "test_provider_credential_is_preflighted_without_network",
+    "test_provider_readiness_decision_preserves_closed_resume_offline",
+    "test_provider_readiness_only_cli_dispatches_without_other_modes",
+    "test_provider_readiness_only_has_no_formal_or_gpu_side_effects",
+    "test_real_composition_snapshot_reaches_pre_genesis_scopes",
+    "test_recovery_only_cost_head_is_reconciled_before_closed_boundary_pause",
+    "test_resume_rejects_an_existing_directory_without_foundation",
+    "test_resume_rejects_source_commit_drift_before_session_execution",
+    "test_resume_replays_closed_prefix_before_new_generation_work",
+    "test_source_checkout_identity_is_create_once_and_rejects_commit_drift",
+    "test_terminal_validation_audit_is_offline_before_gpu_and_provider",
+    "test_terminal_validation_audit_offline_finalizes_a_missing_report",
+    "test_validation_foundation_freezes_imported_reference_v4_cost",
+    "test_validation_report_precheck_failure_keeps_terminal_recoverable"
+  ],
+  "reason": "Retired one-off pilot/validation launch and writer APIs; common production CLI, frozen cost, phased candidate paths, actual crash recovery and readonly history retain the live contracts.",
+  "migrated_from_removed_names": {
+    "test_provider_credential_is_preflighted_without_network": "tests/unit/test_generation_entrypoint.py::test_fresh_cli_requires_local_credential_before_any_session_work; actual common CLI/provider config, missing credential prevents session work, valid credential reaches the host without a network preflight",
+    "test_formal_final_eval_rematerializes_imported_reference_gpu_binding": "tests/unit/test_generation_finalization.py::test_imported_checkpoint_is_rematerialized_on_the_session_final_lane; same argv/checkpoint/subject assertions, expanded to three cells and both unbound/other-lane inputs",
+    "test_foundation_rejects_self_consistent_phased_cost_science_drift": "tests/unit/test_generation_finalization.py::test_self_consistent_foreign_workload_cannot_replace_the_cell_contract",
+    "test_inventory_requires_exact_ordinals_and_uuids": "tests/unit/test_generation_entrypoint.py; actual CLI inventory parsed for three cells; GPU runtime/ownership assertions retained in runner and resource tests",
+    "test_provider_policy_binds_both_adaptive_request_shapes": "retained test now exercises the common generation_provider builder",
+    "test_formal_subject_rebuilds_selected_go2_task_from_manifest": "tests/unit/test_stair_launch_history.py; reader assertions retained",
+    "old_three_generation_and_formal_writer_integration": "tests/integration/test_generation_session.py and P4/verify_shared_session.py; two actual task projections, accepted/rejected/no-selection/failures/reference head and persistent process crash recovery"
+  },
+  "retired_file_test_counts": {
+    "tests/integration/test_stair_generation_session.py": 4,
+    "tests/unit/test_stair_generation_launcher.py": 13,
+    "tests/unit/test_stair_p6b_legacy_resume.py": 1,
+    "tests/unit/test_stair_generation_launch_readiness.py": 15
+  },
+  "other_retired_old_writer_tests": [
+    "test_missing_terminal_report_replays_closure_with_generation_settlement (old validation-report writer retired; common session recovery/final audited)"
+  ],
+  "preserved_p4_final_contract_tests": [
+    "test_stair_cells_freeze_real_execution_fields_and_reuse_the_same_private_study",
+    "test_push_uses_the_same_plan_shape_without_claiming_new_holdout_generalization"
+  ],
+  "preserved_p4_final_contract_tests_note": "Final coverage audit restored both original P4 plan-contract tests alongside the migrated checkpoint binding and foreign workload tests; no original assertion was removed."
+}

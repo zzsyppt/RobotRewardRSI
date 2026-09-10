@@ -1,0 +1,13 @@
+# Keep raw runtime artifacts on disk; version concise results and checksums.
+*.log
+*.pt
+*.npz
+*.npy
+*.mp4
+*.png
+events.out.tfevents.*
+# Complete audit runs remain on disk; the phase keeps compact reports and source hashes.
+results/audit_*/*_coarse_*/
+results/audit_*/*_fine_*/
+results/audit_*/*_qualification_*/
+results/regression_followup_*/*_qualification/

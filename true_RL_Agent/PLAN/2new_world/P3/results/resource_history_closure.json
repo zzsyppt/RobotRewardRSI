@@ -1,0 +1,77 @@
+{
+  "status": "PASS",
+  "checked_at_utc": "2026-09-08T14:38:46.309453+00:00",
+  "protected_checkpoints": 71,
+  "checkpoint_stats_verified": 48,
+  "protected_artifacts_hashed": 884,
+  "authoritative_checkpoint_hashes": 23,
+  "changes": [],
+  "gpu_compute_processes": "",
+  "lease_files": [
+    {
+      "path": "/tmp/true_rl_agent_gpu_leases/a05046acbf95598780af3d439b8ab24f42c7c65832d3063fd68d45bb72900ac4.lock",
+      "available": true
+    },
+    {
+      "path": "/tmp/true_rl_agent_gpu_leases/a57856084a9d0c880569edb124f01821dc1061b59385c12b951e2d6a5d6f0deb.lock",
+      "available": true
+    },
+    {
+      "path": "/tmp/true_rl_agent_gpu_leases/3b93a5c76b648a2b40a6f3599b9b3ff58196f6d1787872f168c860ce91bdc0d2.lock",
+      "available": true
+    },
+    {
+      "path": "/tmp/true_rl_agent_gpu_leases/028d6f63aeed6f60252131318909e429e52f16337501960c8c2d8cf6295b4acb.lock",
+      "available": true
+    }
+  ],
+  "phase_costs": {
+    "go2_calibration_01": {
+      "wall_s": 172.95721817016602,
+      "method": "conservative parent start/end covering GPU lease",
+      "returncode": 0
+    },
+    "go2_terrain_calibration_02": {
+      "wall_s": 180.24896812438965,
+      "method": "conservative parent start/end covering GPU lease",
+      "returncode": 0
+    },
+    "go2_surface_calibration_03": {
+      "wall_s": 181.23971557617188,
+      "method": "conservative parent start/end covering GPU lease",
+      "returncode": 0
+    },
+    "go2_normalized_surface_calibration_04": {
+      "wall_s": 191.22145700454712,
+      "method": "conservative parent start/end covering GPU lease",
+      "returncode": 0
+    },
+    "g1_terrain_calibration_01": {
+      "wall_s": 157.44958567619324,
+      "method": "conservative parent start/end covering GPU lease",
+      "returncode": 0
+    },
+    "g1_normalized_surface_calibration_02": {
+      "wall_s": 165.16761231422424,
+      "method": "conservative parent start/end covering GPU lease",
+      "returncode": 0
+    },
+    "go2_formal_qualification_01": {
+      "wall_s": 995.73378487,
+      "method": "sum of actual GPU lease intervals",
+      "completed_phases": 4
+    },
+    "g1_formal_qualification_01": {
+      "wall_s": 971.876922424,
+      "method": "sum of actual GPU lease intervals",
+      "completed_phases": 4
+    },
+    "g1_full_reference_training": {
+      "wall_s": 4336.901066788,
+      "method": "actual GPU lease interval"
+    }
+  },
+  "total_gpu_hours_upper_bound": 2.042443425263248,
+  "training_gpu_hours": 1.2046947407744446,
+  "other_gpu_hours_upper_bound": 0.8377486844888036
+}

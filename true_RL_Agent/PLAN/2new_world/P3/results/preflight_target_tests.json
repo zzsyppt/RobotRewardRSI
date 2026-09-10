@@ -1,0 +1,68 @@
+{
+  "status": "PASS",
+  "argv": [
+    "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+    "-m",
+    "unittest",
+    "tests.unit.test_stair_isaaclab_runtime_env",
+    "tests.unit.test_stair_phased_evaluation",
+    "tests.unit.test_rsl_rl_checkpoint",
+    "tests.unit.test_native_video",
+    "-v"
+  ],
+  "cwd": "/data/yuyangliu/isolated/new_world_p3/true_RL_Agent",
+  "environment_overrides": {
+    "PYTHONPATH": "/data/yuyangliu/isolated/new_world_p3/true_RL_Agent/src",
+    "TRUE_RL_AGENT_ISAAC_DYNAMIC_TEST": "1"
+  },
+  "tests": 28,
+  "skipped": 0,
+  "returncode": 0,
+  "elapsed_s": 20.21,
+  "log": {
+    "path": "/data/yuyangliu/isolated/new_world_p3/true_RL_Agent/PLAN/2new_world/P3/results/preflight_target_final.log",
+    "sha256": "16d755febc02a433f9c3e58341624ac7e69702ee8841d13150ec70b95c82fc93",
+    "bytes": 5614
+  },
+  "dynamic_test_source": {
+    "path": "/data/yuyangliu/isolated/new_world_p3/true_RL_Agent/tests/unit/test_stair_isaaclab_runtime_env.py",
+    "sha256": "fd00b2f5268cf22912dce78046c0c4394ecda79754341e96786f48cb201bec04",
+    "bytes": 13765
+  },
+  "negative_control": {
+    "returncode": 1,
+    "fault": "Remove root_lin_vel_w from a temporary copy of the fixture; production code unchanged",
+    "fault_copy_sha256": "3c5cfa54a355051ff663040aa403829a07373800db0a2feebe2dfa42ae74ffd0",
+    "original_error_visible": true,
+    "child_failed_summary_visible": true,
+    "parent_failed_summary_visible": true,
+    "fault_copy_removed": true,
+    "log": {
+      "path": "/data/yuyangliu/isolated/new_world_p3/true_RL_Agent/PLAN/2new_world/P3/results/dynamic_recorder_fault.log",
+      "sha256": "fdcc0ac636706d56d3a71954eff64a528712f5e7139fd699db051d8c2ff719bc",
+      "bytes": 13235
+    }
+  },
+  "rejected_attempts": [
+    {
+      "strategy": "direct SimulationApp.close at module teardown",
+      "returncode": 0,
+      "ERROR_without_summary": true,
+      "log": {
+        "path": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P3/baseline_dynamic_recorder_test.log",
+        "sha256": "f8d2482ad7c17daff8a2e295d7aac1a563f2eb14a05ae81da7b7d2fdf45e10c8",
+        "bytes": 309424
+      }
+    },
+    {
+      "strategy": "fast_shutdown=False",
+      "returncode": -11,
+      "summary_OK_but_process_SIGSEGV": true,
+      "log": {
+        "path": "/data/yuyangliu/isolated/new_world_p3/true_RL_Agent/PLAN/2new_world/P3/results/dynamic_recorder_fixed.log",
+        "sha256": "316d6d133424acf4b9febaeca848b8e6cb4a0e7c1afa8203e2f584f904f3301f",
+        "bytes": 309619
+      }
+    }
+  ]
+}

@@ -520,6 +520,11 @@ class OpenAICompatibleCandidateProvider:
             request["temperature"] = self.config.temperature
         return request
 
+    def validate_credential(self) -> None:
+        """Check local credential availability before expensive session work."""
+        if not _is_safe_authorization_credential(self._api_key()):
+            raise RuntimeError("provider API key is not a valid authorization credential")
+
     def _api_key(self) -> str:
         if self.config.api_key:
             return self.config.api_key

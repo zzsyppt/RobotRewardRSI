@@ -1,0 +1,40 @@
+{
+  "before": {
+    "stair.g1_37dof.unified_v2": {
+      "protocol_runner_timeout_s": 7200,
+      "resolved_cell_manifest_hash": "dbd79e0074ce64f23ae447d3e50ebcf1997593fe121fa209b4efd61b410c79a1",
+      "resolved_cell_task_protocol_hash": "32d7f3c9855b04a826dcbfe958bf12fc44d7be09275285295e12f80f3abc0332",
+      "runner_timeout_s": 36000,
+      "task_protocol_hash": "32d7f3c9855b04a826dcbfe958bf12fc44d7be09275285295e12f80f3abc0332",
+      "training_agent_configuration_hash": "8a5d64c47ac034695d2eec23ff60a89ecbf1253694edb8c373a4da86872bb450"
+    },
+    "stair.go2_12dof.unified_v2": {
+      "protocol_runner_timeout_s": 7200,
+      "resolved_cell_manifest_hash": "193fa9038a6f46539fb71a7e73edc44bdc024be2b899785394b8f82113c91f37",
+      "resolved_cell_task_protocol_hash": "fb0a30071b27af5b600a7dba65dd03d8a1184ab195c9fd987f770e5eeb667429",
+      "runner_timeout_s": 36000,
+      "task_protocol_hash": "fb0a30071b27af5b600a7dba65dd03d8a1184ab195c9fd987f770e5eeb667429",
+      "training_agent_configuration_hash": "f2cf1a2644ecdf61f3629f65c211ab29c274e06b6043c9067420e9e87a204789"
+    }
+  },
+  "after": {
+    "stair.g1_37dof.unified_v2": {
+      "protocol_runner_timeout_s": 7200,
+      "resolved_cell_manifest_hash": "dbd79e0074ce64f23ae447d3e50ebcf1997593fe121fa209b4efd61b410c79a1",
+      "resolved_cell_task_protocol_hash": "32d7f3c9855b04a826dcbfe958bf12fc44d7be09275285295e12f80f3abc0332",
+      "runner_timeout_s": 36000,
+      "task_protocol_hash": "32d7f3c9855b04a826dcbfe958bf12fc44d7be09275285295e12f80f3abc0332",
+      "training_agent_configuration_hash": "8a5d64c47ac034695d2eec23ff60a89ecbf1253694edb8c373a4da86872bb450"
+    },
+    "stair.go2_12dof.unified_v2": {
+      "protocol_runner_timeout_s": 7200,
+      "resolved_cell_manifest_hash": "193fa9038a6f46539fb71a7e73edc44bdc024be2b899785394b8f82113c91f37",
+      "resolved_cell_task_protocol_hash": "fb0a30071b27af5b600a7dba65dd03d8a1184ab195c9fd987f770e5eeb667429",
+      "runner_timeout_s": 36000,
+      "task_protocol_hash": "fb0a30071b27af5b600a7dba65dd03d8a1184ab195c9fd987f770e5eeb667429",
+      "training_agent_configuration_hash": "f2cf1a2644ecdf61f3629f65c211ab29c274e06b6043c9067420e9e87a204789"
+    }
+  },
+  "status": "PASS",
+  "probe_source": "import json, sys, tempfile\nfrom pathlib import Path\nroot=Path(sys.argv[1])\nsys.path.insert(0,str(root/\"src\"))\nfrom true_rl_agent.composition.base import TaskCompositionContext\nfrom true_rl_agent.tasks.stair_climbing.composition import StairClimbingCompositionProvider\nrows={}\nfor cell in (\"stair.g1_37dof.unified_v2\",\"stair.go2_12dof.unified_v2\"):\n    provider=StairClimbingCompositionProvider()\n    values=dict(provider.cli_defaults(),cell_variant_id=cell)\n    with tempfile.TemporaryDirectory() as output:\n        composition=provider.resolve(values=values,context=TaskCompositionContext(project_root=root,output_dir=Path(output)))\n        config=composition.task_plugin.config\n        manifest=composition.resolved_cell_manifest\n        rows[cell]={\"task_protocol_hash\":config.task_protocol_hash,\n          \"resolved_cell_manifest_hash\":manifest.manifest_hash,\n          \"resolved_cell_task_protocol_hash\":manifest.resolved_cell_task_protocol_hash,\n          \"training_agent_configuration_hash\":config.training_agent_configuration().agent_configuration_hash,\n          \"protocol_runner_timeout_s\":config.protocol_runner_timeout_s,\n          \"runner_timeout_s\":composition.runner.timeout_s}\nprint(json.dumps(rows,sort_keys=True))\n"
+}

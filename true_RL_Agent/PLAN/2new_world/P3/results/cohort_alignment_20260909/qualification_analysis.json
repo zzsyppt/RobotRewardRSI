@@ -1,0 +1,971 @@
+{
+  "status": "PASS",
+  "robots": {
+    "go2_12dof": {
+      "source_suite_hash": "0ceb7ad4f7bf0091e62808c2542aca5af3d7c83d61020b85c6ab5762c5b28997",
+      "result_sha256": "15f3679392b29fad61245d184312e519cb366f17d64910e5de222904838090e8",
+      "checkpoint_sha256": "sha256:7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+      "training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98",
+      "reference_gate": {
+        "evidence_hash": "200982409de6a0bc334a15e91176d823b64523f2fe406d3f058a7a59cdaed942",
+        "protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+        "schema_version": "true_rl_agent.reference_qualification_gate.v1",
+        "status": "pass"
+      },
+      "qualification_status": "PASS",
+      "phases": {
+        "public_accept": {
+          "success_count": 1165,
+          "episode_count": 1440,
+          "j_primary": 0.7796655933703703,
+          "family_scores": {
+            "F_c1": 0.7268259580277777,
+            "F_c2": 0.8568673527777778,
+            "F_scalar": 0.7553034693055556
+          },
+          "named_guards": {
+            "j_ood": 0.7796655933703703,
+            "c0_id": 1.0,
+            "c1_id": 1.0,
+            "joint_ood": 0.7672564286944444,
+            "phase_control": 1.0
+          },
+          "episodes_per_cell": 60,
+          "success_counts_by_stratum": {
+            "c0_id": [
+              60,
+              60,
+              60
+            ],
+            "c1_conditional_frontier": [
+              47,
+              28,
+              40
+            ],
+            "c1_id": [
+              60,
+              60,
+              60
+            ],
+            "c2_mechanism_ood": [
+              48,
+              48,
+              47
+            ],
+            "height_ood": [
+              38,
+              14,
+              44
+            ],
+            "joint_ood": [
+              51,
+              28,
+              48
+            ],
+            "phase_composition_ood": [
+              60,
+              60,
+              60
+            ],
+            "tread_ood": [
+              49,
+              48,
+              47
+            ]
+          },
+          "transition_cells_by_objective_stratum": {
+            "c1_conditional_frontier": [
+              "public_accept.c1_conditional_frontier_level_3",
+              "public_accept.c1_conditional_frontier_level_4",
+              "public_accept.c1_conditional_frontier_level_5"
+            ],
+            "c2_mechanism_ood": [
+              "public_accept.c2_mechanism_ood_level_2",
+              "public_accept.c2_mechanism_ood_level_4",
+              "public_accept.c2_mechanism_ood_level_5"
+            ],
+            "height_ood": [
+              "public_accept.height_ood_level_1",
+              "public_accept.height_ood_level_4",
+              "public_accept.height_ood_level_5"
+            ],
+            "tread_ood": [
+              "public_accept.tread_ood_level_3",
+              "public_accept.tread_ood_level_5"
+            ],
+            "joint_ood": [
+              "public_accept.joint_ood_level_2",
+              "public_accept.joint_ood_level_3"
+            ]
+          },
+          "every_objective_stratum_has_transition": true,
+          "empirical_full_score_objective_weight": 0,
+          "empirical_zero_success_objective_weight": 0
+        },
+        "public_dev": {
+          "success_count": 689,
+          "episode_count": 864,
+          "j_primary": 0.7466970595216049,
+          "family_scores": {
+            "F_c1": 0.6255176638425926,
+            "F_c2": 0.8433088790740741,
+            "F_scalar": 0.7712646356481482
+          },
+          "named_guards": {
+            "j_ood": 0.7466970595216049,
+            "c0_id": 1.0,
+            "c1_id": 1.0,
+            "joint_ood": 0.7142249412037037,
+            "phase_control": 1.0
+          },
+          "episodes_per_cell": 36,
+          "success_counts_by_stratum": {
+            "c0_id": [
+              36,
+              36,
+              36
+            ],
+            "c1_conditional_frontier": [
+              36,
+              17,
+              2
+            ],
+            "c1_id": [
+              36,
+              36,
+              36
+            ],
+            "c2_mechanism_ood": [
+              33,
+              23,
+              27
+            ],
+            "height_ood": [
+              35,
+              19,
+              9
+            ],
+            "joint_ood": [
+              34,
+              19,
+              16
+            ],
+            "phase_composition_ood": [
+              36,
+              36,
+              36
+            ],
+            "tread_ood": [
+              35,
+              33,
+              27
+            ]
+          },
+          "transition_cells_by_objective_stratum": {
+            "c1_conditional_frontier": [
+              "public_dev.c1_conditional_frontier_level_4"
+            ],
+            "c2_mechanism_ood": [
+              "public_dev.c2_mechanism_ood_level_4",
+              "public_dev.c2_mechanism_ood_level_5"
+            ],
+            "height_ood": [
+              "public_dev.height_ood_level_4",
+              "public_dev.height_ood_level_5"
+            ],
+            "tread_ood": [
+              "public_dev.tread_ood_level_5"
+            ],
+            "joint_ood": [
+              "public_dev.joint_ood_level_2",
+              "public_dev.joint_ood_level_3"
+            ]
+          },
+          "every_objective_stratum_has_transition": true,
+          "empirical_full_score_objective_weight": 0.1111111111111111,
+          "empirical_zero_success_objective_weight": 0
+        },
+        "sealed_validation": {
+          "success_count": 1613,
+          "episode_count": 2016,
+          "j_primary": 0.7886542746274251,
+          "family_scores": {
+            "F_c1": 0.7545431449007937,
+            "F_c2": 0.8778389241468254,
+            "F_scalar": 0.7335807548346561
+          },
+          "named_guards": {
+            "j_ood": 0.7886542746274251,
+            "c0_id": 1.0,
+            "c1_id": 1.0,
+            "joint_ood": 0.6589769069642857,
+            "phase_control": 1.0
+          },
+          "episodes_per_cell": 84,
+          "success_counts_by_stratum": {
+            "c0_id": [
+              84,
+              84,
+              84
+            ],
+            "c1_conditional_frontier": [
+              77,
+              68,
+              18
+            ],
+            "c1_id": [
+              84,
+              84,
+              84
+            ],
+            "c2_mechanism_ood": [
+              76,
+              65,
+              64
+            ],
+            "height_ood": [
+              46,
+              76,
+              40
+            ],
+            "joint_ood": [
+              56,
+              69,
+              20
+            ],
+            "phase_composition_ood": [
+              84,
+              84,
+              84
+            ],
+            "tread_ood": [
+              56,
+              83,
+              43
+            ]
+          },
+          "transition_cells_by_objective_stratum": {
+            "c1_conditional_frontier": [
+              "sealed_validation.c1_conditional_frontier_level_5"
+            ],
+            "c2_mechanism_ood": [
+              "sealed_validation.c2_mechanism_ood_level_4",
+              "sealed_validation.c2_mechanism_ood_level_5"
+            ],
+            "height_ood": [
+              "sealed_validation.height_ood_level_1",
+              "sealed_validation.height_ood_level_5"
+            ],
+            "tread_ood": [
+              "sealed_validation.tread_ood_level_2",
+              "sealed_validation.tread_ood_level_5"
+            ],
+            "joint_ood": [
+              "sealed_validation.joint_ood_level_1",
+              "sealed_validation.joint_ood_level_3"
+            ]
+          },
+          "every_objective_stratum_has_transition": true,
+          "empirical_full_score_objective_weight": 0,
+          "empirical_zero_success_objective_weight": 0
+        }
+      },
+      "qualified_mask_admission": "accepted",
+      "final_probe": {
+        "success_count": 1502,
+        "episode_count": 2016,
+        "j_primary": 0.735123319122575,
+        "family_scores": {
+          "F_c1": 0.8109296713492063,
+          "F_c2": 0.7732313583928572,
+          "F_scalar": 0.6212089276256614
+        },
+        "named_guards": {
+          "j_ood": 0.735123319122575,
+          "c0_id": 1.0,
+          "c1_id": 1.0,
+          "joint_ood": 0.6528763083531747,
+          "phase_control": 1.0
+        },
+        "episodes_per_cell": 84,
+        "success_counts_by_stratum": {
+          "c0_id": [
+            84,
+            84,
+            84
+          ],
+          "c1_conditional_frontier": [
+            80,
+            54,
+            52
+          ],
+          "c1_id": [
+            84,
+            84,
+            84
+          ],
+          "c2_mechanism_ood": [
+            66,
+            53,
+            54
+          ],
+          "height_ood": [
+            83,
+            42,
+            15
+          ],
+          "joint_ood": [
+            78,
+            50,
+            17
+          ],
+          "phase_composition_ood": [
+            84,
+            84,
+            84
+          ],
+          "tread_ood": [
+            25,
+            70,
+            7
+          ]
+        },
+        "transition_cells_by_objective_stratum": {
+          "c1_conditional_frontier": [
+            "sealed_validation.c1_conditional_frontier_level_4",
+            "sealed_validation.c1_conditional_frontier_level_5"
+          ],
+          "c2_mechanism_ood": [
+            "sealed_validation.c2_mechanism_ood_level_2",
+            "sealed_validation.c2_mechanism_ood_level_4",
+            "sealed_validation.c2_mechanism_ood_level_5"
+          ],
+          "height_ood": [
+            "sealed_validation.height_ood_level_4"
+          ],
+          "tread_ood": [
+            "sealed_validation.tread_ood_level_2"
+          ],
+          "joint_ood": [
+            "sealed_validation.joint_ood_level_2",
+            "sealed_validation.joint_ood_level_3"
+          ]
+        },
+        "every_objective_stratum_has_transition": true,
+        "empirical_full_score_objective_weight": 0,
+        "empirical_zero_success_objective_weight": 0,
+        "plan_hash": "f29aacf4040ea5674cf69641f405f95fe83c8f10a47760651f5415def519cc2d",
+        "final_suite_hash": "9c5431b330e03bc8f26f6455d655c4b0d46720e22f85409630c1a5db6f26acbe",
+        "seed_cohort_hash": "d5b699bdcb841ffb756f2658f247cb3425edaf334bdddc82da9b8417996a6816"
+      },
+      "final_surface_ratios": [
+        {
+          "cell_id": "sealed_validation.c2_mechanism_ood_level_2",
+          "source_ratio": 0.372,
+          "final_ratio": 0.372
+        },
+        {
+          "cell_id": "sealed_validation.c2_mechanism_ood_level_4",
+          "source_ratio": 0.404,
+          "final_ratio": 0.404
+        },
+        {
+          "cell_id": "sealed_validation.c2_mechanism_ood_level_5",
+          "source_ratio": 0.42,
+          "final_ratio": 0.42
+        }
+      ],
+      "private_geometry_disjoint": true,
+      "videos": [
+        {
+          "file": "public_dev_seed_1.mp4",
+          "decoded_frames": 423,
+          "sha256": "2c449db3cd1737179ce89d83a7794a131cfd8dea66155ab8efbe32f99092a689",
+          "geometry_digest": "27d1f68aca61acb2a7356a301ad819824bfd718998dae695980825cd973ba242",
+          "outcome": "success",
+          "episode_steps": 424,
+          "start_control_step": 1
+        },
+        {
+          "file": "public_dev_seed_2.mp4",
+          "decoded_frames": 393,
+          "sha256": "1dea73f092dd18ae21e1c121607e9d33102cdd25a02122fce4206f54efb2f80f",
+          "geometry_digest": "27d1f68aca61acb2a7356a301ad819824bfd718998dae695980825cd973ba242",
+          "outcome": "success",
+          "episode_steps": 394,
+          "start_control_step": 1
+        },
+        {
+          "file": "public_dev_seed_3.mp4",
+          "decoded_frames": 408,
+          "sha256": "a877fa031bfebeeaa9613472fc5a9d3470804eeea63010a50089eb0a86fddfc3",
+          "geometry_digest": "27d1f68aca61acb2a7356a301ad819824bfd718998dae695980825cd973ba242",
+          "outcome": "success",
+          "episode_steps": 409,
+          "start_control_step": 1
+        }
+      ],
+      "attempt_results": [
+        {
+          "attempt_index": 0,
+          "consumed_budget_units": 1,
+          "environment_hash": "66f5b5611536730ba0aac7dc67806ee8f5db07dc03cbede738923e5a77e42bb6",
+          "execution_device": "cuda:0",
+          "failure_kind": null,
+          "job_input_hash": "601e057a17c6fe4795ed229cff27ed2cdf4e9ed61ff1535d6b588ce46151cfa3",
+          "job_kind": "eval_phase",
+          "logical_job_id": "go2_12dof_qualification-eval-sealed-validation",
+          "outcome": "completed",
+          "output_hash": "6882d13969330ff54366f4cdd04939c5e3ad72c651480901570af056f77452df",
+          "reservation_hash": "03bd30ec63c42e440978e557457a110c354a05ed4d07e5aedfe6640b0fd2400c",
+          "resource_binding_hash": "cac943acb605b37b244df41901d8e2f8ba2e4240bbe25d4fed41414b85da02ee",
+          "resource_lease_wall_duration_ns": 651969893591,
+          "retryable": false,
+          "returncode": null,
+          "schema_version": "true_rl_agent.runner.attempt_result.v3",
+          "scope_hash": "642f557700667d1b33e080683083ae1f9cfed5cdbb145777639bf669703df966"
+        },
+        {
+          "attempt_index": 0,
+          "consumed_budget_units": 1,
+          "environment_hash": "66f5b5611536730ba0aac7dc67806ee8f5db07dc03cbede738923e5a77e42bb6",
+          "execution_device": "cuda:0",
+          "failure_kind": null,
+          "job_input_hash": "01fe59a6f1af4b29a7f9149611c24c4a2120a34be998d0154cfd032702c33de4",
+          "job_kind": "eval_phase",
+          "logical_job_id": "go2_12dof_qualification-eval-public-accept",
+          "outcome": "completed",
+          "output_hash": "1637eef7aa76d080173a2afaaaf62586f8e522bd51796a248df1123ef4de8386",
+          "reservation_hash": "c21f3b5f10e2f8f4c4214c42c5cfb367d26ddcb18902b8e57f8f2fe4e670088a",
+          "resource_binding_hash": "cac943acb605b37b244df41901d8e2f8ba2e4240bbe25d4fed41414b85da02ee",
+          "resource_lease_wall_duration_ns": 470056305672,
+          "retryable": false,
+          "returncode": null,
+          "schema_version": "true_rl_agent.runner.attempt_result.v3",
+          "scope_hash": "642f557700667d1b33e080683083ae1f9cfed5cdbb145777639bf669703df966"
+        },
+        {
+          "attempt_index": 0,
+          "consumed_budget_units": 1,
+          "environment_hash": "66f5b5611536730ba0aac7dc67806ee8f5db07dc03cbede738923e5a77e42bb6",
+          "execution_device": "cuda:0",
+          "failure_kind": null,
+          "job_input_hash": "cff8cd0e046f714b415e83e575f5d140789e5b98b03f80446a13d682374d3bda",
+          "job_kind": "eval_phase",
+          "logical_job_id": "go2_12dof_qualification-eval-sealed-validation",
+          "outcome": "completed",
+          "output_hash": "092648823c8add3ac42f3860b6be8315cb93d3a8cdb8d3a4c0818d5d597c62b8",
+          "reservation_hash": "56bc647885011a8fb00afd9d521866ccd2c07b1128e2f5c2400a93cf6e9a8ae4",
+          "resource_binding_hash": "cac943acb605b37b244df41901d8e2f8ba2e4240bbe25d4fed41414b85da02ee",
+          "resource_lease_wall_duration_ns": 677660480810,
+          "retryable": false,
+          "returncode": null,
+          "schema_version": "true_rl_agent.runner.attempt_result.v3",
+          "scope_hash": "642f557700667d1b33e080683083ae1f9cfed5cdbb145777639bf669703df966"
+        },
+        {
+          "attempt_index": 0,
+          "consumed_budget_units": 1,
+          "environment_hash": "66f5b5611536730ba0aac7dc67806ee8f5db07dc03cbede738923e5a77e42bb6",
+          "execution_device": "cuda:0",
+          "failure_kind": null,
+          "job_input_hash": "ebba9c67822b1bfd2cb8541da7f36ec6e591b964bd3eb8e00919a51dbce719b9",
+          "job_kind": "eval_phase",
+          "logical_job_id": "go2_12dof_qualification-eval-public-dev",
+          "outcome": "completed",
+          "output_hash": "a6b09bdfbbf65777d8241264073e69abf91bfe919b23f52a9ed692f563a2df0b",
+          "reservation_hash": "5cc2f1d21449d7ffb75fe005d742ce4feaaba81b56f5b6c95c19f206dd78a1c9",
+          "resource_binding_hash": "cac943acb605b37b244df41901d8e2f8ba2e4240bbe25d4fed41414b85da02ee",
+          "resource_lease_wall_duration_ns": 455890232041,
+          "retryable": false,
+          "returncode": null,
+          "schema_version": "true_rl_agent.runner.attempt_result.v3",
+          "scope_hash": "642f557700667d1b33e080683083ae1f9cfed5cdbb145777639bf669703df966"
+        }
+      ]
+    },
+    "g1_37dof": {
+      "source_suite_hash": "d78f19feeaeb8a7baf725e56acb178d7aaf58f8931f9b8e7e69ede9aa9aca73f",
+      "result_sha256": "86acc6aca6c4f1a1bf2ca19ebe4ff8e32331aa17e19d13e6caee78fdb00ce4f1",
+      "checkpoint_sha256": "sha256:4f62db0e487cfc39c3cef61777bef9e4160b64f91f92fcca1cc795585ab8236c",
+      "training_binding_hash": "d7aea85d7742c57eae1753b8b236b32555269d9bcd8c25ed2b3742d2e045e14c",
+      "reference_gate": {
+        "evidence_hash": "a04896cd768788bdbf67a0947fd8972629e7a0c45e161f4e982104c1018ec389",
+        "protocol_hash": "69feeb5aaf2216e9725148cebb24aa736284b85f40066761059e7824b8e8e243",
+        "schema_version": "true_rl_agent.reference_qualification_gate.v1",
+        "status": "pass"
+      },
+      "qualification_status": "PASS",
+      "phases": {
+        "public_accept": {
+          "success_count": 1040,
+          "episode_count": 1440,
+          "j_primary": 0.7335835414382716,
+          "family_scores": {
+            "F_c1": 0.7803720640833334,
+            "F_c2": 0.7578178638055556,
+            "F_scalar": 0.662560696425926
+          },
+          "named_guards": {
+            "j_ood": 0.7335835414382716,
+            "c0_id": 0.9804018184166666,
+            "c1_id": 1.0,
+            "joint_ood": 0.6085728692777778,
+            "phase_control": 0.9970627837777778
+          },
+          "episodes_per_cell": 60,
+          "success_counts_by_stratum": {
+            "c0_id": [
+              60,
+              60,
+              55
+            ],
+            "c1_conditional_frontier": [
+              37,
+              52,
+              28
+            ],
+            "c1_id": [
+              60,
+              60,
+              60
+            ],
+            "c2_mechanism_ood": [
+              40,
+              37,
+              33
+            ],
+            "height_ood": [
+              32,
+              21,
+              45
+            ],
+            "joint_ood": [
+              29,
+              12,
+              38
+            ],
+            "phase_composition_ood": [
+              60,
+              60,
+              59
+            ],
+            "tread_ood": [
+              29,
+              29,
+              44
+            ]
+          },
+          "transition_cells_by_objective_stratum": {
+            "c1_conditional_frontier": [
+              "public_accept.c1_conditional_frontier_level_0",
+              "public_accept.c1_conditional_frontier_level_5"
+            ],
+            "c2_mechanism_ood": [
+              "public_accept.c2_mechanism_ood_level_3",
+              "public_accept.c2_mechanism_ood_level_4",
+              "public_accept.c2_mechanism_ood_level_5"
+            ],
+            "height_ood": [
+              "public_accept.height_ood_level_2",
+              "public_accept.height_ood_level_3",
+              "public_accept.height_ood_level_4"
+            ],
+            "tread_ood": [
+              "public_accept.tread_ood_level_2",
+              "public_accept.tread_ood_level_3",
+              "public_accept.tread_ood_level_4"
+            ],
+            "joint_ood": [
+              "public_accept.joint_ood_level_2",
+              "public_accept.joint_ood_level_3",
+              "public_accept.joint_ood_level_4"
+            ]
+          },
+          "every_objective_stratum_has_transition": true,
+          "empirical_full_score_objective_weight": 0,
+          "empirical_zero_success_objective_weight": 0
+        },
+        "public_dev": {
+          "success_count": 618,
+          "episode_count": 864,
+          "j_primary": 0.7436874183847737,
+          "family_scores": {
+            "F_c1": 0.812695496574074,
+            "F_c2": 0.8108066261111111,
+            "F_scalar": 0.6075601324691359
+          },
+          "named_guards": {
+            "j_ood": 0.7436874183847737,
+            "c0_id": 0.9930794189351851,
+            "c1_id": 1.0,
+            "joint_ood": 0.5567507456481482,
+            "phase_control": 1.0
+          },
+          "episodes_per_cell": 36,
+          "success_counts_by_stratum": {
+            "c0_id": [
+              36,
+              36,
+              35
+            ],
+            "c1_conditional_frontier": [
+              35,
+              35,
+              6
+            ],
+            "c1_id": [
+              36,
+              36,
+              36
+            ],
+            "c2_mechanism_ood": [
+              24,
+              28,
+              22
+            ],
+            "height_ood": [
+              27,
+              14,
+              6
+            ],
+            "joint_ood": [
+              30,
+              8,
+              3
+            ],
+            "phase_composition_ood": [
+              36,
+              36,
+              36
+            ],
+            "tread_ood": [
+              34,
+              18,
+              5
+            ]
+          },
+          "transition_cells_by_objective_stratum": {
+            "c1_conditional_frontier": [],
+            "c2_mechanism_ood": [
+              "public_dev.c2_mechanism_ood_level_3",
+              "public_dev.c2_mechanism_ood_level_4",
+              "public_dev.c2_mechanism_ood_level_5"
+            ],
+            "height_ood": [
+              "public_dev.height_ood_level_2",
+              "public_dev.height_ood_level_3"
+            ],
+            "tread_ood": [
+              "public_dev.tread_ood_level_3"
+            ],
+            "joint_ood": [
+              "public_dev.joint_ood_level_3"
+            ]
+          },
+          "every_objective_stratum_has_transition": false,
+          "empirical_full_score_objective_weight": 0,
+          "empirical_zero_success_objective_weight": 0
+        },
+        "sealed_validation": {
+          "success_count": 1383,
+          "episode_count": 2016,
+          "j_primary": 0.6760490778593474,
+          "family_scores": {
+            "F_c1": 0.6288142738492063,
+            "F_c2": 0.754376811468254,
+            "F_scalar": 0.644956148260582
+          },
+          "named_guards": {
+            "j_ood": 0.6760490778593474,
+            "c0_id": 0.9741833306944444,
+            "c1_id": 0.9979852764087301,
+            "joint_ood": 0.5956668601984128,
+            "phase_control": 1.0
+          },
+          "episodes_per_cell": 84,
+          "success_counts_by_stratum": {
+            "c0_id": [
+              84,
+              84,
+              74
+            ],
+            "c1_conditional_frontier": [
+              21,
+              72,
+              12
+            ],
+            "c1_id": [
+              84,
+              84,
+              83
+            ],
+            "c2_mechanism_ood": [
+              54,
+              50,
+              52
+            ],
+            "height_ood": [
+              25,
+              65,
+              34
+            ],
+            "joint_ood": [
+              40,
+              56,
+              11
+            ],
+            "phase_composition_ood": [
+              84,
+              84,
+              84
+            ],
+            "tread_ood": [
+              70,
+              71,
+              5
+            ]
+          },
+          "transition_cells_by_objective_stratum": {
+            "c1_conditional_frontier": [
+              "sealed_validation.c1_conditional_frontier_level_0"
+            ],
+            "c2_mechanism_ood": [
+              "sealed_validation.c2_mechanism_ood_level_3",
+              "sealed_validation.c2_mechanism_ood_level_4",
+              "sealed_validation.c2_mechanism_ood_level_5"
+            ],
+            "height_ood": [
+              "sealed_validation.height_ood_level_2",
+              "sealed_validation.height_ood_level_3",
+              "sealed_validation.height_ood_level_4"
+            ],
+            "tread_ood": [],
+            "joint_ood": [
+              "sealed_validation.joint_ood_level_2",
+              "sealed_validation.joint_ood_level_3"
+            ]
+          },
+          "every_objective_stratum_has_transition": false,
+          "empirical_full_score_objective_weight": 0,
+          "empirical_zero_success_objective_weight": 0
+        }
+      },
+      "qualified_mask_admission": "accepted",
+      "final_probe": {
+        "success_count": 1472,
+        "episode_count": 2016,
+        "j_primary": 0.7539474890674603,
+        "family_scores": {
+          "F_c1": 0.8703234131944444,
+          "F_c2": 0.7499763713095238,
+          "F_scalar": 0.6415426826984127
+        },
+        "named_guards": {
+          "j_ood": 0.7539474890674603,
+          "c0_id": 0.9788018688492064,
+          "c1_id": 0.9918627338492063,
+          "joint_ood": 0.5014174811706349,
+          "phase_control": 0.9979821997222222
+        },
+        "episodes_per_cell": 84,
+        "success_counts_by_stratum": {
+          "c0_id": [
+            84,
+            83,
+            77
+          ],
+          "c1_conditional_frontier": [
+            73,
+            71,
+            54
+          ],
+          "c1_id": [
+            84,
+            84,
+            80
+          ],
+          "c2_mechanism_ood": [
+            58,
+            46,
+            50
+          ],
+          "height_ood": [
+            66,
+            71,
+            66
+          ],
+          "joint_ood": [
+            23,
+            53,
+            1
+          ],
+          "phase_composition_ood": [
+            84,
+            84,
+            83
+          ],
+          "tread_ood": [
+            25,
+            71,
+            1
+          ]
+        },
+        "transition_cells_by_objective_stratum": {
+          "c1_conditional_frontier": [
+            "sealed_validation.c1_conditional_frontier_level_5"
+          ],
+          "c2_mechanism_ood": [
+            "sealed_validation.c2_mechanism_ood_level_3",
+            "sealed_validation.c2_mechanism_ood_level_4",
+            "sealed_validation.c2_mechanism_ood_level_5"
+          ],
+          "height_ood": [
+            "sealed_validation.height_ood_level_2",
+            "sealed_validation.height_ood_level_4"
+          ],
+          "tread_ood": [
+            "sealed_validation.tread_ood_level_2"
+          ],
+          "joint_ood": [
+            "sealed_validation.joint_ood_level_2",
+            "sealed_validation.joint_ood_level_3"
+          ]
+        },
+        "every_objective_stratum_has_transition": true,
+        "empirical_full_score_objective_weight": 0,
+        "empirical_zero_success_objective_weight": 0,
+        "plan_hash": "a2ae55631e39068ecd6e9b9319f67f71f1dbf0d125a09dee6944563878d7b5f6",
+        "final_suite_hash": "abdf81d6c497cdd5c57b391ed8d059e6fa5c418edb013ef792bc5d8e300d5c40",
+        "seed_cohort_hash": "945dbc4e4ff0a3397d433bd2e9a350e995afb53e3dc794e73630f37c7ae18cd5"
+      },
+      "final_surface_ratios": [
+        {
+          "cell_id": "sealed_validation.c2_mechanism_ood_level_3",
+          "source_ratio": 0.196,
+          "final_ratio": 0.196
+        },
+        {
+          "cell_id": "sealed_validation.c2_mechanism_ood_level_4",
+          "source_ratio": 0.22800000000000004,
+          "final_ratio": 0.22800000000000004
+        },
+        {
+          "cell_id": "sealed_validation.c2_mechanism_ood_level_5",
+          "source_ratio": 0.26,
+          "final_ratio": 0.26
+        }
+      ],
+      "private_geometry_disjoint": true,
+      "videos": [
+        {
+          "file": "public_dev_seed_1.mp4",
+          "decoded_frames": 231,
+          "sha256": "6616e608a08c778d22e00f59ce9f2db7117a60661a9e9996087a838e20e6e2cd",
+          "geometry_digest": "c59ce1b05959e4781f9ee25210ace247427b858f3f642e872b108fe68a24af1f",
+          "outcome": "success",
+          "episode_steps": 232,
+          "start_control_step": 1
+        },
+        {
+          "file": "public_dev_seed_2.mp4",
+          "decoded_frames": 294,
+          "sha256": "b20689df406dc8f9c23aa18e22abedc50dc51e67e836391566a06689240e3944",
+          "geometry_digest": "c59ce1b05959e4781f9ee25210ace247427b858f3f642e872b108fe68a24af1f",
+          "outcome": "success",
+          "episode_steps": 295,
+          "start_control_step": 1
+        },
+        {
+          "file": "public_dev_seed_3.mp4",
+          "decoded_frames": 330,
+          "sha256": "b6f9c4923126afaeb4a7c11d74e31396b1466e8ede369dce29fc58530f793437",
+          "geometry_digest": "c59ce1b05959e4781f9ee25210ace247427b858f3f642e872b108fe68a24af1f",
+          "outcome": "success",
+          "episode_steps": 331,
+          "start_control_step": 1
+        }
+      ],
+      "attempt_results": [
+        {
+          "attempt_index": 0,
+          "consumed_budget_units": 1,
+          "environment_hash": "66f5b5611536730ba0aac7dc67806ee8f5db07dc03cbede738923e5a77e42bb6",
+          "execution_device": "cuda:0",
+          "failure_kind": null,
+          "job_input_hash": "f5739506f56917efb356703dabc097e88970cc1f72b6b4a156c48ee604624c35",
+          "job_kind": "eval_phase",
+          "logical_job_id": "g1_37dof_qualification-eval-public-dev",
+          "outcome": "completed",
+          "output_hash": "9fd41372a27c2a860e90c052b74bef33d364fd6492ea54da14bf682adc49dc5d",
+          "reservation_hash": "29cf05b328be2b5a85326e741dcab164256c25d9d750e7778d2ddb2a96ae188c",
+          "resource_binding_hash": "d0a282b2b2552e9f35f1eb048fd43b2d057c9f4c3406bfcb127afcc25b94915e",
+          "resource_lease_wall_duration_ns": 367394493532,
+          "retryable": false,
+          "returncode": null,
+          "schema_version": "true_rl_agent.runner.attempt_result.v3",
+          "scope_hash": "cf8f546da03872b6f7ab25e9d61656e1321fedf78c6c3bed5f2e3fa4a828ed15"
+        },
+        {
+          "attempt_index": 0,
+          "consumed_budget_units": 1,
+          "environment_hash": "66f5b5611536730ba0aac7dc67806ee8f5db07dc03cbede738923e5a77e42bb6",
+          "execution_device": "cuda:0",
+          "failure_kind": null,
+          "job_input_hash": "73b30aed47f771fe607364cb9276ba433b771bd2f8d89ec4db45d899d7985565",
+          "job_kind": "eval_phase",
+          "logical_job_id": "g1_37dof_qualification-eval-public-accept",
+          "outcome": "completed",
+          "output_hash": "8446dda365f96c8da0a59b4560dc2c5fe8ace935b93434c7b3e9291c98879189",
+          "reservation_hash": "7d61189998fb49dd6901f7c321e667e9679618b1c005dd692d4a889bf1014653",
+          "resource_binding_hash": "d0a282b2b2552e9f35f1eb048fd43b2d057c9f4c3406bfcb127afcc25b94915e",
+          "resource_lease_wall_duration_ns": 374482215251,
+          "retryable": false,
+          "returncode": null,
+          "schema_version": "true_rl_agent.runner.attempt_result.v3",
+          "scope_hash": "cf8f546da03872b6f7ab25e9d61656e1321fedf78c6c3bed5f2e3fa4a828ed15"
+        },
+        {
+          "attempt_index": 0,
+          "consumed_budget_units": 1,
+          "environment_hash": "66f5b5611536730ba0aac7dc67806ee8f5db07dc03cbede738923e5a77e42bb6",
+          "execution_device": "cuda:0",
+          "failure_kind": null,
+          "job_input_hash": "23adb1c73f127ad8a47d229b0449c13b608da24608406bc03074f1465d9d5243",
+          "job_kind": "eval_phase",
+          "logical_job_id": "g1_37dof_qualification-eval-sealed-validation",
+          "outcome": "completed",
+          "output_hash": "30d3ee7806775447b8f21e367d8d420d529cbf30d8d8b1d925e01fb7d1ddb853",
+          "reservation_hash": "74849c18160d7bce3528d82089eddc1cca65e000fe184857da715fdea5e1ec2d",
+          "resource_binding_hash": "d0a282b2b2552e9f35f1eb048fd43b2d057c9f4c3406bfcb127afcc25b94915e",
+          "resource_lease_wall_duration_ns": 514353039364,
+          "retryable": false,
+          "returncode": null,
+          "schema_version": "true_rl_agent.runner.attempt_result.v3",
+          "scope_hash": "cf8f546da03872b6f7ab25e9d61656e1321fedf78c6c3bed5f2e3fa4a828ed15"
+        },
+        {
+          "attempt_index": 0,
+          "consumed_budget_units": 1,
+          "environment_hash": "66f5b5611536730ba0aac7dc67806ee8f5db07dc03cbede738923e5a77e42bb6",
+          "execution_device": "cuda:0",
+          "failure_kind": null,
+          "job_input_hash": "5f32a649c7d9f9ea7d47513544d4a4de470cdbe2466dfd63919cd91f1964a3e8",
+          "job_kind": "eval_phase",
+          "logical_job_id": "g1_37dof_qualification-eval-sealed-validation",
+          "outcome": "completed",
+          "output_hash": "b58572ba70fa2b0b9b4347112482ad7e06853db2ec3d49b5f6bbaaa47096f26a",
+          "reservation_hash": "c99509267e05db1a49b969b42987d0cac9b264d1312debbf3e85e5e44ad1425b",
+          "resource_binding_hash": "d0a282b2b2552e9f35f1eb048fd43b2d057c9f4c3406bfcb127afcc25b94915e",
+          "resource_lease_wall_duration_ns": 503916096268,
+          "retryable": false,
+          "returncode": null,
+          "schema_version": "true_rl_agent.runner.attempt_result.v3",
+          "scope_hash": "cf8f546da03872b6f7ab25e9d61656e1321fedf78c6c3bed5f2e3fa4a828ed15"
+        }
+      ]
+    }
+  },
+  "total_episode_count": 12672,
+  "gpu_lease_hours": 1.1154785434802779
+}

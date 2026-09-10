@@ -94,9 +94,9 @@ from true_rl_agent.runner.base import (
 from true_rl_agent.runner.job_attempts import JobAttemptJournal, JobAttemptScope
 from true_rl_agent.runner.specs import EvalPhaseJobSpec, GpuProcessBinding
 from true_rl_agent.runner.subprocess_runner import SubprocessRunner
-from true_rl_agent.tasks.stair_climbing.generation_attempt_scopes import (
-    StairGenerationLaneOperationScopes,
-    recover_stair_generation_lane_operation_scopes,
+from true_rl_agent.agent_core.generation_attempt_scopes import (
+    GenerationLaneOperationScopes,
+    recover_generation_lane_operation_scopes,
 )
 
 
@@ -1486,12 +1486,12 @@ class FixedWidthGenerationTests(unittest.TestCase):
                     self.assertIsInstance(lane.sealed_attempt_scope, JobAttemptScope)
                     assert isinstance(lane.attempt_scope, JobAttemptScope)
                     assert isinstance(lane.sealed_attempt_scope, JobAttemptScope)
-                    operation_scopes = recover_stair_generation_lane_operation_scopes(
+                    operation_scopes = recover_generation_lane_operation_scopes(
                         attempt_journal_root=attempt_root,
                         generation_id=resumed_inputs.manifest.generation_id,
                         lane_id=lane.lane_id,
                         current_invocation_segment_id=second_segment.segment_id,
-                        current_scopes=StairGenerationLaneOperationScopes(
+                        current_scopes=GenerationLaneOperationScopes(
                             train=lane.attempt_scope,
                             public_dev=lane.attempt_scope,
                             public_accept=lane.attempt_scope,

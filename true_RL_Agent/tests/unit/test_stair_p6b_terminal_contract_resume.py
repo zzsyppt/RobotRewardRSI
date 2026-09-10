@@ -12,11 +12,11 @@ from true_rl_agent.agent_core.generation_contract import (
     GenerationSessionContract,
 )
 from true_rl_agent.json_contract import canonical_json_bytes
-from true_rl_agent.tasks.stair_climbing.generation_session import (
+from true_rl_agent.tasks.stair_climbing.generation_history import (
     STAIR_GENERATION_REPORT_FILENAME,
     STAIR_GENERATION_REPORT_SCHEMA_VERSION,
-    StairGenerationPilotConfig,
-    _publish_or_load_terminal_p6b_session_contract,
+    HistoricalStairGenerationConfig,
+    _load_compatible_session_contract,
 )
 from true_rl_agent.tasks.stair_climbing.generation_session_cost import (
     DEVELOPMENT_GENERATION_PILOT_MODE,
@@ -63,8 +63,8 @@ def _contract(*, authoring: str, provider: str | None = None) -> GenerationSessi
     )
 
 
-def _config(root: Path) -> StairGenerationPilotConfig:
-    return StairGenerationPilotConfig(
+def _config(root: Path) -> HistoricalStairGenerationConfig:
+    return HistoricalStairGenerationConfig(
         project_root=Path(__file__).resolve().parents[2],
         output_dir=root,
         lease_root=root.parent / "leases",
@@ -73,7 +73,6 @@ def _config(root: Path) -> StairGenerationPilotConfig:
         machine_id="test-machine",
         gpu0_uuid=_GPU_A,
         gpu1_uuid=_GPU_B,
-        provider_env_file=root.parent / "provider-not-used.env",
         max_allocated_active_gpu_hours=12.0,
         max_simulated_control_steps=1_000_000_000,
         max_output_bytes=40 * 1024**3,
@@ -127,7 +126,7 @@ class StairP6BTerminalContractResumeTests(unittest.TestCase):
                 "true_rl_agent.agent_core.generation_contract.create_once_bytes",
                 side_effect=AssertionError("existing terminal resume must not write"),
             ) as create_once:
-                actual, ref = _publish_or_load_terminal_p6b_session_contract(
+                actual, ref = _load_compatible_session_contract(
                     _config(root),
                     current,
                 )
@@ -157,7 +156,7 @@ class StairP6BTerminalContractResumeTests(unittest.TestCase):
                 ValueError,
                 "bound hashes drifted: provider_policy",
             ):
-                _publish_or_load_terminal_p6b_session_contract(
+                _load_compatible_session_contract(
                     _config(root),
                     current,
                 )

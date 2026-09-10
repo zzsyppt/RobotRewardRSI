@@ -15,7 +15,8 @@ from true_rl_agent.runner.job_attempts import (
     PreGenesisExecutionScope,
 )
 from true_rl_agent.runner.subprocess_runner import SubprocessRunner
-from true_rl_agent.tasks.stair_climbing import generation_session as session_module
+from true_rl_agent.agent_core import generation_operations as session_module
+from true_rl_agent.tasks.stair_climbing.generation_history import _retry_policy
 from true_rl_agent.tasks.stair_climbing.config import StairClimbingTaskConfig
 from true_rl_agent.tasks.stair_climbing.generation_session_cost import (
     DEVELOPMENT_GENERATION_PILOT_MODE,
@@ -253,8 +254,8 @@ class _AttemptSpec:
 
 class StairGenerationOperationAdmissionTests(unittest.TestCase):
     def test_retry_policy_derives_imported_reference_train_reserve_from_cost(self) -> None:
-        legacy = session_module._retry_policy(_cost_contract())
-        imported = session_module._retry_policy(_imported_reference_cost_contract())
+        legacy = _retry_policy(_cost_contract())
+        imported = _retry_policy(_imported_reference_cost_contract())
 
         self.assertEqual(legacy["reference_train_retry_entitlement"], 1)
         self.assertEqual(legacy["retry_train_job_reserve"], 1)
@@ -267,7 +268,7 @@ class StairGenerationOperationAdmissionTests(unittest.TestCase):
             _formal_cost_contract(),
             _imported_reference_formal_cost_contract(),
         ):
-            policy = session_module._retry_policy(contract)
+            policy = _retry_policy(contract)
             self.assertEqual(
                 policy["schema_version"],
                 "true_rl_agent.stair.generation_retry_policy.v2",
@@ -307,7 +308,7 @@ class StairGenerationOperationAdmissionTests(unittest.TestCase):
                 lane_id="lane-a",
                 retries=0,
             )
-            admission = session_module._StairOperationAdmission(
+            admission = session_module.OperationAdmission(
                 output_dir=root,
                 session_id=SESSION_ID,
                 cost_contract=contract,
@@ -374,7 +375,7 @@ class StairGenerationOperationAdmissionTests(unittest.TestCase):
                 retries=0,
                 generation_index=15,
             )
-            slot, _ = session_module._strict_operation_slot(
+            slot, _ = session_module.read_operation_slot(
                 session_id=SESSION_ID,
                 scope=generation_scope,
                 logical_job_id=(
@@ -391,7 +392,7 @@ class StairGenerationOperationAdmissionTests(unittest.TestCase):
                 contract=contract,
                 resource_binding_hash=identity.identity_hash,
             )
-            admission = session_module._StairOperationAdmission(
+            admission = session_module.OperationAdmission(
                 output_dir=root,
                 session_id=SESSION_ID,
                 cost_contract=contract,
@@ -426,7 +427,7 @@ class StairGenerationOperationAdmissionTests(unittest.TestCase):
                 lane_id="lane-a",
                 retries=0,
             )
-            admission = session_module._StairOperationAdmission(
+            admission = session_module.OperationAdmission(
                 output_dir=root,
                 session_id=SESSION_ID,
                 cost_contract=contract,
@@ -459,7 +460,7 @@ class StairGenerationOperationAdmissionTests(unittest.TestCase):
                     420,
                 )
                 selected_slot, selected_reserve = (
-                    session_module._strict_operation_slot(
+                    session_module.read_operation_slot(
                         session_id=SESSION_ID,
                         scope=lane_scope,
                         logical_job_id=(
@@ -512,7 +513,7 @@ class StairGenerationOperationAdmissionTests(unittest.TestCase):
             "outcome": "infrastructure_failure",
             "retryable": True,
         }
-        state = session_module._StairOperationAllocationState(
+        state = session_module.OperationAllocationState(
             reserved_success_slots=frozenset(slots),
             reserved_retry_classes=frozenset(),
             attempt_results={final_slot: retryable_failure},
@@ -563,7 +564,7 @@ class StairGenerationOperationAdmissionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             identity = GpuDeviceIdentity("cuda:0", "machine", "GPU-TEST")
-            admission = session_module._StairOperationAdmission(
+            admission = session_module.OperationAdmission(
                 output_dir=root,
                 session_id=SESSION_ID,
                 cost_contract=contract,
@@ -620,7 +621,7 @@ class StairGenerationOperationAdmissionTests(unittest.TestCase):
                 generation_index=16,
             )
             with self.assertRaisesRegex(ValueError, "exceeds its frozen session"):
-                session_module._strict_operation_slot(
+                session_module.read_operation_slot(
                     session_id=SESSION_ID,
                     scope=generation_sixteen,
                     logical_job_id=f"{SESSION_ID}-generation-016-lane-a-train",
@@ -642,7 +643,7 @@ class StairGenerationOperationAdmissionTests(unittest.TestCase):
                 resource_binding_hash=identity.identity_hash,
             )
             with self.assertRaisesRegex(ValueError, "no frozen operation allocation"):
-                session_module._strict_operation_slot(
+                session_module.read_operation_slot(
                     session_id=SESSION_ID,
                     scope=validation_final_scope,
                     logical_job_id=(
@@ -765,7 +766,7 @@ class StairGenerationOperationAdmissionTests(unittest.TestCase):
                 logical_job_id=f"{SESSION_ID}-train",
                 job_kind="train",
             )
-            admission = session_module._StairOperationAdmission(
+            admission = session_module.OperationAdmission(
                 output_dir=root,
                 session_id=SESSION_ID,
                 cost_contract=contract,
@@ -812,7 +813,7 @@ class StairGenerationOperationAdmissionTests(unittest.TestCase):
                 // 1_000_000_000,
             )
 
-            state = session_module._strict_operation_allocation_state(
+            state = session_module.read_operation_allocation_state(
                 output_dir=root,
                 session_id=SESSION_ID,
                 cost_contract=contract,
@@ -880,8 +881,8 @@ class StairGenerationOperationAdmissionTests(unittest.TestCase):
                     )
                     size_patch = patch.object(
                         session_module,
-                        "_output_tree_size",
-                        wraps=session_module._output_tree_size,
+                        "output_tree_size",
+                        wraps=session_module.output_tree_size,
                     )
                 else:
                     remaining_output = sum(
@@ -895,10 +896,10 @@ class StairGenerationOperationAdmissionTests(unittest.TestCase):
                     )
                     size_patch = patch.object(
                         session_module,
-                        "_output_tree_size",
+                        "output_tree_size",
                         return_value=(near_cap, 1),
                     )
-                admission = session_module._StairOperationAdmission(
+                admission = session_module.OperationAdmission(
                     output_dir=root,
                     session_id=SESSION_ID,
                     cost_contract=contract,
@@ -963,7 +964,7 @@ class StairGenerationOperationAdmissionTests(unittest.TestCase):
                 recovery_receipt_hash=RECOVERY_HASH,
             )
 
-            state = session_module._strict_operation_allocation_state(
+            state = session_module.read_operation_allocation_state(
                 output_dir=root,
                 session_id=SESSION_ID,
                 cost_contract=contract,
@@ -985,7 +986,7 @@ class StairGenerationOperationAdmissionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             identity = GpuDeviceIdentity("cuda:0", "machine", "GPU-TEST")
-            admission = session_module._StairOperationAdmission(
+            admission = session_module.OperationAdmission(
                 output_dir=root,
                 session_id=SESSION_ID,
                 cost_contract=contract,
@@ -1040,7 +1041,7 @@ class StairGenerationOperationAdmissionTests(unittest.TestCase):
                 lane_id="lane-b",
                 retries=1,
             )
-            admission = session_module._StairOperationAdmission(
+            admission = session_module.OperationAdmission(
                 output_dir=root,
                 session_id=SESSION_ID,
                 cost_contract=contract,

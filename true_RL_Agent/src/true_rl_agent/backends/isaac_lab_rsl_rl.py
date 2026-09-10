@@ -843,7 +843,7 @@ class IsaacLabRslRlBackendAdapter(BackendAdapter):
         phase: EvaluationPhase,
         attempt_scope: JobAttemptExecutionScope | None = None,
     ) -> EvalPhaseJobSpec:
-        """Bind one explicit split to the same full Stair evaluation plan."""
+        """Bind one explicit split to the same full evaluation plan."""
 
         if not isinstance(eval_plan, EvalJobSpec):
             raise TypeError("phased eval requires an EvalJobSpec plan")

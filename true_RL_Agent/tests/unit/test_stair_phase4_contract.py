@@ -533,7 +533,7 @@ class StairPhase4ContractTests(unittest.TestCase):
             objective_family_mask_provider=plugin.objective_family_mask,
         )
         self.assertEqual(
-            memory._exploration_projector().objective_family_mask,
+            memory.exploration_projector().objective_family_mask,
             mask,
         )
         prompt = plugin.prompt_adapter()

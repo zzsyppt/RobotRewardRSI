@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from dataclasses import replace
 
 from true_rl_agent.composition.cell_manifest import (
     CellEnvironmentDescriptor,
@@ -30,6 +31,7 @@ from true_rl_agent.tasks.push_recovery.reward_input_contract import (
 
 PUSH_RECOVERY_TASK_ID = "unitree_push_recovery"
 PUSH_G1_29DOF_LEGACY_CELL_VARIANT_ID = "push.g1_29dof.legacy_v1"
+PUSH_G1_29DOF_REFERENCE_CELL_VARIANT_ID = "push.g1_29dof.reference_v1"
 PUSH_G1_29DOF_ROBOT_TASK_CELL_ID = "unitree_push_recovery.g1_29dof_v1"
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[4]
@@ -54,9 +56,14 @@ def build_push_cell_catalog(
         )
     )
     facts = binding.task_projection["phase0_binding_facts"]
+    cell_variant_id = (PUSH_G1_29DOF_REFERENCE_CELL_VARIANT_ID
+                       if config.reference_program_genesis else PUSH_G1_29DOF_LEGACY_CELL_VARIANT_ID)
+    if config.reference_program_genesis:
+        binding = replace(binding, binding_id="push_g1_29dof_reference_binding_v1",
+                          cell_variant_id=cell_variant_id, binding_hash=None)
     environment = CellEnvironmentDescriptor(
         environment_id="push_recovery_legacy_environment_v1",
-        cell_variant_id=PUSH_G1_29DOF_LEGACY_CELL_VARIANT_ID,
+        cell_variant_id=cell_variant_id,
         task_id=PUSH_RECOVERY_TASK_ID,
         payload={
             "legacy_cell_key": facts["cell_key"],
@@ -96,10 +103,15 @@ def build_push_cell_catalog(
         "sensor_schema_hash": facts["sensor_schema_hash"],
     }
     catalog = CellVariantCatalog()
+    if config.reference_program_genesis:
+        from true_rl_agent.tasks.push_recovery.reference_program import reference_qualification_contract
+
+        contracts["reference_capability_gate_hash"] = canonical_json_hash(
+            reference_qualification_contract(config))
     catalog.register(
         grant_legacy_training_binding_v1(
             CellVariantDefinition(
-                cell_variant_id=PUSH_G1_29DOF_LEGACY_CELL_VARIANT_ID,
+                cell_variant_id=cell_variant_id,
                 robot_task_cell_id=PUSH_G1_29DOF_ROBOT_TASK_CELL_ID,
                 task_id=PUSH_RECOVERY_TASK_ID,
                 robot_profile_id=G1_29DOF_UNITREE_RL_LAB_PROFILE_ID,
@@ -140,6 +152,7 @@ def resolve_push_cell_manifest(
 
 __all__ = [
     "PUSH_G1_29DOF_LEGACY_CELL_VARIANT_ID",
+    "PUSH_G1_29DOF_REFERENCE_CELL_VARIANT_ID",
     "PUSH_G1_29DOF_ROBOT_TASK_CELL_ID",
     "build_push_cell_catalog",
     "resolve_push_cell_manifest",

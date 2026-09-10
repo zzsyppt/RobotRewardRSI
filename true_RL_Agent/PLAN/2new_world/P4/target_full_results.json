@@ -1,0 +1,19 @@
+{
+  "status": "FAIL",
+  "tests_run": 1590,
+  "failures": [],
+  "errors": [
+    [
+      "test_stair_runtime_and_infrastructure_failures_keep_distinct_evidence (tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_runtime_and_infrastructure_failures_keep_distinct_evidence) (scenario='runtime_failure')",
+      "Traceback (most recent call last):\n  File \"/data/yuyangliu/p4_runtime_stage8/true_RL_Agent/tests/integration/test_generation_session.py\", line 234, in _failure_sessions\n    foundation = build_fixture_foundation(root, provider=provider, cell=cell, pause=3)\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/yuyangliu/p4_runtime_stage8/true_RL_Agent/tests/integration/test_generation_session.py\", line 182, in build_fixture_foundation\n    final_plan = composition.task_plugin.prepare_final_confirmation(\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/yuyangliu/p4_runtime_stage8/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/plugin.py\", line 505, in prepare_final_confirmation\n    return prepare_stair_final_plan(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/yuyangliu/p4_runtime_stage8/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/generation_finalization.py\", line 64, in prepare_stair_final_plan\n    plan = _build_plan(config=config, holdout=holdout, required_closed_generations=required_closed_generations)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/yuyangliu/p4_runtime_stage8/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/generation_finalization.py\", line 19, in _build_plan\n    bound = config.bind_final_holdout(holdout)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/yuyangliu/p4_runtime_stage8/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/config.py\", line 850, in bind_final_holdout\n    suite = holdout.bind_suite(self.ordered_evaluation_suite, training_profile=self.unified_training_profile)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/yuyangliu/p4_runtime_stage8/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/study_holdout.py\", line 92, in bind_suite\n    raise ValueError(\"Stair final geometry overlaps a previously available course\")\nValueError: Stair final geometry overlaps a previously available course\n"
+    ],
+    [
+      "test_mask_replay_and_plugin_binding_reject_drift (tests.unit.test_stair_phase4_contract.StairPhase4ContractTests.test_mask_replay_and_plugin_binding_reject_drift)",
+      "Traceback (most recent call last):\n  File \"/data/yuyangliu/p4_runtime_stage8/true_RL_Agent/tests/unit/test_stair_phase4_contract.py\", line 536, in test_mask_replay_and_plugin_binding_reject_drift\n    memory._exploration_projector().objective_family_mask,\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'StairTaskMemoryAdapter' object has no attribute '_exploration_projector'. Did you mean: 'exploration_projector'?\n"
+    ]
+  ],
+  "skipped": [],
+  "wall_time_ns": 2620230116713,
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "dynamic_isaac": true
+}

@@ -163,7 +163,11 @@ class RslRlAgentConfiguration:
             agent_cfg.policy = None
 
     def verify_runner(self, runner: Any) -> dict[str, Any]:
-        """Inspect the constructed learner before loading weights or learning."""
+        """Inspect a fresh learner before any checkpoint load or learning.
+
+        This checks initial noise and configured learning rate. The returned
+        evidence describes construction, not the checkpoint's learned state.
+        """
         import torch
         from rsl_rl.utils import resolve_nn_activation
 

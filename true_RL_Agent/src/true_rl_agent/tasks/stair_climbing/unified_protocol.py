@@ -28,7 +28,7 @@ from true_rl_agent.tasks.stair_climbing.vnext_reward_authority import (
     StairVNextRewardAuthority,
 )
 
-STAIR_UNIFIED_PROTOCOL_RELATIVE_PATH = "configs/tasks/stair_unified_protocol_v2.json"
+STAIR_UNIFIED_V2_PROTOCOL_RELATIVE_PATH = "configs/tasks/stair_unified_protocol_v2.json"
 STAIR_UNIFIED_PROTOCOL_V1_RELATIVE_PATH = (
     "configs/tasks/stair_unified_protocol_v1.json"
 )
@@ -80,6 +80,7 @@ class StairUnifiedProtocol:
     acceptance_protocol: AcceptanceProtocol = field(repr=False)
     reward_authority: StairVNextRewardAuthority = field(repr=False)
     candidate_capability_profile: CandidateCapabilityProfile = field(repr=False)
+    _training_origin: Mapping[str, Any] | None = field(default=None, repr=False, compare=False)
 
     @classmethod
     def load(
@@ -87,8 +88,11 @@ class StairUnifiedProtocol:
         path: str | Path,
         *,
         expected_cell_variant_id: str | None = None,
+        _ancestry: tuple[Path, ...] = (),
     ) -> "StairUnifiedProtocol":
         resolved = Path(path)
+        if resolved.resolve() in _ancestry:
+            raise ValueError("Stair evaluation-only lineage contains a cycle")
         payload = load_strict_json_object(resolved, context="Stair unified protocol")
         payload_fields = set(payload)
         if (
@@ -205,6 +209,32 @@ class StairUnifiedProtocol:
             candidate_capability_profile=candidate_capability_profile,
         )
         instance._validate()
+        if training_lineage is not None:
+            from true_rl_agent.tasks.stair_climbing.row_catalog import stair_robot_row
+
+            source_row = stair_robot_row(str(training_lineage["source_cell_variant_id"]))
+            source = cls.load(
+                resolved.with_name(Path(source_row.protocol_relative_path).name),
+                expected_cell_variant_id=source_row.cell_variant_id,
+                _ancestry=(*_ancestry, resolved.resolve()),
+            )
+            if source.task_protocol_hash != training_lineage["source_base_task_protocol_hash"]:
+                raise ValueError("Stair training predecessor protocol identity mismatch")
+            current_row = stair_robot_row(cell_variant_id)
+            current_binding = current_row.load_binding().to_dict()
+            source_binding = source_row.load_binding().to_dict()
+            for binding in (current_binding, source_binding):
+                for key in ("binding_id", "cell_variant_id", "binding_hash"):
+                    binding.pop(key)
+                # Phase-0 provenance names the cell; its physical facts stay exact.
+                binding["task_projection"]["phase0_binding_facts"].pop("cell_key")
+            if current_binding != source_binding:
+                raise ValueError("Stair evaluation-only successor changed its robot binding")
+            current_projection, source_projection = instance.task_projection(), source.task_projection()
+            for name in ("training", "training_execution", "training_distribution", "runtime_controls", "reward_authority", "candidate_authority"):
+                if current_projection[name] != source_projection[name]:
+                    raise ValueError(f"Stair evaluation-only successor changed {name}")
+            object.__setattr__(instance, "_training_origin", source.training_origin or training_lineage)
         return instance
 
     def _validate(self) -> None:
@@ -407,12 +437,17 @@ class StairUnifiedProtocol:
 
     @property
     def training_seed_anchor_hash(self) -> str:
-        lineage = self.training_lineage
+        lineage = self.training_origin
         return (
             str(lineage["source_base_task_protocol_hash"])
             if lineage is not None
             else self.task_protocol_hash
         )
+
+    @property
+    def training_origin(self) -> Mapping[str, Any] | None:
+        """Scientific training origin; immediate predecessor only owns checkpoint provenance."""
+        return self._training_origin or self.training_lineage
 
     @property
     def required_pass_gates(self) -> tuple[str, ...]:
@@ -605,7 +640,7 @@ def _thaw(value: Any) -> Any:
 
 __all__ = [
     "STAIR_UNIFIED_ACCEPTANCE_PROTOCOL_RELATIVE_PATH",
-    "STAIR_UNIFIED_PROTOCOL_RELATIVE_PATH",
+    "STAIR_UNIFIED_V2_PROTOCOL_RELATIVE_PATH",
     "STAIR_UNIFIED_PROTOCOL_V1_RELATIVE_PATH",
     "STAIR_UNIFIED_PROTOCOL_SCHEMA_VERSION",
     "STAIR_UNIFIED_TASK_PROJECTION_SCHEMA_VERSION",

@@ -1,0 +1,97 @@
+{
+  "status": "PASS",
+  "python": "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+  "python_version": "3.12.14",
+  "root": "D:\\humanoid_agent\\true_RL_Agent",
+  "isaac_dynamic_tests": null,
+  "tests": 1635,
+  "failures": 0,
+  "errors": 0,
+  "skipped": [
+    {
+      "test": "tests.integration.test_stair_generation_session.StairGenerationSessionProductionShapeTests.test_formal_fifteen_generation_continuous_run_and_finalization",
+      "reason": "formal Stair source closure requires the Isaac Lab runtime"
+    },
+    {
+      "test": "tests.integration.test_stair_generation_session.StairGenerationSessionProductionShapeTests.test_formal_fifteen_generations_keep_reference_head_and_finalize_twice",
+      "reason": "formal Stair source closure requires the Isaac Lab runtime"
+    },
+    {
+      "test": "tests.integration.test_stair_generation_session.StairGenerationSessionProductionShapeTests.test_three_generations_pause_resume_and_hard_crash_recovery",
+      "reason": "production Stair candidate qualification requires Torch and Isaac source closure"
+    },
+    {
+      "test": "tests.unit.test_candidate_package.CandidatePackageTests.test_candidate_package_preflight_rejects_nonregular_and_symlink_files",
+      "reason": "file symlinks are unavailable: [WinError 1314] \u5ba2\u6237\u7aef\u6ca1\u6709\u6240\u9700\u7684\u7279\u6743\u3002: 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmp_vkm4w2x\\\\outside.md' -> 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmp_vkm4w2x\\\\symlinked\\\\candidate\\\\rationale.md'"
+    },
+    {
+      "test": "tests.unit.test_fs_contract.FileSystemContractTests.test_bounded_reader_rejects_final_symlink",
+      "reason": "symlinks unavailable: [WinError 1314] \u5ba2\u6237\u7aef\u6ca1\u6709\u6240\u9700\u7684\u7279\u6743\u3002: 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpjrqkx8r3\\\\target.bin' -> 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpjrqkx8r3\\\\link.bin'"
+    },
+    {
+      "test": "tests.unit.test_generation_lifecycle.GenerationLifecycleTests.test_linux_process_incarnation_and_process_group_liveness",
+      "reason": "requires real Linux procfs"
+    },
+    {
+      "test": "tests.unit.test_live_invocation.LiveInvocationJournalTests.test_live_summary_writer_replaces_symlink_without_touching_target",
+      "reason": "symlinks unavailable: [WinError 1314] \u5ba2\u6237\u7aef\u6ca1\u6709\u6240\u9700\u7684\u7279\u6743\u3002: 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpiccb8ngf\\\\external.json' -> 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpiccb8ngf\\\\live_summary.json'"
+    },
+    {
+      "test": "tests.unit.test_p6b_attempt_chain_fault_probe.P6BAttemptChainFaultProbeTests.test_real_retry_chain_and_owned_process_groups_are_closed",
+      "reason": "Linux production probe"
+    },
+    {
+      "test": "tests.unit.test_reference_artifact.ReferenceArtifactTests.test_symlink_root_is_rejected_before_publication",
+      "reason": "directory symlinks are unavailable: [WinError 1314] \u5ba2\u6237\u7aef\u6ca1\u6709\u6240\u9700\u7684\u7279\u6743\u3002: 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmp6clm47s3\\\\real-artifacts' -> 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmp6clm47s3\\\\linked-artifacts'"
+    },
+    {
+      "test": "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_incomplete_process_group_cleanup_is_typed",
+      "reason": "Linux process-group contract"
+    },
+    {
+      "test": "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_linux_parent_death_signal_stops_owned_job",
+      "reason": "Linux parent-death contract"
+    },
+    {
+      "test": "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_normal_exit_quiesces_grandchild_before_logs_are_returned",
+      "reason": "Linux process-group contract"
+    },
+    {
+      "test": "tests.unit.test_stair_generation_launcher.StairGenerationLauncherTests.test_sigterm_cleans_child_group_before_publishing_stable_receipt",
+      "reason": "Linux signal contract"
+    },
+    {
+      "test": "tests.unit.test_stair_isaaclab_runtime_env.StairIsaacLabRuntimeEnvTests.test_real_recorder_payload_decodes_tracks_and_aggregates",
+      "reason": "set TRUE_RL_AGENT_ISAAC_DYNAMIC_TEST=1 to run Isaac integration"
+    },
+    {
+      "test": "tests.unit.test_stair_isaaclab_runtime_env.StairIsaacLabRuntimeEnvTests.test_train_and_eval_builders_install_only_the_declared_runtime",
+      "reason": "set TRUE_RL_AGENT_ISAAC_DYNAMIC_TEST=1 to run Isaac integration"
+    },
+    {
+      "test": "tests.unit.test_stair_local_paths.StairLocalPathTests.test_existing_inputs_reject_leaf_symlinks_before_resolve",
+      "reason": "symlink creation is unavailable: [WinError 1314] \u5ba2\u6237\u7aef\u6ca1\u6709\u6240\u9700\u7684\u7279\u6743\u3002: 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmp1jil4ue9\\\\target.json' -> 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmp1jil4ue9\\\\file-link.json'"
+    },
+    {
+      "test": "tests.unit.test_stair_local_paths.StairLocalPathTests.test_output_guards_reject_dangling_symlinks",
+      "reason": "symlink creation is unavailable: [WinError 1314] \u5ba2\u6237\u7aef\u6ca1\u6709\u6240\u9700\u7684\u7279\u6743\u3002: 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpvwf4qc_e\\\\missing-target.json' -> 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpvwf4qc_e\\\\output.json'"
+    },
+    {
+      "test": "tests.unit.test_stair_local_paths.StairLocalPathTests.test_stair_config_rejects_protocol_symlink",
+      "reason": "symlink creation is unavailable: [WinError 1314] \u5ba2\u6237\u7aef\u6ca1\u6709\u6240\u9700\u7684\u7279\u6743\u3002: 'D:\\\\humanoid_agent\\\\true_RL_Agent\\\\configs\\\\tasks\\\\stair_protocol_v2_draft_r2.json' -> 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpgnl9hpbk\\\\stair_protocol_v2_draft_r2.json'"
+    },
+    {
+      "test": "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_train_rejects_symlinked_checkpoint_output_without_following_it",
+      "reason": "file symlinks unavailable: OSError"
+    }
+  ],
+  "elapsed_s": 346.68700000000536,
+  "log_sha256": "78aa293535bcebbc0d904a7a057dd22b523da305ed68f2df2f8faaedb4c012c4",
+  "failed_tests": [],
+  "generation_session_executed": [
+    "tests.integration.test_stair_generation_session.StairGenerationFixtureCostTests.test_default_row_fixtures_use_current_frozen_step_caps_without_isaac",
+    "tests.integration.test_stair_generation_session.StairGenerationSessionProductionShapeTests.test_formal_fifteen_generation_continuous_run_and_finalization",
+    "tests.integration.test_stair_generation_session.StairGenerationSessionProductionShapeTests.test_formal_fifteen_generations_keep_reference_head_and_finalize_twice",
+    "tests.integration.test_stair_generation_session.StairGenerationSessionProductionShapeTests.test_three_generations_pause_resume_and_hard_crash_recovery"
+  ]
+}

@@ -113,8 +113,13 @@ class OrderedStairCellSpec:
             )
         ):
             raise ValueError("ordered Stair cell geometry sequences are invalid")
-        is_regular = (
-            getattr(self, "terrain_regime_id", "c1_irregular_flat") == "c0_regular"
+        amplitude = float(self.surface_profile.get("amplitude_m", 0.0))
+        if 2.0 * amplitude >= min(self.riser_heights_m):
+            raise ValueError("Stair roughness must preserve separate positive risers")
+        regime = getattr(self, "terrain_regime_id", "c1_irregular_flat")
+        is_regular = regime == "c0_regular" or (
+            regime == "c2_rough" and len(set(self.riser_heights_m)) == 1
+            and len(set(self.tread_depths_m)) == 1
         )
         if not is_regular and any(
             math.isclose(left, right, rel_tol=0.0, abs_tol=1.0e-12)
@@ -254,6 +259,11 @@ class StairOrderedEvaluationSuite:
         return str(self._payload["suite_hash"])
 
     @property
+    def source_suite_hash(self) -> str:
+        """Public scientific rule; ordinary suites are their own source."""
+        return self.suite_hash
+
+    @property
     def cell_set_hash(self) -> str:
         return str(self._payload["cell_set_hash"])
 
@@ -318,6 +328,11 @@ class StairOrderedEvaluationSuite:
 
     def cohort_hash(self, cohort: str) -> str:
         return str(self._payload["cohort_hashes"][cohort])
+
+    @property
+    def records_episode_facts(self) -> bool:
+        """Historical ordered suites only record success and progress."""
+        return False
 
     def cell(self, cell_id: str) -> OrderedStairCellSpec:
         for cell in self._cells:
