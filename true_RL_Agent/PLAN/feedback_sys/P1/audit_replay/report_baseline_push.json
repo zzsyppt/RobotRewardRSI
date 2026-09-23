@@ -1,0 +1,148 @@
+{
+  "label": "baseline_push",
+  "root": "/data/yuyangliu/AGENT/true_RL_Agent",
+  "task": "push",
+  "source": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/attempt_08/session",
+  "generation_record_sha256": "dfef9a515157",
+  "composition_context": "session",
+  "adapter": "PushPhasedEvaluationAdapter",
+  "ledger_records": 5,
+  "ledger_schema": [
+    "true_rl_agent.generation_ledger_record.v3"
+  ],
+  "full_replay": {
+    "elapsed_s": 11.25,
+    "records": 5
+  },
+  "phase_summaries_checked": 15,
+  "phase_summaries_equal_to_ledger": 15,
+  "lane_runtime_summary_sample": [
+    {
+      "generation": 1,
+      "lane": "lane-a",
+      "trial_status": "accepted",
+      "runtime_activation_summary_keys": [
+        "capability_activation_records",
+        "component_activation_records",
+        "diagnostic_calls",
+        "diagnostic_outputs",
+        "feature_activation_records",
+        "nonzero_reward_contribution",
+        "reward_output_stats",
+        "reward_term_calls"
+      ]
+    },
+    {
+      "generation": 1,
+      "lane": "lane-b",
+      "trial_status": "qualified_not_selected",
+      "runtime_activation_summary_keys": [
+        "capability_activation_records",
+        "component_activation_records",
+        "diagnostic_calls",
+        "diagnostic_outputs",
+        "feature_activation_records",
+        "nonzero_reward_contribution",
+        "reward_output_stats",
+        "reward_term_calls"
+      ]
+    },
+    {
+      "generation": 2,
+      "lane": "lane-a",
+      "trial_status": "qualified_not_selected",
+      "runtime_activation_summary_keys": [
+        "capability_activation_records",
+        "component_activation_records",
+        "diagnostic_calls",
+        "diagnostic_outputs",
+        "feature_activation_records",
+        "nonzero_reward_contribution",
+        "reward_output_stats",
+        "reward_term_calls"
+      ]
+    },
+    {
+      "generation": 2,
+      "lane": "lane-b",
+      "trial_status": "formal_rejected",
+      "runtime_activation_summary_keys": [
+        "capability_activation_records",
+        "component_activation_records",
+        "diagnostic_calls",
+        "diagnostic_outputs",
+        "feature_activation_records",
+        "nonzero_reward_contribution",
+        "reward_output_stats",
+        "reward_term_calls"
+      ]
+    }
+  ],
+  "current_best_after": "sha256:5714a1f0f73ffee68bc980fe28439fc48eb70f31320c058a4a75f3a9b868118f",
+  "frames": [
+    {
+      "next_generation": 3,
+      "build_s": 4.68,
+      "prompt_bytes": 64975,
+      "memory_bytes": 3948,
+      "omitted_experiment_count": 0,
+      "experiments_retained": 2,
+      "trial_outcome_columns": [
+        "lane",
+        "candidate_id",
+        "operation",
+        "mechanism",
+        "status",
+        "public_dev_delta",
+        "public_dev_guard_delta",
+        "runtime_effect",
+        "reason"
+      ],
+      "trial_rows": 4,
+      "row_widths": [
+        9
+      ],
+      "summarized_entries": 1,
+      "last_row_measurements": null,
+      "top_runtime_observation": null,
+      "runtime_feedback_status": "available",
+      "deterministic": true
+    },
+    {
+      "next_generation": 6,
+      "build_s": 11.78,
+      "prompt_bytes": 71212,
+      "memory_bytes": 6087,
+      "omitted_experiment_count": 0,
+      "experiments_retained": 5,
+      "trial_outcome_columns": [
+        "lane",
+        "candidate_id",
+        "operation",
+        "mechanism",
+        "status",
+        "public_dev_delta",
+        "public_dev_guard_delta",
+        "runtime_effect",
+        "reason"
+      ],
+      "trial_rows": 10,
+      "row_widths": [
+        9
+      ],
+      "summarized_entries": 3,
+      "last_row_measurements": null,
+      "top_runtime_observation": null,
+      "runtime_feedback_status": "available",
+      "deterministic": true
+    }
+  ],
+  "summary_only_tamper": {
+    "path": [
+      "score_stats",
+      "mean"
+    ],
+    "rejected": false
+  },
+  "status": "PASS"
+}

@@ -1,0 +1,1037 @@
+{
+  "actual_evaluation": {
+    "aggregate_only_episode_count": 80,
+    "baseline_source_binding": null,
+    "checkpoint_loading": {
+      "actor_loaded": true,
+      "checkpoint_format": "rsl_rl_5",
+      "critic_loaded": true,
+      "iteration_loaded": false,
+      "optimizer_loaded": false
+    },
+    "checkpoint_safety_report": {
+      "byte_read_status": "pass",
+      "checkpoint_hash": "sha256:aae678721d4e9686f64fccd96410ac252a5150b6c88b10951081977254134043",
+      "checkpoint_hash_match_status": "pass",
+      "expected_checkpoint_hash": "sha256:aae678721d4e9686f64fccd96410ac252a5150b6c88b10951081977254134043",
+      "file_exists": true,
+      "loader_error_class": null,
+      "loader_error_summary": null,
+      "reason": "checkpoint_safe_to_load",
+      "schema_version": "true_rl_agent.checkpoint_safety_report.v1",
+      "status": "pass",
+      "weights_only_load_status": "pass"
+    },
+    "constructed_learner": {
+      "algorithm": {
+        "clip_param": 0.2,
+        "desired_kl": 0.01,
+        "entropy_coef": 0.01,
+        "gamma": 0.99,
+        "lam": 0.95,
+        "learning_rate": 0.001,
+        "max_grad_norm": 1.0,
+        "normalize_advantage_per_mini_batch": false,
+        "num_learning_epochs": 5,
+        "num_mini_batches": 4,
+        "schedule": "adaptive",
+        "use_clipped_value_loss": true,
+        "value_loss_coef": 1.0
+      },
+      "configuration_mapping_version": "rsl_rl_3_actor_critic_to_rsl_rl_5_mlp.v1",
+      "initial_noise_std": 1.0,
+      "models": {
+        "actor": {
+          "activation": "ELU",
+          "hidden_dims": [
+            512,
+            256,
+            128
+          ],
+          "input_dim": 480,
+          "obs_groups": [
+            "policy"
+          ],
+          "obs_normalization": false,
+          "output_dim": 29
+        },
+        "critic": {
+          "activation": "ELU",
+          "hidden_dims": [
+            512,
+            256,
+            128
+          ],
+          "input_dim": 495,
+          "obs_groups": [
+            "critic"
+          ],
+          "obs_normalization": false,
+          "output_dim": 1
+        }
+      },
+      "noise_std_type": "scalar",
+      "optimizer": "Adam",
+      "optimizer_source": "frozen_v1_PPO_implicit_Adam",
+      "schema_version": "true_rl_agent.rsl_rl_constructed_learner.v1"
+    },
+    "derived_seed_note": "Listed seed IDs are recomputed by the current existing seed-policy helper from the bound argv and recorded split/run_index; the legacy writer deliberately did not print raw seed IDs in each rollout.",
+    "episodes": 208,
+    "evaluation_binding": {
+      "acceptance_protocol_hash": "7d04324276f8c8f2fe2b79ef56139bffd1b70db9be2e70eb845186a5bd8829e3",
+      "eval_protocol_hash": "85cf83692bc87c30fe638fd7b254578ef2ea78865611305d24e0dffa3388c630",
+      "evaluation_binding_hash": "d350dbcb577f59c21fadf17f71787e7087830bfe618a71a9d8677461baf9d80b",
+      "schema_version": "true_rl_agent.evaluation.binding.v1",
+      "seed_cohort_hash": "d7a89eed2e29b4ada4ed71bd747b9d782ce9566f232d95f83a0fe966973aeedb",
+      "task_protocol_hash": "69de4548a72078a2a897dcce42e6e6ebedcda393146a96b2c841346614b720ac"
+    },
+    "evaluation_protocol": {
+      "eval_num_envs": 16,
+      "eval_protocol_hash": "85cf83692bc87c30fe638fd7b254578ef2ea78865611305d24e0dffa3388c630",
+      "eval_protocol_version": "fixed_public_accept_sealed_validation_v1",
+      "public_accept_seed_count": 3,
+      "public_seed_count": 3,
+      "schema_version": "true_rl_agent.evaluation.protocol.v1",
+      "sealed_validation_seed_count": 7
+    },
+    "execution_summary_status": "pass",
+    "failure_counts": {
+      "fall_forward": 208
+    },
+    "finite_evidence_scope": "All saved numeric values are finite. Explicit reset_ok/observation_finite/reward_finite flags exist for the seven sealed full rollouts and the retained first accept rollout (128 episodes). All six public seed results report runtime pass; other public per-step flags were not retained by the legacy projection.",
+    "full_episode_record_count": 128,
+    "legacy_semantics": {
+      "action_scale_metadata_note": "policy.action_scale=0.0 is the legacy zero/random-policy default metadata. The checkpoint branch uses inference_policy(obs) directly; this is not a zero-action rollout.",
+      "classification_function": "true_rl_agent.tasks.push_recovery.failure_classifier.classify_episode",
+      "not_physical_v2": true,
+      "primary_label": "fall_forward",
+      "push_measurement_limit": "Legacy velocity-window proxy evidence is retained; it is not recovery_v2 pre/post injection, event dwell, or exact event-count evidence.",
+      "recovery_window_rate_note": "The legacy final planar-speed diagnostic is 1.0 despite zero success; it is not recovery success or a qualification gate.",
+      "success_thresholds": {
+        "max_abs_pitch_rad": 0.65,
+        "max_abs_roll_rad": 0.65,
+        "max_final_xy_drift_m": 0.8,
+        "min_base_height_m": 0.45
+      }
+    },
+    "new_execution_environment_verification": {
+      "actual_manifest_hash": "43bb62729b94329cf1605ccadf45d29e437b2f9c4b279ec616e08bd9cc3e41d9",
+      "backend_id": "isaac_lab_rsl_rl",
+      "expected_manifest_hash": "43bb62729b94329cf1605ccadf45d29e437b2f9c4b279ec616e08bd9cc3e41d9",
+      "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+      "status": "pass"
+    },
+    "old_task_gate_results_preserved": {
+      "behavior_quality_gate_status": "fail",
+      "budget_accounting": {
+        "reason": "budget_summary_missing",
+        "status": "fail"
+      },
+      "motion_quality_gate_status": "fail",
+      "sealed_validation_gate": {
+        "candidate_code_loaded_in_eval": false,
+        "candidate_isolation_status": "pass",
+        "candidate_package_loaded_in_eval": false,
+        "candidate_path_argument_present": false,
+        "checkpoint_hash_match_status": "pass",
+        "checkpoint_safety_status": "pass",
+        "eval_protocol_hash_match_status": "pass",
+        "evaluation_binding_hash_match_status": "pass",
+        "holdout_rollout_status": "fail",
+        "reason": "push_recovery_holdout_floor_not_met",
+        "status": "fail"
+      }
+    },
+    "phases": {
+      "public_accept": {
+        "derived_seed_ids": [
+          20280908,
+          20280909,
+          20280910
+        ],
+        "episode_step_evidence": "Each seed aggregate reports mean_episode_steps=100; max_steps is bound to 100. Only public_accept run 1 also retains its 16 complete per_episode records at top level.",
+        "episodes": 48,
+        "failure_counts": {
+          "fall_forward": 48
+        },
+        "full_episode_records_retained": 16,
+        "per_seed_aggregate_records": [
+          {
+            "condition_flag_breakdown": {
+              "counts": {
+                "drift_over_threshold": 16,
+                "height_below_threshold": 16,
+                "pitch_over_threshold": 16,
+                "roll_over_threshold": 16,
+                "terminated": 0
+              },
+              "diagnostic_only": true,
+              "nonexclusive": true,
+              "primary_label_priority": [
+                "fall_forward",
+                "fall_backward",
+                "fall_side",
+                "height_collapse",
+                "fall_unknown",
+                "excessive_drift",
+                "success"
+              ],
+              "rates": {
+                "drift_over_threshold": 1.0,
+                "height_below_threshold": 1.0,
+                "pitch_over_threshold": 1.0,
+                "roll_over_threshold": 1.0,
+                "terminated": 0.0
+              },
+              "total": 16
+            },
+            "episodes": 16,
+            "failure_breakdown": {
+              "counts": {
+                "fall_forward": 16
+              },
+              "dominant_failure": "fall_forward",
+              "rates": {
+                "fall_forward": 1.0
+              },
+              "total": 16
+            },
+            "run_index": 1,
+            "secondary_metrics": {
+              "mean_action_l2": 0.447179,
+              "mean_action_rate_l2": 0.019651,
+              "mean_episode_steps": 100.0,
+              "mean_final_planar_speed_mps": 0.500558,
+              "mean_final_xy_drift_m": 0.94785,
+              "mean_max_abs_pitch_rad": 1.490043,
+              "mean_max_abs_roll_rad": 3.093449,
+              "mean_min_base_height_m": 0.081651,
+              "mean_return": -6.150192,
+              "recovery_window_success_rate": 1.0
+            },
+            "status": "pass",
+            "success_rate": 0.0
+          },
+          {
+            "condition_flag_breakdown": {
+              "counts": {
+                "drift_over_threshold": 16,
+                "height_below_threshold": 16,
+                "pitch_over_threshold": 16,
+                "roll_over_threshold": 16,
+                "terminated": 0
+              },
+              "diagnostic_only": true,
+              "nonexclusive": true,
+              "primary_label_priority": [
+                "fall_forward",
+                "fall_backward",
+                "fall_side",
+                "height_collapse",
+                "fall_unknown",
+                "excessive_drift",
+                "success"
+              ],
+              "rates": {
+                "drift_over_threshold": 1.0,
+                "height_below_threshold": 1.0,
+                "pitch_over_threshold": 1.0,
+                "roll_over_threshold": 1.0,
+                "terminated": 0.0
+              },
+              "total": 16
+            },
+            "episodes": 16,
+            "failure_breakdown": {
+              "counts": {
+                "fall_forward": 16
+              },
+              "dominant_failure": "fall_forward",
+              "rates": {
+                "fall_forward": 1.0
+              },
+              "total": 16
+            },
+            "run_index": 2,
+            "secondary_metrics": {
+              "mean_action_l2": 0.44516,
+              "mean_action_rate_l2": 0.019899,
+              "mean_episode_steps": 100.0,
+              "mean_final_planar_speed_mps": 0.414967,
+              "mean_final_xy_drift_m": 0.94755,
+              "mean_max_abs_pitch_rad": 1.499366,
+              "mean_max_abs_roll_rad": 3.110238,
+              "mean_min_base_height_m": 0.079579,
+              "mean_return": -6.493774,
+              "recovery_window_success_rate": 1.0
+            },
+            "status": "pass",
+            "success_rate": 0.0
+          },
+          {
+            "condition_flag_breakdown": {
+              "counts": {
+                "drift_over_threshold": 16,
+                "height_below_threshold": 16,
+                "pitch_over_threshold": 16,
+                "roll_over_threshold": 16,
+                "terminated": 0
+              },
+              "diagnostic_only": true,
+              "nonexclusive": true,
+              "primary_label_priority": [
+                "fall_forward",
+                "fall_backward",
+                "fall_side",
+                "height_collapse",
+                "fall_unknown",
+                "excessive_drift",
+                "success"
+              ],
+              "rates": {
+                "drift_over_threshold": 1.0,
+                "height_below_threshold": 1.0,
+                "pitch_over_threshold": 1.0,
+                "roll_over_threshold": 1.0,
+                "terminated": 0.0
+              },
+              "total": 16
+            },
+            "episodes": 16,
+            "failure_breakdown": {
+              "counts": {
+                "fall_forward": 16
+              },
+              "dominant_failure": "fall_forward",
+              "rates": {
+                "fall_forward": 1.0
+              },
+              "total": 16
+            },
+            "run_index": 3,
+            "secondary_metrics": {
+              "mean_action_l2": 0.445165,
+              "mean_action_rate_l2": 0.019127,
+              "mean_episode_steps": 100.0,
+              "mean_final_planar_speed_mps": 0.448953,
+              "mean_final_xy_drift_m": 0.957174,
+              "mean_max_abs_pitch_rad": 1.492663,
+              "mean_max_abs_roll_rad": 3.120965,
+              "mean_min_base_height_m": 0.080811,
+              "mean_return": -6.426579,
+              "recovery_window_success_rate": 1.0
+            },
+            "status": "pass",
+            "success_rate": 0.0
+          }
+        ],
+        "recorded_run_indices": [
+          1,
+          2,
+          3
+        ],
+        "seed_run_count": 3,
+        "source_json_pointer": "/metrics/public_accept/seed_results",
+        "successes": 0
+      },
+      "public_dev": {
+        "derived_seed_ids": [
+          20270908,
+          20270909,
+          20270910
+        ],
+        "episode_step_evidence": "Each seed aggregate reports mean_episode_steps=100; max_steps is bound to 100. Only public_accept run 1 also retains its 16 complete per_episode records at top level.",
+        "episodes": 48,
+        "failure_counts": {
+          "fall_forward": 48
+        },
+        "full_episode_records_retained": 0,
+        "per_seed_aggregate_records": [
+          {
+            "condition_flag_breakdown": {
+              "counts": {
+                "drift_over_threshold": 16,
+                "height_below_threshold": 16,
+                "pitch_over_threshold": 16,
+                "roll_over_threshold": 16,
+                "terminated": 0
+              },
+              "diagnostic_only": true,
+              "nonexclusive": true,
+              "primary_label_priority": [
+                "fall_forward",
+                "fall_backward",
+                "fall_side",
+                "height_collapse",
+                "fall_unknown",
+                "excessive_drift",
+                "success"
+              ],
+              "rates": {
+                "drift_over_threshold": 1.0,
+                "height_below_threshold": 1.0,
+                "pitch_over_threshold": 1.0,
+                "roll_over_threshold": 1.0,
+                "terminated": 0.0
+              },
+              "total": 16
+            },
+            "episodes": 16,
+            "failure_breakdown": {
+              "counts": {
+                "fall_forward": 16
+              },
+              "dominant_failure": "fall_forward",
+              "rates": {
+                "fall_forward": 1.0
+              },
+              "total": 16
+            },
+            "run_index": 1,
+            "secondary_metrics": {
+              "mean_action_l2": 0.451846,
+              "mean_action_rate_l2": 0.015637,
+              "mean_episode_steps": 100.0,
+              "mean_final_planar_speed_mps": 0.490596,
+              "mean_final_xy_drift_m": 0.945311,
+              "mean_max_abs_pitch_rad": 1.485588,
+              "mean_max_abs_roll_rad": 3.100906,
+              "mean_min_base_height_m": 0.081049,
+              "mean_return": -6.090173,
+              "recovery_window_success_rate": 1.0
+            },
+            "status": "pass",
+            "success_rate": 0.0
+          },
+          {
+            "condition_flag_breakdown": {
+              "counts": {
+                "drift_over_threshold": 16,
+                "height_below_threshold": 16,
+                "pitch_over_threshold": 16,
+                "roll_over_threshold": 16,
+                "terminated": 0
+              },
+              "diagnostic_only": true,
+              "nonexclusive": true,
+              "primary_label_priority": [
+                "fall_forward",
+                "fall_backward",
+                "fall_side",
+                "height_collapse",
+                "fall_unknown",
+                "excessive_drift",
+                "success"
+              ],
+              "rates": {
+                "drift_over_threshold": 1.0,
+                "height_below_threshold": 1.0,
+                "pitch_over_threshold": 1.0,
+                "roll_over_threshold": 1.0,
+                "terminated": 0.0
+              },
+              "total": 16
+            },
+            "episodes": 16,
+            "failure_breakdown": {
+              "counts": {
+                "fall_forward": 16
+              },
+              "dominant_failure": "fall_forward",
+              "rates": {
+                "fall_forward": 1.0
+              },
+              "total": 16
+            },
+            "run_index": 2,
+            "secondary_metrics": {
+              "mean_action_l2": 0.446315,
+              "mean_action_rate_l2": 0.018984,
+              "mean_episode_steps": 100.0,
+              "mean_final_planar_speed_mps": 0.461085,
+              "mean_final_xy_drift_m": 0.938532,
+              "mean_max_abs_pitch_rad": 1.501779,
+              "mean_max_abs_roll_rad": 3.120021,
+              "mean_min_base_height_m": 0.079443,
+              "mean_return": -6.088664,
+              "recovery_window_success_rate": 1.0
+            },
+            "status": "pass",
+            "success_rate": 0.0
+          },
+          {
+            "condition_flag_breakdown": {
+              "counts": {
+                "drift_over_threshold": 16,
+                "height_below_threshold": 16,
+                "pitch_over_threshold": 16,
+                "roll_over_threshold": 16,
+                "terminated": 0
+              },
+              "diagnostic_only": true,
+              "nonexclusive": true,
+              "primary_label_priority": [
+                "fall_forward",
+                "fall_backward",
+                "fall_side",
+                "height_collapse",
+                "fall_unknown",
+                "excessive_drift",
+                "success"
+              ],
+              "rates": {
+                "drift_over_threshold": 1.0,
+                "height_below_threshold": 1.0,
+                "pitch_over_threshold": 1.0,
+                "roll_over_threshold": 1.0,
+                "terminated": 0.0
+              },
+              "total": 16
+            },
+            "episodes": 16,
+            "failure_breakdown": {
+              "counts": {
+                "fall_forward": 16
+              },
+              "dominant_failure": "fall_forward",
+              "rates": {
+                "fall_forward": 1.0
+              },
+              "total": 16
+            },
+            "run_index": 3,
+            "secondary_metrics": {
+              "mean_action_l2": 0.445992,
+              "mean_action_rate_l2": 0.019702,
+              "mean_episode_steps": 100.0,
+              "mean_final_planar_speed_mps": 0.480055,
+              "mean_final_xy_drift_m": 0.950398,
+              "mean_max_abs_pitch_rad": 1.498299,
+              "mean_max_abs_roll_rad": 3.120669,
+              "mean_min_base_height_m": 0.080072,
+              "mean_return": -6.301691,
+              "recovery_window_success_rate": 1.0
+            },
+            "status": "pass",
+            "success_rate": 0.0
+          }
+        ],
+        "recorded_run_indices": [
+          1,
+          2,
+          3
+        ],
+        "seed_run_count": 3,
+        "source_json_pointer": "/metrics/public_dev/seed_results",
+        "successes": 0
+      },
+      "sealed_validation": {
+        "derived_seed_ids": [
+          20290908,
+          20290909,
+          20290910,
+          20290911,
+          20290912,
+          20290913,
+          20290914
+        ],
+        "episodes": 112,
+        "failure_counts": {
+          "fall_forward": 112
+        },
+        "full_episode_records_retained": 112,
+        "recorded_closed_first_episode_control_steps": 11200,
+        "recorded_run_indices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "recorded_vector_env_step_calls": 700,
+        "seed_run_count": 7,
+        "source_json_pointer": "/sealed_validation_rollouts",
+        "successes": 0
+      }
+    },
+    "retained_full_batch_recomputations": [
+      {
+        "all_episode_steps": 100,
+        "all_record_numbers_finite": true,
+        "classifier_exact_match": true,
+        "episodes": 16,
+        "failure_and_condition_aggregate_exact_match": true,
+        "run_index": 1,
+        "runtime_evidence": {
+          "observation_finite": true,
+          "push_effect": {
+            "env_fraction_with_single_step_delta": 1.0,
+            "expected_interval_range_s": [
+              1.0,
+              1.0
+            ],
+            "gate_pass": true,
+            "max_single_step_delta_mps": 0.73558,
+            "mean_single_step_delta_mps": 0.452434,
+            "mechanism": "base_velocity_kick",
+            "min_env_fraction_with_single_step_delta": 0.2,
+            "min_single_step_delta_mps": 0.12,
+            "nonzero_push_configured": true,
+            "single_step_window_s": [
+              0.9,
+              1.1
+            ]
+          },
+          "recovery_window": {
+            "max_final_planar_speed_mps": 5.0,
+            "success_rate": 1.0
+          },
+          "reset_ok": true,
+          "reward_finite": true
+        },
+        "split": "public_accept"
+      },
+      {
+        "all_episode_steps": 100,
+        "all_record_numbers_finite": true,
+        "classifier_exact_match": true,
+        "episodes": 16,
+        "failure_and_condition_aggregate_exact_match": true,
+        "run_index": 1,
+        "runtime_evidence": {
+          "observation_finite": true,
+          "push_effect": {
+            "env_fraction_with_single_step_delta": 1.0,
+            "expected_interval_range_s": [
+              1.0,
+              1.0
+            ],
+            "gate_pass": true,
+            "max_single_step_delta_mps": 0.832422,
+            "mean_single_step_delta_mps": 0.501271,
+            "mechanism": "base_velocity_kick",
+            "min_env_fraction_with_single_step_delta": 0.2,
+            "min_single_step_delta_mps": 0.12,
+            "nonzero_push_configured": true,
+            "single_step_window_s": [
+              0.9,
+              1.1
+            ]
+          },
+          "recovery_window": {
+            "max_final_planar_speed_mps": 5.0,
+            "success_rate": 1.0
+          },
+          "reset_ok": true,
+          "reward_finite": true
+        },
+        "split": "sealed_validation"
+      },
+      {
+        "all_episode_steps": 100,
+        "all_record_numbers_finite": true,
+        "classifier_exact_match": true,
+        "episodes": 16,
+        "failure_and_condition_aggregate_exact_match": true,
+        "run_index": 2,
+        "runtime_evidence": {
+          "observation_finite": true,
+          "push_effect": {
+            "env_fraction_with_single_step_delta": 1.0,
+            "expected_interval_range_s": [
+              1.0,
+              1.0
+            ],
+            "gate_pass": true,
+            "max_single_step_delta_mps": 0.741587,
+            "mean_single_step_delta_mps": 0.558852,
+            "mechanism": "base_velocity_kick",
+            "min_env_fraction_with_single_step_delta": 0.2,
+            "min_single_step_delta_mps": 0.12,
+            "nonzero_push_configured": true,
+            "single_step_window_s": [
+              0.9,
+              1.1
+            ]
+          },
+          "recovery_window": {
+            "max_final_planar_speed_mps": 5.0,
+            "success_rate": 1.0
+          },
+          "reset_ok": true,
+          "reward_finite": true
+        },
+        "split": "sealed_validation"
+      },
+      {
+        "all_episode_steps": 100,
+        "all_record_numbers_finite": true,
+        "classifier_exact_match": true,
+        "episodes": 16,
+        "failure_and_condition_aggregate_exact_match": true,
+        "run_index": 3,
+        "runtime_evidence": {
+          "observation_finite": true,
+          "push_effect": {
+            "env_fraction_with_single_step_delta": 1.0,
+            "expected_interval_range_s": [
+              1.0,
+              1.0
+            ],
+            "gate_pass": true,
+            "max_single_step_delta_mps": 0.638007,
+            "mean_single_step_delta_mps": 0.43057,
+            "mechanism": "base_velocity_kick",
+            "min_env_fraction_with_single_step_delta": 0.2,
+            "min_single_step_delta_mps": 0.12,
+            "nonzero_push_configured": true,
+            "single_step_window_s": [
+              0.9,
+              1.1
+            ]
+          },
+          "recovery_window": {
+            "max_final_planar_speed_mps": 5.0,
+            "success_rate": 1.0
+          },
+          "reset_ok": true,
+          "reward_finite": true
+        },
+        "split": "sealed_validation"
+      },
+      {
+        "all_episode_steps": 100,
+        "all_record_numbers_finite": true,
+        "classifier_exact_match": true,
+        "episodes": 16,
+        "failure_and_condition_aggregate_exact_match": true,
+        "run_index": 4,
+        "runtime_evidence": {
+          "observation_finite": true,
+          "push_effect": {
+            "env_fraction_with_single_step_delta": 1.0,
+            "expected_interval_range_s": [
+              1.0,
+              1.0
+            ],
+            "gate_pass": true,
+            "max_single_step_delta_mps": 0.785315,
+            "mean_single_step_delta_mps": 0.45659,
+            "mechanism": "base_velocity_kick",
+            "min_env_fraction_with_single_step_delta": 0.2,
+            "min_single_step_delta_mps": 0.12,
+            "nonzero_push_configured": true,
+            "single_step_window_s": [
+              0.9,
+              1.1
+            ]
+          },
+          "recovery_window": {
+            "max_final_planar_speed_mps": 5.0,
+            "success_rate": 1.0
+          },
+          "reset_ok": true,
+          "reward_finite": true
+        },
+        "split": "sealed_validation"
+      },
+      {
+        "all_episode_steps": 100,
+        "all_record_numbers_finite": true,
+        "classifier_exact_match": true,
+        "episodes": 16,
+        "failure_and_condition_aggregate_exact_match": true,
+        "run_index": 5,
+        "runtime_evidence": {
+          "observation_finite": true,
+          "push_effect": {
+            "env_fraction_with_single_step_delta": 0.9375,
+            "expected_interval_range_s": [
+              1.0,
+              1.0
+            ],
+            "gate_pass": true,
+            "max_single_step_delta_mps": 0.783786,
+            "mean_single_step_delta_mps": 0.482472,
+            "mechanism": "base_velocity_kick",
+            "min_env_fraction_with_single_step_delta": 0.2,
+            "min_single_step_delta_mps": 0.12,
+            "nonzero_push_configured": true,
+            "single_step_window_s": [
+              0.9,
+              1.1
+            ]
+          },
+          "recovery_window": {
+            "max_final_planar_speed_mps": 5.0,
+            "success_rate": 1.0
+          },
+          "reset_ok": true,
+          "reward_finite": true
+        },
+        "split": "sealed_validation"
+      },
+      {
+        "all_episode_steps": 100,
+        "all_record_numbers_finite": true,
+        "classifier_exact_match": true,
+        "episodes": 16,
+        "failure_and_condition_aggregate_exact_match": true,
+        "run_index": 6,
+        "runtime_evidence": {
+          "observation_finite": true,
+          "push_effect": {
+            "env_fraction_with_single_step_delta": 1.0,
+            "expected_interval_range_s": [
+              1.0,
+              1.0
+            ],
+            "gate_pass": true,
+            "max_single_step_delta_mps": 0.755117,
+            "mean_single_step_delta_mps": 0.394183,
+            "mechanism": "base_velocity_kick",
+            "min_env_fraction_with_single_step_delta": 0.2,
+            "min_single_step_delta_mps": 0.12,
+            "nonzero_push_configured": true,
+            "single_step_window_s": [
+              0.9,
+              1.1
+            ]
+          },
+          "recovery_window": {
+            "max_final_planar_speed_mps": 5.0,
+            "success_rate": 1.0
+          },
+          "reset_ok": true,
+          "reward_finite": true
+        },
+        "split": "sealed_validation"
+      },
+      {
+        "all_episode_steps": 100,
+        "all_record_numbers_finite": true,
+        "classifier_exact_match": true,
+        "episodes": 16,
+        "failure_and_condition_aggregate_exact_match": true,
+        "run_index": 7,
+        "runtime_evidence": {
+          "observation_finite": true,
+          "push_effect": {
+            "env_fraction_with_single_step_delta": 1.0,
+            "expected_interval_range_s": [
+              1.0,
+              1.0
+            ],
+            "gate_pass": true,
+            "max_single_step_delta_mps": 0.680975,
+            "mean_single_step_delta_mps": 0.460084,
+            "mechanism": "base_velocity_kick",
+            "min_env_fraction_with_single_step_delta": 0.2,
+            "min_single_step_delta_mps": 0.12,
+            "nonzero_push_configured": true,
+            "single_step_window_s": [
+              0.9,
+              1.1
+            ]
+          },
+          "recovery_window": {
+            "max_final_planar_speed_mps": 5.0,
+            "success_rate": 1.0
+          },
+          "reset_ok": true,
+          "reward_finite": true
+        },
+        "split": "sealed_validation"
+      }
+    ],
+    "sampling_budget": {
+      "auto_retries": 0,
+      "direct_recorded_sealed_closed_first_episode_control_steps": 11200,
+      "direct_recorded_sealed_vector_env_step_calls": 700,
+      "max_simulated_seconds_per_seed": 2.0,
+      "max_steps_per_seed": 100,
+      "num_envs": 16,
+      "owned_process_timeout_s": 300,
+      "provider_calls": 0,
+      "public_episode_control_steps_from_six_seed_counts_and_means": 9600,
+      "public_vector_steps_inferred_from_six_means_and_maximum": 600,
+      "step_dt_s": 0.02,
+      "step_evidence_limit": "Every retained full episode has 100 steps; the remaining 80 episodes have per-seed mean=100 and a bound maximum=100, rather than retained individual step counts.",
+      "total_episode_control_steps_direct_plus_inferred": 20800,
+      "total_vector_steps_direct_plus_inferred": 1300,
+      "training_jobs_in_this_invocation": 0
+    },
+    "schema_version": "true_rl_agent.push_recovery.eval_summary.v1",
+    "seed_base_from_bound_argv": 20260908,
+    "subject_id": "p2-short-resume-diagnostic",
+    "subject_kind": "baseline",
+    "successes": 0,
+    "task": {
+      "gym_id": "Unitree-G1-29dof-Velocity",
+      "implementation_strategy": "true_rl_agent_project_local_config_overlay",
+      "robot": "Unitree G1 29DoF",
+      "vendor_env": "unitree_rl_lab.tasks.locomotion.robots.g1.29dof.velocity_env_cfg"
+    },
+    "top_level_aggregate_scope": "16 episodes of public_accept run 1; copied by the legacy writer, not the total or an additional batch."
+  },
+  "audit_actions": {
+    "gpu_jobs": 0,
+    "new_evaluation_jobs": 0,
+    "new_training_jobs": 0,
+    "product_files_modified": false,
+    "source_artifacts_modified": false,
+    "ssh_calls": 0
+  },
+  "checks": {
+    "128_retained_episode_records_reclassified_exactly": true,
+    "actor480_to29_critic495_to1": true,
+    "all_saved_numeric_values_finite": true,
+    "baseline_subject_identity_matches": true,
+    "both_process_exit_codes_zero": true,
+    "checkpoint_current_anchor_matches_baseline_argv_safety_report": true,
+    "checkpoint_safety_pass": true,
+    "current_environment_verified_exact_expected_identity": true,
+    "current_legacy_eval_protocol_matches": true,
+    "current_legacy_runtime_dynamics_hash_matches": true,
+    "declaration_bound_by_outer_launch": true,
+    "downloaded_12_file_sha_and_size_match": true,
+    "evaluation_binding_current_loader_exact_roundtrip": true,
+    "evaluation_protocol_current_loader_exact_roundtrip": true,
+    "historical_checkpoint_sha_absence_explicit": true,
+    "legacy_task_and_schema_preserved": true,
+    "native_rsl5_actor_critic_inference_loaded_without_optimizer_or_iteration": true,
+    "nested_episode_total_208": true,
+    "new_diagnostic_baseline_current_validated_constructor_exact_roundtrip": true,
+    "new_summary_matches_target_closure_sha": true,
+    "no_candidate_code_loaded": true,
+    "no_new_training_invoked": true,
+    "old_environment_current_from_mapping_exact_roundtrip": true,
+    "old_process_matches_retained_p2_process": true,
+    "old_result_matches_retained_p2_result": true,
+    "one_existing_entry_invocation_without_phase_override": true,
+    "seed_cohort_hash_recomputed_from_bound_base_seed": true,
+    "target_closure_reports_old_files_unchanged": true,
+    "three_three_seven_nested_seed_runs": true,
+    "top_level_16_is_first_accept_sample_not_extra_episodes": true
+  },
+  "conclusion": "Current legacy G1-29 decoding, learner construction, native checkpoint inference and finite bounded physical execution pass. The short P2 checkpoint was not fully task-trained; 0/208 success does not establish a new recovery_v2 failure or reference qualification. Runtime pass is distinct from the preserved failing legacy motion/budget/sealed gates. No new reference or formal training lineage was created.",
+  "created_at_utc": "2026-09-12T05:15:06.046998+00:00",
+  "current_decoder_and_entry_source_sha256": {
+    "PLAN/2new_world/P3/push_eval_preflight.py": "d3ea9b14d108928d5b10e07d8be85faa3cc162e6258e7588662e6643018d9749",
+    "scripts/isaaclab_rsl_rl_eval.py": "0c8d4828d4fa937628b7ca5acd6c7d0ca5168bfd7083580622968758316f23cf",
+    "src/true_rl_agent/backends/isaac_lab_execution_environment.py": "b45c9866e475b9d94de2b379fbae3eaa265377ca4a759554a6eac235ea56e7d4",
+    "src/true_rl_agent/evaluation/binding.py": "a59c8dfe51a9ff4197a23f76e3a895f8bd5e3de638f8cf2876266e5733912e3a",
+    "src/true_rl_agent/evaluation/protocol.py": "01c25ebf3ba7ea5a4347f8f716c21c67d9fb16bd9c5dc219527723a569af66c6",
+    "src/true_rl_agent/policy_baselines.py": "35a9ab53bd13bde26f63e4e0258d63a58cbbc2b6e8a78aa00f2ad7194f4d7fd7",
+    "src/true_rl_agent/tasks/push_recovery/failure_classifier.py": "3053fa1bb8b04626ace28ca686632ecc8cd4f2ed1d85a3dfe9fb8d806a628cfd",
+    "src/true_rl_agent/tasks/push_recovery/seed_policy.py": "29c56ad19c100720b66a579a62f6148a8982275647c1fe8a32ce92b79075609c"
+  },
+  "downloaded_source_sha_rechecked_before_write": true,
+  "historical_readability": {
+    "baseline_decoder_note": "BaselineManifest has no from_mapping API. The existing CheckpointRef/CheckpointProvenance/BaselineCompatibilitySpec/BaselineManifest validated constructors reconstructed the newly written diagnostic baseline, verified its manifest_hash, and produced an exact to_public_dict roundtrip. No old formal training object was fabricated.",
+    "baseline_manifest_hash": "6076bd2decde4708c8be9c4f4376b80b44279514bec4e8a9e739648f67c8aa1f",
+    "baseline_schema": "true_rl_agent.baseline_manifest.v2",
+    "checkpoint_anchor_limit": "The checkpoint binary is not in the download. Its current hash is bound by the declaration, baseline, runtime checkpoint-safety result and target closure; a historical SHA was never recorded. Target closure attests unchanged hash/size/mtime during this run. Local old result/process bytes independently match previously retained P2 evidence.",
+    "checkpoint_current_anchor_bytes": 10011095,
+    "checkpoint_current_anchor_mtime_ns": 1788797091206193062,
+    "checkpoint_current_anchor_sha256": "aae678721d4e9686f64fccd96410ac252a5150b6c88b10951081977254134043",
+    "historical_checkpoint_sha256": null,
+    "old_environment_decoder": "IsaacLabExecutionEnvironmentManifest.from_mapping",
+    "old_environment_exact_roundtrip": true,
+    "old_environment_manifest_hash": "2d42240c8a2d34d8b67816ca23e2226ac2a2f146800f4f35f22de1b3d58bac31",
+    "old_environment_schema": "true_rl_agent.backend_execution_environment_manifest.isaac_lab_rsl_rl.v2",
+    "old_evaluation_vector_steps": 100,
+    "old_result_kind": "Unversioned P2 diagnostic JSON report; not a formal TrainJobSpec/RunTrainResult or ResolvedCellManifest.",
+    "old_result_schema_version": null,
+    "old_result_status": "PASS",
+    "old_training_steps_as_recorded": 384,
+    "other_actual_loaders": [
+      "EvaluationProtocol.from_mapping",
+      "EvaluationBindingV1.from_mapping"
+    ]
+  },
+  "passed_check_count": 30,
+  "purpose": "Read-only audit of the actual current-backend G1-29 legacy checkpoint evaluation and readability of the preserved P2 diagnostic. This is not recovery_v2 training, reference qualification or a replay of the original P2 numeric result.",
+  "schema_version": "true_rl_agent.p6.g1_29_legacy_regression_audit.v1",
+  "source_evidence": {
+    "download_manifest_path": "PLAN/2new_world/P6/g1_29_regression_evidence_01/download_manifest.json",
+    "download_manifest_sha256": "95304e0c5cb360cbfc1a35ab40842844846e05d437182ab92bf9bacafb8b3aab",
+    "files": {
+      "current/baseline_manifest.json": {
+        "bytes": 888,
+        "mtime_ns": 1789189493833993885,
+        "sha256": "4287224074ea0db8eb2400a16baf5ea2aa277c08d0948b2fc7a40351138666c9",
+        "source": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_29_eval_01/baseline_manifest.json"
+      },
+      "current/launch.json": {
+        "bytes": 2221,
+        "mtime_ns": 1789189558331448976,
+        "sha256": "a2f0f37eaaede1b8174fe47367f26325e5f80f4945fa1f692b291373a194fac1",
+        "source": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_29_eval_01/launch.json"
+      },
+      "current/process/stderr.log": {
+        "bytes": 405,
+        "mtime_ns": 1789189499510137276,
+        "sha256": "7a0b02e112fb6fd05d37c121004c331581f75b9e8e3788a02110042118043af5",
+        "source": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_29_eval_01/process/stderr.log"
+      },
+      "current/process/stdout.log": {
+        "bytes": 16093,
+        "mtime_ns": 1789189557967409562,
+        "sha256": "75a2897a160f7177d6dfc4b466c372aa0e78d7228ba68fd4132c0cd5fcfdf67d",
+        "source": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_29_eval_01/process/stdout.log"
+      },
+      "current/summary.json": {
+        "bytes": 186796,
+        "mtime_ns": 1789189557875399590,
+        "sha256": "8051e3ab747fe239eb9313cae1ac8f83431a5c124da2cc379f042cf94d54b4ac",
+        "source": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_29_eval_01/summary.json"
+      },
+      "current/summary.kit.log": {
+        "bytes": 923,
+        "mtime_ns": 1789189505818296792,
+        "sha256": "fa676eb48d1c33dd4839176f0f0dafe4e0ed750e1e3d56270cb7f49c9febd3c3",
+        "source": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_29_eval_01/summary.kit.log"
+      },
+      "historical/process.json": {
+        "bytes": 1390,
+        "mtime_ns": 1788797099298096943,
+        "sha256": "183d76fd382eeecba821777111151f9a1e2d2028ee9eb6b3fbf660255d8f6296",
+        "source": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit2_push_resume/process/process.json"
+      },
+      "historical/result.json": {
+        "bytes": 49281,
+        "mtime_ns": 1788836909271788033,
+        "sha256": "836363e5b0b9ae38514d84a144a6671f976554c928df9aad051689d5723c347a",
+        "source": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit2_push_resume/result.json"
+      },
+      "records/g1_29_regression_01.log": {
+        "bytes": 0,
+        "mtime_ns": 1789189493397982876,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "source": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/g1_29_regression_01.log"
+      },
+      "records/g1_29_regression_closure_01.json": {
+        "bytes": 342,
+        "mtime_ns": 1789189797350101243,
+        "sha256": "3926ccbdf86ef3e8ddbbdc19c4a13279e6249074e84c2c7820b84c6c791754ce",
+        "source": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/g1_29_regression_closure_01.json"
+      },
+      "records/g1_29_regression_declaration_01.json": {
+        "bytes": 1530,
+        "mtime_ns": 1789189493393982775,
+        "sha256": "23c496ac89481f2df85c103acfa8b7c05da10e8b76987c49168ff49b0b47f3ae",
+        "source": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/g1_29_regression_declaration_01.json"
+      },
+      "records/g1_29_regression_launch_01.json": {
+        "bytes": 162,
+        "mtime_ns": 1789189493397982876,
+        "sha256": "f8ea69e9402780d7d5c1ccb61cce2d6b2232fe011bbbcf28ed7e0687fe3aac93",
+        "source": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/g1_29_regression_launch_01.json"
+      }
+    }
+  },
+  "status": "PASS_CURRENT_BACKEND_LEGACY_COMPATIBILITY"
+}

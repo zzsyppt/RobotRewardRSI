@@ -79,6 +79,7 @@ _ALLOWED_REASONS_BY_OUTCOME = {
             "candidate_guard_stats_missing",
             "candidate_named_guard_stats_missing",
             "candidate_runtime_failed",
+            "post_train_task_gate_failed",
             "candidate_static_authoring_failed",
             "candidate_verifier_failed",
             "current_best_eval_stats_missing",
@@ -146,6 +147,7 @@ _REASON_ALLOWED_ROUND_STAGES = {
         {TRAIN_FAILURE_STAGE, POST_TRAIN_FAILURE_STAGE}
     ),
     "eval_incomplete": frozenset({POST_TRAIN_FAILURE_STAGE}),
+    "post_train_task_gate_failed": frozenset({POST_TRAIN_FAILURE_STAGE}),
 }
 
 

@@ -1,0 +1,292 @@
+{
+  "checked_at": "2026-09-23T12:23:17.565060+00:00",
+  "profile": "P0_BASELINE",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "historical_source_manifest_identity",
+      "passed": true,
+      "detail": {
+        "files": 534,
+        "captured_at": "2026-09-23T09:45:25.179579+00:00",
+        "head": "5cef484dfa5319130faa02d7e9bbcdd9e9b4a84e",
+        "dirty_at_capture": true,
+        "manifest_sha256": "54e82954e5a4a39e7771ffa0987cd2697100eda5d7641d1c6670600474477254",
+        "scope": "historical calibration snapshot; not a claim that current production files or tests are unchanged"
+      }
+    },
+    {
+      "name": "remote_raw_byte_hashes",
+      "passed": true,
+      "detail": {
+        "files": 177,
+        "mismatches": []
+      }
+    },
+    {
+      "name": "historical_checkpoint_availability",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "current_v3_reference_bytes_available",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "formal_parent_checkpoint_and_raw_sources",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "inventory_sources_still_match",
+      "passed": true,
+      "detail": {
+        "sources": 302,
+        "mismatches": []
+      }
+    },
+    {
+      "name": "policy_and_parent_catalog_checks",
+      "passed": true,
+      "detail": [
+        {
+          "name": "evaluation_declares_public_dev",
+          "passed": true,
+          "checked": 38,
+          "failures": []
+        },
+        {
+          "name": "execution_identity_copies_agree",
+          "passed": true,
+          "checked": 52,
+          "failures": []
+        },
+        {
+          "name": "execution_build_identity_recorded",
+          "passed": true,
+          "checked": 38,
+          "failures": []
+        },
+        {
+          "name": "evaluation_checkpoint_matches_policy",
+          "passed": true,
+          "checked": 38,
+          "failures": []
+        },
+        {
+          "name": "primary_counts_close",
+          "passed": true,
+          "checked": 38,
+          "failures": []
+        },
+        {
+          "name": "ledger_train_checkpoint_matches_summary",
+          "passed": true,
+          "checked": 33,
+          "failures": []
+        },
+        {
+          "name": "selected_authoring_prompt_resolved",
+          "passed": true,
+          "checked": 33,
+          "failures": []
+        },
+        {
+          "name": "session_counts",
+          "passed": true,
+          "checked": 2,
+          "failures": []
+        },
+        {
+          "name": "formal_parent_training_checkpoint_bound",
+          "passed": true,
+          "checked": 1,
+          "failures": []
+        },
+        {
+          "name": "formal_parent_training_manifest_and_binding_bound",
+          "passed": true,
+          "checked": 1,
+          "failures": []
+        },
+        {
+          "name": "parent_and_candidate_policy_ids_resolve",
+          "passed": true,
+          "checked": 1,
+          "failures": []
+        },
+        {
+          "name": "rationale_source_resolved_for_trained_pairs",
+          "passed": true,
+          "checked": 1,
+          "failures": []
+        },
+        {
+          "name": "referenced_sources_exist",
+          "passed": true,
+          "checked": 1,
+          "failures": []
+        }
+      ]
+    },
+    {
+      "name": "inventory_extractor_bound",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "inventory_paths_are_repo_relative",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent_edges_bound_to_ledger_train_and_author_input",
+      "passed": true,
+      "detail": {
+        "pairs": 33,
+        "errors": []
+      }
+    },
+    {
+      "name": "two_stair_policies_recomputed_from_original_facts",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "human_annotation_fixture_bound",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "actual_author_baseline_sources_and_inputs",
+      "passed": true,
+      "detail": {
+        "push": 10,
+        "formal": 36,
+        "errors": []
+      }
+    },
+    {
+      "name": "all_historical_prompt_hashes_match",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "five_required_frame_families",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "all_eight_receipts_and_recomputed_totals",
+      "passed": true,
+      "detail": {
+        "calls": 8,
+        "prompt_tokens": 144933,
+        "completion_tokens": 117,
+        "cache_hit_tokens": 44416,
+        "cache_miss_tokens": 100517,
+        "peak_price_estimate_usd": 0.030561995999999998,
+        "elapsed_s": 6.588758897036314
+      }
+    },
+    {
+      "name": "source_to_payload_to_request_to_usage_binding",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "text_estimate_calibration_and_validation",
+      "passed": true,
+      "detail": {
+        "max_observed_validation_error": 0.0759478719634632,
+        "future_error_bound": false
+      }
+    },
+    {
+      "name": "cache_repeat_is_exact_request",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "native_media_source_hashes",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "media_transport_does_not_pass_vision_diagnosis",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "sent_image_and_media_usage_delta_bound",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "historical_push_repairs_regression_receipt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "historical_shared_repairs_regression_receipt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "historical_stair_repairs_regression_receipt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "real_v3_fact_closure",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "provider_cost_within_stage_budget",
+      "passed": true,
+      "detail": {
+        "local_bytes": 19024718,
+        "provider": {
+          "calls": 8,
+          "prompt_tokens": 144933,
+          "completion_tokens": 117,
+          "cache_hit_tokens": 44416,
+          "cache_miss_tokens": 100517,
+          "peak_price_estimate_usd": 0.030561995999999998,
+          "elapsed_s": 6.588758897036314
+        }
+      }
+    },
+    {
+      "name": "scope_and_next_phase_cards_present",
+      "passed": true,
+      "detail": null
+    }
+  ],
+  "current_tree_differences_from_historical_snapshot": {
+    "informational_only": true,
+    "paths": [
+      "src/true_rl_agent/agent_core/context.py",
+      "src/true_rl_agent/agent_core/experiment_memory.py",
+      "src/true_rl_agent/agent_core/generation.py",
+      "src/true_rl_agent/agent_core/generation_record.py",
+      "src/true_rl_agent/candidates/mechanism.py",
+      "src/true_rl_agent/memory/context_builder.py",
+      "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py",
+      "src/true_rl_agent/tasks/push_recovery/runtime_adapter.py",
+      "src/true_rl_agent/tasks/stair_climbing/prompt_adapter.py",
+      "src/true_rl_agent/tasks/stair_climbing/reward_program.py",
+      "tests/integration/test_fixed_width_generation.py",
+      "tests/unit/test_memory_context_phase13.py"
+    ],
+    "scope": "P0 historical regression receipts do not validate later production changes; each later phase must run its own checks"
+  },
+  "capabilities": {
+    "single_image_transport": "PASS",
+    "CORE": "NOT_STARTED",
+    "VISION_diagnosis": "NOT_STARTED",
+    "search_gain": "NOT_STARTED"
+  }
+}

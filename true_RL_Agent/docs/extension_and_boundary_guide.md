@@ -1,6 +1,6 @@
 # True RL Agent Extension and Boundary Guide
 
-This guide defines the v1 path for extending `true_rl_agent` without weakening the first-version safety and attribution boundaries.
+This guide describes current extension responsibilities while preserving the live historical initialization, safety and attribution contracts. Task-specific rules belong in the selected task package and cell protocol.
 
 ## Add A TaskPlugin
 
@@ -8,12 +8,14 @@ Use this path for new tasks such as redirection, reach, stair climbing, or anoth
 
 1. Create a task-owned package under `src/true_rl_agent/tasks/<task_id>/`.
 2. Add a config object for task invariants and fixed protocol values.
-3. Implement `TaskPlugin.task_spec` only. The task plugin declares `TaskSpec`, `TaskInvariantSpec`, `fixed_train_protocol`, `fixed_eval_protocol`, supported policy initializations, and optional future curriculum capability metadata.
+3. Implement `TaskPlugin.task_spec` to declare immutable task identity, invariants, fixed training/evaluation protocols, candidate capabilities and supported initialization/Genesis modes. Supply the task-owned capabilities required by the task: robot requirements, result projection, reference qualification, candidate surface, prompt and component-smoke adapters, and final-comparison hooks.
 4. Add public metric projection and a task-owned failure classifier.
-5. Optionally add a `TaskMemoryAdapter` that compresses only public eval metrics into a task-specific public summary.
+5. Provide `TaskPromptAdapter` and, where needed, `TaskMemoryAdapter` for bounded public feedback. A formal-generation task also returns its `PhasedEvaluationAdapter`; it owns phase projections, public-dev selection, reference/full-result assembly and the declared workload.
 6. Add a `TaskCompositionProvider` for the task/backend pairing and register that
    provider through the product `TaskCompositionRegistry`.
-7. Add tests for registration, invariant rejection, public metric projection, and the task-specific memory summary.
+7. Add tests for registration, invariant rejection, public projections, reference qualification and the task-specific memory summary. Formal-generation coverage must also exercise phase receipt identity, selection, shared-host recovery and final closure.
+
+The shared host obtains `task_plugin.phased_evaluation_adapter()` from the resolved composition and explicitly supplies that same task capability to reference execution, generation execution and public-history reconstruction. Selection and score meaning stay task-owned; the host owns the two-lane lifecycle, receipts, costs, recovery, acceptance replay and ledger. Stair and Push use this shared route.
 
 Task plugins must not create training commands, run training, choose checkpoints, change eval seeds, make accept/reject decisions, append the ledger, or expose private/trusted eval artifacts to prompt context.
 
@@ -89,7 +91,7 @@ Runner-owned fields include:
 - backend command construction.
 - ledger append and final decision records.
 
-Public prompt context may include public eval scores, public failure breakdowns, public diagnostic summaries, public runtime activation summaries, public curriculum lineage, and task-specific public summaries produced by `TaskMemoryAdapter`.
+Public prompt context follows the selected task adapter's declared score source and bounded projections. Current unified Stair and Push force-evaluation V3 authoring use public-dev evidence and public host lifecycle reasons; sealed validation is status-only. Push retains its V2 reward-input ABI and separately frozen training protocol; V3 identifies the new evaluation contract. Historical readers retain their original public projection contract. Runtime activation, curriculum lineage and task memory remain public-only.
 
 ## Evaluation And Acceptance Extension Contract
 
@@ -149,5 +151,9 @@ Required coverage currently maps to these test files:
 - `tests/unit/test_push_recovery_task.py`: push task invariants, push job materialization, random path, schedule-only reject, code-level accept with runtime evidence, and public push metrics.
 - `tests/unit/test_memory_context_phase13.py`: public-only next context, prompt payload saving, private artifact separation, and task memory adapter extension.
 - `tests/unit/test_stair_extension_guide.py`: stair extension guide/schema without runtime plugin or train command.
+- `tests/integration/test_generation_session.py`: shared Stair/Push generation, interruption/recovery and final closure.
+- `tests/unit/test_push_recovery_v2_prompt_smoke.py`: Push V2 input ABI, actual robot dimensions, source-consistent feedback and prompt privacy.
 
 New tasks or backends must extend this matrix rather than replacing it.
+
+Current task details: [Stair](task_extension_guides/stair_climbing.md), [Push Recovery](task_extension_guides/push_recovery.md).

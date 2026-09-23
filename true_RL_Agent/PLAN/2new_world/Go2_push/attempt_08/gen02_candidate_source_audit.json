@@ -1,0 +1,228 @@
+{
+  "status": "PASS_BOTH_LANES_SOURCE_REVIEW_WITH_NONBLOCKING_F9",
+  "session_id": "go2-push-5rounds-20260923-a08",
+  "generation_index": 2,
+  "snapshot": ".tmp/go2_push_a08_live_06.zip",
+  "scope": "Read-only frozen-source and authoring-contract audit. CPU finite examples are not observed trajectories, performance or completed training activation.",
+  "historical_scope": {
+    "prior_generation_count": 1,
+    "current_parent_head_hash": "c011cc5fa3ac6e6125e7d9e0cb4ee82f7cb7b11773e6114d94b568a5632f266f",
+    "same_parent_measured_candidate_count": 0,
+    "finding": "Generation1 advanced current best to Gen1A. Earlier measured deltas were relative to the reference parent, so the same-parent evaluated set is correctly empty. This does not import A07 as A08 scientific evidence."
+  },
+  "frozen_source_checks": {
+    "src/true_rl_agent/candidates/component_source_semantics.py": "963f3c7385f9e08a7a99b72e3499f27bcc4e55266a3e155b42d5fd2d2924d3f5",
+    "src/true_rl_agent/candidates/authoring_policy.py": "038dce885ac95d3dd2f3bfb5ac80d290648e9ff9277c95df797027e5f0530c9f",
+    "src/true_rl_agent/candidates/loader.py": "c0fd8526bd5c22c5e43f155bfb4b0745226dea0476985fcf0835442850379163",
+    "src/true_rl_agent/tasks/push_recovery/runtime_adapter.py": "b849651740e1362eafb085a990a8158b7821b1cdbf25f362bcd5d239b1f7d2f4"
+  },
+  "lane_a": {
+    "candidate_id": "push_recovery_linear_tilt_ramp_v1",
+    "candidate_sha256": "31f2bc0b1787bcd77f85cd5ca62bcbd36a1b57e360f98234936a4bc166982d8b",
+    "parent_sha256": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+    "source_assessment_replay": {
+      "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+      "status": "pass",
+      "classification": "mechanism_delta_present",
+      "reason": "candidate_source_structure_differs_from_comparison_anchor",
+      "compares_to": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+      "candidate_source_sha256": "31f2bc0b1787bcd77f85cd5ca62bcbd36a1b57e360f98234936a4bc166982d8b",
+      "blocking": false,
+      "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+      "changed_mechanism_count": 1,
+      "changed_mechanisms": [
+        "RewardTerm:upright_recovery->upright_recovery_linear_tilt"
+      ],
+      "structural_comparison": "canonical_component_terms"
+    },
+    "mechanism_delta": {
+      "schema_version": "true_rl_agent.candidate_mechanism_operation_delta.v2",
+      "operation": "rename",
+      "before_component": {
+        "mechanism_id": "RewardTerm:upright_recovery",
+        "structure_hash": "cf057376059bce8ba68eaca1b8b715187710ac99efeddc722f496e72db88828f",
+        "parameter_normalized_structure_hash": "0d23a63509a433fc52fda37ea25b8d9c53e3ded0445e89f425b3b414a273141f",
+        "input_fields": [
+          "base_height_relative",
+          "pitch",
+          "roll"
+        ]
+      },
+      "after_component": {
+        "mechanism_id": "RewardTerm:upright_recovery_linear_tilt",
+        "structure_hash": "a26c29f661123aca45b1face0bbb3713dca8ee0e3e06308a2c2b43756a8a9852",
+        "parameter_normalized_structure_hash": "4c3db7a5aa5a7e313b1bf6e0b45c429fbc49eb500b0587534808aab624d75022",
+        "input_fields": [
+          "base_height_relative",
+          "pitch",
+          "roll"
+        ]
+      },
+      "anchor_source_checksum": "sha256:64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+      "candidate_source_checksum": "sha256:31f2bc0b1787bcd77f85cd5ca62bcbd36a1b57e360f98234936a4bc166982d8b"
+    },
+    "verifier_equivalence_key": "38881adccf70b64ed6b78e26475f484f79da62b91734266b570fe72a94bad6cc",
+    "preserved_exact_functions_and_other_term_bindings": [
+      "stationary_v3",
+      "joint_pose",
+      "action_rate",
+      "fall"
+    ],
+    "boundary": "Only one stance callable replaced/modified; its weight3 and clip[-4,1] stay fixed. No diagnostics/schedules, external I/O/network, or training/evaluation configuration changes. Builder directly binds the altered callable, and altered expressions feed its return.",
+    "authoring_gate": {
+      "provider_attempts": 1,
+      "stop_reason": "candidate_verified",
+      "verifier_status": "pass",
+      "smoke_status": "pass",
+      "smoke_checked_terms": 5,
+      "actual_sibling_assessment": null
+    },
+    "mechanism_proof": "Same stance component changes its internal tilt variable from squared angle to sqrt(squared angle+epsilon), giving a different functional dependence; not a coefficient or historical same-parent variant. Different from B's new cross-product.",
+    "nonblocking_F9": {
+      "claim": "The 0.1 to 0.9 radian ramp is strictly steeper.",
+      "finite_synthetic_input": {
+        "height_relative": 1.0,
+        "roll": 0.8,
+        "pitch": 0.0
+      },
+      "candidate_weighted_rate": -4.140008999998831,
+      "parent_weighted_rate": -3.161400000000002,
+      "candidate_derivative_wrt_roll": -14.399996250004396,
+      "parent_derivative_wrt_roll": -21.696000000000005,
+      "interpretation": "At this unclipped input the candidate penalty is larger but its local slope is smaller. Earlier failure labels do not establish that a shallow early-lean gradient caused falls. The inherited clip also means 'non-saturating' is only a description of the raw expression. No new gate; no trajectory occurrence claimed."
+    }
+  },
+  "lane_b": {
+    "candidate_id": "push_recovery_tilt_aware_stance_v2",
+    "candidate_sha256": "80a0f71379defc448b9040babd8a1a045b2d6f8f7c207361e15d65caeacaca58",
+    "parent_sha256": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+    "source_assessment_replay": {
+      "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+      "status": "pass",
+      "classification": "mechanism_delta_present",
+      "reason": "candidate_source_structure_differs_from_comparison_anchor",
+      "compares_to": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+      "candidate_source_sha256": "80a0f71379defc448b9040babd8a1a045b2d6f8f7c207361e15d65caeacaca58",
+      "blocking": false,
+      "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+      "changed_mechanism_count": 1,
+      "changed_mechanisms": [
+        "RewardTerm:upright_recovery"
+      ],
+      "structural_comparison": "canonical_component_terms"
+    },
+    "mechanism_delta": {
+      "schema_version": "true_rl_agent.candidate_mechanism_operation_delta.v2",
+      "operation": "modify",
+      "before_component": {
+        "mechanism_id": "RewardTerm:upright_recovery",
+        "structure_hash": "cf057376059bce8ba68eaca1b8b715187710ac99efeddc722f496e72db88828f",
+        "parameter_normalized_structure_hash": "0d23a63509a433fc52fda37ea25b8d9c53e3ded0445e89f425b3b414a273141f",
+        "input_fields": [
+          "base_height_relative",
+          "pitch",
+          "roll"
+        ]
+      },
+      "after_component": {
+        "mechanism_id": "RewardTerm:upright_recovery",
+        "structure_hash": "251ddfafd58223049ea874717563f435ac314a572177af0b1cbfa73942421e36",
+        "parameter_normalized_structure_hash": "a327b9427d37b81ea5bb34f55c3f6cc955e752b9c66096189c710da7e05c3420",
+        "input_fields": [
+          "base_height_relative",
+          "pitch",
+          "roll"
+        ]
+      },
+      "anchor_source_checksum": "sha256:64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+      "candidate_source_checksum": "sha256:80a0f71379defc448b9040babd8a1a045b2d6f8f7c207361e15d65caeacaca58"
+    },
+    "verifier_equivalence_key": "1c99d43308fa4a320214b89159285e3ca5be2d31d182dcfbd08fb5e297cc001b",
+    "preserved_exact_functions_and_other_term_bindings": [
+      "stationary_v3",
+      "joint_pose",
+      "action_rate",
+      "fall"
+    ],
+    "boundary": "Only one stance callable replaced/modified; its weight3 and clip[-4,1] stay fixed. No diagnostics/schedules, external I/O/network, or training/evaluation configuration changes. Builder directly binds the altered callable, and altered expressions feed its return.",
+    "authoring_gate": {
+      "provider_attempts": 2,
+      "stop_reason": "candidate_verified",
+      "verifier_status": "pass",
+      "smoke_status": "pass",
+      "smoke_checked_terms": 5,
+      "actual_sibling_assessment": {
+        "blocking": false,
+        "equivalence": null,
+        "exclusion_hash": "dbf1e40e4127532384895742cf0bafe1aa632ce18949f040f74c1b7714bb699a",
+        "reason": "sibling_semantic_delta_distinct",
+        "schema_version": "true_rl_agent.sibling_semantic_exclusion_assessment.v1",
+        "status": "pass"
+      }
+    },
+    "mechanism_proof": {
+      "reason": "Adds a product e*u to an originally additive height/tilt penalty; mixed dependence cannot result from parent coefficient changes. Distinct from A's square-root transform.",
+      "finite_synthetic_inputs": {
+        "height_relative": [
+          1.0,
+          1.0,
+          0.8,
+          0.8
+        ],
+        "roll": [
+          0.0,
+          0.5,
+          0.0,
+          0.5
+        ],
+        "pitch": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "candidate_minus_parent_weighted_rate": [
+        0.0,
+        0.0,
+        0.0,
+        -0.4319999999999997
+      ],
+      "interpretation_limit": "Height uses abs(h-1), so the interaction applies above as well as below nominal height. 'Residual falls occur when both sunk and rolled' is a hypothesis, not established by aggregate failure counts; effective slopes also vanish when inherited clipping saturates."
+    },
+    "first_attempt_failure": {
+      "recorded_failure": {
+        "category": "reasoning_output_exhausted",
+        "details": {
+          "failure_kind": "empty_final_content_with_reasoning",
+          "finish_reason": "length"
+        },
+        "reason": "reasoning exhausted the output budget before final JSON",
+        "schema_version": "true_rl_agent.provider_failure.v1"
+      },
+      "response_receipt": {
+        "finish_reason": "length",
+        "response_text_present": true,
+        "reasoning_content_present": true,
+        "response_text_utf8_bytes": 0,
+        "reasoning_content_utf8_bytes": 123372
+      },
+      "judgment": "Provider-output exhaustion before a candidate exists; not a scientific rejection. A second bounded authoring attempt is consistent with existing fallback. Raw provider reasoning is not replayed in this audit."
+    }
+  },
+  "sibling_comparison_replay": null,
+  "evidence_sha256": {
+    "PLAN/2new_world/Go2_push/attempt_08/session/ledger.jsonl": "e652d3699dcf4a4fbe281b8203389d9bc1fbe46c1fd6f0d3cd312384d2ca79ac",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "5a6113cffe613deb559b0bcb46fbd1ad31304fdf6c8b03edd69d926f05f35244",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "21fb6e1fab35611fc17e04a6fd90dbff1612f54b17b7f5baca2cf636e594ceb6",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-a/authoring_anchor.json": "c00f532f13609cbc1b5c6a55bd7dc60a36d6ea3098d869dadc011b48abf5dc93",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-002/lane-a/001_push_recovery_linear_tilt_ramp_v1/training_code/components.py": "31f2bc0b1787bcd77f85cd5ca62bcbd36a1b57e360f98234936a4bc166982d8b",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-b/authoring_attempts/attempt_000002/attempt_result.json": "bf33fd5eeccc051b86c29224aba87672fe2b53bcdee4c4042b24ed1ddfc6b726",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-b/authoring_attempts/attempt_000002/prompt_payload.json": "acc8313e0c431393e8757a089086393188c42a73e90830c5201af81159b2aba7",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-b/authoring_anchor.json": "76b0fa8602a744ca2d7ebd1db3ca45b97cd765cab7e99a69171241d60f74f83c",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-002/lane-b/002_push_recovery_tilt_aware_stance_v2/training_code/components.py": "80a0f71379defc448b9040babd8a1a045b2d6f8f7c207361e15d65caeacaca58",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "261f6be6395314a893e6b4b37b94795bf3c7439ea2fbcd33fad4adf0e7a8aa61",
+    "PLAN/2new_world/Go2_push/source_snapshot_08.json": "bff645daff96c7afcdb71b46e8aa95cfcaef206499fe711bbe9d21e3cdbfa4b9"
+  },
+  "training_evidence_limit": "Authoring has closed and root reports training started. Completed activation/performance/acceptance are outside this source receipt."
+}

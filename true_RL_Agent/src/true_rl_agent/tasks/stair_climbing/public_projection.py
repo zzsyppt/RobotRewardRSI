@@ -39,7 +39,6 @@ from true_rl_agent.tasks.stair_climbing.generalization_contract import (
 from true_rl_agent.tasks.stair_climbing.unified_scoring import (
     build_unified_reference_score_projection,
     build_unified_score_projection,
-    build_unified_stair_prompt_feedback,
     validate_objective_family_mask,
     validate_unified_stair_summary,
 )
@@ -253,12 +252,6 @@ def _project_unified_stair_public_result(
             "unified_score": unified_score,
             "objective_family_mask": dict(objective_family_mask),
             "generalization_public_dev": dev_score,
-            "prompt_feedback": build_unified_stair_prompt_feedback(
-                suite=suite,
-                semantics=semantics,
-                summary=public_dev,
-                objective_family_mask=objective_family_mask,
-            ),
             "accept_evidence_gate": {
                 "status": "pass",
                 "reason": "unified_paired_public_accept_evidence_complete",
@@ -458,9 +451,10 @@ def _project_legacy_stair_public_result(
             "public_accept": public_accept,
             "generalization_public_dev": objective_dev,
             "acceptance_objective": objective_accept,
+            # Legacy protocol output is retained for its historical consumers.
+            # Active unified evidence derives this view only when prompting.
             "prompt_feedback": build_stair_prompt_feedback(
-                public_dev,
-                generalization_public_dev=objective_dev,
+                public_dev, generalization_public_dev=objective_dev,
                 evaluation_profile=profile,
             ),
             "accept_evidence_gate": accept_gate,
@@ -822,6 +816,27 @@ def build_stair_candidate_runtime_effect_evidence(
         program,
         component_records,
     )
+    operation_effect = runtime.get("operation_effect") if isinstance(runtime, Mapping) else None
+    context_hash = train_summary.get("runtime_diagnostic_context_hash")
+    if context_hash is not None:
+        if not isinstance(operation_effect, Mapping) or operation_effect.get("context_hash") != context_hash:
+            raise ValueError("Stair runtime operation diagnostic context mismatch")
+        delta = require_mechanism_operation_delta(mechanism_operation_delta)
+        if (operation_effect.get("mechanism_operation_delta") != delta
+                or delta["candidate_source_checksum"] != train_summary.get("program_source_checksum")):
+            raise ValueError("Stair runtime operation diagnostic source mismatch")
+        count = operation_effect.get("sampled_env_transitions")
+        nonzero = operation_effect.get("nonzero_env_transitions")
+        maximum = operation_effect.get("max_abs_weighted_delta")
+        if (operation_effect.get("schema_version") != "true_rl_agent.stair_reward_operation_effect.v1"
+                or operation_effect.get("comparison") != "same_transition_weighted_rate_difference"
+                or operation_effect.get("coverage") != "all_dispatched_training_transitions"
+                or operation_effect.get("sampled_control_steps") != runtime.get("dispatcher_calls")
+                or not isinstance(count, int) or count <= 0
+                or not isinstance(nonzero, int) or not 0 <= nonzero <= count
+                or not isinstance(maximum, (float, int)) or not math.isfinite(maximum)):
+            raise ValueError("Stair runtime operation diagnostic coverage invalid")
+        observed = nonzero > 0 and maximum > 1.0e-12
     return {
         "schema_version": (
             STAIR_CANDIDATE_RUNTIME_EFFECT_EVIDENCE_SCHEMA_VERSION

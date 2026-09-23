@@ -1373,7 +1373,7 @@ class StairPublicProjectionTests(unittest.TestCase):
         summary = sections["public_feedback_summary"]
         self.assertEqual(
             summary["schema_version"],
-            "true_rl_agent.task.stair_climbing.public_feedback_summary.v12",
+            "true_rl_agent.task.stair_climbing.public_feedback_summary.v13",
         )
         self.assertEqual(len(summary["feedback_entries"]), 1)
         anchor_entry = summary["feedback_entries"][0]
@@ -1838,7 +1838,7 @@ class StairPublicProjectionTests(unittest.TestCase):
         with patch(
             "true_rl_agent.tasks.stair_climbing.prompt_adapter."
             "MAX_TASK_PROMPT_SECTIONS_BYTES",
-            32 * 1024,
+            20 * 1024,
         ):
             sections = StairClimbingPromptAdapter(self.config).build_prompt_sections(
                 public_records=records,
@@ -1933,7 +1933,7 @@ class StairPublicProjectionTests(unittest.TestCase):
             )
         self.assertLessEqual(
             canonical_prompt_json_bytes(sections),
-            MAX_TASK_PROMPT_SECTIONS_BYTES
+            20 * 1024
             - summary["limits"]["reserved_task_prompt_headroom_bytes"],
         )
 
@@ -1976,7 +1976,7 @@ class StairPublicProjectionTests(unittest.TestCase):
         with patch(
             "true_rl_agent.tasks.stair_climbing.prompt_adapter."
             "MAX_TASK_PROMPT_SECTIONS_BYTES",
-            32 * 1024,
+            20 * 1024,
         ):
             sections = StairClimbingPromptAdapter(self.config).build_prompt_sections(
                 public_records=records,
@@ -2007,7 +2007,7 @@ class StairPublicProjectionTests(unittest.TestCase):
         )
         self.assertLessEqual(
             canonical_prompt_json_bytes(sections),
-            MAX_TASK_PROMPT_SECTIONS_BYTES
+            20 * 1024
             - summary["limits"]["reserved_task_prompt_headroom_bytes"],
         )
 
@@ -2135,7 +2135,7 @@ class StairPublicProjectionTests(unittest.TestCase):
         with patch(
             "true_rl_agent.tasks.stair_climbing.prompt_adapter."
             "MAX_TASK_PROMPT_SECTIONS_BYTES",
-            32 * 1024,
+            24 * 1024,
         ):
             sections = StairClimbingPromptAdapter(self.config).build_prompt_sections(
                 public_records=records,
@@ -2168,7 +2168,7 @@ class StairPublicProjectionTests(unittest.TestCase):
             self.assertNotIn("detail_omissions", entries[role])
         self.assertLessEqual(
             canonical_prompt_json_bytes(sections),
-            MAX_TASK_PROMPT_SECTIONS_BYTES
+            24 * 1024
             - summary["limits"]["reserved_task_prompt_headroom_bytes"],
         )
 
@@ -2255,13 +2255,19 @@ class StairPublicProjectionTests(unittest.TestCase):
             ],
         }
 
-        sections = StairClimbingPromptAdapter(self.config).build_prompt_sections(
-            public_records=records,
-            public_context={},
-        )
+        # Compact wire JSON needs a smaller budget to exercise the same path.
+        with patch(
+            "true_rl_agent.tasks.stair_climbing.prompt_adapter."
+            "MAX_TASK_PROMPT_SECTIONS_BYTES",
+            32 * 1024,
+        ):
+            sections = StairClimbingPromptAdapter(self.config).build_prompt_sections(
+                public_records=records,
+                public_context={},
+            )
         summary = sections["public_feedback_summary"]
         target = (
-            MAX_TASK_PROMPT_SECTIONS_BYTES
+            32 * 1024
             - summary["limits"]["reserved_task_prompt_headroom_bytes"]
         )
 
@@ -2304,7 +2310,7 @@ class StairPublicProjectionTests(unittest.TestCase):
         with patch(
             "true_rl_agent.tasks.stair_climbing.prompt_adapter."
             "MAX_TASK_PROMPT_SECTIONS_BYTES",
-            32 * 1024,
+            20 * 1024,
         ):
             sections = StairClimbingPromptAdapter(self.config).build_prompt_sections(
                 public_records=[record],
@@ -2342,7 +2348,7 @@ class StairPublicProjectionTests(unittest.TestCase):
             )
         self.assertLessEqual(
             canonical_prompt_json_bytes(sections),
-            MAX_TASK_PROMPT_SECTIONS_BYTES
+            20 * 1024
             - summary["limits"]["reserved_task_prompt_headroom_bytes"],
         )
 
@@ -2374,6 +2380,7 @@ class StairPublicProjectionTests(unittest.TestCase):
             "train_result": {"job_id": "train-runtime"},
             "public_result": {"status": "pass", "metrics": {}},
             "decision": {
+                "accepted": False,
                 "reason": "noise_aware_delta_not_met",
                 "gate_statuses": {"runtime_activation_gate": "pass"},
             },
@@ -2402,9 +2409,7 @@ class StairPublicProjectionTests(unittest.TestCase):
             "late_dominant_complete_reward_term",
         )
         incomplete = copy.deepcopy(record)
-        incomplete["decision"]["gate_statuses"]["runtime_activation_gate"] = (
-            "fail"
-        )
+        incomplete["train_result"] = None
         runtime = StairClimbingPromptAdapter(self.config).build_prompt_sections(
             public_records=[incomplete],
             public_context={},

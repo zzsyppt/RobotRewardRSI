@@ -108,3 +108,68 @@ def _dominant_failure(counts: Counter[str]) -> str | None:
     if not failure_counts:
         return None
     return failure_counts.most_common(1)[0][0]
+
+
+def classify_recovery_episode(metrics: dict[str, Any], parameters: dict[str, Any]) -> dict[str, Any]:
+    """Classify v2 events while retaining early falls in the planned cohort."""
+    control = bool(metrics["control_only"])
+    events = metrics["push_events"]
+    planned, actual = int(metrics["planned_push_count"]), len(events)
+    fall = _recovery_fall(metrics, parameters)
+    limit = parameters["max_displacement_m"]
+    outside = limit is not None and metrics["max_xy_drift_m"] > limit
+    invalid = sum(not event["injection_verified"] for event in events)
+    if not control and not fall and not outside:
+        invalid += max(0, planned - actual) + int(planned <= 0)
+    recovered = sum(bool(event["recovered"]) for event in events)
+    if invalid:
+        label = "invalid_push_injection"
+    elif control:
+        label = "no_push_control"
+    elif fall:
+        label = fall
+    elif outside:
+        label = "out_of_bounds"
+    elif actual == planned and actual > 0 and recovered == actual and metrics["final_recovery_condition"]:
+        label = "success_recovered"
+    else:
+        label = "not_recovered"
+    return {"label": label, "success": label == "success_recovered",
+        "control_success": control and not fall and not outside and not invalid,
+        "control_failure_label": fall or ("out_of_bounds" if outside else None),
+        "push_event_count": actual, "recovered_event_count": recovered,
+        "invalid_injection_count": invalid}
+
+
+def classify_force_recovery_episode(metrics: dict[str, Any], parameters: dict[str, Any]) -> dict[str, Any]:
+    """Classify v3 sequence recovery; physical falls precede delivery failures.
+
+    This is deliberately distinct from v2's injection-first ordering. It consumes
+    already observed/reconstructed event facts and does not decide pulse timing.
+    """
+    control = bool(metrics["control_only"])
+    events = metrics["force_events"]
+    planned, actual = int(metrics["planned_push_count"]), len(events)
+    fall = _recovery_fall(metrics, parameters)
+    invalid = int(metrics["unplanned_wrench"]) + sum(not event["injection_verified"] for event in events)
+    if not fall and not control:
+        invalid += max(0, planned - actual) + sum(not event["completed"] and event["injection_verified"] for event in events)
+    label = fall or ("invalid_push_injection" if invalid else "no_push_control" if control
+        else "success_recovered" if metrics["sequence_recovered"] and metrics["final_recovery_condition"] else "not_recovered")
+    return {"label": label, "success": label == "success_recovered",
+        "control_success": control and not fall and not invalid, "control_failure_label": fall,
+        "push_event_count": actual, "completed_push_event_count": sum(event["completed"] for event in events),
+        "verified_push_event_count": sum(event["injection_verified"] for event in events),
+        "invalid_injection_count": invalid}
+
+
+def _recovery_fall(metrics: dict[str, Any], parameters: dict[str, Any]) -> str | None:
+    if metrics["max_pitch_rad"] > parameters["fall_tilt_rad"]:
+        return "fall_forward"
+    if metrics["min_pitch_rad"] < -parameters["fall_tilt_rad"]:
+        return "fall_backward"
+    if metrics["max_abs_roll_rad"] > parameters["fall_tilt_rad"]:
+        return "fall_side"
+    if metrics["min_base_height_m"] < parameters["fall_height_m"]:
+        return "height_collapse"
+    return None

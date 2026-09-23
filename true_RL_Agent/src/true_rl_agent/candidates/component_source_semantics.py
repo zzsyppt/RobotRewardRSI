@@ -76,12 +76,12 @@ class CanonicalRewardTermSource:
 
     mechanism_id: str
     structure_signature: str
+    parameter_normalized_structure_signature: str
     callable_name: str
     active_callable_attribute_names: tuple[str, ...]
     weight: float
     clip_min: float | None
     clip_max: float | None
-
 
 @dataclass(frozen=True)
 class _ActiveComponentSource:
@@ -324,12 +324,12 @@ def assess_anti_degenerate_source(
             )
         return _anti_degenerate_result(
             classification="parameter_only_delta",
-            status="warning",
+            status="fail",
             reason="candidate_changes_only_numeric_constants",
             compares_to=current_digest,
             candidate_digest=candidate_digest,
-            blocking=False,
-            feedback="Numeric-only edits are weak evidence; prefer a code-level reward mechanism change.",
+            blocking=True,
+            feedback="Numeric-only edits require a code-level component mechanism change.",
             details={
                 "changed_mechanism_count": len(changed_mechanisms),
                 "changed_mechanisms": list(changed_mechanisms),
@@ -366,11 +366,11 @@ def assess_anti_degenerate_source(
     if candidate_non_mechanism_ast == current_non_mechanism_ast:
         return _anti_degenerate_result(
             classification="parameter_and_rationale_only_delta",
-            status="warning",
+            status="fail",
             reason="candidate_changes_only_numeric_and_string_constants",
             compares_to=current_digest,
             candidate_digest=candidate_digest,
-            blocking=False,
+            blocking=True,
             feedback=(
                 "Numeric and rationale-only edits do not create a new training mechanism."
             ),
@@ -390,6 +390,37 @@ def assess_anti_degenerate_source(
             candidate_digest=candidate_digest,
             changed_mechanisms=changed_mechanisms,
         )
+    family_match = _admission_parameter_match(
+        candidate_tree, current_tree, changed_mechanisms
+    )
+    if family_match is not None:
+        classification, matched_parent = family_match
+        duplicate_add = classification == "duplicate_parent_reward_term"
+        return _anti_degenerate_result(
+            classification=classification,
+            status="fail",
+            reason=(
+                "candidate_adds_existing_parameter_family"
+                if duplicate_add
+                else "candidate_changes_only_parameter_family"
+            ),
+            compares_to=current_digest,
+            candidate_digest=candidate_digest,
+            blocking=True,
+            feedback=(
+                "Adding another name for a parent reward's parameter family does not "
+                "introduce a component mechanism."
+                if duplicate_add
+                else "A redundant clamp, renaming, or scalar coefficient change "
+                "does not introduce a component mechanism."
+            ),
+            details={
+                "changed_mechanism_count": len(changed_mechanisms),
+                "changed_mechanisms": list(changed_mechanisms),
+                "matched_parent_mechanism": matched_parent,
+                "structural_comparison": "admission_only_parameter_family",
+            },
+        )
     return _anti_degenerate_result(
         classification="mechanism_delta_present",
         status="pass",
@@ -408,6 +439,277 @@ def assess_anti_degenerate_source(
             else {"structural_comparison": "unavailable"}
         ),
     )
+
+
+def _admission_parameter_match(
+    candidate_tree: ast.Module,
+    anchor_tree: ast.Module,
+    changed_mechanisms: tuple[str, ...],
+) -> tuple[str, str] | None:
+    """Find parameter-only edits or duplicate reward additions, without new identities."""
+    if len(changed_mechanisms) != 1:
+        return None
+    identity = parse_canonical_mechanism_id(changed_mechanisms[0])
+    if identity is None:
+        return None
+    kind, name, renamed_to = identity
+    before_id = format_canonical_mechanism_id(kind, name)
+    after_id = format_canonical_mechanism_id(kind, renamed_to or name)
+    before = _active_component_sources(_admission_parameter_projection(anchor_tree))
+    after = _active_component_sources(_admission_parameter_projection(candidate_tree))
+    if before is None or after is None or after_id not in after:
+        return None
+
+    def family(record: _ActiveComponentSource) -> str:
+        signature = record.parameter_normalized_structure_signature
+        if record.kind == "RewardTerm":
+            # Threshold inclusivity is tuning; direction and equality stay distinct.
+            signature = signature.replace("LtE()", "Lt()").replace("GtE()", "Gt()")
+        return signature
+
+    updated = family(after[after_id])
+    if before_id in before:
+        if family(before[before_id]) == updated:
+            return "parameter_only_delta", before_id
+        if kind == "RewardTerm":
+            parent_basis = _admission_additive_reward_family(anchor_tree, before_id)
+            candidate_basis = _admission_additive_reward_family(candidate_tree, after_id)
+            if (
+                parent_basis is not None and candidate_basis is not None
+                and (parent_basis[2] or candidate_basis[2])
+                and parent_basis[:2] == candidate_basis[:2]
+            ):
+                return "parameter_only_delta", before_id
+    elif kind == "RewardTerm":
+        for parent_id, parent in sorted(before.items()):
+            if parent.kind == "RewardTerm" and family(parent) == updated:
+                return "duplicate_parent_reward_term", parent_id
+    return None
+
+
+def _admission_additive_reward_family(
+    tree: ast.Module, mechanism_id: str
+) -> tuple[str, frozenset[str], bool] | None:
+    """Compare coefficients of existing additive atoms, only for admission.
+
+    Resolve straight-line locals and literal scalar arithmetic. The sole clamp
+    identity is max(x-k, 0) = x-min(x, k), with literal k. Atom internals retain
+    their exact inputs, indices, thresholds and nonlinear operations. This is
+    neither a general equivalence prover nor an identity-hash projection. The
+    caller applies this comparison only when the clamp identity was encountered.
+    """
+    canonical = _canonical_training_components_builder(tree)
+    records = _active_component_sources(tree)
+    if canonical is None or records is None or mechanism_id not in records:
+        return None
+    record = records[mechanism_id]
+    value = record.resolved_arguments.get("fn")
+    functions = canonical[2]
+    if not isinstance(value, ast.Name) or value.id not in functions:
+        return None
+    function = ast.parse(ast.unparse(functions[value.id])).body[0]
+    if not _component_callable_signature_is_canonical(function):
+        return None
+    function = _alpha_normalize_function_bindings(_strip_nonruntime_callable_syntax(function))
+    if _builder_bindings(function) is None:
+        return None
+    # Local helpers/control flow require their own semantics; do not infer them.
+    if any(isinstance(node, ast.Call) and not isinstance(node.func, ast.Attribute)
+           for node in ast.walk(function)):
+        return None
+    bindings: dict[str, ast.expr] = {}
+
+    class InlineLocals(ast.NodeTransformer):
+        def visit_Name(self, node: ast.Name) -> ast.AST:  # noqa: N802
+            return bindings.get(node.id, node)
+
+    returned = None
+    for statement in function.body:
+        if isinstance(statement, ast.Assign):
+            bindings[statement.targets[0].id] = InlineLocals().visit(statement.value)
+        elif isinstance(statement, ast.Return) and statement.value is not None:
+            returned = InlineLocals().visit(statement.value)
+    if returned is None:
+        return None
+
+    clamp_residual_seen = False
+
+    def atoms(node: ast.expr) -> set[str]:
+        nonlocal clamp_residual_seen
+        if _literal_finite_number(node) is not None:
+            return set()  # An additive scalar offset is also a parameter.
+        if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.UAdd | ast.USub):
+            return atoms(node.operand)
+        if isinstance(node, ast.BinOp):
+            if isinstance(node.op, ast.Add | ast.Sub):
+                return atoms(node.left) | atoms(node.right)
+            if isinstance(node.op, ast.Mult):
+                left = _literal_finite_number(node.left)
+                right = _literal_finite_number(node.right)
+                if left is not None:
+                    return atoms(node.right) if left else set()
+                if right is not None:
+                    return atoms(node.left) if right else set()
+            if isinstance(node.op, ast.Div) and _literal_finite_number(node.right):
+                return atoms(node.left)
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr == "clamp"
+            and not node.args
+            and len(node.keywords) == 1
+            and node.keywords[0].arg == "min"
+            and _literal_finite_number(node.keywords[0].value) == 0.0
+            and isinstance(node.func.value, ast.BinOp)
+            and isinstance(node.func.value.op, ast.Sub)
+            and _literal_finite_number(node.func.value.right) is not None
+        ):
+            clamp_residual_seen = True
+            residual = node.func.value
+            core = ast.Call(
+                func=ast.Attribute(value=residual.left, attr="clamp", ctx=ast.Load()),
+                args=[], keywords=[ast.keyword(arg="max", value=residual.right)],
+            )
+            return atoms(residual.left) | {ast.dump(core, include_attributes=False)}
+        return {ast.dump(node, include_attributes=False)}
+
+    fields = [(name, signature) for name, signature in json.loads(
+        record.parameter_normalized_structure_signature
+    ) if name != "fn"]
+    basis = frozenset(atoms(returned))
+    return json.dumps(fields, separators=(",", ":")), basis, clamp_residual_seen
+
+
+def _admission_parameter_projection(tree: ast.Module) -> ast.Module:
+    """Bounded admission comparison only; never feed this copy to source/delta hashes.
+
+    Straight-line local assignments support literal clamp bounds and subtraction.
+    Unknown calls/control flow retain their clamps. No sampled execution or task
+    field ranges are used. Literal scalar multiplication is a parameter family,
+    including its implicit unit coefficient, not a runtime equivalence claim.
+    """
+    tree = ast.parse(ast.unparse(tree))
+
+    def clamp_limits(node: ast.AST) -> dict[str, float] | None:
+        if (
+            not isinstance(node, ast.Call)
+            or not isinstance(node.func, ast.Attribute)
+            or node.func.attr != "clamp"
+            or node.args
+            or not node.keywords
+        ):
+            return None
+        limits = {}
+        for keyword in node.keywords:
+            if keyword.arg not in {"min", "max"}:
+                return None
+            value = _literal_finite_number(keyword.value)
+            if value is None:
+                return None
+            limits[keyword.arg] = value
+        if limits.get("min", -math.inf) > limits.get("max", math.inf):
+            return None
+        return limits
+
+    def interval(
+        node: ast.expr,
+        bindings: Mapping[str, tuple[float | None, float | None]],
+    ) -> tuple[float | None, float | None]:
+        number = _literal_finite_number(node)
+        if number is not None:
+            return number, number
+        if isinstance(node, ast.Name):
+            return bindings.get(node.id, (None, None))
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Sub):
+            low, high = interval(node.left, bindings)
+            right_low, right_high = interval(node.right, bindings)
+            return (
+                low - right_high if low is not None and right_high is not None else None,
+                high - right_low if high is not None and right_low is not None else None,
+            )
+        limits = clamp_limits(node)
+        if limits is not None:
+            low, high = interval(node.func.value, bindings)
+            minimum = limits.get("min", -math.inf)
+            maximum = limits.get("max", math.inf)
+            return (
+                max(minimum, min(maximum, low)) if low is not None else limits.get("min"),
+                max(minimum, min(maximum, high)) if high is not None else limits.get("max"),
+            )
+        return None, None
+
+    class RedundantClamp(ast.NodeTransformer):
+        def __init__(self) -> None:
+            self.bindings: dict[str, tuple[float | None, float | None]] = {}
+
+        def visit_Call(self, node: ast.Call) -> ast.expr:  # noqa: N802
+            self.generic_visit(node)
+            limits = clamp_limits(node)
+            if limits is not None:
+                low, high = interval(node.func.value, self.bindings)
+                lower_redundant = (
+                    "min" not in limits or low is not None and low >= limits["min"]
+                )
+                upper_redundant = (
+                    "max" not in limits or high is not None and high <= limits["max"]
+                )
+                if lower_redundant and upper_redundant:
+                    return node.func.value
+            return node
+
+    for function in tree.body:
+        if not isinstance(function, ast.FunctionDef):
+            continue
+        straight_line = all(
+            isinstance(statement, ast.Return)
+            or isinstance(statement, ast.Expr) and isinstance(statement.value, ast.Constant)
+            or (
+                isinstance(statement, ast.Assign)
+                and len(statement.targets) == 1
+                and isinstance(statement.targets[0], ast.Name)
+            )
+            for statement in function.body
+        )
+        if not straight_line:
+            continue
+        visitor = RedundantClamp()
+        for statement in function.body:
+            visitor.visit(statement)
+            if isinstance(statement, ast.Assign):
+                visitor.bindings[statement.targets[0].id] = interval(
+                    statement.value, visitor.bindings
+                )
+
+    class ScalarFamily(ast.NodeTransformer):
+        def visit_BinOp(self, node: ast.BinOp) -> ast.expr:  # noqa: N802
+            self.generic_visit(node)
+            if isinstance(node.op, ast.Mult):
+                if _literal_finite_number(node.left) is not None:
+                    return node.right
+                if _literal_finite_number(node.right) is not None:
+                    return node.left
+            return node
+
+        def visit_Subscript(self, node: ast.Subscript) -> ast.Subscript:  # noqa: N802
+            node.value = self.visit(node.value)  # Indices are structural, not scalar weights.
+            return node
+
+        def visit_Call(self, node: ast.Call) -> ast.Call:  # noqa: N802
+            call_name = _component_call_name(node.func)
+            node.func = self.visit(node.func)
+            node.args = [
+                argument
+                if call_name in _POSITIONAL_DIMENSION_CALLS
+                and _is_literal_call_configuration(argument)
+                else self.visit(argument)
+                for argument in node.args
+            ]
+            for keyword in node.keywords:
+                if keyword.arg not in _STRUCTURAL_CALL_KEYWORDS:
+                    keyword.value = self.visit(keyword.value)
+            return node
+
+    return ast.fix_missing_locations(ScalarFamily().visit(tree))
 
 
 def _candidate_dir(candidate: CandidatePackageRef) -> Path | None:
@@ -560,6 +862,7 @@ def project_canonical_reward_term_sources(
             CanonicalRewardTermSource(
                 mechanism_id=mechanism_id,
                 structure_signature=record.structure_signature,
+                parameter_normalized_structure_signature=record.parameter_normalized_structure_signature,
                 callable_name=callable_node.id,
                 active_callable_attribute_names=(
                     _active_callable_attribute_names(callable_node, functions)

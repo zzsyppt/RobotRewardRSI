@@ -1,0 +1,163 @@
+{
+  "status": "INITIAL_PASS_INVALIDATED_BY_A04_RUNTIME_COUNTEREXAMPLE__FIXED_PATH_LOCAL_REVIEW_PASS",
+  "scope": "Reference training reuse into a new session; independent source, production-consumer probe, and targeted tests. No A04 physical result claimed.",
+  "source_commit": "5cef484dfa5319130faa02d7e9bbcdd9e9b4a84e",
+  "product_files_modified_by_reviewer": [],
+  "source_sha256": {
+    "src/true_rl_agent/agent_core/session_genesis.py": "b380bd43c0f68c80b89f2f08bc9cbeb221ded7fd82c992fb40e9e1cdb0ba6941",
+    "src/true_rl_agent/agent_core/generation_runtime.py": "560fbf1ea8a0e073fa898f4b6c4b5246f261fad445cf712469c92a12868cbc3c",
+    "src/true_rl_agent/agent_core/generation_preparation.py": "2371299274e6c101a2e13d156adddea912c31a882517fb699ade15d12b36469f",
+    "scripts/run_generation_session.py": "c22ca5aa3ef52223e68580181bf60fee1c0ea95b2873b3aec0f05cbd711e9336",
+    "src/true_rl_agent/runner/eval_binding.py": "d0b72cc89e36dd4695dce10cffc27854894470c492339047ca5ba75b9809e40e",
+    "src/true_rl_agent/agent_core/generation_job_evidence.py": "2dcab886b24bc8a2b2c5135752cdd910c057adc444e99b08b8c589754ee190a1",
+    "src/true_rl_agent/agent_core/generation_accounting.py": "455973d0dddc47b425c70c52840eb9a44a5e4c0ece808d9bf894115c142ee474",
+    "src/true_rl_agent/runner/subprocess_runner.py": "9e0fd2b25c56a749961dc3bb4739f5d4bd753b91022419600872660b35650379"
+  },
+  "checks": {
+    "source_authority": {
+      "status": "PASS",
+      "evidence": "_load_completed_reference_training requires scientific schema, requested original session/task/backend/initialization, same scientific hash and reference manifest, checksum-bound source private artifact, recovered original training summary/checkpoint equality, and unchanged checkpoint bytes."
+    },
+    "scientific_vs_execution_identity": {
+      "status": "PASS",
+      "evidence": "Current scientific hash is computed before adding four-field reference_training_source execution-placement marker. Original train public comparison ignores only job_id/execution_device/gpu_process_binding for explicit reuse; all training science stays equal. No new task/robot special case."
+    },
+    "original_execution_preserved": {
+      "status": "PASS",
+      "evidence": "New artifact retains original train_job public spec/metadata/result, including old execution environment and GPU binding. bind_eval_spec_to_checkpoint verifies scientific lineage against new eval and checkpoint execution lineage against old source train spec. It changes only new eval checkpoint binding."
+    },
+    "real_recovery_read_only": {
+      "status": "PASS_SOURCE_REVIEW",
+      "evidence": "SubprocessRunner.recover_completed_train calls _run_train_once(reuse_existing_summary=True). _execute_summary_job reads and validates old summary and returns before _clear_existing_summary, stale output removal, and _run_job; backend/device/training validation uses original train spec."
+    },
+    "new_evaluation_and_empty_ledger": {
+      "status": "PASS_FIXTURE_AND_SOURCE_REVIEW",
+      "evidence": "Formal host supplies no new train attempt scope and all three new evaluation scopes. Three new phase calls occur once; resume calls zero additional eval. New eval plan uses new session and GPU binding; no old ledger is copied or created."
+    },
+    "resume_binding": {
+      "status": "PASS",
+      "evidence": "Reuse is paired and mutually exclusive with complete Genesis import. Reload revalidates original source, compares persisted source marker and exact original train evidence, plus current eval environment/contract/GPU. Omission of source args fails explicit source drift."
+    },
+    "failure_cases": {
+      "status": "PASS",
+      "evidence": "Targeted tests reject changed scientific budget, changed recovered summary, changed checkpoint bytes before any fresh eval. Existing partial-directory and unmatched-completed-training failures retain behavior."
+    },
+    "real_cost_consumer": {
+      "status": "PASS",
+      "evidence": "Verified marker excludes only old reference training from validated_job_cost_artifacts. Actual collect_actual_cost_usage consumes three new on-disk eval attempt receipts with empty ledger; zero train jobs/steps, no unconsumed evidence or conservative charge. Source old train ID remains in private identity/evidence, not charged work."
+    },
+    "run_and_resume_wiring": {
+      "status": "PASS_SOURCE_REVIEW",
+      "evidence": "CLI -> GenerationLaunchConfig -> prepare_generation_genesis -> prepare_session_genesis. run_generation_session and terminal resume call prepare_generation_genesis then real actual-cost consumer. No isolated helper-only path."
+    },
+    "budget_reservation_vs_actual": {
+      "status": "PASS_SOURCE_REVIEW",
+      "evidence": "Current cost plan may reserve unused reference-train capacity; actual accounting follows new attempt receipts and does not charge retained historical work. Conservative unused capacity is distinct from actual scientific work."
+    }
+  },
+  "targeted_tests": {
+    "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_completed_reference_training -v",
+    "count": 6,
+    "exit_code": 0,
+    "log": "reference_reuse_code_review_tests.log"
+  },
+  "actual_cost_probe": {
+    "status": "PASS",
+    "usage": {
+      "provider_attempts": 0,
+      "provider_request_units": 0,
+      "provider_response_units": 0,
+      "provider_total_units": 0,
+      "provider_reasoning_units": 0,
+      "provider_conservative_attempts": 0,
+      "job_attempts": 3,
+      "train_jobs": 0,
+      "train_steps": 0,
+      "eval_seed_units": 3,
+      "simulated_control_steps": 30,
+      "resource_lease_wall_duration_ns": 3000,
+      "unmeasured_bound_attempts": 0,
+      "observed_output_bytes": 55594,
+      "observed_output_files": 17,
+      "job_cost_evidence_hash": "736f0737cf9973b3a9c3136cdfaac3fae528603ab7113a6c537a0246a4a17e21"
+    },
+    "fresh_phases": [
+      "public_dev",
+      "public_accept",
+      "sealed_validation"
+    ],
+    "train_cost_keys": [],
+    "eval_cost_keys": [
+      "target-session-eval-public-accept",
+      "target-session-eval-public-dev",
+      "target-session-eval-sealed-validation"
+    ],
+    "source_train_job_id": "source-session-train",
+    "limitations": [
+      "Reference training and GPU evaluations use existing unit fixture objects; no physical run claimed.",
+      "Actual cost consumer and on-disk attempt journals are production functions; operation-allocation v2 layer is reviewed statically and awaits target runtime."
+    ]
+  },
+  "probe_command": "$env:PYTHONPATH=(Get-Location).Path; .venv/Scripts/python.exe PLAN/2new_world/Go2_push/attempt_04/audit_reference_reuse_cost.py",
+  "probe_fixture_note": "The base reference unit backend uses underscore phase job IDs; the experiment probe uses a tiny fixture backend override with production hyphen phase IDs so eval_seed_units_for_job executes without monkeypatching its consumer. No product source changes.",
+  "limits": [
+    "GPU execution, actual A04 source-byte receipts and three-phase scores are not available in this review.",
+    "Probe uses existing fake train/eval fixtures; actual recover_completed_train no-write guarantee is source-reviewed here and must also hold on retained A03 evidence at launch.",
+    "The probe runs the production actual-cost consumer with operation reserve layer disabled; v2 operation reservation/allocation is reviewed through the formal path and remains part of live A04 acceptance.",
+    "This is not five-round acceptance and does not assert unchanged reference performance across executions."
+  ],
+  "required_product_fixes": [],
+  "initial_review_status": "PASS_SCOPED_CODE_REVIEW",
+  "review_scope_correction": {
+    "initial_gap": "The initial six reuse tests patched recover_completed_train. The earlier source review established no-write ordering but did not follow the GPU summary validators with execution_context=None. The prior PASS therefore did not establish that retained bound reference training could actually be recovered.",
+    "historical_results_preserved": "Original six-test results, cost-consumer probe and old source hashes remain as originally recorded; they do not prove successful A04 launch.",
+    "actual_counterexample": {
+      "source_commit": "23b2bd26765f33fba64caf90b85f5be60573fd89",
+      "error": "reusable train summary is invalid: unbound summary cannot claim a GPU process binding",
+      "cause": "recover_completed_train intentionally does not acquire a new execution context, but summary validators previously inferred expected binding only from that live context and rejected the valid original GPU-bound summary.",
+      "evidence": [
+        "startup_failure_audit.json",
+        "stderr.log"
+      ],
+      "new_genesis_created": false,
+      "new_job_attempts": 0,
+      "gpu_jobs_launched": 0,
+      "retained_source_bytes_unchanged": true
+    },
+    "fix_review": {
+      "status": "PASS_LOCAL_REAL_RUNNER_PATH",
+      "product_files_modified_by_reviewer": [],
+      "source_sha256": {
+        "src/true_rl_agent/runner/subprocess_runner.py": "8d9c68c8590c6da9e75b1bd3be49f134abb1cf9837267d6c8fe2cbdaa2afe227",
+        "tests/unit/test_completed_reference_training.py": "0b68caba693eea8fbd738e6303679af9768031fc99c5c278ae003e448d28742b",
+        "tests/unit/test_subprocess_runner.py": "ddb52d34cb5278b621448ea1f6da6692d79152ae11aafc8e1db1048ae0da575c",
+        "tests/unit/test_gpu_binding_projection_contract.py": "1ff8ecdc3ddff7a74e6cf299c02b59865c60f6b701a1e3b65b63b01b22220806"
+      },
+      "binding_authority": "Only the reuse branch receives reused_gpu_process_binding from the original train_spec. If an actual execution context already exists, that context still wins. Fresh launch never takes the reuse value and still requires actual context binding.",
+      "summary_validation": "Private GPU binding is parsed and compared exactly to expected_binding; original owned_process_identity is validated with group-leader requirement, with no new-PID assertion for already completed training. Normal live Linux launch still requires child PID equality.",
+      "no_dummy_execution": "No fake _GpuJobExecutionContext, lease, physical UUID or new attempt is created. Recovery remains a read of prior evidence. It neither claims a new lease duration nor checks whether the old completed PID is currently alive.",
+      "actual_probe": "The new test executes the real SubprocessRunner.recover_completed_train and complete _run_train_once/_execute_summary_job path with a retained GPU-bound reference summary, full budget and original owned-process evidence. It checks output evidence and exact original file contents/mtime/set; run_owned_process, attempt creation and summary clearing are trapped.",
+      "negative_cases": "Wrong original GPU binding and unbound job claiming a binding both fail. Existing normal bound launch, completed-attempt recovery and unbound train/eval rejection tests pass.",
+      "pre_fix_reproduction": "Removing only the new reused_gpu_process_binding argument in an experiment-local wrapper reproduces the exact A04 error through the same real-runner test; restoring current wiring passes.",
+      "tests": {
+        "count": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "modules_and_cases": [
+          "tests.unit.test_completed_reference_training",
+          "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_bound_train_uses_host_lease_and_child_only_uuid_mapping",
+          "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_completed_train_attempt_is_revalidated_without_relaunch",
+          "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_unbound_train_rejects_summary_gpu_process_binding_claim",
+          "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_unbound_eval_rejects_summary_gpu_process_binding_claim",
+          "tests.unit.test_gpu_binding_projection_contract"
+        ],
+        "log": "reference_reuse_bound_recovery_fix_review_tests.log"
+      },
+      "not_yet_claimed": [
+        "New source has recovered the actual A03 Linux summary.",
+        "New A05 three-phase evaluation or five-round completion."
+      ]
+    }
+  }
+}

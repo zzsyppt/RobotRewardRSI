@@ -1,0 +1,47 @@
+======================================================================
+FAIL: test_no_accepted_records_exports_pending_source_catalog_and_none_lineage (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_no_accepted_records_exports_pending_source_catalog_and_none_lineage)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 246, in test_no_accepted_records_exports_pending_source_catalog_and_none_lineage
+    self.assertEqual(
+AssertionError: Lists differ: ['api[208 chars]s.py', 'memory/latest_nonaccepted/training_code/components.py'] != ['api[208 chars]s.py']
+
+First list contains 1 additional elements.
+First extra element 5:
+'memory/latest_nonaccepted/training_code/components.py'
+
+  ['api/candidate_components.py',
+   'current_best/training_code/components.py',
+   'memory/best_observed/training_code/components.py',
+   'examples/known_good_reward_terms.py',
+-  'attempt/latest_failed/training_code/components.py',
+?                                                     ^
+
++  'attempt/latest_failed/training_code/components.py']
+?                                                     ^
+
+-  'memory/latest_nonaccepted/training_code/components.py']
+
+======================================================================
+FAIL: test_repeated_source_requests_use_full_round_source_repository_not_followup_subset (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_repeated_source_requests_use_full_round_source_repository_not_followup_subset)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1885, in test_repeated_source_requests_use_full_round_source_repository_not_followup_subset
+    self.assertEqual(result.attempt_records[1]["source_request_result"]["status"], "source_payload_returned")
+AssertionError: 'source_request_denied' != 'source_payload_returned'
+- source_request_denied
++ source_payload_returned
+
+
+======================================================================
+FAIL: test_prompt_payload_records_candidate_draft_authoring_context_frame (tests.unit.test_prompt_projection_and_mechanism.PromptProjectionAndMechanismTests.test_prompt_payload_records_candidate_draft_authoring_context_frame)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_projection_and_mechanism.py", line 534, in test_prompt_payload_records_candidate_draft_authoring_context_frame
+    self.assertIn("public_context", frame["included_sections"])
+AssertionError: 'public_context' not found in ['schema_version', 'task', 'loop_contract', 'candidate_capabilities', 'reward_inputs_contract', 'public_eval_contract', 'control_effectiveness_contract', 'known_good_examples', 'selection_guidance', 'source_catalog', 'candidate_lineage', 'source_payloads', 'public_feedback_summary', 'runtime_feedback_summary', 'public_history', 'exploration_directive', 'required_candidate_package']
+
+----------------------------------------------------------------------
+Ran 119 tests in 29.141s
+
+FAILED (failures=3)

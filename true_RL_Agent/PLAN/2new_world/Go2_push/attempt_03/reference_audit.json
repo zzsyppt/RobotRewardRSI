@@ -1,0 +1,279 @@
+{
+  "schema_version": "true_rl_agent.experiment.reference_reproduction_audit.v1",
+  "created_at_utc": "2026-09-22T11:08:11.047779+00:00",
+  "status": "PASS",
+  "acceptance_authority": false,
+  "scope": "A03 native reference retraining and three-phase qualification; not five-generation acceptance.",
+  "method": "Compare A02/A03 complete raw training summaries and task evidence; verify receipt checksums, parsed result hashes and identity bindings; replay current production qualification. Reuse the completed launch source-freeze audit without repeating static harness analysis.",
+  "session_id": "go2-push-5rounds-20260922-a03",
+  "source_commit": "f9305ed993f6277c65ae0f94f4e281bb6bcb41f0",
+  "genesis_hash": "cdfded707707805dd114e63458dc82d74045b4a2cfd0ca2629da63703b6dd329",
+  "scientific_runtime_snapshot_hash": "019e21e60a05e9a7aeb50e5d4c59a1b92c7ddd895fd7d17c7f459f4969492955",
+  "backend_execution_environment_manifest_hash": "a35eae286da48ca60c59922249191ec4e6697b510024135790b8fb6d71e3fa7e",
+  "training": {
+    "job_id": "go2-push-5rounds-20260922-a03-train",
+    "created_at_utc": "2026-09-22T11:00:52.814519+00:00",
+    "process_id": 1208681,
+    "train_attempt_id": "69c065c3e0314370b95cfabca33f8dc6",
+    "initialization": "random",
+    "reference_import": null,
+    "control_steps": 12000,
+    "environment_steps": 49152000,
+    "reward_term_calls": 60000,
+    "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+    "prior_train_attempt_id": "ce5c2a0d8cee471a953d9179064e8bb3",
+    "raw_summary_difference_paths_vs_a02": [
+      "/backend_execution_environment_verification/actual_manifest_hash",
+      "/backend_execution_environment_verification/expected_manifest_hash",
+      "/checkpoint/metadata/local_path",
+      "/checkpoint/metadata/source_latest_checkpoint",
+      "/checkpoint/uri",
+      "/created_at_utc",
+      "/gpu_runtime_evidence/external_compute_context_observation/monotonic_ns",
+      "/gpu_runtime_evidence/external_compute_context_observation/process_id",
+      "/job_id",
+      "/owned_process_identity/process_group_id",
+      "/owned_process_identity/process_id",
+      "/run/round_id",
+      "/run/train_attempt_id",
+      "/training/checkpoint_output",
+      "/training/log_dir"
+    ],
+    "runtime_activation_summary_equal_to_a02": true,
+    "input_provenance_scope": "The latest reward-input construction is observed; this does not claim the initial call had observed previous action."
+  },
+  "checks": {
+    "launch_and_execution_commit_consistent": true,
+    "new_session_and_genesis_identity": true,
+    "same_frozen_scientific_runtime_snapshot": true,
+    "new_execution_source_identity": true,
+    "no_reference_import_or_initial_checkpoint": true,
+    "new_owned_training_process_and_attempt": true,
+    "no_prior_attempt_path_in_a03_reference_artifact": true,
+    "new_training_completion_binds_raw_summary": true,
+    "full_training_budget": true,
+    "runtime_reward_summary_exactly_reproduced": true,
+    "latest_action_history_provenance_observed": true,
+    "reference_reward_source_configuration_and_training_binding_unchanged": true,
+    "raw_training_summary_diff_is_execution_identity_only": true,
+    "same_reproduced_reference_checkpoint": true,
+    "training_backend_matches_genesis": true,
+    "genesis_private_artifact_checksum": true,
+    "genesis_anchor_qualification_matches_reference": true,
+    "public_dev_complete_task_evidence_same_except_new_run_identity": true,
+    "public_dev_new_process": true,
+    "public_dev_current_environment_and_eval_binding": true,
+    "public_dev_checkpoint_isolation": true,
+    "public_dev_expected_reproduction_counts": true,
+    "public_dev_receipt_byte_and_result_hashes": true,
+    "public_dev_receipt_binds_summary_and_reference": true,
+    "public_accept_complete_task_evidence_same_except_new_run_identity": true,
+    "public_accept_new_process": true,
+    "public_accept_current_environment_and_eval_binding": true,
+    "public_accept_checkpoint_isolation": true,
+    "public_accept_expected_reproduction_counts": true,
+    "public_accept_receipt_byte_and_result_hashes": true,
+    "public_accept_receipt_binds_summary_and_reference": true,
+    "sealed_validation_complete_task_evidence_same_except_new_run_identity": true,
+    "sealed_validation_new_process": true,
+    "sealed_validation_current_environment_and_eval_binding": true,
+    "sealed_validation_checkpoint_isolation": true,
+    "sealed_validation_expected_reproduction_counts": true,
+    "sealed_validation_receipt_byte_and_result_hashes": true,
+    "sealed_validation_receipt_binds_summary_and_reference": true,
+    "qualification_exact_production_replay": true,
+    "same_qualification_gate_and_evidence_as_a02": true,
+    "prior_reference_reproduction_audit_pass": true,
+    "separate_episode_summary_arithmetic_audit_pass": true
+  },
+  "phases": {
+    "public_dev": {
+      "seeds": 3,
+      "successes": 141,
+      "episodes": 192,
+      "invalid_injection_count": 0,
+      "strata": {
+        "high": {
+          "episodes": 48,
+          "successes": 19
+        },
+        "low": {
+          "episodes": 48,
+          "successes": 48
+        },
+        "medium": {
+          "episodes": 48,
+          "successes": 47
+        },
+        "repeated": {
+          "episodes": 48,
+          "successes": 27
+        }
+      },
+      "outcome_counts": {
+        "fall_backward": 11,
+        "fall_side": 13,
+        "height_collapse": 26,
+        "not_recovered": 1,
+        "success_recovered": 141
+      },
+      "task_evidence_difference_paths_vs_a02": [
+        "/seed_summaries/0/created_at_utc",
+        "/seed_summaries/0/run/round_id",
+        "/seed_summaries/1/created_at_utc",
+        "/seed_summaries/1/run/round_id",
+        "/seed_summaries/2/created_at_utc",
+        "/seed_summaries/2/run/round_id"
+      ],
+      "task_evidence_hash": "472446aa09009374874e807431e052bf5eaddf289b1549807180f6bc1ffe04fd",
+      "phase_result_hash": "f7e37e8b0a4d597f0c6069f01776c6ac135b1f096a3e4cbac6b070408e64368a",
+      "receipt_checksum": "sha256:87b2315a1e69cc5cb4244741363b24cfe7e36a4419cf70d846eaab04e4a026ca",
+      "new_process_id": 1212730
+    },
+    "public_accept": {
+      "seeds": 3,
+      "successes": 142,
+      "episodes": 192,
+      "invalid_injection_count": 0,
+      "strata": {
+        "high": {
+          "episodes": 48,
+          "successes": 18
+        },
+        "low": {
+          "episodes": 48,
+          "successes": 48
+        },
+        "medium": {
+          "episodes": 48,
+          "successes": 48
+        },
+        "repeated": {
+          "episodes": 48,
+          "successes": 28
+        }
+      },
+      "outcome_counts": {
+        "fall_backward": 6,
+        "fall_side": 5,
+        "height_collapse": 38,
+        "not_recovered": 1,
+        "success_recovered": 142
+      },
+      "task_evidence_difference_paths_vs_a02": [
+        "/seed_summaries/0/created_at_utc",
+        "/seed_summaries/0/run/round_id",
+        "/seed_summaries/1/created_at_utc",
+        "/seed_summaries/1/run/round_id",
+        "/seed_summaries/2/created_at_utc",
+        "/seed_summaries/2/run/round_id"
+      ],
+      "task_evidence_hash": "d5bcb9637edd02fafc83edfb67f3daa4e62434249a2f4471fa23a13865bd2ae1",
+      "phase_result_hash": "e9b0ef791a0d6257d3fd66b1ae72703f6bfab3fd5fe1dede0cb52f141cb13e73",
+      "receipt_checksum": "sha256:d3904f796bff1f6fe403d8d26735adfd75c499fed64b779cc97cbd8aeaa3d776",
+      "new_process_id": 1213204
+    },
+    "sealed_validation": {
+      "seeds": 7,
+      "successes": 343,
+      "episodes": 448,
+      "invalid_injection_count": 0,
+      "strata": {
+        "high": {
+          "episodes": 112,
+          "successes": 44
+        },
+        "low": {
+          "episodes": 112,
+          "successes": 112
+        },
+        "medium": {
+          "episodes": 112,
+          "successes": 107
+        },
+        "repeated": {
+          "episodes": 112,
+          "successes": 80
+        }
+      },
+      "outcome_counts": {
+        "fall_backward": 13,
+        "fall_side": 19,
+        "height_collapse": 69,
+        "not_recovered": 4,
+        "success_recovered": 343
+      },
+      "task_evidence_difference_paths_vs_a02": [
+        "/seed_summaries/0/created_at_utc",
+        "/seed_summaries/0/run/round_id",
+        "/seed_summaries/1/created_at_utc",
+        "/seed_summaries/1/run/round_id",
+        "/seed_summaries/2/created_at_utc",
+        "/seed_summaries/2/run/round_id",
+        "/seed_summaries/3/created_at_utc",
+        "/seed_summaries/3/run/round_id",
+        "/seed_summaries/4/created_at_utc",
+        "/seed_summaries/4/run/round_id",
+        "/seed_summaries/5/created_at_utc",
+        "/seed_summaries/5/run/round_id",
+        "/seed_summaries/6/created_at_utc",
+        "/seed_summaries/6/run/round_id"
+      ],
+      "task_evidence_hash": "3699a5661980b279df9598da6dc14c08022618f7205a033967ed6b5cd43fbf38",
+      "phase_result_hash": "a982afe458bda226f53bba4f7afd3df4ca71a3cd4c9767bddf4bc8f5c256af54",
+      "receipt_checksum": "sha256:2caae1a52c84c742de183b4ebee2774c91ff75024d4ce3b5a901e02239cc2e44",
+      "new_process_id": 1213635
+    }
+  },
+  "qualification_gate": {
+    "evidence_hash": "c8a7803049411dc02dfc74c70dacd564fa599c2b39a0893ef5c495d50eb76c2f",
+    "protocol_hash": "31622698100045fc8c2fac8707a71a39f84655c2cfde714421fd5b92f748407d",
+    "schema_version": "true_rl_agent.reference_qualification_gate.v1",
+    "status": "pass"
+  },
+  "qualification_evidence": {
+    "evidence_hash": "c8a7803049411dc02dfc74c70dacd564fa599c2b39a0893ef5c495d50eb76c2f",
+    "gate_statuses": {
+      "accept_evidence_gate": "pass",
+      "budget_accounting": "pass",
+      "recovery_evidence_gate": "pass",
+      "sealed_validation_gate": "pass"
+    },
+    "protocol_hash": "31622698100045fc8c2fac8707a71a39f84655c2cfde714421fd5b92f748407d",
+    "public_accept_score": 0.7395833333333334,
+    "public_dev_score": 0.734375,
+    "qualification_contract_hash": "beb7e2e5aae814e836ad9b404af56546bd36d9fdcdbd104f7dfc279b5253b4b5",
+    "reference_admission_policy": "observed_outcomes_v1",
+    "schema_version": "true_rl_agent.task.push_recovery.reference_evidence.v3",
+    "scope": "standing_recovery_task_and_reference"
+  },
+  "limits": [
+    "Read-only local downloaded evidence audit; no remote checkpoint-byte rehash or new visual review.",
+    "Complete task evidence is identical to A02 apart from run identity and timestamps. The 832 episode classifications were not independently numerically rederived here; a separate A03 saved-summary arithmetic audit reports PASS with its own stated limits.",
+    "New training is supported by fresh random-init job, owned process/attempt identity, time and bound completion summary. Matching output checksum is deterministic reproduction, not evidence import.",
+    "Reference qualification does not establish five generations or final confirmation have completed."
+  ],
+  "sources": {
+    "PLAN/2new_world/Go2_push/attempt_02/session/session_genesis.json": "sha256:0a11f52ff6acc7eacb4e9c21670f63b02005425ea3ac94030508ae7f324de5ed",
+    "PLAN/2new_world/Go2_push/attempt_03/session/session_genesis.json": "sha256:bf5171cbbe79ca6886f79c60a3bfc77c5a5c188ec590d4e6781163018ad913ab",
+    "PLAN/2new_world/Go2_push/attempt_02/session/reference_eval_artifact.json": "sha256:8a98b94be86dd58efdd6e299a6097153b28d2ddbf9905c8b30345258e47127a7",
+    "PLAN/2new_world/Go2_push/attempt_03/session/reference_eval_artifact.json": "sha256:be27a1a3266d2504982fa3efedac3d37cb3b0d47b017fe40eb039c432101dee0",
+    "PLAN/2new_world/Go2_push/attempt_02/process.json": "sha256:f40fde0ab2aac797d077a6ca7c5843f19dd3a94cc2e89aab015742f0fdf52d4c",
+    "PLAN/2new_world/Go2_push/attempt_03/process.json": "sha256:015ef27d0c5086c0fc8b9e6dbbbbe11ec5af7ba25cf19079f9c07bfec2a49e5c",
+    "PLAN/2new_world/Go2_push/attempt_02/session/runner/go2-push-5rounds-20260922-a02/train/summary.json": "sha256:683c4d0470ef641bbeec09e1c933a3c7ee47aa43bc2b1f673c7e4d40de5b401b",
+    "PLAN/2new_world/Go2_push/attempt_03/session/runner/go2-push-5rounds-20260922-a03/train/summary.json": "sha256:6f0ed68cf38e66f253fe457720d58f9192af6b5ae71fb25cc4520fdf133c3ebe",
+    "PLAN/2new_world/Go2_push/attempt_03/launch_audit.json": "sha256:f2c870a375491190dffbdad4d0c65d5d4dafbb934d2c8b4c3b14d02d03c7ff52",
+    "PLAN/2new_world/Go2_push/attempt_02/session/runner/go2-push-5rounds-20260922-a02/eval/public_dev/summary.json": "sha256:b5500772095cb533094b40f94c86636affbc75e7239934c17449c66d927ecdc8",
+    "PLAN/2new_world/Go2_push/attempt_03/session/runner/go2-push-5rounds-20260922-a03/eval/public_dev/summary.json": "sha256:b89a0a7c66b6b1b6acf9e95ab47c16e16eb6b14f29a0f7b928bd2b04daa75c6b",
+    "PLAN/2new_world/Go2_push/attempt_03/session/reference_program_artifacts/evaluation_receipts/3915767203a24a464d7a9199df58055360910e30ecd5fccd1e406d802c7abbbe/eval_phases/public_dev.json": "sha256:87b2315a1e69cc5cb4244741363b24cfe7e36a4419cf70d846eaab04e4a026ca",
+    "PLAN/2new_world/Go2_push/attempt_02/session/runner/go2-push-5rounds-20260922-a02/eval/public_accept/summary.json": "sha256:3c7de2dcccde14b460deb4ebeec5ab77496252ce6e36259106daeb2f21148b2c",
+    "PLAN/2new_world/Go2_push/attempt_03/session/runner/go2-push-5rounds-20260922-a03/eval/public_accept/summary.json": "sha256:30a8a34b367b9a85f967e26aaf302bc6cbfa0bcdc9fa945e2fdcfd4bde812198",
+    "PLAN/2new_world/Go2_push/attempt_03/session/reference_program_artifacts/evaluation_receipts/3915767203a24a464d7a9199df58055360910e30ecd5fccd1e406d802c7abbbe/eval_phases/public_accept.json": "sha256:d3904f796bff1f6fe403d8d26735adfd75c499fed64b779cc97cbd8aeaa3d776",
+    "PLAN/2new_world/Go2_push/attempt_02/session/runner/go2-push-5rounds-20260922-a02/eval/sealed_validation/summary.json": "sha256:210afb2ae7329f80ad98f42d6d91714808fcbbc06b77d1c6ccaf0415e8e5bd80",
+    "PLAN/2new_world/Go2_push/attempt_03/session/runner/go2-push-5rounds-20260922-a03/eval/sealed_validation/summary.json": "sha256:b4ddc86e6f87c8a3390780919fb671a0ff69b6e0e30a897e6b94414df1123fc9",
+    "PLAN/2new_world/Go2_push/attempt_03/session/reference_program_artifacts/evaluation_receipts/3915767203a24a464d7a9199df58055360910e30ecd5fccd1e406d802c7abbbe/eval_phases/sealed_validation.json": "sha256:2caae1a52c84c742de183b4ebee2774c91ff75024d4ce3b5a901e02239cc2e44",
+    "PLAN/2new_world/Go2_push/attempt_03/session/resolved_cell_manifest.json": "sha256:a130b3a97ce4afde8574d19c575a430e8b83ec3750c40b43bc87465cfa0905dd",
+    "PLAN/2new_world/Go2_push/attempt_02/reference_reproduction_audit.json": "sha256:f79623b1f2ac36ab91cf04bf580a0ad8faa96e2132f7cb304b8a12640ff48d1d",
+    "PLAN/2new_world/Go2_push/attempt_03/physical_evidence_audit.json": "sha256:1d37a2cf44c3cc5f14d3febd64ea923c684fa6d9054b395532b192469799af7e"
+  }
+}

@@ -48,17 +48,27 @@ def parse_args(argv=None, *, registry=None):
     parser.add_argument("--max-allocated-active-gpu-hours", type=float, required=True)
     parser.add_argument("--max-simulated-control-steps", type=int, required=True)
     parser.add_argument("--max-output-bytes", type=int, required=True)
+    parser.add_argument("--max-generations", type=int, default=15,
+                        help="Number of fully closed generations required for terminal confirmation.")
     parser.add_argument("--source-reference-genesis-dir", type=Path)
     parser.add_argument("--source-reference-session-id")
+    parser.add_argument("--source-reference-training-genesis-dir", type=Path,
+                        help="Reuse this Genesis' original reference training and rerun all evaluation phases.")
+    parser.add_argument("--source-reference-training-session-id")
     parser.add_argument("--resume-existing", action="store_true")
     parser.add_argument("--terminal-audit-only", action="store_true")
     parser.add_argument("--prepare-only", action="store_true")
-    parser.add_argument("--pause-after-generation", type=int, choices=(3, 6, 9, 12))
+    parser.add_argument("--pause-after-generation", type=int,
+                        help="stop after this generation is fully closed; resume uses the frozen policy")
     parser.add_argument("--nvidia-smi-executable", default="nvidia-smi")
     parser.add_argument("--final-replication-source", type=Path)
     args = parser.parse_args(argv)
     if args.task_id is None or args.cell_variant_id is None:
         parser.error("formal sessions require explicit --task-id and --cell-variant-id")
+    if args.max_generations <= 0:
+        parser.error("--max-generations must be positive")
+    if args.pause_after_generation is not None and not 1 <= args.pause_after_generation < args.max_generations:
+        parser.error("--pause-after-generation must be positive and less than --max-generations")
     args._composition_provider = provider
     return args
 
@@ -72,12 +82,11 @@ def prepare_from_args(args):
     context = TaskCompositionContext(project_root=PROJECT_ROOT, output_dir=output,
                                      read_only=args.resume_existing)
     values = {**provider.cli_defaults(), **vars(args)}
-    values["max_generations"] = 15
     # This pass freezes science. The second pass adds the final execution plan;
     # task providers must keep that operational addition outside scientific IDs.
     composition = resolve_task_composition(provider=provider, values=values, context=context)
     plan = composition.task_plugin.prepare_final_confirmation(output_dir=output,
-        session_id=args.session_id, required_closed_generations=15,
+        session_id=args.session_id, required_closed_generations=args.max_generations,
         resume_existing=args.resume_existing, replication_source=args.final_replication_source)
     values["mode"] = "formal_generation_session"
     values["final_confirmation_plan"] = output / "final_confirmation" / "plan.json"
@@ -100,8 +109,12 @@ def prepare_from_args(args):
         source_reference_genesis_dir=(args.source_reference_genesis_dir.resolve()
             if args.source_reference_genesis_dir else None),
         source_reference_session_id=args.source_reference_session_id,
+        source_reference_training_genesis_dir=(args.source_reference_training_genesis_dir.resolve()
+            if args.source_reference_training_genesis_dir else None),
+        source_reference_training_session_id=args.source_reference_training_session_id,
         resume_existing=args.resume_existing, terminal_audit_only=args.terminal_audit_only,
-        pause_after_generation=args.pause_after_generation, nvidia_smi_executable=args.nvidia_smi_executable)
+        pause_after_generation=args.pause_after_generation, max_generations=args.max_generations,
+        nvidia_smi_executable=args.nvidia_smi_executable)
     return prepare_generation_foundation(launch, composition=composition, source_commit=source.head_commit,
         inventory=expected, cost=cost, final_plan=plan, provider_policy=policy)
 

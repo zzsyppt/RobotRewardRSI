@@ -1,0 +1,65 @@
+{
+  "status": "PASS",
+  "actual_candidate_history_case": "A07 Gen3 B numeric-only weight variant vs evaluated Gen2 B; author loop exercised without historical inline sources",
+  "loop_result": "static_failed",
+  "negative_keys_count": 1,
+  "evaluated_keys_count": 1,
+  "union_keys_count": 2,
+  "negative_lane_intent_unchanged": true,
+  "evaluated_prompt_metadata": {
+    "scope": "same_parent_and_session_comparison_domain",
+    "key_set_hash": "f818e63f10c45831f4f8e4e5b3359380322f3fa08cc017c0ae2e9272e53fa8f8",
+    "count": 1,
+    "rule": "Already evaluated mechanism families are repairable repeats, regardless of score; renaming and numeric-only variants do not confer novelty."
+  },
+  "actual_historical_assessment": {
+    "schema_version": "true_rl_agent.historical_verifier_exclusion_assessment.v1",
+    "status": "fail",
+    "blocking": true,
+    "reason": "historical_verifier_equivalent_repeat",
+    "verifier_equivalence_key": "53747b3c96045bcdf264f26e8690b491fe024485fe20324d00beec3e70bdd871",
+    "exclusion_set_hash": "e8a86981b5956e74c38ba44608d729c68f553641194dc8e2d3545c60dfedb7a7",
+    "exclusion_sources": [
+      "same_parent_evaluated"
+    ],
+    "negative_evidence_exclusion_set_hash": "e6a25ced24a8999b2381b571ca8df5d0f02a2b55345ec9e95c62b0977f6a7319",
+    "evaluated_exclusion_set_hash": "f818e63f10c45831f4f8e4e5b3359380322f3fa08cc017c0ae2e9272e53fa8f8"
+  },
+  "frame_projection_replays": [
+    {
+      "case": "direct",
+      "source_ids": [
+        "current_best/training_code/components.py",
+        "attempt/latest_failed/training_code/components.py",
+        "memory/latest_nonaccepted/training_code/components.py"
+      ],
+      "count": 3,
+      "source_bytes": 14622,
+      "original_source_payloads_unchanged": true
+    },
+    {
+      "case": "nested",
+      "source_ids": [
+        "current_best/training_code/components.py",
+        "attempt/latest_failed/training_code/components.py",
+        "memory/latest_nonaccepted/training_code/components.py"
+      ],
+      "count": 3,
+      "source_bytes": 14622,
+      "original_source_payloads_unchanged": true
+    },
+    {
+      "case": "ordinary_syntax",
+      "source_ids": [
+        "attempt/latest_failed/training_code/components.py"
+      ],
+      "count": 1,
+      "source_bytes": 5164,
+      "original_source_payloads_unchanged": true
+    }
+  ],
+  "frame_replay_scope": "Production section projection on real A07 repair source payloads; not a finalized provider prompt or provider call.",
+  "fixture_public_history": "Existing fake validated accepted record supplies actual A07 parent source for authoring. Full native session replay/target verification remains root scope.",
+  "provider_network_calls": 0,
+  "simulation_jobs": 0
+}

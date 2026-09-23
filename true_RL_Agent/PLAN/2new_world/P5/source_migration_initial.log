@@ -1,0 +1,178 @@
+======================================================================
+ERROR: test_current_best_source_is_inlined_from_replay_head_without_path_leakage (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_current_best_source_is_inlined_from_replay_head_without_path_leakage)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 363, in test_current_best_source_is_inlined_from_replay_head_without_path_leakage
+    self.assertNotIn('"path"', json.dumps(payload["public_context"], sort_keys=True))
+                                          ~~~~~~~^^^^^^^^^^^^^^^^^^
+KeyError: 'public_context'
+
+======================================================================
+ERROR: test_source_catalog_projects_legacy_sparse_sealed_sources (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_source_catalog_projects_legacy_sparse_sealed_sources) (accepted=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 1567, in test_source_catalog_projects_legacy_sparse_sealed_sources
+    source = next(
+             ^^^^^
+StopIteration
+
+======================================================================
+ERROR: test_task_public_tiebreak_selects_better_equal_score_bootstrap_source (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_task_public_tiebreak_selects_better_equal_score_bootstrap_source)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 1029, in test_task_public_tiebreak_selects_better_equal_score_bootstrap_source
+    payloads["attempt/latest_failed/training_code/components.py"][
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'attempt/latest_failed/training_code/components.py'
+
+======================================================================
+ERROR: test_source_request_response_returns_source_followup_before_candidate_draft (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_source_request_response_returns_source_followup_before_candidate_draft)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1660, in test_source_request_response_returns_source_followup_before_candidate_draft
+    self.assertNotIn("recent_outcomes", provider.payloads[1]["public_context"])
+                                        ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+KeyError: 'public_context'
+
+======================================================================
+FAIL: test_bootstrap_anchor_keeps_best_observed_source_not_worse_latest_source (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_bootstrap_anchor_keeps_best_observed_source_not_worse_latest_source)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 954, in test_bootstrap_anchor_keeps_best_observed_source_not_worse_latest_source
+    self.assertEqual(
+AssertionError: Items in the first set but not the second:
+'memory/latest_nonaccepted/training_code/components.py'
+Items in the second set but not the first:
+'attempt/latest_failed/training_code/components.py'
+
+======================================================================
+FAIL: test_current_best_and_latest_evaluated_reject_sources_are_both_available (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_current_best_and_latest_evaluated_reject_sources_are_both_available)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 1209, in test_current_best_and_latest_evaluated_reject_sources_are_both_available
+    self.assertEqual(
+AssertionError: Items in the first set but not the second:
+'memory/latest_nonaccepted/training_code/components.py'
+Items in the second set but not the first:
+'attempt/latest_failed/training_code/components.py'
+
+======================================================================
+FAIL: test_latest_evaluated_reject_exposes_source_for_next_round_repair (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_latest_evaluated_reject_exposes_source_for_next_round_repair)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 851, in test_latest_evaluated_reject_exposes_source_for_next_round_repair
+    self.assertEqual(failed_item["status"], "inline")
+AssertionError: 'pending' != 'inline'
+- pending
++ inline
+
+
+======================================================================
+FAIL: test_latest_runtime_failed_record_exposes_failed_source_without_public_path (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_latest_runtime_failed_record_exposes_failed_source_without_public_path)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 740, in test_latest_runtime_failed_record_exposes_failed_source_without_public_path
+    self.assertEqual(failed_item["status"], "inline")
+AssertionError: 'pending' != 'inline'
+- pending
++ inline
+
+
+======================================================================
+FAIL: test_no_accepted_records_exports_pending_source_catalog_and_none_lineage (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_no_accepted_records_exports_pending_source_catalog_and_none_lineage)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 246, in test_no_accepted_records_exports_pending_source_catalog_and_none_lineage
+    self.assertEqual(
+AssertionError: Lists differ: ['api[208 chars]s.py', 'memory/latest_nonaccepted/training_code/components.py'] != ['api[208 chars]s.py']
+
+First list contains 1 additional elements.
+First extra element 5:
+'memory/latest_nonaccepted/training_code/components.py'
+
+  ['api/candidate_components.py',
+   'current_best/training_code/components.py',
+   'memory/best_observed/training_code/components.py',
+   'examples/known_good_reward_terms.py',
+-  'attempt/latest_failed/training_code/components.py',
+?                                                     ^
+
++  'attempt/latest_failed/training_code/components.py']
+?                                                     ^
+
+-  'memory/latest_nonaccepted/training_code/components.py']
+
+======================================================================
+FAIL: test_prior_ledger_reject_does_not_compact_a_new_truncation_repair (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_prior_ledger_reject_does_not_compact_a_new_truncation_repair)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 893, in test_prior_ledger_reject_does_not_compact_a_new_truncation_repair
+    self.assertEqual(
+AssertionError: 'current_authoring_attempt' != 'prior_ledger_record'
+- current_authoring_attempt
++ prior_ledger_record
+
+
+======================================================================
+FAIL: test_source_catalog_projects_legacy_sparse_sealed_sources (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_source_catalog_projects_legacy_sparse_sealed_sources)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 1573, in test_source_catalog_projects_legacy_sparse_sealed_sources
+    self.assertIn(candidate_id.replace("-", "_"), source["content"])
+AssertionError: 'legacy_sparse_rejected' not found in 'def legacy_sparse_accepted(inputs):\r\n    return inputs.base_height\r\n'
+
+======================================================================
+FAIL: test_repeated_source_requests_use_full_round_source_repository_not_followup_subset (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_repeated_source_requests_use_full_round_source_repository_not_followup_subset)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1885, in test_repeated_source_requests_use_full_round_source_repository_not_followup_subset
+    self.assertEqual(result.attempt_records[1]["source_request_result"]["status"], "source_payload_returned")
+AssertionError: 'source_request_denied' != 'source_payload_returned'
+- source_request_denied
++ source_payload_returned
+
+
+======================================================================
+FAIL: test_resumed_static_repair_restores_all_prior_provider_visible_sources (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_resumed_static_repair_restores_all_prior_provider_visible_sources)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 2417, in test_resumed_static_repair_restores_all_prior_provider_visible_sources
+    self.assertEqual(
+AssertionError: 'source_request_denied' != 'source_payload_returned'
+- source_request_denied
++ source_payload_returned
+
+
+======================================================================
+FAIL: test_source_repository_retains_matching_payload_omitted_by_compact_frame (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_source_repository_retains_matching_payload_omitted_by_compact_frame)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1224, in test_source_repository_retains_matching_payload_omitted_by_compact_frame
+    self.assertEqual(
+AssertionError: Items in the second set but not the first:
+'current_best/training_code/components.py'
+
+======================================================================
+FAIL: test_static_repair_payload_keeps_full_failed_source_but_not_draft_context (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_static_repair_payload_keeps_full_failed_source_but_not_draft_context)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 2018, in test_static_repair_payload_keeps_full_failed_source_but_not_draft_context
+    self.assertEqual(
+AssertionError: {'sch[822 chars]y': 'unavailable', 'pending_reason': 'source_n[411 chars]s.']} != {'sch[822 chars]y': 'inline', 'source_payload_ref': 'current_b[421 chars]s.']}
+Diff is 1850 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_static_repair_source_request_uses_all_prior_provider_visible_sources (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_static_repair_source_request_uses_all_prior_provider_visible_sources)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 2349, in test_static_repair_source_request_uses_all_prior_provider_visible_sources
+    self.assertEqual(
+AssertionError: 'source_request_denied' != 'source_payload_returned'
+- source_request_denied
++ source_payload_returned
+
+
+----------------------------------------------------------------------
+Ran 84 tests in 29.750s
+
+FAILED (failures=12, errors=4)

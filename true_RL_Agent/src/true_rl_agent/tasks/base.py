@@ -211,6 +211,15 @@ class TaskPlugin(ABC):
 
         return None
 
+    def bind_training_diagnostics(self, train_spec, *, parent_source, parent_evidence,
+                                  mechanism_operation_delta):
+        """Bind task-owned diagnostic inputs before the train receipt contract freezes."""
+        return train_spec
+
+    def training_runtime_issue(self, *, train_summary, mechanism_operation_delta):
+        """Return a task-owned failure only after a complete training receipt exists."""
+        return None
+
     def bind_genesis_evidence(self, public_evidence: Mapping[str, Any]) -> None:
         """Bind task-owned qualification facts after verified Genesis replay."""
 

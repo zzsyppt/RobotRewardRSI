@@ -1,0 +1,240 @@
+{
+  "checked_at": "2026-09-23T13:54:32.182921+00:00",
+  "status": "PASS",
+  "scope": "P1 audit remediation: bounded memory representation, preserved evidence boundary, real historical receipt replay; no new robot experiment",
+  "baseline_head": "fe96455ddd1a8c6ba30ee16e6a3a015422afe8d3",
+  "current_tests": 267,
+  "skipped_tests": 0,
+  "test_batches": [
+    {
+      "path": "verification_audit_unittest.log",
+      "tests": 224,
+      "seconds": 19.631,
+      "status": "PASS",
+      "sha256": "ed8d538f0058d68f3aeeb3759b8a1a23436c0c50bb093d3a5da6f759d35c1337"
+    },
+    {
+      "path": "verification_audit_generation.log",
+      "tests": 2,
+      "seconds": 52.629,
+      "status": "PASS",
+      "sha256": "4d095beddbe5986d788a675f310d07d9b2239cf8ee0af516070a273d982e28cf"
+    },
+    {
+      "path": "verification_audit_round.log",
+      "tests": 40,
+      "seconds": 37.229,
+      "status": "PASS",
+      "sha256": "a54ba97cece690671500be451375ac44c4dba3b665d600e679a90368596cd74b"
+    },
+    {
+      "path": "verification_audit_retention.log",
+      "tests": 1,
+      "seconds": 0.023,
+      "status": "PASS",
+      "sha256": "6042f0a9e612b1f917f11f99fe6708142f781de76b18de7818da12a6b92165a2"
+    }
+  ],
+  "source_and_test_fingerprints": [
+    {
+      "path": "src/true_rl_agent/agent_core/context.py",
+      "sha256": "31811e297cd4ea5f5796bbeeca08727152acf65d013e849e02d82ac15aebebf5"
+    },
+    {
+      "path": "src/true_rl_agent/agent_core/experiment_memory.py",
+      "sha256": "0e183ba546801699585082d83430974bff26f93d33a8af6e37e16d03dacfd8df"
+    },
+    {
+      "path": "src/true_rl_agent/agent_core/generation.py",
+      "sha256": "4a30f2333bd0ba6a1806caa77b533f4761cae0f44207eeb4f6c641e77024c8ee"
+    },
+    {
+      "path": "src/true_rl_agent/agent_core/generation_record.py",
+      "sha256": "ae92dfb636ed01ec4dc54dc568e5b4440f4fe357dc7482ac9bc2c2452ba0ac83"
+    },
+    {
+      "path": "src/true_rl_agent/candidates/mechanism.py",
+      "sha256": "383c8d8311627515ea29892630deaf27dcb4960766e2137f57f2740d6f94a71d"
+    },
+    {
+      "path": "src/true_rl_agent/memory/context_builder.py",
+      "sha256": "b65a49dde736bf20a27ee6160102fcc0b9070a4e5997fe7415316618a8567e69"
+    },
+    {
+      "path": "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py",
+      "sha256": "0f13073a5be261673b8255ea5ed7084f1be453a42742f0a0ebbf990ebed3000e"
+    },
+    {
+      "path": "src/true_rl_agent/tasks/push_recovery/runtime_adapter.py",
+      "sha256": "731f1985795e25424a599cbaedd166c5e0bfc8b920c9f330171d2b437032e58b"
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/prompt_adapter.py",
+      "sha256": "87a3c2efc175b9cfe4bf023612223f24ec148f68ed040d4d4c842167f084bf76"
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/reward_program.py",
+      "sha256": "d315d04a6556b9c81ba1ebc20464526dc01f34bbdeac95f4fcf7d8f089aa4dcd"
+    },
+    {
+      "path": "tests/integration/test_fixed_width_generation.py",
+      "sha256": "1abd27757e8d5e3f6f9f4c0aa529d7bbd6f9bf8dc4c00c691d75233e71d4b74c"
+    },
+    {
+      "path": "tests/unit/test_feedback_evidence_boundary.py",
+      "sha256": "9948642b543f433552477476f255e4d20ea6a8fb8cde8a90b89f08ea490db699"
+    },
+    {
+      "path": "tests/unit/test_memory_context_phase13.py",
+      "sha256": "2873a8fc8481336400cc2efc626f1f4e5b398c9897ad51f1658f2fa9f97cb3d3"
+    },
+    {
+      "path": "tests/unit/test_runtime_evidence_projection.py",
+      "sha256": "5b7f0d974547560301ad97c108af94506169ec33b16b9c9f2feebcd9ff05837c"
+    },
+    {
+      "path": "tests/unit/test_feedback_memory_retention.py",
+      "sha256": "1398d6cbff915cf98e0e8868465ecb98cdb0112967c4372fabd8f6ad6e3235b6"
+    }
+  ],
+  "fixture": {
+    "path": "tests/fixtures/feedback_memory_baseline.json",
+    "sha256": "fdf30606fd31754c4c13c89595b5837537157bc3dce7b3f1ae20727fc1f5dee6",
+    "source_hashes_matched": 41,
+    "normal_tests_read_PLAN": false
+  },
+  "real_replay": {
+    "source_files_synced_and_rechecked": 10,
+    "original_driver_hash_matched": true,
+    "memory_variant": "full",
+    "phase_summary_matches": {
+      "stair": 33,
+      "push": 15
+    },
+    "retention_and_payload_checks": [
+      {
+        "task": "stair",
+        "next_generation": 13,
+        "minimum_retained": 11,
+        "actual_prefix_generations": 12,
+        "retained": 12,
+        "omitted": 0,
+        "memory_bytes": 13814,
+        "byte_budget": 14336,
+        "retention_floor_pass": true,
+        "byte_budget_pass": true,
+        "common_generations_compared": 12,
+        "common_trial_rows_compared": 24,
+        "all_current_generations_in_baseline": true,
+        "first_nine_columns_equal": true,
+        "latest_round_index": 12,
+        "latest_retained": true,
+        "latest_accepted_round_index": 8,
+        "latest_accepted_retained": true,
+        "retained_plus_omitted_equals_prefix": true,
+        "trial_rows": 24,
+        "all_rows_exactly_ten_with_valid_short_state": true,
+        "no_generation_runtime_duplicate": true
+      },
+      {
+        "task": "stair",
+        "next_generation": 16,
+        "minimum_retained": 13,
+        "actual_prefix_generations": 15,
+        "retained": 13,
+        "omitted": 2,
+        "memory_bytes": 14111,
+        "byte_budget": 14336,
+        "retention_floor_pass": true,
+        "byte_budget_pass": true,
+        "common_generations_compared": 13,
+        "common_trial_rows_compared": 26,
+        "all_current_generations_in_baseline": true,
+        "first_nine_columns_equal": true,
+        "latest_round_index": 15,
+        "latest_retained": true,
+        "latest_accepted_round_index": 8,
+        "latest_accepted_retained": true,
+        "retained_plus_omitted_equals_prefix": true,
+        "trial_rows": 26,
+        "all_rows_exactly_ten_with_valid_short_state": true,
+        "no_generation_runtime_duplicate": true
+      },
+      {
+        "task": "push",
+        "next_generation": 6,
+        "minimum_retained": 5,
+        "actual_prefix_generations": 5,
+        "retained": 5,
+        "omitted": 0,
+        "memory_bytes": 6525,
+        "byte_budget": 14336,
+        "retention_floor_pass": true,
+        "byte_budget_pass": true,
+        "common_generations_compared": 5,
+        "common_trial_rows_compared": 10,
+        "all_current_generations_in_baseline": true,
+        "first_nine_columns_equal": true,
+        "latest_round_index": 5,
+        "latest_retained": true,
+        "latest_accepted_round_index": 4,
+        "latest_accepted_retained": true,
+        "retained_plus_omitted_equals_prefix": true,
+        "trial_rows": 10,
+        "all_rows_exactly_ten_with_valid_short_state": true,
+        "no_generation_runtime_duplicate": true
+      }
+    ],
+    "current_summary_tamper_rejected_both_tasks": true,
+    "current_best_unchanged_both_tasks": true,
+    "all_frames_deterministic": true,
+    "eight_identity_files_unchanged": true,
+    "identity_check_scope": "ledger, genesis, manifest and generation session contract per task; not a hash audit of all files",
+    "reports": [
+      {
+        "path": "retention_regression/report_baseline_push.json",
+        "sha256": "01a9a302726b149c8fd6914fe3294006d5cc10b5d3c4e3492bfb7569cbd3b8d0"
+      },
+      {
+        "path": "retention_regression/report_baseline_stair.json",
+        "sha256": "3d0c9ecc7ab7f01f3ee90990624124b0eef3b8158dec4f47a099505963e1c079"
+      },
+      {
+        "path": "retention_regression/report_current_push.json",
+        "sha256": "1396c0e5d0b21ac3463bdc777c7a3dd02b4fc2c2d37dd000db409ac9ac5c6610"
+      },
+      {
+        "path": "retention_regression/report_current_stair.json",
+        "sha256": "87d3755f9d43ddd162df43b29fdddccd592aa8dbe533162062157cf97de23f23"
+      },
+      {
+        "path": "retention_regression/run_summary.json",
+        "sha256": "ace13b6d8bbf5c67aa64a75480f368d966288933117e38db52b5b456e16fa29a"
+      },
+      {
+        "path": "retention_regression/sync_manifest.json",
+        "sha256": "143caa5733afa8ce3c6e8c3d052e7e6d4f141d1f4ef3c4df4a2a5926e997dc8c"
+      }
+    ]
+  },
+  "changed_python_ast_checks": 15,
+  "local_markdown_links_checked": 60,
+  "git_diff_check": "PASS",
+  "resources": {
+    "provider_calls": 0,
+    "new_training_runs": 0,
+    "new_simulator_evaluations": 0
+  },
+  "historical_evidence": {
+    "initial_acceptance_checks_sha256": "cd00d77a53df35dacaf809d5f6de7c7c3f4905653dd135b72cf9225e5883c8a5",
+    "user_audit_sha256": "ab003bff90897fdfbc1d8548e24694cf7c6e61475ff7726f7d29e678bd68f6fc",
+    "original_logs_preserved": true
+  },
+  "not_counted": [
+    "Repeated or overlapping tests",
+    "Original audit 1735-test full suite, which ran against earlier source",
+    "Historical P0 checks",
+    "Historical robot experiments as new experiments"
+  ],
+  "remaining_boundary": "Stair g16 retains one fewer generation than fe96455d within the predeclared floor; P2 ancestry admission remains a separate startup condition; no new projection-version or path-relocation framework"
+}

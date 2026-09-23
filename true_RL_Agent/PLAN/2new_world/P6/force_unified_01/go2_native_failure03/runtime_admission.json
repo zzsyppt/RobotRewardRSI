@@ -1,0 +1,263 @@
+{
+  "checkpoint_loading": {
+    "actor_loaded": true,
+    "checkpoint_format": "rsl_rl_5",
+    "critic_loaded": true,
+    "iteration_loaded": false,
+    "optimizer_loaded": false
+  },
+  "constructed_learner": {
+    "algorithm": {
+      "clip_param": 0.2,
+      "desired_kl": 0.01,
+      "entropy_coef": 0.01,
+      "gamma": 0.99,
+      "lam": 0.95,
+      "learning_rate": 0.001,
+      "max_grad_norm": 1.0,
+      "normalize_advantage_per_mini_batch": false,
+      "num_learning_epochs": 5,
+      "num_mini_batches": 4,
+      "schedule": "adaptive",
+      "use_clipped_value_loss": true,
+      "value_loss_coef": 1.0
+    },
+    "configuration_mapping_version": "rsl_rl_3_actor_critic_to_rsl_rl_5_mlp.v1",
+    "initial_noise_std": 1.0,
+    "models": {
+      "actor": {
+        "activation": "ELU",
+        "hidden_dims": [
+          512,
+          256,
+          128
+        ],
+        "input_dim": 48,
+        "obs_groups": [
+          "policy"
+        ],
+        "obs_normalization": false,
+        "output_dim": 12
+      },
+      "critic": {
+        "activation": "ELU",
+        "hidden_dims": [
+          512,
+          256,
+          128
+        ],
+        "input_dim": 48,
+        "obs_groups": [
+          "policy"
+        ],
+        "obs_normalization": false,
+        "output_dim": 1
+      }
+    },
+    "noise_std_type": "scalar",
+    "optimizer": "Adam",
+    "optimizer_source": "frozen_v1_PPO_implicit_Adam",
+    "schema_version": "true_rl_agent.rsl_rl_constructed_learner.v1"
+  },
+  "policy_io": {
+    "action_dim": 12,
+    "action_terms": [
+      "joint_pos"
+    ],
+    "actions": [
+      {
+        "asset_name": "robot",
+        "class": "isaaclab.envs.mdp.actions.actions_cfg.JointPositionActionCfg",
+        "joint_names": [
+          ".*"
+        ],
+        "name": "joint_pos",
+        "scale": 0.25,
+        "use_default_offset": true
+      }
+    ],
+    "control": {
+      "control_dt_s": 0.02,
+      "decimation": 4,
+      "simulation_dt_s": 0.005
+    },
+    "control_dt_s": 0.02,
+    "effective_actions": [
+      {
+        "joint_names": [
+          "FL_hip_joint",
+          "FR_hip_joint",
+          "RL_hip_joint",
+          "RR_hip_joint",
+          "FL_thigh_joint",
+          "FR_thigh_joint",
+          "RL_thigh_joint",
+          "RR_thigh_joint",
+          "FL_calf_joint",
+          "FR_calf_joint",
+          "RL_calf_joint",
+          "RR_calf_joint"
+        ],
+        "name": "joint_pos",
+        "scale": 0.25
+      }
+    ],
+    "effective_observation_corruption": false,
+    "evidence_hash": "7fd0f222a942c60d1dc9c9f3bbd2947283d103505e90329ea437cca5141eb371",
+    "height_scanner_present": false,
+    "joint_names": [
+      "FL_hip_joint",
+      "FR_hip_joint",
+      "RL_hip_joint",
+      "RR_hip_joint",
+      "FL_thigh_joint",
+      "FR_thigh_joint",
+      "RL_thigh_joint",
+      "RR_thigh_joint",
+      "FL_calf_joint",
+      "FR_calf_joint",
+      "RL_calf_joint",
+      "RR_calf_joint"
+    ],
+    "manifest_checks": {
+      "action_dimension": true,
+      "actions": true,
+      "control": true,
+      "effective_action_scales": true,
+      "height_scanner_removed": true,
+      "joint_names": true,
+      "observation_corruption": true,
+      "policy_observation": true,
+      "policy_observation_dimension": true,
+      "resolved_action_joint_order": true,
+      "sensors": true,
+      "term_dimensions": true
+    },
+    "observation_group_dims": {
+      "policy": [
+        48
+      ]
+    },
+    "observation_group_terms": {
+      "policy": [
+        "base_lin_vel",
+        "base_ang_vel",
+        "projected_gravity",
+        "velocity_commands",
+        "joint_pos",
+        "joint_vel",
+        "actions"
+      ]
+    },
+    "policy_observation": {
+      "concatenate_terms": true,
+      "enable_corruption_by_mode": {
+        "eval": false,
+        "train": true
+      },
+      "history_length": null,
+      "terms": [
+        {
+          "callable": "isaaclab.envs.mdp.observations.base_lin_vel",
+          "clip": null,
+          "name": "base_lin_vel",
+          "noise": {
+            "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+            "n_max": 0.1,
+            "n_min": -0.1,
+            "operation": "add"
+          },
+          "params": {},
+          "scale": null
+        },
+        {
+          "callable": "isaaclab.envs.mdp.observations.base_ang_vel",
+          "clip": null,
+          "name": "base_ang_vel",
+          "noise": {
+            "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+            "n_max": 0.2,
+            "n_min": -0.2,
+            "operation": "add"
+          },
+          "params": {},
+          "scale": null
+        },
+        {
+          "callable": "isaaclab.envs.mdp.observations.projected_gravity",
+          "clip": null,
+          "name": "projected_gravity",
+          "noise": {
+            "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+            "n_max": 0.05,
+            "n_min": -0.05,
+            "operation": "add"
+          },
+          "params": {},
+          "scale": null
+        },
+        {
+          "callable": "isaaclab.envs.mdp.observations.generated_commands",
+          "clip": null,
+          "name": "velocity_commands",
+          "noise": null,
+          "params": {
+            "command_name": "base_velocity"
+          },
+          "scale": null
+        },
+        {
+          "callable": "isaaclab.envs.mdp.observations.joint_pos_rel",
+          "clip": null,
+          "name": "joint_pos",
+          "noise": {
+            "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+            "n_max": 0.01,
+            "n_min": -0.01,
+            "operation": "add"
+          },
+          "params": {},
+          "scale": null
+        },
+        {
+          "callable": "isaaclab.envs.mdp.observations.joint_vel_rel",
+          "clip": null,
+          "name": "joint_vel",
+          "noise": {
+            "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+            "n_max": 1.5,
+            "n_min": -1.5,
+            "operation": "add"
+          },
+          "params": {},
+          "scale": null
+        },
+        {
+          "callable": "isaaclab.envs.mdp.observations.last_action",
+          "clip": null,
+          "name": "actions",
+          "noise": null,
+          "params": {},
+          "scale": null
+        }
+      ]
+    },
+    "policy_observation_term_dimensions": {
+      "actions": 12,
+      "base_ang_vel": 3,
+      "base_lin_vel": 3,
+      "joint_pos": 12,
+      "joint_vel": 12,
+      "projected_gravity": 3,
+      "velocity_commands": 3
+    },
+    "schema_version": "true_rl_agent.task.push_recovery.runtime_policy_io.v2",
+    "sensors": {},
+    "verified_declared_content_hashes": {
+      "action_content_hash": "fef9a8161334ea16e61effbab51a03782f314eb54a8f046a15bfb8e82303bb1c",
+      "observation_content_hash": "16ffb52f1f249bc9f89e1cc5fe9c3195d71505c9b9e281864afb8046e1ddae1a",
+      "policy_io_schema_hash": "a40716069a496d94e8b24a26d9ca3e4d9ad0c67aed69a4ae009d1223a3a6249d",
+      "sensor_schema_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    }
+  }
+}

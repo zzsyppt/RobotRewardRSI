@@ -1,0 +1,32 @@
+............F.........F......................................................F............................................................................
+======================================================================
+FAIL: test_empty_final_retry_signal_requires_nonempty_reasoning_receipt (tests.unit.test_openai_compatible_provider.OpenAICompatibleProviderTests.test_empty_final_retry_signal_requires_nonempty_reasoning_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_openai_compatible_provider.py", line 760, in test_empty_final_retry_signal_requires_nonempty_reasoning_receipt
+    self.assertNotIn(
+AssertionError: 'failure_kind' unexpectedly found in {'failure_kind': 'empty_final_content_with_reasoning', 'finish_reason': 'length'}
+
+======================================================================
+FAIL: test_input_context_overflow_is_nonretryable_and_does_not_echo_error_body (tests.unit.test_openai_compatible_provider.OpenAICompatibleProviderTests.test_input_context_overflow_is_nonretryable_and_does_not_echo_error_body)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_openai_compatible_provider.py", line 886, in test_input_context_overflow_is_nonretryable_and_does_not_echo_error_body
+    self.assertEqual(caught.exception.category, "input_context_overflow")
+AssertionError: 'runtime_error' != 'input_context_overflow'
+- runtime_error
++ input_context_overflow
+
+
+======================================================================
+FAIL: test_canonical_abi_preserves_common_prefix_and_public_boundary (tests.unit.test_stair_complete_reward_contract.StairCompleteRewardContractTests.test_canonical_abi_preserves_common_prefix_and_public_boundary)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_stair_complete_reward_contract.py", line 202, in test_canonical_abi_preserves_common_prefix_and_public_boundary
+    self.assertIn("index0 contact", axes["foot_contact_force_history"])
+AssertionError: 'index0 contact' not found in 'axes=[env,history(0 newest; larger older),foot(0 left;1 right),xyz]; contact=norm xyz,max all 3 history,then threshold; this window alone does not identify every onset within a control step'
+
+----------------------------------------------------------------------
+Ran 154 tests in 19.111s
+
+FAILED (failures=3)

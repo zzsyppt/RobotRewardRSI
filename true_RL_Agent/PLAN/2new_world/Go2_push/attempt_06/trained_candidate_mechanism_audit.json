@@ -1,0 +1,615 @@
+{
+  "status": "PASS_EIGHT_TRAINED_CANONICAL_COMPONENT_BOUNDARIES_WITH_AUTHOR_ERRORS",
+  "scope": "Independent source-level comparison of all eight actually trained candidates against the exact prompt anchor; no reliance on old verifier PASS for semantic conclusions.",
+  "trained_candidates": [
+    {
+      "trial_id": "go2-push-5rounds-20260923-a06-generation-001-lane-a",
+      "source_path": "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-001/lane-a/001_push_recovery_height_hinge_v4/training_code/components.py",
+      "source_sha256": "b2a7268b424ef41de85499c7a47897d9fc35e558b60cd63dbd8cd9d410d66068",
+      "changed_component": {
+        "from": "upright_height",
+        "to": "recovery_stance"
+      },
+      "other_four_callables_and_term_configs_identical": [
+        "action_rate",
+        "fall",
+        "joint_pose",
+        "stationary_v3"
+      ],
+      "public_input_fields": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "independent_source_readback": "Replaces coupled exponential height/tilt reward by exponential tilt minus asymmetric squared height hinges; distinct functional shape, not coefficient-only.",
+      "dev_score": 0.703125,
+      "reward_peak_frame_as_recorded": {
+        "control_step_1based": 11877,
+        "env_index_0based": 1926,
+        "schema_version": "true_rl_agent.push_recovery.reward_peak_frame.v1",
+        "scope": "one_running_absolute_peak_of_candidate_reward",
+        "signed_total": -147.9560546875,
+        "term_semantics": "signed contributions after clipping and effective weights; summed in runtime dtype and term order for signed_total",
+        "terms": [
+          {
+            "effective_weight": 3.0,
+            "name": "recovery_stance",
+            "signed_weighted_contribution": -0.8024160861968994
+          },
+          {
+            "effective_weight": 1.0,
+            "name": "stationary_v3",
+            "signed_weighted_contribution": -0.9606232643127441
+          },
+          {
+            "effective_weight": -0.1,
+            "name": "joint_pose",
+            "signed_weighted_contribution": -0.22631585597991943
+          },
+          {
+            "effective_weight": -0.01,
+            "name": "action_rate",
+            "signed_weighted_contribution": -125.9666976928711
+          },
+          {
+            "effective_weight": -20.0,
+            "name": "fall",
+            "signed_weighted_contribution": -20.0
+          }
+        ],
+        "units": "reward_rate_before_control_dt_integration"
+      }
+    },
+    {
+      "trial_id": "go2-push-5rounds-20260923-a06-generation-001-lane-b",
+      "source_path": "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-001/lane-b/001_push_standing_recovery_height_barrier_v1/training_code/components.py",
+      "source_sha256": "376785250b1dbfeb1c918c49ea37f3f24bf8b353279a14d25fe9b9f1667a36ae",
+      "changed_component": {
+        "from": "upright_height",
+        "to": "upright_height_barrier"
+      },
+      "other_four_callables_and_term_configs_identical": [
+        "action_rate",
+        "fall",
+        "joint_pose",
+        "stationary_v3"
+      ],
+      "public_input_fields": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "independent_source_readback": "Adds a low-height squared hinge modulated by downward vertical velocity; vertical velocity was absent from the replaced component.",
+      "dev_score": 0.78125,
+      "reward_peak_frame_as_recorded": {
+        "control_step_1based": 5140,
+        "env_index_0based": 1196,
+        "schema_version": "true_rl_agent.push_recovery.reward_peak_frame.v1",
+        "scope": "one_running_absolute_peak_of_candidate_reward",
+        "signed_total": -25.158161163330078,
+        "term_semantics": "signed contributions after clipping and effective weights; summed in runtime dtype and term order for signed_total",
+        "terms": [
+          {
+            "effective_weight": 3.0,
+            "name": "upright_height_barrier",
+            "signed_weighted_contribution": -2.461531400680542
+          },
+          {
+            "effective_weight": 1.0,
+            "name": "stationary_v3",
+            "signed_weighted_contribution": 0.3030616044998169
+          },
+          {
+            "effective_weight": -0.1,
+            "name": "joint_pose",
+            "signed_weighted_contribution": -0.14297476410865784
+          },
+          {
+            "effective_weight": -0.01,
+            "name": "action_rate",
+            "signed_weighted_contribution": -2.8567159175872803
+          },
+          {
+            "effective_weight": -20.0,
+            "name": "fall",
+            "signed_weighted_contribution": -20.0
+          }
+        ],
+        "units": "reward_rate_before_control_dt_integration"
+      }
+    },
+    {
+      "trial_id": "go2-push-5rounds-20260923-a06-generation-002-lane-a",
+      "source_path": "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-002/lane-a/001_push_recovery_upright_stillness_gate_v1/training_code/components.py",
+      "source_sha256": "0a369862d88901fe99c027035e22b81713a8584e5017f2b7492ef8280631b831",
+      "changed_component": {
+        "from": "stationary_v3",
+        "to": "stationary_recovery"
+      },
+      "other_four_callables_and_term_configs_identical": [
+        "action_rate",
+        "fall",
+        "joint_pose",
+        "upright_height_barrier"
+      ],
+      "public_input_fields": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "independent_source_readback": "Multiplies stationary speed reward by exponential tilt/height gate; introduces posture dependence absent from the previous stationary component.",
+      "dev_score": 0.796875,
+      "reward_peak_frame_as_recorded": {
+        "control_step_1based": 5005,
+        "env_index_0based": 1886,
+        "schema_version": "true_rl_agent.push_recovery.reward_peak_frame.v1",
+        "scope": "one_running_absolute_peak_of_candidate_reward",
+        "signed_total": -24.414173126220703,
+        "term_semantics": "signed contributions after clipping and effective weights; summed in runtime dtype and term order for signed_total",
+        "terms": [
+          {
+            "effective_weight": 3.0,
+            "name": "upright_height_barrier",
+            "signed_weighted_contribution": -1.486825942993164
+          },
+          {
+            "effective_weight": 1.0,
+            "name": "stationary_recovery",
+            "signed_weighted_contribution": 0.009410679340362549
+          },
+          {
+            "effective_weight": -0.1,
+            "name": "joint_pose",
+            "signed_weighted_contribution": -0.3183290660381317
+          },
+          {
+            "effective_weight": -0.01,
+            "name": "action_rate",
+            "signed_weighted_contribution": -2.6184287071228027
+          },
+          {
+            "effective_weight": -20.0,
+            "name": "fall",
+            "signed_weighted_contribution": -20.0
+          }
+        ],
+        "units": "reward_rate_before_control_dt_integration"
+      }
+    },
+    {
+      "trial_id": "go2-push-5rounds-20260923-a06-generation-002-lane-b",
+      "source_path": "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-002/lane-b/001_push_standing_recovery_stance_barriers_v2/training_code/components.py",
+      "source_sha256": "4486713e0573f36267f54501391586538b93e03c8d1f95b4fc85bcde742dee97",
+      "changed_component": {
+        "from": "upright_height_barrier",
+        "to": "upright_stance_barriers"
+      },
+      "other_four_callables_and_term_configs_identical": [
+        "action_rate",
+        "fall",
+        "joint_pose",
+        "stationary_v3"
+      ],
+      "public_input_fields": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "independent_source_readback": "Adds a one-sided linear-plus-quadratic tilt-excess barrier outside the existing stance exponential; piecewise risk region distinct from changing its exponential coefficient.",
+      "dev_score": 0.8072916666666666,
+      "reward_peak_frame_as_recorded": {
+        "control_step_1based": 565,
+        "env_index_0based": 3546,
+        "schema_version": "true_rl_agent.push_recovery.reward_peak_frame.v1",
+        "scope": "one_running_absolute_peak_of_candidate_reward",
+        "signed_total": -31.712055206298828,
+        "term_semantics": "signed contributions after clipping and effective weights; summed in runtime dtype and term order for signed_total",
+        "terms": [
+          {
+            "effective_weight": 3.0,
+            "name": "upright_stance_barriers",
+            "signed_weighted_contribution": -9.0
+          },
+          {
+            "effective_weight": 1.0,
+            "name": "stationary_v3",
+            "signed_weighted_contribution": -2.677907943725586
+          },
+          {
+            "effective_weight": -0.1,
+            "name": "joint_pose",
+            "signed_weighted_contribution": -0.003938556648790836
+          },
+          {
+            "effective_weight": -0.01,
+            "name": "action_rate",
+            "signed_weighted_contribution": -0.030209414660930634
+          },
+          {
+            "effective_weight": -20.0,
+            "name": "fall",
+            "signed_weighted_contribution": -20.0
+          }
+        ],
+        "units": "reward_rate_before_control_dt_integration"
+      }
+    },
+    {
+      "trial_id": "go2-push-5rounds-20260923-a06-generation-004-lane-a",
+      "source_path": "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-004/lane-a/004_push_standing_recovery_impulse_absorb_v1/training_code/components.py",
+      "source_sha256": "b7fa63ea3dfc62029c7258b68395e9bd1a37f0f70f0a8d4423b1880e8e2a86c5",
+      "changed_component": {
+        "from": "stationary_v3",
+        "to": "impulse_absorb"
+      },
+      "other_four_callables_and_term_configs_identical": [
+        "action_rate",
+        "fall",
+        "joint_pose",
+        "upright_height_barrier"
+      ],
+      "public_input_fields": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "independent_source_readback": "Replaces the speed-only Huber reward by squared excitation including tilt and height deficit and their cross terms. A real one-component rewrite, but double negative weight/function rewards excitation instead of penalizing it.",
+      "dev_score": 0.0,
+      "reward_peak_frame_as_recorded": {
+        "control_step_1based": 12,
+        "env_index_0based": 1009,
+        "schema_version": "true_rl_agent.push_recovery.reward_peak_frame.v1",
+        "scope": "one_running_absolute_peak_of_candidate_reward",
+        "signed_total": -21.48725128173828,
+        "term_semantics": "signed contributions after clipping and effective weights; summed in runtime dtype and term order for signed_total",
+        "terms": [
+          {
+            "effective_weight": 3.0,
+            "name": "upright_height_barrier",
+            "signed_weighted_contribution": -2.4711689949035645
+          },
+          {
+            "effective_weight": -0.5,
+            "name": "impulse_absorb",
+            "signed_weighted_contribution": 1.0156145095825195
+          },
+          {
+            "effective_weight": -0.1,
+            "name": "joint_pose",
+            "signed_weighted_contribution": -0.018578091636300087
+          },
+          {
+            "effective_weight": -0.01,
+            "name": "action_rate",
+            "signed_weighted_contribution": -0.013118330389261246
+          },
+          {
+            "effective_weight": -20.0,
+            "name": "fall",
+            "signed_weighted_contribution": -20.0
+          }
+        ],
+        "units": "reward_rate_before_control_dt_integration"
+      }
+    },
+    {
+      "trial_id": "go2-push-5rounds-20260923-a06-generation-004-lane-b",
+      "source_path": "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-004/lane-b/004_push_standing_recovery_impulse_absorb_v1/training_code/components.py",
+      "source_sha256": "b0212688b7f5168802e2533214571914df7287cb9b6c686af299b4d484a07d9f",
+      "changed_component": {
+        "from": "upright_height_barrier",
+        "to": "impulse_absorb"
+      },
+      "other_four_callables_and_term_configs_identical": [
+        "action_rate",
+        "fall",
+        "joint_pose",
+        "stationary_v3"
+      ],
+      "public_input_fields": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "independent_source_readback": "Adds product of bounded tilt, planar-speed and angular-speed risk channels. New cross-variable coupling rather than a coefficient-only variant.",
+      "dev_score": 0.8489583333333334,
+      "reward_peak_frame_as_recorded": {
+        "control_step_1based": 9387,
+        "env_index_0based": 1585,
+        "schema_version": "true_rl_agent.push_recovery.reward_peak_frame.v1",
+        "scope": "one_running_absolute_peak_of_candidate_reward",
+        "signed_total": -26.39641571044922,
+        "term_semantics": "signed contributions after clipping and effective weights; summed in runtime dtype and term order for signed_total",
+        "terms": [
+          {
+            "effective_weight": 3.0,
+            "name": "impulse_absorb",
+            "signed_weighted_contribution": -2.413799524307251
+          },
+          {
+            "effective_weight": 1.0,
+            "name": "stationary_v3",
+            "signed_weighted_contribution": -1.8729491233825684
+          },
+          {
+            "effective_weight": -0.1,
+            "name": "joint_pose",
+            "signed_weighted_contribution": -0.038273848593235016
+          },
+          {
+            "effective_weight": -0.01,
+            "name": "action_rate",
+            "signed_weighted_contribution": -2.0713934898376465
+          },
+          {
+            "effective_weight": -20.0,
+            "name": "fall",
+            "signed_weighted_contribution": -20.0
+          }
+        ],
+        "units": "reward_rate_before_control_dt_integration"
+      }
+    },
+    {
+      "trial_id": "go2-push-5rounds-20260923-a06-generation-005-lane-a",
+      "source_path": "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-005/lane-a/003_push_standing_recovery_impulse_absorb_v3/training_code/components.py",
+      "source_sha256": "64c26b2b5eb745b11bd715c2272e737aa750331c0624678399441363250a8e71",
+      "changed_component": {
+        "from": "upright_height_barrier",
+        "to": "impulse_absorb"
+      },
+      "other_four_callables_and_term_configs_identical": [
+        "action_rate",
+        "fall",
+        "joint_pose",
+        "stationary_v3"
+      ],
+      "public_input_fields": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "independent_source_readback": "Against accepted parent, one stance component gains multiplicative risk and high-height/upward-velocity hinge. Against previously evaluated generation-4 B, the high-height/upward channel is new; its runtime effectiveness is unproved.",
+      "dev_score": 0.8489583333333334,
+      "reward_peak_frame_as_recorded": {
+        "control_step_1based": 9387,
+        "env_index_0based": 1585,
+        "schema_version": "true_rl_agent.push_recovery.reward_peak_frame.v1",
+        "scope": "one_running_absolute_peak_of_candidate_reward",
+        "signed_total": -26.39641571044922,
+        "term_semantics": "signed contributions after clipping and effective weights; summed in runtime dtype and term order for signed_total",
+        "terms": [
+          {
+            "effective_weight": 3.0,
+            "name": "impulse_absorb",
+            "signed_weighted_contribution": -2.413799524307251
+          },
+          {
+            "effective_weight": 1.0,
+            "name": "stationary_v3",
+            "signed_weighted_contribution": -1.8729491233825684
+          },
+          {
+            "effective_weight": -0.1,
+            "name": "joint_pose",
+            "signed_weighted_contribution": -0.038273848593235016
+          },
+          {
+            "effective_weight": -0.01,
+            "name": "action_rate",
+            "signed_weighted_contribution": -2.0713934898376465
+          },
+          {
+            "effective_weight": -20.0,
+            "name": "fall",
+            "signed_weighted_contribution": -20.0
+          }
+        ],
+        "units": "reward_rate_before_control_dt_integration"
+      }
+    },
+    {
+      "trial_id": "go2-push-5rounds-20260923-a06-generation-005-lane-b",
+      "source_path": "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-005/lane-b/001_push_standing_recovery_capture_step_v1/training_code/components.py",
+      "source_sha256": "6560427179d8b5632883b95cd8a184b36a0983ee15b29c7bc312f3e173fa8326",
+      "changed_component": {
+        "from": "upright_height_barrier",
+        "to": "capture_step_stance"
+      },
+      "other_four_callables_and_term_configs_identical": [
+        "action_rate",
+        "fall",
+        "joint_pose",
+        "stationary_v3"
+      ],
+      "public_input_fields": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "projected_gravity",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "independent_source_readback": "Adds bounded dot product of projected horizontal gravity and raw base-frame linear velocity; sign-sensitive capture channel absent from prior terms.",
+      "dev_score": 0.78125,
+      "reward_peak_frame_as_recorded": {
+        "control_step_1based": 3769,
+        "env_index_0based": 2059,
+        "schema_version": "true_rl_agent.push_recovery.reward_peak_frame.v1",
+        "scope": "one_running_absolute_peak_of_candidate_reward",
+        "signed_total": -2304276.5,
+        "term_semantics": "signed contributions after clipping and effective weights; summed in runtime dtype and term order for signed_total",
+        "terms": [
+          {
+            "effective_weight": 3.0,
+            "name": "capture_step_stance",
+            "signed_weighted_contribution": -4.032439231872559
+          },
+          {
+            "effective_weight": 1.0,
+            "name": "stationary_v3",
+            "signed_weighted_contribution": -1.932262659072876
+          },
+          {
+            "effective_weight": -0.1,
+            "name": "joint_pose",
+            "signed_weighted_contribution": -0.412056028842926
+          },
+          {
+            "effective_weight": -0.01,
+            "name": "action_rate",
+            "signed_weighted_contribution": -2304250.0
+          },
+          {
+            "effective_weight": -20.0,
+            "name": "fall",
+            "signed_weighted_contribution": -20.0
+          }
+        ],
+        "units": "reward_rate_before_control_dt_integration"
+      }
+    }
+  ],
+  "semantic_limit": "Exactly one canonical RewardTerm is the frozen unit of change. A component can contain multiple arithmetic channels. This audit is a bounded source readback, not an exhaustive proof of all functional equivalences or of causal reward effectiveness.",
+  "findings": [
+    {
+      "issue": "Generation-4 A intended penalty is positive after its declared weight",
+      "evidence": "impulse_absorb returns -excitation.square() with weight -0.5, producing +0.5*excitation^2. Same-frame runtime receipt observes +1.0156145096. Public dev is 0/192. This is a bad candidate, not a corrupted evaluation or permission to edit its reward during training."
+    },
+    {
+      "issue": "Generation-4 A rationale falsely describes the old Huber tail as flat and all weights as preserved",
+      "evidence": "For normalized speed >1, 0.5*core^2+speed-core equals speed-0.5, slope 1. New stationary replacement weight is -0.5 versus old +1.0; the other four weights are preserved."
+    },
+    {
+      "issue": "Generation-5 B has a large action-rate penalty peak",
+      "evidence": "step 3769 env 2059, action_rate=-2304250 and total=-2304276.5 reward-rate units. Same-frame diagnostic identifies the dominant term; no trajectory evidence proves the causal reason for the large action delta."
+    },
+    {
+      "issue": "Generation-5 A new high-height channel effectiveness is unproved",
+      "evidence": "Its complete peak frame equals generation-4 B, and existing memory correctly says runtime_effect=not_assessed. Genuine new source dependence does not imply it activated in these rollouts."
+    }
+  ],
+  "known_untrained_blocker": "Generation-3 A numeric-only Huber-tail admission gap remains the reason A06 is NO_GO. Absence of a second confirmed numeric-only error among trained candidates does not validate the old admission algorithm.",
+  "audited_at_utc": "2026-09-23T05:44:16.098728+00:00",
+  "snapshot": ".tmp/go2_push_a06_live_09.zip",
+  "frozen_source_archive_sha256": "fd9c6435c8c1386b7adb3df504fb2aea24ed9b2a16ceaa1530a0ec3045c63d4f",
+  "frozen_source_commit": "7c58ec32f6dcdd4da238fe52321c58c9abf582c8",
+  "evidence_sha256": {
+    "session/ledger.jsonl": "0b733babdcb15579c72af5d9344b4b7db433acfee55b855ffe1d910b1eacdf38",
+    "session/session_genesis.json": "f106e800379935a820c446165d096d730dbe95c8bea13390f4e07b5086c07807",
+    "session/reference_eval_artifact.json": "946d829f98522fb85833ae9de2a2a67e3e5b5f241268a0730a18b2e56cf577e7",
+    "session/runner/go2-push-5rounds-20260923-a06/eval/public_accept/summary.json": "8418394d261741060c5a19d9db2f4435e53e45bf20744057bdbf9862aff380fa",
+    "session/runner/go2-push-5rounds-20260923-a06/eval/public_dev/summary.json": "d5dedac335a918447bcb2ba5a8da0f692f6955405b083bfe4fe6515a5ddfd2e8",
+    "session/runner/go2-push-5rounds-20260923-a06/eval/sealed_validation/summary.json": "361f047ce9aaed52a6af5405cc68e587058e1d2773e672a3c3b6578bf7e1cffe",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-a/eval/public_dev/summary.json": "d640a25e685e544f07a1489f6868bdc3c4be1770ea1d9e7ffc2cf6917a5d4982",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-b/eval/public_accept/summary.json": "6f182561dc2460dae60534ed76b29a3854e75bd427956c05a8bf8428a993ab80",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-b/eval/public_dev/summary.json": "1197ee109ed61f1a14ac762e0f5c400fcf33dc9123666677d8cdd4db91e463be",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-b/eval/sealed_validation/summary.json": "1a764becd6da56c1e5c23cf0bc48d1c41bce9efc6e876c4b221e32b32f932ee5",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-002-lane-a/eval/public_dev/summary.json": "5e2eec4693a804a9b18e14ed19e7d3212a06aea6b796e41c34e5f8eadc0a116e",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-002-lane-b/eval/public_accept/summary.json": "6158889964480e0672c86f3a804ff99f40b60cbe6b83a46a5f35672981e1b5c4",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-002-lane-b/eval/public_dev/summary.json": "2b3a66b27da72cbd3ead75fa86ebaca3212e385b57f606efc3d1b153d2d4bbd7",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-004-lane-a/eval/public_dev/summary.json": "e3e87e22331bb0d602bdc05517633290f88f48b6fd115ffcfe239906aff2d716",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-004-lane-b/eval/public_accept/summary.json": "75c42e0aa8e488db5ab0efb9b0d6483ed1b685be5bd32bab4227621115c14e0a",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-004-lane-b/eval/public_dev/summary.json": "aed1f3172e20fe1230dd3c38502c7f415abb69e09842a60d411c08222e6de573",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-005-lane-a/eval/public_accept/summary.json": "c75e360d665128ed4dcdbdac66c66187ced8fb654e3f9dbdc024d0b7c77fd2f7",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-005-lane-a/eval/public_dev/summary.json": "7e6489dc1fd1cb7c3014370f8220d5745d5efeadc527ebcf42849d48b717af9f",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-005-lane-b/eval/public_dev/summary.json": "29302e0eddbe096c03e321defc069f43f63c43e87d0f1eb5e0f5605ca3b4daa6",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-002-lane-b/train/summary.json": "bec8274735f3acda0f8c1bbf35283829c853ca03aacd8f7306e9ed6ce3f2ad57",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "711efdea63b04c8f5ea94f670fb2f3c5a8db7904b46d93d6f144dbf1aa55be9b",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-001/lane-b/001_push_standing_recovery_height_barrier_v1/training_code/components.py": "376785250b1dbfeb1c918c49ea37f3f24bf8b353279a14d25fe9b9f1667a36ae",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-002/lane-b/001_push_standing_recovery_stance_barriers_v2/training_code/components.py": "4486713e0573f36267f54501391586538b93e03c8d1f95b4fc85bcde742dee97",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "e72fd254a90de95738ba4bbc610f1ca5739c66f78864358af897a0f91d199d92",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000002/prompt_payload.json": "aa10840f8cedd3c9ae312acd30a98c144157a6ccd6623d606ed029137da47e01",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000002/attempt_result.json": "1d4520ba415f5e8cc03b5966f62dff9980078ee16dad08fd0b1d13626172baa7",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000003/prompt_payload.json": "698d558dbeeec4ea4f7f1713a0093e3372f41eb00c7543f800c8a964e0ff7f26",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-004/lane-a/002_push_standing_recovery_tilt_arrest_v7/training_code/components.py": "91bcdcc06a3fc5111cf3b415f68ed9fdf5313fd07063388e491315db3dca173a",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000003/attempt_result.json": "22cf5406fdb62faaa909caf9d6075942b4a60b73958166246dbffc8ac9f10589",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000004/prompt_payload.json": "9d9c5d72152080f00f9a9d1a794e865f9c20f2546d547f5969da19813d3aa4f9",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000004/attempt_result.json": "4e16955dcb8594614db22a86f295b24c67cf29b4d1c869a27006ce8f02abfbeb",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000001/prompt_payload.json": "0dc7ec18ec42e076aa852608767b0cf567db315e9f6d391ed88e3cc5ee9dcf1f",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "41f78ba5d1ed8232e06d593a9e839bd8896e4ad8ca23504ee2334e27f617236b",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000002/prompt_payload.json": "7b67944be165254fea9a9f67b3f153950e05472c00fd71f13c4bed00dfd3a50f",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000002/attempt_result.json": "47567bb1b9747cc8516635ebba9126b5ece454e97e8c17c497fb896e3bd8c07c",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000003/prompt_payload.json": "30258745393fad90d499c822f0521c8f36214468c1fa45644c98e40a9bdee793",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-004/lane-b/002_push_standing_recovery_tilt_arrest_barrier_v1/training_code/components.py": "74d92dc9a06a69d616770bb5f68221d1009f211e83127e407d042c32b23ea515",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000003/attempt_result.json": "54e6b9aaf8c9c5ef6211f7d2c67709fee0a650ed40c46c397bc32828939ecea4",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000004/prompt_payload.json": "ce891e1119ba5d3a1a5b5d1489396664e528d8fc8445d9488ffec4bf02c00816",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000004/attempt_result.json": "d6916aafcfdf5861650319e16f010fb6968eeeba63e1d646bdd7aae3bee8e501",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-004-lane-b/train/summary.json": "b3ac3d0a8f0c2d50b0655da175e7eff4305764131981eb7c2cfd7035402df77d",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-005/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "c9b6c8b58e6eb69ab5523c2d276c10c7dd2683806aaa04f294c9bbbb5219ef14",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-004/lane-b/004_push_standing_recovery_impulse_absorb_v1/training_code/components.py": "b0212688b7f5168802e2533214571914df7287cb9b6c686af299b4d484a07d9f",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-005/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "74b4f2bd64bd2c98a1c84ff97363147018a07ac95cf56cac875add8638dfca7c",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-005/lane-a/authoring_attempts/attempt_000002/prompt_payload.json": "8a96377322c296cfc7c71237d93d17b675254f12bd9c8c24542b5f3f8794b77a",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-005/lane-a/authoring_attempts/attempt_000002/attempt_result.json": "c7832b6cb25e895a91db70ad0dbceec1f09e24100f24a2b09eb0372b87c1211c",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-005/lane-a/authoring_attempts/attempt_000003/prompt_payload.json": "8e4569e149f8bee343c1441305586e93595af7ddfc40d7b2beb5ea04e99d8fc8",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-005/lane-a/002_push_standing_recovery_impulse_absorb_v2/training_code/components.py": "f34b02a15e8984e214094802bd7adfaa2714b3eb4de3db96304ae2cbfc919bcc",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-005/lane-a/authoring_attempts/attempt_000003/attempt_result.json": "bc5f36ba02ba320474ed3a75fffce86916fe7b79099cd9939c7927eeed32a251",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-005/lane-b/authoring_attempts/attempt_000001/prompt_payload.json": "10032793126a7b4e5414a221f8699e94510478bd5b4e26eb013b7179685abac6",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-005/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "24bfb6c4efd2165e09ec31d80ea14066d720d97c5986e845f03dac2a71dc9f47",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-003/lane-b/002_push_standing_recovery_tilt_arrest_v3/training_code/components.py": "f0d16051b145f95c594ff50caa24931d08cd8fbaafa6fa967eff4f270842ab32",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-003/lane-b/003_push_standing_recovery_tilt_arrest_v4/training_code/components.py": "76733af725b527e7d770925ee2b633c22cbc7492f722e569b38d336de4089d2a",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-003/lane-b/004_push_standing_recovery_tilt_arrest_v5/training_code/components.py": "365c5b23ea22e6c5896b0e8d80ee93a606857dd2c791e15b2f7a94961c209cca",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-003/lane-b/005_push_standing_recovery_tilt_arrest_v6/training_code/components.py": "1b9311c33da5ba013263a6842c39c69d6ee309abcb5b8128ca64e08fa4fbcf4a",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-003/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "c68f73bf51db7ed1cce5a0cd579793f3e5737040decd70d5274c054c871f629f",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-003/lane-b/authoring_attempts/attempt_000002/attempt_result.json": "a0793710f89d2d65c730f169403c61e24e24a00db9e2a292307dafba1b318bdd",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-003/lane-b/authoring_attempts/attempt_000003/attempt_result.json": "b379ec67716751bd079baf6c24dff5af4704d64aa6ef38f31499582acca2014c",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-003/lane-b/authoring_attempts/attempt_000004/attempt_result.json": "c31678c0a6c4bfa57b47b208677427597dbba51c54b66fe300f823ea17056472",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-003/lane-b/authoring_attempts/attempt_000005/attempt_result.json": "44e56be8d3ef8482b166cb38a97822de468a7add1f3ca9630ad93cb791d5de27",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-001/lane-a/001_push_recovery_height_hinge_v4/training_code/components.py": "b2a7268b424ef41de85499c7a47897d9fc35e558b60cd63dbd8cd9d410d66068",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-001/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "5119dae9f796c40a30d2fdadc7b031428b345885c02d46185860784365239293",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-a/train/summary.json": "ac6a28e2fc95a3b13cf04e84be364553db5620c049d17ea8e67c602101bc62c2",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-001/lane-b/authoring_attempts/attempt_000001/prompt_payload.json": "0d2fd93ba22b9c23e95c077f28b99f063f13bea2b9aa68e1fa1cf2bd8070032d",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-b/train/summary.json": "fa2bf7bf301ed1db665426e3f41f2745e3b576d2f623b6c8f07b42c1085c9dd3",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-002/lane-a/001_push_recovery_upright_stillness_gate_v1/training_code/components.py": "0a369862d88901fe99c027035e22b81713a8584e5017f2b7492ef8280631b831",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-002/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "86e88bce3398bee2c90b77e8790e9f086485fb3cf9d6d75b0bb7b55da553a37a",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-002-lane-a/train/summary.json": "5f9b17923c9b87aa9cbf35505e0d16c28cfacab359aa587033c2f0cde8ad4ad4",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-002/lane-b/authoring_attempts/attempt_000001/prompt_payload.json": "0036ea4ff80708c98b0abf58b1711382e20a5d04b19a93fca4e9d54ef760b754",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-004/lane-a/004_push_standing_recovery_impulse_absorb_v1/training_code/components.py": "b7fa63ea3dfc62029c7258b68395e9bd1a37f0f70f0a8d4423b1880e8e2a86c5",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-004-lane-a/train/summary.json": "b6f655b20146c5ab3f347293e5f40f72a733b1f68f56908a969f8d7c5eb2df7f",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-005/lane-a/003_push_standing_recovery_impulse_absorb_v3/training_code/components.py": "64c26b2b5eb745b11bd715c2272e737aa750331c0624678399441363250a8e71",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-005-lane-a/train/summary.json": "cc0491d7a3cff716091ef4b031a1e1c0d6701775732de1a6df2206ef8dd76d4e",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-005/lane-b/001_push_standing_recovery_capture_step_v1/training_code/components.py": "6560427179d8b5632883b95cd8a184b36a0983ee15b29c7bc312f3e173fa8326",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-005-lane-b/train/summary.json": "519a30354f28a727f831dadbe1b60919744d4fc6903ededb4b5567b87b3eac6a"
+  },
+  "experiment_verdict": "NO_GO_ADMISSION_GAP",
+  "audit_limit": "Read-only local snapshot; private checkpoints not downloaded/rehashed; no simulator visualization. Receipt PASS is not independent mechanism approval."
+}

@@ -1,0 +1,49 @@
+{
+  "workload": "4 diagnostic PPO runs, each 128 env steps; 16 activation-preflight transitions per run also recorded",
+  "runs": [
+    {
+      "robot": "go2",
+      "effect": "zero",
+      "status": "PASS",
+      "observed_transitions": 144,
+      "nonzero_transitions": 0,
+      "max_abs_weighted_delta": 0.0,
+      "task_stopped": true,
+      "owned_process_seconds": 21.833727836608887,
+      "returncode": 0
+    },
+    {
+      "robot": "go2",
+      "effect": "nonzero",
+      "status": "PASS",
+      "observed_transitions": 144,
+      "nonzero_transitions": 128,
+      "max_abs_weighted_delta": 0.11456525,
+      "task_stopped": false,
+      "owned_process_seconds": 20.690903902053833,
+      "returncode": 0
+    },
+    {
+      "robot": "g1",
+      "effect": "zero",
+      "status": "PASS",
+      "observed_transitions": 144,
+      "nonzero_transitions": 0,
+      "max_abs_weighted_delta": 0.0,
+      "task_stopped": true,
+      "owned_process_seconds": 21.497288703918457,
+      "returncode": 0
+    },
+    {
+      "robot": "g1",
+      "effect": "nonzero",
+      "status": "PASS",
+      "observed_transitions": 144,
+      "nonzero_transitions": 128,
+      "max_abs_weighted_delta": 14.19705772,
+      "task_stopped": false,
+      "owned_process_seconds": 20.94075083732605,
+      "returncode": 0
+    }
+  ]
+}

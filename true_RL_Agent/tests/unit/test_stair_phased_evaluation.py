@@ -107,6 +107,42 @@ class StairPhasedEvaluationTests(unittest.TestCase):
             ROOT / "configs" / "tasks" / "stair_protocol_v2.json"
         )
 
+    def test_numeric_archive_is_bound_to_exact_phase_and_summary(self):
+        import numpy as np
+        from true_rl_agent.runner.numeric_evidence import NumericEvidenceWriter
+
+        plan = self._eval_plan("numeric-phase-binding")
+        result = self._phase_result_for(plan=plan, phase=EvaluationPhase.PUBLIC_DEV, successes=[1, 1, 1])
+        identity = {
+            **replace(plan.job_identity(), job_id=result.job_id).to_public_dict(),
+            "program_source_checksum": result.program_source_checksum,
+            "training_binding_hash": result.training_binding_hash,
+            "capability_profile_hash": result.capability_profile_hash,
+            "checkpoint_hash": result.checkpoint_hash,
+            "evaluation_plan_hash": result.evaluation_plan_hash,
+            "evaluation_binding": plan.evaluation_binding.to_public_dict(),
+            "seed_namespace": STAIR_FORMAL_EVAL_NAMESPACE,
+            "splits": ["public_dev"],
+            "environment_source_preflight": dict(result.environment_source_preflight),
+            "backend_execution_environment_verification": dict(result.backend_execution_environment_verification),
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            writer = NumericEvidenceWriter(Path(temporary) / "archive", identity)
+            writer.write_chunk({"value": np.zeros(1)}, {})
+            reference = writer.complete({"summary": result.task_evidence["summary"]})
+            execution = replace(self._execution({EvaluationPhase.PUBLIC_DEV: [1, 1, 1]}), numeric_evidence=reference)
+            kwargs = dict(config=self.config, phase=EvaluationPhase.PUBLIC_DEV,
+                identity=replace(plan.job_identity(), job_id=result.job_id),
+                evaluation_plan_hash=result.evaluation_plan_hash, execution=execution,
+                evaluation_binding=plan.evaluation_binding, checkpoint_safety_report=self._checkpoint_report())
+            captured_summary = build_stair_eval_phase_summary(**kwargs)
+            captured = replace(result, task_evidence=captured_summary["task_evidence"])
+            with self.assertRaisesRegex(ValueError, "numeric evidence execution binding"):
+                build_stair_eval_phase_summary(**{**kwargs, "identity": replace(kwargs["identity"], job_id="another-run")})
+        # A valid receipt remains replayable after the archive leaves this host.
+        self.assertEqual(canonical_stair_phase_result_summary(config=self.config,
+            expected_phase=EvaluationPhase.PUBLIC_DEV, result=captured), result.task_evidence["summary"])
+
     def test_real_v3_public_accept_projection_preserves_distinct_guards_and_paired_order(self):
         from true_rl_agent.tasks.stair_climbing.unified_scoring import build_reference_objective_family_mask
 

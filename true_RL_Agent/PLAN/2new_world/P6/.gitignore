@@ -1,0 +1,8 @@
+# Keep raw runtime artifacts on disk; version receipts, reports and keyframes.
+*.mp4
+*.npz
+*.pt
+*.bundle
+events.out.tfevents.*
+# The P0 media probe (PLAN/feedback_sys/P0/media_baseline.json) hashes these three small clips.
+!go2_pose_01/native/video/*.mp4

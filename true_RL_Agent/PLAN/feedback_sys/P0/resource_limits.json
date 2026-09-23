@@ -1,0 +1,11 @@
+{
+  "schema_version": "feedback_p0_resource_limits.v2",
+  "project": {"gpu_capacity_hours": 500, "provider_usd": 120},
+  "stages": {
+    "p0_baseline": {"gpu_capacity_hours": 0, "provider_usd": 2},
+    "phase_1_offline": {"gpu_capacity_hours": 0, "provider_usd": 0},
+    "phase_2_min": {"gpu_capacity_hours": 8, "provider_usd": 0}
+  },
+  "allocation_rule": "Allocate remaining stages from the project remainder before execution. Stage allocations are included in the project total.",
+  "accounting": "Record actual runner time, GPU count, API attempts and usage in existing receipts; include failures. Per-operation memory, disk and request bounds belong to their stage implementation."
+}

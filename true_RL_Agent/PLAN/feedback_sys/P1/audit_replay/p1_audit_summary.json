@@ -1,0 +1,316 @@
+{
+  "audited_at": "2026-09-23",
+  "baseline_head": "fe96455ddd1a8c6ba30ee16e6a3a015422afe8d3",
+  "p1_generation_record_sha256_prefix": "ae92dfb636ed",
+  "baseline_generation_record_sha256_prefix": "dfef9a515157",
+  "real_ledger_replay": {
+    "overlay_stair": {
+      "status": "PASS",
+      "adapter": "StairPhasedEvaluationAdapter",
+      "ledger_records": 15,
+      "ledger_schema": [
+        "true_rl_agent.generation_ledger_record.v1"
+      ],
+      "phase_summaries_checked": 33,
+      "phase_summaries_equal_to_ledger": 33,
+      "summary_only_tamper": {
+        "path": [
+          "aggregate_stratum_scores",
+          "c0_id"
+        ],
+        "rejected": true,
+        "error": "generation public summary/phase receipt mismatch"
+      },
+      "full_replay_s": 56.2,
+      "frames": [
+        {
+          "next_generation": 4,
+          "prompt_bytes": 96721,
+          "memory_bytes": 9824,
+          "omitted_experiment_count": 0,
+          "experiments_retained": 3,
+          "deterministic": true
+        },
+        {
+          "next_generation": 13,
+          "prompt_bytes": 102656,
+          "memory_bytes": 13927,
+          "omitted_experiment_count": 6,
+          "experiments_retained": 6,
+          "deterministic": true
+        },
+        {
+          "next_generation": 16,
+          "prompt_bytes": 101672,
+          "memory_bytes": 13732,
+          "omitted_experiment_count": 8,
+          "experiments_retained": 7,
+          "deterministic": true
+        }
+      ]
+    },
+    "overlay_push": {
+      "status": "PASS",
+      "adapter": "PushPhasedEvaluationAdapter",
+      "ledger_records": 5,
+      "ledger_schema": [
+        "true_rl_agent.generation_ledger_record.v3"
+      ],
+      "phase_summaries_checked": 15,
+      "phase_summaries_equal_to_ledger": 15,
+      "summary_only_tamper": {
+        "path": [
+          "score_stats",
+          "mean"
+        ],
+        "rejected": true,
+        "error": "generation public summary/phase receipt mismatch"
+      },
+      "full_replay_s": 13.11,
+      "frames": [
+        {
+          "next_generation": 3,
+          "prompt_bytes": 66252,
+          "memory_bytes": 5059,
+          "omitted_experiment_count": 0,
+          "experiments_retained": 2,
+          "deterministic": true
+        },
+        {
+          "next_generation": 6,
+          "prompt_bytes": 73927,
+          "memory_bytes": 8563,
+          "omitted_experiment_count": 0,
+          "experiments_retained": 5,
+          "deterministic": true
+        }
+      ]
+    },
+    "baseline_stair": {
+      "status": "PASS",
+      "adapter": "StairPhasedEvaluationAdapter",
+      "ledger_records": 15,
+      "ledger_schema": [
+        "true_rl_agent.generation_ledger_record.v1"
+      ],
+      "phase_summaries_checked": 33,
+      "phase_summaries_equal_to_ledger": 33,
+      "summary_only_tamper": {
+        "path": [
+          "aggregate_stratum_scores",
+          "c0_id"
+        ],
+        "rejected": false
+      },
+      "full_replay_s": 52.73,
+      "frames": [
+        {
+          "next_generation": 4,
+          "prompt_bytes": 94946,
+          "memory_bytes": 8307,
+          "omitted_experiment_count": 0,
+          "experiments_retained": 3,
+          "deterministic": true
+        },
+        {
+          "next_generation": 13,
+          "prompt_bytes": 102263,
+          "memory_bytes": 14080,
+          "omitted_experiment_count": 0,
+          "experiments_retained": 12,
+          "deterministic": true
+        },
+        {
+          "next_generation": 16,
+          "prompt_bytes": 101306,
+          "memory_bytes": 13912,
+          "omitted_experiment_count": 1,
+          "experiments_retained": 14,
+          "deterministic": true
+        }
+      ]
+    },
+    "baseline_push": {
+      "status": "PASS",
+      "adapter": "PushPhasedEvaluationAdapter",
+      "ledger_records": 5,
+      "ledger_schema": [
+        "true_rl_agent.generation_ledger_record.v3"
+      ],
+      "phase_summaries_checked": 15,
+      "phase_summaries_equal_to_ledger": 15,
+      "summary_only_tamper": {
+        "path": [
+          "score_stats",
+          "mean"
+        ],
+        "rejected": false
+      },
+      "full_replay_s": 11.25,
+      "frames": [
+        {
+          "next_generation": 3,
+          "prompt_bytes": 64975,
+          "memory_bytes": 3948,
+          "omitted_experiment_count": 0,
+          "experiments_retained": 2,
+          "deterministic": true
+        },
+        {
+          "next_generation": 6,
+          "prompt_bytes": 71212,
+          "memory_bytes": 6087,
+          "omitted_experiment_count": 0,
+          "experiments_retained": 5,
+          "deterministic": true
+        }
+      ]
+    }
+  },
+  "memory_retention": {
+    "columns": "[experiments_retained, omitted_experiment_count, memory_bytes]",
+    "formal_c6_stair": {
+      "baseline_fe96455d": {
+        "4": [
+          3,
+          0,
+          8307
+        ],
+        "13": [
+          12,
+          0,
+          14080
+        ],
+        "16": [
+          14,
+          1,
+          13912
+        ]
+      },
+      "p1_full_dict": {
+        "4": [
+          3,
+          0,
+          9824
+        ],
+        "13": [
+          6,
+          6,
+          13927
+        ],
+        "16": [
+          7,
+          8,
+          13732
+        ]
+      },
+      "variant_sparse": {
+        "13": [
+          8,
+          4,
+          13700
+        ],
+        "16": [
+          8,
+          7,
+          13596
+        ]
+      },
+      "variant_sparse_notop": {
+        "13": [
+          10,
+          2,
+          14124
+        ],
+        "16": [
+          10,
+          5,
+          13871
+        ]
+      },
+      "variant_token": {
+        "13": [
+          12,
+          0,
+          13717
+        ],
+        "16": [
+          13,
+          2,
+          14014
+        ]
+      }
+    },
+    "push_attempt_08": {
+      "baseline_fe96455d": {
+        "3": [
+          2,
+          0,
+          3948
+        ],
+        "6": [
+          5,
+          0,
+          6087
+        ]
+      },
+      "p1_full_dict": {
+        "3": [
+          2,
+          0,
+          5059
+        ],
+        "6": [
+          5,
+          0,
+          8563
+        ]
+      },
+      "variant_sparse": {
+        "6": [
+          5,
+          0,
+          7879
+        ]
+      },
+      "variant_sparse_notop": {
+        "6": [
+          5,
+          0,
+          7478
+        ]
+      },
+      "variant_token": {
+        "6": [
+          5,
+          0,
+          6428
+        ]
+      }
+    }
+  },
+  "local": {
+    "p1_unit_batch": {
+      "tests": 223,
+      "result": "OK"
+    },
+    "full_suite": {
+      "tests": 1735,
+      "result": "OK (skipped=19)"
+    },
+    "verify_p0": "{\"status\": \"PASS\", \"checks\": 28, \"failures\": []}",
+    "p0_generators_regenerated_identical": [
+      "inventory_extract.py",
+      "stair_behavior_baseline.py",
+      "author_evidence_baseline.py",
+      "analyze_prompt_baseline.py"
+    ],
+    "markdown_links_checked": 42,
+    "dangling_links": 0,
+    "git_diff_check": "PASS"
+  },
+  "server_tests_with_pythonpath": {
+    "tests": 93,
+    "result": "OK"
+  }
+}

@@ -1,0 +1,55 @@
+usage: qualify_reference.py [-h]
+                            [--task-id {unitree_push_recovery,unitree_stair_climbing}]
+                            [--isaac-python ISAAC_PYTHON]
+                            [--train-entrypoint TRAIN_ENTRYPOINT]
+                            [--eval-entrypoint EVAL_ENTRYPOINT]
+                            [--execution-device EXECUTION_DEVICE]
+                            [--budget-steps BUDGET_STEPS]
+                            [--public-seed-count PUBLIC_SEED_COUNT]
+                            [--public-accept-seed-count PUBLIC_ACCEPT_SEED_COUNT]
+                            [--sealed-validation-seed-count SEALED_VALIDATION_SEED_COUNT]
+                            [--eval-protocol-version EVAL_PROTOCOL_VERSION]
+                            [--train-seed TRAIN_SEED]
+                            [--runtime-config RUNTIME_CONFIG]
+                            [--train-profile TRAIN_PROFILE]
+                            [--eval-profile EVAL_PROFILE]
+                            [--train-num-envs TRAIN_NUM_ENVS]
+                            [--train-max-iterations TRAIN_MAX_ITERATIONS]
+                            [--train-steps-per-iteration TRAIN_STEPS_PER_ITERATION]
+                            [--eval-num-envs EVAL_NUM_ENVS]
+                            [--runner-timeout-s RUNNER_TIMEOUT_S]
+                            [--cell-variant-id {push.g1_29dof.legacy_v1,push.g1_29dof.reference_v1,push.g1_37dof.recovery_v2,push.go2_12dof.recovery_v2}]
+                            --output-dir OUTPUT_DIR --session-id SESSION_ID
+                            --lease-root LEASE_ROOT --mode
+                            {preflight,qualify,load-only}
+
+Qualify or independently reload one task × robot reference Genesis.
+
+options:
+  -h, --help            show this help message and exit
+  --task-id {unitree_push_recovery,unitree_stair_climbing}
+  --isaac-python ISAAC_PYTHON
+  --train-entrypoint TRAIN_ENTRYPOINT
+  --eval-entrypoint EVAL_ENTRYPOINT
+  --execution-device EXECUTION_DEVICE
+  --budget-steps BUDGET_STEPS
+  --public-seed-count PUBLIC_SEED_COUNT
+  --public-accept-seed-count PUBLIC_ACCEPT_SEED_COUNT
+  --sealed-validation-seed-count SEALED_VALIDATION_SEED_COUNT, --trusted-seed-count SEALED_VALIDATION_SEED_COUNT
+  --eval-protocol-version EVAL_PROTOCOL_VERSION
+  --train-seed TRAIN_SEED
+  --runtime-config RUNTIME_CONFIG
+                        Optional task-owned config override; omitted uses the
+                        selected task's bound runtime protocol.
+  --train-profile TRAIN_PROFILE
+  --eval-profile EVAL_PROFILE
+  --train-num-envs TRAIN_NUM_ENVS
+  --train-max-iterations TRAIN_MAX_ITERATIONS
+  --train-steps-per-iteration TRAIN_STEPS_PER_ITERATION
+  --eval-num-envs EVAL_NUM_ENVS
+  --runner-timeout-s RUNNER_TIMEOUT_S
+  --cell-variant-id {push.g1_29dof.legacy_v1,push.g1_29dof.reference_v1,push.g1_37dof.recovery_v2,push.go2_12dof.recovery_v2}
+  --output-dir OUTPUT_DIR
+  --session-id SESSION_ID
+  --lease-root LEASE_ROOT
+  --mode {preflight,qualify,load-only}

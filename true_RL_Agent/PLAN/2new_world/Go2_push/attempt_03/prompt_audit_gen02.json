@@ -1,0 +1,382 @@
+{
+  "status": "FAIL_AUTHORING_MECHANISM_ADMISSION",
+  "scope": "A03 generation 002 actual initial/repair prompts and verified candidates for both lanes; gen1-to-gen2 identity/feedback continuity. Does not assert generation 002 training or evaluation results.",
+  "prompt_path": "session/authoring/go2-push-5rounds-20260922-a03-generation-002/lane-a/authoring_attempts/attempt_000001/prompt_payload.json",
+  "prompt_sha256": "3edf8b0e84a3d7ef89836940c528d12bca231aa40c3bde1347139fef1b663ede",
+  "generation_001_authority": {
+    "ledger_outcome": "accepted",
+    "accepted": true,
+    "selected_trial_id": "go2-push-5rounds-20260922-a03-generation-001-lane-b",
+    "current_best_trial_id": "go2-push-5rounds-20260922-a03-generation-001-lane-b",
+    "public_dev_score": 0.8385416666666666,
+    "public_dev_score_source": "public_dev.score_stats.mean",
+    "accepted_source_matches_ledger": true
+  },
+  "sources": [
+    {
+      "logical_id": "current_best/training_code/components.py",
+      "lane": "lane-b",
+      "bytes": 3874,
+      "content_sha256": "054e8440f35076be0ad36c4cf00606da4f16d65eca04b5ed2b1de9067eebc104",
+      "exact_frozen_candidate_match": true,
+      "inline": true,
+      "requestable": true
+    },
+    {
+      "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+      "lane": "lane-a",
+      "bytes": 4439,
+      "content_sha256": "904cad39bb1bdf7b4a6eda62fad314cb01b8a529efc5175e742b6d78ae62e1b6",
+      "exact_frozen_candidate_match": true,
+      "inline": true,
+      "requestable": true
+    }
+  ],
+  "nonaccepted_feedback": {
+    "source_trial_id": "go2-push-5rounds-20260922-a03-generation-001-lane-a",
+    "source_candidate_id": "push_recovery_nonvanishing_stance_margin_v4",
+    "source_checksum": "sha256:904cad39bb1bdf7b4a6eda62fad314cb01b8a529efc5175e742b6d78ae62e1b6",
+    "trial_status": "qualified_not_selected",
+    "same_source_public_runtime_and_catalog": true,
+    "score": 0.828125,
+    "successes": 159,
+    "episodes": 192,
+    "strata": {
+      "high": {
+        "episodes": 48,
+        "successes": 30
+      },
+      "low": {
+        "episodes": 48,
+        "successes": 48
+      },
+      "medium": {
+        "episodes": 48,
+        "successes": 44
+      },
+      "repeated": {
+        "episodes": 48,
+        "successes": 37
+      }
+    },
+    "failure_counts": {
+      "fall_backward": 10,
+      "fall_side": 6,
+      "height_collapse": 16,
+      "success_recovered": 159,
+      "not_recovered": 1
+    },
+    "latest_failure_mode": "height_collapse_dominated",
+    "dominant_outcome": "success_recovered",
+    "all_displayed_dev_and_runtime_fields_match_raw_same_trial": true,
+    "runtime_reward_terms": 5,
+    "runtime_reward_term_calls": 60000
+  },
+  "trial_memory": [
+    {
+      "lane": "a",
+      "candidate_id": "push_recovery_nonvanishing_stance_margin_v4",
+      "operation": "rename",
+      "mechanism": "RewardTerm:recovery_posture_margin",
+      "status": "qualified_not_selected",
+      "public_dev_delta": 0.09375,
+      "public_dev_guard_delta": null,
+      "runtime_effect": "not_assessed",
+      "reason": "sibling_not_selected"
+    },
+    {
+      "lane": "b",
+      "candidate_id": "push_standing_recovery_bounded_damping_v4",
+      "operation": "rename",
+      "mechanism": "RewardTerm:bounded_damping",
+      "status": "accepted",
+      "public_dev_delta": 0.104167,
+      "public_dev_guard_delta": null,
+      "runtime_effect": "not_assessed",
+      "reason": "formal_acceptance_passed"
+    }
+  ],
+  "measurements": {
+    "file_bytes": 62940,
+    "canonical_bytes": 62940,
+    "delta_vs_gen01_first_prompt_bytes": 14639,
+    "task_section_bytes": 19364,
+    "task_section_limit_bytes": 57344,
+    "task_section_headroom_bytes": 37980,
+    "memory_bytes": 3500,
+    "memory_growth_vs_gen01_bytes": 2504,
+    "memory_experiments": 1,
+    "memory_trial_rows": 2,
+    "memory_omitted": 0,
+    "source_body_bytes": 8313,
+    "source_payload_count": 2,
+    "long_string_duplicate_excess_bytes": 1227,
+    "long_string_duplicate_excess_fraction": 0.019494756911344138,
+    "duplicate_threshold_characters": 80,
+    "provider_measured_input_tokens": 16368,
+    "token_availability": "Actual provider receipts available for lane-a attempts 1 and 2; lane-b first prompt has no attempt result in this snapshot."
+  },
+  "public_boundaries": {
+    "public_only_guard": "PASS",
+    "task_receipt_recomputation": "PASS",
+    "distinct_private_paths_checked": 31,
+    "distinct_checkpoint_hashes_checked": 4,
+    "private_literal_hits": 0,
+    "private_phase_objects_or_seed_rows": [],
+    "limit": "Saved artifact paths/checkpoint hashes and structural private-phase checks; not an independent enumeration of undisclosed numeric hidden seeds. Public acceptance boolean/gate status is intentionally visible; holdout scores and rows are absent."
+  },
+  "multi_round_fixes": {
+    "F1_trial_deltas": "PASS_ON_LIVE_GEN02",
+    "F2_failure_classification": "PASS_ON_LIVE_GEN02",
+    "F8_source_feedback_selection": "PASS_ON_LIVE_GEN02_ACCEPTED_SELECTED_B_EXCLUDED_AND_NONACCEPTED_A_RETAINED",
+    "B2_formal_null_memory": "NOT_EXERCISED_THIS_GENERATION_FORMAL_IS_ACCEPTED; prior exact A02 repair replay remains evidence"
+  },
+  "F7_measured_training_extremes": {
+    "trial_id": "go2-push-5rounds-20260922-a03-generation-001-lane-b",
+    "step_calls": 12000,
+    "max_abs_candidate_reward": 72720842752.0,
+    "last_candidate_reward_mean": 3.337674617767334,
+    "bounded_damping_sampled_max_abs_weighted_contribution": 0.9996244311332703,
+    "action_rate_sampled_max_abs_weighted_contribution": 281555488.0,
+    "sampling_interval_steps": 24,
+    "causal_attribution": "Not established: full-step global peak and periodic term maxima are not temporally joined."
+  },
+  "conclusion": "Both autonomous provider repairs, source/feedback identity, bounded memory and sibling distinctness are supported. Lane B passes the frozen structural gate but its effective parent-relative change reduces to a numeric coefficient after removing a provably redundant clamp; root disposition is required before claiming the full mechanism-policy audit passed. No frozen code or candidate was modified.",
+  "task_memory_summary": {
+    "location": "attempt_000002/attempt_result.json continuation_state.selected_round_public_context.task_public_summary",
+    "source": "accepted formal B public-dev, distinct from latest-nonaccepted A detailed feedback",
+    "latest_score": 0.8385416666666666,
+    "failure_rates": {
+      "fall_side": 0.078125,
+      "height_collapse": 0.083333
+    },
+    "latest_failure_mode": "height_collapse_dominated",
+    "raw_dev_matches": true,
+    "provider_payload_includes_task_public_summary_key": false
+  },
+  "provider_recovery": {
+    "status": "PASS",
+    "attempt_1": {
+      "provider_status": "fail",
+      "finish_reason": "length",
+      "failure_category": "response_truncated",
+      "input_tokens": 16368,
+      "disposition": "continue",
+      "candidate_materialized": false
+    },
+    "attempt_2": {
+      "prompt_bytes": 64488,
+      "prompt_growth_bytes": 1548,
+      "input_tokens": 16687,
+      "provider_status": "pass",
+      "finish_reason": "stop",
+      "verifier_status": "pass",
+      "component_smoke_status": "pass",
+      "terminal_stop_reason": "candidate_verified"
+    },
+    "stable_source_contract_history_feedback_sections_unchanged": true,
+    "repair_feedback": "Shorten comments/repetition and return complete candidate JSON; retain complete source and literal embedded hypothesis; runner/eval/budget/seed/checkpoint/PPO/acceptance changes remain forbidden.",
+    "output_limit_both": 32768,
+    "thinking_mode_both": "enabled",
+    "reasoning_effort_both": "max",
+    "source_requests": 0,
+    "new_private_literal_hits": 0,
+    "limit": "Truncation category verified against provider finish_reason receipt; raw reasoning text is intentionally not audited or reproduced."
+  },
+  "generation_002_lane_a_candidate": {
+    "candidate_id": "push_recovery_lean_outward_damping_v5",
+    "source_path": "session/provider_candidates/go2-push-5rounds-20260922-a03-generation-002/lane-a/002_push_recovery_lean_outward_damping_v5/training_code/components.py",
+    "source_bytes": 4588,
+    "source_sha256": "8d32268957c93080771df4d286faf4020cb52e7c553fc4621ae3378432d544be",
+    "authoring_parent_source_checksum": "sha256:054e8440f35076be0ad36c4cf00606da4f16d65eca04b5ed2b1de9067eebc104",
+    "single_mechanism": [
+      "RewardTerm:bounded_damping->lean_guarded_damping"
+    ],
+    "independently_unchanged_function_and_term_definitions": [
+      "upright_height",
+      "joint_pose",
+      "action_rate",
+      "fall"
+    ],
+    "reward_term_count": 5,
+    "input_dependencies": [
+      "action_delta",
+      "base_ang_vel_scaled",
+      "base_height_relative",
+      "base_lin_vel",
+      "base_lin_vel_scaled",
+      "joint_pos_error",
+      "nominal_base_height",
+      "pitch",
+      "projected_gravity",
+      "roll",
+      "terminated_non_timeout"
+    ],
+    "all_inputs_declared_public": true,
+    "rationale_scope": "Proposes a bounded velocity projection penalty to test after observed failures; no causal benefit inferred by this audit."
+  },
+  "lane_b_initial_prompt": {
+    "bytes": 63700,
+    "top_level_changed_sections_vs_lane_a_initial": [
+      "required_candidate_package",
+      "authoring_context_frame"
+    ],
+    "sibling_full_source_absent": true,
+    "sibling_source_hash_absent": true,
+    "shared_prior_history_feedback_sources_unchanged": true,
+    "sibling_semantic_exclusion": {
+      "schema_version": "true_rl_agent.single_component_semantic_exclusion.v1",
+      "operation": "rename",
+      "canonical_mechanism_delta": "RewardTerm:lean_guarded_damping",
+      "component_kind": "RewardTerm",
+      "public_input_dependencies": [
+        "base_ang_vel_scaled",
+        "base_lin_vel",
+        "base_lin_vel_scaled",
+        "nominal_base_height",
+        "projected_gravity"
+      ],
+      "parameter_normalized_semantic_signature": "08cdb32f6af0bfd271df360d068cd87a13d11441518d5b10b6e4cb56b3c1844e",
+      "instruction": "Propose one component mechanism whose normalized callable, input, and clip structure is substantively different from this exclusion; renaming or changing only numeric parameters is not distinct.",
+      "exclusion_hash": "b82e5de8f8ad213627b8ffc1086ce31119c4a24782e28f32a6fafa0ea04ba583"
+    },
+    "public_guard_and_receipt": "PASS",
+    "new_private_literal_hits": 0,
+    "attempt_result": "AVAILABLE_FIRST_FAILURE_AND_SECOND_SUCCESS",
+    "provider_measured_input_tokens": 16599
+  },
+  "validated_subscopes": {
+    "identity_memory_private_boundary": "PASS",
+    "both_provider_recovery_chains": "PASS",
+    "exactly_one_changed_reward_term_per_lane": "PASS",
+    "sibling_mathematical_distinctness": "PASS",
+    "lane_b_vs_parent_non_numeric_mechanism_requirement": "CONCERN_PROVEN_REQUIRES_ROOT_DISPOSITION"
+  },
+  "lane_b_provider_recovery": {
+    "status": "PASS",
+    "attempt_1": {
+      "prompt_bytes": 63700,
+      "input_tokens": 16599,
+      "provider_status": "fail",
+      "finish_reason": "length",
+      "failure_category": "reasoning_output_exhausted",
+      "final_text_bytes": 0,
+      "reasoning_bytes": 140380,
+      "thinking_mode": "enabled",
+      "reasoning_effort": "max",
+      "candidate_materialized": false,
+      "disposition": "continue"
+    },
+    "attempt_2": {
+      "prompt_bytes": 65328,
+      "prompt_growth_bytes": 1628,
+      "input_tokens": 16921,
+      "provider_status": "pass",
+      "finish_reason": "stop",
+      "thinking_mode": "disabled",
+      "reasoning_effort": "provider_default",
+      "verifier": "pass",
+      "component_smoke": "pass",
+      "stop_reason": "candidate_verified"
+    },
+    "fixed_output_limit_both": 32768,
+    "source_requests": 0,
+    "stable_source_contract_history_feedback_sections_unchanged": true,
+    "public_guard_and_receipt": "PASS",
+    "lane_a_full_source_and_source_hash_absent": true,
+    "memory_bytes_both": 3500,
+    "raw_reasoning_not_read_or_reproduced": true
+  },
+  "generation_002_lane_b_candidate": {
+    "candidate_id": "push_recovery_lean_guarded_damping_v5",
+    "source_path": "session/provider_candidates/go2-push-5rounds-20260922-a03-generation-002/lane-b/002_push_recovery_lean_guarded_damping_v5/training_code/components.py",
+    "source_bytes": 3604,
+    "source_sha256": "53a183d5b92a446d88b4b8f0c9aeb33d2e4708b043cd97a6db165259919b2411",
+    "authoring_parent_source_checksum": "sha256:054e8440f35076be0ad36c4cf00606da4f16d65eca04b5ed2b1de9067eebc104",
+    "single_component_receipt": {
+      "blocking": false,
+      "candidate_authoring_anchor_available": true,
+      "candidate_source_sha256": "53a183d5b92a446d88b4b8f0c9aeb33d2e4708b043cd97a6db165259919b2411",
+      "changed_mechanism_count": 1,
+      "changed_mechanisms": [
+        "RewardTerm:bounded_damping->lean_guarded_damping"
+      ],
+      "classification": "mechanism_delta_present",
+      "compares_to": "054e8440f35076be0ad36c4cf00606da4f16d65eca04b5ed2b1de9067eebc104",
+      "comparison_anchor": "current_best",
+      "comparison_scope": "authoring_anchor_and_evaluated_history",
+      "evaluated_history_source_count": 0,
+      "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+      "history_sources_with_anchor": 0,
+      "history_sources_without_anchor": 0,
+      "reason": "candidate_source_structure_differs_from_comparison_anchor",
+      "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+      "status": "pass",
+      "structural_comparison": "canonical_component_terms"
+    },
+    "independently_unchanged_function_and_term_definitions": [
+      "upright_height",
+      "joint_pose",
+      "action_rate",
+      "fall"
+    ],
+    "reward_term_count": 5,
+    "input_dependencies": [
+      "action_delta",
+      "base_ang_vel_scaled",
+      "base_height_relative",
+      "base_lin_vel_scaled",
+      "joint_pos_error",
+      "pitch",
+      "projected_gravity",
+      "roll",
+      "terminated_non_timeout"
+    ],
+    "all_inputs_declared_public": true
+  },
+  "sibling_mechanism_comparison": {
+    "status": "PASS_DISTINCT",
+    "matching_function_names": "Both final sources use lean_guarded_damping; names do not establish equivalence.",
+    "lane_a": "Preserves parent factor 1-0.5*lean and adds bounded positive velocity projection onto horizontal projected gravity, scaled by 0.08*sqrt(9.81*nominal_base_height). It distinguishes opposite velocity directions.",
+    "lane_b": "Replaces planar damping factor with clamp(1-lean,min=0); no directional projection term, no additional raw velocity or nominal height inputs. Opposite planar velocity directions with equal speed have the same reward.",
+    "actual_sibling_exclusion_assessment": {
+      "blocking": false,
+      "equivalence": null,
+      "exclusion_hash": "b82e5de8f8ad213627b8ffc1086ce31119c4a24782e28f32a6fafa0ea04ba583",
+      "reason": "sibling_semantic_delta_distinct",
+      "schema_version": "true_rl_agent.sibling_semantic_exclusion_assessment.v1",
+      "status": "pass"
+    },
+    "algebraic_witness": {
+      "scope": "Function arithmetic, not a recorded simulation state; angular velocity zero, horizontal projected gravity=(0.5,0), scaled planar velocity=(+/-0.08,0). Raw velocity is the same scaled value times sqrt(9.81*nominal_height).",
+      "parent_both_directions": 0.9375,
+      "lane_a_positive": 0.9041666666666667,
+      "lane_a_negative": 0.9375,
+      "lane_b_both_directions": 0.9583333333333334
+    }
+  },
+  "lane_b_parent_mechanism_concern": {
+    "status": "PROVEN_ALGEBRAIC_CONCERN",
+    "observation": "On finite admitted inputs, lean=norm(projected_gravity[:2]).clamp(max=1) belongs to [0,1]; clamp(1-lean,min=0) equals 1-lean. The added clamp changes AST structure but no output. Relative to accepted parent, the effective damping change is coefficient 0.5 -> 1.0, plus names/prose.",
+    "frozen_prompt_contract": {
+      "path": "loop_contract.evidence_discipline[4]",
+      "text": "Do not submit numeric-only, string-only, or formatting-only variants of an evaluated source; the historical-source gate rejects those variants before training."
+    },
+    "actual_assessment": {
+      "status": "pass",
+      "classification": "mechanism_delta_present",
+      "reason": "candidate_source_structure_differs_from_comparison_anchor"
+    },
+    "separation": "This concerns nonnumeric mechanism eligibility relative to parent, not sibling equivalence, private-data access, or validity of physical success counts. No generic algebraic validator or product change was added.",
+    "disposition_owner": "root"
+  },
+  "root_disposition": {
+    "issue_id": "B3",
+    "classification": "blocking_authoring_contract_false_admission",
+    "reason": "Lane-b is a proven numeric-only variant of its evaluated parent; an inert clamp and rename were admitted as a mechanism change.",
+    "physical_evidence_invalidated": false,
+    "session_stopped": true,
+    "stop_receipt": "stop_for_mechanism_gate_03.json",
+    "restart_policy": "repair at the shared admission owner, review followups, then start a fresh whole five-generation session; no A03 round reuse"
+  }
+}

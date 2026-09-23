@@ -1,0 +1,350 @@
+{
+  "status": "PASS_BOTH_LANES_SOURCE_REVIEW_WITH_NONBLOCKING_F9",
+  "session_id": "go2-push-5rounds-20260923-a08",
+  "generation_index": 5,
+  "snapshot": ".tmp/go2_push_a08_live_17.zip",
+  "scope": "Independent read-only actual source/new-parent scope audit. Finite CPU function outputs are not trajectory, completed training activation or performance evidence.",
+  "frozen_source_checks": {
+    "src/true_rl_agent/candidates/component_source_semantics.py": "963f3c7385f9e08a7a99b72e3499f27bcc4e55266a3e155b42d5fd2d2924d3f5",
+    "src/true_rl_agent/candidates/authoring_policy.py": "038dce885ac95d3dd2f3bfb5ac80d290648e9ff9277c95df797027e5f0530c9f",
+    "src/true_rl_agent/agent_core/authoring_loop.py": "b4495703efe30a36b8e062ba44d95926223ef94bd3d2746c8e0bf00a1ce1e090",
+    "src/true_rl_agent/agent_core/exploration.py": "f8186e72df46aa66a4d3606c0104e4936bc7880148c0aca5d56fec98a46e900f",
+    "src/true_rl_agent/tasks/push_recovery/runtime_adapter.py": "b849651740e1362eafb085a990a8158b7821b1cdbf25f362bcd5d239b1f7d2f4"
+  },
+  "historical_scope": {
+    "previous_generation_count": 4,
+    "new_parent_candidate_id": "push_recovery_lateral_brace_v1",
+    "new_parent_head_hash": "456dc8b3c7cde84bf1d8cd063cbacb50b323613b32d10a2f1bdc6c57e3ed2df6",
+    "new_parent_program_source_checksum": "sha256:0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336",
+    "same_parent_measured_candidate_count": 0,
+    "previously_measured_candidates_under_other_parents": 8,
+    "actual_lane_intent": {
+      "schema_version": "true_rl_agent.generation_lane_intent.exploration.v1",
+      "lane_id": "lane-a",
+      "mode": "novel",
+      "current_head_hash": "456dc8b3c7cde84bf1d8cd063cbacb50b323613b32d10a2f1bdc6c57e3ed2df6",
+      "inspired_by_trial_id": null,
+      "inspired_by_card_hash": null,
+      "hypothesis": null,
+      "verifier_equivalence_exclusion_set_hash": "93af470f76fcae9ca4fe74dafd4f2b8a50c23dd6b53140d96aec7027db1af871",
+      "acceptance_authority": false
+    },
+    "actual_evaluated_family_metadata_present": false,
+    "actual_historical_assessment_present": false,
+    "finding": "Gen4 accepted B and advanced the parent. All eight prior measured candidates were evaluated relative to earlier parents; none belongs to this new parent domain. Empty same-parent family set and absence of an executed history comparison are correct, not the A07 missing-wire bug. Negative-evidence set is independently empty as bound by the lane intent."
+  },
+  "lane_a": {
+    "candidate_id": "push_recovery_roll_braced_stance_v2",
+    "candidate_sha256": "79baa37b5dcacd0591a20d849189c68ab7dc7b2e33b1e6b740f55c2ef5fe5398",
+    "parent_sha256": "0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336",
+    "source_assessment_replay": {
+      "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+      "status": "pass",
+      "classification": "mechanism_delta_present",
+      "reason": "candidate_source_structure_differs_from_comparison_anchor",
+      "compares_to": "0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336",
+      "candidate_source_sha256": "79baa37b5dcacd0591a20d849189c68ab7dc7b2e33b1e6b740f55c2ef5fe5398",
+      "blocking": false,
+      "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+      "changed_mechanism_count": 1,
+      "changed_mechanisms": [
+        "RewardTerm:roll_brace"
+      ],
+      "structural_comparison": "canonical_component_terms"
+    },
+    "mechanism_delta": {
+      "schema_version": "true_rl_agent.candidate_mechanism_operation_delta.v2",
+      "operation": "add",
+      "before_component": null,
+      "after_component": {
+        "mechanism_id": "RewardTerm:roll_brace",
+        "structure_hash": "953da2ff827abeb8e92c05fe381b9d489eda5f12805784a1b766cee3796d280b",
+        "parameter_normalized_structure_hash": "1154768b44be0745ca89f8accae14e866f5745e6a817db3e8815e3782a1d5cde",
+        "input_fields": [
+          "roll"
+        ]
+      },
+      "anchor_source_checksum": "sha256:0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336",
+      "candidate_source_checksum": "sha256:79baa37b5dcacd0591a20d849189c68ab7dc7b2e33b1e6b740f55c2ef5fe5398"
+    },
+    "verifier_equivalence_key": "50efa8d5aae9ec920ab23da4d4610dac4343d85e198584d17c2afa32be1e9ac3",
+    "preserved_exact_functions_weights_clips_bindings": [
+      "upright_recovery",
+      "lateral_brace",
+      "stationary_v3",
+      "joint_pose",
+      "action_rate",
+      "fall"
+    ],
+    "single_mechanism_proof": "Adds one directly bound squared absolute-roll excess term; the parent has linear absolute-roll excess mixed with lateral speed, plus a different symmetric roll/pitch stance polynomial. New square-of-deadband shape is not a coefficient-only copy of an existing effective term. All six parent terms and their clips/weights remain exact. No same-parent measured family exists yet.",
+    "boundary": "Controlled component import and public roll input only. No hidden side effects, I/O/network, diagnostics/schedules or training/evaluation configuration edit. Added function is directly bound and its squared excess feeds its return.",
+    "authoring_gate": {
+      "provider_attempts": 2,
+      "stop_reason": "candidate_verified",
+      "verifier_status": "pass",
+      "smoke_status": "pass",
+      "changed_term_smoke": {
+        "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+        "effective_max_abs_after_clip_and_weight": 0.0,
+        "kind": "RewardTerm",
+        "name": "roll_brace",
+        "observed_clip_saturation_count": 0,
+        "observed_raw_nonzero_count": 0,
+        "observed_sample_count": 4,
+        "observed_shape": [
+          4
+        ],
+        "raw_max_abs": 0.0,
+        "reason": "reward_callable_returned_finite_expected_shape",
+        "status": "pass"
+      },
+      "sibling_scope": "Lane A comes first; B must compare its delta against A once produced."
+    },
+    "first_attempt_failure": {
+      "recorded_failure": {
+        "category": "reasoning_output_exhausted",
+        "details": {
+          "failure_kind": "empty_final_content_with_reasoning",
+          "finish_reason": "length"
+        },
+        "reason": "reasoning exhausted the output budget before final JSON",
+        "schema_version": "true_rl_agent.provider_failure.v1"
+      },
+      "response_receipt": {
+        "finish_reason": "length",
+        "response_text_present": true,
+        "reasoning_content_present": true
+      },
+      "judgment": "Reasoning-output exhaustion before final candidate JSON, not scientific rejection. Existing bounded retry produced this candidate."
+    },
+    "nonblocking_F9": {
+      "claim": "A quadratic roll penalty adds increasing restoring slope.",
+      "source_fact": "fn=-max(abs(roll)-.1,0)^2, clip[-2,0], weight=-1 yields a positive squared-excess reward capped at2. It rewards, rather than penalizes, roll excess as an added term. The parent lateral_brace already has a separately audited positive sign.",
+      "finite_synthetic_inputs": {
+        "roll": [
+          0.0,
+          0.1,
+          0.3,
+          0.5
+        ]
+      },
+      "actual_raw": [
+        -0.0,
+        -0.0,
+        -0.039999999999999994,
+        -0.16000000000000003
+      ],
+      "actual_clip_bounds": [
+        -2.0,
+        0.0
+      ],
+      "actual_weight": -1.0,
+      "actual_weighted_rate": [
+        0.0,
+        0.0,
+        0.039999999999999994,
+        0.16000000000000003
+      ],
+      "interpretation_limit": "This is an added-term sign/description mismatch, not a statement that total reward favors leaning or that trajectories exploit it. Performance remains for fixed evaluation. Existing F9 only, no new sign/name validator."
+    }
+  },
+  "lane_b": {
+    "candidate_id": "push_recovery_lateral_tilt_decay_v1",
+    "candidate_sha256": "019090cb328b1e8eea37310feaf1226a3e0ad6e89e9758228970e874a40bd3b2",
+    "parent_sha256": "0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336",
+    "source_assessment_replay": {
+      "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+      "status": "pass",
+      "classification": "mechanism_delta_present",
+      "reason": "candidate_source_structure_differs_from_comparison_anchor",
+      "compares_to": "0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336",
+      "candidate_source_sha256": "019090cb328b1e8eea37310feaf1226a3e0ad6e89e9758228970e874a40bd3b2",
+      "blocking": false,
+      "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+      "changed_mechanism_count": 1,
+      "changed_mechanisms": [
+        "RewardTerm:lateral_tilt_decay"
+      ],
+      "structural_comparison": "canonical_component_terms"
+    },
+    "mechanism_delta": {
+      "schema_version": "true_rl_agent.candidate_mechanism_operation_delta.v2",
+      "operation": "add",
+      "before_component": null,
+      "after_component": {
+        "mechanism_id": "RewardTerm:lateral_tilt_decay",
+        "structure_hash": "026294656c6b459166560ed5673a1405e4fc1fe8654ed50687fe28a9135a6442",
+        "parameter_normalized_structure_hash": "2934c13e58a3e3869f9ed790107214adcd1af3660476e718bbd2a07dedcb2e50",
+        "input_fields": [
+          "base_ang_vel_scaled",
+          "roll"
+        ]
+      },
+      "anchor_source_checksum": "sha256:0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336",
+      "candidate_source_checksum": "sha256:019090cb328b1e8eea37310feaf1226a3e0ad6e89e9758228970e874a40bd3b2"
+    },
+    "verifier_equivalence_key": "5a220374a7dc2cdf0bba98c8e8d2073043bd1da8cdc07c8085618c978be49490",
+    "preserved_exact_functions_weights_clips_bindings": [
+      "upright_recovery",
+      "lateral_brace",
+      "stationary_v3",
+      "joint_pose",
+      "action_rate",
+      "fall"
+    ],
+    "single_mechanism_proof": "Adds one directly bound roll-times-scaled-world-angular-x positive-part term with a roll deadband gate. The parent has no sign-sensitive roll/rate product. Sibling A is roll-only squared excess, so new angular-rate input and signed interaction make B structurally distinct; coefficient changes cannot add this dependency. Six parent terms remain exact.",
+    "boundary": "Controlled component import; public roll and angular velocity tensors. No hidden side effects, I/O/network, diagnostics/schedules or training/evaluation configuration edits. Both new gate and interaction feed returned term.fn.",
+    "authoring_gate": {
+      "provider_attempts": 1,
+      "stop_reason": "candidate_verified",
+      "verifier_status": "pass",
+      "same_parent_evaluated_family_count": 0,
+      "historical_assessment_present": false,
+      "actual_lane_intent": {
+        "schema_version": "true_rl_agent.generation_lane_intent.exploration.v1",
+        "lane_id": "lane-b",
+        "mode": "novel",
+        "current_head_hash": "456dc8b3c7cde84bf1d8cd063cbacb50b323613b32d10a2f1bdc6c57e3ed2df6",
+        "inspired_by_trial_id": null,
+        "inspired_by_card_hash": null,
+        "hypothesis": null,
+        "verifier_equivalence_exclusion_set_hash": "93af470f76fcae9ca4fe74dafd4f2b8a50c23dd6b53140d96aec7027db1af871",
+        "acceptance_authority": false
+      },
+      "actual_sibling_assessment": {
+        "blocking": false,
+        "equivalence": null,
+        "exclusion_hash": "45086d73775844abb4328fd1d86edfa7d22ade67532200d1a3afbddd13e4a83d",
+        "reason": "sibling_semantic_delta_distinct",
+        "schema_version": "true_rl_agent.sibling_semantic_exclusion_assessment.v1",
+        "status": "pass"
+      },
+      "sibling_exclusion_rebuilt_from_actual_a_delta_matches_prompt_and_receipt": true,
+      "smoke_status": "pass",
+      "changed_term_smoke": {
+        "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+        "effective_max_abs_after_clip_and_weight": 0.0,
+        "kind": "RewardTerm",
+        "name": "lateral_tilt_decay",
+        "observed_clip_saturation_count": 0,
+        "observed_raw_nonzero_count": 0,
+        "observed_sample_count": 4,
+        "observed_shape": [
+          4
+        ],
+        "raw_max_abs": 0.0,
+        "reason": "reward_callable_returned_finite_expected_shape",
+        "status": "pass"
+      }
+    },
+    "nonblocking_F9": {
+      "claim": "One-sided penalty charges growing sideways tilt while leaving corrective motion unpenalized.",
+      "source_fact": "The gated positive product is negated in fn, clipped[-1,0], then multiplied by weight=-1.5. Its effective contribution is nonnegative [0,1.5], rewarding a positive roll-times-world-angular-x proxy rather than penalizing it.",
+      "finite_synthetic_inputs": {
+        "roll": [
+          0.2,
+          0.2,
+          0.05
+        ],
+        "scaled_angular_velocity": [
+          [
+            0.5,
+            0,
+            0
+          ],
+          [
+            -0.5,
+            0,
+            0
+          ],
+          [
+            0.5,
+            0,
+            0
+          ]
+        ]
+      },
+      "actual_raw": [
+        -0.1,
+        -0.0,
+        -0.0
+      ],
+      "actual_clip_bounds": [
+        -1.0,
+        0.0
+      ],
+      "actual_weight": -1.5,
+      "actual_weighted_rate": [
+        0.15000000000000002,
+        0.0,
+        0.0
+      ],
+      "interpretation_limit": "This proves the added term sign, not total-reward preference, observed exploitation or exact physical Euler-roll energy derivative. Zero contribution for a negative product and inside the stated roll deadband is verified. Real benefit remains for fixed evaluation. Existing F9 only; no sign/name gate or candidate edit."
+    }
+  },
+  "evidence_sha256": {
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-a/authoring_attempts/attempt_000002/attempt_result.json": "1fb570d7d6b14b808f8e2c656927b4f58380588b610a22fe9245e76bbe491ec7",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-a/authoring_attempts/attempt_000002/prompt_payload.json": "b834948e4c1be7c137a51e04b4edfebfeafa237a3702f0a79cbfe0b3a4d4c1e4",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-a/authoring_anchor.json": "1d0f5ae7db676fa3152995dbcf7ed442efc22ccef8c266bcc316d156f2921dcf",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-005/lane-a/002_push_recovery_roll_braced_stance_v2/training_code/components.py": "79baa37b5dcacd0591a20d849189c68ab7dc7b2e33b1e6b740f55c2ef5fe5398",
+    "PLAN/2new_world/Go2_push/attempt_08/session/ledger.jsonl": "8047cafecdcb70cfaa4e324226f0e0ac1cc914f02254e90237eea5cde9fdd759",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "311906e13f0d1ece92d90ac1404fbf795bcb00c2979d742f75c61f08d8065c37",
+    "PLAN/2new_world/Go2_push/source_snapshot_08.json": "bff645daff96c7afcdb71b46e8aa95cfcaef206499fe711bbe9d21e3cdbfa4b9",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "3a14c55e9a26e10e48ab98ab7dd6bc140c0cb8d19018a36d209799fe801433c7",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-b/authoring_attempts/attempt_000001/prompt_payload.json": "8bbf275cc2074531481e376988277cf90e23f21c4a171f43919fbe8b966fcb7a",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-b/authoring_anchor.json": "b00973817625f1cd34a5dc175a7d7b4f078ed48b3b684e4cdf7099fc071f3896",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-005/lane-b/001_push_recovery_lateral_tilt_decay_v1/training_code/components.py": "019090cb328b1e8eea37310feaf1226a3e0ad6e89e9758228970e874a40bd3b2"
+  },
+  "training_evidence_limit": "Root reports both Gen5 lanes started training. This receipt establishes source and authoring boundaries only; final training, evaluation, acceptance and five-round closure remain separate.",
+  "snapshot_scope": {
+    "lane_a": "Snapshot16 A receipt/evidence preserved; only actual source hash rechecked for B comparison.",
+    "lane_b": "Incremental actual source/gates from snapshot17."
+  },
+  "five_generation_source_review_summary": {
+    "reviewed_final_candidates": 10,
+    "source_admission_blockers_found": 0,
+    "historical_same_parent_family_counts_by_generation": [
+      0,
+      0,
+      2,
+      4,
+      0
+    ],
+    "finding": "All ten final candidates independently have one active component mechanism change and preserve the other parent mechanisms. Source inputs/imports and term bindings remain within the permitted public reward surface. Existing same-parent evaluated-family history and sibling exclusion executed consistently; after Gen4 promotion the historical comparison domain correctly resets to the new parent. Recurrent explanation/sign errors are recorded under F9; neither a source pass nor an explanation error determines performance acceptance.",
+    "prior_generation_receipts": [
+      {
+        "generation": 1,
+        "receipt": "PLAN/2new_world/Go2_push/attempt_08/gen01_candidate_source_audit.json",
+        "candidate_source_hashes": {
+          "lane_a": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+          "lane_b": "bb3ae423e2f84d1a0aea017b323413582ceb125214d68798b5a0849f78b02fdd"
+        }
+      },
+      {
+        "generation": 2,
+        "receipt": "PLAN/2new_world/Go2_push/attempt_08/gen02_candidate_source_audit.json",
+        "candidate_source_hashes": {
+          "lane_a": "31f2bc0b1787bcd77f85cd5ca62bcbd36a1b57e360f98234936a4bc166982d8b",
+          "lane_b": "80a0f71379defc448b9040babd8a1a045b2d6f8f7c207361e15d65caeacaca58"
+        }
+      },
+      {
+        "generation": 3,
+        "receipt": "PLAN/2new_world/Go2_push/attempt_08/gen03_candidate_source_audit.json",
+        "candidate_source_hashes": {
+          "lane_a": "2aa64e0b57a20a76595e41628dc732222f464402c204789a2896fbd3319055de",
+          "lane_b": "da09ff5d4a0f618d5d86e49c59214478fb973305710d872e47a29f4337b8f30c"
+        }
+      },
+      {
+        "generation": 4,
+        "receipt": "PLAN/2new_world/Go2_push/attempt_08/gen04_candidate_source_audit.json",
+        "candidate_source_hashes": {
+          "lane_a": "c3a43ee3c713aa2918c39dca634cbc7cc711f6e07ea410e455e2b4b98cb5cd7f",
+          "lane_b": "0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336"
+        }
+      }
+    ],
+    "limits": "This is a five-generation source/authoring audit only. Do not use it as completed five-round native training/evaluation/closure acceptance."
+  }
+}

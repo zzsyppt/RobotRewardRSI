@@ -1,0 +1,32 @@
+{
+  "status": "PASS",
+  "checked_at_unix": 1789096925.9006639,
+  "p5_live_runtime_or_provider_processes": [],
+  "lease_files": [
+    {
+      "name": "028d6f63aeed6f60252131318909e429e52f16337501960c8c2d8cf6295b4acb.lock",
+      "locked": false,
+      "last_holder_session": "phase4-unified-pilot-d1d83a7-20260828"
+    },
+    {
+      "name": "3b93a5c76b648a2b40a6f3599b9b3ff58196f6d1787872f168c860ce91bdc0d2.lock",
+      "locked": false,
+      "last_holder_session": null
+    },
+    {
+      "name": "a05046acbf95598780af3d439b8ab24f42c7c65832d3063fd68d45bb72900ac4.lock",
+      "locked": false,
+      "last_holder_session": "p5-diagnostic"
+    },
+    {
+      "name": "a57856084a9d0c880569edb124f01821dc1061b59385c12b951e2d6a5d6f0deb.lock",
+      "locked": false,
+      "last_holder_session": "p5-dynamic-tests"
+    }
+  ],
+  "gpu_compute_processes": [
+    "2281092, VLLM::Worker_TP0, 29012 MiB",
+    "2281093, VLLM::Worker_TP1, 29012 MiB"
+  ],
+  "note": "Existing VLLM workers are external to P5 and were not stopped. Persistent unlocked lease files are historical receipts, not active owners."
+}

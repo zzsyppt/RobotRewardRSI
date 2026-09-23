@@ -1,0 +1,55 @@
+{
+  "purpose": "P6 diagnostic",
+  "argv": [
+    "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+    "PLAN/2new_world/P6/force_evaluation_acceptance.py",
+    "--case",
+    "native",
+    "--cell-variant-id",
+    "push.g1_37dof.recovery_v3",
+    "--source-train-summary",
+    "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912/runner/p6-g1-stationary-v3-reference-20260912/train/summary.json",
+    "--source-manifest",
+    "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912/resolved_cell_manifest.json",
+    "--expected-checkpoint-sha256",
+    "91c00d4e61492dcfb6511aa0ae9ef85121c5bb08dafde7eabf29c10281ad1749",
+    "--device",
+    "cuda:1",
+    "--video-seed-index",
+    "1",
+    "--video-env-index",
+    "48",
+    "--expected-rollout-dir",
+    "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/force_unified_01/g1_public_dev_03",
+    "--mode",
+    "run",
+    "--output",
+    "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/force_unified_01/g1_native_failure03",
+    "--expected-identity-hash",
+    "1458e17fc55773d8fa1cf5c4fa691d7c6feb6d9cf1e03bb0f20d0a350d8eab2d"
+  ],
+  "started_at_unix": 1790057425.2560918,
+  "lease": {
+    "schema_version": "true_rl_agent.runner.gpu_lease.v2",
+    "identity": {
+      "execution_device": "cuda:1",
+      "machine_id": "9f0d44ab81e646d89d195b3e7da2de30",
+      "physical_id": "GPU-8cd998f2-d42e-394e-7aae-a6701bb9b187",
+      "identity_hash": "d0a282b2b2552e9f35f1eb048fd43b2d057c9f4c3406bfcb127afcc25b94915e",
+      "physical_resource_hash": "a05046acbf95598780af3d439b8ab24f42c7c65832d3063fd68d45bb72900ac4"
+    },
+    "holder": {
+      "session_id": "new-world-p6-diagnostic",
+      "genesis_identity_hash": "6012500f20238c22434ef4ebb27a2e7493c9e501263f74d6bebb23a23a1e7ed2",
+      "session_contract_hash": "6012500f20238c22434ef4ebb27a2e7493c9e501263f74d6bebb23a23a1e7ed2",
+      "lane_id": "cuda:1",
+      "invocation_segment_id": "g1_native_failure03_process",
+      "logical_job_id": "g1_native_failure03_process"
+    },
+    "owner_pid": 1120986,
+    "ledger_authority": false
+  },
+  "returncode": 0,
+  "child_pid": 1120989,
+  "ended_at_unix": 1790057486.216598
+}

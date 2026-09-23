@@ -1,0 +1,181 @@
+{
+  "purpose": "fixed reference external force eval only; Go2 then G1",
+  "frozen_at_unix": 1790007553.7904184,
+  "train_jobs": 0,
+  "holdout_jobs": 0,
+  "provider_calls": 0,
+  "episodes": 384,
+  "scripts": {
+    "push_force_probe.py": "c29445f58a452a120ec7d4409e7631a30c99744fa9b2d34f9d3f9e8e1bfb91ee",
+    "push_force_scoring.py": "55cf95081dfff87fd6644145151e57efb9c29587a81f6cebdae6d113aae24d1e",
+    "test_push_force_scoring.py": "257a71b2c51bd7f49d7def9536212bccd03b84141d2c17f0ded91c28926c8a4c",
+    "push_sequence_scoring.py": "d5b27bcd37df35200614018ce261b7a521bd96b8f7dd7b4b1343195db2b31d16",
+    "run_owned_probe.py": "0f692d0ec27f50a8b4146a7fdbe69d3070cd98248be6ff92ffc265a049bcb3cd",
+    "EXTERNAL_FORCE_PROBE_PLAN_ZH.md": "887303f5e4cb0b848d9e2cd83af8bb12e218e0e4b8bca883613490a1c81cfcc1"
+  },
+  "framework": {
+    "isaaclab/isaaclab/utils/wrench_composer.py": "23587b90df2594c101de2d0f861d16a794a6d8270b57d504b48d4baed1b0b8d3",
+    "isaaclab_physx/isaaclab_physx/assets/articulation/articulation.py": "378945cc535e5e42e4fbdc37dd444330481736e3525ac24e6dbb5249b00a449a",
+    "isaaclab_physx/isaaclab_physx/assets/articulation/articulation_data.py": "fa589c31e0eac32d234ecfbb218ac951bc2740d4042bb8e2f05936bc0719fe0e"
+  },
+  "protected_before_sha256": "5e692f092931b7e8e0d4ad38ed60e2f2c3ffa27616d6598ed365ad3ce9fb6ce9",
+  "robots": {
+    "go2": {
+      "definition": {
+        "base_seed": 42,
+        "body_name": "base",
+        "comparison_scope": "source_velocity_result_is_historical_different_mechanism",
+        "control_dt_s": 0.02,
+        "definition_hash": "3445b251929f9d21850f848b4a4192642258f47241c2209f226e8f6236d55ee3",
+        "derived_seeds": [
+          10042,
+          10043,
+          10044
+        ],
+        "direct_torque_nm": [
+          0,
+          0,
+          0
+        ],
+        "dwell_steps": 16,
+        "envs_per_seed": 64,
+        "first_recovery_sample": "pulse_end_control_step_plus_one",
+        "force_rule": "total_mass_kg * source_delta_v_world_mps / actual_pulse_duration_s",
+        "holdout_jobs": 0,
+        "is_global": true,
+        "mass_rule": "actual_all_robot_link_masses_sum_after_reset_per_environment",
+        "mechanism": "finite_world_horizontal_force_at_bound_base_link_com",
+        "physics_dt_s": 0.005,
+        "positions": null,
+        "provider_calls": 0,
+        "pulse_control_steps": 11,
+        "pulse_duration_s": 0.22,
+        "recovery_scope": "every_completed_pulse_independent_window_then_final_stable",
+        "robot": "go2",
+        "schema_version": "true_rl_agent.p6.external_force_diagnostic.v1",
+        "seed_count": 3,
+        "source_resolved_protocol_hash": "39f0d453a04e0c1a059395597b6a54aa3715dd739edd394b78f90641217f76e1",
+        "start_control_steps": [
+          51,
+          172
+        ],
+        "train_jobs": 0,
+        "wall_limit_s": 1800,
+        "window_steps": 81
+      },
+      "source_identity": {
+        "checkpoint_sha256": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+        "definition_hash": "3445b251929f9d21850f848b4a4192642258f47241c2209f226e8f6236d55ee3",
+        "scoring_sha256": "sha256:55cf95081dfff87fd6644145151e57efb9c29587a81f6cebdae6d113aae24d1e",
+        "script_sha256": "sha256:c29445f58a452a120ec7d4409e7631a30c99744fa9b2d34f9d3f9e8e1bfb91ee",
+        "source_dev_file_sha256": "sha256:a0300604413db5adbced1d0c9578eaa5e69e20342dc9c2a7172713dcd7332285",
+        "source_environment_hash": "c451dd809d4a26db2d61fb2c9ea08de83ef39a8b8f809882a9c40e7430bbb2c8",
+        "source_manifest_hash": "ed8c2a3607025eecc8d8b2ca3b0f2bef0f8c32b22c360a1fc6f2b2cc4f79316e",
+        "source_train_summary_sha256": "sha256:16be0e3ee7b7d9711d38546775287bf0968213b98ec104f0c5eae2cf7aa1b70c",
+        "source_training_binding_hash": "844cbee614c2f42651939254fa33e227bda6bd8fe76a713b771421b17ba567a5"
+      },
+      "command": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/run_owned_probe.py",
+        "--device",
+        "cuda:0",
+        "--output",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_force_go2_01_process",
+        "--timeout",
+        "1800",
+        "--",
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/push_force_probe.py",
+        "--robot",
+        "go2",
+        "--mode",
+        "run",
+        "--output",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_force_go2_01",
+        "--device",
+        "cuda:0",
+        "--expected-definition-hash",
+        "3445b251929f9d21850f848b4a4192642258f47241c2209f226e8f6236d55ee3"
+      ]
+    },
+    "g1": {
+      "definition": {
+        "base_seed": 1000000000,
+        "body_name": "torso_link",
+        "comparison_scope": "source_velocity_result_is_historical_different_mechanism",
+        "control_dt_s": 0.02,
+        "definition_hash": "c960b46f1e6ab8bd976199d1da2f41d5b73f0bb7cdf7766e2e68cad4f9a410e0",
+        "derived_seeds": [
+          1000010000,
+          1000010001,
+          1000010002
+        ],
+        "direct_torque_nm": [
+          0,
+          0,
+          0
+        ],
+        "dwell_steps": 21,
+        "envs_per_seed": 64,
+        "first_recovery_sample": "pulse_end_control_step_plus_one",
+        "force_rule": "total_mass_kg * source_delta_v_world_mps / actual_pulse_duration_s",
+        "holdout_jobs": 0,
+        "is_global": true,
+        "mass_rule": "actual_all_robot_link_masses_sum_after_reset_per_environment",
+        "mechanism": "finite_world_horizontal_force_at_bound_base_link_com",
+        "physics_dt_s": 0.005,
+        "positions": null,
+        "provider_calls": 0,
+        "pulse_control_steps": 14,
+        "pulse_duration_s": 0.28,
+        "recovery_scope": "every_completed_pulse_independent_window_then_final_stable",
+        "robot": "g1",
+        "schema_version": "true_rl_agent.p6.external_force_diagnostic.v1",
+        "seed_count": 3,
+        "source_resolved_protocol_hash": "db74aed6c8ecba7e0834e15117e0b65eead237478a5ea10822101691ae9172ce",
+        "start_control_steps": [
+          69,
+          234
+        ],
+        "train_jobs": 0,
+        "wall_limit_s": 1800,
+        "window_steps": 110
+      },
+      "source_identity": {
+        "checkpoint_sha256": "sha256:91c00d4e61492dcfb6511aa0ae9ef85121c5bb08dafde7eabf29c10281ad1749",
+        "definition_hash": "c960b46f1e6ab8bd976199d1da2f41d5b73f0bb7cdf7766e2e68cad4f9a410e0",
+        "scoring_sha256": "sha256:55cf95081dfff87fd6644145151e57efb9c29587a81f6cebdae6d113aae24d1e",
+        "script_sha256": "sha256:c29445f58a452a120ec7d4409e7631a30c99744fa9b2d34f9d3f9e8e1bfb91ee",
+        "source_dev_file_sha256": "sha256:58023ef068e78ba1e63c4c1ad5d57e5b766c7556d00fb563301e52cd55572d2b",
+        "source_environment_hash": "c451dd809d4a26db2d61fb2c9ea08de83ef39a8b8f809882a9c40e7430bbb2c8",
+        "source_manifest_hash": "65cf26a941c75bbea4def58a975325a2389ec07a954528ce5c73a82cd20d4a84",
+        "source_train_summary_sha256": "sha256:27db73ab8ee53c8cdbb8186a770b3c87ab59c15dc1af77d240bc6621018b2f9b",
+        "source_training_binding_hash": "292d09c995cfa8f4b021572b81ceaa48d3a207995ba84ac2c92ecff8806a72aa"
+      },
+      "command": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/run_owned_probe.py",
+        "--device",
+        "cuda:1",
+        "--output",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_force_g1_01_process",
+        "--timeout",
+        "1800",
+        "--",
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/push_force_probe.py",
+        "--robot",
+        "g1",
+        "--mode",
+        "run",
+        "--output",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_force_g1_01",
+        "--device",
+        "cuda:1",
+        "--expected-definition-hash",
+        "c960b46f1e6ab8bd976199d1da2f41d5b73f0bb7cdf7766e2e68cad4f9a410e0"
+      ]
+    }
+  },
+  "gpu_compute_before": ""
+}

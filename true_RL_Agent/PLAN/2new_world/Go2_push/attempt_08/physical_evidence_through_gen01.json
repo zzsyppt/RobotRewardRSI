@@ -1,0 +1,142 @@
+{
+  "status": "PASS",
+  "scope": "Saved episode-summary arithmetic consistency only; PASS is not independent physical or visual validation.",
+  "limitations": [
+    "Pose extrema and wrench verification are runtime exports, not independently read sensor/PhysX data.",
+    "No raw-frame reconstruction of continuous stable dwell, or final angular velocity, roll/pitch and height.",
+    "Pulse timing/count checks use the recorded control dt and expected substep count; physics dt is not independently reconstructed.",
+    "Fall labels use exported extrema and the same strict threshold ordering as episode_records; this is not a new outcome definition."
+  ],
+  "numerical_tolerances": {
+    "force_amplitude_relative": 2e-06,
+    "impulse_absolute_rounding_ns": 0.0001,
+    "impulse_total_rule": "force_tolerance_n * delivered_duration_s + float32 accumulation allowance"
+  },
+  "summary_count": 7,
+  "summaries": [
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08/eval/public_accept/summary.json",
+      "sha256": "d0fa6612026127c9dd32364e2dd14e9425aa88ab127b086a51a3fd75e08fd97e",
+      "counts": {
+        "checks": 3250,
+        "force_events": 233,
+        "successful_episodes": 142,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 16
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000274658203125,
+        "impulse_residual_ns": 2.9907226561931566e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08/eval/public_dev/summary.json",
+      "sha256": "9792c53e8d55883a90fc03a31b407b54919d271a87cc05a2521461aa60067e1f",
+      "counts": {
+        "checks": 3270,
+        "force_events": 237,
+        "successful_episodes": 141,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 11
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000274658203125,
+        "impulse_residual_ns": 3.3721923827556566e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08/eval/sealed_validation/summary.json",
+      "sha256": "1ec4b6d1773ff357056f40848ef3db1f03fd18f6ac4ae1fa0493434e1b7ed58e",
+      "counts": {
+        "checks": 7672,
+        "force_events": 555,
+        "successful_episodes": 343,
+        "episodes": 448,
+        "episodes_with_incomplete_pulses": 13
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000274658203125,
+        "impulse_residual_ns": 3.2806396482953915e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/eval/public_accept/summary.json",
+      "sha256": "a4f098d3681b0d1ecb5ef9ac1f2d6ecf03cb564abc1a10127c4c7f4252e18d9e",
+      "counts": {
+        "checks": 3336,
+        "force_events": 240,
+        "successful_episodes": 159,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 2
+      },
+      "observed_maxima": {
+        "force_error_n": 0.0002593994140625,
+        "impulse_residual_ns": 2.9907226561931566e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/eval/public_dev/summary.json",
+      "sha256": "5b571b1d26f768e6e4e2af17894cc1e1eafc800af6bd92f915df0dd7b17eb919",
+      "counts": {
+        "checks": 3366,
+        "force_events": 240,
+        "successful_episodes": 169,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 2
+      },
+      "observed_maxima": {
+        "force_error_n": 0.0003204345703125,
+        "impulse_residual_ns": 3.6621093748578915e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08-generation-001-lane-b/eval/public_dev/summary.json",
+      "sha256": "2e2944c1f703759a1d590663ac419aabc660b7cb488bdffe11f5107e83033386",
+      "counts": {
+        "checks": 3351,
+        "force_events": 240,
+        "successful_episodes": 163,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 1
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000244140625,
+        "impulse_residual_ns": 3.082275389942879e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/eval/sealed_validation/summary.json",
+      "sha256": "f090c7ea005afe513aa56ef278e20aca7a30ebad2470e12d6114296cfb9eed9d",
+      "counts": {
+        "checks": 7853,
+        "force_events": 560,
+        "successful_episodes": 394,
+        "episodes": 448,
+        "episodes_with_incomplete_pulses": 6
+      },
+      "observed_maxima": {
+        "force_error_n": 0.0003204345703125,
+        "impulse_residual_ns": 2.9907226561931566e-05
+      },
+      "failures": []
+    }
+  ],
+  "snapshot": ".tmp/go2_push_a08_live_05.zip",
+  "snapshot_scope": "Complete reference qualification and Gen1 physical summaries: A/B dev, selected A accept and sealed.",
+  "whole_generation_complete_claimed": false,
+  "audit_script_sha256": "ed47b2eb95e634684d2faf677f8cc9ee89e24abda0a2950c389fc01326800a77",
+  "audited_at_utc": "2026-09-23T07:40:32.222537+00:00",
+  "incremental_audit": {
+    "new_summary_count": 1,
+    "new_phase": "Gen1 A sealed_validation",
+    "previous_report_sha256": "43a13d9ee822dc29c954dbb7ffba701b4ffe166d7d090f96dea8c32054b24728",
+    "prior_summaries_reused_after_sha256_verification": true,
+    "decision_authority": "Separate gen01_decision_audit.json; this receipt certifies exported arithmetic only."
+  }
+}

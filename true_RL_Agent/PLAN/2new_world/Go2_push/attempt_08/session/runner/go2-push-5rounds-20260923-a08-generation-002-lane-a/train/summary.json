@@ -1,0 +1,1030 @@
+{
+  "agent_configuration_hash": "f2cf1a2644ecdf61f3629f65c211ab29c274e06b6043c9067420e9e87a204789",
+  "backend_execution_environment_verification": {
+    "actual_manifest_hash": "382b4a42af6c4c5ca9f8f525fe3fffbb3eb5a0aaa13683c262db69d5f6996d4b",
+    "backend_id": "isaac_lab_rsl_rl",
+    "expected_manifest_hash": "382b4a42af6c4c5ca9f8f525fe3fffbb3eb5a0aaa13683c262db69d5f6996d4b",
+    "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+    "status": "pass"
+  },
+  "candidate": {
+    "candidate": {
+      "candidate_id": "push_recovery_linear_tilt_ramp_v1",
+      "entrypoint": "training_code.components:build_training_components",
+      "schema_version": "true_rl_agent.candidate.v1"
+    },
+    "components": {
+      "effective_hook_counts": {
+        "diagnostics": 0,
+        "reward_terms": 5,
+        "schedules": 0
+      },
+      "is_noop": false,
+      "metadata": {},
+      "name": "push_standing_recovery_linear_tilt_ramp_v1",
+      "rationale": "Closest prior program: push_recovery_nonsaturating_stance_v1, the accepted current-best anchor. Sole mechanism change: the tilt branch of the stance potential callable, renamed upright_recovery_linear_tilt; every other callable body, weight, sign, clip, and the empty schedule and diagnostic lists are preserved. The anchor scored tilt with u = clamp(roll*roll + pitch*pitch - 0.01, 0) and penalty 2*u + 2*u*u, so its tilt pull-back slope is 4*theta*(1 + 2*u) per radian: about 0.4 at the deadband edge and about 0.85 at 0.2 radians. That leaves the first 6 to 15 degrees of a lean almost free, exactly the window in which a lateral perturbation has to be arrested. The anchor's residual public-dev failures are dominated by sideways falls (15 fall_side against 1 fall_forward), consistent with a tilt branch that stays shallow until the lean has already run away, after which only the fall penalty remains. The replacement keeps the identical kernel shape and coefficients (2*x + 2*x*x) but applies them to the tilt-magnitude excess v = clamp(sqrt(roll*roll + pitch*pitch + 1e-6) - 0.1, 0) instead of to the squared-tilt excess u, which makes the tilt branch linear-dominant in the lean angle and mirrors the height branch the previous round already made linear-dominant for the same reason. The deadband is unchanged in value, since 0.1 radians is exactly the anchor's sqrt(0.01) tilt wall, and at 0.9 radians the two forms take the same value again, so the near-goal potential and the deep-lean magnitude are both preserved while the 0.1 to 0.9 radian ramp is strictly steeper. Concretely the slope becomes 2.0 + 4*v per radian, that is 2.0 versus 0.4 at the deadband edge and 2.4 versus 0.85 at 0.2 radians, and a 10 to 25 degree lean now costs about 0.5 to 2.7 weighted stance reward per step instead of about 0.13 to 1.3. The term weight, clip bounds, and the posture, action-rate, velocity-damping and fall terms are untouched, so the low and medium force strata that already recover keep their existing signal while the policy receives a graded early pull-back gradient for the leans that dominate the remaining failures.",
+      "terms": {
+        "diagnostics": [],
+        "reward_terms": [
+          {
+            "clip_max": 1.0,
+            "clip_min": -4.0,
+            "description": "Deadbanded non-saturating stance potential over relative base height and tilt magnitude.",
+            "kind": "RewardTerm",
+            "name": "upright_recovery_linear_tilt",
+            "weight": 3.0
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "description": "",
+            "kind": "RewardTerm",
+            "name": "stationary_v3",
+            "weight": 1.0
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "description": "",
+            "kind": "RewardTerm",
+            "name": "joint_pose",
+            "weight": -0.1
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "description": "",
+            "kind": "RewardTerm",
+            "name": "action_rate",
+            "weight": -0.01
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "description": "",
+            "kind": "RewardTerm",
+            "name": "fall",
+            "weight": -20.0
+          }
+        ],
+        "schedules": []
+      }
+    },
+    "enabled": true,
+    "runtime_contract": {
+      "candidate_does_not_receive": [
+        "env",
+        "runner",
+        "optimizer",
+        "checkpoint_selector",
+        "eval_config",
+        "success_metric"
+      ],
+      "candidate_receives": [
+        "base_height",
+        "roll",
+        "pitch",
+        "base_pos_xy",
+        "base_lin_vel",
+        "base_ang_vel",
+        "projected_gravity",
+        "commanded_base_vel",
+        "joint_pos",
+        "joint_vel",
+        "joint_pos_error",
+        "last_action",
+        "prev_action",
+        "action_delta",
+        "progress_fraction",
+        "push_active",
+        "push_vec_public",
+        "nominal_base_height",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "base_ang_vel_scaled",
+        "terminated_non_timeout"
+      ],
+      "candidate_receives_prompt_effective": [
+        "base_height",
+        "roll",
+        "pitch",
+        "base_pos_xy",
+        "base_lin_vel",
+        "base_ang_vel",
+        "projected_gravity",
+        "commanded_base_vel",
+        "joint_pos",
+        "joint_vel",
+        "joint_pos_error",
+        "last_action",
+        "prev_action",
+        "action_delta",
+        "progress_fraction",
+        "push_active",
+        "push_vec_public",
+        "nominal_base_height",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "base_ang_vel_scaled",
+        "terminated_non_timeout"
+      ],
+      "diagnostics_public_numeric_summary_only": true,
+      "public_push_signal_inputs": [
+        "push_active",
+        "push_vec_public"
+      ],
+      "push_signal_source": "already_executed_event_only",
+      "rate_integration": "reward_manager_once_by_control_dt",
+      "reserved_zero_fallback_inputs": [],
+      "reward_mode": "complete_program_replacement",
+      "reward_output": "rate",
+      "reward_terms_added_to_env_reward": false,
+      "schedule_controls": {
+        "bounds": {
+          "reward_weight_scale": [
+            0.0,
+            10.0
+          ]
+        },
+        "effective_keys": [
+          "reward_weight_scale"
+        ]
+      },
+      "transition_source": "before_auto_reset"
+    },
+    "schema_version": "true_rl_agent.push_recovery.candidate_runtime.summary.v2"
+  },
+  "candidate_failure_contract_hash": "aa3fb2d44ed15e359777a9be369964c3d5f3a40f981036aa546764e4d939fe5f",
+  "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+  "checkpoint": {
+    "checksum": "sha256:b904ef508e8a10880c309c698cbc74b72e93bde5c4e217bc55d35de05001aa82",
+    "metadata": {
+      "local_path": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-002-lane-a/checkpoints/best.pt",
+      "source_latest_checkpoint": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-002-lane-a/train/run/attempt-b1664794fc864591ab4dcd5391ed0c64/rsl_rl/model_499.pt",
+      "source_latest_checkpoint_sha256": "sha256:b904ef508e8a10880c309c698cbc74b72e93bde5c4e217bc55d35de05001aa82"
+    },
+    "role": "train_output",
+    "uri": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-002-lane-a/checkpoints/best.pt"
+  },
+  "configuration": {
+    "active_profile": "strong_push",
+    "config_path": null,
+    "physical_protocol": {
+      "active_profile": "strong_push",
+      "candidate_can_change": false,
+      "environment": {
+        "episode_length_s": 6.057825328153827
+      },
+      "observation_corruption": {
+        "eval": false,
+        "train": true
+      },
+      "push_protocol": {
+        "episode_time_scale": 30.0,
+        "fall_height_scale": 0.45,
+        "fall_tilt_rad": 0.8,
+        "first_push_time_scale": 5.0,
+        "gravity_mps2": 9.81,
+        "high_velocity_scale": 1.0,
+        "injection_tolerance_mps": 1e-05,
+        "low_velocity_scale": 0.3,
+        "max_displacement_scale": 3.0,
+        "medium_velocity_scale": 0.6,
+        "protocol_id": "push_recovery_planar_delta_velocity_v2",
+        "protocol_state": "active",
+        "recovery_angular_velocity_scale": 0.5,
+        "recovery_height_scale": 0.7,
+        "recovery_tilt_rad": 0.2,
+        "recovery_velocity_scale": 0.08,
+        "recovery_window_time_scale": 8.0,
+        "schema_version": "true_rl_agent.task.push_recovery.protocol.v2",
+        "second_push_time_scale": 17.0,
+        "stable_dwell_time_scale": 1.5
+      },
+      "push_resolved_protocol": {
+        "episode_length_s": 6.057825328153827,
+        "evaluation_cohort_counts": {
+          "high": 16,
+          "low": 16,
+          "medium": 16,
+          "repeated": 16
+        },
+        "evaluation_direction_policy": {
+          "angular_range_rad": [
+            0.0,
+            6.283185307179586
+          ],
+          "count": 16,
+          "phase": "python_random_runner_seed_uniform_0_2pi_v1",
+          "second_event_offset_rad": 1.5707963267948966
+        },
+        "fall_height_m": 0.18000000000000002,
+        "fall_tilt_rad": 0.8,
+        "injection_tolerance_mps": 1e-05,
+        "max_displacement_m": 1.2000000000000002,
+        "mechanism": "world_planar_velocity_increment",
+        "protocol_hash": "851d417544cd27a11b865cf86e6354b03fd2276312470962f1feaef4ea2edb82",
+        "push_times_s": [
+          1.0096375546923044,
+          3.432767685953835
+        ],
+        "recovery_angular_velocity_radps": 2.4761361028828768,
+        "recovery_height_m": 0.27999999999999997,
+        "recovery_tilt_rad": 0.2,
+        "recovery_velocity_mps": 0.15847271058450413,
+        "recovery_window_s": 1.6154200875076872,
+        "reset": {
+          "joint_position_scale": [
+            1.0,
+            1.0
+          ],
+          "joint_velocity_range": [
+            0.0,
+            0.0
+          ],
+          "root_pose_range": {
+            "x": [
+              0.0,
+              0.0
+            ],
+            "y": [
+              0.0,
+              0.0
+            ],
+            "yaw": [
+              -3.141592653589793,
+              3.141592653589793
+            ]
+          },
+          "root_velocity_range": {
+            "pitch": [
+              0.0,
+              0.0
+            ],
+            "roll": [
+              0.0,
+              0.0
+            ],
+            "x": [
+              0.0,
+              0.0
+            ],
+            "y": [
+              0.0,
+              0.0
+            ],
+            "yaw": [
+              0.0,
+              0.0
+            ],
+            "z": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "resolved_protocol_hash": "39f0d453a04e0c1a059395597b6a54aa3715dd739edd394b78f90641217f76e1",
+        "robot_scale_m": 0.4,
+        "schema_version": "true_rl_agent.task.push_recovery.resolved_protocol.v2",
+        "stable_dwell_s": 0.3028912664076914,
+        "time_scale_s": 0.2019275109384609,
+        "training_sampling": {
+          "angular_range_rad": [
+            0.0,
+            6.283185307179586
+          ],
+          "event_directions": "independent_uniform",
+          "stratum_probabilities": {
+            "high": 0.25,
+            "low": 0.25,
+            "medium": 0.25,
+            "repeated": 0.25
+          }
+        },
+        "velocity_magnitudes_mps": {
+          "high": 1.9809088823063015,
+          "low": 0.5942726646918904,
+          "medium": 1.1885453293837809
+        },
+        "velocity_scale_mps": 1.9809088823063015
+      },
+      "push_robot_scale_m": 0.4,
+      "reward_execution": {
+        "integration": "reward_manager_once_by_control_dt",
+        "mode": "complete_program_replacement",
+        "output": "reward_rate",
+        "state": "pre_reset_transition"
+      },
+      "runner_owned": true,
+      "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1",
+      "runtime_dynamics_hash": "sha256:cbd42e99a7a7c371a31008fee9df484880bd8664acbfb5e7462425ddaaa7e9f4",
+      "schema_version": "true_rl_agent.task.push_recovery.public_runtime_dynamics.v3",
+      "standing_command": {
+        "commanded_locomotion_is_zero": true
+      },
+      "task": {
+        "agent_configuration_hash": "f2cf1a2644ecdf61f3629f65c211ab29c274e06b6043c9067420e9e87a204789",
+        "environment_cfg_entrypoint": "true_rl_agent.robots.isaaclab_locomotion:_go2_environment_cfg",
+        "runner_cfg_entrypoint": "isaaclab_tasks.manager_based.locomotion.velocity.config.go2.agents.rsl_rl_ppo_cfg:UnitreeGo2RoughPPORunnerCfg",
+        "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1"
+      }
+    },
+    "policy_io_evidence": {
+      "action_dim": 12,
+      "action_terms": [
+        "joint_pos"
+      ],
+      "actions": [
+        {
+          "asset_name": "robot",
+          "class": "isaaclab.envs.mdp.actions.actions_cfg.JointPositionActionCfg",
+          "joint_names": [
+            ".*"
+          ],
+          "name": "joint_pos",
+          "scale": 0.25,
+          "use_default_offset": true
+        }
+      ],
+      "control": {
+        "control_dt_s": 0.02,
+        "decimation": 4,
+        "simulation_dt_s": 0.005
+      },
+      "control_dt_s": 0.02,
+      "effective_actions": [
+        {
+          "joint_names": [
+            "FL_hip_joint",
+            "FR_hip_joint",
+            "RL_hip_joint",
+            "RR_hip_joint",
+            "FL_thigh_joint",
+            "FR_thigh_joint",
+            "RL_thigh_joint",
+            "RR_thigh_joint",
+            "FL_calf_joint",
+            "FR_calf_joint",
+            "RL_calf_joint",
+            "RR_calf_joint"
+          ],
+          "name": "joint_pos",
+          "scale": 0.25
+        }
+      ],
+      "effective_observation_corruption": true,
+      "evidence_hash": "8906857fae5105879f09d32b7e5ebba7e97578c1c74a49b8f4aff8bbcf1425b3",
+      "height_scanner_present": false,
+      "joint_names": [
+        "FL_hip_joint",
+        "FR_hip_joint",
+        "RL_hip_joint",
+        "RR_hip_joint",
+        "FL_thigh_joint",
+        "FR_thigh_joint",
+        "RL_thigh_joint",
+        "RR_thigh_joint",
+        "FL_calf_joint",
+        "FR_calf_joint",
+        "RL_calf_joint",
+        "RR_calf_joint"
+      ],
+      "manifest_checks": {
+        "action_dimension": true,
+        "actions": true,
+        "control": true,
+        "effective_action_scales": true,
+        "height_scanner_removed": true,
+        "joint_names": true,
+        "observation_corruption": true,
+        "policy_observation": true,
+        "policy_observation_dimension": true,
+        "resolved_action_joint_order": true,
+        "sensors": true,
+        "term_dimensions": true
+      },
+      "observation_group_dims": {
+        "policy": [
+          48
+        ]
+      },
+      "observation_group_terms": {
+        "policy": [
+          "base_lin_vel",
+          "base_ang_vel",
+          "projected_gravity",
+          "velocity_commands",
+          "joint_pos",
+          "joint_vel",
+          "actions"
+        ]
+      },
+      "policy_observation": {
+        "concatenate_terms": true,
+        "enable_corruption_by_mode": {
+          "eval": false,
+          "train": true
+        },
+        "history_length": null,
+        "terms": [
+          {
+            "callable": "isaaclab.envs.mdp.observations.base_lin_vel",
+            "clip": null,
+            "name": "base_lin_vel",
+            "noise": {
+              "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+              "n_max": 0.1,
+              "n_min": -0.1,
+              "operation": "add"
+            },
+            "params": {},
+            "scale": null
+          },
+          {
+            "callable": "isaaclab.envs.mdp.observations.base_ang_vel",
+            "clip": null,
+            "name": "base_ang_vel",
+            "noise": {
+              "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+              "n_max": 0.2,
+              "n_min": -0.2,
+              "operation": "add"
+            },
+            "params": {},
+            "scale": null
+          },
+          {
+            "callable": "isaaclab.envs.mdp.observations.projected_gravity",
+            "clip": null,
+            "name": "projected_gravity",
+            "noise": {
+              "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+              "n_max": 0.05,
+              "n_min": -0.05,
+              "operation": "add"
+            },
+            "params": {},
+            "scale": null
+          },
+          {
+            "callable": "isaaclab.envs.mdp.observations.generated_commands",
+            "clip": null,
+            "name": "velocity_commands",
+            "noise": null,
+            "params": {
+              "command_name": "base_velocity"
+            },
+            "scale": null
+          },
+          {
+            "callable": "isaaclab.envs.mdp.observations.joint_pos_rel",
+            "clip": null,
+            "name": "joint_pos",
+            "noise": {
+              "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+              "n_max": 0.01,
+              "n_min": -0.01,
+              "operation": "add"
+            },
+            "params": {},
+            "scale": null
+          },
+          {
+            "callable": "isaaclab.envs.mdp.observations.joint_vel_rel",
+            "clip": null,
+            "name": "joint_vel",
+            "noise": {
+              "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+              "n_max": 1.5,
+              "n_min": -1.5,
+              "operation": "add"
+            },
+            "params": {},
+            "scale": null
+          },
+          {
+            "callable": "isaaclab.envs.mdp.observations.last_action",
+            "clip": null,
+            "name": "actions",
+            "noise": null,
+            "params": {},
+            "scale": null
+          }
+        ]
+      },
+      "policy_observation_term_dimensions": {
+        "actions": 12,
+        "base_ang_vel": 3,
+        "base_lin_vel": 3,
+        "joint_pos": 12,
+        "joint_vel": 12,
+        "projected_gravity": 3,
+        "velocity_commands": 3
+      },
+      "schema_version": "true_rl_agent.task.push_recovery.runtime_policy_io.v2",
+      "sensors": {},
+      "verified_declared_content_hashes": {
+        "action_content_hash": "fef9a8161334ea16e61effbab51a03782f314eb54a8f046a15bfb8e82303bb1c",
+        "observation_content_hash": "16ffb52f1f249bc9f89e1cc5fe9c3195d71505c9b9e281864afb8046e1ddae1a",
+        "policy_io_schema_hash": "a40716069a496d94e8b24a26d9ca3e4d9ad0c67aed69a4ae009d1223a3a6249d",
+        "sensor_schema_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    },
+    "push": {
+      "episode_length_s": 6.057825328153827,
+      "evaluation_cohort_counts": {
+        "high": 16,
+        "low": 16,
+        "medium": 16,
+        "repeated": 16
+      },
+      "evaluation_direction_policy": {
+        "angular_range_rad": [
+          0.0,
+          6.283185307179586
+        ],
+        "count": 16,
+        "phase": "python_random_runner_seed_uniform_0_2pi_v1",
+        "second_event_offset_rad": 1.5707963267948966
+      },
+      "fall_height_m": 0.18000000000000002,
+      "fall_tilt_rad": 0.8,
+      "injection_tolerance_mps": 1e-05,
+      "max_displacement_m": 1.2000000000000002,
+      "mechanism": "world_planar_velocity_increment",
+      "protocol_hash": "851d417544cd27a11b865cf86e6354b03fd2276312470962f1feaef4ea2edb82",
+      "push_times_s": [
+        1.0096375546923044,
+        3.432767685953835
+      ],
+      "recovery_angular_velocity_radps": 2.4761361028828768,
+      "recovery_height_m": 0.27999999999999997,
+      "recovery_tilt_rad": 0.2,
+      "recovery_velocity_mps": 0.15847271058450413,
+      "recovery_window_s": 1.6154200875076872,
+      "reset": {
+        "joint_position_scale": [
+          1.0,
+          1.0
+        ],
+        "joint_velocity_range": [
+          0.0,
+          0.0
+        ],
+        "root_pose_range": {
+          "x": [
+            0.0,
+            0.0
+          ],
+          "y": [
+            0.0,
+            0.0
+          ],
+          "yaw": [
+            -3.141592653589793,
+            3.141592653589793
+          ]
+        },
+        "root_velocity_range": {
+          "pitch": [
+            0.0,
+            0.0
+          ],
+          "roll": [
+            0.0,
+            0.0
+          ],
+          "x": [
+            0.0,
+            0.0
+          ],
+          "y": [
+            0.0,
+            0.0
+          ],
+          "yaw": [
+            0.0,
+            0.0
+          ],
+          "z": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "resolved_protocol_hash": "39f0d453a04e0c1a059395597b6a54aa3715dd739edd394b78f90641217f76e1",
+      "robot_scale_m": 0.4,
+      "schema_version": "true_rl_agent.task.push_recovery.resolved_protocol.v2",
+      "stable_dwell_s": 0.3028912664076914,
+      "time_scale_s": 0.2019275109384609,
+      "training_sampling": {
+        "angular_range_rad": [
+          0.0,
+          6.283185307179586
+        ],
+        "event_directions": "independent_uniform",
+        "stratum_probabilities": {
+          "high": 0.25,
+          "low": 0.25,
+          "medium": 0.25,
+          "repeated": 0.25
+        }
+      },
+      "velocity_magnitudes_mps": {
+        "high": 1.9809088823063015,
+        "low": 0.5942726646918904,
+        "medium": 1.1885453293837809
+      },
+      "velocity_scale_mps": 1.9809088823063015
+    },
+    "reward_execution": {
+      "integration": "reward_manager_once_by_control_dt",
+      "mode": "complete_program_replacement",
+      "output": "reward_rate",
+      "state": "pre_reset_transition"
+    },
+    "runtime_dynamics_hash": "sha256:cbd42e99a7a7c371a31008fee9df484880bd8664acbfb5e7462425ddaaa7e9f4",
+    "standing_command": {
+      "commanded_locomotion_is_zero": true
+    }
+  },
+  "created_at_utc": "2026-09-23T07:54:07.127726+00:00",
+  "errors": [],
+  "execution_device": "cuda:0",
+  "gpu_process_binding": {
+    "host_execution_device": "cuda:0",
+    "process_execution_device": "cuda:0",
+    "resource_binding_hash": "6717a64dc87b7d45f2180d07bd7eab19de67aafd859e149b160c1deb76ce4bdc"
+  },
+  "gpu_runtime_evidence": {
+    "cuda_visibility_binding": "single_physical_gpu_uuid",
+    "external_compute_context_observation": {
+      "monotonic_ns": 10990312340028187,
+      "process_id": 1501317,
+      "rows": [
+        {
+          "gpu_uuid": "GPU-06661cdd-1a0e-904e-a2e3-705eda5fb65b",
+          "used_gpu_memory_mib": 4876
+        }
+      ],
+      "schema_version": "true_rl_agent.runner.gpu_compute_context_observation.v1",
+      "source": "nvidia-smi-query-compute-apps"
+    },
+    "nvidia_visible_devices_unset": true,
+    "physical_gpu_uuid": "GPU-06661cdd-1a0e-904e-a2e3-705eda5fb65b",
+    "renderer_active_gpu_ordinal": 0,
+    "renderer_multi_gpu": false,
+    "renderer_multi_gpu_auto_enable": false,
+    "renderer_multi_gpu_max_gpu_count": 1,
+    "schema_version": "true_rl_agent.runner.gpu_runtime_evidence.v1"
+  },
+  "initialization_seed_schedule_hash": "e065c0f150de6b131e30c7b3d74186b4b594719f7a997318ad600805d607670c",
+  "job_id": "go2-push-5rounds-20260923-a08-generation-002-lane-a-train",
+  "optimizer_training_profile_hash": "39b8576bcd7749447f62728d6854bd0e3632be7845eee26db316d54fb096d68b",
+  "owned_process_identity": {
+    "process_group_id": 1501317,
+    "process_id": 1501317,
+    "schema_version": "true_rl_agent.runner.owned_process_identity.v1"
+  },
+  "policy_architecture_hash": "a02a7e06b7e87699dde132fd5f8ae8ac1de438c88b694ea774d958faa9d0f159",
+  "program_source_checksum": "sha256:31f2bc0b1787bcd77f85cd5ca62bcbd36a1b57e360f98234936a4bc166982d8b",
+  "resolved_cell_identity": {
+    "cell_variant_id": "push.go2_12dof.recovery_v3",
+    "environment_id": "push_recovery_environment_v3",
+    "resolved_cell_task_protocol_hash": "31622698100045fc8c2fac8707a71a39f84655c2cfde714421fd5b92f748407d",
+    "robot_profile_id": "unitree_go2_12dof_isaaclab_v1",
+    "robot_task_binding_id": "push_go2_12dof_recovery_v3_binding_v3",
+    "robot_task_cell_id": "unitree_push_recovery.go2_12dof_v3",
+    "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1"
+  },
+  "resolved_cell_manifest_hash": "fb8a03c7df15a8b6ff1033be284d60d323fc5846b127f2042d34f7d60f75bf6e",
+  "run": {
+    "round_id": "go2-push-5rounds-20260923-a08-generation-002-lane-a",
+    "seed_policy": "runner_owned_not_public",
+    "train_attempt_id": "b1664794fc864591ab4dcd5391ed0c64"
+  },
+  "runtime_activation_summary": {
+    "capability_activation_records": [
+      "reward_callable"
+    ],
+    "component_activation_records": [
+      {
+        "component_kind": "reward_term",
+        "effective_weight": 3.0,
+        "last_weighted_mean": 2.879252,
+        "max_abs_weighted_contribution": 12.0,
+        "name": "upright_recovery_linear_tilt",
+        "nonzero_observation_count": 500,
+        "nonzero_observation_fraction": 1.0,
+        "observation_count": 500,
+        "sampling_interval_steps": 24
+      },
+      {
+        "component_kind": "reward_term",
+        "effective_weight": 1.0,
+        "last_weighted_mean": 0.60065,
+        "max_abs_weighted_contribution": 4.406736850738525,
+        "name": "stationary_v3",
+        "nonzero_observation_count": 500,
+        "nonzero_observation_fraction": 1.0,
+        "observation_count": 500,
+        "sampling_interval_steps": 24
+      },
+      {
+        "component_kind": "reward_term",
+        "effective_weight": -0.1,
+        "last_weighted_mean": -0.028792,
+        "max_abs_weighted_contribution": 0.061380233615636826,
+        "name": "joint_pose",
+        "nonzero_observation_count": 500,
+        "nonzero_observation_fraction": 1.0,
+        "observation_count": 500,
+        "sampling_interval_steps": 24
+      },
+      {
+        "component_kind": "reward_term",
+        "effective_weight": -0.01,
+        "last_weighted_mean": -0.092552,
+        "max_abs_weighted_contribution": 0.8029840588569641,
+        "name": "action_rate",
+        "nonzero_observation_count": 500,
+        "nonzero_observation_fraction": 1.0,
+        "observation_count": 500,
+        "sampling_interval_steps": 24
+      },
+      {
+        "component_kind": "reward_term",
+        "effective_weight": -20.0,
+        "last_weighted_mean": 0.0,
+        "max_abs_weighted_contribution": 20.0,
+        "name": "fall",
+        "nonzero_observation_count": 435,
+        "nonzero_observation_fraction": 0.87,
+        "observation_count": 500,
+        "sampling_interval_steps": 24
+      }
+    ],
+    "diagnostic_calls": 0,
+    "diagnostic_outputs": {},
+    "feature_activation_records": [],
+    "input_provenance": {
+      "action_delta": "observed",
+      "base_ang_vel": "observed",
+      "base_ang_vel_scaled": "task_owned_bound_scale",
+      "base_height": "observed",
+      "base_height_relative": "task_owned_bound_scale",
+      "base_lin_vel": "observed",
+      "base_lin_vel_scaled": "task_owned_bound_scale",
+      "base_pos_xy": "observed",
+      "commanded_base_vel": "observed",
+      "joint_pos": "observed",
+      "joint_pos_error": "observed",
+      "joint_vel": "observed",
+      "last_action": "observed",
+      "nominal_base_height": "task_owned_bound_scale",
+      "pitch": "observed",
+      "prev_action": "observed",
+      "progress_fraction": "runner_owned",
+      "projected_gravity": "observed",
+      "push_active": "observed",
+      "push_vec_public": "observed",
+      "roll": "observed",
+      "terminated_non_timeout": "trusted_pre_reset_termination"
+    },
+    "last_candidate_reward_mean": 3.358557939529419,
+    "last_reward_terms": [
+      {
+        "clip_applied": true,
+        "clip_max": 1.0,
+        "clip_min": -4.0,
+        "dtype": "torch.float32",
+        "effective_weight": 3.0,
+        "finite": true,
+        "kind": "reward",
+        "mean": 0.959751,
+        "name": "upright_recovery_linear_tilt",
+        "num_envs": 4096,
+        "reward_weight_scale": 1.0,
+        "shape": [
+          4096
+        ],
+        "weight": 3.0
+      },
+      {
+        "clip_applied": false,
+        "clip_max": null,
+        "clip_min": null,
+        "dtype": "torch.float32",
+        "effective_weight": 1.0,
+        "finite": true,
+        "kind": "reward",
+        "mean": 0.60065,
+        "name": "stationary_v3",
+        "num_envs": 4096,
+        "reward_weight_scale": 1.0,
+        "shape": [
+          4096
+        ],
+        "weight": 1.0
+      },
+      {
+        "clip_applied": false,
+        "clip_max": null,
+        "clip_min": null,
+        "dtype": "torch.float32",
+        "effective_weight": -0.1,
+        "finite": true,
+        "kind": "reward",
+        "mean": 0.287921,
+        "name": "joint_pose",
+        "num_envs": 4096,
+        "reward_weight_scale": 1.0,
+        "shape": [
+          4096
+        ],
+        "weight": -0.1
+      },
+      {
+        "clip_applied": false,
+        "clip_max": null,
+        "clip_min": null,
+        "dtype": "torch.float32",
+        "effective_weight": -0.01,
+        "finite": true,
+        "kind": "reward",
+        "mean": 9.255212,
+        "name": "action_rate",
+        "num_envs": 4096,
+        "reward_weight_scale": 1.0,
+        "shape": [
+          4096
+        ],
+        "weight": -0.01
+      },
+      {
+        "clip_applied": false,
+        "clip_max": null,
+        "clip_min": null,
+        "dtype": "torch.float32",
+        "effective_weight": -20.0,
+        "finite": true,
+        "kind": "reward",
+        "mean": 0.0,
+        "name": "fall",
+        "num_envs": 4096,
+        "reward_weight_scale": 1.0,
+        "shape": [
+          4096
+        ],
+        "weight": -20.0
+      }
+    ],
+    "last_reward_weight_scale": 1.0,
+    "max_abs_candidate_reward": 36.994197845458984,
+    "max_abs_candidate_reward_frame": {
+      "control_step_1based": 2884,
+      "env_index_0based": 3301,
+      "schema_version": "true_rl_agent.push_recovery.reward_peak_frame.v1",
+      "scope": "one_running_absolute_peak_of_candidate_reward",
+      "signed_total": -36.994197845458984,
+      "term_semantics": "signed contributions after clipping and effective weights; summed in runtime dtype and term order for signed_total",
+      "terms": [
+        {
+          "effective_weight": 3.0,
+          "name": "upright_recovery_linear_tilt",
+          "signed_weighted_contribution": -12.0
+        },
+        {
+          "effective_weight": 1.0,
+          "name": "stationary_v3",
+          "signed_weighted_contribution": -4.955484390258789
+        },
+        {
+          "effective_weight": -0.1,
+          "name": "joint_pose",
+          "signed_weighted_contribution": -0.014428672380745411
+        },
+        {
+          "effective_weight": -0.01,
+          "name": "action_rate",
+          "signed_weighted_contribution": -0.024284059181809425
+        },
+        {
+          "effective_weight": -20.0,
+          "name": "fall",
+          "signed_weighted_contribution": -20.0
+        }
+      ],
+      "units": "reward_rate_before_control_dt_integration"
+    },
+    "nonzero_reward_contribution": true,
+    "reward_output_stats": {
+      "finite_fraction": 1.0,
+      "mean": 2.220707
+    },
+    "reward_term_calls": 60000,
+    "schema_version": "true_rl_agent.push_recovery.candidate_runtime.v2",
+    "step_calls": 12000
+  },
+  "schema_version": "true_rl_agent.push_recovery.train_summary.v1",
+  "status": "pass",
+  "subject_id": "push_recovery_linear_tilt_ramp_v1",
+  "subject_kind": "candidate",
+  "subject_manifest_hash": "e376e3d4c66444e6400a5db3961995f31c5bd94c4588da9d23d9a6332e4ac501",
+  "task": {
+    "gym_id": "TrueRL-PushRecovery-v2",
+    "profile": "strong_push"
+  },
+  "task_id": "unitree_push_recovery",
+  "training": {
+    "agent_configuration_hash": "f2cf1a2644ecdf61f3629f65c211ab29c274e06b6043c9067420e9e87a204789",
+    "budget_accounting": {
+      "budget_steps": 49152000,
+      "config_derived_total_timesteps": 49152000,
+      "max_iterations": 500,
+      "num_envs": 4096,
+      "num_steps_per_env": 24,
+      "planned_env_steps": 49152000,
+      "status": "pass"
+    },
+    "budget_steps": 49152000,
+    "checkpoint_output": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-002-lane-a/checkpoints/best.pt",
+    "config_derived_total_timesteps": 49152000,
+    "constructed_learner": {
+      "algorithm": {
+        "clip_param": 0.2,
+        "desired_kl": 0.01,
+        "entropy_coef": 0.01,
+        "gamma": 0.99,
+        "lam": 0.95,
+        "learning_rate": 0.001,
+        "max_grad_norm": 1.0,
+        "normalize_advantage_per_mini_batch": false,
+        "num_learning_epochs": 5,
+        "num_mini_batches": 4,
+        "schedule": "adaptive",
+        "use_clipped_value_loss": true,
+        "value_loss_coef": 1.0
+      },
+      "configuration_mapping_version": "rsl_rl_3_actor_critic_to_rsl_rl_5_mlp.v1",
+      "initial_noise_std": 1.0,
+      "models": {
+        "actor": {
+          "activation": "ELU",
+          "hidden_dims": [
+            512,
+            256,
+            128
+          ],
+          "input_dim": 48,
+          "obs_groups": [
+            "policy"
+          ],
+          "obs_normalization": false,
+          "output_dim": 12
+        },
+        "critic": {
+          "activation": "ELU",
+          "hidden_dims": [
+            512,
+            256,
+            128
+          ],
+          "input_dim": 48,
+          "obs_groups": [
+            "policy"
+          ],
+          "obs_normalization": false,
+          "output_dim": 1
+        }
+      },
+      "noise_std_type": "scalar",
+      "optimizer": "Adam",
+      "optimizer_source": "frozen_v1_PPO_implicit_Adam",
+      "schema_version": "true_rl_agent.rsl_rl_constructed_learner.v1"
+    },
+    "device": "cuda:0",
+    "expected_initial_policy_state_hash": "9a9c8718c855508ad5c96a0064d748a54542f3b87bfdbb151d59361e9b6e2e8b",
+    "initial_policy_state_hash": "9a9c8718c855508ad5c96a0064d748a54542f3b87bfdbb151d59361e9b6e2e8b",
+    "initial_policy_state_hash_schema_version": "true_rl_agent.initial_policy_state.rsl_rl_5.v2",
+    "initial_policy_state_match": true,
+    "initialization_seed_schedule_hash": "e065c0f150de6b131e30c7b3d74186b4b594719f7a997318ad600805d607670c",
+    "latest_checkpoint_iteration": 499,
+    "log_dir": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-002-lane-a/train/run/attempt-b1664794fc864591ab4dcd5391ed0c64/rsl_rl",
+    "max_iterations": 500,
+    "num_envs": 4096,
+    "num_steps_per_env": 24,
+    "optimizer_training_profile_hash": "39b8576bcd7749447f62728d6854bd0e3632be7845eee26db316d54fb096d68b",
+    "planned_env_steps": 49152000,
+    "policy_architecture_hash": "a02a7e06b7e87699dde132fd5f8ae8ac1de438c88b694ea774d958faa9d0f159",
+    "push_exposure": {
+      "control_only": false,
+      "evaluation": false,
+      "injection_attempt_count": 242910,
+      "schema_version": "true_rl_agent.push_recovery.exposure.v1",
+      "scope": "this_runtime_instance_all_episodes",
+      "verified_event_count": 242910
+    }
+  },
+  "training_binding_hash": "56b9f8f9ce1168684558273d47c16ce6400f5590832fdb60ae9f2a4f00b5e072"
+}

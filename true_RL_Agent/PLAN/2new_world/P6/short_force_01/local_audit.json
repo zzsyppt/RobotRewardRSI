@@ -1,0 +1,612 @@
+{
+  "status": "PASS",
+  "arms": [
+    {
+      "evidence_directory": "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_strength_01\\scale_2p0",
+      "scoring": "all_planned_verified_complete_then_last_force_fresh_window_and_final_stable",
+      "repeated_high_fraction": 0.6,
+      "timing": {
+        "scheduled_starts": [
+          51,
+          172
+        ],
+        "repeated_last_force_end": 183,
+        "repeated_recovery_samples_inclusive": [
+          184,
+          264
+        ],
+        "episode_horizon_steps": 303,
+        "repeated_post_force_observation_steps": 120
+      },
+      "sequence_summary": {
+        "episodes": 192,
+        "successes": 152,
+        "seeds": [
+          {
+            "seed": 10042,
+            "episodes": 64,
+            "successes": 47
+          },
+          {
+            "seed": 10043,
+            "episodes": 64,
+            "successes": 54
+          },
+          {
+            "seed": 10044,
+            "episodes": 64,
+            "successes": 51
+          }
+        ],
+        "failure_counts": {
+          "success_recovered": 152,
+          "fall_forward": 3,
+          "height_collapse": 22,
+          "fall_backward": 3,
+          "fall_side": 3,
+          "out_of_bounds": 9
+        },
+        "strata": {
+          "low": {
+            "episodes": 48,
+            "successes": 48
+          },
+          "medium": {
+            "episodes": 48,
+            "successes": 45
+          },
+          "high": {
+            "episodes": 48,
+            "successes": 14
+          },
+          "repeated": {
+            "episodes": 48,
+            "successes": 45
+          }
+        }
+      },
+      "original_saved_summary": {
+        "episodes": 192,
+        "successes": 152,
+        "seeds": [
+          {
+            "seed": 10042,
+            "episodes": 64,
+            "successes": 47
+          },
+          {
+            "seed": 10043,
+            "episodes": 64,
+            "successes": 54
+          },
+          {
+            "seed": 10044,
+            "episodes": 64,
+            "successes": 51
+          }
+        ],
+        "failure_counts": {
+          "success_recovered": 152,
+          "fall_forward": 3,
+          "height_collapse": 22,
+          "fall_backward": 3,
+          "fall_side": 3,
+          "out_of_bounds": 9
+        },
+        "strata": {
+          "low": {
+            "episodes": 48,
+            "successes": 48
+          },
+          "medium": {
+            "episodes": 48,
+            "successes": 45
+          },
+          "high": {
+            "episodes": 48,
+            "successes": 14
+          },
+          "repeated": {
+            "episodes": 48,
+            "successes": 45
+          }
+        }
+      },
+      "repeated_seed_results": [
+        {
+          "seed": 10042,
+          "episodes": 16,
+          "successes": 14
+        },
+        {
+          "seed": 10043,
+          "episodes": 16,
+          "successes": 16
+        },
+        {
+          "seed": 10044,
+          "episodes": 16,
+          "successes": 15
+        }
+      ],
+      "window_recovered_episodes": {
+        "low": 48,
+        "medium": 45,
+        "high": 16,
+        "repeated": 45
+      },
+      "old_rule_to_sequence_flips": [],
+      "pulse_counts": {
+        "planned_pulses": 240,
+        "observed_pulses": 239,
+        "complete_pulses": 239,
+        "partial_pulses": 0,
+        "unobserved_pulses_after_failure": 1
+      },
+      "maximum_errors": {
+        "quaternion_xyzw_norm_error": 1.8393499412461267e-07,
+        "physics_body_quaternion_xyzw_norm_error": 2.904878924070431e-07,
+        "delivered_requested_error_n": 0.0002551055205360728,
+        "independent_force_error_n": 0.00027822670104191643,
+        "outside_pulse_force_n": 0,
+        "impulse_error_ns": 3.7029136746307055e-05
+      },
+      "raw_sha256": {
+        "seed_01.npz": "sha256:939e1e7f2b0785bc35279c762350b9f0087324682c9359bdd2d39e22e1e1ed9d",
+        "seed_02.npz": "sha256:1422cc5cd581f87b41ad8f514d1c61775a5dd83bdac01d818c0cc81933033479",
+        "seed_03.npz": "sha256:35c6691519ab4280cbd6cf82a62e76d1b5b43da1caa9db7f29d9433e1f3c80b6"
+      },
+      "ranges": {
+        "actual_force_n": {
+          "min": 75.95468945823217,
+          "max": 323.4240934251233
+        },
+        "actual_impulse_ns": {
+          "min": 16.71003764228964,
+          "max": 71.15326505396482
+        },
+        "mass_kg": {
+          "min": 14.048468228196725,
+          "max": 17.959752198075876
+        }
+      },
+      "successful_worst_samples": {
+        "max_abs_roll_rad": {
+          "value": 0.6335049245328345,
+          "seed": 10044,
+          "env_id": 16,
+          "control_step": 76
+        },
+        "max_abs_pitch_rad": {
+          "value": 0.6932006988652747,
+          "seed": 10042,
+          "env_id": 48,
+          "control_step": 205
+        },
+        "min_height_m": {
+          "value": 0.1946576088666916,
+          "seed": 10043,
+          "env_id": 40,
+          "control_step": 78
+        },
+        "max_planar_speed_mps": {
+          "value": 3.0880222417630923,
+          "seed": 10043,
+          "env_id": 40,
+          "control_step": 62
+        },
+        "max_angular_speed_radps": {
+          "value": 9.683897023194566,
+          "seed": 10043,
+          "env_id": 49,
+          "control_step": 207
+        },
+        "max_xy_drift_m": {
+          "value": 1.1912563807592869,
+          "seed": 10043,
+          "env_id": 38,
+          "control_step": 232
+        }
+      },
+      "successful_terminal_stable_tail_min": {
+        "steps": 62,
+        "duration_s": 1.24,
+        "seed": 10043,
+        "env_id": 49
+      },
+      "before_second": {
+        "planned_episodes": 48,
+        "reached_pre_second_sample": 47,
+        "stable_immediately_before_second": 47,
+        "first_force_dwell_completed_before_second": 47,
+        "denominator_note": "Stable count uses reached episodes; dwell count uses all 48 planned repeated episodes. Early failures remain in outcome denominator."
+      }
+    },
+    {
+      "evidence_directory": "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\short_force_01\\short",
+      "scoring": "all_planned_verified_complete_then_last_force_fresh_window_and_final_stable",
+      "repeated_high_fraction": 0.6,
+      "timing": {
+        "scheduled_starts": [
+          51,
+          73
+        ],
+        "repeated_last_force_end": 84,
+        "repeated_recovery_samples_inclusive": [
+          85,
+          165
+        ],
+        "episode_horizon_steps": 303,
+        "repeated_post_force_observation_steps": 219
+      },
+      "sequence_summary": {
+        "episodes": 192,
+        "successes": 149,
+        "seeds": [
+          {
+            "seed": 10042,
+            "episodes": 64,
+            "successes": 49
+          },
+          {
+            "seed": 10043,
+            "episodes": 64,
+            "successes": 51
+          },
+          {
+            "seed": 10044,
+            "episodes": 64,
+            "successes": 49
+          }
+        ],
+        "failure_counts": {
+          "success_recovered": 149,
+          "fall_forward": 3,
+          "height_collapse": 23,
+          "fall_backward": 2,
+          "fall_side": 5,
+          "out_of_bounds": 9,
+          "not_recovered": 1
+        },
+        "strata": {
+          "low": {
+            "episodes": 48,
+            "successes": 48
+          },
+          "medium": {
+            "episodes": 48,
+            "successes": 45
+          },
+          "high": {
+            "episodes": 48,
+            "successes": 14
+          },
+          "repeated": {
+            "episodes": 48,
+            "successes": 42
+          }
+        }
+      },
+      "original_saved_summary": {
+        "episodes": 192,
+        "successes": 149,
+        "seeds": [
+          {
+            "seed": 10042,
+            "episodes": 64,
+            "successes": 49
+          },
+          {
+            "seed": 10043,
+            "episodes": 64,
+            "successes": 51
+          },
+          {
+            "seed": 10044,
+            "episodes": 64,
+            "successes": 49
+          }
+        ],
+        "failure_counts": {
+          "success_recovered": 149,
+          "fall_forward": 3,
+          "height_collapse": 23,
+          "fall_backward": 2,
+          "fall_side": 5,
+          "out_of_bounds": 9,
+          "not_recovered": 1
+        },
+        "strata": {
+          "low": {
+            "episodes": 48,
+            "successes": 48
+          },
+          "medium": {
+            "episodes": 48,
+            "successes": 45
+          },
+          "high": {
+            "episodes": 48,
+            "successes": 14
+          },
+          "repeated": {
+            "episodes": 48,
+            "successes": 42
+          }
+        }
+      },
+      "repeated_seed_results": [
+        {
+          "seed": 10042,
+          "episodes": 16,
+          "successes": 16
+        },
+        {
+          "seed": 10043,
+          "episodes": 16,
+          "successes": 13
+        },
+        {
+          "seed": 10044,
+          "episodes": 16,
+          "successes": 13
+        }
+      ],
+      "window_recovered_episodes": {
+        "low": 48,
+        "medium": 45,
+        "high": 16,
+        "repeated": 43
+      },
+      "old_rule_to_sequence_flips": [],
+      "pulse_counts": {
+        "planned_pulses": 240,
+        "observed_pulses": 240,
+        "complete_pulses": 239,
+        "partial_pulses": 1,
+        "unobserved_pulses_after_failure": 0
+      },
+      "maximum_errors": {
+        "quaternion_xyzw_norm_error": 1.9278050333859653e-07,
+        "physics_body_quaternion_xyzw_norm_error": 2.904878924070431e-07,
+        "delivered_requested_error_n": 0.0002551055205360728,
+        "independent_force_error_n": 0.00027822670104191643,
+        "outside_pulse_force_n": 0,
+        "impulse_error_ns": 3.7029136746307055e-05
+      },
+      "raw_sha256": {
+        "seed_01.npz": "sha256:028dc6c64669cd21674c60533a163c5f933ac9708051f00b17811daeddd1d33e",
+        "seed_02.npz": "sha256:0b0adf6404218a75242a7136c4ad61c87874914fc2ccf6ba1d0826e8f2938f2d",
+        "seed_03.npz": "sha256:01c9b7f2c09f7c845f3016f809fee138b0dd999f83a0b292504029473393f99d"
+      },
+      "ranges": {
+        "actual_force_n": {
+          "min": 75.95468480318355,
+          "max": 323.4240934251233
+        },
+        "actual_impulse_ns": {
+          "min": 15.904077199688988,
+          "max": 71.15326505396482
+        },
+        "mass_kg": {
+          "min": 14.048468228196725,
+          "max": 17.959752198075876
+        }
+      },
+      "successful_worst_samples": {
+        "max_abs_roll_rad": {
+          "value": 0.7527711933695744,
+          "seed": 10042,
+          "env_id": 60,
+          "control_step": 88
+        },
+        "max_abs_pitch_rad": {
+          "value": 0.5278817008025707,
+          "seed": 10043,
+          "env_id": 35,
+          "control_step": 65
+        },
+        "min_height_m": {
+          "value": 0.1946576088666916,
+          "seed": 10043,
+          "env_id": 40,
+          "control_step": 78
+        },
+        "max_planar_speed_mps": {
+          "value": 3.0880222417630923,
+          "seed": 10043,
+          "env_id": 40,
+          "control_step": 62
+        },
+        "max_angular_speed_radps": {
+          "value": 11.617987685815196,
+          "seed": 10042,
+          "env_id": 60,
+          "control_step": 92
+        },
+        "max_xy_drift_m": {
+          "value": 1.1912563807592869,
+          "seed": 10043,
+          "env_id": 38,
+          "control_step": 232
+        }
+      },
+      "successful_terminal_stable_tail_min": {
+        "steps": 109,
+        "duration_s": 2.18,
+        "seed": 10044,
+        "env_id": 54
+      },
+      "before_second": {
+        "planned_episodes": 48,
+        "reached_pre_second_sample": 48,
+        "stable_immediately_before_second": 4,
+        "first_force_dwell_completed_before_second": 0,
+        "denominator_note": "Stable count uses reached episodes; dwell count uses all 48 planned repeated episodes. Early failures remain in outcome denominator."
+      }
+    }
+  ],
+  "audit_script_sha256": "sha256:e9ed64ea4abd23cbf0656458e056df79b20cb2b874f0d84eaf5833b3abbf883b",
+  "limits": [
+    "No training, holdout, new checkpoint identity, or qualification claim.",
+    "Wrench API arguments verify applied external impulse, not net robot momentum change.",
+    "Root posture is sampled each control step; no visual or substep posture proof.",
+    "Recorded first-episode masks are checked against independent raw failure/timeout closure."
+  ],
+  "paired_sequence_outcomes": {
+    "success_recovered -> success_recovered": 147,
+    "fall_forward -> fall_forward": 3,
+    "height_collapse -> height_collapse": 22,
+    "fall_backward -> fall_backward": 2,
+    "fall_side -> fall_side": 2,
+    "fall_side -> success_recovered": 1,
+    "fall_backward -> success_recovered": 1,
+    "out_of_bounds -> out_of_bounds": 9,
+    "success_recovered -> fall_side": 3,
+    "success_recovered -> height_collapse": 1,
+    "success_recovered -> not_recovered": 1
+  },
+  "paired_repeated_sequence_outcomes": {
+    "success_recovered -> success_recovered": 40,
+    "fall_side -> success_recovered": 1,
+    "fall_backward -> success_recovered": 1,
+    "success_recovered -> fall_side": 3,
+    "success_recovered -> height_collapse": 1,
+    "fall_backward -> fall_backward": 1,
+    "success_recovered -> not_recovered": 1
+  },
+  "paired_flips": [
+    {
+      "seed": 10042,
+      "env_id": 54,
+      "stratum": "repeated",
+      "old": "fall_side",
+      "short": "success_recovered"
+    },
+    {
+      "seed": 10042,
+      "env_id": 58,
+      "stratum": "repeated",
+      "old": "fall_backward",
+      "short": "success_recovered"
+    },
+    {
+      "seed": 10043,
+      "env_id": 52,
+      "stratum": "repeated",
+      "old": "success_recovered",
+      "short": "fall_side"
+    },
+    {
+      "seed": 10043,
+      "env_id": 55,
+      "stratum": "repeated",
+      "old": "success_recovered",
+      "short": "fall_side"
+    },
+    {
+      "seed": 10043,
+      "env_id": 59,
+      "stratum": "repeated",
+      "old": "success_recovered",
+      "short": "height_collapse"
+    },
+    {
+      "seed": 10044,
+      "env_id": 52,
+      "stratum": "repeated",
+      "old": "success_recovered",
+      "short": "not_recovered"
+    },
+    {
+      "seed": 10044,
+      "env_id": 57,
+      "stratum": "repeated",
+      "old": "success_recovered",
+      "short": "fall_side"
+    }
+  ],
+  "trajectory_comparison": {
+    "seeds": [
+      {
+        "seed": 10042,
+        "initial_xy_equal": true,
+        "origins_equal": true,
+        "body_masses_equal": true,
+        "non_repeated": {
+          "episodes": 48,
+          "bitwise_equal_raw_episodes": 48,
+          "max_abs_difference_on_common_steps": {
+            "position": 0,
+            "quaternion_xyzw": 0,
+            "linear": 0,
+            "angular": 0
+          }
+        },
+        "before_first_force": {
+          "episodes": 64,
+          "bitwise_equal_raw_episodes": 64,
+          "max_abs_difference_on_common_steps": {
+            "position": 0,
+            "quaternion_xyzw": 0,
+            "linear": 0,
+            "angular": 0
+          }
+        }
+      },
+      {
+        "seed": 10043,
+        "initial_xy_equal": true,
+        "origins_equal": true,
+        "body_masses_equal": true,
+        "non_repeated": {
+          "episodes": 48,
+          "bitwise_equal_raw_episodes": 16,
+          "max_abs_difference_on_common_steps": {
+            "position": 0.0657585859298706,
+            "quaternion_xyzw": 0.07038401253521442,
+            "linear": 0.34412420354783535,
+            "angular": 3.1825810503214598
+          }
+        },
+        "before_first_force": {
+          "episodes": 64,
+          "bitwise_equal_raw_episodes": 16,
+          "max_abs_difference_on_common_steps": {
+            "position": 0.0007066726684570312,
+            "quaternion_xyzw": 0.0018659764900803566,
+            "linear": 0.016618870431557298,
+            "angular": 0.22699081152677536
+          }
+        }
+      },
+      {
+        "seed": 10044,
+        "initial_xy_equal": true,
+        "origins_equal": true,
+        "body_masses_equal": true,
+        "non_repeated": {
+          "episodes": 48,
+          "bitwise_equal_raw_episodes": 6,
+          "max_abs_difference_on_common_steps": {
+            "position": 0.14208221435546875,
+            "quaternion_xyzw": 0.2267785593867302,
+            "linear": 0.849423736333847,
+            "angular": 8.681875944137573
+          }
+        },
+        "before_first_force": {
+          "episodes": 64,
+          "bitwise_equal_raw_episodes": 8,
+          "max_abs_difference_on_common_steps": {
+            "position": 0.0005025863647460938,
+            "quaternion_xyzw": 0.001410485478118062,
+            "linear": 0.01497644791379571,
+            "angular": 0.22394577227532864
+          }
+        }
+      }
+    ],
+    "interpretation": "Descriptive only: same seeds do not erase prior reset/RNG/parallel-physics history. No bitwise-equality admission gate."
+  }
+}

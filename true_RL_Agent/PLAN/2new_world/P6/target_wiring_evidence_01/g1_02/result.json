@@ -1,0 +1,1084 @@
+{
+  "purpose": "P6 development wiring only; no holdout or task qualification",
+  "cell": "push.g1_37dof.recovery_v2",
+  "started_at_unix": 1789143387.3459256,
+  "manifest_hash": "4726c3887360627fe63502e0ed7ae893be8bd757b429e91d5c21758145b04098",
+  "train_policy_io": {
+    "schema_version": "true_rl_agent.task.push_recovery.runtime_policy_io.v2",
+    "action_dim": 37,
+    "observation_group_dims": {
+      "policy": [
+        123
+      ]
+    },
+    "observation_group_terms": {
+      "policy": [
+        "base_lin_vel",
+        "base_ang_vel",
+        "projected_gravity",
+        "velocity_commands",
+        "joint_pos",
+        "joint_vel",
+        "actions"
+      ]
+    },
+    "action_terms": [
+      "joint_pos"
+    ],
+    "control_dt_s": 0.02,
+    "control": {
+      "control_dt_s": 0.02,
+      "decimation": 4,
+      "simulation_dt_s": 0.005
+    },
+    "joint_names": [
+      "left_hip_pitch_joint",
+      "right_hip_pitch_joint",
+      "torso_joint",
+      "left_hip_roll_joint",
+      "right_hip_roll_joint",
+      "left_shoulder_pitch_joint",
+      "right_shoulder_pitch_joint",
+      "left_hip_yaw_joint",
+      "right_hip_yaw_joint",
+      "left_shoulder_roll_joint",
+      "right_shoulder_roll_joint",
+      "left_knee_joint",
+      "right_knee_joint",
+      "left_shoulder_yaw_joint",
+      "right_shoulder_yaw_joint",
+      "left_ankle_pitch_joint",
+      "right_ankle_pitch_joint",
+      "left_elbow_pitch_joint",
+      "right_elbow_pitch_joint",
+      "left_ankle_roll_joint",
+      "right_ankle_roll_joint",
+      "left_elbow_roll_joint",
+      "right_elbow_roll_joint",
+      "left_five_joint",
+      "left_three_joint",
+      "left_zero_joint",
+      "right_five_joint",
+      "right_three_joint",
+      "right_zero_joint",
+      "left_six_joint",
+      "left_four_joint",
+      "left_one_joint",
+      "right_six_joint",
+      "right_four_joint",
+      "right_one_joint",
+      "left_two_joint",
+      "right_two_joint"
+    ],
+    "actions": [
+      {
+        "name": "joint_pos",
+        "class": "isaaclab.envs.mdp.actions.actions_cfg.JointPositionActionCfg",
+        "asset_name": "robot",
+        "joint_names": [
+          ".*"
+        ],
+        "scale": 0.5,
+        "use_default_offset": true
+      }
+    ],
+    "effective_actions": [
+      {
+        "name": "joint_pos",
+        "joint_names": [
+          "left_hip_pitch_joint",
+          "right_hip_pitch_joint",
+          "torso_joint",
+          "left_hip_roll_joint",
+          "right_hip_roll_joint",
+          "left_shoulder_pitch_joint",
+          "right_shoulder_pitch_joint",
+          "left_hip_yaw_joint",
+          "right_hip_yaw_joint",
+          "left_shoulder_roll_joint",
+          "right_shoulder_roll_joint",
+          "left_knee_joint",
+          "right_knee_joint",
+          "left_shoulder_yaw_joint",
+          "right_shoulder_yaw_joint",
+          "left_ankle_pitch_joint",
+          "right_ankle_pitch_joint",
+          "left_elbow_pitch_joint",
+          "right_elbow_pitch_joint",
+          "left_ankle_roll_joint",
+          "right_ankle_roll_joint",
+          "left_elbow_roll_joint",
+          "right_elbow_roll_joint",
+          "left_five_joint",
+          "left_three_joint",
+          "left_zero_joint",
+          "right_five_joint",
+          "right_three_joint",
+          "right_zero_joint",
+          "left_six_joint",
+          "left_four_joint",
+          "left_one_joint",
+          "right_six_joint",
+          "right_four_joint",
+          "right_one_joint",
+          "left_two_joint",
+          "right_two_joint"
+        ],
+        "scale": 0.5
+      }
+    ],
+    "policy_observation": {
+      "concatenate_terms": true,
+      "enable_corruption_by_mode": {
+        "train": true,
+        "eval": false
+      },
+      "history_length": null,
+      "terms": [
+        {
+          "name": "base_lin_vel",
+          "callable": "isaaclab.envs.mdp.observations.base_lin_vel",
+          "params": {},
+          "scale": null,
+          "clip": null,
+          "noise": {
+            "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+            "n_min": -0.1,
+            "n_max": 0.1,
+            "operation": "add"
+          }
+        },
+        {
+          "name": "base_ang_vel",
+          "callable": "isaaclab.envs.mdp.observations.base_ang_vel",
+          "params": {},
+          "scale": null,
+          "clip": null,
+          "noise": {
+            "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+            "n_min": -0.2,
+            "n_max": 0.2,
+            "operation": "add"
+          }
+        },
+        {
+          "name": "projected_gravity",
+          "callable": "isaaclab.envs.mdp.observations.projected_gravity",
+          "params": {},
+          "scale": null,
+          "clip": null,
+          "noise": {
+            "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+            "n_min": -0.05,
+            "n_max": 0.05,
+            "operation": "add"
+          }
+        },
+        {
+          "name": "velocity_commands",
+          "callable": "isaaclab.envs.mdp.observations.generated_commands",
+          "params": {
+            "command_name": "base_velocity"
+          },
+          "scale": null,
+          "clip": null,
+          "noise": null
+        },
+        {
+          "name": "joint_pos",
+          "callable": "isaaclab.envs.mdp.observations.joint_pos_rel",
+          "params": {},
+          "scale": null,
+          "clip": null,
+          "noise": {
+            "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+            "n_min": -0.01,
+            "n_max": 0.01,
+            "operation": "add"
+          }
+        },
+        {
+          "name": "joint_vel",
+          "callable": "isaaclab.envs.mdp.observations.joint_vel_rel",
+          "params": {},
+          "scale": null,
+          "clip": null,
+          "noise": {
+            "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+            "n_min": -1.5,
+            "n_max": 1.5,
+            "operation": "add"
+          }
+        },
+        {
+          "name": "actions",
+          "callable": "isaaclab.envs.mdp.observations.last_action",
+          "params": {},
+          "scale": null,
+          "clip": null,
+          "noise": null
+        }
+      ]
+    },
+    "sensors": {},
+    "policy_observation_term_dimensions": {
+      "base_lin_vel": 3,
+      "base_ang_vel": 3,
+      "projected_gravity": 3,
+      "velocity_commands": 3,
+      "joint_pos": 37,
+      "joint_vel": 37,
+      "actions": 37
+    },
+    "effective_observation_corruption": true,
+    "height_scanner_present": false,
+    "manifest_checks": {
+      "joint_names": true,
+      "actions": true,
+      "control": true,
+      "policy_observation": true,
+      "action_dimension": true,
+      "policy_observation_dimension": true,
+      "term_dimensions": true,
+      "sensors": true,
+      "effective_action_scales": true,
+      "resolved_action_joint_order": true,
+      "observation_corruption": true,
+      "height_scanner_removed": true
+    },
+    "verified_declared_content_hashes": {
+      "action_content_hash": "eee8cc1e190d79989d4ea761a812e058f74b1efd70d7197f702922da003d4c75",
+      "observation_content_hash": "1ceddcd6103065838c8b1b4e61757284fc751862d7d736d50a5a3f35513a0573",
+      "sensor_schema_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "policy_io_schema_hash": "c73d93eb768f237396ce0fdbd84725625f0228624e1432195f839aa900f48114"
+    },
+    "evidence_hash": "149675f52611f9715497178da698c600058bd136cf5291846cc9261da815410b"
+  },
+  "training": {
+    "control_steps": 4608,
+    "checkpoint_sha256": "sha256:286273d73fa6cee2b972297e739796daf3d72475202037975966d7daa43c8ab8",
+    "resumed_checkpoint_sha256": "sha256:dfe9973ddb14452505feeafe7f69755bd3deb874978ca8351d24fd9d92372e32",
+    "optimizer_and_inference_reload_exact": true,
+    "runtime": {
+      "schema_version": "true_rl_agent.push_recovery.candidate_runtime.v2",
+      "step_calls": 72,
+      "reward_term_calls": 360,
+      "diagnostic_calls": 0,
+      "nonzero_reward_contribution": true,
+      "last_candidate_reward_mean": 0.8519505858421326,
+      "max_abs_candidate_reward": 20.017562866210938,
+      "last_reward_weight_scale": 1.0,
+      "reward_output_stats": {
+        "mean": 0.586717,
+        "finite_fraction": 1.0
+      },
+      "diagnostic_outputs": {},
+      "last_reward_terms": [
+        {
+          "name": "upright_height",
+          "kind": "reward",
+          "shape": [
+            64
+          ],
+          "dtype": "torch.float32",
+          "num_envs": 64,
+          "finite": true,
+          "clip_min": null,
+          "clip_max": null,
+          "clip_applied": false,
+          "mean": 0.654048,
+          "weight": 3.0,
+          "reward_weight_scale": 1.0,
+          "effective_weight": 3.0
+        },
+        {
+          "name": "stationary",
+          "kind": "reward",
+          "shape": [
+            64
+          ],
+          "dtype": "torch.float32",
+          "num_envs": 64,
+          "finite": true,
+          "clip_min": null,
+          "clip_max": null,
+          "clip_applied": false,
+          "mean": 0.16263,
+          "weight": 1.0,
+          "reward_weight_scale": 1.0,
+          "effective_weight": 1.0
+        },
+        {
+          "name": "joint_pose",
+          "kind": "reward",
+          "shape": [
+            64
+          ],
+          "dtype": "torch.float32",
+          "num_envs": 64,
+          "finite": true,
+          "clip_min": null,
+          "clip_max": null,
+          "clip_applied": false,
+          "mean": 0.02533,
+          "weight": -0.1,
+          "reward_weight_scale": 1.0,
+          "effective_weight": -0.1
+        },
+        {
+          "name": "action_rate",
+          "kind": "reward",
+          "shape": [
+            64
+          ],
+          "dtype": "torch.float32",
+          "num_envs": 64,
+          "finite": true,
+          "clip_min": null,
+          "clip_max": null,
+          "clip_applied": false,
+          "mean": 2.029075,
+          "weight": -0.01,
+          "reward_weight_scale": 1.0,
+          "effective_weight": -0.01
+        },
+        {
+          "name": "fall",
+          "kind": "reward",
+          "shape": [
+            64
+          ],
+          "dtype": "torch.float32",
+          "num_envs": 64,
+          "finite": true,
+          "clip_min": null,
+          "clip_max": null,
+          "clip_applied": false,
+          "mean": 0.0625,
+          "weight": -20.0,
+          "reward_weight_scale": 1.0,
+          "effective_weight": -20.0
+        }
+      ],
+      "component_activation_records": [
+        {
+          "name": "upright_height",
+          "observation_count": 72,
+          "nonzero_observation_count": 72,
+          "max_abs_weighted_contribution": 2.9998764991760254,
+          "last_weighted_mean": 1.962145,
+          "effective_weight": 3.0,
+          "sampling_interval_steps": 1,
+          "component_kind": "reward_term",
+          "nonzero_observation_fraction": 1.0
+        },
+        {
+          "name": "stationary",
+          "observation_count": 72,
+          "nonzero_observation_count": 72,
+          "max_abs_weighted_contribution": 0.9914029836654663,
+          "last_weighted_mean": 0.16263,
+          "effective_weight": 1.0,
+          "sampling_interval_steps": 1,
+          "component_kind": "reward_term",
+          "nonzero_observation_fraction": 1.0
+        },
+        {
+          "name": "joint_pose",
+          "observation_count": 72,
+          "nonzero_observation_count": 72,
+          "max_abs_weighted_contribution": 0.00770284840837121,
+          "last_weighted_mean": -0.002533,
+          "effective_weight": -0.1,
+          "sampling_interval_steps": 1,
+          "component_kind": "reward_term",
+          "nonzero_observation_fraction": 1.0
+        },
+        {
+          "name": "action_rate",
+          "observation_count": 72,
+          "nonzero_observation_count": 72,
+          "max_abs_weighted_contribution": 0.04457183554768562,
+          "last_weighted_mean": -0.020291,
+          "effective_weight": -0.01,
+          "sampling_interval_steps": 1,
+          "component_kind": "reward_term",
+          "nonzero_observation_fraction": 1.0
+        },
+        {
+          "name": "fall",
+          "observation_count": 72,
+          "nonzero_observation_count": 53,
+          "max_abs_weighted_contribution": 20.0,
+          "last_weighted_mean": -1.25,
+          "effective_weight": -20.0,
+          "sampling_interval_steps": 1,
+          "component_kind": "reward_term",
+          "nonzero_observation_fraction": 0.736111
+        }
+      ],
+      "input_provenance": {
+        "base_height": "observed",
+        "roll": "observed",
+        "pitch": "observed",
+        "base_pos_xy": "observed",
+        "base_lin_vel": "observed",
+        "base_ang_vel": "observed",
+        "projected_gravity": "observed",
+        "commanded_base_vel": "observed",
+        "joint_pos": "observed",
+        "joint_vel": "observed",
+        "joint_pos_error": "observed",
+        "last_action": "observed",
+        "prev_action": "zero_fallback",
+        "action_delta": "observed",
+        "push_active": "observed",
+        "push_vec_public": "observed",
+        "progress_fraction": "runner_owned",
+        "nominal_base_height": "task_owned_bound_scale",
+        "base_height_relative": "task_owned_bound_scale",
+        "base_lin_vel_scaled": "task_owned_bound_scale",
+        "base_ang_vel_scaled": "task_owned_bound_scale",
+        "terminated_non_timeout": "trusted_pre_reset_termination"
+      },
+      "feature_activation_records": [],
+      "capability_activation_records": [
+        "reward_callable"
+      ]
+    }
+  },
+  "eval_policy_io": {
+    "no_push": {
+      "schema_version": "true_rl_agent.task.push_recovery.runtime_policy_io.v2",
+      "action_dim": 37,
+      "observation_group_dims": {
+        "policy": [
+          123
+        ]
+      },
+      "observation_group_terms": {
+        "policy": [
+          "base_lin_vel",
+          "base_ang_vel",
+          "projected_gravity",
+          "velocity_commands",
+          "joint_pos",
+          "joint_vel",
+          "actions"
+        ]
+      },
+      "action_terms": [
+        "joint_pos"
+      ],
+      "control_dt_s": 0.02,
+      "control": {
+        "control_dt_s": 0.02,
+        "decimation": 4,
+        "simulation_dt_s": 0.005
+      },
+      "joint_names": [
+        "left_hip_pitch_joint",
+        "right_hip_pitch_joint",
+        "torso_joint",
+        "left_hip_roll_joint",
+        "right_hip_roll_joint",
+        "left_shoulder_pitch_joint",
+        "right_shoulder_pitch_joint",
+        "left_hip_yaw_joint",
+        "right_hip_yaw_joint",
+        "left_shoulder_roll_joint",
+        "right_shoulder_roll_joint",
+        "left_knee_joint",
+        "right_knee_joint",
+        "left_shoulder_yaw_joint",
+        "right_shoulder_yaw_joint",
+        "left_ankle_pitch_joint",
+        "right_ankle_pitch_joint",
+        "left_elbow_pitch_joint",
+        "right_elbow_pitch_joint",
+        "left_ankle_roll_joint",
+        "right_ankle_roll_joint",
+        "left_elbow_roll_joint",
+        "right_elbow_roll_joint",
+        "left_five_joint",
+        "left_three_joint",
+        "left_zero_joint",
+        "right_five_joint",
+        "right_three_joint",
+        "right_zero_joint",
+        "left_six_joint",
+        "left_four_joint",
+        "left_one_joint",
+        "right_six_joint",
+        "right_four_joint",
+        "right_one_joint",
+        "left_two_joint",
+        "right_two_joint"
+      ],
+      "actions": [
+        {
+          "name": "joint_pos",
+          "class": "isaaclab.envs.mdp.actions.actions_cfg.JointPositionActionCfg",
+          "asset_name": "robot",
+          "joint_names": [
+            ".*"
+          ],
+          "scale": 0.5,
+          "use_default_offset": true
+        }
+      ],
+      "effective_actions": [
+        {
+          "name": "joint_pos",
+          "joint_names": [
+            "left_hip_pitch_joint",
+            "right_hip_pitch_joint",
+            "torso_joint",
+            "left_hip_roll_joint",
+            "right_hip_roll_joint",
+            "left_shoulder_pitch_joint",
+            "right_shoulder_pitch_joint",
+            "left_hip_yaw_joint",
+            "right_hip_yaw_joint",
+            "left_shoulder_roll_joint",
+            "right_shoulder_roll_joint",
+            "left_knee_joint",
+            "right_knee_joint",
+            "left_shoulder_yaw_joint",
+            "right_shoulder_yaw_joint",
+            "left_ankle_pitch_joint",
+            "right_ankle_pitch_joint",
+            "left_elbow_pitch_joint",
+            "right_elbow_pitch_joint",
+            "left_ankle_roll_joint",
+            "right_ankle_roll_joint",
+            "left_elbow_roll_joint",
+            "right_elbow_roll_joint",
+            "left_five_joint",
+            "left_three_joint",
+            "left_zero_joint",
+            "right_five_joint",
+            "right_three_joint",
+            "right_zero_joint",
+            "left_six_joint",
+            "left_four_joint",
+            "left_one_joint",
+            "right_six_joint",
+            "right_four_joint",
+            "right_one_joint",
+            "left_two_joint",
+            "right_two_joint"
+          ],
+          "scale": 0.5
+        }
+      ],
+      "policy_observation": {
+        "concatenate_terms": true,
+        "enable_corruption_by_mode": {
+          "train": true,
+          "eval": false
+        },
+        "history_length": null,
+        "terms": [
+          {
+            "name": "base_lin_vel",
+            "callable": "isaaclab.envs.mdp.observations.base_lin_vel",
+            "params": {},
+            "scale": null,
+            "clip": null,
+            "noise": {
+              "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+              "n_min": -0.1,
+              "n_max": 0.1,
+              "operation": "add"
+            }
+          },
+          {
+            "name": "base_ang_vel",
+            "callable": "isaaclab.envs.mdp.observations.base_ang_vel",
+            "params": {},
+            "scale": null,
+            "clip": null,
+            "noise": {
+              "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+              "n_min": -0.2,
+              "n_max": 0.2,
+              "operation": "add"
+            }
+          },
+          {
+            "name": "projected_gravity",
+            "callable": "isaaclab.envs.mdp.observations.projected_gravity",
+            "params": {},
+            "scale": null,
+            "clip": null,
+            "noise": {
+              "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+              "n_min": -0.05,
+              "n_max": 0.05,
+              "operation": "add"
+            }
+          },
+          {
+            "name": "velocity_commands",
+            "callable": "isaaclab.envs.mdp.observations.generated_commands",
+            "params": {
+              "command_name": "base_velocity"
+            },
+            "scale": null,
+            "clip": null,
+            "noise": null
+          },
+          {
+            "name": "joint_pos",
+            "callable": "isaaclab.envs.mdp.observations.joint_pos_rel",
+            "params": {},
+            "scale": null,
+            "clip": null,
+            "noise": {
+              "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+              "n_min": -0.01,
+              "n_max": 0.01,
+              "operation": "add"
+            }
+          },
+          {
+            "name": "joint_vel",
+            "callable": "isaaclab.envs.mdp.observations.joint_vel_rel",
+            "params": {},
+            "scale": null,
+            "clip": null,
+            "noise": {
+              "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+              "n_min": -1.5,
+              "n_max": 1.5,
+              "operation": "add"
+            }
+          },
+          {
+            "name": "actions",
+            "callable": "isaaclab.envs.mdp.observations.last_action",
+            "params": {},
+            "scale": null,
+            "clip": null,
+            "noise": null
+          }
+        ]
+      },
+      "sensors": {},
+      "policy_observation_term_dimensions": {
+        "base_lin_vel": 3,
+        "base_ang_vel": 3,
+        "projected_gravity": 3,
+        "velocity_commands": 3,
+        "joint_pos": 37,
+        "joint_vel": 37,
+        "actions": 37
+      },
+      "effective_observation_corruption": false,
+      "height_scanner_present": false,
+      "manifest_checks": {
+        "joint_names": true,
+        "actions": true,
+        "control": true,
+        "policy_observation": true,
+        "action_dimension": true,
+        "policy_observation_dimension": true,
+        "term_dimensions": true,
+        "sensors": true,
+        "effective_action_scales": true,
+        "resolved_action_joint_order": true,
+        "observation_corruption": true,
+        "height_scanner_removed": true
+      },
+      "verified_declared_content_hashes": {
+        "action_content_hash": "eee8cc1e190d79989d4ea761a812e058f74b1efd70d7197f702922da003d4c75",
+        "observation_content_hash": "1ceddcd6103065838c8b1b4e61757284fc751862d7d736d50a5a3f35513a0573",
+        "sensor_schema_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "policy_io_schema_hash": "c73d93eb768f237396ce0fdbd84725625f0228624e1432195f839aa900f48114"
+      },
+      "evidence_hash": "1de22e975d1028a349b36bb81e7cb2a56849de329f754623c0bb411ebde60df8"
+    },
+    "recovery_v2": {
+      "schema_version": "true_rl_agent.task.push_recovery.runtime_policy_io.v2",
+      "action_dim": 37,
+      "observation_group_dims": {
+        "policy": [
+          123
+        ]
+      },
+      "observation_group_terms": {
+        "policy": [
+          "base_lin_vel",
+          "base_ang_vel",
+          "projected_gravity",
+          "velocity_commands",
+          "joint_pos",
+          "joint_vel",
+          "actions"
+        ]
+      },
+      "action_terms": [
+        "joint_pos"
+      ],
+      "control_dt_s": 0.02,
+      "control": {
+        "control_dt_s": 0.02,
+        "decimation": 4,
+        "simulation_dt_s": 0.005
+      },
+      "joint_names": [
+        "left_hip_pitch_joint",
+        "right_hip_pitch_joint",
+        "torso_joint",
+        "left_hip_roll_joint",
+        "right_hip_roll_joint",
+        "left_shoulder_pitch_joint",
+        "right_shoulder_pitch_joint",
+        "left_hip_yaw_joint",
+        "right_hip_yaw_joint",
+        "left_shoulder_roll_joint",
+        "right_shoulder_roll_joint",
+        "left_knee_joint",
+        "right_knee_joint",
+        "left_shoulder_yaw_joint",
+        "right_shoulder_yaw_joint",
+        "left_ankle_pitch_joint",
+        "right_ankle_pitch_joint",
+        "left_elbow_pitch_joint",
+        "right_elbow_pitch_joint",
+        "left_ankle_roll_joint",
+        "right_ankle_roll_joint",
+        "left_elbow_roll_joint",
+        "right_elbow_roll_joint",
+        "left_five_joint",
+        "left_three_joint",
+        "left_zero_joint",
+        "right_five_joint",
+        "right_three_joint",
+        "right_zero_joint",
+        "left_six_joint",
+        "left_four_joint",
+        "left_one_joint",
+        "right_six_joint",
+        "right_four_joint",
+        "right_one_joint",
+        "left_two_joint",
+        "right_two_joint"
+      ],
+      "actions": [
+        {
+          "name": "joint_pos",
+          "class": "isaaclab.envs.mdp.actions.actions_cfg.JointPositionActionCfg",
+          "asset_name": "robot",
+          "joint_names": [
+            ".*"
+          ],
+          "scale": 0.5,
+          "use_default_offset": true
+        }
+      ],
+      "effective_actions": [
+        {
+          "name": "joint_pos",
+          "joint_names": [
+            "left_hip_pitch_joint",
+            "right_hip_pitch_joint",
+            "torso_joint",
+            "left_hip_roll_joint",
+            "right_hip_roll_joint",
+            "left_shoulder_pitch_joint",
+            "right_shoulder_pitch_joint",
+            "left_hip_yaw_joint",
+            "right_hip_yaw_joint",
+            "left_shoulder_roll_joint",
+            "right_shoulder_roll_joint",
+            "left_knee_joint",
+            "right_knee_joint",
+            "left_shoulder_yaw_joint",
+            "right_shoulder_yaw_joint",
+            "left_ankle_pitch_joint",
+            "right_ankle_pitch_joint",
+            "left_elbow_pitch_joint",
+            "right_elbow_pitch_joint",
+            "left_ankle_roll_joint",
+            "right_ankle_roll_joint",
+            "left_elbow_roll_joint",
+            "right_elbow_roll_joint",
+            "left_five_joint",
+            "left_three_joint",
+            "left_zero_joint",
+            "right_five_joint",
+            "right_three_joint",
+            "right_zero_joint",
+            "left_six_joint",
+            "left_four_joint",
+            "left_one_joint",
+            "right_six_joint",
+            "right_four_joint",
+            "right_one_joint",
+            "left_two_joint",
+            "right_two_joint"
+          ],
+          "scale": 0.5
+        }
+      ],
+      "policy_observation": {
+        "concatenate_terms": true,
+        "enable_corruption_by_mode": {
+          "train": true,
+          "eval": false
+        },
+        "history_length": null,
+        "terms": [
+          {
+            "name": "base_lin_vel",
+            "callable": "isaaclab.envs.mdp.observations.base_lin_vel",
+            "params": {},
+            "scale": null,
+            "clip": null,
+            "noise": {
+              "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+              "n_min": -0.1,
+              "n_max": 0.1,
+              "operation": "add"
+            }
+          },
+          {
+            "name": "base_ang_vel",
+            "callable": "isaaclab.envs.mdp.observations.base_ang_vel",
+            "params": {},
+            "scale": null,
+            "clip": null,
+            "noise": {
+              "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+              "n_min": -0.2,
+              "n_max": 0.2,
+              "operation": "add"
+            }
+          },
+          {
+            "name": "projected_gravity",
+            "callable": "isaaclab.envs.mdp.observations.projected_gravity",
+            "params": {},
+            "scale": null,
+            "clip": null,
+            "noise": {
+              "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+              "n_min": -0.05,
+              "n_max": 0.05,
+              "operation": "add"
+            }
+          },
+          {
+            "name": "velocity_commands",
+            "callable": "isaaclab.envs.mdp.observations.generated_commands",
+            "params": {
+              "command_name": "base_velocity"
+            },
+            "scale": null,
+            "clip": null,
+            "noise": null
+          },
+          {
+            "name": "joint_pos",
+            "callable": "isaaclab.envs.mdp.observations.joint_pos_rel",
+            "params": {},
+            "scale": null,
+            "clip": null,
+            "noise": {
+              "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+              "n_min": -0.01,
+              "n_max": 0.01,
+              "operation": "add"
+            }
+          },
+          {
+            "name": "joint_vel",
+            "callable": "isaaclab.envs.mdp.observations.joint_vel_rel",
+            "params": {},
+            "scale": null,
+            "clip": null,
+            "noise": {
+              "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+              "n_min": -1.5,
+              "n_max": 1.5,
+              "operation": "add"
+            }
+          },
+          {
+            "name": "actions",
+            "callable": "isaaclab.envs.mdp.observations.last_action",
+            "params": {},
+            "scale": null,
+            "clip": null,
+            "noise": null
+          }
+        ]
+      },
+      "sensors": {},
+      "policy_observation_term_dimensions": {
+        "base_lin_vel": 3,
+        "base_ang_vel": 3,
+        "projected_gravity": 3,
+        "velocity_commands": 3,
+        "joint_pos": 37,
+        "joint_vel": 37,
+        "actions": 37
+      },
+      "effective_observation_corruption": false,
+      "height_scanner_present": false,
+      "manifest_checks": {
+        "joint_names": true,
+        "actions": true,
+        "control": true,
+        "policy_observation": true,
+        "action_dimension": true,
+        "policy_observation_dimension": true,
+        "term_dimensions": true,
+        "sensors": true,
+        "effective_action_scales": true,
+        "resolved_action_joint_order": true,
+        "observation_corruption": true,
+        "height_scanner_removed": true
+      },
+      "verified_declared_content_hashes": {
+        "action_content_hash": "eee8cc1e190d79989d4ea761a812e058f74b1efd70d7197f702922da003d4c75",
+        "observation_content_hash": "1ceddcd6103065838c8b1b4e61757284fc751862d7d736d50a5a3f35513a0573",
+        "sensor_schema_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "policy_io_schema_hash": "c73d93eb768f237396ce0fdbd84725625f0228624e1432195f839aa900f48114"
+      },
+      "evidence_hash": "1de22e975d1028a349b36bb81e7cb2a56849de329f754623c0bb411ebde60df8"
+    }
+  },
+  "rollouts": {
+    "no_push": {
+      "status": "pass",
+      "aggregate": {
+        "episodes": 64,
+        "success_count": 0,
+        "successes": 0,
+        "stratum_results": {
+          "low": {
+            "episodes": 0,
+            "successes": 0,
+            "success_rate": null
+          },
+          "medium": {
+            "episodes": 0,
+            "successes": 0,
+            "success_rate": null
+          },
+          "high": {
+            "episodes": 0,
+            "successes": 0,
+            "success_rate": null
+          },
+          "repeated": {
+            "episodes": 0,
+            "successes": 0,
+            "success_rate": null
+          }
+        },
+        "success_rate": null,
+        "failure_breakdown": {
+          "total": 64,
+          "counts": {
+            "no_push_control": 64
+          },
+          "rates": {
+            "no_push_control": 1.0
+          },
+          "dominant_failure": null
+        },
+        "eligible_episode_count": 0,
+        "pushed_episode_count": 0,
+        "planned_push_event_count": 0,
+        "push_event_count": 0,
+        "recovered_event_count": 0,
+        "invalid_injection_count": 0,
+        "control_episode_count": 64,
+        "control_success_count": 0
+      },
+      "execution_cost": {
+        "evaluation_env_count": 64,
+        "vector_env_step_calls": 55,
+        "closed_first_episode_control_steps": 3520
+      }
+    },
+    "recovery_v2": {
+      "status": "pass",
+      "aggregate": {
+        "episodes": 64,
+        "success_count": 0,
+        "successes": 0,
+        "stratum_results": {
+          "low": {
+            "episodes": 16,
+            "successes": 0,
+            "success_rate": 0.0
+          },
+          "medium": {
+            "episodes": 16,
+            "successes": 0,
+            "success_rate": 0.0
+          },
+          "high": {
+            "episodes": 16,
+            "successes": 0,
+            "success_rate": 0.0
+          },
+          "repeated": {
+            "episodes": 16,
+            "successes": 0,
+            "success_rate": 0.0
+          }
+        },
+        "success_rate": 0.0,
+        "failure_breakdown": {
+          "total": 64,
+          "counts": {
+            "fall_forward": 64
+          },
+          "rates": {
+            "fall_forward": 1.0
+          },
+          "dominant_failure": "fall_forward"
+        },
+        "eligible_episode_count": 64,
+        "pushed_episode_count": 0,
+        "planned_push_event_count": 80,
+        "push_event_count": 0,
+        "recovered_event_count": 0,
+        "invalid_injection_count": 0,
+        "control_episode_count": 0,
+        "control_success_count": 0
+      },
+      "execution_cost": {
+        "evaluation_env_count": 64,
+        "vector_env_step_calls": 55,
+        "closed_first_episode_control_steps": 3520
+      }
+    }
+  },
+  "push_event_coverage": {
+    "status": "insufficient",
+    "planned_event_count": 80,
+    "observed_event_count": 0,
+    "events_with_next_physics_evidence": 0,
+    "policy": "zero_action",
+    "failure_breakdown": {
+      "total": 64,
+      "counts": {
+        "fall_forward": 64
+      },
+      "rates": {
+        "fall_forward": 1.0
+      },
+      "dominant_failure": "fall_forward"
+    },
+    "scope": "diagnostic coverage only; insufficient events do not establish injection correctness"
+  },
+  "status": "PASS",
+  "ended_at_unix": 1789143419.2083573
+}

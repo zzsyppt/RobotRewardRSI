@@ -25,6 +25,7 @@ from true_rl_agent.agent_core.authoring_loop import (
     CandidateAuthoringLoop,
     CandidateAuthoringResult,
 )
+from true_rl_agent.agent_core.provider_errors import ProviderCandidateError, ProviderServiceUnavailableError
 from true_rl_agent.agent_core.generation import (
     FixedWidthGenerationInputs,
     GenerationLaneRuntime,
@@ -32,6 +33,8 @@ from true_rl_agent.agent_core.generation import (
     execute_fixed_width_generation,
 )
 from true_rl_agent.agent_core.generation_contract import (
+    GENERATION_LEDGER_RECORD_SCHEMA_VERSION,
+    GENERATION_LEDGER_RECORD_V3_SCHEMA_VERSION,
     GENERATION_MANIFEST_SCHEMA_VERSION,
     GENERATION_MANIFEST_V2_SCHEMA_VERSION,
     GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION,
@@ -67,6 +70,8 @@ from true_rl_agent.agent_core.ledger import (
 )
 from true_rl_agent.agent_core.round import RoundInputs, execute_candidate_trial
 from true_rl_agent.agent_core.trial_receipts import (
+    TRIAL_EXECUTION_CONTRACT_SCHEMA_VERSION,
+    TrialReceiptJournal,
     TrialReceiptRef,
     _train_result_from_private_mapping,
     _train_result_to_private_mapping,
@@ -81,6 +86,7 @@ from true_rl_agent.evaluation.binding import canonical_json_hash
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
 from true_rl_agent.evaluation.phases import EvaluationPhase, EvaluationPhaseResult
 from true_rl_agent.evaluation.public_projection import assert_public_projection_safe
+from true_rl_agent.evaluation.subject import ExperimentSubject
 from true_rl_agent.fs_contract import create_once_bytes, read_bounded_regular_file
 from true_rl_agent.json_contract import canonical_json_bytes, strict_json_object_loads
 from true_rl_agent.memory import ExperimentRecord, PublicContextBuilder
@@ -92,7 +98,7 @@ from true_rl_agent.runner.base import (
     TrainJobResult,
 )
 from true_rl_agent.runner.job_attempts import JobAttemptJournal, JobAttemptScope
-from true_rl_agent.runner.specs import EvalPhaseJobSpec, GpuProcessBinding
+from true_rl_agent.runner.specs import EvalJobSpec, EvalPhaseJobSpec, GpuProcessBinding
 from true_rl_agent.runner.subprocess_runner import SubprocessRunner
 from true_rl_agent.agent_core.generation_attempt_scopes import (
     GenerationLaneOperationScopes,
@@ -275,12 +281,12 @@ class _Assembly:
 
 
 class _PhasedRunner(FakeRunner):
-    def __init__(self, events: list[str]) -> None:
+    def __init__(self, events: list[str], *, public_dev_parties: int = 2) -> None:
         self.events = events
         self._lock = threading.Lock()
         self._train_barrier = threading.Barrier(2, timeout=5.0)
         self._phase_barriers = {
-            EvaluationPhase.PUBLIC_DEV: threading.Barrier(2, timeout=5.0),
+            EvaluationPhase.PUBLIC_DEV: threading.Barrier(public_dev_parties, timeout=5.0),
             EvaluationPhase.PUBLIC_ACCEPT: threading.Barrier(1, timeout=5.0),
         }
         self.phase_calls: list[tuple[str, EvaluationPhase]] = []
@@ -786,6 +792,7 @@ class FixedWidthGenerationTests(unittest.TestCase):
             )
             context_builder = PublicContextBuilder(
                 task_prompt_adapter=task.prompt_adapter(),
+                phased_evaluation_adapter=_PhasedAdapter([]),
                 acceptance_protocol=FAKE_ACCEPTANCE_PROTOCOL,
                 initial_current_best=parent,
                 session_genesis_hash=FAKE_SESSION_GENESIS_HASH,
@@ -831,16 +838,42 @@ class FixedWidthGenerationTests(unittest.TestCase):
                     canonical_json_hash(lane_intents["lane-b"]),
                 ),
             )
-            guard_phase_ref = TrialReceiptRef(
-                kind="eval_phase",
-                path=str(root / "guard" / "public_dev.json"),
-                checksum="sha256:" + "9" * 64,
-                size_bytes=1,
+            assert parent_execution.train_result is not None
+            guard_plan = EvalJobSpec(
+                job_id="reference-parent-eval",
+                task_id=task.task_spec.task_id,
+                subject=ExperimentSubject.reference("reference-parent"),
+                subject_manifest_hash=canonical_json_hash({
+                    "reference_id": "reference-parent",
+                    "program_source_checksum": parent.program_source_checksum,
+                }),
+                program_source_checksum=parent.program_source_checksum,
+                training_binding_hash=parent.training_binding_hash,
+                capability_profile_hash=parent.capability_profile_hash,
+                checkpoint=parent_execution.train_result.checkpoint,
+                public_seed_count=4,
+                sealed_validation_seed_count=8,
+                evaluation_binding=binding,
+                execution_device="cpu",
+                metadata={"fake_public_score": 0.30},
             )
+            guard_spec = EvalPhaseJobSpec(
+                job_id="reference-parent-public-dev", evaluation_plan=guard_plan,
+                phase=EvaluationPhase.PUBLIC_DEV,
+            )
+            guard_phase = _PhasedRunner([], public_dev_parties=1).run_eval_phase(guard_spec)
+            guard_journal = TrialReceiptJournal(root / "guard", contract={
+                "schema_version": TRIAL_EXECUTION_CONTRACT_SCHEMA_VERSION,
+                "session_genesis_hash": FAKE_SESSION_GENESIS_HASH,
+                "ledger_epoch_hash": primary_ledger_epoch_hash(FAKE_SESSION_GENESIS_HASH),
+                "round_id": "reference-parent",
+            })
+            guard_journal.bind_contract()
+            guard_phase_ref = guard_journal.publish_eval_phase(guard_spec, guard_phase)
             guard_evidence = _Screen(
                 trial_id="reference-parent",
-                phase_result_hash="6" * 64,
-                evaluation_plan_hash="7" * 64,
+                phase_result_hash=canonical_json_hash(guard_phase.to_private_dict()),
+                evaluation_plan_hash=guard_phase.evaluation_plan_hash,
                 checkpoint_hash=parent.checkpoint_hash,
                 execution_device="cpu",
                 resource_binding_hash=None,
@@ -867,6 +900,7 @@ class FixedWidthGenerationTests(unittest.TestCase):
                 gpu_bindings: tuple[GpuProcessBinding, ...] | None = None,
                 invocation_segment_id: str | None = None,
                 stair_job_identity: bool = False,
+                ledger_record_schema: str = GENERATION_LEDGER_RECORD_SCHEMA_VERSION,
             ) -> FixedWidthGenerationInputs:
                 case_lane_assignments = (
                     lane_assignments
@@ -920,6 +954,7 @@ class FixedWidthGenerationTests(unittest.TestCase):
                     max_generations=max_generations,
                     max_trials=max_generations * 2,
                     max_train_jobs=max_generations * 2,
+                    ledger_record_schema=ledger_record_schema,
                     bound_contract_hashes=bound_contract_hashes,
                     **contract_kwargs,
                 )
@@ -1973,18 +2008,44 @@ class FixedWidthGenerationTests(unittest.TestCase):
                         acceptance_protocol=FAKE_ACCEPTANCE_PROTOCOL,
                         expected_parent=parent,
                     )
-            projected = project_public_history(
-                ledger,
-                initial_current_best=parent,
-                expected_session_genesis_hash=FAKE_SESSION_GENESIS_HASH,
-                acceptance_protocol=FAKE_ACCEPTANCE_PROTOCOL,
-                expected_authoring_mode=PROVIDER_AUTHORING_MODE,
-                expected_ledger_epoch_hash=primary_ledger_epoch_hash(
+            projection_args = {
+                "initial_current_best": parent,
+                "expected_session_genesis_hash": FAKE_SESSION_GENESIS_HASH,
+                "acceptance_protocol": FAKE_ACCEPTANCE_PROTOCOL,
+                "expected_authoring_mode": PROVIDER_AUTHORING_MODE,
+                "expected_ledger_epoch_hash": primary_ledger_epoch_hash(
                     FAKE_SESSION_GENESIS_HASH
                 ),
-            )
+                "phased_evaluation_adapter": generation_inputs.phased_adapter,
+            }
+            projected = project_public_history(ledger, **projection_args)
             with self.subTest(scenario="public_projection_is_safe_and_replay_equal"):
+                from true_rl_agent.agent_core import generation_record as generation_record_module
+
+                self.assertIsNotNone(ledger[0]["formal"])
+                with patch.object(generation_record_module, "_load_bound_trial_execution",
+                                  wraps=generation_record_module._load_bound_trial_execution) as load_execution:
+                    direct_formal_projection = generation_record_module.project_generation_public_history_record(
+                        ledger[0], public_decision=projected.records[0]["decision"],
+                        acceptance_protocol=FAKE_ACCEPTANCE_PROTOCOL, expected_parent=parent,
+                        phased_evaluation_adapter=generation_inputs.phased_adapter)
+                self.assertEqual(direct_formal_projection, projected.records[0])
+                expected_executed_trials = [trial["trial_id"] for trial in ledger[0]["trials"]
+                                            if trial["execution_record_hash"] is not None]
+                self.assertTrue(expected_executed_trials)
+                self.assertEqual(load_execution.call_count, len(expected_executed_trials))
+                self.assertEqual(
+                    [call.args[0]["trial_id"] for call in load_execution.call_args_list],
+                    expected_executed_trials)
                 self.assertEqual(projected.current_best, replay.current_best)
+                self.assertEqual(
+                    projected, project_public_history(ledger, **projection_args)
+                )
+                for original, rebuilt in zip(
+                    ledger[0]["trials"], projected.records[0]["generation"]["trials"]
+                ):
+                    for phase in ("public_dev", "public_accept"):
+                        self.assertEqual(original[phase], rebuilt[phase])
                 generation_experiment = ExperimentRecord.from_ledger_record(ledger[0])
                 public_record = generation_experiment.ledger_public_record()
                 self.assertNotIn("private_artifacts", public_record)
@@ -2005,6 +2066,49 @@ class FixedWidthGenerationTests(unittest.TestCase):
                     ],
                     "inline",
                 )
+                provider_memory = next_prompt.provider_payload["public_history"]["experiment_memory"]
+                self.assertEqual(provider_memory["trial_outcome_columns"][-1], "runtime_observation")
+                provider_trials = provider_memory["experiments"][0]["trial_outcomes"]
+                self.assertEqual(len(provider_trials), 2)
+                for raw_trial, row in zip(ledger[0]["trials"], provider_trials):
+                    self.assertEqual(len(row), 10)
+                    self.assertEqual(row[:2], [
+                        raw_trial["lane_id"].removeprefix("lane-"),
+                        raw_trial["candidate"]["candidate_id"],
+                    ])
+                    self.assertEqual(row[-1], "executed_nonzero")
+                self.assertNotIn("runtime_observation", provider_memory["experiments"][0])
+            with self.subTest(scenario="public_phase_requires_task_adapter"):
+                with self.assertRaisesRegex(ValueError, "requires the phased evaluation adapter"):
+                    project_public_history(
+                        ledger, **{**projection_args, "phased_evaluation_adapter": None}
+                    )
+            for trial_index, phase in ((0, "public_dev"), (1, "public_dev"), (1, "public_accept")):
+                with self.subTest(scenario="summary_only_tamper_is_rejected", trial=trial_index, phase=phase):
+                    tampered_summary = deepcopy(ledger[0])
+                    tampered_summary["trials"][trial_index][phase]["public_summary"]["score"] = 0.987654321
+                    # Every immutable identity/hash still validates. Public
+                    # consumers additionally bind the task summary to that receipt.
+                    validate_generation_ledger_record(
+                        tampered_summary,
+                        acceptance_protocol=FAKE_ACCEPTANCE_PROTOCOL,
+                        expected_parent=parent,
+                    )
+                    with self.assertRaisesRegex(ValueError, "public summary/phase receipt mismatch"):
+                        project_public_history([tampered_summary], **projection_args)
+                    with self.assertRaisesRegex(ValueError, "public summary/phase receipt mismatch"):
+                        context_builder.build_prompt([
+                            ExperimentRecord.from_ledger_record(tampered_summary)
+                        ])
+            with self.subTest(scenario="valid_sibling_summary_cannot_change_source_identity"):
+                swapped = deepcopy(ledger[0])
+                left, right = swapped["trials"]
+                self.assertNotEqual(left["public_dev"]["public_summary"], right["public_dev"]["public_summary"])
+                left["public_dev"]["public_summary"], right["public_dev"]["public_summary"] = (
+                    right["public_dev"]["public_summary"], left["public_dev"]["public_summary"]
+                )
+                with self.assertRaisesRegex(ValueError, "public summary/phase receipt mismatch"):
+                    project_public_history([swapped], **projection_args)
             with self.subTest(scenario="authoring_receipt_tamper_is_rejected"):
                 tampered = deepcopy(ledger[0])
                 authoring_ref = next(
@@ -2117,11 +2221,35 @@ class FixedWidthGenerationTests(unittest.TestCase):
                 self.assertEqual(tie_memory["experiments"][0]["reason"], "no_selection")
                 self.assertNotIn("candidate_id", tie_memory["experiments"][0])
                 self.assertNotIn("candidate_components", tie_memory["experiments"][0])
+                # Run the task projection on a receipt-validated production
+                # generation, then the same shared context/memory consumer.
+                from true_rl_agent.agent_core.context import build_public_context_from_projected
+                from true_rl_agent.memory.context_builder import _project_prompt_public_history
+                from true_rl_agent.tasks.push_recovery.config import PushRecoveryTaskConfig
+                from true_rl_agent.tasks.push_recovery.prompt_adapter import PushRecoveryPromptAdapter
+
+                push_history = project_public_history([tie_result.record],
+                    initial_current_best=parent,
+                    expected_session_genesis_hash=FAKE_SESSION_GENESIS_HASH,
+                    acceptance_protocol=FAKE_ACCEPTANCE_PROTOCOL,
+                    expected_authoring_mode=PROVIDER_AUTHORING_MODE,
+                    phased_evaluation_adapter=tie_adapter)
+                push_projection = _project_prompt_public_history(
+                    PushRecoveryPromptAdapter(PushRecoveryTaskConfig.for_cell("push.go2_12dof.recovery_v3")),
+                    public_records=push_history.records, initial_anchor_public_evidence=None)
+                push_context = build_public_context_from_projected(
+                    replace(push_history, records=push_projection.records))
+                push_memory = push_context["experiment_memory"]["experiments"][0]
+                self.assertIsNone(push_projection.records[0]["generation"]["formal"])
+                self.assertNotIn("candidate_components", push_memory)
+                self.assertEqual(len(push_memory["trial_outcomes"]), 2)
+                self.assertEqual([row[1] for row in push_memory["trial_outcomes"]],
+                    [trial["candidate"]["candidate_id"] for trial in tie_result.record["trials"]])
                 latest_failed_payloads = [
                     item
                     for item in tie_prompt.provider_payload["source_payloads"]
                     if item["logical_id"]
-                    == "attempt/latest_failed/training_code/components.py"
+                    == "memory/latest_nonaccepted/training_code/components.py"
                 ]
                 self.assertEqual(
                     len(latest_failed_payloads),
@@ -2180,34 +2308,35 @@ class FixedWidthGenerationTests(unittest.TestCase):
                 )
                 self.assertEqual(
                     observed["source_logical_id"],
-                    "memory/best_observed/training_code/components.py",
+                    "memory/latest_nonaccepted/training_code/components.py",
                 )
                 self.assertIn(
                     "candidate-formal-reject-a",
                     payloads[
-                        "memory/best_observed/training_code/components.py"
+                        "memory/latest_nonaccepted/training_code/components.py"
                     ]["content"],
                 )
-                self.assertIn(
-                    "candidate-formal-reject-b",
-                    payloads[
-                        "attempt/latest_failed/training_code/components.py"
-                    ]["content"],
+                self.assertNotIn(
+                    "memory/best_observed/training_code/components.py", payloads
+                )
+                best_item = next(
+                    item for item in reject_prompt["source_catalog"]["items"]
+                    if item["logical_id"]
+                    == "memory/best_observed/training_code/components.py"
+                )
+                self.assertEqual(best_item["status"], "alias")
+                self.assertEqual(best_item["alias_of"], observed["source_logical_id"])
+                self.assertFalse(observed["accepted"])
+                self.assertEqual(
+                    observed["authority"], "authoring_anchor_only_not_policy_best"
                 )
                 self.assertEqual(
                     observed["source_sha256"],
                     payloads[
-                        "memory/best_observed/training_code/components.py"
+                        "memory/latest_nonaccepted/training_code/components.py"
                     ]["content_sha256"],
                 )
-                self.assertNotEqual(
-                    payloads[
-                        "memory/best_observed/training_code/components.py"
-                    ]["content_sha256"],
-                    payloads[
-                        "attempt/latest_failed/training_code/components.py"
-                    ]["content_sha256"],
-                )
+                self.assertEqual(best_item["content_sha256"], observed["source_sha256"])
 
             with self.subTest(scenario="lane_b_repeat_closes_without_training"):
                 duplicate_b = _write_candidate(
@@ -2280,6 +2409,54 @@ class FixedWidthGenerationTests(unittest.TestCase):
                 self.assertFalse(
                     any(item.startswith("train-start:") for item in a_failure_events)
                 )
+
+            with self.subTest(scenario="service_failure_does_not_commit_a_generation"):
+                class UnavailableProvider:
+                    def next_candidate(self, *, prompt_payload):
+                        raise ProviderCandidateError("runtime_error", "billing unavailable", details={
+                            "failure_kind": "http_error", "http_status": 402, "retryable": False,
+                        })
+
+                service_events = []
+                service_runner = _PhasedRunner(service_events)
+                unused_b = _OneCandidateProvider(candidate_b)
+                service_inputs = _build_inputs(
+                    case_id="service-unavailable", provider_a=UnavailableProvider(), provider_b=unused_b,
+                    events=service_events, runner=service_runner, adapter=_PhasedAdapter(service_events),
+                    ledger_record_schema=GENERATION_LEDGER_RECORD_V3_SCHEMA_VERSION,
+                )
+                with self.assertRaisesRegex(ProviderServiceUnavailableError, "HTTP 402"):
+                    execute_fixed_width_generation(service_inputs)
+                self.assertFalse(service_inputs.ledger_path.exists())
+                self.assertEqual(unused_b.payloads, [])
+                self.assertEqual(service_runner.phase_calls, [])
+                self.assertFalse(any(event.startswith("train-start:") for event in service_events))
+
+            with self.subTest(scenario="v3_failed_authoring_keeps_b_not_started"):
+                pair_events = []
+                pair_runner = _PhasedRunner(pair_events)
+                b_provider = _OneCandidateProvider(candidate_b)
+                pair_inputs = _build_inputs(
+                    case_id="v3-authoring-stop",
+                    provider_a=_OneCandidateProvider(duplicate_a), provider_b=b_provider,
+                    events=pair_events, runner=pair_runner, adapter=_PhasedAdapter(pair_events),
+                    ledger_record_schema=GENERATION_LEDGER_RECORD_V3_SCHEMA_VERSION,
+                )
+                pair = execute_fixed_width_generation(pair_inputs)
+                self.assertEqual(pair.record["generation_outcome"], "paired_authoring_incomplete")
+                self.assertEqual([item["trial_status"] for item in pair.record["trials"]],
+                                 ["candidate_failed", "not_started"])
+                self.assertEqual(b_provider.payloads, [])
+                self.assertEqual(pair_runner.phase_calls, [])
+                self.assertFalse(any(item.startswith("train-start:") for item in pair_events))
+                memory = context_builder.build_prompt([ExperimentRecord.from_ledger_record(pair.record)])
+                rows = memory.round_public_context["experiment_memory"]["experiments"][0]["trial_outcomes"]
+                self.assertEqual(len(rows), 2)
+                self.assertEqual(rows[1], ["b", None, None, None, "not_started", None, None, None,
+                                           "lane_not_started", "not_available"])
+                repeated = execute_fixed_width_generation(pair_inputs)
+                self.assertEqual(repeated.record, pair.record)
+                self.assertFalse(repeated.committed)
 
             with self.subTest(scenario="lane_a_receipt_is_reused_after_b_interrupt"):
                 resume_policy = GenerationContinuationPolicy(
@@ -2388,6 +2565,43 @@ class FixedWidthGenerationTests(unittest.TestCase):
                 self.assertEqual(resume_audit.closed_generation_count, 1)
                 self.assertTrue(resume_audit.continuation_eligible)
 
+            with self.subTest(scenario="post_train_runtime_stop_keeps_receipts_and_skips_eval"):
+                stopped_events = []
+                stopped_runner = _PhasedRunner(stopped_events)
+                stopped_inputs = _build_inputs(case_id="post-train-stop",
+                    provider_a=_OneCandidateProvider(candidate_a), provider_b=_OneCandidateProvider(candidate_b),
+                    events=stopped_events, runner=stopped_runner, adapter=_PhasedAdapter(stopped_events))
+                with patch.object(type(task), "training_runtime_issue", return_value={
+                    "status": "fail", "reason": "fixture_observed_zero_change", "acceptance_authority": False}) as gate:
+                    sealed_stop = []
+
+                    def crash_after_stop(_journal, record):
+                        sealed_stop.append(deepcopy(record))
+                        raise RuntimeError("exit after runtime rejection")
+
+                    with patch(
+                        "true_rl_agent.agent_core.generation.GenerationReceiptJournal.publish_execution",
+                        crash_after_stop,
+                    ), self.assertRaisesRegex(RuntimeError, "exit after runtime rejection"):
+                        execute_fixed_width_generation(stopped_inputs)
+                    execution_events = [e for e in stopped_events if not e.startswith("author-")]
+                    stopped = execute_fixed_width_generation(stopped_inputs)
+                    self.assertEqual(gate.call_count, 2)
+                    self.assertEqual([e for e in stopped_events if not e.startswith("author-")], execution_events)
+                    for key in ("trials", "generation_outcome", "selection", "formal"):
+                        self.assertEqual(stopped.record[key], sealed_stop[0][key])
+                    repeated = execute_fixed_width_generation(stopped_inputs)
+                    self.assertEqual(repeated.record, stopped.record)
+                    self.assertFalse(repeated.committed)
+                self.assertEqual(stopped_runner.phase_calls, [])
+                self.assertEqual([trial["trial_status"] for trial in stopped.record["trials"]],
+                                 ["candidate_failed", "candidate_failed"])
+                for trial in stopped.record["trials"]:
+                    self.assertIsNotNone(trial["train"])
+                    self.assertIsNone(trial["public_dev"])
+                self.assertIsNone(stopped.record["selection"])
+                self.assertIsNone(stopped.record["formal"])
+
             with self.subTest(
                 scenario="train_timeout_closes_candidate_execution_incomplete"
             ):
@@ -2428,6 +2642,155 @@ class FixedWidthGenerationTests(unittest.TestCase):
                     train_timeout_runner.phase_calls,
                     [(candidate_b.candidate_id, EvaluationPhase.PUBLIC_DEV)],
                 )
+                mixed_history = project_public_history(
+                    [train_timeout_result.record], **projection_args
+                )
+                mixed_generation = mixed_history.records[0]["generation"]
+                self.assertIsNone(mixed_generation["trials"][0]["public_dev"])
+                self.assertEqual(
+                    mixed_generation["trials"][1]["public_dev"], trials[1]["public_dev"]
+                )
+                self.assertEqual(
+                    mixed_generation["parent_public_dev"],
+                    generation_inputs.phased_adapter.project_public_phase_summary(
+                        phase_result=guard_phase
+                    ),
+                )
+                self.assertEqual(mixed_history.current_best, parent)
+                mixed_prompt = context_builder.build_prompt([
+                    ExperimentRecord.from_ledger_record(train_timeout_result.record)
+                ])
+                self.assertEqual(
+                    mixed_prompt.parent_program_source_checksum,
+                    parent.program_source_checksum,
+                )
+                mixed_memory = mixed_prompt.provider_payload["public_history"]["experiment_memory"]
+                self.assertEqual(mixed_memory["trial_outcome_columns"][-1], "runtime_observation")
+                mixed_rows = mixed_memory["experiments"][0]["trial_outcomes"]
+                self.assertEqual([row[:2] for row in mixed_rows], [
+                    [trial["lane_id"].removeprefix("lane-"), trial["candidate"]["candidate_id"]]
+                    for trial in trials
+                ])
+                self.assertEqual(mixed_rows[0][-1], "not_available")
+                self.assertEqual(mixed_rows[1][-1], "executed_nonzero")
+                self.assertNotIn("runtime_observation", mixed_memory["experiments"][0])
+                self.assertEqual(
+                    mixed_prompt.provider_payload,
+                    context_builder.build_prompt([
+                        ExperimentRecord.from_ledger_record(train_timeout_result.record)
+                    ]).provider_payload,
+                )
+
+            with self.subTest(scenario="failed_training_sampling_survives_bound_generation_receipt"):
+                import sys
+                from tests.integration.test_live_loop import _LIVE_TEST_FAILURE_CONTRACT
+                from tests.unit.test_training_sampling_projection import sampling_fixture
+                from true_rl_agent.evaluation.public_projection import project_public_training_sampling
+                from true_rl_agent.runner.subprocess_runner import _SummaryJobCompletion
+                from true_rl_agent.tasks.push_recovery.prompt_adapter import _runtime_feedback_summary
+                from true_rl_agent.tasks.stair_climbing.prompt_adapter import _latest_runtime_feedback
+                from true_rl_agent.tasks.stair_climbing.composition import StairClimbingCompositionProvider
+                from true_rl_agent.composition import TaskCompositionContext
+                from true_rl_agent.prompting import build_prompt_payload
+
+                partial = sampling_fixture()
+                expected_sampling = project_public_training_sampling(partial)
+                materialize = _CpuPhasedBackend.materialize_jobs
+
+                def failed_jobs(backend_self, **kwargs):
+                    jobs = materialize(backend_self, **kwargs)
+                    return replace(jobs, train_spec=replace(jobs.train_spec,
+                        candidate_failure_contract=_LIVE_TEST_FAILURE_CONTRACT))
+
+                class SamplingFailureRunner(_PhasedRunner):
+                    def run_train(self, train_spec):
+                        self._event(f"train-start:{train_spec.subject.subject_id}")
+                        self._train_barrier.wait()
+                        failure_summary = {"status": "fail", "errors": [],
+                            "candidate_failure": _LIVE_TEST_FAILURE_CONTRACT.evidence(
+                                stage="reward_execution", reason_code="runtime_rejected").to_public_dict(),
+                            "training": {"numeric_evidence": partial}}
+                        # The sibling/execution-receipt half of the CPU bridge.
+                        # A separate test exercises real nonzero child output
+                        # through SubprocessRunner.run_train and ordinary rounds.
+                        SubprocessRunner(allowed_executables=(sys.executable,))._raise_failed_train_summary(
+                            _SummaryJobCompletion(failure_summary, "fail", 1), train_spec=train_spec)
+
+                sampling_events = []
+                sampling_runner = SamplingFailureRunner(sampling_events)
+                sampling_inputs = _build_inputs(case_id="failed-sampling",
+                    provider_a=_OneCandidateProvider(candidate_a), provider_b=_OneCandidateProvider(candidate_b),
+                    events=sampling_events, runner=sampling_runner, adapter=_PhasedAdapter(sampling_events))
+                with patch.object(_CpuPhasedBackend, "materialize_jobs", failed_jobs):
+                    sampling_result = execute_fixed_width_generation(sampling_inputs)
+                    repeated = execute_fixed_width_generation(sampling_inputs)
+                self.assertEqual(repeated.record, sampling_result.record)
+                self.assertFalse(repeated.committed)
+                self.assertEqual(sampling_runner.phase_calls, [])
+                for trial in sampling_result.record["trials"]:
+                    self.assertIsNone(trial["train"])
+                    self.assertEqual(trial["trial_status"], "candidate_failed")
+                sampling_history = project_public_history([sampling_result.record], **projection_args)
+                from true_rl_agent.agent_core import generation_record as generation_record_module
+
+                # One projection loads each failed sibling's bound execution
+                # receipt once, including all checksum/identity validation.
+                with patch.object(generation_record_module, "_load_bound_trial_execution",
+                                  wraps=generation_record_module._load_bound_trial_execution) as load_execution:
+                    directly_projected = generation_record_module.project_generation_public_history_record(
+                        sampling_result.record,
+                        public_decision=sampling_history.records[0]["decision"],
+                        acceptance_protocol=FAKE_ACCEPTANCE_PROTOCOL,
+                        expected_parent=parent,
+                        phased_evaluation_adapter=sampling_inputs.phased_adapter,
+                    )
+                self.assertEqual(directly_projected, sampling_history.records[0])
+                self.assertEqual(load_execution.call_count, 2)
+                self.assertEqual(
+                    [call.args[0]["trial_id"] for call in load_execution.call_args_list],
+                    [trial["trial_id"] for trial in sampling_result.record["trials"]],
+                )
+                # Output is not a trusted input/cache, and a failure after the
+                # receipt loads must not expose partially validated records.
+                validated_out = {"untrusted-input": {"runner_error": "forged"}}
+                late_invalid = deepcopy(sampling_result.record)
+                late_invalid["resulting_current_best_hash"] = "0" * 64
+                with self.assertRaisesRegex(ValueError, "resulting current-best projection mismatch"):
+                    validate_generation_ledger_record(
+                        late_invalid, acceptance_protocol=FAKE_ACCEPTANCE_PROTOCOL,
+                        expected_parent=parent, validated_execution_records_out=validated_out)
+                self.assertEqual(validated_out, {"untrusted-input": {"runner_error": "forged"}})
+                validate_generation_ledger_record(
+                    sampling_result.record, acceptance_protocol=FAKE_ACCEPTANCE_PROTOCOL,
+                    expected_parent=parent, validated_execution_records_out=validated_out)
+                self.assertEqual(set(validated_out), {trial["trial_id"] for trial in sampling_result.record["trials"]})
+                invalid_binding = deepcopy(sampling_result.record)
+                invalid_binding["trials"][0]["execution_record_hash"] = "1" * 64
+                with self.assertRaisesRegex(ValueError, "execution.*(?:mismatch|differs)"):
+                    generation_record_module.project_generation_public_history_record(
+                        invalid_binding, public_decision=sampling_history.records[0]["decision"],
+                        acceptance_protocol=FAKE_ACCEPTANCE_PROTOCOL, expected_parent=parent,
+                        phased_evaluation_adapter=sampling_inputs.phased_adapter)
+                public_trials = sampling_history.records[0]["generation"]["trials"]
+                for trial in public_trials:
+                    self.assertEqual(trial["runtime_activation_summary"],
+                                     {"status": "not_available", "training_sampling": expected_sampling})
+                for project in (_runtime_feedback_summary, _latest_runtime_feedback):
+                    feedback = project(sampling_history.records)
+                    self.assertEqual(feedback["source_candidate_id"], candidate_b.candidate_id)
+                    self.assertEqual(feedback["latest_runtime_activation"]["training_sampling"], expected_sampling)
+                # Actual task adapter -> final provider payload, using already
+                # receipt-validated public history rather than synthetic trials.
+                stair_provider = StairClimbingCompositionProvider()
+                stair = stair_provider.resolve(
+                    values={**stair_provider.cli_defaults(), "cell_variant_id": "stair.go2_12dof.unified_v3"},
+                    context=TaskCompositionContext(project_root=Path(__file__).resolve().parents[2],
+                                                   output_dir=root / "sampling-stair-composition"))
+                sections = stair.task_plugin.prompt_adapter().build_prompt_sections(
+                    public_records=sampling_history.records, public_context={})
+                task_payload = build_prompt_payload(public_context={"task_prompt_sections": sections})
+                self.assertEqual(task_payload["runtime_feedback_summary"]["latest_runtime_activation"]["training_sampling"],
+                                 expected_sampling)
 
             with self.subTest(
                 scenario="train_contract_failure_remains_fatal"

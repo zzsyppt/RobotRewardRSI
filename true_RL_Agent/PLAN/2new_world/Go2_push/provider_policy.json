@@ -1,0 +1,20 @@
+{
+  "api_key_env": "DEEPSEEK_API_KEY",
+  "base_url": "https://api.deepseek.com",
+  "endpoint": "/chat/completions",
+  "model": "deepseek-flash",
+  "max_output_tokens": 32768,
+  "timeout_s": 240,
+  "temperature": 0.2,
+  "reasoning_mode": "adaptive",
+  "reasoning_effort": "max",
+  "empty_final_reasoning_retry": true,
+  "max_attempts_per_lane": 5,
+  "input_units_per_attempt_reserve": 65536,
+  "model_context": {
+    "context_window_tokens": 1048576,
+    "max_output_tokens": 393216,
+    "tokenizer_count_source": "provider_usage_prompt_tokens",
+    "specification_source": "https://api-docs.deepseek.com/quick_start/pricing/ (verified 2026-09-22; DeepSeek-V4.1-Flash)"
+  }
+}

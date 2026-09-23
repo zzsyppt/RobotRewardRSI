@@ -13,6 +13,7 @@ from true_rl_agent.agent_core.context import sanitize_public_context
 from true_rl_agent.agent_core.generation_contract import (
     GENERATION_LANE_IDS,
     GENERATION_LEDGER_RECORD_V2_SCHEMA_VERSION,
+    GENERATION_LEDGER_RECORD_V3_SCHEMA_VERSION,
     GENERATION_MANIFEST_V2_SCHEMA_VERSION,
     GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION,
     GenerationManifest,
@@ -27,8 +28,8 @@ from true_rl_agent.agent_core.generation_receipts import (
 )
 from true_rl_agent.agent_core.generation_record import (
     GENERATION_FORMAL_PROJECTION_SCHEMA_VERSION,
-    GENERATION_PHASE_PROJECTION_SCHEMA_VERSION,
     GENERATION_TRIAL_RECORD_SCHEMA_VERSION,
+    build_trial_phase_projection,
     commit_generation_record,
     validate_generation_ledger_record,
 )
@@ -65,6 +66,7 @@ from true_rl_agent.evaluation.phased_adapter import (
 from true_rl_agent.evaluation.phases import EvaluationPhase, EvaluationPhaseResult
 from true_rl_agent.evaluation.public_projection import project_public_runner_error
 from true_rl_agent.prompt_artifacts import (
+    authoring_prompt_verifier_rules,
     verify_authoring_anchor_prompt,
     verify_authoring_evidence,
     verify_prompt_payload,
@@ -260,8 +262,7 @@ def execute_fixed_width_generation(
     for index, state in enumerate(states):
         if index == 1 and states[0].status != "authoring_verified":
             break
-        if index == 1:
-            assert exclusion is not None
+        if index == 1 and exclusion is not None:
             state.sibling_exclusion_hash = exclusion.exclusion_hash
         state.authoring = state.runtime.author(exclusion)
         _validate_authoring_result(inputs, state, exclusion=exclusion)
@@ -286,8 +287,7 @@ def execute_fixed_width_generation(
                 state.status = "candidate_failed"
                 state.status_reason = "sibling_exclusion_unavailable"
                 break
-        else:
-            assert exclusion is not None
+        elif exclusion is not None:
             try:
                 equivalence = exclusion.compare_candidate(
                     candidate=_require_authored_candidate(state.authoring),
@@ -301,9 +301,10 @@ def execute_fixed_width_generation(
                 raise ValueError("verified lane B is not semantically distinct")
 
     if any(state.status != "authoring_verified" for state in states):
-        if states[0].status == "authoring_verified":
-            states[0].status = "verified_not_run"
-            states[0].status_reason = "paired_authoring_incomplete"
+        for state in states:
+            if state.status == "authoring_verified":
+                state.status = "verified_not_run"
+                state.status_reason = "paired_authoring_incomplete"
         return _seal_and_commit(
             inputs,
             journal=journal,
@@ -346,6 +347,9 @@ def execute_fixed_width_generation(
         )
 
     _parallel_apply(states, _run_train_lane)
+    for state in states:
+        if state.status != "candidate_failed" and state.prepared.reused_execution is None:
+            _check_training_runtime_effect(state)
     active = [state for state in states if state.status != "candidate_failed"]
     _parallel_apply(
         active, lambda state: _run_phase(inputs, state, EvaluationPhase.PUBLIC_DEV)
@@ -399,7 +403,7 @@ def execute_fixed_width_generation(
     if selected_state is not None and selected_state.status != "candidate_failed":
         _run_phase(inputs, selected_state, EvaluationPhase.PUBLIC_ACCEPT)
     if selected_state is not None and selected_state.status != "candidate_failed":
-        if inputs.session_contract.ledger_record_schema == GENERATION_LEDGER_RECORD_V2_SCHEMA_VERSION:
+        if inputs.session_contract.ledger_record_schema in {GENERATION_LEDGER_RECORD_V2_SCHEMA_VERSION, GENERATION_LEDGER_RECORD_V3_SCHEMA_VERSION}:
             _check_early_rejection(inputs, selected_state, journal=journal)
     if (selected_state is not None and selected_state.status != "candidate_failed"
             and selected_state.early_rejection is None):
@@ -557,7 +561,7 @@ def _validate_authoring_result(
     )
     if context_hash != inputs.manifest.base_public_context_hash:
         raise ValueError("generation authoring base context differs from manifest")
-    verifier_rules = _provider_verifier_rules(
+    verifier_rules = authoring_prompt_verifier_rules(
         verify_prompt_payload(result.prompt_payload_ref)
     )
     if verifier_rules.get("generation_lane_intent") != dict(state.runtime.lane_intent):
@@ -586,21 +590,6 @@ def _verified_authoring_anchor_prompt(
         expected_selected_prompt=result.prompt_payload_ref,
     )
     return verify_authoring_anchor_prompt(evidence)
-
-
-def _provider_verifier_rules(prompt_payload: Mapping[str, Any]) -> Mapping[str, Any]:
-    required = prompt_payload.get("required_candidate_package")
-    component_contract = (
-        required.get("component_contract") if isinstance(required, Mapping) else None
-    )
-    rules = (
-        component_contract.get("static_verifier_rules")
-        if isinstance(component_contract, Mapping)
-        else None
-    )
-    if not isinstance(rules, Mapping):
-        raise ValueError("generation authoring prompt has no verifier rules")
-    return rules
 
 
 def _require_authored_candidate(result: CandidateAuthoringResult):
@@ -654,6 +643,22 @@ def _validate_round_inputs(
         scope is None for scope in state.runtime.operation_attempt_scopes()
     ):
         raise ValueError("generation CUDA lane requires every operation attempt scope")
+
+
+def _check_training_runtime_effect(state):
+    """Consume task semantics after the immutable train receipt has closed."""
+    prepared, execution = state.prepared, state.train_execution
+    assert prepared is not None and execution is not None
+    issue = prepared.inputs.task_plugin.training_runtime_issue(
+        train_summary=execution.train_result.summary,
+        mechanism_operation_delta=state.operation_delta)
+    if issue is None:
+        return
+    state.trial_execution = finalize_prepared_candidate_trial(prepared,
+        train_execution=execution, failure_reason="post_train_task_gate_failed",
+        runner_error={"type": "TaskTrainingGateRejected", "message": "Completed training did not satisfy the task runtime gate", "details": dict(issue)})
+    state.status = "candidate_failed"
+    state.status_reason = "post_train_task_gate_failed"
 
 
 def _validate_prepared_pair(
@@ -766,6 +771,20 @@ def _run_train_lane(state: _LaneState) -> None:
                 prepared.jobs.eval_spec, train_result.checkpoint
             ),
         )
+        if reused.public_result is None:
+            dev_spec = prepared.inputs.backend_adapter.materialize_eval_phase(
+                eval_plan=state.train_execution.eval_plan,
+                phase=EvaluationPhase.PUBLIC_DEV,
+                attempt_scope=state.runtime.scope_for_phase(EvaluationPhase.PUBLIC_DEV),
+            )
+            if prepared.trial_journal.load_eval_phase(dev_spec) is None:
+                # A final trial receipt is authoritative even when it contains
+                # successful training. No task gate or missing phase may run again.
+                state.status = "candidate_failed"
+                state.status_reason = reused.decision.reason
+                if reused.decision.reason in {"candidate_runtime_failed", "eval_incomplete"}:
+                    state.status_reason += "_public_dev"
+                return
         state.status = "trained"
         state.status_reason = "train_receipt_reused"
         return
@@ -1088,7 +1107,7 @@ def _build_generation_record(
         "resulting_current_best_hash": canonical_json_hash(resulting.to_public_dict()),
         "private_artifacts": private_artifacts,
     }
-    if inputs.session_contract.ledger_record_schema == GENERATION_LEDGER_RECORD_V2_SCHEMA_VERSION:
+    if inputs.session_contract.ledger_record_schema in {GENERATION_LEDGER_RECORD_V2_SCHEMA_VERSION, GENERATION_LEDGER_RECORD_V3_SCHEMA_VERSION}:
         record["early_rejection"] = early_rejection
     return record, resulting
 
@@ -1227,25 +1246,16 @@ def _project_phase(
     assert state.phase_refs is not None and state.phase_job_spec_hashes is not None
     result = state.phase_results[phase]
     ref = state.phase_refs[phase]
-    return {
-        "schema_version": GENERATION_PHASE_PROJECTION_SCHEMA_VERSION,
-        "phase": phase.value,
-        "job_spec_hash": state.phase_job_spec_hashes[phase],
-        "evaluation_plan_hash": result.evaluation_plan_hash,
-        "phase_result_hash": canonical_json_hash(result.to_private_dict()),
-        "phase_receipt_checksum": ref.checksum,
-        "checkpoint_hash": result.checkpoint_hash,
-        "execution_device": result.execution_device,
-        "resource_binding_hash": result.resource_binding_hash,
-        "task_evidence_hash": result.task_evidence_hash,
-        "public_summary": dict(
-            inputs.phased_adapter.project_public_phase_summary(phase_result=result)
-        ),
-    }
+    return build_trial_phase_projection(
+        phase_result=result,
+        job_spec_hash=state.phase_job_spec_hashes[phase],
+        phase_receipt_checksum=ref.checksum,
+        phased_evaluation_adapter=inputs.phased_adapter,
+    )
 
 
 def _generation_outcome(
-    trials: Sequence[Mapping[str, Any]], formal_round: Mapping[str, Any] | None
+    trials: Sequence[Mapping[str, Any]], formal_round: Mapping[str, Any] | None,
 ) -> str:
     statuses = [trial["trial_status"] for trial in trials]
     if statuses in (

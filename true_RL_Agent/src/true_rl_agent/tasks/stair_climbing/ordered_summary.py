@@ -460,12 +460,13 @@ def build_ordered_stair_prompt_feedback(
     completion_mode = str(semantics.outcomes["success"]["completion_mode"])
     feedback = {
         "source_split": "public_dev",
-        "mean_success_rate_by_cell": dict(canonical["aggregate_success_rate_by_cell"]),
         "generalization_summary": {
             "public_dev_objective_score": float(canonical["score_stats"]["mean"]),
             "ordered_suite_hash": suite.suite_hash,
             "split_cohort_hash": suite.cohort_hash("public_dev"),
-            "success_rate_by_cell": dict(canonical["aggregate_success_rate_by_cell"]),
+            "success_count_by_cell": {cell: int(counts["success"])
+                for cell, counts in canonical["primary_outcome_counts_by_cell"].items()},
+            "episodes_per_cell": int(canonical["seed_count"]) * int(canonical["episodes_per_seed_per_cell"]),
             "factor_diagnostics": dict(canonical["factor_diagnostics"]),
         },
         "primary_failure_breakdown": failure_rates,

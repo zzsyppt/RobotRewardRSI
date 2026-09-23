@@ -1,0 +1,206 @@
+[
+  {
+    "robot": "go2",
+    "source": "PLAN/2new_world/P3/results/cohort_alignment_20260909/go2_12dof_qualification/evaluation/public_dev/summary.json",
+    "sha256": "d47b4e9ec12e3662f9637f55a62281c806a46f99369dec6260727a9d815bc3d2",
+    "artifact_kind": "historical_real_simulator_public_dev_result",
+    "new_simulator_run_in_p0": false,
+    "status": "pass",
+    "errors": [],
+    "resolved_cell_identity": {
+      "cell_variant_id": "stair.go2_12dof.unified_v3",
+      "environment_id": "stair_go2_12dof_unified_environment_v3",
+      "resolved_cell_task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+      "robot_profile_id": "unitree_go2_12dof_isaaclab_v1",
+      "robot_task_binding_id": "stair_go2_12dof_unified_binding_v3",
+      "robot_task_cell_id": "unitree_stair_climbing.go2_12dof_v1",
+      "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1"
+    },
+    "resolved_cell_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+    "current_resolved_manifest_hash_match": true,
+    "evaluation_binding": {
+      "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+      "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+      "evaluation_binding_hash": "ff0b754f727af4df616e77d10f8f67019cea485ed76b1b9c6b00cf902c451178",
+      "schema_version": "true_rl_agent.evaluation.binding.v1",
+      "seed_cohort_hash": "a7830816449821400a6ae51fabbb046f8d98ab3084bfcaeb56b240249ea790ea",
+      "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9"
+    },
+    "checkpoint_loading": {
+      "actor_loaded": true,
+      "checkpoint_format": "rsl_rl_5",
+      "critic_loaded": true,
+      "iteration_loaded": false,
+      "optimizer_loaded": false
+    },
+    "task_evidence_hash": "93e0d99a5a0dc59371743f85ebbc82d11a83f7e7a648db59be000a7d030126a2",
+    "summary_schema": "true_rl_agent.task.stair_climbing.unified_evaluation_summary.v3",
+    "ordered_summary_schema": "true_rl_agent.task.stair_climbing.ordered_evaluation_summary.v4",
+    "suite_hash": "0ceb7ad4f7bf0091e62808c2542aca5af3d7c83d61020b85c6ab5762c5b28997",
+    "current_source_summary_validation": {
+      "status": "pass"
+    },
+    "fact_count_closure": "pass",
+    "total_episode_count": 864,
+    "seed_summary_count": 3,
+    "cell_count": 24,
+    "facts_per_cell": {
+      "public_dev.c0_id_level_3": 36,
+      "public_dev.c0_id_level_4": 36,
+      "public_dev.c0_id_level_5": 36,
+      "public_dev.c1_conditional_frontier_level_3": 36,
+      "public_dev.c1_conditional_frontier_level_4": 36,
+      "public_dev.c1_conditional_frontier_level_5": 36,
+      "public_dev.c1_id_level_3": 36,
+      "public_dev.c1_id_level_4": 36,
+      "public_dev.c1_id_level_5": 36,
+      "public_dev.c2_mechanism_ood_level_2": 36,
+      "public_dev.c2_mechanism_ood_level_4": 36,
+      "public_dev.c2_mechanism_ood_level_5": 36,
+      "public_dev.height_ood_level_1": 36,
+      "public_dev.height_ood_level_4": 36,
+      "public_dev.height_ood_level_5": 36,
+      "public_dev.joint_ood_level_1": 36,
+      "public_dev.joint_ood_level_2": 36,
+      "public_dev.joint_ood_level_3": 36,
+      "public_dev.phase_composition_ood_level_3": 36,
+      "public_dev.phase_composition_ood_level_4": 36,
+      "public_dev.phase_composition_ood_level_5": 36,
+      "public_dev.tread_ood_level_2": 36,
+      "public_dev.tread_ood_level_3": 36,
+      "public_dev.tread_ood_level_5": 36
+    },
+    "episode_fact_fields": [
+      "diagnostic_flags",
+      "episode_steps",
+      "primary_reason",
+      "progress_fraction"
+    ],
+    "primary_counts": {
+      "base_orientation_instability": 22,
+      "forbidden_contact": 113,
+      "insufficient_clearance": 0,
+      "off_course": 4,
+      "slip": 0,
+      "success": 689,
+      "timeout": 36
+    },
+    "diagnostic_counts": {
+      "first_valid_top_arrival_achieved": 689,
+      "slip_detected": 715,
+      "goal_not_reached_detected": 173,
+      "base_orientation_instability_detected": 82,
+      "insufficient_clearance_detected": 65,
+      "off_course_detected": 4
+    },
+    "cooccurrence_scope": "whole_episode_only_not_preterminal_window_or_causation",
+    "limitations": [
+      "no_persistent_step_history_in_this_summary",
+      "no_per_body_event_onset",
+      "no_failure_crossing_anchor",
+      "single_checkpoint_per_robot_not_independent_training_replicates"
+    ]
+  },
+  {
+    "robot": "g1",
+    "source": "PLAN/2new_world/P3/results/cohort_alignment_20260909/g1_37dof_qualification/evaluation/public_dev/summary.json",
+    "sha256": "62674fe23a8a88d5f62c23560438dead07bf7df3fdab3364a83ec8a9a1fc1584",
+    "artifact_kind": "historical_real_simulator_public_dev_result",
+    "new_simulator_run_in_p0": false,
+    "status": "pass",
+    "errors": [],
+    "resolved_cell_identity": {
+      "cell_variant_id": "stair.g1_37dof.unified_v3",
+      "environment_id": "stair_unified_c0_c1_environment_v3",
+      "resolved_cell_task_protocol_hash": "69feeb5aaf2216e9725148cebb24aa736284b85f40066761059e7824b8e8e243",
+      "robot_profile_id": "unitree_g1_37dof_isaaclab_v2",
+      "robot_task_binding_id": "stair_g1_37dof_unified_binding_v3",
+      "robot_task_cell_id": "unitree_stair_climbing.g1_37dof_v1",
+      "runtime_adapter_id": "g1_37dof_isaaclab_adapter_v2"
+    },
+    "resolved_cell_manifest_hash": "351a6a670c8047035a4d94b16c5694bfdf27fbfbb698085f31367b46f16993bb",
+    "current_resolved_manifest_hash_match": true,
+    "evaluation_binding": {
+      "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+      "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+      "evaluation_binding_hash": "6e96e04f07f8cb000d5e658c46913a788e3c0380aaea78ee8c46faa15251b666",
+      "schema_version": "true_rl_agent.evaluation.binding.v1",
+      "seed_cohort_hash": "a37aa82260394873113a6bf3ff92d5eee65378ad99fdda25dd73377bc6b333ae",
+      "task_protocol_hash": "69feeb5aaf2216e9725148cebb24aa736284b85f40066761059e7824b8e8e243"
+    },
+    "checkpoint_loading": {
+      "actor_loaded": true,
+      "checkpoint_format": "rsl_rl_5",
+      "critic_loaded": true,
+      "iteration_loaded": false,
+      "optimizer_loaded": false
+    },
+    "task_evidence_hash": "14cb0dc70ee5944c832001dd70a4581f2412d9fb751887a9c55378dc06c8cc3c",
+    "summary_schema": "true_rl_agent.task.stair_climbing.unified_evaluation_summary.v3",
+    "ordered_summary_schema": "true_rl_agent.task.stair_climbing.ordered_evaluation_summary.v4",
+    "suite_hash": "d78f19feeaeb8a7baf725e56acb178d7aaf58f8931f9b8e7e69ede9aa9aca73f",
+    "current_source_summary_validation": {
+      "status": "pass"
+    },
+    "fact_count_closure": "pass",
+    "total_episode_count": 864,
+    "seed_summary_count": 3,
+    "cell_count": 24,
+    "facts_per_cell": {
+      "public_dev.c0_id_level_3": 36,
+      "public_dev.c0_id_level_4": 36,
+      "public_dev.c0_id_level_5": 36,
+      "public_dev.c1_conditional_frontier_level_0": 36,
+      "public_dev.c1_conditional_frontier_level_4": 36,
+      "public_dev.c1_conditional_frontier_level_5": 36,
+      "public_dev.c1_id_level_3": 36,
+      "public_dev.c1_id_level_4": 36,
+      "public_dev.c1_id_level_5": 36,
+      "public_dev.c2_mechanism_ood_level_3": 36,
+      "public_dev.c2_mechanism_ood_level_4": 36,
+      "public_dev.c2_mechanism_ood_level_5": 36,
+      "public_dev.height_ood_level_2": 36,
+      "public_dev.height_ood_level_3": 36,
+      "public_dev.height_ood_level_4": 36,
+      "public_dev.joint_ood_level_2": 36,
+      "public_dev.joint_ood_level_3": 36,
+      "public_dev.joint_ood_level_4": 36,
+      "public_dev.phase_composition_ood_level_3": 36,
+      "public_dev.phase_composition_ood_level_4": 36,
+      "public_dev.phase_composition_ood_level_5": 36,
+      "public_dev.tread_ood_level_2": 36,
+      "public_dev.tread_ood_level_3": 36,
+      "public_dev.tread_ood_level_4": 36
+    },
+    "episode_fact_fields": [
+      "diagnostic_flags",
+      "episode_steps",
+      "primary_reason",
+      "progress_fraction"
+    ],
+    "primary_counts": {
+      "base_orientation_instability": 0,
+      "forbidden_contact": 197,
+      "insufficient_clearance": 0,
+      "off_course": 21,
+      "slip": 0,
+      "success": 618,
+      "timeout": 28
+    },
+    "diagnostic_counts": {
+      "first_valid_top_arrival_achieved": 618,
+      "slip_detected": 292,
+      "goal_not_reached_detected": 221,
+      "base_orientation_instability_detected": 53,
+      "insufficient_clearance_detected": 13,
+      "off_course_detected": 43
+    },
+    "cooccurrence_scope": "whole_episode_only_not_preterminal_window_or_causation",
+    "limitations": [
+      "no_persistent_step_history_in_this_summary",
+      "no_per_body_event_onset",
+      "no_failure_crossing_anchor",
+      "single_checkpoint_per_robot_not_independent_training_replicates"
+    ]
+  }
+]

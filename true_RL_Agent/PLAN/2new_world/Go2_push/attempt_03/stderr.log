@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_03/scripts/run_generation_session.py", line 139, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_03/scripts/run_generation_session.py", line 133, in main
+    result = run_generation_session(foundation)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_03/src/true_rl_agent/agent_core/generation_application.py", line 238, in run_generation_session
+    return run_bounded_generation_session(foundation, genesis=genesis, cost_journal=journal,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_03/src/true_rl_agent/agent_core/generation_session.py", line 291, in run_bounded_generation_session
+    result = execute_fixed_width_generation(generation_inputs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_03/src/true_rl_agent/agent_core/generation.py", line 349, in execute_fixed_width_generation
+    _parallel_apply(states, _run_train_lane)
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_03/src/true_rl_agent/agent_core/generation.py", line 748, in _parallel_apply
+    future.result()
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 451, in result
+    self._condition.wait(timeout)
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/threading.py", line 355, in wait
+    waiter.acquire()
+KeyboardInterrupt

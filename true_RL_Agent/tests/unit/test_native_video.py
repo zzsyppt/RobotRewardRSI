@@ -4,10 +4,29 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
-from true_rl_agent.runner.native_video import _encode_frames
+from true_rl_agent.runner.native_video import NativeVideoRecorder, _encode_frames
 
 class NativeVideoEncodingTests(unittest.TestCase):
+    def test_manual_samples_copy_reused_render_buffers_and_default_start_resets_mode(self) -> None:
+        import numpy as np
+
+        pixels = np.zeros((2, 2, 3), dtype=np.uint8)
+        recorder = object.__new__(NativeVideoRecorder)
+        recorder.env = SimpleNamespace(render=lambda: pixels)
+        recorder._recording, recorder._frames = False, []
+        recorder.start("manual", 42, task_records_steps=True)
+        pixels[:] = 7
+        recorder.record_step()
+        pixels[:] = 99
+        self.assertTrue((recorder._frames[0] == 7).all())
+        recorder._recording = False
+        recorder.record_step()
+        self.assertEqual(len(recorder._frames), 1)
+        recorder.start("ordinary", 43)
+        self.assertFalse(recorder._task_records_steps)
+
     def test_every_control_frame_is_encoded_once_in_order(self) -> None:
         import imageio_ffmpeg
         import numpy as np

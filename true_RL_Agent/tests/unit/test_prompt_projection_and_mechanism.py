@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import sys
 import unittest
 from pathlib import Path
@@ -42,10 +43,10 @@ from true_rl_agent.prompting.authoring_frame import (
     AUTHORING_CONTEXT_FRAME_KINDS,
     MAX_AUTHORING_PROMPT_PAYLOAD_BYTES,
     MAX_AUTHORING_SECTION_BYTES,
+    project_sections_for_authoring_frame,
     with_final_prompt_budget,
 )
 from true_rl_agent.prompting.capabilities import build_candidate_capability_profile
-from true_rl_agent.prompting.serialization import canonical_prompt_json_bytes
 from true_rl_agent.prompting.source_catalog import (
     MAX_PROMPT_SOURCE_INLINE_BYTES,
     prompt_source_catalog_logical_ids,
@@ -57,6 +58,47 @@ from true_rl_agent.tasks.push_recovery.candidate_surface import (
 
 
 class PromptProjectionAndMechanismTests(unittest.TestCase):
+    def test_mechanism_repair_keeps_verifier_anchor_without_unrelated_sources(self) -> None:
+        failed_id = "attempt/latest_failed/training_code/components.py"
+        current_id = "current_best/training_code/components.py"
+        observed_id = "memory/best_observed/training_code/components.py"
+        nonaccepted_id = "memory/latest_nonaccepted/training_code/components.py"
+
+        def source(logical_id):
+            return {"logical_id": logical_id, "delivery": "inline", "content": logical_id,
+                    "content_sha256": hashlib.sha256(logical_id.encode()).hexdigest()}
+
+        for anchor, feedback, expected in (
+            (current_id, {"failure_category": "verifier_error"}, {failed_id}),
+            (current_id, {"failure_category": "authoring_policy_violation"}, {failed_id, current_id}),
+            (current_id, {"unresolved_candidate_repair": {"failure_category": "authoring_policy_violation"}}, {failed_id, current_id}),
+            (observed_id, {"failure_category": "authoring_policy_violation"}, {failed_id, observed_id}),
+            (current_id, {"stage": "historical_exact_exclusion", "reason": "historical_exact_program_repeat"},
+                {failed_id, current_id, nonaccepted_id}),
+            (observed_id, {"unresolved_candidate_repair": {"stage": "historical_exact_exclusion"}},
+                {failed_id, observed_id, nonaccepted_id}),
+            (current_id, {"failure_category": "historical_verifier_equivalent_repeat"},
+                {failed_id, current_id, nonaccepted_id}),
+            (observed_id, {"unresolved_candidate_repair": {"failure_category": "historical_verifier_equivalent_repeat"}},
+                {failed_id, observed_id, nonaccepted_id}),
+        ):
+            with self.subTest(anchor=anchor, feedback=feedback):
+                sections = {
+                    "source_catalog": {"items": [{"logical_id": failed_id,
+                        "source_owner": "current_authoring_attempt", "status": "inline"}]},
+                    "source_payloads": [source(anchor), source(failed_id), source(nonaccepted_id), source("examples/unrelated.py")],
+                    "candidate_lineage": {
+                        "current_best": {"source_logical_id": current_id, "anchor_kind": "baseline"},
+                        "best_observed_experiment": {"source_logical_id": observed_id},
+                    },
+                    "provider_or_runtime_repair_feedback": feedback,
+                    "public_history": {"recent_outcomes": [{"irrelevant": True}]},
+                }
+                projected, _ = project_sections_for_authoring_frame(
+                    sections, frame_kind="static_repair", section_order=tuple(sections))
+                self.assertEqual({item["logical_id"] for item in projected["source_payloads"]}, expected)
+                self.assertNotIn("public_history", projected)
+
     def test_task_profile_hides_unready_and_unselected_capabilities(self) -> None:
         profile = build_candidate_capability_profile(
             profile_id="phase_a_hidden_profile",
@@ -289,7 +331,7 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         common_guidance = " ".join(payload["loop_contract"]["evidence_discipline"])
         self.assertIn("public_history.experiment_memory", common_guidance)
         self.assertIn("Use public custom evidence only.", payload["selection_guidance"])
-        self.assertNotIn("task_prompt_sections", payload["public_context"])
+        self.assertNotIn("public_context", payload)
         self.assertIn("component_contract", payload["required_candidate_package"])
         self.assertNotIn("reward_inputs", payload)
         self.assertNotIn("candidate_component_contract", payload)
@@ -434,7 +476,7 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         self.assertNotIn("/data/yuyangliu", text)
         self.assertNotIn("private/raw.txt", text)
         self.assertNotIn("/secrets/", text)
-        self.assertNotIn("note", payload["public_context"])
+        self.assertNotIn("public_context", payload)
 
     def test_prompt_payload_assembler_reuses_task_section_path_scrub(self) -> None:
         payload = build_prompt_payload(
@@ -495,29 +537,7 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
             payload["provider_or_runtime_repair_feedback"]["failure_category"],
             "schema_error",
         )
-        self.assertNotIn("candidate_repair_feedback", payload["public_context"])
-        self.assertEqual(
-            payload["public_context"]["candidate_repair_feedback_ref"],
-            {
-                "available": True,
-                "canonical_section": "provider_or_runtime_repair_feedback",
-            },
-        )
-        self.assertEqual(
-            set(payload["public_context"]),
-            {
-                "schema_version",
-                "deprecated",
-                "public_only",
-                "previous_rounds",
-                "best_public_score",
-                "last_outcome",
-                "pure_knob_streak",
-                "canonical_sections",
-                "candidate_repair_feedback_ref",
-            },
-        )
-        self.assertLess(canonical_prompt_json_bytes(payload["public_context"]), 1024)
+        self.assertNotIn("public_context", payload)
         self.assertLess(
             list(payload).index("schema_version"),
             list(payload).index("provider_or_runtime_repair_feedback"),
@@ -554,10 +574,10 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
             frame["budget_metadata"]["actual_prompt_payload_bytes"],
             len(serialize_prompt_payload(payload).encode("utf-8")),
         )
-        self.assertIn("public_context", frame["included_sections"])
-        self.assertIn("public_context", frame["legacy_alias_sections"])
-        self.assertIn("public_context", frame["budget_metadata"]["section_serialized_bytes"])
-        self.assertIn("public_context", frame["budget_metadata"]["legacy_alias_section_bytes"])
+        self.assertNotIn("public_context", frame["included_sections"])
+        self.assertNotIn("public_context", frame["legacy_alias_sections"])
+        self.assertNotIn("public_context", frame["budget_metadata"]["section_serialized_bytes"])
+        self.assertNotIn("public_context", frame["budget_metadata"]["legacy_alias_section_bytes"])
         for removed_alias in (
             "reward_inputs",
             "candidate_allowed_controls",
@@ -590,10 +610,7 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
             list(payload).index("public_history"),
             list(payload).index("authoring_context_frame"),
         )
-        self.assertLess(
-            list(payload).index("public_context"),
-            list(payload).index("required_candidate_package"),
-        )
+        self.assertNotIn("public_context", payload)
         common_guidance = " ".join(payload["loop_contract"]["evidence_discipline"])
         self.assertIn("numeric-only", common_guidance)
         self.assertIn("historical-source gate", common_guidance)
@@ -655,7 +672,7 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
         assert_public_only_prompt_payload(frame)
         assert_public_only_prompt_payload(payload)
 
-    def test_legacy_public_context_alias_is_fixed_and_does_not_duplicate_history(self) -> None:
+    def test_payload_has_one_canonical_history_and_no_legacy_context_alias(self) -> None:
         payload = build_prompt_payload(
             public_context={
                 "public_only": True,
@@ -673,27 +690,9 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
             }
         )
 
-        alias = payload["public_context"]
-
-        self.assertEqual(
-            alias,
-            {
-                "schema_version": "true_rl_agent.public_context_legacy_summary.v1",
-                "deprecated": True,
-                "public_only": True,
-                "previous_rounds": 2,
-                "best_public_score": 0.42,
-                "last_outcome": "reject",
-                "pure_knob_streak": 1,
-                "canonical_sections": {
-                    "history": "public_history",
-                    "public_feedback": "public_feedback_summary",
-                    "runtime_feedback": "runtime_feedback_summary",
-                },
-            },
-        )
+        self.assertNotIn("public_context", payload)
+        self.assertEqual(payload["public_history"]["previous_rounds"], 2)
         self.assertEqual(len(payload["public_history"]["recent_outcomes"]), 2)
-        self.assertLess(canonical_prompt_json_bytes(alias), 1024)
 
     def test_source_followup_frame_is_provider_constructible_and_omits_recent_history(self) -> None:
         self.assertIn("source_followup", AUTHORING_CONTEXT_FRAME_KINDS)
@@ -760,8 +759,7 @@ class PromptProjectionAndMechanismTests(unittest.TestCase):
             }
         )
 
-        self.assertNotIn("note", payload["public_context"])
-        self.assertLess(canonical_prompt_json_bytes(payload["public_context"]), 1024)
+        self.assertNotIn("public_context", payload)
 
     def test_required_candidate_package_advertises_only_currently_wired_declared_components(self) -> None:
         from true_rl_agent.agent_core.provider_contract import (

@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_push_feedback_projection tests.unit.test_push_recovery_v2_prompt_smoke tests.unit.test_push_force_consumers tests.unit.test_prompt_projection_and_mechanism",
+  "test_count": 52,
+  "elapsed_seconds": 27.891,
+  "failures": 0,
+  "errors": 0,
+  "source": "Observed exec process 32549 completion; terminal output was 52 tests / 27.891s / OK.",
+  "lint": "ruff check --select F,E9: passed for the two product files, two unit-test files and audit_a07_prompt_repairs.py",
+  "scope": [
+    "both robot cells preserve independent current-best and nonaccepted dev evidence",
+    "reference fallback and no redundant current-best table for accepted-only feedback",
+    "minimum-core retains both named evidence sources",
+    "historical exact comparison retains known public sources; syntax repair does not"
+  ]
+}

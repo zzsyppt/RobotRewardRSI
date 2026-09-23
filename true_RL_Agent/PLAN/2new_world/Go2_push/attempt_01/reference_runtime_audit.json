@@ -1,0 +1,231 @@
+{
+  "schema_version": "true_rl_agent.go2_push.reference_runtime_audit.v1",
+  "created_at_utc": "2026-09-22T09:33:52.845505+00:00",
+  "reference_audit_status": "PASS",
+  "five_round_experiment_status": "INTERRUPTED_NOT_ACCEPTED",
+  "acceptance_authority": false,
+  "session_id": "go2-push-5rounds-20260922-a01",
+  "source_commit": "f60324a904a0addd933c9850c812607a3264d43c",
+  "attempt_stop_reason": "blocking_false_rejection_by_emulated_smoke_tensor",
+  "closed_generations_at_audit": 0,
+  "audit_method": "Local read-only identity/receipt hash verification, independent episode predicate and force/impulse arithmetic, production task qualification replay; no simulator rerun.",
+  "training": {
+    "initialization": "random",
+    "imports_reference": false,
+    "env_steps": 49152000,
+    "runtime_steps": 12000,
+    "reward_term_calls": 60000,
+    "latest_checkpoint_iteration": 499,
+    "initial_policy_state_hash": "9a9c8718c855508ad5c96a0064d748a54542f3b87bfdbb151d59361e9b6e2e8b",
+    "checkpoint_checksum": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff"
+  },
+  "checks": {
+    "train_budget_and_runtime_match": true,
+    "phase_receipt_hashes_match": true,
+    "train_eval_identity_match": true,
+    "backend_execution_environment_match": true,
+    "candidate_code_absent_in_eval": true,
+    "all_832_episode_labels_recomputed": true,
+    "all_successes_require_complete_verified_sequence": true,
+    "incomplete_sequences_only_terminated_by_fall": true,
+    "repeated_80pct_and_gap_022_verified": true,
+    "force_and_completed_impulse_arithmetic_verified": true,
+    "qualification_replay_exact_match": true
+  },
+  "phases": {
+    "public_dev": {
+      "successes": 141,
+      "episodes": 192,
+      "score": 0.734375,
+      "strata": {
+        "low": {
+          "successes": 48,
+          "episodes": 48
+        },
+        "medium": {
+          "successes": 47,
+          "episodes": 48
+        },
+        "high": {
+          "successes": 19,
+          "episodes": 48
+        },
+        "repeated": {
+          "successes": 27,
+          "episodes": 48
+        }
+      },
+      "failure_label_counts": {
+        "success_recovered": 141,
+        "height_collapse": 26,
+        "fall_backward": 11,
+        "fall_side": 13,
+        "not_recovered": 1
+      },
+      "fall_interrupted_sequences_in_denominator": 11,
+      "successes_with_drift_over_1m": 44,
+      "invalid_injection_count": 0,
+      "seed_units": 3,
+      "receipt_checksum": "sha256:963630c33f7a5e44154ac08291b968ced8ed266cc50ab79b3ef5b83a2701118e",
+      "phase_result_hash": "385b2f77c52338fd9fe7ff94d92832b5576ff2f9e8b95036c9d3f8fa749de1bf"
+    },
+    "public_accept": {
+      "successes": 142,
+      "episodes": 192,
+      "score": 0.7395833333333334,
+      "strata": {
+        "low": {
+          "successes": 48,
+          "episodes": 48
+        },
+        "medium": {
+          "successes": 48,
+          "episodes": 48
+        },
+        "high": {
+          "successes": 18,
+          "episodes": 48
+        },
+        "repeated": {
+          "successes": 28,
+          "episodes": 48
+        }
+      },
+      "failure_label_counts": {
+        "success_recovered": 142,
+        "fall_backward": 6,
+        "height_collapse": 38,
+        "fall_side": 5,
+        "not_recovered": 1
+      },
+      "fall_interrupted_sequences_in_denominator": 16,
+      "successes_with_drift_over_1m": 44,
+      "invalid_injection_count": 0,
+      "seed_units": 3,
+      "receipt_checksum": "sha256:63a6cd9e88578c90efccad1ec019f0d14d7dfb7f6d15c787d902a65cd52aa120",
+      "phase_result_hash": "afb410b50c983560a425077a369d9a761060d27b961f2afd746f521a9695bc8c"
+    },
+    "sealed_validation": {
+      "successes": 343,
+      "episodes": 448,
+      "score": 0.765625,
+      "strata": {
+        "low": {
+          "successes": 112,
+          "episodes": 112
+        },
+        "medium": {
+          "successes": 107,
+          "episodes": 112
+        },
+        "high": {
+          "successes": 44,
+          "episodes": 112
+        },
+        "repeated": {
+          "successes": 80,
+          "episodes": 112
+        }
+      },
+      "failure_label_counts": {
+        "success_recovered": 343,
+        "fall_side": 19,
+        "fall_backward": 13,
+        "height_collapse": 69,
+        "not_recovered": 4
+      },
+      "fall_interrupted_sequences_in_denominator": 13,
+      "successes_with_drift_over_1m": 121,
+      "invalid_injection_count": 0,
+      "seed_units": 7,
+      "receipt_checksum": "sha256:c07e26968a265c4bde0c46d034d535c6c2496cf693f77aa01afd4d8b364adee4",
+      "phase_result_hash": "b6b00086ab65173ab2108f160bd6fae76a051ed16a4b22eabf03e3d9b4e6d2ed"
+    }
+  },
+  "force_audit": {
+    "recorded_events": 1025,
+    "max_force_error_n": 0.000274658203125,
+    "force_tolerance_n": 0.001,
+    "max_completed_impulse_abs_error_ns": 3.268240938325562e-05,
+    "force_relative_tolerance_for_recalculation": 1e-06,
+    "impulse_relative_tolerance_for_recalculation": 2e-06
+  },
+  "qualification_gate": {
+    "schema_version": "true_rl_agent.reference_qualification_gate.v1",
+    "status": "pass",
+    "protocol_hash": "31622698100045fc8c2fac8707a71a39f84655c2cfde714421fd5b92f748407d",
+    "evidence_hash": "c8a7803049411dc02dfc74c70dacd564fa599c2b39a0893ef5c495d50eb76c2f"
+  },
+  "qualification_evidence": {
+    "schema_version": "true_rl_agent.task.push_recovery.reference_evidence.v3",
+    "protocol_hash": "31622698100045fc8c2fac8707a71a39f84655c2cfde714421fd5b92f748407d",
+    "qualification_contract_hash": "beb7e2e5aae814e836ad9b404af56546bd36d9fdcdbd104f7dfc279b5253b4b5",
+    "gate_statuses": {
+      "accept_evidence_gate": "pass",
+      "budget_accounting": "pass",
+      "recovery_evidence_gate": "pass",
+      "sealed_validation_gate": "pass"
+    },
+    "public_accept_score": 0.7395833333333334,
+    "scope": "standing_recovery_task_and_reference",
+    "public_dev_score": 0.734375,
+    "reference_admission_policy": "observed_outcomes_v1",
+    "evidence_hash": "c8a7803049411dc02dfc74c70dacd564fa599c2b39a0893ef5c495d50eb76c2f"
+  },
+  "limits": [
+    "A01 was stopped for a component-smoke false rejection; reference PASS does not establish five-generation completion.",
+    "Downloaded JSON evidence does not rehash remote checkpoint bytes or repeat visual trajectory inspection.",
+    "Raw seed IDs are intentionally absent from seed summaries; phase counts and the frozen seed-cohort identity were checked.",
+    "Recovery dwell was checked against stored recovery step and final-condition evidence; raw every-step stability traces were not downloaded."
+  ],
+  "sources": [
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_01/session/session_genesis.json",
+      "sha256": "665d12cc6dea08ba6d077e684fff4ff6ef60450d87865fd8f0bcdc5624716444"
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_01/session/reference_eval_artifact.json",
+      "sha256": "4ba73c293e8aa1073cc241abff959c441b429fa8300b81c3237f049e3831358c"
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_01/session/resolved_cell_manifest.json",
+      "sha256": "a130b3a97ce4afde8574d19c575a430e8b83ec3750c40b43bc87465cfa0905dd"
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_01/session/runner/go2-push-5rounds-20260922-a01/train/summary.json",
+      "sha256": "84bc245c6df2e22001742cd8ea477d23d86021bdd19082ff2209a0ea61d25b65"
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_01/blocking_stop_01.json",
+      "sha256": "77adac8a1c69cbbf91bc9aa960f2e557df1861eeb5edd9218629bf092a901b4e"
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_01/process.json",
+      "sha256": "00d567098139e2dd888214397a9f7f08ad2909f9f377b0786ee959cc0d9728e2"
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_01/session/runner/go2-push-5rounds-20260922-a01/eval/public_dev/summary.json",
+      "sha256": "d0ef24861b22ef930f1784e66fa98a0a49d8dfcd997e813ecdc57269a5b1b644"
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_01/session/reference_program_artifacts/evaluation_receipts/d67a108f8f8d3c4052807d977a1f26148a4d8fea8725fb173c707d0b9de35bad/eval_phases/public_dev.json",
+      "sha256": "963630c33f7a5e44154ac08291b968ced8ed266cc50ab79b3ef5b83a2701118e"
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_01/session/runner/go2-push-5rounds-20260922-a01/eval/public_accept/summary.json",
+      "sha256": "a757ff8d069bee32f8576152ef21b4396c965c460df41ae0df8bcee8d4de0d71"
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_01/session/reference_program_artifacts/evaluation_receipts/d67a108f8f8d3c4052807d977a1f26148a4d8fea8725fb173c707d0b9de35bad/eval_phases/public_accept.json",
+      "sha256": "63a6cd9e88578c90efccad1ec019f0d14d7dfb7f6d15c787d902a65cd52aa120"
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_01/session/runner/go2-push-5rounds-20260922-a01/eval/sealed_validation/summary.json",
+      "sha256": "e93eacbab2ecb7521b4d1a5fc988546684a6ac6a7814bc15009f129ce7236662"
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_01/session/reference_program_artifacts/evaluation_receipts/d67a108f8f8d3c4052807d977a1f26148a4d8fea8725fb173c707d0b9de35bad/eval_phases/sealed_validation.json",
+      "sha256": "c07e26968a265c4bde0c46d034d535c6c2496cf693f77aa01afd4d8b364adee4"
+    }
+  ]
+}

@@ -1,0 +1,128 @@
+{
+  "status": "PASS_BOUNDED_SOURCE_FIX_AND_LOCAL_REGRESSION",
+  "original_finding": "mechanism_review_gen03a.json",
+  "scope": "Admission only; straight-line RewardTerm plus one literal clamp residual identity; no changes to policy or source/delta identity hash paths.",
+  "coverage_limits": "Comparison enabled only when literal clamp residual identity encountered. No general algebra, helper expansion, runtime equivalence, task field assumptions or hidden input ranges.",
+  "tests": [
+    {
+      "command": ".venv/Scripts/python.exe -m unittest discover -s tests/unit -p test_component_smoke_and_antidegenerate.py -q",
+      "count": 50,
+      "seconds": 33.401,
+      "exit_code": 0
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m unittest discover -s tests/unit -p test_stair_candidate_admission.py -q",
+      "count": 16,
+      "seconds": 15.951,
+      "exit_code": 0
+    },
+    {
+      "command": "ruff check --select F,E9 component_source_semantics.py test_component_smoke_and_antidegenerate.py",
+      "exit_code": 0
+    }
+  ],
+  "initial_regression_and_correction": "An initial broader additive comparison also changed the existing +roll/-roll historical behavior. Restricted the new comparison to the demonstrated clamp residual path; old test unchanged and now passes.",
+  "real_candidate_replay": [
+    {
+      "round_id": "go2-push-5rounds-20260923-a06-generation-001-lane-a",
+      "candidate_id": "push_recovery_height_hinge_v4",
+      "audit_anchor_source": "selected_prompt",
+      "before": "mechanism_delta_present",
+      "after": "mechanism_delta_present",
+      "blocking": false,
+      "candidate_sha256": "b2a7268b424ef41de85499c7a47897d9fc35e558b60cd63dbd8cd9d410d66068"
+    },
+    {
+      "round_id": "go2-push-5rounds-20260923-a06-generation-001-lane-b",
+      "candidate_id": "push_standing_recovery_height_barrier_v1",
+      "audit_anchor_source": "selected_prompt",
+      "before": "mechanism_delta_present",
+      "after": "mechanism_delta_present",
+      "blocking": false,
+      "candidate_sha256": "376785250b1dbfeb1c918c49ea37f3f24bf8b353279a14d25fe9b9f1667a36ae"
+    },
+    {
+      "round_id": "go2-push-5rounds-20260923-a06-generation-002-lane-a",
+      "candidate_id": "push_recovery_upright_stillness_gate_v1",
+      "audit_anchor_source": "selected_prompt",
+      "before": "mechanism_delta_present",
+      "after": "mechanism_delta_present",
+      "blocking": false,
+      "candidate_sha256": "0a369862d88901fe99c027035e22b81713a8584e5017f2b7492ef8280631b831"
+    },
+    {
+      "round_id": "go2-push-5rounds-20260923-a06-generation-002-lane-b",
+      "candidate_id": "push_standing_recovery_stance_barriers_v2",
+      "audit_anchor_source": "selected_prompt",
+      "before": "mechanism_delta_present",
+      "after": "mechanism_delta_present",
+      "blocking": false,
+      "candidate_sha256": "4486713e0573f36267f54501391586538b93e03c8d1f95b4fc85bcde742dee97"
+    },
+    {
+      "round_id": "go2-push-5rounds-20260923-a06-generation-003-lane-a",
+      "candidate_id": "push_standing_recovery_velocity_brake_v2",
+      "audit_anchor_source": "selected_prompt",
+      "before": "mechanism_delta_present",
+      "after": "parameter_only_delta",
+      "blocking": true,
+      "candidate_sha256": "0d6169a0b666b52718297bf13892b3ddcd06bc96bf36d12c5331a4be10c63e22"
+    },
+    {
+      "round_id": "go2-push-5rounds-20260923-a06-generation-004-lane-a",
+      "candidate_id": "push_standing_recovery_impulse_absorb_v1",
+      "audit_anchor_source": "selected_prompt",
+      "before": "mechanism_delta_present",
+      "after": "mechanism_delta_present",
+      "blocking": false,
+      "candidate_sha256": "b7fa63ea3dfc62029c7258b68395e9bd1a37f0f70f0a8d4423b1880e8e2a86c5"
+    },
+    {
+      "round_id": "go2-push-5rounds-20260923-a06-generation-004-lane-b",
+      "candidate_id": "push_standing_recovery_impulse_absorb_v1",
+      "audit_anchor_source": "selected_prompt",
+      "before": "mechanism_delta_present",
+      "after": "mechanism_delta_present",
+      "blocking": false,
+      "candidate_sha256": "b0212688b7f5168802e2533214571914df7287cb9b6c686af299b4d484a07d9f"
+    },
+    {
+      "round_id": "go2-push-5rounds-20260923-a06-generation-005-lane-a",
+      "candidate_id": "push_standing_recovery_impulse_absorb_v3",
+      "audit_anchor_source": "checksum_bound_prior_public_source",
+      "before": "mechanism_delta_present",
+      "after": "mechanism_delta_present",
+      "blocking": false,
+      "candidate_sha256": "64c26b2b5eb745b11bd715c2272e737aa750331c0624678399441363250a8e71"
+    },
+    {
+      "round_id": "go2-push-5rounds-20260923-a06-generation-005-lane-b",
+      "candidate_id": "push_standing_recovery_capture_step_v1",
+      "audit_anchor_source": "selected_prompt",
+      "before": "mechanism_delta_present",
+      "after": "mechanism_delta_present",
+      "blocking": false,
+      "candidate_sha256": "6560427179d8b5632883b95cd8a184b36a0983ee15b29c7bc312f3e173fa8326"
+    }
+  ],
+  "frozen_a06_delta_hash_unchanged": "c2f50b0615392c728bae72fc843c2c542cf9eb04e1cae7a52500384f3bc3debd",
+  "files": [
+    {
+      "path": "src/true_rl_agent/candidates/component_source_semantics.py",
+      "sha256": "963f3c7385f9e08a7a99b72e3499f27bcc4e55266a3e155b42d5fd2d2924d3f5"
+    },
+    {
+      "path": "tests/unit/test_component_smoke_and_antidegenerate.py",
+      "sha256": "bed52630f47e832512278b14737d98c9972d74f09d2ac19eabbded12173fabbc"
+    },
+    {
+      "path": "tests/fixtures/authoring_admission/a06_parent.txt",
+      "sha256": "376785250b1dbfeb1c918c49ea37f3f24bf8b353279a14d25fe9b9f1667a36ae"
+    },
+    {
+      "path": "tests/fixtures/authoring_admission/a06_tail_coefficient_variant.txt",
+      "sha256": "0d6169a0b666b52718297bf13892b3ddcd06bc96bf36d12c5331a4be10c63e22"
+    }
+  ],
+  "experiment_status": "A06 remains not accepted as clean validation; the fixed source requires a fresh session. Target-environment combined regression owned by parent agent."
+}

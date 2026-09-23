@@ -1,0 +1,65 @@
+{
+  "label": "variant_sparse_stair",
+  "root": "/data/yuyangliu/p1_worktree/true_RL_Agent",
+  "task": "stair",
+  "source": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/formal_go2_stair_15round_20260901_c6ab8ba",
+  "generation_record_sha256": "ae92dfb636ed",
+  "composition_context": "scratch",
+  "adapter": "StairPhasedEvaluationAdapter",
+  "ledger_records": 15,
+  "ledger_schema": [
+    "true_rl_agent.generation_ledger_record.v1"
+  ],
+  "memory_variant": "sparse",
+  "frames": [
+    {
+      "variant": "sparse",
+      "next_generation": 13,
+      "prompt_bytes": 101925,
+      "memory_bytes": 13700,
+      "omitted_experiment_count": 4,
+      "experiments_retained": 8,
+      "trial_rows": 16,
+      "last_rows_measure": [
+        {
+          "status": "available",
+          "reward_term_calls": 480010,
+          "diagnostic_calls": 0,
+          "nonzero_reward_contribution": true
+        },
+        {
+          "status": "available",
+          "reward_term_calls": 432009,
+          "diagnostic_calls": 0,
+          "nonzero_reward_contribution": true
+        }
+      ],
+      "has_top_runtime_observation": true
+    },
+    {
+      "variant": "sparse",
+      "next_generation": 16,
+      "prompt_bytes": 101032,
+      "memory_bytes": 13596,
+      "omitted_experiment_count": 7,
+      "experiments_retained": 8,
+      "trial_rows": 16,
+      "last_rows_measure": [
+        {
+          "status": "available",
+          "reward_term_calls": 432009,
+          "diagnostic_calls": 0,
+          "nonzero_reward_contribution": true
+        },
+        {
+          "status": "available",
+          "reward_term_calls": 480010,
+          "diagnostic_calls": 0,
+          "nonzero_reward_contribution": true
+        }
+      ],
+      "has_top_runtime_observation": true
+    }
+  ],
+  "status": "PASS"
+}

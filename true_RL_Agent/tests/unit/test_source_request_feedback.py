@@ -265,9 +265,11 @@ class SourceRequestRoundFeedbackTests(unittest.TestCase):
             ],
         )
 
+        complete = build_source_request_round_feedback([source_result])
+        byte_limit = canonical_prompt_json_bytes(complete) - 1
         with patch(
             "true_rl_agent.agent_core.source_request_feedback.MAX_SOURCE_REQUEST_FEEDBACK_BYTES",
-            780,
+            byte_limit,
         ):
             feedback = build_source_request_round_feedback([source_result])
 
@@ -275,7 +277,7 @@ class SourceRequestRoundFeedbackTests(unittest.TestCase):
         self.assertEqual(len(feedback["denied_logical_ids"]), 2)
         self.assertEqual(feedback["omitted_returned_logical_id_count"], 1)
         self.assertEqual(feedback["omitted_denied_logical_id_count"], 0)
-        self.assertLessEqual(serialized_source_request_feedback_bytes(feedback), 780)
+        self.assertLessEqual(serialized_source_request_feedback_bytes(feedback), byte_limit)
 
     def test_projector_uses_provider_canonical_bytes_for_hard_limit(self) -> None:
         feedback = {

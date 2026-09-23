@@ -1,0 +1,449 @@
+{
+  "status": "PASS_DIAGNOSTIC_RECORD_PARITY_DECODE_AND_BOUNDED_VISUAL_CHECK",
+  "audited_at_utc": "2026-09-23T07:14:07.279286+00:00",
+  "acceptance_authority": false,
+  "formal_session_verdict": "A07_NO_GO_UNCHANGED",
+  "scope": "Independent local comparison of original/replay saved records and downloaded media hashes, plus server full decode receipt and root-reported direct visual observation. Not a new evaluation or training experiment.",
+  "checks": [
+    {
+      "check": "original/replay identity: schema_version",
+      "passed": true
+    },
+    {
+      "check": "original/replay identity: status",
+      "passed": true
+    },
+    {
+      "check": "original/replay identity: subject_id",
+      "passed": true
+    },
+    {
+      "check": "original/replay identity: subject_kind",
+      "passed": true
+    },
+    {
+      "check": "original/replay identity: subject_manifest_hash",
+      "passed": true
+    },
+    {
+      "check": "original/replay identity: task_id",
+      "passed": true
+    },
+    {
+      "check": "original/replay identity: evaluation_binding",
+      "passed": true
+    },
+    {
+      "check": "original/replay identity: evaluation_phase",
+      "passed": true
+    },
+    {
+      "check": "original/replay identity: evaluation_plan_hash",
+      "passed": true
+    },
+    {
+      "check": "original/replay identity: evaluation_protocol",
+      "passed": true
+    },
+    {
+      "check": "original/replay identity: checkpoint_safety_report",
+      "passed": true
+    },
+    {
+      "check": "original/replay identity: checkpoint_loading",
+      "passed": true
+    },
+    {
+      "check": "original/replay identity: constructed_learner",
+      "passed": true
+    },
+    {
+      "check": "original/replay identity: environment_source_preflight",
+      "passed": true
+    },
+    {
+      "check": "original/replay identity: resolved_cell_identity",
+      "passed": true
+    },
+    {
+      "check": "original/replay identity: resolved_cell_manifest_hash",
+      "passed": true
+    },
+    {
+      "check": "original/replay identity: policy_io_evidence",
+      "passed": true
+    },
+    {
+      "check": "original/replay identity: candidate_code_loaded_in_eval",
+      "passed": true
+    },
+    {
+      "check": "original/replay identity: candidate_package_loaded_in_eval",
+      "passed": true
+    },
+    {
+      "check": "original/replay identity: backend_execution_environment_verification",
+      "passed": true
+    },
+    {
+      "check": "original/replay identity: gpu_process_binding",
+      "passed": true
+    },
+    {
+      "check": "replay success without summary errors",
+      "passed": true
+    },
+    {
+      "check": "actual B candidate identity, not reference",
+      "passed": true
+    },
+    {
+      "check": "diagnostic process exit zero",
+      "passed": true
+    },
+    {
+      "check": "executed plan SHA",
+      "passed": true
+    },
+    {
+      "check": "diagnostic after blocked formal session stop",
+      "passed": true
+    },
+    {
+      "check": "diagnostic elapsed wall time",
+      "passed": true
+    },
+    {
+      "check": "server before/after checkpoint checksum matches original receipt",
+      "passed": true
+    },
+    {
+      "check": "diagnostic assigned physical GPU",
+      "passed": true
+    },
+    {
+      "check": "recordings checkpoint identity",
+      "passed": true
+    },
+    {
+      "check": "recordings resolved cell identity",
+      "passed": true
+    },
+    {
+      "check": "video exporter does not reclassify outcome",
+      "passed": true
+    },
+    {
+      "check": "whole task evidence differs only in three creation times",
+      "passed": true
+    },
+    {
+      "check": "exactly three dev runs and videos",
+      "passed": true
+    },
+    {
+      "check": "original 64-env physical configuration retained",
+      "passed": true
+    },
+    {
+      "check": "run 1: all 64 episode records exact",
+      "passed": true
+    },
+    {
+      "check": "run 1: native runtime configuration matches evaluated configuration",
+      "passed": true
+    },
+    {
+      "check": "run 1: recorded env0 outcome identity",
+      "passed": true
+    },
+    {
+      "check": "run 1: public dev phase",
+      "passed": true
+    },
+    {
+      "check": "run 1: resolved force protocol",
+      "passed": true
+    },
+    {
+      "check": "run 1: downloaded/recorded/decoded video byte SHA",
+      "passed": true
+    },
+    {
+      "check": "run 1: actual decode count equals 11 control frames",
+      "passed": true
+    },
+    {
+      "check": "run 1: decoded geometry and fps",
+      "passed": true
+    },
+    {
+      "check": "run 1: every decoded RGB24 frame complete",
+      "passed": true
+    },
+    {
+      "check": "run 1: declared pre-reset control-frame capture",
+      "passed": true
+    },
+    {
+      "check": "run 1: decoded 0.22 s duration",
+      "passed": true
+    },
+    {
+      "check": "run 2: all 64 episode records exact",
+      "passed": true
+    },
+    {
+      "check": "run 2: native runtime configuration matches evaluated configuration",
+      "passed": true
+    },
+    {
+      "check": "run 2: recorded env0 outcome identity",
+      "passed": true
+    },
+    {
+      "check": "run 2: public dev phase",
+      "passed": true
+    },
+    {
+      "check": "run 2: resolved force protocol",
+      "passed": true
+    },
+    {
+      "check": "run 2: downloaded/recorded/decoded video byte SHA",
+      "passed": true
+    },
+    {
+      "check": "run 2: actual decode count equals 11 control frames",
+      "passed": true
+    },
+    {
+      "check": "run 2: decoded geometry and fps",
+      "passed": true
+    },
+    {
+      "check": "run 2: every decoded RGB24 frame complete",
+      "passed": true
+    },
+    {
+      "check": "run 2: declared pre-reset control-frame capture",
+      "passed": true
+    },
+    {
+      "check": "run 2: decoded 0.22 s duration",
+      "passed": true
+    },
+    {
+      "check": "run 3: all 64 episode records exact",
+      "passed": true
+    },
+    {
+      "check": "run 3: native runtime configuration matches evaluated configuration",
+      "passed": true
+    },
+    {
+      "check": "run 3: recorded env0 outcome identity",
+      "passed": true
+    },
+    {
+      "check": "run 3: public dev phase",
+      "passed": true
+    },
+    {
+      "check": "run 3: resolved force protocol",
+      "passed": true
+    },
+    {
+      "check": "run 3: downloaded/recorded/decoded video byte SHA",
+      "passed": true
+    },
+    {
+      "check": "run 3: actual decode count equals 11 control frames",
+      "passed": true
+    },
+    {
+      "check": "run 3: decoded geometry and fps",
+      "passed": true
+    },
+    {
+      "check": "run 3: every decoded RGB24 frame complete",
+      "passed": true
+    },
+    {
+      "check": "run 3: declared pre-reset control-frame capture",
+      "passed": true
+    },
+    {
+      "check": "run 3: decoded 0.22 s duration",
+      "passed": true
+    },
+    {
+      "check": "192 episodes retained without exclusions",
+      "passed": true
+    },
+    {
+      "check": "all 192 reproduce pre-push height collapse at step 11",
+      "passed": true
+    },
+    {
+      "check": "diagnostic 2112 env-control steps/33 vector steps",
+      "passed": true
+    },
+    {
+      "check": "viewed PNG exactly matches decoded first-video frame 0",
+      "passed": true
+    },
+    {
+      "check": "viewed PNG exactly matches decoded first-video frame 5",
+      "passed": true
+    },
+    {
+      "check": "viewed PNG exactly matches decoded first-video frame 10",
+      "passed": true
+    },
+    {
+      "check": "last formal Gen2 settlement unchanged",
+      "passed": true
+    },
+    {
+      "check": "formal ledger remains two generations",
+      "passed": true
+    }
+  ],
+  "task_record_parity": {
+    "episode_count": 192,
+    "per_episode_exactly_equal": true,
+    "whole_task_evidence_differences": [
+      "/seed_summaries/0/created_at_utc",
+      "/seed_summaries/1/created_at_utc",
+      "/seed_summaries/2/created_at_utc"
+    ],
+    "same_original_checkpoint": "e0cc2144c040fd54cd0221127249604361a532632927a487f48c0e237808c04b",
+    "same_num_envs": 64,
+    "same_dev_runs": 3,
+    "failure_labels": "192 height_collapse",
+    "closure_control_step": 11,
+    "first_planned_force_control_step": 51
+  },
+  "native_video": {
+    "recordings": [
+      {
+        "file": "public_dev-01.mp4",
+        "sha256": "757d67dc0c438a1c9fd2cc34ed5ce6963136c5ab57ac608e68fcb577a900f3a8",
+        "run_index": 1,
+        "seed_as_recorded": 1500010000,
+        "env_index": 0,
+        "decoded_frame_count": 11,
+        "decoder_frame_hash_count": 11,
+        "distinct_decoded_frame_hashes": 11,
+        "recording_matches_summary_env0": true,
+        "outcome": "height_collapse",
+        "episode_steps": 11,
+        "min_base_height_m_from_telemetry": 0.16560351848602295
+      },
+      {
+        "file": "public_dev-02.mp4",
+        "sha256": "11afe35abc496b3839bc85f0e0bd4ae89753d3e09714738e71d38b6aea03696c",
+        "run_index": 2,
+        "seed_as_recorded": 1500010001,
+        "env_index": 0,
+        "decoded_frame_count": 11,
+        "decoder_frame_hash_count": 11,
+        "distinct_decoded_frame_hashes": 11,
+        "recording_matches_summary_env0": true,
+        "outcome": "height_collapse",
+        "episode_steps": 11,
+        "min_base_height_m_from_telemetry": 0.1636638194322586
+      },
+      {
+        "file": "public_dev-03.mp4",
+        "sha256": "43737b2d6cebdfefd2be5dcb024a913c1cf3e16a1f26cc5fe1899c6d0a4c8bbd",
+        "run_index": 3,
+        "seed_as_recorded": 1500010002,
+        "env_index": 0,
+        "decoded_frame_count": 11,
+        "decoder_frame_hash_count": 11,
+        "distinct_decoded_frame_hashes": 11,
+        "recording_matches_summary_env0": true,
+        "outcome": "height_collapse",
+        "episode_steps": 11,
+        "min_base_height_m_from_telemetry": 0.1636611819267273
+      }
+    ],
+    "independent_decode_method": "imageio_ffmpeg.read_frames full rgb24 decode to EOF",
+    "decoder_executable": "/data/yuyangliu/envs/isaaclab6_validation/lib/python3.12/site-packages/imageio_ffmpeg/binaries/ffmpeg-linux-x86_64-v7.0.2",
+    "decode_receipt": "diagnostics/gen01_lane_b_native/native_decode.json",
+    "frame_count_not_inferred_from_recordings_metadata": true
+  },
+  "visual_review": {
+    "status": "REVIEWED_REPRESENTATIVE_SAMPLE",
+    "reviewer": "parent agent /root via view_image, observation communicated to this auditor",
+    "coverage": "Only public_dev run 1, env0, frames 0/5/10. The other 191 episodes were not visually reviewed.",
+    "observation": "Body descends from the higher initial stance; final frame shows clearly folded legs and abdomen near the ground, without visible sideways overturning. This is consistent with recorded height_collapse rather than tilt_failure.",
+    "frame_bindings": [
+      {
+        "file": "diagnostics/gen01_lane_b_native/video/frame-01.png",
+        "file_sha256": "5e9f46c7e1ff8971df27df9983b7564d80b75457cfe282ab3f6529255d7c40f6",
+        "rgb24_sha256": "30611567a6baeda68cb6e1a380bfbba45b9d4dd732d406b8a3bcacb549159630",
+        "video": "public_dev-01.mp4",
+        "frame_index_0based": 0,
+        "matches_decoded_frame": true
+      },
+      {
+        "file": "diagnostics/gen01_lane_b_native/video/frame-02.png",
+        "file_sha256": "e1afed5d858c739cd0f8804cfc2ba1f789ad598e935566d8d47005ff641679ab",
+        "rgb24_sha256": "41a2f34d8c7a449bbdd8293376f0ffab16e4ad6c9edf2ed698d5c177ee7b0c16",
+        "video": "public_dev-01.mp4",
+        "frame_index_0based": 5,
+        "matches_decoded_frame": true
+      },
+      {
+        "file": "diagnostics/gen01_lane_b_native/video/frame-03.png",
+        "file_sha256": "2bcff2bdfa9be0d30256f51e3756ebd80838d8072cc4dea18843f5e178f43d39",
+        "rgb24_sha256": "88fead4e7abc6e596034863f564c053190b1de0ef0589ac155ca939942c0f5bb",
+        "video": "public_dev-01.mp4",
+        "frame_index_0based": 10,
+        "matches_decoded_frame": true
+      }
+    ],
+    "limits": [
+      "Metric heights come from bound telemetry, not image-based distance estimation.",
+      "Sparse three-frame review does not establish all-frame behavior or exact threshold crossing.",
+      "No inference about why training optimization produced this policy."
+    ]
+  },
+  "diagnostic_cost": {
+    "wall_seconds": 30.475687265396118,
+    "eval_wall_seconds": 6.815939873,
+    "env_control_steps": 2112,
+    "vector_env_steps": 33,
+    "gpu_uuid": "GPU-8cd998f2-d42e-394e-7aae-a6701bb9b187",
+    "formal_cost_inclusion": false
+  },
+  "limitations": [
+    "192 episode parity checks exported records, not independently reconstructed raw trajectories.",
+    "Checkpoint before/after bytes were hashed on server by the execution receipt; tensor bytes were not downloaded or independently rehashed locally.",
+    "Full RGB24 decode was executed by root on the server; this auditor independently verified its output against local video SHA and viewed-PNG RGB hashes.",
+    "Native capture metadata proves declared capture mode; decode count alone does not prove every frame has correct physical timing.",
+    "Diagnostic does not close A07 generation 3, settle its costs, repair admission, or change the NO_GO outcome."
+  ],
+  "evidence_sha256": {
+    "session/runner/go2-push-5rounds-20260923-a07-generation-001-lane-b/eval/public_dev/summary.json": "7fb9c62228bc746b8256c6e536824d94b18d28487c3772af01640aceeb236ecd",
+    "diagnostics/gen01_lane_b_native/summary.json": "55c4d8ee87552ce8f296db09c036ae785d9c1342aa892a71750d0dcab20e203d",
+    "diagnostics/gen01_lane_b_native/video/recordings.json": "645b080c5b46fa35da019c8bf0bdae41533cb3bc74e48ecb2ae86010de9634ac",
+    "diagnostics/gen01_lane_b_native/execution_receipt.json": "15ebe7eb19247227915cd5d3241c49ece580aea8a13051379eec46f3a9f235e4",
+    "gen01_lane_b_native_replay_plan.json": "3386bb0c6eaf66f516104e791b7f6ea8b1727674180d0c255aef524ce343bc17",
+    "diagnostics/gen01_lane_b_native/native_decode.json": "59d6f502c4e239b7787c302570dd4be364e1a19bbe9ad2ec2bcceb3f0341bbe0",
+    "blocking_stop_07.json": "21a3db747e166bb622d3ee6e93e8500e40160e0be3fa5c7646772e8e461ef013",
+    "diagnostics/gen01_lane_b_native/video/public_dev-01.mp4": "757d67dc0c438a1c9fd2cc34ed5ce6963136c5ab57ac608e68fcb577a900f3a8",
+    "diagnostics/gen01_lane_b_native/video/public_dev-02.mp4": "11afe35abc496b3839bc85f0e0bd4ae89753d3e09714738e71d38b6aea03696c",
+    "diagnostics/gen01_lane_b_native/video/public_dev-03.mp4": "43737b2d6cebdfefd2be5dcb024a913c1cf3e16a1f26cc5fe1899c6d0a4c8bbd",
+    "diagnostics/gen01_lane_b_native/video/frame-01.png": "5e9f46c7e1ff8971df27df9983b7564d80b75457cfe282ab3f6529255d7c40f6",
+    "diagnostics/gen01_lane_b_native/video/frame-02.png": "e1afed5d858c739cd0f8804cfc2ba1f789ad598e935566d8d47005ff641679ab",
+    "diagnostics/gen01_lane_b_native/video/frame-03.png": "2bcff2bdfa9be0d30256f51e3756ebd80838d8072cc4dea18843f5e178f43d39",
+    "session/ledger.jsonl": "29cbb78139486608a86fc74df5b981c81e544016cac2f652bb5f30ea35ead0c0",
+    "diagnostics/gen01_lane_b_native/stdout.log": "301cbc8449519e15d54bba8b7c60eb6cb09833a80521dcdb316986d63a735cb3",
+    "diagnostics/gen01_lane_b_native/stderr.log": "5aaeb3f8c14e6bc8babe1d7caab574dceda6a4a697dfc499384f1a6525c5ae18",
+    "session/generation_actual_cost/0004-generation-002-settlement.json": "278585eea4229b7b86d83a901718b8b6ef66f2c3122e8ad0c63c5041fa797296"
+  }
+}

@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P5/capacity_probe.py", line 71, in <module>
+    main()
+  File "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P5/capacity_probe.py", line 39, in main
+    frames[name] = build_prompt_payload(public_context=value, frame_kind=kind,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/prompting/payload.py", line 235, in build_prompt_payload
+    section_values["authoring_context_frame"] = build_authoring_context_frame(
+                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/prompting/authoring_frame.py", line 296, in build_authoring_context_frame
+    _require_sections(policy, included_sections)
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/prompting/authoring_frame.py", line 392, in _require_sections
+    raise ValueError(f"{policy.frame_kind} authoring frame missing required sections: {missing}")
+ValueError: source_followup authoring frame missing required sections: ['provider_or_runtime_repair_feedback']
+initial {'prompt_bytes': 61242, 'frame_kind': 'candidate_draft', 'usage': {'prompt_tokens': 17413, 'completion_tokens': 1, 'total_tokens': 17414, 'prompt_tokens_details': {'cached_tokens': 16256}, 'prompt_cache_hit_tokens': 16256, 'prompt_cache_miss_tokens': 1157}, 'response_model': 'deepseek-flash', 'finish_reason': 'length', 'input_plus_reserved_output': 50181, 'within_declared_window': True}
+late_capacity_fixture {'prompt_bytes': 61695, 'frame_kind': 'candidate_draft', 'usage': {'prompt_tokens': 17863, 'completion_tokens': 1, 'total_tokens': 17864, 'prompt_tokens_details': {'cached_tokens': 384}, 'prompt_cache_hit_tokens': 384, 'prompt_cache_miss_tokens': 17479}, 'response_model': 'deepseek-flash', 'finish_reason': 'length', 'input_plus_reserved_output': 50631, 'within_declared_window': True}
+repair_capacity_fixture {'prompt_bytes': 62260, 'frame_kind': 'static_repair', 'usage': {'prompt_tokens': 17998, 'completion_tokens': 1, 'total_tokens': 17999, 'prompt_tokens_details': {'cached_tokens': 16768}, 'prompt_cache_hit_tokens': 16768, 'prompt_cache_miss_tokens': 1230}, 'response_model': 'deepseek-flash', 'finish_reason': 'length', 'input_plus_reserved_output': 50766, 'within_declared_window': True}
+source_followup_capacity_fixture {'prompt_bytes': 62188, 'frame_kind': 'source_followup', 'usage': {'prompt_tokens': 17986, 'completion_tokens': 1, 'total_tokens': 17987, 'prompt_tokens_details': {'cached_tokens': 16768}, 'prompt_cache_hit_tokens': 16768, 'prompt_cache_miss_tokens': 1218}, 'response_model': 'deepseek-flash', 'finish_reason': 'length', 'input_plus_reserved_output': 50754, 'within_declared_window': True}

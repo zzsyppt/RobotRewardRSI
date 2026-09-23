@@ -1,0 +1,83 @@
+{
+  "purpose": "Measure actual historical reconstructions and explicitly declared branch frames; no preflight stand-in for late history",
+  "measurement": "Same serialized message objects; thinking disabled, one output token. Actual candidate generation is a separate probe.",
+  "reserved_candidate_output_tokens": 32768,
+  "frames": {
+    "audit_history_after_c6_generation_01": {
+      "source_sha256": "fadeafb2e4e235efaae4b96ba8471ad3e0aed3d501165749c29f5460b461fc9f",
+      "prompt_bytes": 58959,
+      "frame_kind": "candidate_draft",
+      "usage": {
+        "prompt_tokens": 16669,
+        "completion_tokens": 1,
+        "total_tokens": 16670,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "prompt_cache_hit_tokens": 512,
+        "prompt_cache_miss_tokens": 16157
+      },
+      "response_model": "deepseek-flash",
+      "finish_reason": "length",
+      "input_plus_reserved_output": 49437,
+      "within_declared_window": true
+    },
+    "audit_history_after_c6_generation_13": {
+      "source_sha256": "711ab0e401a48059b70b5935b7c9564f2daec890dabb34a18943424bb6e0e5e0",
+      "prompt_bytes": 114943,
+      "frame_kind": "candidate_draft",
+      "usage": {
+        "prompt_tokens": 37367,
+        "completion_tokens": 1,
+        "total_tokens": 37368,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "prompt_cache_hit_tokens": 512,
+        "prompt_cache_miss_tokens": 36855
+      },
+      "response_model": "deepseek-flash",
+      "finish_reason": "length",
+      "input_plus_reserved_output": 70135,
+      "within_declared_window": true
+    },
+    "audit_history_after_c6_generation_13_repair": {
+      "source_sha256": "ecf65c1e9d355b370b64ba7cb4be6adf5731766ad4adcbbcd5ff750db861b8d3",
+      "prompt_bytes": 49248,
+      "frame_kind": "static_repair",
+      "usage": {
+        "prompt_tokens": 13391,
+        "completion_tokens": 1,
+        "total_tokens": 13392,
+        "prompt_tokens_details": {
+          "cached_tokens": 5376
+        },
+        "prompt_cache_hit_tokens": 5376,
+        "prompt_cache_miss_tokens": 8015
+      },
+      "response_model": "deepseek-flash",
+      "finish_reason": "length",
+      "input_plus_reserved_output": 46159,
+      "within_declared_window": true
+    },
+    "audit_history_after_c6_generation_13_source_followup": {
+      "source_sha256": "2dc9b787f052fd4ec0cfaac6e0a4987bb590481da2f9cbb2e9cdc6022c7b064f",
+      "prompt_bytes": 102010,
+      "frame_kind": "source_followup",
+      "usage": {
+        "prompt_tokens": 33645,
+        "completion_tokens": 1,
+        "total_tokens": 33646,
+        "prompt_tokens_details": {
+          "cached_tokens": 6656
+        },
+        "prompt_cache_hit_tokens": 6656,
+        "prompt_cache_miss_tokens": 26989
+      },
+      "response_model": "deepseek-flash",
+      "finish_reason": "length",
+      "input_plus_reserved_output": 66413,
+      "within_declared_window": true
+    }
+  }
+}

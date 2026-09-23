@@ -41,6 +41,7 @@ from true_rl_agent.tasks.stair_climbing.seed_policy import (
     STAIR_FORMAL_EVAL_NAMESPACE,
 )
 from true_rl_agent.tasks.stair_climbing.unified_scoring import (
+    build_unified_guard_floor_projection,
     build_unified_score_projection,
     validate_objective_family_mask,
     validate_unified_stair_summary,
@@ -666,24 +667,12 @@ def build_stair_public_dev_screen_evidence(
             canonical_statistics=statistics_version is not None,
         )
         generalization = projection["j_primary"]
-        guard_vectors = [
-            projection[guard.name]["seed_macro_scores"]
-            for guard in config.acceptance_protocol.named_guards
-        ]
-        anchor_scores = tuple(
-            min(float(values[index]) for values in guard_vectors)
-            for index in range(config.public_seed_count)
+        anchor = build_unified_guard_floor_projection(
+            projection,
+            named_guard_names=tuple(
+                guard.name for guard in config.acceptance_protocol.named_guards
+            ),
         )
-        anchor = {
-            "score_stats": {
-                **sample_statistics(
-                    anchor_scores, statistics_version=statistics_version
-                ),
-                "values": list(anchor_scores),
-                "eval_protocol_hash": config.evaluation_protocol().protocol_hash,
-            },
-            "seed_macro_scores": list(anchor_scores),
-        }
     else:
         if objective_family_mask is not None:
             raise ValueError("legacy Stair screen cannot carry a family mask")
@@ -969,12 +958,6 @@ def _select_stair_public_dev_winner(
         for item in ordered
         if eligibility_by_trial[item.trial_id]
         not in {"guard_ineligible", "guard_and_runtime_ineligible"}
-    )
-    runtime_eligible = tuple(
-        item.trial_id
-        for item in ordered
-        if eligibility_by_trial[item.trial_id]
-        not in {"runtime_ineligible", "guard_and_runtime_ineligible"}
     )
     eligible = tuple(
         item.trial_id

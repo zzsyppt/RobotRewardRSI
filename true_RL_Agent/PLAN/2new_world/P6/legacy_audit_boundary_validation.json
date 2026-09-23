@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "command": ".venv/Scripts/python.exe -B -m unittest tests.integration.test_dry_run_audit_loop -q",
+  "tests": 12,
+  "elapsed_s": 66.295,
+  "log": "PLAN/2new_world/P6/legacy_audit_regression_02.log",
+  "source_sha256": {
+    "src/true_rl_agent/tasks/push_recovery/loop_audit.py": "ce9c1ba78908a8ede8ede5f63cb112b6ce5af6e0fc20f5bf5d6412ad8e688f3d",
+    "tests/integration/test_dry_run_audit_loop.py": "1a594bcb7bfe59a15e103910c7f566d5fe717020204e445d747e6b615de58109"
+  },
+  "disposition": "Keep the live legacy deterministic bootstrap audit consumer; reject reference-program cells before synthetic Genesis or audit writes. Do not change the new reference defaults.",
+  "fixtures": "Legacy audit/materialize expectations explicitly select push.g1_29dof.legacy_v1; original assertions unchanged. Add three reference-cell and two default-CLI no-fake-Genesis boundaries.",
+  "checks": [
+    "12 integration tests PASS",
+    "ruff F PASS",
+    "git diff --check PASS"
+  ]
+}

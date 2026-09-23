@@ -1,0 +1,63 @@
+.................................EEEE.EE..............E...F...F....Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/__main__.py", line 18, in <module>
+    main(module=None)
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/main.py", line 105, in __init__
+    self.runTests()
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/main.py", line 281, in runTests
+    self.result = testRunner.run(self.test)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/runner.py", line 240, in run
+    test(result)
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/suite.py", line 84, in __call__
+    return self.run(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/suite.py", line 122, in run
+    test(result)
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/suite.py", line 84, in __call__
+    return self.run(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/suite.py", line 122, in run
+    test(result)
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/suite.py", line 84, in __call__
+    return self.run(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/suite.py", line 122, in run
+    test(result)
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/case.py", line 690, in __call__
+    return self.run(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/case.py", line 634, in run
+    self._callTestMethod(testMethod)
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/case.py", line 589, in _callTestMethod
+    if method() is not None:
+       ^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/tests/integration/test_session_genesis_live_loop.py", line 838, in test_baseline_live_resume_replay_and_prompt_authority_transition
+    final_summary = run_live_loop(
+                    ^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/live_loop.py", line 187, in run_live_loop
+    result = _run_live_loop_locked(
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/live_loop.py", line 500, in _run_live_loop_locked
+    run_candidate_round(
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/round.py", line 207, in run_candidate_round
+    execution = execute_candidate_trial(inputs)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/round.py", line 739, in execute_candidate_trial
+    train_execution = run_prepared_candidate_train(prepared)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/round.py", line 454, in run_prepared_candidate_train
+    train_receipt_ref = prepared.trial_journal.publish_train(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/trial_receipts.py", line 194, in publish_train
+    return self._publish_or_validate(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/trial_receipts.py", line 525, in _publish_or_validate
+    create_once_bytes(path, encoded)
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/fs_contract.py", line 42, in create_once_bytes
+    temporary = _write_temporary_sibling(target, payload)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/fs_contract.py", line 70, in _write_temporary_sibling
+    os.fsync(handle.fileno())
+KeyboardInterrupt

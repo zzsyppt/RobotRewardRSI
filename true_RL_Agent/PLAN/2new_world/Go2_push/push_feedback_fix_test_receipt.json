@@ -1,0 +1,36 @@
+{
+  "status": "PASS",
+  "initial_related_regression": {
+    "status": "PASS",
+    "suite": "local targeted Push feedback and exploration regression",
+    "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_push_feedback_projection tests.unit.test_push_force_consumers tests.unit.test_push_recovery_v2_prompt_smoke tests.unit.test_push_recovery_task tests.unit.test_push_recovery_v2_metrics tests.unit.test_push_phased_evaluation tests.unit.test_exploration_frontier -q",
+    "tests_run": 114,
+    "failures": 0,
+    "errors": 0,
+    "exit_code": 0,
+    "test_runner_seconds": 36.495,
+    "ruff_select_F_E9": "PASS",
+    "source_sha256": {
+      "src/true_rl_agent/tasks/push_recovery/exploration.py": "3b69f1c8aa8b7a238ce543696567bc3eb1cd4c8d56c42f40757d79b5c0cf8ded",
+      "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py": "c04ba86164b8eed48a41071f80155617afef39699685fd2526c7084b47d4aede",
+      "src/true_rl_agent/tasks/push_recovery/metrics.py": "2b950e7c5183e8edb950a1cf38208478661496d22a71ef55a78efb62002c7c87",
+      "tests/unit/test_push_feedback_projection.py": "630e96f2d9b12496b71ca60800f31ed7a221694ddbf2f5ff43d5c23019685f27"
+    }
+  },
+  "final_failure_label_regression": {
+    "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_push_feedback_projection tests.unit.test_push_recovery_task tests.unit.test_push_recovery_v2_prompt_smoke -q",
+    "tests_run": 74,
+    "failures": 0,
+    "errors": 0,
+    "exit_code": 0,
+    "test_runner_seconds": 36.862
+  },
+  "ruff_select_F_E9": "PASS",
+  "final_source_sha256": {
+    "src/true_rl_agent/tasks/push_recovery/exploration.py": "3b69f1c8aa8b7a238ce543696567bc3eb1cd4c8d56c42f40757d79b5c0cf8ded",
+    "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py": "fad72610985a05130bce5742bdd65204dfbd0291e9f963c7e3df38a8c95581cf",
+    "src/true_rl_agent/tasks/push_recovery/metrics.py": "4432b91518796bbfdbdf0e26aff05d67bb69ab0530fdbe217712019c21a99b50",
+    "tests/unit/test_push_feedback_projection.py": "8c789a5716967685316f9e002bc8d7faedc4136b090f26defed59e04681b231e",
+    "tests/unit/test_push_recovery_v2_prompt_smoke.py": "f80037f1fc8fdc069d5e102d8a441dfa47f5acb12cda5308623dbffeb8464a4d"
+  }
+}

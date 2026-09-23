@@ -1,0 +1,367 @@
+{
+  "runs": [
+    {
+      "label": "baseline",
+      "task": "stair",
+      "command": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/p1_retention_fix_20260923_01/p1_replay_audit.py",
+        "--root",
+        "/data/yuyangliu/p1_retention_fix_20260923_01/baseline/true_RL_Agent",
+        "--task",
+        "stair",
+        "--source",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/formal_go2_stair_15round_20260901_c6ab8ba",
+        "--output",
+        "/data/yuyangliu/p1_retention_fix_20260923_01/baseline_stair",
+        "--frames",
+        "13,16",
+        "--label",
+        "retention_baseline_stair",
+        "--context",
+        "scratch",
+        "--memory-variant",
+        "full"
+      ],
+      "process_exit_code": 0,
+      "elapsed_s": 284.503,
+      "report": "/data/yuyangliu/p1_retention_fix_20260923_01/baseline_stair/report.json",
+      "report_sha256": "3d0c9ecc7ab7f01f3ee90990624124b0eef3b8158dec4f47a099505963e1c079",
+      "status": "PASS",
+      "payload_measurements": [
+        {
+          "next_generation": 13,
+          "path": "/data/yuyangliu/p1_retention_fix_20260923_01/baseline_stair/payload_before_g13.json",
+          "sha256": "ed31a03ca11af75c7a2fef3031fa0e979b8626388c365d87728ae195ae91da8b",
+          "runtime_column_values": {},
+          "rows": 24,
+          "runtime_string_rows": 0,
+          "top_runtime_observation_count": 0
+        },
+        {
+          "next_generation": 16,
+          "path": "/data/yuyangliu/p1_retention_fix_20260923_01/baseline_stair/payload_before_g16.json",
+          "sha256": "f3883fd1ffab14ad4ccc953848da41189da69e5b6b340f97c841bdc6d4ebd813",
+          "runtime_column_values": {},
+          "rows": 28,
+          "runtime_string_rows": 0,
+          "top_runtime_observation_count": 0
+        }
+      ]
+    },
+    {
+      "label": "baseline",
+      "task": "push",
+      "command": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/p1_retention_fix_20260923_01/p1_replay_audit.py",
+        "--root",
+        "/data/yuyangliu/p1_retention_fix_20260923_01/baseline/true_RL_Agent",
+        "--task",
+        "push",
+        "--source",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/attempt_08/session",
+        "--output",
+        "/data/yuyangliu/p1_retention_fix_20260923_01/baseline_push",
+        "--frames",
+        "6",
+        "--label",
+        "retention_baseline_push",
+        "--context",
+        "session",
+        "--memory-variant",
+        "full"
+      ],
+      "process_exit_code": 0,
+      "elapsed_s": 40.124,
+      "report": "/data/yuyangliu/p1_retention_fix_20260923_01/baseline_push/report.json",
+      "report_sha256": "01a9a302726b149c8fd6914fe3294006d5cc10b5d3c4e3492bfb7569cbd3b8d0",
+      "status": "PASS",
+      "payload_measurements": [
+        {
+          "next_generation": 6,
+          "path": "/data/yuyangliu/p1_retention_fix_20260923_01/baseline_push/payload_before_g06.json",
+          "sha256": "2c5db59631971dd199a6f6754504f15fc8409a323e9d5409e42c14956c0d50d9",
+          "runtime_column_values": {},
+          "rows": 10,
+          "runtime_string_rows": 0,
+          "top_runtime_observation_count": 0
+        }
+      ]
+    },
+    {
+      "label": "current",
+      "task": "stair",
+      "command": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/p1_retention_fix_20260923_01/p1_replay_audit.py",
+        "--root",
+        "/data/yuyangliu/p1_retention_fix_20260923_01/current/true_RL_Agent",
+        "--task",
+        "stair",
+        "--source",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/formal_go2_stair_15round_20260901_c6ab8ba",
+        "--output",
+        "/data/yuyangliu/p1_retention_fix_20260923_01/current_stair",
+        "--frames",
+        "13,16",
+        "--label",
+        "retention_current_stair",
+        "--context",
+        "scratch",
+        "--memory-variant",
+        "full"
+      ],
+      "process_exit_code": 0,
+      "elapsed_s": 298.525,
+      "report": "/data/yuyangliu/p1_retention_fix_20260923_01/current_stair/report.json",
+      "report_sha256": "87d3755f9d43ddd162df43b29fdddccd592aa8dbe533162062157cf97de23f23",
+      "status": "PASS",
+      "payload_measurements": [
+        {
+          "next_generation": 13,
+          "path": "/data/yuyangliu/p1_retention_fix_20260923_01/current_stair/payload_before_g13.json",
+          "sha256": "4064d3a03e74141dba058d6169525329f551767852c984f9d9ebccda61dec0d5",
+          "runtime_column_values": {
+            "executed_nonzero": 21,
+            "not_available": 3
+          },
+          "rows": 24,
+          "runtime_string_rows": 24,
+          "top_runtime_observation_count": 0
+        },
+        {
+          "next_generation": 16,
+          "path": "/data/yuyangliu/p1_retention_fix_20260923_01/current_stair/payload_before_g16.json",
+          "sha256": "40cf1c0bd7af9e6f3150daf99e3a55605c8341bb5dfe9788d09b21185b534dc8",
+          "runtime_column_values": {
+            "executed_nonzero": 19,
+            "not_available": 7
+          },
+          "rows": 26,
+          "runtime_string_rows": 26,
+          "top_runtime_observation_count": 0
+        }
+      ]
+    },
+    {
+      "label": "current",
+      "task": "push",
+      "command": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/p1_retention_fix_20260923_01/p1_replay_audit.py",
+        "--root",
+        "/data/yuyangliu/p1_retention_fix_20260923_01/current/true_RL_Agent",
+        "--task",
+        "push",
+        "--source",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/attempt_08/session",
+        "--output",
+        "/data/yuyangliu/p1_retention_fix_20260923_01/current_push",
+        "--frames",
+        "6",
+        "--label",
+        "retention_current_push",
+        "--context",
+        "session",
+        "--memory-variant",
+        "full"
+      ],
+      "process_exit_code": 0,
+      "elapsed_s": 45.144,
+      "report": "/data/yuyangliu/p1_retention_fix_20260923_01/current_push/report.json",
+      "report_sha256": "1396c0e5d0b21ac3463bdc777c7a3dd02b4fc2c2d37dd000db409ac9ac5c6610",
+      "status": "PASS",
+      "payload_measurements": [
+        {
+          "next_generation": 6,
+          "path": "/data/yuyangliu/p1_retention_fix_20260923_01/current_push/payload_before_g06.json",
+          "sha256": "27741854c6b6f9aa2ca95d142f6f54acb6a9e862dfab072d6825d9ba0e20c2c1",
+          "runtime_column_values": {
+            "executed_nonzero": 10
+          },
+          "rows": 10,
+          "runtime_string_rows": 10,
+          "top_runtime_observation_count": 0
+        }
+      ]
+    }
+  ],
+  "session_identity_hashes_before": {
+    "stair/ledger.jsonl": "052a71e7c438f80789fb22a2fcdf5b921dd864ed4c2cd35019bb82097f900845",
+    "stair/session_genesis.json": "f54b71412c4bda0fe54ee3f9e63780852b76d4e7d51cf9d1ca784bbf1afb8ee7",
+    "stair/resolved_cell_manifest.json": "f60a35a1b1f2dd8a2e6f1802d449ad338d2d12469873c5f813df5025e17de0f4",
+    "stair/generation_session_contract.json": "41308c68d7d6abb52b0d8de4d0ad5830ef6285c779839b143827d330083d5d96",
+    "push/ledger.jsonl": "3a80ad9c5ba01edee08a59462639df62996950508d619306f0e2c1b9867b8b2f",
+    "push/session_genesis.json": "15d54f658aa68263401f8e11fd5046ad5e3b181089fd05bb975144c9e953c837",
+    "push/resolved_cell_manifest.json": "a130b3a97ce4afde8574d19c575a430e8b83ec3750c40b43bc87465cfa0905dd",
+    "push/generation_session_contract.json": "28def818f21427ffe3e78e53a0dd1831409a2cc6cb22c9933b3dacffc024b82e"
+  },
+  "session_identity_hashes_after": {
+    "stair/ledger.jsonl": "052a71e7c438f80789fb22a2fcdf5b921dd864ed4c2cd35019bb82097f900845",
+    "stair/session_genesis.json": "f54b71412c4bda0fe54ee3f9e63780852b76d4e7d51cf9d1ca784bbf1afb8ee7",
+    "stair/resolved_cell_manifest.json": "f60a35a1b1f2dd8a2e6f1802d449ad338d2d12469873c5f813df5025e17de0f4",
+    "stair/generation_session_contract.json": "41308c68d7d6abb52b0d8de4d0ad5830ef6285c779839b143827d330083d5d96",
+    "push/ledger.jsonl": "3a80ad9c5ba01edee08a59462639df62996950508d619306f0e2c1b9867b8b2f",
+    "push/session_genesis.json": "15d54f658aa68263401f8e11fd5046ad5e3b181089fd05bb975144c9e953c837",
+    "push/resolved_cell_manifest.json": "a130b3a97ce4afde8574d19c575a430e8b83ec3750c40b43bc87465cfa0905dd",
+    "push/generation_session_contract.json": "28def818f21427ffe3e78e53a0dd1831409a2cc6cb22c9933b3dacffc024b82e"
+  },
+  "eight_session_identity_files_unchanged": true,
+  "historical_write_boundary": "Driver uses frozen sessions as input; Push composition read_only=True; Stair composition and every output are under scratch. Hash check covers eight identity files only, not all session files.",
+  "no_training_simulator_or_api_invocation": true,
+  "payload_comparison_checks": [
+    {
+      "task": "stair",
+      "next_generation": 13,
+      "minimum_retained": 11,
+      "actual_prefix_generations": 12,
+      "retained": 12,
+      "omitted": 0,
+      "memory_bytes": 13814,
+      "byte_budget": 14336,
+      "retention_floor_pass": true,
+      "byte_budget_pass": true,
+      "common_generations_compared": 12,
+      "common_trial_rows_compared": 24,
+      "all_current_generations_in_baseline": true,
+      "first_nine_columns_equal": true,
+      "latest_round_index": 12,
+      "latest_retained": true,
+      "latest_accepted_round_index": 8,
+      "latest_accepted_retained": true,
+      "retained_plus_omitted_equals_prefix": true,
+      "trial_rows": 24,
+      "all_rows_exactly_ten_with_valid_short_state": true,
+      "no_generation_runtime_duplicate": true
+    },
+    {
+      "task": "stair",
+      "next_generation": 16,
+      "minimum_retained": 13,
+      "actual_prefix_generations": 15,
+      "retained": 13,
+      "omitted": 2,
+      "memory_bytes": 14111,
+      "byte_budget": 14336,
+      "retention_floor_pass": true,
+      "byte_budget_pass": true,
+      "common_generations_compared": 13,
+      "common_trial_rows_compared": 26,
+      "all_current_generations_in_baseline": true,
+      "first_nine_columns_equal": true,
+      "latest_round_index": 15,
+      "latest_retained": true,
+      "latest_accepted_round_index": 8,
+      "latest_accepted_retained": true,
+      "retained_plus_omitted_equals_prefix": true,
+      "trial_rows": 26,
+      "all_rows_exactly_ten_with_valid_short_state": true,
+      "no_generation_runtime_duplicate": true
+    },
+    {
+      "task": "push",
+      "next_generation": 6,
+      "minimum_retained": 5,
+      "actual_prefix_generations": 5,
+      "retained": 5,
+      "omitted": 0,
+      "memory_bytes": 6525,
+      "byte_budget": 14336,
+      "retention_floor_pass": true,
+      "byte_budget_pass": true,
+      "common_generations_compared": 5,
+      "common_trial_rows_compared": 10,
+      "all_current_generations_in_baseline": true,
+      "first_nine_columns_equal": true,
+      "latest_round_index": 5,
+      "latest_retained": true,
+      "latest_accepted_round_index": 4,
+      "latest_accepted_retained": true,
+      "retained_plus_omitted_equals_prefix": true,
+      "trial_rows": 10,
+      "all_rows_exactly_ten_with_valid_short_state": true,
+      "no_generation_runtime_duplicate": true
+    }
+  ],
+  "task_checks": {
+    "stair": {
+      "phase_summaries_checked": 33,
+      "phase_summaries_equal": 33,
+      "phase_summaries_all_equal": true,
+      "all_frames_deterministic": true,
+      "current_summary_tamper_rejected": true,
+      "baseline_summary_tamper_rejected": false,
+      "baseline_current_best_after": "sha256:bcd8de3a9d0e6e6a6c84b8c7833dc4a1b0ed697758ddee6f9c9eb31416a2f93c",
+      "current_current_best_after": "sha256:bcd8de3a9d0e6e6a6c84b8c7833dc4a1b0ed697758ddee6f9c9eb31416a2f93c",
+      "current_best_unchanged": true
+    },
+    "push": {
+      "phase_summaries_checked": 15,
+      "phase_summaries_equal": 15,
+      "phase_summaries_all_equal": true,
+      "all_frames_deterministic": true,
+      "current_summary_tamper_rejected": true,
+      "baseline_summary_tamper_rejected": false,
+      "baseline_current_best_after": "sha256:5714a1f0f73ffee68bc980fe28439fc48eb70f31320c058a4a75f3a9b868118f",
+      "current_current_best_after": "sha256:5714a1f0f73ffee68bc980fe28439fc48eb70f31320c058a4a75f3a9b868118f",
+      "current_best_unchanged": true
+    }
+  },
+  "source_hashes_after": [
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/context.py",
+      "expected_sha256": "31811e297cd4ea5f5796bbeeca08727152acf65d013e849e02d82ac15aebebf5",
+      "remote_sha256_after": "31811e297cd4ea5f5796bbeeca08727152acf65d013e849e02d82ac15aebebf5"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/experiment_memory.py",
+      "expected_sha256": "0e183ba546801699585082d83430974bff26f93d33a8af6e37e16d03dacfd8df",
+      "remote_sha256_after": "0e183ba546801699585082d83430974bff26f93d33a8af6e37e16d03dacfd8df"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/generation.py",
+      "expected_sha256": "4a30f2333bd0ba6a1806caa77b533f4761cae0f44207eeb4f6c641e77024c8ee",
+      "remote_sha256_after": "4a30f2333bd0ba6a1806caa77b533f4761cae0f44207eeb4f6c641e77024c8ee"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/agent_core/generation_record.py",
+      "expected_sha256": "ae92dfb636ed01ec4dc54dc568e5b4440f4fe357dc7482ac9bc2c2452ba0ac83",
+      "remote_sha256_after": "ae92dfb636ed01ec4dc54dc568e5b4440f4fe357dc7482ac9bc2c2452ba0ac83"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/candidates/mechanism.py",
+      "expected_sha256": "383c8d8311627515ea29892630deaf27dcb4960766e2137f57f2740d6f94a71d",
+      "remote_sha256_after": "383c8d8311627515ea29892630deaf27dcb4960766e2137f57f2740d6f94a71d"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/memory/context_builder.py",
+      "expected_sha256": "b65a49dde736bf20a27ee6160102fcc0b9070a4e5997fe7415316618a8567e69",
+      "remote_sha256_after": "b65a49dde736bf20a27ee6160102fcc0b9070a4e5997fe7415316618a8567e69"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/prompt_adapter.py",
+      "expected_sha256": "0f13073a5be261673b8255ea5ed7084f1be453a42742f0a0ebbf990ebed3000e",
+      "remote_sha256_after": "0f13073a5be261673b8255ea5ed7084f1be453a42742f0a0ebbf990ebed3000e"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/push_recovery/runtime_adapter.py",
+      "expected_sha256": "731f1985795e25424a599cbaedd166c5e0bfc8b920c9f330171d2b437032e58b",
+      "remote_sha256_after": "731f1985795e25424a599cbaedd166c5e0bfc8b920c9f330171d2b437032e58b"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/prompt_adapter.py",
+      "expected_sha256": "87a3c2efc175b9cfe4bf023612223f24ec148f68ed040d4d4c842167f084bf76",
+      "remote_sha256_after": "87a3c2efc175b9cfe4bf023612223f24ec148f68ed040d4d4c842167f084bf76"
+    },
+    {
+      "path": "true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/reward_program.py",
+      "expected_sha256": "d315d04a6556b9c81ba1ebc20464526dc01f34bbdeac95f4fcf7d8f089aa4dcd",
+      "remote_sha256_after": "d315d04a6556b9c81ba1ebc20464526dc01f34bbdeac95f4fcf7d8f089aa4dcd"
+    }
+  ],
+  "ten_remote_sources_unchanged": true,
+  "remote_original_run_summary_sha256": "43399aac7eedb6b9ebc2cea576e5b404163bbb77f3f633123559ebbcd4516bb3",
+  "ten_local_sources_still_match_synced": true,
+  "collection_scope": "Four original report files and sync_manifest copied byte-for-byte; run_summary enriched by read-only comparison of already-generated payloads on server. No new full payload downloaded; no replay rerun."
+}

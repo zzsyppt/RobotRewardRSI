@@ -345,6 +345,7 @@ class StairEvaluationExecutionResult:
     execution_device: str
     checkpoint_loading: Mapping[str, Any] | None = None
     constructed_learner: Mapping[str, Any] | None = None
+    numeric_evidence: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.summaries, Mapping) or not self.summaries:
@@ -583,6 +584,9 @@ def execute_stair_training(
     run_name: str,
     expected_initial_policy_state_hash: str | None = None,
     resolved_cell_manifest: ResolvedCellManifestV1 | None = None,
+    runtime_comparison: Mapping[str, Any] | None = None,
+    capture_training_numeric: bool = False,
+    numeric_evidence_identity: Mapping[str, Any] | None = None,
 ) -> StairTrainingExecutionResult:
     """Run the only authoritative Stair train path and return closed evidence."""
 
@@ -603,6 +607,10 @@ def execute_stair_training(
         run_name=run_name,
         expected_initial_policy_state_hash=expected_initial_policy_state_hash,
         resolved_cell_manifest=resolved_cell_manifest,
+        runtime_comparison=runtime_comparison,
+        capture_training_numeric=capture_training_numeric,
+        numeric_evidence_identity={**dict(numeric_evidence_identity or {}),
+            "environment_source_preflight": source_manifest_preflight.to_summary_dict()},
         workload=_StairTrainingWorkload(
             kind="production",
             num_envs=config.train_num_envs,
@@ -627,6 +635,9 @@ def execute_stair_training_smoke(
     checkpoint_output: Path,
     run_name: str,
     resolved_cell_manifest: ResolvedCellManifestV1 | None = None,
+    runtime_comparison: Mapping[str, Any] | None = None,
+    capture_training_numeric: bool = False,
+    numeric_evidence_identity: Mapping[str, Any] | None = None,
 ) -> StairTrainingExecutionResult:
     """Run one fixed, non-eligible smoke through the production execution body."""
 
@@ -644,6 +655,10 @@ def execute_stair_training_smoke(
         run_name=run_name,
         expected_initial_policy_state_hash=None,
         resolved_cell_manifest=resolved_cell_manifest,
+        runtime_comparison=runtime_comparison,
+        capture_training_numeric=capture_training_numeric,
+        numeric_evidence_identity={**dict(numeric_evidence_identity or {}),
+            "environment_source_preflight": source_manifest_preflight.to_summary_dict()},
         workload=_StairTrainingWorkload(
             kind="phase_d_smoke",
             num_envs=16,
@@ -667,6 +682,9 @@ def _execute_stair_training(
     expected_initial_policy_state_hash: str | None,
     resolved_cell_manifest: ResolvedCellManifestV1 | None,
     workload: _StairTrainingWorkload,
+    runtime_comparison: Mapping[str, Any] | None = None,
+    capture_training_numeric: bool = False,
+    numeric_evidence_identity: Mapping[str, Any] | None = None,
 ) -> StairTrainingExecutionResult:
 
     _validate_training_inputs(
@@ -686,6 +704,11 @@ def _execute_stair_training(
     from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
     from rsl_rl.runners import OnPolicyRunner
 
+    from true_rl_agent.runner.training_numeric_capture import (
+        TrainingNumericCapture,
+        finish_training_numeric_capture,
+    )
+
     from true_rl_agent.tasks.stair_climbing.isaaclab_reward_runtime import (
         get_stair_complete_reward_term,
         run_stair_reward_activation_preflight,
@@ -700,6 +723,7 @@ def _execute_stair_training(
     checkpoint_output.parent.mkdir(parents=True, exist_ok=True)
     env = None
     complete_term = None
+    training_capture = None
     training_executed = False
     activation_preflight: dict[str, Any] | None = None
     training_summary: dict[str, Any] | None = None
@@ -819,6 +843,8 @@ def _execute_stair_training(
         if float(term_cfg.weight) != 1.0:
             raise RuntimeError("Stair complete reward manager weight drifted")
         complete_term = get_stair_complete_reward_term(base_env)
+        if runtime_comparison is not None:
+            complete_term.dispatcher.bind_runtime_comparison(**runtime_comparison)
         activation_preflight = _execute_stair_reward_program_boundary(
             lambda: run_stair_reward_activation_preflight(
                 env,
@@ -875,6 +901,27 @@ def _execute_stair_training(
                 "Stair initial policy state does not match the paired reference"
             )
         runner.add_git_repo_to_log(__file__)
+        if capture_training_numeric:
+            # Bind after activation preflight and runner construction: those
+            # calls are not PPO rollout steps and must not shift the windows.
+            training_capture = TrainingNumericCapture(
+                run_dir / "training_numeric_evidence",
+                identity={**dict(numeric_evidence_identity or {}),
+                          "task": "stair_climbing", "run_name": run_name,
+                          "workload_kind": workload.kind, "program": reward_program.to_public_dict(),
+                          "task_protocol_hash": config.task_protocol_hash,
+                          "resolved_cell_manifest_hash": resolved_cell_manifest.manifest_hash if resolved_cell_manifest else None,
+                          "resolved_cell_identity": resolved_cell_manifest.summary_identity() if resolved_cell_manifest else None,
+                          "training_seed": config.train_seed, "run_dir": str(run_dir),
+                          "initial_policy_state_hash": initial_policy_state_hash},
+                semantics=complete_term.dispatcher.training_numeric_semantics(control_dt=float(base_env.step_dt)),
+                planned_control_steps=workload.max_iterations * workload.num_steps_per_env,
+                num_envs=workload.num_envs, steps_per_iteration=workload.num_steps_per_env,
+                source_step_offset=complete_term.dispatcher.step_calls,
+                initial_learning_iteration=int(runner.current_learning_iteration),
+                reported_iteration=lambda: int(runner.current_learning_iteration),
+            )
+            complete_term.dispatcher.bind_training_numeric_capture(training_capture)
         training_executed = True
         _execute_stair_reward_program_boundary(
             lambda: runner.learn(
@@ -939,6 +986,8 @@ def _execute_stair_training(
                 expected_initial_policy_state_hash
             ),
             "initial_policy_state_match": initial_policy_state_match,
+            "numeric_evidence": finish_training_numeric_capture(
+                training_capture, training_status="pass", requested=capture_training_numeric),
         }
         return StairTrainingExecutionResult(
             status="pass",
@@ -982,6 +1031,8 @@ def _execute_stair_training(
                     expected_initial_policy_state_hash
                 ),
             }
+        candidate_training["numeric_evidence"] = finish_training_numeric_capture(
+            training_capture, training_status="fail", requested=capture_training_numeric)
         return StairTrainingExecutionResult(
             status="fail",
             training_executed=training_executed,
@@ -996,6 +1047,9 @@ def _execute_stair_training(
         runtime_summary = (
             complete_term.runtime_summary() if complete_term is not None else None
         )
+        training_summary = dict(training_summary or {"workload_kind": workload.kind, "device": device})
+        training_summary["numeric_evidence"] = finish_training_numeric_capture(
+            training_capture, training_status="fail", requested=capture_training_numeric)
         return StairTrainingExecutionResult(
             status="fail",
             training_executed=training_executed,
@@ -1050,6 +1104,9 @@ def execute_stair_evaluation(
     runtime_lease: StairEvaluationRuntimeLease | None = None,
     resolved_cell_manifest: ResolvedCellManifestV1 | None = None,
     native_video: NativeVideoOptions | None = None,
+    numeric_evidence_dir: Path | None = None,
+    numeric_evidence_identity: Mapping[str, Any] | None = None,
+    numeric_evidence_max_bytes: int = 2 * 1024**3,
 ) -> StairEvaluationExecutionResult:
     """Load one policy and evaluate explicit splits in one isolated runtime."""
 
@@ -1057,6 +1114,10 @@ def execute_stair_evaluation(
         raise ValueError("native recording requires an explicit resolved cell manifest")
     if native_video is not None and splits != ("public_dev",):
         raise ValueError("Stair native recording requires the public_dev evaluation phase")
+    if numeric_evidence_dir is not None and (
+        splits != ("public_dev",) or resolved_cell_manifest is None or not numeric_evidence_identity
+    ):
+        raise ValueError("Stair numeric capture requires bound public_dev execution")
     if not isinstance(config, StairClimbingTaskConfig):
         raise TypeError("Stair evaluation requires StairClimbingTaskConfig")
     is_study_final = (
@@ -1111,6 +1172,18 @@ def execute_stair_evaluation(
             "multi-split Stair evaluation requires a subprocess runtime lease"
         )
     runtime_projection = _stair_runtime_projection_for_execution(resolved_cell_manifest)
+    numeric_capture = None
+    if numeric_evidence_dir is not None:
+        from true_rl_agent.tasks.stair_climbing.numeric_capture import StairNumericCapture
+        numeric_capture = StairNumericCapture(
+            numeric_evidence_dir, config=config, resolved_cell_manifest=resolved_cell_manifest,
+            identity={**numeric_evidence_identity, "checkpoint_hash": checkpoint_hash,
+                      "resolved_cell_manifest_hash": resolved_cell_manifest.manifest_hash,
+                      "seed_namespace": seed_namespace, "splits": list(splits),
+                      "environment_source_preflight": source_manifest_preflight.to_summary_dict(),
+                      "backend_execution_environment_verification": dict(backend_execution_environment_verification)},
+            max_bytes=numeric_evidence_max_bytes,
+        )
 
     import gymnasium as gym
     from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
@@ -1141,6 +1214,7 @@ def execute_stair_evaluation(
         ordered_evaluation_suite=config.ordered_evaluation_suite_config,
         evaluation_split=(splits[0] if config.is_unified_protocol else None),
         runtime_projection=runtime_projection,
+        capture_contact_history=numeric_capture is not None,
         unified_protocol=(
             config.unified_protocol if config.is_unified_protocol else None
         ),
@@ -1255,6 +1329,7 @@ def execute_stair_evaluation(
                     if recorder is not None else None
                 ),
                 on_seed_completed=(finish_seed_video if recorder is not None else None),
+                numeric_capture=numeric_capture,
             )
             per_seed = split_execution.per_seed_outcomes
             print(
@@ -1307,6 +1382,7 @@ def execute_stair_evaluation(
             execution_device=actual_env_device,
             checkpoint_loading=checkpoint_loading,
             constructed_learner=constructed_learner,
+            numeric_evidence=(numeric_capture.complete(summaries["public_dev"]) if numeric_capture is not None else None),
         )
         if recorder is not None:
             sidecar = {

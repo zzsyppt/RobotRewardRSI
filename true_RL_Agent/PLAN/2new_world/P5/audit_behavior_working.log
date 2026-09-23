@@ -1,0 +1,50 @@
+======================================================================
+FAIL: test_capacity_receipt_uses_provider_tokens_and_compact_sent_payload (tests.unit.test_openai_compatible_provider.OpenAICompatibleProviderTests.test_capacity_receipt_uses_provider_tokens_and_compact_sent_payload)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_openai_compatible_provider.py", line 879, in test_capacity_receipt_uses_provider_tokens_and_compact_sent_payload
+    self.assertIn('\n  "', canonical_prompt_json({"schema_version": "true_rl_agent.prompt_payload.v4"}))
+AssertionError: '\n  "' not found in '{"schema_version":"true_rl_agent.prompt_payload.v4"}'
+
+======================================================================
+FAIL: test_full_generation_is_serial_author_parallel_execute_and_single_commit (tests.integration.test_fixed_width_generation.FixedWidthGenerationTests.test_full_generation_is_serial_author_parallel_execute_and_single_commit) (scenario='v3_b_authors_after_a_failure', b_verified=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_fixed_width_generation.py", line 2301, in test_full_generation_is_serial_author_parallel_execute_and_single_commit
+    self.assertEqual([item["trial_status"] for item in pair.record["trials"]],
+AssertionError: Lists differ: ['candidate_failed', 'not_started'] != ['candidate_failed', 'verified_not_run']
+
+First differing element 1:
+'not_started'
+'verified_not_run'
+
+- ['candidate_failed', 'not_started']
+?                           --- ^^^
+
++ ['candidate_failed', 'verified_not_run']
+?                       +++++++++     ^^
+
+
+======================================================================
+FAIL: test_full_generation_is_serial_author_parallel_execute_and_single_commit (tests.integration.test_fixed_width_generation.FixedWidthGenerationTests.test_full_generation_is_serial_author_parallel_execute_and_single_commit) (scenario='v3_b_authors_after_a_failure', b_verified=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_fixed_width_generation.py", line 2301, in test_full_generation_is_serial_author_parallel_execute_and_single_commit
+    self.assertEqual([item["trial_status"] for item in pair.record["trials"]],
+AssertionError: Lists differ: ['candidate_failed', 'not_started'] != ['candidate_failed', 'candidate_failed']
+
+First differing element 1:
+'not_started'
+'candidate_failed'
+
+- ['candidate_failed', 'not_started']
+?                        ^  ^^ ^^
+
++ ['candidate_failed', 'candidate_failed']
+?                       ++ ^^^^ + ^ ^^
+
+
+----------------------------------------------------------------------
+Ran 146 tests in 64.307s
+
+FAILED (failures=3)

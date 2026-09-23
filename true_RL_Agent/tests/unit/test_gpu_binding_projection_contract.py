@@ -260,9 +260,7 @@ class GpuBindingProjectionContractTests(unittest.TestCase):
             "subprocess_runner": (
                 SubprocessRunner._validated_gpu_process_binding_from_summary(
                     runner_summary,
-                    execution_context=SimpleNamespace(
-                        gpu_process_binding=binding,
-                    ),
+                    expected_binding=binding,
                 )
             ),
             "stair_runtime": GpuProcessBinding.from_mapping(

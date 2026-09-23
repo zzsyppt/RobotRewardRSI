@@ -1,0 +1,272 @@
+{
+  "audit_script_sha256": "c3f19304e1714a121ddb5d6f12a6b1d496378003eb81812d3d916fd2bd1a72fb",
+  "audited_at_utc": "2026-09-22T06:21:40.681101+00:00",
+  "input_sha256": {
+    "PLAN\\2new_world\\P6\\force_unified_01\\g1_public_dev_03\\backend_execution_environment.json": "14718dea201b9dafc6ae06f673b07fc21081373b5d956ac8a938413894587ad0",
+    "PLAN\\2new_world\\P6\\force_unified_01\\g1_public_dev_03\\composition\\resolved_cell_manifest.json": "fe160f1d18291dd5bdf6f4789ceee5f8d7de95924abb0e6e49cca0fe3a4e00b4",
+    "PLAN\\2new_world\\P6\\force_unified_01\\g1_public_dev_03\\result.json": "f6466ebb0abedbc2fde46be126b17c339c775206db7da68cee619db35c315cb3",
+    "PLAN\\2new_world\\P6\\force_unified_01\\g1_public_dev_03\\runtime_admission.json": "d03a1c7b95f3c75fe1a9b46ff25c00b1d91d58222533b99607e4917beefd097f",
+    "PLAN\\2new_world\\P6\\force_unified_01\\g1_public_dev_03\\seed_01.json": "ffe59bfb94f786c7887b8d94cde6c8f6d8554cb51c15ff5376c57224066c773a",
+    "PLAN\\2new_world\\P6\\force_unified_01\\g1_public_dev_03\\seed_02.json": "0b29319a998e70233356249018d24c30b0b8e5766d170c267ef985b2d7fb0936",
+    "PLAN\\2new_world\\P6\\force_unified_01\\g1_public_dev_03\\seed_03.json": "d143027ee121af4e9f7b79e000e2257d5918af2bbb4976edfbf9aeb4cc72c895",
+    "PLAN\\2new_world\\P6\\force_unified_01\\g1_public_dev_03\\source_identity.json": "b4200bf4734031c7109580478b50ad041ebd7c4cd078e2c7e6441d8dee3fdebd",
+    "PLAN\\2new_world\\P6\\force_unified_01\\g1_public_dev_03_process\\process.json": "753a3a7d749b6b2005fe6d9baab12b513a42fcd8e14e9a627c12a278577905da",
+    "PLAN\\2new_world\\P6\\force_unified_01\\go2_public_dev_03\\backend_execution_environment.json": "14718dea201b9dafc6ae06f673b07fc21081373b5d956ac8a938413894587ad0",
+    "PLAN\\2new_world\\P6\\force_unified_01\\go2_public_dev_03\\composition\\resolved_cell_manifest.json": "b6b9732c625423c7c32266abbde5a4c7801522ef0b60cf69f3938eb1d07cf984",
+    "PLAN\\2new_world\\P6\\force_unified_01\\go2_public_dev_03\\result.json": "0d6313a2e5a15b429a9458b1b4e6e266ee0977a7101658d0442cd047c99cfa5f",
+    "PLAN\\2new_world\\P6\\force_unified_01\\go2_public_dev_03\\runtime_admission.json": "abfa4ce770ebc15325c8c834eec5b0d1306bd3862aa4684ebfb545edd4a7f16a",
+    "PLAN\\2new_world\\P6\\force_unified_01\\go2_public_dev_03\\seed_01.json": "bfec7f38a51076b73abf89767ff6d4512185288fc60ac07c657aa23ea5dc2f85",
+    "PLAN\\2new_world\\P6\\force_unified_01\\go2_public_dev_03\\seed_02.json": "51985a553ba19cda0b5244ac59e4ed4823b656f01cdf71fc37bce775243c8a15",
+    "PLAN\\2new_world\\P6\\force_unified_01\\go2_public_dev_03\\seed_03.json": "08073124609f0de034ba92ac393fb111196fd54c47f7b69b125045f3663d2e18",
+    "PLAN\\2new_world\\P6\\force_unified_01\\go2_public_dev_03\\source_identity.json": "77db737db86054bc04ff1b00de65a05415d6b078317a93fc9c10e5443c45f3f3",
+    "PLAN\\2new_world\\P6\\force_unified_01\\go2_public_dev_03_process\\process.json": "515767c1aabd964fca97c326f38d4d691597cdb5ff79c7689193331d4181a9e2"
+  },
+  "limitations": [
+    "No raw per-control-step state or per-physics-substep wrench trajectories were saved here. Continuous dwell and final full-state stability were NOT independently recomputed.",
+    "World-force direction/magnitude and accumulated impulse are internally checked; max force error and injection_verified are saved runtime measurements, not an independent replay of the PhysX calls or off-pulse zero wrench.",
+    "Physical failure labels are reconstructed from saved pose extrema. These are not independent raw trajectory measurements.",
+    "The public-dev band is not complete reference qualification. Checkpoints were reused unchanged; no training, public_accept, sealed or Genesis qualification was performed by this diagnostic."
+  ],
+  "robots": {
+    "g1": {
+      "aggregate": {
+        "completed_push_event_count": 166,
+        "control_episode_count": 0,
+        "control_success_count": 0,
+        "eligible_episode_count": 192,
+        "episodes": 192,
+        "invalid_injection_count": 0,
+        "planned_push_event_count": 240,
+        "push_event_count": 194,
+        "pushed_episode_count": 192,
+        "sequence_recovered_count": 40,
+        "stratum_results": {
+          "high": {
+            "episodes": 48,
+            "success_rate": 0.0,
+            "successes": 0
+          },
+          "low": {
+            "episodes": 48,
+            "success_rate": 0.6041666666666666,
+            "successes": 29
+          },
+          "medium": {
+            "episodes": 48,
+            "success_rate": 0.08333333333333333,
+            "successes": 4
+          },
+          "repeated": {
+            "episodes": 48,
+            "success_rate": 0.0,
+            "successes": 0
+          }
+        },
+        "success_count": 33,
+        "success_rate": 0.171875,
+        "successes": 33,
+        "verified_push_event_count": 194
+      },
+      "cell_variant_id": "push.g1_37dof.recovery_v3",
+      "checkpoint_sha256": "sha256:91c00d4e61492dcfb6511aa0ae9ef85121c5bb08dafde7eabf29c10281ad1749",
+      "early_failure_incomplete_sequence_episodes": 67,
+      "engineering_consistency": "PASS",
+      "evaluation_manifest_hash": "795cfd32eb558684f21dbc66d70c0f0e32f3c76cea3e01409db47c1b2ac7cee8",
+      "failure_counts": {
+        "fall_backward": 9,
+        "fall_forward": 26,
+        "fall_side": 100,
+        "height_collapse": 10,
+        "not_recovered": 14,
+        "success_recovered": 33
+      },
+      "force_record_checks": {
+        "bound_body": "torso_link",
+        "expected_substeps": 56,
+        "force_magnitude_n_range": [
+          186.133353543199,
+          620.4445026628562
+        ],
+        "fresh_dwell_steps": 21,
+        "full_pulse_control_steps": 14,
+        "full_pulse_s": 0.28,
+        "max_direction_consistency_error_rad": 6.889221642505666e-07,
+        "max_impulse_consistency_error_ns": 0.0001293945312568212,
+        "recovery_window_steps": 110,
+        "repeated_high_fraction": 0.8,
+        "saved_max_force_error_n": 0.000762939453125,
+        "start_control_steps": [
+          69,
+          94
+        ],
+        "zero_force_gap_control_steps": 11,
+        "zero_force_gap_s": 0.22
+      },
+      "holdout_jobs": 0,
+      "missing_planned_pulses_due_to_early_failure": 46,
+      "partial_pulses_due_to_early_failure": 28,
+      "production_gate": {
+        "public_dev_reference_band": [
+          0.2,
+          0.9
+        ],
+        "public_dev_score": 0.171875,
+        "qualification_contract_hash": "89db44c2bce51b713588be27b484018c85327f20b0dbc6fbc93ee639073f2892",
+        "recovery_evidence_status": "pass",
+        "status": "fail"
+      },
+      "production_source_hashes_match_saved_environment": {
+        "src/true_rl_agent/tasks/push_recovery/force_protocol.py": "b364811434e329e5a0356f4b90525fbe9d3dc0a1ff1a76d5b038fdfd6ac0cee0",
+        "src/true_rl_agent/tasks/push_recovery/force_runtime.py": "0ddd6282a69d943a1321b5f17016c5689ee45970d34d4c4e4b1352b62340e2f9",
+        "src/true_rl_agent/tasks/push_recovery/metrics.py": "7d6a8770c95741d3b7288e87da53ad2e64caa83144859c3bab7d1dad04a23984",
+        "src/true_rl_agent/tasks/push_recovery/phased_adapter.py": "43c3f45e92771bde6dc64961f1c48d50b47fe542ed536728fddeafcca62a6974",
+        "src/true_rl_agent/tasks/push_recovery/reference_program.py": "e34a0a7d04a7b5f352dd4c55bc9c1864bd05286722ea31048473d8287b675fbb"
+      },
+      "qualification_claimed": false,
+      "recovered_sequence_but_not_success": 7,
+      "seed_results": [
+        {
+          "derived_seed": 1500010000,
+          "episodes": 64,
+          "run_index": 1,
+          "successes": 11
+        },
+        {
+          "derived_seed": 1500010001,
+          "episodes": 64,
+          "run_index": 2,
+          "successes": 11
+        },
+        {
+          "derived_seed": 1500010002,
+          "episodes": 64,
+          "run_index": 3,
+          "successes": 11
+        }
+      ],
+      "successes_with_max_drift_over_1p2m": 14,
+      "train_jobs": 0
+    },
+    "go2": {
+      "aggregate": {
+        "completed_push_event_count": 229,
+        "control_episode_count": 0,
+        "control_success_count": 0,
+        "eligible_episode_count": 192,
+        "episodes": 192,
+        "invalid_injection_count": 0,
+        "planned_push_event_count": 240,
+        "push_event_count": 237,
+        "pushed_episode_count": 192,
+        "sequence_recovered_count": 141,
+        "stratum_results": {
+          "high": {
+            "episodes": 48,
+            "success_rate": 0.3958333333333333,
+            "successes": 19
+          },
+          "low": {
+            "episodes": 48,
+            "success_rate": 1.0,
+            "successes": 48
+          },
+          "medium": {
+            "episodes": 48,
+            "success_rate": 0.9791666666666666,
+            "successes": 47
+          },
+          "repeated": {
+            "episodes": 48,
+            "success_rate": 0.5625,
+            "successes": 27
+          }
+        },
+        "success_count": 141,
+        "success_rate": 0.734375,
+        "successes": 141,
+        "verified_push_event_count": 237
+      },
+      "cell_variant_id": "push.go2_12dof.recovery_v3",
+      "checkpoint_sha256": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+      "early_failure_incomplete_sequence_episodes": 11,
+      "engineering_consistency": "PASS",
+      "evaluation_manifest_hash": "c0fc5eb506d1af528feed4cc4de53beaeff0f13e72aef16e4e4e721e9b8e0783",
+      "failure_counts": {
+        "fall_backward": 11,
+        "fall_side": 13,
+        "height_collapse": 26,
+        "not_recovered": 1,
+        "success_recovered": 141
+      },
+      "force_record_checks": {
+        "bound_body": "base",
+        "expected_substeps": 44,
+        "force_magnitude_n_range": [
+          77.00831673136526,
+          319.14243992741774
+        ],
+        "fresh_dwell_steps": 16,
+        "full_pulse_control_steps": 11,
+        "full_pulse_s": 0.22,
+        "max_direction_consistency_error_rad": 8.102269144036605e-07,
+        "max_impulse_consistency_error_ns": 3.3721923827556566e-05,
+        "recovery_window_steps": 81,
+        "repeated_high_fraction": 0.8,
+        "saved_max_force_error_n": 0.000274658203125,
+        "start_control_steps": [
+          51,
+          73
+        ],
+        "zero_force_gap_control_steps": 11,
+        "zero_force_gap_s": 0.22
+      },
+      "holdout_jobs": 0,
+      "missing_planned_pulses_due_to_early_failure": 3,
+      "partial_pulses_due_to_early_failure": 8,
+      "production_gate": {
+        "public_dev_reference_band": [
+          0.2,
+          0.9
+        ],
+        "public_dev_score": 0.734375,
+        "qualification_contract_hash": "89db44c2bce51b713588be27b484018c85327f20b0dbc6fbc93ee639073f2892",
+        "recovery_evidence_status": "pass",
+        "status": "pass"
+      },
+      "production_source_hashes_match_saved_environment": {
+        "src/true_rl_agent/tasks/push_recovery/force_protocol.py": "b364811434e329e5a0356f4b90525fbe9d3dc0a1ff1a76d5b038fdfd6ac0cee0",
+        "src/true_rl_agent/tasks/push_recovery/force_runtime.py": "0ddd6282a69d943a1321b5f17016c5689ee45970d34d4c4e4b1352b62340e2f9",
+        "src/true_rl_agent/tasks/push_recovery/metrics.py": "7d6a8770c95741d3b7288e87da53ad2e64caa83144859c3bab7d1dad04a23984",
+        "src/true_rl_agent/tasks/push_recovery/phased_adapter.py": "43c3f45e92771bde6dc64961f1c48d50b47fe542ed536728fddeafcca62a6974",
+        "src/true_rl_agent/tasks/push_recovery/reference_program.py": "e34a0a7d04a7b5f352dd4c55bc9c1864bd05286722ea31048473d8287b675fbb"
+      },
+      "qualification_claimed": false,
+      "recovered_sequence_but_not_success": 0,
+      "seed_results": [
+        {
+          "derived_seed": 1500010000,
+          "episodes": 64,
+          "run_index": 1,
+          "successes": 46
+        },
+        {
+          "derived_seed": 1500010001,
+          "episodes": 64,
+          "run_index": 2,
+          "successes": 49
+        },
+        {
+          "derived_seed": 1500010002,
+          "episodes": 64,
+          "run_index": 3,
+          "successes": 46
+        }
+      ],
+      "successes_with_max_drift_over_1p2m": 19,
+      "train_jobs": 0
+    }
+  },
+  "schema_version": "p6.force_unified.summary_consistency_audit.v1",
+  "scope": "independent arithmetic from saved per_episode extrema, force integrals/counts and recovery/final markers; production public-dev projection only",
+  "status": "PASS"
+}

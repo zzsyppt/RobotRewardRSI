@@ -19,9 +19,8 @@ from true_rl_agent.tasks.stair_climbing.isaaclab_terrain import (
 )
 from true_rl_agent.tasks.stair_climbing.unified_training import (
     STAIR_TERRAIN_REGIME_C0,
-    STAIR_TERRAIN_REGIME_C1,
     StairUnifiedTrainingProfile,
-    goal_progress_m_by_terrain_type,
+    goal_progress_m_by_terrain_type as goal_progress_m_by_terrain_type,
     unified_assignment_summary,
     unified_initial_terrain_assignment,
 )

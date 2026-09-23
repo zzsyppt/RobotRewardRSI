@@ -1,0 +1,205 @@
+{
+  "capture": "on",
+  "child_argv": [
+    "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/source_r5/scripts/training_numeric_smoke.py",
+    "--stair-child",
+    "--train-argv",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r5_train_stair_go2_on/executed_train_argv.json"
+  ],
+  "child_pid": 1687143,
+  "device": "cuda:0",
+  "diagnostic_workload": {
+    "env_steps": 128,
+    "max_iterations": 1,
+    "num_envs": 16,
+    "num_steps_per_env": 8
+  },
+  "error": "Traceback (most recent call last):\n  File \"/data/yuyangliu/AGENT/feedback_p2_20260923/source_r5/scripts/training_numeric_smoke.py\", line 335, in main\n    report[\"sampled_reward_checks\"] = check_sampled_rewards(\n                                      ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/yuyangliu/AGENT/feedback_p2_20260923/source_r5/scripts/training_numeric_smoke.py\", line 172, in check_sampled_rewards\n    raise ValueError(\"training numeric identity differs from expected execution\")\nValueError: training numeric identity differs from expected execution\n",
+  "eval_jobs": 0,
+  "formal_training_claim": false,
+  "gpu_lease": {
+    "holder": {
+      "genesis_identity_hash": "cc3fa1cbb1385049d5fb554e6950e1c5e6b8ace004bc75c758b7a1e5e4cbeba1",
+      "invocation_segment_id": "cc3fa1cbb1385049",
+      "lane_id": "cuda:0",
+      "logical_job_id": "stair",
+      "session_contract_hash": "cc3fa1cbb1385049d5fb554e6950e1c5e6b8ace004bc75c758b7a1e5e4cbeba1",
+      "session_id": "training-numeric-smoke"
+    },
+    "identity": {
+      "execution_device": "cuda:0",
+      "identity_hash": "cac943acb605b37b244df41901d8e2f8ba2e4240bbe25d4fed41414b85da02ee",
+      "machine_id": "9f0d44ab81e646d89d195b3e7da2de30",
+      "physical_id": "GPU-06661cdd-1a0e-904e-a2e3-705eda5fb65b",
+      "physical_resource_hash": "a57856084a9d0c880569edb124f01821dc1061b59385c12b951e2d6a5d6f0deb"
+    },
+    "ledger_authority": false,
+    "owner_pid": 1687140,
+    "schema_version": "true_rl_agent.runner.gpu_lease.v2"
+  },
+  "mode": "run",
+  "numeric_evidence": {
+    "coverage": {
+      "env_selection": "fixed_first_environment_ids_no_rng",
+      "initial_learning_iteration": 0,
+      "num_envs": 16,
+      "observed_control_steps": 8,
+      "planned_control_steps": 8,
+      "sampled_env_ids": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "schema_version": "true_rl_agent.training_numeric_capture.v1",
+      "scope": "fixed_windows_and_environment_subset_not_whole_training_distribution",
+      "semantics": {
+        "control_dt_s": 0.02,
+        "program_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+        "qualification_hash": "e6fa2c439b66e672cca94cf930be5013192d68a97637e5dbd186d4ea86dc08e4",
+        "raw_term": "guarded_and_clipped_program_term_before_weight",
+        "reward_manager_weight": 1.0,
+        "step_reward_relation": "RewardManager multiplies total_rate by control_dt_s once",
+        "terms": [
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "index": 0,
+            "name": "track_lin_vel_xy_exp",
+            "weight": 3.5
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "index": 1,
+            "name": "track_ang_vel_z_exp",
+            "weight": 0.75
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "index": 2,
+            "name": "ang_vel_xy_l2",
+            "weight": -0.05
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "index": 3,
+            "name": "flat_orientation_l2",
+            "weight": -2.5
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "index": 4,
+            "name": "dof_torques_l2",
+            "weight": -0.0002
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "index": 5,
+            "name": "dof_acc_l2",
+            "weight": -2.5e-07
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "index": 6,
+            "name": "action_rate_l2",
+            "weight": -0.01
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "index": 7,
+            "name": "feet_air_time",
+            "weight": 0.25
+          }
+        ],
+        "total": "actual_dispatcher_total_rate_before_RewardManager_dt",
+        "weighted_term": "raw_term_times_declared_weight_reward_rate"
+      },
+      "source_step_offset_excluded": 1,
+      "steps_per_iteration": 8,
+      "training_status": "pass",
+      "windows": [
+        {
+          "end_step": 2,
+          "name": "early",
+          "planned_sample_steps": 2,
+          "planned_sampled_env_transitions": 32,
+          "sampled_control_steps": 2,
+          "sampled_env_transitions": 32,
+          "sampled_steps": [
+            1,
+            2
+          ],
+          "start_step": 1,
+          "status": "sampled"
+        },
+        {
+          "end_step": 5,
+          "name": "middle",
+          "planned_sample_steps": 3,
+          "planned_sampled_env_transitions": 48,
+          "sampled_control_steps": 3,
+          "sampled_env_transitions": 48,
+          "sampled_steps": [
+            3,
+            4,
+            5
+          ],
+          "start_step": 3,
+          "status": "sampled"
+        },
+        {
+          "end_step": 8,
+          "name": "late",
+          "planned_sample_steps": 3,
+          "planned_sampled_env_transitions": 48,
+          "sampled_control_steps": 3,
+          "sampled_env_transitions": 48,
+          "sampled_steps": [
+            6,
+            7,
+            8
+          ],
+          "start_step": 6,
+          "status": "sampled"
+        }
+      ]
+    },
+    "reference": {
+      "manifest_path": "/data/yuyangliu/AGENT/feedback_p2_20260923/r5_train_stair_go2_on/run/training_numeric_evidence/manifest.json",
+      "manifest_sha256": "a8cca4548b413d9e0aa2700deb0467e4e97722aa4a1e31de8eb2c5940bed1532",
+      "schema_version": "true_rl_agent.numeric_evidence.ref.v1"
+    },
+    "status": "complete"
+  },
+  "policy_qualification": false,
+  "program_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+  "provider_requests": 0,
+  "returncode": 0,
+  "schema_version": "true_rl_agent.training_numeric_smoke.v1",
+  "source_argv_sha256": "sha256:12cc8354f990d71108fc83c86d142284a6a35ae0a809f676771af25c9ee8f00b",
+  "status": "FAIL",
+  "subject_kind": "reference",
+  "task": "stair",
+  "train_process_starts": 1,
+  "wall_seconds": 22.856706419959664
+}

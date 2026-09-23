@@ -1,0 +1,98 @@
+{
+  "schema_version": "true_rl_agent.go2_push.five_round_cost_sources.v1",
+  "date": "2026-09-22",
+  "sources": [
+    {
+      "path": "PLAN/2new_world/P6/go2_dev_D1/process/process.json",
+      "sha256": "75d91c135b9de2ffbc187a8ae4d32d4915dff414fd5be8ed126f1f2c8a506a58"
+    },
+    {
+      "path": "PLAN/2new_world/P6/go2_dev_D1/dev/composition/runner/p6-go2-matched2-dev-20260912/train/summary.json",
+      "sha256": "16be0e3ee7b7d9711d38546775287bf0968213b98ec104f0c5eae2cf7aa1b70c"
+    },
+    {
+      "path": "PLAN/2new_world/P6/go2_dev_D1/dev/composition/runner/p6-go2-matched2-dev-20260912/train/runner_process/stdout.log",
+      "sha256": "1bb98123aa9774fb575af9bf859d7e62f0669a8f40715a4b85e3094802324361"
+    },
+    {
+      "path": "PLAN/2new_world/P6/force_unified_01/go2_public_dev_03_process/process.json",
+      "sha256": "515767c1aabd964fca97c326f38d4d691597cdb5ff79c7689193331d4181a9e2"
+    },
+    {
+      "path": "PLAN/2new_world/P6/force_unified_01/go2_public_dev_03/result.json",
+      "sha256": "0d6313a2e5a15b429a9458b1b4e6e266ee0977a7101658d0442cd047c99cfa5f"
+    },
+    {
+      "path": "PLAN/2new_world/P5/provider_live_01/policy.json",
+      "sha256": "7ff94a0e47a38e212a03cffae7b41570e2015a3b5cbefbf68c7455fb70807715"
+    },
+    {
+      "path": "PLAN/2new_world/P5/audit_capacity/result.json",
+      "sha256": "77025aebf7ac7a02bdf483524077fa801b17c1a503c62e631c62cd3e871992bd"
+    }
+  ],
+  "cell_variant_id": "push.go2_12dof.recovery_v3",
+  "resolved_cell_manifest_hash": "fb8a03c7df15a8b6ff1033be284d60d323fc5846b127f2042d34f7d60f75bf6e",
+  "cost_contract_hash": "31a9fd57c1a91df882fae2d6a02d765d4db7384a54dd9c7977c091ff79ff57b3",
+  "provider_policy_hash": "4d5650515a7bf1d82e67139e195a013785d7151a19cec4a2bd9b011b6f4895bf",
+  "observations": {
+    "go2_D_learning_loop_elapsed_s": 558,
+    "go2_D_complete_train_plus_dev_outer_s": 679.3482296466827,
+    "force_dev_3_seeds_outer_s": 53.6290385723114,
+    "historical_provider_max_measured_prompt_tokens": 37367,
+    "downloaded_output_bytes_lower_bounds": {
+      "train_and_dev": 2239077,
+      "force_dev": 446959
+    }
+  },
+  "measurement_limits": [
+    "D outer timing includes training plus velocity-domain dev; it conservatively bounds that historical train, not all future candidates.",
+    "Force public-dev timing comes from production runtime via the P6 acceptance driver; current three-phase formal Runner execution has not yet been measured.",
+    "Accept uses the dev timing estimate; sealed and reference qualification use seed-count extrapolation, not claimed measurements.",
+    "Downloaded output bytes exclude unsaved checkpoint/runtime files; frozen larger output allocations are operational reserves, not observed full output sizes.",
+    "Historical provider usage is Stair data. 65536 input tokens is a new declared request reserve, not a measured Push tokenizer count.",
+    "deepseek-flash now denotes DeepSeek-V4.1-Flash; this is not a claim to replay the retired V4 model."
+  ],
+  "runtime_envelopes": {
+    "runner_timeout_s": 7200,
+    "termination_grace_s": 5,
+    "operation_process_caps_s": {
+      "train": 1800,
+      "public_dev": 300,
+      "public_accept": 300,
+      "sealed_validation": 700,
+      "reference_qualification_split": [
+        302,
+        302,
+        726
+      ]
+    },
+    "source_to_reserve_rule": "Explicit timeout/output bounds override source measurements; no hidden proportional headroom."
+  },
+  "reference": {
+    "mode": "new_native_reference_train_and_three_phase_qualification",
+    "imports_reference_evidence": false,
+    "old_checkpoint_is_cost_evidence_only": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+    "no_compatible_force_domain_genesis_available": true
+  },
+  "provider_env_file": "/data/yuyangliu/secrets/deepseek.env",
+  "credential_read": false,
+  "physical_cap": {
+    "train_jobs": 12,
+    "train_steps": 589824000,
+    "eval_seed_units": 114,
+    "simulated_control_steps": 592034688,
+    "allocated_active_gpu_hours": 9.34388888888889,
+    "output_bytes": 15843983360
+  },
+  "provider_cap": {
+    "attempts_per_lane_per_generation": 5,
+    "input_units_per_attempt_reserve": 65536,
+    "output_units_per_attempt_cap": 32768,
+    "generation_width": 2,
+    "attempt_cap": 50,
+    "input_unit_cap": 3276800,
+    "output_unit_cap": 1638400,
+    "total_unit_cap": 4915200
+  }
+}

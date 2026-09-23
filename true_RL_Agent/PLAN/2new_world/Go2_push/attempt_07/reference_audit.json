@@ -1,0 +1,282 @@
+{
+  "status": "PASS_REFERENCE_TRAINING_REUSE_AND_FRESH_QUALIFICATION",
+  "audited_at_utc": "2026-09-23T06:03:19.776400+00:00",
+  "session_id": "go2-push-5rounds-20260923-a07",
+  "source_commit": "5f13b475335b871a8aa458d667ece16763dd78f6",
+  "session_genesis_hash": "ede6519bcdb8cd7efacf98bd9aab44f9d9ebd0d98cb75b31b4985017a8300873",
+  "scientific_runtime_snapshot_hash": "019e21e60a05e9a7aeb50e5d4c59a1b92c7ddd895fd7d17c7f459f4969492955",
+  "original_training_execution_environment_hash": "a35eae286da48ca60c59922249191ec4e6697b510024135790b8fb6d71e3fa7e",
+  "new_evaluation_execution_environment_hash": "ab65c38f43734f24bf5e56b7957a2b35656de8b18f4b2b2086dca676bf85b13b",
+  "scope": "A03 training reused exactly; A07 qualification rerun; ledger empty at audited snapshot.",
+  "acceptance_authority": false,
+  "five_round_experiment_complete": false,
+  "source_training": {
+    "source_session_genesis_checksum": "sha256:bf5171cbbe79ca6886f79c60a3bfc77c5a5c188ec590d4e6781163018ad913ab",
+    "source_session_genesis_hash": "cdfded707707805dd114e63458dc82d74045b4a2cfd0ca2629da63703b6dd329",
+    "source_session_genesis_uri": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/attempt_03/session/session_genesis.json",
+    "source_session_id": "go2-push-5rounds-20260922-a03"
+  },
+  "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+  "checks": {
+    "frozen_source:src/true_rl_agent/agent_core/session_genesis.py": true,
+    "frozen_source:src/true_rl_agent/evaluation/phases.py": true,
+    "frozen_source:src/true_rl_agent/runner/subprocess_runner.py": true,
+    "frozen_source:src/true_rl_agent/runner/specs.py": true,
+    "frozen_source:src/true_rl_agent/tasks/push_recovery/reference_program.py": true,
+    "frozen_source:src/true_rl_agent/tasks/push_recovery/config.py": true,
+    "frozen_A07_execution_commit": true,
+    "fresh_A07_session_and_genesis": true,
+    "original_training_source_binding": true,
+    "same_scientific_identity": true,
+    "new_execution_environment": true,
+    "training_only_reuse_not_reference_evaluation_import": true,
+    "old_training_execution_evidence_retained_exactly": true,
+    "same_reference_checkpoint": true,
+    "new_genesis_binds_new_private_artifact": true,
+    "no_A07_reference_training_directory": true,
+    "ledger_empty_at_reference_audit": true,
+    "recovered_train_keeps_original_gpu_binding": true,
+    "original_completion_binds_raw_summary": true,
+    "original_full_training_and_runtime_activation": true,
+    "new_eval_plan_old_training_binding": true,
+    "three_phase_assembly_plan_binding": true,
+    "three_distinct_phases": true,
+    "public_dev:new_contract": true,
+    "public_dev:receipt_integrity": true,
+    "public_dev:new_execution_identity": true,
+    "public_dev:current_environment_and_binding": true,
+    "public_dev:old_checkpoint_new_evaluation_binding": true,
+    "public_dev:checkpoint_isolation": true,
+    "public_dev:receipt_matches_raw_task_evidence": true,
+    "public_dev:full_cohort_and_valid_injection": true,
+    "public_dev:measured_seed_cost": true,
+    "public_accept:new_contract": true,
+    "public_accept:receipt_integrity": true,
+    "public_accept:new_execution_identity": true,
+    "public_accept:current_environment_and_binding": true,
+    "public_accept:old_checkpoint_new_evaluation_binding": true,
+    "public_accept:checkpoint_isolation": true,
+    "public_accept:receipt_matches_raw_task_evidence": true,
+    "public_accept:full_cohort_and_valid_injection": true,
+    "public_accept:measured_seed_cost": true,
+    "sealed_validation:new_contract": true,
+    "sealed_validation:receipt_integrity": true,
+    "sealed_validation:new_execution_identity": true,
+    "sealed_validation:current_environment_and_binding": true,
+    "sealed_validation:old_checkpoint_new_evaluation_binding": true,
+    "sealed_validation:checkpoint_isolation": true,
+    "sealed_validation:receipt_matches_raw_task_evidence": true,
+    "sealed_validation:full_cohort_and_valid_injection": true,
+    "sealed_validation:measured_seed_cost": true,
+    "qualification_replayed_from_current_task_owner": true,
+    "no_reference_train_attempt:go2-push-5rounds-20260923-a07-eval-public-dev": true,
+    "closed_new_phase_attempt:go2-push-5rounds-20260923-a07-eval-public-dev": true,
+    "no_reference_train_attempt:go2-push-5rounds-20260923-a07-eval-sealed-validation": true,
+    "closed_new_phase_attempt:go2-push-5rounds-20260923-a07-eval-sealed-validation": true,
+    "no_reference_train_attempt:go2-push-5rounds-20260923-a07-eval-public-accept": true,
+    "closed_new_phase_attempt:go2-push-5rounds-20260923-a07-eval-public-accept": true,
+    "three_reference_eval_attempts_no_retries": true,
+    "actual_cost_excludes_source_training": true,
+    "actual_eval_steps_and_gpu_time": true,
+    "actual_cost_evidence_hash": true,
+    "actual_cost_bound_and_within_caps": true,
+    "fresh_five_generation_contract": true
+  },
+  "phases": {
+    "public_dev": {
+      "seeds": 3,
+      "episodes": 192,
+      "successes": 141,
+      "strata": {
+        "high": {
+          "episodes": 48,
+          "successes": 19
+        },
+        "low": {
+          "episodes": 48,
+          "successes": 48
+        },
+        "medium": {
+          "episodes": 48,
+          "successes": 47
+        },
+        "repeated": {
+          "episodes": 48,
+          "successes": 27
+        }
+      },
+      "outcome_counts": {
+        "fall_backward": 11,
+        "fall_side": 13,
+        "height_collapse": 26,
+        "not_recovered": 1,
+        "success_recovered": 141
+      },
+      "job_id": "go2-push-5rounds-20260923-a07-eval-public-dev",
+      "phase_result_hash": "f4e7cac488e78a5162ff1ae3e2d84bc7a4891cbe66d2ed5cce35209a3a3121ca",
+      "task_evidence_changes_vs_A03": [
+        "/seed_summaries/0/created_at_utc",
+        "/seed_summaries/0/run/round_id",
+        "/seed_summaries/1/created_at_utc",
+        "/seed_summaries/1/run/round_id",
+        "/seed_summaries/2/created_at_utc",
+        "/seed_summaries/2/run/round_id"
+      ],
+      "task_evidence_reproduces_A03_except_run_identity": true,
+      "new_process_id": 1458820
+    },
+    "public_accept": {
+      "seeds": 3,
+      "episodes": 192,
+      "successes": 142,
+      "strata": {
+        "high": {
+          "episodes": 48,
+          "successes": 18
+        },
+        "low": {
+          "episodes": 48,
+          "successes": 48
+        },
+        "medium": {
+          "episodes": 48,
+          "successes": 48
+        },
+        "repeated": {
+          "episodes": 48,
+          "successes": 28
+        }
+      },
+      "outcome_counts": {
+        "fall_backward": 6,
+        "fall_side": 5,
+        "height_collapse": 38,
+        "success_recovered": 142,
+        "not_recovered": 1
+      },
+      "job_id": "go2-push-5rounds-20260923-a07-eval-public-accept",
+      "phase_result_hash": "c2abe0dd168f3a4ffaa41ad8a82d2a39604bacf7229484f51fc6bb1c66c27d38",
+      "task_evidence_changes_vs_A03": [
+        "/seed_summaries/0/created_at_utc",
+        "/seed_summaries/0/run/round_id",
+        "/seed_summaries/1/created_at_utc",
+        "/seed_summaries/1/run/round_id",
+        "/seed_summaries/2/created_at_utc",
+        "/seed_summaries/2/run/round_id"
+      ],
+      "task_evidence_reproduces_A03_except_run_identity": true,
+      "new_process_id": 1459292
+    },
+    "sealed_validation": {
+      "seeds": 7,
+      "episodes": 448,
+      "successes": 343,
+      "strata": {
+        "high": {
+          "episodes": 112,
+          "successes": 44
+        },
+        "low": {
+          "episodes": 112,
+          "successes": 112
+        },
+        "medium": {
+          "episodes": 112,
+          "successes": 107
+        },
+        "repeated": {
+          "episodes": 112,
+          "successes": 80
+        }
+      },
+      "outcome_counts": {
+        "fall_backward": 13,
+        "fall_side": 19,
+        "height_collapse": 69,
+        "success_recovered": 343,
+        "not_recovered": 4
+      },
+      "job_id": "go2-push-5rounds-20260923-a07-eval-sealed-validation",
+      "phase_result_hash": "03d4c5f87c130463eb01c226b76283f9643ba7e0ee1d9ea7b46b5fdda38253ad",
+      "task_evidence_changes_vs_A03": [
+        "/seed_summaries/0/created_at_utc",
+        "/seed_summaries/0/run/round_id",
+        "/seed_summaries/1/created_at_utc",
+        "/seed_summaries/1/run/round_id",
+        "/seed_summaries/2/created_at_utc",
+        "/seed_summaries/2/run/round_id",
+        "/seed_summaries/3/created_at_utc",
+        "/seed_summaries/3/run/round_id",
+        "/seed_summaries/4/created_at_utc",
+        "/seed_summaries/4/run/round_id",
+        "/seed_summaries/5/created_at_utc",
+        "/seed_summaries/5/run/round_id",
+        "/seed_summaries/6/created_at_utc",
+        "/seed_summaries/6/run/round_id"
+      ],
+      "task_evidence_reproduces_A03_except_run_identity": true,
+      "new_process_id": 1459742
+    }
+  },
+  "post_genesis_actual_cost": {
+    "accounted_output_bytes": 7899483,
+    "allocated_gpu_capacity_hours_charged": 0.053300474366111114,
+    "conservatively_charged_gpu_capacity_ns": 0,
+    "eval_seed_units": 13,
+    "finalization_output_reserve_bytes": 0,
+    "job_attempts": 3,
+    "job_cost_evidence_hash": "a4719de0a2f83bfd3d6204c0b1a73e6c886f5b1ab144dccc1cda6fc0c6816992",
+    "observed_output_bytes": 7899483,
+    "observed_output_files": 35,
+    "provider_attempts": 0,
+    "provider_conservative_attempts": 0,
+    "provider_reasoning_units": 0,
+    "provider_request_units": 0,
+    "provider_response_units": 0,
+    "provider_total_units": 0,
+    "resource_lease_wall_duration_ns": 191881707718,
+    "simulated_control_steps": 252096,
+    "train_jobs": 0,
+    "train_steps": 0,
+    "unmeasured_bound_attempts": 0
+  },
+  "evidence_sha256": {
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\source_snapshot_07.json": "sha256:826a7f995c69bce4efad140d964abc0dbeee14c1d0f968296e513c1aa807edff",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_03\\session\\session_genesis.json": "sha256:bf5171cbbe79ca6886f79c60a3bfc77c5a5c188ec590d4e6781163018ad913ab",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_03\\session\\reference_eval_artifact.json": "sha256:be27a1a3266d2504982fa3efedac3d37cb3b0d47b017fe40eb039c432101dee0",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_07\\session\\session_genesis.json": "sha256:2155c2f9bc5f2de68e709fda3a9a3ef2b58bc0b145f20d1fe14dc69b8de9930a",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_07\\session\\reference_eval_artifact.json": "sha256:7bbbd4843aada507d16cf25c3b2849227e795b6f6f9d4c781fdab5d59bfad9a7",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_07\\process.json": "sha256:64a880ea56e740c490e3e1f9b585e556398a8d722c064381cb53a30f744e5966",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_03\\session\\runner\\go2-push-5rounds-20260922-a03\\train\\summary.json": "sha256:6f0ed68cf38e66f253fe457720d58f9192af6b5ae71fb25cc4520fdf133c3ebe",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_07\\session\\reference_program_artifacts\\evaluation_receipts\\e3c54480b57e557d95a233a5fef8bc3994a5c790e685dda25d50a4ee33072749\\eval_phases\\public_dev.json": "sha256:c391e0031c500a92e17b6cd67ba0cbadc3eea5c45719c7275a0b4cc6c49362a4",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_07\\session\\runner\\go2-push-5rounds-20260923-a07\\eval\\public_dev\\summary.json": "sha256:beabef02bce80b49ff579aa13b68f9e2ad08b97d6339398c656ebf64da5bddac",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_03\\session\\runner\\go2-push-5rounds-20260922-a03\\eval\\public_dev\\summary.json": "sha256:b89a0a7c66b6b1b6acf9e95ab47c16e16eb6b14f29a0f7b928bd2b04daa75c6b",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_07\\session\\reference_program_artifacts\\evaluation_receipts\\e3c54480b57e557d95a233a5fef8bc3994a5c790e685dda25d50a4ee33072749\\contract.json": "sha256:6c3087e9423a3f6af271d3d040cad06c90af7a7f3e15930116fc9c5fe1eadfe1",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_07\\session\\reference_program_artifacts\\evaluation_receipts\\e3c54480b57e557d95a233a5fef8bc3994a5c790e685dda25d50a4ee33072749\\eval_phases\\public_accept.json": "sha256:f32e69b2c5d29da4d91ac2b2392114caccebf3d482a2411a72d977c50789e8e2",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_07\\session\\runner\\go2-push-5rounds-20260923-a07\\eval\\public_accept\\summary.json": "sha256:1df3cc34804f6c940def3ce87bf415f730ce980ca3fff39ba95fcfba4e1ceb8e",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_03\\session\\runner\\go2-push-5rounds-20260922-a03\\eval\\public_accept\\summary.json": "sha256:30a8a34b367b9a85f967e26aaf302bc6cbfa0bcdc9fa945e2fdcfd4bde812198",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_07\\session\\reference_program_artifacts\\evaluation_receipts\\e3c54480b57e557d95a233a5fef8bc3994a5c790e685dda25d50a4ee33072749\\eval_phases\\sealed_validation.json": "sha256:b10c9c2977cc41c679ebe041c030b08aa93cd4a043931cb4ae850c4c424cd964",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_07\\session\\runner\\go2-push-5rounds-20260923-a07\\eval\\sealed_validation\\summary.json": "sha256:82b5106af4b4158265bed7972fcce4bf6d27236fff5524e80e6b9f3275eab256",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_03\\session\\runner\\go2-push-5rounds-20260922-a03\\eval\\sealed_validation\\summary.json": "sha256:b4ddc86e6f87c8a3390780919fb671a0ff69b6e0e30a897e6b94414df1123fc9",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_07\\session\\resolved_cell_manifest.json": "sha256:a130b3a97ce4afde8574d19c575a430e8b83ec3750c40b43bc87465cfa0905dd",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_07\\session\\generation_session_contract.json": "sha256:b73fe2e8e88ee7b9d1f3475d407cb042b0b1076dacde871b1f8c3a7174c75de5",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_07\\session\\generation_actual_cost\\0001-post-genesis.json": "sha256:b52604749d2c8562f7711afcee55b3470e356adba5fb9cf77f176779d32263dd",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_07\\session\\job_attempts\\754128a891dfd6fe8726392f\\attempt_00.reservation.json": "sha256:23c9aa9d738d7120248253e6377c57d99bcdbd79886a9e788a730775b9b86aef",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_07\\session\\job_attempts\\754128a891dfd6fe8726392f\\attempt_00.result.json": "sha256:740cb5d27004ac9832b7c58eb798f4460434defae967969de4a4a5ce3ae6f934",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_07\\session\\job_attempts\\9d12adee563d3eb5074fa46d\\attempt_00.reservation.json": "sha256:deccdc4536442ac4b8708e019887efd53f1cd69328b11a62123069b853206472",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_07\\session\\job_attempts\\9d12adee563d3eb5074fa46d\\attempt_00.result.json": "sha256:ca5cef4fa26bc3cb6cfa228e0754bc07a414c56080265d3b0668c408e74e8cb2",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_07\\session\\job_attempts\\ccd1a39ed718e1d0e5d12e67\\attempt_00.reservation.json": "sha256:07fa256661b044109b7e090f8dce904f9f30406231fdc2f201888b5709f9c576",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_07\\session\\job_attempts\\ccd1a39ed718e1d0e5d12e67\\attempt_00.result.json": "sha256:6e1c5e274ebb82cfb63e810139295682d26d391421580212ab17133e2ea772a3"
+  },
+  "audit_script_adaptations": [
+    "Initial local audit used the private eval spec for the plan hash. session_genesis._job_spec_to_private_dict preserves host GPU topology; _run_reference_phased_evaluation hashes EvalJobSpec.to_public_dict. The audit now uses GpuProcessBinding.to_public_dict for this hash; checks remain intact.",
+    "Initial audit assumed a top-level eval creation time. The actual summaries store it in each task_evidence.seed_summaries entry. Freshness now compares new earliest seed time against old latest seed time."
+  ],
+  "limits": [
+    "Checkpoint bytes remain remote; this audit verifies bound checksums and target safety receipts, not a second local tensor hash.",
+    "Original training execution belongs to A03; the current checkout is used only to replay A07 qualification.",
+    "Source reserves may still include training; reserves are caps, not actual training charges.",
+    "No success-rate equality to A03 is required; fresh measured outcomes and the frozen qualification rule decide readiness.",
+    "Five generation closures, final confirmation and independent terminal audit remain separate acceptance steps."
+  ]
+}

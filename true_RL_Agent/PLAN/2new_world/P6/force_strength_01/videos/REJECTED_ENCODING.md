@@ -1,0 +1,1 @@
+All seven videos here are REJECTED: requested 960x720 but native RGB was 1280x720, so encoded frame counts are wrong. Numeric NPZ files are unaffected. Valid replays are in ../videos_v2. Statistical runs in scale_1p5 and scale_2p0 were not repeated.

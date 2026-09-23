@@ -95,6 +95,7 @@ class OpenAICompatibleProviderConfig:
     reasoning_mode: str = DEFAULT_PROVIDER_REASONING_MODE
     reasoning_effort: str | None = None
     empty_final_reasoning_retry: bool = False
+    model_context: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
         if (
@@ -103,6 +104,11 @@ class OpenAICompatibleProviderConfig:
             or self.max_tokens <= 0
         ):
             raise ValueError("provider max_tokens must be a positive integer")
+        if self.model_context is not None:
+            from true_rl_agent.agent_core.provider_limits import validate_provider_model_context
+            context = validate_provider_model_context(self.model_context)
+            if self.max_tokens > min(context["max_output_tokens"], context["context_window_tokens"]):
+                raise ValueError("requested output exceeds the declared provider model capacity")
         if (
             isinstance(self.max_response_bytes, bool)
             or not isinstance(self.max_response_bytes, int)
@@ -380,7 +386,30 @@ class OpenAICompatibleCandidateProvider:
             finish_reason=finish_reason,
             transport_policy_id=_transport_policy_id(self.transport),
             response_max_bytes=_transport_response_max_bytes(self.transport),
+            model_context=self.config.model_context,
         )
+        if (
+            _receipt_proves_empty_final_content_with_reasoning(
+                provider_receipt
+            )
+        ):
+            raise ProviderCandidateError(
+                "reasoning_output_exhausted" if finish_reason == "length" else "json_parse_error",
+                "reasoning exhausted the output budget before final JSON" if finish_reason == "length"
+                else "provider final content channel was empty",
+                details={
+                    "failure_kind": (
+                        PROVIDER_EMPTY_FINAL_REASONING_FAILURE_KIND
+                    ),
+                    **(
+                        {"finish_reason": finish_reason}
+                        if finish_reason is not None
+                        else {}
+                    ),
+                },
+                provider_usage=provider_usage,
+                provider_receipt=provider_receipt,
+            )
         try:
             response_text = _response_text(response)
         except ValueError as exc:
@@ -400,29 +429,6 @@ class OpenAICompatibleCandidateProvider:
                 provider_usage=provider_usage,
                 provider_receipt=provider_receipt,
             ) from exc
-        if (
-            self.config.empty_final_reasoning_retry
-            and finish_reason != "length"
-            and _receipt_proves_empty_final_content_with_reasoning(
-                provider_receipt
-            )
-        ):
-            raise ProviderCandidateError(
-                "json_parse_error",
-                "provider final content channel was empty",
-                details={
-                    "failure_kind": (
-                        PROVIDER_EMPTY_FINAL_REASONING_FAILURE_KIND
-                    ),
-                    **(
-                        {"finish_reason": finish_reason}
-                        if finish_reason is not None
-                        else {}
-                    ),
-                },
-                provider_usage=provider_usage,
-                provider_receipt=provider_receipt,
-            )
         try:
             proposal = _json_object_from_text(response_text, "candidate proposal")
         except ValueError as exc:
@@ -850,7 +856,10 @@ def _resolved_thinking_mode(
     repair = prompt_payload.get("provider_or_runtime_repair_feedback")
     if (
         empty_final_reasoning_retry
-        and _is_empty_final_reasoning_retry_feedback(repair)
+        and (_is_empty_final_reasoning_retry_feedback(repair)
+             or (isinstance(repair, Mapping) and (
+                 repair.get("failure_category") == "reasoning_output_exhausted"
+                 or repair.get("reasoning_output_exhausted_in_lane") is True)))
     ):
         return "disabled"
     if (
@@ -869,9 +878,9 @@ def _receipt_proves_empty_final_content_with_reasoning(
 
     empty_sha256 = "sha256:" + hashlib.sha256(b"").hexdigest()
     return (
-        receipt.get("response_text_present") is True
-        and receipt.get("response_text_utf8_bytes") == 0
-        and receipt.get("response_text_sha256") == empty_sha256
+        (receipt.get("response_text_present") is False or (
+            receipt.get("response_text_utf8_bytes") == 0
+            and receipt.get("response_text_sha256") == empty_sha256))
         and receipt.get("reasoning_content_present") is True
         and isinstance(receipt.get("reasoning_content_utf8_bytes"), int)
         and not isinstance(receipt.get("reasoning_content_utf8_bytes"), bool)
@@ -883,12 +892,12 @@ def _receipt_proves_empty_final_content_with_reasoning(
 def _is_empty_final_reasoning_retry_feedback(value: Any) -> bool:
     if not isinstance(value, Mapping):
         return False
-    if value.get("failure_category") != "json_parse_error":
+    if value.get("failure_category") not in {"json_parse_error", "reasoning_output_exhausted"}:
         return False
     failure = value.get("failure")
     if (
         not isinstance(failure, Mapping)
-        or failure.get("category") != "json_parse_error"
+        or failure.get("category") != value.get("failure_category")
     ):
         return False
     details = failure.get("details")
@@ -906,6 +915,7 @@ def _provider_response_receipt(
     finish_reason: str | None,
     transport_policy_id: str | None,
     response_max_bytes: int | None,
+    model_context: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build content-free, bounded metadata for immutable attempt evidence."""
 
@@ -930,7 +940,8 @@ def _provider_response_receipt(
     )
     receipt: dict[str, Any] = {
         "schema_version": (
-            "true_rl_agent.provider_response_receipt.v3"
+            "true_rl_agent.provider_response_receipt.v4" if model_context is not None and transport_bound
+            else "true_rl_agent.provider_response_receipt.v3"
             if transport_bound
             else "true_rl_agent.provider_response_receipt.v1"
         ),
@@ -949,6 +960,15 @@ def _provider_response_receipt(
     if transport_bound:
         receipt["transport_policy_id"] = transport_policy_id
         receipt["response_max_bytes"] = response_max_bytes
+        if model_context is not None:
+            usage = normalize_provider_usage(response.get("usage"))
+            input_tokens = usage.get("request_units")
+            receipt["model_context"] = dict(model_context)
+            receipt["input_tokens"] = input_tokens
+            receipt["joint_capacity_status"] = (
+                "unknown_without_provider_usage" if input_tokens is None else "within_declared_window"
+                if input_tokens + int(request_payload["max_tokens"]) <= model_context["context_window_tokens"]
+                else "exceeds_declared_window")
     return normalize_provider_receipt(receipt)
 
 

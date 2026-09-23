@@ -1,0 +1,55 @@
+{
+  "declaration_sha256": "18414197720e3730e001e5701bba3d23da9d643c00d1e7692699d1d45bd32228",
+  "prior_point": {
+    "g1": {
+      "successes": 167,
+      "episodes": 192,
+      "rate": 0.8697916666666666,
+      "result_sha256": "2b708ab3376e26b56e1cf407dcf98dd1bdca6ccf329650355b7423a344698f7f",
+      "decision": "select_1p5"
+    },
+    "go2": {
+      "successes": 190,
+      "episodes": 192,
+      "rate": 0.9895833333333334,
+      "result_sha256": "923e925f4c7665b28623afeaaf50b0b60c9d764c869838a3788d328709be251e",
+      "decision": "measure_last_declared_2p0"
+    }
+  },
+  "started_at_unix": 1789189258.1917152,
+  "wrapper_pid": 2739696,
+  "command": [
+    "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+    "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/run_owned_probe.py",
+    "--device",
+    "cuda:0",
+    "--output",
+    "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_calibration_dev_20260912/2p0/go2_process",
+    "--timeout",
+    "900",
+    "--",
+    "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+    "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/calibrate_push_reference_dev.py",
+    "--mode",
+    "run",
+    "--cell",
+    "push.go2_12dof.recovery_v2",
+    "--device",
+    "cuda:0",
+    "--output",
+    "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_calibration_dev_20260912/2p0/go2",
+    "--checkpoint",
+    "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/go2/composition/runner/p6-stationary-v3-dev-go2/checkpoints/best.pt",
+    "--training-summary",
+    "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/go2/composition/runner/p6-stationary-v3-dev-go2/train/summary.json",
+    "--training-manifest",
+    "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/go2/composition/resolved_cell_manifest.json",
+    "--push-protocol-path",
+    "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/calibration_protocols_01/scale_2p0.json",
+    "--expected-protocol-sha256",
+    "sha256:c74b920842c59108cbb037432596c8c02b324a69a63393537e9e3a0215bf6dcc",
+    "--expected-environment-hash",
+    "43bb62729b94329cf1605ccadf45d29e437b2f9c4b279ec616e08bd9cc3e41d9"
+  ],
+  "G1_further_measurements": 0
+}

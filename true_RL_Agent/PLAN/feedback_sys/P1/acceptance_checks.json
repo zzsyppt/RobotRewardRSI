@@ -1,0 +1,111 @@
+{
+  "checked_at": "2026-09-23T12:27:36.643989+00:00",
+  "status": "PASS",
+  "scope": "P1 current generation evidence boundary; legacy width-one retains committed-ledger trust",
+  "baseline_head": "fe96455ddd1a8c6ba30ee16e6a3a015422afe8d3",
+  "current_tests": 265,
+  "skipped_tests": 0,
+  "test_batches": [
+    {
+      "path": "verification_unittest.log",
+      "tests": 223,
+      "seconds": 28.326,
+      "status": "PASS",
+      "sha256": "96a343516b066f4b5e2f4aac5d532ece83a5f97ee2ad8b2f23c58fcac059f094"
+    },
+    {
+      "path": "verification_generation.log",
+      "tests": 2,
+      "seconds": 63.373,
+      "status": "PASS",
+      "sha256": "cf6527b7a52c1d0d46bbb03005196caa8bd78568ee78fea0e5c3ad57980cbcbd"
+    },
+    {
+      "path": "verification_round.log",
+      "tests": 40,
+      "seconds": 47.631,
+      "status": "PASS",
+      "sha256": "00b6a4d0294924d971c09672015c87b1e99a77ffffe91a785a4a3e66da130ce5"
+    }
+  ],
+  "p0_checks": 28,
+  "changed_python_ast_checks": 14,
+  "production_plan_dependency_added": false,
+  "source_and_test_fingerprints": [
+    {
+      "path": "src/true_rl_agent/agent_core/context.py",
+      "sha256": "31811e297cd4ea5f5796bbeeca08727152acf65d013e849e02d82ac15aebebf5"
+    },
+    {
+      "path": "src/true_rl_agent/agent_core/experiment_memory.py",
+      "sha256": "3b0e439cec68d9df0d35659bf26e2b91b3214d198ad2234144e07f1219f1eacb"
+    },
+    {
+      "path": "src/true_rl_agent/agent_core/generation.py",
+      "sha256": "4a30f2333bd0ba6a1806caa77b533f4761cae0f44207eeb4f6c641e77024c8ee"
+    },
+    {
+      "path": "src/true_rl_agent/agent_core/generation_record.py",
+      "sha256": "ae92dfb636ed01ec4dc54dc568e5b4440f4fe357dc7482ac9bc2c2452ba0ac83"
+    },
+    {
+      "path": "src/true_rl_agent/candidates/mechanism.py",
+      "sha256": "b0220324d11040218fbb8fd663adf5b6e98d80f576f81418c1a0341ec81df28b"
+    },
+    {
+      "path": "src/true_rl_agent/memory/context_builder.py",
+      "sha256": "b65a49dde736bf20a27ee6160102fcc0b9070a4e5997fe7415316618a8567e69"
+    },
+    {
+      "path": "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py",
+      "sha256": "0f13073a5be261673b8255ea5ed7084f1be453a42742f0a0ebbf990ebed3000e"
+    },
+    {
+      "path": "src/true_rl_agent/tasks/push_recovery/runtime_adapter.py",
+      "sha256": "731f1985795e25424a599cbaedd166c5e0bfc8b920c9f330171d2b437032e58b"
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/prompt_adapter.py",
+      "sha256": "87a3c2efc175b9cfe4bf023612223f24ec148f68ed040d4d4c842167f084bf76"
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/reward_program.py",
+      "sha256": "d315d04a6556b9c81ba1ebc20464526dc01f34bbdeac95f4fcf7d8f089aa4dcd"
+    },
+    {
+      "path": "tests/integration/test_fixed_width_generation.py",
+      "sha256": "494bf191c60cc1f4eb19255c67c27362859907de526ea8295767bd1c2c3dd52e"
+    },
+    {
+      "path": "tests/unit/test_feedback_evidence_boundary.py",
+      "sha256": "9948642b543f433552477476f255e4d20ea6a8fb8cde8a90b89f08ea490db699"
+    },
+    {
+      "path": "tests/unit/test_memory_context_phase13.py",
+      "sha256": "01d97b0ccc3e32e080243f87519cc2ecc68efc63d502151f054f17a8c9c2c899"
+    },
+    {
+      "path": "tests/unit/test_runtime_evidence_projection.py",
+      "sha256": "6aed4131ff0bbace27265de2ab2bb02612c88b84f2200a9d68bea1c3a29c01ee"
+    }
+  ],
+  "resources": {
+    "provider_calls": 0,
+    "new_training_runs": 0,
+    "new_simulator_evaluations": 0
+  },
+  "not_counted": [
+    "earlier overlapping test runs",
+    "unfinished supplementary generation_session + trial_executor batch"
+  ],
+  "capabilities": {
+    "P1_current_generation_boundary": "PASS",
+    "legacy_round_arbitrary_metrics_receipt_reauthentication": "NOT_CLAIMED",
+    "temporal_recorder": "NOT_STARTED",
+    "high_level_behavior": "NOT_STARTED",
+    "VISION_diagnosis": "NOT_STARTED",
+    "search_gain": "NOT_STARTED"
+  },
+  "local_markdown_links_checked": 21,
+  "git_diff_check": "PASS"
+}

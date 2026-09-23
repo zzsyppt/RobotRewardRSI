@@ -1,0 +1,54 @@
+{
+  "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+  "checkpoint": {
+    "checksum": "sha256:9b335bd1c5c935a3ab537f6ee9cfef5762ec2b7b1d1fb6d8c5e84f1cf74ed1e9",
+    "role": "eval",
+    "sealed": true,
+    "uri": "artifact://p6-push-pipeline/checkpoints/best.pt"
+  },
+  "execution_device": "cuda:1",
+  "job_id": "p6-push-pipeline-train",
+  "program_source_checksum": "sha256:f5b0faee114283ab96056cacbd37b346f797d53984daf6c18f52e13cbbd2506e",
+  "subject": {
+    "id": "push_standing_recovery_reference_v2",
+    "kind": "reference",
+    "schema_version": "true_rl_agent.experiment.subject.v2"
+  },
+  "subject_manifest_hash": "a9531a959b8ea7b0edd4559fb9a80ad3da2c665bf83186b89ba308b11802a8ec",
+  "summary": {
+    "candidate": {
+      "components": {
+        "effective_hook_counts": {
+          "diagnostics": 0,
+          "reward_terms": 5,
+          "schedules": 0
+        },
+        "name": "push_standing_recovery_reference_v2"
+      },
+      "enabled": true,
+      "schema_version": "true_rl_agent.push_recovery.candidate_runtime.summary.v2"
+    },
+    "errors": [],
+    "schema_version": "true_rl_agent.push_recovery.train_summary.v1",
+    "status": "pass",
+    "training": {
+      "budget_accounting": {
+        "budget_steps": 3072,
+        "config_derived_total_timesteps": 3072,
+        "max_iterations": 2,
+        "num_envs": 64,
+        "num_steps_per_env": 24,
+        "planned_env_steps": 3072,
+        "status": "pass"
+      },
+      "budget_steps": 3072,
+      "config_derived_total_timesteps": 3072,
+      "latest_checkpoint_iteration": 1,
+      "max_iterations": 2,
+      "num_envs": 64,
+      "num_steps_per_env": 24,
+      "planned_env_steps": 3072
+    }
+  },
+  "training_binding_hash": "708ebbb5925d031a5939cfc6ac8c5d5b08ffd1843f97dc5e3a7669266c55f851"
+}

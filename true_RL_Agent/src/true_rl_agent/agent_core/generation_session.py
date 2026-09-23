@@ -18,7 +18,7 @@ from true_rl_agent.agent_core.generation_foundation import GenerationSessionFoun
 from true_rl_agent.agent_core.generation_accounting import collect_actual_cost_usage, assert_generation_admission
 from true_rl_agent.agent_core.generation_resources import build_resource_closure_evidence
 from true_rl_agent.agent_core.generation import execute_fixed_width_generation
-from true_rl_agent.agent_core.generation_lifecycle import GenerationLifecycleAudit, GenerationLifecycleIdentity, GenerationSegmentJournal, GenerationTerminalBinding, audit_generation_lifecycle, build_generation_continuation_cursor
+from true_rl_agent.agent_core.generation_lifecycle import GenerationLifecycleAudit, GenerationLifecycleIdentity, GenerationSegmentJournal, audit_generation_lifecycle, build_generation_continuation_cursor
 from true_rl_agent.agent_core.ledger import load_ledger
 from true_rl_agent.agent_core.session_genesis import VerifiedSessionGenesis
 from true_rl_agent.json_contract import load_strict_json_object
@@ -409,21 +409,9 @@ def run_bounded_generation_session(
             segment_id=segment.segment_id,
         )
         segment_cost_chain_head = latest_cost.payload_hash
-        prospective_terminal = GenerationTerminalBinding(
-            identity_hash=lifecycle_identity.identity_hash,
-            required_generation_count=contract.max_generations,
-            closed_generation_count=len(ledger),
-            ledger_snapshot_hash=cursor.ledger_snapshot_hash,
-            current_head_hash=cursor.current_head_hash,
-            lifecycle_head_hash="0" * 64,
-            cost_chain_head_hash=segment_cost_chain_head,
-            segment_count=segment.continuation_index + 1,
-        )
         prevalidate_terminal(
             foundation,
-            genesis=genesis,
             ledger=ledger,
-            terminal_binding=prospective_terminal.to_dict(),
             actual_cost_receipt=latest_cost,
             resource_evidence=latest_resource_evidence,
         )

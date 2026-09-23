@@ -16,6 +16,8 @@ from tests.fakes.generation_runner import (
     GPU_UUIDS, _nvidia_smi_name,
 )
 from tests.unit.test_generation_cost_contract import cell_workloads, fixture_cost, fixture_provider_policy
+from true_rl_agent.agent_core import generation_preparation
+from true_rl_agent.agent_core.generation_lifecycle import GenerationContinuationPolicy
 from true_rl_agent.composition import TaskCompositionContext, resolve_task_composition
 from true_rl_agent.composition.defaults import build_application_composition_registry
 from true_rl_agent.runner.source_checkout import SourceCheckout
@@ -71,10 +73,12 @@ class GenerationEntrypointTests(unittest.TestCase):
         with patch("true_rl_agent.runner.gpu_process_binding.subprocess.run", return_value=SimpleNamespace(stdout=valid)):
             self.assertEqual(discover_gpu_inventory("fixture"), dict(enumerate(GPU_UUIDS)))
 
-    def test_three_real_cells_prepare_and_resume_through_one_cli(self):
+    def test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli(self):
         registry = build_application_composition_registry()
-        for cell, workload in cell_workloads():
-            with self.subTest(cell=cell), tempfile.TemporaryDirectory() as directory, use_test_isaac_lab_execution_environment():
+        cases = [(cell, 15) for cell, _ in cell_workloads()]
+        cases.append(("push.go2_12dof.recovery_v3", 5))
+        for cell, max_generations in cases:
+            with self.subTest(cell=cell, max_generations=max_generations), tempfile.TemporaryDirectory() as directory, use_test_isaac_lab_execution_environment():
                 root = Path(directory).resolve()
                 task_id = next(task for task in registry.task_ids() if cell.split(".")[0] in task)
                 provider = registry.get(task_id)
@@ -82,7 +86,7 @@ class GenerationEntrypointTests(unittest.TestCase):
                     values={**provider.cli_defaults(), "cell_variant_id": cell},
                     context=TaskCompositionContext(project_root=entrypoint.PROJECT_ROOT, output_dir=root / "cost-source"))
                 cost = fixture_cost(composition.task_plugin.phased_evaluation_adapter().generation_workload(
-                    cell_manifest=composition.resolved_cell_manifest))
+                    cell_manifest=composition.resolved_cell_manifest), max_generations=max_generations)
                 cost_path = root / "cost.json"
                 cost_path.write_text(json.dumps(cost.to_dict()), encoding="utf-8")
                 policy_path = root / "provider.json"
@@ -104,6 +108,19 @@ class GenerationEntrypointTests(unittest.TestCase):
                     "--max-allocated-active-gpu-hours", str(cost.max_allocated_active_gpu_hours),
                     "--max-simulated-control-steps", str(cost.max_simulated_control_steps),
                     "--max-output-bytes", str(cost.max_output_bytes), "--prepare-only"]
+                if max_generations != 15:
+                    argv += ["--max-generations", str(max_generations)]
+                self.assertEqual(entrypoint.parse_args(argv).max_generations, max_generations)
+                reused = entrypoint.parse_args(argv + [
+                    "--source-reference-training-genesis-dir", str(root / "source"),
+                    "--source-reference-training-session-id", "qualified-source",
+                ])
+                self.assertEqual(reused.source_reference_training_genesis_dir, root / "source")
+                self.assertEqual(reused.source_reference_training_session_id, "qualified-source")
+                for extra in (["--max-generations", "0"], ["--pause-after-generation", "0"],
+                              ["--pause-after-generation", str(max_generations)]):
+                    with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+                        entrypoint.parse_args(argv + extra)
                 for missing in ("--task-id", "--cell-variant-id"):
                     incomplete = argv.copy()
                     index = incomplete.index(missing)
@@ -116,6 +133,9 @@ class GenerationEntrypointTests(unittest.TestCase):
                     before = {str(p.relative_to(root / "session")): (p.read_bytes(), p.stat().st_mtime_ns)
                               for p in (root / "session").rglob("*") if p.is_file()}
                     resumed = entrypoint.prepare_from_args(entrypoint.parse_args(argv + ["--resume-existing"]))
+                    with self.assertRaises(ValueError):
+                        entrypoint.prepare_from_args(entrypoint.parse_args(
+                            argv + ["--resume-existing", "--max-generations", str(max_generations + 1)]))
                     wrong_gpu = entrypoint.parse_args(argv + ["--resume-existing"])
                     wrong_gpu.gpu0_uuid, wrong_gpu.gpu1_uuid = wrong_gpu.gpu1_uuid, wrong_gpu.gpu0_uuid
                     with self.assertRaisesRegex(ValueError, "GPU indices do not match"):
@@ -127,8 +147,35 @@ class GenerationEntrypointTests(unittest.TestCase):
                 self.assertEqual(first.session_contract, resumed.session_contract)
                 self.assertEqual(first.composition.resolved_cell_manifest.cell_variant_id, cell)
                 self.assertEqual(first.cost_contract, cost)
+                self.assertEqual(first.config.max_generations, max_generations)
+                self.assertEqual(first.session_contract.max_generations, max_generations)
+                self.assertEqual(first.session_contract.max_trials, 2 * max_generations)
+                self.assertEqual(first.session_contract.max_train_jobs, 2 * max_generations)
+                self.assertEqual(first.final_confirmation_plan.required_closed_generations, max_generations)
                 self.assertEqual(before, {str(p.relative_to(root / "session")): (p.read_bytes(), p.stat().st_mtime_ns)
                                          for p in (root / "session").rglob("*") if p.is_file()})
+                self.assertEqual(first.continuation_policy.operator_pause_generation_boundaries,
+                                 tuple(range(1, max_generations)))
+                legacy_argv = argv.copy()
+                legacy_argv[legacy_argv.index("--output-dir") + 1] = str(root / "legacy-session")
+                with patch.object(entrypoint, "require_source_checkout",
+                                  return_value=SourceCheckout("a" * 40, False, ())):
+                    with patch.object(generation_preparation, "GenerationContinuationPolicy",
+                        side_effect=lambda **kwargs: GenerationContinuationPolicy(**{
+                            **kwargs, "operator_pause_generation_boundaries": tuple(
+                                item for item in (3, 6, 9, 12) if item < max_generations)})):
+                        legacy = entrypoint.prepare_from_args(entrypoint.parse_args(legacy_argv))
+                    legacy_before = {str(p.relative_to(root)): (p.read_bytes(), p.stat().st_mtime_ns)
+                                     for p in (root / "legacy-session").rglob("*") if p.is_file()}
+                    legacy_resumed = entrypoint.prepare_from_args(entrypoint.parse_args(
+                        legacy_argv + ["--resume-existing", "--pause-after-generation", "3"]))
+                    self.assertEqual(legacy_resumed.session_contract, legacy.session_contract)
+                    with self.assertRaisesRegex(ValueError, "frozen continuation policy"):
+                        entrypoint.prepare_from_args(entrypoint.parse_args(
+                            legacy_argv + ["--resume-existing", "--pause-after-generation", "2"]))
+                    self.assertEqual(legacy_before,
+                        {str(p.relative_to(root)): (p.read_bytes(), p.stat().st_mtime_ns)
+                         for p in (root / "legacy-session").rglob("*") if p.is_file()})
                 manifest = root / "session/resolved_cell_manifest.json"
                 with patch.object(entrypoint, "require_source_checkout",
                                   return_value=SourceCheckout("a" * 40, False, ())):
@@ -141,12 +188,17 @@ class GenerationEntrypointTests(unittest.TestCase):
                     self.assertFalse(contract_path.exists())
                     contract_path.write_bytes(original)
                     manifest.write_bytes(b"{}\n")
-                    with self.assertRaisesRegex(ValueError, "existing resolved cell manifest differs"):
+                    with self.assertRaisesRegex(
+                        ValueError,
+                        "existing resolved cell manifest differs|resolved cell manifest fields mismatch",
+                    ):
                         entrypoint.prepare_from_args(audit_args)
                     self.assertEqual(manifest.read_bytes(), b"{}\n")
                     manifest.unlink()
-                    with self.assertRaises(FileNotFoundError):
+                    with self.assertRaises((FileNotFoundError, ValueError)) as missing_manifest:
                         entrypoint.prepare_from_args(audit_args)
+                    if isinstance(missing_manifest.exception, ValueError):
+                        self.assertIsInstance(missing_manifest.exception.__cause__, FileNotFoundError)
                     self.assertFalse(manifest.exists())
 
 

@@ -1,0 +1,67 @@
+{
+  "process_status": "nonzero_exit",
+  "returncode": 1,
+  "ledger": [
+    {
+      "generation": 1,
+      "outcome": "paired_authoring_incomplete"
+    }
+  ],
+  "provider_attempts": [
+    {
+      "path": "authoring/go2-push-5rounds-20260922-a05-generation-001/lane-a/authoring_attempts/attempt_000001/attempt_result.json",
+      "failure": {
+        "category": "reasoning_output_exhausted",
+        "details": {
+          "failure_kind": "empty_final_content_with_reasoning",
+          "finish_reason": "length"
+        },
+        "reason": "reasoning exhausted the output budget before final JSON",
+        "schema_version": "true_rl_agent.provider_failure.v1"
+      },
+      "receipt": {
+        "finish_reason": "length",
+        "input_tokens": 12381,
+        "reasoning_content_utf8_bytes": 120929,
+        "requested_reasoning_effort": "max"
+      }
+    },
+    {
+      "path": "authoring/go2-push-5rounds-20260922-a05-generation-001/lane-a/authoring_attempts/attempt_000002/attempt_result.json",
+      "failure": {
+        "category": "json_parse_error",
+        "details": {
+          "finish_reason": "stop"
+        },
+        "reason": "candidate proposal was not valid JSON object",
+        "schema_version": "true_rl_agent.provider_failure.v1"
+      },
+      "receipt": {
+        "finish_reason": "stop",
+        "input_tokens": 12703,
+        "reasoning_content_utf8_bytes": 0,
+        "requested_reasoning_effort": "provider_default"
+      }
+    },
+    {
+      "path": "authoring/go2-push-5rounds-20260922-a05-generation-001/lane-a/authoring_attempts/attempt_000003/attempt_result.json",
+      "failure": {
+        "category": "runtime_error",
+        "details": {
+          "failure_kind": "http_error",
+          "http_status": 402,
+          "response_max_bytes": 524288,
+          "retryable": false,
+          "transport_policy_id": "true_rl_agent.openai_compatible_transport.https_or_loopback_http_no_redirect.v1"
+        },
+        "reason": "provider request returned an HTTP error",
+        "schema_version": "true_rl_agent.provider_failure.v1"
+      },
+      "receipt": {
+        "finish_reason": null
+      }
+    }
+  ],
+  "stderr_tail": "Traceback (most recent call last):\n  File \"/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/scripts/run_generation_session.py\", line 145, in <module>\n    raise SystemExit(main())\n                     ^^^^^^\n  File \"/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/scripts/run_generation_session.py\", line 139, in main\n    result = run_generation_session(foundation)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/generation_application.py\", line 238, in run_generation_session\n    return run_bounded_generation_session(foundation, genesis=genesis, cost_journal=journal,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/generation_session.py\", line 291, in run_bounded_generation_session\n    result = execute_fixed_width_generation(generation_inputs)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/generation.py\", line 267, in execute_fixed_width_generation\n    state.authoring = state.runtime.author(exclusion)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/generation_lanes.py\", line 217, in <lambda>\n    author=(lambda exclusion, lane_id=lane_id: author(lane_id, exclusion)),\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/generation_lanes.py\", line 145, in author\n    return record_authoring(\n           ^^^^^^^^^^^^^^^^^\n  File \"/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/generation_runtime.py\", line 136, in <lambda>\n    record_authoring=lambda *, author, **_: author())\n                                            ^^^^^^^^\n  File \"/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/generation_lanes.py\", line 151, in <lambda>\n    author=lambda: authoring_loop.run_round(\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/authoring_loop.py\", line 269, in run_round\n    return self._run_round_locked(\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/authoring_loop.py\", line 533, in _run_round_locked\n    provider_response = next_authoring_response(\n                        ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/authoring_response.py\", line 132, in next_authoring_response\n    response = normalize_authoring_provider_response(method(prompt_payload=prompt_payload))\n                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/generation_provider_budget.py\", line 32, in next_authoring_response\n    _assert_provider_request_budget(\n  File \"/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/generation_provider_budget.py\", line 180, in _assert_provider_request_budget\n    raise RuntimeError(\nRuntimeError: prior provider request has no authoritative usage receipt\n",
+  "gpu": ""
+}

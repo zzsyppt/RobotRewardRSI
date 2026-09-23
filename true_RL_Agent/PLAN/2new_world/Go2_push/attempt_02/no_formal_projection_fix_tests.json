@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_push_feedback_projection tests.integration.test_fixed_width_generation.FixedWidthGenerationTests.test_full_generation_is_serial_author_parallel_execute_and_single_commit",
+  "tests_run": 8,
+  "elapsed_seconds": 48.967,
+  "failures": 0,
+  "errors": 0,
+  "exit_code": 0,
+  "lint": "ruff F,E9 PASS",
+  "diff_check": "PASS",
+  "root_cause": "Push task projection dropped explicit generation.formal=None. Shared memory then incorrectly entered single-formal-candidate attribution validation for a no-formal-round generation.",
+  "repair_scope": "Preserve the existing public null sentinel in task projection; no shared validator or acceptance rule change.",
+  "coverage": [
+    "Three no-formal-round outcomes preserve sibling trial mechanisms and repeat projection is idempotent.",
+    "A formal mapping without mechanism attribution still fails the unchanged validator.",
+    "Receipt-backed execute_fixed_width_generation -> shared project_public_history -> task projection under shared authority identity check -> shared context/memory consumes both siblings."
+  ],
+  "source_sha256": {
+    "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py": "da876baeb3f7246878f2c407836312aea6fecf9ac9ef82352841fccaa10d7ea5",
+    "tests/unit/test_push_feedback_projection.py": "09d62582b6f3178a6bfa7ea6b8b95b3a80e4acde094571167737c325419d72c3",
+    "tests/integration/test_fixed_width_generation.py": "9da62adac7aa4140670c7a48a80cae6ff042b1982f57ba58a3d713280dc17fe9"
+  },
+  "actual_A02_replay": "PASS: same receipt-bound history; old module reproduces error, repaired module builds full provider payload; see no_formal_real_replay_audit.json"
+}

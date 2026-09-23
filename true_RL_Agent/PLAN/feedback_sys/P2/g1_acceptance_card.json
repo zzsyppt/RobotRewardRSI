@@ -1,0 +1,130 @@
+{
+  "schema_version": "feedback_p2.g1_acceptance_card.v1",
+  "created_at_utc": "2026-09-23T15:10:54.605372+00:00",
+  "status": "PREFLIGHT_PASS_REAL_CAPTURE_NOT_STARTED",
+  "scope": "G1 37DoF Stair current unified_v3 numeric public-dev; 不声称覆盖其它协议或 training capture",
+  "why_required": {
+    "conclusion": "需要 G1 真实案例；Go2 数值档案不能替代 G1 形态验收。",
+    "default_capture_public_dev": true,
+    "default_capture_training": true,
+    "source": [
+      "src/true_rl_agent/tasks/stair_climbing/composition.py:624",
+      "src/true_rl_agent/tasks/stair_climbing/composition.py:625",
+      "src/true_rl_agent/tasks/stair_climbing/numeric_capture.py:26",
+      "src/true_rl_agent/tasks/stair_climbing/numeric_capture.py:43",
+      "PLAN/feedback_sys/FEEDBACK_SYSTEM_UPGRADE_PLAN_ZH.md:193"
+    ]
+  },
+  "source": {
+    "host": "humanoid-server",
+    "receipt_path": "/data/yuyangliu/isolated/new_world_p3_reference/true_RL_Agent/PLAN/2new_world/P3/results/g1_reference_train/runner/g1_reference_train/train/summary.json",
+    "receipt_sha256": "sha256:a838d02206f277331d1c07a3288d4e5be54f1868edcec6f10e724ea1104e579b",
+    "checkpoint_path": "/data/yuyangliu/isolated/new_world_p3_reference/true_RL_Agent/PLAN/2new_world/P3/results/g1_reference_train/runner/g1_reference_train/checkpoints/best.pt",
+    "checkpoint_sha256": "sha256:4f62db0e487cfc39c3cef61777bef9e4160b64f91f92fcca1cc795585ab8236c",
+    "checkpoint_size_bytes": 7843061,
+    "subject_kind": "reference",
+    "subject_id": "official-g1-rough-reward-vnext-v1",
+    "source_cell": "stair.g1_37dof.unified_v2",
+    "source_manifest_hash": "dbd79e0074ce64f23ae447d3e50ebcf1997593fe121fa209b4efd61b410c79a1",
+    "formal_training_executed": true,
+    "budget_steps": 196608000,
+    "max_iterations": 2000,
+    "latest_checkpoint_iteration": 1999,
+    "source_runtime_schema": {
+      "joints": 37,
+      "support_reference_points": [
+        "left_ankle_roll_link",
+        "right_ankle_roll_link"
+      ],
+      "forbidden_contact_bodies": [
+        "torso_link"
+      ]
+    },
+    "source_boundary": "保留 v2 训练身份；使用已验证 evaluation-only successor ancestry 准入 v3，不把原训练回执改成 v3。"
+  },
+  "current_evaluation": {
+    "cell": "stair.g1_37dof.unified_v3",
+    "protocol_relative_path": "configs/tasks/stair_unified_protocol_v3.json",
+    "manifest_hash": "351a6a670c8047035a4d94b16c5694bfdf27fbfbb698085f31367b46f16993bb",
+    "task_protocol_hash": "69feeb5aaf2216e9725148cebb24aa736284b85f40066761059e7824b8e8e243",
+    "training_binding_hash": "d7aea85d7742c57eae1753b8b236b32555269d9bcd8c25ed2b3742d2e045e14c",
+    "verified_ancestry": [
+      "stair.g1_37dof.unified_v3",
+      "stair.g1_37dof.unified_v2",
+      "stair.g1_37dof.unified_v1"
+    ],
+    "public_dev_seeds": 3,
+    "envs_per_seed": 288,
+    "scored_first_episodes_per_run": 864
+  },
+  "verified_now": {
+    "remote_original_bytes_sha256_match": true,
+    "local_current_driver_preflight": {
+      "capture_off": "PASS",
+      "capture_on": "PASS",
+      "method": "真实原件 byte-exact 临时镜像，实际 driver，不 mock 校验；临时目录已释放。"
+    },
+    "remote_source_r1_driver_preflight": {
+      "capture_off": "PASS",
+      "capture_on": "PASS",
+      "result_paths": [
+        "/data/yuyangliu/AGENT/feedback_p2_20260923/preflight_g1/off/result.json",
+        "/data/yuyangliu/AGENT/feedback_p2_20260923/preflight_g1/on/result.json"
+      ],
+      "driver_sha256": "535c6daec11b97d8f8ebac3ad12f0bc5f3fd661f1961ae5987f848d90d5e2e8a"
+    },
+    "gpu_runs": 0,
+    "training_runs": 0,
+    "model_api_calls": 0,
+    "environment_probe_executed": false,
+    "full_evidence": "g1_cpu_preflight_evidence.json"
+  },
+  "historical_evidence": {
+    "qualification_path": "PLAN/2new_world/P3/results/cohort_alignment_20260909/g1_37dof_qualification/result.json",
+    "qualification_status": "PASS",
+    "public_dev_path": "PLAN/2new_world/P6/stair_dev_evidence_01/g1/public_dev_result.json",
+    "public_dev_first_episodes": 864,
+    "successes": 618,
+    "other_primary_outcomes": {
+      "forbidden_contact": 197,
+      "off_course": 21,
+      "timeout": 28
+    },
+    "boundary": "这是旧 v3 真实结果和训练来源资格，不是新增 numeric capture 的 P2 通过证据，也不预断本轮结果。"
+  },
+  "executed_preflight_argv": [
+    "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/source_r1/scripts/stair_numeric_dev_replay.py",
+    "--checkpoint",
+    "/data/yuyangliu/isolated/new_world_p3_reference/true_RL_Agent/PLAN/2new_world/P3/results/g1_reference_train/runner/g1_reference_train/checkpoints/best.pt",
+    "--train-summary",
+    "/data/yuyangliu/isolated/new_world_p3_reference/true_RL_Agent/PLAN/2new_world/P3/results/g1_reference_train/runner/g1_reference_train/train/summary.json",
+    "--protocol",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/source_r1/configs/tasks/stair_unified_protocol_v3.json",
+    "--output",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/preflight_g1/on",
+    "--device",
+    "cuda:0",
+    "--isaac-python",
+    "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+    "--mode",
+    "preflight",
+    "--capture-numeric",
+    "on"
+  ],
+  "next_gpu_acceptance": {
+    "status": "NOT_STARTED",
+    "minimum_cases": [
+      "同一冻结新源码和上述 checkpoint 的 current v3 capture off 864 episodes",
+      "同一冻结新源码和上述 checkpoint 的 current v3 capture on 864 episodes"
+    ],
+    "instructions": "使用 root 最终 source_r2 或后继冻结快照统一运行配对，先重新 preflight；每次 fresh output，mode=run。现有 preflight 输出不得重用。由 root 统一调度 GPU lease/预算。",
+    "checks": [
+      "G1 37 个关节、两个 support reference point、一个 torso forbidden contact 的字段/坐标/manifest 绑定正确",
+      "含首回合 terminal pre-reset 步，排除 reset padding；独立 CPU 档案重算逐 episode outcome 与 summary 对齐",
+      "按预先冻结的 on/off 容差核查主统计与覆盖，记录真实短回合/成功/失败，不用历史分布代替",
+      "记录 wall time/host RSS/archive bytes/lease，raw archive 不进入接受 gate 或 prompt"
+    ],
+    "remaining_scope": "本卡只验 G1 v3 public-dev。其它已声明协议、training capture、其它形态仍按各自实际证据验收；不能把此卡升格为完整 P2 PASS。"
+  }
+}

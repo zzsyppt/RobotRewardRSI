@@ -1,0 +1,121 @@
+{
+  "status": "PASS_LAUNCH_CONTRACT_ONLY",
+  "audited_at_utc": "2026-09-22T10:00:24.392334+00:00",
+  "session_id": "go2-push-5rounds-20260922-a02",
+  "source_commit": "46d5d9e5fff072e7154840bbe8b6fd474cb236be",
+  "five_round_experiment_complete": false,
+  "scope": "Downloaded A02 launch, frozen contracts and initial reference-train reservation; does not certify future rounds, physical outcomes, final comparison, or current remote process liveness.",
+  "checks": {
+    "five_generation_boundary": {
+      "launch": 5,
+      "session": 5,
+      "cost": 5,
+      "final_plan": 5,
+      "width": 2,
+      "candidate_trial_cap": 10,
+      "candidate_training_job_cap": 10,
+      "pause_after_generation": null,
+      "permitted_nonterminal_pause_boundaries": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "bound_hashes_match": [
+      "provider_policy",
+      "continuation_policy",
+      "session_cost",
+      "final_confirmation_plan",
+      "evaluation_protocol",
+      "resource_plan"
+    ],
+    "provider": {
+      "model": "deepseek-flash",
+      "attempts_per_lane": 5,
+      "total_attempt_cap": 50,
+      "input_reserve_per_attempt": 65536,
+      "output_cap_per_attempt": 32768
+    },
+    "physical_caps": {
+      "allocated_active_gpu_hours": 9.34388888888889,
+      "eval_seed_units": 114,
+      "output_bytes": 15843983360,
+      "simulated_control_steps": 592034688,
+      "train_jobs": 12,
+      "train_steps": 589824000
+    },
+    "training_job_cap_interpretation": "12 physical jobs = 10 candidates + 1 reference + 1 permitted reference retry; contract max_train_jobs=10 covers candidates.",
+    "lanes": [
+      {
+        "lane_id": "lane-a",
+        "host_device": "cuda:0",
+        "physical_uuid": "GPU-06661cdd-1a0e-904e-a2e3-705eda5fb65b",
+        "child_device": "cuda:0",
+        "resource_binding_hash": "6717a64dc87b7d45f2180d07bd7eab19de67aafd859e149b160c1deb76ce4bdc"
+      },
+      {
+        "lane_id": "lane-b",
+        "host_device": "cuda:1",
+        "physical_uuid": "GPU-8cd998f2-d42e-394e-7aae-a6701bb9b187",
+        "child_device": "cuda:0",
+        "resource_binding_hash": "179782fce40050a2836f5800bb3925f40dffb490510586d03a435f9b0c9e57d7"
+      }
+    ],
+    "final": {
+      "plan_hash": "660ea831e58077823918bef3fdc4f1f32c7bfa5d657cd70445d6da10a9adb140",
+      "required_closed_generations": 5,
+      "phase": "sealed_validation",
+      "jobs": [
+        "genesis",
+        "final"
+      ],
+      "seed_units": 14,
+      "acceptance_authority": false,
+      "feedback_allowed": false,
+      "seed_count_per_job": 7,
+      "episodes_per_seed": 64,
+      "cohort_source": "existing_sealed_validation",
+      "new_seed_generalization_claim": false,
+      "new_geometry_generalization_claim": false,
+      "fresh_terminal_execution": "Two newly bound final-confirmation job IDs (genesis and final), each evaluating the existing frozen sealed cohort of 7 seeds, normally execute 14 seed units / 896 episodes. Earlier qualification or generation sealed results are not substituted.",
+      "resume_receipt_reuse_scope": "Only a previously completed receipt under this same A02 final_confirmation/phase_receipts/<role>, bound to the same plan, reservation, role and attempt output, may be replayed after an interruption or during terminal audit. Cohort reuse does not mean reuse of all earlier evaluation receipts.",
+      "execution_status": "Planned and source-verified only; neither final job is certified completed by this launch audit.",
+      "source_references": {
+        "new_job_binding": "src/true_rl_agent/agent_core/generation_finalization.py:416",
+        "same_final_receipt_reuse_or_run": "src/true_rl_agent/agent_core/generation_finalization.py:380",
+        "two_role_dispatch": "src/true_rl_agent/agent_core/generation_application.py:103",
+        "task_cohort_commitment": "src/true_rl_agent/tasks/push_recovery/generation_finalization.py:25"
+      }
+    },
+    "fresh_A02_evidence": {
+      "imports_reference_evidence": false,
+      "initial_accounting_all_zero": true,
+      "first_train_attempt_index": 0,
+      "previous_attempt_result_hash": null,
+      "reference_source_sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "session_json_files_scanned": 8,
+      "A01_path_session_candidate_tokens_found": {},
+      "resume_existing_meaning": "Resume A02 prepare-only frozen files, not A01 state.",
+      "boundary": "A01 software defects motivated source changes; its candidate checkpoints, measured scores and history are not launch/contract inputs. Runtime prompt/history isolation remains subject to per-round audit."
+    },
+    "terminal_source_trace": "generation_session runs while ledger count < contract.max_generations, checks exact terminal ledger height, then calls finalize_terminal; generation_application runs both planned final jobs before producing final result/report. Relevant on-disk source hashes equal A02 snapshot."
+  },
+  "evidence_sha256": {
+    "launch_02.json": "79aad3ec43a1f0b49a0f33ffafff81408c718d6e08ba461b54482bd7e76474af",
+    "prepare_02.json": "02f3bdfc20c28f7de52b382e486ad02301fe5f8d81fe4097ba25760d31371da7",
+    "attempt_02/process.json": "de29bb2fcda40ecdbf613f5e15b8a4482cea7511ca2a1b720b9bf1a9fec695f1",
+    "provider_policy.json": "0b3a124ac4d2269d963fe18f4f3330b145d8a70100f334bb9cc31b28d0b72933",
+    "cost_contract.json": "9c84cc3da0e7c22e458ae20cf7de557031812faecb55d7bb62408b830fad8393",
+    "attempt_02/session/generation_session_contract.json": "74e69b26f4211c493d0f36bb7083d2c5ef4e242165496f08e98709a9a8a215a5",
+    "attempt_02/session/generation_session_cost.json": "acf81748ff8f79465564e5ef0d07fb051c470d82fd879d38c27aa91f0d9389d6",
+    "attempt_02/session/generation_continuation_policy.json": "8d4309fc5270f41a62baddb9dbb8dd98b9ef7f43263b8aeeb171e50aa7c9f05b",
+    "attempt_02/session/final_confirmation/plan.json": "2bd1e2e18572ae7301088db3786f4d5cb417ddd321c39e6e60e384cd2cab9cd9",
+    "attempt_02/session/resolved_cell_manifest.json": "a130b3a97ce4afde8574d19c575a430e8b83ec3750c40b43bc87465cfa0905dd",
+    "attempt_02/session/generation_actual_cost/0000-session-reservation.json": "7c0f621dcc571e42af44e96fa73c034c861da6c29a1a74b3c744f23402ab62c2",
+    "attempt_02/session/job_attempts/0920bb4d522c8ac71604d06c/attempt_00.reservation.json": "645d058ad840dbc451d6558ca3acfd96c373d3ab2cad92838d6cfe1859c46d41",
+    "attempt_02/session/reference_program_artifacts/push_standing_recovery_stationary_reference_v3/672ed09c3c706922a8ece060fcad0544a75a61dd4518b49fb2ea3b5831550604/.true_rl_agent_reference_artifact.json": "947a9e09a4dc8fe95611df40ab3a6774e0fc13ec27af493ed536401129dc8fee",
+    "attempt_02/session/reference_program_artifacts/push_standing_recovery_stationary_reference_v3/672ed09c3c706922a8ece060fcad0544a75a61dd4518b49fb2ea3b5831550604/training_code/components.py": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+    "source_snapshot_02.json": "2bbc42214bc39eff4b02087edb8d2f06ca176b1d92727623a19e83933988b674"
+  }
+}

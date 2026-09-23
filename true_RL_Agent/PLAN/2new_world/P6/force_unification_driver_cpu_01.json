@@ -1,0 +1,76 @@
+{
+  "ast_parse": "PASS",
+  "checks": [
+    {
+      "eval_base_seed": 1500000000,
+      "eval_num_envs": 64,
+      "evaluation_manifest_hash": "c0fc5eb506d1af528feed4cc4de53beaeff0f13e72aef16e4e4e721e9b8e0783",
+      "public_seed_count": 3,
+      "robot": "go2",
+      "same_robot_and_policy_abi": true,
+      "same_training_protocol": true,
+      "source_program_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "source_reference_id": "push_standing_recovery_stationary_reference_v3",
+      "source_reference_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+      "source_training_manifest_hash": "ed8c2a3607025eecc8d8b2ca3b0f2bef0f8c32b22c360a1fc6f2b2cc4f79316e",
+      "status": "PASS",
+      "wrong_checkpoint_hash_rejected": true
+    },
+    {
+      "eval_base_seed": 1500000000,
+      "eval_num_envs": 64,
+      "evaluation_manifest_hash": "795cfd32eb558684f21dbc66d70c0f0e32f3c76cea3e01409db47c1b2ac7cee8",
+      "public_seed_count": 3,
+      "robot": "g1",
+      "same_robot_and_policy_abi": true,
+      "same_training_protocol": true,
+      "source_program_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "source_reference_id": "push_standing_recovery_stationary_reference_v3",
+      "source_reference_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+      "source_training_manifest_hash": "65cf26a941c75bbea4def58a975325a2389ec07a954528ce5c73a82cd20d4a84",
+      "status": "PASS",
+      "wrong_checkpoint_hash_rejected": true
+    }
+  ],
+  "driver_sha256": "sha256:09eba7825c23726ef9d03cdf0f3cf09547923ce84bd4f32eab5e1e673a6b6ca7",
+  "orchestration_mock_checks": [
+    {
+      "all_splits": "public_dev",
+      "case": "public_dev",
+      "environment_closed": true,
+      "policy": "checkpoint_inference",
+      "production_force_sequence_aggregate": true,
+      "seed_calls": [
+        1,
+        2,
+        3
+      ],
+      "status": "PASS"
+    },
+    {
+      "all_splits": "public_dev",
+      "case": "no_push",
+      "environment_closed": true,
+      "policy": "checkpoint_inference",
+      "production_force_sequence_aggregate": true,
+      "seed_calls": [
+        1
+      ],
+      "status": "PASS"
+    },
+    {
+      "all_splits": "public_dev",
+      "case": "zero_action",
+      "environment_closed": true,
+      "policy": "zero_action",
+      "production_force_sequence_aggregate": true,
+      "seed_calls": [
+        1
+      ],
+      "status": "PASS"
+    }
+  ],
+  "orchestration_scope": "Mock-only run orchestration with no simulator; verifies public_dev 3 calls, controls 1 call, unchanged inference versus zero action, force_sequence aggregation and environment close. Not physical evidence.",
+  "scope": "CPU production composition and source identity checks using downloaded real summaries/manifests; only remote checkpoint byte hashing mocked with its frozen receipt checksum. No Isaac environment, GPU, training, rollout or qualification executed.",
+  "status": "PASS"
+}

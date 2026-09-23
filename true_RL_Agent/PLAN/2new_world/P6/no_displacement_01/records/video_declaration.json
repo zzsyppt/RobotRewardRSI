@@ -1,0 +1,197 @@
+{
+  "frozen_at_unix": 1790051504.0469596,
+  "jobs": [
+    {
+      "case": {
+        "case_id": "go2_nodrift_s3_e55",
+        "seed_index": 3,
+        "seed": 10044,
+        "env_index": 55,
+        "selection_reason": "largest_displacement_success_after_old_boundary",
+        "expected_episode": {
+          "env_id": 55,
+          "episode_steps": 303,
+          "failure_label": "success_recovered",
+          "final_xy_drift_m": 1.4850032329559326,
+          "first_old_boundary_crossing_control_step": 97,
+          "force_events": [
+            {
+              "actual_substeps": 44,
+              "completed": true,
+              "delivered_impulse_world_ns": [
+                -30.339555740356445,
+                -35.299583435058594,
+                -2.3752450317715557e-07
+              ],
+              "end_control_step": 62,
+              "event_index": 0,
+              "expected_substeps": 44,
+              "force_world_n": [
+                -137.9070281982422,
+                -160.45266723632812,
+                0.0
+              ],
+              "injection_verified": true,
+              "start_control_step": 51
+            },
+            {
+              "actual_substeps": 44,
+              "completed": true,
+              "delivered_impulse_world_ns": [
+                35.29958724975586,
+                -30.339561462402344,
+                -6.19888282926695e-07
+              ],
+              "end_control_step": 84,
+              "event_index": 1,
+              "expected_substeps": 44,
+              "force_world_n": [
+                160.4527130126953,
+                -137.90701293945312,
+                0.0
+              ],
+              "injection_verified": true,
+              "start_control_step": 73
+            }
+          ],
+          "invalid_injection_count": 0,
+          "max_xy_drift_m": 1.4906160831451416,
+          "planned_push_count": 2,
+          "sequence_recovered": true,
+          "sequence_recovery_control_step": 135,
+          "stratum": "repeated",
+          "success": true
+        }
+      },
+      "command": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/run_owned_probe.py",
+        "--device",
+        "cuda:0",
+        "--output",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/no_displacement_01/video_processes/go2_nodrift_s3_e55",
+        "--timeout",
+        "1800",
+        "--",
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/push_force_probe.py",
+        "--robot",
+        "go2",
+        "--mode",
+        "run",
+        "--output",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/no_displacement_01/videos/go2_nodrift_s3_e55",
+        "--device",
+        "cuda:0",
+        "--force-scale",
+        "2",
+        "--short-repeat-sequence",
+        "--repeated-high-fraction",
+        "0.8",
+        "--no-displacement-limit",
+        "--expected-definition-hash",
+        "73dc7608017e8758c0f1612cd21992f29ba17ba1b590e9fb7ce225fb4b0aed0b",
+        "--video-seed-index",
+        "3",
+        "--video-env-index",
+        "55"
+      ]
+    },
+    {
+      "case": {
+        "case_id": "go2_nodrift_s3_e57",
+        "seed_index": 3,
+        "seed": 10044,
+        "env_index": 57,
+        "selection_reason": "earliest_failure_after_old_boundary",
+        "expected_episode": {
+          "env_id": 57,
+          "episode_steps": 93,
+          "failure_label": "height_collapse",
+          "final_xy_drift_m": 1.2074544429779053,
+          "first_old_boundary_crossing_control_step": 93,
+          "force_events": [
+            {
+              "actual_substeps": 44,
+              "completed": true,
+              "delivered_impulse_world_ns": [
+                3.728867769241333,
+                -49.34646224975586,
+                -1.5787779261700052e-07
+              ],
+              "end_control_step": 62,
+              "event_index": 0,
+              "expected_substeps": 44,
+              "force_world_n": [
+                16.94942283630371,
+                -224.30209350585938,
+                0.0
+              ],
+              "injection_verified": true,
+              "start_control_step": 51
+            },
+            {
+              "actual_substeps": 44,
+              "completed": true,
+              "delivered_impulse_world_ns": [
+                49.34646224975586,
+                3.7288763523101807,
+                -7.677078315282415e-07
+              ],
+              "end_control_step": 84,
+              "event_index": 1,
+              "expected_substeps": 44,
+              "force_world_n": [
+                224.30209350585938,
+                16.949459075927734,
+                0.0
+              ],
+              "injection_verified": true,
+              "start_control_step": 73
+            }
+          ],
+          "invalid_injection_count": 0,
+          "max_xy_drift_m": 1.2074544429779053,
+          "planned_push_count": 2,
+          "sequence_recovered": false,
+          "sequence_recovery_control_step": null,
+          "stratum": "repeated",
+          "success": false
+        }
+      },
+      "command": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/run_owned_probe.py",
+        "--device",
+        "cuda:1",
+        "--output",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/no_displacement_01/video_processes/go2_nodrift_s3_e57",
+        "--timeout",
+        "1800",
+        "--",
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/push_force_probe.py",
+        "--robot",
+        "go2",
+        "--mode",
+        "run",
+        "--output",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/no_displacement_01/videos/go2_nodrift_s3_e57",
+        "--device",
+        "cuda:1",
+        "--force-scale",
+        "2",
+        "--short-repeat-sequence",
+        "--repeated-high-fraction",
+        "0.8",
+        "--no-displacement-limit",
+        "--expected-definition-hash",
+        "73dc7608017e8758c0f1612cd21992f29ba17ba1b590e9fb7ce225fb4b0aed0b",
+        "--video-seed-index",
+        "3",
+        "--video-env-index",
+        "57"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1007 @@
+{
+  "agent_configuration_hash": "8a5d64c47ac034695d2eec23ff60a89ecbf1253694edb8c373a4da86872bb450",
+  "backend_execution_environment_verification": {
+    "actual_manifest_hash": "1db93042e1073d1319b50f807ee7577387463bb72b0e1c5794e1772712692867",
+    "backend_id": "isaac_lab_rsl_rl",
+    "expected_manifest_hash": "1db93042e1073d1319b50f807ee7577387463bb72b0e1c5794e1772712692867",
+    "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+    "status": "pass"
+  },
+  "candidate": {
+    "candidate": null,
+    "components": {
+      "effective_hook_counts": {
+        "diagnostics": 0,
+        "reward_terms": 5,
+        "schedules": 0
+      },
+      "is_noop": false,
+      "metadata": {},
+      "name": "push_standing_recovery_stationary_reference_v3",
+      "rationale": "",
+      "terms": {
+        "diagnostics": [],
+        "reward_terms": [
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "description": "",
+            "kind": "RewardTerm",
+            "name": "upright_height",
+            "weight": 3.0
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "description": "",
+            "kind": "RewardTerm",
+            "name": "stationary_v3",
+            "weight": 1.0
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "description": "",
+            "kind": "RewardTerm",
+            "name": "joint_pose",
+            "weight": -0.1
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "description": "",
+            "kind": "RewardTerm",
+            "name": "action_rate",
+            "weight": -0.01
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "description": "",
+            "kind": "RewardTerm",
+            "name": "fall",
+            "weight": -20.0
+          }
+        ],
+        "schedules": []
+      }
+    },
+    "enabled": true,
+    "runtime_contract": {
+      "candidate_does_not_receive": [
+        "env",
+        "runner",
+        "optimizer",
+        "checkpoint_selector",
+        "eval_config",
+        "success_metric"
+      ],
+      "candidate_receives": [
+        "base_height",
+        "roll",
+        "pitch",
+        "base_pos_xy",
+        "base_lin_vel",
+        "base_ang_vel",
+        "projected_gravity",
+        "commanded_base_vel",
+        "joint_pos",
+        "joint_vel",
+        "joint_pos_error",
+        "last_action",
+        "prev_action",
+        "action_delta",
+        "progress_fraction",
+        "push_active",
+        "push_vec_public",
+        "nominal_base_height",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "base_ang_vel_scaled",
+        "terminated_non_timeout"
+      ],
+      "candidate_receives_prompt_effective": [
+        "base_height",
+        "roll",
+        "pitch",
+        "base_pos_xy",
+        "base_lin_vel",
+        "base_ang_vel",
+        "projected_gravity",
+        "commanded_base_vel",
+        "joint_pos",
+        "joint_vel",
+        "joint_pos_error",
+        "last_action",
+        "prev_action",
+        "action_delta",
+        "progress_fraction",
+        "push_active",
+        "push_vec_public",
+        "nominal_base_height",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "base_ang_vel_scaled",
+        "terminated_non_timeout"
+      ],
+      "diagnostics_public_numeric_summary_only": true,
+      "public_push_signal_inputs": [
+        "push_active",
+        "push_vec_public"
+      ],
+      "push_signal_source": "already_executed_event_only",
+      "rate_integration": "reward_manager_once_by_control_dt",
+      "reserved_zero_fallback_inputs": [],
+      "reward_mode": "complete_program_replacement",
+      "reward_output": "rate",
+      "reward_terms_added_to_env_reward": false,
+      "schedule_controls": {
+        "bounds": {
+          "reward_weight_scale": [
+            0.0,
+            10.0
+          ]
+        },
+        "effective_keys": [
+          "reward_weight_scale"
+        ]
+      },
+      "transition_source": "before_auto_reset"
+    },
+    "schema_version": "true_rl_agent.push_recovery.candidate_runtime.summary.v2"
+  },
+  "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+  "checkpoint": {
+    "checksum": "sha256:44fafbd14fe0e59716c2142a819b81f43d6a3bac8422e0e6d5802f451bceb837",
+    "metadata": {
+      "local_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/g1/composition/runner/p6-stationary-v3-dev-g1/checkpoints/best.pt",
+      "source_latest_checkpoint": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/g1/composition/runner/p6-stationary-v3-dev-g1/train/run/attempt-eb033e88c2f448d69da69490fb8863f5/rsl_rl/model_499.pt",
+      "source_latest_checkpoint_sha256": "sha256:44fafbd14fe0e59716c2142a819b81f43d6a3bac8422e0e6d5802f451bceb837"
+    },
+    "role": "train_output",
+    "uri": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/g1/composition/runner/p6-stationary-v3-dev-g1/checkpoints/best.pt"
+  },
+  "configuration": {
+    "active_profile": "strong_push",
+    "config_path": null,
+    "physical_protocol": {
+      "active_profile": "strong_push",
+      "candidate_can_change": false,
+      "environment": {
+        "episode_length_s": 8.239533254795488
+      },
+      "observation_corruption": {
+        "eval": false,
+        "train": true
+      },
+      "push_protocol": {
+        "episode_time_scale": 30.0,
+        "fall_height_scale": 0.45,
+        "fall_tilt_rad": 0.8,
+        "first_push_time_scale": 5.0,
+        "gravity_mps2": 9.81,
+        "high_velocity_scale": 0.5,
+        "injection_tolerance_mps": 1e-05,
+        "low_velocity_scale": 0.15,
+        "max_displacement_scale": 3.0,
+        "medium_velocity_scale": 0.3,
+        "protocol_id": "push_recovery_planar_delta_velocity_v2",
+        "protocol_state": "active",
+        "recovery_angular_velocity_scale": 0.5,
+        "recovery_height_scale": 0.7,
+        "recovery_tilt_rad": 0.2,
+        "recovery_velocity_scale": 0.08,
+        "recovery_window_time_scale": 8.0,
+        "schema_version": "true_rl_agent.task.push_recovery.protocol.v2",
+        "second_push_time_scale": 17.0,
+        "stable_dwell_time_scale": 1.5
+      },
+      "push_resolved_protocol": {
+        "episode_length_s": 8.239533254795488,
+        "evaluation_cohort_counts": {
+          "high": 16,
+          "low": 16,
+          "medium": 16,
+          "repeated": 16
+        },
+        "evaluation_direction_policy": {
+          "angular_range_rad": [
+            0.0,
+            6.283185307179586
+          ],
+          "count": 16,
+          "phase": "python_random_runner_seed_uniform_0_2pi_v1",
+          "second_event_offset_rad": 1.5707963267948966
+        },
+        "fall_height_m": 0.333,
+        "fall_tilt_rad": 0.8,
+        "injection_tolerance_mps": 1e-05,
+        "max_displacement_m": 2.2199999999999998,
+        "mechanism": "world_planar_velocity_increment",
+        "protocol_hash": "a51f190bab162281d6d014285dde612f73763fb20457bc690a5f7c3a5aaeb778",
+        "push_times_s": [
+          1.3732555424659145,
+          4.6690688443841095
+        ],
+        "recovery_angular_velocity_radps": 1.8204914691338683,
+        "recovery_height_m": 0.518,
+        "recovery_tilt_rad": 0.2,
+        "recovery_velocity_mps": 0.21554618994545,
+        "recovery_window_s": 2.1972088679454633,
+        "reset": {
+          "joint_position_scale": [
+            1.0,
+            1.0
+          ],
+          "joint_velocity_range": [
+            0.0,
+            0.0
+          ],
+          "root_pose_range": {
+            "x": [
+              0.0,
+              0.0
+            ],
+            "y": [
+              0.0,
+              0.0
+            ],
+            "yaw": [
+              -3.141592653589793,
+              3.141592653589793
+            ]
+          },
+          "root_velocity_range": {
+            "pitch": [
+              0.0,
+              0.0
+            ],
+            "roll": [
+              0.0,
+              0.0
+            ],
+            "x": [
+              0.0,
+              0.0
+            ],
+            "y": [
+              0.0,
+              0.0
+            ],
+            "yaw": [
+              0.0,
+              0.0
+            ],
+            "z": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "resolved_protocol_hash": "ff050770bf562710cbf49fe5837b7e8045a9f00d75a5ef043649bbed2302f28c",
+        "robot_scale_m": 0.74,
+        "schema_version": "true_rl_agent.task.push_recovery.resolved_protocol.v2",
+        "stable_dwell_s": 0.4119766627397744,
+        "time_scale_s": 0.2746511084931829,
+        "training_sampling": {
+          "angular_range_rad": [
+            0.0,
+            6.283185307179586
+          ],
+          "event_directions": "independent_uniform",
+          "stratum_probabilities": {
+            "high": 0.25,
+            "low": 0.25,
+            "medium": 0.25,
+            "repeated": 0.25
+          }
+        },
+        "velocity_magnitudes_mps": {
+          "high": 1.3471636871590624,
+          "low": 0.4041491061477187,
+          "medium": 0.8082982122954374
+        },
+        "velocity_scale_mps": 2.694327374318125
+      },
+      "push_robot_scale_m": 0.74,
+      "reward_execution": {
+        "integration": "reward_manager_once_by_control_dt",
+        "mode": "complete_program_replacement",
+        "output": "reward_rate",
+        "state": "pre_reset_transition"
+      },
+      "runner_owned": true,
+      "runtime_adapter_id": "g1_37dof_isaaclab_adapter_v2",
+      "runtime_dynamics_hash": "sha256:6a573c38fb16e12631f4d031208df83e3ee98255d4ab2c9179842488d8914343",
+      "schema_version": "true_rl_agent.task.push_recovery.public_runtime_dynamics.v3",
+      "standing_command": {
+        "commanded_locomotion_is_zero": true
+      },
+      "task": {
+        "agent_configuration_hash": "8a5d64c47ac034695d2eec23ff60a89ecbf1253694edb8c373a4da86872bb450",
+        "environment_cfg_entrypoint": "true_rl_agent.robots.isaaclab_locomotion:_g1_environment_cfg",
+        "runner_cfg_entrypoint": "isaaclab_tasks.manager_based.locomotion.velocity.config.g1.agents.rsl_rl_ppo_cfg:G1RoughPPORunnerCfg",
+        "runtime_adapter_id": "g1_37dof_isaaclab_adapter_v2"
+      }
+    },
+    "policy_io_evidence": {
+      "action_dim": 37,
+      "action_terms": [
+        "joint_pos"
+      ],
+      "actions": [
+        {
+          "asset_name": "robot",
+          "class": "isaaclab.envs.mdp.actions.actions_cfg.JointPositionActionCfg",
+          "joint_names": [
+            ".*"
+          ],
+          "name": "joint_pos",
+          "scale": 0.5,
+          "use_default_offset": true
+        }
+      ],
+      "control": {
+        "control_dt_s": 0.02,
+        "decimation": 4,
+        "simulation_dt_s": 0.005
+      },
+      "control_dt_s": 0.02,
+      "effective_actions": [
+        {
+          "joint_names": [
+            "left_hip_pitch_joint",
+            "right_hip_pitch_joint",
+            "torso_joint",
+            "left_hip_roll_joint",
+            "right_hip_roll_joint",
+            "left_shoulder_pitch_joint",
+            "right_shoulder_pitch_joint",
+            "left_hip_yaw_joint",
+            "right_hip_yaw_joint",
+            "left_shoulder_roll_joint",
+            "right_shoulder_roll_joint",
+            "left_knee_joint",
+            "right_knee_joint",
+            "left_shoulder_yaw_joint",
+            "right_shoulder_yaw_joint",
+            "left_ankle_pitch_joint",
+            "right_ankle_pitch_joint",
+            "left_elbow_pitch_joint",
+            "right_elbow_pitch_joint",
+            "left_ankle_roll_joint",
+            "right_ankle_roll_joint",
+            "left_elbow_roll_joint",
+            "right_elbow_roll_joint",
+            "left_five_joint",
+            "left_three_joint",
+            "left_zero_joint",
+            "right_five_joint",
+            "right_three_joint",
+            "right_zero_joint",
+            "left_six_joint",
+            "left_four_joint",
+            "left_one_joint",
+            "right_six_joint",
+            "right_four_joint",
+            "right_one_joint",
+            "left_two_joint",
+            "right_two_joint"
+          ],
+          "name": "joint_pos",
+          "scale": 0.5
+        }
+      ],
+      "effective_observation_corruption": true,
+      "evidence_hash": "149675f52611f9715497178da698c600058bd136cf5291846cc9261da815410b",
+      "height_scanner_present": false,
+      "joint_names": [
+        "left_hip_pitch_joint",
+        "right_hip_pitch_joint",
+        "torso_joint",
+        "left_hip_roll_joint",
+        "right_hip_roll_joint",
+        "left_shoulder_pitch_joint",
+        "right_shoulder_pitch_joint",
+        "left_hip_yaw_joint",
+        "right_hip_yaw_joint",
+        "left_shoulder_roll_joint",
+        "right_shoulder_roll_joint",
+        "left_knee_joint",
+        "right_knee_joint",
+        "left_shoulder_yaw_joint",
+        "right_shoulder_yaw_joint",
+        "left_ankle_pitch_joint",
+        "right_ankle_pitch_joint",
+        "left_elbow_pitch_joint",
+        "right_elbow_pitch_joint",
+        "left_ankle_roll_joint",
+        "right_ankle_roll_joint",
+        "left_elbow_roll_joint",
+        "right_elbow_roll_joint",
+        "left_five_joint",
+        "left_three_joint",
+        "left_zero_joint",
+        "right_five_joint",
+        "right_three_joint",
+        "right_zero_joint",
+        "left_six_joint",
+        "left_four_joint",
+        "left_one_joint",
+        "right_six_joint",
+        "right_four_joint",
+        "right_one_joint",
+        "left_two_joint",
+        "right_two_joint"
+      ],
+      "manifest_checks": {
+        "action_dimension": true,
+        "actions": true,
+        "control": true,
+        "effective_action_scales": true,
+        "height_scanner_removed": true,
+        "joint_names": true,
+        "observation_corruption": true,
+        "policy_observation": true,
+        "policy_observation_dimension": true,
+        "resolved_action_joint_order": true,
+        "sensors": true,
+        "term_dimensions": true
+      },
+      "observation_group_dims": {
+        "policy": [
+          123
+        ]
+      },
+      "observation_group_terms": {
+        "policy": [
+          "base_lin_vel",
+          "base_ang_vel",
+          "projected_gravity",
+          "velocity_commands",
+          "joint_pos",
+          "joint_vel",
+          "actions"
+        ]
+      },
+      "policy_observation": {
+        "concatenate_terms": true,
+        "enable_corruption_by_mode": {
+          "eval": false,
+          "train": true
+        },
+        "history_length": null,
+        "terms": [
+          {
+            "callable": "isaaclab.envs.mdp.observations.base_lin_vel",
+            "clip": null,
+            "name": "base_lin_vel",
+            "noise": {
+              "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+              "n_max": 0.1,
+              "n_min": -0.1,
+              "operation": "add"
+            },
+            "params": {},
+            "scale": null
+          },
+          {
+            "callable": "isaaclab.envs.mdp.observations.base_ang_vel",
+            "clip": null,
+            "name": "base_ang_vel",
+            "noise": {
+              "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+              "n_max": 0.2,
+              "n_min": -0.2,
+              "operation": "add"
+            },
+            "params": {},
+            "scale": null
+          },
+          {
+            "callable": "isaaclab.envs.mdp.observations.projected_gravity",
+            "clip": null,
+            "name": "projected_gravity",
+            "noise": {
+              "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+              "n_max": 0.05,
+              "n_min": -0.05,
+              "operation": "add"
+            },
+            "params": {},
+            "scale": null
+          },
+          {
+            "callable": "isaaclab.envs.mdp.observations.generated_commands",
+            "clip": null,
+            "name": "velocity_commands",
+            "noise": null,
+            "params": {
+              "command_name": "base_velocity"
+            },
+            "scale": null
+          },
+          {
+            "callable": "isaaclab.envs.mdp.observations.joint_pos_rel",
+            "clip": null,
+            "name": "joint_pos",
+            "noise": {
+              "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+              "n_max": 0.01,
+              "n_min": -0.01,
+              "operation": "add"
+            },
+            "params": {},
+            "scale": null
+          },
+          {
+            "callable": "isaaclab.envs.mdp.observations.joint_vel_rel",
+            "clip": null,
+            "name": "joint_vel",
+            "noise": {
+              "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+              "n_max": 1.5,
+              "n_min": -1.5,
+              "operation": "add"
+            },
+            "params": {},
+            "scale": null
+          },
+          {
+            "callable": "isaaclab.envs.mdp.observations.last_action",
+            "clip": null,
+            "name": "actions",
+            "noise": null,
+            "params": {},
+            "scale": null
+          }
+        ]
+      },
+      "policy_observation_term_dimensions": {
+        "actions": 37,
+        "base_ang_vel": 3,
+        "base_lin_vel": 3,
+        "joint_pos": 37,
+        "joint_vel": 37,
+        "projected_gravity": 3,
+        "velocity_commands": 3
+      },
+      "schema_version": "true_rl_agent.task.push_recovery.runtime_policy_io.v2",
+      "sensors": {},
+      "verified_declared_content_hashes": {
+        "action_content_hash": "eee8cc1e190d79989d4ea761a812e058f74b1efd70d7197f702922da003d4c75",
+        "observation_content_hash": "1ceddcd6103065838c8b1b4e61757284fc751862d7d736d50a5a3f35513a0573",
+        "policy_io_schema_hash": "c73d93eb768f237396ce0fdbd84725625f0228624e1432195f839aa900f48114",
+        "sensor_schema_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    },
+    "push": {
+      "episode_length_s": 8.239533254795488,
+      "evaluation_cohort_counts": {
+        "high": 16,
+        "low": 16,
+        "medium": 16,
+        "repeated": 16
+      },
+      "evaluation_direction_policy": {
+        "angular_range_rad": [
+          0.0,
+          6.283185307179586
+        ],
+        "count": 16,
+        "phase": "python_random_runner_seed_uniform_0_2pi_v1",
+        "second_event_offset_rad": 1.5707963267948966
+      },
+      "fall_height_m": 0.333,
+      "fall_tilt_rad": 0.8,
+      "injection_tolerance_mps": 1e-05,
+      "max_displacement_m": 2.2199999999999998,
+      "mechanism": "world_planar_velocity_increment",
+      "protocol_hash": "a51f190bab162281d6d014285dde612f73763fb20457bc690a5f7c3a5aaeb778",
+      "push_times_s": [
+        1.3732555424659145,
+        4.6690688443841095
+      ],
+      "recovery_angular_velocity_radps": 1.8204914691338683,
+      "recovery_height_m": 0.518,
+      "recovery_tilt_rad": 0.2,
+      "recovery_velocity_mps": 0.21554618994545,
+      "recovery_window_s": 2.1972088679454633,
+      "reset": {
+        "joint_position_scale": [
+          1.0,
+          1.0
+        ],
+        "joint_velocity_range": [
+          0.0,
+          0.0
+        ],
+        "root_pose_range": {
+          "x": [
+            0.0,
+            0.0
+          ],
+          "y": [
+            0.0,
+            0.0
+          ],
+          "yaw": [
+            -3.141592653589793,
+            3.141592653589793
+          ]
+        },
+        "root_velocity_range": {
+          "pitch": [
+            0.0,
+            0.0
+          ],
+          "roll": [
+            0.0,
+            0.0
+          ],
+          "x": [
+            0.0,
+            0.0
+          ],
+          "y": [
+            0.0,
+            0.0
+          ],
+          "yaw": [
+            0.0,
+            0.0
+          ],
+          "z": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "resolved_protocol_hash": "ff050770bf562710cbf49fe5837b7e8045a9f00d75a5ef043649bbed2302f28c",
+      "robot_scale_m": 0.74,
+      "schema_version": "true_rl_agent.task.push_recovery.resolved_protocol.v2",
+      "stable_dwell_s": 0.4119766627397744,
+      "time_scale_s": 0.2746511084931829,
+      "training_sampling": {
+        "angular_range_rad": [
+          0.0,
+          6.283185307179586
+        ],
+        "event_directions": "independent_uniform",
+        "stratum_probabilities": {
+          "high": 0.25,
+          "low": 0.25,
+          "medium": 0.25,
+          "repeated": 0.25
+        }
+      },
+      "velocity_magnitudes_mps": {
+        "high": 1.3471636871590624,
+        "low": 0.4041491061477187,
+        "medium": 0.8082982122954374
+      },
+      "velocity_scale_mps": 2.694327374318125
+    },
+    "reward_execution": {
+      "integration": "reward_manager_once_by_control_dt",
+      "mode": "complete_program_replacement",
+      "output": "reward_rate",
+      "state": "pre_reset_transition"
+    },
+    "runtime_dynamics_hash": "sha256:6a573c38fb16e12631f4d031208df83e3ee98255d4ab2c9179842488d8914343",
+    "standing_command": {
+      "commanded_locomotion_is_zero": true
+    }
+  },
+  "created_at_utc": "2026-09-12T04:26:22.513209+00:00",
+  "errors": [],
+  "execution_device": "cuda:1",
+  "initialization_seed_schedule_hash": "e065c0f150de6b131e30c7b3d74186b4b594719f7a997318ad600805d607670c",
+  "job_id": "p6-stationary-v3-dev-g1-train",
+  "optimizer_training_profile_hash": "77942852bd99b536e3e244dd216a15e6f07a4ea4681c045dc7cc5bf50eb3962b",
+  "policy_architecture_hash": "a02a7e06b7e87699dde132fd5f8ae8ac1de438c88b694ea774d958faa9d0f159",
+  "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+  "resolved_cell_identity": {
+    "cell_variant_id": "push.g1_37dof.recovery_v2",
+    "environment_id": "push_recovery_environment_v2",
+    "resolved_cell_task_protocol_hash": "5cdf5001a4354d818fcb76ff9c40e5e7c025fc4e78dcabae5e4fd42e2eee8c2b",
+    "robot_profile_id": "unitree_g1_37dof_isaaclab_v2",
+    "robot_task_binding_id": "push_g1_37dof_recovery_v2_binding_v2",
+    "robot_task_cell_id": "unitree_push_recovery.g1_37dof_v2",
+    "runtime_adapter_id": "g1_37dof_isaaclab_adapter_v2"
+  },
+  "resolved_cell_manifest_hash": "7fca96669153de0679c7cdd52911fecd407dc48e9f9c6e56adfb588a34061ace",
+  "run": {
+    "round_id": "p6-stationary-v3-dev-g1",
+    "seed_policy": "runner_owned_not_public",
+    "train_attempt_id": "eb033e88c2f448d69da69490fb8863f5"
+  },
+  "runtime_activation_summary": {
+    "capability_activation_records": [
+      "reward_callable"
+    ],
+    "component_activation_records": [
+      {
+        "component_kind": "reward_term",
+        "effective_weight": 3.0,
+        "last_weighted_mean": 2.968293,
+        "max_abs_weighted_contribution": 2.999999523162842,
+        "name": "upright_height",
+        "nonzero_observation_count": 500,
+        "nonzero_observation_fraction": 1.0,
+        "observation_count": 500,
+        "sampling_interval_steps": 24
+      },
+      {
+        "component_kind": "reward_term",
+        "effective_weight": 1.0,
+        "last_weighted_mean": 0.705339,
+        "max_abs_weighted_contribution": 5.03830099105835,
+        "name": "stationary_v3",
+        "nonzero_observation_count": 500,
+        "nonzero_observation_fraction": 1.0,
+        "observation_count": 500,
+        "sampling_interval_steps": 24
+      },
+      {
+        "component_kind": "reward_term",
+        "effective_weight": -0.1,
+        "last_weighted_mean": -0.006107,
+        "max_abs_weighted_contribution": 0.03270794823765755,
+        "name": "joint_pose",
+        "nonzero_observation_count": 500,
+        "nonzero_observation_fraction": 1.0,
+        "observation_count": 500,
+        "sampling_interval_steps": 24
+      },
+      {
+        "component_kind": "reward_term",
+        "effective_weight": -0.01,
+        "last_weighted_mean": -0.065648,
+        "max_abs_weighted_contribution": 0.1740318238735199,
+        "name": "action_rate",
+        "nonzero_observation_count": 500,
+        "nonzero_observation_fraction": 1.0,
+        "observation_count": 500,
+        "sampling_interval_steps": 24
+      },
+      {
+        "component_kind": "reward_term",
+        "effective_weight": -20.0,
+        "last_weighted_mean": 0.0,
+        "max_abs_weighted_contribution": 20.0,
+        "name": "fall",
+        "nonzero_observation_count": 213,
+        "nonzero_observation_fraction": 0.426,
+        "observation_count": 500,
+        "sampling_interval_steps": 24
+      }
+    ],
+    "diagnostic_calls": 0,
+    "diagnostic_outputs": {},
+    "feature_activation_records": [],
+    "input_provenance": {
+      "action_delta": "observed",
+      "base_ang_vel": "observed",
+      "base_ang_vel_scaled": "task_owned_bound_scale",
+      "base_height": "observed",
+      "base_height_relative": "task_owned_bound_scale",
+      "base_lin_vel": "observed",
+      "base_lin_vel_scaled": "task_owned_bound_scale",
+      "base_pos_xy": "observed",
+      "commanded_base_vel": "observed",
+      "joint_pos": "observed",
+      "joint_pos_error": "observed",
+      "joint_vel": "observed",
+      "last_action": "observed",
+      "nominal_base_height": "task_owned_bound_scale",
+      "pitch": "observed",
+      "prev_action": "zero_fallback",
+      "progress_fraction": "runner_owned",
+      "projected_gravity": "observed",
+      "push_active": "observed",
+      "push_vec_public": "observed",
+      "roll": "observed",
+      "terminated_non_timeout": "trusted_pre_reset_termination"
+    },
+    "last_candidate_reward_mean": 3.6018784046173096,
+    "last_reward_terms": [
+      {
+        "clip_applied": false,
+        "clip_max": null,
+        "clip_min": null,
+        "dtype": "torch.float32",
+        "effective_weight": 3.0,
+        "finite": true,
+        "kind": "reward",
+        "mean": 0.989431,
+        "name": "upright_height",
+        "num_envs": 4096,
+        "reward_weight_scale": 1.0,
+        "shape": [
+          4096
+        ],
+        "weight": 3.0
+      },
+      {
+        "clip_applied": false,
+        "clip_max": null,
+        "clip_min": null,
+        "dtype": "torch.float32",
+        "effective_weight": 1.0,
+        "finite": true,
+        "kind": "reward",
+        "mean": 0.705339,
+        "name": "stationary_v3",
+        "num_envs": 4096,
+        "reward_weight_scale": 1.0,
+        "shape": [
+          4096
+        ],
+        "weight": 1.0
+      },
+      {
+        "clip_applied": false,
+        "clip_max": null,
+        "clip_min": null,
+        "dtype": "torch.float32",
+        "effective_weight": -0.1,
+        "finite": true,
+        "kind": "reward",
+        "mean": 0.061068,
+        "name": "joint_pose",
+        "num_envs": 4096,
+        "reward_weight_scale": 1.0,
+        "shape": [
+          4096
+        ],
+        "weight": -0.1
+      },
+      {
+        "clip_applied": false,
+        "clip_max": null,
+        "clip_min": null,
+        "dtype": "torch.float32",
+        "effective_weight": -0.01,
+        "finite": true,
+        "kind": "reward",
+        "mean": 6.564751,
+        "name": "action_rate",
+        "num_envs": 4096,
+        "reward_weight_scale": 1.0,
+        "shape": [
+          4096
+        ],
+        "weight": -0.01
+      },
+      {
+        "clip_applied": false,
+        "clip_max": null,
+        "clip_min": null,
+        "dtype": "torch.float32",
+        "effective_weight": -20.0,
+        "finite": true,
+        "kind": "reward",
+        "mean": 0.0,
+        "name": "fall",
+        "num_envs": 4096,
+        "reward_weight_scale": 1.0,
+        "shape": [
+          4096
+        ],
+        "weight": -20.0
+      }
+    ],
+    "last_reward_weight_scale": 1.0,
+    "max_abs_candidate_reward": 26.066749572753906,
+    "nonzero_reward_contribution": true,
+    "reward_output_stats": {
+      "finite_fraction": 1.0,
+      "mean": 1.664118
+    },
+    "reward_term_calls": 60000,
+    "schema_version": "true_rl_agent.push_recovery.candidate_runtime.v2",
+    "step_calls": 12000
+  },
+  "schema_version": "true_rl_agent.push_recovery.train_summary.v1",
+  "status": "pass",
+  "subject_id": "push_standing_recovery_stationary_reference_v3",
+  "subject_kind": "reference",
+  "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+  "task": {
+    "gym_id": "TrueRL-PushRecovery-v2",
+    "profile": "strong_push"
+  },
+  "task_id": "unitree_push_recovery",
+  "training": {
+    "agent_configuration_hash": "8a5d64c47ac034695d2eec23ff60a89ecbf1253694edb8c373a4da86872bb450",
+    "budget_accounting": {
+      "budget_steps": 49152000,
+      "config_derived_total_timesteps": 49152000,
+      "max_iterations": 500,
+      "num_envs": 4096,
+      "num_steps_per_env": 24,
+      "planned_env_steps": 49152000,
+      "status": "pass"
+    },
+    "budget_steps": 49152000,
+    "checkpoint_output": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/g1/composition/runner/p6-stationary-v3-dev-g1/checkpoints/best.pt",
+    "config_derived_total_timesteps": 49152000,
+    "constructed_learner": {
+      "algorithm": {
+        "clip_param": 0.2,
+        "desired_kl": 0.01,
+        "entropy_coef": 0.008,
+        "gamma": 0.99,
+        "lam": 0.95,
+        "learning_rate": 0.001,
+        "max_grad_norm": 1.0,
+        "normalize_advantage_per_mini_batch": false,
+        "num_learning_epochs": 5,
+        "num_mini_batches": 4,
+        "schedule": "adaptive",
+        "use_clipped_value_loss": true,
+        "value_loss_coef": 1.0
+      },
+      "configuration_mapping_version": "rsl_rl_3_actor_critic_to_rsl_rl_5_mlp.v1",
+      "initial_noise_std": 1.0,
+      "models": {
+        "actor": {
+          "activation": "ELU",
+          "hidden_dims": [
+            512,
+            256,
+            128
+          ],
+          "input_dim": 123,
+          "obs_groups": [
+            "policy"
+          ],
+          "obs_normalization": false,
+          "output_dim": 37
+        },
+        "critic": {
+          "activation": "ELU",
+          "hidden_dims": [
+            512,
+            256,
+            128
+          ],
+          "input_dim": 123,
+          "obs_groups": [
+            "policy"
+          ],
+          "obs_normalization": false,
+          "output_dim": 1
+        }
+      },
+      "noise_std_type": "scalar",
+      "optimizer": "Adam",
+      "optimizer_source": "frozen_v1_PPO_implicit_Adam",
+      "schema_version": "true_rl_agent.rsl_rl_constructed_learner.v1"
+    },
+    "device": "cuda:1",
+    "expected_initial_policy_state_hash": null,
+    "initial_policy_state_hash": "69de3c0925781a51c70cff965f19c7c17d9445ba4997e2372e730097b9c0fc82",
+    "initial_policy_state_hash_schema_version": "true_rl_agent.initial_policy_state.rsl_rl_5.v2",
+    "initial_policy_state_match": null,
+    "initialization_seed_schedule_hash": "e065c0f150de6b131e30c7b3d74186b4b594719f7a997318ad600805d607670c",
+    "latest_checkpoint_iteration": 499,
+    "log_dir": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/g1/composition/runner/p6-stationary-v3-dev-g1/train/run/attempt-eb033e88c2f448d69da69490fb8863f5/rsl_rl",
+    "max_iterations": 500,
+    "num_envs": 4096,
+    "num_steps_per_env": 24,
+    "optimizer_training_profile_hash": "77942852bd99b536e3e244dd216a15e6f07a4ea4681c045dc7cc5bf50eb3962b",
+    "planned_env_steps": 49152000,
+    "policy_architecture_hash": "a02a7e06b7e87699dde132fd5f8ae8ac1de438c88b694ea774d958faa9d0f159",
+    "push_exposure": {
+      "control_only": false,
+      "evaluation": false,
+      "injection_attempt_count": 161238,
+      "schema_version": "true_rl_agent.push_recovery.exposure.v1",
+      "scope": "this_runtime_instance_all_episodes",
+      "verified_event_count": 161238
+    }
+  },
+  "training_binding_hash": "6a523f9ff068b2dd1969ff64a1809fd7770693048b3011048573725e13f87e26"
+}

@@ -10,7 +10,9 @@ from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from types import MappingProxyType
-from typing import Any, Mapping, Protocol, Sequence
+from typing import Any, Mapping
+
+from true_rl_agent.evaluation.phased_adapter import ReferencePhasedEvaluationAdapter
 
 from true_rl_agent.agent_core.generation_contract import (
     GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION,
@@ -138,6 +140,7 @@ PHASED_REFERENCE_EVAL_ARTIFACT_SCHEMA_VERSION = (
 SESSION_GENESIS_FILENAME = "session_genesis.json"
 BASELINE_EVAL_ARTIFACT_FILENAME = "baseline_eval_artifact.json"
 REFERENCE_EVAL_ARTIFACT_FILENAME = "reference_eval_artifact.json"
+REFERENCE_QUALIFICATION_FAILURE_FILENAME = "reference_qualification_failure.json"
 SESSION_GENESIS_CREATION_LEASE_FILENAME = ".session_genesis.create.lease"
 _SESSION_GENESIS_CREATION_LEASE_SCHEMA_VERSION = (
     "true_rl_agent.session_genesis.creation_lease.v2"
@@ -154,21 +157,6 @@ _SESSION_GENESIS_RECOVERY_MAX_BYTES = 128 * 1024
 
 class SessionGenesisCreationInProgressError(RuntimeError):
     """Raised when another writer owns creation of the same session Genesis."""
-
-
-class ReferencePhasedEvaluationAdapter(Protocol):
-    """Task-owned assembly hook for a split reference evaluation."""
-
-    def assemble_reference_full_summary(
-        self,
-        *,
-        eval_plan: EvalJobSpec,
-        phase_results: Sequence[EvaluationPhaseResult],
-        phase_receipt_refs: Mapping[
-            EvaluationPhase | str,
-            Mapping[str, Any],
-        ],
-    ) -> EvaluationAssembly: ...
 
 
 def _reference_eval_phase_role(phase: EvaluationPhase) -> str:
@@ -1292,6 +1280,52 @@ class VerifiedSessionGenesis:
         return loaded
 
 
+def _load_completed_reference_training(
+    *, source_dir: Path, source_session_id: str, task_plugin: TaskPlugin,
+    backend_adapter: BackendAdapter, runner: Runner,
+    policy_initialization: PolicyInitialization, genesis_identity_hash: str,
+    reference: VerifiedReferenceProgramArtifact,
+) -> tuple[tuple[TrainJobSpec, TrainJobResult], dict[str, Any]]:
+    """Read original training evidence; source evaluation is not imported."""
+    path = source_dir / SESSION_GENESIS_FILENAME
+    source = SessionGenesisArtifact.from_mapping(_read_json(path))
+    if (
+        source.schema_version != SCIENTIFIC_SESSION_GENESIS_SCHEMA_VERSION
+        or source.session_id != source_session_id
+        or source.task_id != task_plugin.task_spec.task_id
+        or source.backend_id != backend_adapter.backend_id
+        or source.policy_initialization_kind != policy_initialization.kind
+        or source.runtime_snapshot_hash != genesis_identity_hash
+        or not isinstance(source.anchor, ReferenceProgramGenesisAnchor)
+        or source.anchor.reference_manifest != reference.manifest
+    ):
+        raise ValueError("reference training source scientific identity mismatch")
+    backend_adapter.validate_session_evaluation_binding(
+        task_spec=task_plugin.task_spec, evaluation_binding=source.evaluation_binding,
+    )
+    anchor = source.anchor
+    payload = _read_bound_reference_private_artifact(
+        anchor=anchor, expected_path=Path(anchor.private_eval_artifact.uri).resolve(),
+    )
+    artifact = _reference_artifact_from_private_payload(
+        payload, expected_reference=reference, anchor=anchor,
+    )
+    spec = _reference_train_spec_from_private_artifact(payload, anchor=anchor, reference_artifact=artifact)
+    result = _reference_train_result_from_private_artifact(payload, anchor=anchor, train_spec=spec)
+    recovered = runner.recover_completed_train(spec)
+    _validate_reference_train_result(spec, recovered)
+    if recovered.summary != result.summary or recovered.checkpoint != result.checkpoint:
+        raise ValueError("recovered reference training differs from sealed source evidence")
+    if file_sha256(_reference_checkpoint_path(result)) != anchor.checkpoint_hash:
+        raise ValueError("reference training source checkpoint bytes changed")
+    return (spec, result), {
+        "source_session_id": source.session_id,
+        "source_session_genesis_hash": source.session_genesis_hash,
+        "source_session_genesis_uri": str(path),
+        "source_session_genesis_checksum": file_sha256(path),
+    }
+
+
 def prepare_session_genesis(
     *,
     output_dir: Path,
@@ -1303,6 +1337,7 @@ def prepare_session_genesis(
     genesis_identity_snapshot: Mapping[str, Any],
     baseline_manifest: BaselineManifest | None = None,
     reference_program_artifact: VerifiedReferenceProgramArtifact | None = None,
+    completed_reference_training: tuple[TrainJobSpec, TrainJobResult] | None = None,
     bootstrap_initial_best_score: float | None = None,
     bootstrap_initial_policy_state_hash: str | None = None,
     require_existing: bool = False,
@@ -1310,6 +1345,8 @@ def prepare_session_genesis(
     generation_session_contract_ref: GenerationSessionContractRef | None = None,
     source_reference_genesis_dir: Path | None = None,
     source_reference_session_id: str | None = None,
+    source_reference_training_genesis_dir: Path | None = None,
+    source_reference_training_session_id: str | None = None,
     gpu_process_binding: GpuProcessBinding | None = None,
     reference_train_attempt_scope: PreGenesisExecutionScope | None = None,
     reference_eval_attempt_scope: PreGenesisExecutionScope | None = None,
@@ -1322,7 +1359,12 @@ def prepare_session_genesis(
     baseline_eval_attempt_scope: PreGenesisExecutionScope | None = None,
     _reference_checkpoint_path_override: Path | None = None,
 ) -> VerifiedSessionGenesis:
-    """Create a Genesis once, or validate the existing one without rerunning eval."""
+    """Create a Genesis once, or validate the existing one without rerunning eval.
+
+    Completed reference training must have been validated by its Runner against
+    the original job and artifacts. A fresh output may reuse that exact job and
+    result while materializing evaluation in the current execution environment.
+    """
 
     if not isinstance(genesis_identity_snapshot, Mapping):
         raise TypeError("genesis_identity_snapshot must be an object")
@@ -1331,6 +1373,23 @@ def prepare_session_genesis(
         source_reference_genesis_dir is not None
         or source_reference_session_id is not None
     )
+    training_reuse_requested = source_reference_training_genesis_dir is not None
+    if training_reuse_requested != (source_reference_training_session_id is not None):
+        raise ValueError("reference training reuse requires source directory and session identity")
+    if training_reuse_requested and (
+        import_requested or completed_reference_training is not None or reference_program_artifact is None
+    ):
+        raise ValueError("reference training reuse requires one source and a local reference Genesis")
+    if completed_reference_training is not None:
+        if (
+            not isinstance(completed_reference_training, tuple)
+            or len(completed_reference_training) != 2
+            or not isinstance(completed_reference_training[0], TrainJobSpec)
+            or not isinstance(completed_reference_training[1], TrainJobResult)
+        ):
+            raise TypeError("completed reference training requires a TrainJobSpec and TrainJobResult")
+        if reference_program_artifact is None or import_requested:
+            raise ValueError("completed reference training requires a local reference Genesis")
     if (source_reference_genesis_dir is None) != (
         source_reference_session_id is None
     ):
@@ -1418,12 +1477,9 @@ def prepare_session_genesis(
         raise ValueError(
             "generation-scoped phased reference evaluation requires all phase scopes"
         )
-    if phased_reference_eval and not callable(
-        getattr(
-            reference_phased_evaluation_adapter,
-            "assemble_reference_full_summary",
-            None,
-        )
+    if phased_reference_eval and any(
+        not callable(getattr(reference_phased_evaluation_adapter, name, None))
+        for name in ("assemble_reference_full_summary", "project_reference_public_dev_gate")
     ):
         raise TypeError("reference phased evaluation adapter is invalid")
     if phased_reference_eval and reference_eval_attempt_scope is not None:
@@ -1579,6 +1635,19 @@ def prepare_session_genesis(
     genesis_identity_hash = session_genesis_identity_hash(
         genesis_identity_snapshot
     )
+    training_source_ref = None
+    if training_reuse_requested:
+        source_dir = Path(source_reference_training_genesis_dir).resolve()
+        if source_dir == output_dir:
+            raise ValueError("reference training source must differ from target output_dir")
+        completed_reference_training, training_source_ref = _load_completed_reference_training(
+            source_dir=source_dir, source_session_id=source_reference_training_session_id,
+            task_plugin=task_plugin, backend_adapter=backend_adapter, runner=runner,
+            policy_initialization=policy_initialization,
+            genesis_identity_hash=genesis_identity_hash, reference=reference_program_artifact,
+        )
+        genesis_identity_snapshot = _json_copy(genesis_identity_snapshot)
+        genesis_identity_snapshot["execution_placement"]["reference_training_source"] = training_source_ref
     for field_name, scope in (
         ("reference_train_attempt_scope", reference_train_attempt_scope),
         ("reference_eval_attempt_scope", reference_eval_attempt_scope),
@@ -1712,6 +1781,8 @@ def prepare_session_genesis(
             ),
             reference_eval_phase_attempt_scopes=phase_attempt_scopes,
             baseline_eval_attempt_scope=baseline_eval_attempt_scope,
+            completed_reference_training=completed_reference_training,
+            completed_reference_training_source=training_source_ref,
         )
 
     if genesis_path.exists():
@@ -1892,6 +1963,8 @@ class _GenesisContext:
         Mapping[EvaluationPhase, PreGenesisExecutionScope] | None
     )
     baseline_eval_attempt_scope: PreGenesisExecutionScope | None
+    completed_reference_training: tuple[TrainJobSpec, TrainJobResult] | None = None
+    completed_reference_training_source: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
         if self.gpu_process_binding is not None and not isinstance(
@@ -2222,7 +2295,7 @@ def _create_reference_genesis(
         ] = environment_hash
     if context.gpu_process_binding is not None:
         if (
-            context.reference_train_attempt_scope is None
+            (context.reference_train_attempt_scope is None and context.completed_reference_training is None)
             or (
                 context.reference_eval_attempt_scope is None
                 and context.reference_eval_phase_attempt_scopes is None
@@ -2252,7 +2325,22 @@ def _create_reference_genesis(
         **materialization_kwargs,
     )
     _validate_reference_job_bundle(context=context, jobs=jobs)
-    train_result = runner.run_train(jobs.train_spec)
+    if context.completed_reference_training is not None:
+        original_spec, train_result = context.completed_reference_training
+        original_identity = original_spec.to_public_dict()
+        requested_identity = jobs.train_spec.to_public_dict()
+        if context.completed_reference_training_source is not None:
+            # These describe where the original job ran, not what was trained.
+            for field in ("job_id", "execution_device", "gpu_process_binding"):
+                original_identity.pop(field, None)
+                requested_identity.pop(field, None)
+        if original_identity != requested_identity:
+            raise ValueError("completed reference training does not match the requested training job")
+        # Keep the original training paths and execution environment as evidence.
+        # Only the newly materialized evaluation uses this context's environment.
+        jobs = replace(jobs, train_spec=original_spec)
+    else:
+        train_result = runner.run_train(jobs.train_spec)
     _validate_reference_train_result(jobs.train_spec, train_result)
     initial_policy_state_hash = _reference_initial_policy_state_hash(train_result)
     checkpoint_path = _reference_checkpoint_path(train_result)
@@ -2263,6 +2351,9 @@ def _create_reference_genesis(
     eval_spec = bind_eval_spec_to_checkpoint(
         jobs.eval_spec,
         train_result.checkpoint,
+        source_train_spec=(
+            jobs.train_spec if context.completed_reference_training_source is not None else None
+        ),
     )
     evaluation_assembly: EvaluationAssembly | None = None
     if context.reference_phased_evaluation_adapter is None:
@@ -2288,6 +2379,21 @@ def _create_reference_genesis(
     ):
         raise ValueError("reference qualification task protocol mismatch")
     if not qualification.passed:
+        # A failed qualification cannot establish Genesis, but its task-owned
+        # explanation must survive just like the underlying phase receipts.
+        _atomic_create_json(
+            output_dir / REFERENCE_QUALIFICATION_FAILURE_FILENAME,
+            {
+                "schema_version": "true_rl_agent.reference_qualification_failure.v1",
+                "session_id": context.session_id,
+                "task_id": context.task_spec.task_id,
+                "reference_manifest_hash": reference.manifest.manifest_hash,
+                "checkpoint_hash": train_result.checkpoint.checksum,
+                "evaluation_binding": context.evaluation_binding.to_public_dict(),
+                "qualification_gate": dict(qualification.gate),
+                "qualification_evidence": dict(qualification.private_evidence),
+            },
+        )
         raise ValueError("reference program failed the task-owned capability gate")
     public_result = qualification.public_result
     seal = _build_reference_seal(
@@ -2425,6 +2531,23 @@ def _run_reference_phased_evaluation(
             phase_result, receipt_ref = loaded
         phase_results.append(phase_result)
         phase_receipt_refs[phase] = receipt_ref.to_dict()
+        if phase is EvaluationPhase.PUBLIC_DEV:
+            gate = adapter.project_reference_public_dev_gate(phase_result=phase_result)
+            if gate is not None:
+                payload = {
+                    "schema_version": "true_rl_agent.reference_public_dev_gate.v1",
+                    "task_protocol_hash": context.evaluation_binding.task_protocol_hash,
+                    "phase_receipt": receipt_ref.to_dict(),
+                    "task_gate": dict(gate),
+                }
+                gate_path = output_dir / "reference_public_dev_gate.json"
+                if gate_path.exists():
+                    if _read_json(gate_path) != payload:
+                        raise ValueError("reference public-dev gate differs from its receipt")
+                else:
+                    _atomic_create_json(gate_path, payload)
+                if gate["status"] != "pass":
+                    raise ValueError("reference program failed the task-owned public-dev gate")
     assembly = adapter.assemble_reference_full_summary(
         eval_plan=eval_plan,
         phase_results=phase_results,
@@ -2651,6 +2774,9 @@ def _load_verified_session_genesis(
         raise ValueError("session Genesis policy initialization drift")
     if artifact.runtime_snapshot_hash != context.genesis_identity_hash:
         raise ValueError("session Genesis identity drift")
+    source_ref = (artifact.runtime_snapshot or {}).get("execution_placement", {}).get("reference_training_source")
+    if source_ref != context.completed_reference_training_source:
+        raise ValueError("session Genesis reference training source drift")
     if artifact.evaluation_binding != context.evaluation_binding:
         raise ValueError("session Genesis evaluation binding drift")
     if _json_copy(artifact.backend_execution_environment) != _json_copy(
@@ -2788,7 +2914,7 @@ def _load_verified_session_genesis(
             )
             if eval_spec.gpu_process_binding != context.gpu_process_binding:
                 raise ValueError("reference private eval GPU process binding mismatch")
-            if (
+            if context.completed_reference_training_source is None and (
                 private_payload["train_result"].get("execution_device")
                 != eval_spec.execution_device
             ):
@@ -3126,8 +3252,7 @@ def _reference_eval_artifact_payload(
     gpu_process_binding = train_result.gpu_process_binding
     if gpu_process_binding != train_spec.gpu_process_binding:
         raise ValueError("reference train result GPU process binding mismatch")
-    if eval_spec.gpu_process_binding != gpu_process_binding:
-        raise ValueError("reference eval GPU process binding mismatch")
+    # Training may be reused from another execution; evaluation owns its binding.
     train_result_payload = {
         "job_id": train_result.job_id,
         "subject": train_result.subject.to_public_dict(),
@@ -3394,13 +3519,21 @@ def _validate_private_reference_artifact(
         anchor=anchor,
         reference_artifact=reference_artifact,
     )
-    if train_spec.gpu_process_binding != context.gpu_process_binding:
+    if context.completed_reference_training_source is None and train_spec.gpu_process_binding != context.gpu_process_binding:
         raise ValueError("reference private train GPU process binding mismatch")
     train_result = _reference_train_result_from_private_artifact(
         payload,
         anchor=anchor,
         train_spec=train_spec,
     )
+    if context.completed_reference_training_source is not None:
+        original_spec, original_result = context.completed_reference_training
+        if (
+            _job_spec_to_private_dict(train_spec) != _job_spec_to_private_dict(original_spec)
+            or train_spec.metadata != original_spec.metadata
+            or train_result != original_result
+        ):
+            raise ValueError("reference private training differs from its source Genesis")
     checkpoint_payload = _exact_mapping(
         payload.get("checkpoint_artifact"),
         {"path", "checksum"},
@@ -3857,7 +3990,10 @@ def _reject_partial_session_without_genesis(
     session_id: str,
     allow_pre_genesis_state: bool = False,
 ) -> None:
-    partial_paths = [output_dir / "ledger.jsonl"]
+    partial_paths = [
+        output_dir / "ledger.jsonl",
+        output_dir / REFERENCE_QUALIFICATION_FAILURE_FILENAME,
+    ]
     if not allow_pre_genesis_state:
         partial_paths.extend(
             (

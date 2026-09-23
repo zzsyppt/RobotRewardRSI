@@ -1,0 +1,123 @@
+{
+  "actual_training": [
+    {
+      "control_steps": 8,
+      "env_transitions": 128,
+      "excluded_preflight_steps": 1,
+      "latest_checkpoint_iteration": 0
+    },
+    {
+      "control_steps": 8,
+      "env_transitions": 128,
+      "excluded_preflight_steps": 1,
+      "latest_checkpoint_iteration": 0
+    }
+  ],
+  "archive_schema_version": "true_rl_agent.training_numeric_capture.v1",
+  "case": "training_stair_go2_verification",
+  "cell_variant_id": "stair.go2_12dof.unified_v3",
+  "checkpoint_states": {
+    "checkpoint_iteration_equal": true,
+    "checkpoint_iterations": [
+      0,
+      0
+    ],
+    "file_hash_equal": true,
+    "first_mismatches": [],
+    "load_mode": "torch.load(map_location=cpu, weights_only=True)",
+    "mismatch_count": 0,
+    "model_keys": [
+      "actor_state_dict",
+      "critic_state_dict"
+    ],
+    "model_optimizer_exact": true,
+    "model_tensors": 17,
+    "optimizer_keys": [
+      "optimizer_state_dict"
+    ],
+    "optimizer_tensors": 51,
+    "other_top_level_metadata_excluded": [
+      "infos"
+    ]
+  },
+  "checks": {
+    "actual_training_steps": true,
+    "archive_backend_identity": true,
+    "archive_cell_identity": true,
+    "archive_initial_policy_identity": true,
+    "archive_program_identity": true,
+    "archive_training_binding_identity": true,
+    "checkpoint_files_match_training_receipts": true,
+    "checkpoint_iteration_equal": true,
+    "completed_on_off": true,
+    "coverage_equals_sealed_manifest": true,
+    "execution_argv_only_capture_and_outputs_differ": true,
+    "expected_robot_cell": true,
+    "final_checkpoint_iteration": true,
+    "initial_policy_hash_equal": true,
+    "model_optimizer_exact": true,
+    "numeric_archive_within_2_gib": true,
+    "numeric_chunks_within_64_mib": true,
+    "off_capture_disabled": true,
+    "on_receipt_equals_archive_reference": true,
+    "paired_device": true,
+    "paired_diagnostic_workload": true,
+    "paired_extra_rss_within_512_mib": true,
+    "paired_program_source_checksum": true,
+    "paired_source_argv_sha256": true,
+    "paired_subject_kind": true,
+    "paired_task": true,
+    "planned_and_observed_control_steps": true,
+    "preflight_excluded": true,
+    "runtime_reward_observations_equal": true,
+    "sample_count_equals_coverage": true,
+    "summary_files_match_driver_receipts": true,
+    "three_windows_exact": true
+  },
+  "cpu_recheck_wall_seconds": 0.1470575798302889,
+  "current_pair_status": "PASS",
+  "equivalent_to_legacy_report": {
+    "actual_training": true,
+    "archive_identity": true,
+    "checkpoint_states": true,
+    "checks": true,
+    "sampled_reward_recompute": true
+  },
+  "failed_checks": [],
+  "new_model_calls": 0,
+  "new_simulator_runs": 0,
+  "off_dir": "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_go2_off",
+  "on_dir": "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_go2_on",
+  "original_file_count": 10,
+  "original_file_hashes": {
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_go2_off.time": "0c56b0eadd27d8d5c8d7bab226120d81f6c62ccb284aa4766ab6f49b736824cf",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_go2_off/executed_train_argv.json": "409d16630153d566dc11bab2228cdb09a91fb3a8fc245f683e06178a2c41e3ed",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_go2_off/result.json": "55e215f58c1ca625b61161f702920fdaf1bd0351803f068d02bf462daf0a6ee5",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_go2_off/training_summary.json": "825261bf8aef2e9aa53d7d8020da8ec912c5214a440676f162cdba2c4eaa9d17",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_go2_on.time": "aabc9734789f3aeda48a889dbe6a3db43d5a80fa71d85a1a2edfc93c1eb138fd",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_go2_on/executed_train_argv.json": "6574e34f421eae45bfa4d94739440bfc52f6e2cb8cc16904a9d7ee941cb7d741",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_go2_on/result.json": "cf8899db92e91a22e44e2e1e8de4e79c92440a61698c9df98f754be39c944207",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_go2_on/run/training_numeric_evidence/manifest.json": "327ff4259100e7ade19feabfffade10168b7f958441cb8291803981cf874a840",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_go2_on/training_summary.json": "0286b166ea863711219172c5f20e9740918020496e0b77ab0647ead03ff05ca4",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/training_stair_go2_verification.json": "45ef735bacc7403a41197cb74490783801ac395eb347c81f44ada90b3c95ba45"
+  },
+  "original_files_unchanged": true,
+  "sampled_reward_recompute": {
+    "coverage_matches": true,
+    "identity_matches": true,
+    "observed_training_env_transitions": 128,
+    "planned_training_env_transitions": 128,
+    "ppo_post_manager_reward_observed": false,
+    "raw_weighted_sum_arithmetic_matches": true,
+    "tolerance": {
+      "atol": 1e-06,
+      "rtol": 1e-06
+    },
+    "verified_chunks": 9,
+    "verified_sampled_control_steps": 8,
+    "verified_sampled_env_transitions": 128
+  },
+  "source_report": "/data/yuyangliu/AGENT/feedback_p2_20260923/training_stair_go2_verification.json",
+  "source_report_sha256": "45ef735bacc7403a41197cb74490783801ac395eb347c81f44ada90b3c95ba45",
+  "status": "PASS"
+}

@@ -1,0 +1,204 @@
+E.FF.EE.EE........................ssss................................................................................................................................................s....................................................................................................................................................................................................................................................................s...................................s............Isaac SimulationApp close failed: close failed
+.............................................................s....E....usage: python.exe -m unittest [-h] [--task-id {unitree_push_recovery}]
+                              [--isaac-python ISAAC_PYTHON]
+                              [--train-entrypoint TRAIN_ENTRYPOINT]
+                              [--eval-entrypoint EVAL_ENTRYPOINT]
+                              [--execution-device EXECUTION_DEVICE]
+                              [--budget-steps BUDGET_STEPS]
+                              [--public-seed-count PUBLIC_SEED_COUNT]
+                              [--public-accept-seed-count PUBLIC_ACCEPT_SEED_COUNT]
+                              [--sealed-validation-seed-count SEALED_VALIDATION_SEED_COUNT]
+                              [--eval-protocol-version EVAL_PROTOCOL_VERSION]
+                              [--train-seed TRAIN_SEED]
+                              [--runtime-config RUNTIME_CONFIG]
+                              [--train-profile TRAIN_PROFILE]
+                              [--eval-profile EVAL_PROFILE]
+                              [--train-num-envs TRAIN_NUM_ENVS]
+                              [--train-max-iterations TRAIN_MAX_ITERATIONS]
+                              [--train-steps-per-iteration TRAIN_STEPS_PER_ITERATION]
+                              [--eval-num-envs EVAL_NUM_ENVS]
+                              [--runner-timeout-s RUNNER_TIMEOUT_S]
+                              [--cell-variant-id {push.g1_29dof.legacy_v1,push.g1_29dof.reference_v1,push.g1_37dof.recovery_v2,push.go2_12dof.recovery_v2}]
+                              [--job-kind {candidate,baseline-eval}]
+                              [--round-id ROUND_ID] [--session-id SESSION_ID]
+                              [--candidate-id CANDIDATE_ID]
+                              [--component COMPONENT]
+                              [--candidate-path CANDIDATE_PATH]
+                              [--output-dir OUTPUT_DIR]
+python.exe -m unittest: error: --session-id is required for initialization-anchored candidates
+custom-source-policy
+custom-source-policy
+custom-source-policy
+custom-source-policy
+custom-source-policy
+E..........................................................................................................s................................................................................................................................................................................................................................................................s...................................................................................................s.ss.........................................................................................................bound child CUDA_VISIBLE_DEVICES must be one full GPU UUID
+bound child CUDA_VISIBLE_DEVICES must be one full GPU UUID
+{"status": "pass", "summary_path": "C:\\Users\\lover\\AppData\\Local\\Temp\\tmpx8q3ppgc\\eval-summary.json"}
+{"status": "pass", "summary_path": "C:\\Users\\lover\\AppData\\Local\\Temp\\tmpx8q3ppgc\\eval-summary.json"}
+....stair evaluation evidence publication failed: summary publication failed
+.backend execution environment drift
+backend execution environment drift
+.......installed source bytes drifted
+installed source bytes drifted
+..........................................................................................................................................................ss.ss.s..............................................................................................................................................................................................................................................{"error":"RuntimeError","message":"synthetic owned-child failure","status":"fail"}
+...{"error":"FileNotFoundError","message":"[WinError 2] 系统找不到指定的文件。: 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmph3g7l6pi\\\\leases'","status":"fail"}
+{"error":"ValueError","message":"shared GPU lease root must be an existing disjoint directory","status":"fail"}
+....................................................................s.................
+======================================================================
+ERROR: test_backend_materializes_baseline_eval_without_train_or_candidate_surface (integration.test_baseline_eval_only.BaselineEvalOnlyIntegrationTests.test_backend_materializes_baseline_eval_without_train_or_candidate_surface)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_baseline_eval_only.py", line 97, in test_backend_materializes_baseline_eval_without_train_or_candidate_surface
+    spec = composition.backend_adapter.materialize_baseline_eval(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\backends\isaac_lab_rsl_rl.py", line 936, in materialize_baseline_eval
+    raise ValueError(
+ValueError: baseline compatibility failed: task_does_not_support_warm_start, observation_schema_hash_mismatch, action_schema_hash_mismatch
+
+======================================================================
+ERROR: test_audit_refuses_existing_ledger_and_materialize_component_is_explicit (integration.test_dry_run_audit_loop.DryRunAuditLoopTests.test_audit_refuses_existing_ledger_and_materialize_component_is_explicit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_dry_run_audit_loop.py", line 164, in test_audit_refuses_existing_ledger_and_materialize_component_is_explicit
+    run_push_recovery_loop_audit(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\push_recovery\loop_audit.py", line 316, in run_push_recovery_loop_audit
+    session_genesis = prepare_session_genesis(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\session_genesis.py", line 1358, in prepare_session_genesis
+    raise ValueError(
+ValueError: reference Genesis cannot also declare a bootstrap initial score
+
+======================================================================
+ERROR: test_cli_entrypoints_are_implemented_without_subprocess (integration.test_dry_run_audit_loop.DryRunAuditLoopTests.test_cli_entrypoints_are_implemented_without_subprocess)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_dry_run_audit_loop.py", line 119, in test_cli_entrypoints_are_implemented_without_subprocess
+    loop_status = run_loop.main(
+                  ^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\scripts\run_loop.py", line 79, in main
+    summary = provider.run_audit(
+              ^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\push_recovery\composition.py", line 282, in run_audit
+    return run_push_recovery_loop_audit(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\push_recovery\loop_audit.py", line 316, in run_push_recovery_loop_audit
+    session_genesis = prepare_session_genesis(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\session_genesis.py", line 1358, in prepare_session_genesis
+    raise ValueError(
+ValueError: reference Genesis cannot also declare a bootstrap initial score
+
+======================================================================
+ERROR: test_dry_run_cli_entrypoints_materialize_the_resolved_task_snapshot (integration.test_dry_run_audit_loop.DryRunAuditLoopTests.test_dry_run_cli_entrypoints_materialize_the_resolved_task_snapshot)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_dry_run_audit_loop.py", line 413, in test_dry_run_cli_entrypoints_materialize_the_resolved_task_snapshot
+    loop_status = run_loop.main(
+                  ^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\scripts\run_loop.py", line 79, in main
+    summary = provider.run_audit(
+              ^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\push_recovery\composition.py", line 282, in run_audit
+    return run_push_recovery_loop_audit(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\push_recovery\loop_audit.py", line 316, in run_push_recovery_loop_audit
+    session_genesis = prepare_session_genesis(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\session_genesis.py", line 1358, in prepare_session_genesis
+    raise ValueError(
+ValueError: reference Genesis cannot also declare a bootstrap initial score
+
+======================================================================
+ERROR: test_fifteen_round_audit_saves_public_prompts_and_blocks_tuning_accepts (integration.test_dry_run_audit_loop.DryRunAuditLoopTests.test_fifteen_round_audit_saves_public_prompts_and_blocks_tuning_accepts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_dry_run_audit_loop.py", line 49, in test_fifteen_round_audit_saves_public_prompts_and_blocks_tuning_accepts
+    summary = run_push_recovery_loop_audit(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\push_recovery\loop_audit.py", line 316, in run_push_recovery_loop_audit
+    session_genesis = prepare_session_genesis(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\session_genesis.py", line 1358, in prepare_session_genesis
+    raise ValueError(
+ValueError: reference Genesis cannot also declare a bootstrap initial score
+
+======================================================================
+ERROR: test_materialize_baseline_eval_emits_no_train_or_candidate_job (unit.test_materialize_job_script.MaterializeJobScriptTests.test_materialize_baseline_eval_emits_no_train_or_candidate_job)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\base.py", line 106, in genesis_anchor_kind_for
+    return self.genesis_anchor_policy[policy_initialization_kind]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'warm_start'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_materialize_job_script.py", line 315, in test_materialize_baseline_eval_emits_no_train_or_candidate_job
+    exit_code = main(
+                ^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\scripts\materialize_job.py", line 92, in main
+    composition = resolve_task_composition(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\composition\base.py", line 387, in resolve_task_composition
+    composition = provider.resolve(values=values, context=context)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_materialize_job_script.py", line 89, in resolve
+    return replace(
+           ^^^^^^^^
+  File "C:\Users\lover\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\dataclasses.py", line 1588, in replace
+    return obj.__class__(**changes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 19, in __init__
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\composition\base.py", line 92, in __post_init__
+    expected_anchor_kind = self.task_plugin.task_spec.genesis_anchor_kind_for(
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\base.py", line 108, in genesis_anchor_kind_for
+    raise ValueError(
+ValueError: task does not define a Genesis anchor for policy initialization: warm_start
+
+======================================================================
+ERROR: test_materialized_job_exports_runner_execution_argv (unit.test_materialize_job_script.MaterializeJobScriptTests.test_materialized_job_exports_runner_execution_argv)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_materialize_job_script.py", line 243, in test_materialized_job_exports_runner_execution_argv
+    exit_code = main(
+                ^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\scripts\materialize_job.py", line 129, in main
+    parser.error(
+  File "C:\Users\lover\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py", line 2650, in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+  File "C:\Users\lover\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py", line 2637, in exit
+    _sys.exit(status)
+SystemExit: 2
+
+======================================================================
+FAIL: test_task_binding_or_manifest_identity_drift_is_rejected (integration.test_baseline_eval_only.BaselineEvalOnlyIntegrationTests.test_task_binding_or_manifest_identity_drift_is_rejected) (field_name='task_protocol_hash')
+----------------------------------------------------------------------
+ValueError: baseline compatibility failed: task_does_not_support_warm_start, observation_schema_hash_mismatch, action_schema_hash_mismatch
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_baseline_eval_only.py", line 184, in test_task_binding_or_manifest_identity_drift_is_rejected
+    with self.assertRaisesRegex(
+         ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "task_protocol_hash" does not match "baseline compatibility failed: task_does_not_support_warm_start, observation_schema_hash_mismatch, action_schema_hash_mismatch"
+
+======================================================================
+FAIL: test_task_binding_or_manifest_identity_drift_is_rejected (integration.test_baseline_eval_only.BaselineEvalOnlyIntegrationTests.test_task_binding_or_manifest_identity_drift_is_rejected) (field_name='seed_cohort_hash')
+----------------------------------------------------------------------
+ValueError: baseline compatibility failed: task_does_not_support_warm_start, observation_schema_hash_mismatch, action_schema_hash_mismatch
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_baseline_eval_only.py", line 184, in test_task_binding_or_manifest_identity_drift_is_rejected
+    with self.assertRaisesRegex(
+         ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "seed_cohort_hash" does not match "baseline compatibility failed: task_does_not_support_warm_start, observation_schema_hash_mismatch, action_schema_hash_mismatch"
+
+----------------------------------------------------------------------
+Ran 1635 tests in 952.532s
+
+FAILED (failures=2, errors=7, skipped=19)

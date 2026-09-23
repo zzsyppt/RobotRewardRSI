@@ -1,0 +1,2347 @@
+Loading user config located at: '/data/yuyangliu/envs/isaaclab6_validation/lib/python3.12/site-packages/isaacsim/kit/data/Kit/IsaacLab/3.0/user.config.json'
+2026-09-22T09:23:18Z [0ms] [Warning] [omni.ext.plugin] [ext: isaaclab_visualizers] Extensions config 'extension.toml' doesn't exist '/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab_visualizers' or '/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab_visualizers/config'
+2026-09-22T09:23:18Z [725ms] [Warning] [omni.usd_config.extension] Enable omni.materialx.libs extension to use MaterialX
+2026-09-22T09:23:19Z [765ms] [Warning] [omni.platforminfo.plugin] failed to open the default display.  Can't verify X Server version.
+2026-09-22T09:23:27Z [8,894ms] [Warning] [isaaclab_physx.physics.physx_manager] TGS solver with enable_external_forces_every_iteration=False may cause noisy velocities.
+[INFO]: Base environment:
+	Environment device    : cuda:0
+	Environment seed      : 42
+	Physics step-size     : 0.005
+	Rendering step-size   : 0.02
+	Environment step-size : 0.02
+[INFO]: Registered backend 'physx' for factory Articulation.
+2026-09-22T09:23:30Z [12,194ms] [Warning] [isaaclab.terrains.terrain_importer] Visual material specified for ground plane but no diffuse color found. Using default color: (0.0, 0.0, 0.0)
+[INFO]: Registered backend 'physx' for factory FrameView.
+[INFO]: Physics scene prim path: /physicsScene
+[INFO]: Time taken for scene creation Last: 15.782758 s, Mean: 15.782758 s, Std: 0.000000 s, N: 1
+[INFO]: Scene manager:  <class InteractiveScene>
+	Number of environments: 4096
+	Environment spacing   : 2.5
+	Source prim name      : /World/envs/env_0
+	Global prim paths     : ['/World/ground']
+	Replicate physics     : True
+2026-09-22T09:24:21Z [62,836ms] [Warning] [usdrt.population.plugin] Last global time was not created. Did you call setEnableUsdNoticeHandling?
+[INFO]: Simulation parameters for joints in /World/envs/env_.*/Robot:
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|                                                  Simulation Joint Information (Prim path: /World/envs/env_.*/Robot)                                                  |
++-------+----------------+-----------+---------+----------+-----------------+------------------+------------------+------------------+-----------------+---------------+
+| Index | Name           | Stiffness | Damping | Armature | Static Friction | Dynamic Friction | Viscous Friction | Position Limits  | Velocity Limits | Effort Limits |
++-------+----------------+-----------+---------+----------+-----------------+------------------+------------------+------------------+-----------------+---------------+
+|   0   | FL_hip_joint   |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-1.047, 1.047]  |      30.100     |    1.0e+09    |
+|   1   | FR_hip_joint   |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-1.047, 1.047]  |      30.100     |    1.0e+09    |
+|   2   | RL_hip_joint   |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-1.047, 1.047]  |      30.100     |    1.0e+09    |
+|   3   | RR_hip_joint   |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-1.047, 1.047]  |      30.100     |    1.0e+09    |
+|   4   | FL_thigh_joint |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-1.571, 3.491]  |      30.100     |    1.0e+09    |
+|   5   | FR_thigh_joint |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-1.571, 3.491]  |      30.100     |    1.0e+09    |
+|   6   | RL_thigh_joint |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-0.524, 4.538]  |      30.100     |    1.0e+09    |
+|   7   | RR_thigh_joint |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-0.524, 4.538]  |      30.100     |    1.0e+09    |
+|   8   | FL_calf_joint  |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-2.723, -0.838] |      15.700     |    1.0e+09    |
+|   9   | FR_calf_joint  |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-2.723, -0.838] |      15.700     |    1.0e+09    |
+|   10  | RL_calf_joint  |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-2.723, -0.838] |      15.700     |    1.0e+09    |
+|   11  | RR_calf_joint  |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-2.723, -0.838] |      15.700     |    1.0e+09    |
++-------+----------------+-----------+---------+----------+-----------------+------------------+------------------+------------------+-----------------+---------------+
+[INFO]: Time taken for simulation start Last: 53.170169 s, Mean: 53.170169 s, Std: 0.000000 s, N: 1
+2026-09-22T09:24:36Z [77,869ms] [Warning] [isaaclab.envs.mdp.commands.velocity_command] The velocity command has the 'ranges.heading' attribute set to '(-3.141592653589793, 3.141592653589793)' but the heading command is not active. Consider setting the flag for the heading command to True.
+[INFO] Command Manager:  <CommandManager> contains 1 active terms.
++------------------------------------------------+
+|              Active Command Terms              |
++-------+---------------+------------------------+
+| Index | Name          |          Type          |
++-------+---------------+------------------------+
+|   0   | base_velocity | UniformVelocityCommand |
++-------+---------------+------------------------+
+
+[INFO] Event Manager:  <EventManager> contains 3 active terms.
++--------------------------------------+
+| Active Event Terms in Mode: 'startup' |
++----------+---------------------------+
+|  Index   | Name                      |
++----------+---------------------------+
+|    0     | physics_material          |
+|    1     | add_base_mass             |
++----------+---------------------------+
++-------------------------------------+
+| Active Event Terms in Mode: 'reset' |
++---------+---------------------------+
+|  Index  | Name                      |
++---------+---------------------------+
+|    0    | reset_base                |
+|    1    | reset_robot_joints        |
+|    2    | push_reset                |
++---------+---------------------------+
++-----------------------------------------------------------+
+|           Active Event Terms in Mode: 'interval'          |
++-------+-------------------------+-------------------------+
+| Index | Name                    | Interval time range (s) |
++-------+-------------------------+-------------------------+
+|   0   | push_velocity_increment |       (0.02, 0.02)      |
++-------+-------------------------+-------------------------+
+
+[INFO] Recorder Manager:  <RecorderManager> contains 0 active terms.
++---------------------+
+| Active Recorder Terms |
++-----------+---------+
+|   Index   | Name    |
++-----------+---------+
++-----------+---------+
+
+[INFO]: Resolved joint names for the action term JointPositionAction: ['FL_hip_joint', 'FR_hip_joint', 'RL_hip_joint', 'RR_hip_joint', 'FL_thigh_joint', 'FR_thigh_joint', 'RL_thigh_joint', 'RR_thigh_joint', 'FL_calf_joint', 'FR_calf_joint', 'RL_calf_joint', 'RR_calf_joint'] [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]]
+[INFO] Action Manager:  <ActionManager> contains 1 active terms.
++------------------------------------+
+|  Active Action Terms (shape: 12)   |
++--------+-------------+-------------+
+| Index  | Name        |   Dimension |
++--------+-------------+-------------+
+|   0    | joint_pos   |          12 |
++--------+-------------+-------------+
+
+[INFO] Observation Manager: <ObservationManager> contains 1 groups.
++---------------------------------------------------------+
+| Active Observation Terms in Group: 'policy' (shape: (48,)) |
++-----------+---------------------------------+-----------+
+|   Index   | Name                            |   Shape   |
++-----------+---------------------------------+-----------+
+|     0     | base_lin_vel                    |    (3,)   |
+|     1     | base_ang_vel                    |    (3,)   |
+|     2     | projected_gravity               |    (3,)   |
+|     3     | velocity_commands               |    (3,)   |
+|     4     | joint_pos                       |   (12,)   |
+|     5     | joint_vel                       |   (12,)   |
+|     6     | actions                         |   (12,)   |
++-----------+---------------------------------+-----------+
+
+[INFO] Termination Manager:  <TerminationManager> contains 2 active terms.
++---------------------------------+
+|     Active Termination Terms    |
++-------+--------------+----------+
+| Index | Name         | Time Out |
++-------+--------------+----------+
+|   0   | time_out     |   True   |
+|   1   | task_failure |  False   |
++-------+--------------+----------+
+
+[INFO] Reward Manager:  <RewardManager> contains 1 active terms.
++-------------------------------+
+|      Active Reward Terms      |
++-------+--------------+--------+
+| Index | Name         | Weight |
++-------+--------------+--------+
+|   0   | full_program |    1.0 |
++-------+--------------+--------+
+
+[INFO] Curriculum Manager:  <CurriculumManager> contains 0 active terms.
++----------------------+
+| Active Curriculum Terms |
++-----------+----------+
+|   Index   | Name     |
++-----------+----------+
++-----------+----------+
+
+[INFO]: Completed setting up the environment...
+--------------------------------------------------------------------------------
+Resolved observation sets: 
+	 actor :  ['policy']
+	 critic :  ['policy']
+--------------------------------------------------------------------------------
+Actor Model: MLPModel(
+  (obs_normalizer): Identity()
+  (distribution): GaussianDistribution()
+  (mlp): MLP(
+    (0): Linear(in_features=48, out_features=512, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=512, out_features=256, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=256, out_features=128, bias=True)
+    (5): ELU(alpha=1.0)
+    (6): Linear(in_features=128, out_features=12, bias=True)
+  )
+)
+Critic Model: MLPModel(
+  (obs_normalizer): Identity()
+  (mlp): MLP(
+    (0): Linear(in_features=48, out_features=512, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=512, out_features=256, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=256, out_features=128, bias=True)
+    (5): ELU(alpha=1.0)
+    (6): Linear(in_features=128, out_features=1, bias=True)
+  )
+)
+Could not find git repository in /data/yuyangliu/envs/isaaclab6_validation/lib/python3.12/site-packages/rsl_rl/__init__.py. Skipping.
+Storing git diff for 'go2_push_source_01' in: /data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/attempt_01/session/runner/go2-push-5rounds-20260922-a01-generation-001-lane-b/train/run/attempt-18252a27bd564bd48aea1b5cd5f8bf8c/rsl_rl/git/go2_push_source_01.diff
+################################################################################
+[1m                            Learning iteration 0/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 98304 
+                       Steps per second: 25935 
+                        Collection time: 3.453s 
+                          Learning time: 0.337s 
+                        Mean value loss: 0.1436
+                    Mean surrogate loss: 0.0297
+                      Mean entropy loss: 17.0477
+                            Mean reward: 0.39
+                    Mean episode length: 15.81
+                        Mean action std: 1.00
+            Episode_Reward/full_program: 0.0385
+                   Metrics/success_rate: 0.6729
+     Metrics/base_velocity/error_vel_xy: 0.0683
+    Metrics/base_velocity/error_vel_yaw: 0.2833
+           Episode_Termination/time_out: 0.0000
+       Episode_Termination/task_failure: 0.2011
+--------------------------------------------------------------------------------
+                         Iteration time: 3.79s
+                           Time elapsed: 00:00:03
+                                    ETA: 00:31:31
+
+################################################################################
+[1m                            Learning iteration 1/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 196608 
+                       Steps per second: 89946 
+                        Collection time: 0.955s 
+                          Learning time: 0.138s 
+                        Mean value loss: 0.1011
+                    Mean surrogate loss: -0.0008
+                      Mean entropy loss: 17.0558
+                            Mean reward: 0.43
+                    Mean episode length: 16.79
+                        Mean action std: 1.00
+            Episode_Reward/full_program: 0.0633
+                   Metrics/success_rate: 0.4024
+     Metrics/base_velocity/error_vel_xy: 0.1280
+    Metrics/base_velocity/error_vel_yaw: 0.4620
+           Episode_Termination/time_out: 0.0000
+       Episode_Termination/task_failure: 0.4281
+--------------------------------------------------------------------------------
+                         Iteration time: 1.09s
+                           Time elapsed: 00:00:04
+                                    ETA: 00:20:15
+
+################################################################################
+[1m                            Learning iteration 2/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 294912 
+                       Steps per second: 88032 
+                        Collection time: 0.979s 
+                          Learning time: 0.137s 
+                        Mean value loss: 0.0929
+                    Mean surrogate loss: -0.0041
+                      Mean entropy loss: 17.0908
+                            Mean reward: 1.54
+                    Mean episode length: 61.56
+                        Mean action std: 1.01
+            Episode_Reward/full_program: 0.1716
+                   Metrics/success_rate: 0.1608
+     Metrics/base_velocity/error_vel_xy: 0.2782
+    Metrics/base_velocity/error_vel_yaw: 0.5649
+           Episode_Termination/time_out: 0.0000
+       Episode_Termination/task_failure: 0.4546
+--------------------------------------------------------------------------------
+                         Iteration time: 1.12s
+                           Time elapsed: 00:00:05
+                                    ETA: 00:16:33
+
+################################################################################
+[1m                            Learning iteration 3/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 393216 
+                       Steps per second: 84757 
+                        Collection time: 1.021s 
+                          Learning time: 0.139s 
+                        Mean value loss: 0.0940
+                    Mean surrogate loss: -0.0049
+                      Mean entropy loss: 17.1808
+                            Mean reward: 1.71
+                    Mean episode length: 67.23
+                        Mean action std: 1.02
+            Episode_Reward/full_program: 0.2673
+                   Metrics/success_rate: 0.0649
+     Metrics/base_velocity/error_vel_xy: 0.3657
+    Metrics/base_velocity/error_vel_yaw: 0.6249
+           Episode_Termination/time_out: 0.0000
+       Episode_Termination/task_failure: 0.5755
+--------------------------------------------------------------------------------
+                         Iteration time: 1.16s
+                           Time elapsed: 00:00:07
+                                    ETA: 00:14:47
+
+################################################################################
+[1m                            Learning iteration 4/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 491520 
+                       Steps per second: 81028 
+                        Collection time: 1.053s 
+                          Learning time: 0.160s 
+                        Mean value loss: 0.0833
+                    Mean surrogate loss: -0.0043
+                      Mean entropy loss: 17.2505
+                            Mean reward: 1.86
+                    Mean episode length: 71.53
+                        Mean action std: 1.02
+            Episode_Reward/full_program: 0.2871
+                   Metrics/success_rate: 0.1034
+     Metrics/base_velocity/error_vel_xy: 0.2962
+    Metrics/base_velocity/error_vel_yaw: 0.5906
+           Episode_Termination/time_out: 0.0000
+       Episode_Termination/task_failure: 0.6332
+--------------------------------------------------------------------------------
+                         Iteration time: 1.21s
+                           Time elapsed: 00:00:08
+                                    ETA: 00:13:48
+
+################################################################################
+[1m                            Learning iteration 5/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 589824 
+                       Steps per second: 74017 
+                        Collection time: 1.169s 
+                          Learning time: 0.159s 
+                        Mean value loss: 0.0797
+                    Mean surrogate loss: -0.0042
+                      Mean entropy loss: 17.2969
+                            Mean reward: 2.15
+                    Mean episode length: 80.55
+                        Mean action std: 1.03
+            Episode_Reward/full_program: 0.3537
+                   Metrics/success_rate: 0.0784
+     Metrics/base_velocity/error_vel_xy: 0.3102
+    Metrics/base_velocity/error_vel_yaw: 0.5992
+           Episode_Termination/time_out: 0.0000
+       Episode_Termination/task_failure: 0.6605
+--------------------------------------------------------------------------------
+                         Iteration time: 1.33s
+                           Time elapsed: 00:00:09
+                                    ETA: 00:13:18
+
+################################################################################
+[1m                            Learning iteration 6/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 688128 
+                       Steps per second: 79287 
+                        Collection time: 1.102s 
+                          Learning time: 0.138s 
+                        Mean value loss: 0.0783
+                    Mean surrogate loss: -0.0055
+                      Mean entropy loss: 17.3621
+                            Mean reward: 2.37
+                    Mean episode length: 86.65
+                        Mean action std: 1.03
+            Episode_Reward/full_program: 0.3870
+                   Metrics/success_rate: 0.0470
+     Metrics/base_velocity/error_vel_xy: 0.3331
+    Metrics/base_velocity/error_vel_yaw: 0.6173
+           Episode_Termination/time_out: 0.0000
+       Episode_Termination/task_failure: 0.6772
+--------------------------------------------------------------------------------
+                         Iteration time: 1.24s
+                           Time elapsed: 00:00:10
+                                    ETA: 00:12:50
+
+################################################################################
+[1m                            Learning iteration 7/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 786432 
+                       Steps per second: 81380 
+                        Collection time: 1.071s 
+                          Learning time: 0.137s 
+                        Mean value loss: 0.0873
+                    Mean surrogate loss: -0.0038
+                      Mean entropy loss: 17.3993
+                            Mean reward: 3.89
+                    Mean episode length: 126.25
+                        Mean action std: 1.03
+            Episode_Reward/full_program: 0.5224
+                   Metrics/success_rate: 0.0442
+     Metrics/base_velocity/error_vel_xy: 0.3453
+    Metrics/base_velocity/error_vel_yaw: 0.6224
+           Episode_Termination/time_out: 0.0000
+       Episode_Termination/task_failure: 0.6946
+--------------------------------------------------------------------------------
+                         Iteration time: 1.21s
+                           Time elapsed: 00:00:12
+                                    ETA: 00:12:27
+
+################################################################################
+[1m                            Learning iteration 8/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 884736 
+                       Steps per second: 70113 
+                        Collection time: 1.240s 
+                          Learning time: 0.162s 
+                        Mean value loss: 0.0863
+                    Mean surrogate loss: -0.0061
+                      Mean entropy loss: 17.4302
+                            Mean reward: 4.19
+                    Mean episode length: 134.73
+                        Mean action std: 1.04
+            Episode_Reward/full_program: 0.6565
+                   Metrics/success_rate: 0.0440
+     Metrics/base_velocity/error_vel_xy: 0.3322
+    Metrics/base_velocity/error_vel_yaw: 0.6106
+           Episode_Termination/time_out: 0.0000
+       Episode_Termination/task_failure: 0.7259
+--------------------------------------------------------------------------------
+                         Iteration time: 1.40s
+                           Time elapsed: 00:00:13
+                                    ETA: 00:12:19
+
+################################################################################
+[1m                            Learning iteration 9/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 983040 
+                       Steps per second: 77261 
+                        Collection time: 1.135s 
+                          Learning time: 0.137s 
+                        Mean value loss: 0.0888
+                    Mean surrogate loss: -0.0053
+                      Mean entropy loss: 17.4970
+                            Mean reward: 4.35
+                    Mean episode length: 139.35
+                        Mean action std: 1.04
+            Episode_Reward/full_program: 0.7296
+                   Metrics/success_rate: 0.0336
+     Metrics/base_velocity/error_vel_xy: 0.3391
+    Metrics/base_velocity/error_vel_yaw: 0.6117
+           Episode_Termination/time_out: 0.0000
+       Episode_Termination/task_failure: 0.7534
+--------------------------------------------------------------------------------
+                         Iteration time: 1.27s
+                           Time elapsed: 00:00:14
+                                    ETA: 00:12:06
+
+################################################################################
+[1m                           Learning iteration 10/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 1081344 
+                       Steps per second: 80172 
+                        Collection time: 1.089s 
+                          Learning time: 0.137s 
+                        Mean value loss: 0.0904
+                    Mean surrogate loss: -0.0053
+                      Mean entropy loss: 17.5496
+                            Mean reward: 6.31
+                    Mean episode length: 186.36
+                        Mean action std: 1.05
+            Episode_Reward/full_program: 0.8537
+                   Metrics/success_rate: 0.0252
+     Metrics/base_velocity/error_vel_xy: 0.3253
+    Metrics/base_velocity/error_vel_yaw: 0.6232
+           Episode_Termination/time_out: 0.0000
+       Episode_Termination/task_failure: 0.7749
+--------------------------------------------------------------------------------
+                         Iteration time: 1.23s
+                           Time elapsed: 00:00:16
+                                    ETA: 00:11:53
+
+################################################################################
+[1m                           Learning iteration 11/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 1179648 
+                       Steps per second: 80805 
+                        Collection time: 1.078s 
+                          Learning time: 0.139s 
+                        Mean value loss: 0.1038
+                    Mean surrogate loss: -0.0062
+                      Mean entropy loss: 17.6315
+                            Mean reward: 6.07
+                    Mean episode length: 178.64
+                        Mean action std: 1.06
+            Episode_Reward/full_program: 0.9470
+                   Metrics/success_rate: 0.0135
+     Metrics/base_velocity/error_vel_xy: 0.3425
+    Metrics/base_velocity/error_vel_yaw: 0.6258
+           Episode_Termination/time_out: 0.0000
+       Episode_Termination/task_failure: 0.7963
+--------------------------------------------------------------------------------
+                         Iteration time: 1.22s
+                           Time elapsed: 00:00:17
+                                    ETA: 00:11:42
+
+################################################################################
+[1m                           Learning iteration 12/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 1277952 
+                       Steps per second: 79866 
+                        Collection time: 1.093s 
+                          Learning time: 0.138s 
+                        Mean value loss: 0.0938
+                    Mean surrogate loss: -0.0061
+                      Mean entropy loss: 17.7089
+                            Mean reward: 4.95
+                    Mean episode length: 155.84
+                        Mean action std: 1.06
+            Episode_Reward/full_program: 1.0012
+                   Metrics/success_rate: 0.0155
+     Metrics/base_velocity/error_vel_xy: 0.3387
+    Metrics/base_velocity/error_vel_yaw: 0.6092
+           Episode_Termination/time_out: 0.0748
+       Episode_Termination/task_failure: 0.8171
+--------------------------------------------------------------------------------
+                         Iteration time: 1.23s
+                           Time elapsed: 00:00:18
+                                    ETA: 00:11:32
+
+################################################################################
+[1m                           Learning iteration 13/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 1376256 
+                       Steps per second: 80267 
+                        Collection time: 1.086s 
+                          Learning time: 0.139s 
+                        Mean value loss: 0.1097
+                    Mean surrogate loss: -0.0064
+                      Mean entropy loss: 17.7651
+                            Mean reward: 6.46
+                    Mean episode length: 179.69
+                        Mean action std: 1.07
+            Episode_Reward/full_program: 1.1698
+                   Metrics/success_rate: 0.0288
+     Metrics/base_velocity/error_vel_xy: 0.2869
+    Metrics/base_velocity/error_vel_yaw: 0.6065
+           Episode_Termination/time_out: 0.2434
+       Episode_Termination/task_failure: 0.7573
+--------------------------------------------------------------------------------
+                         Iteration time: 1.22s
+                           Time elapsed: 00:00:19
+                                    ETA: 00:11:24
+
+################################################################################
+[1m                           Learning iteration 14/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 1474560 
+                       Steps per second: 79190 
+                        Collection time: 1.099s 
+                          Learning time: 0.142s 
+                        Mean value loss: 0.1494
+                    Mean surrogate loss: -0.0055
+                      Mean entropy loss: 17.8542
+                            Mean reward: 6.12
+                    Mean episode length: 178.34
+                        Mean action std: 1.08
+            Episode_Reward/full_program: 0.9972
+                   Metrics/success_rate: 0.0215
+     Metrics/base_velocity/error_vel_xy: 0.3179
+    Metrics/base_velocity/error_vel_yaw: 0.6232
+           Episode_Termination/time_out: 0.2811
+       Episode_Termination/task_failure: 0.7200
+--------------------------------------------------------------------------------
+                         Iteration time: 1.24s
+                           Time elapsed: 00:00:20
+                                    ETA: 00:11:17
+
+################################################################################
+[1m                           Learning iteration 15/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 1572864 
+                       Steps per second: 80776 
+                        Collection time: 1.078s 
+                          Learning time: 0.139s 
+                        Mean value loss: 0.1301
+                    Mean surrogate loss: -0.0062
+                      Mean entropy loss: 17.9240
+                            Mean reward: 6.97
+                    Mean episode length: 190.70
+                        Mean action std: 1.08
+            Episode_Reward/full_program: 1.0642
+                   Metrics/success_rate: 0.0144
+     Metrics/base_velocity/error_vel_xy: 0.3309
+    Metrics/base_velocity/error_vel_yaw: 0.6213
+           Episode_Termination/time_out: 0.2937
+       Episode_Termination/task_failure: 0.7075
+--------------------------------------------------------------------------------
+                         Iteration time: 1.22s
+                           Time elapsed: 00:00:22
+                                    ETA: 00:11:10
+
+################################################################################
+[1m                           Learning iteration 16/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 1671168 
+                       Steps per second: 81192 
+                        Collection time: 1.072s 
+                          Learning time: 0.138s 
+                        Mean value loss: 0.0995
+                    Mean surrogate loss: -0.0071
+                      Mean entropy loss: 17.9776
+                            Mean reward: 7.10
+                    Mean episode length: 199.09
+                        Mean action std: 1.09
+            Episode_Reward/full_program: 1.1826
+                   Metrics/success_rate: 0.0203
+     Metrics/base_velocity/error_vel_xy: 0.3179
+    Metrics/base_velocity/error_vel_yaw: 0.6338
+           Episode_Termination/time_out: 0.3085
+       Episode_Termination/task_failure: 0.6925
+--------------------------------------------------------------------------------
+                         Iteration time: 1.21s
+                           Time elapsed: 00:00:23
+                                    ETA: 00:11:04
+
+################################################################################
+[1m                           Learning iteration 17/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 1769472 
+                       Steps per second: 80258 
+                        Collection time: 1.086s 
+                          Learning time: 0.139s 
+                        Mean value loss: 0.1056
+                    Mean surrogate loss: -0.0058
+                      Mean entropy loss: 18.0329
+                            Mean reward: 7.55
+                    Mean episode length: 207.09
+                        Mean action std: 1.09
+            Episode_Reward/full_program: 1.2931
+                   Metrics/success_rate: 0.0043
+     Metrics/base_velocity/error_vel_xy: 0.3007
+    Metrics/base_velocity/error_vel_yaw: 0.6337
+           Episode_Termination/time_out: 0.3329
+       Episode_Termination/task_failure: 0.6681
+--------------------------------------------------------------------------------
+                         Iteration time: 1.22s
+                           Time elapsed: 00:00:24
+                                    ETA: 00:10:59
+
+################################################################################
+[1m                           Learning iteration 18/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 1867776 
+                       Steps per second: 78891 
+                        Collection time: 1.109s 
+                          Learning time: 0.137s 
+                        Mean value loss: 0.1087
+                    Mean surrogate loss: -0.0063
+                      Mean entropy loss: 18.0945
+                            Mean reward: 7.54
+                    Mean episode length: 200.61
+                        Mean action std: 1.10
+            Episode_Reward/full_program: 1.1616
+                   Metrics/success_rate: 0.0100
+     Metrics/base_velocity/error_vel_xy: 0.3300
+    Metrics/base_velocity/error_vel_yaw: 0.6346
+           Episode_Termination/time_out: 0.3559
+       Episode_Termination/task_failure: 0.6453
+--------------------------------------------------------------------------------
+                         Iteration time: 1.25s
+                           Time elapsed: 00:00:25
+                                    ETA: 00:10:54
+
+################################################################################
+[1m                           Learning iteration 19/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 1966080 
+                       Steps per second: 78766 
+                        Collection time: 1.111s 
+                          Learning time: 0.137s 
+                        Mean value loss: 0.1089
+                    Mean surrogate loss: -0.0068
+                      Mean entropy loss: 18.1663
+                            Mean reward: 8.01
+                    Mean episode length: 211.16
+                        Mean action std: 1.10
+            Episode_Reward/full_program: 1.2676
+                   Metrics/success_rate: 0.0032
+     Metrics/base_velocity/error_vel_xy: 0.3212
+    Metrics/base_velocity/error_vel_yaw: 0.6445
+           Episode_Termination/time_out: 0.3751
+       Episode_Termination/task_failure: 0.6262
+--------------------------------------------------------------------------------
+                         Iteration time: 1.25s
+                           Time elapsed: 00:00:27
+                                    ETA: 00:10:50
+
+################################################################################
+[1m                           Learning iteration 20/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 2064384 
+                       Steps per second: 79835 
+                        Collection time: 1.093s 
+                          Learning time: 0.138s 
+                        Mean value loss: 0.1108
+                    Mean surrogate loss: -0.0068
+                      Mean entropy loss: 18.2259
+                            Mean reward: 7.95
+                    Mean episode length: 206.88
+                        Mean action std: 1.11
+            Episode_Reward/full_program: 1.3328
+                   Metrics/success_rate: 0.0126
+     Metrics/base_velocity/error_vel_xy: 0.2987
+    Metrics/base_velocity/error_vel_yaw: 0.6344
+           Episode_Termination/time_out: 0.3983
+       Episode_Termination/task_failure: 0.6031
+--------------------------------------------------------------------------------
+                         Iteration time: 1.23s
+                           Time elapsed: 00:00:28
+                                    ETA: 00:10:46
+
+################################################################################
+[1m                           Learning iteration 21/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 2162688 
+                       Steps per second: 80803 
+                        Collection time: 1.078s 
+                          Learning time: 0.138s 
+                        Mean value loss: 0.1087
+                    Mean surrogate loss: -0.0066
+                      Mean entropy loss: 18.2847
+                            Mean reward: 9.47
+                    Mean episode length: 245.07
+                        Mean action std: 1.11
+            Episode_Reward/full_program: 1.4608
+                   Metrics/success_rate: 0.0023
+     Metrics/base_velocity/error_vel_xy: 0.2891
+    Metrics/base_velocity/error_vel_yaw: 0.6407
+           Episode_Termination/time_out: 0.4205
+       Episode_Termination/task_failure: 0.5810
+--------------------------------------------------------------------------------
+                         Iteration time: 1.22s
+                           Time elapsed: 00:00:29
+                                    ETA: 00:10:42
+
+################################################################################
+[1m                           Learning iteration 22/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 2260992 
+                       Steps per second: 81133 
+                        Collection time: 1.074s 
+                          Learning time: 0.138s 
+                        Mean value loss: 0.1101
+                    Mean surrogate loss: -0.0071
+                      Mean entropy loss: 18.3276
+                            Mean reward: 8.42
+                    Mean episode length: 222.13
+                        Mean action std: 1.12
+            Episode_Reward/full_program: 1.4768
+                   Metrics/success_rate: 0.0046
+     Metrics/base_velocity/error_vel_xy: 0.2991
+    Metrics/base_velocity/error_vel_yaw: 0.6463
+           Episode_Termination/time_out: 0.4472
+       Episode_Termination/task_failure: 0.5542
+--------------------------------------------------------------------------------
+                         Iteration time: 1.21s
+                           Time elapsed: 00:00:30
+                                    ETA: 00:10:38
+
+################################################################################
+[1m                           Learning iteration 23/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 2359296 
+                       Steps per second: 80059 
+                        Collection time: 1.090s 
+                          Learning time: 0.138s 
+                        Mean value loss: 0.1052
+                    Mean surrogate loss: -0.0073
+                      Mean entropy loss: 18.3713
+                            Mean reward: 8.76
+                    Mean episode length: 220.14
+                        Mean action std: 1.12
+            Episode_Reward/full_program: 1.5032
+                   Metrics/success_rate: 0.0026
+     Metrics/base_velocity/error_vel_xy: 0.2983
+    Metrics/base_velocity/error_vel_yaw: 0.6510
+           Episode_Termination/time_out: 0.4724
+       Episode_Termination/task_failure: 0.5290
+--------------------------------------------------------------------------------
+                         Iteration time: 1.23s
+                           Time elapsed: 00:00:31
+                                    ETA: 00:10:34
+
+################################################################################
+[1m                           Learning iteration 24/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 2457600 
+                       Steps per second: 80359 
+                        Collection time: 1.085s 
+                          Learning time: 0.138s 
+                        Mean value loss: 0.1006
+                    Mean surrogate loss: -0.0071
+                      Mean entropy loss: 18.4311
+                            Mean reward: 9.40
+                    Mean episode length: 237.21
+                        Mean action std: 1.13
+            Episode_Reward/full_program: 1.5867
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2993
+    Metrics/base_velocity/error_vel_yaw: 0.6460
+           Episode_Termination/time_out: 0.4992
+       Episode_Termination/task_failure: 0.5026
+--------------------------------------------------------------------------------
+                         Iteration time: 1.22s
+                           Time elapsed: 00:00:33
+                                    ETA: 00:10:31
+
+################################################################################
+[1m                           Learning iteration 25/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 2555904 
+                       Steps per second: 80385 
+                        Collection time: 1.085s 
+                          Learning time: 0.138s 
+                        Mean value loss: 0.0731
+                    Mean surrogate loss: -0.0076
+                      Mean entropy loss: 18.4804
+                            Mean reward: 11.05
+                    Mean episode length: 271.73
+                        Mean action std: 1.13
+            Episode_Reward/full_program: 1.6354
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2807
+    Metrics/base_velocity/error_vel_yaw: 0.6574
+           Episode_Termination/time_out: 0.5220
+       Episode_Termination/task_failure: 0.4797
+--------------------------------------------------------------------------------
+                         Iteration time: 1.22s
+                           Time elapsed: 00:00:34
+                                    ETA: 00:10:27
+
+################################################################################
+[1m                           Learning iteration 26/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 2654208 
+                       Steps per second: 78237 
+                        Collection time: 1.103s 
+                          Learning time: 0.154s 
+                        Mean value loss: 0.0853
+                    Mean surrogate loss: -0.0081
+                      Mean entropy loss: 18.5251
+                            Mean reward: 10.43
+                    Mean episode length: 256.64
+                        Mean action std: 1.14
+            Episode_Reward/full_program: 1.7148
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2662
+    Metrics/base_velocity/error_vel_yaw: 0.6559
+           Episode_Termination/time_out: 0.5484
+       Episode_Termination/task_failure: 0.4526
+--------------------------------------------------------------------------------
+                         Iteration time: 1.26s
+                           Time elapsed: 00:00:35
+                                    ETA: 00:10:25
+
+################################################################################
+[1m                           Learning iteration 27/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 2752512 
+                       Steps per second: 79419 
+                        Collection time: 1.084s 
+                          Learning time: 0.154s 
+                        Mean value loss: 0.1404
+                    Mean surrogate loss: -0.0082
+                      Mean entropy loss: 18.5849
+                            Mean reward: 10.62
+                    Mean episode length: 258.40
+                        Mean action std: 1.14
+            Episode_Reward/full_program: 1.6967
+                   Metrics/success_rate: 0.0046
+     Metrics/base_velocity/error_vel_xy: 0.2842
+    Metrics/base_velocity/error_vel_yaw: 0.6588
+           Episode_Termination/time_out: 0.5745
+       Episode_Termination/task_failure: 0.4265
+--------------------------------------------------------------------------------
+                         Iteration time: 1.24s
+                           Time elapsed: 00:00:36
+                                    ETA: 00:10:22
+
+################################################################################
+[1m                           Learning iteration 28/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 2850816 
+                       Steps per second: 79219 
+                        Collection time: 1.089s 
+                          Learning time: 0.152s 
+                        Mean value loss: 0.0897
+                    Mean surrogate loss: -0.0084
+                      Mean entropy loss: 18.6369
+                            Mean reward: 11.03
+                    Mean episode length: 269.01
+                        Mean action std: 1.15
+            Episode_Reward/full_program: 1.7638
+                   Metrics/success_rate: 0.0021
+     Metrics/base_velocity/error_vel_xy: 0.2772
+    Metrics/base_velocity/error_vel_yaw: 0.6690
+           Episode_Termination/time_out: 0.6026
+       Episode_Termination/task_failure: 0.3989
+--------------------------------------------------------------------------------
+                         Iteration time: 1.24s
+                           Time elapsed: 00:00:38
+                                    ETA: 00:10:20
+
+################################################################################
+[1m                           Learning iteration 29/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 2949120 
+                       Steps per second: 79739 
+                        Collection time: 1.080s 
+                          Learning time: 0.153s 
+                        Mean value loss: 0.0645
+                    Mean surrogate loss: -0.0079
+                      Mean entropy loss: 18.6622
+                            Mean reward: 11.00
+                    Mean episode length: 269.11
+                        Mean action std: 1.15
+            Episode_Reward/full_program: 1.7539
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2730
+    Metrics/base_velocity/error_vel_yaw: 0.6667
+           Episode_Termination/time_out: 0.6268
+       Episode_Termination/task_failure: 0.3749
+--------------------------------------------------------------------------------
+                         Iteration time: 1.23s
+                           Time elapsed: 00:00:39
+                                    ETA: 00:10:17
+
+################################################################################
+[1m                           Learning iteration 30/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 3047424 
+                       Steps per second: 78502 
+                        Collection time: 1.114s 
+                          Learning time: 0.138s 
+                        Mean value loss: 0.0904
+                    Mean surrogate loss: -0.0083
+                      Mean entropy loss: 18.7160
+                            Mean reward: 11.00
+                    Mean episode length: 263.96
+                        Mean action std: 1.16
+            Episode_Reward/full_program: 1.8692
+                   Metrics/success_rate: 0.0035
+     Metrics/base_velocity/error_vel_xy: 0.2602
+    Metrics/base_velocity/error_vel_yaw: 0.6585
+           Episode_Termination/time_out: 0.6472
+       Episode_Termination/task_failure: 0.3544
+--------------------------------------------------------------------------------
+                         Iteration time: 1.25s
+                           Time elapsed: 00:00:40
+                                    ETA: 00:10:15
+
+################################################################################
+[1m                           Learning iteration 31/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 3145728 
+                       Steps per second: 77865 
+                        Collection time: 1.125s 
+                          Learning time: 0.138s 
+                        Mean value loss: 0.0684
+                    Mean surrogate loss: -0.0076
+                      Mean entropy loss: 18.7741
+                            Mean reward: 10.57
+                    Mean episode length: 251.31
+                        Mean action std: 1.16
+            Episode_Reward/full_program: 1.7854
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2767
+    Metrics/base_velocity/error_vel_yaw: 0.6755
+           Episode_Termination/time_out: 0.6680
+       Episode_Termination/task_failure: 0.3335
+--------------------------------------------------------------------------------
+                         Iteration time: 1.26s
+                           Time elapsed: 00:00:41
+                                    ETA: 00:10:13
+
+################################################################################
+[1m                           Learning iteration 32/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 3244032 
+                       Steps per second: 79795 
+                        Collection time: 1.096s 
+                          Learning time: 0.136s 
+                        Mean value loss: 0.0626
+                    Mean surrogate loss: -0.0071
+                      Mean entropy loss: 18.8079
+                            Mean reward: 11.63
+                    Mean episode length: 273.96
+                        Mean action std: 1.16
+            Episode_Reward/full_program: 1.8895
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2640
+    Metrics/base_velocity/error_vel_yaw: 0.6610
+           Episode_Termination/time_out: 0.6867
+       Episode_Termination/task_failure: 0.3147
+--------------------------------------------------------------------------------
+                         Iteration time: 1.23s
+                           Time elapsed: 00:00:43
+                                    ETA: 00:10:10
+
+################################################################################
+[1m                           Learning iteration 33/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 3342336 
+                       Steps per second: 81312 
+                        Collection time: 1.073s 
+                          Learning time: 0.135s 
+                        Mean value loss: 0.0594
+                    Mean surrogate loss: -0.0075
+                      Mean entropy loss: 18.8546
+                            Mean reward: 12.36
+                    Mean episode length: 287.25
+                        Mean action std: 1.17
+            Episode_Reward/full_program: 1.9940
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2526
+    Metrics/base_velocity/error_vel_yaw: 0.6615
+           Episode_Termination/time_out: 0.7074
+       Episode_Termination/task_failure: 0.2939
+--------------------------------------------------------------------------------
+                         Iteration time: 1.21s
+                           Time elapsed: 00:00:44
+                                    ETA: 00:10:08
+
+################################################################################
+[1m                           Learning iteration 34/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 3440640 
+                       Steps per second: 81936 
+                        Collection time: 1.064s 
+                          Learning time: 0.136s 
+                        Mean value loss: 0.0547
+                    Mean surrogate loss: -0.0075
+                      Mean entropy loss: 18.8870
+                            Mean reward: 12.39
+                    Mean episode length: 284.40
+                        Mean action std: 1.17
+            Episode_Reward/full_program: 2.0371
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2465
+    Metrics/base_velocity/error_vel_yaw: 0.6706
+           Episode_Termination/time_out: 0.7302
+       Episode_Termination/task_failure: 0.2715
+--------------------------------------------------------------------------------
+                         Iteration time: 1.20s
+                           Time elapsed: 00:00:45
+                                    ETA: 00:10:05
+
+################################################################################
+[1m                           Learning iteration 35/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 3538944 
+                       Steps per second: 82026 
+                        Collection time: 1.063s 
+                          Learning time: 0.136s 
+                        Mean value loss: 0.0677
+                    Mean surrogate loss: -0.0079
+                      Mean entropy loss: 18.9106
+                            Mean reward: 11.61
+                    Mean episode length: 267.85
+                        Mean action std: 1.17
+            Episode_Reward/full_program: 2.0004
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2557
+    Metrics/base_velocity/error_vel_yaw: 0.6797
+           Episode_Termination/time_out: 0.7483
+       Episode_Termination/task_failure: 0.2534
+--------------------------------------------------------------------------------
+                         Iteration time: 1.20s
+                           Time elapsed: 00:00:46
+                                    ETA: 00:10:02
+
+################################################################################
+[1m                           Learning iteration 36/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 3637248 
+                       Steps per second: 82093 
+                        Collection time: 1.061s 
+                          Learning time: 0.136s 
+                        Mean value loss: 0.0578
+                    Mean surrogate loss: -0.0077
+                      Mean entropy loss: 18.9520
+                            Mean reward: 12.49
+                    Mean episode length: 280.55
+                        Mean action std: 1.18
+            Episode_Reward/full_program: 2.0550
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2521
+    Metrics/base_velocity/error_vel_yaw: 0.6717
+           Episode_Termination/time_out: 0.7636
+       Episode_Termination/task_failure: 0.2380
+--------------------------------------------------------------------------------
+                         Iteration time: 1.20s
+                           Time elapsed: 00:00:47
+                                    ETA: 00:10:00
+
+################################################################################
+[1m                           Learning iteration 37/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 3735552 
+                       Steps per second: 80892 
+                        Collection time: 1.079s 
+                          Learning time: 0.136s 
+                        Mean value loss: 0.0622
+                    Mean surrogate loss: -0.0078
+                      Mean entropy loss: 18.9927
+                            Mean reward: 13.55
+                    Mean episode length: 300.97
+                        Mean action std: 1.18
+            Episode_Reward/full_program: 2.0711
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2523
+    Metrics/base_velocity/error_vel_yaw: 0.6810
+           Episode_Termination/time_out: 0.7796
+       Episode_Termination/task_failure: 0.2217
+--------------------------------------------------------------------------------
+                         Iteration time: 1.22s
+                           Time elapsed: 00:00:49
+                                    ETA: 00:09:57
+
+################################################################################
+[1m                           Learning iteration 38/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 3833856 
+                       Steps per second: 82095 
+                        Collection time: 1.061s 
+                          Learning time: 0.136s 
+                        Mean value loss: 0.0561
+                    Mean surrogate loss: -0.0079
+                      Mean entropy loss: 19.0202
+                            Mean reward: 12.93
+                    Mean episode length: 288.37
+                        Mean action std: 1.18
+            Episode_Reward/full_program: 2.1397
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2386
+    Metrics/base_velocity/error_vel_yaw: 0.6685
+           Episode_Termination/time_out: 0.7938
+       Episode_Termination/task_failure: 0.2075
+--------------------------------------------------------------------------------
+                         Iteration time: 1.20s
+                           Time elapsed: 00:00:50
+                                    ETA: 00:09:55
+
+################################################################################
+[1m                           Learning iteration 39/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 3932160 
+                       Steps per second: 81804 
+                        Collection time: 1.065s 
+                          Learning time: 0.137s 
+                        Mean value loss: 0.0529
+                    Mean surrogate loss: -0.0072
+                      Mean entropy loss: 19.0596
+                            Mean reward: 13.04
+                    Mean episode length: 288.97
+                        Mean action std: 1.19
+            Episode_Reward/full_program: 2.1281
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2419
+    Metrics/base_velocity/error_vel_yaw: 0.6714
+           Episode_Termination/time_out: 0.8061
+       Episode_Termination/task_failure: 0.1951
+--------------------------------------------------------------------------------
+                         Iteration time: 1.20s
+                           Time elapsed: 00:00:51
+                                    ETA: 00:09:53
+
+################################################################################
+[1m                           Learning iteration 40/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 4030464 
+                       Steps per second: 82265 
+                        Collection time: 1.058s 
+                          Learning time: 0.137s 
+                        Mean value loss: 0.0670
+                    Mean surrogate loss: -0.0079
+                      Mean entropy loss: 19.0993
+                            Mean reward: 12.69
+                    Mean episode length: 274.87
+                        Mean action std: 1.19
+            Episode_Reward/full_program: 2.1215
+                   Metrics/success_rate: 0.0025
+     Metrics/base_velocity/error_vel_xy: 0.2432
+    Metrics/base_velocity/error_vel_yaw: 0.6787
+           Episode_Termination/time_out: 0.8215
+       Episode_Termination/task_failure: 0.1797
+--------------------------------------------------------------------------------
+                         Iteration time: 1.19s
+                           Time elapsed: 00:00:52
+                                    ETA: 00:09:50
+
+################################################################################
+[1m                           Learning iteration 41/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 4128768 
+                       Steps per second: 82615 
+                        Collection time: 1.052s 
+                          Learning time: 0.138s 
+                        Mean value loss: 0.0554
+                    Mean surrogate loss: -0.0073
+                      Mean entropy loss: 19.1214
+                            Mean reward: 13.50
+                    Mean episode length: 290.34
+                        Mean action std: 1.19
+            Episode_Reward/full_program: 2.2069
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2350
+    Metrics/base_velocity/error_vel_yaw: 0.6791
+           Episode_Termination/time_out: 0.8366
+       Episode_Termination/task_failure: 0.1645
+--------------------------------------------------------------------------------
+                         Iteration time: 1.19s
+                           Time elapsed: 00:00:53
+                                    ETA: 00:09:48
+
+################################################################################
+[1m                           Learning iteration 42/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 4227072 
+                       Steps per second: 82720 
+                        Collection time: 1.052s 
+                          Learning time: 0.136s 
+                        Mean value loss: 0.0472
+                    Mean surrogate loss: -0.0074
+                      Mean entropy loss: 19.1438
+                            Mean reward: 13.45
+                    Mean episode length: 289.16
+                        Mean action std: 1.20
+            Episode_Reward/full_program: 2.2131
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2348
+    Metrics/base_velocity/error_vel_yaw: 0.6825
+           Episode_Termination/time_out: 0.8485
+       Episode_Termination/task_failure: 0.1525
+--------------------------------------------------------------------------------
+                         Iteration time: 1.19s
+                           Time elapsed: 00:00:55
+                                    ETA: 00:09:46
+
+################################################################################
+[1m                           Learning iteration 43/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 4325376 
+                       Steps per second: 82743 
+                        Collection time: 1.052s 
+                          Learning time: 0.136s 
+                        Mean value loss: 0.0636
+                    Mean surrogate loss: -0.0079
+                      Mean entropy loss: 19.1804
+                            Mean reward: 13.40
+                    Mean episode length: 285.58
+                        Mean action std: 1.20
+            Episode_Reward/full_program: 2.2273
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2395
+    Metrics/base_velocity/error_vel_yaw: 0.6811
+           Episode_Termination/time_out: 0.8574
+       Episode_Termination/task_failure: 0.1436
+--------------------------------------------------------------------------------
+                         Iteration time: 1.19s
+                           Time elapsed: 00:00:56
+                                    ETA: 00:09:43
+
+################################################################################
+[1m                           Learning iteration 44/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 4423680 
+                       Steps per second: 80626 
+                        Collection time: 1.083s 
+                          Learning time: 0.136s 
+                        Mean value loss: 0.0426
+                    Mean surrogate loss: -0.0074
+                      Mean entropy loss: 19.2065
+                            Mean reward: 14.01
+                    Mean episode length: 291.99
+                        Mean action std: 1.20
+            Episode_Reward/full_program: 2.2751
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2360
+    Metrics/base_velocity/error_vel_yaw: 0.6771
+           Episode_Termination/time_out: 0.8673
+       Episode_Termination/task_failure: 0.1337
+--------------------------------------------------------------------------------
+                         Iteration time: 1.22s
+                           Time elapsed: 00:00:57
+                                    ETA: 00:09:41
+
+################################################################################
+[1m                           Learning iteration 45/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 4521984 
+                       Steps per second: 81151 
+                        Collection time: 1.075s 
+                          Learning time: 0.136s 
+                        Mean value loss: 0.0498
+                    Mean surrogate loss: -0.0078
+                      Mean entropy loss: 19.2139
+                            Mean reward: 13.55
+                    Mean episode length: 283.28
+                        Mean action std: 1.20
+            Episode_Reward/full_program: 2.3053
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2279
+    Metrics/base_velocity/error_vel_yaw: 0.6779
+           Episode_Termination/time_out: 0.8757
+       Episode_Termination/task_failure: 0.1253
+--------------------------------------------------------------------------------
+                         Iteration time: 1.21s
+                           Time elapsed: 00:00:58
+                                    ETA: 00:09:40
+
+################################################################################
+[1m                           Learning iteration 46/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 4620288 
+                       Steps per second: 80697 
+                        Collection time: 1.083s 
+                          Learning time: 0.136s 
+                        Mean value loss: 0.0514
+                    Mean surrogate loss: -0.0073
+                      Mean entropy loss: 19.2348
+                            Mean reward: 13.65
+                    Mean episode length: 282.68
+                        Mean action std: 1.21
+            Episode_Reward/full_program: 2.2065
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2374
+    Metrics/base_velocity/error_vel_yaw: 0.6849
+           Episode_Termination/time_out: 0.8794
+       Episode_Termination/task_failure: 0.1213
+--------------------------------------------------------------------------------
+                         Iteration time: 1.22s
+                           Time elapsed: 00:00:59
+                                    ETA: 00:09:38
+
+################################################################################
+[1m                           Learning iteration 47/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 4718592 
+                       Steps per second: 81467 
+                        Collection time: 1.070s 
+                          Learning time: 0.136s 
+                        Mean value loss: 0.0372
+                    Mean surrogate loss: -0.0074
+                      Mean entropy loss: 19.2492
+                            Mean reward: 14.37
+                    Mean episode length: 294.35
+                        Mean action std: 1.21
+            Episode_Reward/full_program: 2.3422
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2300
+    Metrics/base_velocity/error_vel_yaw: 0.6785
+           Episode_Termination/time_out: 0.8805
+       Episode_Termination/task_failure: 0.1199
+--------------------------------------------------------------------------------
+                         Iteration time: 1.21s
+                           Time elapsed: 00:01:01
+                                    ETA: 00:09:36
+
+################################################################################
+[1m                           Learning iteration 48/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 4816896 
+                       Steps per second: 82323 
+                        Collection time: 1.058s 
+                          Learning time: 0.136s 
+                        Mean value loss: 0.0456
+                    Mean surrogate loss: -0.0077
+                      Mean entropy loss: 19.2549
+                            Mean reward: 14.19
+                    Mean episode length: 285.79
+                        Mean action std: 1.21
+            Episode_Reward/full_program: 2.3543
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2277
+    Metrics/base_velocity/error_vel_yaw: 0.6790
+           Episode_Termination/time_out: 0.8866
+       Episode_Termination/task_failure: 0.1139
+--------------------------------------------------------------------------------
+                         Iteration time: 1.19s
+                           Time elapsed: 00:01:02
+                                    ETA: 00:09:34
+
+################################################################################
+[1m                           Learning iteration 49/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 4915200 
+                       Steps per second: 82785 
+                        Collection time: 1.051s 
+                          Learning time: 0.136s 
+                        Mean value loss: 0.0440
+                    Mean surrogate loss: -0.0069
+                      Mean entropy loss: 19.2596
+                            Mean reward: 14.73
+                    Mean episode length: 295.34
+                        Mean action std: 1.21
+            Episode_Reward/full_program: 2.3693
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2342
+    Metrics/base_velocity/error_vel_yaw: 0.6730
+           Episode_Termination/time_out: 0.8917
+       Episode_Termination/task_failure: 0.1088
+--------------------------------------------------------------------------------
+                         Iteration time: 1.19s
+                           Time elapsed: 00:01:03
+                                    ETA: 00:09:32
+
+################################################################################
+[1m                           Learning iteration 50/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 5013504 
+                       Steps per second: 82675 
+                        Collection time: 1.053s 
+                          Learning time: 0.136s 
+                        Mean value loss: 0.0344
+                    Mean surrogate loss: -0.0074
+                      Mean entropy loss: 19.2593
+                            Mean reward: 14.90
+                    Mean episode length: 297.49
+                        Mean action std: 1.21
+            Episode_Reward/full_program: 2.4382
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2269
+    Metrics/base_velocity/error_vel_yaw: 0.6853
+           Episode_Termination/time_out: 0.8985
+       Episode_Termination/task_failure: 0.1020
+--------------------------------------------------------------------------------
+                         Iteration time: 1.19s
+                           Time elapsed: 00:01:04
+                                    ETA: 00:09:30
+
+################################################################################
+[1m                           Learning iteration 51/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 5111808 
+                       Steps per second: 82290 
+                        Collection time: 1.057s 
+                          Learning time: 0.138s 
+                        Mean value loss: 0.0329
+                    Mean surrogate loss: -0.0071
+                      Mean entropy loss: 19.2559
+                            Mean reward: 15.20
+                    Mean episode length: 299.97
+                        Mean action std: 1.21
+            Episode_Reward/full_program: 2.4524
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2194
+    Metrics/base_velocity/error_vel_yaw: 0.6775
+           Episode_Termination/time_out: 0.9035
+       Episode_Termination/task_failure: 0.0970
+--------------------------------------------------------------------------------
+                         Iteration time: 1.19s
+                           Time elapsed: 00:01:05
+                                    ETA: 00:09:28
+
+################################################################################
+[1m                           Learning iteration 52/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 5210112 
+                       Steps per second: 81605 
+                        Collection time: 1.068s 
+                          Learning time: 0.136s 
+                        Mean value loss: 0.0553
+                    Mean surrogate loss: -0.0071
+                      Mean entropy loss: 19.2570
+                            Mean reward: 14.50
+                    Mean episode length: 286.60
+                        Mean action std: 1.21
+            Episode_Reward/full_program: 2.4173
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2223
+    Metrics/base_velocity/error_vel_yaw: 0.6724
+           Episode_Termination/time_out: 0.9081
+       Episode_Termination/task_failure: 0.0924
+--------------------------------------------------------------------------------
+                         Iteration time: 1.20s
+                           Time elapsed: 00:01:07
+                                    ETA: 00:09:26
+
+################################################################################
+[1m                           Learning iteration 53/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 5308416 
+                       Steps per second: 81654 
+                        Collection time: 1.068s 
+                          Learning time: 0.136s 
+                        Mean value loss: 0.0537
+                    Mean surrogate loss: -0.0073
+                      Mean entropy loss: 19.2755
+                            Mean reward: 15.04
+                    Mean episode length: 290.75
+                        Mean action std: 1.21
+            Episode_Reward/full_program: 2.4952
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2188
+    Metrics/base_velocity/error_vel_yaw: 0.6811
+           Episode_Termination/time_out: 0.9117
+       Episode_Termination/task_failure: 0.0886
+--------------------------------------------------------------------------------
+                         Iteration time: 1.20s
+                           Time elapsed: 00:01:08
+                                    ETA: 00:09:24
+
+################################################################################
+[1m                           Learning iteration 54/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 5406720 
+                       Steps per second: 81884 
+                        Collection time: 1.063s 
+                          Learning time: 0.137s 
+                        Mean value loss: 0.0395
+                    Mean surrogate loss: -0.0071
+                      Mean entropy loss: 19.2842
+                            Mean reward: 15.14
+                    Mean episode length: 290.24
+                        Mean action std: 1.21
+            Episode_Reward/full_program: 2.4738
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2186
+    Metrics/base_velocity/error_vel_yaw: 0.6676
+           Episode_Termination/time_out: 0.9141
+       Episode_Termination/task_failure: 0.0862
+--------------------------------------------------------------------------------
+                         Iteration time: 1.20s
+                           Time elapsed: 00:01:09
+                                    ETA: 00:09:22
+
+################################################################################
+[1m                           Learning iteration 55/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 5505024 
+                       Steps per second: 81276 
+                        Collection time: 1.073s 
+                          Learning time: 0.136s 
+                        Mean value loss: 0.0440
+                    Mean surrogate loss: -0.0075
+                      Mean entropy loss: 19.2946
+                            Mean reward: 14.98
+                    Mean episode length: 286.49
+                        Mean action std: 1.21
+            Episode_Reward/full_program: 2.5168
+                   Metrics/success_rate: 0.0038
+     Metrics/base_velocity/error_vel_xy: 0.2159
+    Metrics/base_velocity/error_vel_yaw: 0.6679
+           Episode_Termination/time_out: 0.9170
+       Episode_Termination/task_failure: 0.0832
+--------------------------------------------------------------------------------
+                         Iteration time: 1.21s
+                           Time elapsed: 00:01:10
+                                    ETA: 00:09:21
+
+################################################################################
+[1m                           Learning iteration 56/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 5603328 
+                       Steps per second: 79419 
+                        Collection time: 1.076s 
+                          Learning time: 0.161s 
+                        Mean value loss: 0.0401
+                    Mean surrogate loss: -0.0065
+                      Mean entropy loss: 19.3067
+                            Mean reward: 15.78
+                    Mean episode length: 297.83
+                        Mean action std: 1.21
+            Episode_Reward/full_program: 2.5229
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2190
+    Metrics/base_velocity/error_vel_yaw: 0.6714
+           Episode_Termination/time_out: 0.9195
+       Episode_Termination/task_failure: 0.0807
+--------------------------------------------------------------------------------
+                         Iteration time: 1.24s
+                           Time elapsed: 00:01:12
+                                    ETA: 00:09:19
+
+################################################################################
+[1m                           Learning iteration 57/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 5701632 
+                       Steps per second: 72164 
+                        Collection time: 1.226s 
+                          Learning time: 0.137s 
+                        Mean value loss: 0.0424
+                    Mean surrogate loss: -0.0071
+                      Mean entropy loss: 19.3140
+                            Mean reward: 15.45
+                    Mean episode length: 291.89
+                        Mean action std: 1.21
+            Episode_Reward/full_program: 2.5607
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2198
+    Metrics/base_velocity/error_vel_yaw: 0.6752
+           Episode_Termination/time_out: 0.9236
+       Episode_Termination/task_failure: 0.0767
+--------------------------------------------------------------------------------
+                         Iteration time: 1.36s
+                           Time elapsed: 00:01:13
+                                    ETA: 00:09:19
+
+################################################################################
+[1m                           Learning iteration 58/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 5799936 
+                       Steps per second: 79655 
+                        Collection time: 1.097s 
+                          Learning time: 0.137s 
+                        Mean value loss: 0.0445
+                    Mean surrogate loss: -0.0073
+                      Mean entropy loss: 19.3181
+                            Mean reward: 15.28
+                    Mean episode length: 286.09
+                        Mean action std: 1.21
+            Episode_Reward/full_program: 2.5871
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2125
+    Metrics/base_velocity/error_vel_yaw: 0.6603
+           Episode_Termination/time_out: 0.9263
+       Episode_Termination/task_failure: 0.0739
+--------------------------------------------------------------------------------
+                         Iteration time: 1.23s
+                           Time elapsed: 00:01:14
+                                    ETA: 00:09:17
+
+################################################################################
+[1m                           Learning iteration 59/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 5898240 
+                       Steps per second: 79317 
+                        Collection time: 1.102s 
+                          Learning time: 0.138s 
+                        Mean value loss: 0.0443
+                    Mean surrogate loss: -0.0072
+                      Mean entropy loss: 19.3311
+                            Mean reward: 15.48
+                    Mean episode length: 288.43
+                        Mean action std: 1.22
+            Episode_Reward/full_program: 2.5660
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2168
+    Metrics/base_velocity/error_vel_yaw: 0.6688
+           Episode_Termination/time_out: 0.9300
+       Episode_Termination/task_failure: 0.0702
+--------------------------------------------------------------------------------
+                         Iteration time: 1.24s
+                           Time elapsed: 00:01:15
+                                    ETA: 00:09:16
+
+################################################################################
+[1m                           Learning iteration 60/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 5996544 
+                       Steps per second: 81538 
+                        Collection time: 1.070s 
+                          Learning time: 0.136s 
+                        Mean value loss: 0.0360
+                    Mean surrogate loss: -0.0079
+                      Mean entropy loss: 19.3474
+                            Mean reward: 16.03
+                    Mean episode length: 294.33
+                        Mean action std: 1.22
+            Episode_Reward/full_program: 2.6286
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2168
+    Metrics/base_velocity/error_vel_yaw: 0.6699
+           Episode_Termination/time_out: 0.9317
+       Episode_Termination/task_failure: 0.0686
+--------------------------------------------------------------------------------
+                         Iteration time: 1.21s
+                           Time elapsed: 00:01:17
+                                    ETA: 00:09:14
+
+################################################################################
+[1m                           Learning iteration 61/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 6094848 
+                       Steps per second: 81722 
+                        Collection time: 1.067s 
+                          Learning time: 0.136s 
+                        Mean value loss: 0.0449
+                    Mean surrogate loss: -0.0073
+                      Mean entropy loss: 19.3490
+                            Mean reward: 16.01
+                    Mean episode length: 290.94
+                        Mean action std: 1.22
+            Episode_Reward/full_program: 2.6295
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2199
+    Metrics/base_velocity/error_vel_yaw: 0.6693
+           Episode_Termination/time_out: 0.9337
+       Episode_Termination/task_failure: 0.0666
+--------------------------------------------------------------------------------
+                         Iteration time: 1.20s
+                           Time elapsed: 00:01:18
+                                    ETA: 00:09:12
+
+################################################################################
+[1m                           Learning iteration 62/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 6193152 
+                       Steps per second: 82352 
+                        Collection time: 1.057s 
+                          Learning time: 0.136s 
+                        Mean value loss: 0.0391
+                    Mean surrogate loss: -0.0077
+                      Mean entropy loss: 19.3462
+                            Mean reward: 15.88
+                    Mean episode length: 288.76
+                        Mean action std: 1.22
+            Episode_Reward/full_program: 2.6359
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2163
+    Metrics/base_velocity/error_vel_yaw: 0.6717
+           Episode_Termination/time_out: 0.9353
+       Episode_Termination/task_failure: 0.0649
+--------------------------------------------------------------------------------
+                         Iteration time: 1.19s
+                           Time elapsed: 00:01:19
+                                    ETA: 00:09:11
+
+################################################################################
+[1m                           Learning iteration 63/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 6291456 
+                       Steps per second: 76073 
+                        Collection time: 1.134s 
+                          Learning time: 0.159s 
+                        Mean value loss: 0.0515
+                    Mean surrogate loss: -0.0070
+                      Mean entropy loss: 19.3443
+                            Mean reward: 16.61
+                    Mean episode length: 298.90
+                        Mean action std: 1.22
+            Episode_Reward/full_program: 2.7108
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2060
+    Metrics/base_velocity/error_vel_yaw: 0.6656
+           Episode_Termination/time_out: 0.9358
+       Episode_Termination/task_failure: 0.0645
+--------------------------------------------------------------------------------
+                         Iteration time: 1.29s
+                           Time elapsed: 00:01:20
+                                    ETA: 00:09:10
+
+################################################################################
+[1m                           Learning iteration 64/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 6389760 
+                       Steps per second: 73396 
+                        Collection time: 1.203s 
+                          Learning time: 0.137s 
+                        Mean value loss: 0.0503
+                    Mean surrogate loss: -0.0069
+                      Mean entropy loss: 19.3575
+                            Mean reward: 16.09
+                    Mean episode length: 288.99
+                        Mean action std: 1.22
+            Episode_Reward/full_program: 2.5967
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2139
+    Metrics/base_velocity/error_vel_yaw: 0.6585
+           Episode_Termination/time_out: 0.9343
+       Episode_Termination/task_failure: 0.0660
+--------------------------------------------------------------------------------
+                         Iteration time: 1.34s
+                           Time elapsed: 00:01:22
+                                    ETA: 00:09:09
+
+################################################################################
+[1m                           Learning iteration 65/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 6488064 
+                       Steps per second: 81926 
+                        Collection time: 1.063s 
+                          Learning time: 0.137s 
+                        Mean value loss: 0.0528
+                    Mean surrogate loss: -0.0066
+                      Mean entropy loss: 19.3812
+                            Mean reward: 16.62
+                    Mean episode length: 293.87
+                        Mean action std: 1.22
+            Episode_Reward/full_program: 2.7127
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2090
+    Metrics/base_velocity/error_vel_yaw: 0.6543
+           Episode_Termination/time_out: 0.9352
+       Episode_Termination/task_failure: 0.0651
+--------------------------------------------------------------------------------
+                         Iteration time: 1.20s
+                           Time elapsed: 00:01:23
+                                    ETA: 00:09:07
+
+################################################################################
+[1m                           Learning iteration 66/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 6586368 
+                       Steps per second: 80711 
+                        Collection time: 1.081s 
+                          Learning time: 0.137s 
+                        Mean value loss: 0.0360
+                    Mean surrogate loss: -0.0070
+                      Mean entropy loss: 19.3999
+                            Mean reward: 17.03
+                    Mean episode length: 300.61
+                        Mean action std: 1.22
+            Episode_Reward/full_program: 2.7505
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2077
+    Metrics/base_velocity/error_vel_yaw: 0.6621
+           Episode_Termination/time_out: 0.9375
+       Episode_Termination/task_failure: 0.0626
+--------------------------------------------------------------------------------
+                         Iteration time: 1.22s
+                           Time elapsed: 00:01:24
+                                    ETA: 00:09:06
+
+################################################################################
+[1m                           Learning iteration 67/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 6684672 
+                       Steps per second: 80957 
+                        Collection time: 1.076s 
+                          Learning time: 0.138s 
+                        Mean value loss: 0.0551
+                    Mean surrogate loss: -0.0075
+                      Mean entropy loss: 19.3987
+                            Mean reward: 15.67
+                    Mean episode length: 278.66
+                        Mean action std: 1.22
+            Episode_Reward/full_program: 2.7088
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2121
+    Metrics/base_velocity/error_vel_yaw: 0.6539
+           Episode_Termination/time_out: 0.9410
+       Episode_Termination/task_failure: 0.0590
+--------------------------------------------------------------------------------
+                         Iteration time: 1.21s
+                           Time elapsed: 00:01:25
+                                    ETA: 00:09:04
+
+################################################################################
+[1m                           Learning iteration 68/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 6782976 
+                       Steps per second: 81709 
+                        Collection time: 1.065s 
+                          Learning time: 0.138s 
+                        Mean value loss: 0.0511
+                    Mean surrogate loss: -0.0080
+                      Mean entropy loss: 19.4115
+                            Mean reward: 16.75
+                    Mean episode length: 292.98
+                        Mean action std: 1.23
+            Episode_Reward/full_program: 2.7819
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2064
+    Metrics/base_velocity/error_vel_yaw: 0.6554
+           Episode_Termination/time_out: 0.9401
+       Episode_Termination/task_failure: 0.0599
+--------------------------------------------------------------------------------
+                         Iteration time: 1.20s
+                           Time elapsed: 00:01:26
+                                    ETA: 00:09:02
+
+################################################################################
+[1m                           Learning iteration 69/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 6881280 
+                       Steps per second: 81676 
+                        Collection time: 1.066s 
+                          Learning time: 0.137s 
+                        Mean value loss: 0.0456
+                    Mean surrogate loss: -0.0065
+                      Mean entropy loss: 19.4191
+                            Mean reward: 16.71
+                    Mean episode length: 289.02
+                        Mean action std: 1.23
+            Episode_Reward/full_program: 2.6563
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2111
+    Metrics/base_velocity/error_vel_yaw: 0.6550
+           Episode_Termination/time_out: 0.9402
+       Episode_Termination/task_failure: 0.0598
+--------------------------------------------------------------------------------
+                         Iteration time: 1.20s
+                           Time elapsed: 00:01:28
+                                    ETA: 00:09:01
+
+################################################################################
+[1m                           Learning iteration 70/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 6979584 
+                       Steps per second: 82026 
+                        Collection time: 1.061s 
+                          Learning time: 0.137s 
+                        Mean value loss: 0.0493
+                    Mean surrogate loss: -0.0070
+                      Mean entropy loss: 19.4289
+                            Mean reward: 16.75
+                    Mean episode length: 291.29
+                        Mean action std: 1.23
+            Episode_Reward/full_program: 2.7587
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2085
+    Metrics/base_velocity/error_vel_yaw: 0.6553
+           Episode_Termination/time_out: 0.9396
+       Episode_Termination/task_failure: 0.0604
+--------------------------------------------------------------------------------
+                         Iteration time: 1.20s
+                           Time elapsed: 00:01:29
+                                    ETA: 00:08:59
+
+################################################################################
+[1m                           Learning iteration 71/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 7077888 
+                       Steps per second: 81000 
+                        Collection time: 1.061s 
+                          Learning time: 0.153s 
+                        Mean value loss: 0.0566
+                    Mean surrogate loss: -0.0072
+                      Mean entropy loss: 19.4512
+                            Mean reward: 16.48
+                    Mean episode length: 283.91
+                        Mean action std: 1.23
+            Episode_Reward/full_program: 2.7363
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2092
+    Metrics/base_velocity/error_vel_yaw: 0.6565
+           Episode_Termination/time_out: 0.9399
+       Episode_Termination/task_failure: 0.0601
+--------------------------------------------------------------------------------
+                         Iteration time: 1.21s
+                           Time elapsed: 00:01:30
+                                    ETA: 00:08:58
+
+################################################################################
+[1m                           Learning iteration 72/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 7176192 
+                       Steps per second: 81257 
+                        Collection time: 1.072s 
+                          Learning time: 0.137s 
+                        Mean value loss: 0.0403
+                    Mean surrogate loss: -0.0078
+                      Mean entropy loss: 19.4738
+                            Mean reward: 17.23
+                    Mean episode length: 294.94
+                        Mean action std: 1.23
+            Episode_Reward/full_program: 2.7812
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2129
+    Metrics/base_velocity/error_vel_yaw: 0.6499
+           Episode_Termination/time_out: 0.9403
+       Episode_Termination/task_failure: 0.0597
+--------------------------------------------------------------------------------
+                         Iteration time: 1.21s
+                           Time elapsed: 00:01:31
+                                    ETA: 00:08:56
+
+################################################################################
+[1m                           Learning iteration 73/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 7274496 
+                       Steps per second: 76509 
+                        Collection time: 1.126s 
+                          Learning time: 0.159s 
+                        Mean value loss: 0.0480
+                    Mean surrogate loss: -0.0062
+                      Mean entropy loss: 19.4970
+                            Mean reward: 17.23
+                    Mean episode length: 294.75
+                        Mean action std: 1.24
+            Episode_Reward/full_program: 2.8245
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2073
+    Metrics/base_velocity/error_vel_yaw: 0.6543
+           Episode_Termination/time_out: 0.9395
+       Episode_Termination/task_failure: 0.0605
+--------------------------------------------------------------------------------
+                         Iteration time: 1.28s
+                           Time elapsed: 00:01:33
+                                    ETA: 00:08:55
+
+################################################################################
+[1m                           Learning iteration 74/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 7372800 
+                       Steps per second: 71673 
+                        Collection time: 1.211s 
+                          Learning time: 0.161s 
+                        Mean value loss: 0.0415
+                    Mean surrogate loss: -0.0070
+                      Mean entropy loss: 19.5094
+                            Mean reward: 17.20
+                    Mean episode length: 291.11
+                        Mean action std: 1.24
+            Episode_Reward/full_program: 2.8571
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2030
+    Metrics/base_velocity/error_vel_yaw: 0.6469
+           Episode_Termination/time_out: 0.9395
+       Episode_Termination/task_failure: 0.0605
+--------------------------------------------------------------------------------
+                         Iteration time: 1.37s
+                           Time elapsed: 00:01:34
+                                    ETA: 00:08:54
+
+################################################################################
+[1m                           Learning iteration 75/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 7471104 
+                       Steps per second: 69722 
+                        Collection time: 1.251s 
+                          Learning time: 0.159s 
+                        Mean value loss: 0.0426
+                    Mean surrogate loss: -0.0074
+                      Mean entropy loss: 19.5158
+                            Mean reward: 17.58
+                    Mean episode length: 297.48
+                        Mean action std: 1.24
+            Episode_Reward/full_program: 2.8799
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2026
+    Metrics/base_velocity/error_vel_yaw: 0.6489
+           Episode_Termination/time_out: 0.9398
+       Episode_Termination/task_failure: 0.0602
+--------------------------------------------------------------------------------
+                         Iteration time: 1.41s
+                           Time elapsed: 00:01:35
+                                    ETA: 00:08:54
+
+################################################################################
+[1m                           Learning iteration 76/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 7569408 
+                       Steps per second: 69273 
+                        Collection time: 1.260s 
+                          Learning time: 0.159s 
+                        Mean value loss: 0.0430
+                    Mean surrogate loss: -0.0063
+                      Mean entropy loss: 19.5191
+                            Mean reward: 17.69
+                    Mean episode length: 298.98
+                        Mean action std: 1.24
+            Episode_Reward/full_program: 2.8676
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2080
+    Metrics/base_velocity/error_vel_yaw: 0.6484
+           Episode_Termination/time_out: 0.9405
+       Episode_Termination/task_failure: 0.0595
+--------------------------------------------------------------------------------
+                         Iteration time: 1.42s
+                           Time elapsed: 00:01:37
+                                    ETA: 00:08:54
+
+################################################################################
+[1m                           Learning iteration 77/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 7667712 
+                       Steps per second: 69837 
+                        Collection time: 1.249s 
+                          Learning time: 0.159s 
+                        Mean value loss: 0.0542
+                    Mean surrogate loss: -0.0076
+                      Mean entropy loss: 19.5187
+                            Mean reward: 17.17
+                    Mean episode length: 288.81
+                        Mean action std: 1.24
+            Episode_Reward/full_program: 2.8994
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2020
+    Metrics/base_velocity/error_vel_yaw: 0.6431
+           Episode_Termination/time_out: 0.9432
+       Episode_Termination/task_failure: 0.0568
+--------------------------------------------------------------------------------
+                         Iteration time: 1.41s
+                           Time elapsed: 00:01:38
+                                    ETA: 00:08:53
+
+################################################################################
+[1m                           Learning iteration 78/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 7766016 
+                       Steps per second: 77044 
+                        Collection time: 1.137s 
+                          Learning time: 0.139s 
+                        Mean value loss: 0.0622
+                    Mean surrogate loss: -0.0072
+                      Mean entropy loss: 19.5410
+                            Mean reward: 17.61
+                    Mean episode length: 295.14
+                        Mean action std: 1.24
+            Episode_Reward/full_program: 2.8550
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2112
+    Metrics/base_velocity/error_vel_yaw: 0.6431
+           Episode_Termination/time_out: 0.9415
+       Episode_Termination/task_failure: 0.0585
+--------------------------------------------------------------------------------
+                         Iteration time: 1.28s
+                           Time elapsed: 00:01:39
+                                    ETA: 00:08:52
+
+################################################################################
+[1m                           Learning iteration 79/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 7864320 
+                       Steps per second: 80415 
+                        Collection time: 1.084s 
+                          Learning time: 0.138s 
+                        Mean value loss: 0.0478
+                    Mean surrogate loss: -0.0071
+                      Mean entropy loss: 19.5628
+                            Mean reward: 17.49
+                    Mean episode length: 290.85
+                        Mean action std: 1.24
+            Episode_Reward/full_program: 2.9313
+                   Metrics/success_rate: 0.0030
+     Metrics/base_velocity/error_vel_xy: 0.2033
+    Metrics/base_velocity/error_vel_yaw: 0.6408
+           Episode_Termination/time_out: 0.9397
+       Episode_Termination/task_failure: 0.0603
+--------------------------------------------------------------------------------
+                         Iteration time: 1.22s
+                           Time elapsed: 00:01:41
+                                    ETA: 00:08:50
+
+################################################################################
+[1m                           Learning iteration 80/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 7962624 
+                       Steps per second: 81848 
+                        Collection time: 1.063s 
+                          Learning time: 0.139s 
+                        Mean value loss: 0.0468
+                    Mean surrogate loss: -0.0076
+                      Mean entropy loss: 19.5737
+                            Mean reward: 18.00
+                    Mean episode length: 297.18
+                        Mean action std: 1.24
+            Episode_Reward/full_program: 2.9785
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2002
+    Metrics/base_velocity/error_vel_yaw: 0.6428
+           Episode_Termination/time_out: 0.9394
+       Episode_Termination/task_failure: 0.0606
+--------------------------------------------------------------------------------
+                         Iteration time: 1.20s
+                           Time elapsed: 00:01:42
+                                    ETA: 00:08:49
+
+################################################################################
+[1m                           Learning iteration 81/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 8060928 
+                       Steps per second: 81224 
+                        Collection time: 1.072s 
+                          Learning time: 0.138s 
+                        Mean value loss: 0.0513
+                    Mean surrogate loss: -0.0068
+                      Mean entropy loss: 19.5955
+                            Mean reward: 17.64
+                    Mean episode length: 291.29
+                        Mean action std: 1.25
+            Episode_Reward/full_program: 2.9405
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2058
+    Metrics/base_velocity/error_vel_yaw: 0.6399
+           Episode_Termination/time_out: 0.9403
+       Episode_Termination/task_failure: 0.0597
+--------------------------------------------------------------------------------
+                         Iteration time: 1.21s
+                           Time elapsed: 00:01:43
+                                    ETA: 00:08:47
+
+################################################################################
+[1m                           Learning iteration 82/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 8159232 
+                       Steps per second: 81290 
+                        Collection time: 1.072s 
+                          Learning time: 0.137s 
+                        Mean value loss: 0.0511
+                    Mean surrogate loss: -0.0074
+                      Mean entropy loss: 19.6055
+                            Mean reward: 17.74
+                    Mean episode length: 291.73
+                        Mean action std: 1.25
+            Episode_Reward/full_program: 2.8759
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2104
+    Metrics/base_velocity/error_vel_yaw: 0.6434
+           Episode_Termination/time_out: 0.9414
+       Episode_Termination/task_failure: 0.0586
+--------------------------------------------------------------------------------
+                         Iteration time: 1.21s
+                           Time elapsed: 00:01:44
+                                    ETA: 00:08:46
+
+################################################################################
+[1m                           Learning iteration 83/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 8257536 
+                       Steps per second: 79252 
+                        Collection time: 1.103s 
+                          Learning time: 0.137s 
+                        Mean value loss: 0.0675
+                    Mean surrogate loss: -0.0070
+                      Mean entropy loss: 19.6177
+                            Mean reward: 17.93
+                    Mean episode length: 293.70
+                        Mean action std: 1.25
+            Episode_Reward/full_program: 2.9231
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2068
+    Metrics/base_velocity/error_vel_yaw: 0.6351
+           Episode_Termination/time_out: 0.9417
+       Episode_Termination/task_failure: 0.0583
+--------------------------------------------------------------------------------
+                         Iteration time: 1.24s
+                           Time elapsed: 00:01:45
+                                    ETA: 00:08:44
+
+################################################################################
+[1m                           Learning iteration 84/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 8355840 
+                       Steps per second: 81448 
+                        Collection time: 1.069s 
+                          Learning time: 0.138s 
+                        Mean value loss: 0.0552
+                    Mean surrogate loss: -0.0069
+                      Mean entropy loss: 19.6286
+                            Mean reward: 18.35
+                    Mean episode length: 299.32
+                        Mean action std: 1.25
+            Episode_Reward/full_program: 2.9548
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2079
+    Metrics/base_velocity/error_vel_yaw: 0.6395
+           Episode_Termination/time_out: 0.9410
+       Episode_Termination/task_failure: 0.0590
+--------------------------------------------------------------------------------
+                         Iteration time: 1.21s
+                           Time elapsed: 00:01:47
+                                    ETA: 00:08:43
+
+################################################################################
+[1m                           Learning iteration 85/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 8454144 
+                       Steps per second: 81162 
+                        Collection time: 1.073s 
+                          Learning time: 0.138s 
+                        Mean value loss: 0.0495
+                    Mean surrogate loss: -0.0069
+                      Mean entropy loss: 19.6335
+                            Mean reward: 17.94
+                    Mean episode length: 292.89
+                        Mean action std: 1.25
+            Episode_Reward/full_program: 2.9381
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2049
+    Metrics/base_velocity/error_vel_yaw: 0.6351
+           Episode_Termination/time_out: 0.9412
+       Episode_Termination/task_failure: 0.0588
+--------------------------------------------------------------------------------
+                         Iteration time: 1.21s
+                           Time elapsed: 00:01:48
+                                    ETA: 00:08:41
+
+################################################################################
+[1m                           Learning iteration 86/500                            [0m 
+
+                               Run name: true_rl_agent_go2-push-5rounds-20260922-a01-generation-001-lane-b
+                            Total steps: 8552448 
+                       Steps per second: 81095 
+                        Collection time: 1.073s 
+                          Learning time: 0.139s 
+                        Mean value loss: 0.0623
+                    Mean surrogate loss: -0.0079
+                      Mean entropy loss: 19.6504
+                            Mean reward: 18.07
+                    Mean episode length: 292.11
+                        Mean action std: 1.25
+            Episode_Reward/full_program: 2.9761
+                   Metrics/success_rate: 0.0000
+     Metrics/base_velocity/error_vel_xy: 0.2022
+    Metrics/base_velocity/error_vel_yaw: 0.6404
+           Episode_Termination/time_out: 0.9410
+       Episode_Termination/task_failure: 0.0590
+--------------------------------------------------------------------------------
+                         Iteration time: 1.21s
+                           Time elapsed: 00:01:49
+                                    ETA: 00:08:40
+

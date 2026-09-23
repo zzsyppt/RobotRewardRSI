@@ -1,0 +1,385 @@
+{
+  "status": "PASS",
+  "method": "Independent NumPy matrices and continuous-window convolution; no runtime/scorer imports.",
+  "arms": [
+    {
+      "force_scale": 1.0,
+      "evidence_directory": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/force_01/go2",
+      "episodes": 192,
+      "successes": 192,
+      "seeds": [
+        {
+          "seed": 10042,
+          "episodes": 64,
+          "successes": 64
+        },
+        {
+          "seed": 10043,
+          "episodes": 64,
+          "successes": 64
+        },
+        {
+          "seed": 10044,
+          "episodes": 64,
+          "successes": 64
+        }
+      ],
+      "failure_counts": {
+        "success_recovered": 192
+      },
+      "strata": {
+        "low": {
+          "episodes": 48,
+          "successes": 48
+        },
+        "medium": {
+          "episodes": 48,
+          "successes": 48
+        },
+        "high": {
+          "episodes": 48,
+          "successes": 48
+        },
+        "repeated": {
+          "episodes": 48,
+          "successes": 48
+        }
+      },
+      "pulse_counts": {
+        "observed_pulses": 240,
+        "completed_pulses": 240,
+        "partial_pulses": 0,
+        "recovered_pulses": 240,
+        "missing_pulses_after_failure": 0
+      },
+      "maximum_errors": {
+        "quaternion_xyzw_norm_error": 1.9281357421796486e-07,
+        "physics_body_quaternion_xyzw_norm_error": 2.904878924070431e-07,
+        "delivered_requested_error_n": 0.0001439512642375905,
+        "force_error_n": 0.00015424634589372252,
+        "outside_pulse_force_n": 0,
+        "impulse_error_ns": 1.8073130217755095e-05
+      },
+      "successful_episode_worst_samples": {
+        "max_abs_roll_rad": {
+          "value": 0.4065434642318802,
+          "seed": 10044,
+          "env_id": 45,
+          "control_step": 73
+        },
+        "max_abs_pitch_rad": {
+          "value": 0.3581326981862881,
+          "seed": 10044,
+          "env_id": 45,
+          "control_step": 80
+        },
+        "min_height_m": {
+          "value": 0.25281012058258057,
+          "seed": 10044,
+          "env_id": 45,
+          "control_step": 85
+        },
+        "max_planar_speed_mps": {
+          "value": 1.4839836027518027,
+          "seed": 10043,
+          "env_id": 41,
+          "control_step": 62
+        },
+        "max_angular_speed_radps": {
+          "value": 6.455007423983621,
+          "seed": 10043,
+          "env_id": 41,
+          "control_step": 60
+        },
+        "max_xy_drift_m": {
+          "value": 0.4979268366062704,
+          "seed": 10044,
+          "env_id": 35,
+          "control_step": 88
+        }
+      },
+      "ranges": {
+        "force_n": {
+          "min": 37.9773611630835,
+          "max": 161.71196660540286
+        },
+        "impulse_ns": {
+          "min": 8.355018975371046,
+          "max": 35.5766313263752
+        },
+        "mass_kg": {
+          "min": 14.048468228196725,
+          "max": 17.959752198075876
+        }
+      },
+      "raw_sha256": {
+        "seed_01.npz": "sha256:ddc26b6c47cb360681498376cc3b974f8676022120a4286944c89cf6d2bd261c",
+        "seed_02.npz": "sha256:a24eab9c8c32c4c4f2ae50c39cc4cbc2e1f2a319ae6a10fc7d8f5822508b405d",
+        "seed_03.npz": "sha256:fb1bcfad4b4f120fcb2e94c1378375dc5f38d02cd94082ef158c3e9e7a6ee93d"
+      }
+    },
+    {
+      "force_scale": 1.5,
+      "evidence_directory": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/force_strength_01/scale_1p5",
+      "episodes": 192,
+      "successes": 185,
+      "seeds": [
+        {
+          "seed": 10042,
+          "episodes": 64,
+          "successes": 61
+        },
+        {
+          "seed": 10043,
+          "episodes": 64,
+          "successes": 62
+        },
+        {
+          "seed": 10044,
+          "episodes": 64,
+          "successes": 62
+        }
+      ],
+      "failure_counts": {
+        "success_recovered": 185,
+        "fall_backward": 1,
+        "height_collapse": 1,
+        "fall_side": 4,
+        "not_recovered": 1
+      },
+      "strata": {
+        "low": {
+          "episodes": 48,
+          "successes": 48
+        },
+        "medium": {
+          "episodes": 48,
+          "successes": 48
+        },
+        "high": {
+          "episodes": 48,
+          "successes": 41
+        },
+        "repeated": {
+          "episodes": 48,
+          "successes": 48
+        }
+      },
+      "pulse_counts": {
+        "observed_pulses": 240,
+        "completed_pulses": 240,
+        "partial_pulses": 0,
+        "recovered_pulses": 233,
+        "missing_pulses_after_failure": 0
+      },
+      "maximum_errors": {
+        "quaternion_xyzw_norm_error": 2.0599702899026795e-07,
+        "physics_body_quaternion_xyzw_norm_error": 2.904878924070431e-07,
+        "delivered_requested_error_n": 0.00021208173894649498,
+        "force_error_n": 0.0002368584974208679,
+        "outside_pulse_force_n": 0,
+        "impulse_error_ns": 2.6549555895951324e-05
+      },
+      "successful_episode_worst_samples": {
+        "max_abs_roll_rad": {
+          "value": 0.5247893582969041,
+          "seed": 10044,
+          "env_id": 54,
+          "control_step": 188
+        },
+        "max_abs_pitch_rad": {
+          "value": 0.39009595293468996,
+          "seed": 10043,
+          "env_id": 19,
+          "control_step": 79
+        },
+        "min_height_m": {
+          "value": 0.22512777149677277,
+          "seed": 10044,
+          "env_id": 47,
+          "control_step": 78
+        },
+        "max_planar_speed_mps": {
+          "value": 2.547407605280853,
+          "seed": 10044,
+          "env_id": 34,
+          "control_step": 65
+        },
+        "max_angular_speed_radps": {
+          "value": 9.13184003119529,
+          "seed": 10044,
+          "env_id": 54,
+          "control_step": 187
+        },
+        "max_xy_drift_m": {
+          "value": 0.8870753126102529,
+          "seed": 10044,
+          "env_id": 40,
+          "control_step": 221
+        }
+      },
+      "ranges": {
+        "force_n": {
+          "min": 56.96604174462525,
+          "max": 242.56794990810425
+        },
+        "impulse_ns": {
+          "min": 12.532529880596178,
+          "max": 53.36495339478918
+        },
+        "mass_kg": {
+          "min": 14.048468228196725,
+          "max": 17.959752198075876
+        }
+      },
+      "raw_sha256": {
+        "seed_01.npz": "sha256:6398167116774bdd744aee644e120734ea271bedeb634cf53e89b99749cfc403",
+        "seed_02.npz": "sha256:6fb53ae327b5d5543bf60e650eac52f59f1b2c18cc1133e7bb25137fc5c146d9",
+        "seed_03.npz": "sha256:1b7832a00d532ee813e1723d772908c0f306646c1616b5e94a72a88f5483c799"
+      },
+      "paired_with_1x": {
+        "success_recovered -> success_recovered": 185,
+        "success_recovered -> fall_backward": 1,
+        "success_recovered -> height_collapse": 1,
+        "success_recovered -> fall_side": 4,
+        "success_recovered -> not_recovered": 1
+      }
+    },
+    {
+      "force_scale": 2.0,
+      "evidence_directory": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/force_strength_01/scale_2p0",
+      "episodes": 192,
+      "successes": 152,
+      "seeds": [
+        {
+          "seed": 10042,
+          "episodes": 64,
+          "successes": 47
+        },
+        {
+          "seed": 10043,
+          "episodes": 64,
+          "successes": 54
+        },
+        {
+          "seed": 10044,
+          "episodes": 64,
+          "successes": 51
+        }
+      ],
+      "failure_counts": {
+        "success_recovered": 152,
+        "fall_forward": 3,
+        "height_collapse": 22,
+        "fall_backward": 3,
+        "fall_side": 3,
+        "out_of_bounds": 9
+      },
+      "strata": {
+        "low": {
+          "episodes": 48,
+          "successes": 48
+        },
+        "medium": {
+          "episodes": 48,
+          "successes": 45
+        },
+        "high": {
+          "episodes": 48,
+          "successes": 14
+        },
+        "repeated": {
+          "episodes": 48,
+          "successes": 45
+        }
+      },
+      "pulse_counts": {
+        "observed_pulses": 239,
+        "completed_pulses": 239,
+        "partial_pulses": 0,
+        "recovered_pulses": 201,
+        "missing_pulses_after_failure": 1
+      },
+      "maximum_errors": {
+        "quaternion_xyzw_norm_error": 1.8393499412461267e-07,
+        "physics_body_quaternion_xyzw_norm_error": 2.904878924070431e-07,
+        "delivered_requested_error_n": 0.0002551055205360728,
+        "force_error_n": 0.0002782267010336486,
+        "outside_pulse_force_n": 0,
+        "impulse_error_ns": 3.7029136746307055e-05
+      },
+      "successful_episode_worst_samples": {
+        "max_abs_roll_rad": {
+          "value": 0.6335049245328345,
+          "seed": 10044,
+          "env_id": 16,
+          "control_step": 76
+        },
+        "max_abs_pitch_rad": {
+          "value": 0.6932006988652747,
+          "seed": 10042,
+          "env_id": 48,
+          "control_step": 205
+        },
+        "min_height_m": {
+          "value": 0.1946576088666916,
+          "seed": 10043,
+          "env_id": 40,
+          "control_step": 78
+        },
+        "max_planar_speed_mps": {
+          "value": 3.0880222417630923,
+          "seed": 10043,
+          "env_id": 40,
+          "control_step": 62
+        },
+        "max_angular_speed_radps": {
+          "value": 9.683897023194566,
+          "seed": 10043,
+          "env_id": 49,
+          "control_step": 207
+        },
+        "max_xy_drift_m": {
+          "value": 1.1912563807592869,
+          "seed": 10043,
+          "env_id": 38,
+          "control_step": 232
+        }
+      },
+      "ranges": {
+        "force_n": {
+          "min": 75.954722326167,
+          "max": 323.4239332108057
+        },
+        "impulse_ns": {
+          "min": 16.71003764228964,
+          "max": 71.15326505396482
+        },
+        "mass_kg": {
+          "min": 14.048468228196725,
+          "max": 17.959752198075876
+        }
+      },
+      "raw_sha256": {
+        "seed_01.npz": "sha256:939e1e7f2b0785bc35279c762350b9f0087324682c9359bdd2d39e22e1e1ed9d",
+        "seed_02.npz": "sha256:1422cc5cd581f87b41ad8f514d1c61775a5dd83bdac01d818c0cc81933033479",
+        "seed_03.npz": "sha256:35c6691519ab4280cbd6cf82a62e76d1b5b43da1caa9db7f29d9433e1f3c80b6"
+      },
+      "paired_with_1x": {
+        "success_recovered -> success_recovered": 152,
+        "success_recovered -> fall_forward": 3,
+        "success_recovered -> height_collapse": 22,
+        "success_recovered -> fall_backward": 3,
+        "success_recovered -> fall_side": 3,
+        "success_recovered -> out_of_bounds": 9
+      }
+    }
+  ],
+  "audit_script_sha256": "sha256:2412da226fdf1889e60469bacd28516068fb52ed54a208d78029e7018bc10aac",
+  "limits": [
+    "Saved PhysX force-call inputs establish delivered external impulse, not net momentum change.",
+    "Root states are control-step samples; this is not a visual or continuous-substep posture proof.",
+    "First-episode masks use the recorder's state.closed; first failure/timeout is reconstructed from raw samples.",
+    "Fixed historical checkpoint and public seeds; no qualification or new-training claim."
+  ]
+}

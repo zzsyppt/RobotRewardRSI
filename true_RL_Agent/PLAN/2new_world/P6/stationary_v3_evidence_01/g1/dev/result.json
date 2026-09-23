@@ -1,0 +1,247 @@
+{
+  "budget": {
+    "budget_steps": 49152000,
+    "eval_base_seed": 42,
+    "eval_num_envs": 64,
+    "public_seed_count": 3,
+    "runner_timeout_s": 3600,
+    "train_max_iterations": 500,
+    "train_num_envs": 4096,
+    "train_seed": 42,
+    "train_steps_per_iteration": 24
+  },
+  "cell": "push.g1_37dof.recovery_v2",
+  "checkpoint_sha256": "sha256:44fafbd14fe0e59716c2142a819b81f43d6a3bac8422e0e6d5802f451bceb837",
+  "development_only": true,
+  "ended_at_unix": 1789187246.300922,
+  "enters_qualification": false,
+  "evaluation_execution_cost": {
+    "clock_source": "time.perf_counter_ns",
+    "measurement_scope": "split_rollout_and_summary_aggregation",
+    "schema_version": "true_rl_agent.evaluation.execution_cost.v1",
+    "splits": {
+      "public_dev": {
+        "closed_first_episode_control_steps": 78506,
+        "evaluation_env_count_per_seed": 64,
+        "seed_count": 3,
+        "simulated_env_control_steps": 79104,
+        "vector_env_step_calls": 1236,
+        "wall_time_s": 38.279519932
+      }
+    }
+  },
+  "execution_environment_manifest_hash": "1db93042e1073d1319b50f807ee7577387463bb72b0e1c5794e1772712692867",
+  "infrastructure_retries": 0,
+  "mode": "run",
+  "phases_executed": [
+    "public_dev"
+  ],
+  "phases_invoked": [
+    "public_dev"
+  ],
+  "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+  "public_dev": {
+    "score_stats": {
+      "count": 3,
+      "episode_count": 192,
+      "mean": 0.9895833333333334,
+      "standard_error": 0.005208333333333333,
+      "statistics_version": "true_rl_agent.derived_statistics.v1",
+      "std": 0.009021097956087902,
+      "values": [
+        1.0,
+        0.984375,
+        0.984375
+      ]
+    },
+    "seed_results": [
+      {
+        "condition_flag_breakdown": null,
+        "episodes": 64,
+        "failure_breakdown": {
+          "counts": {
+            "success_recovered": 64
+          },
+          "dominant_failure": null,
+          "rates": {
+            "success_recovered": 1.0
+          },
+          "total": 64
+        },
+        "recovery_counts": {
+          "control_episode_count": 0,
+          "eligible_episode_count": 64,
+          "episodes": 64,
+          "invalid_injection_count": 0,
+          "planned_push_event_count": 80,
+          "push_event_count": 80,
+          "pushed_episode_count": 64,
+          "recovered_event_count": 80,
+          "successes": 64
+        },
+        "run_index": 1,
+        "secondary_metrics": {
+          "mean_action_l2": 3.875063,
+          "mean_action_rate_l2": 0.309592,
+          "mean_episode_steps": 412.0,
+          "mean_final_planar_speed_mps": 0.004035,
+          "mean_final_xy_drift_m": 0.302413,
+          "mean_max_abs_pitch_rad": 0.063573,
+          "mean_max_abs_roll_rad": 0.124107,
+          "mean_min_base_height_m": 0.694247,
+          "recovery_window_success_rate": 1.0
+        },
+        "status": "pass",
+        "stratum_results": {
+          "high": {
+            "episodes": 16,
+            "successes": 16
+          },
+          "low": {
+            "episodes": 16,
+            "successes": 16
+          },
+          "medium": {
+            "episodes": 16,
+            "successes": 16
+          },
+          "repeated": {
+            "episodes": 16,
+            "successes": 16
+          }
+        },
+        "success_rate": 1.0
+      },
+      {
+        "condition_flag_breakdown": null,
+        "episodes": 64,
+        "failure_breakdown": {
+          "counts": {
+            "fall_side": 1,
+            "success_recovered": 63
+          },
+          "dominant_failure": "fall_side",
+          "rates": {
+            "fall_side": 0.015625,
+            "success_recovered": 0.984375
+          },
+          "total": 64
+        },
+        "recovery_counts": {
+          "control_episode_count": 0,
+          "eligible_episode_count": 64,
+          "episodes": 64,
+          "invalid_injection_count": 0,
+          "planned_push_event_count": 80,
+          "push_event_count": 80,
+          "pushed_episode_count": 64,
+          "recovered_event_count": 79,
+          "successes": 63
+        },
+        "run_index": 2,
+        "secondary_metrics": {
+          "mean_action_l2": 3.875721,
+          "mean_action_rate_l2": 0.273735,
+          "mean_episode_steps": 407.390625,
+          "mean_final_planar_speed_mps": 0.029202,
+          "mean_final_xy_drift_m": 0.299581,
+          "mean_max_abs_pitch_rad": 0.065353,
+          "mean_max_abs_roll_rad": 0.119333,
+          "mean_min_base_height_m": 0.686359,
+          "recovery_window_success_rate": 0.984375
+        },
+        "status": "pass",
+        "stratum_results": {
+          "high": {
+            "episodes": 16,
+            "successes": 15
+          },
+          "low": {
+            "episodes": 16,
+            "successes": 16
+          },
+          "medium": {
+            "episodes": 16,
+            "successes": 16
+          },
+          "repeated": {
+            "episodes": 16,
+            "successes": 16
+          }
+        },
+        "success_rate": 0.984375
+      },
+      {
+        "condition_flag_breakdown": null,
+        "episodes": 64,
+        "failure_breakdown": {
+          "counts": {
+            "fall_side": 1,
+            "success_recovered": 63
+          },
+          "dominant_failure": "fall_side",
+          "rates": {
+            "fall_side": 0.015625,
+            "success_recovered": 0.984375
+          },
+          "total": 64
+        },
+        "recovery_counts": {
+          "control_episode_count": 0,
+          "eligible_episode_count": 64,
+          "episodes": 64,
+          "invalid_injection_count": 0,
+          "planned_push_event_count": 80,
+          "push_event_count": 80,
+          "pushed_episode_count": 64,
+          "recovered_event_count": 79,
+          "successes": 63
+        },
+        "run_index": 3,
+        "secondary_metrics": {
+          "mean_action_l2": 3.871686,
+          "mean_action_rate_l2": 0.287673,
+          "mean_episode_steps": 407.265625,
+          "mean_final_planar_speed_mps": 0.018406,
+          "mean_final_xy_drift_m": 0.312083,
+          "mean_max_abs_pitch_rad": 0.074765,
+          "mean_max_abs_roll_rad": 0.125634,
+          "mean_min_base_height_m": 0.688978,
+          "recovery_window_success_rate": 0.984375
+        },
+        "status": "pass",
+        "stratum_results": {
+          "high": {
+            "episodes": 16,
+            "successes": 15
+          },
+          "low": {
+            "episodes": 16,
+            "successes": 16
+          },
+          "medium": {
+            "episodes": 16,
+            "successes": 16
+          },
+          "repeated": {
+            "episodes": 16,
+            "successes": 16
+          }
+        },
+        "success_rate": 0.984375
+      }
+    ]
+  },
+  "public_dev_job_spec_hash": "b7435b5e7bb94863b3080f673420a9349941e6524d2d6861deabcd742a800c9c",
+  "reference_id": "push_standing_recovery_stationary_reference_v3",
+  "resolved_cell_manifest_hash": "7fca96669153de0679c7cdd52911fecd407dc48e9f9c6e56adfb588a34061ace",
+  "session_id": "p6-stationary-v3-dev-g1",
+  "started_at_unix": 1789186275.626108,
+  "status": "PASS",
+  "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+  "total_cell_wall_limit_s": 3600,
+  "train_job_spec_hash": "ace5fb0723b01d17586701522ad1518ca8d3470b67d15c21087c1734818279d3",
+  "train_jobs_completed": 1,
+  "train_jobs_invoked": 1,
+  "training_binding_hash": "6a523f9ff068b2dd1969ff64a1809fd7770693048b3011048573725e13f87e26"
+}

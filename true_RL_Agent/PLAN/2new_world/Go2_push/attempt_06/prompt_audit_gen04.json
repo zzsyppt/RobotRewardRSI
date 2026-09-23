@@ -1,0 +1,574 @@
+{
+  "status": "PASS_PROMPT_PROVENANCE_BOUNDS_WITH_AUTHOR_FINDINGS",
+  "generation": 4,
+  "scope": "Every actual authoring prompt/response in this generation; initial public feedback and memory independently reconciled against raw dev/train and ledger.",
+  "accepted_parent_source_sha256": "376785250b1dbfeb1c918c49ea37f3f24bf8b353279a14d25fe9b9f1667a36ae",
+  "feedback_trial": "go2-push-5rounds-20260923-a06-generation-002-lane-b",
+  "feedback_dev_score": 0.8072916666666666,
+  "feedback_counts": {
+    "fall_backward": 2,
+    "fall_side": 5,
+    "height_collapse": 28,
+    "not_recovered": 2,
+    "success_recovered": 155
+  },
+  "feedback_strata": {
+    "high": {
+      "episodes": 48,
+      "successes": 22
+    },
+    "low": {
+      "episodes": 48,
+      "successes": 48
+    },
+    "medium": {
+      "episodes": 48,
+      "successes": 47
+    },
+    "repeated": {
+      "episodes": 48,
+      "successes": 38
+    }
+  },
+  "lanes": [
+    {
+      "lane_id": "lane-a",
+      "prompts": [
+        {
+          "path": "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000001/prompt_payload.json",
+          "sha256": "711efdea63b04c8f5ea94f670fb2f3c5a8db7904b46d93d6f144dbf1aa55be9b",
+          "frame": "candidate_draft",
+          "file_bytes": 64394,
+          "canonical_bytes": 64394,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "376785250b1dbfeb1c918c49ea37f3f24bf8b353279a14d25fe9b9f1667a36ae",
+              "bytes": 2849
+            },
+            {
+              "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+              "sha256": "4486713e0573f36267f54501391586538b93e03c8d1f95b4fc85bcde742dee97",
+              "bytes": 4612
+            }
+          ],
+          "long_string_duplicate_excess_bytes": 1389,
+          "long_string_duplicate_excess_fraction": 0.021570332639686926,
+          "task_section_bytes": 19391,
+          "task_section_limit_bytes": 57344
+        },
+        {
+          "path": "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000002/prompt_payload.json",
+          "sha256": "aa10840f8cedd3c9ae312acd30a98c144157a6ccd6623d606ed029137da47e01",
+          "frame": "static_repair",
+          "file_bytes": 66022,
+          "canonical_bytes": 66022,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "376785250b1dbfeb1c918c49ea37f3f24bf8b353279a14d25fe9b9f1667a36ae",
+              "bytes": 2849
+            },
+            {
+              "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+              "sha256": "4486713e0573f36267f54501391586538b93e03c8d1f95b4fc85bcde742dee97",
+              "bytes": 4612
+            }
+          ],
+          "long_string_duplicate_excess_bytes": 1389,
+          "long_string_duplicate_excess_fraction": 0.02103844173154403,
+          "task_section_bytes": 19391,
+          "task_section_limit_bytes": 57344
+        },
+        {
+          "path": "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000003/prompt_payload.json",
+          "sha256": "698d558dbeeec4ea4f7f1713a0093e3372f41eb00c7543f800c8a964e0ff7f26",
+          "frame": "static_repair",
+          "file_bytes": 49565,
+          "canonical_bytes": 49565,
+          "sources": [
+            {
+              "logical_id": "attempt/latest_failed/training_code/components.py",
+              "sha256": "91bcdcc06a3fc5111cf3b415f68ed9fdf5313fd07063388e491315db3dca173a",
+              "bytes": 4580
+            }
+          ],
+          "long_string_duplicate_excess_bytes": 827,
+          "long_string_duplicate_excess_fraction": 0.016685160899828508,
+          "task_section_bytes": 13924,
+          "task_section_limit_bytes": 57344
+        },
+        {
+          "path": "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000004/prompt_payload.json",
+          "sha256": "9d9c5d72152080f00f9a9d1a794e865f9c20f2546d547f5969da19813d3aa4f9",
+          "frame": "source_followup",
+          "file_bytes": 59247,
+          "canonical_bytes": 59247,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "376785250b1dbfeb1c918c49ea37f3f24bf8b353279a14d25fe9b9f1667a36ae",
+              "bytes": 2849
+            }
+          ],
+          "long_string_duplicate_excess_bytes": 1025,
+          "long_string_duplicate_excess_fraction": 0.017300454031427753,
+          "task_section_bytes": 19391,
+          "task_section_limit_bytes": 57344
+        }
+      ],
+      "attempts": [
+        {
+          "attempt": 1,
+          "candidate_id": null,
+          "provider_status": "fail",
+          "provider_failure": "reasoning_output_exhausted",
+          "verifier_status_as_recorded": null,
+          "continuation_stop": null,
+          "repair_reason": null,
+          "provider_usage": {
+            "reasoning_units": 32768,
+            "request_cache_hit_units": 10496,
+            "request_cache_miss_units": 6355,
+            "request_units": 16851,
+            "response_units": 32768,
+            "total_units": 49619
+          },
+          "source_request_count": 0
+        },
+        {
+          "attempt": 2,
+          "candidate_id": "push_standing_recovery_tilt_arrest_v7",
+          "provider_status": "pass",
+          "provider_failure": null,
+          "verifier_status_as_recorded": "pass",
+          "continuation_stop": null,
+          "repair_reason": "historical_exact_program_repeat",
+          "provider_usage": {
+            "request_cache_hit_units": 10496,
+            "request_cache_miss_units": 6677,
+            "request_units": 17173,
+            "response_units": 1319,
+            "total_units": 18492
+          },
+          "source_request_count": 0
+        },
+        {
+          "attempt": 3,
+          "candidate_id": null,
+          "provider_status": "source_request",
+          "provider_failure": null,
+          "verifier_status_as_recorded": null,
+          "continuation_stop": null,
+          "repair_reason": "historical_exact_program_repeat",
+          "provider_usage": {
+            "request_cache_hit_units": 5632,
+            "request_cache_miss_units": 7109,
+            "request_units": 12741,
+            "response_units": 113,
+            "total_units": 12854
+          },
+          "source_request_count": 1
+        },
+        {
+          "attempt": 4,
+          "candidate_id": "push_standing_recovery_impulse_absorb_v1",
+          "provider_status": "pass",
+          "provider_failure": null,
+          "verifier_status_as_recorded": "pass",
+          "continuation_stop": "candidate_verified",
+          "repair_reason": null,
+          "provider_usage": {
+            "request_cache_hit_units": 5760,
+            "request_cache_miss_units": 9595,
+            "request_units": 15355,
+            "response_units": 906,
+            "total_units": 16261
+          },
+          "source_request_count": 1
+        }
+      ],
+      "memory_bytes": 4412,
+      "memory_experiments": 3,
+      "memory_trial_rows": [
+        {
+          "generation": 1,
+          "lane": "a",
+          "candidate_id": "push_recovery_height_hinge_v4",
+          "operation": "rename",
+          "mechanism": "RewardTerm:recovery_stance",
+          "status": "qualified_not_selected",
+          "public_dev_delta": -0.03125,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "sibling_not_selected"
+        },
+        {
+          "generation": 1,
+          "lane": "b",
+          "candidate_id": "push_standing_recovery_height_barrier_v1",
+          "operation": "rename",
+          "mechanism": "RewardTerm:upright_height_barrier",
+          "status": "accepted",
+          "public_dev_delta": 0.046875,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "formal_acceptance_passed"
+        },
+        {
+          "generation": 2,
+          "lane": "a",
+          "candidate_id": "push_recovery_upright_stillness_gate_v1",
+          "operation": "rename",
+          "mechanism": "RewardTerm:stationary_recovery",
+          "status": "qualified_not_selected",
+          "public_dev_delta": 0.015625,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "sibling_not_selected"
+        },
+        {
+          "generation": 2,
+          "lane": "b",
+          "candidate_id": "push_standing_recovery_stance_barriers_v2",
+          "operation": "rename",
+          "mechanism": "RewardTerm:upright_stance_barriers",
+          "status": "formal_rejected",
+          "public_dev_delta": 0.026042,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "not_run_due_to_early_reject"
+        },
+        {
+          "generation": 3,
+          "lane": "a",
+          "candidate_id": "push_standing_recovery_velocity_brake_v2",
+          "operation": "rename",
+          "mechanism": "RewardTerm:stationary_brake",
+          "status": "verified_not_run",
+          "public_dev_delta": null,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "paired_authoring_incomplete"
+        },
+        {
+          "generation": 3,
+          "lane": "b",
+          "candidate_id": "push_standing_recovery_tilt_arrest_v6",
+          "operation": null,
+          "mechanism": null,
+          "status": "candidate_failed",
+          "public_dev_delta": null,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "authoring_static_failed"
+        }
+      ]
+    },
+    {
+      "lane_id": "lane-b",
+      "prompts": [
+        {
+          "path": "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000001/prompt_payload.json",
+          "sha256": "0dc7ec18ec42e076aa852608767b0cf567db315e9f6d391ed88e3cc5ee9dcf1f",
+          "frame": "candidate_draft",
+          "file_bytes": 65129,
+          "canonical_bytes": 65129,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "376785250b1dbfeb1c918c49ea37f3f24bf8b353279a14d25fe9b9f1667a36ae",
+              "bytes": 2849
+            },
+            {
+              "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+              "sha256": "4486713e0573f36267f54501391586538b93e03c8d1f95b4fc85bcde742dee97",
+              "bytes": 4612
+            }
+          ],
+          "long_string_duplicate_excess_bytes": 1389,
+          "long_string_duplicate_excess_fraction": 0.02132690506533188,
+          "task_section_bytes": 19391,
+          "task_section_limit_bytes": 57344
+        },
+        {
+          "path": "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000002/prompt_payload.json",
+          "sha256": "7b67944be165254fea9a9f67b3f153950e05472c00fd71f13c4bed00dfd3a50f",
+          "frame": "static_repair",
+          "file_bytes": 66757,
+          "canonical_bytes": 66757,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "376785250b1dbfeb1c918c49ea37f3f24bf8b353279a14d25fe9b9f1667a36ae",
+              "bytes": 2849
+            },
+            {
+              "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+              "sha256": "4486713e0573f36267f54501391586538b93e03c8d1f95b4fc85bcde742dee97",
+              "bytes": 4612
+            }
+          ],
+          "long_string_duplicate_excess_bytes": 1389,
+          "long_string_duplicate_excess_fraction": 0.020806806776817413,
+          "task_section_bytes": 19391,
+          "task_section_limit_bytes": 57344
+        },
+        {
+          "path": "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000003/prompt_payload.json",
+          "sha256": "30258745393fad90d499c822f0521c8f36214468c1fa45644c98e40a9bdee793",
+          "frame": "static_repair",
+          "file_bytes": 50605,
+          "canonical_bytes": 50605,
+          "sources": [
+            {
+              "logical_id": "attempt/latest_failed/training_code/components.py",
+              "sha256": "74d92dc9a06a69d616770bb5f68221d1009f211e83127e407d042c32b23ea515",
+              "bytes": 4869
+            }
+          ],
+          "long_string_duplicate_excess_bytes": 827,
+          "long_string_duplicate_excess_fraction": 0.016342258670091887,
+          "task_section_bytes": 13924,
+          "task_section_limit_bytes": 57344
+        },
+        {
+          "path": "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000004/prompt_payload.json",
+          "sha256": "ce891e1119ba5d3a1a5b5d1489396664e528d8fc8445d9488ffec4bf02c00816",
+          "frame": "source_followup",
+          "file_bytes": 66092,
+          "canonical_bytes": 66092,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "376785250b1dbfeb1c918c49ea37f3f24bf8b353279a14d25fe9b9f1667a36ae",
+              "bytes": 2849
+            },
+            {
+              "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+              "sha256": "4486713e0573f36267f54501391586538b93e03c8d1f95b4fc85bcde742dee97",
+              "bytes": 4612
+            }
+          ],
+          "long_string_duplicate_excess_bytes": 1389,
+          "long_string_duplicate_excess_fraction": 0.02101615929310658,
+          "task_section_bytes": 19391,
+          "task_section_limit_bytes": 57344
+        }
+      ],
+      "attempts": [
+        {
+          "attempt": 1,
+          "candidate_id": null,
+          "provider_status": "fail",
+          "provider_failure": "reasoning_output_exhausted",
+          "verifier_status_as_recorded": null,
+          "continuation_stop": null,
+          "repair_reason": null,
+          "provider_usage": {
+            "reasoning_units": 32768,
+            "request_cache_hit_units": 14848,
+            "request_cache_miss_units": 2224,
+            "request_units": 17072,
+            "response_units": 32768,
+            "total_units": 49840
+          },
+          "source_request_count": 0
+        },
+        {
+          "attempt": 2,
+          "candidate_id": "push_standing_recovery_tilt_arrest_barrier_v1",
+          "provider_status": "pass",
+          "provider_failure": null,
+          "verifier_status_as_recorded": "pass",
+          "continuation_stop": null,
+          "repair_reason": "historical_exact_program_repeat",
+          "provider_usage": {
+            "request_cache_hit_units": 14848,
+            "request_cache_miss_units": 2546,
+            "request_units": 17394,
+            "response_units": 1400,
+            "total_units": 18794
+          },
+          "source_request_count": 0
+        },
+        {
+          "attempt": 3,
+          "candidate_id": null,
+          "provider_status": "source_request",
+          "provider_failure": null,
+          "verifier_status_as_recorded": null,
+          "continuation_stop": null,
+          "repair_reason": "historical_exact_program_repeat",
+          "provider_usage": {
+            "request_cache_hit_units": 5632,
+            "request_cache_miss_units": 7413,
+            "request_units": 13045,
+            "response_units": 180,
+            "total_units": 13225
+          },
+          "source_request_count": 1
+        },
+        {
+          "attempt": 4,
+          "candidate_id": "push_standing_recovery_impulse_absorb_v1",
+          "provider_status": "pass",
+          "provider_failure": null,
+          "verifier_status_as_recorded": "pass",
+          "continuation_stop": "candidate_verified",
+          "repair_reason": null,
+          "provider_usage": {
+            "request_cache_hit_units": 5760,
+            "request_cache_miss_units": 11511,
+            "request_units": 17271,
+            "response_units": 1626,
+            "total_units": 18897
+          },
+          "source_request_count": 1
+        }
+      ],
+      "memory_bytes": 4412,
+      "memory_experiments": 3,
+      "memory_trial_rows": [
+        {
+          "generation": 1,
+          "lane": "a",
+          "candidate_id": "push_recovery_height_hinge_v4",
+          "operation": "rename",
+          "mechanism": "RewardTerm:recovery_stance",
+          "status": "qualified_not_selected",
+          "public_dev_delta": -0.03125,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "sibling_not_selected"
+        },
+        {
+          "generation": 1,
+          "lane": "b",
+          "candidate_id": "push_standing_recovery_height_barrier_v1",
+          "operation": "rename",
+          "mechanism": "RewardTerm:upright_height_barrier",
+          "status": "accepted",
+          "public_dev_delta": 0.046875,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "formal_acceptance_passed"
+        },
+        {
+          "generation": 2,
+          "lane": "a",
+          "candidate_id": "push_recovery_upright_stillness_gate_v1",
+          "operation": "rename",
+          "mechanism": "RewardTerm:stationary_recovery",
+          "status": "qualified_not_selected",
+          "public_dev_delta": 0.015625,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "sibling_not_selected"
+        },
+        {
+          "generation": 2,
+          "lane": "b",
+          "candidate_id": "push_standing_recovery_stance_barriers_v2",
+          "operation": "rename",
+          "mechanism": "RewardTerm:upright_stance_barriers",
+          "status": "formal_rejected",
+          "public_dev_delta": 0.026042,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "not_run_due_to_early_reject"
+        },
+        {
+          "generation": 3,
+          "lane": "a",
+          "candidate_id": "push_standing_recovery_velocity_brake_v2",
+          "operation": "rename",
+          "mechanism": "RewardTerm:stationary_brake",
+          "status": "verified_not_run",
+          "public_dev_delta": null,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "paired_authoring_incomplete"
+        },
+        {
+          "generation": 3,
+          "lane": "b",
+          "candidate_id": "push_standing_recovery_tilt_arrest_v6",
+          "operation": null,
+          "mechanism": null,
+          "status": "candidate_failed",
+          "public_dev_delta": null,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "authoring_static_failed"
+        }
+      ]
+    }
+  ],
+  "initial_sibling_differing_sections": [
+    "required_candidate_package",
+    "authoring_context_frame"
+  ],
+  "public_boundaries": {
+    "public_only_guard": "PASS",
+    "task_receipt_recomputed": "PASS",
+    "private_paths_checked": 81,
+    "checkpoint_hashes_checked": 9,
+    "literal_hits": 0,
+    "limits": "Does not infer leakage from numerical coincidences or exhaustively enumerate undisclosed numeric seeds."
+  },
+  "findings": [
+    {
+      "issue": "Historical-repeat repair removes comparison source (existing F11)",
+      "evidence": "Both generation-4 lanes used a source_request after the historical-repeat rejection; only failed source was inlined in that repair frame."
+    }
+  ],
+  "audited_at_utc": "2026-09-23T05:44:15.810480+00:00",
+  "snapshot": ".tmp/go2_push_a06_live_09.zip",
+  "frozen_source_archive_sha256": "fd9c6435c8c1386b7adb3df504fb2aea24ed9b2a16ceaa1530a0ec3045c63d4f",
+  "frozen_source_commit": "7c58ec32f6dcdd4da238fe52321c58c9abf582c8",
+  "evidence_sha256": {
+    "session/ledger.jsonl": "0b733babdcb15579c72af5d9344b4b7db433acfee55b855ffe1d910b1eacdf38",
+    "session/session_genesis.json": "f106e800379935a820c446165d096d730dbe95c8bea13390f4e07b5086c07807",
+    "session/reference_eval_artifact.json": "946d829f98522fb85833ae9de2a2a67e3e5b5f241268a0730a18b2e56cf577e7",
+    "session/runner/go2-push-5rounds-20260923-a06/eval/public_accept/summary.json": "8418394d261741060c5a19d9db2f4435e53e45bf20744057bdbf9862aff380fa",
+    "session/runner/go2-push-5rounds-20260923-a06/eval/public_dev/summary.json": "d5dedac335a918447bcb2ba5a8da0f692f6955405b083bfe4fe6515a5ddfd2e8",
+    "session/runner/go2-push-5rounds-20260923-a06/eval/sealed_validation/summary.json": "361f047ce9aaed52a6af5405cc68e587058e1d2773e672a3c3b6578bf7e1cffe",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-a/eval/public_dev/summary.json": "d640a25e685e544f07a1489f6868bdc3c4be1770ea1d9e7ffc2cf6917a5d4982",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-b/eval/public_accept/summary.json": "6f182561dc2460dae60534ed76b29a3854e75bd427956c05a8bf8428a993ab80",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-b/eval/public_dev/summary.json": "1197ee109ed61f1a14ac762e0f5c400fcf33dc9123666677d8cdd4db91e463be",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-b/eval/sealed_validation/summary.json": "1a764becd6da56c1e5c23cf0bc48d1c41bce9efc6e876c4b221e32b32f932ee5",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-002-lane-a/eval/public_dev/summary.json": "5e2eec4693a804a9b18e14ed19e7d3212a06aea6b796e41c34e5f8eadc0a116e",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-002-lane-b/eval/public_accept/summary.json": "6158889964480e0672c86f3a804ff99f40b60cbe6b83a46a5f35672981e1b5c4",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-002-lane-b/eval/public_dev/summary.json": "2b3a66b27da72cbd3ead75fa86ebaca3212e385b57f606efc3d1b153d2d4bbd7",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-004-lane-a/eval/public_dev/summary.json": "e3e87e22331bb0d602bdc05517633290f88f48b6fd115ffcfe239906aff2d716",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-004-lane-b/eval/public_accept/summary.json": "75c42e0aa8e488db5ab0efb9b0d6483ed1b685be5bd32bab4227621115c14e0a",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-004-lane-b/eval/public_dev/summary.json": "aed1f3172e20fe1230dd3c38502c7f415abb69e09842a60d411c08222e6de573",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-005-lane-a/eval/public_accept/summary.json": "c75e360d665128ed4dcdbdac66c66187ced8fb654e3f9dbdc024d0b7c77fd2f7",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-005-lane-a/eval/public_dev/summary.json": "7e6489dc1fd1cb7c3014370f8220d5745d5efeadc527ebcf42849d48b717af9f",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-005-lane-b/eval/public_dev/summary.json": "29302e0eddbe096c03e321defc069f43f63c43e87d0f1eb5e0f5605ca3b4daa6",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-002-lane-b/train/summary.json": "bec8274735f3acda0f8c1bbf35283829c853ca03aacd8f7306e9ed6ce3f2ad57",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "711efdea63b04c8f5ea94f670fb2f3c5a8db7904b46d93d6f144dbf1aa55be9b",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-001/lane-b/001_push_standing_recovery_height_barrier_v1/training_code/components.py": "376785250b1dbfeb1c918c49ea37f3f24bf8b353279a14d25fe9b9f1667a36ae",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-002/lane-b/001_push_standing_recovery_stance_barriers_v2/training_code/components.py": "4486713e0573f36267f54501391586538b93e03c8d1f95b4fc85bcde742dee97",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "e72fd254a90de95738ba4bbc610f1ca5739c66f78864358af897a0f91d199d92",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000002/prompt_payload.json": "aa10840f8cedd3c9ae312acd30a98c144157a6ccd6623d606ed029137da47e01",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000002/attempt_result.json": "1d4520ba415f5e8cc03b5966f62dff9980078ee16dad08fd0b1d13626172baa7",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000003/prompt_payload.json": "698d558dbeeec4ea4f7f1713a0093e3372f41eb00c7543f800c8a964e0ff7f26",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-004/lane-a/002_push_standing_recovery_tilt_arrest_v7/training_code/components.py": "91bcdcc06a3fc5111cf3b415f68ed9fdf5313fd07063388e491315db3dca173a",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000003/attempt_result.json": "22cf5406fdb62faaa909caf9d6075942b4a60b73958166246dbffc8ac9f10589",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000004/prompt_payload.json": "9d9c5d72152080f00f9a9d1a794e865f9c20f2546d547f5969da19813d3aa4f9",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000004/attempt_result.json": "4e16955dcb8594614db22a86f295b24c67cf29b4d1c869a27006ce8f02abfbeb",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000001/prompt_payload.json": "0dc7ec18ec42e076aa852608767b0cf567db315e9f6d391ed88e3cc5ee9dcf1f",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "41f78ba5d1ed8232e06d593a9e839bd8896e4ad8ca23504ee2334e27f617236b",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000002/prompt_payload.json": "7b67944be165254fea9a9f67b3f153950e05472c00fd71f13c4bed00dfd3a50f",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000002/attempt_result.json": "47567bb1b9747cc8516635ebba9126b5ece454e97e8c17c497fb896e3bd8c07c",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000003/prompt_payload.json": "30258745393fad90d499c822f0521c8f36214468c1fa45644c98e40a9bdee793",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-004/lane-b/002_push_standing_recovery_tilt_arrest_barrier_v1/training_code/components.py": "74d92dc9a06a69d616770bb5f68221d1009f211e83127e407d042c32b23ea515",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000003/attempt_result.json": "54e6b9aaf8c9c5ef6211f7d2c67709fee0a650ed40c46c397bc32828939ecea4",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000004/prompt_payload.json": "ce891e1119ba5d3a1a5b5d1489396664e528d8fc8445d9488ffec4bf02c00816",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000004/attempt_result.json": "d6916aafcfdf5861650319e16f010fb6968eeeba63e1d646bdd7aae3bee8e501"
+  },
+  "experiment_verdict": "NO_GO_ADMISSION_GAP",
+  "audit_limit": "Read-only local snapshot; private checkpoints not downloaded/rehashed; no simulator visualization. Receipt PASS is not independent mechanism approval."
+}

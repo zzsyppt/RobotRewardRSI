@@ -1,0 +1,51 @@
+{
+  "status": "PASS_AFTER_FIXTURE_UPDATE",
+  "scope": "generation count CLI, frozen cost/session/final contracts, default 15 and explicit terminal 5",
+  "initial_run": {
+    "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_generation_entrypoint tests.unit.test_generation_cost_contract tests.integration.test_generation_session -v",
+    "tests_run": 17,
+    "seconds": 654.749,
+    "exit_code": 1,
+    "failed_subtests": 2,
+    "skipped_tests": 4,
+    "failure": "Old fixture required later manifest rejection wording; production correctly rejected invalid manifest earlier."
+  },
+  "fixture_changes": [
+    "Accept the existing manifest mismatch or strict-loader fields mismatch rejection.",
+    "For a missing manifest allow direct FileNotFoundError or ValueError only when its cause is FileNotFoundError; retain no-rewrite/no-rebuild assertions."
+  ],
+  "final_entrypoint_rerun": {
+    "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_generation_entrypoint -v",
+    "tests_run": 3,
+    "seconds": 29.569,
+    "exit_code": 0,
+    "failures": 0,
+    "errors": 0
+  },
+  "unchanged_product_remaining_tests": {
+    "cost_tests_passed": 4,
+    "push_integration_tests_passed": 6,
+    "stair_integration_tests_skipped": 4,
+    "skip_reason": "Stair runtime source closure requires target Isaac installation"
+  },
+  "no_single_combined_final_run_claim": true,
+  "checks": [
+    "5 generations reaches final report PASS with exactly 5 closed generations and identical terminal audit replay.",
+    "Default 15-generation accepted/reference finalization and replay pass.",
+    "CLI freezes matching maximum in launch, session, max trials, max train jobs, final plan, cost and continuation; changed maximum rejected on resume.",
+    "Ruff F/E9 and git diff --check pass."
+  ],
+  "files": {
+    "scripts/run_generation_session.py": "ab0fc5b88fcb2f81ac57dd5781bc9206fb0dc02c09769e0124218c544f090dd0",
+    "src/true_rl_agent/agent_core/generation_preparation.py": "4033b5efc33d1c9b6061ba57e455acae2967c5de1a8bd1e7c6c13f950ed77f1c",
+    "tests/unit/test_generation_entrypoint.py": "b1ae93b31b82457828ccaa4d5020ed89dcacd42a58ae27b2662846d22f451d02",
+    "tests/unit/test_generation_cost_contract.py": "5aa25a2c140c61dfc745a74304bdaa6f5f8b90ffbdde848a5d709e54f2dc57a0",
+    "tests/integration/test_generation_session.py": "803070ddd6d1a1ab0e0e65c68bcee84de50cd59f48fbd2e51564f0a90526c7f1",
+    "docs/stair_fresh_15round_runbook.md": "99a8310b17c13055f72060893a07d13b53d3a593648b799f2e2527d1c4fa5ab6"
+  },
+  "logs": {
+    "round_count_tests.log": "fc9ddab3715f1cb675757cc2082c5da24ac31fb9b7cad0abff81c220d171a4a2",
+    "round_count_entrypoint_recheck.log": "4bf8ac99fb57856d9311d736ece8d728fb02997d6356ecce19e1674f5bcc3db7",
+    "round_count_entrypoint_final.log": "a76c32b0aa70469732ece6fd054cfabda43c701e8190bc880b9840449898c51c"
+  }
+}

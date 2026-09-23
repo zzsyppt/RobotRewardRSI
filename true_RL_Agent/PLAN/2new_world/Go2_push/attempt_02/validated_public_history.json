@@ -1,0 +1,1440 @@
+{
+  "scope": "Read-only receipt-bound replay; no simulation or session mutation.",
+  "records": [
+    {
+      "schema_version": "true_rl_agent.generation_ledger_record.v3",
+      "record_kind": "generation",
+      "round_id": "go2-push-5rounds-20260922-a02-generation-001",
+      "generation_id": "go2-push-5rounds-20260922-a02-generation-001",
+      "generation_index": 1,
+      "session_genesis_hash": "5117c78e1b541a0397a554d483cb31922ba0dc63e956162ed8f3d03cae629008",
+      "ledger_epoch_hash": "725ee53fffef0632648f6bc2391b4d5003818b17b70120ebae5e84daef9d2d4f",
+      "authoring_mode": "provider_authoring",
+      "decision": {
+        "outcome": "generation_head_retained",
+        "accepted": false,
+        "reason": "formal_rejected",
+        "generation_id": "go2-push-5rounds-20260922-a02-generation-001",
+        "acceptance_authority": false
+      },
+      "generation": {
+        "schema_version": "true_rl_agent.generation_public_history_projection.v3",
+        "generation_id": "go2-push-5rounds-20260922-a02-generation-001",
+        "generation_index": 1,
+        "generation_outcome": "formal_rejected",
+        "parent_current_best_hash": "e67cc05335c88b0cb0f0c40aeec61fd884a81d1dc69f884baef2ed4b7afb9b8f",
+        "parent_current_best": {
+          "acceptance_protocol_hash": "a9638274f7223f91ef1f115e2c9858fc75e40eddf6223ea891054ef15fe339bd",
+          "accepted_candidate_id": null,
+          "accepted_round_id": null,
+          "anchor_id": "push_standing_recovery_stationary_reference_v3",
+          "anchor_kind": "reference",
+          "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+          "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+          "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+          "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+          "gate_statuses": {
+            "accept_evidence_gate": "pass",
+            "budget_accounting": "pass",
+            "recovery_evidence_gate": "pass",
+            "reference_capability_gate": "pass",
+            "sealed_validation_gate": "pass"
+          },
+          "guard_score_stats": {},
+          "min_score_count": 3,
+          "mode": "reference",
+          "named_guard_evidence": {},
+          "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+          "public_accept_stats": {
+            "count": 3,
+            "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+            "mean": 0.7395833333333334,
+            "standard_error": 0.027559909490256152,
+            "statistics_version": "true_rl_agent.derived_statistics.v1",
+            "std": 0.047735163489123336
+          },
+          "public_score": 0.7395833333333334,
+          "sealed_validation_evidence": {
+            "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+            "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+            "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+            "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+            "evaluation_subject": {
+              "id": "push_standing_recovery_stationary_reference_v3",
+              "kind": "reference",
+              "schema_version": "true_rl_agent.experiment.subject.v2"
+            },
+            "expected_seed_count": 7,
+            "observed_seed_count": 7,
+            "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+            "reason": "push_recovery_holdout_contract_met",
+            "schema_version": "true_rl_agent.sealed_validation.evidence.v4",
+            "score_stats": {
+              "count": 7,
+              "episode_count": 448,
+              "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+              "mean": 0.765625,
+              "standard_error": 0.011811389781538352,
+              "statistics_version": "true_rl_agent.derived_statistics.v1",
+              "std": 0.03125,
+              "values": [
+                0.78125,
+                0.734375,
+                0.75,
+                0.75,
+                0.796875,
+                0.734375,
+                0.8125
+              ]
+            },
+            "status": "pass",
+            "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+            "training_binding_hash": "56b9f8f9ce1168684558273d47c16ce6400f5590832fdb60ae9f2a4f00b5e072"
+          },
+          "sealed_validation_gate": {
+            "candidate_code_loaded_in_eval": false,
+            "candidate_isolation_status": "pass",
+            "candidate_package_loaded_in_eval": false,
+            "candidate_path_argument_present": false,
+            "checkpoint_hash_match_status": "pass",
+            "checkpoint_safety_status": "pass",
+            "eval_protocol_hash_match_status": "pass",
+            "evaluation_binding_hash_match_status": "pass",
+            "holdout_rollout_status": "pass",
+            "reason": "sealed_validation_complete",
+            "status": "pass"
+          },
+          "seed_cohort_hash": "78fcd36dddb12ef0b3a520a87bf89c55bbf7d346c0c4c39e8666c44ac490c469",
+          "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+          "task_protocol_hash": "31622698100045fc8c2fac8707a71a39f84655c2cfde714421fd5b92f748407d",
+          "training_binding_hash": "56b9f8f9ce1168684558273d47c16ce6400f5590832fdb60ae9f2a4f00b5e072"
+        },
+        "resulting_current_best_hash": "e67cc05335c88b0cb0f0c40aeec61fd884a81d1dc69f884baef2ed4b7afb9b8f",
+        "trials": [
+          {
+            "authoring": {
+              "authoring_evidence_checksum": "sha256:15d3376d56730aa42399b843b52aedcc7091aaf9db94b685ae51f0f596dea9e0",
+              "base_public_context_hash": "4e189c7fa21ef63a31346b7b028a231a3089b753fb4e590174c724dabf5e0ceb",
+              "lane_intent_hash": "3deaf20298d0f8461603302146ae02c1eac1547fb1d96537961c34725ec6dae5",
+              "prompt_payload_checksum": "sha256:5119dae9f796c40a30d2fdadc7b031428b345885c02d46185860784365239293",
+              "sibling_exclusion_hash": null
+            },
+            "candidate": {
+              "artifact_hash": "23c3548cc87e64fb12bd6c4e00b4afe5c846eb3da35abbdf1ba7f5f403402be5",
+              "candidate_id": "push_standing_recovery_height_margin_v1",
+              "changed_components": [
+                "reward_callable"
+              ],
+              "program_source_checksum": "sha256:31c5a5ba883d08440f6ff6d36d7ba2c89314456098c9df79833200ba25711ea4",
+              "program_source_size_bytes": 3126,
+              "subject_manifest_hash": "93fa76f7b357d93c6af9d141a908c9b9b2639962c1dc2d92f5a26be8ddac29aa",
+              "verification": {
+                "policy": "true_rl_agent.static_candidate_verifier.pure_function.v2",
+                "policy_hash": "17e48a15617337729f47783f32d7b8940b4b25d06ef8632ee0e486c05e3add74",
+                "status": "pass",
+                "verification_hash": "0796f37f74961c7fe9180359fa5da54f587ee225219dc39be5efa74c2cfbc40b"
+              }
+            },
+            "candidate_surface": {
+              "classification": "code_level",
+              "eligible_for_policy_accept": true,
+              "reason": "code_level_candidate"
+            },
+            "execution_receipt_checksum": null,
+            "execution_record_hash": null,
+            "formal_record_hash": null,
+            "lane_id": "lane-a",
+            "mechanism_operation_delta": {
+              "after_component": {
+                "input_fields": [
+                  "base_height_relative",
+                  "pitch",
+                  "roll"
+                ],
+                "mechanism_id": "RewardTerm:height_collapse",
+                "parameter_normalized_structure_hash": "ab7ac37dbfb216ecfbba7f0d523fa2518c9cea457b94788d7ae4585d4067080d",
+                "structure_hash": "84c2c172de56af2a27620e7430ab9254597274c2605ce2e386d21e7ea541a05e"
+              },
+              "anchor_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+              "before_component": null,
+              "candidate_source_checksum": "sha256:31c5a5ba883d08440f6ff6d36d7ba2c89314456098c9df79833200ba25711ea4",
+              "operation": "add",
+              "schema_version": "true_rl_agent.candidate_mechanism_operation_delta.v2"
+            },
+            "public_accept": {
+              "checkpoint_hash": "sha256:96f48174647323cd8d753688fe90af8c9343eafd98101fec2eb245b4c9654c32",
+              "evaluation_plan_hash": "20675d087823448fd57df2fc2171b93660cb229d3d69c063e87fdd3f7dec2ea2",
+              "execution_device": "cuda:0",
+              "job_spec_hash": "42a067d1ba19daadb3b9d020ebf13f1b97baf41c71345831a8fe0820ccb9d18e",
+              "phase": "public_accept",
+              "phase_receipt_checksum": "sha256:91c08af02bc8ca4c1da6266feefb37a7e99448f60f5c98db5193ec05fd4d6573",
+              "phase_result_hash": "e3cf747de7319ce0153921cbb5f48fc04453fae681fde1c55e301c8200b22494",
+              "public_summary": {
+                "score_stats": {
+                  "count": 3,
+                  "episode_count": 192,
+                  "mean": 0.78125,
+                  "standard_error": 0.009021097956087902,
+                  "statistics_version": "true_rl_agent.derived_statistics.v1",
+                  "std": 0.015625,
+                  "values": [
+                    0.765625,
+                    0.796875,
+                    0.78125
+                  ]
+                },
+                "seed_results": [
+                  {
+                    "condition_flag_breakdown": null,
+                    "episodes": 64,
+                    "failure_breakdown": {
+                      "counts": {
+                        "fall_backward": 3,
+                        "fall_side": 4,
+                        "height_collapse": 8,
+                        "success_recovered": 49
+                      },
+                      "dominant_failure": "height_collapse",
+                      "rates": {
+                        "fall_backward": 0.046875,
+                        "fall_side": 0.0625,
+                        "height_collapse": 0.125,
+                        "success_recovered": 0.765625
+                      },
+                      "total": 64
+                    },
+                    "recovery_counts": {
+                      "completed_push_event_count": 78,
+                      "control_episode_count": 0,
+                      "eligible_episode_count": 64,
+                      "episodes": 64,
+                      "invalid_injection_count": 0,
+                      "planned_push_event_count": 80,
+                      "push_event_count": 79,
+                      "pushed_episode_count": 64,
+                      "sequence_recovered_count": 49,
+                      "successes": 49,
+                      "verified_push_event_count": 79
+                    },
+                    "run_index": 1,
+                    "secondary_metrics": {
+                      "mean_action_l2": 19.17595,
+                      "mean_action_rate_l2": 1.134022,
+                      "mean_episode_steps": 250.8125,
+                      "mean_final_planar_speed_mps": 0.390292,
+                      "mean_max_abs_pitch_rad": 0.224285,
+                      "mean_max_abs_roll_rad": 0.191694,
+                      "mean_max_xy_drift_m": 0.639484,
+                      "mean_min_base_height_m": 0.294678,
+                      "recovery_window_success_rate": 0.765625
+                    },
+                    "status": "pass",
+                    "stratum_results": {
+                      "high": {
+                        "episodes": 16,
+                        "successes": 7
+                      },
+                      "low": {
+                        "episodes": 16,
+                        "successes": 16
+                      },
+                      "medium": {
+                        "episodes": 16,
+                        "successes": 13
+                      },
+                      "repeated": {
+                        "episodes": 16,
+                        "successes": 13
+                      }
+                    },
+                    "success_rate": 0.765625
+                  },
+                  {
+                    "condition_flag_breakdown": null,
+                    "episodes": 64,
+                    "failure_breakdown": {
+                      "counts": {
+                        "fall_backward": 2,
+                        "fall_side": 2,
+                        "height_collapse": 8,
+                        "not_recovered": 1,
+                        "success_recovered": 51
+                      },
+                      "dominant_failure": "height_collapse",
+                      "rates": {
+                        "fall_backward": 0.03125,
+                        "fall_side": 0.03125,
+                        "height_collapse": 0.125,
+                        "not_recovered": 0.015625,
+                        "success_recovered": 0.796875
+                      },
+                      "total": 64
+                    },
+                    "recovery_counts": {
+                      "completed_push_event_count": 79,
+                      "control_episode_count": 0,
+                      "eligible_episode_count": 64,
+                      "episodes": 64,
+                      "invalid_injection_count": 0,
+                      "planned_push_event_count": 80,
+                      "push_event_count": 79,
+                      "pushed_episode_count": 64,
+                      "sequence_recovered_count": 51,
+                      "successes": 51,
+                      "verified_push_event_count": 79
+                    },
+                    "run_index": 2,
+                    "secondary_metrics": {
+                      "mean_action_l2": 18.719864,
+                      "mean_action_rate_l2": 1.043896,
+                      "mean_episode_steps": 261.8125,
+                      "mean_final_planar_speed_mps": 0.321986,
+                      "mean_max_abs_pitch_rad": 0.209086,
+                      "mean_max_abs_roll_rad": 0.196924,
+                      "mean_max_xy_drift_m": 0.695393,
+                      "mean_min_base_height_m": 0.291239,
+                      "recovery_window_success_rate": 0.796875
+                    },
+                    "status": "pass",
+                    "stratum_results": {
+                      "high": {
+                        "episodes": 16,
+                        "successes": 8
+                      },
+                      "low": {
+                        "episodes": 16,
+                        "successes": 16
+                      },
+                      "medium": {
+                        "episodes": 16,
+                        "successes": 15
+                      },
+                      "repeated": {
+                        "episodes": 16,
+                        "successes": 12
+                      }
+                    },
+                    "success_rate": 0.796875
+                  },
+                  {
+                    "condition_flag_breakdown": null,
+                    "episodes": 64,
+                    "failure_breakdown": {
+                      "counts": {
+                        "fall_side": 4,
+                        "height_collapse": 9,
+                        "not_recovered": 1,
+                        "success_recovered": 50
+                      },
+                      "dominant_failure": "height_collapse",
+                      "rates": {
+                        "fall_side": 0.0625,
+                        "height_collapse": 0.140625,
+                        "not_recovered": 0.015625,
+                        "success_recovered": 0.78125
+                      },
+                      "total": 64
+                    },
+                    "recovery_counts": {
+                      "completed_push_event_count": 80,
+                      "control_episode_count": 0,
+                      "eligible_episode_count": 64,
+                      "episodes": 64,
+                      "invalid_injection_count": 0,
+                      "planned_push_event_count": 80,
+                      "push_event_count": 80,
+                      "pushed_episode_count": 64,
+                      "sequence_recovered_count": 50,
+                      "successes": 50,
+                      "verified_push_event_count": 80
+                    },
+                    "run_index": 3,
+                    "secondary_metrics": {
+                      "mean_action_l2": 18.941579,
+                      "mean_action_rate_l2": 1.02089,
+                      "mean_episode_steps": 260.4375,
+                      "mean_final_planar_speed_mps": 0.343445,
+                      "mean_max_abs_pitch_rad": 0.225241,
+                      "mean_max_abs_roll_rad": 0.202357,
+                      "mean_max_xy_drift_m": 0.710722,
+                      "mean_min_base_height_m": 0.294669,
+                      "recovery_window_success_rate": 0.78125
+                    },
+                    "status": "pass",
+                    "stratum_results": {
+                      "high": {
+                        "episodes": 16,
+                        "successes": 8
+                      },
+                      "low": {
+                        "episodes": 16,
+                        "successes": 16
+                      },
+                      "medium": {
+                        "episodes": 16,
+                        "successes": 13
+                      },
+                      "repeated": {
+                        "episodes": 16,
+                        "successes": 13
+                      }
+                    },
+                    "success_rate": 0.78125
+                  }
+                ]
+              },
+              "resource_binding_hash": "6717a64dc87b7d45f2180d07bd7eab19de67aafd859e149b160c1deb76ce4bdc",
+              "schema_version": "true_rl_agent.generation_phase_projection.v1",
+              "task_evidence_hash": "d05cba8f73f18a7a084e8144fcc90277c147ee62170559848a608cec9073a297"
+            },
+            "public_dev": {
+              "checkpoint_hash": "sha256:96f48174647323cd8d753688fe90af8c9343eafd98101fec2eb245b4c9654c32",
+              "evaluation_plan_hash": "20675d087823448fd57df2fc2171b93660cb229d3d69c063e87fdd3f7dec2ea2",
+              "execution_device": "cuda:0",
+              "job_spec_hash": "600e240c97504a4ea039e30a6d4cdee01af0c2f178ad29d3df4744f9bd3e6841",
+              "phase": "public_dev",
+              "phase_receipt_checksum": "sha256:55795071076238e490a64ed6569af07f28b217715709d0e8459d373b74849ce8",
+              "phase_result_hash": "825c7fbe1fe2efe96585f6a5efb4e1ca80b8bde3bc0b4f3312678901b0c3e59f",
+              "public_summary": {
+                "score_stats": {
+                  "count": 3,
+                  "episode_count": 192,
+                  "mean": 0.8125,
+                  "standard_error": 0.04133986423538423,
+                  "statistics_version": "true_rl_agent.derived_statistics.v1",
+                  "std": 0.071602745233685,
+                  "values": [
+                    0.75,
+                    0.796875,
+                    0.890625
+                  ]
+                },
+                "seed_results": [
+                  {
+                    "condition_flag_breakdown": null,
+                    "episodes": 64,
+                    "failure_breakdown": {
+                      "counts": {
+                        "fall_backward": 4,
+                        "fall_side": 5,
+                        "height_collapse": 5,
+                        "not_recovered": 2,
+                        "success_recovered": 48
+                      },
+                      "dominant_failure": "fall_side",
+                      "rates": {
+                        "fall_backward": 0.0625,
+                        "fall_side": 0.078125,
+                        "height_collapse": 0.078125,
+                        "not_recovered": 0.03125,
+                        "success_recovered": 0.75
+                      },
+                      "total": 64
+                    },
+                    "recovery_counts": {
+                      "completed_push_event_count": 80,
+                      "control_episode_count": 0,
+                      "eligible_episode_count": 64,
+                      "episodes": 64,
+                      "invalid_injection_count": 0,
+                      "planned_push_event_count": 80,
+                      "push_event_count": 80,
+                      "pushed_episode_count": 64,
+                      "sequence_recovered_count": 48,
+                      "successes": 48,
+                      "verified_push_event_count": 80
+                    },
+                    "run_index": 1,
+                    "secondary_metrics": {
+                      "mean_action_l2": 18.968201,
+                      "mean_action_rate_l2": 1.216264,
+                      "mean_episode_steps": 255.296875,
+                      "mean_final_planar_speed_mps": 0.384485,
+                      "mean_max_abs_pitch_rad": 0.249009,
+                      "mean_max_abs_roll_rad": 0.223837,
+                      "mean_max_xy_drift_m": 0.653803,
+                      "mean_min_base_height_m": 0.299544,
+                      "recovery_window_success_rate": 0.75
+                    },
+                    "status": "pass",
+                    "stratum_results": {
+                      "high": {
+                        "episodes": 16,
+                        "successes": 7
+                      },
+                      "low": {
+                        "episodes": 16,
+                        "successes": 16
+                      },
+                      "medium": {
+                        "episodes": 16,
+                        "successes": 14
+                      },
+                      "repeated": {
+                        "episodes": 16,
+                        "successes": 11
+                      }
+                    },
+                    "success_rate": 0.75
+                  },
+                  {
+                    "condition_flag_breakdown": null,
+                    "episodes": 64,
+                    "failure_breakdown": {
+                      "counts": {
+                        "fall_side": 3,
+                        "height_collapse": 9,
+                        "not_recovered": 1,
+                        "success_recovered": 51
+                      },
+                      "dominant_failure": "height_collapse",
+                      "rates": {
+                        "fall_side": 0.046875,
+                        "height_collapse": 0.140625,
+                        "not_recovered": 0.015625,
+                        "success_recovered": 0.796875
+                      },
+                      "total": 64
+                    },
+                    "recovery_counts": {
+                      "completed_push_event_count": 80,
+                      "control_episode_count": 0,
+                      "eligible_episode_count": 64,
+                      "episodes": 64,
+                      "invalid_injection_count": 0,
+                      "planned_push_event_count": 80,
+                      "push_event_count": 80,
+                      "pushed_episode_count": 64,
+                      "sequence_recovered_count": 53,
+                      "successes": 51,
+                      "verified_push_event_count": 80
+                    },
+                    "run_index": 2,
+                    "secondary_metrics": {
+                      "mean_action_l2": 18.94594,
+                      "mean_action_rate_l2": 1.006318,
+                      "mean_episode_steps": 267.015625,
+                      "mean_final_planar_speed_mps": 0.364438,
+                      "mean_max_abs_pitch_rad": 0.212287,
+                      "mean_max_abs_roll_rad": 0.202742,
+                      "mean_max_xy_drift_m": 0.71509,
+                      "mean_min_base_height_m": 0.292373,
+                      "recovery_window_success_rate": 0.796875
+                    },
+                    "status": "pass",
+                    "stratum_results": {
+                      "high": {
+                        "episodes": 16,
+                        "successes": 9
+                      },
+                      "low": {
+                        "episodes": 16,
+                        "successes": 16
+                      },
+                      "medium": {
+                        "episodes": 16,
+                        "successes": 15
+                      },
+                      "repeated": {
+                        "episodes": 16,
+                        "successes": 11
+                      }
+                    },
+                    "success_rate": 0.796875
+                  },
+                  {
+                    "condition_flag_breakdown": null,
+                    "episodes": 64,
+                    "failure_breakdown": {
+                      "counts": {
+                        "height_collapse": 5,
+                        "not_recovered": 2,
+                        "success_recovered": 57
+                      },
+                      "dominant_failure": "height_collapse",
+                      "rates": {
+                        "height_collapse": 0.078125,
+                        "not_recovered": 0.03125,
+                        "success_recovered": 0.890625
+                      },
+                      "total": 64
+                    },
+                    "recovery_counts": {
+                      "completed_push_event_count": 80,
+                      "control_episode_count": 0,
+                      "eligible_episode_count": 64,
+                      "episodes": 64,
+                      "invalid_injection_count": 0,
+                      "planned_push_event_count": 80,
+                      "push_event_count": 80,
+                      "pushed_episode_count": 64,
+                      "sequence_recovered_count": 57,
+                      "successes": 57,
+                      "verified_push_event_count": 80
+                    },
+                    "run_index": 3,
+                    "secondary_metrics": {
+                      "mean_action_l2": 18.828345,
+                      "mean_action_rate_l2": 0.758624,
+                      "mean_episode_steps": 284.90625,
+                      "mean_final_planar_speed_mps": 0.178394,
+                      "mean_max_abs_pitch_rad": 0.180747,
+                      "mean_max_abs_roll_rad": 0.169254,
+                      "mean_max_xy_drift_m": 0.704677,
+                      "mean_min_base_height_m": 0.300171,
+                      "recovery_window_success_rate": 0.890625
+                    },
+                    "status": "pass",
+                    "stratum_results": {
+                      "high": {
+                        "episodes": 16,
+                        "successes": 10
+                      },
+                      "low": {
+                        "episodes": 16,
+                        "successes": 16
+                      },
+                      "medium": {
+                        "episodes": 16,
+                        "successes": 16
+                      },
+                      "repeated": {
+                        "episodes": 16,
+                        "successes": 15
+                      }
+                    },
+                    "success_rate": 0.890625
+                  }
+                ]
+              },
+              "resource_binding_hash": "6717a64dc87b7d45f2180d07bd7eab19de67aafd859e149b160c1deb76ce4bdc",
+              "schema_version": "true_rl_agent.generation_phase_projection.v1",
+              "task_evidence_hash": "24b4e81b292d602721598442a7acc9ead04ab7cc0954f0b6f4d6f7260618c309"
+            },
+            "schema_version": "true_rl_agent.generation_trial.v1",
+            "status_reason": "not_run_due_to_early_reject",
+            "train": {
+              "checkpoint_hash": "sha256:96f48174647323cd8d753688fe90af8c9343eafd98101fec2eb245b4c9654c32",
+              "execution_device": "cuda:0",
+              "job_spec_hash": "43fd8701901e5d4827a5167f5f53ea4b35e46787b2500aea4c9dee7aa6b55f3e",
+              "resource_binding_hash": "6717a64dc87b7d45f2180d07bd7eab19de67aafd859e149b160c1deb76ce4bdc",
+              "train_receipt_checksum": "sha256:a02678ad3762646dd3314d432295ef95330e1c83dd009e817df4bd689e3a7e07",
+              "train_result_hash": "8201059e7f62dca64c54cdb8814bb23b8b7a7dcad123900db513d7aac8b1a11a"
+            },
+            "trial_contract_hash": "6e6299e917f8d7b63c40be8f9e80a0463f176c4675d019ff94e40d15b508b667",
+            "trial_id": "go2-push-5rounds-20260922-a02-generation-001-lane-a",
+            "trial_status": "formal_rejected",
+            "verifier": {
+              "details": {
+                "candidate_package_contract_hash": "ea177ecd60812c8c3da7de62f594c1673e1dc7878e162e01fb25596255f6d785",
+                "derived_change_set": [
+                  "reward_callable"
+                ],
+                "verification_policy_hash": "17e48a15617337729f47783f32d7b8940b4b25d06ef8632ee0e486c05e3add74",
+                "verification_policy_id": "true_rl_agent.static_candidate_verifier.pure_function.v2"
+              },
+              "reason": "static_candidate_verifier_passed",
+              "status": "pass",
+              "verified_program_identity": {
+                "candidate_artifact_hash": "23c3548cc87e64fb12bd6c4e00b4afe5c846eb3da35abbdf1ba7f5f403402be5",
+                "candidate_id": "push_standing_recovery_height_margin_v1",
+                "program_source_checksum": "sha256:31c5a5ba883d08440f6ff6d36d7ba2c89314456098c9df79833200ba25711ea4",
+                "program_source_size_bytes": 3126,
+                "subject_manifest_hash": "93fa76f7b357d93c6af9d141a908c9b9b2639962c1dc2d92f5a26be8ddac29aa"
+              }
+            },
+            "lane_intent": {
+              "schema_version": "true_rl_agent.generation_lane_intent.exploration.v1",
+              "lane_id": "lane-a",
+              "mode": "novel",
+              "current_head_hash": "e67cc05335c88b0cb0f0c40aeec61fd884a81d1dc69f884baef2ed4b7afb9b8f",
+              "inspired_by_trial_id": null,
+              "inspired_by_card_hash": null,
+              "hypothesis": null,
+              "verifier_equivalence_exclusion_set_hash": "93af470f76fcae9ca4fe74dafd4f2b8a50c23dd6b53140d96aec7027db1af871",
+              "acceptance_authority": false
+            },
+            "authoring_status": {
+              "schema_version": "true_rl_agent.authoring_status.v1",
+              "stop_reason": "candidate_verified",
+              "attempt_count": 1,
+              "candidate_verified": true,
+              "candidate_id": "push_standing_recovery_height_margin_v1",
+              "program_source_checksum": "sha256:31c5a5ba883d08440f6ff6d36d7ba2c89314456098c9df79833200ba25711ea4",
+              "provider_failure": null,
+              "unresolved_candidate_failure": null
+            },
+            "runtime_activation_summary": {
+              "reward_term_calls": 72000,
+              "diagnostic_calls": 0,
+              "nonzero_reward_contribution": true,
+              "reward_output_stats": {
+                "finite_fraction": 1.0,
+                "mean": 1.571599
+              },
+              "diagnostic_outputs": {},
+              "component_activation_records": [
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": 3.0,
+                  "last_weighted_mean": 2.935588,
+                  "max_abs_weighted_contribution": 2.999997854232788,
+                  "name": "upright_height",
+                  "nonzero_observation_count": 500,
+                  "nonzero_observation_fraction": 1.0,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                },
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": 1.0,
+                  "last_weighted_mean": 0.790966,
+                  "max_abs_weighted_contribution": 3.3322458267211914,
+                  "name": "stationary_v3",
+                  "nonzero_observation_count": 500,
+                  "nonzero_observation_fraction": 1.0,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                },
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": -0.1,
+                  "last_weighted_mean": -0.015849,
+                  "max_abs_weighted_contribution": 0.3883422017097473,
+                  "name": "joint_pose",
+                  "nonzero_observation_count": 500,
+                  "nonzero_observation_fraction": 1.0,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                },
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": -0.01,
+                  "last_weighted_mean": -0.075016,
+                  "max_abs_weighted_contribution": 30.888134002685547,
+                  "name": "action_rate",
+                  "nonzero_observation_count": 500,
+                  "nonzero_observation_fraction": 1.0,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                },
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": -20.0,
+                  "last_weighted_mean": 0.0,
+                  "max_abs_weighted_contribution": 20.0,
+                  "name": "fall",
+                  "nonzero_observation_count": 118,
+                  "nonzero_observation_fraction": 0.236,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                },
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": -8.0,
+                  "last_weighted_mean": -2.5e-05,
+                  "max_abs_weighted_contribution": 1.7753657102584839,
+                  "name": "height_collapse",
+                  "nonzero_observation_count": 497,
+                  "nonzero_observation_fraction": 0.994,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                }
+              ],
+              "feature_activation_records": [],
+              "capability_activation_records": [
+                "reward_callable"
+              ]
+            },
+            "selection_screen": {
+              "acceptance_authority": false,
+              "behavior_passed": true,
+              "checkpoint_hash": "sha256:96f48174647323cd8d753688fe90af8c9343eafd98101fec2eb245b4c9654c32",
+              "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+              "evaluation_plan_hash": "20675d087823448fd57df2fc2171b93660cb229d3d69c063e87fdd3f7dec2ea2",
+              "execution_device": "cuda:0",
+              "phase_result_hash": "825c7fbe1fe2efe96585f6a5efb4e1ca80b8bde3bc0b4f3312678901b0c3e59f",
+              "resource_binding_hash": "6717a64dc87b7d45f2180d07bd7eab19de67aafd859e149b160c1deb76ce4bdc",
+              "schema_version": "true_rl_agent.task.push_recovery.public_dev_screen.v1",
+              "score_stats": {
+                "count": 3,
+                "episode_count": 192,
+                "mean": 0.8125,
+                "standard_error": 0.04133986423538423,
+                "statistics_version": "true_rl_agent.derived_statistics.v1",
+                "std": 0.071602745233685,
+                "values": [
+                  0.75,
+                  0.796875,
+                  0.890625
+                ]
+              },
+              "screen_role": "candidate",
+              "train_receipt_checksum": "sha256:a02678ad3762646dd3314d432295ef95330e1c83dd009e817df4bd689e3a7e07",
+              "trial_id": "go2-push-5rounds-20260922-a02-generation-001-lane-a"
+            }
+          },
+          {
+            "authoring": {
+              "authoring_evidence_checksum": "sha256:52edeee2a2abd359b77ef4f5d5a7e835d5b4100e640e9d2034051732e3dffcc1",
+              "base_public_context_hash": "4e189c7fa21ef63a31346b7b028a231a3089b753fb4e590174c724dabf5e0ceb",
+              "lane_intent_hash": "df4c111f790336e683ca0d4a0c58d2ebcd4830ea078001dc2c90c3fe485fa3c9",
+              "prompt_payload_checksum": "sha256:a137901add23600bd8aeb39dd081a89bba914d28731670cf6691ff9f572a126b",
+              "sibling_exclusion_hash": "0187bafa52d6cbde72baaf35b92994261053cad1c79b340bd61f14dcfe836d28"
+            },
+            "candidate": {
+              "artifact_hash": "41edf11477c2f0bfc5557aa75d69778010f51376799e62e4fe66300fc125a879",
+              "candidate_id": "push_recovery_posture_gated_damping_v1",
+              "changed_components": [
+                "reward_callable"
+              ],
+              "program_source_checksum": "sha256:4e9028aaac8cf2eba2658b7cfeb49ba6fab357588ccd6b141bdc1eb2e33172f6",
+              "program_source_size_bytes": 3552,
+              "subject_manifest_hash": "e9ec2d4d7ca7a7756ba16ea73c58edf566ec251f004f6c3b48bc056240d79e30",
+              "verification": {
+                "policy": "true_rl_agent.static_candidate_verifier.pure_function.v2",
+                "policy_hash": "17e48a15617337729f47783f32d7b8940b4b25d06ef8632ee0e486c05e3add74",
+                "status": "pass",
+                "verification_hash": "c51a17e09e6dbd2fe794061fdcc111ebb5a879404d5e7e05eb9c58a106c87e88"
+              }
+            },
+            "candidate_surface": {
+              "classification": "code_level",
+              "eligible_for_policy_accept": true,
+              "reason": "code_level_candidate"
+            },
+            "execution_receipt_checksum": null,
+            "execution_record_hash": null,
+            "formal_record_hash": null,
+            "lane_id": "lane-b",
+            "mechanism_operation_delta": {
+              "after_component": {
+                "input_fields": [
+                  "base_ang_vel_scaled",
+                  "base_height_relative",
+                  "base_lin_vel_scaled",
+                  "projected_gravity"
+                ],
+                "mechanism_id": "RewardTerm:stable_damping",
+                "parameter_normalized_structure_hash": "49ad0126092e357b3e9a8c7d91497c46a18fd04acc74c989315c4d38e1ae324c",
+                "structure_hash": "2fd2f993bce99ed25456567803fd0c9b96494b1b7854c9163faec00b17bf9cb5"
+              },
+              "anchor_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+              "before_component": {
+                "input_fields": [
+                  "base_ang_vel_scaled",
+                  "base_lin_vel_scaled"
+                ],
+                "mechanism_id": "RewardTerm:stationary_v3",
+                "parameter_normalized_structure_hash": "e589302ef7940f4ad92e03e4a004106a017d12c2c56a47914a0fd5d88181b675",
+                "structure_hash": "505339c55697aad5548902cf68c29a3f3d63866526290b006810958dd59d96bd"
+              },
+              "candidate_source_checksum": "sha256:4e9028aaac8cf2eba2658b7cfeb49ba6fab357588ccd6b141bdc1eb2e33172f6",
+              "operation": "rename",
+              "schema_version": "true_rl_agent.candidate_mechanism_operation_delta.v2"
+            },
+            "public_accept": null,
+            "public_dev": {
+              "checkpoint_hash": "sha256:acfd05618515e69bac092b628d59503dfe12d4912ff7b4df321a6db188d1ba05",
+              "evaluation_plan_hash": "68f40854a733c5061f519d908772a53e589dfabbad186f2a90491ef07e021f9a",
+              "execution_device": "cuda:0",
+              "job_spec_hash": "0deba51f5e32a05feb320e816e2d15a3a10bdbdee110eb8fd261aeb0bce49615",
+              "phase": "public_dev",
+              "phase_receipt_checksum": "sha256:d8986084fb082d0f81cd32ecf378dfd0962d156b197b92a2efbcad8e5d48bd9b",
+              "phase_result_hash": "64310cd1da5f64ad115ec4ef6b4bc0a6898d0f4399fac2ec421dc4031d420170",
+              "public_summary": {
+                "score_stats": {
+                  "count": 3,
+                  "episode_count": 192,
+                  "mean": 0.7395833333333334,
+                  "standard_error": 0.02270259866427434,
+                  "statistics_version": "true_rl_agent.derived_statistics.v1",
+                  "std": 0.039322054350368486,
+                  "values": [
+                    0.78125,
+                    0.734375,
+                    0.703125
+                  ]
+                },
+                "seed_results": [
+                  {
+                    "condition_flag_breakdown": null,
+                    "episodes": 64,
+                    "failure_breakdown": {
+                      "counts": {
+                        "fall_backward": 5,
+                        "fall_side": 4,
+                        "height_collapse": 4,
+                        "not_recovered": 1,
+                        "success_recovered": 50
+                      },
+                      "dominant_failure": "fall_backward",
+                      "rates": {
+                        "fall_backward": 0.078125,
+                        "fall_side": 0.0625,
+                        "height_collapse": 0.0625,
+                        "not_recovered": 0.015625,
+                        "success_recovered": 0.78125
+                      },
+                      "total": 64
+                    },
+                    "recovery_counts": {
+                      "completed_push_event_count": 78,
+                      "control_episode_count": 0,
+                      "eligible_episode_count": 64,
+                      "episodes": 64,
+                      "invalid_injection_count": 0,
+                      "planned_push_event_count": 80,
+                      "push_event_count": 79,
+                      "pushed_episode_count": 64,
+                      "sequence_recovered_count": 50,
+                      "successes": 50,
+                      "verified_push_event_count": 79
+                    },
+                    "run_index": 1,
+                    "secondary_metrics": {
+                      "mean_action_l2": 18.76702,
+                      "mean_action_rate_l2": 1.069444,
+                      "mean_episode_steps": 256.984375,
+                      "mean_final_planar_speed_mps": 0.416886,
+                      "mean_max_abs_pitch_rad": 0.230267,
+                      "mean_max_abs_roll_rad": 0.227571,
+                      "mean_max_xy_drift_m": 0.764357,
+                      "mean_min_base_height_m": 0.305638,
+                      "recovery_window_success_rate": 0.78125
+                    },
+                    "status": "pass",
+                    "stratum_results": {
+                      "high": {
+                        "episodes": 16,
+                        "successes": 7
+                      },
+                      "low": {
+                        "episodes": 16,
+                        "successes": 16
+                      },
+                      "medium": {
+                        "episodes": 16,
+                        "successes": 14
+                      },
+                      "repeated": {
+                        "episodes": 16,
+                        "successes": 13
+                      }
+                    },
+                    "success_rate": 0.78125
+                  },
+                  {
+                    "condition_flag_breakdown": null,
+                    "episodes": 64,
+                    "failure_breakdown": {
+                      "counts": {
+                        "fall_backward": 2,
+                        "fall_side": 6,
+                        "height_collapse": 7,
+                        "not_recovered": 2,
+                        "success_recovered": 47
+                      },
+                      "dominant_failure": "height_collapse",
+                      "rates": {
+                        "fall_backward": 0.03125,
+                        "fall_side": 0.09375,
+                        "height_collapse": 0.109375,
+                        "not_recovered": 0.03125,
+                        "success_recovered": 0.734375
+                      },
+                      "total": 64
+                    },
+                    "recovery_counts": {
+                      "completed_push_event_count": 77,
+                      "control_episode_count": 0,
+                      "eligible_episode_count": 64,
+                      "episodes": 64,
+                      "invalid_injection_count": 0,
+                      "planned_push_event_count": 80,
+                      "push_event_count": 78,
+                      "pushed_episode_count": 64,
+                      "sequence_recovered_count": 47,
+                      "successes": 47,
+                      "verified_push_event_count": 78
+                    },
+                    "run_index": 2,
+                    "secondary_metrics": {
+                      "mean_action_l2": 18.58921,
+                      "mean_action_rate_l2": 1.190453,
+                      "mean_episode_steps": 251.34375,
+                      "mean_final_planar_speed_mps": 0.462913,
+                      "mean_max_abs_pitch_rad": 0.208923,
+                      "mean_max_abs_roll_rad": 0.251292,
+                      "mean_max_xy_drift_m": 0.805532,
+                      "mean_min_base_height_m": 0.298985,
+                      "recovery_window_success_rate": 0.734375
+                    },
+                    "status": "pass",
+                    "stratum_results": {
+                      "high": {
+                        "episodes": 16,
+                        "successes": 7
+                      },
+                      "low": {
+                        "episodes": 16,
+                        "successes": 16
+                      },
+                      "medium": {
+                        "episodes": 16,
+                        "successes": 15
+                      },
+                      "repeated": {
+                        "episodes": 16,
+                        "successes": 9
+                      }
+                    },
+                    "success_rate": 0.734375
+                  },
+                  {
+                    "condition_flag_breakdown": null,
+                    "episodes": 64,
+                    "failure_breakdown": {
+                      "counts": {
+                        "fall_backward": 4,
+                        "fall_side": 9,
+                        "height_collapse": 6,
+                        "success_recovered": 45
+                      },
+                      "dominant_failure": "fall_side",
+                      "rates": {
+                        "fall_backward": 0.0625,
+                        "fall_side": 0.140625,
+                        "height_collapse": 0.09375,
+                        "success_recovered": 0.703125
+                      },
+                      "total": 64
+                    },
+                    "recovery_counts": {
+                      "completed_push_event_count": 79,
+                      "control_episode_count": 0,
+                      "eligible_episode_count": 64,
+                      "episodes": 64,
+                      "invalid_injection_count": 0,
+                      "planned_push_event_count": 80,
+                      "push_event_count": 79,
+                      "pushed_episode_count": 64,
+                      "sequence_recovered_count": 45,
+                      "successes": 45,
+                      "verified_push_event_count": 79
+                    },
+                    "run_index": 3,
+                    "secondary_metrics": {
+                      "mean_action_l2": 18.492781,
+                      "mean_action_rate_l2": 1.222631,
+                      "mean_episode_steps": 239.1875,
+                      "mean_final_planar_speed_mps": 0.5563,
+                      "mean_max_abs_pitch_rad": 0.254111,
+                      "mean_max_abs_roll_rad": 0.280967,
+                      "mean_max_xy_drift_m": 0.79832,
+                      "mean_min_base_height_m": 0.298589,
+                      "recovery_window_success_rate": 0.703125
+                    },
+                    "status": "pass",
+                    "stratum_results": {
+                      "high": {
+                        "episodes": 16,
+                        "successes": 5
+                      },
+                      "low": {
+                        "episodes": 16,
+                        "successes": 16
+                      },
+                      "medium": {
+                        "episodes": 16,
+                        "successes": 13
+                      },
+                      "repeated": {
+                        "episodes": 16,
+                        "successes": 11
+                      }
+                    },
+                    "success_rate": 0.703125
+                  }
+                ]
+              },
+              "resource_binding_hash": "179782fce40050a2836f5800bb3925f40dffb490510586d03a435f9b0c9e57d7",
+              "schema_version": "true_rl_agent.generation_phase_projection.v1",
+              "task_evidence_hash": "0ba4d1ae522927acbdd25f0d1a64f9fee662f0d1630f6bb86e05ac525da5688d"
+            },
+            "schema_version": "true_rl_agent.generation_trial.v1",
+            "status_reason": "sibling_not_selected",
+            "train": {
+              "checkpoint_hash": "sha256:acfd05618515e69bac092b628d59503dfe12d4912ff7b4df321a6db188d1ba05",
+              "execution_device": "cuda:0",
+              "job_spec_hash": "381902efd1d207550a71b2869f57b1b29d0e18d7ea5c7c2b4b59bd752aa4e83b",
+              "resource_binding_hash": "179782fce40050a2836f5800bb3925f40dffb490510586d03a435f9b0c9e57d7",
+              "train_receipt_checksum": "sha256:7649abcc214e224645a8ba2bd49c90c417e1008a2d7f18371b2389c7456fd3ce",
+              "train_result_hash": "d6c62f34964c57ccd2db537f2fd6aef0b19ee01cde3f163c4cd56eea6012f20e"
+            },
+            "trial_contract_hash": "75840f9e9ed196458f5af79f7da5be1555f993eb81180b31cd2c8d56c6971300",
+            "trial_id": "go2-push-5rounds-20260922-a02-generation-001-lane-b",
+            "trial_status": "qualified_not_selected",
+            "verifier": {
+              "details": {
+                "candidate_package_contract_hash": "ea177ecd60812c8c3da7de62f594c1673e1dc7878e162e01fb25596255f6d785",
+                "derived_change_set": [
+                  "reward_callable"
+                ],
+                "verification_policy_hash": "17e48a15617337729f47783f32d7b8940b4b25d06ef8632ee0e486c05e3add74",
+                "verification_policy_id": "true_rl_agent.static_candidate_verifier.pure_function.v2"
+              },
+              "reason": "static_candidate_verifier_passed",
+              "status": "pass",
+              "verified_program_identity": {
+                "candidate_artifact_hash": "41edf11477c2f0bfc5557aa75d69778010f51376799e62e4fe66300fc125a879",
+                "candidate_id": "push_recovery_posture_gated_damping_v1",
+                "program_source_checksum": "sha256:4e9028aaac8cf2eba2658b7cfeb49ba6fab357588ccd6b141bdc1eb2e33172f6",
+                "program_source_size_bytes": 3552,
+                "subject_manifest_hash": "e9ec2d4d7ca7a7756ba16ea73c58edf566ec251f004f6c3b48bc056240d79e30"
+              }
+            },
+            "lane_intent": {
+              "schema_version": "true_rl_agent.generation_lane_intent.exploration.v1",
+              "lane_id": "lane-b",
+              "mode": "novel",
+              "current_head_hash": "e67cc05335c88b0cb0f0c40aeec61fd884a81d1dc69f884baef2ed4b7afb9b8f",
+              "inspired_by_trial_id": null,
+              "inspired_by_card_hash": null,
+              "hypothesis": null,
+              "verifier_equivalence_exclusion_set_hash": "93af470f76fcae9ca4fe74dafd4f2b8a50c23dd6b53140d96aec7027db1af871",
+              "acceptance_authority": false
+            },
+            "authoring_status": {
+              "schema_version": "true_rl_agent.authoring_status.v1",
+              "stop_reason": "candidate_verified",
+              "attempt_count": 1,
+              "candidate_verified": true,
+              "candidate_id": "push_recovery_posture_gated_damping_v1",
+              "program_source_checksum": "sha256:4e9028aaac8cf2eba2658b7cfeb49ba6fab357588ccd6b141bdc1eb2e33172f6",
+              "provider_failure": null,
+              "unresolved_candidate_failure": null
+            },
+            "runtime_activation_summary": {
+              "reward_term_calls": 60000,
+              "diagnostic_calls": 0,
+              "nonzero_reward_contribution": true,
+              "reward_output_stats": {
+                "finite_fraction": 1.0,
+                "mean": 1.573971
+              },
+              "diagnostic_outputs": {},
+              "component_activation_records": [
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": 3.0,
+                  "last_weighted_mean": 2.959848,
+                  "max_abs_weighted_contribution": 2.9999966621398926,
+                  "name": "upright_height",
+                  "nonzero_observation_count": 500,
+                  "nonzero_observation_fraction": 1.0,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                },
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": 1.0,
+                  "last_weighted_mean": 0.822977,
+                  "max_abs_weighted_contribution": 0.9991989135742188,
+                  "name": "stable_damping",
+                  "nonzero_observation_count": 500,
+                  "nonzero_observation_fraction": 1.0,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                },
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": -0.1,
+                  "last_weighted_mean": -0.01701,
+                  "max_abs_weighted_contribution": 0.264819473028183,
+                  "name": "joint_pose",
+                  "nonzero_observation_count": 500,
+                  "nonzero_observation_fraction": 1.0,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                },
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": -0.01,
+                  "last_weighted_mean": -0.058902,
+                  "max_abs_weighted_contribution": 2425.3955078125,
+                  "name": "action_rate",
+                  "nonzero_observation_count": 500,
+                  "nonzero_observation_fraction": 1.0,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                },
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": -20.0,
+                  "last_weighted_mean": 0.0,
+                  "max_abs_weighted_contribution": 20.0,
+                  "name": "fall",
+                  "nonzero_observation_count": 130,
+                  "nonzero_observation_fraction": 0.26,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                }
+              ],
+              "feature_activation_records": [],
+              "capability_activation_records": [
+                "reward_callable"
+              ]
+            },
+            "selection_screen": {
+              "acceptance_authority": false,
+              "behavior_passed": true,
+              "checkpoint_hash": "sha256:acfd05618515e69bac092b628d59503dfe12d4912ff7b4df321a6db188d1ba05",
+              "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+              "evaluation_plan_hash": "68f40854a733c5061f519d908772a53e589dfabbad186f2a90491ef07e021f9a",
+              "execution_device": "cuda:0",
+              "phase_result_hash": "64310cd1da5f64ad115ec4ef6b4bc0a6898d0f4399fac2ec421dc4031d420170",
+              "resource_binding_hash": "179782fce40050a2836f5800bb3925f40dffb490510586d03a435f9b0c9e57d7",
+              "schema_version": "true_rl_agent.task.push_recovery.public_dev_screen.v1",
+              "score_stats": {
+                "count": 3,
+                "episode_count": 192,
+                "mean": 0.7395833333333334,
+                "standard_error": 0.02270259866427434,
+                "statistics_version": "true_rl_agent.derived_statistics.v1",
+                "std": 0.039322054350368486,
+                "values": [
+                  0.78125,
+                  0.734375,
+                  0.703125
+                ]
+              },
+              "screen_role": "candidate",
+              "train_receipt_checksum": "sha256:7649abcc214e224645a8ba2bd49c90c417e1008a2d7f18371b2389c7456fd3ce",
+              "trial_id": "go2-push-5rounds-20260922-a02-generation-001-lane-b"
+            }
+          }
+        ],
+        "selection": {
+          "acceptance_authority": false,
+          "contract_hash": "227f90104ae4c49b53a670e9d82c8009f745076a732def4838136d290ddc02a8",
+          "guard_reference_evidence_hash": "c00d28272baa8162c82490d4e70988a8dac56d41e6397b9ca005bb2e7f8e5b10",
+          "reason": "public_dev_success_rank",
+          "schema_version": "true_rl_agent.task.push_recovery.selection.v1",
+          "screen_evidence_hashes": [
+            "9c2c5d296dce85203640fe3a6c172493eefee8ef918a3e55eb82ac433ef272e8",
+            "0e514e3297bd3a4a75f3163d15df85303f92405f3ab631cde54b7c816b44b787"
+          ],
+          "selected_trial_id": "go2-push-5rounds-20260922-a02-generation-001-lane-a"
+        },
+        "guard_reference": {
+          "acceptance_authority": false,
+          "behavior_passed": true,
+          "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+          "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+          "evaluation_plan_hash": "6b36c8877a325ec95238c470146a57e37496c124a35a3495365c3128f7c39660",
+          "execution_device": "cuda:0",
+          "phase_result_hash": "5970213e3c7845eb36ffab9ecefa12c191db47289940a442dc2a5de938b9be3d",
+          "resource_binding_hash": "6717a64dc87b7d45f2180d07bd7eab19de67aafd859e149b160c1deb76ce4bdc",
+          "schema_version": "true_rl_agent.task.push_recovery.public_dev_screen.v1",
+          "score_stats": {
+            "count": 3,
+            "episode_count": 192,
+            "mean": 0.734375,
+            "standard_error": 0.015625,
+            "statistics_version": "true_rl_agent.derived_statistics.v1",
+            "std": 0.027063293868263706,
+            "values": [
+              0.71875,
+              0.765625,
+              0.71875
+            ]
+          },
+          "screen_role": "guard_reference",
+          "train_receipt_checksum": null,
+          "trial_id": "genesis-parent"
+        },
+        "formal": null,
+        "sealed_validation": "not_run_due_to_early_reject"
+      }
+    }
+  ],
+  "initial_current_best": {
+    "mode": "reference",
+    "anchor_kind": "reference",
+    "anchor_id": "push_standing_recovery_stationary_reference_v3",
+    "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+    "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+    "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+    "training_binding_hash": "56b9f8f9ce1168684558273d47c16ce6400f5590832fdb60ae9f2a4f00b5e072",
+    "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+    "accepted_round_id": null,
+    "accepted_candidate_id": null,
+    "task_protocol_hash": "31622698100045fc8c2fac8707a71a39f84655c2cfde714421fd5b92f748407d",
+    "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+    "acceptance_protocol_hash": "a9638274f7223f91ef1f115e2c9858fc75e40eddf6223ea891054ef15fe339bd",
+    "seed_cohort_hash": "78fcd36dddb12ef0b3a520a87bf89c55bbf7d346c0c4c39e8666c44ac490c469",
+    "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+    "public_score": 0.7395833333333334,
+    "public_accept_stats": {
+      "count": 3,
+      "mean": 0.7395833333333334,
+      "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+      "std": 0.047735163489123336,
+      "standard_error": 0.027559909490256152,
+      "statistics_version": "true_rl_agent.derived_statistics.v1"
+    },
+    "guard_score_stats": {},
+    "named_guard_evidence": {},
+    "sealed_validation_evidence": {
+      "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+      "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+      "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+      "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+      "evaluation_subject": {
+        "id": "push_standing_recovery_stationary_reference_v3",
+        "kind": "reference",
+        "schema_version": "true_rl_agent.experiment.subject.v2"
+      },
+      "expected_seed_count": 7,
+      "observed_seed_count": 7,
+      "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "reason": "push_recovery_holdout_contract_met",
+      "schema_version": "true_rl_agent.sealed_validation.evidence.v4",
+      "score_stats": {
+        "count": 7,
+        "episode_count": 448,
+        "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+        "mean": 0.765625,
+        "standard_error": 0.011811389781538352,
+        "statistics_version": "true_rl_agent.derived_statistics.v1",
+        "std": 0.03125,
+        "values": [
+          0.78125,
+          0.734375,
+          0.75,
+          0.75,
+          0.796875,
+          0.734375,
+          0.8125
+        ]
+      },
+      "status": "pass",
+      "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+      "training_binding_hash": "56b9f8f9ce1168684558273d47c16ce6400f5590832fdb60ae9f2a4f00b5e072"
+    },
+    "sealed_validation_gate": {
+      "candidate_code_loaded_in_eval": false,
+      "candidate_isolation_status": "pass",
+      "candidate_package_loaded_in_eval": false,
+      "candidate_path_argument_present": false,
+      "checkpoint_hash_match_status": "pass",
+      "checkpoint_safety_status": "pass",
+      "eval_protocol_hash_match_status": "pass",
+      "evaluation_binding_hash_match_status": "pass",
+      "holdout_rollout_status": "pass",
+      "reason": "sealed_validation_complete",
+      "status": "pass"
+    },
+    "gate_statuses": {
+      "accept_evidence_gate": "pass",
+      "budget_accounting": "pass",
+      "recovery_evidence_gate": "pass",
+      "sealed_validation_gate": "pass",
+      "reference_capability_gate": "pass"
+    },
+    "min_score_count": 3
+  },
+  "session_genesis_hash": "5117c78e1b541a0397a554d483cb31922ba0dc63e956162ed8f3d03cae629008",
+  "acceptance_protocol_hash": "a9638274f7223f91ef1f115e2c9858fc75e40eddf6223ea891054ef15fe339bd",
+  "current_best": {
+    "mode": "reference",
+    "anchor_kind": "reference",
+    "anchor_id": "push_standing_recovery_stationary_reference_v3",
+    "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+    "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+    "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+    "training_binding_hash": "56b9f8f9ce1168684558273d47c16ce6400f5590832fdb60ae9f2a4f00b5e072",
+    "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+    "accepted_round_id": null,
+    "accepted_candidate_id": null,
+    "task_protocol_hash": "31622698100045fc8c2fac8707a71a39f84655c2cfde714421fd5b92f748407d",
+    "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+    "acceptance_protocol_hash": "a9638274f7223f91ef1f115e2c9858fc75e40eddf6223ea891054ef15fe339bd",
+    "seed_cohort_hash": "78fcd36dddb12ef0b3a520a87bf89c55bbf7d346c0c4c39e8666c44ac490c469",
+    "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+    "public_score": 0.7395833333333334,
+    "public_accept_stats": {
+      "count": 3,
+      "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+      "mean": 0.7395833333333334,
+      "standard_error": 0.027559909490256152,
+      "statistics_version": "true_rl_agent.derived_statistics.v1",
+      "std": 0.047735163489123336
+    },
+    "guard_score_stats": {},
+    "named_guard_evidence": {},
+    "sealed_validation_evidence": {
+      "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+      "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+      "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+      "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+      "evaluation_subject": {
+        "id": "push_standing_recovery_stationary_reference_v3",
+        "kind": "reference",
+        "schema_version": "true_rl_agent.experiment.subject.v2"
+      },
+      "expected_seed_count": 7,
+      "observed_seed_count": 7,
+      "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "reason": "push_recovery_holdout_contract_met",
+      "schema_version": "true_rl_agent.sealed_validation.evidence.v4",
+      "score_stats": {
+        "count": 7,
+        "episode_count": 448,
+        "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+        "mean": 0.765625,
+        "standard_error": 0.011811389781538352,
+        "statistics_version": "true_rl_agent.derived_statistics.v1",
+        "std": 0.03125,
+        "values": [
+          0.78125,
+          0.734375,
+          0.75,
+          0.75,
+          0.796875,
+          0.734375,
+          0.8125
+        ]
+      },
+      "status": "pass",
+      "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+      "training_binding_hash": "56b9f8f9ce1168684558273d47c16ce6400f5590832fdb60ae9f2a4f00b5e072"
+    },
+    "sealed_validation_gate": {
+      "candidate_code_loaded_in_eval": false,
+      "candidate_isolation_status": "pass",
+      "candidate_package_loaded_in_eval": false,
+      "candidate_path_argument_present": false,
+      "checkpoint_hash_match_status": "pass",
+      "checkpoint_safety_status": "pass",
+      "eval_protocol_hash_match_status": "pass",
+      "evaluation_binding_hash_match_status": "pass",
+      "holdout_rollout_status": "pass",
+      "reason": "sealed_validation_complete",
+      "status": "pass"
+    },
+    "gate_statuses": {
+      "accept_evidence_gate": "pass",
+      "budget_accounting": "pass",
+      "recovery_evidence_gate": "pass",
+      "reference_capability_gate": "pass",
+      "sealed_validation_gate": "pass"
+    },
+    "min_score_count": 3
+  },
+  "public_score_source": "public_accept.score_stats.mean",
+  "prompt_status": "FAIL",
+  "prompt_error_type": "ValueError",
+  "prompt_error": "current provider record has invalid mechanism attribution"
+}

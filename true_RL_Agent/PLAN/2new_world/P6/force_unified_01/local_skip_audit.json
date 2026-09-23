@@ -1,0 +1,218 @@
+{
+  "schema_version": "true_rl_agent.p6.local_skip_audit.v1",
+  "status": "PASS",
+  "audited_at_utc": "2026-09-22T06:29:28.740964+00:00",
+  "method": "Unittest discovery and test source inspection, current interpreter dependency checks, and one temporary file/directory symlink capability probe. No test suite or individual test was rerun.",
+  "evidence_limit": "The original quiet logs contain aggregate skip counts, not per-test skip records. The 8 dynamic symlink skips are reconstructed from the only applicable source conditions and current WinError 1314 capability results; they are not presented as captured historical per-test messages.",
+  "original_regression_logs": [
+    {
+      "scope": "unit",
+      "path": ".tmp\\push_force_unit_final.log",
+      "sha256": "7660ec7b8c7f10f302729b0eea3f40e820956d760a7e1519e7f14cd4d8867aef",
+      "tests": 1603,
+      "skipped": 15,
+      "status": "PASS"
+    },
+    {
+      "scope": "integration",
+      "path": ".tmp\\push_force_integration.log",
+      "sha256": "2626170bdc1021e99945d22dd6402f064c80fbf93b7f607a690453b19ecd1ae0",
+      "tests": 93,
+      "skipped": 4,
+      "status": "PASS"
+    }
+  ],
+  "counts": {
+    "unit_discovered": 1603,
+    "integration_discovered": 93,
+    "total": 1696,
+    "static_skips": 11,
+    "dynamic_symlink_skips": 8,
+    "total_skips": 19,
+    "executed_without_skip": 1677
+  },
+  "categories": [
+    {
+      "scope": "unit",
+      "category": "Linux-only process/procfs behavior",
+      "count": 5
+    },
+    {
+      "scope": "unit",
+      "category": "Explicit Isaac dynamic-test opt-in is not set",
+      "count": 2
+    },
+    {
+      "scope": "unit",
+      "category": "Windows symlink creation privilege unavailable",
+      "count": 8
+    },
+    {
+      "scope": "integration",
+      "category": "Target isaaclab_assets source package unavailable",
+      "count": 4
+    }
+  ],
+  "discovery": {
+    "unit": {
+      "discovered": 1603,
+      "static_skips": [
+        {
+          "test": "tests.unit.test_generation_lifecycle.GenerationLifecycleTests.test_linux_process_incarnation_and_process_group_liveness",
+          "reason": "requires real Linux procfs"
+        },
+        {
+          "test": "tests.unit.test_p6b_attempt_chain_fault_probe.P6BAttemptChainFaultProbeTests.test_real_retry_chain_and_owned_process_groups_are_closed",
+          "reason": "Linux production probe"
+        },
+        {
+          "test": "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_incomplete_process_group_cleanup_is_typed",
+          "reason": "Linux process-group contract"
+        },
+        {
+          "test": "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_linux_parent_death_signal_stops_owned_job",
+          "reason": "Linux parent-death contract"
+        },
+        {
+          "test": "tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_normal_exit_quiesces_grandchild_before_logs_are_returned",
+          "reason": "Linux process-group contract"
+        },
+        {
+          "test": "tests.unit.test_stair_isaaclab_runtime_env.StairIsaacLabRuntimeEnvTests.test_real_recorder_payload_decodes_tracks_and_aggregates",
+          "reason": "set TRUE_RL_AGENT_ISAAC_DYNAMIC_TEST=1 to run Isaac integration"
+        },
+        {
+          "test": "tests.unit.test_stair_isaaclab_runtime_env.StairIsaacLabRuntimeEnvTests.test_train_and_eval_builders_install_only_the_declared_runtime",
+          "reason": "set TRUE_RL_AGENT_ISAAC_DYNAMIC_TEST=1 to run Isaac integration"
+        }
+      ]
+    },
+    "integration": {
+      "discovered": 93,
+      "static_skips": [
+        {
+          "test": "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_accepted_head_resumes_and_closes_final",
+          "reason": "Stair runtime source closure requires target Isaac installation"
+        },
+        {
+          "test": "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_early_rejection_sealed_rejection_and_no_selection",
+          "reason": "Stair runtime source closure requires target Isaac installation"
+        },
+        {
+          "test": "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_reference_head_uses_shared_preparation_session_final_and_replay",
+          "reason": "Stair runtime source closure requires target Isaac installation"
+        },
+        {
+          "test": "tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_runtime_and_infrastructure_failures_keep_distinct_evidence",
+          "reason": "Stair runtime source closure requires target Isaac installation"
+        }
+      ]
+    }
+  },
+  "dynamic_skip_reconstruction": {
+    "reason": "Symlink creation raises OSError, WinError 1314 for both file and directory links in this interpreter/environment. Each listed test calls skipTest on that failure.",
+    "tests": [
+      "tests.unit.test_candidate_package.CandidatePackageTests.test_candidate_package_preflight_rejects_nonregular_and_symlink_files",
+      "tests.unit.test_fs_contract.FileSystemContractTests.test_bounded_reader_rejects_final_symlink",
+      "tests.unit.test_live_invocation.LiveInvocationJournalTests.test_live_summary_writer_replaces_symlink_without_touching_target",
+      "tests.unit.test_reference_artifact.ReferenceArtifactTests.test_symlink_root_is_rejected_before_publication",
+      "tests.unit.test_stair_local_paths.StairLocalPathTests.test_existing_inputs_reject_leaf_symlinks_before_resolve",
+      "tests.unit.test_stair_local_paths.StairLocalPathTests.test_output_guards_reject_dangling_symlinks",
+      "tests.unit.test_stair_local_paths.StairLocalPathTests.test_stair_config_rejects_protocol_symlink",
+      "tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_train_rejects_symlinked_checkpoint_output_without_following_it"
+    ]
+  },
+  "other_dynamic_skip_condition": {
+    "test": "tests.unit.test_fs_contract.FileSystemContractTests.test_publication_uses_short_temporary_name_near_windows_path_limit",
+    "condition": "segment_length <= 0 or segment_length > 240",
+    "observed_segment_length": 176,
+    "condition_is_true": false
+  },
+  "environment": {
+    "python": "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+    "platform": "win32",
+    "torch_version": "2.11.0+cpu",
+    "numpy_version": "2.5.3",
+    "ffmpeg_executable": "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Lib\\site-packages\\imageio_ffmpeg\\binaries\\ffmpeg-win-x86_64-v7.1.exe",
+    "ffmpeg_exists": true,
+    "TRUE_RL_AGENT_ISAAC_DYNAMIC_TEST": null,
+    "isaaclab_assets_available": false,
+    "symlink_probe": {
+      "file": {
+        "available": false,
+        "exception": "OSError",
+        "winerror": 1314
+      },
+      "directory": {
+        "available": false,
+        "exception": "OSError",
+        "winerror": 1314
+      }
+    }
+  },
+  "required_coverage": [
+    {
+      "group": "tests.unit.test_push_force_protocol",
+      "count": 3,
+      "tests": [
+        "tests.unit.test_push_force_protocol.PushForceProtocolTests.test_common_task_body_scaled_pulse_fixed_gap_and_no_spatial_gate",
+        "tests.unit.test_push_force_protocol.PushForceProtocolTests.test_evaluation_changes_identity_without_changing_training",
+        "tests.unit.test_push_force_protocol.PushForceProtocolTests.test_old_rows_cannot_be_silently_relabelled"
+      ],
+      "all_discovered_and_unskipped": true,
+      "source_sha256": "4b1bff123dd504676e43ecfe12e587c933e2ad2e4f5769ad24b45ad923370b0e"
+    },
+    {
+      "group": "tests.unit.test_push_force_runtime",
+      "count": 7,
+      "tests": [
+        "tests.unit.test_push_force_runtime.ForceRuntimeConfigurationTests.test_manifest_selects_force_only_for_new_evaluation_and_checks_frozen_resolution",
+        "tests.unit.test_push_force_runtime.ForceRuntimeTests.test_actual_mass_world_rotation_substeps_impulse_and_gap_zero",
+        "tests.unit.test_push_force_runtime.ForceRuntimeTests.test_bad_actual_wrench_and_missing_callback_are_invalid_even_when_falling",
+        "tests.unit.test_push_force_runtime.ForceRuntimeTests.test_control_no_forces_and_unplanned_force_is_invalid",
+        "tests.unit.test_push_force_runtime.ForceRuntimeTests.test_partial_pulse_early_fall_is_failure_not_bad_injection_and_freezes",
+        "tests.unit.test_push_force_runtime.ForceRuntimeTests.test_sequence_requires_fresh_continuous_dwell_after_last_pulse",
+        "tests.unit.test_push_force_runtime.ForceRuntimeTests.test_window_boundary_is_inclusive_and_later_dwell_does_not_count"
+      ],
+      "all_discovered_and_unskipped": true,
+      "source_sha256": "0ffeed5d4cb7ce5bf8744fd4a80c60aa068ffd656caacbe523ea3fe866488136"
+    },
+    {
+      "group": "tests.unit.test_push_force_consumers",
+      "count": 6,
+      "tests": [
+        "tests.unit.test_push_force_consumers.PushForceConsumersTests.test_force_phase_rejects_old_schema_and_gates_both_robot_cells",
+        "tests.unit.test_push_force_consumers.PushForceConsumersTests.test_native_records_terminal_state_before_reset_once_and_restores_hook",
+        "tests.unit.test_push_force_consumers.PushForceConsumersTests.test_prompt_reports_sequence_evidence_without_changing_training_signal_units",
+        "tests.unit.test_push_force_consumers.PushForceConsumersTests.test_pulse_completion_and_labels_must_match_raw_evidence",
+        "tests.unit.test_push_force_consumers.PushForceConsumersTests.test_sequence_counts_are_separate_from_pulse_completion_and_early_falls",
+        "tests.unit.test_push_force_consumers.PushForceConsumersTests.test_unknown_or_mixed_schema_never_falls_back_to_legacy_scoring"
+      ],
+      "all_discovered_and_unskipped": true,
+      "source_sha256": "91a1c73ae2f03c23e8ae8553244fef85bc33a6d2f0365f0a7ac86014f679bca9"
+    },
+    {
+      "group": "tests.unit.test_native_video",
+      "count": 2,
+      "tests": [
+        "tests.unit.test_native_video.NativeVideoEncodingTests.test_every_control_frame_is_encoded_once_in_order",
+        "tests.unit.test_native_video.NativeVideoEncodingTests.test_manual_samples_copy_reused_render_buffers_and_default_start_resets_mode"
+      ],
+      "all_discovered_and_unskipped": true,
+      "source_sha256": "d74fc88fc4f86143cd748cd8af75a4250a63eea99ff001b626dfa11a9394602b"
+    },
+    {
+      "group": "tests.unit.test_rsl_rl_checkpoint.RslCheckpointTensorTests",
+      "count": 3,
+      "tests": [
+        "tests.unit.test_rsl_rl_checkpoint.RslCheckpointTensorTests.test_inference_never_loads_optimizer_and_legacy_cannot_resume",
+        "tests.unit.test_rsl_rl_checkpoint.RslCheckpointTensorTests.test_legacy_log_standard_deviation_keeps_log_parameter_name",
+        "tests.unit.test_rsl_rl_checkpoint.RslCheckpointTensorTests.test_scalar_normalizer_state_participates_in_initial_identity"
+      ],
+      "all_discovered_and_unskipped": true,
+      "source_sha256": "3b6f7caf2b1013502232e7b9d733c9518caf33bd8945f680469ab62bfd695b3e"
+    }
+  ],
+  "required_coverage_conclusion": "All listed force, native video, and CPU checkpoint tensor tests are part of the matching successful full-suite discovery and have no active static or dynamic skip path. The encoder test performs real H264 encoding and FFmpeg decoding of all 469 ordered control frames; checkpoint tensor tests import torch unconditionally. These tests are not among the 19 skips.",
+  "scope_note": "The local Isaac opt-in skips do not state any target result. Separate target dynamic-test receipts and the ongoing target full suite are outside this local audit."
+}

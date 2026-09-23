@@ -52,11 +52,14 @@ def fixture_provider_policy():
             "base_url": "https://fixture.invalid", "endpoint": "/chat/completions",
             "model": "fixture", "timeout_s": 30, "temperature": 0.6,
             "reasoning_mode": "adaptive", "reasoning_effort": "high",
-            "empty_final_reasoning_retry": True}
+            "empty_final_reasoning_retry": True,
+            "model_context": {"context_window_tokens": 16384, "max_output_tokens": 4096,
+                "tokenizer_count_source": "provider_usage_prompt_tokens",
+                "specification_source": "fixture model contract"}}
 
 
-def fixture_cost(workload, *, imports_reference=False):
-    layout = generation_operation_layout(max_generations=15, imports_reference=imports_reference, final_jobs=2)
+def fixture_cost(workload, *, imports_reference=False, max_generations=15):
+    layout = generation_operation_layout(max_generations=max_generations, imports_reference=imports_reference, final_jobs=2)
     sources = {
         name: OperationCostReserve.from_source(
             operation_class=name, budget_class=kind, multiplicity=1,
@@ -66,7 +69,7 @@ def fixture_cost(workload, *, imports_reference=False):
         for name, (kind, count) in layout.items()
     }
     return FrozenGenerationCostContract.freeze(
-        max_generations=15, workload=workload,
+        max_generations=max_generations, workload=workload,
         provider_budget=GenerationProviderBudget(3, 10000, 2000),
         operation_sources=sources, imports_reference=imports_reference,
         final_confirmation=True, finalization_output_reserve_bytes=1_000_000,

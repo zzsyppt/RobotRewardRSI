@@ -1,0 +1,288 @@
+{
+  "schema_version": "true_rl_agent.experiment.architecture_audit.v1",
+  "created_at_utc": "2026-09-22T11:17:00.402845+00:00",
+  "status": "PASS_WITH_STATED_SCOPE",
+  "acceptance_authority": false,
+  "session_id": "go2-push-5rounds-20260922-a03",
+  "source_commit": "f9305ed993f6277c65ae0f94f4e281bb6bcb41f0",
+  "scope": "Bounded ownership review of A01-to-A03 smoke repair, latest_nonaccepted_trial selection, Push prompt projection and reference-qualification failure persistence. Not a repository-wide compatibility retirement or matrix validation.",
+  "method": [
+    "CodeGraph was queried first; it did not resolve the requested newer symbols precisely. Frozen ZIP source and narrow searches supplied the unresolved call sites.",
+    "Fourteen inspected source files match the A03 frozen ZIP byte-for-byte in the local checkout. A01/A03 ZIP differences separate restart repairs from pre-existing branches.",
+    "Manually traced producers and consumers; the five-file scientific-token scan is supporting evidence only. No new tests, remote access, GPU work or product modifications."
+  ],
+  "findings": [],
+  "checks": {
+    "fourteen_reviewed_sources_match_frozen_a03": true,
+    "five_shared_files_have_no_concrete_task_scientific_tokens": true,
+    "removed_smoke_tensor_has_no_production_references": true,
+    "source_and_feedback_use_same_nonaccepted_trial_selector": true,
+    "parent_dev_projection_has_bound_public_dev_producer": true,
+    "failure_receipt_preserves_task_qualification_without_recomputing_it": true,
+    "final_source_integration_receipt_pass": true,
+    "a03_reference_reproduction_audit_pass": true
+  },
+  "ownership": [
+    {
+      "boundary": "component smoke",
+      "shared_owns": "Candidate loading/worker lifetime and generic callable output shape, finite value and declared clip/weight checks.",
+      "task_owns": "Input schemas, robot dimensions, synthetic cases and nominal physical scales. Push builds CPU Torch tensors; Stair already used Torch tensors in its task adapter.",
+      "repair": "Delete the emulated SmokeTensor and its verifier recognition branch. Use the training Tensor API at the task fixture boundary; no replacement Tensor emulation or Push condition in the shared verifier.",
+      "evidence": [
+        {
+          "file": "src/true_rl_agent/candidates/component_smoke_runtime.py",
+          "line": 34,
+          "source_sha256": "sha256:a7fdf844d2e2dc8786bb4a952e2bd0c69b839bf059e2be2ffec30b56408f70ec"
+        },
+        {
+          "file": "src/true_rl_agent/candidates/component_smoke_runtime.py",
+          "line": 418,
+          "source_sha256": "sha256:a7fdf844d2e2dc8786bb4a952e2bd0c69b839bf059e2be2ffec30b56408f70ec"
+        },
+        {
+          "file": "src/true_rl_agent/candidates/component_smoke_runtime.py",
+          "line": 581,
+          "source_sha256": "sha256:a7fdf844d2e2dc8786bb4a952e2bd0c69b839bf059e2be2ffec30b56408f70ec"
+        },
+        {
+          "file": "src/true_rl_agent/tasks/component_smoke.py",
+          "line": 11,
+          "source_sha256": "sha256:76f5b71f4009f0c2a518d791df04ce0514937715880a41dffbf0b395a9838e13"
+        },
+        {
+          "file": "src/true_rl_agent/tasks/push_recovery/component_smoke.py",
+          "line": 22,
+          "source_sha256": "sha256:2a1ccf1373a0cb9878491af9ce3f08537962d85449274bc999022bfdbc6a6e34"
+        },
+        {
+          "file": "src/true_rl_agent/tasks/push_recovery/component_smoke.py",
+          "line": 94,
+          "source_sha256": "sha256:2a1ccf1373a0cb9878491af9ce3f08537962d85449274bc999022bfdbc6a6e34"
+        },
+        {
+          "file": "src/true_rl_agent/tasks/stair_climbing/component_smoke.py",
+          "line": 154,
+          "source_sha256": "sha256:aa6565490fbd3f7e7e7884d4a4e116e79f30e0c8ff01a05b2a670cdcaf938406"
+        }
+      ],
+      "limit": "Finite synthetic fixtures check ABI behavior, not universal reward effect or all future rollout values. Existing clip/weight suppression remains advisory, not a new scientific gate."
+    },
+    {
+      "boundary": "latest trained nonaccepted source identity",
+      "shared_owns": "Choose one eligible trained nonaccepted trial from validated generation history, preferring the task selector-selected ID; otherwise use the existing most-recent eligible sibling rule.",
+      "task_owns": "Which candidate the selector chooses, with task-defined scores and eligibility in the task phased adapter.",
+      "repair": "generation_contract reads selection.selected_trial_id only. It neither sorts scores nor implements Push/Go2 success rules. source_catalog and both task feedback adapters use this same helper.",
+      "evidence": [
+        {
+          "file": "src/true_rl_agent/agent_core/generation_contract.py",
+          "line": 77,
+          "source_sha256": "sha256:130ad7f82c6300baa372d0df8176002f21b88dfb6078d5af272a1f4c1639d4ac"
+        },
+        {
+          "file": "src/true_rl_agent/prompting/source_catalog.py",
+          "line": 202,
+          "source_sha256": "sha256:c39ca4c8cd4b14b308bcb76814cb03b7765bd1efbe29706bf62cdc43013d99bd"
+        },
+        {
+          "file": "src/true_rl_agent/prompting/source_catalog.py",
+          "line": 1785,
+          "source_sha256": "sha256:c39ca4c8cd4b14b308bcb76814cb03b7765bd1efbe29706bf62cdc43013d99bd"
+        },
+        {
+          "file": "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py",
+          "line": 958,
+          "source_sha256": "sha256:da876baeb3f7246878f2c407836312aea6fecf9ac9ef82352841fccaa10d7ea5"
+        },
+        {
+          "file": "src/true_rl_agent/tasks/stair_climbing/prompt_adapter.py",
+          "line": 3457,
+          "source_sha256": "sha256:ef4867ea69bfeb7285b166c74ef6141bf7bb8091fb34ad7be2440cfcf7068706"
+        },
+        {
+          "file": "src/true_rl_agent/tasks/push_recovery/phased_adapter.py",
+          "line": 277,
+          "source_sha256": "sha256:e772df7548709015c32a2c8ea741ee976e65728830997deb3335dbb70860c1b7"
+        }
+      ],
+      "limit": "Fallback selects a feedback source when the task selection is absent, accepted or ineligible; it does not create another acceptance decision."
+    },
+    {
+      "boundary": "Push prompt and memory projection",
+      "shared_owns": "Ledger/replay validation and generic history/memory assembly. The existing formal=null branch denotes no single formal candidate attribution.",
+      "task_owns": "Public-dev score semantics, recovery counts/failure labels, reference-dev feedback and descriptive candidate-minus-parent deltas.",
+      "repair": "Push keeps formal=null instead of dropping it, copies the existing selected trial ID, and reuses public_dev_comparison in prompt and exploration projections. objective_delta is descriptive; runtime_effect remains not_assessed, exploration effect/value remain unknown, acceptance_authority=false.",
+      "evidence": [
+        {
+          "file": "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py",
+          "line": 589,
+          "source_sha256": "sha256:da876baeb3f7246878f2c407836312aea6fecf9ac9ef82352841fccaa10d7ea5"
+        },
+        {
+          "file": "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py",
+          "line": 618,
+          "source_sha256": "sha256:da876baeb3f7246878f2c407836312aea6fecf9ac9ef82352841fccaa10d7ea5"
+        },
+        {
+          "file": "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py",
+          "line": 632,
+          "source_sha256": "sha256:da876baeb3f7246878f2c407836312aea6fecf9ac9ef82352841fccaa10d7ea5"
+        },
+        {
+          "file": "src/true_rl_agent/tasks/push_recovery/exploration.py",
+          "line": 16,
+          "source_sha256": "sha256:3b69f1c8aa8b7a238ce543696567bc3eb1cd4c8d56c42f40757d79b5c0cf8ded"
+        },
+        {
+          "file": "src/true_rl_agent/tasks/push_recovery/exploration.py",
+          "line": 47,
+          "source_sha256": "sha256:3b69f1c8aa8b7a238ce543696567bc3eb1cd4c8d56c42f40757d79b5c0cf8ded"
+        },
+        {
+          "file": "src/true_rl_agent/agent_core/experiment_memory.py",
+          "line": 478,
+          "source_sha256": "sha256:0f5fbf8bc3bb346443f310fbf621b2139cd00e058e31b2b6448299e098a54c57"
+        },
+        {
+          "file": "src/true_rl_agent/agent_core/generation_record.py",
+          "line": 544,
+          "source_sha256": "sha256:5dfa9bbfed8ff07fbd94046e920c41bc40434e1974f006a67fe2c69fe97e56e3"
+        },
+        {
+          "file": "src/true_rl_agent/agent_core/generation_record.py",
+          "line": 595,
+          "source_sha256": "sha256:5dfa9bbfed8ff07fbd94046e920c41bc40434e1974f006a67fe2c69fe97e56e3"
+        },
+        {
+          "file": "src/true_rl_agent/tasks/push_recovery/phased_adapter.py",
+          "line": 242,
+          "source_sha256": "sha256:e772df7548709015c32a2c8ea741ee976e65728830997deb3335dbb70860c1b7"
+        }
+      ],
+      "single_truth": "guard_reference is copied from the bound selection receipt. If selection did not run, parent_public_dev comes from the bound PUBLIC_DEV phase receipt and matching parent checkpoint. public_dev_parent_reference is the idempotent compact projection of those same data, not a separately measured or acceptance-score truth source.",
+      "limit": "This review does not claim current multi-round provider payloads have dynamically exercised every history outcome. Later real prompts still require live inspection."
+    },
+    {
+      "boundary": "Genesis qualification failure persistence",
+      "shared_owns": "Persist failure evidence with session/reference/checkpoint/evaluation identities and refuse implicit reconstruction over a durable failure.",
+      "task_owns": "qualify_reference_result, qualification gate details and private evidence.",
+      "repair": "session_genesis serializes the returned task gate/evidence without adding thresholds. Failure still raises before sealing a reference or creating Genesis; the new filename participates in the existing partial-session rule.",
+      "evidence": [
+        {
+          "file": "src/true_rl_agent/agent_core/session_genesis.py",
+          "line": 2291,
+          "source_sha256": "sha256:6ddadc0323be6ba3f59015dbc5e0013c96800ddbf8a49c422a6d36083b0475f0"
+        },
+        {
+          "file": "src/true_rl_agent/agent_core/session_genesis.py",
+          "line": 2302,
+          "source_sha256": "sha256:6ddadc0323be6ba3f59015dbc5e0013c96800ddbf8a49c422a6d36083b0475f0"
+        },
+        {
+          "file": "src/true_rl_agent/agent_core/session_genesis.py",
+          "line": 3898,
+          "source_sha256": "sha256:6ddadc0323be6ba3f59015dbc5e0013c96800ddbf8a49c422a6d36083b0475f0"
+        }
+      ],
+      "limit": "A03 qualification passed, so this runtime did not exercise failure persistence. This is a source ownership review of that path, not a newly executed failure-path test."
+    }
+  ],
+  "compatibility_and_complexity": [
+    {
+      "item": "Simulation of Tensor arithmetic",
+      "assessment": "Removed, not patched further. The shared fixture module now contains only fixture/adapter contracts; no production SmokeTensor reference remains."
+    },
+    {
+      "item": "latest_nonaccepted_trial flat single-round fallback",
+      "assessment": "Pre-existing before A01 and unchanged. It represents the older round-shaped history accepted by shared prompt consumers, not a new task-specific compatibility branch. Removal needs a separate consumer retirement decision."
+    },
+    {
+      "item": "Push legacy versus current protocol branch and Stair no-Torch advisory placeholder",
+      "assessment": "Pre-existing task-owned code. The A03 frozen Push protocol and installed Torch take the current Tensor path. Their global retirement was not established necessary for this run and was not inferred from absence in this one experiment."
+    },
+    {
+      "item": "Three parent-dev projection keys",
+      "assessment": "They correspond to bound selection history, history before selection and an already projected view; one helper strips them to the same measured mean. No independent parent score formula or accept/sealed fallback was introduced."
+    },
+    {
+      "item": "Repeated compact dev statistics in prompt sections",
+      "assessment": "Representations of bound public-dev evidence, not new decision authority. Prompt byte/redundancy checks remain a separate live-run responsibility."
+    }
+  ],
+  "source_changes_vs_a01_in_review_scope": {
+    "src/true_rl_agent/candidates/component_smoke_runtime.py": {
+      "added_lines": 2,
+      "removed_lines": 3
+    },
+    "src/true_rl_agent/tasks/component_smoke.py": {
+      "added_lines": 0,
+      "removed_lines": 251
+    },
+    "src/true_rl_agent/tasks/push_recovery/component_smoke.py": {
+      "added_lines": 22,
+      "removed_lines": 15
+    },
+    "src/true_rl_agent/agent_core/generation_contract.py": {
+      "added_lines": 18,
+      "removed_lines": 5
+    },
+    "src/true_rl_agent/agent_core/session_genesis.py": {
+      "added_lines": 20,
+      "removed_lines": 1
+    },
+    "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py": {
+      "added_lines": 29,
+      "removed_lines": 5
+    },
+    "src/true_rl_agent/tasks/push_recovery/exploration.py": {
+      "added_lines": 46,
+      "removed_lines": 13
+    }
+  },
+  "scientific_token_scan": {
+    "files": [
+      "src/true_rl_agent/candidates/component_smoke_runtime.py",
+      "src/true_rl_agent/tasks/component_smoke.py",
+      "src/true_rl_agent/agent_core/generation_contract.py",
+      "src/true_rl_agent/agent_core/session_genesis.py",
+      "src/true_rl_agent/agent_core/experiment_memory.py"
+    ],
+    "hits": [],
+    "not_a_complete_architecture_proof": true
+  },
+  "existing_verification": {
+    "final_source_fixed_width_integration": {
+      "name": "target_selection_integration_tests_03.json",
+      "sha256": "sha256:d157ea2496520d626f9c43cac93c8d0c1f0e9591021eaf4661b2462501b3ceb9",
+      "status": "PASS",
+      "source_commit": "f9305ed993f6277c65ae0f94f4e281bb6bcb41f0",
+      "returncode": 0,
+      "log_tail": "test_full_generation_is_serial_author_parallel_execute_and_single_commit (tests.integration.test_fixed_width_generation.FixedWidthGenerationTests.test_full_generation_is_serial_author_parallel_execute_and_single_commit) ... ok\ntest_generation_anchor_loader_uses_first_prompt_after_repair (tests.integration.test_fixed_width_generation.FixedWidthGenerationTests.test_generation_anchor_loader_uses_first_prompt_after_repair) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 37.774s\n\nOK\n"
+    },
+    "reference_audit_file": "PLAN\\2new_world\\Go2_push\\attempt_03\\reference_audit.json",
+    "reference_audit_sha256": "sha256:f865c0d65bc23fe79b70d769f54a75d83af8cb3619b227be7e1094dcf7be3997",
+    "reference_result": "141/192 dev, 142/192 accept, 343/448 sealed; same checkpoint and complete scientific evidence as A02"
+  },
+  "limits": [
+    "No product files were edited and no additional tests or simulation jobs were run for this review.",
+    "The source snapshot establishes ownership at A03 launch; no guarantee about later source modifications is implied.",
+    "This four-change review does not prove all four robot-task cells or arbitrary future task topologies work.",
+    "Passed reference and an existing integration test receipt do not establish that five real generations and final confirmation have closed."
+  ],
+  "sources": {
+    "src/true_rl_agent/candidates/component_smoke_runtime.py": "sha256:a7fdf844d2e2dc8786bb4a952e2bd0c69b839bf059e2be2ffec30b56408f70ec",
+    "src/true_rl_agent/tasks/component_smoke.py": "sha256:76f5b71f4009f0c2a518d791df04ce0514937715880a41dffbf0b395a9838e13",
+    "src/true_rl_agent/tasks/push_recovery/component_smoke.py": "sha256:2a1ccf1373a0cb9878491af9ce3f08537962d85449274bc999022bfdbc6a6e34",
+    "src/true_rl_agent/tasks/stair_climbing/component_smoke.py": "sha256:aa6565490fbd3f7e7e7884d4a4e116e79f30e0c8ff01a05b2a670cdcaf938406",
+    "src/true_rl_agent/agent_core/generation_contract.py": "sha256:130ad7f82c6300baa372d0df8176002f21b88dfb6078d5af272a1f4c1639d4ac",
+    "src/true_rl_agent/agent_core/session_genesis.py": "sha256:6ddadc0323be6ba3f59015dbc5e0013c96800ddbf8a49c422a6d36083b0475f0",
+    "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py": "sha256:da876baeb3f7246878f2c407836312aea6fecf9ac9ef82352841fccaa10d7ea5",
+    "src/true_rl_agent/tasks/push_recovery/exploration.py": "sha256:3b69f1c8aa8b7a238ce543696567bc3eb1cd4c8d56c42f40757d79b5c0cf8ded",
+    "src/true_rl_agent/agent_core/experiment_memory.py": "sha256:0f5fbf8bc3bb346443f310fbf621b2139cd00e058e31b2b6448299e098a54c57",
+    "src/true_rl_agent/prompting/source_catalog.py": "sha256:c39ca4c8cd4b14b308bcb76814cb03b7765bd1efbe29706bf62cdc43013d99bd",
+    "src/true_rl_agent/tasks/stair_climbing/prompt_adapter.py": "sha256:ef4867ea69bfeb7285b166c74ef6141bf7bb8091fb34ad7be2440cfcf7068706",
+    "src/true_rl_agent/agent_core/generation_record.py": "sha256:5dfa9bbfed8ff07fbd94046e920c41bc40434e1974f006a67fe2c69fe97e56e3",
+    "src/true_rl_agent/tasks/push_recovery/phased_adapter.py": "sha256:e772df7548709015c32a2c8ea741ee976e65728830997deb3335dbb70860c1b7",
+    "src/true_rl_agent/agent_core/generation_guard.py": "sha256:387139ea92e24cac6b1366d646fb3b071f7d707334f34af5ae7ec326b0b50379"
+  },
+  "source_zip_sha256": "sha256:6d50dcf6bf0ce7894355989a5d2c6f93455832f631ef4f2a00b370edf6bf91ba"
+}

@@ -1,0 +1,62 @@
+$ C:\Users\lover\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe -m unittest tests.unit.test_runtime_evidence_projection -v
+test_generation_memory_preserves_each_sibling_under_capacity_pressure (tests.unit.test_runtime_evidence_projection.RuntimeEvidenceProjectionTests.test_generation_memory_preserves_each_sibling_under_capacity_pressure) ... ok
+test_memory_states_do_not_invent_execution_from_partial_records (tests.unit.test_runtime_evidence_projection.RuntimeEvidenceProjectionTests.test_memory_states_do_not_invent_execution_from_partial_records) ... 
+  test_memory_states_do_not_invent_execution_from_partial_records (tests.unit.test_runtime_evidence_projection.RuntimeEvidenceProjectionTests.test_memory_states_do_not_invent_execution_from_partial_records) (raw={'step_calls': 1, 'reward_term_calls': 0}) ... FAIL
+  test_memory_states_do_not_invent_execution_from_partial_records (tests.unit.test_runtime_evidence_projection.RuntimeEvidenceProjectionTests.test_memory_states_do_not_invent_execution_from_partial_records) (raw={'reward_term_count': 1, 'reward_term_calls': 0}) ... FAIL
+  test_memory_states_do_not_invent_execution_from_partial_records (tests.unit.test_runtime_evidence_projection.RuntimeEvidenceProjectionTests.test_memory_states_do_not_invent_execution_from_partial_records) (raw={'reward_term_calls': 0}) ... FAIL
+test_missing_partial_and_measured_zero_survive_author_and_memory (tests.unit.test_runtime_evidence_projection.RuntimeEvidenceProjectionTests.test_missing_partial_and_measured_zero_survive_author_and_memory) ... ok
+test_old_width_one_zero_filled_record_keeps_reward_execution_unknown (tests.unit.test_runtime_evidence_projection.RuntimeEvidenceProjectionTests.test_old_width_one_zero_filled_record_keeps_reward_execution_unknown) ... FAIL
+test_package_loaded_is_not_execution_and_capacity_omission_is_not_missing (tests.unit.test_runtime_evidence_projection.RuntimeEvidenceProjectionTests.test_package_loaded_is_not_execution_and_capacity_omission_is_not_missing) ... ok
+test_recompact_preserves_historical_nine_columns_and_current_short_state (tests.unit.test_runtime_evidence_projection.RuntimeEvidenceProjectionTests.test_recompact_preserves_historical_nine_columns_and_current_short_state) ... ok
+test_runtime_producer_distinguishes_no_terms_no_execution_and_zero_value (tests.unit.test_runtime_evidence_projection.RuntimeEvidenceProjectionTests.test_runtime_producer_distinguishes_no_terms_no_execution_and_zero_value) ... ok
+
+======================================================================
+FAIL: test_memory_states_do_not_invent_execution_from_partial_records (tests.unit.test_runtime_evidence_projection.RuntimeEvidenceProjectionTests.test_memory_states_do_not_invent_execution_from_partial_records) (raw={'step_calls': 1, 'reward_term_calls': 0})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_runtime_evidence_projection.py", line 147, in test_memory_states_do_not_invent_execution_from_partial_records
+    self.assertEqual(evidence.reward_execution_state(), state)
+AssertionError: 'terms_not_called' != 'unknown'
+- terms_not_called
++ unknown
+
+
+======================================================================
+FAIL: test_memory_states_do_not_invent_execution_from_partial_records (tests.unit.test_runtime_evidence_projection.RuntimeEvidenceProjectionTests.test_memory_states_do_not_invent_execution_from_partial_records) (raw={'reward_term_count': 1, 'reward_term_calls': 0})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_runtime_evidence_projection.py", line 147, in test_memory_states_do_not_invent_execution_from_partial_records
+    self.assertEqual(evidence.reward_execution_state(), state)
+AssertionError: 'terms_not_called' != 'unknown'
+- terms_not_called
++ unknown
+
+
+======================================================================
+FAIL: test_memory_states_do_not_invent_execution_from_partial_records (tests.unit.test_runtime_evidence_projection.RuntimeEvidenceProjectionTests.test_memory_states_do_not_invent_execution_from_partial_records) (raw={'reward_term_calls': 0})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_runtime_evidence_projection.py", line 147, in test_memory_states_do_not_invent_execution_from_partial_records
+    self.assertEqual(evidence.reward_execution_state(), state)
+AssertionError: 'terms_not_called' != 'unknown'
+- terms_not_called
++ unknown
+
+
+======================================================================
+FAIL: test_old_width_one_zero_filled_record_keeps_reward_execution_unknown (tests.unit.test_runtime_evidence_projection.RuntimeEvidenceProjectionTests.test_old_width_one_zero_filled_record_keeps_reward_execution_unknown)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_runtime_evidence_projection.py", line 175, in test_old_width_one_zero_filled_record_keeps_reward_execution_unknown
+    self.assertEqual(history["experiment_memory"]["experiments"][0]["runtime_observation"], "unknown")
+AssertionError: 'terms_not_called' != 'unknown'
+- terms_not_called
++ unknown
+
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.469s
+
+FAILED (failures=4)
+
+exit_code=1

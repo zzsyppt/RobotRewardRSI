@@ -43,6 +43,23 @@ class StairClimbingTaskPlugin(TaskPlugin):
 
     curriculum_capabilities: Mapping[str, Mapping[str, Any]] = {}
 
+    def bind_training_diagnostics(self, train_spec, *, parent_source, parent_evidence,
+                                  mechanism_operation_delta):
+        from true_rl_agent.tasks.stair_climbing.training_diagnostics import bind_stair_training_diagnostics
+        return bind_stair_training_diagnostics(train_spec, parent_source=parent_source,
+            parent_evidence=parent_evidence, mechanism_operation_delta=mechanism_operation_delta)
+
+    def training_runtime_issue(self, *, train_summary, mechanism_operation_delta):
+        from true_rl_agent.tasks.stair_climbing.public_projection import build_stair_candidate_runtime_effect_evidence
+        evidence = build_stair_candidate_runtime_effect_evidence(train_summary,
+            mechanism_operation_delta=mechanism_operation_delta)
+        # Old sampled-only evidence cannot establish full-transition inactivity.
+        runtime = train_summary.get("runtime_activation_summary", {})
+        comparison = runtime.get("operation_effect", {})
+        if evidence["status"] == "fail" and comparison.get("coverage") == "all_dispatched_training_transitions":
+            return evidence
+        return None
+
     def robot_requirements(self) -> RobotRequirements:
         return RobotRequirements(
             roles=(

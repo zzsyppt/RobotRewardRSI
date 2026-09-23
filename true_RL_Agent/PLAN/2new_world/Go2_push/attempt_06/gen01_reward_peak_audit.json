@@ -1,0 +1,92 @@
+{
+  "status": "PASS",
+  "scope": "A06 Gen1 actual full-training peak frames; prior unrecorded peaks cannot be reconstructed. No general optimization stability claim.",
+  "rows": [
+    {
+      "path": "session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-a/train/summary.json",
+      "sha256": "ac6a28e2fc95a3b13cf04e84be364553db5620c049d17ea8e67c602101bc62c2",
+      "peak": {
+        "control_step_1based": 11877,
+        "env_index_0based": 1926,
+        "schema_version": "true_rl_agent.push_recovery.reward_peak_frame.v1",
+        "scope": "one_running_absolute_peak_of_candidate_reward",
+        "signed_total": -147.9560546875,
+        "term_semantics": "signed contributions after clipping and effective weights; summed in runtime dtype and term order for signed_total",
+        "terms": [
+          {
+            "effective_weight": 3.0,
+            "name": "recovery_stance",
+            "signed_weighted_contribution": -0.8024160861968994
+          },
+          {
+            "effective_weight": 1.0,
+            "name": "stationary_v3",
+            "signed_weighted_contribution": -0.9606232643127441
+          },
+          {
+            "effective_weight": -0.1,
+            "name": "joint_pose",
+            "signed_weighted_contribution": -0.22631585597991943
+          },
+          {
+            "effective_weight": -0.01,
+            "name": "action_rate",
+            "signed_weighted_contribution": -125.9666976928711
+          },
+          {
+            "effective_weight": -20.0,
+            "name": "fall",
+            "signed_weighted_contribution": -20.0
+          }
+        ],
+        "units": "reward_rate_before_control_dt_integration"
+      },
+      "runtime_dtype_ordered_sum": -147.9560546875,
+      "peak_absolute_max_matches": true,
+      "last_mean": 3.631171941757202
+    },
+    {
+      "path": "session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-b/train/summary.json",
+      "sha256": "fa2bf7bf301ed1db665426e3f41f2745e3b576d2f623b6c8f07b42c1085c9dd3",
+      "peak": {
+        "control_step_1based": 5140,
+        "env_index_0based": 1196,
+        "schema_version": "true_rl_agent.push_recovery.reward_peak_frame.v1",
+        "scope": "one_running_absolute_peak_of_candidate_reward",
+        "signed_total": -25.158161163330078,
+        "term_semantics": "signed contributions after clipping and effective weights; summed in runtime dtype and term order for signed_total",
+        "terms": [
+          {
+            "effective_weight": 3.0,
+            "name": "upright_height_barrier",
+            "signed_weighted_contribution": -2.461531400680542
+          },
+          {
+            "effective_weight": 1.0,
+            "name": "stationary_v3",
+            "signed_weighted_contribution": 0.3030616044998169
+          },
+          {
+            "effective_weight": -0.1,
+            "name": "joint_pose",
+            "signed_weighted_contribution": -0.14297476410865784
+          },
+          {
+            "effective_weight": -0.01,
+            "name": "action_rate",
+            "signed_weighted_contribution": -2.8567159175872803
+          },
+          {
+            "effective_weight": -20.0,
+            "name": "fall",
+            "signed_weighted_contribution": -20.0
+          }
+        ],
+        "units": "reward_rate_before_control_dt_integration"
+      },
+      "runtime_dtype_ordered_sum": -25.158161163330078,
+      "peak_absolute_max_matches": true,
+      "last_mean": 3.605772018432617
+    }
+  ]
+}

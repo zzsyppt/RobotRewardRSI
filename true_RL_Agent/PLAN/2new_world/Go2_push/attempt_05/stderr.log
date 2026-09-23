@@ -1,0 +1,42 @@
+Traceback (most recent call last):
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/scripts/run_generation_session.py", line 145, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/scripts/run_generation_session.py", line 139, in main
+    result = run_generation_session(foundation)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/generation_application.py", line 238, in run_generation_session
+    return run_bounded_generation_session(foundation, genesis=genesis, cost_journal=journal,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/generation_session.py", line 291, in run_bounded_generation_session
+    result = execute_fixed_width_generation(generation_inputs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/generation.py", line 267, in execute_fixed_width_generation
+    state.authoring = state.runtime.author(exclusion)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/generation_lanes.py", line 217, in <lambda>
+    author=(lambda exclusion, lane_id=lane_id: author(lane_id, exclusion)),
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/generation_lanes.py", line 145, in author
+    return record_authoring(
+           ^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/generation_runtime.py", line 136, in <lambda>
+    record_authoring=lambda *, author, **_: author())
+                                            ^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/generation_lanes.py", line 151, in <lambda>
+    author=lambda: authoring_loop.run_round(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/authoring_loop.py", line 533, in _run_round_locked
+    provider_response = next_authoring_response(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/authoring_response.py", line 132, in next_authoring_response
+    response = normalize_authoring_provider_response(method(prompt_payload=prompt_payload))
+                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/generation_provider_budget.py", line 32, in next_authoring_response
+    _assert_provider_request_budget(
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_05/src/true_rl_agent/agent_core/generation_provider_budget.py", line 180, in _assert_provider_request_budget
+    raise RuntimeError(
+RuntimeError: prior provider request has no authoritative usage receipt

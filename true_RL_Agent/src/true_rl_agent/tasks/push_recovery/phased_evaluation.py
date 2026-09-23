@@ -36,6 +36,16 @@ def build_push_phase_summary(
     project_push_split(seed_summaries, split_name=phase.value, errors=errors)
     if errors:
         raise ValueError("Push phase contains incomplete rollout evidence")
+    from true_rl_agent.tasks.push_recovery.numeric_capture import validate_push_numeric_reference
+    for summary in seed_summaries:
+        if "numeric_evidence_ref" in summary:
+            if phase is not EvaluationPhase.PUBLIC_DEV:
+                raise ValueError("Push numeric archives are public_dev-only")
+            expected_identity = {key: identity[key] for key in ("job_id", "task_id", "subject_kind", "subject_id",
+                "subject_manifest_hash", "evaluation_binding", "backend_execution_environment_verification") if key in identity}
+            expected_identity.update(evaluation_plan_hash=evaluation_plan_hash,
+                checkpoint_hash=checkpoint_safety_report["checkpoint_hash"], runtime_dynamics_hash=runtime_dynamics_hash)
+            validate_push_numeric_reference(summary["numeric_evidence_ref"], summary, expected_identity=expected_identity)
     costs = [summary["execution_cost"] for summary in seed_summaries]
     env_counts = {cost["evaluation_env_count"] for cost in costs}
     if len(env_counts) != 1:

@@ -1,0 +1,94 @@
+{
+  "status": "PASS_READ_ONLY_SERVICE_STOP_REVIEW",
+  "audited_at_utc": "2026-09-23T03:05:25.714383+00:00",
+  "scope": "A05 actual failure replayed through current classifier; source control-flow review against A05 and prepared A06 snapshots; no product/test edits, no test suite or provider/GPU requests.",
+  "must_fix_findings": [],
+  "actual_A05_failure": {
+    "path": "PLAN/2new_world/Go2_push/attempt_05/session/authoring/go2-push-5rounds-20260922-a05-generation-001/lane-a/authoring_attempts/attempt_000003/attempt_result.json",
+    "sha256": "7acf68f13474495b1fcbbf258bf9cf78649051fa091ffd22fb9149dd5ee7cedf",
+    "http_status": 402,
+    "retryable": false,
+    "new_requires_service_recovery": true,
+    "new_exception_class": "ProviderServiceUnavailableError",
+    "authoritative_usage_known": false,
+    "actual_usage": null,
+    "actual_monetary_cost": null
+  },
+  "checks": [
+    {
+      "name": "narrow_shared_service_classification",
+      "passed": true,
+      "source": "provider_errors.py:112-131",
+      "fact": "Only nonretryable runtime_error/http_error with 401,402,403 becomes service recovery. No task/robot rule added."
+    },
+    {
+      "name": "persist_before_raise",
+      "passed": true,
+      "source": "authoring_loop.py:488-556",
+      "fact": "Failed provider record, optional real usage and response receipt, current prompt/parent/source state and continue disposition are durably completed before raising typed error. No candidate repair requested."
+    },
+    {
+      "name": "stop_before_generation_commit",
+      "passed": true,
+      "source": "generation.py:269-318; generation_lanes.py:127-172; generation_runtime.py:136",
+      "fact": "Author callback propagates typed exception; current invocation cannot reach next lane, paired-incomplete commit or parallel training. Existing prior completed generations are retained."
+    },
+    {
+      "name": "failed_segment_cost_and_exit",
+      "passed": true,
+      "source": "generation_session.py:423-460",
+      "fact": "Existing outer exception branch reads only committed ledger, publishes conservative cost snapshot and failed segment exit, then reraises. It does not run final confirmation/finalize_terminal or manufacture closure."
+    },
+    {
+      "name": "unknown_usage_guard_unchanged",
+      "passed": true,
+      "source": "generation_provider_budget.py",
+      "fact": "Same-session next provider request remains blocked without authoritative prior usage. Pure authoring resume test is not authorization to bypass formal cost accounting."
+    },
+    {
+      "name": "existing_behavior_test_coverage_reviewed",
+      "passed": true,
+      "source": "tests/unit/test_candidate_authoring_loop.py; tests/integration/test_fixed_width_generation.py",
+      "fact": "Unit source asserts 401/402/403 persistence and typed stop, prior receipt preservation on pure authoring resume, generic 400 terminal and transient retry behavior. Existing full-generation scenario asserts 402 leaves ledger absent, B uncalled and training absent. Parent reports targeted tests passed; this review did not rerun tests."
+    },
+    {
+      "name": "A05_reference_receipt_preserved",
+      "passed": true,
+      "source": "PLAN/2new_world/Go2_push/attempt_05/reference_audit.json",
+      "sha256": "54af2a41985c58ab8410f0ce966b8fcc1c7086c1e301f84f05b7d3c9edb34e8e"
+    },
+    {
+      "name": "reviewed_source_matches_prepared_A06",
+      "passed": true,
+      "source": "PLAN/2new_world/Go2_push/source_snapshot_06.json",
+      "fact": "All seven reviewed product files match prepared A06 snapshot. Five generation/budget/dispatch files are byte-identical to A05; only provider classification and authoring handling differ."
+    }
+  ],
+  "A05_historical_state_unchanged": {
+    "ledger_records": 1,
+    "generation_outcome": "paired_authoring_incomplete",
+    "completed_candidate_trials": 0,
+    "provider_requests": 3,
+    "generation_2_provider_requests": 0,
+    "failure_closure_audit_sha256": "1b663a2d6982f91956af697588df239d7688274f45c67431d6e613b81ccf049b",
+    "note": "This review does not rewrite the failed A05 ledger or reinterpret it as successful experimental progress."
+  },
+  "source_sha256": {
+    "src/true_rl_agent/agent_core/provider_errors.py": "1be6369bd1214b82ffd485dffe2999a43507f6736d1d78a369cc4c6a90f93ca4",
+    "src/true_rl_agent/agent_core/authoring_loop.py": "6e020c2d74ebb32ba55c61a1946f9579f525bdbdfa349bc4653fb986e7ded97c",
+    "src/true_rl_agent/agent_core/generation_provider_budget.py": "87b357df10f89d9556a7166deeb7a7a1046cdc9ac3d3b9865440d6064f36d30f",
+    "src/true_rl_agent/agent_core/generation.py": "74684688ace8d1b2247740327318114ebe5e57964752be88dcc4b2a245d412a0",
+    "src/true_rl_agent/agent_core/generation_session.py": "3183b8537f26bb96a8d0405b44b662ff3c4e23732a49b3e4e3b6162fe002d95d",
+    "src/true_rl_agent/agent_core/generation_lanes.py": "c21a4460c06a9f849e743f4fb0bd4ac41b781d56205a2957151a2506398fae01",
+    "src/true_rl_agent/agent_core/generation_runtime.py": "560fbf1ea8a0e073fa898f4b6c4b5246f261fad445cf712469c92a12868cbc3c"
+  },
+  "test_source_sha256": {
+    "tests/unit/test_candidate_authoring_loop.py": "c481cb17597367922eb260de486ecd98ff23bdf7781d21302f88ac9ad835ddce",
+    "tests/integration/test_fixed_width_generation.py": "756520cd38dc07fd6109e58a721e057278cf17b6443481bac472fdf2b477a7a8"
+  },
+  "limits": [
+    "No A06 server run or five-generation acceptance is claimed.",
+    "No exact settlement is claimed for the unknown-usage HTTP402; A05 conservative accounting remains intact.",
+    "No additional defensive mechanisms or tests introduced."
+  ]
+}

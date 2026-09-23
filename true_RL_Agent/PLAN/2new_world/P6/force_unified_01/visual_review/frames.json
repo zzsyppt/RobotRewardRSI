@@ -1,0 +1,338 @@
+[
+  {
+    "robot": "go2",
+    "kind": "success",
+    "video_sha256": "6e1935671afe3aa5c79599323f1bc0efd8c323afee957c98c0f8bd7c7ac948a1",
+    "decoded_frames": 303,
+    "selected_steps": [
+      1,
+      38,
+      76,
+      114,
+      152,
+      189,
+      227,
+      265,
+      303
+    ],
+    "contact_sheet": "PLAN/2new_world/P6/force_unified_01/visual_review/go2_success.jpg",
+    "episode": {
+      "actual_total_mass_kg": 17.14162826538086,
+      "completed_push_event_count": 2,
+      "control_failure_label": null,
+      "control_only": false,
+      "control_success": false,
+      "env_id": 54,
+      "episode_index": 1,
+      "episode_steps": 303,
+      "failure_label": "success_recovered",
+      "final_planar_speed_mps": 0.002332458971068263,
+      "final_recovery_condition": true,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            54.25627517700195,
+            2.821604013442993,
+            -2.171430679709374e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            246.61947631835938,
+            12.825461387634277,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001220703125,
+          "start_control_step": 51
+        },
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -2.8216123580932617,
+            54.25627517700195,
+            -3.521889482271945e-07
+          ],
+          "end_control_step": 84,
+          "event_index": 1,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -12.825502395629883,
+            246.61947631835938,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001220703125,
+          "start_control_step": 73
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.1046881228685379,
+      "max_abs_roll_rad": 0.3683931827545166,
+      "max_pitch_rad": 0.09840371459722519,
+      "max_xy_drift_m": 1.204953670501709,
+      "mean_action_l2": 17.682501160272277,
+      "mean_action_rate_l2": 1.2098181192630981,
+      "min_base_height_m": 0.2242678999900818,
+      "min_pitch_rad": -0.1046881228685379,
+      "planned_push_count": 2,
+      "push_event_count": 2,
+      "sequence_recovered": true,
+      "sequence_recovery_control_step": 130,
+      "stratum": "repeated",
+      "success": true,
+      "verified_push_event_count": 2
+    }
+  },
+  {
+    "robot": "go2",
+    "kind": "failure",
+    "video_sha256": "55a4586805f2cae72eebdde78b155e3c60c6a841004f36ac39452ea4d39a2c05",
+    "decoded_frames": 86,
+    "selected_steps": [
+      1,
+      11,
+      22,
+      32,
+      43,
+      54,
+      64,
+      75,
+      86
+    ],
+    "contact_sheet": "PLAN/2new_world/P6/force_unified_01/visual_review/go2_failure.jpg",
+    "episode": {
+      "actual_total_mass_kg": 15.012216567993164,
+      "completed_push_event_count": 2,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 52,
+      "episode_index": 1,
+      "episode_steps": 86,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 2.7585647106170654,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            35.346435546875,
+            -31.85177230834961,
+            -1.8186398165198625e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            160.66563415527344,
+            -144.78082275390625,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 7.62939453125e-05,
+          "start_control_step": 51
+        },
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            31.85177230834961,
+            35.34645080566406,
+            -1.1600182006077375e-06
+          ],
+          "end_control_step": 84,
+          "event_index": 1,
+          "expected_substeps": 44,
+          "force_world_n": [
+            144.7808074951172,
+            160.66567993164062,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 9.1552734375e-05,
+          "start_control_step": 73
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.1828334629535675,
+      "max_abs_roll_rad": 0.8371373414993286,
+      "max_pitch_rad": 0.1828334629535675,
+      "max_xy_drift_m": 0.7001328468322754,
+      "mean_action_l2": 16.450496230014537,
+      "mean_action_rate_l2": 3.2213617369186047,
+      "min_base_height_m": 0.345522940158844,
+      "min_pitch_rad": -0.01407192274928093,
+      "planned_push_count": 2,
+      "push_event_count": 2,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "repeated",
+      "success": false,
+      "verified_push_event_count": 2
+    }
+  },
+  {
+    "robot": "g1",
+    "kind": "success",
+    "video_sha256": "f7512bda5797d9743e173e0c97645ae3f14aa3512c7cdae6000631b2c93ed840",
+    "decoded_frames": 412,
+    "selected_steps": [
+      1,
+      52,
+      103,
+      154,
+      206,
+      258,
+      309,
+      360,
+      412
+    ],
+    "contact_sheet": "PLAN/2new_world/P6/force_unified_01/visual_review/g1_success.jpg",
+    "episode": {
+      "actual_total_mass_kg": 32.238929748535156,
+      "completed_push_event_count": 1,
+      "control_failure_label": null,
+      "control_only": false,
+      "control_success": false,
+      "env_id": 26,
+      "episode_index": 1,
+      "episode_steps": 412,
+      "failure_label": "success_recovered",
+      "final_planar_speed_mps": 0.005584560334682465,
+      "final_recovery_condition": true,
+      "force_events": [
+        {
+          "actual_substeps": 56,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -5.413457870483398,
+            104.09392547607422,
+            1.2139161071900162e-06
+          ],
+          "end_control_step": 83,
+          "event_index": 0,
+          "expected_substeps": 56,
+          "force_world_n": [
+            -19.333690643310547,
+            371.76434326171875,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.00030517578125,
+          "start_control_step": 69
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.1851968914270401,
+      "max_abs_roll_rad": 0.4740917384624481,
+      "max_pitch_rad": 0.1851968914270401,
+      "max_xy_drift_m": 3.395944118499756,
+      "mean_action_l2": 5.8642578125,
+      "mean_action_rate_l2": 2.3703324401262895,
+      "min_base_height_m": 0.5561171770095825,
+      "min_pitch_rad": -0.08908165246248245,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": true,
+      "sequence_recovery_control_step": 184,
+      "stratum": "medium",
+      "success": true,
+      "verified_push_event_count": 1
+    }
+  },
+  {
+    "robot": "g1",
+    "kind": "failure",
+    "video_sha256": "3562aa9ebf5c319f2a9398a03e17b6428bcdc05d8330c9a21bf16ddd2f165dbc",
+    "decoded_frames": 100,
+    "selected_steps": [
+      1,
+      12,
+      25,
+      38,
+      50,
+      62,
+      75,
+      88,
+      100
+    ],
+    "contact_sheet": "PLAN/2new_world/P6/force_unified_01/visual_review/g1_failure.jpg",
+    "episode": {
+      "actual_total_mass_kg": 32.238929748535156,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 48,
+      "episode_index": 1,
+      "episode_steps": 100,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 4.738632678985596,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 56,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -93.0369644165039,
+            -103.24454498291016,
+            1.6546249526072643e-06
+          ],
+          "end_control_step": 83,
+          "event_index": 0,
+          "expected_substeps": 56,
+          "force_world_n": [
+            -332.2748718261719,
+            -368.7306823730469,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0003662109375,
+          "start_control_step": 69
+        },
+        {
+          "actual_substeps": 24,
+          "completed": false,
+          "delivered_impulse_world_ns": [
+            44.24767303466797,
+            -39.872962951660156,
+            2.2053720272197097e-07
+          ],
+          "end_control_step": 100,
+          "event_index": 1,
+          "expected_substeps": 56,
+          "force_world_n": [
+            368.730712890625,
+            -332.2747802734375,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.000244140625,
+          "start_control_step": 94
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.43660232424736023,
+      "max_abs_roll_rad": 0.9388632774353027,
+      "max_pitch_rad": 0.43660232424736023,
+      "max_xy_drift_m": 2.1341910362243652,
+      "mean_action_l2": 7.342826538085937,
+      "mean_action_rate_l2": 3.6196945190429686,
+      "min_base_height_m": 0.605998158454895,
+      "min_pitch_rad": -0.141076922416687,
+      "planned_push_count": 2,
+      "push_event_count": 2,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "repeated",
+      "success": false,
+      "verified_push_event_count": 2
+    }
+  }
+]

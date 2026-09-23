@@ -1,0 +1,442 @@
+{
+ "go2_v3_public_dev": {
+  "episodes": 864,
+  "primary": {
+   "success": 689,
+   "timeout": 36,
+   "base_orientation_instability": 22,
+   "forbidden_contact": 113,
+   "off_course": 4
+  },
+  "flag_totals": {
+   "first_valid_top_arrival_achieved": 689,
+   "slip_detected": 715,
+   "goal_not_reached_detected": 173,
+   "base_orientation_instability_detected": 82,
+   "insufficient_clearance_detected": 65,
+   "off_course_detected": 4
+  },
+  "per_primary": {
+   "success": {
+    "n": 689,
+    "steps_p10_p50_p90": [
+     294.0,
+     322.0,
+     403.0
+    ],
+    "steps_min_max": [
+     277,
+     595
+    ],
+    "progress_p10_p50_p90": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "flag_rates": {
+     "first_valid_top_arrival_achieved": 1.0,
+     "slip_detected": 0.8128,
+     "goal_not_reached_detected": 0.0,
+     "base_orientation_instability_detected": 0.016,
+     "insufficient_clearance_detected": 0.0726,
+     "off_course_detected": 0.0
+    }
+   },
+   "timeout": {
+    "n": 36,
+    "steps_p10_p50_p90": [
+     544.0,
+     588.0,
+     600.0
+    ],
+    "steps_min_max": [
+     464,
+     600
+    ],
+    "progress_p10_p50_p90": [
+     0.193,
+     0.208,
+     0.658
+    ],
+    "flag_rates": {
+     "first_valid_top_arrival_achieved": 0.0,
+     "slip_detected": 0.75,
+     "goal_not_reached_detected": 1.0,
+     "base_orientation_instability_detected": 0.0278,
+     "insufficient_clearance_detected": 0.0556,
+     "off_course_detected": 0.0
+    }
+   },
+   "base_orientation_instability": {
+    "n": 22,
+    "steps_p10_p50_p90": [
+     544.0,
+     594.0,
+     637.0
+    ],
+    "steps_min_max": [
+     544,
+     637
+    ],
+    "progress_p10_p50_p90": [
+     0.217,
+     0.363,
+     0.681
+    ],
+    "flag_rates": {
+     "first_valid_top_arrival_achieved": 0.0,
+     "slip_detected": 0.9545,
+     "goal_not_reached_detected": 1.0,
+     "base_orientation_instability_detected": 1.0,
+     "insufficient_clearance_detected": 0.0909,
+     "off_course_detected": 0.0
+    }
+   },
+   "forbidden_contact": {
+    "n": 113,
+    "steps_p10_p50_p90": [
+     132.4,
+     291.0,
+     423.2
+    ],
+    "steps_min_max": [
+     90,
+     633
+    ],
+    "progress_p10_p50_p90": [
+     0.243,
+     0.597,
+     0.792
+    ],
+    "flag_rates": {
+     "first_valid_top_arrival_achieved": 0.0,
+     "slip_detected": 0.9115,
+     "goal_not_reached_detected": 1.0,
+     "base_orientation_instability_detected": 0.4159,
+     "insufficient_clearance_detected": 0.0708,
+     "off_course_detected": 0.0
+    }
+   },
+   "off_course": {
+    "n": 4,
+    "steps_p10_p50_p90": [
+     516.0,
+     600.0,
+     600.0
+    ],
+    "steps_min_max": [
+     544,
+     600
+    ],
+    "progress_p10_p50_p90": [
+     0.712,
+     0.943,
+     1.0
+    ],
+    "flag_rates": {
+     "first_valid_top_arrival_achieved": 0.0,
+     "slip_detected": 1.0,
+     "goal_not_reached_detected": 0.5,
+     "base_orientation_instability_detected": 0.25,
+     "insufficient_clearance_detected": 0.75,
+     "off_course_detected": 1.0
+    }
+   }
+  },
+  "per_cell_primary": {
+   "public_dev.c0_id_level_3": {
+    "success": 36
+   },
+   "public_dev.c0_id_level_4": {
+    "success": 36
+   },
+   "public_dev.c0_id_level_5": {
+    "success": 36
+   },
+   "public_dev.c1_conditional_frontier_level_3": {
+    "success": 36
+   },
+   "public_dev.c1_conditional_frontier_level_4": {
+    "timeout": 11,
+    "success": 17,
+    "base_orientation_instability": 3,
+    "forbidden_contact": 5
+   },
+   "public_dev.c1_conditional_frontier_level_5": {
+    "success": 2,
+    "forbidden_contact": 30,
+    "base_orientation_instability": 4
+   },
+   "public_dev.c1_id_level_3": {
+    "success": 36
+   },
+   "public_dev.c1_id_level_4": {
+    "success": 36
+   },
+   "public_dev.c1_id_level_5": {
+    "success": 36
+   },
+   "public_dev.c2_mechanism_ood_level_2": {
+    "success": 33,
+    "timeout": 2,
+    "forbidden_contact": 1
+   },
+   "public_dev.c2_mechanism_ood_level_4": {
+    "success": 23,
+    "forbidden_contact": 6,
+    "base_orientation_instability": 3,
+    "timeout": 4
+   },
+   "public_dev.c2_mechanism_ood_level_5": {
+    "success": 27,
+    "timeout": 3,
+    "forbidden_contact": 4,
+    "base_orientation_instability": 2
+   },
+   "public_dev.height_ood_level_1": {
+    "success": 35,
+    "forbidden_contact": 1
+   },
+   "public_dev.height_ood_level_4": {
+    "forbidden_contact": 16,
+    "success": 19,
+    "timeout": 1
+   },
+   "public_dev.height_ood_level_5": {
+    "success": 9,
+    "forbidden_contact": 19,
+    "off_course": 3,
+    "timeout": 3,
+    "base_orientation_instability": 2
+   },
+   "public_dev.joint_ood_level_1": {
+    "success": 34,
+    "forbidden_contact": 1,
+    "timeout": 1
+   },
+   "public_dev.joint_ood_level_2": {
+    "base_orientation_instability": 5,
+    "forbidden_contact": 6,
+    "success": 19,
+    "off_course": 1,
+    "timeout": 5
+   },
+   "public_dev.joint_ood_level_3": {
+    "forbidden_contact": 12,
+    "timeout": 5,
+    "success": 16,
+    "base_orientation_instability": 3
+   },
+   "public_dev.phase_composition_ood_level_3": {
+    "success": 36
+   },
+   "public_dev.phase_composition_ood_level_4": {
+    "success": 36
+   },
+   "public_dev.phase_composition_ood_level_5": {
+    "success": 36
+   },
+   "public_dev.tread_ood_level_2": {
+    "success": 35,
+    "forbidden_contact": 1
+   },
+   "public_dev.tread_ood_level_3": {
+    "success": 33,
+    "forbidden_contact": 3
+   },
+   "public_dev.tread_ood_level_5": {
+    "timeout": 1,
+    "success": 27,
+    "forbidden_contact": 8
+   }
+  },
+  "forbidden_contact_progress_deciles": {
+   "2": 18,
+   "3": 12,
+   "4": 8,
+   "5": 22,
+   "6": 27,
+   "7": 17,
+   "8": 8,
+   "9": 1
+  }
+ },
+ "formal_v2_vs_current_v3": {
+  "same": [
+   "action_content_hash",
+   "agent_configuration_hash",
+   "binding_facts_hash",
+   "candidate_capability_profile_hash",
+   "observation_content_hash",
+   "policy_io_schema_hash",
+   "reference_capability_gate_hash",
+   "reward_capability_vnext_hash",
+   "reward_input_schema_hash",
+   "reward_input_vnext_schema_hash",
+   "sensor_schema_hash",
+   "training_profile_hash",
+   "vnext_reward_authority_hash"
+  ],
+  "different": [
+   "acceptance_protocol_hash",
+   "evaluation_protocol_hash",
+   "evaluation_suite_hash",
+   "ordered_cell_set_hash",
+   "protocol_state_hash"
+  ],
+  "robot_profile_same": true,
+  "runtime_adapter_same": true,
+  "resolved_roles_same": true
+ },
+ "training_binding": {
+  "formal_gen008a": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98",
+  "p2_reference": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98",
+  "formal_cell": "stair.go2_12dof.unified_v2",
+  "p2_reference_cell": "stair.go2_12dof.unified_v2",
+  "same_resolved_cell_manifest": true
+ },
+ "formal_checkpoints": {
+  "best_pt": 23,
+  "distinct_best_hashes": 22,
+  "all_exist": true
+ },
+ "push_attempt_08": {
+  "runner_public_dev_summaries": {
+   "go2-push-5rounds-20260923-a08-generation-001-lane-a": {
+    "episodes": 192,
+    "labels": {
+     "success_recovered": 169,
+     "fall_forward": 1,
+     "fall_side": 15,
+     "height_collapse": 3,
+     "not_recovered": 4
+    }
+   },
+   "go2-push-5rounds-20260923-a08-generation-001-lane-b": {
+    "episodes": 192,
+    "labels": {
+     "success_recovered": 163,
+     "not_recovered": 8,
+     "fall_side": 8,
+     "height_collapse": 13
+    }
+   },
+   "go2-push-5rounds-20260923-a08-generation-002-lane-a": {
+    "episodes": 192,
+    "labels": {
+     "success_recovered": 104,
+     "fall_side": 43,
+     "not_recovered": 14,
+     "fall_backward": 19,
+     "fall_forward": 7,
+     "height_collapse": 5
+    }
+   },
+   "go2-push-5rounds-20260923-a08-generation-002-lane-b": {
+    "episodes": 192,
+    "labels": {
+     "not_recovered": 12,
+     "success_recovered": 106,
+     "fall_side": 51,
+     "fall_backward": 20,
+     "fall_forward": 1,
+     "height_collapse": 2
+    }
+   },
+   "go2-push-5rounds-20260923-a08-generation-003-lane-a": {
+    "episodes": 192,
+    "labels": {
+     "height_collapse": 192
+    }
+   },
+   "go2-push-5rounds-20260923-a08-generation-003-lane-b": {
+    "episodes": 192,
+    "labels": {
+     "success_recovered": 147,
+     "fall_side": 32,
+     "not_recovered": 9,
+     "fall_backward": 3,
+     "height_collapse": 1
+    }
+   },
+   "go2-push-5rounds-20260923-a08-generation-004-lane-a": {
+    "episodes": 192,
+    "labels": {
+     "success_recovered": 161,
+     "not_recovered": 9,
+     "fall_side": 7,
+     "height_collapse": 14,
+     "fall_forward": 1
+    }
+   },
+   "go2-push-5rounds-20260923-a08-generation-004-lane-b": {
+    "episodes": 192,
+    "labels": {
+     "success_recovered": 175,
+     "not_recovered": 7,
+     "fall_side": 10
+    }
+   },
+   "go2-push-5rounds-20260923-a08-generation-005-lane-a": {
+    "episodes": 192,
+    "labels": {
+     "success_recovered": 172,
+     "fall_side": 15,
+     "height_collapse": 3,
+     "not_recovered": 2
+    }
+   },
+   "go2-push-5rounds-20260923-a08-generation-005-lane-b": {
+    "episodes": 192,
+    "labels": {
+     "success_recovered": 169,
+     "fall_forward": 2,
+     "not_recovered": 5,
+     "fall_side": 15,
+     "fall_backward": 1
+    }
+   },
+   "go2-push-5rounds-20260923-a08": {
+    "episodes": 192,
+    "labels": {
+     "success_recovered": 141,
+     "height_collapse": 26,
+     "fall_backward": 11,
+     "fall_side": 13,
+     "not_recovered": 1
+    }
+   }
+  },
+  "generation_outcomes": {
+   "001": "accepted",
+   "002": "formal_rejected",
+   "003": "formal_rejected",
+   "004": "accepted",
+   "005": "formal_rejected"
+  },
+  "train_jobs": 10
+ },
+ "token_estimator": {
+  "n": 9,
+  "linear_fit": {
+   "intercept": -5252,
+   "slope": 0.363,
+   "max_abs_rel_err": 0.0571
+  },
+  "p0_estimator_overhead_range": [
+   0.265,
+   0.62
+  ],
+  "tokens_per_byte_min_max": [
+   0.2602,
+   0.3298
+  ]
+ },
+ "stair_public_dev_replay_cost": {
+  "p3_qualification_split_wall_s": 421.8915,
+  "p6_regression_split_wall_s": 288.092267,
+  "p6_regression_process_wall_s": 310.2,
+  "envs_per_seed": 288,
+  "seeds": 3
+ }
+}

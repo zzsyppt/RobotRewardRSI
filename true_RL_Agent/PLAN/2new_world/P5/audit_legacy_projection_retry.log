@@ -1,0 +1,47 @@
+======================================================================
+ERROR: test_prompt_overflow_keeps_all_comparisons_after_static_compaction (tests.unit.test_stair_public_projection.StairPublicProjectionTests.test_prompt_overflow_keeps_all_comparisons_after_static_compaction)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_stair_public_projection.py", line 2153, in test_prompt_overflow_keeps_all_comparisons_after_static_compaction
+    summary["feedback_entry_projection"],
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'feedback_entry_projection'
+
+======================================================================
+ERROR: test_static_contract_compaction_preserves_full_failure_grids (tests.unit.test_stair_public_projection.StairPublicProjectionTests.test_static_contract_compaction_preserves_full_failure_grids)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_stair_public_projection.py", line 2322, in test_static_contract_compaction_preserves_full_failure_grids
+    summary["capacity_projection_receipt"]["projection_id"],
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'capacity_projection_receipt'
+
+======================================================================
+ERROR: test_static_contract_compaction_preserves_normalized_eval_v8_feedback (tests.unit.test_stair_public_projection.StairPublicProjectionTests.test_static_contract_compaction_preserves_normalized_eval_v8_feedback)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_stair_public_projection.py", line 2005, in test_static_contract_compaction_preserves_normalized_eval_v8_feedback
+    summary["capacity_projection_receipt"]["projection_id"],
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'capacity_projection_receipt'
+
+======================================================================
+FAIL: test_legal_identity_maxima_fit_required_feedback_under_adversarial_load (tests.unit.test_stair_public_projection.StairPublicProjectionTests.test_legal_identity_maxima_fit_required_feedback_under_adversarial_load)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_stair_public_projection.py", line 2272, in test_legal_identity_maxima_fit_required_feedback_under_adversarial_load
+    self.assertTrue(summary["byte_budget_compaction_applied"])
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_required_feedback_anchors_use_core_projection_before_overflow (tests.unit.test_stair_public_projection.StairPublicProjectionTests.test_required_feedback_anchors_use_core_projection_before_overflow)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_stair_public_projection.py", line 1858, in test_required_feedback_anchors_use_core_projection_before_overflow
+    self.assertTrue(summary["byte_budget_compaction_applied"])
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 96 tests in 9.866s
+
+FAILED (failures=2, errors=3)

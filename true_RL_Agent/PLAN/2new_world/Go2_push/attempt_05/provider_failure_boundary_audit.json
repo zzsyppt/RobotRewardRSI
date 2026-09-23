@@ -1,0 +1,44 @@
+{
+  "status": "STATIC_BLOCKING_BOUNDARY_DEFECT_CONFIRMED_ACTUAL_RESPONSES_PENDING",
+  "scope": "Read-only audit of provider failure classification, lane/session stopping and memory consequences; no product changes or new tests.",
+  "source_sha256": {
+    "src/true_rl_agent/agent_core/openai_compatible_provider.py": "cd3eae5ff8b556a766861f671be00d4925940b3d152598a85e953f18d71cb162",
+    "src/true_rl_agent/agent_core/provider_errors.py": "1be6369bd1214b82ffd485dffe2999a43507f6736d1d78a369cc4c6a90f93ca4",
+    "src/true_rl_agent/agent_core/authoring_loop.py": "c60fa8f39f19d97607834ee7119d93ca62a497a51e6f54f9c73b693b9c67be1e",
+    "src/true_rl_agent/agent_core/generation.py": "74684688ace8d1b2247740327318114ebe5e57964752be88dcc4b2a245d412a0",
+    "src/true_rl_agent/agent_core/generation_session.py": "3183b8537f26bb96a8d0405b44b662ff3c4e23732a49b3e4e3b6162fe002d95d",
+    "src/true_rl_agent/agent_core/experiment_memory.py": "0f5fbf8bc3bb346443f310fbf621b2139cd00e058e31b2b6448299e098a54c57"
+  },
+  "findings": [
+    {
+      "kind": "correct_provider_classification",
+      "source": "openai_compatible_provider.py:286-308",
+      "fact": "HTTP 402 is runtime_error with failure_kind=http_error, http_status=402 and retryable=false. Error body/credential is not copied into public feedback."
+    },
+    {
+      "kind": "correct_lane_stop",
+      "source": "authoring_loop.py:537-587",
+      "fact": "Non-retryable runtime_error immediately seals terminal authoring continuation with provider_failed; no further request in that lane. The generic repair feedback is retained but terminal path does not issue it as another same-lane request."
+    },
+    {
+      "kind": "blocking_shared_boundary",
+      "source": "generation.py:269-318; generation_session.py:275 onward",
+      "fact": "Every non-candidate_verified authoring result is treated as candidate_failed. Paired-authoring-incomplete is sealed and committed as a generation; outer session advances by ledger length. Service availability failure is therefore consumed as completed experimental progress instead of stopping before generation commit."
+    },
+    {
+      "kind": "memory_effect",
+      "source": "experiment_memory.py::_authoring_candidate_components; _trial_outcome",
+      "fact": "A formal=None generation yields no singular candidate mechanism attribution; absent measured trial fields remain null and current-best is not replaced. However the empty failure generation still enters history/counts. This describes the code path, not yet the downloaded later-round prompt."
+    },
+    {
+      "kind": "response_channel_classification",
+      "source": "openai_compatible_provider.py:390-446; _resolved_thinking_mode",
+      "fact": "Empty final content with nonempty reasoning and finish_reason=length maps reasoning_output_exhausted; empty final content with a non-length finish maps json_parse_error. Adaptive recovery can disable thinking based on the typed empty-final evidence and lane exhaustion flag; no task semantics or scientific parameters are involved."
+    }
+  ],
+  "actual_response_audit": {
+    "status": "PENDING_STOPPED_SNAPSHOT",
+    "required_evidence": "Attempt receipts and repair payloads for first exhausted, second parse failure, third HTTP402; stopped ledger/closures and any subsequent real prompt."
+  },
+  "ownership": "Fix belongs to shared authoring/execution failure propagation. No Push/Go2 reward/evaluation changes, no operator transport-policy rewrite inferred."
+}

@@ -1,0 +1,2259 @@
+{
+  "schema_version": "true_rl_agent.prompt_payload.v4",
+  "task": {
+    "schema_version": "true_rl_agent.task_prompt.stair_climbing.v4",
+    "task_id": "unitree_stair_climbing",
+    "name": "Stair Climbing",
+    "objective": "Improve one reward program for the unified Stair task across runner-owned C0/C1 training regimes, with OOD performance as the primary emphasis and in-distribution performance protected by named guards.",
+    "candidate_authoring_status": "complete_reward_program_only",
+    "fixed_train_protocol_summary": {
+      "budget_steps": 196608000,
+      "train_num_envs": 4096,
+      "train_max_iterations": 2000,
+      "train_steps_per_iteration": 24,
+      "policy_initialization": "random",
+      "terrain_regime_allocation": {
+        "c0_regular_fraction": 0.5,
+        "c1_irregular_flat_fraction": 0.5
+      },
+      "c0_support": {
+        "riser_range_m": [
+          0.03,
+          0.206
+        ],
+        "tread_depth_m": 0.4
+      },
+      "c1_support": {
+        "riser_base_range_m": [
+          0.047,
+          0.118
+        ],
+        "riser_offset_m": 0.007069,
+        "tread_bases_m": [
+          0.37,
+          0.4,
+          0.43
+        ],
+        "tread_offset_m": 0.018
+      },
+      "c1_pattern_families": [
+        "alternating",
+        "front_loaded",
+        "back_loaded"
+      ],
+      "c1_training_phase_steps": 0,
+      "c2_training_exposure": "forbidden",
+      "adaptive_difficulty_authority": "runner_owned",
+      "complete_reward_runtime_available": true
+    },
+    "fixed_eval_protocol_summary": {
+      "schema_version": "true_rl_agent.evaluation.protocol.v1",
+      "eval_protocol_version": "stair_go2_12dof_unified_eval_v1",
+      "public_seed_count": 3,
+      "public_accept_seed_count": 5,
+      "sealed_validation_seed_count": 7,
+      "eval_num_envs": 72,
+      "eval_protocol_hash": "750656cbdef8787205f037db07c18a787f73364a14b3435b662003d633b56594",
+      "ordered_evaluation_suite_hash": "f7d744df40eb9708ace9772b6f23f366090a6d312fcfef93e54e85cd4e0dd18b",
+      "strata": [
+        "c0_id",
+        "c1_id",
+        "height_ood",
+        "tread_ood",
+        "joint_ood",
+        "phase_composition_ood",
+        "c1_conditional_frontier",
+        "c2_mechanism_ood"
+      ],
+      "cells_per_stratum": 3,
+      "episodes_per_seed_per_cell": 3,
+      "seed_values_exposed": false,
+      "statistics_unit": "cell_then_stratum_then_paired_seed",
+      "success_criteria": {
+        "completion_mode": "first_valid_top_arrival_latched",
+        "minimum_progress_fraction": 1.0,
+        "minimum_support_effector_upward_force_n": 10.0,
+        "minimum_support_effectors_on_top": 1,
+        "post_arrival_failure_policy": "not_evaluated_outcome_closes_on_first_valid_top_arrival",
+        "pre_arrival_blocking_latches": [
+          "forbidden_contact",
+          "off_course"
+        ],
+        "requires_kinematic_base_within_top_platform_bounds": true,
+        "requires_orientation_stable": true,
+        "requires_support_effectors_within_top_platform_bounds": true,
+        "support_effector_surface_clearance_range_m": [
+          0.0,
+          0.071
+        ],
+        "maximum_abs_roll_or_pitch_rad": 0.65
+      }
+    },
+    "primary_outcomes": [
+      "success",
+      "forbidden_contact",
+      "off_course",
+      "base_orientation_instability",
+      "slip",
+      "insufficient_clearance",
+      "timeout"
+    ],
+    "diagnostic_flags": [
+      "base_orientation_instability_detected",
+      "slip_detected",
+      "insufficient_clearance_detected",
+      "off_course_detected",
+      "goal_not_reached_detected",
+      "first_valid_top_arrival_achieved"
+    ],
+    "candidate_must_not_change": [
+      "terrain_generator",
+      "training_distribution",
+      "curriculum",
+      "seed_policy",
+      "training_budget",
+      "ppo_hyperparameters",
+      "checkpoint_policy",
+      "evaluation_suite",
+      "success_definition",
+      "failure_thresholds",
+      "observation_space",
+      "action_space",
+      "acceptance_protocol"
+    ]
+  },
+  "loop_contract": {
+    "schema_version": "true_rl_agent.loop_contract.v2",
+    "candidate_role": "Return a candidate package only.",
+    "candidate_may": [
+      "replace the complete reward with pure RewardTerm callables",
+      "use only fields declared by the task reward input contract",
+      "set finite weights and optional bounded output clips"
+    ],
+    "runner_owned": [
+      "training budget",
+      "eval protocol",
+      "seed policy",
+      "checkpoint selection",
+      "success metric",
+      "accept/reject decision"
+    ],
+    "candidate_must_not_change": [
+      "runner",
+      "eval protocol",
+      "training budget",
+      "seed policy",
+      "checkpoints",
+      "PPO",
+      "acceptance rules",
+      "task invariants"
+    ],
+    "evidence_discipline": [
+      "Before authoring, compare the proposed mechanism with public_history.experiment_memory, recent_outcomes, and current-best evidence.",
+      "Treat lower scores, failed gates, and dominating or negligible runtime component contributions as negative evidence; do not silently repeat or combine those mechanisms.",
+      "Treat last_mean only as the last sampled weighted-contribution snapshot; never infer that a component is inactive or causally ineffective from last_mean alone. Compare max_abs, repeated runtime evidence, and fixed evaluation outcomes.",
+      "If reusing a rejected mechanism, the canonical hypothesis narrative embedded in TrainingComponents.rationale must name the closest prior candidate, state the exact code-level difference, and explain how it addresses the observed failure; keep mechanical repair notes out of that hypothesis.",
+      "Do not submit numeric-only, string-only, or formatting-only variants of an evaluated source; the historical-source gate rejects those variants before training.",
+      "Prefer the accepted current-best source, or when none exists the explicitly nonaccepted best-observed bootstrap anchor.",
+      "When an authoring anchor is present, change exactly one named canonical prompt-visible component mechanism relative to it and preserve every other component mechanism; without an anchor, author the complete initial component set."
+    ]
+  },
+  "candidate_capabilities": {
+    "schema_version": "true_rl_agent.candidate_authoring_capabilities.v1",
+    "registry_owner": "agent_core",
+    "registry_model": "closed_registry_with_prompt_visibility",
+    "prompt_visible_capabilities": [
+      {
+        "capability_id": "complete_reward_program",
+        "kind": "complete_reward_program",
+        "owner": "candidate_components",
+        "prompt_visible": true,
+        "candidate_writable": true,
+        "effective_now": true,
+        "materializer_owner": "provider_candidate_package",
+        "verifier_owner": "composition_candidate_admission_policy",
+        "runtime_effect": "all weighted RewardTerm outputs replace the complete training reward",
+        "public_feedback_projection": "task-owned complete reward activation and bounded term summaries",
+        "component_class": "RewardTerm",
+        "component_signature": "RewardTerm(name: str, weight: float, fn: Callable[[task RewardInputs], Any], clip_min: float | None = None, clip_max: float | None = None, description: str = '')",
+        "declared_changed_component": "reward_callable",
+        "derived_change_components": [
+          "reward_callable"
+        ],
+        "candidate_allowed_actions": [
+          "replace the complete reward with pure RewardTerm callables",
+          "use only fields declared by the task reward input contract",
+          "set finite weights and optional bounded output clips"
+        ],
+        "source_items": [
+          "current_best/training_code/components.py",
+          "api/candidate_components.py"
+        ],
+        "effectiveness": "effective_now",
+        "activation_mode": "complete_replacement",
+        "readiness": {
+          "status": "ready",
+          "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+          "admission_policy_id": "true_rl_agent.stair_climbing.complete_reward_admission.v1",
+          "admission_policy_hash": "809b9cfcb1287f001557bab8a145028dfe1dae8645e42224df9887f02a184599",
+          "readiness_hash": "3dc652587c851f222a73f01acdbca951aa40d4e5bf20358b56985798425c2bd3"
+        }
+      }
+    ],
+    "disabled_or_reserved_capabilities": [],
+    "provider_declared_components_prompt_advertised": [
+      "reward_callable"
+    ],
+    "policies": {
+      "non_prompt_visible_capabilities_are_not_candidate_writable": true,
+      "verifier_derived_change_set_is_authoritative": true,
+      "task_specific_metadata_owner": "task_prompt_adapter",
+      "runner_owned_capabilities_require_materializer_and_verifier_before_prompt_visibility": true,
+      "runner_owned_schema_preview_is_not_provider_output": true
+    },
+    "task_capability_profile_binding": {
+      "profile_id": "unitree_stair_complete_reward_unified_v1",
+      "profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db"
+    }
+  },
+  "reward_inputs_contract": {
+    "schema_version": "true_rl_agent.reward_inputs_contract.stair.v13",
+    "status": "available",
+    "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+    "input_type": "true_rl_agent.tasks.stair_climbing.reward_inputs.StairRewardInputsVNext",
+    "field_semantics_constraints": {
+      "high_risk_axis_semantics": {
+        "environment": "dim0=independent environments at one control step; output[i] only from input[i]; no diff/roll/cumsum/sort/index/reduction across dim0; declared history fields carry time",
+        "support_contact_force_history": "axes=[env,history(0 newest; larger older),support(opaque members),xyz]; contact=norm xyz,max all 3 history,then threshold; air-to-contact=index0 contact and older air",
+        "spatial_vectors": "components=[x,y,z]; world +x stair-forward,+y left,+z up; body/yaw +x robot-forward,+y left,+z up"
+      },
+      "remaining_goal_distance_m": {
+        "source_equivalence": "goal_x-current_x",
+        "sign": "positive before, zero at, negative beyond goal"
+      },
+      "base_height": {
+        "source_equivalence": "base_pos_relative_to_terrain_origin[:, 2]",
+        "reference_frame": "terrain origin at the bottom start platform",
+        "local_clearance": false,
+        "candidate_usage": "Includes staircase elevation, not clearance above the supporting step; standing-height thresholds do not prove posture or support. Use roll/pitch/projected_gravity, goal_progress_fraction, and contact fields."
+      },
+      "projected_gravity": {
+        "source_equivalence": "robot_data.projected_gravity_b[:, :3]",
+        "reference_frame": "FLU base frame (+x forward,+y left,+z up)",
+        "definition": "right-handed R_WB=Rz(yaw)@Ry(pitch)@Rx(roll); g_b=R_WB.T@[0,0,-1]",
+        "components_xyz": [
+          "sin(pitch)",
+          "-sin(roll)*cos(pitch)",
+          "-cos(roll)*cos(pitch)"
+        ],
+        "small_angle_xyz": [
+          "pitch",
+          "-roll",
+          "-1"
+        ],
+        "candidate_usage": "Use -z for upright reward; +z favors inversion."
+      },
+      "height_scan": {
+        "source_transform_ref": "source_transforms.height_scan",
+        "sensor_semantics": "downward terrain scan; positive=lower/farther, negative=higher/closer; no overhead or torso obstacle sensing",
+        "flattened_index_to_ray_mapping": "not_exposed",
+        "candidate_usage": "Use order-invariant reductions only; ray directions are not exposed."
+      },
+      "raw_physical_magnitudes": {
+        "fields": [
+          "forbidden_contact_force",
+          "joint_acc",
+          "joint_torque",
+          "support_contact_force",
+          "support_contact_force_history"
+        ],
+        "units": [
+          "N",
+          "N*m",
+          "rad/s^2"
+        ],
+        "normalization_status": "raw_not_normalized",
+        "enforcement": "active_reward_term_final_clip",
+        "candidate_usage": "New or modified RewardTerms using these fields require finite clip_min and clip_max. Callable-only transforms do not replace this final clip; runtime clips before weight. Exact unchanged reference mechanisms are exempt only by canonical structure signature. The declared clip and weight expose the resulting weighted bound."
+      },
+      "forbidden_contact_force": {
+        "semantics": "current resolved forbidden-contact role force vectors in Newtons",
+        "binary_alternative": "forbidden_contact",
+        "candidate_usage": "Use forbidden_contact for the task-owned binary failure signal; dense force terms follow raw_physical_magnitudes."
+      },
+      "termination_masks": {
+        "fixed_active_terms": [
+          "time_out",
+          "forbidden_contact"
+        ],
+        "equivalent_fields": {
+          "terminated_non_timeout": "forbidden_contact"
+        },
+        "candidate_usage": "Frozen Stair: forbidden_contact and terminated_non_timeout are identical masks; do not add both."
+      },
+      "progress_fraction": {
+        "semantics": "elapsed fraction of the current episode horizon",
+        "spatial_alternative": "goal_progress_fraction",
+        "candidate_usage": "For episode-time scheduling only; it does not mean training progress, position, proximity to the top, or completion. Spatial progress is goal_progress_fraction."
+      },
+      "goal_progress_fraction": {
+        "semantics": "instantaneous clamped spatial position from the frozen start coordinate toward the frozen goal coordinate",
+        "temporal_behavior": "recomputed every control step; may decrease when the robot moves backward; not latched, absorbing, or a completion event",
+        "completion_alternative": "task-owned first_valid_top_arrival event"
+      },
+      "support_contact_force": {
+        "semantics": "support/contact force in Newtons; nonzero is required for support",
+        "candidate_usage": "Contact is not inherently bad; normalize force-derived terms."
+      },
+      "support_contact": {
+        "semantics": "boolean contact threshold over the maximum force in the configured 3-sample support_contact_force_history window",
+        "temporal_behavior": "recent-history indicator, not current-sample-only contact"
+      }
+    },
+    "fields": [
+      {
+        "name": "base_height",
+        "dtype": "float",
+        "trailing_shape": [],
+        "unit": "m",
+        "description": "Task-owned morphology-neutral runtime value for base_height."
+      },
+      {
+        "name": "roll",
+        "dtype": "float",
+        "trailing_shape": [],
+        "unit": "rad",
+        "description": "Task-owned morphology-neutral runtime value for roll."
+      },
+      {
+        "name": "pitch",
+        "dtype": "float",
+        "trailing_shape": [],
+        "unit": "rad",
+        "description": "Task-owned morphology-neutral runtime value for pitch."
+      },
+      {
+        "name": "base_pos_xy",
+        "dtype": "float",
+        "trailing_shape": [
+          2
+        ],
+        "unit": "m",
+        "description": "Task-owned morphology-neutral runtime value for base_pos_xy."
+      },
+      {
+        "name": "base_lin_vel",
+        "dtype": "float",
+        "trailing_shape": [
+          3
+        ],
+        "unit": "m/s",
+        "description": "Task-owned morphology-neutral runtime value for base_lin_vel."
+      },
+      {
+        "name": "base_ang_vel",
+        "dtype": "float",
+        "trailing_shape": [
+          3
+        ],
+        "unit": "rad/s",
+        "description": "Task-owned morphology-neutral runtime value for base_ang_vel."
+      },
+      {
+        "name": "projected_gravity",
+        "dtype": "float",
+        "trailing_shape": [
+          3
+        ],
+        "unit": "unit_vector",
+        "description": "Task-owned morphology-neutral runtime value for projected_gravity."
+      },
+      {
+        "name": "commanded_base_vel",
+        "dtype": "float",
+        "trailing_shape": [
+          3
+        ],
+        "unit": "mixed_mps_radps",
+        "description": "Task-owned morphology-neutral runtime value for commanded_base_vel."
+      },
+      {
+        "name": "joint_pos",
+        "dtype": "float",
+        "trailing_shape": [
+          12
+        ],
+        "unit": "rad",
+        "description": "Task-owned morphology-neutral runtime value for joint_pos."
+      },
+      {
+        "name": "joint_vel",
+        "dtype": "float",
+        "trailing_shape": [
+          12
+        ],
+        "unit": "rad/s",
+        "description": "Task-owned morphology-neutral runtime value for joint_vel."
+      },
+      {
+        "name": "joint_pos_error",
+        "dtype": "float",
+        "trailing_shape": [
+          12
+        ],
+        "unit": "rad",
+        "description": "Task-owned morphology-neutral runtime value for joint_pos_error."
+      },
+      {
+        "name": "last_action",
+        "dtype": "float",
+        "trailing_shape": [
+          12
+        ],
+        "unit": "policy_action",
+        "description": "Task-owned morphology-neutral runtime value for last_action."
+      },
+      {
+        "name": "prev_action",
+        "dtype": "float",
+        "trailing_shape": [
+          12
+        ],
+        "unit": "policy_action",
+        "description": "Task-owned morphology-neutral runtime value for prev_action."
+      },
+      {
+        "name": "action_delta",
+        "dtype": "float",
+        "trailing_shape": [
+          12
+        ],
+        "unit": "policy_action",
+        "description": "Task-owned morphology-neutral runtime value for action_delta."
+      },
+      {
+        "name": "progress_fraction",
+        "dtype": "float",
+        "trailing_shape": [],
+        "unit": "fraction",
+        "description": "Task-owned morphology-neutral runtime value for progress_fraction."
+      },
+      {
+        "name": "joint_acc",
+        "dtype": "float",
+        "trailing_shape": [
+          12
+        ],
+        "unit": "rad/s^2",
+        "description": "Task-owned morphology-neutral runtime value for joint_acc."
+      },
+      {
+        "name": "joint_torque",
+        "dtype": "float",
+        "trailing_shape": [
+          12
+        ],
+        "unit": "N*m",
+        "description": "Task-owned morphology-neutral runtime value for joint_torque."
+      },
+      {
+        "name": "soft_joint_pos_limits",
+        "dtype": "float",
+        "trailing_shape": [
+          12,
+          2
+        ],
+        "unit": "rad",
+        "description": "Task-owned morphology-neutral runtime value for soft_joint_pos_limits."
+      },
+      {
+        "name": "base_lin_vel_yaw",
+        "dtype": "float",
+        "trailing_shape": [
+          3
+        ],
+        "unit": "m/s",
+        "description": "Task-owned morphology-neutral runtime value for base_lin_vel_yaw."
+      },
+      {
+        "name": "base_ang_vel_world",
+        "dtype": "float",
+        "trailing_shape": [
+          3
+        ],
+        "unit": "rad/s",
+        "description": "Task-owned morphology-neutral runtime value for base_ang_vel_world."
+      },
+      {
+        "name": "base_quat_world",
+        "dtype": "float",
+        "trailing_shape": [
+          4
+        ],
+        "unit": "unit_quaternion_wxyz",
+        "description": "Task-owned morphology-neutral runtime value for base_quat_world."
+      },
+      {
+        "name": "support_air_time",
+        "dtype": "float",
+        "trailing_shape": [
+          4
+        ],
+        "unit": "s",
+        "description": "Task-owned morphology-neutral runtime value for support_air_time."
+      },
+      {
+        "name": "support_contact_time",
+        "dtype": "float",
+        "trailing_shape": [
+          4
+        ],
+        "unit": "s",
+        "description": "Task-owned morphology-neutral runtime value for support_contact_time."
+      },
+      {
+        "name": "support_last_air_time",
+        "dtype": "float",
+        "trailing_shape": [
+          4
+        ],
+        "unit": "s",
+        "description": "Task-owned morphology-neutral runtime value for support_last_air_time."
+      },
+      {
+        "name": "support_first_contact",
+        "dtype": "bool",
+        "trailing_shape": [
+          4
+        ],
+        "unit": "boolean",
+        "description": "Task-owned morphology-neutral runtime value for support_first_contact."
+      },
+      {
+        "name": "support_contact_force_history",
+        "dtype": "float",
+        "trailing_shape": [
+          3,
+          4,
+          3
+        ],
+        "unit": "N",
+        "description": "Task-owned morphology-neutral runtime value for support_contact_force_history."
+      },
+      {
+        "name": "support_contact_force",
+        "dtype": "float",
+        "trailing_shape": [
+          4,
+          3
+        ],
+        "unit": "N",
+        "description": "Task-owned morphology-neutral runtime value for support_contact_force."
+      },
+      {
+        "name": "support_contact",
+        "dtype": "bool",
+        "trailing_shape": [
+          4
+        ],
+        "unit": "boolean",
+        "description": "Task-owned morphology-neutral runtime value for support_contact."
+      },
+      {
+        "name": "support_lin_vel",
+        "dtype": "float",
+        "trailing_shape": [
+          4,
+          3
+        ],
+        "unit": "m/s",
+        "description": "Task-owned morphology-neutral runtime value for support_lin_vel."
+      },
+      {
+        "name": "support_pos_relative_to_terrain_origin",
+        "dtype": "float",
+        "trailing_shape": [
+          4,
+          3
+        ],
+        "unit": "m",
+        "description": "Task-owned morphology-neutral runtime value for support_pos_relative_to_terrain_origin."
+      },
+      {
+        "name": "base_pos_relative_to_terrain_origin",
+        "dtype": "float",
+        "trailing_shape": [
+          3
+        ],
+        "unit": "m",
+        "description": "Task-owned morphology-neutral runtime value for base_pos_relative_to_terrain_origin."
+      },
+      {
+        "name": "forbidden_contact_force",
+        "dtype": "float",
+        "trailing_shape": [
+          1,
+          3
+        ],
+        "unit": "N",
+        "description": "Task-owned morphology-neutral runtime value for forbidden_contact_force."
+      },
+      {
+        "name": "height_scan",
+        "dtype": "float",
+        "trailing_shape": [
+          187
+        ],
+        "unit": "m",
+        "description": "Task-owned morphology-neutral runtime value for height_scan."
+      },
+      {
+        "name": "forward_progress_m",
+        "dtype": "float",
+        "trailing_shape": [],
+        "unit": "m",
+        "description": "Task-owned morphology-neutral runtime value for forward_progress_m."
+      },
+      {
+        "name": "remaining_goal_distance_m",
+        "dtype": "float",
+        "trailing_shape": [],
+        "unit": "m",
+        "description": "Task-owned morphology-neutral runtime value for remaining_goal_distance_m."
+      },
+      {
+        "name": "goal_progress_fraction",
+        "dtype": "float",
+        "trailing_shape": [],
+        "unit": "fraction",
+        "description": "Task-owned morphology-neutral runtime value for goal_progress_fraction."
+      },
+      {
+        "name": "terminated_non_timeout",
+        "dtype": "bool",
+        "trailing_shape": [],
+        "unit": "boolean",
+        "description": "Task-owned morphology-neutral runtime value for terminated_non_timeout."
+      },
+      {
+        "name": "time_out",
+        "dtype": "bool",
+        "trailing_shape": [],
+        "unit": "boolean",
+        "description": "Task-owned morphology-neutral runtime value for time_out."
+      },
+      {
+        "name": "forbidden_contact",
+        "dtype": "bool",
+        "trailing_shape": [],
+        "unit": "boolean",
+        "description": "Task-owned morphology-neutral runtime value for forbidden_contact."
+      }
+    ],
+    "source_transforms": {
+      "height_scan": {
+        "clip_max": 1.0,
+        "clip_min": -1.0,
+        "corruption": "disabled",
+        "offset_m": 0.5,
+        "ray_miss_policy": "saturate_infinity_to_clip_preserve_nan",
+        "source_formula": "sensor_pos_w_z_minus_ray_hit_w_z_minus_offset"
+      }
+    },
+    "opaque_axis_contract": {
+      "schema_version": "true_rl_agent.task.stair_climbing.reward_source_semantics.v2",
+      "opaque_trailing_axis_groups": [
+        {
+          "axes": [
+            0
+          ],
+          "fields": [
+            "action_delta",
+            "forbidden_contact_force",
+            "height_scan",
+            "joint_acc",
+            "joint_pos",
+            "joint_pos_error",
+            "joint_torque",
+            "joint_vel",
+            "last_action",
+            "prev_action",
+            "soft_joint_pos_limits",
+            "support_air_time",
+            "support_contact",
+            "support_contact_force",
+            "support_contact_time",
+            "support_lin_vel",
+            "support_pos_relative_to_terrain_origin"
+          ]
+        },
+        {
+          "axes": [
+            1
+          ],
+          "fields": [
+            "support_contact_force_history"
+          ]
+        }
+      ],
+      "usage_rule": "Member mapping is hidden. Only whole-axis order-invariant reductions are valid; fixed or partial indexing, positional selection, and pre-reduction reshaping are forbidden. Helpers that consume these fields must be top-level functions."
+    },
+    "isolation": "detached_clone_per_field",
+    "forbidden_context": [
+      "runner_execution_objects",
+      "private_evaluation_assignment",
+      "acceptance_and_artifact_state"
+    ]
+  },
+  "public_eval_contract": {
+    "schema_version": "true_rl_agent.public_eval_contract.stair.unified.v5",
+    "prompt_score_semantics": {
+      "score_sources_by_role": {
+        "objective_score": "prompt_feedback.generalization_summary.public_dev_objective_score",
+        "named_guards": {
+          "j_ood": "prompt_feedback.generalization_summary.named_guard_scores.j_ood",
+          "c0_id": "prompt_feedback.generalization_summary.named_guard_scores.c0_id",
+          "c1_id": "prompt_feedback.generalization_summary.named_guard_scores.c1_id"
+        }
+      },
+      "source_split": "public_dev",
+      "acceptance_result_metrics_visible": false
+    },
+    "primary_objective": "(2*J_OOD+J_ID)/3",
+    "objective_structure": {
+      "j_id": "0.5*S_C0-ID+0.5*S_C1-ID",
+      "j_ood": "equal_weight_mean_over_qualified_nonempty_families",
+      "ood_families": {
+        "F_scalar": [
+          "height_ood",
+          "tread_ood",
+          "joint_ood"
+        ],
+        "F_c1": [
+          "phase_composition_ood",
+          "c1_conditional_frontier"
+        ],
+        "F_c2": [
+          "c2_mechanism_ood"
+        ]
+      },
+      "family_mask": {
+        "source_split": "public_accept_reference",
+        "mode": "exclude_reference_floor_only",
+        "minimum_reference_score": 0.1,
+        "frozen_for_session": true
+      }
+    },
+    "named_non_regression_guards": [
+      "j_ood",
+      "c0_id",
+      "c1_id"
+    ],
+    "public_dev_selector": {
+      "rule": "named_guard_min_and_runtime_eligible_public_dev_rank_v1",
+      "objective_score_source": "public_dev.unified_score.j_primary.seed_macro_scores",
+      "guard_seed_score_source": "public_dev.minimum_of_named_guard_seed_scores",
+      "guard_anchor_aggregation": "mean_across_seeds_of_minimum_named_guard_per_seed",
+      "guard_rule": "parent_relative_hard_regression_cap_only",
+      "guard_max_regression": 0.05,
+      "runtime_effect_rule": "candidate_reward_operation_runtime_effect.status_must_pass",
+      "ranking_policy": "always_rank_selection_eligible_candidates; paired noise is evidence only",
+      "acceptance_authority": false
+    },
+    "aggregation": "episode_to_cell_to_stratum_to_paired_seed",
+    "generalization_claims": {
+      "c0_id": "in_distribution",
+      "c1_id": "in_distribution",
+      "height_ood": "scalar_extrapolation",
+      "tread_ood": "scalar_extrapolation",
+      "joint_ood": "joint_scalar_extrapolation",
+      "phase_composition_ood": "known_family_held_out_phase",
+      "c1_conditional_frontier": "conditional_on_c1_support",
+      "c2_mechanism_ood": "surface_mechanism_shift"
+    },
+    "generalization_claim_semantics": {
+      "c0_id": {
+        "protocol_claim_kind": "in_distribution",
+        "meaning": "in_distribution"
+      },
+      "c1_id": {
+        "protocol_claim_kind": "in_distribution",
+        "meaning": "in_distribution"
+      },
+      "height_ood": {
+        "protocol_claim_kind": "scalar_extrapolation",
+        "meaning": "scalar_extrapolation"
+      },
+      "tread_ood": {
+        "protocol_claim_kind": "scalar_extrapolation",
+        "meaning": "scalar_extrapolation"
+      },
+      "joint_ood": {
+        "protocol_claim_kind": "joint_scalar_extrapolation",
+        "meaning": "simultaneous scalar extrapolation of stair riser height and stair tread depth",
+        "robot_joint_state_ood": false
+      },
+      "phase_composition_ood": {
+        "protocol_claim_kind": "known_family_held_out_phase",
+        "meaning": "known_family_held_out_phase"
+      },
+      "c1_conditional_frontier": {
+        "protocol_claim_kind": "conditional_on_c1_support",
+        "meaning": "conditional_on_c1_support"
+      },
+      "c2_mechanism_ood": {
+        "protocol_claim_kind": "surface_mechanism_shift",
+        "meaning": "surface_mechanism_shift"
+      }
+    },
+    "c2_evidence_scope": "current evaluation-only surface/contact mechanism shift; zero training exposure; height-scan policy salience not claimed",
+    "factor_diagnostic_table": {
+      "schema_version": "true_rl_agent.task.stair_climbing.factor_feedback_table.v1",
+      "role": "diagnostic_only_overlapping_group_aggregates",
+      "factor_names": [
+        "phase",
+        "riser_band",
+        "tread_band",
+        "sequence_pattern",
+        "roughness_band",
+        "surface_pattern"
+      ],
+      "columns": [
+        "factor_name",
+        "factor_level",
+        "cell_count",
+        "success_rate",
+        "mean_progress_fraction"
+      ],
+      "cell_membership_source": "fixed_ordered_public_dev_suite",
+      "cell_ids_repeated_per_candidate": false,
+      "interpretation": "groups overlap and are not objective weights; saturated groups remain visible as capabilities to preserve"
+    },
+    "stratum_diagnostic_table": {
+      "schema_version": "true_rl_agent.task.stair_climbing.stratum_feedback_table.v3",
+      "role": "task_owned_failure_and_diagnostic_breakdown",
+      "cell_membership_source": "fixed_ordered_public_dev_suite",
+      "cell_ids_repeated_per_candidate": false,
+      "omitted_rate_columns_are_zero": true
+    },
+    "completion_derived_diagnostic_rates": {
+      "first_valid_top_arrival_achieved": "success_rate"
+    },
+    "public_feedback_source": "public_dev_unified_stratum_projection",
+    "primary_failure_is_mutually_exclusive": true,
+    "diagnostic_flags_may_overlap": true,
+    "diagnostic_interpretation": "latched or recent-history correlates for hypothesis formation; they may coexist with success and do not prove failure causality",
+    "classification_warnings_block_pass": true
+  },
+  "control_effectiveness_contract": {
+    "schema_version": "true_rl_agent.control_effectiveness_contract.v1",
+    "capability_schema_ref": "true_rl_agent.candidate_authoring_capabilities.v1",
+    "component_controls": {
+      "RewardTerm": {
+        "allowed": true,
+        "effectiveness": "effective_now",
+        "training_effect": "all weighted RewardTerm outputs replace the complete training reward"
+      }
+    },
+    "schedule_controls": {
+      "allowed_keys": [],
+      "effective_keys": []
+    }
+  },
+  "known_good_examples": [],
+  "selection_guidance": [
+    "Use only validated public failure/diagnostic/progress summaries.",
+    "After rejection, use current_best as the default parent; reuse a rejected mechanism or weight only with public evidence.",
+    "Keep each candidate attributable: change one reward mechanism, preserve current-best coefficients, and avoid unrelated retuning.",
+    "Prefer a recent-untried mechanism only when task score, failure, or progress evidence supports it. Diagnostic rates, even extreme ones, are correlates rather than optimization targets or causal proof; judge a hypothesis by objective and guard movement.",
+    "Code plus verifier/runtime evidence are authoritative over prose rationale; claim a maximum weighted contribution only with conditions, clips, weight, and an analytic bound.",
+    "Success is the first physically valid top-platform arrival; post-arrival stopping position and settling are not evaluated.",
+    "climb_completion_summary.success_rate and first_valid_top_arrival_rate describe the same absorbing task completion event.",
+    "Optimize J_primary=(2*J_OOD+J_ID)/3 while all three runner-owned named guards J_OOD, C0-ID, and C1-ID remain within their paired non-regression tolerances; no score can compensate for a failed guard.",
+    "Match candidate feedback to source_catalog by candidate_id and program_source_checksum when that source is available; reference_anchor feedback belongs to the current_best source.",
+    "When the shared candidate_capabilities section marks complete_reward_program prompt-visible, return a complete replacement reward program, not an additive patch.",
+    "Use only fields declared by the StairRewardInputsVNext contract.",
+    "Do not change training budget, PPO, seeds, terrain bins, termination rules, or acceptance rules."
+  ],
+  "source_catalog": {
+    "schema_version": "true_rl_agent.source_catalog.v3",
+    "policy": {
+      "ids_are_closed_allowlist": true,
+      "provider_filesystem_access": false,
+      "source_request_enabled": true,
+      "source_resolution_owner": "runner_prompt_source_resolver"
+    },
+    "items": [
+      {
+        "logical_id": "api/candidate_components.py",
+        "role": "candidate_component_api_contract",
+        "candidate_use": "Use the canonical component contract already included in required_candidate_package.component_contract.",
+        "visibility": "prompt_visible_metadata",
+        "inline_by_default": false,
+        "requestable": false,
+        "max_bytes": 0,
+        "status": "available_via_required_candidate_package",
+        "content_sha256": null,
+        "pending_reason": "contract body is present in required_candidate_package.component_contract",
+        "source_owner": "agent_core",
+        "scrub_policy": "contract_projection_no_raw_module_source"
+      },
+      {
+        "logical_id": "current_best/training_code/components.py",
+        "role": "reference_program_anchor",
+        "candidate_use": "Use the verified reference program and public failure evidence to author a complete replacement.",
+        "visibility": "prompt_visible_metadata",
+        "inline_by_default": true,
+        "requestable": true,
+        "max_bytes": 24576,
+        "status": "inline",
+        "content_sha256": "10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+        "bytes": 2326,
+        "hash_scope": "prompt_visible_sanitized_content",
+        "source_owner": "verified_session_genesis",
+        "scrub_policy": "path_secret_and_public_only_guard"
+      },
+      {
+        "logical_id": "memory/best_observed/training_code/components.py",
+        "role": "best_observed_nonaccepted_candidate_source",
+        "candidate_use": "Use only as the highest-scoring evaluated bootstrap authoring anchor; it is not an accepted policy best and grants no acceptance authority.",
+        "visibility": "prompt_visible_metadata",
+        "inline_by_default": false,
+        "requestable": false,
+        "max_bytes": 24576,
+        "status": "pending",
+        "pending_reason": "no_eligible_nonaccepted_bootstrap_anchor",
+        "source_owner": "validated_nonaccepted_experiment_history",
+        "scrub_policy": "path_secret_and_public_only_guard"
+      },
+      {
+        "logical_id": "examples/known_good_reward_terms.py",
+        "role": "known_good_examples_slot",
+        "candidate_use": "Task provided examples are exposed through known_good_examples when available.",
+        "visibility": "prompt_visible_metadata",
+        "inline_by_default": false,
+        "requestable": false,
+        "max_bytes": 0,
+        "status": "pending",
+        "content_sha256": null,
+        "pending_reason": "task_prompt_adapter_provided_no_known_good_source",
+        "source_owner": "task_prompt_adapter",
+        "scrub_policy": "task_sections_public_sanitizer"
+      },
+      {
+        "logical_id": "attempt/latest_failed/training_code/components.py",
+        "role": "latest_nonaccepted_candidate_source",
+        "candidate_use": "Use the latest nonaccepted source with its verifier, runtime, and eval feedback to repair, refute, or replace the attempted mechanism.",
+        "visibility": "prompt_visible_metadata",
+        "inline_by_default": false,
+        "requestable": false,
+        "max_bytes": 24576,
+        "status": "pending",
+        "pending_reason": "no_latest_failed_candidate",
+        "source_owner": "none_available",
+        "scrub_policy": "path_secret_and_public_only_guard"
+      }
+    ]
+  },
+  "candidate_lineage": {
+    "schema_version": "true_rl_agent.candidate_lineage.v4",
+    "status": "reference_current_best",
+    "parent_program_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+    "current_best": {
+      "anchor_kind": "reference",
+      "reference_id": "go2-stair-official-flat-derived-v1",
+      "objective_score": 0.9344384820576132,
+      "score_source": "prompt_feedback.generalization_summary.public_dev_objective_score",
+      "subject_manifest_hash": "ece5ad653267f11e5b791403208472f42622e44661fdbc7162776799a370dbd4",
+      "current_head_program_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+      "training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98",
+      "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+      "task_protocol_hash": "fb0a30071b27af5b600a7dba65dd03d8a1184ab195c9fd987f770e5eeb667429",
+      "eval_protocol_hash": "750656cbdef8787205f037db07c18a787f73364a14b3435b662003d633b56594",
+      "acceptance_protocol_hash": "d18b5345c8b3112546af401a8dd1560e6c6e840ad8c5ef4d102bd3e1ea5b4c24",
+      "evaluation_binding_hash": "62f9d2c837f8ece3dc7dcc7e74742a5aa2089dc4e0aa1db0980cf55e4f7fa36b",
+      "source_logical_id": "current_best/training_code/components.py",
+      "current_head_prompt_content_sha256": "10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+      "source_hash_scope": "prompt_visible_sanitized_content",
+      "source_summary": "68 lines; from true_rl_agent.candidates.components import RewardTerm, TrainingComponents; def track_lin_vel_xy_exp(inputs):; def track_ang_vel_z_exp(inputs):; def ang_vel_xy_l2(inputs):; def flat_orientation_l2(inputs):; def dof_torques_l2(inputs):; def dof_acc_l2(inputs):; def action_rate_l2(inputs):",
+      "source_delivery": "inline",
+      "source_payload_ref": "current_best/training_code/components.py"
+    },
+    "best_observed_experiment": null,
+    "guidance": [
+      "The verified reference program is the initial policy-best and source authority.",
+      "Author a complete replacement from the reference source and public failure evidence.",
+      "Only an accepted candidate can replace the reference current-best."
+    ]
+  },
+  "source_payloads": [
+    {
+      "schema_version": "true_rl_agent.prompt_source_payload.v1",
+      "logical_id": "current_best/training_code/components.py",
+      "role": "reference_program_anchor",
+      "delivery": "inline",
+      "content": "\"\"\"Isaac Lab Go2 flat reward with two explicit Stair-context adaptations.\"\"\"\n\nfrom true_rl_agent.candidates.components import RewardTerm, TrainingComponents\n\n\ndef track_lin_vel_xy_exp(inputs):\n    error = (\n        inputs.commanded_base_vel[:, :2] - inputs.base_lin_vel[:, :2]\n    ).square().sum(dim=1)\n    return (-error / 0.25).exp()\n\n\ndef track_ang_vel_z_exp(inputs):\n    error = (\n        inputs.commanded_base_vel[:, 2] - inputs.base_ang_vel[:, 2]\n    ).square()\n    return (-error / 0.25).exp()\n\n\ndef ang_vel_xy_l2(inputs):\n    return inputs.base_ang_vel[:, :2].square().sum(dim=1)\n\n\ndef flat_orientation_l2(inputs):\n    return inputs.projected_gravity[:, :2].square().sum(dim=1)\n\n\ndef dof_torques_l2(inputs):\n    return inputs.joint_torque.square().sum(dim=1)\n\n\ndef dof_acc_l2(inputs):\n    return inputs.joint_acc.square().sum(dim=1)\n\n\ndef action_rate_l2(inputs):\n    return inputs.action_delta.square().sum(dim=1)\n\n\ndef feet_air_time(inputs):\n    reward = (\n        (inputs.support_last_air_time - 0.5)\n        * inputs.support_first_contact.float()\n    ).sum(dim=1)\n    moving = inputs.commanded_base_vel[:, :2].norm(dim=1) > 0.1\n    return reward * moving.float()\n\n\ndef build_training_components():\n    return TrainingComponents(\n        name=\"go2_stair_official_flat_derived_v1\",\n        reward_terms=[\n            RewardTerm(name=\"track_lin_vel_xy_exp\", weight=3.5, fn=track_lin_vel_xy_exp),\n            RewardTerm(name=\"track_ang_vel_z_exp\", weight=0.75, fn=track_ang_vel_z_exp),\n            RewardTerm(name=\"ang_vel_xy_l2\", weight=-0.05, fn=ang_vel_xy_l2),\n            RewardTerm(name=\"flat_orientation_l2\", weight=-2.5, fn=flat_orientation_l2),\n            RewardTerm(name=\"dof_torques_l2\", weight=-0.0002, fn=dof_torques_l2),\n            RewardTerm(name=\"dof_acc_l2\", weight=-2.5e-7, fn=dof_acc_l2),\n            RewardTerm(name=\"action_rate_l2\", weight=-0.01, fn=action_rate_l2),\n            RewardTerm(name=\"feet_air_time\", weight=0.25, fn=feet_air_time),\n        ],\n        rationale=(\n            \"The raw functions and six unchanged non-zero weights come from \"\n            \"Isaac Lab 2.3.0 UnitreeGo2FlatEnvCfg.  The forward-tracking weight \"\n            \"is command-distribution normalized from 1.5 to 3.5, and the \"\n            \"vertical-velocity penalty is disabled for Stair ascent.\"\n        ),\n    )\n",
+      "content_sha256": "10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+      "bytes": 2326,
+      "summary": "68 lines; from true_rl_agent.candidates.components import RewardTerm, TrainingComponents; def track_lin_vel_xy_exp(inputs):; def track_ang_vel_z_exp(inputs):; def ang_vel_xy_l2(inputs):; def flat_orientation_l2(inputs):; def dof_torques_l2(inputs):; def dof_acc_l2(inputs):; def action_rate_l2(inputs):",
+      "public_safe": true
+    }
+  ],
+  "public_feedback_summary": {
+    "schema_version": "true_rl_agent.task.stair_climbing.public_feedback_summary.v12",
+    "status": "available",
+    "feedback_entries": [
+      {
+        "source_kind": "reference_anchor",
+        "source_public_result_hash": "6d919c31398e6dc14289280c414d60ad80788cc903e1b7aac4c779701a431793",
+        "objective_score": 0.9344384820576132,
+        "selection_basis": [
+          "reference_current_best"
+        ],
+        "feedback": {
+          "source_split": "public_dev",
+          "mean_success_rate_by_cell": {
+            "public_dev.c0_id_01": 1.0,
+            "public_dev.c0_id_02": 1.0,
+            "public_dev.c0_id_03": 1.0,
+            "public_dev.c1_frontier_01": 1.0,
+            "public_dev.c1_frontier_02": 1.0,
+            "public_dev.c1_frontier_03": 1.0,
+            "public_dev.c1_id_01": 1.0,
+            "public_dev.c1_id_02": 1.0,
+            "public_dev.c1_id_03": 1.0,
+            "public_dev.c2_rough_01": 1.0,
+            "public_dev.c2_rough_02": 1.0,
+            "public_dev.c2_rough_03": 1.0,
+            "public_dev.height_ood_01": 1.0,
+            "public_dev.height_ood_02": 1.0,
+            "public_dev.height_ood_03": 0.5555555555555556,
+            "public_dev.joint_ood_01": 0.2222222222222222,
+            "public_dev.joint_ood_02": 1.0,
+            "public_dev.joint_ood_03": 0.0,
+            "public_dev.phase_ood_01": 1.0,
+            "public_dev.phase_ood_02": 1.0,
+            "public_dev.phase_ood_03": 1.0,
+            "public_dev.tread_ood_01": 1.0,
+            "public_dev.tread_ood_02": 1.0,
+            "public_dev.tread_ood_03": 0.0
+          },
+          "generalization_summary": {
+            "public_dev_objective_score": 0.9344384820576132,
+            "j_id": 1.0,
+            "j_ood": 0.9016577230864198,
+            "named_guard_scores": {
+              "j_ood": 0.9016577230864198,
+              "c0_id": 1.0,
+              "c1_id": 1.0
+            },
+            "family_scores": {
+              "F_scalar": 0.7049731692592592,
+              "F_c1": 1.0,
+              "F_c2": 1.0
+            },
+            "qualified_ood_families": [
+              "F_scalar",
+              "F_c1",
+              "F_c2"
+            ],
+            "objective_family_mask_hash": "78cc09cc36d6b297f1566b75f9b847e9f5c81dc64ce39c3aa86e2f7408efaa10",
+            "ordered_suite_hash": "f7d744df40eb9708ace9772b6f23f366090a6d312fcfef93e54e85cd4e0dd18b",
+            "split_cohort_hash": "a93720d1247acba0f21eb607b95edcaf222f4643eae1a05c311f4dbb94de71c2",
+            "success_rate_by_cell": {
+              "public_dev.c0_id_01": 1.0,
+              "public_dev.c0_id_02": 1.0,
+              "public_dev.c0_id_03": 1.0,
+              "public_dev.c1_frontier_01": 1.0,
+              "public_dev.c1_frontier_02": 1.0,
+              "public_dev.c1_frontier_03": 1.0,
+              "public_dev.c1_id_01": 1.0,
+              "public_dev.c1_id_02": 1.0,
+              "public_dev.c1_id_03": 1.0,
+              "public_dev.c2_rough_01": 1.0,
+              "public_dev.c2_rough_02": 1.0,
+              "public_dev.c2_rough_03": 1.0,
+              "public_dev.height_ood_01": 1.0,
+              "public_dev.height_ood_02": 1.0,
+              "public_dev.height_ood_03": 0.5555555555555556,
+              "public_dev.joint_ood_01": 0.2222222222222222,
+              "public_dev.joint_ood_02": 1.0,
+              "public_dev.joint_ood_03": 0.0,
+              "public_dev.phase_ood_01": 1.0,
+              "public_dev.phase_ood_02": 1.0,
+              "public_dev.phase_ood_03": 1.0,
+              "public_dev.tread_ood_01": 1.0,
+              "public_dev.tread_ood_02": 1.0,
+              "public_dev.tread_ood_03": 0.0
+            },
+            "factor_diagnostics": {
+              "schema_version": "true_rl_agent.task.stair_climbing.factor_feedback_table.v1",
+              "columns": [
+                "factor_name",
+                "factor_level",
+                "cell_count",
+                "success_rate",
+                "mean_progress_fraction"
+              ],
+              "fixed_suite_cell_membership_omitted": true,
+              "rows": [
+                [
+                  "phase",
+                  "p0",
+                  21,
+                  0.8465608465608466,
+                  0.9005590128042329
+                ],
+                [
+                  "phase",
+                  "p1",
+                  1,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "phase",
+                  "p2",
+                  1,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "phase",
+                  "p4",
+                  1,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "riser_band",
+                  "0.059",
+                  2,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "riser_band",
+                  "0.071",
+                  1,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "riser_band",
+                  "0.082",
+                  4,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "riser_band",
+                  "0.088",
+                  1,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "riser_band",
+                  "0.100",
+                  1,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "riser_band",
+                  "0.106",
+                  3,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "riser_band",
+                  "0.118",
+                  1,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "riser_band",
+                  "0.120",
+                  1,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "riser_band",
+                  "0.130",
+                  1,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "riser_band",
+                  "0.133",
+                  1,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "riser_band",
+                  "0.177",
+                  1,
+                  0.0,
+                  0.4020118477777778
+                ],
+                [
+                  "riser_band",
+                  "0.189",
+                  1,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "riser_band",
+                  "0.221",
+                  2,
+                  0.6111111111111112,
+                  0.7524989894444445
+                ],
+                [
+                  "riser_band",
+                  "0.236",
+                  2,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "riser_band",
+                  "0.250",
+                  2,
+                  0.2777777777777778,
+                  0.5023647211111111
+                ],
+                [
+                  "roughness_band",
+                  "0.000",
+                  21,
+                  0.8465608465608466,
+                  0.9005590128042329
+                ],
+                [
+                  "roughness_band",
+                  "0.002",
+                  1,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "roughness_band",
+                  "0.004",
+                  1,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "roughness_band",
+                  "0.005",
+                  1,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "sequence_pattern",
+                  "alternating",
+                  4,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "sequence_pattern",
+                  "back_loaded",
+                  4,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "sequence_pattern",
+                  "front_loaded",
+                  4,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "sequence_pattern",
+                  "regular",
+                  12,
+                  0.7314814814814815,
+                  0.8259782724074074
+                ],
+                [
+                  "surface_pattern",
+                  "flat",
+                  21,
+                  0.8465608465608466,
+                  0.9005590128042329
+                ],
+                [
+                  "surface_pattern",
+                  "l1_y1",
+                  1,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "surface_pattern",
+                  "l1_y2",
+                  1,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "surface_pattern",
+                  "l2_y1",
+                  1,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "tread_band",
+                  "0.277",
+                  2,
+                  0.0,
+                  0.315793275
+                ],
+                [
+                  "tread_band",
+                  "0.295",
+                  1,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "tread_band",
+                  "0.327",
+                  2,
+                  0.6111111111111112,
+                  0.7524989894444445
+                ],
+                [
+                  "tread_band",
+                  "0.370",
+                  3,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "tread_band",
+                  "0.400",
+                  10,
+                  0.9555555555555555,
+                  0.9775154739999999
+                ],
+                [
+                  "tread_band",
+                  "0.430",
+                  3,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "tread_band",
+                  "0.480",
+                  1,
+                  1.0,
+                  1.0
+                ],
+                [
+                  "tread_band",
+                  "0.498",
+                  2,
+                  1.0,
+                  1.0
+                ]
+              ]
+            },
+            "stratum_diagnostics": {
+              "schema_version": "true_rl_agent.task.stair_climbing.stratum_feedback_table.v3",
+              "columns": [
+                "stratum_id",
+                "score",
+                "success_rate",
+                "mean_progress_fraction",
+                "primary_failure_rates",
+                "diagnostic_flag_rates"
+              ],
+              "primary_failure_rate_columns": [
+                "forbidden_contact",
+                "off_course",
+                "slip"
+              ],
+              "diagnostic_flag_rate_columns": [
+                "base_orientation_instability_detected",
+                "goal_not_reached_detected",
+                "off_course_detected",
+                "slip_detected"
+              ],
+              "omitted_primary_failure_rates_are_zero": true,
+              "omitted_diagnostic_rates_are_zero": true,
+              "rows": [
+                [
+                  "c0_id",
+                  1.0,
+                  1.0,
+                  1.0,
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                [
+                  "c1_conditional_frontier",
+                  1.0,
+                  1.0,
+                  1.0,
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.9629629629629629
+                  ]
+                ],
+                [
+                  "c1_id",
+                  1.0,
+                  1.0,
+                  1.0,
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                [
+                  "c2_mechanism_ood",
+                  1.0,
+                  1.0,
+                  1.0,
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                [
+                  "height_ood",
+                  0.888451715925926,
+                  0.8518518518518517,
+                  0.92505158,
+                  [
+                    0.14814814814814814,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.14814814814814814,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                [
+                  "joint_ood",
+                  0.49279915055555557,
+                  0.40740740740740744,
+                  0.5781908937037037,
+                  [
+                    0.5185185185185185,
+                    0.037037037037037035,
+                    0.037037037037037035
+                  ],
+                  [
+                    0.2962962962962963,
+                    0.5925925925925926,
+                    0.07407407407407407,
+                    1.0
+                  ]
+                ],
+                [
+                  "phase_composition_ood",
+                  1.0,
+                  1.0,
+                  1.0,
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.7777777777777778
+                  ]
+                ],
+                [
+                  "tread_ood",
+                  0.7336686412962963,
+                  0.6666666666666666,
+                  0.8006706159259259,
+                  [
+                    0.3333333333333333,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.3333333333333333,
+                    0.3333333333333333,
+                    0.0,
+                    1.0
+                  ]
+                ]
+              ],
+              "derived_diagnostic_rate_columns_omitted": [
+                "first_valid_top_arrival_achieved"
+              ]
+            }
+          },
+          "primary_failure_breakdown": {
+            "base_orientation_instability": 0.0,
+            "forbidden_contact": 0.125,
+            "insufficient_clearance": 0.0,
+            "off_course": 0.004629629629629629,
+            "slip": 0.004629629629629629,
+            "timeout": 0.0
+          },
+          "dominant_failure": {
+            "reason": "forbidden_contact",
+            "rate": 0.125
+          },
+          "diagnostic_flag_rates": {
+            "base_orientation_instability_detected": 0.0787037037037037,
+            "goal_not_reached_detected": 0.13425925925925927,
+            "insufficient_clearance_detected": 0.0,
+            "off_course_detected": 0.009259259259259259,
+            "slip_detected": 0.9675925925925926
+          },
+          "progress_summary": {
+            "mean_progress_fraction": 0.9129891362037038,
+            "mean_progress_fraction_by_cell": {
+              "public_dev.c0_id_01": 1.0,
+              "public_dev.c0_id_02": 1.0,
+              "public_dev.c0_id_03": 1.0,
+              "public_dev.c1_frontier_01": 1.0,
+              "public_dev.c1_frontier_02": 1.0,
+              "public_dev.c1_frontier_03": 1.0,
+              "public_dev.c1_id_01": 1.0,
+              "public_dev.c1_id_02": 1.0,
+              "public_dev.c1_id_03": 1.0,
+              "public_dev.c2_rough_01": 1.0,
+              "public_dev.c2_rough_02": 1.0,
+              "public_dev.c2_rough_03": 1.0,
+              "public_dev.height_ood_01": 1.0,
+              "public_dev.height_ood_02": 1.0,
+              "public_dev.height_ood_03": 0.77515474,
+              "public_dev.joint_ood_01": 0.5049979788888889,
+              "public_dev.joint_ood_02": 1.0,
+              "public_dev.joint_ood_03": 0.2295747022222222,
+              "public_dev.phase_ood_01": 1.0,
+              "public_dev.phase_ood_02": 1.0,
+              "public_dev.phase_ood_03": 1.0,
+              "public_dev.tread_ood_01": 1.0,
+              "public_dev.tread_ood_02": 1.0,
+              "public_dev.tread_ood_03": 0.4020118477777778
+            }
+          },
+          "schema_version": "true_rl_agent.task.stair_climbing.prompt_feedback.v10",
+          "climb_completion_summary": {
+            "completion_mode": "first_valid_top_arrival_latched",
+            "success_rate": 0.8657407407407408,
+            "first_valid_top_arrival_rate": 0.8657407407407408
+          }
+        }
+      }
+    ],
+    "omitted_candidate_feedback_entry_count": 0,
+    "byte_budget_compaction_applied": false,
+    "limits": {
+      "max_recent_candidate_records": 3,
+      "max_candidate_feedback_entries": 5,
+      "max_task_prompt_sections_bytes": 57344,
+      "reserved_task_prompt_headroom_bytes": 512
+    }
+  },
+  "runtime_feedback_summary": {
+    "schema_version": "true_rl_agent.runtime_feedback_summary.stair.v1",
+    "status": "not_available",
+    "reason": "no_validated_runtime_feedback"
+  },
+  "public_history": {
+    "schema_version": "true_rl_agent.public_history.v4",
+    "previous_rounds": 0,
+    "best_public_score": 0.9344384820576132,
+    "public_score_source": "prompt_feedback.generalization_summary.public_dev_objective_score",
+    "last_outcome": null,
+    "pure_knob_streak": 0,
+    "limits": {
+      "max_recent_rounds": 8,
+      "max_recent_outcomes_serialized_bytes": 8192
+    },
+    "omitted_round_count": 0,
+    "recent_outcomes": [],
+    "experiment_memory": {
+      "schema_version": "true_rl_agent.experiment_memory.v3",
+      "purpose": "bounded cross-round component/outcome index; consult it before proposing a candidate so previously evaluated mechanisms are not repeated blindly",
+      "limits": {
+        "max_rounds": 16,
+        "max_serialized_bytes": 14336,
+        "max_components_per_round": 8,
+        "max_candidate_components_per_round": 1
+      },
+      "candidate_component_semantics": "mechanism-delta-bound provider records use the sealed canonical delta plus runner activation; all other records use runtime identity difference",
+      "component_value_semantics": {
+        "weight": "runner-observed effective component weight",
+        "last_mean": "last sampled weighted mean contribution; one snapshot is not evidence of inactivity or causal effect",
+        "max_abs": "maximum absolute weighted contribution over bounded training samples"
+      },
+      "score_semantics": "objective and guard values are copied from decision.comparison with their authoritative score-source identities; no score is recomputed",
+      "omitted_experiment_count": 0,
+      "experiments": []
+    }
+  },
+  "public_context": {
+    "schema_version": "true_rl_agent.public_context_legacy_summary.v1",
+    "deprecated": true,
+    "public_only": true,
+    "previous_rounds": 0,
+    "best_public_score": 0.9344384820576132,
+    "last_outcome": null,
+    "pure_knob_streak": 0,
+    "canonical_sections": {
+      "history": "public_history",
+      "public_feedback": "public_feedback_summary",
+      "runtime_feedback": "runtime_feedback_summary"
+    }
+  },
+  "exploration_directive": {
+    "schema_version": "true_rl_agent.exploration_directive.v2",
+    "mode": "reference_anchored_authoring",
+    "role": "guidance_only_not_acceptance_rule",
+    "instructions": [
+      "Treat the verified reference program as the current policy-best and source authority.",
+      "Use its complete source and public failure evidence to author a complete replacement.",
+      "Do not change runner-owned protocol, initialization, budget, seed, or acceptance rules."
+    ]
+  },
+  "required_candidate_package": {
+    "schema_version": "true_rl_agent.required_candidate_package.v1",
+    "candidate_role": "candidate_package_only",
+    "provider_json_output": {
+      "type": "object",
+      "json_only": true,
+      "no_prose_outside_json": true,
+      "response_shape": "one_of",
+      "one_of": {
+        "candidate_draft": {
+          "response_mode": "candidate_draft",
+          "required_keys": [
+            "candidate_id",
+            "declared_changed_components",
+            "components_py"
+          ],
+          "allowed_keys": [
+            "response_mode",
+            "candidate_id",
+            "declared_changed_components",
+            "components_py"
+          ],
+          "additional_keys_allowed": false
+        },
+        "source_request": {
+          "response_mode": "source_request",
+          "enabled": true,
+          "required_keys": [
+            "response_mode",
+            "logical_ids",
+            "rationale"
+          ],
+          "allowed_keys": [
+            "response_mode",
+            "logical_ids",
+            "rationale"
+          ],
+          "additional_keys_allowed": false,
+          "purpose": "controlled source resolver request for prompt source_catalog logical ids"
+        }
+      },
+      "additional_keys_allowed": false,
+      "prohibited_keys": [
+        "runner_patch",
+        "eval_patch",
+        "success_metric",
+        "budget",
+        "seed_policy",
+        "checkpoint",
+        "ppo_config",
+        "operation_diff",
+        "diagnostics",
+        "candidate_manifest",
+        "files"
+      ],
+      "authoring_response_protocol": {
+        "schema_version": "true_rl_agent.authoring_provider_response_contract.v2",
+        "response_mode_field": "response_mode",
+        "default_response_mode": "candidate_draft",
+        "supported_response_modes": [
+          "candidate_draft",
+          "source_request"
+        ],
+        "source_request_service_enabled": true,
+        "instructions": [
+          "Omit response_mode or set response_mode='candidate_draft' when returning candidate fields.",
+          "candidate_draft and source_request fields are mutually exclusive response shapes.",
+          "Use source_request only for logical ids declared in the prompt source_catalog.",
+          "After a source_followup prompt, return candidate_draft unless another bounded source read is necessary."
+        ]
+      },
+      "declared_changed_components_allowed_values": [
+        "reward_callable"
+      ],
+      "field_contracts": {
+        "response_mode": {
+          "type": "string",
+          "optional": true,
+          "default": "candidate_draft",
+          "allowed_values": [
+            "candidate_draft",
+            "source_request"
+          ],
+          "phase7_note": "source_request is serviced only through the prompt source_catalog allowlist"
+        },
+        "candidate_id": {
+          "type": "string",
+          "max_chars": 80,
+          "allowed_characters": "lowercase ASCII letters, digits, dot, underscore, and dash",
+          "format": "portable path segment beginning with a lowercase letter or digit",
+          "portability": "no trailing dot; basename must not be con, prn, aux, nul, com1-9, or lpt1-9",
+          "materialized_file": "candidate_manifest.yaml"
+        },
+        "rationale": {
+          "type": "string",
+          "available_in_response_modes": [
+            "source_request"
+          ],
+          "purpose": "bounded justification for an allowlisted source request",
+          "candidate_hypothesis": false
+        },
+        "declared_changed_components": {
+          "type": "array[string]",
+          "allowed_values": [
+            "reward_callable"
+          ],
+          "purpose": "provider declaration; verifier-derived change set remains authoritative",
+          "materialized_file": "operation_diff.json"
+        },
+        "components_py": {
+          "type": "string",
+          "purpose": "complete training_code/components.py source; the canonical experiment hypothesis must be a non-empty statically resolvable string literal in TrainingComponents.rationale",
+          "materialized_file": "training_code/components.py",
+          "derived_materialized_files": {
+            "rationale.md": "TrainingComponents.rationale"
+          },
+          "repair_provenance_rule": "keep the embedded hypothesis focused on the experiment mechanism; mechanical repair notes remain in authoring attempt provenance"
+        }
+      }
+    },
+    "candidate_files": {
+      "schema_version": "true_rl_agent.candidate_package_files.v2",
+      "package_contract_hash": "ea177ecd60812c8c3da7de62f594c1673e1dc7878e162e01fb25596255f6d785",
+      "package_contract": {
+        "schema_version": "true_rl_agent.candidate_package_contract.v1",
+        "provider_authored_files": [
+          "candidate_manifest.yaml",
+          "training_code/components.py",
+          "rationale.md",
+          "operation_diff.json",
+          "diagnostics.json"
+        ],
+        "file_max_bytes": {
+          "candidate_manifest.yaml": 2048,
+          "training_code/components.py": 24576,
+          "rationale.md": 8192,
+          "operation_diff.json": 8192,
+          "diagnostics.json": 8192
+        },
+        "max_total_bytes": 51200,
+        "all_files_required": true,
+        "additional_files_allowed": false,
+        "regular_files_required": true,
+        "symlinks_allowed": false,
+        "scope": "new_unsealed_candidate_packages",
+        "legacy_sealed_replay_enforces_new_size_limits": false
+      },
+      "materialized_files": [
+        "candidate_manifest.yaml",
+        "training_code/components.py",
+        "rationale.md",
+        "operation_diff.json",
+        "diagnostics.json"
+      ],
+      "llm_writable_provider_json_fields": [
+        "response_mode",
+        "candidate_id",
+        "declared_changed_components",
+        "components_py"
+      ],
+      "provider_materialized_files": {
+        "candidate_manifest.yaml": {
+          "source": "provider",
+          "purpose": "fixed schema, candidate_id, and controlled entrypoint"
+        },
+        "operation_diff.json": {
+          "source": "candidate_materializer",
+          "derived_from": [
+            "declared_changed_components"
+          ],
+          "authority": "provider declaration is provisional; verifier-derived change set remains authoritative",
+          "purpose": "public record of declared changed components; not an LLM-editable runner diff"
+        },
+        "diagnostics.json": {
+          "source": "candidate_materializer",
+          "derived_from": [
+            "provider_response_parse",
+            "candidate_materialization_status"
+          ],
+          "purpose": "public candidate-package diagnostics placeholder for future extensions"
+        },
+        "rationale.md": {
+          "source": "candidate_materializer",
+          "derived_from": [
+            "training_code/components.py:TrainingComponents.rationale"
+          ],
+          "authority": "the embedded TrainingComponents.rationale is the canonical experiment hypothesis for fresh provider candidates",
+          "purpose": "derived human-readable view of the canonical hypothesis"
+        }
+      },
+      "llm_must_not_output_files": [
+        "runner patches",
+        "eval patches",
+        "budget or seed files",
+        "checkpoint files",
+        "PPO config files"
+      ]
+    },
+    "component_contract": {
+      "schema_version": "true_rl_agent.candidate_component_contract.v1",
+      "capability_schema_ref": "true_rl_agent.candidate_authoring_capabilities.v1",
+      "status": "available",
+      "module": "true_rl_agent.candidates.components",
+      "entrypoint": "training_code.components:build_training_components",
+      "builder_signature": "def build_training_components() -> TrainingComponents:",
+      "allowed_import": "from true_rl_agent.candidates.components import RewardInputs, RewardTerm, TrainingComponents",
+      "classes": {
+        "RewardTerm": "RewardTerm(name: str, weight: float, fn: Callable[[task RewardInputs], Any], clip_min: float | None = None, clip_max: float | None = None, description: str = '')",
+        "TrainingComponents": "TrainingComponents(name: str, reward_terms: list[RewardTerm] = [], diagnostics: list[DiagnosticTerm] = [], schedules: list[ScheduleTerm] = [], metadata: dict = {}, rationale: str = '')"
+      },
+      "allowed_schedule_keys": [],
+      "forbidden_surfaces": [
+        "runner state",
+        "environment objects",
+        "optimizer or PPO hyperparameters",
+        "eval protocol",
+        "success metric",
+        "seeds",
+        "budgets",
+        "checkpoints",
+        "filesystem"
+      ],
+      "static_verifier_rules": {
+        "schema_version": "true_rl_agent.static_candidate_verifier_prompt_rules.v1",
+        "rule_source": "StaticCandidateVerifier",
+        "verification_policy_id": "true_rl_agent.static_candidate_verifier.pure_function.v2",
+        "verification_policy_hash": "17e48a15617337729f47783f32d7b8940b4b25d06ef8632ee0e486c05e3add74",
+        "candidate_package_contract_hash": "ea177ecd60812c8c3da7de62f594c1673e1dc7878e162e01fb25596255f6d785",
+        "allowed_files": [
+          "candidate_manifest.yaml",
+          "diagnostics.json",
+          "operation_diff.json",
+          "rationale.md",
+          "training_code/components.py"
+        ],
+        "file_max_bytes": {
+          "candidate_manifest.yaml": 2048,
+          "training_code/components.py": 24576,
+          "rationale.md": 8192,
+          "operation_diff.json": 8192,
+          "diagnostics.json": 8192
+        },
+        "max_total_bytes": 51200,
+        "allowed_imports": {
+          "true_rl_agent.candidates.components": [
+            "RewardInputs",
+            "RewardTerm",
+            "TrainingComponents"
+          ]
+        },
+        "blocked_text_fragments": [
+          "import os",
+          "subprocess",
+          "open(",
+          "optimizer",
+          "checkpoint policy selector surface",
+          "eval configuration surface",
+          "success metric surface",
+          "runner attribute access",
+          "environment attribute access"
+        ],
+        "blocked_names": [
+          "checkpoint policy selector surface",
+          "env",
+          "eval configuration surface",
+          "optimizer",
+          "runner",
+          "success metric surface"
+        ],
+        "blocked_name_prefixes": [
+          "__"
+        ],
+        "blocked_calls": [
+          "__import__",
+          "__setattr__",
+          "__setitem__",
+          "breakpoint",
+          "compile",
+          "delattr",
+          "dir",
+          "eval",
+          "exec",
+          "exit",
+          "getattr",
+          "globals",
+          "help",
+          "input",
+          "locals",
+          "open",
+          "print",
+          "quit",
+          "setattr",
+          "vars"
+        ],
+        "blocked_call_roots": [
+          "os",
+          "pathlib",
+          "shutil",
+          "socket",
+          "subprocess",
+          "sys"
+        ],
+        "blocked_mutating_methods": [
+          "append",
+          "clear",
+          "extend",
+          "insert",
+          "pop",
+          "remove",
+          "reverse",
+          "setdefault",
+          "sort",
+          "update"
+        ],
+        "blocked_mutating_call_suffix": "_",
+        "blocked_random_calls": [
+          "bernoulli",
+          "beta",
+          "cauchy",
+          "choice",
+          "choices",
+          "exponential",
+          "fork_rng",
+          "gamma",
+          "geometric",
+          "get_rng_state",
+          "initial_seed",
+          "log_normal",
+          "manual_seed",
+          "multinomial",
+          "normal",
+          "permutation",
+          "poisson",
+          "rand",
+          "randint",
+          "randn",
+          "random",
+          "random_sample",
+          "seed",
+          "set_rng_state",
+          "shuffle",
+          "standard_normal",
+          "uniform"
+        ],
+        "blocked_state_attributes": [
+          "__class__",
+          "__dict__",
+          "__globals__",
+          "data",
+          "storage",
+          "untyped_storage"
+        ],
+        "blocked_attribute_prefixes": [
+          "_"
+        ],
+        "blocked_ast_nodes": [
+          "AugAssign",
+          "Delete",
+          "Global",
+          "Import",
+          "NamedExpr",
+          "Nonlocal"
+        ],
+        "blocked_assignment_target_nodes": [
+          "Attribute",
+          "Subscript"
+        ],
+        "allowed_top_level_ast_nodes": [
+          "FunctionDef",
+          "ImportFrom",
+          "module_docstring"
+        ],
+        "allowed_schedule_keys": [
+          "reward_weight_scale"
+        ],
+        "function_decorators_allowed": false,
+        "nested_functions_allowed": false,
+        "mutable_or_dynamic_defaults_allowed": false,
+        "additional_files_allowed": false,
+        "import_aliases_allowed": false,
+        "relative_imports_allowed": false,
+        "component_callable_contract": {
+          "callable_type": "python_function",
+          "defined_in_canonical_components_source": true,
+          "positional_argument_count": 1,
+          "closures_allowed": false,
+          "component_name_contract": {
+            "max_chars": 64,
+            "max_utf8_bytes": 64,
+            "must_be_nonempty_and_trimmed": true,
+            "forbidden_substrings": [
+              ":",
+              "->"
+            ],
+            "control_characters_allowed": false
+          }
+        },
+        "component_load_timeout_s": 2.0,
+        "generation_lane_intent": {
+          "schema_version": "true_rl_agent.generation_lane_intent.exploration.v1",
+          "lane_id": "lane-a",
+          "mode": "novel",
+          "current_head_hash": "ad60929126dc8502e89bbeda14412b7eac8518c160c1f616e269025716ceac9b",
+          "inspired_by_trial_id": null,
+          "inspired_by_card_hash": null,
+          "hypothesis": null,
+          "verifier_equivalence_exclusion_set_hash": "93af470f76fcae9ca4fe74dafd4f2b8a50c23dd6b53140d96aec7027db1af871",
+          "acceptance_authority": false
+        }
+      },
+      "complete_reward_runtime_semantics": {
+        "composition_order": [
+          "raw_term = fn(task_reward_inputs)",
+          "guarded_term = clip(raw_term, clip_min, clip_max)",
+          "weighted_term = weight * guarded_term",
+          "training_reward = sum(all weighted terms)"
+        ],
+        "activation_mode": "complete_replacement",
+        "base_reward_included": false,
+        "reference_reward_called": false,
+        "optimization_direction": "Training maximizes the sum of candidate-defined weighted terms.",
+        "source_requirement": "Return one complete training_code/components.py program."
+      }
+    },
+    "candidate_must_not_change": [
+      "runner code",
+      "runner",
+      "eval protocol",
+      "success metric",
+      "training budget",
+      "seed policy",
+      "checkpoints",
+      "PPO",
+      "acceptance rules"
+    ],
+    "operation_diff_contract": {
+      "materialized_by": "candidate_materializer",
+      "llm_output_key_allowed": false,
+      "derived_from": [
+        "declared_changed_components"
+      ],
+      "authority": "verifier-derived change set remains authoritative",
+      "purpose": "public provenance for declared changed components, not a runner patch"
+    },
+    "diagnostics_contract": {
+      "materialized_by": "candidate_materializer",
+      "llm_output_key_allowed": false,
+      "derived_from": [
+        "provider_response_parse",
+        "candidate_materialization_status"
+      ],
+      "purpose": "public candidate-package materialization diagnostics; task-owned diagnostics use only prompt-visible capabilities"
+    }
+  },
+  "authoring_context_frame": {
+    "schema_version": "true_rl_agent.authoring_context_frame.v2",
+    "frame_id": "candidate_draft.v1",
+    "frame_kind": "candidate_draft",
+    "purpose": "write a provider-compatible candidate package from the public contract and bounded history",
+    "stable_contract_refs": [
+      "task",
+      "loop_contract",
+      "required_candidate_package",
+      "candidate_capabilities",
+      "reward_inputs_contract",
+      "public_eval_contract",
+      "control_effectiveness_contract"
+    ],
+    "included_sections": [
+      "schema_version",
+      "task",
+      "loop_contract",
+      "candidate_capabilities",
+      "reward_inputs_contract",
+      "public_eval_contract",
+      "control_effectiveness_contract",
+      "known_good_examples",
+      "selection_guidance",
+      "source_catalog",
+      "candidate_lineage",
+      "source_payloads",
+      "public_feedback_summary",
+      "runtime_feedback_summary",
+      "public_history",
+      "public_context",
+      "exploration_directive",
+      "required_candidate_package"
+    ],
+    "omitted_sections": [],
+    "source_payloads": [
+      {
+        "logical_id": "current_best/training_code/components.py",
+        "content_sha256": "10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+        "bytes": 2326,
+        "delivery": "inline"
+      }
+    ],
+    "source_payload_summaries": [
+      {
+        "logical_id": "current_best/training_code/components.py",
+        "summary": "68 lines; from true_rl_agent.candidates.components import RewardTerm, TrainingComponents; def track_lin_vel_xy_exp(inputs):; def track_ang_vel_z_exp(inputs):; def ang_vel_xy_l2(inputs):; def flat_orientation_l2(inputs):; def dof_torques_l2(inputs):; def dof_acc_l2(inputs):; def action_rate_l2(inputs):"
+      }
+    ],
+    "source_hashes": [
+      {
+        "logical_id": "current_best/training_code/components.py",
+        "content_sha256": "10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb"
+      }
+    ],
+    "feedback_items": [],
+    "frame_contract": {
+      "required_sections": [
+        "task",
+        "loop_contract",
+        "required_candidate_package",
+        "candidate_capabilities",
+        "reward_inputs_contract",
+        "public_eval_contract",
+        "control_effectiveness_contract",
+        "source_catalog",
+        "candidate_lineage",
+        "source_payloads",
+        "exploration_directive",
+        "public_history",
+        "selection_guidance",
+        "schema_version"
+      ],
+      "optional_sections": [
+        "public_feedback_summary",
+        "runtime_feedback_summary",
+        "known_good_examples"
+      ],
+      "source_followup_enabled": true
+    },
+    "budget_metadata": {
+      "section_serialized_bytes": {
+        "schema_version": 33,
+        "task": 3722,
+        "loop_contract": 2104,
+        "candidate_capabilities": 2724,
+        "reward_inputs_contract": 15493,
+        "public_eval_contract": 5253,
+        "control_effectiveness_contract": 448,
+        "known_good_examples": 2,
+        "selection_guidance": 1753,
+        "source_catalog": 3479,
+        "candidate_lineage": 2234,
+        "source_payloads": 3102,
+        "public_feedback_summary": 16821,
+        "runtime_feedback_summary": 147,
+        "public_history": 1554,
+        "public_context": 398,
+        "exploration_directive": 458,
+        "required_candidate_package": 14813
+      },
+      "estimated_prompt_bytes": 74538,
+      "estimated_prompt_context_units": 18635,
+      "hard_limits": {
+        "max_prompt_payload_bytes": 262144,
+        "max_section_bytes": 98304,
+        "max_source_inline_payload_bytes": 24576,
+        "max_source_request_bytes_per_round": 49152
+      },
+      "legacy_alias_section_bytes": {
+        "public_context": 398
+      },
+      "provider_task_sections": {
+        "schema_version": "true_rl_agent.prompt.provider_task_sections_receipt.v2",
+        "serializer": "canonical_prompt_json.v1",
+        "section_keys": [
+          "task",
+          "reward_inputs_contract",
+          "public_eval_contract",
+          "public_feedback_summary",
+          "runtime_feedback_summary",
+          "known_good_examples",
+          "selection_guidance"
+        ],
+        "content_hash": "492bf92bfbc9cf65641b97c949755e15852f681d6d6455f7162f39bef979bc76",
+        "serialized_bytes": 46117,
+        "max_serialized_bytes": 57344,
+        "headroom_bytes": 11227
+      },
+      "actual_prompt_payload_bytes": 83816,
+      "actual_prompt_payload_context_units": 20954
+    },
+    "legacy_alias_sections": [
+      "public_context"
+    ]
+  }
+}

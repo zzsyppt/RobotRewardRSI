@@ -9,8 +9,10 @@ from typing import Any
 from true_rl_agent.agent_core.provider_contract import SOURCE_REQUEST_SERVICE_ENABLED
 from true_rl_agent.agent_core.source_request_limits import (
     LATEST_FAILED_SOURCE_ID,
+    LATEST_NONACCEPTED_SOURCE_ID,
     MAX_SOURCE_REQUEST_BYTES_PER_ROUND,
 )
+from true_rl_agent.candidates.authoring_policy import select_authoring_anchor_source
 from true_rl_agent.prompt_serialization import MAX_AUTHORING_PROMPT_PAYLOAD_BYTES
 from true_rl_agent.prompting.public_safety import assert_public_only_prompt_payload
 from true_rl_agent.prompting.serialization import canonical_prompt_json_bytes
@@ -194,7 +196,7 @@ def compact_public_history_for_frame(
             "section": "public_history.recent_outcomes",
             "reason": policy.omitted_recent_history_reason,
             "omitted_item_count": omitted_count,
-            "recoverable_from": "prior ledger public records",
+            "provider_recoverability": "omitted_not_requestable",
         }
     )
     return history, omitted
@@ -221,11 +223,34 @@ def project_sections_for_authoring_frame(
         raise TypeError("static repair source_payloads must be a list")
     if not has_inline_current_authoring_failed_source(section_values):
         return dict(section_values), []
+    retained_source_ids = {LATEST_FAILED_SOURCE_ID}
+    feedback = section_values.get("provider_or_runtime_repair_feedback")
+    if isinstance(feedback, Mapping):
+        pending = feedback.get("unresolved_candidate_repair")
+        repairs = (feedback, pending) if isinstance(pending, Mapping) else (feedback,)
+        historical_comparison = any(
+            item.get("failure_category") == "historical_verifier_equivalent_repeat"
+            or item.get("stage") == "historical_exact_exclusion"
+            for item in repairs
+        )
+        if historical_comparison or any(item.get("failure_category") == "authoring_policy_violation" for item in repairs):
+            # A mechanism rewrite needs the same source used by the verifier's
+            # comparison; a policy-best baseline may have no authoring source.
+            source, digest, _ = select_authoring_anchor_source(section_values)
+            if source is not None:
+                retained_source_ids.update(
+                    item["logical_id"] for item in source_payloads
+                    if isinstance(item, Mapping) and item.get("content_sha256") == digest
+                )
+            if historical_comparison:
+                # Already-public measured alternatives help replace a repeated
+                # mechanism; syntax repair still needs only the failed source.
+                retained_source_ids.add(LATEST_NONACCEPTED_SOURCE_ID)
     retained_payloads = [
         dict(item)
         for item in source_payloads
         if isinstance(item, Mapping)
-        and item.get("logical_id") == LATEST_FAILED_SOURCE_ID
+        and item.get("logical_id") in retained_source_ids
     ]
     allowed = frozenset(_FRAME_POLICIES[frame_kind].required_sections)
     projected = {
@@ -250,7 +275,7 @@ def project_sections_for_authoring_frame(
                 "section": "static_repair_nonessential_context",
                 "reason": _STATIC_REPAIR_OMISSION_REASON,
                 "omitted_sections": omitted_section_names,
-                "recoverable_from": "initial authoring prompt and prior public ledger records",
+                "provider_recoverability": "omitted_not_requestable",
             }
         )
 

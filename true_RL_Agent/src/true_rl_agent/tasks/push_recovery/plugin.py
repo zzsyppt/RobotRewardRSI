@@ -42,7 +42,8 @@ class PushRecoveryTaskPlugin(TaskPlugin):
                 {
                     "articulation_runtime",
                     "base_state",
-                    "external_body_force",
+                    "base_velocity_write" if self.config.push_protocol is not None else "external_body_force",
+                    *({"external_body_force"} if self.config.push_evaluation_protocol is not None else set()),
                     "joint_position_action",
                     "joint_state",
                     "policy_observation_projection",
@@ -88,12 +89,23 @@ class PushRecoveryTaskPlugin(TaskPlugin):
             "runtime_profile": config.eval_profile,
             "runtime_dynamics_hash": eval_runtime_dynamics["runtime_dynamics_hash"],
         }
+        if config.push_protocol is not None:
+            fixed_train_protocol.update({
+                "push_protocol_hash": config.push_protocol.protocol_hash,
+                "reward_program_mode": "total_replacement_manager_integrates_dt_once",
+            })
+            if config.push_evaluation_protocol is not None:
+                fixed_eval_protocol["push_evaluation_protocol"] = config.push_evaluation_protocol.to_dict()
+                fixed_eval_protocol["training_distribution_relation"] = "evaluation_only_successor_training_protocol_unchanged"
+            else:
+                fixed_eval_protocol["push_protocol"] = config.push_protocol.to_dict()
+            fixed_eval_protocol["push_robot_scale_m"] = config.push_robot_scale_m
         if config.reference_program_genesis:
             from true_rl_agent.tasks.push_recovery.reference_program import (
-                REFERENCE_ID, reference_qualification_contract,
+                reference_program_id, reference_qualification_contract,
             )
 
-            fixed_train_protocol["reference_program_id"] = REFERENCE_ID
+            fixed_train_protocol["reference_program_id"] = reference_program_id(config)
             fixed_eval_protocol["reference_qualification"] = reference_qualification_contract(config)
         return TaskSpec(
             task_id="unitree_push_recovery",
@@ -106,7 +118,8 @@ class PushRecoveryTaskPlugin(TaskPlugin):
                 "warm_start": "policy_baseline",
             }),
             candidate_capability_profile=build_candidate_capability_profile(
-                profile_id="unitree_push_recovery_v1",
+                profile_id=("push_complete_recovery_v2" if config.push_protocol is not None
+                            else "unitree_push_recovery_v1"),
                 capability_ids=(
                     "diagnostic_term",
                     "reward_term",
@@ -136,6 +149,7 @@ class PushRecoveryTaskPlugin(TaskPlugin):
             fixed_train_protocol=fixed_train_protocol,
             fixed_eval_protocol=fixed_eval_protocol,
             default_curriculum=CurriculumPlan(mode="task_default"),
+            task_protocol_hash=config.resolved_cell_task_protocol_hash,
         )
 
     def project_public_result(

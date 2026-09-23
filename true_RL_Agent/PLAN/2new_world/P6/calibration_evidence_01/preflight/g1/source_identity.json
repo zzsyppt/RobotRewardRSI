@@ -1,0 +1,180 @@
+{
+  "checkpoint_role": "fixed_B_inference_anchor_not_new_protocol_training",
+  "checkpoint_sha256": "sha256:44fafbd14fe0e59716c2142a819b81f43d6a3bac8422e0e6d5802f451bceb837",
+  "diagnostic_evaluation_manifest_hash": "d0f512111376d4b6b6b0969894e66a23b0ba92de7333945f5cf639d803a065d4",
+  "diagnostic_protocol": {
+    "episode_time_scale": 30.0,
+    "fall_height_scale": 0.45,
+    "fall_tilt_rad": 0.8,
+    "first_push_time_scale": 5.0,
+    "gravity_mps2": 9.81,
+    "high_velocity_scale": 0.75,
+    "injection_tolerance_mps": 1e-05,
+    "low_velocity_scale": 0.225,
+    "max_displacement_scale": 3.0,
+    "medium_velocity_scale": 0.45,
+    "protocol_id": "push_recovery_planar_delta_velocity_v2",
+    "protocol_state": "active",
+    "recovery_angular_velocity_scale": 0.5,
+    "recovery_height_scale": 0.7,
+    "recovery_tilt_rad": 0.2,
+    "recovery_velocity_scale": 0.08,
+    "recovery_window_time_scale": 8.0,
+    "schema_version": "true_rl_agent.task.push_recovery.protocol.v2",
+    "second_push_time_scale": 17.0,
+    "stable_dwell_time_scale": 1.5
+  },
+  "diagnostic_resolved_protocol": {
+    "episode_length_s": 8.239533254795488,
+    "evaluation_cohort_counts": {
+      "high": 16,
+      "low": 16,
+      "medium": 16,
+      "repeated": 16
+    },
+    "evaluation_direction_policy": {
+      "angular_range_rad": [
+        0.0,
+        6.283185307179586
+      ],
+      "count": 16,
+      "phase": "python_random_runner_seed_uniform_0_2pi_v1",
+      "second_event_offset_rad": 1.5707963267948966
+    },
+    "fall_height_m": 0.333,
+    "fall_tilt_rad": 0.8,
+    "injection_tolerance_mps": 1e-05,
+    "max_displacement_m": 2.2199999999999998,
+    "mechanism": "world_planar_velocity_increment",
+    "protocol_hash": "95f342e6fe5abd70d2adaeb83a9023103c9c71017d95851fcca438dcfbd9d80c",
+    "push_times_s": [
+      1.3732555424659145,
+      4.6690688443841095
+    ],
+    "recovery_angular_velocity_radps": 1.8204914691338683,
+    "recovery_height_m": 0.518,
+    "recovery_tilt_rad": 0.2,
+    "recovery_velocity_mps": 0.21554618994545,
+    "recovery_window_s": 2.1972088679454633,
+    "reset": {
+      "joint_position_scale": [
+        1.0,
+        1.0
+      ],
+      "joint_velocity_range": [
+        0.0,
+        0.0
+      ],
+      "root_pose_range": {
+        "x": [
+          0.0,
+          0.0
+        ],
+        "y": [
+          0.0,
+          0.0
+        ],
+        "yaw": [
+          -3.141592653589793,
+          3.141592653589793
+        ]
+      },
+      "root_velocity_range": {
+        "pitch": [
+          0.0,
+          0.0
+        ],
+        "roll": [
+          0.0,
+          0.0
+        ],
+        "x": [
+          0.0,
+          0.0
+        ],
+        "y": [
+          0.0,
+          0.0
+        ],
+        "yaw": [
+          0.0,
+          0.0
+        ],
+        "z": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "resolved_protocol_hash": "db74aed6c8ecba7e0834e15117e0b65eead237478a5ea10822101691ae9172ce",
+    "robot_scale_m": 0.74,
+    "schema_version": "true_rl_agent.task.push_recovery.resolved_protocol.v2",
+    "stable_dwell_s": 0.4119766627397744,
+    "time_scale_s": 0.2746511084931829,
+    "training_sampling": {
+      "angular_range_rad": [
+        0.0,
+        6.283185307179586
+      ],
+      "event_directions": "independent_uniform",
+      "stratum_probabilities": {
+        "high": 0.25,
+        "low": 0.25,
+        "medium": 0.25,
+        "repeated": 0.25
+      }
+    },
+    "velocity_magnitudes_mps": {
+      "high": 2.0207455307385938,
+      "low": 0.6062236592215781,
+      "medium": 1.2124473184431561
+    },
+    "velocity_scale_mps": 2.694327374318125
+  },
+  "original_program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+  "original_protocol": {
+    "episode_time_scale": 30.0,
+    "fall_height_scale": 0.45,
+    "fall_tilt_rad": 0.8,
+    "first_push_time_scale": 5.0,
+    "gravity_mps2": 9.81,
+    "high_velocity_scale": 0.5,
+    "injection_tolerance_mps": 1e-05,
+    "low_velocity_scale": 0.15,
+    "max_displacement_scale": 3.0,
+    "medium_velocity_scale": 0.3,
+    "protocol_id": "push_recovery_planar_delta_velocity_v2",
+    "protocol_state": "active",
+    "recovery_angular_velocity_scale": 0.5,
+    "recovery_height_scale": 0.7,
+    "recovery_tilt_rad": 0.2,
+    "recovery_velocity_scale": 0.08,
+    "recovery_window_time_scale": 8.0,
+    "schema_version": "true_rl_agent.task.push_recovery.protocol.v2",
+    "second_push_time_scale": 17.0,
+    "stable_dwell_time_scale": 1.5
+  },
+  "original_reference_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+  "original_training_binding_hash": "6a523f9ff068b2dd1969ff64a1809fd7770693048b3011048573725e13f87e26",
+  "original_training_manifest_hash": "7fca96669153de0679c7cdd52911fecd407dc48e9f9c6e56adfb588a34061ace",
+  "same_robot_and_policy_abi": true,
+  "script_sha256": "sha256:696a937b55bf4a5012f327a4836c60ab3bbeb83d465d6681265c07370bb2c82f",
+  "sources": {
+    "checkpoint": {
+      "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/g1/composition/runner/p6-stationary-v3-dev-g1/checkpoints/best.pt",
+      "sha256": "sha256:44fafbd14fe0e59716c2142a819b81f43d6a3bac8422e0e6d5802f451bceb837"
+    },
+    "push_protocol_path": {
+      "path": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/calibration_protocols_01/scale_1p5.json",
+      "sha256": "sha256:4a42e33eebc2084e5d3e4acdd5736d437211efb3176abaf636791aaabaf7db9a"
+    },
+    "training_manifest": {
+      "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/g1/composition/resolved_cell_manifest.json",
+      "sha256": "sha256:412a0104ae6b8ba1e4dabcfa8b25bf9b55846dfc1905d22e23c30380319f1cb1"
+    },
+    "training_summary": {
+      "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/g1/composition/runner/p6-stationary-v3-dev-g1/train/summary.json",
+      "sha256": "sha256:de65bfd495ce3d151f74c7f69be12e305f0248477d3dd88f3e80ff21375f0835"
+    }
+  }
+}

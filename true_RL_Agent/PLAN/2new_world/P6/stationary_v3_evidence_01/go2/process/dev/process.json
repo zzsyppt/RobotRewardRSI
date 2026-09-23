@@ -1,0 +1,43 @@
+{
+  "purpose": "P6 diagnostic",
+  "argv": [
+    "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+    "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/train_stationary_reference_dev.py",
+    "--mode",
+    "run",
+    "--cell",
+    "push.go2_12dof.recovery_v2",
+    "--device",
+    "cuda:0",
+    "--output",
+    "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/go2",
+    "--expected-source-sha256",
+    "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+    "--expected-environment-hash",
+    "1db93042e1073d1319b50f807ee7577387463bb72b0e1c5794e1772712692867"
+  ],
+  "started_at_unix": 1789186275.2893794,
+  "lease": {
+    "schema_version": "true_rl_agent.runner.gpu_lease.v2",
+    "identity": {
+      "execution_device": "cuda:0",
+      "machine_id": "9f0d44ab81e646d89d195b3e7da2de30",
+      "physical_id": "GPU-06661cdd-1a0e-904e-a2e3-705eda5fb65b",
+      "identity_hash": "cac943acb605b37b244df41901d8e2f8ba2e4240bbe25d4fed41414b85da02ee",
+      "physical_resource_hash": "a57856084a9d0c880569edb124f01821dc1061b59385c12b951e2d6a5d6f0deb"
+    },
+    "holder": {
+      "session_id": "new-world-p6-diagnostic",
+      "genesis_identity_hash": "9a59450b97253d21b143d469e89a45f06d0f5cf5add09abe527d024466f961de",
+      "session_contract_hash": "9a59450b97253d21b143d469e89a45f06d0f5cf5add09abe527d024466f961de",
+      "lane_id": "cuda:0",
+      "invocation_segment_id": "go2_process",
+      "logical_job_id": "go2_process"
+    },
+    "owner_pid": 2720729,
+    "ledger_authority": false
+  },
+  "returncode": 0,
+  "child_pid": 2720762,
+  "ended_at_unix": 1789186987.8236523
+}

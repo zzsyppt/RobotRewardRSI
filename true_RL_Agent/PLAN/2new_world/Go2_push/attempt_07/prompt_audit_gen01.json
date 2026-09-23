@@ -1,0 +1,609 @@
+{
+  "status": "PASS_GEN01_COMPLETE_AUTHORING_PROMPT_PROVENANCE_AND_BOTH_SOURCE_READBACKS",
+  "audited_at_utc": "2026-09-23T06:11:26.290792+00:00",
+  "generation": 1,
+  "snapshot": ".tmp/go2_push_a07_live_03.zip",
+  "snapshot_sha256": "681a1a8b1a22d22116f6ec889d6f87911016ecbe0b392bf4d374bd76bbdb66c6",
+  "frozen_source_commit": "5f13b475335b871a8aa458d667ece16763dd78f6",
+  "frozen_source_archive_sha256": "5fcfc6fd1fb186bbc242b99b352d48cbee28ddfbbfec88738a2afb5b82e3a329",
+  "source_manifest_verified": true,
+  "accepted_head_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+  "snapshot_files_checked": 18,
+  "feedback_trial": "go2-push-5rounds-20260923-a07",
+  "current_best_dev": {
+    "score": 0.734375,
+    "failure_counts": {
+      "fall_backward": 11,
+      "fall_side": 13,
+      "height_collapse": 26,
+      "not_recovered": 1,
+      "success_recovered": 141
+    },
+    "strata": {
+      "high": {
+        "episodes": 48,
+        "successes": 19
+      },
+      "low": {
+        "episodes": 48,
+        "successes": 48
+      },
+      "medium": {
+        "episodes": 48,
+        "successes": 47
+      },
+      "repeated": {
+        "episodes": 48,
+        "successes": 27
+      }
+    },
+    "recovery_counts": {
+      "completed_push_event_count": 229,
+      "control_episode_count": 0,
+      "control_success_count": 0,
+      "eligible_episode_count": 192,
+      "episodes": 192,
+      "invalid_injection_count": 0,
+      "planned_push_event_count": 240,
+      "push_event_count": 237,
+      "pushed_episode_count": 192,
+      "sequence_recovered_count": 141,
+      "success_count": 141,
+      "successes": 141,
+      "verified_push_event_count": 237
+    }
+  },
+  "detailed_feedback_dev": {
+    "score": 0.734375,
+    "failure_counts": {
+      "fall_backward": 11,
+      "fall_side": 13,
+      "height_collapse": 26,
+      "not_recovered": 1,
+      "success_recovered": 141
+    },
+    "strata": {
+      "high": {
+        "episodes": 48,
+        "successes": 19
+      },
+      "low": {
+        "episodes": 48,
+        "successes": 48
+      },
+      "medium": {
+        "episodes": 48,
+        "successes": 47
+      },
+      "repeated": {
+        "episodes": 48,
+        "successes": 27
+      }
+    },
+    "recovery_counts": {
+      "completed_push_event_count": 229,
+      "control_episode_count": 0,
+      "control_success_count": 0,
+      "eligible_episode_count": 192,
+      "episodes": 192,
+      "invalid_injection_count": 0,
+      "planned_push_event_count": 240,
+      "push_event_count": 237,
+      "pushed_episode_count": 192,
+      "sequence_recovered_count": 141,
+      "success_count": 141,
+      "successes": 141,
+      "verified_push_event_count": 237
+    }
+  },
+  "lanes": [
+    {
+      "lane": "lane-a",
+      "prompts": [
+        {
+          "path": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-a/authoring_attempts/attempt_000001/prompt_payload.json",
+          "sha256": "5119dae9f796c40a30d2fdadc7b031428b345885c02d46185860784365239293",
+          "frame_kind": "candidate_draft",
+          "bytes": 48301,
+          "task_section_bytes": 16096,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+              "bytes": 1846,
+              "source": "reference_eval_artifact.json:program_source"
+            }
+          ],
+          "long_string_duplicate_excess_bytes": 965
+        },
+        {
+          "path": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-a/authoring_attempts/attempt_000002/prompt_payload.json",
+          "sha256": "80f64b57cbd633c86ee5feb39985457c362ac0eb4403dae2b545887ceb23277a",
+          "frame_kind": "static_repair",
+          "bytes": 49929,
+          "task_section_bytes": 16096,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+              "bytes": 1846,
+              "source": "reference_eval_artifact.json:program_source"
+            }
+          ],
+          "long_string_duplicate_excess_bytes": 965
+        },
+        {
+          "path": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-a/authoring_attempts/attempt_000003/prompt_payload.json",
+          "sha256": "f81e63a64e6d242b82d3d6cd9d2b9388f7458634cde462dd9ed570b7dec05021",
+          "frame_kind": "static_repair",
+          "bytes": 51981,
+          "task_section_bytes": 13924,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+              "bytes": 1846,
+              "source": "reference_eval_artifact.json:program_source"
+            },
+            {
+              "logical_id": "attempt/latest_failed/training_code/components.py",
+              "sha256": "89132297726ec510ac83c661107555504164aa13949c9091d03d2bf01785da99",
+              "bytes": 3293,
+              "source": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-a/002_push_recovery_height_hold_v4/training_code/components.py"
+            }
+          ],
+          "long_string_duplicate_excess_bytes": 1661
+        },
+        {
+          "path": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-a/authoring_attempts/attempt_000004/prompt_payload.json",
+          "sha256": "d80ce2aec65899635eebdd49ba9ad5fb5ace56dd2a9f4afc3bb41aff06efcf8d",
+          "frame_kind": "static_repair",
+          "bytes": 52921,
+          "task_section_bytes": 13924,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+              "bytes": 1846,
+              "source": "reference_eval_artifact.json:program_source"
+            },
+            {
+              "logical_id": "attempt/latest_failed/training_code/components.py",
+              "sha256": "89132297726ec510ac83c661107555504164aa13949c9091d03d2bf01785da99",
+              "bytes": 3293,
+              "source": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-a/002_push_recovery_height_hold_v4/training_code/components.py"
+            }
+          ],
+          "long_string_duplicate_excess_bytes": 1661
+        }
+      ],
+      "attempt_results": [
+        {
+          "attempt": "attempt_000001",
+          "provider_status": "fail",
+          "provider_failure": "reasoning_output_exhausted",
+          "verifier_status": null,
+          "stop_reason": null,
+          "repair_feedback": null,
+          "provider_usage": {
+            "reasoning_units": 32768,
+            "request_cache_hit_units": 12160,
+            "request_cache_miss_units": 221,
+            "request_units": 12381,
+            "response_units": 32768,
+            "total_units": 45149
+          },
+          "source_request_count": 0
+        },
+        {
+          "attempt": "attempt_000002",
+          "provider_status": "pass",
+          "provider_failure": null,
+          "verifier_status": "pass",
+          "stop_reason": null,
+          "repair_feedback": {
+            "anti_degenerate_assessment": {
+              "blocking": true,
+              "candidate_authoring_anchor_available": true,
+              "candidate_source_sha256": "89132297726ec510ac83c661107555504164aa13949c9091d03d2bf01785da99",
+              "changed_mechanism_count": 3,
+              "changed_mechanisms": [
+                "DiagnosticTerm:height_diag",
+                "RewardTerm:height_hold",
+                "ScheduleTerm:reward_weight_scale"
+              ],
+              "classification": "compound_mechanism_delta",
+              "compares_to": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+              "comparison_anchor": "current_best",
+              "evaluated_history_source_count": 0,
+              "feedback_for_author": "When an authoring anchor is present, change exactly one named canonical prompt-visible component mechanism relative to it and preserve every other component mechanism; without an anchor, author the complete initial component set.",
+              "history_sources_with_anchor": 0,
+              "history_sources_without_anchor": 0,
+              "reason": "candidate_changes_multiple_component_mechanisms",
+              "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+              "status": "fail",
+              "structural_comparison": "canonical_component_terms"
+            },
+            "failure_category": "authoring_policy_violation",
+            "instructions": [
+              "Rewrite the candidate to introduce a real code-level reward mechanism delta.",
+              "When an authoring anchor is present, change exactly one named canonical prompt-visible component mechanism relative to it and preserve every other component mechanism; without an anchor, author the complete initial component set.",
+              "Do not resubmit identical, formatting-only, or rationale-only source.",
+              "Do not repeat a previously evaluated mechanism by changing only metadata strings or numeric constants.",
+              "Keep runner, eval, seed, budget, checkpoint, PPO, curriculum, and acceptance rules unchanged."
+            ],
+            "previous_candidate_changed_components": [
+              "diagnostic",
+              "reward_callable",
+              "reward_weight"
+            ],
+            "previous_candidate_id": "push_recovery_height_hold_v4",
+            "previous_candidate_source_delivery": "see_source_catalog",
+            "previous_candidate_source_logical_id": "attempt/latest_failed/training_code/components.py",
+            "schema_version": "true_rl_agent.provider_repair_feedback.v1",
+            "status": "rewrite_required"
+          },
+          "provider_usage": {
+            "request_cache_hit_units": 12544,
+            "request_cache_miss_units": 159,
+            "request_units": 12703,
+            "response_units": 996,
+            "total_units": 13699
+          },
+          "source_request_count": 0
+        },
+        {
+          "attempt": "attempt_000003",
+          "provider_status": "fail",
+          "provider_failure": "json_parse_error",
+          "verifier_status": null,
+          "stop_reason": null,
+          "repair_feedback": {
+            "anti_degenerate_assessment": {
+              "blocking": true,
+              "candidate_authoring_anchor_available": true,
+              "candidate_source_sha256": "89132297726ec510ac83c661107555504164aa13949c9091d03d2bf01785da99",
+              "changed_mechanism_count": 3,
+              "changed_mechanisms": [
+                "DiagnosticTerm:height_diag",
+                "RewardTerm:height_hold",
+                "ScheduleTerm:reward_weight_scale"
+              ],
+              "classification": "compound_mechanism_delta",
+              "compares_to": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+              "comparison_anchor": "current_best",
+              "evaluated_history_source_count": 0,
+              "feedback_for_author": "When an authoring anchor is present, change exactly one named canonical prompt-visible component mechanism relative to it and preserve every other component mechanism; without an anchor, author the complete initial component set.",
+              "history_sources_with_anchor": 0,
+              "history_sources_without_anchor": 0,
+              "reason": "candidate_changes_multiple_component_mechanisms",
+              "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+              "status": "fail",
+              "structural_comparison": "canonical_component_terms"
+            },
+            "failure_category": "authoring_policy_violation",
+            "instructions": [
+              "Rewrite the candidate to introduce a real code-level reward mechanism delta.",
+              "When an authoring anchor is present, change exactly one named canonical prompt-visible component mechanism relative to it and preserve every other component mechanism; without an anchor, author the complete initial component set.",
+              "Do not resubmit identical, formatting-only, or rationale-only source.",
+              "Do not repeat a previously evaluated mechanism by changing only metadata strings or numeric constants.",
+              "Keep runner, eval, seed, budget, checkpoint, PPO, curriculum, and acceptance rules unchanged."
+            ],
+            "previous_candidate_changed_components": [
+              "diagnostic",
+              "reward_callable",
+              "reward_weight"
+            ],
+            "previous_candidate_id": "push_recovery_height_hold_v4",
+            "previous_candidate_source_delivery": "see_source_catalog",
+            "previous_candidate_source_logical_id": "attempt/latest_failed/training_code/components.py",
+            "schema_version": "true_rl_agent.provider_repair_feedback.v1",
+            "status": "rewrite_required"
+          },
+          "provider_usage": {
+            "request_cache_hit_units": 5120,
+            "request_cache_miss_units": 8347,
+            "request_units": 13467,
+            "response_units": 932,
+            "total_units": 14399
+          },
+          "source_request_count": 0
+        },
+        {
+          "attempt": "attempt_000004",
+          "provider_status": "pass",
+          "provider_failure": null,
+          "verifier_status": "pass",
+          "stop_reason": "candidate_verified",
+          "repair_feedback": null,
+          "provider_usage": {
+            "request_cache_hit_units": 12288,
+            "request_cache_miss_units": 1383,
+            "request_units": 13671,
+            "response_units": 1062,
+            "total_units": 14733
+          },
+          "source_request_count": 0
+        }
+      ],
+      "memory_bytes": 996,
+      "memory_experiments": 0,
+      "memory_trial_rows": []
+    },
+    {
+      "lane": "lane-b",
+      "prompts": [
+        {
+          "path": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-b/authoring_attempts/attempt_000001/prompt_payload.json",
+          "sha256": "a804b1aac8db05a34ab34eb0eb58a559b9a90a5ca8c13b8575ef31de7b430a37",
+          "frame_kind": "candidate_draft",
+          "bytes": 48986,
+          "task_section_bytes": 16096,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+              "bytes": 1846,
+              "source": "reference_eval_artifact.json:program_source"
+            }
+          ],
+          "long_string_duplicate_excess_bytes": 965
+        }
+      ],
+      "attempt_results": [
+        {
+          "attempt": "attempt_000001",
+          "provider_status": "pass",
+          "provider_failure": null,
+          "verifier_status": "pass",
+          "stop_reason": "candidate_verified",
+          "repair_feedback": null,
+          "provider_usage": {
+            "reasoning_units": 27961,
+            "request_cache_hit_units": 10880,
+            "request_cache_miss_units": 1703,
+            "request_units": 12583,
+            "response_units": 29173,
+            "total_units": 41756
+          },
+          "source_request_count": 0
+        }
+      ],
+      "memory_bytes": 996,
+      "memory_experiments": 0,
+      "memory_trial_rows": []
+    }
+  ],
+  "initial_sibling_differing_sections": [
+    "required_candidate_package",
+    "authoring_context_frame"
+  ],
+  "F10_current_best_distinct_dev_checked": false,
+  "F11_actual_comparison_repairs": [
+    {
+      "prompt": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-a/authoring_attempts/attempt_000003/prompt_payload.json",
+      "anchor_role": "current_best",
+      "historical_repeat": false,
+      "retained_sources": [
+        "current_best/training_code/components.py",
+        "attempt/latest_failed/training_code/components.py"
+      ]
+    },
+    {
+      "prompt": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-a/authoring_attempts/attempt_000004/prompt_payload.json",
+      "anchor_role": "current_best",
+      "historical_repeat": false,
+      "retained_sources": [
+        "current_best/training_code/components.py",
+        "attempt/latest_failed/training_code/components.py"
+      ]
+    }
+  ],
+  "candidate_claims_for_readback": [
+    {
+      "lane": "lane-a",
+      "attempt": "attempt_000002",
+      "candidate_id": "push_recovery_height_hold_v4",
+      "source": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-a/002_push_recovery_height_hold_v4/training_code/components.py",
+      "source_checksum": "sha256:89132297726ec510ac83c661107555504164aa13949c9091d03d2bf01785da99",
+      "stop_reason": null,
+      "literal_rationales": [
+        "Closest prior candidate is the reference push_standing_recovery_stationary_reference_v3 (public_dev mean 0.734375), whose dominant failure mode is height_collapse (26/192) with high-stratum and repeated-push losses. The reference upright_height term only rewards being near nominal height through a bounded exponential, so once the base drops the gradient vanishes and the policy is not pushed back up. This candidate adds exactly one new reward callable, height_hold, a one-sided quadratic penalty on the normalized height deficit (1 - base_height_relative) clamped at zero, weighted +2.0, which supplies a persistent downward-height gradient that does not saturate. All other reference mechanisms (upright_height, stationary_v3, joint_pose, action_rate, fall) are preserved unchanged, and a height_diag diagnostic plus a neutral reward_weight_scale schedule are added for feedback."
+      ],
+      "public_input_fields": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "causal_or_mathematical_claims": "Pending independent source/evidence readback; verifier PASS is not proof.",
+      "undeclared_input_fields": []
+    },
+    {
+      "lane": "lane-a",
+      "attempt": "attempt_000004",
+      "candidate_id": "push_recovery_tilt_damping_v5",
+      "source": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-a/004_push_recovery_tilt_damping_v5/training_code/components.py",
+      "source_checksum": "sha256:42940100443169b3b9b8529b3a58387f749c10d5629ac065c63ec4c95fc5f264",
+      "stop_reason": "candidate_verified",
+      "literal_rationales": [
+        "Closest prior candidate is the reference push_standing_recovery_stationary_reference_v3 (public_dev mean 0.734375), whose dominant failure mode is height_collapse with high-stratum and repeated-push losses. The reference upright_height term rewards being near nominal height and upright through a bounded exponential, but it is a pure state potential: it provides no gradient that couples tilt magnitude to angular rate, so a robot that is already tilting while rotating has no explicit incentive to arrest the rotation before the tilt grows into a fall. This candidate changes exactly one named canonical prompt-visible component mechanism relative to the reference: it adds a single new reward callable, tilt_damping, defined as the negative product of the squared tilt magnitude (roll^2 + pitch^2) and the squared planar angular rate (base_ang_vel_scaled[:, :2]^2 summed), weighted +1.0. Because the term is non-positive and vanishes whenever either tilt or angular rate is zero, it penalizes only the joint condition of being tilted while rotating, supplying a recovery gradient that pushes the policy to kill angular velocity during the tilt excursion rather than only to return to nominal height. All other reference mechanisms (upright_height, stationary_v3, joint_pose, action_rate, fall) are preserved unchanged, and no diagnostics or schedules are added."
+      ],
+      "public_input_fields": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "causal_or_mathematical_claims": "Pending independent source/evidence readback; verifier PASS is not proof.",
+      "undeclared_input_fields": []
+    },
+    {
+      "lane": "lane-b",
+      "attempt": "attempt_000001",
+      "candidate_id": "push_recovery_stance_height_support_v1",
+      "source": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-b/001_push_recovery_stance_height_support_v1/training_code/components.py",
+      "source_checksum": "sha256:bb24660ee5b071fffbc0656f960da919e0e8f18022f291da3139bcfb3fb0d772",
+      "stop_reason": "candidate_verified",
+      "literal_rationales": [
+        "Anchor: verified reference push_standing_recovery_stationary_reference_v3 (public_dev mean 0.734375; outcomes success_recovered 141, height_collapse 26, fall_side 13, fall_backward 11, not_recovered 1; low 48/48, medium 47/48, high 19/48, repeated 27/48). Exact code-level difference: one RewardTerm is added, stance_height_support with weight 3.0 and callable -(clamp(1.0 - base_height_relative, min=0.0) / 0.30)**2, which reads only the current-step base_height_relative public input; all five reference RewardTerms keep their original callables, weights and mechanisms and no other component is added or altered. Hypothesis: the reference pays a bounded saturating exponential stance bonus with maximum 3.0 rate while its damping mechanism rewards near-zero planar and angular speed unconditionally, so absorbing a force pulse in a crouched low-motion posture costs only about 0.44 rate units of that bonus at 80 percent height; the public failure labels show that equilibrium as height_collapse, and the same unconditional speed reward also suppresses the fast postural corrections that large pulses need, consistent with high 19/48 and repeated 27/48. The added term is zero at and above nominal stance height and grows smoothly with morphology-normalized height deficit, calibrated so that a 0.30 deficit contributes -3.0 rate, equal to the entire maximum stance bonus, which makes a crouched manifold strictly worse than nominal stance at every rated deficit while never penalizing upright motion, tilt or action magnitude during a recovery transient. Expected outcome: after the final pulse the policy returns to nominal stance height instead of settling low, so height_collapse outcomes shrink and the high and repeated pulse strata improve while the already-solved low and medium strata are preserved."
+      ],
+      "public_input_fields": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "causal_or_mathematical_claims": "Pending independent source/evidence readback; verifier PASS is not proof.",
+      "undeclared_input_fields": []
+    }
+  ],
+  "public_boundaries": {
+    "private_paths_checked": 19,
+    "checkpoint_hashes_checked": 2,
+    "literal_hits": 0,
+    "public_only_guard": "PASS",
+    "task_receipt_recomputed": "PASS"
+  },
+  "audit_limits": [
+    "Snapshot only; missing attempt results remain in flight, not failures.",
+    "Source readback is needed to distinguish causal claims from measured facts; this script does not approve candidate mechanisms.",
+    "Checkpoint files are not downloaded/rehashed; no simulation visual inspection; no inferred seed leakage from numeric coincidences."
+  ],
+  "evidence_sha256": {
+    "PLAN/2new_world/Go2_push/source_snapshot_07.json": "826a7f995c69bce4efad140d964abc0dbeee14c1d0f968296e513c1aa807edff",
+    "PLAN/2new_world/Go2_push/launch_07.json": "a311263a17b4af6d3e6e7b160d287b0e48654929f3bd2498d917412220f48649",
+    "PLAN/2new_world/Go2_push/attempt_07/session/session_genesis.json": "2155c2f9bc5f2de68e709fda3a9a3ef2b58bc0b145f20d1fe14dc69b8de9930a",
+    "PLAN/2new_world/Go2_push/attempt_07/session/reference_eval_artifact.json": "7bbbd4843aada507d16cf25c3b2849227e795b6f6f9d4c781fdab5d59bfad9a7",
+    "PLAN/2new_world/Go2_push/attempt_07/session/runner/go2-push-5rounds-20260923-a07/eval/public_dev/summary.json": "beabef02bce80b49ff579aa13b68f9e2ad08b97d6339398c656ebf64da5bddac",
+    "PLAN/2new_world/Go2_push/attempt_07/session/runner/go2-push-5rounds-20260923-a07/eval/public_accept/summary.json": "1df3cc34804f6c940def3ce87bf415f730ce980ca3fff39ba95fcfba4e1ceb8e",
+    "PLAN/2new_world/Go2_push/attempt_07/session/runner/go2-push-5rounds-20260923-a07/eval/sealed_validation/summary.json": "82b5106af4b4158265bed7972fcce4bf6d27236fff5524e80e6b9f3275eab256",
+    "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "5119dae9f796c40a30d2fdadc7b031428b345885c02d46185860784365239293",
+    "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "3243c474b75a7889cc93b6072c1485c91e37ee87bedd9368b931f2e64e8881d0",
+    "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-a/authoring_attempts/attempt_000002/prompt_payload.json": "80f64b57cbd633c86ee5feb39985457c362ac0eb4403dae2b545887ceb23277a",
+    "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-a/authoring_attempts/attempt_000002/attempt_result.json": "da819cddb7df71e2a5fe2babd2b63f4429b8d378077204d2f7337f5376f8b8ff",
+    "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-a/002_push_recovery_height_hold_v4/training_code/components.py": "89132297726ec510ac83c661107555504164aa13949c9091d03d2bf01785da99",
+    "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-a/authoring_attempts/attempt_000003/prompt_payload.json": "f81e63a64e6d242b82d3d6cd9d2b9388f7458634cde462dd9ed570b7dec05021",
+    "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-a/authoring_attempts/attempt_000003/attempt_result.json": "add3ba0e7557190fc562c5a3ac2acfc0d698ff765f0b204edabe625c99c709f6",
+    "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-a/authoring_attempts/attempt_000004/prompt_payload.json": "d80ce2aec65899635eebdd49ba9ad5fb5ace56dd2a9f4afc3bb41aff06efcf8d",
+    "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-a/authoring_attempts/attempt_000004/attempt_result.json": "3af74931068e0dcaa21ff4581015db6e117ae37e6b0992d1c432b5699280b99c",
+    "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-a/004_push_recovery_tilt_damping_v5/training_code/components.py": "42940100443169b3b9b8529b3a58387f749c10d5629ac065c63ec4c95fc5f264",
+    "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-b/authoring_attempts/attempt_000001/prompt_payload.json": "a804b1aac8db05a34ab34eb0eb58a559b9a90a5ca8c13b8575ef31de7b430a37",
+    "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "fe8e95eab6726f0eafd6c0ae1d1a0d38c09c31ae226e612e1f7f2b3f88d52fd7",
+    "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-b/001_push_recovery_stance_height_support_v1/training_code/components.py": "bb24660ee5b071fffbc0656f960da919e0e8f18022f291da3139bcfb3fb0d772"
+  },
+  "provider_calls": 0,
+  "training_jobs": 0,
+  "evaluation_jobs": 0,
+  "manual_reviews": [
+    {
+      "snapshot": ".tmp/go2_push_a07_live_02.zip",
+      "nested_repair": {
+        "attempts": [
+          {
+            "attempt": 1,
+            "observation": "32768 reasoning tokens, finish_reason length, empty final content; retry classified as provider-output failure."
+          },
+          {
+            "attempt": 2,
+            "observation": "Candidate added RewardTerm, DiagnosticTerm and ScheduleTerm; original five terms retained. Three-component rejection matches source."
+          },
+          {
+            "attempt": 3,
+            "observation": "JSON parse failure as recorded; transport receipt has output digest/length but raw response is not in snapshot, so no independent JSON reparse claimed."
+          },
+          {
+            "attempt": 4,
+            "observation": "Nested unresolved policy failure preserves reference + exact prior failed source. Final candidate verifies with one added component."
+          }
+        ],
+        "attempt_3_and_4_source_payloads_identical": true,
+        "all_four_source_request_counts": 0,
+        "comparison_parent_unchanged": true
+      },
+      "final_A_source": {
+        "path": "session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-a/004_push_recovery_tilt_damping_v5/training_code/components.py",
+        "sha256": "42940100443169b3b9b8529b3a58387f749c10d5629ac065c63ec4c95fc5f264",
+        "added_components": [
+          "RewardTerm:tilt_damping"
+        ],
+        "all_five_reference_callables_and_rewardterm_configurations_unchanged": true,
+        "mechanism_readback": "Adds -(roll^2 + pitch^2) * sum(base_ang_vel_scaled[:, :2]^2), weight +1. This is a new tilt/rate product, not a numeric reweighting of one old component.",
+        "rationale_evidence": "Reference dev and height-collapse attribution refer to the prompt-visible reference. Nonpositive/zero-factor claims match the expression. Improvement and physical arrest behavior are hypotheses; existing stationary term already penalizes angular speed, so absence of tilt/rate coupling does not mean absence of all rotational damping.",
+        "component_smoke": "Recorded pass with six finite reward outputs; not physical training or acceptance."
+      },
+      "failed_A_source": {
+        "path": "session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-a/002_push_recovery_height_hold_v4/training_code/components.py",
+        "added_components": [
+          "DiagnosticTerm:height_diag",
+          "RewardTerm:height_hold",
+          "ScheduleTerm:reward_weight_scale"
+        ],
+        "claim_limit": "Its claim that the reference exponential gradient vanishes as soon as height drops is an overstatement: the derivative is generally nonzero at a finite nonnominal height. This rejected draft was not trained."
+      },
+      "sibling_visibility": {
+        "initial_differing_sections": [
+          "required_candidate_package",
+          "authoring_context_frame"
+        ],
+        "A_candidate_ids_source_hashes_and_full_sources_in_B": false,
+        "B_permitted_exclusion": {
+          "schema_version": "true_rl_agent.single_component_semantic_exclusion.v1",
+          "operation": "add",
+          "canonical_mechanism_delta": "RewardTerm:tilt_damping",
+          "component_kind": "RewardTerm",
+          "public_input_dependencies": [
+            "base_ang_vel_scaled",
+            "pitch",
+            "roll"
+          ],
+          "parameter_normalized_semantic_signature": "e8b98d4f97ce4ac94e863be93abd52f2f25fd0f150341edf404c499041460413",
+          "instruction": "Propose one component mechanism whose normalized callable, input, and clip structure is substantively different from this exclusion; renaming or changing only numeric parameters is not distinct.",
+          "exclusion_hash": "093bc8bc019dda50bad8c8ae31febe122b97c5c625167646c4fc8fb87974ce2a"
+        },
+        "limit": "The frozen second lane intentionally receives a bounded mechanism-exclusion descriptor (operation/name/public dependencies/signature), not the A code, rationale, failures, measured scores or checkpoint."
+      },
+      "scope": "A four attempts and B initial prompt only. B response, candidate training/evaluation, and generation closure not present in this snapshot."
+    }
+  ],
+  "authoring_stage_complete": true,
+  "candidate_public_dev_available": false,
+  "generation_closed": false,
+  "manual_review": {
+    "snapshot": ".tmp/go2_push_a07_live_03.zip",
+    "scope": "Both authoring lanes complete: A used four requests; B passed its first. Training initialization files exist for both, but no completed train or candidate dev summary exists in this snapshot.",
+    "prior_review_preserved": ".tmp/go2_push_a07_live_02.zip",
+    "lane_B_source": {
+      "path": "session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-b/001_push_recovery_stance_height_support_v1/training_code/components.py",
+      "sha256": "bb24660ee5b071fffbc0656f960da919e0e8f18022f291da3139bcfb3fb0d772",
+      "added_components": [
+        "RewardTerm:stance_height_support"
+      ],
+      "all_five_reference_callables_and_rewardterm_configurations_unchanged": true,
+      "new_callable_inputs": [
+        "base_height_relative"
+      ],
+      "mechanism_readback": "Adds a one-sided squared normalized height-deficit penalty with weight +3. Unlike A tilt/rate product, it reads only current height. This is a new component relative to the reference, not a coefficient rewrite of one old component.",
+      "sibling_exclusion": "Recorded PASS matches the frozen exclusion hash; independent source dependencies and arithmetic differ from A. The untrained rejected A draft is not evaluated history and was not disclosed to B.",
+      "rationale_numbers": {
+        "reference_counts_and_strata": "All exactly match B prompt feedback, not private evaluation.",
+        "zero_tilt_80_percent_height_reference_bonus_loss": 0.44356863310136596,
+        "30_percent_height_deficit_new_weighted_penalty": -3.0
+      },
+      "claim_limits": "The rationale explicitly labels crouched-equilibrium and suppressed-correction explanations as hypotheses. Aggregate height-collapse counts do not establish an equilibrium, posture trajectory, or causal reward effect. Total-return ordering across different trajectories is not proved by the one-term penalty."
+    },
+    "nonblocking_findings": "No new host/prompt defect established. Existing F9-type rationale limitations remain recorded in the preserved A review; no new validation gate is warranted."
+  }
+}

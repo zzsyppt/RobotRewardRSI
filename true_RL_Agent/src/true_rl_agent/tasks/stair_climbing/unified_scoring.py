@@ -396,6 +396,33 @@ def build_unified_score_projection(
     return projection
 
 
+def build_unified_guard_floor_projection(
+    score_projection: Mapping[str, Any],
+    *,
+    named_guard_names: Sequence[str],
+) -> dict[str, Any]:
+    """Use the same per-seed guard minimum and arithmetic as the objective."""
+
+    objective_stats = score_projection["j_primary"]["score_stats"]
+    guard_vectors = [
+        score_projection[name]["seed_macro_scores"] for name in named_guard_names
+    ]
+    if not guard_vectors:
+        raise ValueError("unified Stair guard floor requires named guards")
+    values = [
+        min(float(value) for value in row)
+        for row in zip(*guard_vectors, strict=True)
+    ]
+    return {
+        "score_stats": _score_stats(
+            values,
+            eval_protocol_hash=objective_stats["eval_protocol_hash"],
+            canonical=objective_stats.get("statistics_version") is not None,
+        ),
+        "seed_macro_scores": values,
+    }
+
+
 def build_unified_reference_score_projection(
     summary: Mapping[str, Any],
     *,
@@ -516,7 +543,8 @@ def build_unified_stair_prompt_feedback(
         "objective_family_mask_hash": score_projection["objective_family_mask_hash"],
         "ordered_suite_hash": suite.suite_hash,
         "split_cohort_hash": suite.cohort_hash("public_dev"),
-        "success_rate_by_cell": dict(success),
+        "success_count_by_cell": {cell: int(counts["success"]) for cell, counts in outcome_counts.items()},
+        "episodes_per_cell": per_cell_episode_count,
         "factor_diagnostics": dict(ordered["factor_diagnostics"]),
         "stratum_diagnostics": stratum_diagnostics,
     }
@@ -719,6 +747,7 @@ __all__ = [
     "STAIR_OBJECTIVE_FAMILY_MASK_SCHEMA_VERSION",
     "STAIR_UNIFIED_SUMMARY_SCHEMA_VERSION",
     "build_reference_objective_family_mask",
+    "build_unified_guard_floor_projection",
     "build_unified_score_projection",
     "build_unified_stair_prompt_feedback",
     "build_unified_stair_summary",

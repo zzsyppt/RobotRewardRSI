@@ -100,7 +100,23 @@ class GenerationSelection(Protocol):
     def to_public_dict(self) -> dict[str, Any]: ...
 
 
-class PhasedEvaluationAdapter(Protocol):
+class ReferencePhasedEvaluationAdapter(Protocol):
+    """Task-owned admission and assembly for a split reference evaluation."""
+
+    def project_reference_public_dev_gate(
+        self, *, phase_result: EvaluationPhaseResult,
+    ) -> Mapping[str, Any] | None: ...
+
+    def assemble_reference_full_summary(
+        self,
+        *,
+        eval_plan: EvalJobSpec,
+        phase_results: Sequence[EvaluationPhaseResult],
+        phase_receipt_refs: Mapping[EvaluationPhase | str, Mapping[str, Any]],
+    ) -> EvaluationAssembly: ...
+
+
+class PhasedEvaluationAdapter(ReferencePhasedEvaluationAdapter, Protocol):
     """The semantic capability required for a task to run generations."""
 
     @property
@@ -151,14 +167,6 @@ class PhasedEvaluationAdapter(Protocol):
         selection_result: GenerationSelection,
         selection_screens: Sequence[PublicDevScreen],
         guard_reference: PublicDevScreen,
-        phase_results: Sequence[EvaluationPhaseResult],
-        phase_receipt_refs: Mapping[EvaluationPhase | str, Mapping[str, Any]],
-    ) -> EvaluationAssembly: ...
-
-    def assemble_reference_full_summary(
-        self,
-        *,
-        eval_plan: EvalJobSpec,
         phase_results: Sequence[EvaluationPhaseResult],
         phase_receipt_refs: Mapping[EvaluationPhase | str, Mapping[str, Any]],
     ) -> EvaluationAssembly: ...

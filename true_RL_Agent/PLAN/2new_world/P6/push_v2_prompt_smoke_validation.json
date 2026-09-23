@@ -1,0 +1,36 @@
+{
+  "schema_version": "p6.push_v2_prompt_smoke_validation.v1",
+  "status": "PASS",
+  "created_at_utc": "2026-09-11T15:49:57.504905+00:00",
+  "source_sha256": {
+    "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py": "9703c5ff10d15636b9753f600a6a347f640f9978929b94bfd17add8f71aa8d09",
+    "src/true_rl_agent/tasks/push_recovery/component_smoke.py": "6a11e70684c75fceae7eb3746c297f9e128932bc0b9a1a62490b92bbd2eef252",
+    "src/true_rl_agent/tasks/component_smoke.py": "274fd50788a5d2556e2ff9448908cea857d836f0b779d5ce68213fb7fcfbac93",
+    "tests/unit/test_push_recovery_v2_prompt_smoke.py": "a3f023fd051c65c7ea5544ada625db4faf0a097675de04efe18a019a73fe7d26"
+  },
+  "command": ".venv/Scripts/python.exe -B -m unittest tests.unit.test_push_recovery_v2_prompt_smoke tests.unit.test_push_recovery_task tests.unit.test_component_smoke_and_antidegenerate tests.unit.test_prompt_capacity_projection -q",
+  "test_count": 130,
+  "new_specialized_test_count": 8,
+  "elapsed_s": 21.815,
+  "checks": [
+    "G1 37 and Go2 12 DOF reference and candidate callables",
+    "wrong-robot joint access rejected",
+    "V2 RewardInputs field contract and full reward authority",
+    "same trained source for dev feedback and runtime, including gaps and absent runtime",
+    "full provider payload and minimum-core exclude acceptance score and private canaries",
+    "public host reason only, sealed status only",
+    "available dev stratum counts summed as n/N; absent strata not fabricated",
+    "legacy prompt and smoke preserved",
+    "ruff F PASS",
+    "git diff --check PASS"
+  ],
+  "initial_failures_resolved": [
+    "SmokeTensor lacked exp; added the existing tensor unary operation",
+    "initial task history projection dropped runner authority fields; now preserves shared frozen identity"
+  ],
+  "limits": [
+    "CPU authoring smoke only",
+    "no GPU, API, simulator or policy-learning run",
+    "does not establish recovery performance or physics equivalence"
+  ]
+}

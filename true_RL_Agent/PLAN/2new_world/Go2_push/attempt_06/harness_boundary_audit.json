@@ -1,0 +1,142 @@
+{
+  "status": "PASS_BOUNDED_HARNESS_TASK_ROBOT_OWNERSHIP_REVIEW",
+  "audited_at_utc": "2026-09-23T03:43:48.280750+00:00",
+  "scope": "Read-only sampled call-path/interface audit of A06 frozen production sources and actual Go2 x Push evidence; no product changes, test additions, simulation or broad repository scan.",
+  "source_commit": "7c58ec32f6dcdd4da238fe52321c58c9abf582c8",
+  "session_id": "go2-push-5rounds-20260923-a06",
+  "selected_cell": {
+    "cell_variant_id": "push.go2_12dof.recovery_v3",
+    "task_id": "unitree_push_recovery",
+    "robot_profile_id": "unitree_go2_12dof_isaaclab_v1",
+    "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1",
+    "backend_id": "isaac_lab_rsl_rl"
+  },
+  "checks": [
+    {
+      "name": "composition_resolves_task_and_robot_before_shared_session",
+      "sources": [
+        "scripts/run_generation_session.py:76",
+        "src/true_rl_agent/composition/base.py:379",
+        "src/true_rl_agent/tasks/push_recovery/composition.py:236"
+      ],
+      "call_path": "prepare_from_args -> resolve_task_composition(provider) -> PushRecoveryCompositionProvider.resolve -> resolve_push_cell_manifest + PushRecoveryTaskPlugin + PushTaskMemoryAdapter + backend + Runner -> prepare_generation_foundation",
+      "finding": "Provider owns selected row/config and robot/task binding. Shared launch consumes ResolvedTaskComposition and frozen manifest; no Push-specific branch is required to run the lane/session.",
+      "status": "PASS_BOUNDED_REVIEW"
+    },
+    {
+      "name": "shared_host_runs_fixed_topology_task_adapter_supplies_semantics",
+      "sources": [
+        "src/true_rl_agent/agent_core/generation_preparation.py:112",
+        "src/true_rl_agent/agent_core/generation_runtime.py:98",
+        "src/true_rl_agent/agent_core/generation.py:355",
+        "src/true_rl_agent/evaluation/phased_adapter.py:103",
+        "src/true_rl_agent/tasks/push_recovery/phased_adapter.py:98"
+      ],
+      "call_path": "prepare_generation_inputs -> task_memory_adapter.build_generation_exploration_plan -> build_generation_lane_inputs -> execute_fixed_width_generation -> phased_adapter.project_public_dev_screen/select/project_public_accept_scores/assemble_full_summary",
+      "finding": "Shared host owns two lanes, phase order, selected-only confirmation, generic score protocol/early rejection, receipts, atomic ledger closure and cost. Success/motion/force-sequence evidence and ranking are interpreted in PushPhasedEvaluationAdapter. PhasedEvaluationAdapter Protocol exchanges generic screens/results/selections, not Push field arguments.",
+      "status": "PASS_BOUNDED_REVIEW"
+    },
+    {
+      "name": "task_owned_qualification_and_final_comparison",
+      "sources": [
+        "src/true_rl_agent/tasks/push_recovery/plugin.py:168",
+        "src/true_rl_agent/tasks/push_recovery/plugin.py:186",
+        "src/true_rl_agent/agent_core/session_genesis.py:2370"
+      ],
+      "call_path": "shared Genesis -> task_plugin.qualify_reference_result; shared final executor -> task_plugin.prepare_final_confirmation/summarize_final_comparison",
+      "finding": "Reference readiness, frozen cohort choice and final metric summary stay task-owned. Candidate acceptance uses the frozen task AcceptanceProtocol; no new sealed-drop or success-rate gate was inferred by this audit.",
+      "status": "PASS_BOUNDED_REVIEW"
+    },
+    {
+      "name": "reference_training_reuse_is_identity_recovery_not_task_logic",
+      "sources": [
+        "src/true_rl_agent/agent_core/generation_runtime.py:17",
+        "src/true_rl_agent/agent_core/session_genesis.py:1283",
+        "src/true_rl_agent/agent_core/session_genesis.py:2329"
+      ],
+      "call_path": "prepare_generation_genesis -> prepare_session_genesis -> _load_completed_reference_training -> runner.recover_completed_train(original TrainJobSpec) -> new task materialized eval plan -> three new reference phases -> task qualification",
+      "finding": "Reuse checks generic task/backend/reference/scientific identity, validates original completion/checkpoint and retains original spec/result. Equality of task_id is identity checking, not task semantic dispatch. Only execution-placement fields job_id/device/GPU binding differ when comparing new requested train spec; source eval is not imported. No Push/Go2 cases in the reuse path.",
+      "status": "PASS_BOUNDED_REVIEW"
+    },
+    {
+      "name": "provider_service_stop_is_task_neutral",
+      "sources": [
+        "src/true_rl_agent/agent_core/provider_errors.py:112",
+        "src/true_rl_agent/agent_core/authoring_loop.py:548",
+        "src/true_rl_agent/agent_core/generation_session.py:423"
+      ],
+      "call_path": "ProviderCandidateError.requires_service_recovery -> complete_attempt(continue) -> ProviderServiceUnavailableError -> existing session exception cost/exit publication -> reraise",
+      "finding": "Classification depends on nonretryable HTTP401/402/403 only. No candidate defect is invented and no generation closure is manufactured. Existing unknown-usage budget guard remains intact; no robot/task-dependent recovery policy added.",
+      "status": "PASS_BOUNDED_REVIEW"
+    },
+    {
+      "name": "robot_facts_and_task_projection_have_separate_owners",
+      "sources": [
+        "src/true_rl_agent/robots/defaults.py:32",
+        "configs/robots/unitree_go2_12dof_isaaclab_v1.json",
+        "src/true_rl_agent/tasks/push_recovery/robot_binding.py:138"
+      ],
+      "call_path": "RobotRegistry.profile/runtime_adapter -> Push robot_binding(profile semantic base role, morphology and ABI) -> CellVariantDefinition/RobotTaskBinding -> compile_cell_manifest",
+      "finding": "Robot profile owns bodies/joints/morphology and adapter identifies asset/runtime. Push binding owns conversion from morphology to force/recovery protocol, task requirements and reward inputs. Shared harness sees the resolved cell and hashes. Morphology scaling is not reimplemented in generation/session.",
+      "status": "PASS_BOUNDED_REVIEW"
+    },
+    {
+      "name": "public_context_uses_task_projections_then_shared_receipt_boundary",
+      "sources": [
+        "src/true_rl_agent/agent_core/generation_lanes.py:48",
+        "src/true_rl_agent/memory/context_builder.py:413",
+        "src/true_rl_agent/memory/context_builder.py:429",
+        "src/true_rl_agent/prompting/task_sections.py:50",
+        "src/true_rl_agent/agent_core/authoring_loop.py:1026"
+      ],
+      "call_path": "validated ledger/history -> task_memory_adapter.build_public_summary + task_prompt_adapter.build_prompt_sections -> sanitize_task_prompt_sections -> canonical task-section receipt -> public-only payload -> immutable prompt reference -> provider",
+      "finding": "Shared code validates allowed section names, public-safe structure, byte budget and payload identity; it does not interpret fall labels or force magnitude. Actual gen1/gen2 public-only checks and task receipts passed independently. Gen2 accepted-parent detailed failure omission is a task feedback sufficiency limitation already recorded, not a shared semantic leak.",
+      "status": "PASS_BOUNDED_REVIEW"
+    }
+  ],
+  "reviewed_source_sha256": {
+    "scripts/run_generation_session.py": "c22ca5aa3ef52223e68580181bf60fee1c0ea95b2873b3aec0f05cbd711e9336",
+    "src/true_rl_agent/composition/base.py": "cdaa30b0c718ce4632da9d0a096395f18f4c813c642b79b4463d9c6810697277",
+    "src/true_rl_agent/agent_core/generation_preparation.py": "2371299274e6c101a2e13d156adddea912c31a882517fb699ade15d12b36469f",
+    "src/true_rl_agent/agent_core/generation_runtime.py": "560fbf1ea8a0e073fa898f4b6c4b5246f261fad445cf712469c92a12868cbc3c",
+    "src/true_rl_agent/agent_core/generation_lanes.py": "c21a4460c06a9f849e743f4fb0bd4ac41b781d56205a2957151a2506398fae01",
+    "src/true_rl_agent/agent_core/generation.py": "74684688ace8d1b2247740327318114ebe5e57964752be88dcc4b2a245d412a0",
+    "src/true_rl_agent/agent_core/generation_session.py": "3183b8537f26bb96a8d0405b44b662ff3c4e23732a49b3e4e3b6162fe002d95d",
+    "src/true_rl_agent/agent_core/session_genesis.py": "b380bd43c0f68c80b89f2f08bc9cbeb221ded7fd82c992fb40e9e1cdb0ba6941",
+    "src/true_rl_agent/agent_core/provider_errors.py": "1be6369bd1214b82ffd485dffe2999a43507f6736d1d78a369cc4c6a90f93ca4",
+    "src/true_rl_agent/agent_core/authoring_loop.py": "6e020c2d74ebb32ba55c61a1946f9579f525bdbdfa349bc4653fb986e7ded97c",
+    "src/true_rl_agent/agent_core/generation_provider_budget.py": "87b357df10f89d9556a7166deeb7a7a1046cdc9ac3d3b9865440d6064f36d30f",
+    "src/true_rl_agent/evaluation/phased_adapter.py": "4eaeb153e3f5db4811bc300fcae1527b9c783dec5de41755b9b6643504afaec1",
+    "src/true_rl_agent/memory/context_builder.py": "4f96d6bd12ec33fcc872db43970ed55e068db90006039f4a0dc75337abddd9fd",
+    "src/true_rl_agent/prompting/task_sections.py": "8def44ab9852e8c4843f3abfa9d5286cd230c6c380e70965c74892111c35f6a1",
+    "src/true_rl_agent/tasks/push_recovery/composition.py": "7ac4a86578908d3ddff5ed307dc98056e2e9fac5f9dbcf97cb532891971e3a61",
+    "src/true_rl_agent/tasks/push_recovery/plugin.py": "e0d135482e6d4b41e75eea3077982d77f6b52e245ad913ca21322c553a7423df",
+    "src/true_rl_agent/tasks/push_recovery/phased_adapter.py": "e772df7548709015c32a2c8ea741ee976e65728830997deb3335dbb70860c1b7",
+    "src/true_rl_agent/tasks/push_recovery/robot_binding.py": "656f903192dfc7e95cc3bca6fa8b8353a31749938e8f811e606a9a567020ce84",
+    "src/true_rl_agent/robots/defaults.py": "6244b16085847a679882457948a0a32c13b33e1e8749b8ef2e3a055a4d6492a5",
+    "configs/robots/unitree_go2_12dof_isaaclab_v1.json": "970783e60cee799890028e0303ad2470cb9a257e27890bdf87564dadab55b804"
+  },
+  "all_reviewed_source_matches_A06_snapshot": true,
+  "supplementary_shared_token_check": {
+    "files": 11,
+    "tokens": "go2|g1_|push_recovery|unitree|stair_climbing",
+    "matches": 0,
+    "role": "Supplementary only; call paths and typed task interfaces above support the ownership conclusion."
+  },
+  "actual_evidence_sha256": {
+    "reference_audit.json": "7e413fd2976ac9149364eaef914fb67b83b3bef8a0813a870b71646e092c887e",
+    "prompt_audit_gen01.json": "08d37680b17032835d83200a73a67c31bd73a0e2ca66b03533cfdc6702ec4d60",
+    "prompt_audit_gen02.json": "bb0d93cec05db83dd51a1ebede59be1b705f5a1fe942d019425fdb9f4fb512c3",
+    "gen01_decision_audit.json": "af672d041ff52aecc7058b5d6c795c70f033d72fefed9680fb920010f81c3407",
+    "process.json": "e1b4e80b11d47134bc5ad3dc36e0dafe300387657cfbe9f123bf93e9c1dfb4e0"
+  },
+  "must_fix_findings": [],
+  "limitations": [
+    "The shared harness intentionally assumes two lanes and dev/accept/sealed phases. This is a research execution contract, not a claim to support arbitrary workflow topologies.",
+    "This run demonstrates one Go2 x Push cell. G1 and Stair matrix cells are not physically validated by A06, and full2x2 closure is not claimed.",
+    "Source-hash matches establish which local implementations were frozen; no whole-repository absence-of-coupling proof is claimed.",
+    "Go2 physics generalization and task-feedback completeness require their own evidence; no causal recovery improvement is inferred from structural boundary compliance."
+  ],
+  "five_round_experiment_complete": false,
+  "matrix_2x2_verified": false
+}

@@ -1,0 +1,895 @@
+{
+  "root": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924",
+  "reports": [
+    {
+      "name": "push_g1_v3_verification.json",
+      "status": "PASS",
+      "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/push_g1_v3_verification.json",
+      "bytes": 10032,
+      "sha256": "87ea321adc6d2533dba577e9db0f0799b7c368fda0f84ed6f512f19bf603ce67"
+    },
+    {
+      "name": "push_go2_v2_verification.json",
+      "status": "PASS",
+      "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/push_go2_v2_verification.json",
+      "bytes": 9446,
+      "sha256": "a3f14b790db87cb93f7c7708c4dd316c9322390a4b0b13cdf7d2ec1914301450"
+    },
+    {
+      "name": "stair_g1_verification.json",
+      "status": "PASS",
+      "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/stair_g1_verification.json",
+      "bytes": 8160377,
+      "sha256": "1d4b0c8cc865e286168c4efc3f011a0ad120eec69568fdd208b342de419ef680"
+    },
+    {
+      "name": "stair_parent_verification.json",
+      "status": "PASS",
+      "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/stair_parent_verification.json",
+      "bytes": 10209601,
+      "sha256": "da16e56f610595767e5451141d76d2375da13a167b9f524dacf1c61b6e9cc74a"
+    },
+    {
+      "name": "train_push_g1_verification.json",
+      "status": "PASS",
+      "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_g1_verification.json",
+      "bytes": 7219,
+      "sha256": "916c74e70664d31ae77d78ae0e37137334d93e0a1b42f92bf4082f10c95bb3f3"
+    },
+    {
+      "name": "train_push_go2_verification.json",
+      "status": "PASS",
+      "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_go2_verification.json",
+      "bytes": 7228,
+      "sha256": "136933e29b9c0570e62f236047096e13cb47a92f77fdc6a5014e1a1aefca59f6"
+    },
+    {
+      "name": "train_stair_g1_verification.json",
+      "status": "PASS",
+      "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_g1_verification.json",
+      "bytes": 8685,
+      "sha256": "f4ac74c7cca2766798fb75adc9ddae4ae3db1112dc985fbcca7807d364258125"
+    },
+    {
+      "name": "train_stair_go2_verification.json",
+      "status": "PASS",
+      "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_go2_verification.json",
+      "bytes": 8492,
+      "sha256": "13520d4144d015904d0d831c26195fd855e2bc22b048d037418cdeb0b27f095c"
+    }
+  ],
+  "runs": [
+    {
+      "case": "push_g1_v3_off",
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "scripts/push_numeric_replay.py",
+        "--cell",
+        "push.g1_37dof.recovery_v3",
+        "--source-manifest",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912/resolved_cell_manifest.json",
+        "--checkpoint-summary",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912/runner/p6-g1-stationary-v3-reference-20260912/train/summary.json",
+        "--checkpoint",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912/runner/p6-g1-stationary-v3-reference-20260912/checkpoints/best.pt",
+        "--device",
+        "cuda:1",
+        "--output",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/push_g1_v3_off",
+        "--mode",
+        "run",
+        "--capture",
+        "off",
+        "--timeout-s",
+        "600"
+      ],
+      "source": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/source",
+      "started_unix": 1790182411.2604606,
+      "ended_unix": 1790182490.363226,
+      "returncode": 0,
+      "resource_measurement": {
+        "peak_rss_kib": 4950064,
+        "elapsed_s": 79.1,
+        "exit_code": 0,
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/push_g1_v3_off.time",
+        "bytes": 44,
+        "sha256": "d878a2b7488c2653735c0aa74eccc1eff50db4a40ec30fe03fb6b497730edaf5"
+      },
+      "receipt": {
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/push_g1_v3_off.launch.json",
+        "bytes": 1069,
+        "sha256": "b66dba0b5c664fae8bede94e0e4cda44f18bb4b01169376e6fddf32be16d79f7"
+      },
+      "role": "acceptance_attempt",
+      "logs": [
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/push_g1_v3_off.log",
+          "bytes": 96,
+          "sha256": "2aed8571ce0491d070ed317e662a2ed41e9e5a8cc26428e3deec1004faaadfa5"
+        }
+      ]
+    },
+    {
+      "case": "push_g1_v3_on",
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "scripts/push_numeric_replay.py",
+        "--cell",
+        "push.g1_37dof.recovery_v3",
+        "--source-manifest",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912/resolved_cell_manifest.json",
+        "--checkpoint-summary",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912/runner/p6-g1-stationary-v3-reference-20260912/train/summary.json",
+        "--checkpoint",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912/runner/p6-g1-stationary-v3-reference-20260912/checkpoints/best.pt",
+        "--device",
+        "cuda:1",
+        "--output",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/push_g1_v3_on",
+        "--mode",
+        "run",
+        "--capture",
+        "on",
+        "--timeout-s",
+        "600"
+      ],
+      "source": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/source",
+      "started_unix": 1790182490.3644955,
+      "ended_unix": 1790182571.819787,
+      "returncode": 0,
+      "resource_measurement": {
+        "peak_rss_kib": 4914208,
+        "elapsed_s": 81.45,
+        "exit_code": 0,
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/push_g1_v3_on.time",
+        "bytes": 44,
+        "sha256": "11f6c09b90c63e71f29ca65e3d2c354c9d126071c366194b1c77bbb8b33412df"
+      },
+      "receipt": {
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/push_g1_v3_on.launch.json",
+        "bytes": 1066,
+        "sha256": "dc7d94cb693e38781743f9f9e85a5c643f8439fe98792da14301e42cc77a9bf7"
+      },
+      "role": "acceptance_attempt",
+      "logs": [
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/push_g1_v3_on.log",
+          "bytes": 95,
+          "sha256": "7309bd131197d16bdd35dc33a296efacd26fffcdfbe5314533add5e7bb23ffe7"
+        }
+      ]
+    },
+    {
+      "case": "push_go2_v2_off",
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "scripts/push_numeric_replay.py",
+        "--cell",
+        "push.go2_12dof.recovery_v2",
+        "--source-manifest",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_go2_matched_dev_01/composition/resolved_cell_manifest.json",
+        "--checkpoint-summary",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_go2_matched_dev_01/composition/runner/p6-go2-matched2-dev-20260912/train/summary.json",
+        "--checkpoint",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_go2_matched_dev_01/composition/runner/p6-go2-matched2-dev-20260912/checkpoints/best.pt",
+        "--device",
+        "cuda:1",
+        "--output",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/push_go2_v2_off",
+        "--mode",
+        "run",
+        "--capture",
+        "off",
+        "--timeout-s",
+        "600"
+      ],
+      "source": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/source",
+      "started_unix": 1790182571.8201907,
+      "ended_unix": 1790182606.1582735,
+      "returncode": 0,
+      "resource_measurement": {
+        "peak_rss_kib": 4871596,
+        "elapsed_s": 34.33,
+        "exit_code": 0,
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/push_go2_v2_off.time",
+        "bytes": 44,
+        "sha256": "587c364198c43112629d9b2c76907ec0e7a4860cb6c40972dd57cd93bf184b39"
+      },
+      "receipt": {
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/push_go2_v2_off.launch.json",
+        "bytes": 1026,
+        "sha256": "ce4b93868f955fb48c8441069396f44de677ca3e6e99c5108672d56378ba0941"
+      },
+      "role": "acceptance_attempt",
+      "logs": [
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/push_go2_v2_off.log",
+          "bytes": 97,
+          "sha256": "13b3c413762913b5bd55a9ef23c0b4457c5a6f92499c84feb0967d2df482010e"
+        }
+      ]
+    },
+    {
+      "case": "push_go2_v2_on",
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "scripts/push_numeric_replay.py",
+        "--cell",
+        "push.go2_12dof.recovery_v2",
+        "--source-manifest",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_go2_matched_dev_01/composition/resolved_cell_manifest.json",
+        "--checkpoint-summary",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_go2_matched_dev_01/composition/runner/p6-go2-matched2-dev-20260912/train/summary.json",
+        "--checkpoint",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_go2_matched_dev_01/composition/runner/p6-go2-matched2-dev-20260912/checkpoints/best.pt",
+        "--device",
+        "cuda:1",
+        "--output",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/push_go2_v2_on",
+        "--mode",
+        "run",
+        "--capture",
+        "on",
+        "--timeout-s",
+        "600"
+      ],
+      "source": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/source",
+      "started_unix": 1790182606.1586702,
+      "ended_unix": 1790182642.1268945,
+      "returncode": 0,
+      "resource_measurement": {
+        "peak_rss_kib": 4873756,
+        "elapsed_s": 35.96,
+        "exit_code": 0,
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/push_go2_v2_on.time",
+        "bytes": 44,
+        "sha256": "fd0281beb5aa86bcb0dbc9c4e30b4ce5f6a606b8e1dc1ce54d7ec4112d8c4c1a"
+      },
+      "receipt": {
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/push_go2_v2_on.launch.json",
+        "bytes": 1023,
+        "sha256": "378c21e27230f78310d4d8b7475620e9058c0d828a296e0836872c41d3c37a6b"
+      },
+      "role": "acceptance_attempt",
+      "logs": [
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/push_go2_v2_on.log",
+          "bytes": 96,
+          "sha256": "35636b43812b5aea9f77963dce5fd9dac7762f576f4cc697b4524f39df0be4a1"
+        }
+      ]
+    },
+    {
+      "case": "stair_g1_off",
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "scripts/stair_numeric_dev_replay.py",
+        "--checkpoint",
+        "/data/yuyangliu/isolated/new_world_p3_reference/true_RL_Agent/PLAN/2new_world/P3/results/g1_reference_train/runner/g1_reference_train/checkpoints/best.pt",
+        "--train-summary",
+        "/data/yuyangliu/isolated/new_world_p3_reference/true_RL_Agent/PLAN/2new_world/P3/results/g1_reference_train/runner/g1_reference_train/train/summary.json",
+        "--protocol",
+        "configs/tasks/stair_unified_protocol_v3.json",
+        "--output",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/stair_g1_off",
+        "--device",
+        "cuda:0",
+        "--mode",
+        "run",
+        "--capture-numeric",
+        "off",
+        "--timeout-s",
+        "1800"
+      ],
+      "source": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/source",
+      "started_unix": 1790182951.6016386,
+      "ended_unix": 1790183179.9341948,
+      "returncode": 0,
+      "resource_measurement": {
+        "peak_rss_kib": 5048376,
+        "elapsed_s": 228.33,
+        "exit_code": 0,
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/stair_g1_off.time",
+        "bytes": 45,
+        "sha256": "42aa772f9d067b4dcd1c58fe1fac870ab1b419854f486b2ecee8f1d62d8e7d3d"
+      },
+      "receipt": {
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/stair_g1_off.launch.json",
+        "bytes": 953,
+        "sha256": "8fb1fd7ec7e4096fb7b292c3848be0ba5930a4ef4d6bb9d1b0041bb204871a63"
+      },
+      "role": "acceptance_attempt",
+      "logs": [
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/stair_g1_off.log",
+          "bytes": 94,
+          "sha256": "0b8d133e21e68be366c120facec8b7313ea4b3bf34545aa89957f385438461c6"
+        }
+      ]
+    },
+    {
+      "case": "stair_g1_on",
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "scripts/stair_numeric_dev_replay.py",
+        "--checkpoint",
+        "/data/yuyangliu/isolated/new_world_p3_reference/true_RL_Agent/PLAN/2new_world/P3/results/g1_reference_train/runner/g1_reference_train/checkpoints/best.pt",
+        "--train-summary",
+        "/data/yuyangliu/isolated/new_world_p3_reference/true_RL_Agent/PLAN/2new_world/P3/results/g1_reference_train/runner/g1_reference_train/train/summary.json",
+        "--protocol",
+        "configs/tasks/stair_unified_protocol_v3.json",
+        "--output",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/stair_g1_on",
+        "--device",
+        "cuda:0",
+        "--mode",
+        "run",
+        "--capture-numeric",
+        "on",
+        "--timeout-s",
+        "1800"
+      ],
+      "source": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/source",
+      "started_unix": 1790183179.9346247,
+      "ended_unix": 1790183410.8587828,
+      "returncode": 0,
+      "resource_measurement": {
+        "peak_rss_kib": 5047952,
+        "elapsed_s": 230.92,
+        "exit_code": 0,
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/stair_g1_on.time",
+        "bytes": 45,
+        "sha256": "5d7e74fd98b6f5c687496eec5ccf68977b23cddd614a469ea8ade7c1dd2b3282"
+      },
+      "receipt": {
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/stair_g1_on.launch.json",
+        "bytes": 950,
+        "sha256": "41c7debb477e20a39dc334db90ab27108321e09ac82feed24be2d5719c17d656"
+      },
+      "role": "acceptance_attempt",
+      "logs": [
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/stair_g1_on.log",
+          "bytes": 93,
+          "sha256": "cd7ae174ae48d52aa3050ce6214588297d8abcdfcb0f28849fc0060164597b3f"
+        }
+      ]
+    },
+    {
+      "case": "stair_parent_off",
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "scripts/stair_numeric_dev_replay.py",
+        "--checkpoint",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p5_go2_derived_reference_ef6826e/runner/p5-go2-derived-reference-ef6826e/checkpoints/best.pt",
+        "--train-summary",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p5_go2_derived_reference_ef6826e/runner/p5-go2-derived-reference-ef6826e/train/summary.json",
+        "--protocol",
+        "configs/tasks/stair_go2_12dof_unified_protocol_v3.json",
+        "--output",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/stair_parent_off",
+        "--device",
+        "cuda:0",
+        "--mode",
+        "run",
+        "--capture-numeric",
+        "off",
+        "--timeout-s",
+        "1800"
+      ],
+      "source": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/source",
+      "started_unix": 1790182400.7764537,
+      "ended_unix": 1790182678.8063881,
+      "returncode": 0,
+      "resource_measurement": {
+        "peak_rss_kib": 4988192,
+        "elapsed_s": 278.02,
+        "exit_code": 0,
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/stair_parent_off.time",
+        "bytes": 45,
+        "sha256": "feff175c657b72a4dc4a71899fd921d6bc50587adb09177173472918b0a59714"
+      },
+      "receipt": {
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/stair_parent_off.launch.json",
+        "bytes": 937,
+        "sha256": "386c59610f324b075a96a0e1df754a91b9e6a59ee112ea218918b2af2809f2f1"
+      },
+      "role": "acceptance_attempt",
+      "logs": [
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/stair_parent_off.log",
+          "bytes": 98,
+          "sha256": "ba412c59031e0449dd8e269f7181b8ba4d3e85d2b219befc01223a68ad506690"
+        }
+      ]
+    },
+    {
+      "case": "stair_parent_on",
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "scripts/stair_numeric_dev_replay.py",
+        "--checkpoint",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p5_go2_derived_reference_ef6826e/runner/p5-go2-derived-reference-ef6826e/checkpoints/best.pt",
+        "--train-summary",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p5_go2_derived_reference_ef6826e/runner/p5-go2-derived-reference-ef6826e/train/summary.json",
+        "--protocol",
+        "configs/tasks/stair_go2_12dof_unified_protocol_v3.json",
+        "--output",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/stair_parent_on",
+        "--device",
+        "cuda:0",
+        "--mode",
+        "run",
+        "--capture-numeric",
+        "on",
+        "--timeout-s",
+        "1800"
+      ],
+      "source": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/source",
+      "started_unix": 1790182678.8068287,
+      "ended_unix": 1790182951.6012547,
+      "returncode": 0,
+      "resource_measurement": {
+        "peak_rss_kib": 4999580,
+        "elapsed_s": 272.79,
+        "exit_code": 0,
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/stair_parent_on.time",
+        "bytes": 45,
+        "sha256": "d21effd2ad56361152f69b711f446bf44140b3ce5086434862e6673635a29866"
+      },
+      "receipt": {
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/stair_parent_on.launch.json",
+        "bytes": 934,
+        "sha256": "e1f08f2c26f9bbbd689337bd41de023d564dc2393800a24d29a310ba7ff4ebe6"
+      },
+      "role": "acceptance_attempt",
+      "logs": [
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/stair_parent_on.log",
+          "bytes": 97,
+          "sha256": "7afa663319e531a74ac8fa1bcb9dab323f428ea1d30f74af3394b218d3e04bb2"
+        }
+      ]
+    },
+    {
+      "case": "train_push_g1_off",
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "scripts/training_numeric_smoke.py",
+        "--train-argv",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/prepare_train_push_g1_anchored/train_argv.json",
+        "--output",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_g1_off",
+        "--device",
+        "cuda:1",
+        "--mode",
+        "run",
+        "--capture",
+        "off",
+        "--timeout-s",
+        "900"
+      ],
+      "source": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/source_training",
+      "started_unix": 1790183114.3961234,
+      "ended_unix": 1790183132.9310305,
+      "returncode": 0,
+      "resource_measurement": {
+        "peak_rss_kib": 5077892,
+        "elapsed_s": 18.53,
+        "exit_code": 0,
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_g1_off.time",
+        "bytes": 44,
+        "sha256": "41e3f580d10fa831e310c3728d8a35d54c060d1787ef857fc6746548bc4b67a7"
+      },
+      "receipt": {
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_g1_off.launch.json",
+        "bytes": 650,
+        "sha256": "93b6118a2968ac8f34f94ee9b4ccdb7af1cda5f53deab0d1936dc3e972d23d1e"
+      },
+      "role": "acceptance_attempt",
+      "logs": [
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_g1_off.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_g1_off/process/stdout.log",
+          "bytes": 20184,
+          "sha256": "1193235c02206148625e317a7570f73fc589c3fc49fafca77aa63eb97d75bb8b"
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_g1_off/process/stderr.log",
+          "bytes": 1758,
+          "sha256": "07f27a14670ee6687c5817346b7fd3827b4ee9321f31674e9a0eb637cc7e1676"
+        }
+      ]
+    },
+    {
+      "case": "train_push_g1_on",
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "scripts/training_numeric_smoke.py",
+        "--train-argv",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/prepare_train_push_g1_anchored/train_argv.json",
+        "--output",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_g1_on",
+        "--device",
+        "cuda:1",
+        "--mode",
+        "run",
+        "--capture",
+        "on",
+        "--timeout-s",
+        "900"
+      ],
+      "source": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/source_training",
+      "started_unix": 1790183132.9320254,
+      "ended_unix": 1790183151.4355214,
+      "returncode": 0,
+      "resource_measurement": {
+        "peak_rss_kib": 5038552,
+        "elapsed_s": 18.5,
+        "exit_code": 0,
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_g1_on.time",
+        "bytes": 44,
+        "sha256": "473ff72d4fba9c01505a175c81408c1845d06ab7fbb23ed9171104d4b24b8748"
+      },
+      "receipt": {
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_g1_on.launch.json",
+        "bytes": 647,
+        "sha256": "97553c850ff355356118f712089dd279509e3bdc717fd3c2b1cdef46ac5eba30"
+      },
+      "role": "acceptance_attempt",
+      "logs": [
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_g1_on.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_g1_on/process/stdout.log",
+          "bytes": 20182,
+          "sha256": "28480262057ae13d2593e88284f1fc44ca41e411c69d8a5416a1d1c1b5283b78"
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_g1_on/process/stderr.log",
+          "bytes": 1758,
+          "sha256": "b951ec116516589d9ed03937d7753419372d69ea2c56473551387cdd3899a689"
+        }
+      ]
+    },
+    {
+      "case": "train_push_go2_off",
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "scripts/training_numeric_smoke.py",
+        "--train-argv",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/prepare_train_push_go2_anchored/train_argv.json",
+        "--output",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_go2_off",
+        "--device",
+        "cuda:1",
+        "--mode",
+        "run",
+        "--capture",
+        "off",
+        "--timeout-s",
+        "900"
+      ],
+      "source": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/source_training",
+      "started_unix": 1790183076.3786123,
+      "ended_unix": 1790183094.301678,
+      "returncode": 0,
+      "resource_measurement": {
+        "peak_rss_kib": 5076940,
+        "elapsed_s": 17.92,
+        "exit_code": 0,
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_go2_off.time",
+        "bytes": 44,
+        "sha256": "299849881aa01ffa651b2d7a11585ca05e4c6dfc182d50bcda6f4722ba7153be"
+      },
+      "receipt": {
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_go2_off.launch.json",
+        "bytes": 652,
+        "sha256": "3bca7d84f7dc312554f1505dac2e36aaa360b591f154abe9742129033337eff2"
+      },
+      "role": "acceptance_attempt",
+      "logs": [
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_go2_off.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_go2_off/process/stdout.log",
+          "bytes": 14877,
+          "sha256": "b0ee61cf9b86ef6bfb4f083085b95198cd20082880037b49f4fd3721b9990696"
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_go2_off/process/stderr.log",
+          "bytes": 1758,
+          "sha256": "f3d9441d103aa8e450bd4207a75fa595ef7767c193acea28b4d5ab6ff355025e"
+        }
+      ]
+    },
+    {
+      "case": "train_push_go2_on",
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "scripts/training_numeric_smoke.py",
+        "--train-argv",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/prepare_train_push_go2_anchored/train_argv.json",
+        "--output",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_go2_on",
+        "--device",
+        "cuda:1",
+        "--mode",
+        "run",
+        "--capture",
+        "on",
+        "--timeout-s",
+        "900"
+      ],
+      "source": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/source_training",
+      "started_unix": 1790183094.302059,
+      "ended_unix": 1790183114.3957746,
+      "returncode": 0,
+      "resource_measurement": {
+        "peak_rss_kib": 5089788,
+        "elapsed_s": 20.09,
+        "exit_code": 0,
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_go2_on.time",
+        "bytes": 44,
+        "sha256": "26448210da3a48b31f605261dca0e94f7415a124001bca19a339930a144a885c"
+      },
+      "receipt": {
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_go2_on.launch.json",
+        "bytes": 649,
+        "sha256": "43fe49b93ddf685e97daada82b9c5a62fec538362e69cead0ee6bf176d93b249"
+      },
+      "role": "acceptance_attempt",
+      "logs": [
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_go2_on.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_go2_on/process/stdout.log",
+          "bytes": 14875,
+          "sha256": "845364a7a163c8cd5f6a2e954428a054091e7b65f50e66e5714b087b3e3633eb"
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_go2_on/process/stderr.log",
+          "bytes": 1758,
+          "sha256": "5f860b4eae5c2c9aca28baf745da8cc4d74dda60223854ce7b15cb47be8f515a"
+        }
+      ]
+    },
+    {
+      "case": "train_stair_g1_off",
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "scripts/training_numeric_smoke.py",
+        "--train-argv",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/prepare_train_stair_g1_anchored/train_argv.json",
+        "--output",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_g1_off",
+        "--device",
+        "cuda:1",
+        "--mode",
+        "run",
+        "--capture",
+        "off",
+        "--timeout-s",
+        "900"
+      ],
+      "source": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/source_training",
+      "started_unix": 1790183037.8121119,
+      "ended_unix": 1790183057.2793577,
+      "returncode": 0,
+      "resource_measurement": {
+        "peak_rss_kib": 5044848,
+        "elapsed_s": 19.46,
+        "exit_code": 0,
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_g1_off.time",
+        "bytes": 44,
+        "sha256": "13bb4c6f10907736510c6e80737e08575abb4f0a6f78964a6a4415db78419f68"
+      },
+      "receipt": {
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_g1_off.launch.json",
+        "bytes": 653,
+        "sha256": "a933753ecca5b3e90cda4a4792effedda9a25f55b726d2755be7335de5d73ea2"
+      },
+      "role": "acceptance_attempt",
+      "logs": [
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_g1_off.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_g1_off/process/stdout.log",
+          "bytes": 17449,
+          "sha256": "3c2da08ff8d818ea5a2ade5cd30898c6316e769e2a1989a3c5faffe1b9051d73"
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_g1_off/process/stderr.log",
+          "bytes": 569,
+          "sha256": "48babf31e3191a2c67aab9579d029d860b8a77f81cbd85f376851959aafce3ce"
+        }
+      ]
+    },
+    {
+      "case": "train_stair_g1_on",
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "scripts/training_numeric_smoke.py",
+        "--train-argv",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/prepare_train_stair_g1_anchored/train_argv.json",
+        "--output",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_g1_on",
+        "--device",
+        "cuda:1",
+        "--mode",
+        "run",
+        "--capture",
+        "on",
+        "--timeout-s",
+        "900"
+      ],
+      "source": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/source_training",
+      "started_unix": 1790183057.279698,
+      "ended_unix": 1790183076.3782232,
+      "returncode": 0,
+      "resource_measurement": {
+        "peak_rss_kib": 5066724,
+        "elapsed_s": 19.09,
+        "exit_code": 0,
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_g1_on.time",
+        "bytes": 44,
+        "sha256": "9295f82956609b395bf1a67aed90db5eec3f2f35d71ea4c25f4bc2183c067d50"
+      },
+      "receipt": {
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_g1_on.launch.json",
+        "bytes": 649,
+        "sha256": "391ed070784bf5feebcb526a8e52bca9c49e7e9cf42a16054630cc52619eb198"
+      },
+      "role": "acceptance_attempt",
+      "logs": [
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_g1_on.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_g1_on/process/stdout.log",
+          "bytes": 17448,
+          "sha256": "aa9937c617a8f2bd26252635c088aaa5d5bb6686d3a76907705792c85c37aed5"
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_g1_on/process/stderr.log",
+          "bytes": 569,
+          "sha256": "609a779e3275dc0243cc48f064ad6f5139bebf46c9662fa8c13e9c37e4a5a029"
+        }
+      ]
+    },
+    {
+      "case": "train_stair_go2_off",
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "scripts/training_numeric_smoke.py",
+        "--train-argv",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/prepare_train_stair_go2_anchored/train_argv.json",
+        "--output",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_go2_off",
+        "--device",
+        "cuda:1",
+        "--mode",
+        "run",
+        "--capture",
+        "off",
+        "--timeout-s",
+        "900"
+      ],
+      "source": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/source_training",
+      "started_unix": 1790183000.6880348,
+      "ended_unix": 1790183019.2605631,
+      "returncode": 0,
+      "resource_measurement": {
+        "peak_rss_kib": 5046008,
+        "elapsed_s": 18.57,
+        "exit_code": 0,
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_go2_off.time",
+        "bytes": 44,
+        "sha256": "f7cdd2586f734009c277ba7a3107f4356fc2f53c86b50a76f64a700a8f72fb42"
+      },
+      "receipt": {
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_go2_off.launch.json",
+        "bytes": 656,
+        "sha256": "062757cb96a74d97ae42ab744d23ea032b9c873aa0d14ba5f95229b90dc53b99"
+      },
+      "role": "acceptance_attempt",
+      "logs": [
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_go2_off.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_go2_off/process/stdout.log",
+          "bytes": 11961,
+          "sha256": "2972b540a28bfd16de96306ee01d67936a3b825e73fb4049f6c52fe4d0f8a694"
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_go2_off/process/stderr.log",
+          "bytes": 569,
+          "sha256": "3850852f3ff6ea714bebc04050590c23d0689917fe3d15e69c4ba48e0b245911"
+        }
+      ]
+    },
+    {
+      "case": "train_stair_go2_on",
+      "argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "scripts/training_numeric_smoke.py",
+        "--train-argv",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/prepare_train_stair_go2_anchored/train_argv.json",
+        "--output",
+        "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_go2_on",
+        "--device",
+        "cuda:1",
+        "--mode",
+        "run",
+        "--capture",
+        "on",
+        "--timeout-s",
+        "900"
+      ],
+      "source": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/source_training",
+      "started_unix": 1790183019.2610064,
+      "ended_unix": 1790183037.8117292,
+      "returncode": 0,
+      "resource_measurement": {
+        "peak_rss_kib": 5042180,
+        "elapsed_s": 18.54,
+        "exit_code": 0,
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_go2_on.time",
+        "bytes": 44,
+        "sha256": "3c00da684dfd2aa7e114170d313beb0952bbb6c9a592785866f4d466fc1f1c44"
+      },
+      "receipt": {
+        "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_go2_on.launch.json",
+        "bytes": 653,
+        "sha256": "6a4d046dcf78e130a3729f2e5f57b9511e294871e3fab76e8221e27f936d4088"
+      },
+      "role": "acceptance_attempt",
+      "logs": [
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_go2_on.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_go2_on/process/stdout.log",
+          "bytes": 11959,
+          "sha256": "b3fc018861e180d7fadf064314267749055e66c460e5e74a1127ceee69b64ef3"
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_go2_on/process/stderr.log",
+          "bytes": 569,
+          "sha256": "0998a4a2934d6831b8241294b518f3d4efa058f7a92b6fe24d28f8210957b88f"
+        }
+      ]
+    }
+  ],
+  "cost": {
+    "measured_single_gpu_driver_seconds": 1391.6,
+    "gpu_capacity_hours_upper_proxy": 0.38655555555555554,
+    "scope": "sum of whole-driver GNU time elapsed, one reserved GPU per run; includes startup, teardown and failed/preliminary runs",
+    "provider_requests": 0,
+    "model_cost": 0,
+    "incomplete_measurements": 0
+  }
+}

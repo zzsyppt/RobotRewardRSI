@@ -1,0 +1,92 @@
+{
+  "scope": "read-only replay of A01 public-dev evidence through corrected production prompt/memory projections; not a new qualification sample",
+  "reference_artifact_sha256": "4ba73c293e8aa1073cc241abff959c441b429fa8300b81c3237f049e3831358c",
+  "reference_feedback": {
+    "schema_version": "true_rl_agent.public_feedback_summary.push_recovery.v3",
+    "status": "available",
+    "source_selection": "reference_current_best",
+    "latest_public_score": 0.734375,
+    "latest_failure_mode": "height_collapse_dominated",
+    "public_dev": {
+      "score_stats": {
+        "count": 3,
+        "episode_count": 192,
+        "mean": 0.734375,
+        "std": 0.027063293868263706,
+        "standard_error": 0.015625
+      },
+      "recovery_counts": {
+        "episodes": 192,
+        "successes": 141,
+        "eligible_episode_count": 192,
+        "control_episode_count": 0,
+        "planned_push_event_count": 240,
+        "pushed_episode_count": 192,
+        "push_event_count": 237,
+        "invalid_injection_count": 0,
+        "completed_push_event_count": 229,
+        "verified_push_event_count": 237,
+        "sequence_recovered_count": 141
+      },
+      "stratum_results": {
+        "low": {
+          "episodes": 48,
+          "successes": 48,
+          "n_over_N": "48/48"
+        },
+        "medium": {
+          "episodes": 48,
+          "successes": 47,
+          "n_over_N": "47/48"
+        },
+        "high": {
+          "episodes": 48,
+          "successes": 19,
+          "n_over_N": "19/48"
+        },
+        "repeated": {
+          "episodes": 48,
+          "successes": 27,
+          "n_over_N": "27/48"
+        }
+      },
+      "failure_breakdown": {
+        "counts": {
+          "success_recovered": 141,
+          "not_recovered": 1,
+          "fall_backward": 11,
+          "fall_side": 13,
+          "height_collapse": 26
+        },
+        "total": 192
+      },
+      "dominant_outcome": "success_recovered"
+    }
+  },
+  "task_memory": {
+    "schema_version": "true_rl_agent.push_memory.public.v1",
+    "task_id": "unitree_push_recovery",
+    "rounds_with_public_push_metrics": 1,
+    "success_rate": {
+      "latest": 0.734375,
+      "best": 0.734375,
+      "mean": 0.734375
+    },
+    "latest_failure_mode": "height_collapse_dominated",
+    "latest_failure_breakdown": {
+      "not_recovered": 0.005208,
+      "fall_backward": 0.057292,
+      "fall_side": 0.067708,
+      "height_collapse": 0.135417
+    },
+    "aggregate_failure_breakdown": {
+      "fall_backward": 0.057292,
+      "fall_side": 0.067708,
+      "height_collapse": 0.135417,
+      "not_recovered": 0.005208
+    },
+    "latest_motion_quality": {}
+  },
+  "forbidden_phase_field_present": false,
+  "public_only_guard": "PASS"
+}

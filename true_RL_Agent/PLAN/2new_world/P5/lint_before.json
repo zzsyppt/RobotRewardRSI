@@ -1,0 +1,619 @@
+[
+  {
+    "cell": null,
+    "code": "F402",
+    "end_location": {
+      "column": 14,
+      "row": 758
+    },
+    "filename": "D:\\humanoid_agent\\true_RL_Agent\\src\\true_rl_agent\\evaluation\\acceptance_replay.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 758
+    },
+    "message": "Import `field` from line 8 shadowed by loop variable",
+    "name": "import-shadowed-by-loop-var",
+    "noqa_row": 758,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/import-shadowed-by-loop-var"
+  },
+  {
+    "cell": null,
+    "code": "F402",
+    "end_location": {
+      "column": 18,
+      "row": 118
+    },
+    "filename": "D:\\humanoid_agent\\true_RL_Agent\\src\\true_rl_agent\\tasks\\stair_climbing\\component_smoke.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 118
+    },
+    "message": "Import `field` from line 6 shadowed by loop variable",
+    "name": "import-shadowed-by-loop-var",
+    "noqa_row": 118,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/import-shadowed-by-loop-var"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 46,
+      "row": 7
+    },
+    "filename": "D:\\humanoid_agent\\true_RL_Agent\\src\\true_rl_agent\\tasks\\stair_climbing\\generation_session_cost.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from collections.abc import Mapping",
+          "end_location": {
+            "column": 46,
+            "row": 7
+          },
+          "location": {
+            "column": 1,
+            "row": 7
+          }
+        }
+      ],
+      "message": "Remove unused import: `collections.abc.Sequence`"
+    },
+    "location": {
+      "column": 38,
+      "row": 7
+    },
+    "message": "`collections.abc.Sequence` imported but unused",
+    "name": "unused-import",
+    "noqa_row": 7,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 35,
+      "row": 19
+    },
+    "filename": "D:\\humanoid_agent\\true_RL_Agent\\src\\true_rl_agent\\tasks\\stair_climbing\\generation_session_cost.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from true_rl_agent.agent_core.generation_cost_journal import (\n    GenerationActualCostUsage as StairGenerationActualCostUsageV2,\n    LegacyGenerationActualCostUsage as StairGenerationActualCostUsage,\n    GenerationActualCostReceiptRef as StairGenerationActualCostReceiptRef,\n    GenerationActualCostJournal as StairGenerationActualCostJournal,\n    replay_generation_combined_cost_chain as replay_stair_generation_combined_cost_chain,\n    replay_generation_final_cost_chain as replay_stair_generation_formal_cost_chain,\n    require_nonnegative_cost_integer,\n)",
+          "end_location": {
+            "column": 2,
+            "row": 22
+          },
+          "location": {
+            "column": 1,
+            "row": 12
+          }
+        }
+      ],
+      "message": "Remove unused import"
+    },
+    "location": {
+      "column": 5,
+      "row": 19
+    },
+    "message": "`true_rl_agent.agent_core.generation_cost_journal.project_actual_generation_cost` imported but unused",
+    "name": "unused-import",
+    "noqa_row": 19,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 26,
+      "row": 20
+    },
+    "filename": "D:\\humanoid_agent\\true_RL_Agent\\src\\true_rl_agent\\tasks\\stair_climbing\\generation_session_cost.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from true_rl_agent.agent_core.generation_cost_journal import (\n    GenerationActualCostUsage as StairGenerationActualCostUsageV2,\n    LegacyGenerationActualCostUsage as StairGenerationActualCostUsage,\n    GenerationActualCostReceiptRef as StairGenerationActualCostReceiptRef,\n    GenerationActualCostJournal as StairGenerationActualCostJournal,\n    replay_generation_combined_cost_chain as replay_stair_generation_combined_cost_chain,\n    replay_generation_final_cost_chain as replay_stair_generation_formal_cost_chain,\n    require_nonnegative_cost_integer,\n)",
+          "end_location": {
+            "column": 2,
+            "row": 22
+          },
+          "location": {
+            "column": 1,
+            "row": 12
+          }
+        }
+      ],
+      "message": "Remove unused import"
+    },
+    "location": {
+      "column": 5,
+      "row": 20
+    },
+    "message": "`true_rl_agent.agent_core.generation_cost_journal.require_cost_event_id` imported but unused",
+    "name": "unused-import",
+    "noqa_row": 20,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 28,
+      "row": 22
+    },
+    "filename": "D:\\humanoid_agent\\true_RL_Agent\\src\\true_rl_agent\\tasks\\stair_climbing\\isaaclab_unified_terrain.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from true_rl_agent.tasks.stair_climbing.unified_training import (\n    STAIR_TERRAIN_REGIME_C0,\n    StairUnifiedTrainingProfile,\n    unified_assignment_summary,\n    unified_initial_terrain_assignment,\n)",
+          "end_location": {
+            "column": 2,
+            "row": 27
+          },
+          "location": {
+            "column": 1,
+            "row": 20
+          }
+        }
+      ],
+      "message": "Remove unused import"
+    },
+    "location": {
+      "column": 5,
+      "row": 22
+    },
+    "message": "`true_rl_agent.tasks.stair_climbing.unified_training.STAIR_TERRAIN_REGIME_C1` imported but unused",
+    "name": "unused-import",
+    "noqa_row": 22,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 36,
+      "row": 24
+    },
+    "filename": "D:\\humanoid_agent\\true_RL_Agent\\src\\true_rl_agent\\tasks\\stair_climbing\\isaaclab_unified_terrain.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from true_rl_agent.tasks.stair_climbing.unified_training import (\n    STAIR_TERRAIN_REGIME_C0,\n    StairUnifiedTrainingProfile,\n    unified_assignment_summary,\n    unified_initial_terrain_assignment,\n)",
+          "end_location": {
+            "column": 2,
+            "row": 27
+          },
+          "location": {
+            "column": 1,
+            "row": 20
+          }
+        }
+      ],
+      "message": "Remove unused import"
+    },
+    "location": {
+      "column": 5,
+      "row": 24
+    },
+    "message": "`true_rl_agent.tasks.stair_climbing.unified_training.goal_progress_m_by_terrain_type` imported but unused",
+    "name": "unused-import",
+    "noqa_row": 24,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F811",
+    "end_location": {
+      "column": 36,
+      "row": 180
+    },
+    "filename": "D:\\humanoid_agent\\true_RL_Agent\\src\\true_rl_agent\\tasks\\stair_climbing\\isaaclab_unified_terrain.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 180
+    },
+    "message": "Redefinition of unused `goal_progress_m_by_terrain_type` from line 24: `goal_progress_m_by_terrain_type` redefined here",
+    "name": "redefined-while-unused",
+    "noqa_row": 180,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/redefined-while-unused"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 21,
+      "row": 973
+    },
+    "filename": "D:\\humanoid_agent\\true_RL_Agent\\src\\true_rl_agent\\tasks\\stair_climbing\\selection.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 24,
+            "row": 973
+          },
+          "location": {
+            "column": 5,
+            "row": 973
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `runtime_eligible`"
+    },
+    "location": {
+      "column": 5,
+      "row": 973
+    },
+    "message": "Local variable `runtime_eligible` is assigned to but never used",
+    "name": "unused-variable",
+    "noqa_row": 973,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 59,
+      "row": 4
+    },
+    "filename": "D:\\humanoid_agent\\true_RL_Agent\\src\\true_rl_agent\\tasks\\stair_climbing\\source_checkout.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 9
+          },
+          "location": {
+            "column": 1,
+            "row": 3
+          }
+        }
+      ],
+      "message": "Remove unused import"
+    },
+    "location": {
+      "column": 31,
+      "row": 4
+    },
+    "message": "`true_rl_agent.runner.source_checkout.EXECUTION_SOURCE_ROOTS` imported but unused",
+    "name": "unused-import",
+    "noqa_row": 4,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 42,
+      "row": 5
+    },
+    "filename": "D:\\humanoid_agent\\true_RL_Agent\\src\\true_rl_agent\\tasks\\stair_climbing\\source_checkout.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 9
+          },
+          "location": {
+            "column": 1,
+            "row": 3
+          }
+        }
+      ],
+      "message": "Remove unused import"
+    },
+    "location": {
+      "column": 23,
+      "row": 5
+    },
+    "message": "`true_rl_agent.runner.source_checkout.SourceCheckout` imported but unused",
+    "name": "unused-import",
+    "noqa_row": 5,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 61,
+      "row": 6
+    },
+    "filename": "D:\\humanoid_agent\\true_RL_Agent\\src\\true_rl_agent\\tasks\\stair_climbing\\source_checkout.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 9
+          },
+          "location": {
+            "column": 1,
+            "row": 3
+          }
+        }
+      ],
+      "message": "Remove unused import"
+    },
+    "location": {
+      "column": 32,
+      "row": 6
+    },
+    "message": "`true_rl_agent.runner.source_checkout.inspect_source_checkout` imported but unused",
+    "name": "unused-import",
+    "noqa_row": 6,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 61,
+      "row": 7
+    },
+    "filename": "D:\\humanoid_agent\\true_RL_Agent\\src\\true_rl_agent\\tasks\\stair_climbing\\source_checkout.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 9
+          },
+          "location": {
+            "column": 1,
+            "row": 3
+          }
+        }
+      ],
+      "message": "Remove unused import"
+    },
+    "location": {
+      "column": 32,
+      "row": 7
+    },
+    "message": "`true_rl_agent.runner.source_checkout.require_source_checkout` imported but unused",
+    "name": "unused-import",
+    "noqa_row": 7,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 20,
+      "row": 30
+    },
+    "filename": "D:\\humanoid_agent\\true_RL_Agent\\tests\\unit\\test_stair_entrypoint_materialization.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from scripts.isaaclab_stair_rsl_rl_train import (  # noqa: E402\n    _load_and_qualify_program,\n)",
+          "end_location": {
+            "column": 2,
+            "row": 31
+          },
+          "location": {
+            "column": 1,
+            "row": 28
+          }
+        }
+      ],
+      "message": "Remove unused import: `scripts.isaaclab_stair_rsl_rl_train._status_summary`"
+    },
+    "location": {
+      "column": 5,
+      "row": 30
+    },
+    "message": "`scripts.isaaclab_stair_rsl_rl_train._status_summary` imported but unused",
+    "name": "unused-import",
+    "noqa_row": 30,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 59,
+      "row": 55
+    },
+    "filename": "D:\\humanoid_agent\\true_RL_Agent\\tests\\unit\\test_stair_entrypoint_materialization.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 56
+          },
+          "location": {
+            "column": 1,
+            "row": 55
+          }
+        }
+      ],
+      "message": "Remove unused import: `true_rl_agent.runner.base.RunnerExecutionError`"
+    },
+    "location": {
+      "column": 39,
+      "row": 55
+    },
+    "message": "`true_rl_agent.runner.base.RunnerExecutionError` imported but unused",
+    "name": "unused-import",
+    "noqa_row": 55,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 68,
+      "row": 66
+    },
+    "filename": "D:\\humanoid_agent\\true_RL_Agent\\tests\\unit\\test_stair_entrypoint_materialization.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 67
+          },
+          "location": {
+            "column": 1,
+            "row": 66
+          }
+        }
+      ],
+      "message": "Remove unused import: `true_rl_agent.runner.subprocess_runner.SubprocessRunner`"
+    },
+    "location": {
+      "column": 52,
+      "row": 66
+    },
+    "message": "`true_rl_agent.runner.subprocess_runner.SubprocessRunner` imported but unused",
+    "name": "unused-import",
+    "noqa_row": 66,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 28,
+      "row": 100
+    },
+    "filename": "D:\\humanoid_agent\\true_RL_Agent\\tests\\unit\\test_stair_entrypoint_materialization.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from true_rl_agent.tasks.stair_climbing.reward_program import (  # noqa: E402\n    STAIR_REWARD_ENVIRONMENT_AXIS_EVIDENCE_SCHEMA_VERSION,\n    qualify_stair_candidate_reward_program,\n)",
+          "end_location": {
+            "column": 2,
+            "row": 102
+          },
+          "location": {
+            "column": 1,
+            "row": 98
+          }
+        }
+      ],
+      "message": "Remove unused import: `true_rl_agent.tasks.stair_climbing.reward_program.StairRewardProgramError`"
+    },
+    "location": {
+      "column": 5,
+      "row": 100
+    },
+    "message": "`true_rl_agent.tasks.stair_climbing.reward_program.StairRewardProgramError` imported but unused",
+    "name": "unused-import",
+    "noqa_row": 100,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 32,
+      "row": 105
+    },
+    "filename": "D:\\humanoid_agent\\true_RL_Agent\\tests\\unit\\test_stair_entrypoint_materialization.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from true_rl_agent.tasks.stair_climbing.seed_policy import (  # noqa: E402\n    STAIR_FINAL_CONFIRMATION_EVAL_NAMESPACE,\n)",
+          "end_location": {
+            "column": 2,
+            "row": 106
+          },
+          "location": {
+            "column": 1,
+            "row": 103
+          }
+        }
+      ],
+      "message": "Remove unused import: `true_rl_agent.tasks.stair_climbing.seed_policy.STAIR_FORMAL_EVAL_NAMESPACE`"
+    },
+    "location": {
+      "column": 5,
+      "row": 105
+    },
+    "message": "`true_rl_agent.tasks.stair_climbing.seed_policy.STAIR_FORMAL_EVAL_NAMESPACE` imported but unused",
+    "name": "unused-import",
+    "noqa_row": 105,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 43,
+      "row": 25
+    },
+    "filename": "D:\\humanoid_agent\\true_RL_Agent\\tests\\unit\\test_stair_generation_cost_recovery.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from true_rl_agent.agent_core.generation_session import (\n    assert_actual_cost_receipt_matches_usage,\n    _current_validation_boundary_cost_receipt,\n    _replay_validation_combined_cost_chain,\n    _validation_boundary_was_already_paused,\n)",
+          "end_location": {
+            "column": 2,
+            "row": 28
+          },
+          "location": {
+            "column": 1,
+            "row": 22
+          }
+        }
+      ],
+      "message": "Remove unused import: `true_rl_agent.agent_core.generation_session.publish_or_validate_generation_closure`"
+    },
+    "location": {
+      "column": 5,
+      "row": 25
+    },
+    "message": "`true_rl_agent.agent_core.generation_session.publish_or_validate_generation_closure` imported but unused",
+    "name": "unused-import",
+    "noqa_row": 25,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  }
+]

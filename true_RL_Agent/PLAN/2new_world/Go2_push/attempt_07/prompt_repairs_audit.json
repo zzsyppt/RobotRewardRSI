@@ -1,0 +1,142 @@
+{
+  "status": "PASS",
+  "audited_at_utc": "2026-09-23T05:51:31.624222+00:00",
+  "scope": "A06 real ledger public-history replay and production task projection/frame assembly; no provider/simulator execution",
+  "history_replay": "Production ledger replay uses original Linux receipt URIs; Windows consumes its hash-bound public-history export.",
+  "F10": {
+    "changed_sections": [
+      "public_feedback_summary",
+      "authoring_context_frame"
+    ],
+    "previous_prompt_bytes": 60876,
+    "updated_prompt_bytes": 62157,
+    "current_best": {
+      "status": "available",
+      "source_selection": "accepted_current_best",
+      "source_round_id": "go2-push-5rounds-20260923-a06-generation-001-lane-b",
+      "source_candidate_id": "push_standing_recovery_height_barrier_v1",
+      "program_source_checksum": "sha256:376785250b1dbfeb1c918c49ea37f3f24bf8b353279a14d25fe9b9f1667a36ae",
+      "latest_public_score": 0.78125,
+      "latest_failure_mode": "height_collapse_dominated",
+      "public_dev": {
+        "score_stats": {
+          "count": 3,
+          "episode_count": 192,
+          "mean": 0.78125,
+          "std": 0.05633673867912483,
+          "standard_error": 0.03252603124165832
+        },
+        "recovery_counts": {
+          "episodes": 192,
+          "successes": 150,
+          "eligible_episode_count": 192,
+          "control_episode_count": 0,
+          "planned_push_event_count": 240,
+          "pushed_episode_count": 192,
+          "push_event_count": 238,
+          "invalid_injection_count": 0,
+          "completed_push_event_count": 238,
+          "verified_push_event_count": 238,
+          "sequence_recovered_count": 152
+        },
+        "stratum_results": {
+          "low": {
+            "episodes": 48,
+            "successes": 48,
+            "n_over_N": "48/48"
+          },
+          "medium": {
+            "episodes": 48,
+            "successes": 44,
+            "n_over_N": "44/48"
+          },
+          "high": {
+            "episodes": 48,
+            "successes": 22,
+            "n_over_N": "22/48"
+          },
+          "repeated": {
+            "episodes": 48,
+            "successes": 36,
+            "n_over_N": "36/48"
+          }
+        },
+        "failure_breakdown": {
+          "counts": {
+            "success_recovered": 150,
+            "not_recovered": 4,
+            "fall_backward": 9,
+            "fall_side": 13,
+            "height_collapse": 16
+          },
+          "total": 192
+        },
+        "dominant_outcome": "success_recovered"
+      }
+    },
+    "latest_nonaccepted_feedback_unchanged": true,
+    "parent_dev_matches_original_rollout": true,
+    "parent_private_phase_or_checkpoint_fields_visible": false
+  },
+  "F11": {
+    "replayed_repair_frames": [
+      {
+        "generation": 3,
+        "previous_prompt_bytes": 49576,
+        "updated_prompt_bytes": 58893,
+        "retained_source_ids": [
+          "attempt/latest_failed/training_code/components.py",
+          "current_best/training_code/components.py",
+          "memory/latest_nonaccepted/training_code/components.py"
+        ],
+        "retained_source_bytes": {
+          "current_best/training_code/components.py": 2849,
+          "memory/latest_nonaccepted/training_code/components.py": 4612,
+          "attempt/latest_failed/training_code/components.py": 4587
+        },
+        "historical_feedback_unchanged": true,
+        "private_or_new_sources_added": false
+      },
+      {
+        "generation": 5,
+        "previous_prompt_bytes": 50708,
+        "updated_prompt_bytes": 61138,
+        "retained_source_ids": [
+          "attempt/latest_failed/training_code/components.py",
+          "current_best/training_code/components.py",
+          "memory/latest_nonaccepted/training_code/components.py"
+        ],
+        "retained_source_bytes": {
+          "current_best/training_code/components.py": 2849,
+          "memory/latest_nonaccepted/training_code/components.py": 5739,
+          "attempt/latest_failed/training_code/components.py": 5724
+        },
+        "historical_feedback_unchanged": true,
+        "private_or_new_sources_added": false
+      }
+    ],
+    "future_source_request_avoided": "Not claimed; the three required source bodies are now directly available.",
+    "verifier_anchor_changed": false
+  },
+  "original_evidence_unchanged": true,
+  "evidence_sha256": {
+    "PLAN\\2new_world\\Go2_push\\attempt_06\\session\\resolved_cell_manifest.json": "a130b3a97ce4afde8574d19c575a430e8b83ec3750c40b43bc87465cfa0905dd",
+    "PLAN\\2new_world\\Go2_push\\attempt_06\\session\\session_genesis.json": "f106e800379935a820c446165d096d730dbe95c8bea13390f4e07b5086c07807",
+    "PLAN\\2new_world\\Go2_push\\attempt_06\\session\\ledger.jsonl": "0b733babdcb15579c72af5d9344b4b7db433acfee55b855ffe1d910b1eacdf38",
+    "PLAN\\2new_world\\Go2_push\\attempt_07\\a06_gen01_public_history.json": "d088057db98cb6b962b0bc9b19aa54083e0af1366454f7de381b36834a90c821",
+    "PLAN\\2new_world\\Go2_push\\attempt_06\\session\\authoring\\go2-push-5rounds-20260923-a06-generation-002\\lane-b\\authoring_attempts\\attempt_000001\\prompt_payload.json": "0036ea4ff80708c98b0abf58b1711382e20a5d04b19a93fca4e9d54ef760b754",
+    "PLAN\\2new_world\\Go2_push\\attempt_06\\session\\authoring\\go2-push-5rounds-20260923-a06-generation-002\\lane-b\\authoring_attempts\\attempt_000001\\attempt_result.json": "64e6653cb66049d96c3679658013437af81c7f3243f2d5efc43475b3bcdc3b2a",
+    "PLAN\\2new_world\\Go2_push\\attempt_06\\session\\runner\\go2-push-5rounds-20260923-a06-generation-001-lane-b\\eval\\public_dev\\summary.json": "1197ee109ed61f1a14ac762e0f5c400fcf33dc9123666677d8cdd4db91e463be",
+    "PLAN\\2new_world\\Go2_push\\attempt_06\\session\\authoring\\go2-push-5rounds-20260923-a06-generation-003\\lane-a\\authoring_attempts\\attempt_000003\\prompt_payload.json": "577ae8eff6b16680c996ceaccd61dd27a3bda296cfe96883848d3c6d3d617372",
+    "PLAN\\2new_world\\Go2_push\\attempt_06\\session\\authoring\\go2-push-5rounds-20260923-a06-generation-003\\lane-a\\authoring_attempts\\attempt_000002\\prompt_payload.json": "69a81f7bd8968164445af1fd87e7c68fde34951527e164ac6155ebf4c88311f1",
+    "PLAN\\2new_world\\Go2_push\\attempt_06\\session\\authoring\\go2-push-5rounds-20260923-a06-generation-005\\lane-a\\authoring_attempts\\attempt_000003\\prompt_payload.json": "8e4569e149f8bee343c1441305586e93595af7ddfc40d7b2beb5ea04e99d8fc8",
+    "PLAN\\2new_world\\Go2_push\\attempt_06\\session\\authoring\\go2-push-5rounds-20260923-a06-generation-005\\lane-a\\authoring_attempts\\attempt_000002\\prompt_payload.json": "8a96377322c296cfc7c71237d93d17b675254f12bd9c8c24542b5f3f8794b77a"
+  },
+  "product_sources_sha256": {
+    "src\\true_rl_agent\\tasks\\push_recovery\\prompt_adapter.py": "f28a46f1759648ce1f3afc768a53057c963056933e6a07e392eab26993837f71",
+    "src\\true_rl_agent\\prompting\\authoring_frame.py": "7ad261b36d2f6f5cffec00f7b45792674bb9f470a5c4160a3229c09f2e9425a8"
+  },
+  "provider_calls": 0,
+  "training_jobs": 0,
+  "evaluation_jobs": 0
+}

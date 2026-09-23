@@ -13,6 +13,7 @@ from true_rl_agent.agent_core.context import (
     sanitize_public_records_with_policy,
     sanitize_public_value_with_policy,
 )
+from true_rl_agent.agent_core.generation_contract import latest_nonaccepted_trial, project_public_trial_reason
 from true_rl_agent.agent_core.public_safety import (
     contains_forbidden_public_key_marker,
     contains_forbidden_public_value_marker,
@@ -21,6 +22,7 @@ from true_rl_agent.agent_core.public_safety import (
     scrub_public_paths,
 )
 from true_rl_agent.candidates.schedule_contract import REWARD_WEIGHT_SCALE_KEY
+from true_rl_agent.candidates.mechanism import RuntimeActivationEvidence
 from true_rl_agent.prompting.serialization import canonical_prompt_json_bytes
 from true_rl_agent.prompting.capacity import build_prompt_capacity_receipt
 from true_rl_agent.tasks.prompt_adapter import (
@@ -29,6 +31,8 @@ from true_rl_agent.tasks.prompt_adapter import (
     sanitize_task_prompt_sections,
 )
 from true_rl_agent.tasks.push_recovery.config import PushRecoveryTaskConfig
+from true_rl_agent.tasks.push_recovery.exploration import public_dev_comparison, public_dev_parent_reference
+from true_rl_agent.tasks.push_recovery.reward_inputs import PushRecoveryV2RewardInputs
 from true_rl_agent.tasks.push_recovery.metrics import classify_push_prompt_failure
 from true_rl_agent.tasks.push_recovery.reward_input_contract import (
     prompt_effective_reward_input_fields,
@@ -270,6 +274,11 @@ class PushRecoveryPromptAdapter:
         public_records: Sequence[Mapping[str, Any]],
         public_context: Mapping[str, Any],
     ) -> Mapping[str, Any]:
+        recovery_v2 = self.config.push_protocol is not None
+        if recovery_v2:
+            public_records = self.project_prompt_public_history(
+                public_records=public_records, initial_anchor_public_evidence=None,
+            ).records
         scrub_policy = self.prompt_public_record_scrub_policy()
         safe_public_records = sanitize_public_records_with_policy(
             public_records,
@@ -285,9 +294,11 @@ class PushRecoveryPromptAdapter:
             safe_public_context = {}
         sections = {
             "task": self._task_section(),
-            "reward_inputs_contract": _reward_inputs_contract(),
-            "public_eval_contract": _public_eval_contract(),
-            "public_feedback_summary": _public_feedback_summary(
+            "reward_inputs_contract": _v2_reward_inputs_contract() if recovery_v2 else _reward_inputs_contract(),
+            "public_eval_contract": _v2_public_eval_contract() if recovery_v2 else _public_eval_contract(),
+            "public_feedback_summary": _v2_feedback_summary(
+                safe_public_records, initial_anchor=_mapping(safe_public_context.get("initial_anchor_public_evidence")),
+            ) if recovery_v2 else _public_feedback_summary(
                 safe_public_records,
                 safe_public_context,
             ),
@@ -296,9 +307,27 @@ class PushRecoveryPromptAdapter:
             # exists, the bounded source catalog and experiment memory carry the
             # real candidate lineage, which is both more relevant and avoids
             # repeating static tutorial code beside empirical feedback.
-            "known_good_examples": _known_good_examples() if not safe_public_records else [],
-            "selection_guidance": _selection_guidance(),
+            "known_good_examples": _known_good_examples() if not recovery_v2 and not safe_public_records else [],
+            "selection_guidance": _v2_selection_guidance() if recovery_v2 else _selection_guidance(),
         }
+        if self.config.push_evaluation_protocol is not None:
+            sections["task"].update(
+                schema_version="true_rl_agent.task_prompt.push_recovery.v4",
+                objective="Recover stable standing after a complete finite external-force sequence.",
+                success_authority="The task controller verifies every planned force pulse, then requires one fresh stable dwell after the last pulse and a stable final state, without a fall. Displacement is diagnostic only. Reward values do not define success.",
+            )
+            sections["reward_inputs_contract"]["training_scope"] = (
+                "These inputs describe the unchanged training perturbations. push_active and push_vec_public report an already executed training velocity increment in m/s; they do not describe evaluation force pulses."
+            )
+            sections["public_eval_contract"].update(
+                schema_version="true_rl_agent.public_eval_contract.push_recovery.v4",
+                recovery_evidence_gate="read-only status; validates pulse completion and verification separately from whole-sequence recovery",
+                recovery_scope="one fresh recovery window after the last complete planned external-force pulse",
+            )
+            sections["public_feedback_summary"]["schema_version"] = "true_rl_agent.public_feedback_summary.push_recovery.v3"
+            sections["selection_guidance"][-1] = (
+                "success_recovered requires every planned force pulse to complete and be verified, followed by a fresh stable dwell after the last pulse and a stable final state without a fall; reward shaping cannot change that definition."
+            )
         try:
             return sanitize_task_prompt_sections(sections)
         except ValueError as exc:
@@ -332,7 +361,15 @@ class PushRecoveryPromptAdapter:
         public_records: Sequence[Mapping[str, Any]],
         initial_anchor_public_evidence: Mapping[str, Any] | None,
     ) -> PromptPublicHistoryProjection:
-        _ = initial_anchor_public_evidence
+        if self.config.push_protocol is not None:
+            anchor = _mapping(_mapping(initial_anchor_public_evidence).get("public_result"))
+            return PromptPublicHistoryProjection(
+                records=tuple(_v2_prompt_record(record) for record in public_records),
+                public_score_source="public_dev.score_stats.mean",
+                initial_anchor_score=_optional_number(_mapping(
+                    _mapping(_mapping(anchor.get("metrics")).get("public_dev")).get("score_stats")
+                ).get("mean")),
+            )
         return PromptPublicHistoryProjection(
             records=tuple(dict(record) for record in public_records),
         )
@@ -346,6 +383,8 @@ class PushRecoveryPromptAdapter:
 
     def _task_section(self) -> dict[str, Any]:
         config = self.config
+        if config.push_protocol is not None:
+            return _v2_task_section(config)
         eval_protocol = config.evaluation_protocol().to_public_dict()
         train_runtime_dynamics = config.train_runtime_dynamics()
         eval_runtime_dynamics = config.eval_runtime_dynamics()
@@ -403,6 +442,241 @@ class PushRecoveryPromptAdapter:
         }
 
 
+
+def _v2_task_section(config: PushRecoveryTaskConfig) -> dict[str, Any]:
+    physical = config.push_protocol.resolve(config.push_robot_scale_m)
+    return {
+        "schema_version": "true_rl_agent.task_prompt.push_recovery.v3",
+        "task_id": "unitree_push_recovery",
+        "name": "Unitree Complete Push Recovery",
+        "objective": "Recover stable standing after every actual runner-injected planar push, including repeated pushes.",
+        "robot_or_environment": {"cell_variant_id": config.cell_variant_id, "runtime_adapter_id": config.runtime_adapter_id},
+        "candidate_capability_profile": "push_complete_recovery_v2",
+        "candidate_capabilities": ["reward_term", "diagnostic_term", "reward_weight_scale_schedule"],
+        "reward_program": {
+            "authority": "complete_replacement",
+            "composition": "All RewardTerm outputs form the complete reward program; upstream rewards are disabled.",
+            "integration": "Return per-environment reward rates. The task RewardManager sums weighted rates and multiplies the total by control dt exactly once, before reset. Do not multiply by dt in candidate code.",
+            "schedule": "reward_weight_scale changes the program weights only; it cannot change task timing or pushes.",
+        },
+        "spatial_scale": {key: physical[key] for key in ("robot_scale_m", "velocity_scale_mps", "time_scale_s")},
+        "scale_definition": "L is the bound robot's nominal base height in metres; velocity scale=sqrt(g*L), time scale=sqrt(L/g).",
+        "fixed_train_protocol_summary": {"budget_steps": config.budget_steps, "train_num_envs": config.train_num_envs,
+            "train_max_iterations": config.train_max_iterations, "train_steps_per_iteration": config.train_steps_per_iteration},
+        "fixed_eval_protocol_summary": {"success_predicate": config.success_predicate,
+            "success_label": "success_recovered", "prompt_score_source": "public_dev.score_stats.mean"},
+        "success_authority": "The task controller owns actual injection verification, complete recovery conditions, dwell, repeated-event accounting and success/failure counts. Reward values do not define success.",
+        "candidate_must_not_change": ["task controller", "push schedule or distribution", "success predicates or counts",
+            "evaluation", "training budget", "seeds", "checkpoints", "PPO", "robot or action ABI"],
+    }
+
+
+def _v2_reward_inputs_contract() -> dict[str, Any]:
+    contract = _reward_inputs_contract()
+    fields = contract["fields"]
+    additions = {
+        "nominal_base_height": (["num_envs"], "m", "bound robot nominal base height L; a spatial normalization, not a success threshold"),
+        "base_height_relative": (["num_envs"], "unitless", "origin-relative base height divided by nominal_base_height"),
+        "base_lin_vel_scaled": (["num_envs", "3"], "unitless", "world-frame linear velocity divided by sqrt(g*L)"),
+        "base_ang_vel_scaled": (["num_envs", "3"], "unitless", "world-frame angular velocity multiplied by sqrt(L/g)"),
+        "terminated_non_timeout": (["num_envs"], "bool_like", "task termination mask before reset; timeout alone is excluded"),
+    }
+    for name, (shape, units, semantics) in additions.items():
+        fields[name] = {"name": name, "shape": shape, "units": units, "semantics": semantics,
+            "dtype_or_tensor_kind": "tensor_like_numeric", "source_status": "task_owned_current_step"}
+    fields["base_height"] = {**fields["base_height"], "semantics": "root world z minus environment origin z",
+        "source_status": "observed", "fallback_behavior": "required by the V2 runtime",
+        "known_limitations": "metres; use base_height_relative to compare robot sizes"}
+    for name in ("base_lin_vel", "base_ang_vel"):
+        fields[name] = {**fields[name], "coordinate_frame": "robot_base_frame",
+            "semantics": "raw SI velocity in the robot base frame; the corresponding scaled field uses world coordinates",
+            "known_limitations": "do not mix base-frame raw vectors with world-frame scaled vectors"}
+    fields["push_active"] = {"name": "push_active", "shape": ["num_envs"], "units": "bool_like",
+        "semantics": "one only on the current step of an actual task-controller injected push; zero otherwise",
+        "source_status": "verified_current_step_event", "known_limitations": "not latched through recovery and never inferred from autonomous robot motion"}
+    fields["push_vec_public"] = {"name": "push_vec_public", "shape": ["num_envs", "2"], "units": "m/s",
+        "coordinate_frame": "world_xy_velocity_increment", "source_status": "verified_current_step_event",
+        "semantics": "actual injected planar velocity increment for this step; zero when push_active is zero",
+        "known_limitations": "already occurred event only; no future timing, direction, severity or schedule"}
+    contract.update(schema_version="true_rl_agent.reward_inputs_contract.push_recovery.v2",
+        input_type="PushRecoveryV2RewardInputs", field_order=list(PushRecoveryV2RewardInputs.field_names()))
+    return contract
+
+
+def _v2_public_eval_contract() -> dict[str, Any]:
+    return {
+        "schema_version": "true_rl_agent.public_eval_contract.push_recovery.v3",
+        "score_source": "public_dev.score_stats.mean",
+        "public_dev": "canonical task phase summary: recovery success statistics and aggregated recovery_counts",
+        "primary_success_label": "success_recovered",
+        "recovery_evidence_gate": "read-only status; validates task-owned episode and event counts",
+        "sealed_validation_gate": {"prompt_visibility": "status_only"},
+        "candidate_can_modify_eval": False,
+        "history_policy": "No acceptance scores, sealed rollout details, seed identifiers or arbitrary failure text enter authoring feedback.",
+        "trial_memory_semantics": "objective_delta is a descriptive candidate-minus-parent public-dev score; guard_delta is not applicable; runtime_effect is not_assessed because Push does not claim component-level causal attribution.",
+    }
+
+
+def _v2_selection_guidance() -> list[str]:
+    return [
+        "Supply a complete recovery reward program through RewardTerm callables, with optional DiagnosticTerm and reward_weight_scale ScheduleTerm.",
+        "Use morphology-scaled height and world velocities for portable recovery shaping; raw SI joint and action signals retain their declared units.",
+        "Target public-dev failures and inspect the same trained program's runtime activation before changing reward logic.",
+        "push_active and push_vec_public describe only an already injected current-step event; use posture and velocity for later recovery.",
+        "success_recovered requires task-owned complete recovery and dwell after every planned push; reward shaping cannot change that definition.",
+    ]
+
+
+_RECOVERY_COUNT_FIELDS = ("episodes", "successes", "eligible_episode_count", "control_episode_count",
+    "planned_push_event_count", "pushed_episode_count", "push_event_count", "recovered_event_count", "invalid_injection_count")
+_FORCE_COUNT_FIELDS = tuple(name for name in _RECOVERY_COUNT_FIELDS if name != "recovered_event_count") + (
+    "completed_push_event_count", "verified_push_event_count", "sequence_recovered_count")
+_RECOVERY_LABELS = ("success_recovered", "not_recovered", "fall_forward", "fall_backward", "fall_side",
+    "height_collapse", "out_of_bounds", "invalid_push_injection", "no_push_control")
+
+
+def _v2_dev_summary(value: Any) -> dict[str, Any]:
+    """Compact the canonical project_push_split output; never read another split."""
+    split = _mapping(value)
+    if not split:
+        return {}
+    counts, labels, strata = {}, {}, {}
+    seeds = split.get("seed_results")
+    rows = seeds if isinstance(seeds, list | tuple) else [split]
+    for row in rows:
+        row = _mapping(row)
+        recovery_counts = _mapping(row.get("recovery_counts"))
+        force_sequence = "sequence_recovered_count" in recovery_counts
+        for source, names, target in (
+            (recovery_counts, _FORCE_COUNT_FIELDS if force_sequence else _RECOVERY_COUNT_FIELDS, counts),
+            (_mapping(_mapping(row.get("failure_breakdown")).get("counts")),
+             tuple(label for label in _RECOVERY_LABELS if label != "out_of_bounds") if force_sequence else _RECOVERY_LABELS, labels),
+        ):
+            for name in names:
+                count = source.get(name)
+                if isinstance(count, int) and not isinstance(count, bool) and count >= 0:
+                    target[name] = target.get(name, 0) + count
+        for name in ("low", "medium", "high", "repeated"):
+            stratum = _mapping(_mapping(row.get("stratum_results")).get(name))
+            episodes, successes = stratum.get("episodes"), stratum.get("successes")
+            if (isinstance(episodes, int) and not isinstance(episodes, bool) and episodes > 0
+                    and isinstance(successes, int) and not isinstance(successes, bool) and 0 <= successes <= episodes):
+                target = strata.setdefault(name, {"episodes": 0, "successes": 0})
+                target["episodes"] += episodes
+                target["successes"] += successes
+    for stratum in strata.values():
+        stratum["n_over_N"] = f"{stratum['successes']}/{stratum['episodes']}"
+    return {"score_stats": _score_stats_summary(split.get("score_stats")), "recovery_counts": counts,
+        "stratum_results": strata,
+        "failure_breakdown": {"counts": labels, "total": counts.get("episodes", sum(labels.values()))},
+        "dominant_outcome": max(labels, key=labels.get) if labels and max(labels.values()) > 0 else "not_available"}
+
+
+def _v2_prompt_record(record: Mapping[str, Any]) -> dict[str, Any]:
+    # Shared history freezes every field outside these three feedback domains.
+    projected = {key: value for key, value in record.items() if key not in {"public_result", "decision", "generation"}}
+    metrics = _metrics(record)
+    dev = _v2_dev_summary(metrics.get("public_dev"))
+    score = _optional_number(_mapping(dev.get("score_stats")).get("mean"))
+    decision = _decision(record)
+    reason = ("decision_record_invalid" if decision.get("reason") == "decision_record_invalid" else
+        "runner_accepted_candidate" if decision.get("accepted") is True else "runner_did_not_accept_candidate")
+    projected["decision"] = {"accepted": decision.get("accepted"), "outcome": decision.get("outcome"), "reason": reason,
+        "surface_classification": decision.get("surface_classification"),
+        "public_score": score, "comparison": {"score_source": "public_dev.score_stats.mean", "candidate_score": score}}
+    if isinstance(record.get("public_result"), Mapping):
+        projected["public_result"] = {"status": _mapping(record.get("public_result")).get("status"), "public_score": score,
+            "metrics": {"public_dev": dev, **{key: {"status": _mapping(metrics.get(key)).get("status", "not_available")}
+                for key in ("recovery_evidence_gate", "sealed_validation_gate")}}}
+    generation = _mapping(record.get("generation"))
+    if generation:
+        visible = {key: generation[key] for key in ("schema_version", "generation_id", "generation_index", "generation_outcome") if key in generation}
+        reference = public_dev_parent_reference(generation)
+        if reference:
+            visible["public_dev_parent_reference"] = reference
+        for section, names in (("selection", ("selected_trial_id",)),
+                ("formal", ("accepted", "decision_outcome", "selected_lane_id", "selected_trial_id"))):
+            if isinstance(generation.get(section), Mapping):
+                visible[section] = {name: generation[section][name] for name in names if name in generation[section]}
+        if "formal" in generation and generation["formal"] is None:
+            # No formal round means there is no single candidate to attribute
+            # to this generation; shared memory keeps the sibling trials instead.
+            visible["formal"] = None
+        visible["trials"] = []
+        for trial in generation.get("trials", ()):
+            item = {key: trial[key] for key in ("schema_version", "lane_id", "trial_id", "trial_status", "candidate",
+                "candidate_surface", "mechanism_operation_delta", "runtime_activation_summary", "authoring_status", "lane_intent") if key in trial}
+            host_reason = project_public_trial_reason(trial.get("status_reason"))
+            if host_reason is not None:
+                item["status_reason"] = host_reason
+            if isinstance(trial.get("train"), Mapping):
+                item["train"] = {"completed": True}
+            if isinstance(trial.get("public_result"), Mapping):
+                item["public_result"] = _v2_prompt_record(trial).get("public_result", {})
+            phase = _mapping(trial.get("public_dev"))
+            if phase:
+                item["public_dev"] = {"public_summary": _v2_dev_summary(phase.get("public_summary"))}
+            comparison = public_dev_comparison(generation, trial)
+            item["prompt_outcome"] = {"runtime_effect": "not_assessed"}
+            if comparison:
+                item["prompt_outcome"]["objective_delta"] = comparison["delta"]
+            if ("public_result" in projected and _mapping(trial.get("candidate")).get("candidate_id") is not None
+                    and _mapping(trial.get("candidate")).get("candidate_id") == _mapping(record.get("candidate")).get("candidate_id")):
+                item["public_result"] = projected["public_result"]
+            visible["trials"].append(item)
+        projected["generation"] = visible
+    return projected
+
+
+def _v2_feedback_summary(
+    records: Sequence[Mapping[str, Any]], *, initial_anchor: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    selection, source = _feedback_source(records)
+    if source is None:
+        feedback = _v2_reference_feedback(initial_anchor)
+    else:
+        feedback = _v2_trial_feedback(selection, source)
+        feedback.update({
+            "latest_round": {"round_id": source.get("trial_id", source.get("round_id")),
+                "candidate_id": _mapping(source.get("candidate")).get("candidate_id"),
+                "status_reason": project_public_trial_reason(source.get("status_reason"))},
+            "recovery_evidence_gate": {"status": _mapping(_metrics(source).get("recovery_evidence_gate")).get("status", "not_available")},
+            "sealed_validation_gate": {"status": _mapping(_metrics(source).get("sealed_validation_gate")).get("status", "not_available")},
+        })
+        if selection == "latest_trained_nonaccepted":
+            # The sibling's failures cannot describe the accepted parent. Read
+            # both from their own dev projection, not the memory-wide aggregate.
+            current = _accepted_feedback_source(records)
+            current_feedback = (_v2_trial_feedback("accepted_current_best", current)
+                if current is not None else _v2_reference_feedback(initial_anchor))
+            if current_feedback.get("public_dev"):
+                feedback["current_best"] = current_feedback
+    return {"schema_version": "true_rl_agent.public_feedback_summary.push_recovery.v2", **feedback}
+
+
+def _v2_reference_feedback(initial_anchor: Mapping[str, Any] | None) -> dict[str, Any]:
+    anchor = _mapping(initial_anchor)
+    dev = _v2_dev_summary(_metrics(anchor).get("public_dev")) if anchor.get("anchor_kind") == "reference_program" else {}
+    if not dev:
+        return {"status": "no_prior_public_feedback"}
+    return {"status": "available", "source_selection": "reference_current_best",
+        "latest_public_score": _mapping(dev.get("score_stats")).get("mean"),
+        "latest_failure_mode": classify_push_prompt_failure({"public_dev": dev}), "public_dev": dev}
+
+
+def _v2_trial_feedback(selection: str, source: Mapping[str, Any]) -> dict[str, Any]:
+    dev = _v2_dev_summary(_mapping(source.get("public_dev")).get("public_summary"))
+    if not dev:
+        dev = _v2_dev_summary(_metrics(source).get("public_dev"))
+    candidate = _mapping(source.get("candidate"))
+    return {"status": "available" if dev else "no_public_dev_for_selected_trial", "source_selection": selection,
+        "source_round_id": source.get("trial_id", source.get("round_id")), "source_candidate_id": candidate.get("candidate_id"),
+        "program_source_checksum": candidate.get("program_source_checksum"),
+        "latest_public_score": _mapping(dev.get("score_stats")).get("mean"),
+        "latest_failure_mode": classify_push_prompt_failure({"public_dev": dev}),
+        "public_dev": dev}
+
+
 def _minimum_core_push_prompt_sections(
     sections: Mapping[str, Any],
 ) -> dict[str, Any]:
@@ -420,6 +694,9 @@ def _minimum_core_push_prompt_sections(
             "latest_public_score",
             "best_accepted_public_score",
             "latest_failure_mode",
+            "source_selection", "source_round_id", "source_candidate_id", "program_source_checksum",
+            "public_dev", "recovery_evidence_gate", "sealed_validation_gate",
+            "current_best",
         )
         if key in feedback
     }
@@ -444,7 +721,9 @@ def _minimum_core_push_prompt_sections(
     receipt = build_prompt_capacity_receipt(
         original=original,
         projected_content=minimum,
-        projection_id="push_recovery.minimum_core.v1",
+        projection_id=("push_recovery.minimum_core.v3" if str(feedback.get("schema_version", "")).endswith("push_recovery.v3")
+                       else "push_recovery.minimum_core.v2" if str(feedback.get("schema_version", "")).endswith("push_recovery.v2")
+                       else "push_recovery.minimum_core.v1"),
         omitted=("aggregate_history_detail", "runtime_activation_detail"),
     )
     minimum_feedback["capacity_projection_receipt"] = receipt
@@ -697,33 +976,67 @@ def _public_feedback_summary(
     )
 
 
+def _feedback_source(public_records: Sequence[Mapping[str, Any]], *, include_failed_training_sampling: bool = False) -> tuple[str, Mapping[str, Any] | None]:
+    selected = latest_nonaccepted_trial(public_records, include_failed_training_sampling=include_failed_training_sampling)
+    if selected is not None:
+        if not isinstance(selected[1].get("train", selected[1].get("train_result")), Mapping):
+            return "latest_nonaccepted_training_failure", selected[1]
+        return "latest_trained_nonaccepted", selected[1]
+    return "accepted_current_best", _accepted_feedback_source(public_records)
+
+
+def _accepted_feedback_source(public_records: Sequence[Mapping[str, Any]]) -> Mapping[str, Any] | None:
+    # Select the accepted identity before reading either public or runtime data.
+    for record in reversed(public_records):
+        if _decision(record).get("accepted") is not True:
+            continue
+        trials = _mapping(record.get("generation", record)).get("trials", ())
+        latest = next((trial for trial in trials
+            if trial.get("trial_status") == "accepted"
+            and isinstance(trial.get("candidate"), Mapping)
+            and isinstance(trial.get("train"), Mapping)), None)
+        if not trials and isinstance(record.get("candidate"), Mapping) and isinstance(record.get("train_result"), Mapping):
+            latest = record
+        if latest is not None:
+            return latest
+    return None
+
+
 def _runtime_feedback_summary(public_records: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
-    latest = next(
-        (
-            record
-            for record in reversed(public_records)
-            if isinstance(record.get("runtime_activation_summary"), Mapping)
-            or isinstance(record.get("train_result"), Mapping)
-            or isinstance(record.get("runtime_activation_gate"), Mapping)
-            or isinstance(record.get("mechanism_attribution"), Mapping)
-        ),
-        None,
-    )
+    source_selection, latest = _feedback_source(public_records, include_failed_training_sampling=True)
     if latest is None:
         return {
-            "schema_version": "true_rl_agent.runtime_feedback_summary.push_recovery.v1",
+            "schema_version": "true_rl_agent.runtime_feedback_summary.push_recovery.v2",
             "status": "no_prior_runtime_feedback",
             "eval_candidate_code_policy": "checkpoint_eval_only; candidate code is not expected to load in eval",
         }
     runtime = _runtime(latest)
+    measured = RuntimeActivationEvidence.from_mapping(runtime).measurement_summary()
     train_summary = _train_summary(latest)
+    candidate = _mapping(latest.get("candidate"))
+    source_identity = {
+        "source_selection": source_selection,
+        "source_round_id": latest.get("trial_id", latest.get("round_id")),
+        "source_candidate_id": candidate.get("candidate_id"),
+        "program_source_checksum": candidate.get("program_source_checksum"),
+        "source_trial_status": latest.get("trial_status"),
+    }
+    if measured["status"] == "not_available":
+        return sanitize_public_context({
+            "schema_version": "true_rl_agent.runtime_feedback_summary.push_recovery.v2",
+            "status": "not_available",
+            "reason": "selected_trial_has_no_runtime_observations",
+            **({"latest_runtime_activation": measured} if "training_sampling" in measured else {}),
+            **source_identity,
+        })
     candidate_summary = _mapping(train_summary.get("candidate"))
     public_metrics = _metrics(latest)
     return sanitize_public_context(
         {
-            "schema_version": "true_rl_agent.runtime_feedback_summary.push_recovery.v1",
+            "schema_version": "true_rl_agent.runtime_feedback_summary.push_recovery.v2",
             "status": "available",
-            "latest_round_id": latest.get("round_id"),
+            "reason": "same_trial_training_receipt",
+            **source_identity,
             "candidate_package_loaded": _first_present(
                 train_summary.get("candidate_package_loaded"),
                 train_summary.get("candidate_runtime_enabled"),
@@ -737,9 +1050,7 @@ def _runtime_feedback_summary(public_records: Sequence[Mapping[str, Any]]) -> di
             ),
             "eval_candidate_code_policy": "checkpoint_eval_only; candidate code is not expected to load in eval",
             "latest_runtime_activation": {
-                "reward_term_calls": int(runtime.get("reward_term_calls", 0) or 0),
-                "diagnostic_calls": int(runtime.get("diagnostic_calls", 0) or 0),
-                "nonzero_reward_contribution": bool(runtime.get("nonzero_reward_contribution", False)),
+                **measured,
                 "reward_output_stats": _mapping(runtime.get("reward_output_stats")),
                 "reward_term_activation": _runtime_reward_term_activation_summary(
                     runtime.get("component_activation_records")

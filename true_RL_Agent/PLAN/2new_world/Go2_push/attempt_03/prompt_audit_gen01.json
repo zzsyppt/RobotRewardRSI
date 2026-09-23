@@ -1,0 +1,233 @@
+{
+  "status": "PASS",
+  "scope": "A03 generation 001 both first actual provider prompts, attempt results and candidate sources; training underway, no candidate evaluation conclusion.",
+  "prompt_path": "session/authoring/go2-push-5rounds-20260922-a03-generation-001/lane-a/authoring_attempts/attempt_000001/prompt_payload.json",
+  "prompt_sha256": "5119dae9f796c40a30d2fdadc7b031428b345885c02d46185860784365239293",
+  "reference_eval_artifact_sha256": "be27a1a3266d2504982fa3efedac3d37cb3b0d47b017fe40eb039c432101dee0",
+  "comparison_to_A02": {
+    "same_payload_bytes": true,
+    "same_public_feedback": true,
+    "same_reference_source": true,
+    "changed_top_level_sections": []
+  },
+  "measurements": {
+    "file_bytes": 48301,
+    "canonical_bytes": 48301,
+    "size_delta_vs_A02": 0,
+    "task_section_bytes": 16096,
+    "task_section_limit_bytes": 57344,
+    "task_section_headroom_bytes": 41248,
+    "memory_bytes": 996,
+    "memory_experiments": 0,
+    "memory_omitted": 0,
+    "source_body_bytes": 1846,
+    "source_payload_count": 1,
+    "long_string_duplicate_excess_bytes": 965,
+    "long_string_duplicate_excess_fraction": 0.01997888242479452,
+    "duplicate_threshold_characters": 80,
+    "provider_measured_input_tokens": 12381,
+    "token_availability": "Actual attempt_result provider receipt now available for both lanes."
+  },
+  "reference_feedback": {
+    "source_selection": "reference_current_best",
+    "score": 0.734375,
+    "successes": 141,
+    "episodes": 192,
+    "strata": {
+      "high": {
+        "episodes": 48,
+        "successes": 19
+      },
+      "low": {
+        "episodes": 48,
+        "successes": 48
+      },
+      "medium": {
+        "episodes": 48,
+        "successes": 47
+      },
+      "repeated": {
+        "episodes": 48,
+        "successes": 27
+      }
+    },
+    "failure_counts": {
+      "fall_backward": 11,
+      "fall_side": 13,
+      "height_collapse": 26,
+      "not_recovered": 1,
+      "success_recovered": 141
+    },
+    "latest_failure_mode": "height_collapse_dominated",
+    "dominant_outcome": "success_recovered",
+    "all_displayed_dev_counts_match_current_reference": true
+  },
+  "public_boundaries": {
+    "public_only_guard": "PASS",
+    "task_receipt_recomputation": "PASS",
+    "distinct_private_paths_checked": 15,
+    "distinct_checkpoint_hashes_checked": 2,
+    "private_literal_hits": 0,
+    "private_phase_objects_or_seed_rows": [],
+    "limitation": "Does not independently enumerate unexported numeric hidden seeds."
+  },
+  "readiness": {
+    "lane_a_prompt": "READY",
+    "lane_a_attempt_result": "READY",
+    "lane_b_prompt": "READY",
+    "lane_b_attempt_result": "READY",
+    "candidate_verifier_and_smoke": "READY"
+  },
+  "multi_round_fixes": {
+    "F4_initial_reference_feedback": "PASS_ON_LIVE_A03_PROMPT",
+    "F2_majority_success_failure_label": "PASS_ON_LIVE_INITIAL_REFERENCE",
+    "F1_trial_deltas": "NOT_YET_EXERCISED",
+    "B2_formal_null_memory": "NOT_YET_EXERCISED",
+    "F8_selected_nonaccepted_source_feedback": "NOT_YET_EXERCISED"
+  },
+  "conclusion": "Authoring wiring, single-component edits, public boundary and sibling isolation PASS. Candidate A mathematical rationale overstatement is recorded as nonblocking F9. Live gen2+ is still needed to validate multi-round fixes.",
+  "lanes": [
+    {
+      "lane_id": "lane-a",
+      "prompt_path": "session/authoring/go2-push-5rounds-20260922-a03-generation-001/lane-a/authoring_attempts/attempt_000001/prompt_payload.json",
+      "prompt_sha256": "5119dae9f796c40a30d2fdadc7b031428b345885c02d46185860784365239293",
+      "prompt_bytes": 48301,
+      "provider_measured_input_tokens": 12381,
+      "provider_usage": {
+        "reasoning_units": 24039,
+        "request_cache_hit_units": 12160,
+        "request_cache_miss_units": 221,
+        "request_units": 12381,
+        "response_units": 25317,
+        "total_units": 37698
+      },
+      "finish_reason": "stop",
+      "reasoning_mode": "enabled",
+      "attempt_count": 1,
+      "source_request_count": 0,
+      "verifier": "PASS",
+      "component_smoke": "PASS",
+      "candidate_id": "push_recovery_nonvanishing_stance_margin_v4",
+      "source_path": "session/provider_candidates/go2-push-5rounds-20260922-a03-generation-001/lane-a/001_push_recovery_nonvanishing_stance_margin_v4/training_code/components.py",
+      "source_bytes": 4439,
+      "source_checksum": "sha256:904cad39bb1bdf7b4a6eda62fad314cb01b8a529efc5175e742b6d78ae62e1b6",
+      "parent_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "changed_mechanisms": [
+        "RewardTerm:upright_height->recovery_posture_margin"
+      ],
+      "independently_ast_preserved_reference_functions_and_term_configs": [
+        "stationary_v3",
+        "joint_pose",
+        "action_rate",
+        "fall"
+      ],
+      "reward_term_count": 5,
+      "public_inputs_used": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "imports": [
+        "true_rl_agent.candidates.components"
+      ],
+      "rationale": "Canonical hypothesis: the anchor stance reward exp(-4*(tilt^2 + height_err^2)) flattens once a strong push drives the base away from nominal height, so a collapsed stance is nearly reward-free and the climb back is not reinforced, which matches the public failure evidence where height_collapse is the largest failure cluster (26 of 51 non-recoveries) and the high and repeated push strata recover least often (19/48 and 27/48). This candidate changes exactly one mechanism, the reward callable that shapes stance and height: the saturating exponential is replaced by a bounded piecewise quadratic-then-linear margin, quadratic inside a small deadband around nominal height and nominal tilt and strictly linear beyond it, with a steeper coefficient for height below nominal than above, so the gradient toward a nominal stance never vanishes and a deeper crouch is always scored worse than a shallower one. Every other term (stationary_v3, joint_pose, action_rate, fall), every weight and the rest of the component set are preserved from the anchor. Expected effect: a directed, non-saturating pull back to nominal height after the last pulse turns height-collapse endings into fresh stable dwells and lifts success mainly in the high and repeated push strata without disturbing the already-solid mild strata.",
+      "public_guard": "PASS",
+      "task_receipt": "PASS",
+      "duplicate_long_strings_excess_bytes": 965
+    },
+    {
+      "lane_id": "lane-b",
+      "prompt_path": "session/authoring/go2-push-5rounds-20260922-a03-generation-001/lane-b/authoring_attempts/attempt_000001/prompt_payload.json",
+      "prompt_sha256": "315f232c9bf3c0cd1851d4fc57d299ed249b6019dc5af53acef3394ca4a2409f",
+      "prompt_bytes": 49001,
+      "provider_measured_input_tokens": 12586,
+      "provider_usage": {
+        "reasoning_units": 30354,
+        "request_cache_hit_units": 10880,
+        "request_cache_miss_units": 1706,
+        "request_units": 12586,
+        "response_units": 31415,
+        "total_units": 44001
+      },
+      "finish_reason": "stop",
+      "reasoning_mode": "enabled",
+      "attempt_count": 1,
+      "source_request_count": 0,
+      "verifier": "PASS",
+      "component_smoke": "PASS",
+      "candidate_id": "push_standing_recovery_bounded_damping_v4",
+      "source_path": "session/provider_candidates/go2-push-5rounds-20260922-a03-generation-001/lane-b/001_push_standing_recovery_bounded_damping_v4/training_code/components.py",
+      "source_bytes": 3874,
+      "source_checksum": "sha256:054e8440f35076be0ad36c4cf00606da4f16d65eca04b5ed2b1de9067eebc104",
+      "parent_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "changed_mechanisms": [
+        "RewardTerm:stationary_v3->bounded_damping"
+      ],
+      "independently_ast_preserved_reference_functions_and_term_configs": [
+        "upright_height",
+        "joint_pose",
+        "action_rate",
+        "fall"
+      ],
+      "reward_term_count": 5,
+      "public_inputs_used": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "projected_gravity",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "imports": [
+        "true_rl_agent.candidates.components"
+      ],
+      "rationale": "Hypothesis. The closest prior program is the verified reference push_standing_recovery_stationary_reference_v3, which recovers almost every low and medium push but fails most high and repeated pushes as height collapse, side falls and backward falls. The suspected cause is its single stationarity callable, which keeps growing without bound once a push transient passes its clamp radius, so push-induced base velocity dominates credit assignment and the posture and termination mechanisms lose influence exactly during the recovery window. Exact code-level difference. That callable is replaced by bounded_damping, which keeps the reference small-signal costs, 0.5 times the square of scaled planar speed over 0.08 and 0.5 times the square of scaled angular speed over 0.5, but passes each of those costs through the rational saturation x divided by one plus x so both costs stay bounded by 1, and it relaxes the planar share by one minus 0.5 times the lean magnitude read from projected gravity so that a lean-triggered catch step is not charged the full damping cost. Every other mechanism and weight is preserved unchanged, including the upright_height posture reward, joint_pose, action_rate and the fall termination penalty. Prediction. Height collapse and residual falls should drop in the high and repeated push strata while low and medium stratum standing behaviour is retained because the small-signal cost geometry is unchanged.",
+      "public_guard": "PASS",
+      "task_receipt": "PASS",
+      "duplicate_long_strings_excess_bytes": 965
+    }
+  ],
+  "sibling_boundary": {
+    "status": "PASS",
+    "shared_reference_source_and_feedback_equal": true,
+    "lane_b_changed_prompt_sections": [
+      "required_candidate_package",
+      "authoring_context_frame"
+    ],
+    "lane_b_exclusion": {
+      "schema_version": "true_rl_agent.single_component_semantic_exclusion.v1",
+      "operation": "rename",
+      "canonical_mechanism_delta": "RewardTerm:recovery_posture_margin",
+      "component_kind": "RewardTerm",
+      "public_input_dependencies": [
+        "base_height_relative",
+        "pitch",
+        "roll"
+      ],
+      "parameter_normalized_semantic_signature": "640cd89ec11ffd9ab678c7f18d5be582818a39d918b15a0ef5de27f6ba3dc658",
+      "instruction": "Propose one component mechanism whose normalized callable, input, and clip structure is substantively different from this exclusion; renaming or changing only numeric parameters is not distinct.",
+      "exclusion_hash": "b7bfd9ce3487c753dc1aea6df255dea655c1720f8184a9dce3438baf4830802d"
+    },
+    "lane_a_full_source_body_in_lane_b_prompt": false,
+    "lane_a_candidate_source_hash_in_lane_b_prompt": false,
+    "assessment": "sibling_semantic_delta_distinct",
+    "interpretation": "Only the existing public semantic exclusion and lane identity differ; no sibling source body or private candidate evidence is disclosed."
+  },
+  "content_assessment": {
+    "single_mechanism": "Both independently retain four reference functions and RewardTerm configs verbatim in AST; one replacement each, five terms total.",
+    "lane_a_mechanism": "Replaces exponential upright/height shaping with a bounded asymmetric quadratic-then-linear stance margin using height, roll and pitch. Final clamping limits its tail.",
+    "lane_b_mechanism": "Replaces unbounded stationarity tails with rationally bounded planar/angular costs and lean-conditioned planar relaxation; preserves upright_height.",
+    "source_prompt_consistency": "Both use the same provided reference and declared public inputs; no filesystem/env/evaluation/checkpoint access occurs in the observed source.",
+    "rationale_issue_F9": "A claims nonvanishing gradient and strictly worsening reward for every deeper crouch despite a final clamp. This is a hypothesis-description overstatement, not a measured policy result.",
+    "lane_b_wording_recheck": "Repeated alone succeeds 27/48; high+repeated combined fail 50/96. The phrase fails most high and repeated pushes has a supported aggregate reading and is not recorded as a proven defect.",
+    "validity_limit": "Verifier, smoke, and plausible public-evidence hypotheses do not prove training success or causal gains."
+  }
+}

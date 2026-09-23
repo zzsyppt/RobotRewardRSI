@@ -1,0 +1,196 @@
+{
+  "status": "PASS",
+  "source": "PLAN/2new_world/Go2_push/attempt_01/session/provider_candidates/go2-push-5rounds-20260922-a01-generation-001/lane-a/001_push_standing_recovery_push_compensated_v4/training_code/components.py",
+  "source_sha256": "3b9c82439cee25e3e393992d0b16db2f4a9ce8d62b1ee57e070b47041a8909bf",
+  "source_bytes_unchanged": true,
+  "results": {
+    "push.go2_12dof.recovery_v3": {
+      "schema_version": "true_rl_agent.component_smoke_result.v2",
+      "status": "pass",
+      "reason": "component_smoke_passed",
+      "task_id": "unitree_push_recovery",
+      "checked_reward_terms": 5,
+      "checked_diagnostics": 0,
+      "fixture_summary": {
+        "fixture_owner": "task_owned_push_recovery",
+        "num_envs": 4,
+        "num_joints": 12,
+        "num_actions": 12,
+        "purpose": "authoring_time_reward_callable_smoke_only"
+      },
+      "reward_results": [
+        {
+          "name": "upright_height",
+          "kind": "RewardTerm",
+          "status": "pass",
+          "reason": "reward_callable_returned_finite_expected_shape",
+          "observed_shape": [
+            4
+          ],
+          "raw_max_abs": 0.9948135018348694,
+          "effective_max_abs_after_clip_and_weight": 2.984440505504608,
+          "observed_sample_count": 4,
+          "observed_raw_nonzero_count": 4,
+          "observed_clip_saturation_count": 0,
+          "coverage": "finite_fixture_only_not_a_proof_of_universal_effect"
+        },
+        {
+          "name": "stationary_push_compensated",
+          "kind": "RewardTerm",
+          "status": "pass",
+          "reason": "reward_callable_returned_finite_expected_shape",
+          "observed_shape": [
+            4
+          ],
+          "raw_max_abs": 0.7704204320907593,
+          "effective_max_abs_after_clip_and_weight": 0.7704204320907593,
+          "observed_sample_count": 4,
+          "observed_raw_nonzero_count": 4,
+          "observed_clip_saturation_count": 0,
+          "coverage": "finite_fixture_only_not_a_proof_of_universal_effect"
+        },
+        {
+          "name": "joint_pose",
+          "kind": "RewardTerm",
+          "status": "pass",
+          "reason": "reward_callable_returned_finite_expected_shape",
+          "observed_shape": [
+            4
+          ],
+          "raw_max_abs": 0.34666669368743896,
+          "effective_max_abs_after_clip_and_weight": 0.0346666693687439,
+          "observed_sample_count": 4,
+          "observed_raw_nonzero_count": 4,
+          "observed_clip_saturation_count": 0,
+          "coverage": "finite_fixture_only_not_a_proof_of_universal_effect"
+        },
+        {
+          "name": "action_rate",
+          "kind": "RewardTerm",
+          "status": "pass",
+          "reason": "reward_callable_returned_finite_expected_shape",
+          "observed_shape": [
+            4
+          ],
+          "raw_max_abs": 0.08666667342185974,
+          "effective_max_abs_after_clip_and_weight": 0.0008666667342185975,
+          "observed_sample_count": 4,
+          "observed_raw_nonzero_count": 4,
+          "observed_clip_saturation_count": 0,
+          "coverage": "finite_fixture_only_not_a_proof_of_universal_effect"
+        },
+        {
+          "name": "fall",
+          "kind": "RewardTerm",
+          "status": "pass",
+          "reason": "reward_callable_returned_finite_expected_shape",
+          "observed_shape": [
+            4
+          ],
+          "raw_max_abs": 1.0,
+          "effective_max_abs_after_clip_and_weight": 20.0,
+          "observed_sample_count": 4,
+          "observed_raw_nonzero_count": 1,
+          "observed_clip_saturation_count": 0,
+          "coverage": "finite_fixture_only_not_a_proof_of_universal_effect"
+        }
+      ],
+      "diagnostic_results": [],
+      "advisory_reward_term_names": []
+    },
+    "push.g1_37dof.recovery_v3": {
+      "schema_version": "true_rl_agent.component_smoke_result.v2",
+      "status": "pass",
+      "reason": "component_smoke_passed",
+      "task_id": "unitree_push_recovery",
+      "checked_reward_terms": 5,
+      "checked_diagnostics": 0,
+      "fixture_summary": {
+        "fixture_owner": "task_owned_push_recovery",
+        "num_envs": 4,
+        "num_joints": 37,
+        "num_actions": 37,
+        "purpose": "authoring_time_reward_callable_smoke_only"
+      },
+      "reward_results": [
+        {
+          "name": "upright_height",
+          "kind": "RewardTerm",
+          "status": "pass",
+          "reason": "reward_callable_returned_finite_expected_shape",
+          "observed_shape": [
+            4
+          ],
+          "raw_max_abs": 0.9948135018348694,
+          "effective_max_abs_after_clip_and_weight": 2.984440505504608,
+          "observed_sample_count": 4,
+          "observed_raw_nonzero_count": 4,
+          "observed_clip_saturation_count": 0,
+          "coverage": "finite_fixture_only_not_a_proof_of_universal_effect"
+        },
+        {
+          "name": "stationary_push_compensated",
+          "kind": "RewardTerm",
+          "status": "pass",
+          "reason": "reward_callable_returned_finite_expected_shape",
+          "observed_shape": [
+            4
+          ],
+          "raw_max_abs": 0.8622715473175049,
+          "effective_max_abs_after_clip_and_weight": 0.8622715473175049,
+          "observed_sample_count": 4,
+          "observed_raw_nonzero_count": 4,
+          "observed_clip_saturation_count": 0,
+          "coverage": "finite_fixture_only_not_a_proof_of_universal_effect"
+        },
+        {
+          "name": "joint_pose",
+          "kind": "RewardTerm",
+          "status": "pass",
+          "reason": "reward_callable_returned_finite_expected_shape",
+          "observed_shape": [
+            4
+          ],
+          "raw_max_abs": 3.0400002002716064,
+          "effective_max_abs_after_clip_and_weight": 0.30400002002716064,
+          "observed_sample_count": 4,
+          "observed_raw_nonzero_count": 4,
+          "observed_clip_saturation_count": 0,
+          "coverage": "finite_fixture_only_not_a_proof_of_universal_effect"
+        },
+        {
+          "name": "action_rate",
+          "kind": "RewardTerm",
+          "status": "pass",
+          "reason": "reward_callable_returned_finite_expected_shape",
+          "observed_shape": [
+            4
+          ],
+          "raw_max_abs": 0.7600000500679016,
+          "effective_max_abs_after_clip_and_weight": 0.0076000005006790165,
+          "observed_sample_count": 4,
+          "observed_raw_nonzero_count": 4,
+          "observed_clip_saturation_count": 0,
+          "coverage": "finite_fixture_only_not_a_proof_of_universal_effect"
+        },
+        {
+          "name": "fall",
+          "kind": "RewardTerm",
+          "status": "pass",
+          "reason": "reward_callable_returned_finite_expected_shape",
+          "observed_shape": [
+            4
+          ],
+          "raw_max_abs": 1.0,
+          "effective_max_abs_after_clip_and_weight": 20.0,
+          "observed_sample_count": 4,
+          "observed_raw_nonzero_count": 1,
+          "observed_clip_saturation_count": 0,
+          "coverage": "finite_fixture_only_not_a_proof_of_universal_effect"
+        }
+      ],
+      "diagnostic_results": [],
+      "advisory_reward_term_names": []
+    }
+  }
+}

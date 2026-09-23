@@ -1,0 +1,979 @@
+{
+  "status": "PASS",
+  "scope": "CPU materialization only; fixture bytes never executed",
+  "driver_sha256": "22f20b102246e7d1823c43f6704e1ca8eacfa76936bcf67a981acc36b6866a11",
+  "budget": {
+    "train_num_envs": 4096,
+    "train_steps_per_iteration": 24,
+    "train_max_iterations": 500,
+    "budget_steps": 49152000,
+    "train_seed": 42,
+    "eval_num_envs": 64,
+    "public_seed_count": 3,
+    "eval_base_seed": 42,
+    "runner_timeout_s": 3600
+  },
+  "checks": {
+    "train": {
+      "spec": {
+        "job_id": "p6-go2-matched2-dev-20260912-train",
+        "task_id": "unitree_push_recovery",
+        "subject": {
+          "schema_version": "true_rl_agent.experiment.subject.v2",
+          "kind": "reference",
+          "id": "push_standing_recovery_stationary_reference_v3"
+        },
+        "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+        "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+        "policy_initialization": "random",
+        "training_binding": {
+          "schema_version": "true_rl_agent.training_binding.v2",
+          "initialization_mode": "random",
+          "initialization_checkpoint_hash": null,
+          "policy_architecture_hash": "a02a7e06b7e87699dde132fd5f8ae8ac1de438c88b694ea774d958faa9d0f159",
+          "agent_configuration_hash": "f2cf1a2644ecdf61f3629f65c211ab29c274e06b6043c9067420e9e87a204789",
+          "initialization_seed_schedule_hash": "e065c0f150de6b131e30c7b3d74186b4b594719f7a997318ad600805d607670c",
+          "optimizer_training_profile_hash": "39b8576bcd7749447f62728d6854bd0e3632be7845eee26db316d54fb096d68b",
+          "budget_steps": 49152000,
+          "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+          "binding_hash": "844cbee614c2f42651939254fa33e227bda6bd8fe76a713b771421b17ba567a5",
+          "task_protocol_hash": "f0e93e9ba363569c7340d304431cf999cc0a11adc856da91be222ac978c77d8d"
+        },
+        "budget_steps": 49152000,
+        "execution_device": "cuda:0",
+        "candidate_artifact": null,
+        "reference_artifact": {
+          "reference_id": "push_standing_recovery_stationary_reference_v3",
+          "task_id": "unitree_push_recovery",
+          "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+          "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+          "program_source_size_bytes": 1846,
+          "artifact_hash": "672ed09c3c706922a8ece060fcad0544a75a61dd4518b49fb2ea3b5831550604",
+          "verification_hash": "cb574fa59cd69ed61107f6132655d976d5336633832724a43f8cfd3d9f954ed7"
+        },
+        "training_start_checkpoint": null
+      },
+      "metadata": {
+        "backend_id": "isaac_lab_rsl_rl",
+        "backend_execution_environment_manifest_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "cli_argv": [
+          "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+          "scripts/isaaclab_rsl_rl_train.py",
+          "--job-id",
+          "p6-go2-matched2-dev-20260912-train",
+          "--round",
+          "p6-go2-matched2-dev-20260912",
+          "--task-id",
+          "unitree_push_recovery",
+          "--subject-kind",
+          "reference",
+          "--subject-id",
+          "push_standing_recovery_stationary_reference_v3",
+          "--subject-manifest-hash",
+          "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+          "--program-source-checksum",
+          "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+          "--reference-artifact",
+          "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\reference_artifacts\\push_standing_recovery_stationary_reference_v3\\672ed09c3c706922a8ece060fcad0544a75a61dd4518b49fb2ea3b5831550604",
+          "--reference-artifact-hash",
+          "672ed09c3c706922a8ece060fcad0544a75a61dd4518b49fb2ea3b5831550604",
+          "--budget-steps",
+          "49152000",
+          "--init",
+          "random",
+          "--training-binding-hash",
+          "844cbee614c2f42651939254fa33e227bda6bd8fe76a713b771421b17ba567a5",
+          "--policy-architecture-hash",
+          "a02a7e06b7e87699dde132fd5f8ae8ac1de438c88b694ea774d958faa9d0f159",
+          "--optimizer-training-profile-hash",
+          "39b8576bcd7749447f62728d6854bd0e3632be7845eee26db316d54fb096d68b",
+          "--agent-configuration-hash",
+          "f2cf1a2644ecdf61f3629f65c211ab29c274e06b6043c9067420e9e87a204789",
+          "--agent-configuration-json",
+          "{\"agent_configuration_hash\":\"f2cf1a2644ecdf61f3629f65c211ab29c274e06b6043c9067420e9e87a204789\",\"algorithm\":{\"class_name\":\"PPO\",\"clip_param\":0.2,\"desired_kl\":0.01,\"entropy_coef\":0.01,\"gamma\":0.99,\"lam\":0.95,\"learning_rate\":0.001,\"max_grad_norm\":1.0,\"normalize_advantage_per_mini_batch\":false,\"num_learning_epochs\":5,\"num_mini_batches\":4,\"rnd_cfg\":null,\"schedule\":\"adaptive\",\"symmetry_cfg\":null,\"use_clipped_value_loss\":true,\"value_loss_coef\":1.0},\"optimizer_training_profile_hash\":\"39b8576bcd7749447f62728d6854bd0e3632be7845eee26db316d54fb096d68b\",\"policy\":{\"activation\":\"elu\",\"actor_hidden_dims\":[512,256,128],\"actor_obs_normalization\":false,\"class_name\":\"ActorCritic\",\"critic_hidden_dims\":[512,256,128],\"critic_obs_normalization\":false,\"init_noise_std\":1.0,\"noise_std_type\":\"scalar\"},\"policy_architecture_hash\":\"a02a7e06b7e87699dde132fd5f8ae8ac1de438c88b694ea774d958faa9d0f159\",\"schema_version\":\"true_rl_agent.rsl_rl_agent_configuration.v1\"}",
+          "--initialization-seed-schedule-hash",
+          "e065c0f150de6b131e30c7b3d74186b4b594719f7a997318ad600805d607670c",
+          "--capability-profile-hash",
+          "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+          "--summary-path",
+          "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\composition\\runner/p6-go2-matched2-dev-20260912/train/summary.json",
+          "--checkpoint-output",
+          "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\composition\\runner/p6-go2-matched2-dev-20260912/checkpoints/best.pt",
+          "--profile",
+          "strong_push",
+          "--runtime-dynamics-hash",
+          "sha256:cbd42e99a7a7c371a31008fee9df484880bd8664acbfb5e7462425ddaaa7e9f4",
+          "--num-envs",
+          "4096",
+          "--seed",
+          "42",
+          "--device",
+          "cuda:0",
+          "--task-protocol-hash",
+          "f0e93e9ba363569c7340d304431cf999cc0a11adc856da91be222ac978c77d8d",
+          "--resolved-cell-manifest-path",
+          "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\composition\\resolved_cell_manifest.json",
+          "--resolved-cell-manifest-hash",
+          "ed8c2a3607025eecc8d8b2ca3b0f2bef0f8c32b22c360a1fc6f2b2cc4f79316e",
+          "--base-task-protocol-hash",
+          "c070a6fa24b669d0028b78a056daa2b2d8b691f5f4be0bccd3bbee050c0143ac",
+          "--backend-execution-environment-manifest-hash",
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "--num-steps-per-env",
+          "24",
+          "--max-iterations",
+          "500",
+          "--headless"
+        ],
+        "cli_command": "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe scripts/isaaclab_rsl_rl_train.py --job-id p6-go2-matched2-dev-20260912-train --round p6-go2-matched2-dev-20260912 --task-id unitree_push_recovery --subject-kind reference --subject-id push_standing_recovery_stationary_reference_v3 --subject-manifest-hash 3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6 --program-source-checksum sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d --reference-artifact C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\reference_artifacts\\push_standing_recovery_stationary_reference_v3\\672ed09c3c706922a8ece060fcad0544a75a61dd4518b49fb2ea3b5831550604 --reference-artifact-hash 672ed09c3c706922a8ece060fcad0544a75a61dd4518b49fb2ea3b5831550604 --budget-steps 49152000 --init random --training-binding-hash 844cbee614c2f42651939254fa33e227bda6bd8fe76a713b771421b17ba567a5 --policy-architecture-hash a02a7e06b7e87699dde132fd5f8ae8ac1de438c88b694ea774d958faa9d0f159 --optimizer-training-profile-hash 39b8576bcd7749447f62728d6854bd0e3632be7845eee26db316d54fb096d68b --agent-configuration-hash f2cf1a2644ecdf61f3629f65c211ab29c274e06b6043c9067420e9e87a204789 --agent-configuration-json {\"agent_configuration_hash\":\"f2cf1a2644ecdf61f3629f65c211ab29c274e06b6043c9067420e9e87a204789\",\"algorithm\":{\"class_name\":\"PPO\",\"clip_param\":0.2,\"desired_kl\":0.01,\"entropy_coef\":0.01,\"gamma\":0.99,\"lam\":0.95,\"learning_rate\":0.001,\"max_grad_norm\":1.0,\"normalize_advantage_per_mini_batch\":false,\"num_learning_epochs\":5,\"num_mini_batches\":4,\"rnd_cfg\":null,\"schedule\":\"adaptive\",\"symmetry_cfg\":null,\"use_clipped_value_loss\":true,\"value_loss_coef\":1.0},\"optimizer_training_profile_hash\":\"39b8576bcd7749447f62728d6854bd0e3632be7845eee26db316d54fb096d68b\",\"policy\":{\"activation\":\"elu\",\"actor_hidden_dims\":[512,256,128],\"actor_obs_normalization\":false,\"class_name\":\"ActorCritic\",\"critic_hidden_dims\":[512,256,128],\"critic_obs_normalization\":false,\"init_noise_std\":1.0,\"noise_std_type\":\"scalar\"},\"policy_architecture_hash\":\"a02a7e06b7e87699dde132fd5f8ae8ac1de438c88b694ea774d958faa9d0f159\",\"schema_version\":\"true_rl_agent.rsl_rl_agent_configuration.v1\"} --initialization-seed-schedule-hash e065c0f150de6b131e30c7b3d74186b4b594719f7a997318ad600805d607670c --capability-profile-hash 05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d --summary-path C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\composition\\runner/p6-go2-matched2-dev-20260912/train/summary.json --checkpoint-output C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\composition\\runner/p6-go2-matched2-dev-20260912/checkpoints/best.pt --profile strong_push --runtime-dynamics-hash sha256:cbd42e99a7a7c371a31008fee9df484880bd8664acbfb5e7462425ddaaa7e9f4 --num-envs 4096 --seed 42 --device cuda:0 --task-protocol-hash f0e93e9ba363569c7340d304431cf999cc0a11adc856da91be222ac978c77d8d --resolved-cell-manifest-path C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\composition\\resolved_cell_manifest.json --resolved-cell-manifest-hash ed8c2a3607025eecc8d8b2ca3b0f2bef0f8c32b22c360a1fc6f2b2cc4f79316e --base-task-protocol-hash c070a6fa24b669d0028b78a056daa2b2d8b691f5f4be0bccd3bbee050c0143ac --backend-execution-environment-manifest-hash aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --num-steps-per-env 24 --max-iterations 500 --headless",
+        "summary_path": "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\composition\\runner/p6-go2-matched2-dev-20260912/train/summary.json",
+        "sealed_checkpoint_uri": "artifact://p6-go2-matched2-dev-20260912/checkpoints/best.pt",
+        "checkpoint_output_path": "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\composition\\runner/p6-go2-matched2-dev-20260912/checkpoints/best.pt",
+        "work_dir": "D:\\humanoid_agent\\true_RL_Agent",
+        "external_dependencies": [
+          "Isaac Lab",
+          "RSL-RL",
+          "Unitree G1/H1 assets",
+          "CUDA runtime on the execution server"
+        ],
+        "robot": "unitree_go2",
+        "observation_schema_hash": "16ffb52f1f249bc9f89e1cc5fe9c3195d71505c9b9e281864afb8046e1ddae1a",
+        "action_schema_hash": "fef9a8161334ea16e61effbab51a03782f314eb54a8f046a15bfb8e82303bb1c",
+        "policy_architecture": "rsl_rl_ppo_mlp",
+        "policy_architecture_hash": "a02a7e06b7e87699dde132fd5f8ae8ac1de438c88b694ea774d958faa9d0f159",
+        "optimizer_training_profile_hash": "39b8576bcd7749447f62728d6854bd0e3632be7845eee26db316d54fb096d68b",
+        "agent_configuration_hash": "f2cf1a2644ecdf61f3629f65c211ab29c274e06b6043c9067420e9e87a204789",
+        "fixed_train_protocol": {
+          "baseline_train_distribution": "runner_owned_target_distribution",
+          "push_distribution": "fixed_target_push",
+          "budget_steps": 49152000,
+          "train_num_envs": 4096,
+          "train_max_iterations": 500,
+          "train_steps_per_iteration": 24,
+          "curriculum_control": "task_default_no_llm_schedule",
+          "runtime_profile": "strong_push",
+          "runtime_dynamics_hash": "sha256:cbd42e99a7a7c371a31008fee9df484880bd8664acbfb5e7462425ddaaa7e9f4",
+          "train_seed": 42,
+          "push_protocol_hash": "851d417544cd27a11b865cf86e6354b03fd2276312470962f1feaef4ea2edb82",
+          "reward_program_mode": "total_replacement_manager_integrates_dt_once",
+          "reference_program_id": "push_standing_recovery_stationary_reference_v3"
+        }
+      },
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "scripts/isaaclab_rsl_rl_train.py",
+        "--job-id",
+        "p6-go2-matched2-dev-20260912-train",
+        "--round",
+        "p6-go2-matched2-dev-20260912",
+        "--task-id",
+        "unitree_push_recovery",
+        "--subject-kind",
+        "reference",
+        "--subject-id",
+        "push_standing_recovery_stationary_reference_v3",
+        "--subject-manifest-hash",
+        "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+        "--program-source-checksum",
+        "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+        "--reference-artifact",
+        "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\reference_artifacts\\push_standing_recovery_stationary_reference_v3\\672ed09c3c706922a8ece060fcad0544a75a61dd4518b49fb2ea3b5831550604",
+        "--reference-artifact-hash",
+        "672ed09c3c706922a8ece060fcad0544a75a61dd4518b49fb2ea3b5831550604",
+        "--budget-steps",
+        "49152000",
+        "--init",
+        "random",
+        "--training-binding-hash",
+        "844cbee614c2f42651939254fa33e227bda6bd8fe76a713b771421b17ba567a5",
+        "--policy-architecture-hash",
+        "a02a7e06b7e87699dde132fd5f8ae8ac1de438c88b694ea774d958faa9d0f159",
+        "--optimizer-training-profile-hash",
+        "39b8576bcd7749447f62728d6854bd0e3632be7845eee26db316d54fb096d68b",
+        "--agent-configuration-hash",
+        "f2cf1a2644ecdf61f3629f65c211ab29c274e06b6043c9067420e9e87a204789",
+        "--agent-configuration-json",
+        "{\"agent_configuration_hash\":\"f2cf1a2644ecdf61f3629f65c211ab29c274e06b6043c9067420e9e87a204789\",\"algorithm\":{\"class_name\":\"PPO\",\"clip_param\":0.2,\"desired_kl\":0.01,\"entropy_coef\":0.01,\"gamma\":0.99,\"lam\":0.95,\"learning_rate\":0.001,\"max_grad_norm\":1.0,\"normalize_advantage_per_mini_batch\":false,\"num_learning_epochs\":5,\"num_mini_batches\":4,\"rnd_cfg\":null,\"schedule\":\"adaptive\",\"symmetry_cfg\":null,\"use_clipped_value_loss\":true,\"value_loss_coef\":1.0},\"optimizer_training_profile_hash\":\"39b8576bcd7749447f62728d6854bd0e3632be7845eee26db316d54fb096d68b\",\"policy\":{\"activation\":\"elu\",\"actor_hidden_dims\":[512,256,128],\"actor_obs_normalization\":false,\"class_name\":\"ActorCritic\",\"critic_hidden_dims\":[512,256,128],\"critic_obs_normalization\":false,\"init_noise_std\":1.0,\"noise_std_type\":\"scalar\"},\"policy_architecture_hash\":\"a02a7e06b7e87699dde132fd5f8ae8ac1de438c88b694ea774d958faa9d0f159\",\"schema_version\":\"true_rl_agent.rsl_rl_agent_configuration.v1\"}",
+        "--initialization-seed-schedule-hash",
+        "e065c0f150de6b131e30c7b3d74186b4b594719f7a997318ad600805d607670c",
+        "--capability-profile-hash",
+        "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+        "--summary-path",
+        "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\composition\\runner/p6-go2-matched2-dev-20260912/train/summary.json",
+        "--checkpoint-output",
+        "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\composition\\runner/p6-go2-matched2-dev-20260912/checkpoints/best.pt",
+        "--profile",
+        "strong_push",
+        "--runtime-dynamics-hash",
+        "sha256:cbd42e99a7a7c371a31008fee9df484880bd8664acbfb5e7462425ddaaa7e9f4",
+        "--num-envs",
+        "4096",
+        "--seed",
+        "42",
+        "--device",
+        "cuda:0",
+        "--task-protocol-hash",
+        "f0e93e9ba363569c7340d304431cf999cc0a11adc856da91be222ac978c77d8d",
+        "--resolved-cell-manifest-path",
+        "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\composition\\resolved_cell_manifest.json",
+        "--resolved-cell-manifest-hash",
+        "ed8c2a3607025eecc8d8b2ca3b0f2bef0f8c32b22c360a1fc6f2b2cc4f79316e",
+        "--base-task-protocol-hash",
+        "c070a6fa24b669d0028b78a056daa2b2d8b691f5f4be0bccd3bbee050c0143ac",
+        "--backend-execution-environment-manifest-hash",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "--num-steps-per-env",
+        "24",
+        "--max-iterations",
+        "500",
+        "--headless"
+      ]
+    },
+    "dev": {
+      "spec": {
+        "schema_version": "true_rl_agent.eval_phase_job_spec.v1",
+        "job_id": "p6-go2-matched2-dev-20260912-eval-public-dev",
+        "phase": "public_dev",
+        "evaluation_plan_hash": "73d828e28cb39128ba0d2b04f41a75cecb496dcaf27971405646232bcb5dac4e",
+        "evaluation_plan": {
+          "job_id": "p6-go2-matched2-dev-20260912-eval",
+          "task_id": "unitree_push_recovery",
+          "subject": {
+            "schema_version": "true_rl_agent.experiment.subject.v2",
+            "kind": "reference",
+            "id": "push_standing_recovery_stationary_reference_v3"
+          },
+          "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+          "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+          "training_binding_hash": "844cbee614c2f42651939254fa33e227bda6bd8fe76a713b771421b17ba567a5",
+          "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+          "execution_device": "cuda:0",
+          "schema_version": "true_rl_agent.evaluation.protocol.v1",
+          "eval_protocol_version": "fixed_public_accept_sealed_validation_v1",
+          "public_seed_count": 3,
+          "public_accept_seed_count": 3,
+          "sealed_validation_seed_count": 7,
+          "eval_num_envs": 64,
+          "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+          "evaluation_binding": {
+            "schema_version": "true_rl_agent.evaluation.binding.v1",
+            "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+            "acceptance_protocol_hash": "bb6946ef12e12fce33dd77bb58257de41a728997b5e9677b7a631d7b78024de7",
+            "task_protocol_hash": "f0e93e9ba363569c7340d304431cf999cc0a11adc856da91be222ac978c77d8d",
+            "seed_cohort_hash": "40a4ca0894609e14d15da22038e1384baf9a322dcc0b20907181f46781eb2c51",
+            "evaluation_binding_hash": "5df8839a589ca828310c6709c9fb5656670b82460d5c8bcb51a8e22f74503d71"
+          },
+          "checkpoint": {
+            "uri": "artifact://p6-go2-matched2-dev-20260912/checkpoints/best.pt",
+            "checksum": "sha256:cfb6954c868ed408ac1eadd3d94ad959ad16e1ef521de04bf95ca86e439ad885",
+            "role": "eval",
+            "sealed": true
+          }
+        }
+      },
+      "metadata": {
+        "backend_id": "isaac_lab_rsl_rl",
+        "backend_execution_environment_manifest_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "cli_argv": [
+          "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+          "scripts/isaaclab_rsl_rl_eval.py",
+          "--job-id",
+          "p6-go2-matched2-dev-20260912-eval-public-dev",
+          "--round",
+          "p6-go2-matched2-dev-20260912",
+          "--task-id",
+          "unitree_push_recovery",
+          "--subject-kind",
+          "reference",
+          "--subject-id",
+          "push_standing_recovery_stationary_reference_v3",
+          "--checkpoint",
+          "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\materialization-only.bin",
+          "--checkpoint-sha256",
+          "sha256:cfb6954c868ed408ac1eadd3d94ad959ad16e1ef521de04bf95ca86e439ad885",
+          "--public-seeds",
+          "3",
+          "--public-accept-seeds",
+          "3",
+          "--sealed-validation-seeds",
+          "7",
+          "--eval-protocol-version",
+          "fixed_public_accept_sealed_validation_v1",
+          "--task-protocol-hash",
+          "f0e93e9ba363569c7340d304431cf999cc0a11adc856da91be222ac978c77d8d",
+          "--acceptance-protocol-hash",
+          "bb6946ef12e12fce33dd77bb58257de41a728997b5e9677b7a631d7b78024de7",
+          "--seed-cohort-hash",
+          "40a4ca0894609e14d15da22038e1384baf9a322dcc0b20907181f46781eb2c51",
+          "--evaluation-binding-hash",
+          "5df8839a589ca828310c6709c9fb5656670b82460d5c8bcb51a8e22f74503d71",
+          "--capability-profile-hash",
+          "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+          "--summary-path",
+          "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\composition\\runner/p6-go2-matched2-dev-20260912/eval/public_dev/summary.json",
+          "--profile",
+          "strong_push",
+          "--runtime-dynamics-hash",
+          "sha256:cbd42e99a7a7c371a31008fee9df484880bd8664acbfb5e7462425ddaaa7e9f4",
+          "--num-envs",
+          "64",
+          "--seed",
+          "42",
+          "--device",
+          "cuda:0",
+          "--resolved-cell-manifest-path",
+          "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\composition\\resolved_cell_manifest.json",
+          "--resolved-cell-manifest-hash",
+          "ed8c2a3607025eecc8d8b2ca3b0f2bef0f8c32b22c360a1fc6f2b2cc4f79316e",
+          "--base-task-protocol-hash",
+          "c070a6fa24b669d0028b78a056daa2b2d8b691f5f4be0bccd3bbee050c0143ac",
+          "--backend-execution-environment-manifest-hash",
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "--subject-manifest-hash",
+          "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+          "--training-binding-hash",
+          "844cbee614c2f42651939254fa33e227bda6bd8fe76a713b771421b17ba567a5",
+          "--program-source-checksum",
+          "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+          "--headless",
+          "--evaluation-phase",
+          "public_dev",
+          "--evaluation-plan-hash",
+          "73d828e28cb39128ba0d2b04f41a75cecb496dcaf27971405646232bcb5dac4e"
+        ],
+        "cli_command": "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe scripts/isaaclab_rsl_rl_eval.py --job-id p6-go2-matched2-dev-20260912-eval-public-dev --round p6-go2-matched2-dev-20260912 --task-id unitree_push_recovery --subject-kind reference --subject-id push_standing_recovery_stationary_reference_v3 --checkpoint C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\materialization-only.bin --checkpoint-sha256 sha256:cfb6954c868ed408ac1eadd3d94ad959ad16e1ef521de04bf95ca86e439ad885 --public-seeds 3 --public-accept-seeds 3 --sealed-validation-seeds 7 --eval-protocol-version fixed_public_accept_sealed_validation_v1 --task-protocol-hash f0e93e9ba363569c7340d304431cf999cc0a11adc856da91be222ac978c77d8d --acceptance-protocol-hash bb6946ef12e12fce33dd77bb58257de41a728997b5e9677b7a631d7b78024de7 --seed-cohort-hash 40a4ca0894609e14d15da22038e1384baf9a322dcc0b20907181f46781eb2c51 --evaluation-binding-hash 5df8839a589ca828310c6709c9fb5656670b82460d5c8bcb51a8e22f74503d71 --capability-profile-hash 05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d --summary-path C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\composition\\runner/p6-go2-matched2-dev-20260912/eval/public_dev/summary.json --profile strong_push --runtime-dynamics-hash sha256:cbd42e99a7a7c371a31008fee9df484880bd8664acbfb5e7462425ddaaa7e9f4 --num-envs 64 --seed 42 --device cuda:0 --resolved-cell-manifest-path C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\composition\\resolved_cell_manifest.json --resolved-cell-manifest-hash ed8c2a3607025eecc8d8b2ca3b0f2bef0f8c32b22c360a1fc6f2b2cc4f79316e --base-task-protocol-hash c070a6fa24b669d0028b78a056daa2b2d8b691f5f4be0bccd3bbee050c0143ac --backend-execution-environment-manifest-hash aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --subject-manifest-hash 3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6 --training-binding-hash 844cbee614c2f42651939254fa33e227bda6bd8fe76a713b771421b17ba567a5 --program-source-checksum sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d --headless --evaluation-phase public_dev --evaluation-plan-hash 73d828e28cb39128ba0d2b04f41a75cecb496dcaf27971405646232bcb5dac4e",
+        "evaluation_subject": {
+          "schema_version": "true_rl_agent.experiment.subject.v2",
+          "kind": "reference",
+          "id": "push_standing_recovery_stationary_reference_v3"
+        },
+        "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+        "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+        "training_binding_hash": "844cbee614c2f42651939254fa33e227bda6bd8fe76a713b771421b17ba567a5",
+        "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+        "summary_path": "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\composition\\runner/p6-go2-matched2-dev-20260912/eval/public_dev/summary.json",
+        "work_dir": "D:\\humanoid_agent\\true_RL_Agent",
+        "checkpoint_policy": "runner_sealed_train_output_required",
+        "fixed_eval_protocol": {
+          "eval_protocol": "fixed_public_accept_and_sealed_validation",
+          "schema_version": "true_rl_agent.evaluation.protocol.v1",
+          "eval_protocol_version": "fixed_public_accept_sealed_validation_v1",
+          "public_seed_count": 3,
+          "public_accept_seed_count": 3,
+          "sealed_validation_seed_count": 7,
+          "eval_num_envs": 64,
+          "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+          "success_predicate": "received_push_then_stable_recovery_dwell_without_failure",
+          "seed_visibility": "counts_only_no_raw_seed_ids",
+          "checkpoint_selector": "runner_sealed_train_output_best_public_dev",
+          "acceptance_protocol": {
+            "schema_version": "true_rl_agent.acceptance.protocol.v2",
+            "protocol_id": "unitree_push_recovery_acceptance_v2",
+            "score_source": "public_accept.score_stats.mean",
+            "min_score_count": 3,
+            "absolute_accept_floor": 0.2,
+            "min_delta": 0.05,
+            "public_score_binding": "acceptance_score_mean",
+            "decision_rule": "bootstrap_floor_then_noise_aware_delta_v1",
+            "acceptance_protocol_hash": "bb6946ef12e12fce33dd77bb58257de41a728997b5e9677b7a631d7b78024de7"
+          },
+          "seed_cohort_hash": "40a4ca0894609e14d15da22038e1384baf9a322dcc0b20907181f46781eb2c51",
+          "runtime_profile": "strong_push",
+          "runtime_dynamics_hash": "sha256:cbd42e99a7a7c371a31008fee9df484880bd8664acbfb5e7462425ddaaa7e9f4",
+          "push_protocol": {
+            "schema_version": "true_rl_agent.task.push_recovery.protocol.v2",
+            "protocol_id": "push_recovery_planar_delta_velocity_v2",
+            "protocol_state": "active",
+            "gravity_mps2": 9.81,
+            "episode_time_scale": 30.0,
+            "first_push_time_scale": 5.0,
+            "second_push_time_scale": 17.0,
+            "recovery_window_time_scale": 8.0,
+            "stable_dwell_time_scale": 1.5,
+            "low_velocity_scale": 0.3,
+            "medium_velocity_scale": 0.6,
+            "high_velocity_scale": 1.0,
+            "recovery_velocity_scale": 0.08,
+            "recovery_angular_velocity_scale": 0.5,
+            "recovery_tilt_rad": 0.2,
+            "recovery_height_scale": 0.7,
+            "fall_height_scale": 0.45,
+            "fall_tilt_rad": 0.8,
+            "max_displacement_scale": 3.0,
+            "injection_tolerance_mps": 1e-05
+          },
+          "push_robot_scale_m": 0.4,
+          "reference_qualification": {
+            "schema_version": "true_rl_agent.task.push_recovery.reference_capability.v2",
+            "scope": "standing_recovery_task_and_reference",
+            "score_source": "public_accept.score_stats.mean",
+            "minimum_score": 0.2,
+            "public_dev_reference_band": [
+              0.2,
+              0.9
+            ],
+            "band_purpose": "basic_learnability_and_nonzero_improvement_headroom",
+            "required_gates": [
+              "accept_evidence_gate",
+              "budget_accounting",
+              "recovery_evidence_gate",
+              "sealed_validation_gate"
+            ],
+            "train_budget_steps": 49152000,
+            "evaluation_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+            "recovery_protocol_hash": "851d417544cd27a11b865cf86e6354b03fd2276312470962f1feaef4ea2edb82",
+            "independent_validation": {
+              "schema_version": "true_rl_agent.push_recovery.validation.v2",
+              "distribution_relation": "same_balanced_magnitude_and_direction_distribution_independent_seeds",
+              "max_public_to_sealed_score_drop": 0.1,
+              "validation_feedback": "status_only"
+            }
+          }
+        },
+        "evaluation_phase": "public_dev",
+        "evaluation_plan_hash": "73d828e28cb39128ba0d2b04f41a75cecb496dcaf27971405646232bcb5dac4e"
+      },
+      "argv": [
+        "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+        "scripts/isaaclab_rsl_rl_eval.py",
+        "--job-id",
+        "p6-go2-matched2-dev-20260912-eval-public-dev",
+        "--round",
+        "p6-go2-matched2-dev-20260912",
+        "--task-id",
+        "unitree_push_recovery",
+        "--subject-kind",
+        "reference",
+        "--subject-id",
+        "push_standing_recovery_stationary_reference_v3",
+        "--checkpoint",
+        "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\materialization-only.bin",
+        "--checkpoint-sha256",
+        "sha256:cfb6954c868ed408ac1eadd3d94ad959ad16e1ef521de04bf95ca86e439ad885",
+        "--public-seeds",
+        "3",
+        "--public-accept-seeds",
+        "3",
+        "--sealed-validation-seeds",
+        "7",
+        "--eval-protocol-version",
+        "fixed_public_accept_sealed_validation_v1",
+        "--task-protocol-hash",
+        "f0e93e9ba363569c7340d304431cf999cc0a11adc856da91be222ac978c77d8d",
+        "--acceptance-protocol-hash",
+        "bb6946ef12e12fce33dd77bb58257de41a728997b5e9677b7a631d7b78024de7",
+        "--seed-cohort-hash",
+        "40a4ca0894609e14d15da22038e1384baf9a322dcc0b20907181f46781eb2c51",
+        "--evaluation-binding-hash",
+        "5df8839a589ca828310c6709c9fb5656670b82460d5c8bcb51a8e22f74503d71",
+        "--capability-profile-hash",
+        "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+        "--summary-path",
+        "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\composition\\runner/p6-go2-matched2-dev-20260912/eval/public_dev/summary.json",
+        "--profile",
+        "strong_push",
+        "--runtime-dynamics-hash",
+        "sha256:cbd42e99a7a7c371a31008fee9df484880bd8664acbfb5e7462425ddaaa7e9f4",
+        "--num-envs",
+        "64",
+        "--seed",
+        "42",
+        "--device",
+        "cuda:0",
+        "--resolved-cell-manifest-path",
+        "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9j39z9bn\\composition\\resolved_cell_manifest.json",
+        "--resolved-cell-manifest-hash",
+        "ed8c2a3607025eecc8d8b2ca3b0f2bef0f8c32b22c360a1fc6f2b2cc4f79316e",
+        "--base-task-protocol-hash",
+        "c070a6fa24b669d0028b78a056daa2b2d8b691f5f4be0bccd3bbee050c0143ac",
+        "--backend-execution-environment-manifest-hash",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "--subject-manifest-hash",
+        "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+        "--training-binding-hash",
+        "844cbee614c2f42651939254fa33e227bda6bd8fe76a713b771421b17ba567a5",
+        "--program-source-checksum",
+        "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+        "--headless",
+        "--evaluation-phase",
+        "public_dev",
+        "--evaluation-plan-hash",
+        "73d828e28cb39128ba0d2b04f41a75cecb496dcaf27971405646232bcb5dac4e"
+      ]
+    }
+  },
+  "manifest": {
+    "base_task_protocol_hash": "c070a6fa24b669d0028b78a056daa2b2d8b691f5f4be0bccd3bbee050c0143ac",
+    "cell_variant_id": "push.go2_12dof.recovery_v2",
+    "contract_hashes": {
+      "acceptance_protocol_hash": "bb6946ef12e12fce33dd77bb58257de41a728997b5e9677b7a631d7b78024de7",
+      "action_content_hash": "fef9a8161334ea16e61effbab51a03782f314eb54a8f046a15bfb8e82303bb1c",
+      "agent_configuration_hash": "f2cf1a2644ecdf61f3629f65c211ab29c274e06b6043c9067420e9e87a204789",
+      "binding_facts_hash": "bc7183b1fe5b0528b598b5c7031f70e7c01d5ba7250e32933d184b9aab6b9c70",
+      "candidate_capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+      "evaluation_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+      "observation_content_hash": "16ffb52f1f249bc9f89e1cc5fe9c3195d71505c9b9e281864afb8046e1ddae1a",
+      "policy_io_schema_hash": "a40716069a496d94e8b24a26d9ca3e4d9ad0c67aed69a4ae009d1223a3a6249d",
+      "push_protocol_hash": "851d417544cd27a11b865cf86e6354b03fd2276312470962f1feaef4ea2edb82",
+      "push_resolved_protocol_hash": "39f0d453a04e0c1a059395597b6a54aa3715dd739edd394b78f90641217f76e1",
+      "reference_capability_gate_hash": "ed92230d7b58af81f4e3781019ae2e677b3406681f6e8b5187b59f477371b5cd",
+      "reward_contract_hash": "34da0b0110b6a3e9a231a115480cef3ce2c2124c5d2b249b9b59420614c652c1",
+      "reward_input_schema_hash": "8e481be6ec32f253739427e08c113d6bba81f9aa6bda63ffc77af3fb602e675b",
+      "sensor_schema_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    "environment": {
+      "cell_variant_id": "push.go2_12dof.recovery_v2",
+      "environment_hash": "e91d19b74c048081c5e36d3d48edeff2226669f1ffc30334d8640214863eaeba",
+      "environment_id": "push_recovery_environment_v2",
+      "payload": {
+        "eval_runtime_dynamics_hash": "sha256:cbd42e99a7a7c371a31008fee9df484880bd8664acbfb5e7462425ddaaa7e9f4",
+        "push_protocol_hash": "851d417544cd27a11b865cf86e6354b03fd2276312470962f1feaef4ea2edb82",
+        "push_resolved_protocol_hash": "39f0d453a04e0c1a059395597b6a54aa3715dd739edd394b78f90641217f76e1",
+        "train_runtime_dynamics_hash": "sha256:cbd42e99a7a7c371a31008fee9df484880bd8664acbfb5e7462425ddaaa7e9f4"
+      },
+      "schema_version": "true_rl_agent.cell_environment.v1",
+      "task_id": "unitree_push_recovery"
+    },
+    "legacy_training_binding_v1_grant_hash": null,
+    "manifest_hash": "ed8c2a3607025eecc8d8b2ca3b0f2bef0f8c32b22c360a1fc6f2b2cc4f79316e",
+    "provided_capabilities": [
+      "articulation_runtime",
+      "base_state",
+      "base_velocity_write",
+      "contact_sensor_runtime",
+      "joint_position_action",
+      "joint_state",
+      "policy_observation_projection",
+      "support_effector_state"
+    ],
+    "resolved_cell_task_protocol_hash": "f0e93e9ba363569c7340d304431cf999cc0a11adc856da91be222ac978c77d8d",
+    "resolved_roles": {
+      "base": [
+        "base"
+      ]
+    },
+    "robot_profile": {
+      "asset_closure": {
+        "closure_hash": "c7fe9da20ae348ea53d34c266b7b6cea7746c94d2a4593450183dd464f783faf",
+        "entries": [
+          {
+            "content_version": "79cfc265c577a0c75620a5a65514dce7-3",
+            "identity": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/IsaacLab/Robots/Unitree/Go2/Props/instanceable_meshes.usd",
+            "sha256": "2902646d0f4c13c9ecae3ac9046e32c7d18902eef9679de9829f642a15c93fb5",
+            "size_bytes": 18802187
+          },
+          {
+            "content_version": "8430562a941334d76de815696980b472",
+            "identity": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/IsaacLab/Robots/Unitree/Go2/go2.usd",
+            "sha256": "ba171c972b987d8c8fb7157ccad2ba9c0c1fed105755d2d8af46bef96cc11c6d",
+            "size_bytes": 8142
+          }
+        ],
+        "file_count": 2,
+        "kind": "usd_used_layer_closure_v1",
+        "root_identity": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/IsaacLab/Robots/Unitree/Go2/go2.usd",
+        "total_bytes": 18810329,
+        "unresolved": []
+      },
+      "body_count": 19,
+      "joint_count": 12,
+      "profile_hash": "3e9c110449be639fceb48d6792fc8f683f43bd34978286325bba99547d20f1c0",
+      "robot_family_id": "unitree_go2",
+      "robot_profile_id": "unitree_go2_12dof_isaaclab_v1",
+      "runtime_facts_hash": "c56fed536354249bec90ce22fa52a10f8b899396758e46f8e03747368d985437",
+      "semantic_roles": {
+        "base": {
+          "target_kind": "body",
+          "targets": [
+            "base"
+          ]
+        },
+        "forbidden_contact": {
+          "target_kind": "body",
+          "targets": [
+            "base",
+            "Head_upper",
+            "Head_lower",
+            "FL_hip",
+            "FR_hip",
+            "RL_hip",
+            "RR_hip",
+            "FL_thigh",
+            "FR_thigh",
+            "RL_thigh",
+            "RR_thigh",
+            "FL_calf",
+            "FR_calf",
+            "RL_calf",
+            "RR_calf"
+          ]
+        },
+        "joint_group.all": {
+          "target_kind": "joint",
+          "targets": [
+            "FL_hip_joint",
+            "FR_hip_joint",
+            "RL_hip_joint",
+            "RR_hip_joint",
+            "FL_thigh_joint",
+            "FR_thigh_joint",
+            "RL_thigh_joint",
+            "RR_thigh_joint",
+            "FL_calf_joint",
+            "FR_calf_joint",
+            "RL_calf_joint",
+            "RR_calf_joint"
+          ]
+        },
+        "support_effector": {
+          "target_kind": "body",
+          "targets": [
+            "FL_foot",
+            "FR_foot",
+            "RL_foot",
+            "RR_foot"
+          ]
+        }
+      }
+    },
+    "robot_task_binding": {
+      "binding_hash": "27c843b22bf597ce048c70915ddb3359fbcb7e8e4471aea4ed53ee6d9123386b",
+      "binding_id": "push_go2_12dof_recovery_v2_binding_v2",
+      "cell_variant_id": "push.go2_12dof.recovery_v2",
+      "provided_capabilities": [
+        "base_velocity_write",
+        "joint_position_action",
+        "policy_observation_projection"
+      ],
+      "robot_profile_id": "unitree_go2_12dof_isaaclab_v1",
+      "role_bindings": {
+        "base": [
+          "base"
+        ]
+      },
+      "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1",
+      "schema_version": "true_rl_agent.robot_task_binding.v1",
+      "task_id": "unitree_push_recovery",
+      "task_projection": {
+        "push_abi_facts": {
+          "action_content_hash": "fef9a8161334ea16e61effbab51a03782f314eb54a8f046a15bfb8e82303bb1c",
+          "action_dimension": 12,
+          "actions": [
+            {
+              "asset_name": "robot",
+              "class": "isaaclab.envs.mdp.actions.actions_cfg.JointPositionActionCfg",
+              "joint_names": [
+                ".*"
+              ],
+              "name": "joint_pos",
+              "scale": 0.25,
+              "use_default_offset": true
+            }
+          ],
+          "binding_facts_hash": "bc7183b1fe5b0528b598b5c7031f70e7c01d5ba7250e32933d184b9aab6b9c70",
+          "control": {
+            "control_dt_s": 0.02,
+            "decimation": 4,
+            "simulation_dt_s": 0.005
+          },
+          "joint_names": [
+            "FL_hip_joint",
+            "FR_hip_joint",
+            "RL_hip_joint",
+            "RR_hip_joint",
+            "FL_thigh_joint",
+            "FR_thigh_joint",
+            "RL_thigh_joint",
+            "RR_thigh_joint",
+            "FL_calf_joint",
+            "FR_calf_joint",
+            "RL_calf_joint",
+            "RR_calf_joint"
+          ],
+          "observation_content_hash": "16ffb52f1f249bc9f89e1cc5fe9c3195d71505c9b9e281864afb8046e1ddae1a",
+          "policy_io_schema_hash": "a40716069a496d94e8b24a26d9ca3e4d9ad0c67aed69a4ae009d1223a3a6249d",
+          "policy_observation": {
+            "concatenate_terms": true,
+            "enable_corruption_by_mode": {
+              "eval": false,
+              "train": true
+            },
+            "history_length": null,
+            "terms": [
+              {
+                "callable": "isaaclab.envs.mdp.observations.base_lin_vel",
+                "clip": null,
+                "name": "base_lin_vel",
+                "noise": {
+                  "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+                  "n_max": 0.1,
+                  "n_min": -0.1,
+                  "operation": "add"
+                },
+                "params": {},
+                "scale": null
+              },
+              {
+                "callable": "isaaclab.envs.mdp.observations.base_ang_vel",
+                "clip": null,
+                "name": "base_ang_vel",
+                "noise": {
+                  "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+                  "n_max": 0.2,
+                  "n_min": -0.2,
+                  "operation": "add"
+                },
+                "params": {},
+                "scale": null
+              },
+              {
+                "callable": "isaaclab.envs.mdp.observations.projected_gravity",
+                "clip": null,
+                "name": "projected_gravity",
+                "noise": {
+                  "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+                  "n_max": 0.05,
+                  "n_min": -0.05,
+                  "operation": "add"
+                },
+                "params": {},
+                "scale": null
+              },
+              {
+                "callable": "isaaclab.envs.mdp.observations.generated_commands",
+                "clip": null,
+                "name": "velocity_commands",
+                "noise": null,
+                "params": {
+                  "command_name": "base_velocity"
+                },
+                "scale": null
+              },
+              {
+                "callable": "isaaclab.envs.mdp.observations.joint_pos_rel",
+                "clip": null,
+                "name": "joint_pos",
+                "noise": {
+                  "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+                  "n_max": 0.01,
+                  "n_min": -0.01,
+                  "operation": "add"
+                },
+                "params": {},
+                "scale": null
+              },
+              {
+                "callable": "isaaclab.envs.mdp.observations.joint_vel_rel",
+                "clip": null,
+                "name": "joint_vel",
+                "noise": {
+                  "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+                  "n_max": 1.5,
+                  "n_min": -1.5,
+                  "operation": "add"
+                },
+                "params": {},
+                "scale": null
+              },
+              {
+                "callable": "isaaclab.envs.mdp.observations.last_action",
+                "clip": null,
+                "name": "actions",
+                "noise": null,
+                "params": {},
+                "scale": null
+              }
+            ]
+          },
+          "policy_observation_dimension": 48,
+          "policy_observation_term_dimensions": {
+            "actions": 12,
+            "base_ang_vel": 3,
+            "base_lin_vel": 3,
+            "joint_pos": 12,
+            "joint_vel": 12,
+            "projected_gravity": 3,
+            "velocity_commands": 3
+          },
+          "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1",
+          "schema_version": "true_rl_agent.task.push_recovery.robot_policy_abi.v2",
+          "sensor_schema_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "sensors": {}
+        },
+        "push_protocol": {
+          "episode_time_scale": 30.0,
+          "fall_height_scale": 0.45,
+          "fall_tilt_rad": 0.8,
+          "first_push_time_scale": 5.0,
+          "gravity_mps2": 9.81,
+          "high_velocity_scale": 1.0,
+          "injection_tolerance_mps": 1e-05,
+          "low_velocity_scale": 0.3,
+          "max_displacement_scale": 3.0,
+          "medium_velocity_scale": 0.6,
+          "protocol_id": "push_recovery_planar_delta_velocity_v2",
+          "protocol_state": "active",
+          "recovery_angular_velocity_scale": 0.5,
+          "recovery_height_scale": 0.7,
+          "recovery_tilt_rad": 0.2,
+          "recovery_velocity_scale": 0.08,
+          "recovery_window_time_scale": 8.0,
+          "schema_version": "true_rl_agent.task.push_recovery.protocol.v2",
+          "second_push_time_scale": 17.0,
+          "stable_dwell_time_scale": 1.5
+        },
+        "push_resolved_protocol": {
+          "episode_length_s": 6.057825328153827,
+          "evaluation_cohort_counts": {
+            "high": 16,
+            "low": 16,
+            "medium": 16,
+            "repeated": 16
+          },
+          "evaluation_direction_policy": {
+            "angular_range_rad": [
+              0.0,
+              6.283185307179586
+            ],
+            "count": 16,
+            "phase": "python_random_runner_seed_uniform_0_2pi_v1",
+            "second_event_offset_rad": 1.5707963267948966
+          },
+          "fall_height_m": 0.18000000000000002,
+          "fall_tilt_rad": 0.8,
+          "injection_tolerance_mps": 1e-05,
+          "max_displacement_m": 1.2000000000000002,
+          "mechanism": "world_planar_velocity_increment",
+          "protocol_hash": "851d417544cd27a11b865cf86e6354b03fd2276312470962f1feaef4ea2edb82",
+          "push_times_s": [
+            1.0096375546923044,
+            3.432767685953835
+          ],
+          "recovery_angular_velocity_radps": 2.4761361028828768,
+          "recovery_height_m": 0.27999999999999997,
+          "recovery_tilt_rad": 0.2,
+          "recovery_velocity_mps": 0.15847271058450413,
+          "recovery_window_s": 1.6154200875076872,
+          "reset": {
+            "joint_position_scale": [
+              1.0,
+              1.0
+            ],
+            "joint_velocity_range": [
+              0.0,
+              0.0
+            ],
+            "root_pose_range": {
+              "x": [
+                0.0,
+                0.0
+              ],
+              "y": [
+                0.0,
+                0.0
+              ],
+              "yaw": [
+                -3.141592653589793,
+                3.141592653589793
+              ]
+            },
+            "root_velocity_range": {
+              "pitch": [
+                0.0,
+                0.0
+              ],
+              "roll": [
+                0.0,
+                0.0
+              ],
+              "x": [
+                0.0,
+                0.0
+              ],
+              "y": [
+                0.0,
+                0.0
+              ],
+              "yaw": [
+                0.0,
+                0.0
+              ],
+              "z": [
+                0.0,
+                0.0
+              ]
+            }
+          },
+          "resolved_protocol_hash": "39f0d453a04e0c1a059395597b6a54aa3715dd739edd394b78f90641217f76e1",
+          "robot_scale_m": 0.4,
+          "schema_version": "true_rl_agent.task.push_recovery.resolved_protocol.v2",
+          "stable_dwell_s": 0.3028912664076914,
+          "time_scale_s": 0.2019275109384609,
+          "training_sampling": {
+            "angular_range_rad": [
+              0.0,
+              6.283185307179586
+            ],
+            "event_directions": "independent_uniform",
+            "stratum_probabilities": {
+              "high": 0.25,
+              "low": 0.25,
+              "medium": 0.25,
+              "repeated": 0.25
+            }
+          },
+          "velocity_magnitudes_mps": {
+            "high": 1.9809088823063015,
+            "low": 0.5942726646918904,
+            "medium": 1.1885453293837809
+          },
+          "velocity_scale_mps": 1.9809088823063015
+        },
+        "push_robot_scale_m": 0.4,
+        "reference_program_id": "push_standing_recovery_stationary_reference_v3",
+        "reward_contract": {
+          "integration": "reward_manager_multiplies_rate_by_control_dt_once",
+          "mode": "total_reward_program_replacement",
+          "reference_program_must_be_nonempty": true,
+          "schema_version": "true_rl_agent.task.push_recovery.reward_contract.v2"
+        }
+      }
+    },
+    "robot_task_cell_id": "unitree_push_recovery.go2_12dof_v2",
+    "runtime_adapter": {
+      "adapter_hash": "14f03caebe810885d5681d73812987b2d31706cf432c4de5597b14a9dbfcd3f0",
+      "articulation_source": "isaaclab_assets:UNITREE_GO2_CFG",
+      "backend_id": "isaac_lab_rsl_rl",
+      "provided_capabilities": [
+        "articulation_runtime",
+        "contact_sensor_runtime"
+      ],
+      "robot_profile_id": "unitree_go2_12dof_isaaclab_v1",
+      "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1",
+      "runtime_provider": "isaac_lab_2.3.0",
+      "schema_version": "true_rl_agent.robot_runtime_adapter.v1",
+      "upstream_revision": "3c6e67bb5c7ada942a6d1884ab69338f57596f77"
+    },
+    "schema_version": "true_rl_agent.resolved_cell_manifest.v1",
+    "task_id": "unitree_push_recovery",
+    "task_requirements": {
+      "capabilities": [
+        "articulation_runtime",
+        "base_state",
+        "base_velocity_write",
+        "joint_position_action",
+        "joint_state",
+        "policy_observation_projection"
+      ],
+      "roles": [
+        {
+          "maximum_count": 1,
+          "minimum_count": 1,
+          "role_id": "base",
+          "target_kind": "body"
+        }
+      ],
+      "schema_version": "true_rl_agent.robot_requirements.v1"
+    }
+  }
+}

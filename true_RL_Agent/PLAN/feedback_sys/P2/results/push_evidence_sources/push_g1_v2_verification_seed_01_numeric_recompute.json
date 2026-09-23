@@ -1,0 +1,4357 @@
+{
+  "checks": {
+    "conditions": true,
+    "dwell": true,
+    "recovery": true,
+    "termination": true
+  },
+  "episode_coverage": "complete",
+  "episodes": 64,
+  "identity": {
+    "backend_execution_environment_verification": {
+      "actual_manifest_hash": "5a5358ba6672f5d3ec6d69e01e1adbcffe13c56e7212130d6ef79b62470b7949",
+      "backend_id": "isaac_lab_rsl_rl",
+      "expected_manifest_hash": "5a5358ba6672f5d3ec6d69e01e1adbcffe13c56e7212130d6ef79b62470b7949",
+      "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+      "status": "pass"
+    },
+    "checkpoint_hash": "sha256:91c00d4e61492dcfb6511aa0ae9ef85121c5bb08dafde7eabf29c10281ad1749",
+    "evaluation_binding": {
+      "acceptance_protocol_hash": "bb6946ef12e12fce33dd77bb58257de41a728997b5e9677b7a631d7b78024de7",
+      "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+      "evaluation_binding_hash": "acde9f4b15abb449366290bdee8d87e1c0179ec07f4a05448e97f089c803d464",
+      "schema_version": "true_rl_agent.evaluation.binding.v1",
+      "seed_cohort_hash": "78fcd36dddb12ef0b3a520a87bf89c55bbf7d346c0c4c39e8666c44ac490c469",
+      "task_protocol_hash": "dc1d18e84c8d9d9452433e0004977989be809a92578dc34294d203d03cab754a"
+    },
+    "evaluation_plan_hash": "47fa096a09020462ae2b818cc2516369428c725333109db840efd552f8354a7f",
+    "job_id": "push-numeric-replay-eval-public-dev",
+    "mechanism": "world_planar_velocity_increment",
+    "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+    "resolved_cell_manifest_hash": "6643d83e0fdffbd6bc3b323b53cd6ebb54a5ba0da295843b94a43570b8346f89",
+    "resolved_protocol_hash": "db74aed6c8ecba7e0834e15117e0b65eead237478a5ea10822101691ae9172ce",
+    "run_index": 1,
+    "runtime_dynamics_hash": "sha256:870260f16cabdb7f879d0bd9209b0174f905add0b74094e7441123bcc67c6673",
+    "split": "public_dev",
+    "subject_id": "push_standing_recovery_stationary_reference_v3",
+    "subject_kind": "reference",
+    "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+    "task_id": "unitree_push_recovery",
+    "task_numeric_schema": "true_rl_agent.push_recovery.numeric.v1",
+    "training_binding_hash": "292d09c995cfa8f4b021572b81ceaa48d3a207995ba84ac2c92ecff8806a72aa"
+  },
+  "matches_runtime": true,
+  "per_episode": [
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 0,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 5,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 14,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 104,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 96
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.006835489999502897,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.03075745515525341,
+        "max_abs_roll_rad": 0.08822186291217804,
+        "max_pitch_rad": 0.03075745515525341,
+        "max_xy_drift_m": 0.23259024322032928,
+        "min_base_height_m": 0.6952095031738281,
+        "min_pitch_rad": -0.02882382459938526,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "low",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 1,
+      "episode_index": 1,
+      "final_unstable_after_recovery": true,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 4,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 30,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 105,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 80
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 0.35036325454711914,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.03967060521245003,
+        "max_abs_roll_rad": 0.0973973348736763,
+        "max_pitch_rad": 0.03967060521245003,
+        "max_xy_drift_m": 0.2215518057346344,
+        "min_base_height_m": 0.6940255761146545,
+        "min_pitch_rad": -0.028821703046560287,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": false
+      },
+      "stratum": "low",
+      "terminal_label": "not_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 2,
+      "episode_index": 1,
+      "final_unstable_after_recovery": true,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 6,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 50,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 105,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 60
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 0.4564460217952728,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.19623734056949615,
+        "max_abs_roll_rad": 0.2515869140625,
+        "max_pitch_rad": 0.19623734056949615,
+        "max_xy_drift_m": 1.1084957122802734,
+        "min_base_height_m": 0.6710109114646912,
+        "min_pitch_rad": -0.028822561725974083,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": false
+      },
+      "stratum": "low",
+      "terminal_label": "not_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 3,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.46,
+              "after_anchor_steps": 23,
+              "control_step": 92,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 2,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 27,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 114,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 83
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.007150225341320038,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.03877808153629303,
+        "max_abs_roll_rad": 0.07897277921438217,
+        "max_pitch_rad": 0.02854030206799507,
+        "max_xy_drift_m": 0.4573234021663666,
+        "min_base_height_m": 0.702563464641571,
+        "min_pitch_rad": -0.03877808153629303,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "low",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 4,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 2,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 49,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 97,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 60
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.20241843163967133,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.08210759609937668,
+        "max_abs_roll_rad": 0.10909577459096909,
+        "max_pitch_rad": 0.08210759609937668,
+        "max_xy_drift_m": 0.3756890594959259,
+        "min_base_height_m": 0.6907317638397217,
+        "min_pitch_rad": -0.03994112089276314,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "low",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 5,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.3,
+              "after_anchor_steps": 15,
+              "control_step": 84,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 6,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 14,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 105,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 96
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.02832922339439392,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.028823550790548325,
+        "max_abs_roll_rad": 0.0911196917295456,
+        "max_pitch_rad": 0.025787590071558952,
+        "max_xy_drift_m": 0.18649545311927795,
+        "min_base_height_m": 0.7045953869819641,
+        "min_pitch_rad": -0.028823550790548325,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "low",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 6,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 1,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 11,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 101,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 99
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.06348524242639542,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.1152447834610939,
+        "max_abs_roll_rad": 0.1418999433517456,
+        "max_pitch_rad": 0.1152447834610939,
+        "max_xy_drift_m": 0.9175398349761963,
+        "min_base_height_m": 0.6735172271728516,
+        "min_pitch_rad": -0.04123518243432045,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "low",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 7,
+      "episode_index": 1,
+      "final_unstable_after_recovery": true,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.26,
+              "after_anchor_steps": 13,
+              "control_step": 82,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 6
+            },
+            {
+              "after_anchor_s": 0.3,
+              "after_anchor_steps": 15,
+              "control_step": 84,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 5,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 54,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 105,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 56
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": "fall_forward",
+        "control_success": false,
+        "episode_steps": 267,
+        "failure_label": "fall_forward",
+        "final_planar_speed_mps": 0.6098554730415344,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.8002274036407471,
+        "max_abs_roll_rad": 0.40247175097465515,
+        "max_pitch_rad": 0.8002274036407471,
+        "max_xy_drift_m": 0.802181601524353,
+        "min_base_height_m": 0.5353646874427795,
+        "min_pitch_rad": -0.035485126078128815,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": false
+      },
+      "stratum": "low",
+      "terminal_label": "fall_forward",
+      "valid_steps": 267
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 8,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.78,
+              "after_anchor_steps": 39,
+              "control_step": 108,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 20
+            },
+            {
+              "after_anchor_s": 0.8200000000000001,
+              "after_anchor_steps": 41,
+              "control_step": 110,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            },
+            {
+              "after_anchor_s": 1.18,
+              "after_anchor_steps": 59,
+              "control_step": 128,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 17
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 7,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 38,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 166,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 72
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.16892026364803314,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.11853314936161041,
+        "max_abs_roll_rad": 0.16739462316036224,
+        "max_pitch_rad": 0.11853314936161041,
+        "max_xy_drift_m": 0.914989709854126,
+        "min_base_height_m": 0.6731955409049988,
+        "min_pitch_rad": -0.028822265565395355,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "low",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 9,
+      "episode_index": 1,
+      "final_unstable_after_recovery": true,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.18,
+              "after_anchor_steps": 9,
+              "control_step": 78,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            },
+            {
+              "after_anchor_s": 0.22,
+              "after_anchor_steps": 11,
+              "control_step": 80,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            },
+            {
+              "after_anchor_s": 0.26,
+              "after_anchor_steps": 13,
+              "control_step": 82,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 2,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 42,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 105,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 68
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 1.0453765392303467,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.10405965149402618,
+        "max_abs_roll_rad": 0.14946532249450684,
+        "max_pitch_rad": 0.10405965149402618,
+        "max_xy_drift_m": 1.2121930122375488,
+        "min_base_height_m": 0.6725727915763855,
+        "min_pitch_rad": -0.03286311402916908,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": false
+      },
+      "stratum": "low",
+      "terminal_label": "not_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 10,
+      "episode_index": 1,
+      "final_unstable_after_recovery": true,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 3,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 16,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 106,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 94
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 0.2604925334453583,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.11741813272237778,
+        "max_abs_roll_rad": 0.2017979919910431,
+        "max_pitch_rad": 0.11741813272237778,
+        "max_xy_drift_m": 0.8908646106719971,
+        "min_base_height_m": 0.6754252314567566,
+        "min_pitch_rad": -0.03914278745651245,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": false
+      },
+      "stratum": "low",
+      "terminal_label": "not_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 11,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.54,
+              "after_anchor_steps": 27,
+              "control_step": 96,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 14
+            },
+            {
+              "after_anchor_s": 0.88,
+              "after_anchor_steps": 44,
+              "control_step": 113,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            },
+            {
+              "after_anchor_s": 1.24,
+              "after_anchor_steps": 62,
+              "control_step": 131,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 2
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 9,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 45,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 152,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 65
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.03536747768521309,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.07332075387239456,
+        "max_abs_roll_rad": 0.0928727313876152,
+        "max_pitch_rad": 0.07332075387239456,
+        "max_xy_drift_m": 0.42027750611305237,
+        "min_base_height_m": 0.6876384615898132,
+        "min_pitch_rad": -0.028822503983974457,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "low",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 12,
+      "episode_index": 1,
+      "final_unstable_after_recovery": true,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.44,
+              "after_anchor_steps": 22,
+              "control_step": 91,
+              "failed_conditions": [
+                "angular_speed"
+              ],
+              "preceding_dwell_steps": 14
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 1,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 7,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 112,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 102
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 0.8566069006919861,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.1235404834151268,
+        "max_abs_roll_rad": 0.16339176893234253,
+        "max_pitch_rad": 0.1235404834151268,
+        "max_xy_drift_m": 0.6215685606002808,
+        "min_base_height_m": 0.6702962517738342,
+        "min_pitch_rad": -0.028822222724556923,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": false
+      },
+      "stratum": "low",
+      "terminal_label": "not_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 13,
+      "episode_index": 1,
+      "final_unstable_after_recovery": true,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 2,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 13,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 103,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 97
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 0.21999116241931915,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.12009546160697937,
+        "max_abs_roll_rad": 0.13802611827850342,
+        "max_pitch_rad": 0.12009546160697937,
+        "max_xy_drift_m": 1.1648832559585571,
+        "min_base_height_m": 0.672190248966217,
+        "min_pitch_rad": -0.051746856421232224,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": false
+      },
+      "stratum": "low",
+      "terminal_label": "not_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 14,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "full_window_without_dwell",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.62,
+              "after_anchor_steps": 31,
+              "control_step": 100,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 17
+            },
+            {
+              "after_anchor_s": 0.84,
+              "after_anchor_steps": 42,
+              "control_step": 111,
+              "failed_conditions": [
+                "planar_speed",
+                "angular_speed"
+              ],
+              "preceding_dwell_steps": 1
+            },
+            {
+              "after_anchor_s": 0.88,
+              "after_anchor_steps": 44,
+              "control_step": 113,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 26,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 87,
+            "roll": 4
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 17,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": true,
+          "recovery_control_step": null,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 23
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 0.26850640773773193,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.16831713914871216,
+        "max_abs_roll_rad": 0.24174007773399353,
+        "max_pitch_rad": 0.16831713914871216,
+        "max_xy_drift_m": 1.41987144947052,
+        "min_base_height_m": 0.6668645143508911,
+        "min_pitch_rad": -0.06651070713996887,
+        "push_event_count": 1,
+        "recovered_event_count": 0,
+        "success": false
+      },
+      "stratum": "low",
+      "terminal_label": "not_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 15,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "full_window_without_dwell",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.44,
+              "after_anchor_steps": 22,
+              "control_step": 91,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            },
+            {
+              "after_anchor_s": 0.8,
+              "after_anchor_steps": 40,
+              "control_step": 109,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 16
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 10,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 80,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 16,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": true,
+          "recovery_control_step": null,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 30
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 0.49615249037742615,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.09747423231601715,
+        "max_abs_roll_rad": 0.09297513961791992,
+        "max_pitch_rad": 0.09747423231601715,
+        "max_xy_drift_m": 0.8704266548156738,
+        "min_base_height_m": 0.684904158115387,
+        "min_pitch_rad": -0.05943704769015312,
+        "push_event_count": 1,
+        "recovered_event_count": 0,
+        "success": false
+      },
+      "stratum": "low",
+      "terminal_label": "not_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 16,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "terminal_before_window_end",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 34,
+            "height": 3,
+            "pitch": 7,
+            "planar_speed": 47,
+            "roll": 19
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 0,
+          "observed_window_duration_s": 0.9400000000000001,
+          "observed_window_steps": 47,
+          "recovery_censored": true,
+          "recovery_control_step": null,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 0
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": "fall_forward",
+        "control_success": false,
+        "episode_steps": 116,
+        "failure_label": "fall_forward",
+        "final_planar_speed_mps": 0.47684842348098755,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.8619977235794067,
+        "max_abs_roll_rad": 0.643333375453949,
+        "max_pitch_rad": 0.8619977235794067,
+        "max_xy_drift_m": 0.9015279412269592,
+        "min_base_height_m": 0.41929441690444946,
+        "min_pitch_rad": -0.08312246948480606,
+        "push_event_count": 1,
+        "recovered_event_count": 0,
+        "success": false
+      },
+      "stratum": "medium",
+      "terminal_label": "fall_forward",
+      "valid_steps": 116
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 17,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 10,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 38,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 117,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 72
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.02747402898967266,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.062342386692762375,
+        "max_abs_roll_rad": 0.11148098856210709,
+        "max_pitch_rad": 0.062342386692762375,
+        "max_xy_drift_m": 0.5123818516731262,
+        "min_base_height_m": 0.6876092553138733,
+        "min_pitch_rad": -0.051396459341049194,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "medium",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 18,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "full_window_without_dwell",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.9400000000000001,
+              "after_anchor_steps": 47,
+              "control_step": 116,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 16
+            },
+            {
+              "after_anchor_s": 1.16,
+              "after_anchor_steps": 58,
+              "control_step": 127,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 3
+            },
+            {
+              "after_anchor_s": 1.24,
+              "after_anchor_steps": 62,
+              "control_step": 131,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 3
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 17,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 76,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 16,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": true,
+          "recovery_control_step": null,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 34
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 0.040214162319898605,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.08569812774658203,
+        "max_abs_roll_rad": 0.11314786970615387,
+        "max_pitch_rad": 0.08569812774658203,
+        "max_xy_drift_m": 1.6076812744140625,
+        "min_base_height_m": 0.6801414489746094,
+        "min_pitch_rad": -0.06644032895565033,
+        "push_event_count": 1,
+        "recovered_event_count": 0,
+        "success": false
+      },
+      "stratum": "medium",
+      "terminal_label": "not_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 19,
+      "episode_index": 1,
+      "final_unstable_after_recovery": true,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 7,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 25,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 115,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 85
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 0.29038551449775696,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.07760398089885712,
+        "max_abs_roll_rad": 0.09539996087551117,
+        "max_pitch_rad": 0.07760398089885712,
+        "max_xy_drift_m": 0.746429443359375,
+        "min_base_height_m": 0.6824355125427246,
+        "min_pitch_rad": -0.028822429478168488,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": false
+      },
+      "stratum": "medium",
+      "terminal_label": "not_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 20,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 10,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 29,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 119,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 81
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.07282757759094238,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.0461888313293457,
+        "max_abs_roll_rad": 0.0798845887184143,
+        "max_pitch_rad": 0.0461888313293457,
+        "max_xy_drift_m": 0.464404433965683,
+        "min_base_height_m": 0.6931072473526001,
+        "min_pitch_rad": -0.028822660446166992,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "medium",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 21,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.56,
+              "after_anchor_steps": 28,
+              "control_step": 97,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 2
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 11,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 58,
+            "roll": 9
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 118,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 52
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.006059619132429361,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.23975208401679993,
+        "max_abs_roll_rad": 0.26027512550354004,
+        "max_pitch_rad": 0.23975208401679993,
+        "max_xy_drift_m": 0.891281247138977,
+        "min_base_height_m": 0.6705068945884705,
+        "min_pitch_rad": -0.033692747354507446,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "medium",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 22,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 7,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 25,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 114,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 85
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.06668105721473694,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.09988732635974884,
+        "max_abs_roll_rad": 0.1161317378282547,
+        "max_pitch_rad": 0.09988732635974884,
+        "max_xy_drift_m": 1.0498034954071045,
+        "min_base_height_m": 0.6814870834350586,
+        "min_pitch_rad": -0.028822263702750206,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "medium",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 23,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "full_window_without_dwell",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.96,
+              "after_anchor_steps": 48,
+              "control_step": 117,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 18
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 17,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 83,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 18,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": true,
+          "recovery_control_step": null,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 27
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 0.07283396273851395,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.1032039150595665,
+        "max_abs_roll_rad": 0.1687317192554474,
+        "max_pitch_rad": 0.1032039150595665,
+        "max_xy_drift_m": 1.5268974304199219,
+        "min_base_height_m": 0.6507814526557922,
+        "min_pitch_rad": -0.06170913577079773,
+        "push_event_count": 1,
+        "recovered_event_count": 0,
+        "success": false
+      },
+      "stratum": "medium",
+      "terminal_label": "not_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 24,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "full_window_without_dwell",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.76,
+              "after_anchor_steps": 38,
+              "control_step": 107,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            },
+            {
+              "after_anchor_s": 0.8,
+              "after_anchor_steps": 40,
+              "control_step": 109,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            },
+            {
+              "after_anchor_s": 0.84,
+              "after_anchor_steps": 42,
+              "control_step": 111,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            },
+            {
+              "after_anchor_s": 1.82,
+              "after_anchor_steps": 91,
+              "control_step": 160,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 23,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 94,
+            "roll": 3
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 12,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": true,
+          "recovery_control_step": null,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 16
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 0.23275141417980194,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.12413983792066574,
+        "max_abs_roll_rad": 0.2183597981929779,
+        "max_pitch_rad": 0.12413983792066574,
+        "max_xy_drift_m": 0.514035701751709,
+        "min_base_height_m": 0.6698690056800842,
+        "min_pitch_rad": -0.03323427215218544,
+        "push_event_count": 1,
+        "recovered_event_count": 0,
+        "success": false
+      },
+      "stratum": "medium",
+      "terminal_label": "not_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 25,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "full_window_without_dwell",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 11,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 101,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 9,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": true,
+          "recovery_control_step": null,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 9
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 0.07002216577529907,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.10308293998241425,
+        "max_abs_roll_rad": 0.1931978315114975,
+        "max_pitch_rad": 0.10308293998241425,
+        "max_xy_drift_m": 1.114444375038147,
+        "min_base_height_m": 0.675674319267273,
+        "min_pitch_rad": -0.039299849420785904,
+        "push_event_count": 1,
+        "recovered_event_count": 0,
+        "success": false
+      },
+      "stratum": "medium",
+      "terminal_label": "not_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 26,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.54,
+              "after_anchor_steps": 27,
+              "control_step": 96,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 9,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 28,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 118,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 82
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.1853395700454712,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.040346257388591766,
+        "max_abs_roll_rad": 0.08448111265897751,
+        "max_pitch_rad": 0.040346257388591766,
+        "max_xy_drift_m": 0.4792904853820801,
+        "min_base_height_m": 0.6886624097824097,
+        "min_pitch_rad": -0.028822965919971466,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "medium",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 27,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 20,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 50,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 130,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 60
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.16509322822093964,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.07786382734775543,
+        "max_abs_roll_rad": 0.09104117006063461,
+        "max_pitch_rad": 0.07786382734775543,
+        "max_xy_drift_m": 1.0528199672698975,
+        "min_base_height_m": 0.658607006072998,
+        "min_pitch_rad": -0.04644346982240677,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "medium",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 28,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "terminal_before_window_end",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 27,
+            "height": 2,
+            "pitch": 7,
+            "planar_speed": 41,
+            "roll": 16
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 0,
+          "observed_window_duration_s": 0.8200000000000001,
+          "observed_window_steps": 41,
+          "recovery_censored": true,
+          "recovery_control_step": null,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 0
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": "fall_forward",
+        "control_success": false,
+        "episode_steps": 110,
+        "failure_label": "fall_forward",
+        "final_planar_speed_mps": 0.3342866897583008,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.8911811709403992,
+        "max_abs_roll_rad": 0.6247121691703796,
+        "max_pitch_rad": 0.8911811709403992,
+        "max_xy_drift_m": 0.8535867929458618,
+        "min_base_height_m": 0.4707370698451996,
+        "min_pitch_rad": -0.08123362064361572,
+        "push_event_count": 1,
+        "recovered_event_count": 0,
+        "success": false
+      },
+      "stratum": "medium",
+      "terminal_label": "fall_forward",
+      "valid_steps": 110
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 29,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 15,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 37,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 123,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 73
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.16843760013580322,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.1231725662946701,
+        "max_abs_roll_rad": 0.13892579078674316,
+        "max_pitch_rad": 0.1231725662946701,
+        "max_xy_drift_m": 1.5381309986114502,
+        "min_base_height_m": 0.669504702091217,
+        "min_pitch_rad": -0.03474918752908707,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "medium",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 30,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "terminal_before_window_end",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 35,
+            "height": 4,
+            "pitch": 8,
+            "planar_speed": 47,
+            "roll": 20
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 0,
+          "observed_window_duration_s": 0.9400000000000001,
+          "observed_window_steps": 47,
+          "recovery_censored": true,
+          "recovery_control_step": null,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 0
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": "fall_forward",
+        "control_success": false,
+        "episode_steps": 116,
+        "failure_label": "fall_forward",
+        "final_planar_speed_mps": 0.925349235534668,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.8649977445602417,
+        "max_abs_roll_rad": 0.6466985940933228,
+        "max_pitch_rad": 0.8649977445602417,
+        "max_xy_drift_m": 0.9557101726531982,
+        "min_base_height_m": 0.35489919781684875,
+        "min_pitch_rad": -0.06397441774606705,
+        "push_event_count": 1,
+        "recovered_event_count": 0,
+        "success": false
+      },
+      "stratum": "medium",
+      "terminal_label": "fall_forward",
+      "valid_steps": 116
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 31,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 3,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 29,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 109,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 81
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.032591450959444046,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.11499865353107452,
+        "max_abs_roll_rad": 0.139251708984375,
+        "max_pitch_rad": 0.11499865353107452,
+        "max_xy_drift_m": 0.7845156192779541,
+        "min_base_height_m": 0.6730833649635315,
+        "min_pitch_rad": -0.03598422557115555,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "medium",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 32,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.84,
+              "after_anchor_steps": 42,
+              "control_step": 111,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 8
+            },
+            {
+              "after_anchor_s": 0.9,
+              "after_anchor_steps": 45,
+              "control_step": 114,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            },
+            {
+              "after_anchor_s": 0.9400000000000001,
+              "after_anchor_steps": 47,
+              "control_step": 116,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            },
+            {
+              "after_anchor_s": 0.98,
+              "after_anchor_steps": 49,
+              "control_step": 118,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            },
+            {
+              "after_anchor_s": 1.08,
+              "after_anchor_steps": 54,
+              "control_step": 123,
+              "failed_conditions": [
+                "planar_speed",
+                "angular_speed"
+              ],
+              "preceding_dwell_steps": 1
+            },
+            {
+              "after_anchor_s": 1.12,
+              "after_anchor_steps": 56,
+              "control_step": 125,
+              "failed_conditions": [
+                "planar_speed",
+                "angular_speed"
+              ],
+              "preceding_dwell_steps": 1
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 13,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 53,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 146,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 57
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.15461942553520203,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.10087038576602936,
+        "max_abs_roll_rad": 0.14204055070877075,
+        "max_pitch_rad": 0.10087038576602936,
+        "max_xy_drift_m": 0.9075098037719727,
+        "min_base_height_m": 0.6704494953155518,
+        "min_pitch_rad": -0.0747172087430954,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "high",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 33,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "terminal_before_window_end",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.86,
+              "after_anchor_steps": 43,
+              "control_step": 112,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 12
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 26,
+            "height": 1,
+            "pitch": 11,
+            "planar_speed": 75,
+            "roll": 15
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 12,
+          "observed_window_duration_s": 1.74,
+          "observed_window_steps": 87,
+          "recovery_censored": true,
+          "recovery_control_step": null,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 12
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": "fall_forward",
+        "control_success": false,
+        "episode_steps": 156,
+        "failure_label": "fall_forward",
+        "final_planar_speed_mps": 0.8549050688743591,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.9015404582023621,
+        "max_abs_roll_rad": 0.478464275598526,
+        "max_pitch_rad": 0.9015404582023621,
+        "max_xy_drift_m": 0.593330442905426,
+        "min_base_height_m": 0.5100894570350647,
+        "min_pitch_rad": -0.09752793610095978,
+        "push_event_count": 1,
+        "recovered_event_count": 0,
+        "success": false
+      },
+      "stratum": "high",
+      "terminal_label": "fall_forward",
+      "valid_steps": 156
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 34,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 9,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 47,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 131,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 63
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.0030733030289411545,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.08513671159744263,
+        "max_abs_roll_rad": 0.0793665200471878,
+        "max_pitch_rad": 0.08513671159744263,
+        "max_xy_drift_m": 0.9334775805473328,
+        "min_base_height_m": 0.6626262664794922,
+        "min_pitch_rad": -0.02882278896868229,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "high",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 35,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 39,
+            "height": 0,
+            "pitch": 6,
+            "planar_speed": 52,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 138,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 56
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.010438943281769753,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.21592706441879272,
+        "max_abs_roll_rad": 0.11941410601139069,
+        "max_pitch_rad": 0.16823510825634003,
+        "max_xy_drift_m": 1.3555474281311035,
+        "min_base_height_m": 0.6238629221916199,
+        "min_pitch_rad": -0.21592706441879272,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "high",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 36,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.78,
+              "after_anchor_steps": 39,
+              "control_step": 108,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 10,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 43,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 134,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 67
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.006760985124856234,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.05680214613676071,
+        "max_abs_roll_rad": 0.07625867426395416,
+        "max_pitch_rad": 0.05680214613676071,
+        "max_xy_drift_m": 0.87992924451828,
+        "min_base_height_m": 0.6862389445304871,
+        "min_pitch_rad": -0.028823042288422585,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "high",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 37,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 1.08,
+              "after_anchor_steps": 54,
+              "control_step": 123,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 29,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 54,
+            "roll": 3
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 144,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 56
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.05928737297654152,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.6725958585739136,
+        "max_abs_roll_rad": 0.3130306303501129,
+        "max_pitch_rad": 0.6725958585739136,
+        "max_xy_drift_m": 1.0869789123535156,
+        "min_base_height_m": 0.5299049019813538,
+        "min_pitch_rad": -0.07692593336105347,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "high",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 38,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 32,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 50,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 140,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 60
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.10446818917989731,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.1455487161874771,
+        "max_abs_roll_rad": 0.09358833730220795,
+        "max_pitch_rad": 0.1455487161874771,
+        "max_xy_drift_m": 1.448317289352417,
+        "min_base_height_m": 0.6250628232955933,
+        "min_pitch_rad": -0.13661549985408783,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "high",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 39,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "terminal_before_window_end",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 20,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 27,
+            "roll": 10
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 0,
+          "observed_window_duration_s": 0.54,
+          "observed_window_steps": 27,
+          "recovery_censored": true,
+          "recovery_control_step": null,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 0
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": "fall_side",
+        "control_success": false,
+        "episode_steps": 96,
+        "failure_label": "fall_side",
+        "final_planar_speed_mps": 1.425029993057251,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.16926375031471252,
+        "max_abs_roll_rad": 0.8049041628837585,
+        "max_pitch_rad": 0.16926375031471252,
+        "max_xy_drift_m": 0.918314516544342,
+        "min_base_height_m": 0.6081840991973877,
+        "min_pitch_rad": -0.028824174776673317,
+        "push_event_count": 1,
+        "recovered_event_count": 0,
+        "success": false
+      },
+      "stratum": "high",
+      "terminal_label": "fall_side",
+      "valid_steps": 96
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 40,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 13,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 41,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 125,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 69
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.1318836361169815,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.11524184048175812,
+        "max_abs_roll_rad": 0.13257108628749847,
+        "max_pitch_rad": 0.11524184048175812,
+        "max_xy_drift_m": 0.7767390012741089,
+        "min_base_height_m": 0.6737636923789978,
+        "min_pitch_rad": -0.030688490718603134,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "high",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 41,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 15,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 38,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 128,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 72
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.06185203418135643,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.18527400493621826,
+        "max_abs_roll_rad": 0.09204898029565811,
+        "max_pitch_rad": 0.05142443627119064,
+        "max_xy_drift_m": 1.4509943723678589,
+        "min_base_height_m": 0.6332058906555176,
+        "min_pitch_rad": -0.18527400493621826,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "high",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 42,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 12,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 39,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 125,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 71
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.06308393180370331,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.10942898690700531,
+        "max_abs_roll_rad": 0.1595187485218048,
+        "max_pitch_rad": 0.10942898690700531,
+        "max_xy_drift_m": 0.8914472460746765,
+        "min_base_height_m": 0.6452714800834656,
+        "min_pitch_rad": -0.028822986409068108,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "high",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 43,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "terminal_before_window_end",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 26,
+            "height": 5,
+            "pitch": 13,
+            "planar_speed": 31,
+            "roll": 17
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 0,
+          "observed_window_duration_s": 0.62,
+          "observed_window_steps": 31,
+          "recovery_censored": true,
+          "recovery_control_step": null,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 0
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": "fall_forward",
+        "control_success": false,
+        "episode_steps": 100,
+        "failure_label": "fall_forward",
+        "final_planar_speed_mps": 1.4019476175308228,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.8046367168426514,
+        "max_abs_roll_rad": 0.4595898389816284,
+        "max_pitch_rad": 0.8046367168426514,
+        "max_xy_drift_m": 1.1236177682876587,
+        "min_base_height_m": 0.3053895831108093,
+        "min_pitch_rad": -0.0288231261074543,
+        "push_event_count": 1,
+        "recovered_event_count": 0,
+        "success": false
+      },
+      "stratum": "high",
+      "terminal_label": "fall_forward",
+      "valid_steps": 100
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 44,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "full_window_without_dwell",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 1.04,
+              "after_anchor_steps": 52,
+              "control_step": 121,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 17
+            },
+            {
+              "after_anchor_s": 1.08,
+              "after_anchor_steps": 54,
+              "control_step": 123,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            },
+            {
+              "after_anchor_s": 1.3800000000000001,
+              "after_anchor_steps": 69,
+              "control_step": 138,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 10
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 15,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 79,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 17,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": true,
+          "recovery_control_step": null,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 31
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 0.14376351237297058,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.10288847237825394,
+        "max_abs_roll_rad": 0.14214783906936646,
+        "max_pitch_rad": 0.09032444655895233,
+        "max_xy_drift_m": 1.2619112730026245,
+        "min_base_height_m": 0.661443829536438,
+        "min_pitch_rad": -0.10288847237825394,
+        "push_event_count": 1,
+        "recovered_event_count": 0,
+        "success": false
+      },
+      "stratum": "high",
+      "terminal_label": "not_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 45,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 6,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 59,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 133,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 51
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.12066986411809921,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.07460618764162064,
+        "max_abs_roll_rad": 0.08699057251214981,
+        "max_pitch_rad": 0.07460618764162064,
+        "max_xy_drift_m": 0.6758943796157837,
+        "min_base_height_m": 0.6903184652328491,
+        "min_pitch_rad": -0.0422845296561718,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "high",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 46,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 14,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 39,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 123,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 71
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.09156154096126556,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.07421669363975525,
+        "max_abs_roll_rad": 0.09283515810966492,
+        "max_pitch_rad": 0.07421669363975525,
+        "max_xy_drift_m": 0.7916028499603271,
+        "min_base_height_m": 0.6708016395568848,
+        "min_pitch_rad": -0.03377879038453102,
+        "push_event_count": 1,
+        "recovered_event_count": 1,
+        "success": true
+      },
+      "stratum": "high",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 47,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 1,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "terminal_before_window_end",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 34,
+            "height": 7,
+            "pitch": 14,
+            "planar_speed": 39,
+            "roll": 3
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 0,
+          "observed_window_duration_s": 0.78,
+          "observed_window_steps": 39,
+          "recovery_censored": true,
+          "recovery_control_step": null,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 0
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": "height_collapse",
+        "control_success": false,
+        "episode_steps": 108,
+        "failure_label": "height_collapse",
+        "final_planar_speed_mps": 1.3125954866409302,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.6254366040229797,
+        "max_abs_roll_rad": 0.23658430576324463,
+        "max_pitch_rad": 0.028233788907527924,
+        "max_xy_drift_m": 1.412178874015808,
+        "min_base_height_m": 0.2942783832550049,
+        "min_pitch_rad": -0.6254366040229797,
+        "push_event_count": 1,
+        "recovered_event_count": 0,
+        "success": false
+      },
+      "stratum": "high",
+      "terminal_label": "height_collapse",
+      "valid_steps": 108
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 48,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 2,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 9,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 28,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 118,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 82
+        },
+        {
+          "anchor_control_step": 234,
+          "anchor_verified": true,
+          "coverage": "full_window_without_dwell",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 28,
+            "height": 0,
+            "pitch": 2,
+            "planar_speed": 110,
+            "roll": 8
+          },
+          "identity": "event_1",
+          "max_dwell_steps": 0,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": true,
+          "recovery_control_step": null,
+          "scheduled_anchor_control_step": 234,
+          "stable_window_steps": 0
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 0.006196761503815651,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.2163710594177246,
+        "max_abs_roll_rad": 0.26440179347991943,
+        "max_pitch_rad": 0.2163710594177246,
+        "max_xy_drift_m": 0.8768646121025085,
+        "min_base_height_m": 0.6694694757461548,
+        "min_pitch_rad": -0.048955731093883514,
+        "push_event_count": 2,
+        "recovered_event_count": 1,
+        "success": false
+      },
+      "stratum": "repeated",
+      "terminal_label": "not_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 49,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 2,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "full_window_without_dwell",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 1.1,
+              "after_anchor_steps": 55,
+              "control_step": 124,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 17
+            },
+            {
+              "after_anchor_s": 1.48,
+              "after_anchor_steps": 74,
+              "control_step": 143,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 12
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 20,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 70,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 17,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": true,
+          "recovery_control_step": null,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 40
+        },
+        {
+          "anchor_control_step": 234,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.5,
+              "after_anchor_steps": 25,
+              "control_step": 259,
+              "failed_conditions": [
+                "angular_speed"
+              ],
+              "preceding_dwell_steps": 8
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 3,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 18,
+            "roll": 0
+          },
+          "identity": "event_1",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 282,
+          "scheduled_anchor_control_step": 234,
+          "stable_window_steps": 91
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 0.033850155770778656,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.07102515548467636,
+        "max_abs_roll_rad": 0.13059864938259125,
+        "max_pitch_rad": 0.07102515548467636,
+        "max_xy_drift_m": 0.8450524806976318,
+        "min_base_height_m": 0.6776593923568726,
+        "min_pitch_rad": -0.028822537511587143,
+        "push_event_count": 2,
+        "recovered_event_count": 1,
+        "success": false
+      },
+      "stratum": "repeated",
+      "terminal_label": "not_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 50,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 2,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 4,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 20,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 110,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 90
+        },
+        {
+          "anchor_control_step": 234,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.62,
+              "after_anchor_steps": 31,
+              "control_step": 265,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 8
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 8,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 23,
+            "roll": 0
+          },
+          "identity": "event_1",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 286,
+          "scheduled_anchor_control_step": 234,
+          "stable_window_steps": 87
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.029545072466135025,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.04292508587241173,
+        "max_abs_roll_rad": 0.09248600900173187,
+        "max_pitch_rad": 0.04292508587241173,
+        "max_xy_drift_m": 0.36932361125946045,
+        "min_base_height_m": 0.6850408315658569,
+        "min_pitch_rad": -0.0390692800283432,
+        "push_event_count": 2,
+        "recovered_event_count": 2,
+        "success": true
+      },
+      "stratum": "repeated",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 51,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 2,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 7,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 40,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 117,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 70
+        },
+        {
+          "anchor_control_step": 234,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 9,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 32,
+            "roll": 0
+          },
+          "identity": "event_1",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 287,
+          "scheduled_anchor_control_step": 234,
+          "stable_window_steps": 78
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.047174397855997086,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.09868432581424713,
+        "max_abs_roll_rad": 0.11961185932159424,
+        "max_pitch_rad": 0.09868432581424713,
+        "max_xy_drift_m": 0.6172981858253479,
+        "min_base_height_m": 0.6716979742050171,
+        "min_pitch_rad": -0.03443313390016556,
+        "push_event_count": 2,
+        "recovered_event_count": 2,
+        "success": true
+      },
+      "stratum": "repeated",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 52,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 2,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 14,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 38,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 128,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 72
+        },
+        {
+          "anchor_control_step": 234,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.24,
+              "after_anchor_steps": 12,
+              "control_step": 246,
+              "failed_conditions": [
+                "roll"
+              ],
+              "preceding_dwell_steps": 2
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 3,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 36,
+            "roll": 9
+          },
+          "identity": "event_1",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 279,
+          "scheduled_anchor_control_step": 234,
+          "stable_window_steps": 72
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.040848180651664734,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.11605684459209442,
+        "max_abs_roll_rad": 0.2538696825504303,
+        "max_pitch_rad": 0.11605684459209442,
+        "max_xy_drift_m": 0.8041669726371765,
+        "min_base_height_m": 0.6951619982719421,
+        "min_pitch_rad": -0.028823217377066612,
+        "push_event_count": 2,
+        "recovered_event_count": 2,
+        "success": true
+      },
+      "stratum": "repeated",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 53,
+      "episode_index": 1,
+      "final_unstable_after_recovery": true,
+      "planned_push_count": 2,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.52,
+              "after_anchor_steps": 26,
+              "control_step": 95,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            },
+            {
+              "after_anchor_s": 0.7000000000000001,
+              "after_anchor_steps": 35,
+              "control_step": 104,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 3
+            },
+            {
+              "after_anchor_s": 1.08,
+              "after_anchor_steps": 54,
+              "control_step": 123,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 18
+            },
+            {
+              "after_anchor_s": 1.54,
+              "after_anchor_steps": 77,
+              "control_step": 146,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 7,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 59,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 172,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 51
+        },
+        {
+          "anchor_control_step": 234,
+          "anchor_verified": true,
+          "coverage": "terminal_before_window_end",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 27,
+            "height": 3,
+            "pitch": 8,
+            "planar_speed": 33,
+            "roll": 17
+          },
+          "identity": "event_1",
+          "max_dwell_steps": 0,
+          "observed_window_duration_s": 0.66,
+          "observed_window_steps": 33,
+          "recovery_censored": true,
+          "recovery_control_step": null,
+          "scheduled_anchor_control_step": 234,
+          "stable_window_steps": 0
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": "fall_forward",
+        "control_success": false,
+        "episode_steps": 267,
+        "failure_label": "fall_forward",
+        "final_planar_speed_mps": 0.47685301303863525,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.8518480658531189,
+        "max_abs_roll_rad": 0.6389230489730835,
+        "max_pitch_rad": 0.8518480658531189,
+        "max_xy_drift_m": 0.7653549909591675,
+        "min_base_height_m": 0.3869614005088806,
+        "min_pitch_rad": -0.030829239636659622,
+        "push_event_count": 2,
+        "recovered_event_count": 1,
+        "success": false
+      },
+      "stratum": "repeated",
+      "terminal_label": "fall_forward",
+      "valid_steps": 267
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 54,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 2,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 13,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 38,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 128,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 72
+        },
+        {
+          "anchor_control_step": 234,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 1,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 34,
+            "roll": 8
+          },
+          "identity": "event_1",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 279,
+          "scheduled_anchor_control_step": 234,
+          "stable_window_steps": 76
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.1229805126786232,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.11101464927196503,
+        "max_abs_roll_rad": 0.23081760108470917,
+        "max_pitch_rad": 0.11101464927196503,
+        "max_xy_drift_m": 0.7053109407424927,
+        "min_base_height_m": 0.6966460943222046,
+        "min_pitch_rad": -0.028823083266615868,
+        "push_event_count": 2,
+        "recovered_event_count": 2,
+        "success": true
+      },
+      "stratum": "repeated",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 55,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 2,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.48,
+              "after_anchor_steps": 24,
+              "control_step": 93,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 3
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 3,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 63,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 116,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 47
+        },
+        {
+          "anchor_control_step": 234,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 8,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 28,
+            "roll": 0
+          },
+          "identity": "event_1",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 280,
+          "scheduled_anchor_control_step": 234,
+          "stable_window_steps": 82
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.0953076109290123,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.061862435191869736,
+        "max_abs_roll_rad": 0.15318563580513,
+        "max_pitch_rad": 0.061862435191869736,
+        "max_xy_drift_m": 0.24463224411010742,
+        "min_base_height_m": 0.690687894821167,
+        "min_pitch_rad": -0.030848758295178413,
+        "push_event_count": 2,
+        "recovered_event_count": 2,
+        "success": true
+      },
+      "stratum": "repeated",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 56,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 2,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 4,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 29,
+            "roll": 9
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 115,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 81
+        },
+        {
+          "anchor_control_step": 234,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 0.74,
+              "after_anchor_steps": 37,
+              "control_step": 271,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 10
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 13,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 49,
+            "roll": 0
+          },
+          "identity": "event_1",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 298,
+          "scheduled_anchor_control_step": 234,
+          "stable_window_steps": 61
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.05816483497619629,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.044164977967739105,
+        "max_abs_roll_rad": 0.2657874822616577,
+        "max_pitch_rad": 0.044164977967739105,
+        "max_xy_drift_m": 0.32695266604423523,
+        "min_base_height_m": 0.6830011010169983,
+        "min_pitch_rad": -0.029863765463232994,
+        "push_event_count": 2,
+        "recovered_event_count": 2,
+        "success": true
+      },
+      "stratum": "repeated",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 57,
+      "episode_index": 1,
+      "final_unstable_after_recovery": true,
+      "planned_push_count": 2,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 7,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 24,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 114,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 86
+        },
+        {
+          "anchor_control_step": 234,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 4,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 30,
+            "roll": 0
+          },
+          "identity": "event_1",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 268,
+          "scheduled_anchor_control_step": 234,
+          "stable_window_steps": 80
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 0.2903856933116913,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.10603650659322739,
+        "max_abs_roll_rad": 0.11690609902143478,
+        "max_pitch_rad": 0.10603650659322739,
+        "max_xy_drift_m": 0.521395742893219,
+        "min_base_height_m": 0.6789649724960327,
+        "min_pitch_rad": -0.02882232330739498,
+        "push_event_count": 2,
+        "recovered_event_count": 2,
+        "success": false
+      },
+      "stratum": "repeated",
+      "terminal_label": "not_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 58,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 2,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 8,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 39,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 116,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 71
+        },
+        {
+          "anchor_control_step": 234,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 3,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 17,
+            "roll": 0
+          },
+          "identity": "event_1",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 272,
+          "scheduled_anchor_control_step": 234,
+          "stable_window_steps": 93
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.03444945067167282,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.12069815397262573,
+        "max_abs_roll_rad": 0.17560909688472748,
+        "max_pitch_rad": 0.12069815397262573,
+        "max_xy_drift_m": 0.47526150941848755,
+        "min_base_height_m": 0.6711809039115906,
+        "min_pitch_rad": -0.028822164982557297,
+        "push_event_count": 2,
+        "recovered_event_count": 2,
+        "success": true
+      },
+      "stratum": "repeated",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 59,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 2,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "full_window_without_dwell",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 1.24,
+              "after_anchor_steps": 62,
+              "control_step": 131,
+              "failed_conditions": [
+                "planar_speed",
+                "angular_speed"
+              ],
+              "preceding_dwell_steps": 5
+            },
+            {
+              "after_anchor_s": 1.52,
+              "after_anchor_steps": 76,
+              "control_step": 145,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            },
+            {
+              "after_anchor_s": 1.56,
+              "after_anchor_steps": 78,
+              "control_step": 147,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            },
+            {
+              "after_anchor_s": 1.62,
+              "after_anchor_steps": 81,
+              "control_step": 150,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 2
+            },
+            {
+              "after_anchor_s": 1.6600000000000001,
+              "after_anchor_steps": 83,
+              "control_step": 152,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            },
+            {
+              "after_anchor_s": 1.7,
+              "after_anchor_steps": 85,
+              "control_step": 154,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            },
+            {
+              "after_anchor_s": 1.74,
+              "after_anchor_steps": 87,
+              "control_step": 156,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            },
+            {
+              "after_anchor_s": 1.8,
+              "after_anchor_steps": 90,
+              "control_step": 159,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 1
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 32,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 93,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 5,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": true,
+          "recovery_control_step": null,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 13
+        },
+        {
+          "anchor_control_step": 234,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 3,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 21,
+            "roll": 0
+          },
+          "identity": "event_1",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 268,
+          "scheduled_anchor_control_step": 234,
+          "stable_window_steps": 89
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 0.15576434135437012,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.11197104305028915,
+        "max_abs_roll_rad": 0.11784761399030685,
+        "max_pitch_rad": 0.11197104305028915,
+        "max_xy_drift_m": 1.479084849357605,
+        "min_base_height_m": 0.626247763633728,
+        "min_pitch_rad": -0.10029789805412292,
+        "push_event_count": 2,
+        "recovered_event_count": 1,
+        "success": false
+      },
+      "stratum": "repeated",
+      "terminal_label": "not_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 60,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 2,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 20,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 40,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 131,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 69
+        },
+        {
+          "anchor_control_step": 234,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 7,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 48,
+            "roll": 0
+          },
+          "identity": "event_1",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 275,
+          "scheduled_anchor_control_step": 234,
+          "stable_window_steps": 62
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.10604509711265564,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.09165006130933762,
+        "max_abs_roll_rad": 0.09205660969018936,
+        "max_pitch_rad": 0.09165006130933762,
+        "max_xy_drift_m": 0.992764949798584,
+        "min_base_height_m": 0.6445142030715942,
+        "min_pitch_rad": -0.028822284191846848,
+        "push_event_count": 2,
+        "recovered_event_count": 2,
+        "success": true
+      },
+      "stratum": "repeated",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 61,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 2,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 14,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 65,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 122,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 45
+        },
+        {
+          "anchor_control_step": 234,
+          "anchor_verified": true,
+          "coverage": "full_window_without_dwell",
+          "dwell_interruptions": [
+            {
+              "after_anchor_s": 1.92,
+              "after_anchor_steps": 96,
+              "control_step": 330,
+              "failed_conditions": [
+                "planar_speed"
+              ],
+              "preceding_dwell_steps": 3
+            }
+          ],
+          "failed_condition_steps": {
+            "angular_speed": 15,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 93,
+            "roll": 0
+          },
+          "identity": "event_1",
+          "max_dwell_steps": 14,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": true,
+          "recovery_control_step": null,
+          "scheduled_anchor_control_step": 234,
+          "stable_window_steps": 17
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 0.10019080340862274,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.11171150952577591,
+        "max_abs_roll_rad": 0.17228613793849945,
+        "max_pitch_rad": 0.11171150952577591,
+        "max_xy_drift_m": 1.0021312236785889,
+        "min_base_height_m": 0.6719768047332764,
+        "min_pitch_rad": -0.0674610584974289,
+        "push_event_count": 2,
+        "recovered_event_count": 1,
+        "success": false
+      },
+      "stratum": "repeated",
+      "terminal_label": "not_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 62,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 2,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 19,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 34,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 119,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 76
+        },
+        {
+          "anchor_control_step": 234,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 9,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 70,
+            "roll": 0
+          },
+          "identity": "event_1",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 271,
+          "scheduled_anchor_control_step": 234,
+          "stable_window_steps": 40
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.13269224762916565,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.08091270923614502,
+        "max_abs_roll_rad": 0.10792838782072067,
+        "max_pitch_rad": 0.08091270923614502,
+        "max_xy_drift_m": 0.49163803458213806,
+        "min_base_height_m": 0.678570568561554,
+        "min_pitch_rad": -0.030278339982032776,
+        "push_event_count": 2,
+        "recovered_event_count": 2,
+        "success": true
+      },
+      "stratum": "repeated",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    },
+    {
+      "control_only": false,
+      "coverage": "complete",
+      "env_id": 63,
+      "episode_index": 1,
+      "final_unstable_after_recovery": false,
+      "planned_push_count": 2,
+      "recoveries": [
+        {
+          "anchor_control_step": 69,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 2,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 42,
+            "roll": 0
+          },
+          "identity": "event_0",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 115,
+          "scheduled_anchor_control_step": 69,
+          "stable_window_steps": 68
+        },
+        {
+          "anchor_control_step": 234,
+          "anchor_verified": true,
+          "coverage": "recovered",
+          "dwell_interruptions": [],
+          "failed_condition_steps": {
+            "angular_speed": 11,
+            "height": 0,
+            "pitch": 0,
+            "planar_speed": 60,
+            "roll": 0
+          },
+          "identity": "event_1",
+          "max_dwell_steps": 21,
+          "observed_window_duration_s": 2.2,
+          "observed_window_steps": 110,
+          "recovery_censored": false,
+          "recovery_control_step": 283,
+          "scheduled_anchor_control_step": 234,
+          "stable_window_steps": 50
+        }
+      ],
+      "runtime_differences": [],
+      "snapshot_metrics": {
+        "control_failure_label": null,
+        "control_success": false,
+        "episode_steps": 412,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.005451622884720564,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.0645863488316536,
+        "max_abs_roll_rad": 0.09147288650274277,
+        "max_pitch_rad": 0.0645863488316536,
+        "max_xy_drift_m": 0.3653689920902252,
+        "min_base_height_m": 0.6879212856292725,
+        "min_pitch_rad": -0.033929988741874695,
+        "push_event_count": 2,
+        "recovered_event_count": 2,
+        "success": true
+      },
+      "stratum": "repeated",
+      "terminal_label": "success_recovered",
+      "valid_steps": 412
+    }
+  ],
+  "schema_version": "true_rl_agent.push_recovery.numeric_recompute.v1",
+  "valid_control_steps": 23996
+}

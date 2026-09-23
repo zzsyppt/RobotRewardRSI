@@ -1,0 +1,10 @@
+{
+  "started_at_unix": 1789190035.679481,
+  "ended_at_unix": 1789191144.2695856,
+  "exit_code": 1,
+  "tests_run": 1677,
+  "unittest_seconds": 1105.557,
+  "tail": "ne 41, in test_both_cells_preflight_real_diagnostic_jobs_without_spending_budget\n    self.assertEqual(result[\"budget\"][\"eval_base_seed\"], 42)\nAssertionError: 1000000000 != 42\n\n======================================================================\nFAIL: test_bound_checkpoint_materializes_only_dev_and_rejects_lineage_drift (unit.test_push_pipeline_probe.PushPipelineProbeTests.test_bound_checkpoint_materializes_only_dev_and_rejects_lineage_drift) (cell='push.g1_37dof.recovery_v2')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\humanoid_agent\\true_RL_Agent\\tests\\unit\\test_push_pipeline_probe.py\", line 80, in test_bound_checkpoint_materializes_only_dev_and_rejects_lineage_drift\n    self.assertEqual(argv[argv.index(\"--seed\") + 1], \"42\")\nAssertionError: '1000000000' != '42'\n- 1000000000\n+ 42\n\n\n----------------------------------------------------------------------\nRan 1677 tests in 1105.557s\n\nFAILED (failures=2, skipped=19)\n",
+  "scope": "full local suite after G1 task defaults and native seed default convergence",
+  "project_source_hash": "b73c055c54ecbe445c59e632f928712a43a163e6494d4cd0ab0406b79dc450f2"
+}

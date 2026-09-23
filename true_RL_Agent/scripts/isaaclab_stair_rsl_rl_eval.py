@@ -107,6 +107,8 @@ def _build_parser(app_launcher_class: Any) -> argparse.ArgumentParser:
     )
     add_resolved_cell_manifest_arguments(parser)
     add_native_video_arguments(parser)
+    parser.add_argument("--numeric-evidence-dir", type=Path)
+    parser.add_argument("--numeric-evidence-max-bytes", type=int, default=2 * 1024**3)
     for option in (
         "--public-seeds",
         "--public-accept-seeds",
@@ -303,6 +305,16 @@ def _run_eval(
         runtime_lease=runtime_lease,
         resolved_cell_manifest=getattr(args, "resolved_cell_manifest", None),
         native_video=getattr(args, "native_video", None),
+        numeric_evidence_dir=getattr(args, "numeric_evidence_dir", None),
+        numeric_evidence_max_bytes=getattr(args, "numeric_evidence_max_bytes", 2 * 1024**3),
+        numeric_evidence_identity={
+            **context.identity.to_public_dict(),
+            "program_source_checksum": context.program_source_checksum,
+            "training_binding_hash": context.training_binding_hash,
+            "capability_profile_hash": context.capability_profile_hash,
+            "evaluation_binding": context.evaluation_binding.to_public_dict(),
+            "evaluation_plan_hash": getattr(args, "evaluation_plan_hash", None),
+        },
     )
     if phase is not None:
         assert args.evaluation_plan_hash is not None

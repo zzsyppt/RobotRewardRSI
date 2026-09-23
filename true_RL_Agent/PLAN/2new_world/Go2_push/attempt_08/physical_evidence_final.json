@@ -1,0 +1,1422 @@
+{
+  "status": "PASS",
+  "scope": "Final two saved physical summaries independently audited; prior20 retained after SHA verification. Also checks final checkpoint/subject/plan/receipt identities, seven-seed paired statistics, and exact recorded episode replay against same-checkpoint prior sealed. This does not assign scientific acceptance authority.",
+  "limitations": [
+    "Pose extrema and wrench verification are runtime exports, not independently read sensor/PhysX data.",
+    "No raw-frame reconstruction of continuous stable dwell, or final angular velocity, roll/pitch and height.",
+    "Pulse timing/count checks use the recorded control dt and expected substep count; physics dt is not independently reconstructed.",
+    "Fall labels use exported extrema and the same strict threshold ordering as episode_records; this is not a new outcome definition."
+  ],
+  "numerical_tolerances": {
+    "force_amplitude_relative": 2e-06,
+    "impulse_absolute_rounding_ns": 0.0001,
+    "impulse_total_rule": "force_tolerance_n * delivered_duration_s + float32 accumulation allowance"
+  },
+  "summary_count": 22,
+  "summaries": [
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08/eval/public_accept/summary.json",
+      "sha256": "d0fa6612026127c9dd32364e2dd14e9425aa88ab127b086a51a3fd75e08fd97e",
+      "counts": {
+        "checks": 3250,
+        "force_events": 233,
+        "successful_episodes": 142,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 16
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000274658203125,
+        "impulse_residual_ns": 2.9907226561931566e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08/eval/public_dev/summary.json",
+      "sha256": "9792c53e8d55883a90fc03a31b407b54919d271a87cc05a2521461aa60067e1f",
+      "counts": {
+        "checks": 3270,
+        "force_events": 237,
+        "successful_episodes": 141,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 11
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000274658203125,
+        "impulse_residual_ns": 3.3721923827556566e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08/eval/sealed_validation/summary.json",
+      "sha256": "1ec4b6d1773ff357056f40848ef3db1f03fd18f6ac4ae1fa0493434e1b7ed58e",
+      "counts": {
+        "checks": 7672,
+        "force_events": 555,
+        "successful_episodes": 343,
+        "episodes": 448,
+        "episodes_with_incomplete_pulses": 13
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000274658203125,
+        "impulse_residual_ns": 3.2806396482953915e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/eval/public_accept/summary.json",
+      "sha256": "a4f098d3681b0d1ecb5ef9ac1f2d6ecf03cb564abc1a10127c4c7f4252e18d9e",
+      "counts": {
+        "checks": 3336,
+        "force_events": 240,
+        "successful_episodes": 159,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 2
+      },
+      "observed_maxima": {
+        "force_error_n": 0.0002593994140625,
+        "impulse_residual_ns": 2.9907226561931566e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/eval/public_dev/summary.json",
+      "sha256": "5b571b1d26f768e6e4e2af17894cc1e1eafc800af6bd92f915df0dd7b17eb919",
+      "counts": {
+        "checks": 3366,
+        "force_events": 240,
+        "successful_episodes": 169,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 2
+      },
+      "observed_maxima": {
+        "force_error_n": 0.0003204345703125,
+        "impulse_residual_ns": 3.6621093748578915e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08-generation-001-lane-b/eval/public_dev/summary.json",
+      "sha256": "2e2944c1f703759a1d590663ac419aabc660b7cb488bdffe11f5107e83033386",
+      "counts": {
+        "checks": 3351,
+        "force_events": 240,
+        "successful_episodes": 163,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 1
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000244140625,
+        "impulse_residual_ns": 3.082275389942879e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/eval/sealed_validation/summary.json",
+      "sha256": "f090c7ea005afe513aa56ef278e20aca7a30ebad2470e12d6114296cfb9eed9d",
+      "counts": {
+        "checks": 7853,
+        "force_events": 560,
+        "successful_episodes": 394,
+        "episodes": 448,
+        "episodes_with_incomplete_pulses": 6
+      },
+      "observed_maxima": {
+        "force_error_n": 0.0003204345703125,
+        "impulse_residual_ns": 2.9907226561931566e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08-generation-002-lane-a/eval/public_dev/summary.json",
+      "sha256": "523334f7cd9c8ea19507ebc0bb3d57bda087c260b5c24b244e85cbaefce57a87",
+      "counts": {
+        "checks": 3102,
+        "force_events": 228,
+        "successful_episodes": 104,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 15
+      },
+      "observed_maxima": {
+        "force_error_n": 0.0002593994140625,
+        "impulse_residual_ns": 3.570556640397626e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08-generation-002-lane-b/eval/public_dev/summary.json",
+      "sha256": "3b6da5db63a59db5abeaae7b66ed6936743be4f24aca0b88152463cd24de8f93",
+      "counts": {
+        "checks": 3114,
+        "force_events": 229,
+        "episodes": 192,
+        "successful_episodes": 106,
+        "episodes_with_incomplete_pulses": 16
+      },
+      "observed_maxima": {
+        "force_error_n": 0.00030517578125,
+        "impulse_residual_ns": 3.2806396482953915e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08-generation-002-lane-b/eval/public_accept/summary.json",
+      "sha256": "596ae0b7349a89cbb952945614f4e0c4e7b52294a4feeb4de3db1de0057e8c27",
+      "counts": {
+        "checks": 3100,
+        "force_events": 230,
+        "episodes": 192,
+        "successful_episodes": 99,
+        "episodes_with_incomplete_pulses": 16
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000274658203125,
+        "impulse_residual_ns": 2.716064453522904e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08-generation-003-lane-a/eval/public_dev/summary.json",
+      "sha256": "e1040f7eb29c8773b5ac1219739cf4c9b248e51a2be4c9a1c1c2f6cef6c30af6",
+      "counts": {
+        "checks": 1369,
+        "episodes_with_incomplete_pulses": 192,
+        "episodes": 192
+      },
+      "observed_maxima": {
+        "force_error_n": 0.0,
+        "impulse_residual_ns": 0.0
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08-generation-003-lane-b/eval/public_accept/summary.json",
+      "sha256": "1834510420cfc067be0dbb3a2f7ddea509dbafd4035dbb1fd9a1042dba1bae0b",
+      "counts": {
+        "checks": 3316,
+        "force_events": 240,
+        "successful_episodes": 152,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 1
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000244140625,
+        "impulse_residual_ns": 3.173828125113687e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08-generation-003-lane-b/eval/public_dev/summary.json",
+      "sha256": "3b3fa3096a272a48bcd95724d4d9222cfee7f37760537eb436b181e7e92d9f18",
+      "counts": {
+        "checks": 3286,
+        "force_events": 237,
+        "successful_episodes": 147,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 9
+      },
+      "observed_maxima": {
+        "force_error_n": 0.0002899169921875,
+        "impulse_residual_ns": 3.097534179374861e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08-generation-004-lane-a/eval/public_dev/summary.json",
+      "sha256": "36cd4405fe6ce38582656f67b869fc8c8875a645f89151b6ee41f97102078eb4",
+      "counts": {
+        "checks": 3328,
+        "force_events": 238,
+        "successful_episodes": 161,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 2
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000274658203125,
+        "impulse_residual_ns": 3.082275389942879e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08-generation-004-lane-b/eval/public_accept/summary.json",
+      "sha256": "27a65998a1f7b30f67b6a3e9d8c51175b4af6d3f85af545a69896f5a0c7e5769",
+      "counts": {
+        "checks": 3381,
+        "force_events": 240,
+        "successful_episodes": 174,
+        "episodes": 192
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000244140625,
+        "impulse_residual_ns": 3.570556640397626e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08-generation-004-lane-b/eval/public_dev/summary.json",
+      "sha256": "a944b7dfe0742cdc3053a115c0b03d56ccb20921816350db469eb43ad8a1794a",
+      "counts": {
+        "checks": 3382,
+        "force_events": 240,
+        "successful_episodes": 175,
+        "episodes": 192
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000274658203125,
+        "impulse_residual_ns": 3.173828125113687e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08-generation-004-lane-b/eval/sealed_validation/summary.json",
+      "sha256": "3588f26479ae557562215566bd5c2209412e6b1fb304d6b63d31ddde5a227469",
+      "counts": {
+        "checks": 7892,
+        "force_events": 560,
+        "successful_episodes": 409,
+        "episodes": 448
+      },
+      "observed_maxima": {
+        "force_error_n": 0.00030517578125,
+        "impulse_residual_ns": 3.845214843067879e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08-generation-005-lane-a/eval/public_accept/summary.json",
+      "sha256": "64ca5983e7f611f2b73abf63e11cf631ce5ad25847c812018fd3a06f38155a27",
+      "counts": {
+        "checks": 3319,
+        "force_events": 237,
+        "successful_episodes": 159,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 6
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000274658203125,
+        "impulse_residual_ns": 3.570556640397626e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08-generation-005-lane-a/eval/public_dev/summary.json",
+      "sha256": "1563e71e47dd49a6b383abb2fec8c1a365e3a1c35c0e6b788034920b6c1ec804",
+      "counts": {
+        "checks": 3370,
+        "force_events": 239,
+        "successful_episodes": 172,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 4
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000244140625,
+        "impulse_residual_ns": 2.9907226561931566e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a08-generation-005-lane-b/eval/public_dev/summary.json",
+      "sha256": "c046d2f616a19242081ce49038f99bf7b1553e5e60057d4bbbe06a48a1d41101",
+      "counts": {
+        "checks": 3365,
+        "force_events": 240,
+        "successful_episodes": 169,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 1
+      },
+      "observed_maxima": {
+        "force_error_n": 0.00030517578125,
+        "impulse_residual_ns": 3.6621093748578915e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/final_confirmation/genesis/eval/sealed_validation/summary.json",
+      "sha256": "174a8873a0412d03d3cc711be60e15055382ed5aef261ee5ccbbeaec80b74b9e",
+      "counts": {
+        "checks": 7672,
+        "force_events": 555,
+        "successful_episodes": 343,
+        "episodes": 448,
+        "episodes_with_incomplete_pulses": 13
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000274658203125,
+        "impulse_residual_ns": 3.2806396482953915e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/final_confirmation/final/eval/sealed_validation/summary.json",
+      "sha256": "7c954d467fe14bb195782a20612c6646be547cc4db8e8d801760661748ed50b7",
+      "counts": {
+        "checks": 7892,
+        "force_events": 560,
+        "successful_episodes": 409,
+        "episodes": 448
+      },
+      "observed_maxima": {
+        "force_error_n": 0.00030517578125,
+        "impulse_residual_ns": 3.845214843067879e-05
+      },
+      "failures": []
+    }
+  ],
+  "audited_at_utc": "2026-09-23T09:13:31.138073+00:00",
+  "snapshot": ".tmp/go2_push_a08_live_20.zip",
+  "source_commit": "f13ceb6660e01e5367f3a0961fca9a269737bf2c",
+  "incremental_audit": {
+    "new_summary_count": 2,
+    "prior_summary_count": 20,
+    "prior_report_sha256": "abb9d68bfc9688e1e1770f924a2bfca790543853a754a6cefc4cdd241cef0d5f",
+    "old_arithmetic_repeated": false,
+    "audit_script_sha256": "ed47b2eb95e634684d2faf677f8cc9ee89e24abda0a2950c389fc01326800a77"
+  },
+  "final_confirmation_checks": [
+    {
+      "check": "unchanged prior summary: runner/go2-push-5rounds-20260923-a08/eval/public_accept/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior summary: runner/go2-push-5rounds-20260923-a08/eval/public_dev/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior summary: runner/go2-push-5rounds-20260923-a08/eval/sealed_validation/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior summary: runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/eval/public_accept/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior summary: runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/eval/public_dev/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior summary: runner/go2-push-5rounds-20260923-a08-generation-001-lane-b/eval/public_dev/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior summary: runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/eval/sealed_validation/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior summary: runner/go2-push-5rounds-20260923-a08-generation-002-lane-a/eval/public_dev/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior summary: runner/go2-push-5rounds-20260923-a08-generation-002-lane-b/eval/public_dev/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior summary: runner/go2-push-5rounds-20260923-a08-generation-002-lane-b/eval/public_accept/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior summary: runner/go2-push-5rounds-20260923-a08-generation-003-lane-a/eval/public_dev/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior summary: runner/go2-push-5rounds-20260923-a08-generation-003-lane-b/eval/public_accept/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior summary: runner/go2-push-5rounds-20260923-a08-generation-003-lane-b/eval/public_dev/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior summary: runner/go2-push-5rounds-20260923-a08-generation-004-lane-a/eval/public_dev/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior summary: runner/go2-push-5rounds-20260923-a08-generation-004-lane-b/eval/public_accept/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior summary: runner/go2-push-5rounds-20260923-a08-generation-004-lane-b/eval/public_dev/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior summary: runner/go2-push-5rounds-20260923-a08-generation-004-lane-b/eval/sealed_validation/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior summary: runner/go2-push-5rounds-20260923-a08-generation-005-lane-a/eval/public_accept/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior summary: runner/go2-push-5rounds-20260923-a08-generation-005-lane-a/eval/public_dev/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior summary: runner/go2-push-5rounds-20260923-a08-generation-005-lane-b/eval/public_dev/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_06/session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-a/train/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-005-lane-a/train/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-005/lane-a/002_push_recovery_roll_braced_stance_v2/training_code/components.py",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/ff8bb41874f734ec34e109e1/attempt_00.reservation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/ff8bb41874f734ec34e109e1/attempt_00.result.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/ff8bb41874f734ec34e109e1/attempt_00.logs/stdout.log",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-005-lane-b/train/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-005/lane-b/001_push_recovery_lateral_tilt_decay_v1/training_code/components.py",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/0a56dd74978e10e12c2f988a/attempt_00.reservation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/0a56dd74978e10e12c2f988a/attempt_00.result.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/0a56dd74978e10e12c2f988a/attempt_00.logs/stdout.log",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/training_evidence_through_gen04.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-004-lane-a/train/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-004/lane-a/002_push_recovery_side_braced_stance_v1/training_code/components.py",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/c883617a35da1d70146b234e/attempt_00.reservation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/c883617a35da1d70146b234e/attempt_00.result.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/c883617a35da1d70146b234e/attempt_00.logs/stdout.log",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-004-lane-b/train/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-004/lane-b/002_push_recovery_lateral_brace_v1/training_code/components.py",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/27352797bb2f2734565619c0/attempt_00.reservation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/27352797bb2f2734565619c0/attempt_00.result.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/27352797bb2f2734565619c0/attempt_00.logs/stdout.log",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/training_evidence_through_gen03.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-003-lane-a/train/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-003/lane-a/001_push_recovery_rate_damped_v1/training_code/components.py",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/259ab8de4b9aad099e686087/attempt_00.reservation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/259ab8de4b9aad099e686087/attempt_00.result.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/259ab8de4b9aad099e686087/attempt_00.logs/stdout.log",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-003-lane-b/train/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-003/lane-b/002_push_recovery_vel_damped_stance_v1/training_code/components.py",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/619baa2020b4bbc2025336c1/attempt_00.reservation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/619baa2020b4bbc2025336c1/attempt_00.result.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/619baa2020b4bbc2025336c1/attempt_00.logs/stdout.log",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/training_evidence_through_gen02.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-002-lane-a/train/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-002/lane-a/001_push_recovery_linear_tilt_ramp_v1/training_code/components.py",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/3914f4c4209d5706aaa51acf/attempt_00.reservation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/3914f4c4209d5706aaa51acf/attempt_00.result.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/3914f4c4209d5706aaa51acf/attempt_00.logs/stdout.log",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-002-lane-b/train/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-002/lane-b/002_push_recovery_tilt_aware_stance_v2/training_code/components.py",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/27949eea84ab0439507caec4/attempt_00.reservation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/27949eea84ab0439507caec4/attempt_00.result.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/27949eea84ab0439507caec4/attempt_00.logs/stdout.log",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/training_evidence_through_gen01.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/train/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-001/lane-a/001_push_recovery_nonsaturating_stance_v1/training_code/components.py",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/28e6b7fd1fc6fa0efa8c18ef/attempt_00.reservation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/28e6b7fd1fc6fa0efa8c18ef/attempt_00.result.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/28e6b7fd1fc6fa0efa8c18ef/attempt_00.logs/stdout.log",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-001-lane-b/train/summary.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-001/lane-b/001_push_go2_recovery_gated_damping_v1/training_code/components.py",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/c240a8c5783aad8c3530f978/attempt_00.reservation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/c240a8c5783aad8c3530f978/attempt_00.result.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/c240a8c5783aad8c3530f978/attempt_00.logs/stdout.log",
+      "passed": true
+    },
+    {
+      "check": "unchanged training evidence: PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-a/authoring_attempts/attempt_000001/prompt_payload.json",
+      "passed": true
+    },
+    {
+      "check": "10 audited complete trainings",
+      "passed": true
+    },
+    {
+      "check": "actual completed generation train summary inventory",
+      "passed": true
+    },
+    {
+      "check": "final confirmation creates no training summary",
+      "passed": true
+    },
+    {
+      "check": "frozen A08 execution source",
+      "passed": true
+    },
+    {
+      "check": "final plan bound to five closed generations",
+      "passed": true
+    },
+    {
+      "check": "final reservation ledger byte checksum remains current",
+      "passed": true
+    },
+    {
+      "check": "final reservation Genesis identity",
+      "passed": true
+    },
+    {
+      "check": "final target is terminal ledger accepted head",
+      "passed": true
+    },
+    {
+      "check": "plan canonical hash and all bindings",
+      "passed": true
+    },
+    {
+      "check": "reservation canonical hash",
+      "passed": true
+    },
+    {
+      "check": "two existing sealed jobs, seven seeds each",
+      "passed": true
+    },
+    {
+      "check": "no final acceptance or author feedback authority",
+      "passed": true
+    },
+    {
+      "check": "existing cohort not new generalization sample",
+      "passed": true
+    },
+    {
+      "check": "genesis: independent saved physical arithmetic",
+      "passed": true
+    },
+    {
+      "check": "genesis: one authoritative phase receipt",
+      "passed": true
+    },
+    {
+      "check": "genesis: final result receipt reference checksum/size",
+      "passed": true
+    },
+    {
+      "check": "genesis: final result receipt path",
+      "passed": true
+    },
+    {
+      "check": "genesis: contract canonical hash and directory",
+      "passed": true
+    },
+    {
+      "check": "genesis: contract role/plan/reservation",
+      "passed": true
+    },
+    {
+      "check": "genesis: contract Genesis/session",
+      "passed": true
+    },
+    {
+      "check": "genesis: phase-result canonical hash and reserved job spec",
+      "passed": true
+    },
+    {
+      "check": "genesis: phase receipt binds exact raw task evidence",
+      "passed": true
+    },
+    {
+      "check": "genesis: phase and no acceptance authority",
+      "passed": true
+    },
+    {
+      "check": "genesis: actual/reserved job and eval plan",
+      "passed": true
+    },
+    {
+      "check": "genesis: checkpoint consistency",
+      "passed": true
+    },
+    {
+      "check": "genesis: subject kind/id consistency",
+      "passed": true
+    },
+    {
+      "check": "genesis: summary/receipt subject_manifest_hash",
+      "passed": true
+    },
+    {
+      "check": "genesis: summary/receipt task_id",
+      "passed": true
+    },
+    {
+      "check": "genesis: summary/receipt execution_device",
+      "passed": true
+    },
+    {
+      "check": "genesis: summary/receipt gpu_process_binding",
+      "passed": true
+    },
+    {
+      "check": "genesis: summary/receipt checkpoint_safety_report",
+      "passed": true
+    },
+    {
+      "check": "genesis: summary/receipt environment_source_preflight",
+      "passed": true
+    },
+    {
+      "check": "genesis: summary/receipt backend_execution_environment_verification",
+      "passed": true
+    },
+    {
+      "check": "genesis: summary/receipt eval_protocol_hash",
+      "passed": true
+    },
+    {
+      "check": "genesis: summary/receipt evaluation_binding_hash",
+      "passed": true
+    },
+    {
+      "check": "genesis: actual frozen backend identity",
+      "passed": true
+    },
+    {
+      "check": "genesis: frozen scientific eval identity",
+      "passed": true
+    },
+    {
+      "check": "genesis: correct reference/terminal checkpoint",
+      "passed": true
+    },
+    {
+      "check": "genesis: completed runner result binds phase receipt",
+      "passed": true
+    },
+    {
+      "check": "genesis: seven actual/projected seeds",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 1 identity/denominator/score",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 1 failure projection",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 1 recovery projection",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 1 stratum projection",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 2 identity/denominator/score",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 2 failure projection",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 2 recovery projection",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 2 stratum projection",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 3 identity/denominator/score",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 3 failure projection",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 3 recovery projection",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 3 stratum projection",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 4 identity/denominator/score",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 4 failure projection",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 4 recovery projection",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 4 stratum projection",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 5 identity/denominator/score",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 5 failure projection",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 5 recovery projection",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 5 stratum projection",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 6 identity/denominator/score",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 6 failure projection",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 6 recovery projection",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 6 stratum projection",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 7 identity/denominator/score",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 7 failure projection",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 7 recovery projection",
+      "passed": true
+    },
+    {
+      "check": "genesis: seed 7 stratum projection",
+      "passed": true
+    },
+    {
+      "check": "genesis: final score values and denominator",
+      "passed": true
+    },
+    {
+      "check": "genesis: independently recomputed sample mean/std/SE",
+      "passed": true
+    },
+    {
+      "check": "genesis: closed/vector/simulated env-step accounting",
+      "passed": true
+    },
+    {
+      "check": "genesis: all 448 original/replay per_episode records exact",
+      "passed": true
+    },
+    {
+      "check": "genesis: whole task evidence differs only in run timestamps/round identity",
+      "passed": true
+    },
+    {
+      "check": "genesis: same checkpoint and same original sealed domain",
+      "passed": true
+    },
+    {
+      "check": "final: independent saved physical arithmetic",
+      "passed": true
+    },
+    {
+      "check": "final: one authoritative phase receipt",
+      "passed": true
+    },
+    {
+      "check": "final: final result receipt reference checksum/size",
+      "passed": true
+    },
+    {
+      "check": "final: final result receipt path",
+      "passed": true
+    },
+    {
+      "check": "final: contract canonical hash and directory",
+      "passed": true
+    },
+    {
+      "check": "final: contract role/plan/reservation",
+      "passed": true
+    },
+    {
+      "check": "final: contract Genesis/session",
+      "passed": true
+    },
+    {
+      "check": "final: phase-result canonical hash and reserved job spec",
+      "passed": true
+    },
+    {
+      "check": "final: phase receipt binds exact raw task evidence",
+      "passed": true
+    },
+    {
+      "check": "final: phase and no acceptance authority",
+      "passed": true
+    },
+    {
+      "check": "final: actual/reserved job and eval plan",
+      "passed": true
+    },
+    {
+      "check": "final: checkpoint consistency",
+      "passed": true
+    },
+    {
+      "check": "final: subject kind/id consistency",
+      "passed": true
+    },
+    {
+      "check": "final: summary/receipt subject_manifest_hash",
+      "passed": true
+    },
+    {
+      "check": "final: summary/receipt task_id",
+      "passed": true
+    },
+    {
+      "check": "final: summary/receipt execution_device",
+      "passed": true
+    },
+    {
+      "check": "final: summary/receipt gpu_process_binding",
+      "passed": true
+    },
+    {
+      "check": "final: summary/receipt checkpoint_safety_report",
+      "passed": true
+    },
+    {
+      "check": "final: summary/receipt environment_source_preflight",
+      "passed": true
+    },
+    {
+      "check": "final: summary/receipt backend_execution_environment_verification",
+      "passed": true
+    },
+    {
+      "check": "final: summary/receipt eval_protocol_hash",
+      "passed": true
+    },
+    {
+      "check": "final: summary/receipt evaluation_binding_hash",
+      "passed": true
+    },
+    {
+      "check": "final: actual frozen backend identity",
+      "passed": true
+    },
+    {
+      "check": "final: frozen scientific eval identity",
+      "passed": true
+    },
+    {
+      "check": "final: correct reference/terminal checkpoint",
+      "passed": true
+    },
+    {
+      "check": "final: terminal head program_source_checksum",
+      "passed": true
+    },
+    {
+      "check": "final: terminal head training_binding_hash",
+      "passed": true
+    },
+    {
+      "check": "final: terminal head subject_manifest_hash",
+      "passed": true
+    },
+    {
+      "check": "final: terminal head capability_profile_hash",
+      "passed": true
+    },
+    {
+      "check": "final: completed runner result binds phase receipt",
+      "passed": true
+    },
+    {
+      "check": "final: seven actual/projected seeds",
+      "passed": true
+    },
+    {
+      "check": "final: seed 1 identity/denominator/score",
+      "passed": true
+    },
+    {
+      "check": "final: seed 1 failure projection",
+      "passed": true
+    },
+    {
+      "check": "final: seed 1 recovery projection",
+      "passed": true
+    },
+    {
+      "check": "final: seed 1 stratum projection",
+      "passed": true
+    },
+    {
+      "check": "final: seed 2 identity/denominator/score",
+      "passed": true
+    },
+    {
+      "check": "final: seed 2 failure projection",
+      "passed": true
+    },
+    {
+      "check": "final: seed 2 recovery projection",
+      "passed": true
+    },
+    {
+      "check": "final: seed 2 stratum projection",
+      "passed": true
+    },
+    {
+      "check": "final: seed 3 identity/denominator/score",
+      "passed": true
+    },
+    {
+      "check": "final: seed 3 failure projection",
+      "passed": true
+    },
+    {
+      "check": "final: seed 3 recovery projection",
+      "passed": true
+    },
+    {
+      "check": "final: seed 3 stratum projection",
+      "passed": true
+    },
+    {
+      "check": "final: seed 4 identity/denominator/score",
+      "passed": true
+    },
+    {
+      "check": "final: seed 4 failure projection",
+      "passed": true
+    },
+    {
+      "check": "final: seed 4 recovery projection",
+      "passed": true
+    },
+    {
+      "check": "final: seed 4 stratum projection",
+      "passed": true
+    },
+    {
+      "check": "final: seed 5 identity/denominator/score",
+      "passed": true
+    },
+    {
+      "check": "final: seed 5 failure projection",
+      "passed": true
+    },
+    {
+      "check": "final: seed 5 recovery projection",
+      "passed": true
+    },
+    {
+      "check": "final: seed 5 stratum projection",
+      "passed": true
+    },
+    {
+      "check": "final: seed 6 identity/denominator/score",
+      "passed": true
+    },
+    {
+      "check": "final: seed 6 failure projection",
+      "passed": true
+    },
+    {
+      "check": "final: seed 6 recovery projection",
+      "passed": true
+    },
+    {
+      "check": "final: seed 6 stratum projection",
+      "passed": true
+    },
+    {
+      "check": "final: seed 7 identity/denominator/score",
+      "passed": true
+    },
+    {
+      "check": "final: seed 7 failure projection",
+      "passed": true
+    },
+    {
+      "check": "final: seed 7 recovery projection",
+      "passed": true
+    },
+    {
+      "check": "final: seed 7 stratum projection",
+      "passed": true
+    },
+    {
+      "check": "final: final score values and denominator",
+      "passed": true
+    },
+    {
+      "check": "final: independently recomputed sample mean/std/SE",
+      "passed": true
+    },
+    {
+      "check": "final: closed/vector/simulated env-step accounting",
+      "passed": true
+    },
+    {
+      "check": "final: all 448 original/replay per_episode records exact",
+      "passed": true
+    },
+    {
+      "check": "final: whole task evidence differs only in run timestamps/round identity",
+      "passed": true
+    },
+    {
+      "check": "final: same checkpoint and same original sealed domain",
+      "passed": true
+    },
+    {
+      "check": "paired seven-seed delta/sample std/standard error independently recomputed",
+      "passed": true
+    },
+    {
+      "check": "final comparison preserves fixed-cohort limits",
+      "passed": true
+    },
+    {
+      "check": "20 prior plus two new physical summaries",
+      "passed": true
+    }
+  ],
+  "final_roles": {
+    "genesis": {
+      "subject_id": "push_standing_recovery_stationary_reference_v3",
+      "subject_kind": "reference",
+      "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+      "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "seed_successes": [
+        50,
+        47,
+        48,
+        48,
+        51,
+        47,
+        52
+      ],
+      "successes": 343,
+      "episodes": 448,
+      "score": 0.765625,
+      "independent_seed_statistics": {
+        "count": 7,
+        "mean": 0.765625,
+        "std": 0.03125,
+        "standard_error": 0.01181138978153835
+      },
+      "prior_sealed_summary": "runner/go2-push-5rounds-20260923-a08/eval/sealed_validation/summary.json",
+      "per_episode_exact_equal_count": 448,
+      "whole_task_evidence_difference_paths": [
+        "/seed_summaries/0/created_at_utc",
+        "/seed_summaries/0/run/round_id",
+        "/seed_summaries/1/created_at_utc",
+        "/seed_summaries/1/run/round_id",
+        "/seed_summaries/2/created_at_utc",
+        "/seed_summaries/2/run/round_id",
+        "/seed_summaries/3/created_at_utc",
+        "/seed_summaries/3/run/round_id",
+        "/seed_summaries/4/created_at_utc",
+        "/seed_summaries/4/run/round_id",
+        "/seed_summaries/5/created_at_utc",
+        "/seed_summaries/5/run/round_id",
+        "/seed_summaries/6/created_at_utc",
+        "/seed_summaries/6/run/round_id"
+      ],
+      "physics_counts": {
+        "checks": 7672,
+        "force_events": 555,
+        "successful_episodes": 343,
+        "episodes": 448,
+        "episodes_with_incomplete_pulses": 13
+      },
+      "execution_steps": {
+        "closed_first_episode_control_steps": 113671,
+        "evaluation_env_count_per_seed": 64,
+        "seed_count": 7,
+        "simulated_env_control_steps": 135744,
+        "vector_env_step_calls": 2121,
+        "wall_time_s": 74.722596212
+      }
+    },
+    "final": {
+      "subject_id": "push_recovery_lateral_brace_v1",
+      "subject_kind": "candidate",
+      "checkpoint_hash": "sha256:5714a1f0f73ffee68bc980fe28439fc48eb70f31320c058a4a75f3a9b868118f",
+      "program_source_checksum": "sha256:0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336",
+      "seed_successes": [
+        59,
+        55,
+        61,
+        60,
+        57,
+        59,
+        58
+      ],
+      "successes": 409,
+      "episodes": 448,
+      "score": 0.9129464285714286,
+      "independent_seed_statistics": {
+        "count": 7,
+        "mean": 0.9129464285714286,
+        "std": 0.031063431168375153,
+        "standard_error": 0.011740873391413317
+      },
+      "prior_sealed_summary": "runner/go2-push-5rounds-20260923-a08-generation-004-lane-b/eval/sealed_validation/summary.json",
+      "per_episode_exact_equal_count": 448,
+      "whole_task_evidence_difference_paths": [
+        "/seed_summaries/0/created_at_utc",
+        "/seed_summaries/0/run/round_id",
+        "/seed_summaries/1/created_at_utc",
+        "/seed_summaries/1/run/round_id",
+        "/seed_summaries/2/created_at_utc",
+        "/seed_summaries/2/run/round_id",
+        "/seed_summaries/3/created_at_utc",
+        "/seed_summaries/3/run/round_id",
+        "/seed_summaries/4/created_at_utc",
+        "/seed_summaries/4/run/round_id",
+        "/seed_summaries/5/created_at_utc",
+        "/seed_summaries/5/run/round_id",
+        "/seed_summaries/6/created_at_utc",
+        "/seed_summaries/6/run/round_id"
+      ],
+      "physics_counts": {
+        "checks": 7892,
+        "force_events": 560,
+        "successful_episodes": 409,
+        "episodes": 448
+      },
+      "execution_steps": {
+        "closed_first_episode_control_steps": 131906,
+        "evaluation_env_count_per_seed": 64,
+        "seed_count": 7,
+        "simulated_env_control_steps": 135744,
+        "vector_env_step_calls": 2121,
+        "wall_time_s": 74.692330082
+      }
+    }
+  },
+  "paired_comparison": {
+    "seed_deltas": [
+      0.140625,
+      0.125,
+      0.203125,
+      0.1875,
+      0.09375,
+      0.1875,
+      0.09375
+    ],
+    "independent_statistics": {
+      "count": 7,
+      "mean": 0.14732142857142858,
+      "std": 0.045872210243447474,
+      "standard_error": 0.0173380657704331
+    },
+    "success_count_delta": 66,
+    "percentage_point_delta": 14.732142857142858,
+    "same_existing_sealed_cohort": true,
+    "new_seed_or_geometry_claim": false
+  },
+  "final_training_evidence_revalidation": {
+    "path": "PLAN/2new_world/Go2_push/attempt_08/training_evidence_through_gen05.json",
+    "sha256": "3d765341fa31dfa33438f1fe8d3e2be9eb827a23082a6820364055be6571da65",
+    "complete_train_jobs": 10,
+    "total_env_steps": 491520000,
+    "total_control_steps": 120000,
+    "all_previously_audited_source_summary_log_journal_sha_unchanged": true,
+    "checkpoint_tensor_bytes_independently_rehashed_by_this_auditor": false,
+    "extra_final_training": false
+  },
+  "acceptance_authority": false,
+  "matrix_2x2_verified": false,
+  "additional_limits": [
+    "Prior20 and10train arithmetic was not repeated; their bound files were SHA-verified.",
+    "Both final checkpoint replays reproduce all448 saved episode records exactly; these are repeated measurements of the same frozen sealed seeds, not896 new independent qualification samples.",
+    "Paired standard error describes seven frozen-seed differences for these checkpoints; one training initialization seed and one Go2 x Push cell cannot establish seed-averaged training robustness or matrix generalization.",
+    "Physical PASS refers to saved exported evidence arithmetic, not independent raw PhysX trajectories or new visual inspection.",
+    "Root separately owns production terminal audit, cost/resource closure, protected artifacts and actual remote checkpoint byte checks."
+  ],
+  "evidence_sha256": {
+    "PLAN/2new_world/Go2_push/attempt_08/physical_evidence_through_gen05.json": "abb9d68bfc9688e1e1770f924a2bfca790543853a754a6cefc4cdd241cef0d5f",
+    "PLAN/2new_world/Go2_push/attempt_08/training_evidence_through_gen05.json": "3d765341fa31dfa33438f1fe8d3e2be9eb827a23082a6820364055be6571da65",
+    "PLAN/2new_world/Go2_push/attempt_08/session/final_confirmation/plan.json": "c0b93aa39873e1b82d1532c73f36a2f2d682f1966ceb4867888c03f05f9d5002",
+    "PLAN/2new_world/Go2_push/attempt_08/session/final_confirmation/reservation.json": "54210c56a6f451c30e4d118699d5020f0b8a13c445f3d50fb385bf41c7f8c102",
+    "PLAN/2new_world/Go2_push/attempt_08/session/final_confirmation/result.json": "dfaaa679f6ef38058bac4dbc0cbf204dd684ea480469e1a3402f5873230a957c",
+    "PLAN/2new_world/Go2_push/attempt_08/session/session_genesis.json": "15d54f658aa68263401f8e11fd5046ad5e3b181089fd05bb975144c9e953c837",
+    "PLAN/2new_world/Go2_push/attempt_08/session/ledger.jsonl": "3a80ad9c5ba01edee08a59462639df62996950508d619306f0e2c1b9867b8b2f",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/final_confirmation/genesis/eval/sealed_validation/summary.json": "174a8873a0412d03d3cc711be60e15055382ed5aef261ee5ccbbeaec80b74b9e",
+    "PLAN/2new_world/Go2_push/attempt_08/session/final_confirmation/phase_receipts/genesis/fa0bc5b4b39dfe8d0fe9bf7731e55968c44c981c788ed4bd27ad52645649f949/eval_phases/sealed_validation.json": "39f287c34e8420700137480d8743606a665e4004e5fb28c6223e9723f24e0b8b",
+    "PLAN/2new_world/Go2_push/attempt_08/session/final_confirmation/phase_receipts/genesis/fa0bc5b4b39dfe8d0fe9bf7731e55968c44c981c788ed4bd27ad52645649f949/contract.json": "21eb7b0224cdd0c3e6556edb4cbdc93ba03721a1e2e722c4019bb9f79b94650f",
+    "PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/66af325590201854d6406d17/attempt_00.result.json": "5245cf59d4609a9a83235974518d5b9871dcd64cd8dfce5e14dd9a27e7930e30",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08/eval/sealed_validation/summary.json": "1ec4b6d1773ff357056f40848ef3db1f03fd18f6ac4ae1fa0493434e1b7ed58e",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/final_confirmation/final/eval/sealed_validation/summary.json": "7c954d467fe14bb195782a20612c6646be547cc4db8e8d801760661748ed50b7",
+    "PLAN/2new_world/Go2_push/attempt_08/session/final_confirmation/phase_receipts/final/b5b788b8e29fe705dd56905c62c953eb6b687fb8b403f81700ebfecf100417c9/eval_phases/sealed_validation.json": "417edec7a7c5fc90bec6b4320f6b39e428058f334410bd66f1338c9cc14cdf73",
+    "PLAN/2new_world/Go2_push/attempt_08/session/final_confirmation/phase_receipts/final/b5b788b8e29fe705dd56905c62c953eb6b687fb8b403f81700ebfecf100417c9/contract.json": "0908c926d97448769c61f9afe69ea65fbf1770f7365709b0748a2e900aa8abb3",
+    "PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/379aeed4f438093a66842bc7/attempt_00.result.json": "5744c195e52108d2fa6d55059ed3200c32db4fc9fba17353e5518535af375879",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-004-lane-b/eval/sealed_validation/summary.json": "3588f26479ae557562215566bd5c2209412e6b1fb304d6b63d31ddde5a227469"
+  }
+}

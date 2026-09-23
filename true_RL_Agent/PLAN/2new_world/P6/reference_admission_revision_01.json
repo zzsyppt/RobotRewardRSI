@@ -1,0 +1,114 @@
+{
+  "status": "PASS",
+  "scope": "Admission-policy reassessment of existing public-dev measurements, not new physics or full reference qualification. Original evidence files remain unchanged.",
+  "robots": {
+    "g1": {
+      "episodes": 192,
+      "successes": 33,
+      "old_policy_gate": {
+        "status": "fail",
+        "qualification_contract_hash": "89db44c2bce51b713588be27b484018c85327f20b0dbc6fbc93ee639073f2892",
+        "public_dev_score": 0.171875,
+        "public_dev_reference_band": [
+          0.2,
+          0.9
+        ],
+        "recovery_evidence_status": "pass"
+      },
+      "new_policy_gate": {
+        "status": "pass",
+        "qualification_contract_hash": "beb7e2e5aae814e836ad9b404af56546bd36d9fdcdbd104f7dfc279b5253b4b5",
+        "public_dev_score": 0.171875,
+        "reference_admission_policy": "observed_outcomes_v1",
+        "recovery_evidence_status": "pass"
+      },
+      "old_manifest_hash": "795cfd32eb558684f21dbc66d70c0f0e32f3c76cea3e01409db47c1b2ac7cee8",
+      "new_manifest_hash": "ac233db03baf0da76198bcf3eb8241bb6d9796769afa8dbf3f6a55784318702a",
+      "new_contract": {
+        "schema_version": "true_rl_agent.task.push_recovery.reference_capability.v3",
+        "scope": "standing_recovery_task_and_reference",
+        "score_source": "public_accept.score_stats.mean",
+        "required_gates": [
+          "accept_evidence_gate",
+          "budget_accounting",
+          "recovery_evidence_gate",
+          "sealed_validation_gate"
+        ],
+        "train_budget_steps": 49152000,
+        "evaluation_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+        "recovery_protocol_hash": "522b4ed4aeefeaf694c89364463adb895dc2f779d5fbe708ae0f995df048812c",
+        "independent_validation": {
+          "schema_version": "true_rl_agent.push_recovery.validation.v2",
+          "distribution_relation": "same_balanced_magnitude_and_direction_distribution_independent_seeds",
+          "max_public_to_sealed_score_drop": 0.1,
+          "validation_feedback": "status_only"
+        },
+        "admission_policy": "observed_outcomes_v1",
+        "automatic_capability_evidence": "observed_public_dev_successes_and_failures",
+        "public_accept_capability_evidence": "observed_successful_recovery",
+        "saturation_assessment": "inspect_public_dev_strata_and_outcomes_without_a_fixed_rate_band"
+      },
+      "same_training_dynamics": true,
+      "same_evaluation_dynamics": true,
+      "measurement_files": {
+        "PLAN\\2new_world\\P6\\force_unified_01\\g1_public_dev_03\\seed_01.json": "ffe59bfb94f786c7887b8d94cde6c8f6d8554cb51c15ff5376c57224066c773a",
+        "PLAN\\2new_world\\P6\\force_unified_01\\g1_public_dev_03\\seed_02.json": "0b29319a998e70233356249018d24c30b0b8e5766d170c267ef985b2d7fb0936",
+        "PLAN\\2new_world\\P6\\force_unified_01\\g1_public_dev_03\\seed_03.json": "d143027ee121af4e9f7b79e000e2257d5918af2bbb4976edfbf9aeb4cc72c895"
+      }
+    },
+    "go2": {
+      "episodes": 192,
+      "successes": 141,
+      "old_policy_gate": {
+        "status": "pass",
+        "qualification_contract_hash": "89db44c2bce51b713588be27b484018c85327f20b0dbc6fbc93ee639073f2892",
+        "public_dev_score": 0.734375,
+        "public_dev_reference_band": [
+          0.2,
+          0.9
+        ],
+        "recovery_evidence_status": "pass"
+      },
+      "new_policy_gate": {
+        "status": "pass",
+        "qualification_contract_hash": "beb7e2e5aae814e836ad9b404af56546bd36d9fdcdbd104f7dfc279b5253b4b5",
+        "public_dev_score": 0.734375,
+        "reference_admission_policy": "observed_outcomes_v1",
+        "recovery_evidence_status": "pass"
+      },
+      "old_manifest_hash": "c0fc5eb506d1af528feed4cc4de53beaeff0f13e72aef16e4e4e721e9b8e0783",
+      "new_manifest_hash": "fb8a03c7df15a8b6ff1033be284d60d323fc5846b127f2042d34f7d60f75bf6e",
+      "new_contract": {
+        "schema_version": "true_rl_agent.task.push_recovery.reference_capability.v3",
+        "scope": "standing_recovery_task_and_reference",
+        "score_source": "public_accept.score_stats.mean",
+        "required_gates": [
+          "accept_evidence_gate",
+          "budget_accounting",
+          "recovery_evidence_gate",
+          "sealed_validation_gate"
+        ],
+        "train_budget_steps": 49152000,
+        "evaluation_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+        "recovery_protocol_hash": "522b4ed4aeefeaf694c89364463adb895dc2f779d5fbe708ae0f995df048812c",
+        "independent_validation": {
+          "schema_version": "true_rl_agent.push_recovery.validation.v2",
+          "distribution_relation": "same_balanced_magnitude_and_direction_distribution_independent_seeds",
+          "max_public_to_sealed_score_drop": 0.1,
+          "validation_feedback": "status_only"
+        },
+        "admission_policy": "observed_outcomes_v1",
+        "automatic_capability_evidence": "observed_public_dev_successes_and_failures",
+        "public_accept_capability_evidence": "observed_successful_recovery",
+        "saturation_assessment": "inspect_public_dev_strata_and_outcomes_without_a_fixed_rate_band"
+      },
+      "same_training_dynamics": true,
+      "same_evaluation_dynamics": true,
+      "measurement_files": {
+        "PLAN\\2new_world\\P6\\force_unified_01\\go2_public_dev_03\\seed_01.json": "bfec7f38a51076b73abf89767ff6d4512185288fc60ac07c657aa23ea5dc2f85",
+        "PLAN\\2new_world\\P6\\force_unified_01\\go2_public_dev_03\\seed_02.json": "51985a553ba19cda0b5244ac59e4ed4823b656f01cdf71fc37bce775243c8a15",
+        "PLAN\\2new_world\\P6\\force_unified_01\\go2_public_dev_03\\seed_03.json": "08073124609f0de034ba92ac393fb111196fd54c47f7b69b125045f3663d2e18"
+      }
+    }
+  }
+}

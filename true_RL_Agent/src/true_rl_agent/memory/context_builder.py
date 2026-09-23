@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
@@ -30,6 +31,7 @@ from true_rl_agent.evaluation.binding import (
     require_sha256_digest,
 )
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
+from true_rl_agent.evaluation.phased_adapter import PhasedEvaluationAdapter
 from true_rl_agent.evaluation.public_result import PublicEvalResult
 from true_rl_agent.memory.records import ExperimentRecord, PromptPayloadRef
 from true_rl_agent.memory.task_adapter import TaskMemoryAdapter
@@ -138,9 +140,11 @@ class PublicContextBuilder:
         ledger_authoring_mode: str = NON_PROVIDER_AUTHORING_MODE,
         expected_ledger_epoch_hash: str | None = None,
         generation_session_contract: GenerationSessionContract | None = None,
+        phased_evaluation_adapter: PhasedEvaluationAdapter | None = None,
     ) -> None:
         self.task_memory_adapter = task_memory_adapter
         self.task_prompt_adapter = task_prompt_adapter
+        self.phased_evaluation_adapter = phased_evaluation_adapter
         self.acceptance_protocol = acceptance_protocol
         self.initial_current_best = initial_current_best
         self.session_genesis_hash = session_genesis_hash
@@ -194,6 +198,7 @@ class PublicContextBuilder:
         frame_kind: str | None = None,
         authoring_capability_readiness: Mapping[str, Mapping[str, Any]] | None = None,
         candidate_verifier_prompt_rules: Mapping[str, Any] | None = None,
+        recoverable_sources: tuple[Mapping[str, Any], ...] = (),
     ) -> PublicPromptBuild:
         prepared = self._prepare_records(records)
         experiment_records, history = prepared
@@ -246,6 +251,7 @@ class PublicContextBuilder:
             ]
 
         provider_payload = build_prompt_payload(
+            recoverable_sources=recoverable_sources,
             public_context=sanitize_prompt_public_context(provider_context),
             frame_kind=frame_kind,
             authoring_capability_readiness=authoring_capability_readiness,
@@ -336,6 +342,7 @@ class PublicContextBuilder:
             ),
             expected_authoring_mode=self.ledger_authoring_mode,
             expected_ledger_epoch_hash=self.expected_ledger_epoch_hash,
+            phased_evaluation_adapter=self.phased_evaluation_adapter,
         )
 
     def _validated_exploration_history(
@@ -579,8 +586,10 @@ def _project_prompt_public_history(
     )
     if callable(projector):
         projection = projector(
-            public_records=public_records,
-            initial_anchor_public_evidence=initial_anchor_public_evidence,
+            # A task view must not mutate the validated history used by source
+            # resolution, exploration or the authority comparison below.
+            public_records=deepcopy(public_records),
+            initial_anchor_public_evidence=deepcopy(initial_anchor_public_evidence),
         )
     else:
         projection = PromptPublicHistoryProjection(

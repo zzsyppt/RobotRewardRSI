@@ -1,0 +1,185 @@
+{
+  "actual_training": [
+    {
+      "control_steps": 24,
+      "env_transitions": 384,
+      "excluded_preflight_steps": 0,
+      "latest_checkpoint_iteration": 2
+    },
+    {
+      "control_steps": 24,
+      "env_transitions": 384,
+      "excluded_preflight_steps": 0,
+      "latest_checkpoint_iteration": 2
+    }
+  ],
+  "archive_identity": {
+    "backend_execution_environment_verification": {
+      "actual_manifest_hash": "bf347ace6d0f82458d28bd772b72c88e20d65b7b05dbaff7f1bc14d220822c2b",
+      "backend_id": "isaac_lab_rsl_rl",
+      "expected_manifest_hash": "bf347ace6d0f82458d28bd772b72c88e20d65b7b05dbaff7f1bc14d220822c2b",
+      "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+      "status": "pass"
+    },
+    "initial_policy_state_hash": "5bdcdcb71321b8e1964a04822aa2105c33616cd55d2544b1a6ae37efeb42cc66",
+    "initialization": "random",
+    "initialization_checkpoint_sha256": null,
+    "job": {
+      "job_id": "training-numeric-smoke-push-train",
+      "subject_id": "push_standing_recovery_stationary_reference_v3",
+      "subject_kind": "reference",
+      "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+      "task_id": "unitree_push_recovery"
+    },
+    "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+    "resolved_cell_identity": {
+      "cell_variant_id": "push.g1_37dof.recovery_v3",
+      "environment_id": "push_recovery_environment_v3",
+      "resolved_cell_task_protocol_hash": "c6d7a5c47234339017422484fdd453ce72cedb853734871cbbfc45ca26db048d",
+      "robot_profile_id": "unitree_g1_37dof_isaaclab_v2",
+      "robot_task_binding_id": "push_g1_37dof_recovery_v3_binding_v3",
+      "robot_task_cell_id": "unitree_push_recovery.g1_37dof_v3",
+      "runtime_adapter_id": "g1_37dof_isaaclab_adapter_v2"
+    },
+    "resolved_cell_manifest_hash": "71cc7c764f72d8f864a9b392d191d9f8d9c5fbc9829f04076fb1ea4732ceac58",
+    "run_dir": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_g1_on/run/attempt-1c7e73cc2e37458da342b62f66d07c3c",
+    "task": "push_recovery",
+    "task_protocol_hash": "c6d7a5c47234339017422484fdd453ce72cedb853734871cbbfc45ca26db048d",
+    "train_attempt_id": "1c7e73cc2e37458da342b62f66d07c3c",
+    "training_binding_hash": "a0cf199bd1ccea6fd3e0b5309f0d9e1d2d3576cb39acfbba76c14902b273d7cf",
+    "training_seed": 42
+  },
+  "cell_variant_id": "push.g1_37dof.recovery_v3",
+  "checkpoint_states": {
+    "checkpoint_iteration_equal": true,
+    "checkpoint_iterations": [
+      2,
+      2
+    ],
+    "file_hash_equal": true,
+    "first_mismatches": [],
+    "load_mode": "torch.load(map_location=cpu, weights_only=True)",
+    "mismatch_count": 0,
+    "model_keys": [
+      "actor_state_dict",
+      "critic_state_dict"
+    ],
+    "model_optimizer_exact": true,
+    "model_tensors": 17,
+    "optimizer_keys": [
+      "optimizer_state_dict"
+    ],
+    "optimizer_tensors": 51,
+    "other_top_level_metadata_excluded": [
+      "infos"
+    ]
+  },
+  "checks": {
+    "actual_training_steps": true,
+    "archive_backend_identity": true,
+    "archive_cell_identity": true,
+    "archive_initial_policy_identity": true,
+    "archive_program_identity": true,
+    "archive_training_binding_identity": true,
+    "checkpoint_files_match_training_receipts": true,
+    "checkpoint_iteration_equal": true,
+    "completed_on_off": true,
+    "coverage_equals_sealed_manifest": true,
+    "execution_argv_only_capture_and_outputs_differ": true,
+    "final_checkpoint_iteration": true,
+    "initial_policy_hash_equal": true,
+    "model_optimizer_exact": true,
+    "numeric_archive_within_2_gib": true,
+    "numeric_chunks_within_64_mib": true,
+    "off_capture_disabled": true,
+    "on_receipt_equals_archive_reference": true,
+    "paired_device": true,
+    "paired_diagnostic_workload": true,
+    "paired_extra_rss_within_512_mib": true,
+    "paired_program_source_checksum": true,
+    "paired_source_argv_sha256": true,
+    "paired_subject_kind": true,
+    "paired_task": true,
+    "planned_and_observed_control_steps": true,
+    "preflight_excluded": true,
+    "runtime_reward_observations_equal": true,
+    "sample_count_equals_coverage": true,
+    "summary_files_match_driver_receipts": true,
+    "three_windows_exact": true
+  },
+  "cost": {
+    "added_numeric_archive_bytes": 115556,
+    "cost_is_single_pair_observation_not_overhead_estimate": true,
+    "max_chunk_raw_bytes": 960,
+    "max_rss_bytes_delta": -40284160,
+    "numeric_raw_bytes": 23232,
+    "off_output_tree_bytes": 16759736,
+    "off_wall_seconds": 18.364759881049395,
+    "on_output_tree_bytes": 16884943,
+    "on_wall_seconds": 18.311008231714368,
+    "output_tree_bytes_delta": 125207,
+    "resource_budget_checks": {
+      "numeric_archive_within_2_gib": true,
+      "numeric_chunks_within_64_mib": true,
+      "paired_extra_rss_within_512_mib": true
+    },
+    "resource_limits_bytes": {
+      "archive": 2147483648,
+      "paired_extra_rss": 536870912,
+      "raw_chunk": 67108864
+    },
+    "rss": {
+      "off": {
+        "elapsed_s": 18.53,
+        "max_rss_bytes": 5199761408,
+        "scope": "GNU time per-process high-water RSS including waited children; not sum of simultaneous process-tree RSS",
+        "source": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_g1_off.time",
+        "source_sha256": "sha256:41e3f580d10fa831e310c3728d8a35d54c060d1787ef857fc6746548bc4b67a7",
+        "status": "OBSERVED"
+      },
+      "on": {
+        "elapsed_s": 18.5,
+        "max_rss_bytes": 5159477248,
+        "scope": "GNU time per-process high-water RSS including waited children; not sum of simultaneous process-tree RSS",
+        "source": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_g1_on.time",
+        "source_sha256": "sha256:473ff72d4fba9c01505a175c81408c1845d06ab7fbb23ed9171104d4b24b8748",
+        "status": "OBSERVED"
+      }
+    },
+    "training_wall_ratio_is_observation_only": true,
+    "wall_ratio": 0.9970731090586982,
+    "wall_scope": "whole driver including child startup, training, teardown and numeric verification; not isolated training throughput",
+    "wall_seconds_delta": -0.05375164933502674
+  },
+  "failed_checks": [],
+  "limitations": [
+    "Short diagnostic training only; no policy qualification or scientific benefit claim.",
+    "Exact-state mismatch fails invariance; one uncontrolled GPU pair cannot attribute causation to capture."
+  ],
+  "numeric_and_training_invariance_pass": true,
+  "off_dir": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_g1_off",
+  "on_dir": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_g1_on",
+  "sampled_reward_recompute": {
+    "coverage_matches": true,
+    "identity_matches": true,
+    "observed_training_env_transitions": 384,
+    "planned_training_env_transitions": 384,
+    "ppo_post_manager_reward_observed": false,
+    "raw_weighted_sum_arithmetic_matches": true,
+    "tolerance": {
+      "atol": 1e-06,
+      "rtol": 1e-06
+    },
+    "verified_chunks": 25,
+    "verified_sampled_control_steps": 24,
+    "verified_sampled_env_transitions": 384
+  },
+  "schema_version": "true_rl_agent.p2.training_pair_check.v1",
+  "status": "PASS",
+  "task": "push",
+  "full_report": {
+    "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_push_g1_verification.json",
+    "bytes": 7219,
+    "sha256": "916c74e70664d31ae77d78ae0e37137334d93e0a1b42f92bf4082f10c95bb3f3"
+  }
+}

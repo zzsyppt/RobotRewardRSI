@@ -1,0 +1,1903 @@
+custom-source-policy
+custom-source-policy
+custom-source-policy
+custom-source-policy
+custom-source-policy
+======================================================================
+ERROR: test_neutral_prompt_adapter_carries_task_memory_in_canonical_feedback_only (tests.unit.test_task_prompt_adapter.TaskPromptAdapterTests.test_neutral_prompt_adapter_carries_task_memory_in_canonical_feedback_only)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_task_prompt_adapter.py", line 55, in test_neutral_prompt_adapter_carries_task_memory_in_canonical_feedback_only
+    ).build_prompt_payload([])
+      ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_non_push_full_prompt_payload_does_not_expose_push_reward_inputs (tests.unit.test_task_prompt_adapter.TaskPromptAdapterTests.test_non_push_full_prompt_payload_does_not_expose_push_reward_inputs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_task_prompt_adapter.py", line 86, in test_non_push_full_prompt_payload_does_not_expose_push_reward_inputs
+    payload = PublicContextBuilder(task_prompt_adapter=NonPushTaskPlugin().prompt_adapter()).build_prompt_payload([])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_public_context_builder_includes_sanitized_task_prompt_sections (tests.unit.test_task_prompt_adapter.TaskPromptAdapterTests.test_public_context_builder_includes_sanitized_task_prompt_sections)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_task_prompt_adapter.py", line 138, in test_public_context_builder_includes_sanitized_task_prompt_sections
+    payload = PublicContextBuilder(task_prompt_adapter=CustomTaskPromptAdapter()).build_prompt_payload(records)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_direct_prompt_payload_public_history_is_still_bounded (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_direct_prompt_payload_public_history_is_still_bounded)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 2119, in test_direct_prompt_payload_public_history_is_still_bounded
+    payload = assemble_prompt_payload(
+              ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\payload.py", line 172, in build_prompt_payload
+    source_sections = _source_prompt_sections(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\payload.py", line 269, in _source_prompt_sections
+    defaults = default_prompt_source_sections()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 275, in default_prompt_source_sections
+    return build_prompt_source_context([])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 110, in build_prompt_source_context
+    return build_prompt_source_context_from_projected(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_direct_prompt_payload_public_history_uses_fixed_allowlist (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_direct_prompt_payload_public_history_uses_fixed_allowlist)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 1923, in test_direct_prompt_payload_public_history_uses_fixed_allowlist
+    payload = assemble_prompt_payload(
+              ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\payload.py", line 172, in build_prompt_payload
+    source_sections = _source_prompt_sections(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\payload.py", line 269, in _source_prompt_sections
+    defaults = default_prompt_source_sections()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 275, in default_prompt_source_sections
+    return build_prompt_source_context([])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 110, in build_prompt_source_context
+    return build_prompt_source_context_from_projected(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_experiment_memory_keeps_objective_and_guard_scores_unambiguous (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_experiment_memory_keeps_objective_and_guard_scores_unambiguous)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 1549, in test_experiment_memory_keeps_objective_and_guard_scores_unambiguous
+    payload = PublicContextBuilder().build_prompt_payload([])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_experiment_memory_keeps_salient_late_components (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_experiment_memory_keeps_salient_late_components)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 1588, in test_experiment_memory_keeps_salient_late_components
+    payload = PublicContextBuilder().build_prompt_payload([record])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_invalid_declared_accept_is_fail_closed_in_public_history (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_invalid_declared_accept_is_fail_closed_in_public_history)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 651, in test_invalid_declared_accept_is_fail_closed_in_public_history
+    public_history = PublicContextBuilder().build_prompt_payload([record])[
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_prompt_experiment_memory_retains_bounded_component_lessons (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_experiment_memory_retains_bounded_component_lessons)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 1438, in test_prompt_experiment_memory_retains_bounded_component_lessons
+    payload = PublicContextBuilder().build_prompt_payload(records)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_prompt_public_history_does_not_relabel_eval_isolation_as_training_failure (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_does_not_relabel_eval_isolation_as_training_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 1127, in test_prompt_public_history_does_not_relabel_eval_isolation_as_training_failure
+    entry = PublicContextBuilder().build_prompt_payload([record])["public_history"][
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_prompt_public_history_does_not_treat_checkpoint_eval_as_training_load_failure (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_does_not_treat_checkpoint_eval_as_training_load_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 1042, in test_prompt_public_history_does_not_treat_checkpoint_eval_as_training_load_failure
+    payload = PublicContextBuilder().build_prompt_payload([record])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_prompt_public_history_is_count_and_byte_bounded (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_is_count_and_byte_bounded)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 1387, in test_prompt_public_history_is_count_and_byte_bounded
+    payload = PublicContextBuilder().build_prompt_payload(records)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_prompt_public_history_keeps_bounded_eval_feedback_summaries (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_keeps_bounded_eval_feedback_summaries)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 2090, in test_prompt_public_history_keeps_bounded_eval_feedback_summaries
+    payload = PublicContextBuilder().build_prompt_payload([best_record, record])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_prompt_public_history_keeps_failed_gates_without_task_metric_semantics (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_keeps_failed_gates_without_task_metric_semantics)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 2000, in test_prompt_public_history_keeps_failed_gates_without_task_metric_semantics
+    payload = PublicContextBuilder().build_prompt_payload([record])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_prompt_public_history_preserves_missing_runtime_activation_as_not_available (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_preserves_missing_runtime_activation_as_not_available)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 990, in test_prompt_public_history_preserves_missing_runtime_activation_as_not_available
+    payload = PublicContextBuilder().build_prompt_payload([record])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_prompt_public_history_preserves_omitted_detail_count_across_recompaction (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_preserves_omitted_detail_count_across_recompaction)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 1257, in test_prompt_public_history_preserves_omitted_detail_count_across_recompaction
+    raw_payload = PublicContextBuilder().build_prompt_payload(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_prompt_public_history_projects_bounded_source_request_feedback (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_projects_bounded_source_request_feedback)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 1179, in test_prompt_public_history_projects_bounded_source_request_feedback
+    payload = PublicContextBuilder().build_prompt_payload(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_prompt_public_history_projects_provider_repair_failure (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_projects_provider_repair_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 1163, in test_prompt_public_history_projects_provider_repair_failure
+    payload = PublicContextBuilder().build_prompt_payload([record])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_prompt_public_history_projects_runtime_and_error_evidence (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_projects_runtime_and_error_evidence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 942, in test_prompt_public_history_projects_runtime_and_error_evidence
+    payload = PublicContextBuilder().build_prompt_payload([record])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_prompt_public_history_uses_runtime_gate_not_eval_isolation_for_training_activation (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_prompt_public_history_uses_runtime_gate_not_eval_isolation_for_training_activation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 1090, in test_prompt_public_history_uses_runtime_gate_not_eval_isolation_for_training_activation
+    payload = PublicContextBuilder().build_prompt_payload([record])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_public_context_builder_accepts_raw_mapping_records (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_public_context_builder_accepts_raw_mapping_records)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 857, in test_public_context_builder_accepts_raw_mapping_records
+    payload = PublicContextBuilder().build_prompt_payload([record])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_public_context_builder_saves_public_only_prompt_payload (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_public_context_builder_saves_public_only_prompt_payload)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 684, in test_public_context_builder_saves_public_only_prompt_payload
+    prompt_build = builder.build_prompt(records)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_public_history_labels_bound_score_source (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_public_history_labels_bound_score_source)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 427, in test_public_history_labels_bound_score_source
+    public_history = PublicContextBuilder().build_prompt_payload([record])[
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_static_authoring_failure_feedback_overrides_stale_attempt_repair_feedback (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_static_authoring_failure_feedback_overrides_stale_attempt_repair_feedback)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 1354, in test_static_authoring_failure_feedback_overrides_stale_attempt_repair_feedback
+    payload = PublicContextBuilder().build_prompt_payload([record])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_task_projection_separates_provider_score_from_acceptance_score (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_task_projection_separates_provider_score_from_acceptance_score)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 495, in test_task_projection_separates_provider_score_from_acceptance_score
+    ).build_prompt_payload([record])
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_unbound_public_score_does_not_enter_next_round_history (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_unbound_public_score_does_not_enter_next_round_history)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 408, in test_unbound_public_score_does_not_enter_next_round_history
+    public_history = builder.build_prompt_payload([valid, forged])["public_history"]
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_validated_exploration_projection_is_scrubbed_before_final_prompt (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_validated_exploration_projection_is_scrubbed_before_final_prompt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 839, in test_validated_exploration_projection_is_scrubbed_before_final_prompt
+    ).build_prompt_payload([])
+      ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_bootstrap_anchor_keeps_best_observed_source_not_worse_latest_source (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_bootstrap_anchor_keeps_best_observed_source_not_worse_latest_source)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 930, in test_bootstrap_anchor_keeps_best_observed_source_not_worse_latest_source
+    payload = PublicContextBuilder().build_prompt_payload(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_candidate_components_symlink_is_rejected_before_resolving_target (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_candidate_components_symlink_is_rejected_before_resolving_target)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 1256, in test_candidate_components_symlink_is_rejected_before_resolving_target
+    public_context=build_prompt_source_context(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 205, in build_prompt_source_context
+    return _build_prompt_source_context(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 110, in build_prompt_source_context
+    return build_prompt_source_context_from_projected(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_contradictory_accept_does_not_become_current_best_lineage (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_contradictory_accept_does_not_become_current_best_lineage)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 387, in test_contradictory_accept_does_not_become_current_best_lineage
+    payload = PublicContextBuilder().build_prompt_payload([record])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_cross_round_mutable_failed_directory_is_not_a_source_authority (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_cross_round_mutable_failed_directory_is_not_a_source_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 778, in test_cross_round_mutable_failed_directory_is_not_a_source_authority
+    public_context=build_prompt_source_context([record])
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 205, in build_prompt_source_context
+    return _build_prompt_source_context(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 110, in build_prompt_source_context
+    return build_prompt_source_context_from_projected(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_current_best_and_latest_evaluated_reject_sources_are_both_available (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_current_best_and_latest_evaluated_reject_sources_are_both_available)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 1196, in test_current_best_and_latest_evaluated_reject_sources_are_both_available
+    payload = PublicContextBuilder().build_prompt_payload(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_current_best_source_is_inlined_from_replay_head_without_path_leakage (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_current_best_source_is_inlined_from_replay_head_without_path_leakage)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 318, in test_current_best_source_is_inlined_from_replay_head_without_path_leakage
+    payload = PublicContextBuilder().build_prompt_payload(records)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_latest_evaluated_reject_exposes_source_for_next_round_repair (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_latest_evaluated_reject_exposes_source_for_next_round_repair)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 820, in test_latest_evaluated_reject_exposes_source_for_next_round_repair
+    public_context=build_prompt_source_context([record])
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 205, in build_prompt_source_context
+    return _build_prompt_source_context(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 110, in build_prompt_source_context
+    return build_prompt_source_context_from_projected(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_latest_failed_source_can_inline_without_accepted_lineage (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_latest_failed_source_can_inline_without_accepted_lineage)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 632, in test_latest_failed_source_can_inline_without_accepted_lineage
+    context = build_prompt_source_context([], latest_failed_candidate=failed_candidate)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 205, in build_prompt_source_context
+    return _build_prompt_source_context(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 110, in build_prompt_source_context
+    return build_prompt_source_context_from_projected(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_latest_runtime_failed_record_exposes_failed_source_without_public_path (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_latest_runtime_failed_record_exposes_failed_source_without_public_path)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 734, in test_latest_runtime_failed_record_exposes_failed_source_without_public_path
+    payload = build_prompt_payload(public_context=build_prompt_source_context([record]))
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 205, in build_prompt_source_context
+    return _build_prompt_source_context(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 110, in build_prompt_source_context
+    return build_prompt_source_context_from_projected(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_no_accepted_records_exports_pending_source_catalog_and_none_lineage (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_no_accepted_records_exports_pending_source_catalog_and_none_lineage)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 236, in test_no_accepted_records_exports_pending_source_catalog_and_none_lineage
+    payload = PublicContextBuilder().build_prompt_payload([])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_non_utf8_current_best_source_is_unavailable_not_crashing_prompt_build (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_non_utf8_current_best_source_is_unavailable_not_crashing_prompt_build)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 550, in test_non_utf8_current_best_source_is_unavailable_not_crashing_prompt_build
+    payload = PublicContextBuilder().build_prompt_payload(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_non_utf8_latest_failed_source_is_unavailable_not_crashing_prompt_build (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_non_utf8_latest_failed_source_is_unavailable_not_crashing_prompt_build)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 663, in test_non_utf8_latest_failed_source_is_unavailable_not_crashing_prompt_build
+    public_context=build_prompt_source_context([], latest_failed_candidate=failed_candidate)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 205, in build_prompt_source_context
+    return _build_prompt_source_context(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 110, in build_prompt_source_context
+    return build_prompt_source_context_from_projected(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_over_read_budget_current_best_source_is_never_read_for_hashing (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_over_read_budget_current_best_source_is_never_read_for_hashing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 1438, in test_over_read_budget_current_best_source_is_never_read_for_hashing
+    payload = PublicContextBuilder().build_prompt_payload(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_oversized_current_best_source_is_omitted_but_hash_and_summary_remain (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_oversized_current_best_source_is_omitted_but_hash_and_summary_remain)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 526, in test_oversized_current_best_source_is_omitted_but_hash_and_summary_remain
+    payload = PublicContextBuilder().build_prompt_payload(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_oversized_latest_failed_source_is_rejected_by_package_boundary (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_oversized_latest_failed_source_is_rejected_by_package_boundary)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 1296, in test_oversized_latest_failed_source_is_rejected_by_package_boundary
+    public_context=build_prompt_source_context(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 205, in build_prompt_source_context
+    return _build_prompt_source_context(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 110, in build_prompt_source_context
+    return build_prompt_source_context_from_projected(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_prior_ledger_reject_does_not_compact_a_new_truncation_repair (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_prior_ledger_reject_does_not_compact_a_new_truncation_repair)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 879, in test_prior_ledger_reject_does_not_compact_a_new_truncation_repair
+    prompt = PublicContextBuilder().build_prompt(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_prompt_payload_rejects_bootstrap_anchor_with_policy_best_authority (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_prompt_payload_rejects_bootstrap_anchor_with_policy_best_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 1410, in test_prompt_payload_rejects_bootstrap_anchor_with_policy_best_authority
+    sections = build_prompt_source_context([record])
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 205, in build_prompt_source_context
+    return _build_prompt_source_context(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 110, in build_prompt_source_context
+    return build_prompt_source_context_from_projected(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_prompt_payload_rejects_lineage_source_payload_ref_mismatch (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_prompt_payload_rejects_lineage_source_payload_ref_mismatch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 1361, in test_prompt_payload_rejects_lineage_source_payload_ref_mismatch
+    sections = build_prompt_source_context(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 205, in build_prompt_source_context
+    return _build_prompt_source_context(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 110, in build_prompt_source_context
+    return build_prompt_source_context_from_projected(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_prompt_payload_rejects_source_payload_hash_or_byte_mismatch (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_prompt_payload_rejects_source_payload_hash_or_byte_mismatch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 1345, in test_prompt_payload_rejects_source_payload_hash_or_byte_mismatch
+    sections = build_prompt_source_context(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 205, in build_prompt_source_context
+    return _build_prompt_source_context(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 110, in build_prompt_source_context
+    return build_prompt_source_context_from_projected(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_prompt_payload_rejects_source_payload_outside_catalog (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_prompt_payload_rejects_source_payload_outside_catalog)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 1319, in test_prompt_payload_rejects_source_payload_outside_catalog
+    build_prompt_payload(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\payload.py", line 172, in build_prompt_payload
+    source_sections = _source_prompt_sections(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\payload.py", line 269, in _source_prompt_sections
+    defaults = default_prompt_source_sections()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 275, in default_prompt_source_sections
+    return build_prompt_source_context([])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 110, in build_prompt_source_context
+    return build_prompt_source_context_from_projected(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_prompt_payload_requires_lineage_objective_score_source (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_prompt_payload_requires_lineage_objective_score_source)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 1377, in test_prompt_payload_requires_lineage_objective_score_source
+    sections = build_prompt_source_context(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 205, in build_prompt_source_context
+    return _build_prompt_source_context(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 110, in build_prompt_source_context
+    return build_prompt_source_context_from_projected(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_runtime_failed_source_is_dropped_after_intervening_accept (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_runtime_failed_source_is_dropped_after_intervening_accept)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 1137, in test_runtime_failed_source_is_dropped_after_intervening_accept
+    payload = PublicContextBuilder().build_prompt_payload([failed_record, accepted_record])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_sequence_invalid_accept_cannot_replace_lineage_source (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_sequence_invalid_accept_cannot_replace_lineage_source)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 422, in test_sequence_invalid_accept_cannot_replace_lineage_source
+    payload = PublicContextBuilder().build_prompt_payload(records)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_source_catalog_projects_legacy_sparse_sealed_sources (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_source_catalog_projects_legacy_sparse_sealed_sources) (accepted=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 1549, in test_source_catalog_projects_legacy_sparse_sealed_sources
+    payload = PublicContextBuilder().build_prompt_payload(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_source_catalog_projects_legacy_sparse_sealed_sources (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_source_catalog_projects_legacy_sparse_sealed_sources)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 1574, in test_source_catalog_projects_legacy_sparse_sealed_sources
+    self.assertIn(candidate_id.replace("-", "_"), source["content"])
+                                                  ^^^^^^
+UnboundLocalError: cannot access local variable 'source' where it is not associated with a value
+
+======================================================================
+ERROR: test_task_public_tiebreak_cannot_override_higher_public_score (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_task_public_tiebreak_cannot_override_higher_public_score)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 1092, in test_task_public_tiebreak_cannot_override_higher_public_score
+    ).build_prompt_payload(
+      ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_task_public_tiebreak_selects_better_equal_score_bootstrap_source (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_task_public_tiebreak_selects_better_equal_score_bootstrap_source)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 1009, in test_task_public_tiebreak_selects_better_equal_score_bootstrap_source
+    ).build_prompt_payload(
+      ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 450, in build_prompt_payload
+    return self.build_prompt(
+           ^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_actual_verifier_policy_is_forwarded_to_provider_prompt (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_actual_verifier_policy_is_forwarded_to_provider_prompt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1503, in test_actual_verifier_policy_is_forwarded_to_provider_prompt
+    ).run_round(round_id="round-001", records=[])
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_all_provider_attempts_fail_returns_public_safe_failure_without_candidate (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_all_provider_attempts_fail_returns_public_safe_failure_without_candidate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 2511, in test_all_provider_attempts_fail_returns_public_safe_failure_without_candidate
+    result = loop.run_round(round_id="round-001", records=[])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_authoring_capability_readiness_is_forwarded_to_provider_prompt (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_authoring_capability_readiness_is_forwarded_to_provider_prompt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1569, in test_authoring_capability_readiness_is_forwarded_to_provider_prompt
+    result = loop.run_round(round_id="round-001", records=[])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_component_smoke_advisory_repairs_once_then_allows_training (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_component_smoke_advisory_repairs_once_then_allows_training)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 2800, in test_component_smoke_advisory_repairs_once_then_allows_training
+    ).run_round(round_id="round-001", records=[])
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_component_smoke_failure_repairs_with_failed_source_payload (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_component_smoke_failure_repairs_with_failed_source_payload)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 2746, in test_component_smoke_failure_repairs_with_failed_source_payload
+    result = loop.run_round(round_id="round-001", records=[])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_evaluated_exact_program_repeat_ignores_renaming_without_negative_evidence (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_evaluated_exact_program_repeat_ignores_renaming_without_negative_evidence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 894, in test_evaluated_exact_program_repeat_ignores_renaming_without_negative_evidence
+    ).run_round(round_id="round-repeat", records=[_accepted_record("round-anchor", anchor, 0.31)])
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_evaluated_mechanism_repeat_is_rewritten_before_training (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_evaluated_mechanism_repeat_is_rewritten_before_training)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 2848, in test_evaluated_mechanism_repeat_is_rewritten_before_training
+    result = loop.run_round(
+             ^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_final_attempt_source_request_keeps_same_bounded_round_feedback (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_final_attempt_source_request_keeps_same_bounded_round_feedback)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1786, in test_final_attempt_source_request_keeps_same_bounded_round_feedback
+    ).run_round(round_id="round-001", records=[])
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_interrupted_prompt_consumes_the_sealed_provider_budget (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_interrupted_prompt_consumes_the_sealed_provider_budget)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1276, in test_interrupted_prompt_consumes_the_sealed_provider_budget
+    first.run_round(round_id="round-001", records=[])
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_interrupted_prompt_resumes_only_with_remaining_sealed_budget (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_interrupted_prompt_resumes_only_with_remaining_sealed_budget)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1312, in test_interrupted_prompt_resumes_only_with_remaining_sealed_budget
+    ).run_round(round_id="round-001", records=[])
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_ledger_negative_verifier_equivalence_blocks_renamed_parameter_variant (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_ledger_negative_verifier_equivalence_blocks_renamed_parameter_variant)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 865, in test_ledger_negative_verifier_equivalence_blocks_renamed_parameter_variant
+    ).run_round(round_id="round-repeat", records=records)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_legacy_runtime_failure_without_retryability_keeps_attempt_budget_semantics (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_legacy_runtime_failure_without_retryability_keeps_attempt_budget_semantics)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 2581, in test_legacy_runtime_failure_without_retryability_keeps_attempt_budget_semantics
+    ).run_round(round_id="round-001", records=[])
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_nonretryable_transport_failure_stops_without_burning_attempt_budget (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_nonretryable_transport_failure_stops_without_burning_attempt_budget)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 2536, in test_nonretryable_transport_failure_stops_without_burning_attempt_budget
+    ).run_round(round_id="round-001", records=[])
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_output_truncations_remain_bounded_by_the_round_attempt_budget (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_output_truncations_remain_bounded_by_the_round_attempt_budget)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 2606, in test_output_truncations_remain_bounded_by_the_round_attempt_budget
+    ).run_round(round_id="round-001", records=[])
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_prompt_fails_before_provider_when_verifier_blocks_visible_import (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_prompt_fails_before_provider_when_verifier_blocks_visible_import)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1544, in test_prompt_fails_before_provider_when_verifier_blocks_visible_import
+    loop.run_round(round_id="round-001", records=[])
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_provider_parse_failure_repairs_with_static_frame_and_public_feedback (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_provider_parse_failure_repairs_with_static_frame_and_public_feedback)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1594, in test_provider_parse_failure_repairs_with_static_frame_and_public_feedback
+    result = loop.run_round(round_id="round-001", records=[])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_r10_name_only_repair_keeps_round_initial_mechanism_anchor (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_r10_name_only_repair_keeps_round_initial_mechanism_anchor)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 2125, in test_r10_name_only_repair_keeps_round_initial_mechanism_anchor
+    ).run_round(
+      ^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_r8_shape_resume_skips_interrupted_attempt_and_keeps_truncation_feedback (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_r8_shape_resume_skips_interrupted_attempt_and_keeps_truncation_feedback)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1364, in test_r8_shape_resume_skips_interrupted_attempt_and_keeps_truncation_feedback
+    ).run_round(round_id="round-001", records=[])
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_repeated_source_requests_are_capped_before_candidate_draft (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_repeated_source_requests_are_capped_before_candidate_draft)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1822, in test_repeated_source_requests_are_capped_before_candidate_draft
+    result = loop.run_round(
+             ^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_repeated_source_requests_use_full_round_source_repository_not_followup_subset (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_repeated_source_requests_use_full_round_source_repository_not_followup_subset)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1907, in test_repeated_source_requests_use_full_round_source_repository_not_followup_subset
+    result = loop.run_round(
+             ^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_resume_rejects_changed_authoring_budget_before_provider (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_resume_rejects_changed_authoring_budget_before_provider)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1472, in test_resume_rejects_changed_authoring_budget_before_provider
+    ).run_round(round_id="round-001", records=[])
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_resume_restores_source_budget_feedback_and_followup_state (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_resume_restores_source_budget_feedback_and_followup_state)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1423, in test_resume_restores_source_budget_feedback_and_followup_state
+    ).run_round(round_id="round-001", records=[])
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_resume_restores_verifier_repair_feedback_and_failed_source (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_resume_restores_verifier_repair_feedback_and_failed_source)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1000, in test_resume_restores_verifier_repair_feedback_and_failed_source
+    ).run_round(round_id="round-001", records=[])
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_resumed_static_repair_restores_all_prior_provider_visible_sources (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_resumed_static_repair_restores_all_prior_provider_visible_sources)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 2424, in test_resumed_static_repair_restores_all_prior_provider_visible_sources
+    ).run_round(
+      ^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_retryable_transport_failure_uses_existing_attempt_budget_without_code_repair (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_retryable_transport_failure_uses_existing_attempt_budget_without_code_repair)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 2555, in test_retryable_transport_failure_uses_existing_attempt_budget_without_code_repair
+    ).run_round(round_id="round-001", records=[])
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_smoke_repair_survives_transport_failure_and_durable_resume (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_smoke_repair_survives_transport_failure_and_durable_resume)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 2711, in test_smoke_repair_survives_transport_failure_and_durable_resume
+    CandidateAuthoringLoop(provider=InterruptedTransportProvider(), **kwargs).run_round(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_source_followup_after_verifier_failure_preserves_same_round_failed_source_catalog (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_source_followup_after_verifier_failure_preserves_same_round_failed_source_catalog)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 2318, in test_source_followup_after_verifier_failure_preserves_same_round_failed_source_catalog
+    result = loop.run_round(round_id="round-001", records=[])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_source_repository_drops_stale_inline_slot_when_current_is_pending (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_source_repository_drops_stale_inline_slot_when_current_is_pending)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1116, in test_source_repository_drops_stale_inline_slot_when_current_is_pending
+    first_prompt = builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_source_repository_replaces_changed_inline_slot (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_source_repository_replaces_changed_inline_slot)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1164, in test_source_repository_replaces_changed_inline_slot
+    first_prompt = builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_source_repository_restore_does_not_reinterpret_legacy_lineage (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_source_repository_restore_does_not_reinterpret_legacy_lineage)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1057, in test_source_repository_restore_does_not_reinterpret_legacy_lineage
+    ).run_round(
+      ^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_source_repository_retains_matching_payload_omitted_by_compact_frame (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_source_repository_retains_matching_payload_omitted_by_compact_frame)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1223, in test_source_repository_retains_matching_payload_omitted_by_compact_frame
+    initial_prompt = builder.build_prompt(
+                     ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_source_request_for_unavailable_source_returns_bounded_followup_feedback (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_source_request_for_unavailable_source_returns_bounded_followup_feedback)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1736, in test_source_request_for_unavailable_source_returns_bounded_followup_feedback
+    result = loop.run_round(round_id="round-001", records=[])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_source_request_response_returns_source_followup_before_candidate_draft (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_source_request_response_returns_source_followup_before_candidate_draft)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1661, in test_source_request_response_returns_source_followup_before_candidate_draft
+    result = loop.run_round(
+             ^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_static_repair_payload_keeps_full_failed_source_but_not_draft_context (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_static_repair_payload_keeps_full_failed_source_but_not_draft_context)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1999, in test_static_repair_payload_keeps_full_failed_source_but_not_draft_context
+    ).run_round(
+      ^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_static_repair_source_request_uses_all_prior_provider_visible_sources (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_static_repair_source_request_uses_all_prior_provider_visible_sources)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 2371, in test_static_repair_source_request_uses_all_prior_provider_visible_sources
+    ).run_round(
+      ^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_task_authoring_delta_failure_precedes_component_smoke (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_task_authoring_delta_failure_precedes_component_smoke)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 779, in test_task_authoring_delta_failure_precedes_component_smoke
+    ).run_round(
+      ^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_terminal_provider_failure_resume_does_not_reuse_failed_candidate (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_terminal_provider_failure_resume_does_not_reuse_failed_candidate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 967, in test_terminal_provider_failure_resume_does_not_reuse_failed_candidate
+    ).run_round(round_id="round-001", records=[])
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_terminal_resume_preserves_candidate_metadata_without_provider_call (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_terminal_resume_preserves_candidate_metadata_without_provider_call)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 928, in test_terminal_resume_preserves_candidate_metadata_without_provider_call
+    ).run_round(round_id="round-001", records=[])
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_truncation_after_verifier_failure_preserves_latest_failed_source (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_truncation_after_verifier_failure_preserves_latest_failed_source)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 2640, in test_truncation_after_verifier_failure_preserves_latest_failed_source
+    ).run_round(round_id="round-001", records=[])
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_verifier_failure_repair_uses_latest_failed_source_slot (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_verifier_failure_repair_uses_latest_failed_source_slot)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1946, in test_verifier_failure_repair_uses_latest_failed_source_slot
+    result = loop.run_round(round_id="round-001", records=[])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_verifier_failure_then_provider_failure_keeps_attempt_records_public_safe (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_verifier_failure_then_provider_failure_keeps_attempt_records_public_safe)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 2478, in test_verifier_failure_then_provider_failure_keeps_attempt_records_public_safe
+    result = loop.run_round(round_id="round-001", records=[])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_verifier_repair_instructions_are_specific_to_current_issue (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_verifier_repair_instructions_are_specific_to_current_issue) (issue_kind='name')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 2251, in test_verifier_repair_instructions_are_specific_to_current_issue
+    ).run_round(round_id="round-001", records=[])
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+======================================================================
+ERROR: test_verifier_repair_instructions_are_specific_to_current_issue (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_verifier_repair_instructions_are_specific_to_current_issue) (issue_kind='import')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 2251, in test_verifier_repair_instructions_are_specific_to_current_issue
+    ).run_round(round_id="round-001", records=[])
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 415, in _run_round_locked
+    prompt_build = build_authoring_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 1028, in build_authoring_prompt
+    prompt_build = context_builder.build_prompt(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\memory\context_builder.py", line 220, in build_prompt
+    build_prompt_source_context_from_projected(
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\prompting\source_catalog.py", line 201, in build_prompt_source_context_from_projected
+    latest_nonaccepted = _resolve_latest_failed_record_source(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _resolve_latest_failed_record_source() got an unexpected keyword argument 'expected_candidate'
+
+----------------------------------------------------------------------
+Ran 141 tests in 16.734s
+
+FAILED (errors=97)

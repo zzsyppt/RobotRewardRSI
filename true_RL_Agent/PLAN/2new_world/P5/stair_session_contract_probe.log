@@ -1,0 +1,116 @@
+EEE
+======================================================================
+ERROR: test_stair_early_rejection_sealed_rejection_and_no_selection (tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_early_rejection_sealed_rejection_and_no_selection) (scenario='early_reject')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/data/yuyangliu/AGENT/true_RL_Agent/tests/integration/test_generation_session.py", line 269, in test_stair_early_rejection_sealed_rejection_and_no_selection
+    result = run_generation_session(foundation)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation_application.py", line 238, in run_generation_session
+    return run_bounded_generation_session(foundation, genesis=genesis, cost_journal=journal,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation_session.py", line 291, in run_bounded_generation_session
+    result = execute_fixed_width_generation(generation_inputs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation.py", line 363, in execute_fixed_width_generation
+    _parallel_apply(states, _run_train_lane)
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation.py", line 763, in _parallel_apply
+    future.result()
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation.py", line 793, in _run_train_lane
+    state.train_execution = run_prepared_candidate_train(prepared)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/round.py", line 454, in run_prepared_candidate_train
+    train_receipt_ref = prepared.trial_journal.publish_train(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/trial_receipts.py", line 185, in publish_train
+    _require_train_result_matches_spec(result, train_spec)
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/trial_receipts.py", line 886, in _require_train_result_matches_spec
+    raise ValueError("train receipt runtime diagnostic context mismatch")
+ValueError: train receipt runtime diagnostic context mismatch
+
+======================================================================
+ERROR: test_stair_early_rejection_sealed_rejection_and_no_selection (tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_early_rejection_sealed_rejection_and_no_selection) (scenario='sealed_rejected')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/data/yuyangliu/AGENT/true_RL_Agent/tests/integration/test_generation_session.py", line 269, in test_stair_early_rejection_sealed_rejection_and_no_selection
+    result = run_generation_session(foundation)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation_application.py", line 238, in run_generation_session
+    return run_bounded_generation_session(foundation, genesis=genesis, cost_journal=journal,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation_session.py", line 291, in run_bounded_generation_session
+    result = execute_fixed_width_generation(generation_inputs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation.py", line 363, in execute_fixed_width_generation
+    _parallel_apply(states, _run_train_lane)
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation.py", line 763, in _parallel_apply
+    future.result()
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation.py", line 793, in _run_train_lane
+    state.train_execution = run_prepared_candidate_train(prepared)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/round.py", line 454, in run_prepared_candidate_train
+    train_receipt_ref = prepared.trial_journal.publish_train(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/trial_receipts.py", line 185, in publish_train
+    _require_train_result_matches_spec(result, train_spec)
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/trial_receipts.py", line 886, in _require_train_result_matches_spec
+    raise ValueError("train receipt runtime diagnostic context mismatch")
+ValueError: train receipt runtime diagnostic context mismatch
+
+======================================================================
+ERROR: test_stair_early_rejection_sealed_rejection_and_no_selection (tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_early_rejection_sealed_rejection_and_no_selection) (scenario='no_selection')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/data/yuyangliu/AGENT/true_RL_Agent/tests/integration/test_generation_session.py", line 269, in test_stair_early_rejection_sealed_rejection_and_no_selection
+    result = run_generation_session(foundation)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation_application.py", line 238, in run_generation_session
+    return run_bounded_generation_session(foundation, genesis=genesis, cost_journal=journal,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation_session.py", line 291, in run_bounded_generation_session
+    result = execute_fixed_width_generation(generation_inputs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation.py", line 363, in execute_fixed_width_generation
+    _parallel_apply(states, _run_train_lane)
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation.py", line 763, in _parallel_apply
+    future.result()
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation.py", line 793, in _run_train_lane
+    state.train_execution = run_prepared_candidate_train(prepared)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/round.py", line 454, in run_prepared_candidate_train
+    train_receipt_ref = prepared.trial_journal.publish_train(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/trial_receipts.py", line 185, in publish_train
+    _require_train_result_matches_spec(result, train_spec)
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/trial_receipts.py", line 886, in _require_train_result_matches_spec
+    raise ValueError("train receipt runtime diagnostic context mismatch")
+ValueError: train receipt runtime diagnostic context mismatch
+
+----------------------------------------------------------------------
+Ran 1 test in 106.749s
+
+FAILED (errors=3)

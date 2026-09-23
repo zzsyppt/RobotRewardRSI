@@ -1,0 +1,290 @@
+{
+  "schema_version": "true_rl_agent.p6.force_independent_audit.v1",
+  "status": "PASS",
+  "diagnostic_only": true,
+  "method": "Independent NumPy rotation matrices, whole-trajectory conditions, stable-block search and PhysX-call force integration; no product/scorer imports.",
+  "checks": 10259,
+  "issues": [],
+  "robots": {
+    "go2": {
+      "episodes": 192,
+      "successes": 192,
+      "failure_counts": {
+        "success_recovered": 192
+      },
+      "strata": {
+        "low": {
+          "episodes": 48,
+          "successes": 48
+        },
+        "medium": {
+          "episodes": 48,
+          "successes": 48
+        },
+        "high": {
+          "episodes": 48,
+          "successes": 48
+        },
+        "repeated": {
+          "episodes": 48,
+          "successes": 48
+        }
+      },
+      "invalid_injections": 0,
+      "seeds": [
+        {
+          "seed": 10042,
+          "episodes": 64,
+          "successes": 64,
+          "failure_counts": {
+            "success_recovered": 64
+          }
+        },
+        {
+          "seed": 10043,
+          "episodes": 64,
+          "successes": 64,
+          "failure_counts": {
+            "success_recovered": 64
+          }
+        },
+        {
+          "seed": 10044,
+          "episodes": 64,
+          "successes": 64,
+          "failure_counts": {
+            "success_recovered": 64
+          }
+        }
+      ],
+      "source_identity": {
+        "checkpoint_sha256": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+        "definition_hash": "3445b251929f9d21850f848b4a4192642258f47241c2209f226e8f6236d55ee3",
+        "scoring_sha256": "sha256:55cf95081dfff87fd6644145151e57efb9c29587a81f6cebdae6d113aae24d1e",
+        "script_sha256": "sha256:c29445f58a452a120ec7d4409e7631a30c99744fa9b2d34f9d3f9e8e1bfb91ee",
+        "source_dev_file_sha256": "sha256:a0300604413db5adbced1d0c9578eaa5e69e20342dc9c2a7172713dcd7332285",
+        "source_environment_hash": "c451dd809d4a26db2d61fb2c9ea08de83ef39a8b8f809882a9c40e7430bbb2c8",
+        "source_manifest_hash": "ed8c2a3607025eecc8d8b2ca3b0f2bef0f8c32b22c360a1fc6f2b2cc4f79316e",
+        "source_train_summary_sha256": "sha256:16be0e3ee7b7d9711d38546775287bf0968213b98ec104f0c5eae2cf7aa1b70c",
+        "source_training_binding_hash": "844cbee614c2f42651939254fa33e227bda6bd8fe76a713b771421b17ba567a5"
+      },
+      "pulse_schedule": {
+        "starts": [
+          51,
+          172
+        ],
+        "duration_control_steps": 11,
+        "physics_steps_per_full_pulse": 44,
+        "duration_s": 0.22,
+        "recovery_window_steps": 81,
+        "dwell_steps": 16
+      },
+      "planned_events": 240,
+      "observed_events": 240,
+      "completed_events": 240,
+      "recovered_events": 240,
+      "early_failure_missing_events": 0,
+      "early_failure_partial_events": 0,
+      "recovery_latency_after_force_end_s": {
+        "count": 240,
+        "min": 0.32,
+        "median": 0.36,
+        "mean": 0.4921666666666667,
+        "max": 1.46
+      },
+      "maximum_errors": {
+        "transform_error_n": 0.0001439512642375905,
+        "direction_force_error_n": 7.428667214180051e-05,
+        "outside_pulse_force_n": 0
+      },
+      "historical_comparison": {
+        "episodes": 192,
+        "historical_successes": 192,
+        "current_successes": 192,
+        "paired_label_transitions": {
+          "success_recovered -> success_recovered": 192
+        },
+        "scope": "Descriptive only: force duration, delivery mechanism and recovery origin differ; no qualification or causal equivalence."
+      }
+    },
+    "g1": {
+      "episodes": 192,
+      "successes": 87,
+      "failure_counts": {
+        "success_recovered": 87,
+        "not_recovered": 38,
+        "fall_forward": 32,
+        "height_collapse": 18,
+        "fall_side": 15,
+        "out_of_bounds": 2
+      },
+      "strata": {
+        "low": {
+          "episodes": 48,
+          "successes": 30
+        },
+        "medium": {
+          "episodes": 48,
+          "successes": 30
+        },
+        "high": {
+          "episodes": 48,
+          "successes": 16
+        },
+        "repeated": {
+          "episodes": 48,
+          "successes": 11
+        }
+      },
+      "invalid_injections": 0,
+      "seeds": [
+        {
+          "seed": 1000010000,
+          "episodes": 64,
+          "successes": 27,
+          "failure_counts": {
+            "success_recovered": 27,
+            "not_recovered": 15,
+            "fall_forward": 12,
+            "height_collapse": 5,
+            "fall_side": 4,
+            "out_of_bounds": 1
+          }
+        },
+        {
+          "seed": 1000010001,
+          "episodes": 64,
+          "successes": 32,
+          "failure_counts": {
+            "success_recovered": 32,
+            "fall_forward": 10,
+            "fall_side": 6,
+            "not_recovered": 12,
+            "height_collapse": 3,
+            "out_of_bounds": 1
+          }
+        },
+        {
+          "seed": 1000010002,
+          "episodes": 64,
+          "successes": 28,
+          "failure_counts": {
+            "success_recovered": 28,
+            "fall_side": 5,
+            "not_recovered": 11,
+            "fall_forward": 10,
+            "height_collapse": 10
+          }
+        }
+      ],
+      "source_identity": {
+        "checkpoint_sha256": "sha256:91c00d4e61492dcfb6511aa0ae9ef85121c5bb08dafde7eabf29c10281ad1749",
+        "definition_hash": "c960b46f1e6ab8bd976199d1da2f41d5b73f0bb7cdf7766e2e68cad4f9a410e0",
+        "scoring_sha256": "sha256:55cf95081dfff87fd6644145151e57efb9c29587a81f6cebdae6d113aae24d1e",
+        "script_sha256": "sha256:c29445f58a452a120ec7d4409e7631a30c99744fa9b2d34f9d3f9e8e1bfb91ee",
+        "source_dev_file_sha256": "sha256:58023ef068e78ba1e63c4c1ad5d57e5b766c7556d00fb563301e52cd55572d2b",
+        "source_environment_hash": "c451dd809d4a26db2d61fb2c9ea08de83ef39a8b8f809882a9c40e7430bbb2c8",
+        "source_manifest_hash": "65cf26a941c75bbea4def58a975325a2389ec07a954528ce5c73a82cd20d4a84",
+        "source_train_summary_sha256": "sha256:27db73ab8ee53c8cdbb8186a770b3c87ab59c15dc1af77d240bc6621018b2f9b",
+        "source_training_binding_hash": "292d09c995cfa8f4b021572b81ceaa48d3a207995ba84ac2c92ecff8806a72aa"
+      },
+      "pulse_schedule": {
+        "starts": [
+          69,
+          234
+        ],
+        "duration_control_steps": 14,
+        "physics_steps_per_full_pulse": 56,
+        "duration_s": 0.28,
+        "recovery_window_steps": 110,
+        "dwell_steps": 21
+      },
+      "planned_events": 240,
+      "observed_events": 223,
+      "completed_events": 223,
+      "recovered_events": 144,
+      "early_failure_missing_events": 17,
+      "early_failure_partial_events": 0,
+      "recovery_latency_after_force_end_s": {
+        "count": 144,
+        "min": 0.42,
+        "median": 0.99,
+        "mean": 1.0590277777777777,
+        "max": 2.2
+      },
+      "maximum_errors": {
+        "transform_error_n": 0.0002773850546720947,
+        "direction_force_error_n": 0.00019873373314585006,
+        "outside_pulse_force_n": 0
+      },
+      "historical_comparison": {
+        "episodes": 192,
+        "historical_successes": 96,
+        "current_successes": 87,
+        "paired_label_transitions": {
+          "success_recovered -> success_recovered": 59,
+          "not_recovered -> success_recovered": 25,
+          "not_recovered -> not_recovered": 17,
+          "success_recovered -> not_recovered": 19,
+          "success_recovered -> fall_forward": 8,
+          "fall_forward -> fall_forward": 12,
+          "fall_forward -> height_collapse": 6,
+          "success_recovered -> fall_side": 6,
+          "success_recovered -> out_of_bounds": 1,
+          "fall_side -> fall_side": 4,
+          "fall_side -> height_collapse": 3,
+          "fall_side -> fall_forward": 5,
+          "fall_forward -> success_recovered": 3,
+          "fall_forward -> fall_side": 2,
+          "not_recovered -> fall_side": 3,
+          "height_collapse -> fall_forward": 3,
+          "fall_forward -> not_recovered": 1,
+          "not_recovered -> height_collapse": 3,
+          "height_collapse -> out_of_bounds": 1,
+          "not_recovered -> fall_forward": 3,
+          "out_of_bounds -> fall_forward": 1,
+          "success_recovered -> height_collapse": 3,
+          "fall_side -> not_recovered": 1,
+          "out_of_bounds -> height_collapse": 2,
+          "height_collapse -> height_collapse": 1
+        },
+        "scope": "Descriptive only: force duration, delivery mechanism and recovery origin differ; no qualification or causal equivalence."
+      }
+    }
+  },
+  "source_sha256": {
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\go2\\definition.json": "b5a94cda6213129ab7cf1236c841e9c87bc8977cd8b0ff848db482cf69e911a5",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\go2\\parameters.json": "fe58998e5049d707f70fef8300b3d9d731994536ff26160d8a9b2bc1d5f9da50",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\go2\\source_identity.json": "a174aff0b9cd8236fc15618e2e91f79111a0d2be1715d31e74c5b4cb0be3286c",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\go2\\summary.json": "516add65116695a735d63a7632d962e09876af2a04fdef2a5d2665745819a061",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\go2\\historical_dev_episodes.json": "ddc03df24efdbac70150ee2bc35bcaae46a19550c97064748cdabb6cbc0c506a",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\go2\\result.json": "b58a7538a8040377c9c279027f18e1078a0cdd4915d4c9ef41077ba8e9666cbb",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\go2\\seed_01.json": "ec5d67e236fbeb159bf3b8238095d5e571630223a41bc42777ed4dc0ecb468ad",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\go2\\seed_01.npz": "ddc26b6c47cb360681498376cc3b974f8676022120a4286944c89cf6d2bd261c",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\go2\\seed_02.json": "15cfcd5bd65126312dbfec7aaca467928d15f43bfcb28e4d383a5074c821853a",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\go2\\seed_02.npz": "a24eab9c8c32c4c4f2ae50c39cc4cbc2e1f2a319ae6a10fc7d8f5822508b405d",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\go2\\seed_03.json": "382214297de067733832d4037966ce9f7543ee3da7cf9183212d3e6fe6333997",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\go2\\seed_03.npz": "fb1bcfad4b4f120fcb2e94c1378375dc5f38d02cd94082ef158c3e9e7a6ee93d",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\g1\\definition.json": "6044d694c3cf1c532decaf66c807d64e99d238b5f5560da07c994a681ac7a0b4",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\g1\\parameters.json": "5ed8533422166bf3ff45f975c546aff36bf59c0b8afcbfc4688510b53cb1564a",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\g1\\source_identity.json": "7e11433017dc6641f8ef7273431fa9a6595b6e5c9a94470a4e79a25e9c5ec52f",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\g1\\summary.json": "b0ad90bc1d70d46a22dd30446031b54a287751320aaff397b86108b7e56dfaf8",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\g1\\historical_dev_episodes.json": "7faa8618e8875321a872ebcdf2c5f54836409cbb17a9908759d9f6bf8de56588",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\g1\\result.json": "a905fb1f10efef9b7bbf9b3fa768dea30c294a92975625e84bfddfd84a94e5d7",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\g1\\seed_01.json": "fc5dc48e2228484dac2b63fcfe122515d71849335a1e9ca6532a4347a04f3f9c",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\g1\\seed_01.npz": "f2e7ce77760973c43f012cc961c017a2254db9d3cdebcdd144f3203cf8313273",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\g1\\seed_02.json": "4e9b098997fb1a0d44bbda4a58495978a800f09594c624e92494f3b3f1a30e8d",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\g1\\seed_02.npz": "462edcb092b09c2166e4af9b8a46b9fbb1a75234f915f6deab1ddbd8b5c2004d",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\g1\\seed_03.json": "36bf9a81c434a13f44ab172fb3f2fc8dcfd9cfbf4965bf495692e40134c02d79",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\force_01\\g1\\seed_03.npz": "92728ab1e49cfb46d5aa6686d8a174b3140b7bac84ae6571a9af6a313b58453a"
+  },
+  "audit_script_sha256": "db58218d5a6f88a679aea703edb63fb15e3b5a842d3a22595362092d46fd286a",
+  "limitations": [
+    "World impulse is external force integrated over saved PhysX call arguments, not net momentum change or an independent hardware force sensor.",
+    "Bound base-role link COM application and no direct torque do not mean whole-articulation COM application or zero induced rotation; G1 torso_link is not its articulation root.",
+    "The saved valid mask and force suppression both use product state.closed. This audit checks complete step continuity and independently reconstructs the last sample failure/timeout; it is not an independently implemented live closure/capture path.",
+    "Frozen checkpoint binaries remain target-side; recorded identity is checked, not a local binary reload.",
+    "First-episode termination and root recovery states are sampled at control steps; substep force/body pose records do not provide the full root recovery state between control samples.",
+    "Historical public-dev scenarios and fixed checkpoints: no new training, holdout, reference qualification or generalization claim."
+  ]
+}

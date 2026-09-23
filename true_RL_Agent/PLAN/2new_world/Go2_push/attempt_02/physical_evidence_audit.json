@@ -1,0 +1,113 @@
+{
+  "status": "PASS",
+  "scope": "Saved episode-summary arithmetic consistency only; PASS is not independent physical or visual validation.",
+  "limitations": [
+    "Pose extrema and wrench verification are runtime exports, not independently read sensor/PhysX data.",
+    "No raw-frame reconstruction of continuous stable dwell, or final angular velocity, roll/pitch and height.",
+    "Pulse timing/count checks use the recorded control dt and expected substep count; physics dt is not independently reconstructed.",
+    "Fall labels use exported extrema and the same strict threshold ordering as episode_records; this is not a new outcome definition."
+  ],
+  "numerical_tolerances": {
+    "force_amplitude_relative": 2e-06,
+    "impulse_absolute_rounding_ns": 0.0001,
+    "impulse_total_rule": "force_tolerance_n * delivered_duration_s + float32 accumulation allowance"
+  },
+  "summary_count": 6,
+  "summaries": [
+    {
+      "path": "runner/go2-push-5rounds-20260922-a02/eval/public_accept/summary.json",
+      "sha256": "3c7de2dcccde14b460deb4ebeec5ab77496252ce6e36259106daeb2f21148b2c",
+      "counts": {
+        "checks": 3250,
+        "force_events": 233,
+        "successful_episodes": 142,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 16
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000274658203125,
+        "impulse_residual_ns": 2.9907226561931566e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260922-a02/eval/public_dev/summary.json",
+      "sha256": "b5500772095cb533094b40f94c86636affbc75e7239934c17449c66d927ecdc8",
+      "counts": {
+        "checks": 3270,
+        "force_events": 237,
+        "successful_episodes": 141,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 11
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000274658203125,
+        "impulse_residual_ns": 3.3721923827556566e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260922-a02/eval/sealed_validation/summary.json",
+      "sha256": "210afb2ae7329f80ad98f42d6d91714808fcbbc06b77d1c6ccaf0415e8e5bd80",
+      "counts": {
+        "checks": 7672,
+        "force_events": 555,
+        "successful_episodes": 343,
+        "episodes": 448,
+        "episodes_with_incomplete_pulses": 13
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000274658203125,
+        "impulse_residual_ns": 3.2806396482953915e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260922-a02-generation-001-lane-a/eval/public_accept/summary.json",
+      "sha256": "e2e1d5ee859b5b54662d1efb64e6ffed4d89469c34ed4569a9bf007c93526c82",
+      "counts": {
+        "checks": 3296,
+        "force_events": 238,
+        "successful_episodes": 150,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 3
+      },
+      "observed_maxima": {
+        "force_error_n": 0.0002593994140625,
+        "impulse_residual_ns": 3.570556640397626e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260922-a02-generation-001-lane-a/eval/public_dev/summary.json",
+      "sha256": "d84b8deadfb5000d5b3b75c3645d456d34d440550c2b6e3651f89a36862d2526",
+      "counts": {
+        "checks": 3329,
+        "force_events": 240,
+        "successful_episodes": 156,
+        "episodes": 192
+      },
+      "observed_maxima": {
+        "force_error_n": 0.0002899169921875,
+        "impulse_residual_ns": 2.9907226561931566e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260922-a02-generation-001-lane-b/eval/public_dev/summary.json",
+      "sha256": "177e9f1ae29d90e006f9d67d321108f56178dc50c2c4672fbe90ddd509b644bd",
+      "counts": {
+        "checks": 3261,
+        "force_events": 236,
+        "successful_episodes": 142,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 6
+      },
+      "observed_maxima": {
+        "force_error_n": 0.00030517578125,
+        "impulse_residual_ns": 3.555297851676187e-05
+      },
+      "failures": []
+    }
+  ]
+}

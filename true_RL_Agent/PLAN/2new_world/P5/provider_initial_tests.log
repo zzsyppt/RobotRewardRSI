@@ -1,0 +1,24 @@
+........F..F.................................................................................
+======================================================================
+FAIL: test_default_adaptive_mode_preserves_legacy_empty_final_failure (tests.unit.test_openai_compatible_provider.OpenAICompatibleProviderTests.test_default_adaptive_mode_preserves_legacy_empty_final_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_openai_compatible_provider.py", line 847, in test_default_adaptive_mode_preserves_legacy_empty_final_failure
+    self.assertNotIn("failure_kind", failure["details"])
+AssertionError: 'failure_kind' unexpectedly found in {'failure_kind': 'empty_final_content_with_reasoning', 'finish_reason': 'stop'}
+
+======================================================================
+FAIL: test_empty_final_retry_signal_requires_nonempty_reasoning_receipt (tests.unit.test_openai_compatible_provider.OpenAICompatibleProviderTests.test_empty_final_retry_signal_requires_nonempty_reasoning_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_openai_compatible_provider.py", line 758, in test_empty_final_retry_signal_requires_nonempty_reasoning_receipt
+    self.assertEqual(caught.exception.category, expected_category)
+AssertionError: 'reasoning_output_exhausted' != 'response_truncated'
+- reasoning_output_exhausted
++ response_truncated
+
+
+----------------------------------------------------------------------
+Ran 93 tests in 34.495s
+
+FAILED (failures=2)

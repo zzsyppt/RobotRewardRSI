@@ -1,0 +1,34 @@
+Traceback (most recent call last):
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_02/scripts/run_generation_session.py", line 139, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_02/scripts/run_generation_session.py", line 133, in main
+    result = run_generation_session(foundation)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_02/src/true_rl_agent/agent_core/generation_application.py", line 238, in run_generation_session
+    return run_bounded_generation_session(foundation, genesis=genesis, cost_journal=journal,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_02/src/true_rl_agent/agent_core/generation_session.py", line 283, in run_bounded_generation_session
+    generation_inputs, _ = prepare_generation(
+                           ^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_02/src/true_rl_agent/agent_core/generation_runtime.py", line 124, in prepare_generation_inputs
+    inputs = build_generation_lane_inputs(composition=composition, runner=foundation.runner,
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_02/src/true_rl_agent/agent_core/generation_lanes.py", line 66, in build_generation_lane_inputs
+    base_context = context_builder.build(records)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_02/src/true_rl_agent/memory/context_builder.py", line 180, in build
+    return self._build_round_public_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_02/src/true_rl_agent/memory/context_builder.py", line 408, in _build_round_public_context
+    context = build_public_context_from_projected(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_02/src/true_rl_agent/agent_core/context.py", line 209, in build_public_context_from_projected
+    experiment_memory = build_experiment_memory(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_02/src/true_rl_agent/agent_core/experiment_memory.py", line 59, in build_experiment_memory
+    candidate_components = _authoring_candidate_components(
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_02/src/true_rl_agent/agent_core/experiment_memory.py", line 500, in _authoring_candidate_components
+    raise ValueError("current provider record has invalid mechanism attribution")
+ValueError: current provider record has invalid mechanism attribution

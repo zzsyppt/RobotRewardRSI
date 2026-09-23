@@ -1,0 +1,33 @@
+{
+  "test_wrapper_pid": 2744887,
+  "preflight_pid": 2744888,
+  "command": [
+    "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+    "/data/yuyangliu/AGENT/true_RL_Agent/scripts/qualify_reference.py",
+    "--task-id",
+    "unitree_push_recovery",
+    "--cell-variant-id",
+    "push.g1_37dof.recovery_v2",
+    "--isaac-python",
+    "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+    "--execution-device",
+    "cuda:1",
+    "--runner-timeout-s",
+    "36000",
+    "--output-dir",
+    "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912",
+    "--session-id",
+    "p6-g1-stationary-v3-reference-20260912",
+    "--lease-root",
+    "/tmp/true_rl_agent_gpu_leases",
+    "--eval-base-seed",
+    "1000000000",
+    "--reference-program-id",
+    "push_standing_recovery_stationary_reference_v3",
+    "--push-protocol-path",
+    "/data/yuyangliu/AGENT/true_RL_Agent/configs/tasks/push_g1_37dof_recovery_v3.json",
+    "--mode",
+    "preflight"
+  ],
+  "started_at_unix": 1789190115.2314103
+}

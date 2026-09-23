@@ -1,0 +1,5612 @@
+{
+  "aggregate": {
+    "condition_flag_breakdown": {
+      "counts": {
+        "drift_over_threshold": 16,
+        "height_below_threshold": 16,
+        "pitch_over_threshold": 16,
+        "roll_over_threshold": 16,
+        "terminated": 0
+      },
+      "diagnostic_only": true,
+      "nonexclusive": true,
+      "primary_label_priority": [
+        "fall_forward",
+        "fall_backward",
+        "fall_side",
+        "height_collapse",
+        "fall_unknown",
+        "excessive_drift",
+        "success"
+      ],
+      "rates": {
+        "drift_over_threshold": 1.0,
+        "height_below_threshold": 1.0,
+        "pitch_over_threshold": 1.0,
+        "roll_over_threshold": 1.0,
+        "terminated": 0.0
+      },
+      "total": 16
+    },
+    "episodes": 16,
+    "failure_breakdown": {
+      "counts": {
+        "fall_forward": 16
+      },
+      "dominant_failure": "fall_forward",
+      "rates": {
+        "fall_forward": 1.0
+      },
+      "total": 16
+    },
+    "success_count": 0,
+    "success_rate": 0.0
+  },
+  "backend_execution_environment_verification": {
+    "actual_manifest_hash": "43bb62729b94329cf1605ccadf45d29e437b2f9c4b279ec616e08bd9cc3e41d9",
+    "backend_id": "isaac_lab_rsl_rl",
+    "expected_manifest_hash": "43bb62729b94329cf1605ccadf45d29e437b2f9c4b279ec616e08bd9cc3e41d9",
+    "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+    "status": "pass"
+  },
+  "candidate_code_loaded_in_eval": false,
+  "candidate_package_loaded": false,
+  "candidate_package_loaded_in_eval": false,
+  "checkpoint_loading": {
+    "actor_loaded": true,
+    "checkpoint_format": "rsl_rl_5",
+    "critic_loaded": true,
+    "iteration_loaded": false,
+    "optimizer_loaded": false
+  },
+  "checkpoint_safety_report": {
+    "byte_read_status": "pass",
+    "checkpoint_hash": "sha256:aae678721d4e9686f64fccd96410ac252a5150b6c88b10951081977254134043",
+    "checkpoint_hash_match_status": "pass",
+    "expected_checkpoint_hash": "sha256:aae678721d4e9686f64fccd96410ac252a5150b6c88b10951081977254134043",
+    "file_exists": true,
+    "loader_error_class": null,
+    "loader_error_summary": null,
+    "reason": "checkpoint_safe_to_load",
+    "schema_version": "true_rl_agent.checkpoint_safety_report.v1",
+    "status": "pass",
+    "weights_only_load_status": "pass"
+  },
+  "checkpoint_safety_status": "pass",
+  "configuration": {
+    "active_profile": "strong_push",
+    "config_path": null,
+    "config_sha256": null,
+    "push": {
+      "body": "torso_link",
+      "evidence": {
+        "min_env_fraction_with_delta": 0.2,
+        "min_env_fraction_with_single_step_delta": 0.2,
+        "min_observed_delta_mps": 0.12,
+        "min_single_step_delta_mps": 0.12,
+        "post_window_s": 1.0,
+        "pre_window_s": 0.75,
+        "single_step_window_s": [
+          0.9,
+          1.1
+        ]
+      },
+      "interval_range_s": [
+        1.0,
+        1.0
+      ],
+      "isaac_event": "push_by_setting_velocity",
+      "mechanism": "base_velocity_kick",
+      "velocity_range_mps": {
+        "x": [
+          -0.6,
+          0.6
+        ],
+        "y": [
+          -0.6,
+          0.6
+        ]
+      }
+    },
+    "runtime_dynamics_hash": "sha256:6527d6443e8156b01a138f963b0b3c5396a989a10c20c579977868861f79b778",
+    "standing_command": {
+      "ang_vel_z_radps": [
+        0.0,
+        0.0
+      ],
+      "command_name": "base_velocity",
+      "heading_command": false,
+      "lin_vel_x_mps": [
+        0.0,
+        0.0
+      ],
+      "lin_vel_y_mps": [
+        0.0,
+        0.0
+      ],
+      "rel_heading_envs": 0.0,
+      "rel_standing_envs": 1.0,
+      "resampling_time_range_s": [
+        10.0,
+        10.0
+      ]
+    },
+    "success_thresholds": {
+      "max_abs_pitch_rad": 0.65,
+      "max_abs_roll_rad": 0.65,
+      "max_final_xy_drift_m": 0.8,
+      "min_base_height_m": 0.45
+    }
+  },
+  "constructed_learner": {
+    "algorithm": {
+      "clip_param": 0.2,
+      "desired_kl": 0.01,
+      "entropy_coef": 0.01,
+      "gamma": 0.99,
+      "lam": 0.95,
+      "learning_rate": 0.001,
+      "max_grad_norm": 1.0,
+      "normalize_advantage_per_mini_batch": false,
+      "num_learning_epochs": 5,
+      "num_mini_batches": 4,
+      "schedule": "adaptive",
+      "use_clipped_value_loss": true,
+      "value_loss_coef": 1.0
+    },
+    "configuration_mapping_version": "rsl_rl_3_actor_critic_to_rsl_rl_5_mlp.v1",
+    "initial_noise_std": 1.0,
+    "models": {
+      "actor": {
+        "activation": "ELU",
+        "hidden_dims": [
+          512,
+          256,
+          128
+        ],
+        "input_dim": 480,
+        "obs_groups": [
+          "policy"
+        ],
+        "obs_normalization": false,
+        "output_dim": 29
+      },
+      "critic": {
+        "activation": "ELU",
+        "hidden_dims": [
+          512,
+          256,
+          128
+        ],
+        "input_dim": 495,
+        "obs_groups": [
+          "critic"
+        ],
+        "obs_normalization": false,
+        "output_dim": 1
+      }
+    },
+    "noise_std_type": "scalar",
+    "optimizer": "Adam",
+    "optimizer_source": "frozen_v1_PPO_implicit_Adam",
+    "schema_version": "true_rl_agent.rsl_rl_constructed_learner.v1"
+  },
+  "created_at_utc": "2026-09-12T05:05:57.257107+00:00",
+  "diagnostic_hints": [
+    {
+      "candidate_patch_scope": "Improve post-push pitch/upright reward; keep eval thresholds fixed.",
+      "condition": "dominant_failure == fall_forward",
+      "interpretation": "Forward pitch excursions dominate the protected classifier."
+    },
+    {
+      "candidate_patch_scope": "Use condition flags, not only dominant failure, for code-level reward design.",
+      "condition": "height_below_threshold co-occurs with other labels",
+      "interpretation": "Height collapse may be masked by higher-priority pitch/roll labels."
+    },
+    {
+      "candidate_patch_scope": "Inspect drift evidence while keeping protected success rules fixed.",
+      "condition": "drift_over_threshold co-occurs with other labels",
+      "interpretation": "Drift violations may be masked by fall labels."
+    }
+  ],
+  "environment": {
+    "device": "cuda:0",
+    "max_steps": 100,
+    "num_envs": 16,
+    "step_dt": 0.02
+  },
+  "errors": [],
+  "evaluation_binding": {
+    "acceptance_protocol_hash": "7d04324276f8c8f2fe2b79ef56139bffd1b70db9be2e70eb845186a5bd8829e3",
+    "eval_protocol_hash": "85cf83692bc87c30fe638fd7b254578ef2ea78865611305d24e0dffa3388c630",
+    "evaluation_binding_hash": "d350dbcb577f59c21fadf17f71787e7087830bfe618a71a9d8677461baf9d80b",
+    "schema_version": "true_rl_agent.evaluation.binding.v1",
+    "seed_cohort_hash": "d7a89eed2e29b4ada4ed71bd747b9d782ce9566f232d95f83a0fe966973aeedb",
+    "task_protocol_hash": "69de4548a72078a2a897dcce42e6e6ebedcda393146a96b2c841346614b720ac"
+  },
+  "evaluation_protocol": {
+    "eval_num_envs": 16,
+    "eval_protocol_hash": "85cf83692bc87c30fe638fd7b254578ef2ea78865611305d24e0dffa3388c630",
+    "eval_protocol_version": "fixed_public_accept_sealed_validation_v1",
+    "public_accept_seed_count": 3,
+    "public_seed_count": 3,
+    "schema_version": "true_rl_agent.evaluation.protocol.v1",
+    "sealed_validation_seed_count": 7
+  },
+  "evidence": {
+    "observation_finite": true,
+    "push_effect": {
+      "env_fraction_with_single_step_delta": 1.0,
+      "expected_interval_range_s": [
+        1.0,
+        1.0
+      ],
+      "gate_pass": true,
+      "max_single_step_delta_mps": 0.73558,
+      "mean_single_step_delta_mps": 0.452434,
+      "mechanism": "base_velocity_kick",
+      "min_env_fraction_with_single_step_delta": 0.2,
+      "min_single_step_delta_mps": 0.12,
+      "nonzero_push_configured": true,
+      "single_step_window_s": [
+        0.9,
+        1.1
+      ]
+    },
+    "recovery_window": {
+      "max_final_planar_speed_mps": 5.0,
+      "success_rate": 1.0
+    },
+    "reset_ok": true,
+    "reward_finite": true
+  },
+  "evidence_manifest": [
+    {
+      "artifact_id": "checkpoint-safety-report",
+      "byte_size": 477,
+      "kind": "checkpoint_safety_report",
+      "mime_type": "application/json",
+      "producer": "isaaclab_rsl_rl_eval",
+      "public_projection_ref": "metrics.checkpoint_safety_report",
+      "schema_version": "true_rl_agent.evidence.artifact.v1",
+      "sha256": "sha256:bb527fbeb707d1c72fc63d5094732f043d6c15bcc24f5478d1b6c37a7d5126e4",
+      "visibility": "public_projection_only"
+    },
+    {
+      "artifact_id": "sealed-validation-evidence",
+      "byte_size": 1037,
+      "kind": "sealed_validation_rollout_evidence",
+      "mime_type": "application/json",
+      "producer": "isaaclab_rsl_rl_eval",
+      "public_projection_ref": "metrics.sealed_validation",
+      "schema_version": "true_rl_agent.evidence.artifact.v1",
+      "sha256": "sha256:221da65ad69d60ff1faded0b59ad626ddfd39450807f92eb1901afeb01d0ad61",
+      "visibility": "public_projection_only"
+    }
+  ],
+  "execution_device": "cuda:0",
+  "job_id": "p3-push-learner-eval",
+  "metrics": {
+    "accept_evidence_gate": {
+      "episode_count": 48,
+      "observed_count": 3,
+      "reason": "sufficient_accept_evidence",
+      "required_count": 3,
+      "status": "pass"
+    },
+    "acceptance": {
+      "absolute_accept_floor": 0.05,
+      "acceptance_protocol_hash": "7d04324276f8c8f2fe2b79ef56139bffd1b70db9be2e70eb845186a5bd8829e3",
+      "min_delta": 0.05,
+      "min_score_count": 3,
+      "missing_required_score": false,
+      "public_score_binding": "acceptance_score_mean",
+      "required_pass_gates": [
+        "accept_evidence_gate",
+        "budget_accounting",
+        "motion_quality_gate",
+        "behavior_quality_gate"
+      ],
+      "score_source": "public_accept.score_stats.mean",
+      "score_stats": {
+        "count": 3,
+        "episode_count": 48,
+        "eval_protocol_hash": "85cf83692bc87c30fe638fd7b254578ef2ea78865611305d24e0dffa3388c630",
+        "mean": 0.0,
+        "standard_error": 0.0,
+        "std": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "behavior_quality_gate": {
+      "checked_metrics": [
+        "mean_action_l2",
+        "mean_action_rate_l2",
+        "mean_final_planar_speed_mps",
+        "mean_final_xy_drift_m",
+        "mean_max_abs_pitch_rad",
+        "mean_max_abs_roll_rad",
+        "mean_min_base_height_m",
+        "recovery_window_success_rate"
+      ],
+      "failure_breakdown_status": "pass",
+      "failures": [
+        {
+          "actual": 0.081049,
+          "limit": 0.3,
+          "metric": "mean_min_base_height_m",
+          "reason": "limit_exceeded",
+          "run_index": 1,
+          "split": "public_dev"
+        },
+        {
+          "actual": 1.485588,
+          "limit": 1.2,
+          "metric": "mean_max_abs_pitch_rad",
+          "reason": "limit_exceeded",
+          "run_index": 1,
+          "split": "public_dev"
+        },
+        {
+          "actual": 3.100906,
+          "limit": 1.2,
+          "metric": "mean_max_abs_roll_rad",
+          "reason": "limit_exceeded",
+          "run_index": 1,
+          "split": "public_dev"
+        },
+        {
+          "actual": 0.079443,
+          "limit": 0.3,
+          "metric": "mean_min_base_height_m",
+          "reason": "limit_exceeded",
+          "run_index": 2,
+          "split": "public_dev"
+        },
+        {
+          "actual": 1.501779,
+          "limit": 1.2,
+          "metric": "mean_max_abs_pitch_rad",
+          "reason": "limit_exceeded",
+          "run_index": 2,
+          "split": "public_dev"
+        },
+        {
+          "actual": 3.120021,
+          "limit": 1.2,
+          "metric": "mean_max_abs_roll_rad",
+          "reason": "limit_exceeded",
+          "run_index": 2,
+          "split": "public_dev"
+        },
+        {
+          "actual": 0.080072,
+          "limit": 0.3,
+          "metric": "mean_min_base_height_m",
+          "reason": "limit_exceeded",
+          "run_index": 3,
+          "split": "public_dev"
+        },
+        {
+          "actual": 1.498299,
+          "limit": 1.2,
+          "metric": "mean_max_abs_pitch_rad",
+          "reason": "limit_exceeded",
+          "run_index": 3,
+          "split": "public_dev"
+        },
+        {
+          "actual": 3.120669,
+          "limit": 1.2,
+          "metric": "mean_max_abs_roll_rad",
+          "reason": "limit_exceeded",
+          "run_index": 3,
+          "split": "public_dev"
+        },
+        {
+          "actual": 0.081651,
+          "limit": 0.3,
+          "metric": "mean_min_base_height_m",
+          "reason": "limit_exceeded",
+          "run_index": 1,
+          "split": "public_accept"
+        },
+        {
+          "actual": 1.490043,
+          "limit": 1.2,
+          "metric": "mean_max_abs_pitch_rad",
+          "reason": "limit_exceeded",
+          "run_index": 1,
+          "split": "public_accept"
+        },
+        {
+          "actual": 3.093449,
+          "limit": 1.2,
+          "metric": "mean_max_abs_roll_rad",
+          "reason": "limit_exceeded",
+          "run_index": 1,
+          "split": "public_accept"
+        },
+        {
+          "actual": 0.079579,
+          "limit": 0.3,
+          "metric": "mean_min_base_height_m",
+          "reason": "limit_exceeded",
+          "run_index": 2,
+          "split": "public_accept"
+        },
+        {
+          "actual": 1.499366,
+          "limit": 1.2,
+          "metric": "mean_max_abs_pitch_rad",
+          "reason": "limit_exceeded",
+          "run_index": 2,
+          "split": "public_accept"
+        },
+        {
+          "actual": 3.110238,
+          "limit": 1.2,
+          "metric": "mean_max_abs_roll_rad",
+          "reason": "limit_exceeded",
+          "run_index": 2,
+          "split": "public_accept"
+        },
+        {
+          "actual": 0.080811,
+          "limit": 0.3,
+          "metric": "mean_min_base_height_m",
+          "reason": "limit_exceeded",
+          "run_index": 3,
+          "split": "public_accept"
+        },
+        {
+          "actual": 1.492663,
+          "limit": 1.2,
+          "metric": "mean_max_abs_pitch_rad",
+          "reason": "limit_exceeded",
+          "run_index": 3,
+          "split": "public_accept"
+        },
+        {
+          "actual": 3.120965,
+          "limit": 1.2,
+          "metric": "mean_max_abs_roll_rad",
+          "reason": "limit_exceeded",
+          "run_index": 3,
+          "split": "public_accept"
+        }
+      ],
+      "limits": {
+        "max_mean_action_l2": 1000.0,
+        "max_mean_action_rate_l2": 1000.0,
+        "max_mean_final_planar_speed_mps": 5.0,
+        "max_mean_final_xy_drift_m": 5.0,
+        "max_mean_max_abs_pitch_rad": 1.2,
+        "max_mean_max_abs_roll_rad": 1.2,
+        "min_mean_min_base_height_m": 0.3,
+        "min_recovery_window_success_rate": 0.0
+      },
+      "recovery_signal_status": "available",
+      "status": "fail",
+      "summary": "push_recovery_public_behavior_required_gate"
+    },
+    "budget_accounting": {
+      "reason": "budget_summary_missing",
+      "status": "fail"
+    },
+    "errors": [],
+    "motion_quality": {
+      "mean_action_l2": 0.448051,
+      "mean_action_rate_l2": 0.018108,
+      "mean_episode_steps": 100.0,
+      "mean_final_planar_speed_mps": 0.477245,
+      "mean_final_xy_drift_m": 0.944747,
+      "mean_max_abs_pitch_rad": 1.495222,
+      "mean_max_abs_roll_rad": 3.113865,
+      "mean_min_base_height_m": 0.080188,
+      "mean_return": -6.160176,
+      "recovery_window_success_rate": 1.0
+    },
+    "motion_quality_gate": {
+      "failures": [
+        {
+          "actual": 1.485588,
+          "limit": 1.2,
+          "metric": "mean_max_abs_pitch_rad",
+          "reason": "limit_exceeded",
+          "run_index": 1
+        },
+        {
+          "actual": 3.100906,
+          "limit": 1.2,
+          "metric": "mean_max_abs_roll_rad",
+          "reason": "limit_exceeded",
+          "run_index": 1
+        },
+        {
+          "actual": 1.501779,
+          "limit": 1.2,
+          "metric": "mean_max_abs_pitch_rad",
+          "reason": "limit_exceeded",
+          "run_index": 2
+        },
+        {
+          "actual": 3.120021,
+          "limit": 1.2,
+          "metric": "mean_max_abs_roll_rad",
+          "reason": "limit_exceeded",
+          "run_index": 2
+        },
+        {
+          "actual": 1.498299,
+          "limit": 1.2,
+          "metric": "mean_max_abs_pitch_rad",
+          "reason": "limit_exceeded",
+          "run_index": 3
+        },
+        {
+          "actual": 3.120669,
+          "limit": 1.2,
+          "metric": "mean_max_abs_roll_rad",
+          "reason": "limit_exceeded",
+          "run_index": 3
+        },
+        {
+          "actual": 1.490043,
+          "limit": 1.2,
+          "metric": "mean_max_abs_pitch_rad",
+          "reason": "limit_exceeded",
+          "run_index": 4
+        },
+        {
+          "actual": 3.093449,
+          "limit": 1.2,
+          "metric": "mean_max_abs_roll_rad",
+          "reason": "limit_exceeded",
+          "run_index": 4
+        },
+        {
+          "actual": 1.499366,
+          "limit": 1.2,
+          "metric": "mean_max_abs_pitch_rad",
+          "reason": "limit_exceeded",
+          "run_index": 5
+        },
+        {
+          "actual": 3.110238,
+          "limit": 1.2,
+          "metric": "mean_max_abs_roll_rad",
+          "reason": "limit_exceeded",
+          "run_index": 5
+        },
+        {
+          "actual": 1.492663,
+          "limit": 1.2,
+          "metric": "mean_max_abs_pitch_rad",
+          "reason": "limit_exceeded",
+          "run_index": 6
+        },
+        {
+          "actual": 3.120965,
+          "limit": 1.2,
+          "metric": "mean_max_abs_roll_rad",
+          "reason": "limit_exceeded",
+          "run_index": 6
+        }
+      ],
+      "limits": {
+        "max_mean_action_l2": 1000.0,
+        "max_mean_action_rate_l2": 1000.0,
+        "max_mean_final_planar_speed_mps": 5.0,
+        "max_mean_final_xy_drift_m": 5.0,
+        "max_mean_max_abs_pitch_rad": 1.2,
+        "max_mean_max_abs_roll_rad": 1.2,
+        "min_mean_min_base_height_m": 0.3,
+        "min_recovery_window_success_rate": 0.0
+      },
+      "status": "fail",
+      "summary": "push_recovery_public_motion_sanity"
+    },
+    "ood_stress_gate": {
+      "reason": "push_recovery_public_eval_only",
+      "required": false,
+      "status": "not_run"
+    },
+    "prompt_feedback": {
+      "dominant_failure": {
+        "label": "fall_forward",
+        "rate": 1.0,
+        "source_split": "public_dev",
+        "status": "available"
+      },
+      "schema_version": "true_rl_agent.public_eval_feedback.push_recovery.v1"
+    },
+    "public_accept": {
+      "score_stats": {
+        "count": 3,
+        "episode_count": 48,
+        "eval_protocol_hash": "85cf83692bc87c30fe638fd7b254578ef2ea78865611305d24e0dffa3388c630",
+        "mean": 0.0,
+        "standard_error": 0.0,
+        "std": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "seed_results": [
+        {
+          "condition_flag_breakdown": {
+            "counts": {
+              "drift_over_threshold": 16,
+              "height_below_threshold": 16,
+              "pitch_over_threshold": 16,
+              "roll_over_threshold": 16,
+              "terminated": 0
+            },
+            "diagnostic_only": true,
+            "nonexclusive": true,
+            "primary_label_priority": [
+              "fall_forward",
+              "fall_backward",
+              "fall_side",
+              "height_collapse",
+              "fall_unknown",
+              "excessive_drift",
+              "success"
+            ],
+            "rates": {
+              "drift_over_threshold": 1.0,
+              "height_below_threshold": 1.0,
+              "pitch_over_threshold": 1.0,
+              "roll_over_threshold": 1.0,
+              "terminated": 0.0
+            },
+            "total": 16
+          },
+          "episodes": 16,
+          "failure_breakdown": {
+            "counts": {
+              "fall_forward": 16
+            },
+            "dominant_failure": "fall_forward",
+            "rates": {
+              "fall_forward": 1.0
+            },
+            "total": 16
+          },
+          "run_index": 1,
+          "secondary_metrics": {
+            "mean_action_l2": 0.447179,
+            "mean_action_rate_l2": 0.019651,
+            "mean_episode_steps": 100.0,
+            "mean_final_planar_speed_mps": 0.500558,
+            "mean_final_xy_drift_m": 0.94785,
+            "mean_max_abs_pitch_rad": 1.490043,
+            "mean_max_abs_roll_rad": 3.093449,
+            "mean_min_base_height_m": 0.081651,
+            "mean_return": -6.150192,
+            "recovery_window_success_rate": 1.0
+          },
+          "status": "pass",
+          "success_rate": 0.0
+        },
+        {
+          "condition_flag_breakdown": {
+            "counts": {
+              "drift_over_threshold": 16,
+              "height_below_threshold": 16,
+              "pitch_over_threshold": 16,
+              "roll_over_threshold": 16,
+              "terminated": 0
+            },
+            "diagnostic_only": true,
+            "nonexclusive": true,
+            "primary_label_priority": [
+              "fall_forward",
+              "fall_backward",
+              "fall_side",
+              "height_collapse",
+              "fall_unknown",
+              "excessive_drift",
+              "success"
+            ],
+            "rates": {
+              "drift_over_threshold": 1.0,
+              "height_below_threshold": 1.0,
+              "pitch_over_threshold": 1.0,
+              "roll_over_threshold": 1.0,
+              "terminated": 0.0
+            },
+            "total": 16
+          },
+          "episodes": 16,
+          "failure_breakdown": {
+            "counts": {
+              "fall_forward": 16
+            },
+            "dominant_failure": "fall_forward",
+            "rates": {
+              "fall_forward": 1.0
+            },
+            "total": 16
+          },
+          "run_index": 2,
+          "secondary_metrics": {
+            "mean_action_l2": 0.44516,
+            "mean_action_rate_l2": 0.019899,
+            "mean_episode_steps": 100.0,
+            "mean_final_planar_speed_mps": 0.414967,
+            "mean_final_xy_drift_m": 0.94755,
+            "mean_max_abs_pitch_rad": 1.499366,
+            "mean_max_abs_roll_rad": 3.110238,
+            "mean_min_base_height_m": 0.079579,
+            "mean_return": -6.493774,
+            "recovery_window_success_rate": 1.0
+          },
+          "status": "pass",
+          "success_rate": 0.0
+        },
+        {
+          "condition_flag_breakdown": {
+            "counts": {
+              "drift_over_threshold": 16,
+              "height_below_threshold": 16,
+              "pitch_over_threshold": 16,
+              "roll_over_threshold": 16,
+              "terminated": 0
+            },
+            "diagnostic_only": true,
+            "nonexclusive": true,
+            "primary_label_priority": [
+              "fall_forward",
+              "fall_backward",
+              "fall_side",
+              "height_collapse",
+              "fall_unknown",
+              "excessive_drift",
+              "success"
+            ],
+            "rates": {
+              "drift_over_threshold": 1.0,
+              "height_below_threshold": 1.0,
+              "pitch_over_threshold": 1.0,
+              "roll_over_threshold": 1.0,
+              "terminated": 0.0
+            },
+            "total": 16
+          },
+          "episodes": 16,
+          "failure_breakdown": {
+            "counts": {
+              "fall_forward": 16
+            },
+            "dominant_failure": "fall_forward",
+            "rates": {
+              "fall_forward": 1.0
+            },
+            "total": 16
+          },
+          "run_index": 3,
+          "secondary_metrics": {
+            "mean_action_l2": 0.445165,
+            "mean_action_rate_l2": 0.019127,
+            "mean_episode_steps": 100.0,
+            "mean_final_planar_speed_mps": 0.448953,
+            "mean_final_xy_drift_m": 0.957174,
+            "mean_max_abs_pitch_rad": 1.492663,
+            "mean_max_abs_roll_rad": 3.120965,
+            "mean_min_base_height_m": 0.080811,
+            "mean_return": -6.426579,
+            "recovery_window_success_rate": 1.0
+          },
+          "status": "pass",
+          "success_rate": 0.0
+        }
+      ]
+    },
+    "public_dev": {
+      "score_stats": {
+        "count": 3,
+        "episode_count": 48,
+        "eval_protocol_hash": "85cf83692bc87c30fe638fd7b254578ef2ea78865611305d24e0dffa3388c630",
+        "mean": 0.0,
+        "standard_error": 0.0,
+        "std": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "seed_results": [
+        {
+          "condition_flag_breakdown": {
+            "counts": {
+              "drift_over_threshold": 16,
+              "height_below_threshold": 16,
+              "pitch_over_threshold": 16,
+              "roll_over_threshold": 16,
+              "terminated": 0
+            },
+            "diagnostic_only": true,
+            "nonexclusive": true,
+            "primary_label_priority": [
+              "fall_forward",
+              "fall_backward",
+              "fall_side",
+              "height_collapse",
+              "fall_unknown",
+              "excessive_drift",
+              "success"
+            ],
+            "rates": {
+              "drift_over_threshold": 1.0,
+              "height_below_threshold": 1.0,
+              "pitch_over_threshold": 1.0,
+              "roll_over_threshold": 1.0,
+              "terminated": 0.0
+            },
+            "total": 16
+          },
+          "episodes": 16,
+          "failure_breakdown": {
+            "counts": {
+              "fall_forward": 16
+            },
+            "dominant_failure": "fall_forward",
+            "rates": {
+              "fall_forward": 1.0
+            },
+            "total": 16
+          },
+          "run_index": 1,
+          "secondary_metrics": {
+            "mean_action_l2": 0.451846,
+            "mean_action_rate_l2": 0.015637,
+            "mean_episode_steps": 100.0,
+            "mean_final_planar_speed_mps": 0.490596,
+            "mean_final_xy_drift_m": 0.945311,
+            "mean_max_abs_pitch_rad": 1.485588,
+            "mean_max_abs_roll_rad": 3.100906,
+            "mean_min_base_height_m": 0.081049,
+            "mean_return": -6.090173,
+            "recovery_window_success_rate": 1.0
+          },
+          "status": "pass",
+          "success_rate": 0.0
+        },
+        {
+          "condition_flag_breakdown": {
+            "counts": {
+              "drift_over_threshold": 16,
+              "height_below_threshold": 16,
+              "pitch_over_threshold": 16,
+              "roll_over_threshold": 16,
+              "terminated": 0
+            },
+            "diagnostic_only": true,
+            "nonexclusive": true,
+            "primary_label_priority": [
+              "fall_forward",
+              "fall_backward",
+              "fall_side",
+              "height_collapse",
+              "fall_unknown",
+              "excessive_drift",
+              "success"
+            ],
+            "rates": {
+              "drift_over_threshold": 1.0,
+              "height_below_threshold": 1.0,
+              "pitch_over_threshold": 1.0,
+              "roll_over_threshold": 1.0,
+              "terminated": 0.0
+            },
+            "total": 16
+          },
+          "episodes": 16,
+          "failure_breakdown": {
+            "counts": {
+              "fall_forward": 16
+            },
+            "dominant_failure": "fall_forward",
+            "rates": {
+              "fall_forward": 1.0
+            },
+            "total": 16
+          },
+          "run_index": 2,
+          "secondary_metrics": {
+            "mean_action_l2": 0.446315,
+            "mean_action_rate_l2": 0.018984,
+            "mean_episode_steps": 100.0,
+            "mean_final_planar_speed_mps": 0.461085,
+            "mean_final_xy_drift_m": 0.938532,
+            "mean_max_abs_pitch_rad": 1.501779,
+            "mean_max_abs_roll_rad": 3.120021,
+            "mean_min_base_height_m": 0.079443,
+            "mean_return": -6.088664,
+            "recovery_window_success_rate": 1.0
+          },
+          "status": "pass",
+          "success_rate": 0.0
+        },
+        {
+          "condition_flag_breakdown": {
+            "counts": {
+              "drift_over_threshold": 16,
+              "height_below_threshold": 16,
+              "pitch_over_threshold": 16,
+              "roll_over_threshold": 16,
+              "terminated": 0
+            },
+            "diagnostic_only": true,
+            "nonexclusive": true,
+            "primary_label_priority": [
+              "fall_forward",
+              "fall_backward",
+              "fall_side",
+              "height_collapse",
+              "fall_unknown",
+              "excessive_drift",
+              "success"
+            ],
+            "rates": {
+              "drift_over_threshold": 1.0,
+              "height_below_threshold": 1.0,
+              "pitch_over_threshold": 1.0,
+              "roll_over_threshold": 1.0,
+              "terminated": 0.0
+            },
+            "total": 16
+          },
+          "episodes": 16,
+          "failure_breakdown": {
+            "counts": {
+              "fall_forward": 16
+            },
+            "dominant_failure": "fall_forward",
+            "rates": {
+              "fall_forward": 1.0
+            },
+            "total": 16
+          },
+          "run_index": 3,
+          "secondary_metrics": {
+            "mean_action_l2": 0.445992,
+            "mean_action_rate_l2": 0.019702,
+            "mean_episode_steps": 100.0,
+            "mean_final_planar_speed_mps": 0.480055,
+            "mean_final_xy_drift_m": 0.950398,
+            "mean_max_abs_pitch_rad": 1.498299,
+            "mean_max_abs_roll_rad": 3.120669,
+            "mean_min_base_height_m": 0.080072,
+            "mean_return": -6.301691,
+            "recovery_window_success_rate": 1.0
+          },
+          "status": "pass",
+          "success_rate": 0.0
+        }
+      ]
+    },
+    "success_rate": 0.0
+  },
+  "per_episode": [
+    {
+      "env_id": 0,
+      "episode_steps": 100,
+      "failure_label": "fall_forward",
+      "final_planar_speed_mps": 0.552791,
+      "final_xy_drift_m": 0.924226,
+      "max_abs_pitch_rad": 1.464622,
+      "max_abs_roll_rad": 3.117946,
+      "max_pitch_rad": 1.464622,
+      "mean_action_l2": 0.441243,
+      "mean_action_rate_l2": 0.019059,
+      "min_base_height_m": 0.083602,
+      "min_pitch_rad": -0.043229,
+      "observed_push_delta_mps": 0.377578,
+      "post_push_peak_speed_mps": 1.550533,
+      "pre_push_peak_speed_mps": 1.172955,
+      "recovery_window_success": true,
+      "return": -7.399055,
+      "success": false,
+      "terminated": false,
+      "timed_out": false
+    },
+    {
+      "env_id": 1,
+      "episode_steps": 100,
+      "failure_label": "fall_forward",
+      "final_planar_speed_mps": 0.799266,
+      "final_xy_drift_m": 0.954672,
+      "max_abs_pitch_rad": 1.487202,
+      "max_abs_roll_rad": 3.108618,
+      "max_pitch_rad": 1.487202,
+      "mean_action_l2": 0.453967,
+      "mean_action_rate_l2": 0.019483,
+      "min_base_height_m": 0.082041,
+      "min_pitch_rad": -0.045147,
+      "observed_push_delta_mps": 1.023448,
+      "post_push_peak_speed_mps": 1.614106,
+      "pre_push_peak_speed_mps": 0.590658,
+      "recovery_window_success": true,
+      "return": -4.980927,
+      "success": false,
+      "terminated": false,
+      "timed_out": false
+    },
+    {
+      "env_id": 2,
+      "episode_steps": 100,
+      "failure_label": "fall_forward",
+      "final_planar_speed_mps": 0.575223,
+      "final_xy_drift_m": 0.987487,
+      "max_abs_pitch_rad": 1.451338,
+      "max_abs_roll_rad": 3.126979,
+      "max_pitch_rad": 1.451338,
+      "mean_action_l2": 0.448948,
+      "mean_action_rate_l2": 0.018986,
+      "min_base_height_m": 0.085557,
+      "min_pitch_rad": -0.041959,
+      "observed_push_delta_mps": 0.973957,
+      "post_push_peak_speed_mps": 1.592919,
+      "pre_push_peak_speed_mps": 0.618962,
+      "recovery_window_success": true,
+      "return": -5.697959,
+      "success": false,
+      "terminated": false,
+      "timed_out": false
+    },
+    {
+      "env_id": 3,
+      "episode_steps": 100,
+      "failure_label": "fall_forward",
+      "final_planar_speed_mps": 0.593197,
+      "final_xy_drift_m": 0.946586,
+      "max_abs_pitch_rad": 1.525098,
+      "max_abs_roll_rad": 2.982514,
+      "max_pitch_rad": 1.525098,
+      "mean_action_l2": 0.447979,
+      "mean_action_rate_l2": 0.025876,
+      "min_base_height_m": 0.086632,
+      "min_pitch_rad": -0.043582,
+      "observed_push_delta_mps": 0.87459,
+      "post_push_peak_speed_mps": 1.525232,
+      "pre_push_peak_speed_mps": 0.650642,
+      "recovery_window_success": true,
+      "return": -6.541282,
+      "success": false,
+      "terminated": false,
+      "timed_out": false
+    },
+    {
+      "env_id": 4,
+      "episode_steps": 100,
+      "failure_label": "fall_forward",
+      "final_planar_speed_mps": 0.164545,
+      "final_xy_drift_m": 0.992083,
+      "max_abs_pitch_rad": 1.455486,
+      "max_abs_roll_rad": 3.111854,
+      "max_pitch_rad": 1.455486,
+      "mean_action_l2": 0.442441,
+      "mean_action_rate_l2": 0.017523,
+      "min_base_height_m": 0.086021,
+      "min_pitch_rad": -0.040244,
+      "observed_push_delta_mps": 0.738534,
+      "post_push_peak_speed_mps": 1.704234,
+      "pre_push_peak_speed_mps": 0.9657,
+      "recovery_window_success": true,
+      "return": -6.865568,
+      "success": false,
+      "terminated": false,
+      "timed_out": false
+    },
+    {
+      "env_id": 5,
+      "episode_steps": 100,
+      "failure_label": "fall_forward",
+      "final_planar_speed_mps": 0.131062,
+      "final_xy_drift_m": 0.942584,
+      "max_abs_pitch_rad": 1.49926,
+      "max_abs_roll_rad": 3.080902,
+      "max_pitch_rad": 1.49926,
+      "mean_action_l2": 0.450135,
+      "mean_action_rate_l2": 0.017265,
+      "min_base_height_m": 0.077048,
+      "min_pitch_rad": -0.043204,
+      "observed_push_delta_mps": 0.973654,
+      "post_push_peak_speed_mps": 1.581067,
+      "pre_push_peak_speed_mps": 0.607413,
+      "recovery_window_success": true,
+      "return": -5.701543,
+      "success": false,
+      "terminated": false,
+      "timed_out": false
+    },
+    {
+      "env_id": 6,
+      "episode_steps": 100,
+      "failure_label": "fall_forward",
+      "final_planar_speed_mps": 0.585556,
+      "final_xy_drift_m": 0.910112,
+      "max_abs_pitch_rad": 1.479555,
+      "max_abs_roll_rad": 3.139405,
+      "max_pitch_rad": 1.479555,
+      "mean_action_l2": 0.447876,
+      "mean_action_rate_l2": 0.017021,
+      "min_base_height_m": 0.076423,
+      "min_pitch_rad": -0.045085,
+      "observed_push_delta_mps": 0.90025,
+      "post_push_peak_speed_mps": 1.489457,
+      "pre_push_peak_speed_mps": 0.589207,
+      "recovery_window_success": true,
+      "return": -5.975561,
+      "success": false,
+      "terminated": false,
+      "timed_out": false
+    },
+    {
+      "env_id": 7,
+      "episode_steps": 100,
+      "failure_label": "fall_forward",
+      "final_planar_speed_mps": 0.575277,
+      "final_xy_drift_m": 0.9369,
+      "max_abs_pitch_rad": 1.547847,
+      "max_abs_roll_rad": 3.121455,
+      "max_pitch_rad": 1.547847,
+      "mean_action_l2": 0.453125,
+      "mean_action_rate_l2": 0.025238,
+      "min_base_height_m": 0.078926,
+      "min_pitch_rad": -0.04181,
+      "observed_push_delta_mps": 0.84295,
+      "post_push_peak_speed_mps": 1.463138,
+      "pre_push_peak_speed_mps": 0.620188,
+      "recovery_window_success": true,
+      "return": -5.042823,
+      "success": false,
+      "terminated": false,
+      "timed_out": false
+    },
+    {
+      "env_id": 8,
+      "episode_steps": 100,
+      "failure_label": "fall_forward",
+      "final_planar_speed_mps": 0.596091,
+      "final_xy_drift_m": 0.895834,
+      "max_abs_pitch_rad": 1.503101,
+      "max_abs_roll_rad": 3.059523,
+      "max_pitch_rad": 1.503101,
+      "mean_action_l2": 0.44915,
+      "mean_action_rate_l2": 0.019137,
+      "min_base_height_m": 0.08604,
+      "min_pitch_rad": -0.042926,
+      "observed_push_delta_mps": 0.714142,
+      "post_push_peak_speed_mps": 1.321386,
+      "pre_push_peak_speed_mps": 0.607244,
+      "recovery_window_success": true,
+      "return": -5.778487,
+      "success": false,
+      "terminated": false,
+      "timed_out": false
+    },
+    {
+      "env_id": 9,
+      "episode_steps": 100,
+      "failure_label": "fall_forward",
+      "final_planar_speed_mps": 0.531471,
+      "final_xy_drift_m": 0.911112,
+      "max_abs_pitch_rad": 1.482577,
+      "max_abs_roll_rad": 3.138993,
+      "max_pitch_rad": 1.482577,
+      "mean_action_l2": 0.446573,
+      "mean_action_rate_l2": 0.016146,
+      "min_base_height_m": 0.072403,
+      "min_pitch_rad": -0.041284,
+      "observed_push_delta_mps": 0.885371,
+      "post_push_peak_speed_mps": 1.511666,
+      "pre_push_peak_speed_mps": 0.626294,
+      "recovery_window_success": true,
+      "return": -5.696599,
+      "success": false,
+      "terminated": false,
+      "timed_out": false
+    },
+    {
+      "env_id": 10,
+      "episode_steps": 100,
+      "failure_label": "fall_forward",
+      "final_planar_speed_mps": 0.487584,
+      "final_xy_drift_m": 0.943204,
+      "max_abs_pitch_rad": 1.484297,
+      "max_abs_roll_rad": 3.10539,
+      "max_pitch_rad": 1.484297,
+      "mean_action_l2": 0.44897,
+      "mean_action_rate_l2": 0.018769,
+      "min_base_height_m": 0.083735,
+      "min_pitch_rad": -0.043782,
+      "observed_push_delta_mps": 0.951121,
+      "post_push_peak_speed_mps": 1.552597,
+      "pre_push_peak_speed_mps": 0.601476,
+      "recovery_window_success": true,
+      "return": -6.006887,
+      "success": false,
+      "terminated": false,
+      "timed_out": false
+    },
+    {
+      "env_id": 11,
+      "episode_steps": 100,
+      "failure_label": "fall_forward",
+      "final_planar_speed_mps": 0.482188,
+      "final_xy_drift_m": 0.927546,
+      "max_abs_pitch_rad": 1.510322,
+      "max_abs_roll_rad": 3.029976,
+      "max_pitch_rad": 1.510322,
+      "mean_action_l2": 0.44861,
+      "mean_action_rate_l2": 0.023841,
+      "min_base_height_m": 0.085299,
+      "min_pitch_rad": -0.045274,
+      "observed_push_delta_mps": 0.802262,
+      "post_push_peak_speed_mps": 1.434452,
+      "pre_push_peak_speed_mps": 0.63219,
+      "recovery_window_success": true,
+      "return": -6.033482,
+      "success": false,
+      "terminated": false,
+      "timed_out": false
+    },
+    {
+      "env_id": 12,
+      "episode_steps": 100,
+      "failure_label": "fall_forward",
+      "final_planar_speed_mps": 0.427358,
+      "final_xy_drift_m": 0.932298,
+      "max_abs_pitch_rad": 1.488324,
+      "max_abs_roll_rad": 3.069892,
+      "max_pitch_rad": 1.488324,
+      "mean_action_l2": 0.44731,
+      "mean_action_rate_l2": 0.0177,
+      "min_base_height_m": 0.077185,
+      "min_pitch_rad": -0.044323,
+      "observed_push_delta_mps": 0.955299,
+      "post_push_peak_speed_mps": 1.551661,
+      "pre_push_peak_speed_mps": 0.596363,
+      "recovery_window_success": true,
+      "return": -6.170055,
+      "success": false,
+      "terminated": false,
+      "timed_out": false
+    },
+    {
+      "env_id": 13,
+      "episode_steps": 100,
+      "failure_label": "fall_forward",
+      "final_planar_speed_mps": 0.71431,
+      "final_xy_drift_m": 0.929924,
+      "max_abs_pitch_rad": 1.500985,
+      "max_abs_roll_rad": 3.110262,
+      "max_pitch_rad": 1.500985,
+      "mean_action_l2": 0.447227,
+      "mean_action_rate_l2": 0.018538,
+      "min_base_height_m": 0.07862,
+      "min_pitch_rad": -0.039501,
+      "observed_push_delta_mps": 0.867181,
+      "post_push_peak_speed_mps": 1.509913,
+      "pre_push_peak_speed_mps": 0.642731,
+      "recovery_window_success": true,
+      "return": -5.820266,
+      "success": false,
+      "terminated": false,
+      "timed_out": false
+    },
+    {
+      "env_id": 14,
+      "episode_steps": 100,
+      "failure_label": "fall_forward",
+      "final_planar_speed_mps": 0.090643,
+      "final_xy_drift_m": 1.058738,
+      "max_abs_pitch_rad": 1.451295,
+      "max_abs_roll_rad": 3.105963,
+      "max_pitch_rad": 1.451295,
+      "mean_action_l2": 0.440511,
+      "mean_action_rate_l2": 0.021506,
+      "min_base_height_m": 0.08528,
+      "min_pitch_rad": -0.040434,
+      "observed_push_delta_mps": 0.570887,
+      "post_push_peak_speed_mps": 1.702038,
+      "pre_push_peak_speed_mps": 1.131151,
+      "recovery_window_success": true,
+      "return": -7.329221,
+      "success": false,
+      "terminated": false,
+      "timed_out": false
+    },
+    {
+      "env_id": 15,
+      "episode_steps": 100,
+      "failure_label": "fall_forward",
+      "final_planar_speed_mps": 0.702364,
+      "final_xy_drift_m": 0.972293,
+      "max_abs_pitch_rad": 1.509385,
+      "max_abs_roll_rad": 3.085505,
+      "max_pitch_rad": 1.509385,
+      "mean_action_l2": 0.440806,
+      "mean_action_rate_l2": 0.018332,
+      "min_base_height_m": 0.081597,
+      "min_pitch_rad": -0.042189,
+      "observed_push_delta_mps": 0.484181,
+      "post_push_peak_speed_mps": 1.652959,
+      "pre_push_peak_speed_mps": 1.168778,
+      "recovery_window_success": true,
+      "return": -7.363361,
+      "success": false,
+      "terminated": false,
+      "timed_out": false
+    }
+  ],
+  "policy": {
+    "action_dim": 29,
+    "action_scale": 0.0,
+    "checkpoint": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit2_push_resume/resumed.pt",
+    "kind": "checkpoint"
+  },
+  "public_score": 0.0,
+  "reset_extras_keys": [
+    "log",
+    "time_outs"
+  ],
+  "run": {
+    "cwd": "/data/yuyangliu/AGENT/true_RL_Agent",
+    "eval_num_envs": 16,
+    "host": "deyugptserver",
+    "platform": "Linux-5.15.0-94-generic-x86_64-with-glibc2.35",
+    "public_accept_seed_count": 3,
+    "public_seed_count": 3,
+    "round_id": "p3-preflight",
+    "sealed_validation_seed_count": 7,
+    "seed_policy": "runner_owned_split_derived_counts_only_no_raw_seed_ids",
+    "subject_id": "p2-short-resume-diagnostic",
+    "subject_kind": "baseline",
+    "task_id": "unitree_push_recovery"
+  },
+  "schema_version": "true_rl_agent.push_recovery.eval_summary.v1",
+  "sealed_validation_evidence": {
+    "capability_profile_hash": "724244d5f3903999014d513130995a19b69a401173b7bf5c670fd320fe566d16",
+    "checkpoint_hash": "sha256:aae678721d4e9686f64fccd96410ac252a5150b6c88b10951081977254134043",
+    "eval_protocol_hash": "85cf83692bc87c30fe638fd7b254578ef2ea78865611305d24e0dffa3388c630",
+    "evaluation_binding_hash": "d350dbcb577f59c21fadf17f71787e7087830bfe618a71a9d8677461baf9d80b",
+    "evaluation_subject": {
+      "id": "p2-short-resume-diagnostic",
+      "kind": "baseline",
+      "schema_version": "true_rl_agent.experiment.subject.v2"
+    },
+    "expected_seed_count": 7,
+    "observed_seed_count": 7,
+    "program_source_checksum": null,
+    "reason": "push_recovery_holdout_floor_not_met",
+    "schema_version": "true_rl_agent.sealed_validation.evidence.v4",
+    "score_stats": {
+      "count": 7,
+      "episode_count": 112,
+      "eval_protocol_hash": "85cf83692bc87c30fe638fd7b254578ef2ea78865611305d24e0dffa3388c630",
+      "mean": 0.0,
+      "standard_error": 0.0,
+      "std": 0.0,
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "status": "fail",
+    "subject_manifest_hash": "6076bd2decde4708c8be9c4f4376b80b44279514bec4e8a9e739648f67c8aa1f",
+    "training_binding_hash": null
+  },
+  "sealed_validation_gate": {
+    "candidate_code_loaded_in_eval": false,
+    "candidate_isolation_status": "pass",
+    "candidate_package_loaded_in_eval": false,
+    "candidate_path_argument_present": false,
+    "checkpoint_hash_match_status": "pass",
+    "checkpoint_safety_status": "pass",
+    "eval_protocol_hash_match_status": "pass",
+    "evaluation_binding_hash_match_status": "pass",
+    "holdout_rollout_status": "fail",
+    "reason": "push_recovery_holdout_floor_not_met",
+    "status": "fail"
+  },
+  "sealed_validation_rollouts": [
+    {
+      "aggregate": {
+        "condition_flag_breakdown": {
+          "counts": {
+            "drift_over_threshold": 16,
+            "height_below_threshold": 16,
+            "pitch_over_threshold": 16,
+            "roll_over_threshold": 16,
+            "terminated": 0
+          },
+          "diagnostic_only": true,
+          "nonexclusive": true,
+          "primary_label_priority": [
+            "fall_forward",
+            "fall_backward",
+            "fall_side",
+            "height_collapse",
+            "fall_unknown",
+            "excessive_drift",
+            "success"
+          ],
+          "rates": {
+            "drift_over_threshold": 1.0,
+            "height_below_threshold": 1.0,
+            "pitch_over_threshold": 1.0,
+            "roll_over_threshold": 1.0,
+            "terminated": 0.0
+          },
+          "total": 16
+        },
+        "episodes": 16,
+        "failure_breakdown": {
+          "counts": {
+            "fall_forward": 16
+          },
+          "dominant_failure": "fall_forward",
+          "rates": {
+            "fall_forward": 1.0
+          },
+          "total": 16
+        },
+        "success_count": 0,
+        "success_rate": 0.0
+      },
+      "candidate_code_loaded_in_eval": false,
+      "candidate_package_loaded": false,
+      "candidate_package_loaded_in_eval": false,
+      "configuration": {
+        "active_profile": "strong_push",
+        "config_path": null,
+        "config_sha256": null,
+        "push": {
+          "body": "torso_link",
+          "evidence": {
+            "min_env_fraction_with_delta": 0.2,
+            "min_env_fraction_with_single_step_delta": 0.2,
+            "min_observed_delta_mps": 0.12,
+            "min_single_step_delta_mps": 0.12,
+            "post_window_s": 1.0,
+            "pre_window_s": 0.75,
+            "single_step_window_s": [
+              0.9,
+              1.1
+            ]
+          },
+          "interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "isaac_event": "push_by_setting_velocity",
+          "mechanism": "base_velocity_kick",
+          "velocity_range_mps": {
+            "x": [
+              -0.6,
+              0.6
+            ],
+            "y": [
+              -0.6,
+              0.6
+            ]
+          }
+        },
+        "runtime_dynamics_hash": "sha256:6527d6443e8156b01a138f963b0b3c5396a989a10c20c579977868861f79b778",
+        "standing_command": {
+          "ang_vel_z_radps": [
+            0.0,
+            0.0
+          ],
+          "command_name": "base_velocity",
+          "heading_command": false,
+          "lin_vel_x_mps": [
+            0.0,
+            0.0
+          ],
+          "lin_vel_y_mps": [
+            0.0,
+            0.0
+          ],
+          "rel_heading_envs": 0.0,
+          "rel_standing_envs": 1.0,
+          "resampling_time_range_s": [
+            10.0,
+            10.0
+          ]
+        },
+        "success_thresholds": {
+          "max_abs_pitch_rad": 0.65,
+          "max_abs_roll_rad": 0.65,
+          "max_final_xy_drift_m": 0.8,
+          "min_base_height_m": 0.45
+        }
+      },
+      "created_at_utc": "2026-09-12T05:05:34.396058+00:00",
+      "diagnostic_hints": [
+        {
+          "candidate_patch_scope": "Improve post-push pitch/upright reward; keep eval thresholds fixed.",
+          "condition": "dominant_failure == fall_forward",
+          "interpretation": "Forward pitch excursions dominate the protected classifier."
+        },
+        {
+          "candidate_patch_scope": "Use condition flags, not only dominant failure, for code-level reward design.",
+          "condition": "height_below_threshold co-occurs with other labels",
+          "interpretation": "Height collapse may be masked by higher-priority pitch/roll labels."
+        },
+        {
+          "candidate_patch_scope": "Inspect drift evidence while keeping protected success rules fixed.",
+          "condition": "drift_over_threshold co-occurs with other labels",
+          "interpretation": "Drift violations may be masked by fall labels."
+        }
+      ],
+      "environment": {
+        "device": "cuda:0",
+        "max_steps": 100,
+        "num_envs": 16,
+        "step_dt": 0.02
+      },
+      "errors": [],
+      "evidence": {
+        "observation_finite": true,
+        "push_effect": {
+          "env_fraction_with_single_step_delta": 1.0,
+          "expected_interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "gate_pass": true,
+          "max_single_step_delta_mps": 0.832422,
+          "mean_single_step_delta_mps": 0.501271,
+          "mechanism": "base_velocity_kick",
+          "min_env_fraction_with_single_step_delta": 0.2,
+          "min_single_step_delta_mps": 0.12,
+          "nonzero_push_configured": true,
+          "single_step_window_s": [
+            0.9,
+            1.1
+          ]
+        },
+        "recovery_window": {
+          "max_final_planar_speed_mps": 5.0,
+          "success_rate": 1.0
+        },
+        "reset_ok": true,
+        "reward_finite": true
+      },
+      "execution_cost": {
+        "closed_first_episode_control_steps": 1600,
+        "evaluation_env_count": 16,
+        "vector_env_step_calls": 100
+      },
+      "metrics": {
+        "failure_breakdown": {
+          "counts": {
+            "fall_forward": 16
+          },
+          "dominant_failure": "fall_forward",
+          "rates": {
+            "fall_forward": 1.0
+          },
+          "total": 16
+        },
+        "motion_quality": {
+          "mean_action_l2": 0.444896,
+          "mean_action_rate_l2": 0.019282,
+          "mean_episode_steps": 100.0,
+          "mean_final_planar_speed_mps": 0.439345,
+          "mean_final_xy_drift_m": 0.94665,
+          "mean_max_abs_pitch_rad": 1.478258,
+          "mean_max_abs_roll_rad": 3.119591,
+          "mean_min_base_height_m": 0.081585,
+          "mean_return": -6.575421,
+          "recovery_window_success_rate": 1.0
+        },
+        "success_rate": 0.0
+      },
+      "per_episode": [
+        {
+          "env_id": 0,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.478946,
+          "final_xy_drift_m": 0.897402,
+          "max_abs_pitch_rad": 1.518476,
+          "max_abs_roll_rad": 3.126477,
+          "max_pitch_rad": 1.518476,
+          "mean_action_l2": 0.449327,
+          "mean_action_rate_l2": 0.01713,
+          "min_base_height_m": 0.077977,
+          "min_pitch_rad": -0.043209,
+          "observed_push_delta_mps": 0.817553,
+          "post_push_peak_speed_mps": 1.426566,
+          "pre_push_peak_speed_mps": 0.609012,
+          "recovery_window_success": true,
+          "return": -5.863449,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 1,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.603453,
+          "final_xy_drift_m": 0.935744,
+          "max_abs_pitch_rad": 1.453408,
+          "max_abs_roll_rad": 3.137969,
+          "max_pitch_rad": 1.453408,
+          "mean_action_l2": 0.444193,
+          "mean_action_rate_l2": 0.019191,
+          "min_base_height_m": 0.08511,
+          "min_pitch_rad": -0.045293,
+          "observed_push_delta_mps": 0.542145,
+          "post_push_peak_speed_mps": 1.579425,
+          "pre_push_peak_speed_mps": 1.03728,
+          "recovery_window_success": true,
+          "return": -7.190877,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 2,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.345676,
+          "final_xy_drift_m": 0.941657,
+          "max_abs_pitch_rad": 1.533094,
+          "max_abs_roll_rad": 3.121547,
+          "max_pitch_rad": 1.533094,
+          "mean_action_l2": 0.440946,
+          "mean_action_rate_l2": 0.019222,
+          "min_base_height_m": 0.075142,
+          "min_pitch_rad": -0.041942,
+          "observed_push_delta_mps": 0.422282,
+          "post_push_peak_speed_mps": 1.635042,
+          "pre_push_peak_speed_mps": 1.21276,
+          "recovery_window_success": true,
+          "return": -7.243624,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 3,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.362669,
+          "final_xy_drift_m": 0.900297,
+          "max_abs_pitch_rad": 1.494953,
+          "max_abs_roll_rad": 3.106693,
+          "max_pitch_rad": 1.494953,
+          "mean_action_l2": 0.441979,
+          "mean_action_rate_l2": 0.018155,
+          "min_base_height_m": 0.073576,
+          "min_pitch_rad": -0.04351,
+          "observed_push_delta_mps": 0.52855,
+          "post_push_peak_speed_mps": 1.532101,
+          "pre_push_peak_speed_mps": 1.003551,
+          "recovery_window_success": true,
+          "return": -6.844247,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 4,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.54039,
+          "final_xy_drift_m": 0.948494,
+          "max_abs_pitch_rad": 1.463359,
+          "max_abs_roll_rad": 3.137527,
+          "max_pitch_rad": 1.463359,
+          "mean_action_l2": 0.446604,
+          "mean_action_rate_l2": 0.01777,
+          "min_base_height_m": 0.08309,
+          "min_pitch_rad": -0.040206,
+          "observed_push_delta_mps": 0.936545,
+          "post_push_peak_speed_mps": 1.572056,
+          "pre_push_peak_speed_mps": 0.635511,
+          "recovery_window_success": true,
+          "return": -5.99054,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 5,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.396413,
+          "final_xy_drift_m": 0.96727,
+          "max_abs_pitch_rad": 1.452744,
+          "max_abs_roll_rad": 3.119008,
+          "max_pitch_rad": 1.452744,
+          "mean_action_l2": 0.446055,
+          "mean_action_rate_l2": 0.020217,
+          "min_base_height_m": 0.085748,
+          "min_pitch_rad": -0.043366,
+          "observed_push_delta_mps": 0.902483,
+          "post_push_peak_speed_mps": 1.620709,
+          "pre_push_peak_speed_mps": 0.718226,
+          "recovery_window_success": true,
+          "return": -6.421492,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 6,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.344286,
+          "final_xy_drift_m": 0.933748,
+          "max_abs_pitch_rad": 1.453608,
+          "max_abs_roll_rad": 3.067574,
+          "max_pitch_rad": 1.453608,
+          "mean_action_l2": 0.443882,
+          "mean_action_rate_l2": 0.021325,
+          "min_base_height_m": 0.084379,
+          "min_pitch_rad": -0.045055,
+          "observed_push_delta_mps": 0.625928,
+          "post_push_peak_speed_mps": 1.552778,
+          "pre_push_peak_speed_mps": 0.92685,
+          "recovery_window_success": true,
+          "return": -7.022369,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 7,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.504463,
+          "final_xy_drift_m": 0.975269,
+          "max_abs_pitch_rad": 1.465685,
+          "max_abs_roll_rad": 3.138767,
+          "max_pitch_rad": 1.465685,
+          "mean_action_l2": 0.446521,
+          "mean_action_rate_l2": 0.019824,
+          "min_base_height_m": 0.084869,
+          "min_pitch_rad": -0.041826,
+          "observed_push_delta_mps": 0.873885,
+          "post_push_peak_speed_mps": 1.627805,
+          "pre_push_peak_speed_mps": 0.75392,
+          "recovery_window_success": true,
+          "return": -6.490623,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 8,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.406437,
+          "final_xy_drift_m": 0.891173,
+          "max_abs_pitch_rad": 1.469685,
+          "max_abs_roll_rad": 3.127575,
+          "max_pitch_rad": 1.469685,
+          "mean_action_l2": 0.443219,
+          "mean_action_rate_l2": 0.017467,
+          "min_base_height_m": 0.083462,
+          "min_pitch_rad": -0.043037,
+          "observed_push_delta_mps": 0.627689,
+          "post_push_peak_speed_mps": 1.437189,
+          "pre_push_peak_speed_mps": 0.8095,
+          "recovery_window_success": true,
+          "return": -6.484181,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 9,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.123109,
+          "final_xy_drift_m": 0.941686,
+          "max_abs_pitch_rad": 1.470739,
+          "max_abs_roll_rad": 3.114966,
+          "max_pitch_rad": 1.470739,
+          "mean_action_l2": 0.446406,
+          "mean_action_rate_l2": 0.017559,
+          "min_base_height_m": 0.084646,
+          "min_pitch_rad": -0.041283,
+          "observed_push_delta_mps": 0.903094,
+          "post_push_peak_speed_mps": 1.536791,
+          "pre_push_peak_speed_mps": 0.633697,
+          "recovery_window_success": true,
+          "return": -6.267039,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 10,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.581823,
+          "final_xy_drift_m": 0.963929,
+          "max_abs_pitch_rad": 1.469255,
+          "max_abs_roll_rad": 3.137232,
+          "max_pitch_rad": 1.469255,
+          "mean_action_l2": 0.441956,
+          "mean_action_rate_l2": 0.019249,
+          "min_base_height_m": 0.081424,
+          "min_pitch_rad": -0.043765,
+          "observed_push_delta_mps": 0.587247,
+          "post_push_peak_speed_mps": 1.718094,
+          "pre_push_peak_speed_mps": 1.130847,
+          "recovery_window_success": true,
+          "return": -7.161603,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 11,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.190794,
+          "final_xy_drift_m": 0.930159,
+          "max_abs_pitch_rad": 1.478751,
+          "max_abs_roll_rad": 3.131785,
+          "max_pitch_rad": 1.478751,
+          "mean_action_l2": 0.448412,
+          "mean_action_rate_l2": 0.018913,
+          "min_base_height_m": 0.077421,
+          "min_pitch_rad": -0.045299,
+          "observed_push_delta_mps": 0.993828,
+          "post_push_peak_speed_mps": 1.582805,
+          "pre_push_peak_speed_mps": 0.588976,
+          "recovery_window_success": true,
+          "return": -5.620345,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 12,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.43066,
+          "final_xy_drift_m": 0.999706,
+          "max_abs_pitch_rad": 1.490504,
+          "max_abs_roll_rad": 3.081049,
+          "max_pitch_rad": 1.490504,
+          "mean_action_l2": 0.440883,
+          "mean_action_rate_l2": 0.01988,
+          "min_base_height_m": 0.085203,
+          "min_pitch_rad": -0.044221,
+          "observed_push_delta_mps": 0.294487,
+          "post_push_peak_speed_mps": 1.712683,
+          "pre_push_peak_speed_mps": 1.418196,
+          "recovery_window_success": true,
+          "return": -7.824389,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 13,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.622691,
+          "final_xy_drift_m": 0.966474,
+          "max_abs_pitch_rad": 1.473704,
+          "max_abs_roll_rad": 3.129442,
+          "max_pitch_rad": 1.473704,
+          "mean_action_l2": 0.445423,
+          "mean_action_rate_l2": 0.024231,
+          "min_base_height_m": 0.08205,
+          "min_pitch_rad": -0.039721,
+          "observed_push_delta_mps": 0.762439,
+          "post_push_peak_speed_mps": 1.489894,
+          "pre_push_peak_speed_mps": 0.727454,
+          "recovery_window_success": true,
+          "return": -6.116336,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 14,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.571137,
+          "final_xy_drift_m": 0.947532,
+          "max_abs_pitch_rad": 1.516243,
+          "max_abs_roll_rad": 3.134161,
+          "max_pitch_rad": 1.516243,
+          "mean_action_l2": 0.446534,
+          "mean_action_rate_l2": 0.019489,
+          "min_base_height_m": 0.075116,
+          "min_pitch_rad": -0.040597,
+          "observed_push_delta_mps": 0.935373,
+          "post_push_peak_speed_mps": 1.569319,
+          "pre_push_peak_speed_mps": 0.633945,
+          "recovery_window_success": true,
+          "return": -6.087887,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 15,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.526572,
+          "final_xy_drift_m": 1.005856,
+          "max_abs_pitch_rad": 1.447921,
+          "max_abs_roll_rad": 3.101687,
+          "max_pitch_rad": 1.447921,
+          "mean_action_l2": 0.445998,
+          "mean_action_rate_l2": 0.018885,
+          "min_base_height_m": 0.08614,
+          "min_pitch_rad": -0.042167,
+          "observed_push_delta_mps": 0.890271,
+          "post_push_peak_speed_mps": 1.656064,
+          "pre_push_peak_speed_mps": 0.765793,
+          "recovery_window_success": true,
+          "return": -6.577732,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        }
+      ],
+      "policy": {
+        "action_dim": 29,
+        "action_scale": 0.0,
+        "checkpoint": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit2_push_resume/resumed.pt",
+        "kind": "checkpoint"
+      },
+      "public_score": 0.0,
+      "reset_extras_keys": [
+        "log",
+        "time_outs"
+      ],
+      "run": {
+        "cwd": "/data/yuyangliu/AGENT/true_RL_Agent",
+        "host": "deyugptserver",
+        "platform": "Linux-5.15.0-94-generic-x86_64-with-glibc2.35",
+        "public_accept_seed_count": 3,
+        "public_seed_count": 3,
+        "round_id": "p3-preflight",
+        "run_index": 1,
+        "seed_policy": "runner_owned_split_derived_counts_only_no_raw_seed_ids",
+        "split": "sealed_validation",
+        "split_seed_count": 7,
+        "subject_id": "p2-short-resume-diagnostic",
+        "subject_kind": "baseline"
+      },
+      "schema_version": "true_rl_agent.push_recovery.eval_summary.v1",
+      "secondary_metrics": {
+        "mean_action_l2": 0.444896,
+        "mean_action_rate_l2": 0.019282,
+        "mean_episode_steps": 100.0,
+        "mean_final_planar_speed_mps": 0.439345,
+        "mean_final_xy_drift_m": 0.94665,
+        "mean_max_abs_pitch_rad": 1.478258,
+        "mean_max_abs_roll_rad": 3.119591,
+        "mean_min_base_height_m": 0.081585,
+        "mean_return": -6.575421,
+        "recovery_window_success_rate": 1.0
+      },
+      "status": "pass",
+      "task": {
+        "gym_id": "Unitree-G1-29dof-Velocity",
+        "implementation_strategy": "true_rl_agent_project_local_config_overlay",
+        "robot": "Unitree G1 29DoF",
+        "vendor_env": "unitree_rl_lab.tasks.locomotion.robots.g1.29dof.velocity_env_cfg"
+      }
+    },
+    {
+      "aggregate": {
+        "condition_flag_breakdown": {
+          "counts": {
+            "drift_over_threshold": 16,
+            "height_below_threshold": 16,
+            "pitch_over_threshold": 16,
+            "roll_over_threshold": 16,
+            "terminated": 0
+          },
+          "diagnostic_only": true,
+          "nonexclusive": true,
+          "primary_label_priority": [
+            "fall_forward",
+            "fall_backward",
+            "fall_side",
+            "height_collapse",
+            "fall_unknown",
+            "excessive_drift",
+            "success"
+          ],
+          "rates": {
+            "drift_over_threshold": 1.0,
+            "height_below_threshold": 1.0,
+            "pitch_over_threshold": 1.0,
+            "roll_over_threshold": 1.0,
+            "terminated": 0.0
+          },
+          "total": 16
+        },
+        "episodes": 16,
+        "failure_breakdown": {
+          "counts": {
+            "fall_forward": 16
+          },
+          "dominant_failure": "fall_forward",
+          "rates": {
+            "fall_forward": 1.0
+          },
+          "total": 16
+        },
+        "success_count": 0,
+        "success_rate": 0.0
+      },
+      "candidate_code_loaded_in_eval": false,
+      "candidate_package_loaded": false,
+      "candidate_package_loaded_in_eval": false,
+      "configuration": {
+        "active_profile": "strong_push",
+        "config_path": null,
+        "config_sha256": null,
+        "push": {
+          "body": "torso_link",
+          "evidence": {
+            "min_env_fraction_with_delta": 0.2,
+            "min_env_fraction_with_single_step_delta": 0.2,
+            "min_observed_delta_mps": 0.12,
+            "min_single_step_delta_mps": 0.12,
+            "post_window_s": 1.0,
+            "pre_window_s": 0.75,
+            "single_step_window_s": [
+              0.9,
+              1.1
+            ]
+          },
+          "interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "isaac_event": "push_by_setting_velocity",
+          "mechanism": "base_velocity_kick",
+          "velocity_range_mps": {
+            "x": [
+              -0.6,
+              0.6
+            ],
+            "y": [
+              -0.6,
+              0.6
+            ]
+          }
+        },
+        "runtime_dynamics_hash": "sha256:6527d6443e8156b01a138f963b0b3c5396a989a10c20c579977868861f79b778",
+        "standing_command": {
+          "ang_vel_z_radps": [
+            0.0,
+            0.0
+          ],
+          "command_name": "base_velocity",
+          "heading_command": false,
+          "lin_vel_x_mps": [
+            0.0,
+            0.0
+          ],
+          "lin_vel_y_mps": [
+            0.0,
+            0.0
+          ],
+          "rel_heading_envs": 0.0,
+          "rel_standing_envs": 1.0,
+          "resampling_time_range_s": [
+            10.0,
+            10.0
+          ]
+        },
+        "success_thresholds": {
+          "max_abs_pitch_rad": 0.65,
+          "max_abs_roll_rad": 0.65,
+          "max_final_xy_drift_m": 0.8,
+          "min_base_height_m": 0.45
+        }
+      },
+      "created_at_utc": "2026-09-12T05:05:38.164346+00:00",
+      "diagnostic_hints": [
+        {
+          "candidate_patch_scope": "Improve post-push pitch/upright reward; keep eval thresholds fixed.",
+          "condition": "dominant_failure == fall_forward",
+          "interpretation": "Forward pitch excursions dominate the protected classifier."
+        },
+        {
+          "candidate_patch_scope": "Use condition flags, not only dominant failure, for code-level reward design.",
+          "condition": "height_below_threshold co-occurs with other labels",
+          "interpretation": "Height collapse may be masked by higher-priority pitch/roll labels."
+        },
+        {
+          "candidate_patch_scope": "Inspect drift evidence while keeping protected success rules fixed.",
+          "condition": "drift_over_threshold co-occurs with other labels",
+          "interpretation": "Drift violations may be masked by fall labels."
+        }
+      ],
+      "environment": {
+        "device": "cuda:0",
+        "max_steps": 100,
+        "num_envs": 16,
+        "step_dt": 0.02
+      },
+      "errors": [],
+      "evidence": {
+        "observation_finite": true,
+        "push_effect": {
+          "env_fraction_with_single_step_delta": 1.0,
+          "expected_interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "gate_pass": true,
+          "max_single_step_delta_mps": 0.741587,
+          "mean_single_step_delta_mps": 0.558852,
+          "mechanism": "base_velocity_kick",
+          "min_env_fraction_with_single_step_delta": 0.2,
+          "min_single_step_delta_mps": 0.12,
+          "nonzero_push_configured": true,
+          "single_step_window_s": [
+            0.9,
+            1.1
+          ]
+        },
+        "recovery_window": {
+          "max_final_planar_speed_mps": 5.0,
+          "success_rate": 1.0
+        },
+        "reset_ok": true,
+        "reward_finite": true
+      },
+      "execution_cost": {
+        "closed_first_episode_control_steps": 1600,
+        "evaluation_env_count": 16,
+        "vector_env_step_calls": 100
+      },
+      "metrics": {
+        "failure_breakdown": {
+          "counts": {
+            "fall_forward": 16
+          },
+          "dominant_failure": "fall_forward",
+          "rates": {
+            "fall_forward": 1.0
+          },
+          "total": 16
+        },
+        "motion_quality": {
+          "mean_action_l2": 0.444651,
+          "mean_action_rate_l2": 0.02112,
+          "mean_episode_steps": 100.0,
+          "mean_final_planar_speed_mps": 0.498882,
+          "mean_final_xy_drift_m": 0.952093,
+          "mean_max_abs_pitch_rad": 1.496505,
+          "mean_max_abs_roll_rad": 3.1194,
+          "mean_min_base_height_m": 0.08083,
+          "mean_return": -6.681317,
+          "recovery_window_success_rate": 1.0
+        },
+        "success_rate": 0.0
+      },
+      "per_episode": [
+        {
+          "env_id": 0,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.3226,
+          "final_xy_drift_m": 0.942715,
+          "max_abs_pitch_rad": 1.539597,
+          "max_abs_roll_rad": 3.140639,
+          "max_pitch_rad": 1.539597,
+          "mean_action_l2": 0.451563,
+          "mean_action_rate_l2": 0.01737,
+          "min_base_height_m": 0.077738,
+          "min_pitch_rad": -0.043226,
+          "observed_push_delta_mps": 0.976119,
+          "post_push_peak_speed_mps": 1.585614,
+          "pre_push_peak_speed_mps": 0.609494,
+          "recovery_window_success": true,
+          "return": -4.718987,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 1,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.392161,
+          "final_xy_drift_m": 0.949017,
+          "max_abs_pitch_rad": 1.556695,
+          "max_abs_roll_rad": 3.112373,
+          "max_pitch_rad": 1.556695,
+          "mean_action_l2": 0.4528,
+          "mean_action_rate_l2": 0.020186,
+          "min_base_height_m": 0.08066,
+          "min_pitch_rad": -0.044959,
+          "observed_push_delta_mps": 0.971194,
+          "post_push_peak_speed_mps": 1.559923,
+          "pre_push_peak_speed_mps": 0.588729,
+          "recovery_window_success": true,
+          "return": -5.038022,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 2,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.663851,
+          "final_xy_drift_m": 0.927791,
+          "max_abs_pitch_rad": 1.485727,
+          "max_abs_roll_rad": 3.133661,
+          "max_pitch_rad": 1.485727,
+          "mean_action_l2": 0.444557,
+          "mean_action_rate_l2": 0.017845,
+          "min_base_height_m": 0.079619,
+          "min_pitch_rad": -0.041996,
+          "observed_push_delta_mps": 0.809899,
+          "post_push_peak_speed_mps": 1.519552,
+          "pre_push_peak_speed_mps": 0.709654,
+          "recovery_window_success": true,
+          "return": -6.425457,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 3,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.684732,
+          "final_xy_drift_m": 0.959542,
+          "max_abs_pitch_rad": 1.511042,
+          "max_abs_roll_rad": 3.112794,
+          "max_pitch_rad": 1.511042,
+          "mean_action_l2": 0.440801,
+          "mean_action_rate_l2": 0.021919,
+          "min_base_height_m": 0.079413,
+          "min_pitch_rad": -0.043396,
+          "observed_push_delta_mps": 0.403293,
+          "post_push_peak_speed_mps": 1.62213,
+          "pre_push_peak_speed_mps": 1.218837,
+          "recovery_window_success": true,
+          "return": -7.396488,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 4,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.588139,
+          "final_xy_drift_m": 1.010395,
+          "max_abs_pitch_rad": 1.515849,
+          "max_abs_roll_rad": 3.07567,
+          "max_pitch_rad": 1.515849,
+          "mean_action_l2": 0.445241,
+          "mean_action_rate_l2": 0.031465,
+          "min_base_height_m": 0.085212,
+          "min_pitch_rad": -0.040131,
+          "observed_push_delta_mps": 0.710724,
+          "post_push_peak_speed_mps": 1.710619,
+          "pre_push_peak_speed_mps": 0.999895,
+          "recovery_window_success": true,
+          "return": -7.601944,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 5,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.122147,
+          "final_xy_drift_m": 0.972987,
+          "max_abs_pitch_rad": 1.450037,
+          "max_abs_roll_rad": 3.121577,
+          "max_pitch_rad": 1.450037,
+          "mean_action_l2": 0.442646,
+          "mean_action_rate_l2": 0.020628,
+          "min_base_height_m": 0.085423,
+          "min_pitch_rad": -0.043203,
+          "observed_push_delta_mps": 0.641151,
+          "post_push_peak_speed_mps": 1.702718,
+          "pre_push_peak_speed_mps": 1.061567,
+          "recovery_window_success": true,
+          "return": -7.368509,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 6,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.796811,
+          "final_xy_drift_m": 0.961104,
+          "max_abs_pitch_rad": 1.478115,
+          "max_abs_roll_rad": 3.069021,
+          "max_pitch_rad": 1.478115,
+          "mean_action_l2": 0.449251,
+          "mean_action_rate_l2": 0.030207,
+          "min_base_height_m": 0.085552,
+          "min_pitch_rad": -0.045232,
+          "observed_push_delta_mps": 0.821445,
+          "post_push_peak_speed_mps": 1.495117,
+          "pre_push_peak_speed_mps": 0.673672,
+          "recovery_window_success": true,
+          "return": -6.504797,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 7,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.793776,
+          "final_xy_drift_m": 0.972439,
+          "max_abs_pitch_rad": 1.463419,
+          "max_abs_roll_rad": 3.135217,
+          "max_pitch_rad": 1.463419,
+          "mean_action_l2": 0.444545,
+          "mean_action_rate_l2": 0.018424,
+          "min_base_height_m": 0.084568,
+          "min_pitch_rad": -0.041825,
+          "observed_push_delta_mps": 0.79012,
+          "post_push_peak_speed_mps": 1.629608,
+          "pre_push_peak_speed_mps": 0.839488,
+          "recovery_window_success": true,
+          "return": -6.47413,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 8,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.333752,
+          "final_xy_drift_m": 0.934777,
+          "max_abs_pitch_rad": 1.502615,
+          "max_abs_roll_rad": 3.129473,
+          "max_pitch_rad": 1.502615,
+          "mean_action_l2": 0.439822,
+          "mean_action_rate_l2": 0.017453,
+          "min_base_height_m": 0.07293,
+          "min_pitch_rad": -0.043017,
+          "observed_push_delta_mps": 0.289527,
+          "post_push_peak_speed_mps": 1.632025,
+          "pre_push_peak_speed_mps": 1.342497,
+          "recovery_window_success": true,
+          "return": -7.435022,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 9,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.280181,
+          "final_xy_drift_m": 0.99595,
+          "max_abs_pitch_rad": 1.508777,
+          "max_abs_roll_rad": 3.128997,
+          "max_pitch_rad": 1.508777,
+          "mean_action_l2": 0.442363,
+          "mean_action_rate_l2": 0.029221,
+          "min_base_height_m": 0.083969,
+          "min_pitch_rad": -0.04122,
+          "observed_push_delta_mps": 0.516611,
+          "post_push_peak_speed_mps": 1.687764,
+          "pre_push_peak_speed_mps": 1.171152,
+          "recovery_window_success": true,
+          "return": -7.413413,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 10,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.765181,
+          "final_xy_drift_m": 0.980876,
+          "max_abs_pitch_rad": 1.487031,
+          "max_abs_roll_rad": 3.13301,
+          "max_pitch_rad": 1.487031,
+          "mean_action_l2": 0.440839,
+          "mean_action_rate_l2": 0.017852,
+          "min_base_height_m": 0.076408,
+          "min_pitch_rad": -0.043748,
+          "observed_push_delta_mps": 0.500641,
+          "post_push_peak_speed_mps": 1.711026,
+          "pre_push_peak_speed_mps": 1.210386,
+          "recovery_window_success": true,
+          "return": -7.280086,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 11,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.254347,
+          "final_xy_drift_m": 0.906176,
+          "max_abs_pitch_rad": 1.531461,
+          "max_abs_roll_rad": 3.081634,
+          "max_pitch_rad": 1.531461,
+          "mean_action_l2": 0.449653,
+          "mean_action_rate_l2": 0.017807,
+          "min_base_height_m": 0.073597,
+          "min_pitch_rad": -0.045297,
+          "observed_push_delta_mps": 0.886045,
+          "post_push_peak_speed_mps": 1.475612,
+          "pre_push_peak_speed_mps": 0.589567,
+          "recovery_window_success": true,
+          "return": -5.557268,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 12,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.588288,
+          "final_xy_drift_m": 0.857008,
+          "max_abs_pitch_rad": 1.459083,
+          "max_abs_roll_rad": 3.128592,
+          "max_pitch_rad": 1.459083,
+          "mean_action_l2": 0.448196,
+          "mean_action_rate_l2": 0.018187,
+          "min_base_height_m": 0.084247,
+          "min_pitch_rad": -0.044234,
+          "observed_push_delta_mps": 0.69353,
+          "post_push_peak_speed_mps": 1.289461,
+          "pre_push_peak_speed_mps": 0.595931,
+          "recovery_window_success": true,
+          "return": -5.633622,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 13,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.622934,
+          "final_xy_drift_m": 0.947252,
+          "max_abs_pitch_rad": 1.515762,
+          "max_abs_roll_rad": 3.131988,
+          "max_pitch_rad": 1.515762,
+          "mean_action_l2": 0.439273,
+          "mean_action_rate_l2": 0.017301,
+          "min_base_height_m": 0.073818,
+          "min_pitch_rad": -0.03956,
+          "observed_push_delta_mps": 0.419045,
+          "post_push_peak_speed_mps": 1.669968,
+          "pre_push_peak_speed_mps": 1.250923,
+          "recovery_window_success": true,
+          "return": -7.336511,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 14,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.470359,
+          "final_xy_drift_m": 0.984261,
+          "max_abs_pitch_rad": 1.467868,
+          "max_abs_roll_rad": 3.134835,
+          "max_pitch_rad": 1.467868,
+          "mean_action_l2": 0.44157,
+          "mean_action_rate_l2": 0.021683,
+          "min_base_height_m": 0.08505,
+          "min_pitch_rad": -0.04044,
+          "observed_push_delta_mps": 0.596497,
+          "post_push_peak_speed_mps": 1.716314,
+          "pre_push_peak_speed_mps": 1.119817,
+          "recovery_window_success": true,
+          "return": -7.421462,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 15,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.302857,
+          "final_xy_drift_m": 0.931194,
+          "max_abs_pitch_rad": 1.471,
+          "max_abs_roll_rad": 3.140926,
+          "max_pitch_rad": 1.471,
+          "mean_action_l2": 0.44129,
+          "mean_action_rate_l2": 0.020374,
+          "min_base_height_m": 0.085069,
+          "min_pitch_rad": -0.042058,
+          "observed_push_delta_mps": 0.45158,
+          "post_push_peak_speed_mps": 1.577298,
+          "pre_push_peak_speed_mps": 1.125718,
+          "recovery_window_success": true,
+          "return": -7.29536,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        }
+      ],
+      "policy": {
+        "action_dim": 29,
+        "action_scale": 0.0,
+        "checkpoint": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit2_push_resume/resumed.pt",
+        "kind": "checkpoint"
+      },
+      "public_score": 0.0,
+      "reset_extras_keys": [
+        "log",
+        "time_outs"
+      ],
+      "run": {
+        "cwd": "/data/yuyangliu/AGENT/true_RL_Agent",
+        "host": "deyugptserver",
+        "platform": "Linux-5.15.0-94-generic-x86_64-with-glibc2.35",
+        "public_accept_seed_count": 3,
+        "public_seed_count": 3,
+        "round_id": "p3-preflight",
+        "run_index": 2,
+        "seed_policy": "runner_owned_split_derived_counts_only_no_raw_seed_ids",
+        "split": "sealed_validation",
+        "split_seed_count": 7,
+        "subject_id": "p2-short-resume-diagnostic",
+        "subject_kind": "baseline"
+      },
+      "schema_version": "true_rl_agent.push_recovery.eval_summary.v1",
+      "secondary_metrics": {
+        "mean_action_l2": 0.444651,
+        "mean_action_rate_l2": 0.02112,
+        "mean_episode_steps": 100.0,
+        "mean_final_planar_speed_mps": 0.498882,
+        "mean_final_xy_drift_m": 0.952093,
+        "mean_max_abs_pitch_rad": 1.496505,
+        "mean_max_abs_roll_rad": 3.1194,
+        "mean_min_base_height_m": 0.08083,
+        "mean_return": -6.681317,
+        "recovery_window_success_rate": 1.0
+      },
+      "status": "pass",
+      "task": {
+        "gym_id": "Unitree-G1-29dof-Velocity",
+        "implementation_strategy": "true_rl_agent_project_local_config_overlay",
+        "robot": "Unitree G1 29DoF",
+        "vendor_env": "unitree_rl_lab.tasks.locomotion.robots.g1.29dof.velocity_env_cfg"
+      }
+    },
+    {
+      "aggregate": {
+        "condition_flag_breakdown": {
+          "counts": {
+            "drift_over_threshold": 16,
+            "height_below_threshold": 16,
+            "pitch_over_threshold": 16,
+            "roll_over_threshold": 16,
+            "terminated": 0
+          },
+          "diagnostic_only": true,
+          "nonexclusive": true,
+          "primary_label_priority": [
+            "fall_forward",
+            "fall_backward",
+            "fall_side",
+            "height_collapse",
+            "fall_unknown",
+            "excessive_drift",
+            "success"
+          ],
+          "rates": {
+            "drift_over_threshold": 1.0,
+            "height_below_threshold": 1.0,
+            "pitch_over_threshold": 1.0,
+            "roll_over_threshold": 1.0,
+            "terminated": 0.0
+          },
+          "total": 16
+        },
+        "episodes": 16,
+        "failure_breakdown": {
+          "counts": {
+            "fall_forward": 16
+          },
+          "dominant_failure": "fall_forward",
+          "rates": {
+            "fall_forward": 1.0
+          },
+          "total": 16
+        },
+        "success_count": 0,
+        "success_rate": 0.0
+      },
+      "candidate_code_loaded_in_eval": false,
+      "candidate_package_loaded": false,
+      "candidate_package_loaded_in_eval": false,
+      "configuration": {
+        "active_profile": "strong_push",
+        "config_path": null,
+        "config_sha256": null,
+        "push": {
+          "body": "torso_link",
+          "evidence": {
+            "min_env_fraction_with_delta": 0.2,
+            "min_env_fraction_with_single_step_delta": 0.2,
+            "min_observed_delta_mps": 0.12,
+            "min_single_step_delta_mps": 0.12,
+            "post_window_s": 1.0,
+            "pre_window_s": 0.75,
+            "single_step_window_s": [
+              0.9,
+              1.1
+            ]
+          },
+          "interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "isaac_event": "push_by_setting_velocity",
+          "mechanism": "base_velocity_kick",
+          "velocity_range_mps": {
+            "x": [
+              -0.6,
+              0.6
+            ],
+            "y": [
+              -0.6,
+              0.6
+            ]
+          }
+        },
+        "runtime_dynamics_hash": "sha256:6527d6443e8156b01a138f963b0b3c5396a989a10c20c579977868861f79b778",
+        "standing_command": {
+          "ang_vel_z_radps": [
+            0.0,
+            0.0
+          ],
+          "command_name": "base_velocity",
+          "heading_command": false,
+          "lin_vel_x_mps": [
+            0.0,
+            0.0
+          ],
+          "lin_vel_y_mps": [
+            0.0,
+            0.0
+          ],
+          "rel_heading_envs": 0.0,
+          "rel_standing_envs": 1.0,
+          "resampling_time_range_s": [
+            10.0,
+            10.0
+          ]
+        },
+        "success_thresholds": {
+          "max_abs_pitch_rad": 0.65,
+          "max_abs_roll_rad": 0.65,
+          "max_final_xy_drift_m": 0.8,
+          "min_base_height_m": 0.45
+        }
+      },
+      "created_at_utc": "2026-09-12T05:05:41.970182+00:00",
+      "diagnostic_hints": [
+        {
+          "candidate_patch_scope": "Improve post-push pitch/upright reward; keep eval thresholds fixed.",
+          "condition": "dominant_failure == fall_forward",
+          "interpretation": "Forward pitch excursions dominate the protected classifier."
+        },
+        {
+          "candidate_patch_scope": "Use condition flags, not only dominant failure, for code-level reward design.",
+          "condition": "height_below_threshold co-occurs with other labels",
+          "interpretation": "Height collapse may be masked by higher-priority pitch/roll labels."
+        },
+        {
+          "candidate_patch_scope": "Inspect drift evidence while keeping protected success rules fixed.",
+          "condition": "drift_over_threshold co-occurs with other labels",
+          "interpretation": "Drift violations may be masked by fall labels."
+        }
+      ],
+      "environment": {
+        "device": "cuda:0",
+        "max_steps": 100,
+        "num_envs": 16,
+        "step_dt": 0.02
+      },
+      "errors": [],
+      "evidence": {
+        "observation_finite": true,
+        "push_effect": {
+          "env_fraction_with_single_step_delta": 1.0,
+          "expected_interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "gate_pass": true,
+          "max_single_step_delta_mps": 0.638007,
+          "mean_single_step_delta_mps": 0.43057,
+          "mechanism": "base_velocity_kick",
+          "min_env_fraction_with_single_step_delta": 0.2,
+          "min_single_step_delta_mps": 0.12,
+          "nonzero_push_configured": true,
+          "single_step_window_s": [
+            0.9,
+            1.1
+          ]
+        },
+        "recovery_window": {
+          "max_final_planar_speed_mps": 5.0,
+          "success_rate": 1.0
+        },
+        "reset_ok": true,
+        "reward_finite": true
+      },
+      "execution_cost": {
+        "closed_first_episode_control_steps": 1600,
+        "evaluation_env_count": 16,
+        "vector_env_step_calls": 100
+      },
+      "metrics": {
+        "failure_breakdown": {
+          "counts": {
+            "fall_forward": 16
+          },
+          "dominant_failure": "fall_forward",
+          "rates": {
+            "fall_forward": 1.0
+          },
+          "total": 16
+        },
+        "motion_quality": {
+          "mean_action_l2": 0.445857,
+          "mean_action_rate_l2": 0.019444,
+          "mean_episode_steps": 100.0,
+          "mean_final_planar_speed_mps": 0.503237,
+          "mean_final_xy_drift_m": 0.943144,
+          "mean_max_abs_pitch_rad": 1.503009,
+          "mean_max_abs_roll_rad": 3.10795,
+          "mean_min_base_height_m": 0.0811,
+          "mean_return": -6.287051,
+          "recovery_window_success_rate": 1.0
+        },
+        "success_rate": 0.0
+      },
+      "per_episode": [
+        {
+          "env_id": 0,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.352178,
+          "final_xy_drift_m": 0.966589,
+          "max_abs_pitch_rad": 1.473076,
+          "max_abs_roll_rad": 3.141329,
+          "max_pitch_rad": 1.473076,
+          "mean_action_l2": 0.445677,
+          "mean_action_rate_l2": 0.017768,
+          "min_base_height_m": 0.084773,
+          "min_pitch_rad": -0.043006,
+          "observed_push_delta_mps": 0.942336,
+          "post_push_peak_speed_mps": 1.646668,
+          "pre_push_peak_speed_mps": 0.704332,
+          "recovery_window_success": true,
+          "return": -6.397476,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 1,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.782522,
+          "final_xy_drift_m": 0.920785,
+          "max_abs_pitch_rad": 1.536161,
+          "max_abs_roll_rad": 3.137388,
+          "max_pitch_rad": 1.536161,
+          "mean_action_l2": 0.452118,
+          "mean_action_rate_l2": 0.024632,
+          "min_base_height_m": 0.080796,
+          "min_pitch_rad": -0.045333,
+          "observed_push_delta_mps": 0.870192,
+          "post_push_peak_speed_mps": 1.462073,
+          "pre_push_peak_speed_mps": 0.591881,
+          "recovery_window_success": true,
+          "return": -4.876952,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 2,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.564394,
+          "final_xy_drift_m": 0.925092,
+          "max_abs_pitch_rad": 1.471906,
+          "max_abs_roll_rad": 3.110284,
+          "max_pitch_rad": 1.471906,
+          "mean_action_l2": 0.446899,
+          "mean_action_rate_l2": 0.022525,
+          "min_base_height_m": 0.085204,
+          "min_pitch_rad": -0.041995,
+          "observed_push_delta_mps": 0.834525,
+          "post_push_peak_speed_mps": 1.455061,
+          "pre_push_peak_speed_mps": 0.620536,
+          "recovery_window_success": true,
+          "return": -6.130073,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 3,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.591565,
+          "final_xy_drift_m": 0.916219,
+          "max_abs_pitch_rad": 1.548575,
+          "max_abs_roll_rad": 3.119452,
+          "max_pitch_rad": 1.548575,
+          "mean_action_l2": 0.444568,
+          "mean_action_rate_l2": 0.020323,
+          "min_base_height_m": 0.07649,
+          "min_pitch_rad": -0.043495,
+          "observed_push_delta_mps": 0.756154,
+          "post_push_peak_speed_mps": 1.554774,
+          "pre_push_peak_speed_mps": 0.798621,
+          "recovery_window_success": true,
+          "return": -6.603587,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 4,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.660894,
+          "final_xy_drift_m": 0.9567,
+          "max_abs_pitch_rad": 1.465268,
+          "max_abs_roll_rad": 3.140228,
+          "max_pitch_rad": 1.465268,
+          "mean_action_l2": 0.444835,
+          "mean_action_rate_l2": 0.018897,
+          "min_base_height_m": 0.082983,
+          "min_pitch_rad": -0.04026,
+          "observed_push_delta_mps": 0.775309,
+          "post_push_peak_speed_mps": 1.624098,
+          "pre_push_peak_speed_mps": 0.848789,
+          "recovery_window_success": true,
+          "return": -6.618291,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 5,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.459129,
+          "final_xy_drift_m": 0.943188,
+          "max_abs_pitch_rad": 1.524014,
+          "max_abs_roll_rad": 3.135937,
+          "max_pitch_rad": 1.524014,
+          "mean_action_l2": 0.444411,
+          "mean_action_rate_l2": 0.016727,
+          "min_base_height_m": 0.075059,
+          "min_pitch_rad": -0.043148,
+          "observed_push_delta_mps": 0.894699,
+          "post_push_peak_speed_mps": 1.629998,
+          "pre_push_peak_speed_mps": 0.735299,
+          "recovery_window_success": true,
+          "return": -6.053371,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 6,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.279463,
+          "final_xy_drift_m": 1.009323,
+          "max_abs_pitch_rad": 1.509708,
+          "max_abs_roll_rad": 3.1247,
+          "max_pitch_rad": 1.509708,
+          "mean_action_l2": 0.441502,
+          "mean_action_rate_l2": 0.022392,
+          "min_base_height_m": 0.08634,
+          "min_pitch_rad": -0.045081,
+          "observed_push_delta_mps": 0.571526,
+          "post_push_peak_speed_mps": 1.720967,
+          "pre_push_peak_speed_mps": 1.149441,
+          "recovery_window_success": true,
+          "return": -7.268315,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 7,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.503789,
+          "final_xy_drift_m": 0.943494,
+          "max_abs_pitch_rad": 1.509735,
+          "max_abs_roll_rad": 3.09741,
+          "max_pitch_rad": 1.509735,
+          "mean_action_l2": 0.441735,
+          "mean_action_rate_l2": 0.017867,
+          "min_base_height_m": 0.075065,
+          "min_pitch_rad": -0.041713,
+          "observed_push_delta_mps": 0.657464,
+          "post_push_peak_speed_mps": 1.638582,
+          "pre_push_peak_speed_mps": 0.981118,
+          "recovery_window_success": true,
+          "return": -6.834763,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 8,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.155757,
+          "final_xy_drift_m": 0.907267,
+          "max_abs_pitch_rad": 1.531483,
+          "max_abs_roll_rad": 3.0741,
+          "max_pitch_rad": 1.531483,
+          "mean_action_l2": 0.442325,
+          "mean_action_rate_l2": 0.020711,
+          "min_base_height_m": 0.082222,
+          "min_pitch_rad": -0.043092,
+          "observed_push_delta_mps": 0.442212,
+          "post_push_peak_speed_mps": 1.5098,
+          "pre_push_peak_speed_mps": 1.067588,
+          "recovery_window_success": true,
+          "return": -7.109684,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 9,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.496002,
+          "final_xy_drift_m": 0.928216,
+          "max_abs_pitch_rad": 1.506591,
+          "max_abs_roll_rad": 2.956041,
+          "max_pitch_rad": 1.506591,
+          "mean_action_l2": 0.451776,
+          "mean_action_rate_l2": 0.019816,
+          "min_base_height_m": 0.086864,
+          "min_pitch_rad": -0.041272,
+          "observed_push_delta_mps": 0.827417,
+          "post_push_peak_speed_mps": 1.453374,
+          "pre_push_peak_speed_mps": 0.625956,
+          "recovery_window_success": true,
+          "return": -4.92499,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 10,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.69416,
+          "final_xy_drift_m": 0.940773,
+          "max_abs_pitch_rad": 1.493078,
+          "max_abs_roll_rad": 3.060146,
+          "max_pitch_rad": 1.493078,
+          "mean_action_l2": 0.444546,
+          "mean_action_rate_l2": 0.018241,
+          "min_base_height_m": 0.084458,
+          "min_pitch_rad": -0.043764,
+          "observed_push_delta_mps": 0.688124,
+          "post_push_peak_speed_mps": 1.607951,
+          "pre_push_peak_speed_mps": 0.919828,
+          "recovery_window_success": true,
+          "return": -6.936482,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 11,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.630172,
+          "final_xy_drift_m": 0.909685,
+          "max_abs_pitch_rad": 1.47802,
+          "max_abs_roll_rad": 3.138525,
+          "max_pitch_rad": 1.47802,
+          "mean_action_l2": 0.445394,
+          "mean_action_rate_l2": 0.018438,
+          "min_base_height_m": 0.080088,
+          "min_pitch_rad": -0.045269,
+          "observed_push_delta_mps": 0.719699,
+          "post_push_peak_speed_mps": 1.498275,
+          "pre_push_peak_speed_mps": 0.778575,
+          "recovery_window_success": true,
+          "return": -6.805774,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 12,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.56838,
+          "final_xy_drift_m": 0.927959,
+          "max_abs_pitch_rad": 1.483393,
+          "max_abs_roll_rad": 3.118841,
+          "max_pitch_rad": 1.483393,
+          "mean_action_l2": 0.450073,
+          "mean_action_rate_l2": 0.016768,
+          "min_base_height_m": 0.072567,
+          "min_pitch_rad": -0.044384,
+          "observed_push_delta_mps": 0.931978,
+          "post_push_peak_speed_mps": 1.529193,
+          "pre_push_peak_speed_mps": 0.597215,
+          "recovery_window_success": true,
+          "return": -5.314649,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 13,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.62897,
+          "final_xy_drift_m": 0.934555,
+          "max_abs_pitch_rad": 1.55764,
+          "max_abs_roll_rad": 3.13885,
+          "max_pitch_rad": 1.55764,
+          "mean_action_l2": 0.451195,
+          "mean_action_rate_l2": 0.018724,
+          "min_base_height_m": 0.075444,
+          "min_pitch_rad": -0.039516,
+          "observed_push_delta_mps": 0.877303,
+          "post_push_peak_speed_mps": 1.520937,
+          "pre_push_peak_speed_mps": 0.643634,
+          "recovery_window_success": true,
+          "return": -4.950557,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 14,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.449847,
+          "final_xy_drift_m": 1.012685,
+          "max_abs_pitch_rad": 1.504241,
+          "max_abs_roll_rad": 3.1328,
+          "max_pitch_rad": 1.504241,
+          "mean_action_l2": 0.444773,
+          "mean_action_rate_l2": 0.017657,
+          "min_base_height_m": 0.083991,
+          "min_pitch_rad": -0.040462,
+          "observed_push_delta_mps": 0.893795,
+          "post_push_peak_speed_mps": 1.624868,
+          "pre_push_peak_speed_mps": 0.731072,
+          "recovery_window_success": true,
+          "return": -6.626166,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 15,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.234573,
+          "final_xy_drift_m": 0.947776,
+          "max_abs_pitch_rad": 1.455258,
+          "max_abs_roll_rad": 3.101169,
+          "max_pitch_rad": 1.455258,
+          "mean_action_l2": 0.44189,
+          "mean_action_rate_l2": 0.019621,
+          "min_base_height_m": 0.085262,
+          "min_pitch_rad": -0.0421,
+          "observed_push_delta_mps": 0.559704,
+          "post_push_peak_speed_mps": 1.581595,
+          "pre_push_peak_speed_mps": 1.021892,
+          "recovery_window_success": true,
+          "return": -7.141681,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        }
+      ],
+      "policy": {
+        "action_dim": 29,
+        "action_scale": 0.0,
+        "checkpoint": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit2_push_resume/resumed.pt",
+        "kind": "checkpoint"
+      },
+      "public_score": 0.0,
+      "reset_extras_keys": [
+        "log",
+        "time_outs"
+      ],
+      "run": {
+        "cwd": "/data/yuyangliu/AGENT/true_RL_Agent",
+        "host": "deyugptserver",
+        "platform": "Linux-5.15.0-94-generic-x86_64-with-glibc2.35",
+        "public_accept_seed_count": 3,
+        "public_seed_count": 3,
+        "round_id": "p3-preflight",
+        "run_index": 3,
+        "seed_policy": "runner_owned_split_derived_counts_only_no_raw_seed_ids",
+        "split": "sealed_validation",
+        "split_seed_count": 7,
+        "subject_id": "p2-short-resume-diagnostic",
+        "subject_kind": "baseline"
+      },
+      "schema_version": "true_rl_agent.push_recovery.eval_summary.v1",
+      "secondary_metrics": {
+        "mean_action_l2": 0.445857,
+        "mean_action_rate_l2": 0.019444,
+        "mean_episode_steps": 100.0,
+        "mean_final_planar_speed_mps": 0.503237,
+        "mean_final_xy_drift_m": 0.943144,
+        "mean_max_abs_pitch_rad": 1.503009,
+        "mean_max_abs_roll_rad": 3.10795,
+        "mean_min_base_height_m": 0.0811,
+        "mean_return": -6.287051,
+        "recovery_window_success_rate": 1.0
+      },
+      "status": "pass",
+      "task": {
+        "gym_id": "Unitree-G1-29dof-Velocity",
+        "implementation_strategy": "true_rl_agent_project_local_config_overlay",
+        "robot": "Unitree G1 29DoF",
+        "vendor_env": "unitree_rl_lab.tasks.locomotion.robots.g1.29dof.velocity_env_cfg"
+      }
+    },
+    {
+      "aggregate": {
+        "condition_flag_breakdown": {
+          "counts": {
+            "drift_over_threshold": 16,
+            "height_below_threshold": 16,
+            "pitch_over_threshold": 16,
+            "roll_over_threshold": 16,
+            "terminated": 0
+          },
+          "diagnostic_only": true,
+          "nonexclusive": true,
+          "primary_label_priority": [
+            "fall_forward",
+            "fall_backward",
+            "fall_side",
+            "height_collapse",
+            "fall_unknown",
+            "excessive_drift",
+            "success"
+          ],
+          "rates": {
+            "drift_over_threshold": 1.0,
+            "height_below_threshold": 1.0,
+            "pitch_over_threshold": 1.0,
+            "roll_over_threshold": 1.0,
+            "terminated": 0.0
+          },
+          "total": 16
+        },
+        "episodes": 16,
+        "failure_breakdown": {
+          "counts": {
+            "fall_forward": 16
+          },
+          "dominant_failure": "fall_forward",
+          "rates": {
+            "fall_forward": 1.0
+          },
+          "total": 16
+        },
+        "success_count": 0,
+        "success_rate": 0.0
+      },
+      "candidate_code_loaded_in_eval": false,
+      "candidate_package_loaded": false,
+      "candidate_package_loaded_in_eval": false,
+      "configuration": {
+        "active_profile": "strong_push",
+        "config_path": null,
+        "config_sha256": null,
+        "push": {
+          "body": "torso_link",
+          "evidence": {
+            "min_env_fraction_with_delta": 0.2,
+            "min_env_fraction_with_single_step_delta": 0.2,
+            "min_observed_delta_mps": 0.12,
+            "min_single_step_delta_mps": 0.12,
+            "post_window_s": 1.0,
+            "pre_window_s": 0.75,
+            "single_step_window_s": [
+              0.9,
+              1.1
+            ]
+          },
+          "interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "isaac_event": "push_by_setting_velocity",
+          "mechanism": "base_velocity_kick",
+          "velocity_range_mps": {
+            "x": [
+              -0.6,
+              0.6
+            ],
+            "y": [
+              -0.6,
+              0.6
+            ]
+          }
+        },
+        "runtime_dynamics_hash": "sha256:6527d6443e8156b01a138f963b0b3c5396a989a10c20c579977868861f79b778",
+        "standing_command": {
+          "ang_vel_z_radps": [
+            0.0,
+            0.0
+          ],
+          "command_name": "base_velocity",
+          "heading_command": false,
+          "lin_vel_x_mps": [
+            0.0,
+            0.0
+          ],
+          "lin_vel_y_mps": [
+            0.0,
+            0.0
+          ],
+          "rel_heading_envs": 0.0,
+          "rel_standing_envs": 1.0,
+          "resampling_time_range_s": [
+            10.0,
+            10.0
+          ]
+        },
+        "success_thresholds": {
+          "max_abs_pitch_rad": 0.65,
+          "max_abs_roll_rad": 0.65,
+          "max_final_xy_drift_m": 0.8,
+          "min_base_height_m": 0.45
+        }
+      },
+      "created_at_utc": "2026-09-12T05:05:45.763454+00:00",
+      "diagnostic_hints": [
+        {
+          "candidate_patch_scope": "Improve post-push pitch/upright reward; keep eval thresholds fixed.",
+          "condition": "dominant_failure == fall_forward",
+          "interpretation": "Forward pitch excursions dominate the protected classifier."
+        },
+        {
+          "candidate_patch_scope": "Use condition flags, not only dominant failure, for code-level reward design.",
+          "condition": "height_below_threshold co-occurs with other labels",
+          "interpretation": "Height collapse may be masked by higher-priority pitch/roll labels."
+        },
+        {
+          "candidate_patch_scope": "Inspect drift evidence while keeping protected success rules fixed.",
+          "condition": "drift_over_threshold co-occurs with other labels",
+          "interpretation": "Drift violations may be masked by fall labels."
+        }
+      ],
+      "environment": {
+        "device": "cuda:0",
+        "max_steps": 100,
+        "num_envs": 16,
+        "step_dt": 0.02
+      },
+      "errors": [],
+      "evidence": {
+        "observation_finite": true,
+        "push_effect": {
+          "env_fraction_with_single_step_delta": 1.0,
+          "expected_interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "gate_pass": true,
+          "max_single_step_delta_mps": 0.785315,
+          "mean_single_step_delta_mps": 0.45659,
+          "mechanism": "base_velocity_kick",
+          "min_env_fraction_with_single_step_delta": 0.2,
+          "min_single_step_delta_mps": 0.12,
+          "nonzero_push_configured": true,
+          "single_step_window_s": [
+            0.9,
+            1.1
+          ]
+        },
+        "recovery_window": {
+          "max_final_planar_speed_mps": 5.0,
+          "success_rate": 1.0
+        },
+        "reset_ok": true,
+        "reward_finite": true
+      },
+      "execution_cost": {
+        "closed_first_episode_control_steps": 1600,
+        "evaluation_env_count": 16,
+        "vector_env_step_calls": 100
+      },
+      "metrics": {
+        "failure_breakdown": {
+          "counts": {
+            "fall_forward": 16
+          },
+          "dominant_failure": "fall_forward",
+          "rates": {
+            "fall_forward": 1.0
+          },
+          "total": 16
+        },
+        "motion_quality": {
+          "mean_action_l2": 0.446578,
+          "mean_action_rate_l2": 0.018921,
+          "mean_episode_steps": 100.0,
+          "mean_final_planar_speed_mps": 0.39144,
+          "mean_final_xy_drift_m": 0.946287,
+          "mean_max_abs_pitch_rad": 1.501478,
+          "mean_max_abs_roll_rad": 3.121896,
+          "mean_min_base_height_m": 0.080241,
+          "mean_return": -6.142625,
+          "recovery_window_success_rate": 1.0
+        },
+        "success_rate": 0.0
+      },
+      "per_episode": [
+        {
+          "env_id": 0,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.136306,
+          "final_xy_drift_m": 0.888693,
+          "max_abs_pitch_rad": 1.518718,
+          "max_abs_roll_rad": 3.141321,
+          "max_pitch_rad": 1.518718,
+          "mean_action_l2": 0.449446,
+          "mean_action_rate_l2": 0.017439,
+          "min_base_height_m": 0.077736,
+          "min_pitch_rad": -0.043051,
+          "observed_push_delta_mps": 0.800958,
+          "post_push_peak_speed_mps": 1.410103,
+          "pre_push_peak_speed_mps": 0.609146,
+          "recovery_window_success": true,
+          "return": -5.581913,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 1,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.525949,
+          "final_xy_drift_m": 0.8992,
+          "max_abs_pitch_rad": 1.522039,
+          "max_abs_roll_rad": 3.141504,
+          "max_pitch_rad": 1.522039,
+          "mean_action_l2": 0.447455,
+          "mean_action_rate_l2": 0.017124,
+          "min_base_height_m": 0.073152,
+          "min_pitch_rad": -0.045111,
+          "observed_push_delta_mps": 0.877954,
+          "post_push_peak_speed_mps": 1.468711,
+          "pre_push_peak_speed_mps": 0.590756,
+          "recovery_window_success": true,
+          "return": -5.657715,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 2,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.524875,
+          "final_xy_drift_m": 0.942251,
+          "max_abs_pitch_rad": 1.508856,
+          "max_abs_roll_rad": 3.139913,
+          "max_pitch_rad": 1.508856,
+          "mean_action_l2": 0.450163,
+          "mean_action_rate_l2": 0.016746,
+          "min_base_height_m": 0.078634,
+          "min_pitch_rad": -0.041991,
+          "observed_push_delta_mps": 0.931592,
+          "post_push_peak_speed_mps": 1.550092,
+          "pre_push_peak_speed_mps": 0.6185,
+          "recovery_window_success": true,
+          "return": -5.040356,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 3,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.369733,
+          "final_xy_drift_m": 0.897793,
+          "max_abs_pitch_rad": 1.538931,
+          "max_abs_roll_rad": 3.13884,
+          "max_pitch_rad": 1.538931,
+          "mean_action_l2": 0.44269,
+          "mean_action_rate_l2": 0.019484,
+          "min_base_height_m": 0.07634,
+          "min_pitch_rad": -0.043475,
+          "observed_push_delta_mps": 0.600308,
+          "post_push_peak_speed_mps": 1.512571,
+          "pre_push_peak_speed_mps": 0.912263,
+          "recovery_window_success": true,
+          "return": -6.56504,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 4,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.704318,
+          "final_xy_drift_m": 0.971962,
+          "max_abs_pitch_rad": 1.474328,
+          "max_abs_roll_rad": 3.137267,
+          "max_pitch_rad": 1.474328,
+          "mean_action_l2": 0.438619,
+          "mean_action_rate_l2": 0.016298,
+          "min_base_height_m": 0.081036,
+          "min_pitch_rad": -0.040203,
+          "observed_push_delta_mps": 0.343548,
+          "post_push_peak_speed_mps": 1.713583,
+          "pre_push_peak_speed_mps": 1.370035,
+          "recovery_window_success": true,
+          "return": -7.529091,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 5,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.343035,
+          "final_xy_drift_m": 0.930354,
+          "max_abs_pitch_rad": 1.550376,
+          "max_abs_roll_rad": 3.122437,
+          "max_pitch_rad": 1.550376,
+          "mean_action_l2": 0.44762,
+          "mean_action_rate_l2": 0.01766,
+          "min_base_height_m": 0.073451,
+          "min_pitch_rad": -0.043159,
+          "observed_push_delta_mps": 0.977136,
+          "post_push_peak_speed_mps": 1.585042,
+          "pre_push_peak_speed_mps": 0.607906,
+          "recovery_window_success": true,
+          "return": -5.564326,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 6,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.599107,
+          "final_xy_drift_m": 0.949924,
+          "max_abs_pitch_rad": 1.511593,
+          "max_abs_roll_rad": 3.140758,
+          "max_pitch_rad": 1.511593,
+          "mean_action_l2": 0.448752,
+          "mean_action_rate_l2": 0.017015,
+          "min_base_height_m": 0.074456,
+          "min_pitch_rad": -0.045444,
+          "observed_push_delta_mps": 1.045914,
+          "post_push_peak_speed_mps": 1.637165,
+          "pre_push_peak_speed_mps": 0.591252,
+          "recovery_window_success": true,
+          "return": -5.705207,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 7,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.288934,
+          "final_xy_drift_m": 1.039209,
+          "max_abs_pitch_rad": 1.449599,
+          "max_abs_roll_rad": 3.117287,
+          "max_pitch_rad": 1.449599,
+          "mean_action_l2": 0.443156,
+          "mean_action_rate_l2": 0.019178,
+          "min_base_height_m": 0.085837,
+          "min_pitch_rad": -0.041769,
+          "observed_push_delta_mps": 0.700125,
+          "post_push_peak_speed_mps": 1.670845,
+          "pre_push_peak_speed_mps": 0.97072,
+          "recovery_window_success": true,
+          "return": -7.193893,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 8,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.180624,
+          "final_xy_drift_m": 0.984491,
+          "max_abs_pitch_rad": 1.469394,
+          "max_abs_roll_rad": 3.131643,
+          "max_pitch_rad": 1.469394,
+          "mean_action_l2": 0.442525,
+          "mean_action_rate_l2": 0.019733,
+          "min_base_height_m": 0.084067,
+          "min_pitch_rad": -0.042986,
+          "observed_push_delta_mps": 0.65445,
+          "post_push_peak_speed_mps": 1.712347,
+          "pre_push_peak_speed_mps": 1.057898,
+          "recovery_window_success": true,
+          "return": -6.982522,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 9,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.206418,
+          "final_xy_drift_m": 0.94061,
+          "max_abs_pitch_rad": 1.460219,
+          "max_abs_roll_rad": 3.105619,
+          "max_pitch_rad": 1.460219,
+          "mean_action_l2": 0.447313,
+          "mean_action_rate_l2": 0.020681,
+          "min_base_height_m": 0.084793,
+          "min_pitch_rad": -0.041254,
+          "observed_push_delta_mps": 0.903154,
+          "post_push_peak_speed_mps": 1.530163,
+          "pre_push_peak_speed_mps": 0.627009,
+          "recovery_window_success": true,
+          "return": -6.090345,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 10,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.23867,
+          "final_xy_drift_m": 0.987892,
+          "max_abs_pitch_rad": 1.512081,
+          "max_abs_roll_rad": 3.102014,
+          "max_pitch_rad": 1.512081,
+          "mean_action_l2": 0.448904,
+          "mean_action_rate_l2": 0.01912,
+          "min_base_height_m": 0.085623,
+          "min_pitch_rad": -0.043635,
+          "observed_push_delta_mps": 0.970465,
+          "post_push_peak_speed_mps": 1.572338,
+          "pre_push_peak_speed_mps": 0.601872,
+          "recovery_window_success": true,
+          "return": -6.002338,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 11,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.152511,
+          "final_xy_drift_m": 0.96365,
+          "max_abs_pitch_rad": 1.453833,
+          "max_abs_roll_rad": 3.088595,
+          "max_pitch_rad": 1.453833,
+          "mean_action_l2": 0.444628,
+          "mean_action_rate_l2": 0.020128,
+          "min_base_height_m": 0.086198,
+          "min_pitch_rad": -0.045253,
+          "observed_push_delta_mps": 0.675551,
+          "post_push_peak_speed_mps": 1.65613,
+          "pre_push_peak_speed_mps": 0.980578,
+          "recovery_window_success": true,
+          "return": -6.741358,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 12,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.570946,
+          "final_xy_drift_m": 0.923559,
+          "max_abs_pitch_rad": 1.506612,
+          "max_abs_roll_rad": 3.12983,
+          "max_pitch_rad": 1.506612,
+          "mean_action_l2": 0.451101,
+          "mean_action_rate_l2": 0.020262,
+          "min_base_height_m": 0.08076,
+          "min_pitch_rad": -0.044345,
+          "observed_push_delta_mps": 0.898252,
+          "post_push_peak_speed_mps": 1.494243,
+          "pre_push_peak_speed_mps": 0.595991,
+          "recovery_window_success": true,
+          "return": -5.395517,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 13,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.600253,
+          "final_xy_drift_m": 0.922455,
+          "max_abs_pitch_rad": 1.5246,
+          "max_abs_roll_rad": 3.139415,
+          "max_pitch_rad": 1.5246,
+          "mean_action_l2": 0.445372,
+          "mean_action_rate_l2": 0.017526,
+          "min_base_height_m": 0.075574,
+          "min_pitch_rad": -0.039533,
+          "observed_push_delta_mps": 0.902843,
+          "post_push_peak_speed_mps": 1.545455,
+          "pre_push_peak_speed_mps": 0.642612,
+          "recovery_window_success": true,
+          "return": -6.199726,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 14,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.546695,
+          "final_xy_drift_m": 0.969624,
+          "max_abs_pitch_rad": 1.493605,
+          "max_abs_roll_rad": 3.126863,
+          "max_pitch_rad": 1.493605,
+          "mean_action_l2": 0.443478,
+          "mean_action_rate_l2": 0.019079,
+          "min_base_height_m": 0.080678,
+          "min_pitch_rad": -0.040434,
+          "observed_push_delta_mps": 0.799331,
+          "post_push_peak_speed_mps": 1.643587,
+          "pre_push_peak_speed_mps": 0.844256,
+          "recovery_window_success": true,
+          "return": -6.757144,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 15,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.274661,
+          "final_xy_drift_m": 0.928929,
+          "max_abs_pitch_rad": 1.528862,
+          "max_abs_roll_rad": 3.047027,
+          "max_pitch_rad": 1.528862,
+          "mean_action_l2": 0.454035,
+          "mean_action_rate_l2": 0.025256,
+          "min_base_height_m": 0.08552,
+          "min_pitch_rad": -0.042053,
+          "observed_push_delta_mps": 0.814835,
+          "post_push_peak_speed_mps": 1.430708,
+          "pre_push_peak_speed_mps": 0.615873,
+          "recovery_window_success": true,
+          "return": -5.27551,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        }
+      ],
+      "policy": {
+        "action_dim": 29,
+        "action_scale": 0.0,
+        "checkpoint": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit2_push_resume/resumed.pt",
+        "kind": "checkpoint"
+      },
+      "public_score": 0.0,
+      "reset_extras_keys": [
+        "log",
+        "time_outs"
+      ],
+      "run": {
+        "cwd": "/data/yuyangliu/AGENT/true_RL_Agent",
+        "host": "deyugptserver",
+        "platform": "Linux-5.15.0-94-generic-x86_64-with-glibc2.35",
+        "public_accept_seed_count": 3,
+        "public_seed_count": 3,
+        "round_id": "p3-preflight",
+        "run_index": 4,
+        "seed_policy": "runner_owned_split_derived_counts_only_no_raw_seed_ids",
+        "split": "sealed_validation",
+        "split_seed_count": 7,
+        "subject_id": "p2-short-resume-diagnostic",
+        "subject_kind": "baseline"
+      },
+      "schema_version": "true_rl_agent.push_recovery.eval_summary.v1",
+      "secondary_metrics": {
+        "mean_action_l2": 0.446578,
+        "mean_action_rate_l2": 0.018921,
+        "mean_episode_steps": 100.0,
+        "mean_final_planar_speed_mps": 0.39144,
+        "mean_final_xy_drift_m": 0.946287,
+        "mean_max_abs_pitch_rad": 1.501478,
+        "mean_max_abs_roll_rad": 3.121896,
+        "mean_min_base_height_m": 0.080241,
+        "mean_return": -6.142625,
+        "recovery_window_success_rate": 1.0
+      },
+      "status": "pass",
+      "task": {
+        "gym_id": "Unitree-G1-29dof-Velocity",
+        "implementation_strategy": "true_rl_agent_project_local_config_overlay",
+        "robot": "Unitree G1 29DoF",
+        "vendor_env": "unitree_rl_lab.tasks.locomotion.robots.g1.29dof.velocity_env_cfg"
+      }
+    },
+    {
+      "aggregate": {
+        "condition_flag_breakdown": {
+          "counts": {
+            "drift_over_threshold": 16,
+            "height_below_threshold": 16,
+            "pitch_over_threshold": 16,
+            "roll_over_threshold": 16,
+            "terminated": 0
+          },
+          "diagnostic_only": true,
+          "nonexclusive": true,
+          "primary_label_priority": [
+            "fall_forward",
+            "fall_backward",
+            "fall_side",
+            "height_collapse",
+            "fall_unknown",
+            "excessive_drift",
+            "success"
+          ],
+          "rates": {
+            "drift_over_threshold": 1.0,
+            "height_below_threshold": 1.0,
+            "pitch_over_threshold": 1.0,
+            "roll_over_threshold": 1.0,
+            "terminated": 0.0
+          },
+          "total": 16
+        },
+        "episodes": 16,
+        "failure_breakdown": {
+          "counts": {
+            "fall_forward": 16
+          },
+          "dominant_failure": "fall_forward",
+          "rates": {
+            "fall_forward": 1.0
+          },
+          "total": 16
+        },
+        "success_count": 0,
+        "success_rate": 0.0
+      },
+      "candidate_code_loaded_in_eval": false,
+      "candidate_package_loaded": false,
+      "candidate_package_loaded_in_eval": false,
+      "configuration": {
+        "active_profile": "strong_push",
+        "config_path": null,
+        "config_sha256": null,
+        "push": {
+          "body": "torso_link",
+          "evidence": {
+            "min_env_fraction_with_delta": 0.2,
+            "min_env_fraction_with_single_step_delta": 0.2,
+            "min_observed_delta_mps": 0.12,
+            "min_single_step_delta_mps": 0.12,
+            "post_window_s": 1.0,
+            "pre_window_s": 0.75,
+            "single_step_window_s": [
+              0.9,
+              1.1
+            ]
+          },
+          "interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "isaac_event": "push_by_setting_velocity",
+          "mechanism": "base_velocity_kick",
+          "velocity_range_mps": {
+            "x": [
+              -0.6,
+              0.6
+            ],
+            "y": [
+              -0.6,
+              0.6
+            ]
+          }
+        },
+        "runtime_dynamics_hash": "sha256:6527d6443e8156b01a138f963b0b3c5396a989a10c20c579977868861f79b778",
+        "standing_command": {
+          "ang_vel_z_radps": [
+            0.0,
+            0.0
+          ],
+          "command_name": "base_velocity",
+          "heading_command": false,
+          "lin_vel_x_mps": [
+            0.0,
+            0.0
+          ],
+          "lin_vel_y_mps": [
+            0.0,
+            0.0
+          ],
+          "rel_heading_envs": 0.0,
+          "rel_standing_envs": 1.0,
+          "resampling_time_range_s": [
+            10.0,
+            10.0
+          ]
+        },
+        "success_thresholds": {
+          "max_abs_pitch_rad": 0.65,
+          "max_abs_roll_rad": 0.65,
+          "max_final_xy_drift_m": 0.8,
+          "min_base_height_m": 0.45
+        }
+      },
+      "created_at_utc": "2026-09-12T05:05:49.550557+00:00",
+      "diagnostic_hints": [
+        {
+          "candidate_patch_scope": "Improve post-push pitch/upright reward; keep eval thresholds fixed.",
+          "condition": "dominant_failure == fall_forward",
+          "interpretation": "Forward pitch excursions dominate the protected classifier."
+        },
+        {
+          "candidate_patch_scope": "Use condition flags, not only dominant failure, for code-level reward design.",
+          "condition": "height_below_threshold co-occurs with other labels",
+          "interpretation": "Height collapse may be masked by higher-priority pitch/roll labels."
+        },
+        {
+          "candidate_patch_scope": "Inspect drift evidence while keeping protected success rules fixed.",
+          "condition": "drift_over_threshold co-occurs with other labels",
+          "interpretation": "Drift violations may be masked by fall labels."
+        }
+      ],
+      "environment": {
+        "device": "cuda:0",
+        "max_steps": 100,
+        "num_envs": 16,
+        "step_dt": 0.02
+      },
+      "errors": [],
+      "evidence": {
+        "observation_finite": true,
+        "push_effect": {
+          "env_fraction_with_single_step_delta": 0.9375,
+          "expected_interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "gate_pass": true,
+          "max_single_step_delta_mps": 0.783786,
+          "mean_single_step_delta_mps": 0.482472,
+          "mechanism": "base_velocity_kick",
+          "min_env_fraction_with_single_step_delta": 0.2,
+          "min_single_step_delta_mps": 0.12,
+          "nonzero_push_configured": true,
+          "single_step_window_s": [
+            0.9,
+            1.1
+          ]
+        },
+        "recovery_window": {
+          "max_final_planar_speed_mps": 5.0,
+          "success_rate": 1.0
+        },
+        "reset_ok": true,
+        "reward_finite": true
+      },
+      "execution_cost": {
+        "closed_first_episode_control_steps": 1600,
+        "evaluation_env_count": 16,
+        "vector_env_step_calls": 100
+      },
+      "metrics": {
+        "failure_breakdown": {
+          "counts": {
+            "fall_forward": 16
+          },
+          "dominant_failure": "fall_forward",
+          "rates": {
+            "fall_forward": 1.0
+          },
+          "total": 16
+        },
+        "motion_quality": {
+          "mean_action_l2": 0.445731,
+          "mean_action_rate_l2": 0.019178,
+          "mean_episode_steps": 100.0,
+          "mean_final_planar_speed_mps": 0.44813,
+          "mean_final_xy_drift_m": 0.935173,
+          "mean_max_abs_pitch_rad": 1.497397,
+          "mean_max_abs_roll_rad": 3.118157,
+          "mean_min_base_height_m": 0.080546,
+          "mean_return": -6.244567,
+          "recovery_window_success_rate": 1.0
+        },
+        "success_rate": 0.0
+      },
+      "per_episode": [
+        {
+          "env_id": 0,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.296247,
+          "final_xy_drift_m": 1.001747,
+          "max_abs_pitch_rad": 1.514439,
+          "max_abs_roll_rad": 3.138618,
+          "max_pitch_rad": 1.514439,
+          "mean_action_l2": 0.442444,
+          "mean_action_rate_l2": 0.021757,
+          "min_base_height_m": 0.086353,
+          "min_pitch_rad": -0.043029,
+          "observed_push_delta_mps": 0.721088,
+          "post_push_peak_speed_mps": 1.688094,
+          "pre_push_peak_speed_mps": 0.967006,
+          "recovery_window_success": true,
+          "return": -6.759354,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 1,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.461459,
+          "final_xy_drift_m": 0.919015,
+          "max_abs_pitch_rad": 1.452375,
+          "max_abs_roll_rad": 3.137932,
+          "max_pitch_rad": 1.452375,
+          "mean_action_l2": 0.44713,
+          "mean_action_rate_l2": 0.019575,
+          "min_base_height_m": 0.085234,
+          "min_pitch_rad": -0.045085,
+          "observed_push_delta_mps": 0.7803,
+          "post_push_peak_speed_mps": 1.491981,
+          "pre_push_peak_speed_mps": 0.711681,
+          "recovery_window_success": true,
+          "return": -6.236728,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 2,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.250302,
+          "final_xy_drift_m": 0.913009,
+          "max_abs_pitch_rad": 1.491413,
+          "max_abs_roll_rad": 3.134973,
+          "max_pitch_rad": 1.491413,
+          "mean_action_l2": 0.447143,
+          "mean_action_rate_l2": 0.017065,
+          "min_base_height_m": 0.078552,
+          "min_pitch_rad": -0.041991,
+          "observed_push_delta_mps": 0.849472,
+          "post_push_peak_speed_mps": 1.467964,
+          "pre_push_peak_speed_mps": 0.618493,
+          "recovery_window_success": true,
+          "return": -5.836585,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 3,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.066595,
+          "final_xy_drift_m": 0.94665,
+          "max_abs_pitch_rad": 1.492813,
+          "max_abs_roll_rad": 2.972903,
+          "max_pitch_rad": 1.492813,
+          "mean_action_l2": 0.448514,
+          "mean_action_rate_l2": 0.018153,
+          "min_base_height_m": 0.086407,
+          "min_pitch_rad": -0.043702,
+          "observed_push_delta_mps": 0.894532,
+          "post_push_peak_speed_mps": 1.500177,
+          "pre_push_peak_speed_mps": 0.605645,
+          "recovery_window_success": true,
+          "return": -5.932473,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 4,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.706761,
+          "final_xy_drift_m": 0.951163,
+          "max_abs_pitch_rad": 1.544655,
+          "max_abs_roll_rad": 3.107139,
+          "max_pitch_rad": 1.544655,
+          "mean_action_l2": 0.444441,
+          "mean_action_rate_l2": 0.018164,
+          "min_base_height_m": 0.076648,
+          "min_pitch_rad": -0.040427,
+          "observed_push_delta_mps": 0.969401,
+          "post_push_peak_speed_mps": 1.642342,
+          "pre_push_peak_speed_mps": 0.672941,
+          "recovery_window_success": true,
+          "return": -6.210557,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 5,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.739335,
+          "final_xy_drift_m": 0.920474,
+          "max_abs_pitch_rad": 1.529288,
+          "max_abs_roll_rad": 3.129122,
+          "max_pitch_rad": 1.529288,
+          "mean_action_l2": 0.44976,
+          "mean_action_rate_l2": 0.016671,
+          "min_base_height_m": 0.073046,
+          "min_pitch_rad": -0.043101,
+          "observed_push_delta_mps": 0.92992,
+          "post_push_peak_speed_mps": 1.536838,
+          "pre_push_peak_speed_mps": 0.606918,
+          "recovery_window_success": true,
+          "return": -5.11909,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 6,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.634998,
+          "final_xy_drift_m": 0.944902,
+          "max_abs_pitch_rad": 1.509065,
+          "max_abs_roll_rad": 3.103525,
+          "max_pitch_rad": 1.509065,
+          "mean_action_l2": 0.442364,
+          "mean_action_rate_l2": 0.019846,
+          "min_base_height_m": 0.083179,
+          "min_pitch_rad": -0.045419,
+          "observed_push_delta_mps": 0.498898,
+          "post_push_peak_speed_mps": 1.622361,
+          "pre_push_peak_speed_mps": 1.123463,
+          "recovery_window_success": true,
+          "return": -7.222471,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 7,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.701186,
+          "final_xy_drift_m": 0.946526,
+          "max_abs_pitch_rad": 1.4882,
+          "max_abs_roll_rad": 3.123139,
+          "max_pitch_rad": 1.4882,
+          "mean_action_l2": 0.449747,
+          "mean_action_rate_l2": 0.021767,
+          "min_base_height_m": 0.082119,
+          "min_pitch_rad": -0.04174,
+          "observed_push_delta_mps": 0.935939,
+          "post_push_peak_speed_mps": 1.556009,
+          "pre_push_peak_speed_mps": 0.620071,
+          "recovery_window_success": true,
+          "return": -5.366397,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 8,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.403681,
+          "final_xy_drift_m": 0.895754,
+          "max_abs_pitch_rad": 1.465219,
+          "max_abs_roll_rad": 3.133616,
+          "max_pitch_rad": 1.465219,
+          "mean_action_l2": 0.442972,
+          "mean_action_rate_l2": 0.021332,
+          "min_base_height_m": 0.08493,
+          "min_pitch_rad": -0.04327,
+          "observed_push_delta_mps": 0.548182,
+          "post_push_peak_speed_mps": 1.44522,
+          "pre_push_peak_speed_mps": 0.897038,
+          "recovery_window_success": true,
+          "return": -7.082967,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 9,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.152235,
+          "final_xy_drift_m": 0.941635,
+          "max_abs_pitch_rad": 1.560104,
+          "max_abs_roll_rad": 3.133786,
+          "max_pitch_rad": 1.560104,
+          "mean_action_l2": 0.439755,
+          "mean_action_rate_l2": 0.017514,
+          "min_base_height_m": 0.071198,
+          "min_pitch_rad": -0.041224,
+          "observed_push_delta_mps": 0.431738,
+          "post_push_peak_speed_mps": 1.660699,
+          "pre_push_peak_speed_mps": 1.228962,
+          "recovery_window_success": true,
+          "return": -7.143341,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 10,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.476508,
+          "final_xy_drift_m": 0.911543,
+          "max_abs_pitch_rad": 1.518747,
+          "max_abs_roll_rad": 3.1413,
+          "max_pitch_rad": 1.518747,
+          "mean_action_l2": 0.457504,
+          "mean_action_rate_l2": 0.017916,
+          "min_base_height_m": 0.072966,
+          "min_pitch_rad": -0.043676,
+          "observed_push_delta_mps": 0.925558,
+          "post_push_peak_speed_mps": 1.526951,
+          "pre_push_peak_speed_mps": 0.601393,
+          "recovery_window_success": true,
+          "return": -3.819118,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 11,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.225205,
+          "final_xy_drift_m": 0.93817,
+          "max_abs_pitch_rad": 1.518762,
+          "max_abs_roll_rad": 3.135231,
+          "max_pitch_rad": 1.518762,
+          "mean_action_l2": 0.442687,
+          "mean_action_rate_l2": 0.017465,
+          "min_base_height_m": 0.076894,
+          "min_pitch_rad": -0.04551,
+          "observed_push_delta_mps": 0.653099,
+          "post_push_peak_speed_mps": 1.633683,
+          "pre_push_peak_speed_mps": 0.980584,
+          "recovery_window_success": true,
+          "return": -6.808679,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 12,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.549004,
+          "final_xy_drift_m": 0.877052,
+          "max_abs_pitch_rad": 1.454259,
+          "max_abs_roll_rad": 3.138065,
+          "max_pitch_rad": 1.454259,
+          "mean_action_l2": 0.44358,
+          "mean_action_rate_l2": 0.019089,
+          "min_base_height_m": 0.084319,
+          "min_pitch_rad": -0.044538,
+          "observed_push_delta_mps": 0.498214,
+          "post_push_peak_speed_mps": 1.412978,
+          "pre_push_peak_speed_mps": 0.914764,
+          "recovery_window_success": true,
+          "return": -6.882316,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 13,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.603988,
+          "final_xy_drift_m": 0.911797,
+          "max_abs_pitch_rad": 1.468817,
+          "max_abs_roll_rad": 3.13502,
+          "max_pitch_rad": 1.468817,
+          "mean_action_l2": 0.448003,
+          "mean_action_rate_l2": 0.020672,
+          "min_base_height_m": 0.081245,
+          "min_pitch_rad": -0.03972,
+          "observed_push_delta_mps": 0.785922,
+          "post_push_peak_speed_mps": 1.431987,
+          "pre_push_peak_speed_mps": 0.646065,
+          "recovery_window_success": true,
+          "return": -5.290174,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 14,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.428713,
+          "final_xy_drift_m": 0.975087,
+          "max_abs_pitch_rad": 1.489828,
+          "max_abs_roll_rad": 3.085581,
+          "max_pitch_rad": 1.489828,
+          "mean_action_l2": 0.441958,
+          "mean_action_rate_l2": 0.020169,
+          "min_base_height_m": 0.082138,
+          "min_pitch_rad": -0.040439,
+          "observed_push_delta_mps": 0.604288,
+          "post_push_peak_speed_mps": 1.707707,
+          "pre_push_peak_speed_mps": 1.103419,
+          "recovery_window_success": true,
+          "return": -7.306489,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 15,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.473868,
+          "final_xy_drift_m": 0.968238,
+          "max_abs_pitch_rad": 1.460376,
+          "max_abs_roll_rad": 3.14057,
+          "max_pitch_rad": 1.460376,
+          "mean_action_l2": 0.443693,
+          "mean_action_rate_l2": 0.019687,
+          "min_base_height_m": 0.083513,
+          "min_pitch_rad": -0.042138,
+          "observed_push_delta_mps": 0.767314,
+          "post_push_peak_speed_mps": 1.692212,
+          "pre_push_peak_speed_mps": 0.924898,
+          "recovery_window_success": true,
+          "return": -6.896342,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        }
+      ],
+      "policy": {
+        "action_dim": 29,
+        "action_scale": 0.0,
+        "checkpoint": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit2_push_resume/resumed.pt",
+        "kind": "checkpoint"
+      },
+      "public_score": 0.0,
+      "reset_extras_keys": [
+        "log",
+        "time_outs"
+      ],
+      "run": {
+        "cwd": "/data/yuyangliu/AGENT/true_RL_Agent",
+        "host": "deyugptserver",
+        "platform": "Linux-5.15.0-94-generic-x86_64-with-glibc2.35",
+        "public_accept_seed_count": 3,
+        "public_seed_count": 3,
+        "round_id": "p3-preflight",
+        "run_index": 5,
+        "seed_policy": "runner_owned_split_derived_counts_only_no_raw_seed_ids",
+        "split": "sealed_validation",
+        "split_seed_count": 7,
+        "subject_id": "p2-short-resume-diagnostic",
+        "subject_kind": "baseline"
+      },
+      "schema_version": "true_rl_agent.push_recovery.eval_summary.v1",
+      "secondary_metrics": {
+        "mean_action_l2": 0.445731,
+        "mean_action_rate_l2": 0.019178,
+        "mean_episode_steps": 100.0,
+        "mean_final_planar_speed_mps": 0.44813,
+        "mean_final_xy_drift_m": 0.935173,
+        "mean_max_abs_pitch_rad": 1.497397,
+        "mean_max_abs_roll_rad": 3.118157,
+        "mean_min_base_height_m": 0.080546,
+        "mean_return": -6.244567,
+        "recovery_window_success_rate": 1.0
+      },
+      "status": "pass",
+      "task": {
+        "gym_id": "Unitree-G1-29dof-Velocity",
+        "implementation_strategy": "true_rl_agent_project_local_config_overlay",
+        "robot": "Unitree G1 29DoF",
+        "vendor_env": "unitree_rl_lab.tasks.locomotion.robots.g1.29dof.velocity_env_cfg"
+      }
+    },
+    {
+      "aggregate": {
+        "condition_flag_breakdown": {
+          "counts": {
+            "drift_over_threshold": 16,
+            "height_below_threshold": 16,
+            "pitch_over_threshold": 16,
+            "roll_over_threshold": 16,
+            "terminated": 0
+          },
+          "diagnostic_only": true,
+          "nonexclusive": true,
+          "primary_label_priority": [
+            "fall_forward",
+            "fall_backward",
+            "fall_side",
+            "height_collapse",
+            "fall_unknown",
+            "excessive_drift",
+            "success"
+          ],
+          "rates": {
+            "drift_over_threshold": 1.0,
+            "height_below_threshold": 1.0,
+            "pitch_over_threshold": 1.0,
+            "roll_over_threshold": 1.0,
+            "terminated": 0.0
+          },
+          "total": 16
+        },
+        "episodes": 16,
+        "failure_breakdown": {
+          "counts": {
+            "fall_forward": 16
+          },
+          "dominant_failure": "fall_forward",
+          "rates": {
+            "fall_forward": 1.0
+          },
+          "total": 16
+        },
+        "success_count": 0,
+        "success_rate": 0.0
+      },
+      "candidate_code_loaded_in_eval": false,
+      "candidate_package_loaded": false,
+      "candidate_package_loaded_in_eval": false,
+      "configuration": {
+        "active_profile": "strong_push",
+        "config_path": null,
+        "config_sha256": null,
+        "push": {
+          "body": "torso_link",
+          "evidence": {
+            "min_env_fraction_with_delta": 0.2,
+            "min_env_fraction_with_single_step_delta": 0.2,
+            "min_observed_delta_mps": 0.12,
+            "min_single_step_delta_mps": 0.12,
+            "post_window_s": 1.0,
+            "pre_window_s": 0.75,
+            "single_step_window_s": [
+              0.9,
+              1.1
+            ]
+          },
+          "interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "isaac_event": "push_by_setting_velocity",
+          "mechanism": "base_velocity_kick",
+          "velocity_range_mps": {
+            "x": [
+              -0.6,
+              0.6
+            ],
+            "y": [
+              -0.6,
+              0.6
+            ]
+          }
+        },
+        "runtime_dynamics_hash": "sha256:6527d6443e8156b01a138f963b0b3c5396a989a10c20c579977868861f79b778",
+        "standing_command": {
+          "ang_vel_z_radps": [
+            0.0,
+            0.0
+          ],
+          "command_name": "base_velocity",
+          "heading_command": false,
+          "lin_vel_x_mps": [
+            0.0,
+            0.0
+          ],
+          "lin_vel_y_mps": [
+            0.0,
+            0.0
+          ],
+          "rel_heading_envs": 0.0,
+          "rel_standing_envs": 1.0,
+          "resampling_time_range_s": [
+            10.0,
+            10.0
+          ]
+        },
+        "success_thresholds": {
+          "max_abs_pitch_rad": 0.65,
+          "max_abs_roll_rad": 0.65,
+          "max_final_xy_drift_m": 0.8,
+          "min_base_height_m": 0.45
+        }
+      },
+      "created_at_utc": "2026-09-12T05:05:53.371208+00:00",
+      "diagnostic_hints": [
+        {
+          "candidate_patch_scope": "Improve post-push pitch/upright reward; keep eval thresholds fixed.",
+          "condition": "dominant_failure == fall_forward",
+          "interpretation": "Forward pitch excursions dominate the protected classifier."
+        },
+        {
+          "candidate_patch_scope": "Use condition flags, not only dominant failure, for code-level reward design.",
+          "condition": "height_below_threshold co-occurs with other labels",
+          "interpretation": "Height collapse may be masked by higher-priority pitch/roll labels."
+        },
+        {
+          "candidate_patch_scope": "Inspect drift evidence while keeping protected success rules fixed.",
+          "condition": "drift_over_threshold co-occurs with other labels",
+          "interpretation": "Drift violations may be masked by fall labels."
+        }
+      ],
+      "environment": {
+        "device": "cuda:0",
+        "max_steps": 100,
+        "num_envs": 16,
+        "step_dt": 0.02
+      },
+      "errors": [],
+      "evidence": {
+        "observation_finite": true,
+        "push_effect": {
+          "env_fraction_with_single_step_delta": 1.0,
+          "expected_interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "gate_pass": true,
+          "max_single_step_delta_mps": 0.755117,
+          "mean_single_step_delta_mps": 0.394183,
+          "mechanism": "base_velocity_kick",
+          "min_env_fraction_with_single_step_delta": 0.2,
+          "min_single_step_delta_mps": 0.12,
+          "nonzero_push_configured": true,
+          "single_step_window_s": [
+            0.9,
+            1.1
+          ]
+        },
+        "recovery_window": {
+          "max_final_planar_speed_mps": 5.0,
+          "success_rate": 1.0
+        },
+        "reset_ok": true,
+        "reward_finite": true
+      },
+      "execution_cost": {
+        "closed_first_episode_control_steps": 1600,
+        "evaluation_env_count": 16,
+        "vector_env_step_calls": 100
+      },
+      "metrics": {
+        "failure_breakdown": {
+          "counts": {
+            "fall_forward": 16
+          },
+          "dominant_failure": "fall_forward",
+          "rates": {
+            "fall_forward": 1.0
+          },
+          "total": 16
+        },
+        "motion_quality": {
+          "mean_action_l2": 0.446589,
+          "mean_action_rate_l2": 0.01914,
+          "mean_episode_steps": 100.0,
+          "mean_final_planar_speed_mps": 0.367738,
+          "mean_final_xy_drift_m": 0.93778,
+          "mean_max_abs_pitch_rad": 1.502447,
+          "mean_max_abs_roll_rad": 3.117301,
+          "mean_min_base_height_m": 0.079265,
+          "mean_return": -6.177388,
+          "recovery_window_success_rate": 1.0
+        },
+        "success_rate": 0.0
+      },
+      "per_episode": [
+        {
+          "env_id": 0,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.494264,
+          "final_xy_drift_m": 0.930242,
+          "max_abs_pitch_rad": 1.5459,
+          "max_abs_roll_rad": 3.134183,
+          "max_pitch_rad": 1.5459,
+          "mean_action_l2": 0.446116,
+          "mean_action_rate_l2": 0.017004,
+          "min_base_height_m": 0.078417,
+          "min_pitch_rad": -0.043018,
+          "observed_push_delta_mps": 0.92171,
+          "post_push_peak_speed_mps": 1.530131,
+          "pre_push_peak_speed_mps": 0.608421,
+          "recovery_window_success": true,
+          "return": -6.211424,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 1,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.034527,
+          "final_xy_drift_m": 0.949479,
+          "max_abs_pitch_rad": 1.505634,
+          "max_abs_roll_rad": 3.10366,
+          "max_pitch_rad": 1.505634,
+          "mean_action_l2": 0.453176,
+          "mean_action_rate_l2": 0.020807,
+          "min_base_height_m": 0.083197,
+          "min_pitch_rad": -0.045317,
+          "observed_push_delta_mps": 1.010517,
+          "post_push_peak_speed_mps": 1.602171,
+          "pre_push_peak_speed_mps": 0.591655,
+          "recovery_window_success": true,
+          "return": -5.219868,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 2,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.407214,
+          "final_xy_drift_m": 0.938879,
+          "max_abs_pitch_rad": 1.490687,
+          "max_abs_roll_rad": 3.066347,
+          "max_pitch_rad": 1.490687,
+          "mean_action_l2": 0.443104,
+          "mean_action_rate_l2": 0.01897,
+          "min_base_height_m": 0.080757,
+          "min_pitch_rad": -0.041995,
+          "observed_push_delta_mps": 0.648622,
+          "post_push_peak_speed_mps": 1.564756,
+          "pre_push_peak_speed_mps": 0.916134,
+          "recovery_window_success": true,
+          "return": -7.09066,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 3,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.197001,
+          "final_xy_drift_m": 0.906648,
+          "max_abs_pitch_rad": 1.492051,
+          "max_abs_roll_rad": 3.138921,
+          "max_pitch_rad": 1.492051,
+          "mean_action_l2": 0.445278,
+          "mean_action_rate_l2": 0.019226,
+          "min_base_height_m": 0.076643,
+          "min_pitch_rad": -0.043344,
+          "observed_push_delta_mps": 0.839015,
+          "post_push_peak_speed_mps": 1.497757,
+          "pre_push_peak_speed_mps": 0.658743,
+          "recovery_window_success": true,
+          "return": -6.335541,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 4,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.57638,
+          "final_xy_drift_m": 0.960622,
+          "max_abs_pitch_rad": 1.529785,
+          "max_abs_roll_rad": 3.096318,
+          "max_pitch_rad": 1.529785,
+          "mean_action_l2": 0.445037,
+          "mean_action_rate_l2": 0.019018,
+          "min_base_height_m": 0.077596,
+          "min_pitch_rad": -0.040256,
+          "observed_push_delta_mps": 0.944409,
+          "post_push_peak_speed_mps": 1.651944,
+          "pre_push_peak_speed_mps": 0.707535,
+          "recovery_window_success": true,
+          "return": -6.366462,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 5,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.158109,
+          "final_xy_drift_m": 0.936565,
+          "max_abs_pitch_rad": 1.557406,
+          "max_abs_roll_rad": 3.12073,
+          "max_pitch_rad": 1.557406,
+          "mean_action_l2": 0.44716,
+          "mean_action_rate_l2": 0.017819,
+          "min_base_height_m": 0.073725,
+          "min_pitch_rad": -0.043173,
+          "observed_push_delta_mps": 0.983975,
+          "post_push_peak_speed_mps": 1.590479,
+          "pre_push_peak_speed_mps": 0.606505,
+          "recovery_window_success": true,
+          "return": -5.634824,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 6,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.193183,
+          "final_xy_drift_m": 0.910914,
+          "max_abs_pitch_rad": 1.459999,
+          "max_abs_roll_rad": 3.103539,
+          "max_pitch_rad": 1.459999,
+          "mean_action_l2": 0.449284,
+          "mean_action_rate_l2": 0.018592,
+          "min_base_height_m": 0.08485,
+          "min_pitch_rad": -0.045156,
+          "observed_push_delta_mps": 0.857388,
+          "post_push_peak_speed_mps": 1.447522,
+          "pre_push_peak_speed_mps": 0.590133,
+          "recovery_window_success": true,
+          "return": -6.031372,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 7,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.266656,
+          "final_xy_drift_m": 0.959474,
+          "max_abs_pitch_rad": 1.545344,
+          "max_abs_roll_rad": 3.126619,
+          "max_pitch_rad": 1.545344,
+          "mean_action_l2": 0.452453,
+          "mean_action_rate_l2": 0.026067,
+          "min_base_height_m": 0.078921,
+          "min_pitch_rad": -0.041747,
+          "observed_push_delta_mps": 0.889971,
+          "post_push_peak_speed_mps": 1.508604,
+          "pre_push_peak_speed_mps": 0.618633,
+          "recovery_window_success": true,
+          "return": -5.072219,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 8,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.724466,
+          "final_xy_drift_m": 0.949218,
+          "max_abs_pitch_rad": 1.499348,
+          "max_abs_roll_rad": 3.141578,
+          "max_pitch_rad": 1.499348,
+          "mean_action_l2": 0.444249,
+          "mean_action_rate_l2": 0.018137,
+          "min_base_height_m": 0.07848,
+          "min_pitch_rad": -0.042958,
+          "observed_push_delta_mps": 0.896438,
+          "post_push_peak_speed_mps": 1.645659,
+          "pre_push_peak_speed_mps": 0.749221,
+          "recovery_window_success": true,
+          "return": -6.445446,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 9,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.279481,
+          "final_xy_drift_m": 0.929913,
+          "max_abs_pitch_rad": 1.462321,
+          "max_abs_roll_rad": 3.095178,
+          "max_pitch_rad": 1.462321,
+          "mean_action_l2": 0.449527,
+          "mean_action_rate_l2": 0.018649,
+          "min_base_height_m": 0.084124,
+          "min_pitch_rad": -0.041277,
+          "observed_push_delta_mps": 0.874512,
+          "post_push_peak_speed_mps": 1.50069,
+          "pre_push_peak_speed_mps": 0.626178,
+          "recovery_window_success": true,
+          "return": -5.680057,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 10,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.159236,
+          "final_xy_drift_m": 0.958262,
+          "max_abs_pitch_rad": 1.529314,
+          "max_abs_roll_rad": 3.136781,
+          "max_pitch_rad": 1.529314,
+          "mean_action_l2": 0.441328,
+          "mean_action_rate_l2": 0.018156,
+          "min_base_height_m": 0.075221,
+          "min_pitch_rad": -0.043764,
+          "observed_push_delta_mps": 0.590844,
+          "post_push_peak_speed_mps": 1.682344,
+          "pre_push_peak_speed_mps": 1.0915,
+          "recovery_window_success": true,
+          "return": -6.961346,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 11,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.124637,
+          "final_xy_drift_m": 0.896837,
+          "max_abs_pitch_rad": 1.507931,
+          "max_abs_roll_rad": 3.136353,
+          "max_pitch_rad": 1.507931,
+          "mean_action_l2": 0.449849,
+          "mean_action_rate_l2": 0.016132,
+          "min_base_height_m": 0.073097,
+          "min_pitch_rad": -0.045308,
+          "observed_push_delta_mps": 0.85008,
+          "post_push_peak_speed_mps": 1.440184,
+          "pre_push_peak_speed_mps": 0.590105,
+          "recovery_window_success": true,
+          "return": -5.656386,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 12,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.382623,
+          "final_xy_drift_m": 0.923786,
+          "max_abs_pitch_rad": 1.451052,
+          "max_abs_roll_rad": 3.110383,
+          "max_pitch_rad": 1.451052,
+          "mean_action_l2": 0.442079,
+          "mean_action_rate_l2": 0.020025,
+          "min_base_height_m": 0.085102,
+          "min_pitch_rad": -0.044324,
+          "observed_push_delta_mps": 0.414245,
+          "post_push_peak_speed_mps": 1.449424,
+          "pre_push_peak_speed_mps": 1.035178,
+          "recovery_window_success": true,
+          "return": -7.025005,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 13,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.532567,
+          "final_xy_drift_m": 0.940425,
+          "max_abs_pitch_rad": 1.477539,
+          "max_abs_roll_rad": 3.117884,
+          "max_pitch_rad": 1.477539,
+          "mean_action_l2": 0.442721,
+          "mean_action_rate_l2": 0.017508,
+          "min_base_height_m": 0.080583,
+          "min_pitch_rad": -0.039532,
+          "observed_push_delta_mps": 0.723362,
+          "post_push_peak_speed_mps": 1.595803,
+          "pre_push_peak_speed_mps": 0.872442,
+          "recovery_window_success": true,
+          "return": -6.780622,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 14,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.682958,
+          "final_xy_drift_m": 0.978117,
+          "max_abs_pitch_rad": 1.462374,
+          "max_abs_roll_rad": 3.138381,
+          "max_pitch_rad": 1.462374,
+          "mean_action_l2": 0.445046,
+          "mean_action_rate_l2": 0.021605,
+          "min_base_height_m": 0.085144,
+          "min_pitch_rad": -0.040461,
+          "observed_push_delta_mps": 0.89296,
+          "post_push_peak_speed_mps": 1.654661,
+          "pre_push_peak_speed_mps": 0.761702,
+          "recovery_window_success": true,
+          "return": -6.795049,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 15,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.67051,
+          "final_xy_drift_m": 0.9351,
+          "max_abs_pitch_rad": 1.522472,
+          "max_abs_roll_rad": 3.109954,
+          "max_pitch_rad": 1.522472,
+          "mean_action_l2": 0.449019,
+          "mean_action_rate_l2": 0.018523,
+          "min_base_height_m": 0.072377,
+          "min_pitch_rad": -0.042122,
+          "observed_push_delta_mps": 0.966332,
+          "post_push_peak_speed_mps": 1.581593,
+          "pre_push_peak_speed_mps": 0.615261,
+          "recovery_window_success": true,
+          "return": -5.531921,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        }
+      ],
+      "policy": {
+        "action_dim": 29,
+        "action_scale": 0.0,
+        "checkpoint": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit2_push_resume/resumed.pt",
+        "kind": "checkpoint"
+      },
+      "public_score": 0.0,
+      "reset_extras_keys": [
+        "log",
+        "time_outs"
+      ],
+      "run": {
+        "cwd": "/data/yuyangliu/AGENT/true_RL_Agent",
+        "host": "deyugptserver",
+        "platform": "Linux-5.15.0-94-generic-x86_64-with-glibc2.35",
+        "public_accept_seed_count": 3,
+        "public_seed_count": 3,
+        "round_id": "p3-preflight",
+        "run_index": 6,
+        "seed_policy": "runner_owned_split_derived_counts_only_no_raw_seed_ids",
+        "split": "sealed_validation",
+        "split_seed_count": 7,
+        "subject_id": "p2-short-resume-diagnostic",
+        "subject_kind": "baseline"
+      },
+      "schema_version": "true_rl_agent.push_recovery.eval_summary.v1",
+      "secondary_metrics": {
+        "mean_action_l2": 0.446589,
+        "mean_action_rate_l2": 0.01914,
+        "mean_episode_steps": 100.0,
+        "mean_final_planar_speed_mps": 0.367738,
+        "mean_final_xy_drift_m": 0.93778,
+        "mean_max_abs_pitch_rad": 1.502447,
+        "mean_max_abs_roll_rad": 3.117301,
+        "mean_min_base_height_m": 0.079265,
+        "mean_return": -6.177388,
+        "recovery_window_success_rate": 1.0
+      },
+      "status": "pass",
+      "task": {
+        "gym_id": "Unitree-G1-29dof-Velocity",
+        "implementation_strategy": "true_rl_agent_project_local_config_overlay",
+        "robot": "Unitree G1 29DoF",
+        "vendor_env": "unitree_rl_lab.tasks.locomotion.robots.g1.29dof.velocity_env_cfg"
+      }
+    },
+    {
+      "aggregate": {
+        "condition_flag_breakdown": {
+          "counts": {
+            "drift_over_threshold": 16,
+            "height_below_threshold": 16,
+            "pitch_over_threshold": 16,
+            "roll_over_threshold": 16,
+            "terminated": 0
+          },
+          "diagnostic_only": true,
+          "nonexclusive": true,
+          "primary_label_priority": [
+            "fall_forward",
+            "fall_backward",
+            "fall_side",
+            "height_collapse",
+            "fall_unknown",
+            "excessive_drift",
+            "success"
+          ],
+          "rates": {
+            "drift_over_threshold": 1.0,
+            "height_below_threshold": 1.0,
+            "pitch_over_threshold": 1.0,
+            "roll_over_threshold": 1.0,
+            "terminated": 0.0
+          },
+          "total": 16
+        },
+        "episodes": 16,
+        "failure_breakdown": {
+          "counts": {
+            "fall_forward": 16
+          },
+          "dominant_failure": "fall_forward",
+          "rates": {
+            "fall_forward": 1.0
+          },
+          "total": 16
+        },
+        "success_count": 0,
+        "success_rate": 0.0
+      },
+      "candidate_code_loaded_in_eval": false,
+      "candidate_package_loaded": false,
+      "candidate_package_loaded_in_eval": false,
+      "configuration": {
+        "active_profile": "strong_push",
+        "config_path": null,
+        "config_sha256": null,
+        "push": {
+          "body": "torso_link",
+          "evidence": {
+            "min_env_fraction_with_delta": 0.2,
+            "min_env_fraction_with_single_step_delta": 0.2,
+            "min_observed_delta_mps": 0.12,
+            "min_single_step_delta_mps": 0.12,
+            "post_window_s": 1.0,
+            "pre_window_s": 0.75,
+            "single_step_window_s": [
+              0.9,
+              1.1
+            ]
+          },
+          "interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "isaac_event": "push_by_setting_velocity",
+          "mechanism": "base_velocity_kick",
+          "velocity_range_mps": {
+            "x": [
+              -0.6,
+              0.6
+            ],
+            "y": [
+              -0.6,
+              0.6
+            ]
+          }
+        },
+        "runtime_dynamics_hash": "sha256:6527d6443e8156b01a138f963b0b3c5396a989a10c20c579977868861f79b778",
+        "standing_command": {
+          "ang_vel_z_radps": [
+            0.0,
+            0.0
+          ],
+          "command_name": "base_velocity",
+          "heading_command": false,
+          "lin_vel_x_mps": [
+            0.0,
+            0.0
+          ],
+          "lin_vel_y_mps": [
+            0.0,
+            0.0
+          ],
+          "rel_heading_envs": 0.0,
+          "rel_standing_envs": 1.0,
+          "resampling_time_range_s": [
+            10.0,
+            10.0
+          ]
+        },
+        "success_thresholds": {
+          "max_abs_pitch_rad": 0.65,
+          "max_abs_roll_rad": 0.65,
+          "max_final_xy_drift_m": 0.8,
+          "min_base_height_m": 0.45
+        }
+      },
+      "created_at_utc": "2026-09-12T05:05:57.210555+00:00",
+      "diagnostic_hints": [
+        {
+          "candidate_patch_scope": "Improve post-push pitch/upright reward; keep eval thresholds fixed.",
+          "condition": "dominant_failure == fall_forward",
+          "interpretation": "Forward pitch excursions dominate the protected classifier."
+        },
+        {
+          "candidate_patch_scope": "Use condition flags, not only dominant failure, for code-level reward design.",
+          "condition": "height_below_threshold co-occurs with other labels",
+          "interpretation": "Height collapse may be masked by higher-priority pitch/roll labels."
+        },
+        {
+          "candidate_patch_scope": "Inspect drift evidence while keeping protected success rules fixed.",
+          "condition": "drift_over_threshold co-occurs with other labels",
+          "interpretation": "Drift violations may be masked by fall labels."
+        }
+      ],
+      "environment": {
+        "device": "cuda:0",
+        "max_steps": 100,
+        "num_envs": 16,
+        "step_dt": 0.02
+      },
+      "errors": [],
+      "evidence": {
+        "observation_finite": true,
+        "push_effect": {
+          "env_fraction_with_single_step_delta": 1.0,
+          "expected_interval_range_s": [
+            1.0,
+            1.0
+          ],
+          "gate_pass": true,
+          "max_single_step_delta_mps": 0.680975,
+          "mean_single_step_delta_mps": 0.460084,
+          "mechanism": "base_velocity_kick",
+          "min_env_fraction_with_single_step_delta": 0.2,
+          "min_single_step_delta_mps": 0.12,
+          "nonzero_push_configured": true,
+          "single_step_window_s": [
+            0.9,
+            1.1
+          ]
+        },
+        "recovery_window": {
+          "max_final_planar_speed_mps": 5.0,
+          "success_rate": 1.0
+        },
+        "reset_ok": true,
+        "reward_finite": true
+      },
+      "execution_cost": {
+        "closed_first_episode_control_steps": 1600,
+        "evaluation_env_count": 16,
+        "vector_env_step_calls": 100
+      },
+      "metrics": {
+        "failure_breakdown": {
+          "counts": {
+            "fall_forward": 16
+          },
+          "dominant_failure": "fall_forward",
+          "rates": {
+            "fall_forward": 1.0
+          },
+          "total": 16
+        },
+        "motion_quality": {
+          "mean_action_l2": 0.44583,
+          "mean_action_rate_l2": 0.018991,
+          "mean_episode_steps": 100.0,
+          "mean_final_planar_speed_mps": 0.446845,
+          "mean_final_xy_drift_m": 0.932013,
+          "mean_max_abs_pitch_rad": 1.486125,
+          "mean_max_abs_roll_rad": 3.112511,
+          "mean_min_base_height_m": 0.080934,
+          "mean_return": -6.322011,
+          "recovery_window_success_rate": 1.0
+        },
+        "success_rate": 0.0
+      },
+      "per_episode": [
+        {
+          "env_id": 0,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.589265,
+          "final_xy_drift_m": 0.945308,
+          "max_abs_pitch_rad": 1.50812,
+          "max_abs_roll_rad": 3.083105,
+          "max_pitch_rad": 1.50812,
+          "mean_action_l2": 0.443038,
+          "mean_action_rate_l2": 0.023141,
+          "min_base_height_m": 0.085266,
+          "min_pitch_rad": -0.043028,
+          "observed_push_delta_mps": 0.506468,
+          "post_push_peak_speed_mps": 1.484156,
+          "pre_push_peak_speed_mps": 0.977688,
+          "recovery_window_success": true,
+          "return": -7.110505,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 1,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.041921,
+          "final_xy_drift_m": 0.955503,
+          "max_abs_pitch_rad": 1.494026,
+          "max_abs_roll_rad": 3.063262,
+          "max_pitch_rad": 1.494026,
+          "mean_action_l2": 0.452904,
+          "mean_action_rate_l2": 0.018267,
+          "min_base_height_m": 0.086365,
+          "min_pitch_rad": -0.045102,
+          "observed_push_delta_mps": 0.988406,
+          "post_push_peak_speed_mps": 1.578333,
+          "pre_push_peak_speed_mps": 0.589927,
+          "recovery_window_success": true,
+          "return": -5.41839,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 2,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.434766,
+          "final_xy_drift_m": 0.93944,
+          "max_abs_pitch_rad": 1.474591,
+          "max_abs_roll_rad": 3.083552,
+          "max_pitch_rad": 1.474591,
+          "mean_action_l2": 0.44268,
+          "mean_action_rate_l2": 0.020974,
+          "min_base_height_m": 0.084773,
+          "min_pitch_rad": -0.041997,
+          "observed_push_delta_mps": 0.582599,
+          "post_push_peak_speed_mps": 1.565956,
+          "pre_push_peak_speed_mps": 0.983358,
+          "recovery_window_success": true,
+          "return": -6.929875,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 3,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.410616,
+          "final_xy_drift_m": 0.924443,
+          "max_abs_pitch_rad": 1.48381,
+          "max_abs_roll_rad": 3.136458,
+          "max_pitch_rad": 1.48381,
+          "mean_action_l2": 0.444471,
+          "mean_action_rate_l2": 0.019401,
+          "min_base_height_m": 0.080137,
+          "min_pitch_rad": -0.043528,
+          "observed_push_delta_mps": 0.807388,
+          "post_push_peak_speed_mps": 1.539068,
+          "pre_push_peak_speed_mps": 0.73168,
+          "recovery_window_success": true,
+          "return": -6.436624,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 4,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.381074,
+          "final_xy_drift_m": 0.939224,
+          "max_abs_pitch_rad": 1.509595,
+          "max_abs_roll_rad": 3.137933,
+          "max_pitch_rad": 1.509595,
+          "mean_action_l2": 0.447713,
+          "mean_action_rate_l2": 0.017684,
+          "min_base_height_m": 0.07896,
+          "min_pitch_rad": -0.040428,
+          "observed_push_delta_mps": 0.883343,
+          "post_push_peak_speed_mps": 1.521266,
+          "pre_push_peak_speed_mps": 0.637923,
+          "recovery_window_success": true,
+          "return": -5.552407,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 5,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.550315,
+          "final_xy_drift_m": 0.937213,
+          "max_abs_pitch_rad": 1.486389,
+          "max_abs_roll_rad": 3.099473,
+          "max_pitch_rad": 1.486389,
+          "mean_action_l2": 0.44404,
+          "mean_action_rate_l2": 0.017271,
+          "min_base_height_m": 0.075401,
+          "min_pitch_rad": -0.043199,
+          "observed_push_delta_mps": 0.826243,
+          "post_push_peak_speed_mps": 1.609417,
+          "pre_push_peak_speed_mps": 0.783174,
+          "recovery_window_success": true,
+          "return": -6.349697,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 6,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.719886,
+          "final_xy_drift_m": 0.91026,
+          "max_abs_pitch_rad": 1.473095,
+          "max_abs_roll_rad": 3.127709,
+          "max_pitch_rad": 1.473095,
+          "mean_action_l2": 0.448565,
+          "mean_action_rate_l2": 0.018678,
+          "min_base_height_m": 0.079059,
+          "min_pitch_rad": -0.04509,
+          "observed_push_delta_mps": 0.899101,
+          "post_push_peak_speed_mps": 1.488964,
+          "pre_push_peak_speed_mps": 0.589864,
+          "recovery_window_success": true,
+          "return": -6.190051,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 7,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.540316,
+          "final_xy_drift_m": 0.982567,
+          "max_abs_pitch_rad": 1.463273,
+          "max_abs_roll_rad": 3.135087,
+          "max_pitch_rad": 1.463273,
+          "mean_action_l2": 0.443423,
+          "mean_action_rate_l2": 0.019785,
+          "min_base_height_m": 0.084459,
+          "min_pitch_rad": -0.04199,
+          "observed_push_delta_mps": 0.639338,
+          "post_push_peak_speed_mps": 1.671249,
+          "pre_push_peak_speed_mps": 1.031912,
+          "recovery_window_success": true,
+          "return": -7.148818,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 8,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.398859,
+          "final_xy_drift_m": 0.917838,
+          "max_abs_pitch_rad": 1.447181,
+          "max_abs_roll_rad": 3.124128,
+          "max_pitch_rad": 1.447181,
+          "mean_action_l2": 0.442699,
+          "mean_action_rate_l2": 0.018128,
+          "min_base_height_m": 0.085357,
+          "min_pitch_rad": -0.043099,
+          "observed_push_delta_mps": 0.462286,
+          "post_push_peak_speed_mps": 1.479648,
+          "pre_push_peak_speed_mps": 1.017362,
+          "recovery_window_success": true,
+          "return": -7.34364,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 9,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.5044,
+          "final_xy_drift_m": 0.906407,
+          "max_abs_pitch_rad": 1.53199,
+          "max_abs_roll_rad": 3.096174,
+          "max_pitch_rad": 1.53199,
+          "mean_action_l2": 0.447173,
+          "mean_action_rate_l2": 0.016798,
+          "min_base_height_m": 0.072125,
+          "min_pitch_rad": -0.041407,
+          "observed_push_delta_mps": 0.866137,
+          "post_push_peak_speed_mps": 1.494549,
+          "pre_push_peak_speed_mps": 0.628412,
+          "recovery_window_success": true,
+          "return": -5.557742,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 10,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.404885,
+          "final_xy_drift_m": 0.96765,
+          "max_abs_pitch_rad": 1.477415,
+          "max_abs_roll_rad": 3.081257,
+          "max_pitch_rad": 1.477415,
+          "mean_action_l2": 0.441997,
+          "mean_action_rate_l2": 0.020029,
+          "min_base_height_m": 0.080616,
+          "min_pitch_rad": -0.043806,
+          "observed_push_delta_mps": 0.423227,
+          "post_push_peak_speed_mps": 1.664981,
+          "pre_push_peak_speed_mps": 1.241754,
+          "recovery_window_success": true,
+          "return": -7.370831,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 11,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.439951,
+          "final_xy_drift_m": 0.907421,
+          "max_abs_pitch_rad": 1.483912,
+          "max_abs_roll_rad": 3.104109,
+          "max_pitch_rad": 1.483912,
+          "mean_action_l2": 0.447342,
+          "mean_action_rate_l2": 0.018929,
+          "min_base_height_m": 0.08359,
+          "min_pitch_rad": -0.04518,
+          "observed_push_delta_mps": 0.823964,
+          "post_push_peak_speed_mps": 1.453677,
+          "pre_push_peak_speed_mps": 0.629713,
+          "recovery_window_success": true,
+          "return": -6.145421,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 12,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.347395,
+          "final_xy_drift_m": 0.869281,
+          "max_abs_pitch_rad": 1.454368,
+          "max_abs_roll_rad": 3.139019,
+          "max_pitch_rad": 1.454368,
+          "mean_action_l2": 0.444661,
+          "mean_action_rate_l2": 0.018546,
+          "min_base_height_m": 0.083323,
+          "min_pitch_rad": -0.04435,
+          "observed_push_delta_mps": 0.581523,
+          "post_push_peak_speed_mps": 1.382173,
+          "pre_push_peak_speed_mps": 0.80065,
+          "recovery_window_success": true,
+          "return": -6.416663,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 13,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.565942,
+          "final_xy_drift_m": 0.954888,
+          "max_abs_pitch_rad": 1.518635,
+          "max_abs_roll_rad": 3.111492,
+          "max_pitch_rad": 1.518635,
+          "mean_action_l2": 0.441396,
+          "mean_action_rate_l2": 0.020297,
+          "min_base_height_m": 0.081794,
+          "min_pitch_rad": -0.039693,
+          "observed_push_delta_mps": 0.539604,
+          "post_push_peak_speed_mps": 1.628999,
+          "pre_push_peak_speed_mps": 1.089395,
+          "recovery_window_success": true,
+          "return": -7.0922,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 14,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.258819,
+          "final_xy_drift_m": 0.957092,
+          "max_abs_pitch_rad": 1.47178,
+          "max_abs_roll_rad": 3.137832,
+          "max_pitch_rad": 1.47178,
+          "mean_action_l2": 0.447781,
+          "mean_action_rate_l2": 0.018993,
+          "min_base_height_m": 0.080424,
+          "min_pitch_rad": -0.040468,
+          "observed_push_delta_mps": 0.960412,
+          "post_push_peak_speed_mps": 1.594007,
+          "pre_push_peak_speed_mps": 0.633595,
+          "recovery_window_success": true,
+          "return": -5.673129,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        },
+        {
+          "env_id": 15,
+          "episode_steps": 100,
+          "failure_label": "fall_forward",
+          "final_planar_speed_mps": 0.561115,
+          "final_xy_drift_m": 0.89767,
+          "max_abs_pitch_rad": 1.499823,
+          "max_abs_roll_rad": 3.139579,
+          "max_pitch_rad": 1.499823,
+          "mean_action_l2": 0.453396,
+          "mean_action_rate_l2": 0.016934,
+          "min_base_height_m": 0.073291,
+          "min_pitch_rad": -0.042139,
+          "observed_push_delta_mps": 0.820282,
+          "post_push_peak_speed_mps": 1.436246,
+          "pre_push_peak_speed_mps": 0.615964,
+          "recovery_window_success": true,
+          "return": -4.416183,
+          "success": false,
+          "terminated": false,
+          "timed_out": false
+        }
+      ],
+      "policy": {
+        "action_dim": 29,
+        "action_scale": 0.0,
+        "checkpoint": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit2_push_resume/resumed.pt",
+        "kind": "checkpoint"
+      },
+      "public_score": 0.0,
+      "reset_extras_keys": [
+        "log",
+        "time_outs"
+      ],
+      "run": {
+        "cwd": "/data/yuyangliu/AGENT/true_RL_Agent",
+        "host": "deyugptserver",
+        "platform": "Linux-5.15.0-94-generic-x86_64-with-glibc2.35",
+        "public_accept_seed_count": 3,
+        "public_seed_count": 3,
+        "round_id": "p3-preflight",
+        "run_index": 7,
+        "seed_policy": "runner_owned_split_derived_counts_only_no_raw_seed_ids",
+        "split": "sealed_validation",
+        "split_seed_count": 7,
+        "subject_id": "p2-short-resume-diagnostic",
+        "subject_kind": "baseline"
+      },
+      "schema_version": "true_rl_agent.push_recovery.eval_summary.v1",
+      "secondary_metrics": {
+        "mean_action_l2": 0.44583,
+        "mean_action_rate_l2": 0.018991,
+        "mean_episode_steps": 100.0,
+        "mean_final_planar_speed_mps": 0.446845,
+        "mean_final_xy_drift_m": 0.932013,
+        "mean_max_abs_pitch_rad": 1.486125,
+        "mean_max_abs_roll_rad": 3.112511,
+        "mean_min_base_height_m": 0.080934,
+        "mean_return": -6.322011,
+        "recovery_window_success_rate": 1.0
+      },
+      "status": "pass",
+      "task": {
+        "gym_id": "Unitree-G1-29dof-Velocity",
+        "implementation_strategy": "true_rl_agent_project_local_config_overlay",
+        "robot": "Unitree G1 29DoF",
+        "vendor_env": "unitree_rl_lab.tasks.locomotion.robots.g1.29dof.velocity_env_cfg"
+      }
+    }
+  ],
+  "secondary_metrics": {
+    "mean_action_l2": 0.447179,
+    "mean_action_rate_l2": 0.019651,
+    "mean_episode_steps": 100.0,
+    "mean_final_planar_speed_mps": 0.500558,
+    "mean_final_xy_drift_m": 0.94785,
+    "mean_max_abs_pitch_rad": 1.490043,
+    "mean_max_abs_roll_rad": 3.093449,
+    "mean_min_base_height_m": 0.081651,
+    "mean_return": -6.150192,
+    "recovery_window_success_rate": 1.0
+  },
+  "status": "pass",
+  "subject_id": "p2-short-resume-diagnostic",
+  "subject_kind": "baseline",
+  "subject_manifest_hash": "6076bd2decde4708c8be9c4f4376b80b44279514bec4e8a9e739648f67c8aa1f",
+  "task": {
+    "gym_id": "Unitree-G1-29dof-Velocity",
+    "implementation_strategy": "true_rl_agent_project_local_config_overlay",
+    "robot": "Unitree G1 29DoF",
+    "vendor_env": "unitree_rl_lab.tasks.locomotion.robots.g1.29dof.velocity_env_cfg"
+  },
+  "task_id": "unitree_push_recovery"
+}

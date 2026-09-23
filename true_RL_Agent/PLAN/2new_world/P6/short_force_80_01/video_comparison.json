@@ -1,0 +1,69 @@
+{
+  "status": "PASS",
+  "expected_case_count": 2,
+  "cases": [
+    {
+      "case_id": "go2_short80_s2_e61",
+      "status": "PASS",
+      "all_64_outcomes_equal": true,
+      "equal_outcome_count": 64,
+      "all_64_episode_records_equal": true,
+      "initial_xy_and_origins_exact": true,
+      "replay_seeds_including_preceding": [
+        10042,
+        10043
+      ],
+      "replayed_episodes_including_preceding": 128,
+      "all_valid_trajectory_arrays_exact": true,
+      "decoded_frames": 72,
+      "keyframe_steps": [
+        1,
+        51,
+        62,
+        68,
+        72
+      ],
+      "native_video_sha256": "sha256:4c406b71e2cdbc521d75390e380d9949c7c0f54cbbe8fd4e94bc4277d7504d51",
+      "scope": "All 64 first episodes compared; decoded frame 1 corresponds to pre-reset control sample 1."
+    },
+    {
+      "case_id": "go2_short80_s2_e57",
+      "status": "PASS",
+      "all_64_outcomes_equal": true,
+      "equal_outcome_count": 64,
+      "all_64_episode_records_equal": true,
+      "initial_xy_and_origins_exact": true,
+      "replay_seeds_including_preceding": [
+        10042,
+        10043
+      ],
+      "replayed_episodes_including_preceding": 128,
+      "all_valid_trajectory_arrays_exact": true,
+      "decoded_frames": 303,
+      "keyframe_steps": [
+        1,
+        51,
+        62,
+        66,
+        73,
+        77,
+        84,
+        94,
+        146,
+        303
+      ],
+      "native_video_sha256": "sha256:d33d6daf38514d0d7ade5f47d263019e128f2a6377628bca77ac2e21077746d9",
+      "scope": "All 64 first episodes compared; decoded frame 1 corresponds to pre-reset control sample 1."
+    }
+  ],
+  "complete_case_count": 2,
+  "compared_episodes_not_new_samples": 128,
+  "replayed_episodes_not_new_samples": 256,
+  "total_decoded_frames": 375,
+  "selection_sha256": "sha256:069c0d3de7719448d1597c3a91c6d9c147fefeace2267140008eae6e0a6c19a6",
+  "review_script_sha256": "sha256:eda5ed497b8379398ede848739bf9923f1c0c8febb60e632dc99e90911f7dc28",
+  "limitations": [
+    "Native frame sheets are sparse views; full MP4 is decoded and retained.",
+    "Matching trajectories do not establish independent live state.closed capture or reference qualification."
+  ]
+}

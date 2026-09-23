@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 from true_rl_agent.candidates.schema import (
@@ -19,19 +19,26 @@ MECHANISM_ATTRIBUTION_SCHEMA_VERSION = (
 
 @dataclass(frozen=True)
 class RuntimeActivationEvidence:
-    reward_term_calls: int = 0
-    diagnostic_calls: int = 0
-    nonzero_reward_contribution: bool = False
+    # None is unmeasured. A measured zero must survive all public projections.
+    reward_term_calls: int | None = None
+    diagnostic_calls: int | None = None
+    nonzero_reward_contribution: bool | None = None
     reward_output_stats: Mapping[str, Any] = field(default_factory=dict)
     diagnostic_outputs: Mapping[str, Any] = field(default_factory=dict)
     component_activation_records: tuple[Mapping[str, Any], ...] = ()
     feature_activation_records: tuple[str, ...] = ()
     capability_activation_records: tuple[str, ...] = ()
+    step_calls: int | None = None
+    reward_term_count: int | None = None
+    diagnostic_term_count: int | None = None
+    training_sampling: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        _nonnegative_integer(self.reward_term_calls, "reward_term_calls")
-        _nonnegative_integer(self.diagnostic_calls, "diagnostic_calls")
-        if not isinstance(self.nonzero_reward_contribution, bool):
+        for key in ("reward_term_calls", "diagnostic_calls", "step_calls", "reward_term_count", "diagnostic_term_count"):
+            value = getattr(self, key)
+            if value is not None:
+                _nonnegative_integer(value, key)
+        if self.nonzero_reward_contribution is not None and not isinstance(self.nonzero_reward_contribution, bool):
             raise ValueError("nonzero_reward_contribution must be a boolean")
         if not isinstance(self.reward_output_stats, Mapping):
             raise ValueError("reward_output_stats must be an object")
@@ -51,6 +58,11 @@ class RuntimeActivationEvidence:
         )
         object.__setattr__(self, "reward_output_stats", dict(self.reward_output_stats))
         object.__setattr__(self, "diagnostic_outputs", dict(self.diagnostic_outputs))
+        if not isinstance(self.training_sampling, Mapping):
+            raise ValueError("training_sampling must be an object")
+        if self.training_sampling:
+            from true_rl_agent.evaluation.public_projection import project_public_training_sampling
+            object.__setattr__(self, "training_sampling", project_public_training_sampling(self.training_sampling))
         object.__setattr__(
             self,
             "component_activation_records",
@@ -67,11 +79,54 @@ class RuntimeActivationEvidence:
             tuple(self.capability_activation_records),
         )
 
+    def measurement_summary(self) -> dict[str, Any]:
+        """Available means a record exists; None counters are still unmeasured."""
+        measured = {
+            key: getattr(self, key)
+            for key in ("step_calls", "reward_term_count", "diagnostic_term_count", "reward_term_calls", "diagnostic_calls", "nonzero_reward_contribution")
+        }
+        available = any(value is not None for value in measured.values()) or any((
+            self.reward_output_stats, self.diagnostic_outputs, self.component_activation_records,
+            self.feature_activation_records, self.capability_activation_records,
+        ))
+        result = {"status": "available", **measured} if available else {"status": "not_available"}
+        if self.training_sampling:
+            result["training_sampling"] = dict(self.training_sampling)
+        return result
+
+    def reward_execution_state(self) -> str:
+        """Compact observation for history, without claiming causal effect."""
+        if self.nonzero_reward_contribution is True:
+            return "executed_nonzero"
+        if self.reward_term_calls is not None and self.reward_term_calls > 0:
+            return (
+                "executed_zero" if self.nonzero_reward_contribution is False
+                else "executed_value_unknown"
+            )
+        if self.step_calls == 0:
+            return "not_executed"
+        if self.reward_term_count == 0:
+            return "no_reward_terms"
+        # Older receipts zero-filled missing counters without recording whether
+        # the adapter stepped or any reward terms existed.
+        if (
+            self.reward_term_calls == 0
+            and self.step_calls is not None and self.step_calls > 0
+            and self.reward_term_count is not None and self.reward_term_count > 0
+        ):
+            return "terms_not_called"
+        if self.measurement_summary()["status"] == "not_available":
+            return "not_available"
+        # A loaded capability, diagnostic call, or false contribution without
+        # reward-call evidence cannot prove that a reward term executed.
+        return "unknown"
+
     def to_public_dict(self) -> dict[str, Any]:
+        measured = self.measurement_summary()
+        if measured["status"] == "not_available":
+            return measured
         return {
-            "reward_term_calls": self.reward_term_calls,
-            "diagnostic_calls": self.diagnostic_calls,
-            "nonzero_reward_contribution": self.nonzero_reward_contribution,
+            **measured,
             "reward_output_stats": dict(self.reward_output_stats),
             "diagnostic_outputs": dict(self.diagnostic_outputs),
             "component_activation_records": [
@@ -80,6 +135,17 @@ class RuntimeActivationEvidence:
             "feature_activation_records": list(self.feature_activation_records),
             "capability_activation_records": list(self.capability_activation_records),
         }
+
+    @classmethod
+    def from_train_summary(cls, summary: Mapping[str, Any]) -> "RuntimeActivationEvidence":
+        """One receipt-owned path shared by live rounds and generation replay."""
+        from true_rl_agent.evaluation.public_projection import project_public_training_sampling
+        evidence = cls.from_mapping(summary.get("runtime_activation_summary"))
+        training = summary.get("training")
+        sampled = training.get("numeric_evidence") if isinstance(training, Mapping) else None
+        if sampled is None and evidence.training_sampling:
+            sampled = evidence.training_sampling
+        return replace(evidence, training_sampling=project_public_training_sampling(sampled))
 
     @classmethod
     def from_mapping(cls, value: Mapping[str, Any] | None) -> "RuntimeActivationEvidence":
@@ -93,18 +159,13 @@ class RuntimeActivationEvidence:
         feature_activation_records = value.get("feature_activation_records", ())
         capability_activation_records = value.get("capability_activation_records", ())
         return cls(
-            reward_term_calls=_nonnegative_integer(
-                value.get("reward_term_calls", 0),
-                "reward_term_calls",
-            ),
-            diagnostic_calls=_nonnegative_integer(
-                value.get("diagnostic_calls", 0),
-                "diagnostic_calls",
-            ),
-            nonzero_reward_contribution=_boolean(
-                value.get("nonzero_reward_contribution", False),
-                "nonzero_reward_contribution",
-            ),
+            reward_term_calls=value.get("reward_term_calls"),
+            diagnostic_calls=value.get("diagnostic_calls"),
+            nonzero_reward_contribution=value.get("nonzero_reward_contribution"),
+            step_calls=value.get("step_calls"),
+            reward_term_count=value.get("reward_term_count"),
+            diagnostic_term_count=value.get("diagnostic_term_count"),
+            training_sampling=value.get("training_sampling", {}),
             reward_output_stats=_mapping(reward_output_stats, "reward_output_stats"),
             diagnostic_outputs=_mapping(diagnostic_outputs, "diagnostic_outputs"),
             component_activation_records=_mapping_records(
@@ -125,12 +186,6 @@ class RuntimeActivationEvidence:
 def _nonnegative_integer(value: Any, field_name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value < 0:
         raise ValueError(f"{field_name} must be a non-negative integer")
-    return value
-
-
-def _boolean(value: Any, field_name: str) -> bool:
-    if not isinstance(value, bool):
-        raise ValueError(f"{field_name} must be a boolean")
     return value
 
 
@@ -178,7 +233,7 @@ class MechanismEvidenceGate:
             return MechanismDecision("record_only", f"{surface.classification}_candidate")
         if surface.classification != "code_level":
             return MechanismDecision("reject", surface.reason)
-        if evidence.reward_term_calls <= 0 or not evidence.nonzero_reward_contribution:
+        if evidence.reward_term_calls is None or evidence.reward_term_calls <= 0 or not evidence.nonzero_reward_contribution:
             return MechanismDecision("attribution_unclear", "runner_activation_missing")
         return MechanismDecision("pass", "runner_activation_observed")
 

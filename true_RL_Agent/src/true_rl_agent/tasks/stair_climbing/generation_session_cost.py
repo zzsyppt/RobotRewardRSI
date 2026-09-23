@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 import re
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -16,8 +16,6 @@ from true_rl_agent.agent_core.generation_cost_journal import (
     GenerationActualCostJournal as StairGenerationActualCostJournal,
     replay_generation_combined_cost_chain as replay_stair_generation_combined_cost_chain,
     replay_generation_final_cost_chain as replay_stair_generation_formal_cost_chain,
-    project_actual_generation_cost,
-    require_cost_event_id,
     require_nonnegative_cost_integer,
 )
 from true_rl_agent.evaluation.binding import canonical_json_hash

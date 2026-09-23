@@ -7,6 +7,7 @@ selection and the existing Push holdout rule; it never schedules a job.
 from __future__ import annotations
 
 import copy
+import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, Literal
@@ -30,11 +31,14 @@ from true_rl_agent.tasks.push_recovery.config import PushRecoveryTaskConfig
 from true_rl_agent.tasks.push_recovery.phased_evaluation import PUSH_PHASE_EVIDENCE_SCHEMA
 from true_rl_agent.tasks.push_recovery.metrics import (
     DEFAULT_MOTION_LIMITS,
+    FORCE_ROLLOUT_SCHEMA,
     push_behavior_quality_gate,
     push_motion_quality_gate,
     project_push_split,
     build_push_public_result_from_summaries,
     build_push_sealed_rollout_evidence,
+    push_recovery_evidence_gate,
+    recovery_validation_contract,
 )
 
 @dataclass(frozen=True)
@@ -107,6 +111,16 @@ class PushPhasedEvaluationAdapter:
             "width": 2,
             "acceptance_authority": False,
         }
+        if self.config.push_protocol is not None:
+            payload.update(
+                schema_version="true_rl_agent.task.push_recovery.selection_contract.v2",
+                eligibility="complete_valid_planned_push_recovery_evidence",
+                independent_validation=recovery_validation_contract(),
+            )
+            payload.pop("motion_limits")
+        if self.config.push_evaluation_protocol is not None:
+            payload.update(schema_version="true_rl_agent.task.push_recovery.selection_contract.v3",
+                           eligibility="complete_verified_force_sequence_and_fresh_recovery_evidence")
         return {**payload, "contract_hash": canonical_json_hash(payload)}
 
     def cost_contract(self) -> dict[str, Any]:
@@ -142,13 +156,18 @@ class PushPhasedEvaluationAdapter:
         }[phase]
 
     def generation_workload(self, *, cell_manifest: ResolvedCellManifestV1) -> GenerationWorkload:
-        if cell_manifest.base_task_protocol_hash != self.task_protocol_hash:
+        expected_protocol = (cell_manifest.base_task_protocol_hash if cell_manifest.uses_legacy_training_binding_v1
+                             else cell_manifest.resolved_cell_task_protocol_hash)
+        if expected_protocol != self.task_protocol_hash:
             raise ValueError("Push workload cell differs from its task protocol")
-        control = cell_manifest.robot_task_binding["task_projection"]["phase0_binding_facts"]["control"]
+        projection = cell_manifest.robot_task_binding["task_projection"]
+        facts = projection.get("push_abi_facts", projection.get("phase0_binding_facts"))
+        control = facts["control"]
         episode_seconds = self.config.eval_runtime_dynamics()["environment"]["episode_length_s"]
         # Match the runtime's first-episode loop using this cell's frozen control
         # period; robot geometry and control facts never enter the shared host.
-        max_steps = int(round(episode_seconds / control["control_dt_s"]))
+        steps = episode_seconds / control["control_dt_s"]
+        max_steps = math.ceil(steps) if self.config.push_protocol is not None else int(round(steps))
         return GenerationWorkload(
             task_protocol_hash=self.task_protocol_hash,
             phased_evaluation_cost_contract_hash=self.cost_contract()["contract_hash"],
@@ -174,11 +193,39 @@ class PushPhasedEvaluationAdapter:
             raise ValueError("Push phase evidence seed count mismatch")
         if any(not isinstance(item, Mapping) for item in summaries):
             raise ValueError("Push phase summaries must be objects")
+        if self.config.push_evaluation_protocol is not None and any(
+            item.get("schema_version") != FORCE_ROLLOUT_SCHEMA for item in summaries
+        ):
+            raise ValueError("Push force evaluation requires v3 rollout evidence")
         errors: list[dict[str, Any]] = []
         project_push_split(summaries, split_name=result.phase.value, errors=errors)
         if errors:
             raise ValueError("Push phase contains incomplete or invalid rollout summaries")
         return summaries
+
+    def project_reference_public_dev_gate(self, *, phase_result):
+        if self.config.push_protocol is None:
+            return None
+        if phase_result.phase is not EvaluationPhase.PUBLIC_DEV:
+            raise ValueError("reference screening requires public-dev evidence")
+        from true_rl_agent.tasks.push_recovery.reference_program import (
+            reference_dev_evidence_passes, reference_qualification_contract,
+        )
+
+        summaries = self._phase_summaries(phase_result)
+        dev = project_push_split(summaries, split_name="public_dev", errors=[])
+        score = dev["score_stats"]["mean"]
+        evidence = push_recovery_evidence_gate(summaries)
+        contract = reference_qualification_contract(self.config)
+        return {
+            "status": "pass" if evidence["status"] == "pass" and reference_dev_evidence_passes(self.config, dev) else "fail",
+            "qualification_contract_hash": canonical_json_hash(contract),
+            "public_dev_score": score,
+            **({"public_dev_reference_band": contract["public_dev_reference_band"]}
+               if self.config.reference_admission_policy is None
+               else {"reference_admission_policy": self.config.reference_admission_policy}),
+            "recovery_evidence_status": evidence["status"],
+        }
 
     def project_public_phase_summary(self, *, phase_result: EvaluationPhaseResult) -> Mapping[str, Any]:
         if phase_result.phase is EvaluationPhase.SEALED_VALIDATION:
@@ -207,9 +254,13 @@ class PushPhasedEvaluationAdapter:
         elif screen_role != "guard_reference" or train_result is not None or train_receipt_checksum is not None:
             raise ValueError("Push screen role or training evidence is invalid")
         summaries = self._phase_summaries(phase_result)
-        motion = push_motion_quality_gate(summaries, limits=DEFAULT_MOTION_LIMITS, prior_errors=[])
-        behavior = push_behavior_quality_gate(public_dev_summaries=summaries,
-            public_accept_summaries=[], limits=DEFAULT_MOTION_LIMITS, prior_errors=[])
+        if self.config.push_protocol is not None:
+            behavior_passed = push_recovery_evidence_gate(summaries)["status"] == "pass"
+        else:
+            motion = push_motion_quality_gate(summaries, limits=DEFAULT_MOTION_LIMITS, prior_errors=[])
+            behavior = push_behavior_quality_gate(public_dev_summaries=summaries,
+                public_accept_summaries=[], limits=DEFAULT_MOTION_LIMITS, prior_errors=[])
+            behavior_passed = motion["status"] == behavior["status"] == "pass"
         return PushPublicDevScreen(
             trial_id=trial_id, screen_role=screen_role,
             phase_result_hash=canonical_json_hash(phase_result.to_private_dict()),
@@ -220,7 +271,7 @@ class PushPhasedEvaluationAdapter:
             resource_binding_hash=phase_result.resource_binding_hash,
             train_receipt_checksum=train_receipt_checksum,
             score_stats=project_push_split(summaries, split_name="public_dev", errors=[])["score_stats"],
-            behavior_passed=motion["status"] == behavior["status"] == "pass",
+            behavior_passed=behavior_passed,
         )
 
     def select(self, screens: Sequence[PushPublicDevScreen], *, guard_reference: PushPublicDevScreen) -> PushSelection:
@@ -290,9 +341,14 @@ class PushPhasedEvaluationAdapter:
             training_binding_hash=eval_plan.training_binding_hash,
             capability_profile_hash=eval_plan.capability_profile_hash,
             acceptance_protocol=self.config.acceptance_protocol(),
+            public_accept_score=projected.metrics["public_accept"]["score_stats"]["mean"],
         )
         summary = {
-            "schema_version": "true_rl_agent.push_recovery.eval_summary.v1",
+            "schema_version": ("true_rl_agent.push_recovery.eval_summary.v3"
+                               if self.config.push_evaluation_protocol is not None
+                               else "true_rl_agent.push_recovery.eval_summary.v2"
+                               if self.config.push_protocol is not None
+                               else "true_rl_agent.push_recovery.eval_summary.v1"),
             **eval_plan.job_identity().to_public_dict(),
             "evaluation_protocol": self.config.evaluation_protocol().to_public_dict(),
             "evaluation_binding": eval_plan.evaluation_binding.to_public_dict(),

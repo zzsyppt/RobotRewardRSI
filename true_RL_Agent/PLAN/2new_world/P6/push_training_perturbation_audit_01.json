@@ -1,0 +1,1707 @@
+{
+  "schema_version": "p6.push_training_perturbation_audit.v1",
+  "audit_mode": "read_only_local_evidence_no_ssh_no_gpu_no_new_training",
+  "conclusion": {
+    "nonempty_reward_program_executed_for_both_full_training_runs": true,
+    "training_push_path_enabled_in_frozen_source": true,
+    "specific_training_push_disable_wiring_bug_found": false,
+    "full_training_actual_push_count_proven": false,
+    "short_wiring_training_actual_push_count_proven": false,
+    "causal_claim_that_missing_push_reward_caused_g1_failure": "not_established",
+    "actual_training_configuration_and_event_registration_verified": true,
+    "training_episodes_surviving_beyond_push_schedule_indirectly_supported": true,
+    "hypothesis_all_full_training_episodes_end_before_first_push_supported": false,
+    "framework_native_event_order_and_single_dt_integration_source_verified": true,
+    "tensorboard_success_rate_is_formal_recovery_metric": false
+  },
+  "original_training_environment_manifest": {
+    "path": "PLAN/2new_world/P6/original_training_execution_environment_01.json",
+    "sha256": "e161e4d36f7ac5881517bf107738fb5753f94585fdeea52589535b422dfdf7af"
+  },
+  "source_checks": [
+    {
+      "path": "scripts/isaaclab_rsl_rl_train.py",
+      "sha256": "4d04e15f33b510d2a24fa9590b2677c8089f16420d84e0e5a4d2940e8384ef16",
+      "original_training_sha256": "4d04e15f33b510d2a24fa9590b2677c8089f16420d84e0e5a4d2940e8384ef16",
+      "matches_original_training_source": true
+    },
+    {
+      "path": "src/true_rl_agent/tasks/push_recovery/runtime.py",
+      "sha256": "1211b7820b04e6ea95912a785a2dbf1c3be501a77083a49af08594bdeaab494e",
+      "original_training_sha256": "1211b7820b04e6ea95912a785a2dbf1c3be501a77083a49af08594bdeaab494e",
+      "matches_original_training_source": true
+    },
+    {
+      "path": "src/true_rl_agent/tasks/push_recovery/runtime_adapter.py",
+      "sha256": "176a8c1103774680461f4484738e5dde1310081a3d888ac4565581fe11437fa6",
+      "original_training_sha256": "176a8c1103774680461f4484738e5dde1310081a3d888ac4565581fe11437fa6",
+      "matches_original_training_source": true
+    },
+    {
+      "path": "src/true_rl_agent/tasks/push_recovery/protocol.py",
+      "sha256": "c70a26437822be706537bb64cf7641e5f18b3b83ed0d88a95cd25349723d1db9",
+      "original_training_sha256": "c70a26437822be706537bb64cf7641e5f18b3b83ed0d88a95cd25349723d1db9",
+      "matches_original_training_source": true
+    }
+  ],
+  "code_chain": [
+    {
+      "path": "scripts/isaaclab_rsl_rl_train.py",
+      "lines": [
+        333,
+        344
+      ],
+      "finding": "Manifest physical config is selected; instantiate_physical_push_configs(..., evaluation=False)."
+    },
+    {
+      "path": "scripts/isaaclab_rsl_rl_train.py",
+      "lines": [
+        377,
+        410
+      ],
+      "finding": "Real ManagerBasedRLEnv and RslRlVecEnvWrapper; enable nonempty physical reference reward program on native environment; legacy additive wrapper bypassed."
+    },
+    {
+      "path": "scripts/isaaclab_rsl_rl_train.py",
+      "lines": [
+        435,
+        444
+      ],
+      "finding": "PPO learn has init_at_random_ep_len=False. Summary reads reward-adapter runtime only; does not export PushRuntimeState counts."
+    },
+    {
+      "path": "src/true_rl_agent/tasks/push_recovery/runtime.py",
+      "lines": [
+        76,
+        101
+      ],
+      "finding": "Upstream push event disabled, replaced in both train/eval by task-owned push_reset plus interval push_velocity_increment at control dt. Only active_profile=no_push disables planned events."
+    },
+    {
+      "path": "src/true_rl_agent/tasks/push_recovery/runtime.py",
+      "lines": [
+        191,
+        260
+      ],
+      "finding": "Train reset samples four strata with probabilities .25 each and independent uniform event directions; clears prior episode state. inject uses actual episode length and pending schedule, adds planar world delta-v to actual 6D root velocity; evaluation flag only excludes closed eval episodes."
+    },
+    {
+      "path": "src/true_rl_agent/tasks/push_recovery/runtime_adapter.py",
+      "lines": [
+        259,
+        278
+      ],
+      "finding": "Runtime summary records reward calls/contributions/provenance, no event counter. The per-episode event arrays are overwritten on training reset, so last state cannot recover full-training history."
+    },
+    {
+      "path": "src/true_rl_agent/tasks/push_recovery/runtime_adapter.py",
+      "lines": [
+        837,
+        848
+      ],
+      "finding": "Physical public push input returns already executed event state. observed provenance is true even when all public_active values are zero; it is not evidence of a nonzero training event."
+    }
+  ],
+  "cells": {
+    "g1": {
+      "full_training": {
+        "summary": {
+          "path": "PLAN/2new_world/P6/completed_training_evidence_01/g1/runner/p6-reference-g1-20260912/train/summary.json",
+          "sha256": "37f407d896c4884bbd8cde0a060f34bbcf2194f4b106f26c5c15c0f7d710b75b"
+        },
+        "status": "pass",
+        "task": {
+          "gym_id": "TrueRL-PushRecovery-v2",
+          "profile": "strong_push"
+        },
+        "training_attempt": "42e7ca93bc8740538823226ec1cd6903",
+        "environment_verified": {
+          "actual_manifest_hash": "68dea27a9b939b8432c2ef7960482f87e21cacce4f816be52795c2509d00cf3c",
+          "backend_id": "isaac_lab_rsl_rl",
+          "expected_manifest_hash": "68dea27a9b939b8432c2ef7960482f87e21cacce4f816be52795c2509d00cf3c",
+          "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+          "status": "pass"
+        },
+        "budget_env_steps": 49152000,
+        "num_envs": 4096,
+        "iterations": 500,
+        "steps_per_env_per_iteration": 24,
+        "reward_step_calls": 12000,
+        "reward_term_calls": 60000,
+        "reference_reward_terms": [
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "description": "",
+            "kind": "RewardTerm",
+            "name": "upright_height",
+            "weight": 3.0
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "description": "",
+            "kind": "RewardTerm",
+            "name": "stationary",
+            "weight": 1.0
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "description": "",
+            "kind": "RewardTerm",
+            "name": "joint_pose",
+            "weight": -0.1
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "description": "",
+            "kind": "RewardTerm",
+            "name": "action_rate",
+            "weight": -0.01
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "description": "",
+            "kind": "RewardTerm",
+            "name": "fall",
+            "weight": -20.0
+          }
+        ],
+        "reward_activation_samples": [
+          {
+            "component_kind": "reward_term",
+            "effective_weight": 3.0,
+            "last_weighted_mean": 2.645173,
+            "max_abs_weighted_contribution": 2.999988079071045,
+            "name": "upright_height",
+            "nonzero_observation_count": 500,
+            "nonzero_observation_fraction": 1.0,
+            "observation_count": 500,
+            "sampling_interval_steps": 24
+          },
+          {
+            "component_kind": "reward_term",
+            "effective_weight": 1.0,
+            "last_weighted_mean": 0.135368,
+            "max_abs_weighted_contribution": 0.9964745044708252,
+            "name": "stationary",
+            "nonzero_observation_count": 500,
+            "nonzero_observation_fraction": 1.0,
+            "observation_count": 500,
+            "sampling_interval_steps": 24
+          },
+          {
+            "component_kind": "reward_term",
+            "effective_weight": -0.1,
+            "last_weighted_mean": -0.014232,
+            "max_abs_weighted_contribution": 0.08780935406684875,
+            "name": "joint_pose",
+            "nonzero_observation_count": 500,
+            "nonzero_observation_fraction": 1.0,
+            "observation_count": 500,
+            "sampling_interval_steps": 24
+          },
+          {
+            "component_kind": "reward_term",
+            "effective_weight": -0.01,
+            "last_weighted_mean": -0.106556,
+            "max_abs_weighted_contribution": 0.3138718008995056,
+            "name": "action_rate",
+            "nonzero_observation_count": 500,
+            "nonzero_observation_fraction": 1.0,
+            "observation_count": 500,
+            "sampling_interval_steps": 24
+          },
+          {
+            "component_kind": "reward_term",
+            "effective_weight": -20.0,
+            "last_weighted_mean": -0.019531,
+            "max_abs_weighted_contribution": 20.0,
+            "name": "fall",
+            "nonzero_observation_count": 498,
+            "nonzero_observation_fraction": 0.996,
+            "observation_count": 500,
+            "sampling_interval_steps": 24
+          }
+        ],
+        "checkpoint": "sha256:0a16d82b0653a019ec7e23faaa9f18dd93e2cf5b9bb1d07c1c9674356b50243b",
+        "checkpoint_iteration": 499,
+        "control_dt_s": 0.02,
+        "scheduled_push_steps": [
+          69,
+          234
+        ],
+        "sampling": {
+          "angular_range_rad": [
+            0.0,
+            6.283185307179586
+          ],
+          "event_directions": "independent_uniform",
+          "stratum_probabilities": {
+            "high": 0.25,
+            "low": 0.25,
+            "medium": 0.25,
+            "repeated": 0.25
+          }
+        },
+        "actual_cumulative_push_event_count": null,
+        "actual_cumulative_invalid_injection_count": null,
+        "actual_push_pre_post_trace": null,
+        "actual_pre_first_push_termination_count": null,
+        "stdout_recorded_remote_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_formal_20260912/g1_process/stdout.log",
+        "stdout_downloaded": true,
+        "rsl_rl_log_dir_recorded_remote_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_formal_20260912/g1/runner/p6-reference-g1-20260912/train/run/attempt-42e7ca93bc8740538823226ec1cd6903/rsl_rl",
+        "downloaded_runner_stdout": {
+          "path": "PLAN/2new_world/P6/training_framework_evidence_01/training/g1/stdout.log",
+          "sha256": "f8be32319e066435844533c887e9c85ea820ca33dd717eeabb9389bda6cd403d"
+        }
+      },
+      "wiring_training": {
+        "source": {
+          "path": "PLAN/2new_world/P6/target_wiring_evidence_01/g1_02/result.json",
+          "sha256": "d27a138a8a7f49a7fdfee49e03743820882221941a50e8aefa017c52b75b4363"
+        },
+        "vector_steps": 72,
+        "environment_steps": 4608,
+        "reward_term_calls": 360,
+        "optimizer_and_inference_reload_exact": true,
+        "actual_cumulative_push_event_count": null
+      },
+      "separate_zero_action_eval_must_not_be_counted_as_training": {
+        "push_event_coverage": {
+          "status": "insufficient",
+          "planned_event_count": 80,
+          "observed_event_count": 0,
+          "events_with_next_physics_evidence": 0,
+          "policy": "zero_action",
+          "failure_breakdown": {
+            "total": 64,
+            "counts": {
+              "fall_forward": 64
+            },
+            "rates": {
+              "fall_forward": 1.0
+            },
+            "dominant_failure": "fall_forward"
+          },
+          "scope": "diagnostic coverage only; insufficient events do not establish injection correctness"
+        },
+        "note": "Produced after closing the training env and constructing new evaluation=True environments."
+      },
+      "process_receipt": {
+        "path": "PLAN/2new_world/P6/completed_training_evidence_01/g1_process/process.json",
+        "sha256": "e26d373df2424a5e00d711d2ff1bd56dca5c73d2f6ca1ea42e9f1d8505dc9143"
+      },
+      "actual_training_config_checks": {
+        "seed": 42,
+        "num_envs": 4096,
+        "max_iterations": 500,
+        "steps_per_env": 24,
+        "agent_resume": false,
+        "physical_protocol_evaluation": false,
+        "no_push_control": false,
+        "native_push_interval_s": [
+          0.02,
+          0.02
+        ],
+        "control_dt_s": 0.02,
+        "stdout_confirms_active_interval_event": true,
+        "reward_terms": [
+          "full_program"
+        ],
+        "init_at_random_episode_length": false,
+        "init_at_random_episode_length_evidence": "Unchanged original-training-hash scripts/isaaclab_rsl_rl_train.py:435 passes physical_config is None (False).",
+        "reset_mode": "Bound nominal joint pose and zero root/joint velocity; no synthetic episode phase randomization."
+      },
+      "tensorboard_training_statistics": {
+        "Train/mean_episode_length": {
+          "all": {
+            "count": 500,
+            "first": [
+              0,
+              24.0
+            ],
+            "last": [
+              499,
+              356.3900146484375
+            ],
+            "min": 24.0,
+            "max": 370.1000061035156,
+            "mean": 274.2522797279358
+          },
+          "first50": {
+            "count": 50,
+            "first": [
+              0,
+              24.0
+            ],
+            "last": [
+              49,
+              49.400001525878906
+            ],
+            "min": 24.0,
+            "max": 49.400001525878906,
+            "mean": 38.15480014801025
+          },
+          "last50": {
+            "count": 50,
+            "first": [
+              450,
+              352.67999267578125
+            ],
+            "last": [
+              499,
+              356.3900146484375
+            ],
+            "min": 314.3800048828125,
+            "max": 370.1000061035156,
+            "mean": 347.0429998779297
+          },
+          "last10": {
+            "count": 10,
+            "first": [
+              490,
+              358.4700012207031
+            ],
+            "last": [
+              499,
+              356.3900146484375
+            ],
+            "min": 327.17999267578125,
+            "max": 363.7699890136719,
+            "mean": 350.2879974365234
+          }
+        },
+        "Train/mean_reward": {
+          "all": {
+            "count": 500,
+            "first": [
+              0,
+              0.5555736422538757
+            ],
+            "last": [
+              499,
+              18.95879364013672
+            ],
+            "min": 0.5555736422538757,
+            "max": 20.004060745239258,
+            "mean": 14.677725984573364
+          },
+          "first50": {
+            "count": 50,
+            "first": [
+              0,
+              0.5555736422538757
+            ],
+            "last": [
+              49,
+              2.033632755279541
+            ],
+            "min": 0.5555736422538757,
+            "max": 2.033632755279541,
+            "mean": 1.307400839328766
+          },
+          "last50": {
+            "count": 50,
+            "first": [
+              450,
+              18.829504013061523
+            ],
+            "last": [
+              499,
+              18.95879364013672
+            ],
+            "min": 16.721773147583008,
+            "max": 19.86395263671875,
+            "mean": 18.50541534423828
+          },
+          "last10": {
+            "count": 10,
+            "first": [
+              490,
+              19.093568801879883
+            ],
+            "last": [
+              499,
+              18.95879364013672
+            ],
+            "min": 17.199426651000977,
+            "max": 19.42875099182129,
+            "mean": 18.591515350341798
+          }
+        },
+        "Policy/mean_std": {
+          "all": {
+            "count": 500,
+            "first": [
+              0,
+              1.0022553205490112
+            ],
+            "last": [
+              499,
+              2.0084049701690674
+            ],
+            "min": 1.0022553205490112,
+            "max": 2.0084049701690674,
+            "mean": 1.555606060743332
+          },
+          "first50": {
+            "count": 50,
+            "first": [
+              0,
+              1.0022553205490112
+            ],
+            "last": [
+              49,
+              1.1143306493759155
+            ],
+            "min": 1.0022553205490112,
+            "max": 1.1143306493759155,
+            "mean": 1.0598294973373412
+          },
+          "last50": {
+            "count": 50,
+            "first": [
+              450,
+              1.9175689220428467
+            ],
+            "last": [
+              499,
+              2.0084049701690674
+            ],
+            "min": 1.9175689220428467,
+            "max": 2.0084049701690674,
+            "mean": 1.9627578330039979
+          },
+          "last10": {
+            "count": 10,
+            "first": [
+              490,
+              1.9913491010665894
+            ],
+            "last": [
+              499,
+              2.0084049701690674
+            ],
+            "min": 1.9913491010665894,
+            "max": 2.0084049701690674,
+            "mean": 1.9997966527938842
+          }
+        },
+        "Metrics/base_velocity/error_vel_yaw": {
+          "all": {
+            "count": 500,
+            "first": [
+              0,
+              3.5056312084198
+            ],
+            "last": [
+              499,
+              7.7865095138549805
+            ],
+            "min": 3.5056312084198,
+            "max": 7.839351654052734,
+            "mean": 6.479830545902252
+          },
+          "first50": {
+            "count": 50,
+            "first": [
+              0,
+              3.5056312084198
+            ],
+            "last": [
+              49,
+              5.518232345581055
+            ],
+            "min": 3.5056312084198,
+            "max": 5.966580867767334,
+            "mean": 5.742737126350403
+          },
+          "last50": {
+            "count": 50,
+            "first": [
+              450,
+              7.467523097991943
+            ],
+            "last": [
+              499,
+              7.7865095138549805
+            ],
+            "min": 7.4506049156188965,
+            "max": 7.839351654052734,
+            "mean": 7.648502407073974
+          },
+          "last10": {
+            "count": 10,
+            "first": [
+              490,
+              7.757140159606934
+            ],
+            "last": [
+              499,
+              7.7865095138549805
+            ],
+            "min": 7.757140159606934,
+            "max": 7.839351654052734,
+            "mean": 7.792670822143554
+          }
+        },
+        "Metrics/base_velocity/error_vel_xy": {
+          "all": {
+            "count": 500,
+            "first": [
+              0,
+              0.55238276720047
+            ],
+            "last": [
+              499,
+              1.1322119235992432
+            ],
+            "min": 0.55238276720047,
+            "max": 1.213897943496704,
+            "mean": 1.0645279693603515
+          },
+          "first50": {
+            "count": 50,
+            "first": [
+              0,
+              0.55238276720047
+            ],
+            "last": [
+              49,
+              0.9788667559623718
+            ],
+            "min": 0.55238276720047,
+            "max": 0.9824786186218262,
+            "mean": 0.940828560590744
+          },
+          "last50": {
+            "count": 50,
+            "first": [
+              450,
+              1.1068096160888672
+            ],
+            "last": [
+              499,
+              1.1322119235992432
+            ],
+            "min": 1.1002496480941772,
+            "max": 1.138427972793579,
+            "mean": 1.1212659406661987
+          },
+          "last10": {
+            "count": 10,
+            "first": [
+              490,
+              1.1225593090057373
+            ],
+            "last": [
+              499,
+              1.1322119235992432
+            ],
+            "min": 1.1225593090057373,
+            "max": 1.138427972793579,
+            "mean": 1.1302308678627013
+          }
+        },
+        "Episode_Reward/full_program": {
+          "all": {
+            "count": 500,
+            "first": [
+              0,
+              0.022229105234146118
+            ],
+            "last": [
+              499,
+              2.267364501953125
+            ],
+            "min": 0.022229105234146118,
+            "max": 2.407240390777588,
+            "mean": 1.775308410987258
+          },
+          "first50": {
+            "count": 50,
+            "first": [
+              0,
+              0.022229105234146118
+            ],
+            "last": [
+              49,
+              0.24245087802410126
+            ],
+            "min": 0.022229105234146118,
+            "max": 0.24245087802410126,
+            "mean": 0.15550153091549873
+          },
+          "last50": {
+            "count": 50,
+            "first": [
+              450,
+              2.245932102203369
+            ],
+            "last": [
+              499,
+              2.267364501953125
+            ],
+            "min": 2.115044593811035,
+            "max": 2.339663505554199,
+            "mean": 2.2390298891067504
+          },
+          "last10": {
+            "count": 10,
+            "first": [
+              490,
+              2.3245339393615723
+            ],
+            "last": [
+              499,
+              2.267364501953125
+            ],
+            "min": 2.115044593811035,
+            "max": 2.3245339393615723,
+            "mean": 2.2358375072479246
+          }
+        },
+        "Metrics/success_rate": {
+          "all": {
+            "count": 500,
+            "first": [
+              0,
+              0.375
+            ],
+            "last": [
+              499,
+              0.0
+            ],
+            "min": 0.0,
+            "max": 0.375,
+            "mean": 0.00075
+          },
+          "first50": {
+            "count": 50,
+            "first": [
+              0,
+              0.375
+            ],
+            "last": [
+              49,
+              0.0
+            ],
+            "min": 0.0,
+            "max": 0.375,
+            "mean": 0.0075
+          },
+          "last50": {
+            "count": 50,
+            "first": [
+              450,
+              0.0
+            ],
+            "last": [
+              499,
+              0.0
+            ],
+            "min": 0.0,
+            "max": 0.0,
+            "mean": 0.0
+          },
+          "last10": {
+            "count": 10,
+            "first": [
+              490,
+              0.0
+            ],
+            "last": [
+              499,
+              0.0
+            ],
+            "min": 0.0,
+            "max": 0.0,
+            "mean": 0.0
+          }
+        },
+        "coverage": {
+          "first_push_step": 69,
+          "second_push_step": 234,
+          "first_logged_mean_above_first_push": [
+            66,
+            72.87000274658203
+          ],
+          "first_logged_mean_above_second_push": [
+            132,
+            250.88999938964844
+          ],
+          "logged_means_above_first_push": 434,
+          "logged_means_above_second_push": 368,
+          "last50_means_above_second_push": 50,
+          "scope": "Counts of logged mean-episode-length points exceeding scheduled step thresholds, not event counts or unique episode counts."
+        },
+        "success_nonzero": [
+          [
+            0,
+            0.375
+          ]
+        ]
+      }
+    },
+    "go2": {
+      "full_training": {
+        "summary": {
+          "path": "PLAN/2new_world/P6/completed_training_evidence_01/go2/runner/p6-reference-go2-20260912/train/summary.json",
+          "sha256": "0e16f716c7fe82198523bc847aba436dc7d1870edf8ef21d0ce501f290bfd2a2"
+        },
+        "status": "pass",
+        "task": {
+          "gym_id": "TrueRL-PushRecovery-v2",
+          "profile": "strong_push"
+        },
+        "training_attempt": "6ab91d249e9040928d4e0817627fb940",
+        "environment_verified": {
+          "actual_manifest_hash": "68dea27a9b939b8432c2ef7960482f87e21cacce4f816be52795c2509d00cf3c",
+          "backend_id": "isaac_lab_rsl_rl",
+          "expected_manifest_hash": "68dea27a9b939b8432c2ef7960482f87e21cacce4f816be52795c2509d00cf3c",
+          "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+          "status": "pass"
+        },
+        "budget_env_steps": 49152000,
+        "num_envs": 4096,
+        "iterations": 500,
+        "steps_per_env_per_iteration": 24,
+        "reward_step_calls": 12000,
+        "reward_term_calls": 60000,
+        "reference_reward_terms": [
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "description": "",
+            "kind": "RewardTerm",
+            "name": "upright_height",
+            "weight": 3.0
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "description": "",
+            "kind": "RewardTerm",
+            "name": "stationary",
+            "weight": 1.0
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "description": "",
+            "kind": "RewardTerm",
+            "name": "joint_pose",
+            "weight": -0.1
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "description": "",
+            "kind": "RewardTerm",
+            "name": "action_rate",
+            "weight": -0.01
+          },
+          {
+            "clip_max": null,
+            "clip_min": null,
+            "description": "",
+            "kind": "RewardTerm",
+            "name": "fall",
+            "weight": -20.0
+          }
+        ],
+        "reward_activation_samples": [
+          {
+            "component_kind": "reward_term",
+            "effective_weight": 3.0,
+            "last_weighted_mean": 2.841184,
+            "max_abs_weighted_contribution": 2.9999985694885254,
+            "name": "upright_height",
+            "nonzero_observation_count": 500,
+            "nonzero_observation_fraction": 1.0,
+            "observation_count": 500,
+            "sampling_interval_steps": 24
+          },
+          {
+            "component_kind": "reward_term",
+            "effective_weight": 1.0,
+            "last_weighted_mean": 0.680508,
+            "max_abs_weighted_contribution": 0.9997966885566711,
+            "name": "stationary",
+            "nonzero_observation_count": 500,
+            "nonzero_observation_fraction": 1.0,
+            "observation_count": 500,
+            "sampling_interval_steps": 24
+          },
+          {
+            "component_kind": "reward_term",
+            "effective_weight": -0.1,
+            "last_weighted_mean": -0.019234,
+            "max_abs_weighted_contribution": 0.06421713531017303,
+            "name": "joint_pose",
+            "nonzero_observation_count": 500,
+            "nonzero_observation_fraction": 1.0,
+            "observation_count": 500,
+            "sampling_interval_steps": 24
+          },
+          {
+            "component_kind": "reward_term",
+            "effective_weight": -0.01,
+            "last_weighted_mean": -0.143511,
+            "max_abs_weighted_contribution": 1.2543476819992065,
+            "name": "action_rate",
+            "nonzero_observation_count": 500,
+            "nonzero_observation_fraction": 1.0,
+            "observation_count": 500,
+            "sampling_interval_steps": 24
+          },
+          {
+            "component_kind": "reward_term",
+            "effective_weight": -20.0,
+            "last_weighted_mean": -0.004883,
+            "max_abs_weighted_contribution": 20.0,
+            "name": "fall",
+            "nonzero_observation_count": 297,
+            "nonzero_observation_fraction": 0.594,
+            "observation_count": 500,
+            "sampling_interval_steps": 24
+          }
+        ],
+        "checkpoint": "sha256:55683f99894efeef440b07f53f1ddd9cc832e2cbcecf8d1f9dbd99262ccde5b2",
+        "checkpoint_iteration": 499,
+        "control_dt_s": 0.02,
+        "scheduled_push_steps": [
+          51,
+          172
+        ],
+        "sampling": {
+          "angular_range_rad": [
+            0.0,
+            6.283185307179586
+          ],
+          "event_directions": "independent_uniform",
+          "stratum_probabilities": {
+            "high": 0.25,
+            "low": 0.25,
+            "medium": 0.25,
+            "repeated": 0.25
+          }
+        },
+        "actual_cumulative_push_event_count": null,
+        "actual_cumulative_invalid_injection_count": null,
+        "actual_push_pre_post_trace": null,
+        "actual_pre_first_push_termination_count": null,
+        "stdout_recorded_remote_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_formal_20260912/go2_process/stdout.log",
+        "stdout_downloaded": true,
+        "rsl_rl_log_dir_recorded_remote_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_formal_20260912/go2/runner/p6-reference-go2-20260912/train/run/attempt-6ab91d249e9040928d4e0817627fb940/rsl_rl",
+        "downloaded_runner_stdout": {
+          "path": "PLAN/2new_world/P6/training_framework_evidence_01/training/go2/stdout.log",
+          "sha256": "5d425aa83db6401ece44ff66f011694b2a2aff688b05b485ad5421c8bf288e35"
+        }
+      },
+      "wiring_training": {
+        "source": {
+          "path": "PLAN/2new_world/P6/target_wiring_evidence_01/go2_02/result.json",
+          "sha256": "66595ee4b992ed89230856f8ad2fb84f57069bccea4e8b65e92a9da2f592c813"
+        },
+        "vector_steps": 72,
+        "environment_steps": 4608,
+        "reward_term_calls": 360,
+        "optimizer_and_inference_reload_exact": true,
+        "actual_cumulative_push_event_count": null
+      },
+      "separate_zero_action_eval_must_not_be_counted_as_training": {
+        "push_event_coverage": {
+          "status": "complete",
+          "planned_event_count": 80,
+          "observed_event_count": 80,
+          "events_with_next_physics_evidence": 80,
+          "policy": "zero_action",
+          "failure_breakdown": {
+            "total": 64,
+            "counts": {
+              "fall_side": 2,
+              "not_recovered": 47,
+              "success_recovered": 15
+            },
+            "rates": {
+              "fall_side": 0.03125,
+              "not_recovered": 0.734375,
+              "success_recovered": 0.234375
+            },
+            "dominant_failure": "not_recovered"
+          },
+          "scope": "diagnostic coverage only; insufficient events do not establish injection correctness"
+        },
+        "note": "Produced after closing the training env and constructing new evaluation=True environments."
+      },
+      "process_receipt": {
+        "path": "PLAN/2new_world/P6/completed_training_evidence_01/go2_process/process.json",
+        "sha256": "fac731b533a7368face50e08fff9358bd7ba05a903df55387d760018f4c1e1c4"
+      },
+      "actual_training_config_checks": {
+        "seed": 42,
+        "num_envs": 4096,
+        "max_iterations": 500,
+        "steps_per_env": 24,
+        "agent_resume": false,
+        "physical_protocol_evaluation": false,
+        "no_push_control": false,
+        "native_push_interval_s": [
+          0.02,
+          0.02
+        ],
+        "control_dt_s": 0.02,
+        "stdout_confirms_active_interval_event": true,
+        "reward_terms": [
+          "full_program"
+        ],
+        "init_at_random_episode_length": false,
+        "init_at_random_episode_length_evidence": "Unchanged original-training-hash scripts/isaaclab_rsl_rl_train.py:435 passes physical_config is None (False).",
+        "reset_mode": "Bound nominal joint pose and zero root/joint velocity; no synthetic episode phase randomization."
+      },
+      "tensorboard_training_statistics": {
+        "Train/mean_episode_length": {
+          "all": {
+            "count": 500,
+            "first": [
+              0,
+              15.8100004196167
+            ],
+            "last": [
+              499,
+              288.2099914550781
+            ],
+            "min": 15.8100004196167,
+            "max": 303.0,
+            "mean": 290.3300799999237
+          },
+          "first50": {
+            "count": 50,
+            "first": [
+              0,
+              15.8100004196167
+            ],
+            "last": [
+              49,
+              281.510009765625
+            ],
+            "min": 15.8100004196167,
+            "max": 297.1099853515625,
+            "mean": 228.01539960861206
+          },
+          "last50": {
+            "count": 50,
+            "first": [
+              450,
+              291.2900085449219
+            ],
+            "last": [
+              499,
+              288.2099914550781
+            ],
+            "min": 288.2099914550781,
+            "max": 302.80999755859375,
+            "mean": 297.6878015136719
+          },
+          "last10": {
+            "count": 10,
+            "first": [
+              490,
+              300.82000732421875
+            ],
+            "last": [
+              499,
+              288.2099914550781
+            ],
+            "min": 288.2099914550781,
+            "max": 302.6600036621094,
+            "mean": 297.5550018310547
+          }
+        },
+        "Train/mean_reward": {
+          "all": {
+            "count": 500,
+            "first": [
+              0,
+              0.4233555197715759
+            ],
+            "last": [
+              499,
+              19.26141929626465
+            ],
+            "min": 0.4233555197715759,
+            "max": 21.677661895751953,
+            "mean": 19.286195348381995
+          },
+          "first50": {
+            "count": 50,
+            "first": [
+              0,
+              0.4233555197715759
+            ],
+            "last": [
+              49,
+              14.82846736907959
+            ],
+            "min": 0.4233555197715759,
+            "max": 14.924190521240234,
+            "mean": 10.697183758020401
+          },
+          "last50": {
+            "count": 50,
+            "first": [
+              450,
+              19.799089431762695
+            ],
+            "last": [
+              499,
+              19.26141929626465
+            ],
+            "min": 19.26141929626465,
+            "max": 20.536727905273438,
+            "mean": 20.11287670135498
+          },
+          "last10": {
+            "count": 10,
+            "first": [
+              490,
+              20.282739639282227
+            ],
+            "last": [
+              499,
+              19.26141929626465
+            ],
+            "min": 19.26141929626465,
+            "max": 20.353378295898438,
+            "mean": 19.988688278198243
+          }
+        },
+        "Policy/mean_std": {
+          "all": {
+            "count": 500,
+            "first": [
+              0,
+              1.0020395517349243
+            ],
+            "last": [
+              499,
+              2.2421157360076904
+            ],
+            "min": 1.0020395517349243,
+            "max": 2.2421157360076904,
+            "mean": 1.6913965344429016
+          },
+          "first50": {
+            "count": 50,
+            "first": [
+              0,
+              1.0020395517349243
+            ],
+            "last": [
+              49,
+              1.3007354736328125
+            ],
+            "min": 1.0020395517349243,
+            "max": 1.3007354736328125,
+            "mean": 1.1588284349441529
+          },
+          "last50": {
+            "count": 50,
+            "first": [
+              450,
+              2.132322072982788
+            ],
+            "last": [
+              499,
+              2.2421157360076904
+            ],
+            "min": 2.132322072982788,
+            "max": 2.2421157360076904,
+            "mean": 2.186081943511963
+          },
+          "last10": {
+            "count": 10,
+            "first": [
+              490,
+              2.2254230976104736
+            ],
+            "last": [
+              499,
+              2.2421157360076904
+            ],
+            "min": 2.2254230976104736,
+            "max": 2.2421157360076904,
+            "mean": 2.2337103128433227
+          }
+        },
+        "Metrics/base_velocity/error_vel_yaw": {
+          "all": {
+            "count": 500,
+            "first": [
+              0,
+              0.2833084166049957
+            ],
+            "last": [
+              499,
+              0.7070163488388062
+            ],
+            "min": 0.2833084166049957,
+            "max": 0.7070163488388062,
+            "mean": 0.638358604490757
+          },
+          "first50": {
+            "count": 50,
+            "first": [
+              0,
+              0.2833084166049957
+            ],
+            "last": [
+              49,
+              0.6931769847869873
+            ],
+            "min": 0.2833084166049957,
+            "max": 0.6931769847869873,
+            "mean": 0.6323516601324082
+          },
+          "last50": {
+            "count": 50,
+            "first": [
+              450,
+              0.6816487312316895
+            ],
+            "last": [
+              499,
+              0.7070163488388062
+            ],
+            "min": 0.6741787791252136,
+            "max": 0.7070163488388062,
+            "mean": 0.6877637696266174
+          },
+          "last10": {
+            "count": 10,
+            "first": [
+              490,
+              0.7052735686302185
+            ],
+            "last": [
+              499,
+              0.7070163488388062
+            ],
+            "min": 0.6925413608551025,
+            "max": 0.7070163488388062,
+            "mean": 0.7020155310630798
+          }
+        },
+        "Metrics/base_velocity/error_vel_xy": {
+          "all": {
+            "count": 500,
+            "first": [
+              0,
+              0.06833162903785706
+            ],
+            "last": [
+              499,
+              0.22608983516693115
+            ],
+            "min": 0.06833162903785706,
+            "max": 0.2780308127403259,
+            "mean": 0.22170446595549584
+          },
+          "first50": {
+            "count": 50,
+            "first": [
+              0,
+              0.06833162903785706
+            ],
+            "last": [
+              49,
+              0.2588678002357483
+            ],
+            "min": 0.06833162903785706,
+            "max": 0.2780308127403259,
+            "mean": 0.24789415568113327
+          },
+          "last50": {
+            "count": 50,
+            "first": [
+              450,
+              0.23171275854110718
+            ],
+            "last": [
+              499,
+              0.22608983516693115
+            ],
+            "min": 0.2225474715232849,
+            "max": 0.23472236096858978,
+            "mean": 0.22822021961212158
+          },
+          "last10": {
+            "count": 10,
+            "first": [
+              490,
+              0.23279032111167908
+            ],
+            "last": [
+              499,
+              0.22608983516693115
+            ],
+            "min": 0.2225474715232849,
+            "max": 0.23279032111167908,
+            "mean": 0.22509482204914094
+          }
+        },
+        "Episode_Reward/full_program": {
+          "all": {
+            "count": 500,
+            "first": [
+              0,
+              0.041808247566223145
+            ],
+            "last": [
+              499,
+              3.2765450477600098
+            ],
+            "min": 0.041808247566223145,
+            "max": 3.558708906173706,
+            "mean": 3.177473627343774
+          },
+          "first50": {
+            "count": 50,
+            "first": [
+              0,
+              0.041808247566223145
+            ],
+            "last": [
+              49,
+              2.425861120223999
+            ],
+            "min": 0.041808247566223145,
+            "max": 2.425861120223999,
+            "mean": 1.7320495964586735
+          },
+          "last50": {
+            "count": 50,
+            "first": [
+              450,
+              3.2953872680664062
+            ],
+            "last": [
+              499,
+              3.2765450477600098
+            ],
+            "min": 3.249177932739258,
+            "max": 3.3746891021728516,
+            "mean": 3.316548547744751
+          },
+          "last10": {
+            "count": 10,
+            "first": [
+              490,
+              3.3156089782714844
+            ],
+            "last": [
+              499,
+              3.2765450477600098
+            ],
+            "min": 3.249177932739258,
+            "max": 3.361536979675293,
+            "mean": 3.303684139251709
+          }
+        },
+        "Metrics/success_rate": {
+          "all": {
+            "count": 500,
+            "first": [
+              0,
+              0.672856330871582
+            ],
+            "last": [
+              499,
+              0.0
+            ],
+            "min": 0.0,
+            "max": 0.672856330871582,
+            "mean": 0.0042771772012347355
+          },
+          "first50": {
+            "count": 50,
+            "first": [
+              0,
+              0.672856330871582
+            ],
+            "last": [
+              49,
+              0.0
+            ],
+            "min": 0.0,
+            "max": 0.672856330871582,
+            "mean": 0.04277177201234736
+          },
+          "last50": {
+            "count": 50,
+            "first": [
+              450,
+              0.0
+            ],
+            "last": [
+              499,
+              0.0
+            ],
+            "min": 0.0,
+            "max": 0.0,
+            "mean": 0.0
+          },
+          "last10": {
+            "count": 10,
+            "first": [
+              490,
+              0.0
+            ],
+            "last": [
+              499,
+              0.0
+            ],
+            "min": 0.0,
+            "max": 0.0,
+            "mean": 0.0
+          }
+        },
+        "coverage": {
+          "first_push_step": 51,
+          "second_push_step": 172,
+          "first_logged_mean_above_first_push": [
+            3,
+            67.26000213623047
+          ],
+          "first_logged_mean_above_second_push": [
+            9,
+            190.10000610351562
+          ],
+          "logged_means_above_first_push": 497,
+          "logged_means_above_second_push": 491,
+          "last50_means_above_second_push": 50,
+          "scope": "Counts of logged mean-episode-length points exceeding scheduled step thresholds, not event counts or unique episode counts."
+        },
+        "success_nonzero": [
+          [
+            0,
+            0.672856330871582
+          ],
+          [
+            1,
+            0.3846450746059418
+          ],
+          [
+            2,
+            0.2662340998649597
+          ],
+          [
+            3,
+            0.09495189040899277
+          ],
+          [
+            4,
+            0.09568869322538376
+          ],
+          [
+            5,
+            0.060012590140104294
+          ],
+          [
+            6,
+            0.05086129158735275
+          ],
+          [
+            7,
+            0.05463113635778427
+          ],
+          [
+            8,
+            0.09227126836776733
+          ],
+          [
+            9,
+            0.04950397461652756
+          ],
+          [
+            10,
+            0.03194086253643036
+          ],
+          [
+            11,
+            0.02812499925494194
+          ],
+          [
+            12,
+            0.06290850043296814
+          ],
+          [
+            13,
+            0.059318482875823975
+          ],
+          [
+            14,
+            0.03499053418636322
+          ],
+          [
+            15,
+            0.007371795363724232
+          ],
+          [
+            16,
+            0.039717115461826324
+          ],
+          [
+            17,
+            0.0037878789007663727
+          ],
+          [
+            18,
+            0.004166666883975267
+          ],
+          [
+            21,
+            0.004629629664123058
+          ],
+          [
+            22,
+            0.0052083334885537624
+          ],
+          [
+            25,
+            0.0003720238455571234
+          ],
+          [
+            26,
+            0.02430555783212185
+          ],
+          [
+            27,
+            0.0024509804788976908
+          ],
+          [
+            30,
+            0.004166666883975267
+          ],
+          [
+            32,
+            0.0034722224809229374
+          ]
+        ]
+      }
+    }
+  },
+  "limitations": [
+    "Full training stdout, TensorBoard scalars and frozen config are now available and checked. They still contain no cumulative push-event, invalid-injection, per-stratum training exposure, pre/post velocity trace or event-dwell counter.",
+    "Episode-length scalars are logged averages, not unique episode/event records. Counts of log points above a schedule threshold are indirect survival coverage only; overlapping logging windows cannot produce an event count or confidence interval.",
+    "Framework command metric telemetry is sampled during stochastic PPO training and is separate from deterministic formal evaluation and the task-owned recovery classifier.",
+    "The exact target logger implementation / averaging-window definition for Train/mean_episode_length and Train/mean_reward was not among these downloaded sources; the audit reports recorded scalar values without treating each as an independent episode sample."
+  ],
+  "scope_note": "Go2 formal 832/832 recovered and G1 0/832 recovered are separate evaluated policy outcomes. Go2 reference NO-GO is caused by upper headroom gate, not poor task score. No reward/protocol changes or new experiment are made here.",
+  "supplement": {
+    "purpose": "Original 500-iteration stdout/env.yaml/agent.yaml/TensorBoard and precise framework source audit; replaces initial local-availability limitations only.",
+    "download_inventory": {
+      "path": "PLAN/2new_world/P6/training_framework_evidence_01/audit_inventory.json",
+      "sha256": "32b704d9b2165694c4f432fc07618e04da3229da6515a5898b3c10825689cc04"
+    },
+    "downloaded_source_checks": [
+      {
+        "path": "PLAN/2new_world/P6/training_framework_evidence_01/framework/envs/manager_based_rl_env.py",
+        "sha256": "f742a74ea246b43e435900f13ad68f9aa581cf787beb6f2bd41e9a01ce0d9b27",
+        "bytes": 19654,
+        "source_path": "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab/isaaclab/envs/manager_based_rl_env.py",
+        "matches_download_inventory": true
+      },
+      {
+        "path": "PLAN/2new_world/P6/training_framework_evidence_01/framework/envs/manager_based_env.py",
+        "sha256": "e4a61b7ffe71e4df656b6279b5e93c327a8252cc93d018d05003347505dc3ccf",
+        "bytes": 30446,
+        "source_path": "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab/isaaclab/envs/manager_based_env.py",
+        "matches_download_inventory": true
+      },
+      {
+        "path": "PLAN/2new_world/P6/training_framework_evidence_01/framework/managers/event_manager.py",
+        "sha256": "80f6dc3cc313f4b850d1bcc998f16c4fcb8f4f63192797596df9c4fdbb623b45",
+        "bytes": 21513,
+        "source_path": "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab/isaaclab/managers/event_manager.py",
+        "matches_download_inventory": true
+      },
+      {
+        "path": "PLAN/2new_world/P6/training_framework_evidence_01/framework/managers/reward_manager.py",
+        "sha256": "2ff82f8e385593e4c2206446ab4ef8de7c72dc0ef444f3e02f60df321d71919e",
+        "bytes": 9493,
+        "source_path": "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab/isaaclab/managers/reward_manager.py",
+        "matches_download_inventory": true
+      },
+      {
+        "path": "PLAN/2new_world/P6/training_framework_evidence_01/framework/managers/termination_manager.py",
+        "sha256": "98ff6fc59459e1c3a5af0af6e5777c582e15e05e7ccd423bcc385c8fa0f68b13",
+        "bytes": 11465,
+        "source_path": "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab/isaaclab/managers/termination_manager.py",
+        "matches_download_inventory": true
+      },
+      {
+        "path": "PLAN/2new_world/P6/training_framework_evidence_01/training/g1/stdout.log",
+        "sha256": "f8be32319e066435844533c887e9c85ea820ca33dd717eeabb9389bda6cd403d",
+        "bytes": 642908,
+        "source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_formal_20260912/g1/runner/p6-reference-g1-20260912/train/runner_process/stdout.log",
+        "matches_download_inventory": true
+      },
+      {
+        "path": "PLAN/2new_world/P6/training_framework_evidence_01/training/g1/events.out.tfevents.1789144707.deyugptserver.2615151.0",
+        "sha256": "2a6da59bf5a40a926218f36263065c8d5c9a97794440bfcf49b94946fd2ffa78",
+        "bytes": 544348,
+        "source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_formal_20260912/g1/runner/p6-reference-g1-20260912/train/run/attempt-42e7ca93bc8740538823226ec1cd6903/rsl_rl/events.out.tfevents.1789144707.deyugptserver.2615151.0",
+        "matches_download_inventory": true
+      },
+      {
+        "path": "PLAN/2new_world/P6/training_framework_evidence_01/training/g1/env.yaml",
+        "sha256": "e0b9c2ac785ab09b719b6ac176a233aeb2feadb975441ba67405325177f87e79",
+        "bytes": 23789,
+        "source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_formal_20260912/g1/runner/p6-reference-g1-20260912/train/run/attempt-42e7ca93bc8740538823226ec1cd6903/rsl_rl/params/env.yaml",
+        "matches_download_inventory": true
+      },
+      {
+        "path": "PLAN/2new_world/P6/training_framework_evidence_01/training/g1/agent.yaml",
+        "sha256": "05061f46330ebbf560ec646b21b761df9f3281d90b8c2ac8c0d299f48b2308c0",
+        "bytes": 1136,
+        "source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_formal_20260912/g1/runner/p6-reference-g1-20260912/train/run/attempt-42e7ca93bc8740538823226ec1cd6903/rsl_rl/params/agent.yaml",
+        "matches_download_inventory": true
+      },
+      {
+        "path": "PLAN/2new_world/P6/training_framework_evidence_01/training/go2/stdout.log",
+        "sha256": "5d425aa83db6401ece44ff66f011694b2a2aff688b05b485ad5421c8bf288e35",
+        "bytes": 638192,
+        "source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_formal_20260912/go2/runner/p6-reference-go2-20260912/train/runner_process/stdout.log",
+        "matches_download_inventory": true
+      },
+      {
+        "path": "PLAN/2new_world/P6/training_framework_evidence_01/training/go2/events.out.tfevents.1789144661.deyugptserver.2615152.0",
+        "sha256": "f3dbab3b42f2a313dc6f16c8b29f2ee275486191bc283e450116a1b9101deff7",
+        "bytes": 544296,
+        "source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_formal_20260912/go2/runner/p6-reference-go2-20260912/train/run/attempt-6ab91d249e9040928d4e0817627fb940/rsl_rl/events.out.tfevents.1789144661.deyugptserver.2615152.0",
+        "matches_download_inventory": true
+      },
+      {
+        "path": "PLAN/2new_world/P6/training_framework_evidence_01/training/go2/env.yaml",
+        "sha256": "a8fe05bc8aff19ab936c86386fac06bc3443b3c07887206183521582c0ea3c15",
+        "bytes": 22635,
+        "source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_formal_20260912/go2/runner/p6-reference-go2-20260912/train/run/attempt-6ab91d249e9040928d4e0817627fb940/rsl_rl/params/env.yaml",
+        "matches_download_inventory": true
+      },
+      {
+        "path": "PLAN/2new_world/P6/training_framework_evidence_01/training/go2/agent.yaml",
+        "sha256": "0fd37293d7dac8452117992f179f1f007947fea055466fda1a4a5eb003be59ab",
+        "bytes": 1145,
+        "source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_formal_20260912/go2/runner/p6-reference-go2-20260912/train/run/attempt-6ab91d249e9040928d4e0817627fb940/rsl_rl/params/agent.yaml",
+        "matches_download_inventory": true
+      }
+    ],
+    "success_metric_sources": [
+      {
+        "path": "PLAN/2new_world/P6/training_framework_evidence_01/success_metric_sources/isaaclab/envs/mdp/commands/commands_cfg.py",
+        "sha256": "140d519efa185d92cfb1a830ec34ae3ff38c5bb2672de8fbbfe4ae8ab3d879be",
+        "bytes": 10473
+      },
+      {
+        "path": "PLAN/2new_world/P6/training_framework_evidence_01/success_metric_sources/isaaclab/envs/mdp/commands/pose_2d_command.py",
+        "sha256": "2c5d40a388765275613d101e028209be8fac3de2d1c8f13733147ef8c04c2c0a",
+        "bytes": 10990
+      },
+      {
+        "path": "PLAN/2new_world/P6/training_framework_evidence_01/success_metric_sources/isaaclab/envs/mdp/commands/pose_command.py",
+        "sha256": "ec54476c918513f0022c169a5e30c6b0c938bd42b0388e71280e9cf5ddcb3900",
+        "bytes": 8191
+      },
+      {
+        "path": "PLAN/2new_world/P6/training_framework_evidence_01/success_metric_sources/isaaclab/envs/mdp/commands/velocity_command.py",
+        "sha256": "bf39cd0b9de544c01e3bb31ff7c38d16a922bde36d3f65fb38a1fe32219f8301",
+        "bytes": 16361
+      }
+    ],
+    "scalar_read_method": "Independently decode TFRecord Event/Summary simple_value floats from downloaded bytes with Python stdlib; all 18 tags per robot match inventory count/first3/last10 exactly. No TensorBoard package installed or GPU used.",
+    "framework_step_order": [
+      {
+        "path": "framework/envs/manager_based_rl_env.py",
+        "lines": [
+          230,
+          240
+        ],
+        "finding": "Increment episode_length_buf after physics; termination_manager.compute then reward_manager.compute(step_dt)."
+      },
+      {
+        "path": "framework/envs/manager_based_rl_env.py",
+        "lines": [
+          248,
+          267
+        ],
+        "finding": "Reset terminated environments, update commands, then apply interval events."
+      },
+      {
+        "path": "framework/managers/event_manager.py",
+        "lines": [
+          221,
+          245
+        ],
+        "finding": "Subtract dt from per-env timer; when below 1e-6, invoke configured event on valid_env_ids and resample interval. With fixed .02 interval and .02 control dt it is evaluated every control step."
+      },
+      {
+        "path": "framework/managers/reward_manager.py",
+        "lines": [
+          142,
+          157
+        ],
+        "finding": "Each full_program output is multiplied by weight and dt once; per-episode accumulation uses this integrated value. No upstream reward terms are active in downloaded env config."
+      },
+      {
+        "path": "framework/managers/reward_manager.py",
+        "lines": [
+          116,
+          122
+        ],
+        "finding": "Episode_Reward/full_program logs mean accumulated integrated reward divided by max_episode_length_s; it is not the raw instantaneous reward or recovery rate."
+      }
+    ],
+    "tensorboard_success_metric": {
+      "production_writer": {
+        "path": "PLAN/2new_world/P6/training_framework_evidence_01/success_metric_sources/isaaclab/envs/mdp/commands/velocity_command.py",
+        "sha256": "bf39cd0b9de544c01e3bb31ff7c38d16a922bde36d3f65fb38a1fe32219f8301",
+        "lines": [
+          124,
+          153
+        ]
+      },
+      "semantics": "UniformVelocityCommand accumulates actual body-frame XY norm and absolute body-yaw velocity tracking error; at reset it thresholds their per-episode means and writes Metrics/success_rate.",
+      "thresholds": {
+        "g1": {
+          "mean_xy_error_mps_lt": 0.5,
+          "mean_yaw_error_radps_lt": 0.8
+        },
+        "go2": {
+          "mean_xy_error_mps_lt": 0.5,
+          "mean_yaw_error_radps_lt": 0.4
+        }
+      },
+      "constant_zero_placeholder": false,
+      "push_recovery_metric": false,
+      "checks_push_injected": false,
+      "checks_recovery_window_or_dwell": false,
+      "used_for_formal_push_gate": false,
+      "interpretation": "This inherited locomotion telemetry must not be called Push recovery success. Both robots reach 0 late in stochastic training, although Go2 deterministic formal eval recovers 832/832."
+    },
+    "training_trend_interpretation": [
+      "G1 episode length and logged return improve strongly, while mean body yaw-rate tracking error remains large and rises late. This is consistent with survival/upright reward gains coexisting with rotational motion, rather than successful stationary recovery.",
+      "Policy/mean_std increases in both robots (G1 1.0023 to 2.0084; Go2 1.0020 to 2.2421). These are policy distribution standard deviations, not physical angular velocities or recovery rates; this shared trend does not alone explain the divergent deterministic evaluation outcomes.",
+      "No causal claim about a particular reward term or entropy coefficient is established by these observational logs. No reward/protocol edits or retraining were performed."
+    ]
+  },
+  "initial_audit_limitations_resolved_by_supplement": [
+    "No downloaded full-training stdout.log, TensorBoard scalar file, env.yaml, or per-episode training event trace in completed_training_evidence_01. Remote paths are recorded below but were not accessed.",
+    "Exact target ManagerBasedRLEnv.step, EventManager.apply and RewardManager.compute source bodies are not available in these local artifacts. Their scheduling/dt behavior was not independently reread from framework source in this audit."
+  ]
+}

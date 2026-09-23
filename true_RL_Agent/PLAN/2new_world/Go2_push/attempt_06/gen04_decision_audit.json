@@ -1,0 +1,310 @@
+{
+  "status": "PASS_GEN04_DECISION_AND_CLOSURE",
+  "audited_at_utc": "2026-09-23T05:35:46.584466+00:00",
+  "generation_id": "go2-push-5rounds-20260923-a06-generation-004",
+  "snapshot": ".tmp/go2_push_a06_live_09.zip",
+  "source_commit": "7c58ec32f6dcdd4da238fe52321c58c9abf582c8",
+  "acceptance_authority": false,
+  "generation_closed_verified": true,
+  "five_round_experiment_complete": false,
+  "checks": {
+    "source_and_training_and_runtime_binding": true,
+    "selector_recomputed": true,
+    "accept_and_sealed_or_early_reject_recomputed": true,
+    "parent_head_chain": true,
+    "ledger_prefix_execution_closure": true,
+    "job_output_cost_and_resource_binding": true
+  },
+  "parent": {
+    "candidate_id": "push_standing_recovery_height_barrier_v1",
+    "checkpoint_hash": "sha256:eceec46792aa9fc6341d70ed1cbfac0bb78f145a52428da789f98ef26792244f",
+    "accept_score": 0.8333333333333334,
+    "dev_score": 0.78125,
+    "dev_receipt": "attempt_06/session/trial_receipts/go2-push-5rounds-20260923-a06-generation-001/lane-b/77de98783da842408a6555c3798722f31332595ef0c068a55050e47394e2f639/eval_phases/public_dev.json"
+  },
+  "lanes": [
+    {
+      "lane_id": "lane-a",
+      "candidate_id": "push_standing_recovery_impulse_absorb_v1",
+      "train_steps": 49152000,
+      "iterations": 500,
+      "last_checkpoint_iteration": 499,
+      "checkpoint_hash": "sha256:eb17ccf904cc2296c3ab8a04a47f4add0259c7c2d425d1d6e78689a3a463d3e2",
+      "candidate_source_checksum": "sha256:b7fa63ea3dfc62029c7258b68395e9bd1a37f0f70f0a8d4423b1880e8e2a86c5",
+      "training_binding_hash": "56b9f8f9ce1168684558273d47c16ce6400f5590832fdb60ae9f2a4f00b5e072",
+      "initial_policy_state_hash": "9a9c8718c855508ad5c96a0064d748a54542f3b87bfdbb151d59361e9b6e2e8b",
+      "gpu_uuid": "GPU-06661cdd-1a0e-904e-a2e3-705eda5fb65b",
+      "resource_binding_hash": "6717a64dc87b7d45f2180d07bd7eab19de67aafd859e149b160c1deb76ce4bdc",
+      "changed_component": {
+        "component_kind": "reward_term",
+        "effective_weight": -0.5,
+        "last_weighted_mean": 5.259688,
+        "max_abs_weighted_contribution": 19.411144256591797,
+        "name": "impulse_absorb",
+        "nonzero_observation_count": 500,
+        "nonzero_observation_fraction": 1.0,
+        "observation_count": 500,
+        "sampling_interval_steps": 24
+      },
+      "training_runtime_gate_passed": true,
+      "verified_train_push_event_count": 233141,
+      "dev_successes": 0,
+      "dev_episodes": 192,
+      "dev_score": 0.0,
+      "dev_seed_results": [
+        {
+          "successes": 0,
+          "episodes": 64,
+          "planned_push_events": 80,
+          "verified_push_events": 79,
+          "completed_push_events": 79,
+          "fall_ended_incomplete_sequences": 1
+        },
+        {
+          "successes": 0,
+          "episodes": 64,
+          "planned_push_events": 80,
+          "verified_push_events": 80,
+          "completed_push_events": 79,
+          "fall_ended_incomplete_sequences": 1
+        },
+        {
+          "successes": 0,
+          "episodes": 64,
+          "planned_push_events": 80,
+          "verified_push_events": 80,
+          "completed_push_events": 80,
+          "fall_ended_incomplete_sequences": 0
+        }
+      ],
+      "max_abs_candidate_reward": 21.48725128173828,
+      "reward_finite_fraction": 1.0
+    },
+    {
+      "lane_id": "lane-b",
+      "candidate_id": "push_standing_recovery_impulse_absorb_v1",
+      "train_steps": 49152000,
+      "iterations": 500,
+      "last_checkpoint_iteration": 499,
+      "checkpoint_hash": "sha256:aa99201a18cdbf173345d497234c7eca8102434ee11e2ecaabe8dba7c9bbd2ed",
+      "candidate_source_checksum": "sha256:b0212688b7f5168802e2533214571914df7287cb9b6c686af299b4d484a07d9f",
+      "training_binding_hash": "56b9f8f9ce1168684558273d47c16ce6400f5590832fdb60ae9f2a4f00b5e072",
+      "initial_policy_state_hash": "9a9c8718c855508ad5c96a0064d748a54542f3b87bfdbb151d59361e9b6e2e8b",
+      "gpu_uuid": "GPU-8cd998f2-d42e-394e-7aae-a6701bb9b187",
+      "resource_binding_hash": "179782fce40050a2836f5800bb3925f40dffb490510586d03a435f9b0c9e57d7",
+      "changed_component": {
+        "component_kind": "reward_term",
+        "effective_weight": 3.0,
+        "last_weighted_mean": 2.936603,
+        "max_abs_weighted_contribution": 2.9999947547912598,
+        "name": "impulse_absorb",
+        "nonzero_observation_count": 500,
+        "nonzero_observation_fraction": 1.0,
+        "observation_count": 500,
+        "sampling_interval_steps": 24
+      },
+      "training_runtime_gate_passed": true,
+      "verified_train_push_event_count": 210534,
+      "dev_successes": 163,
+      "dev_episodes": 192,
+      "dev_score": 0.8489583333333334,
+      "dev_seed_results": [
+        {
+          "successes": 55,
+          "episodes": 64,
+          "planned_push_events": 80,
+          "verified_push_events": 79,
+          "completed_push_events": 78,
+          "fall_ended_incomplete_sequences": 2
+        },
+        {
+          "successes": 53,
+          "episodes": 64,
+          "planned_push_events": 80,
+          "verified_push_events": 79,
+          "completed_push_events": 78,
+          "fall_ended_incomplete_sequences": 2
+        },
+        {
+          "successes": 55,
+          "episodes": 64,
+          "planned_push_events": 80,
+          "verified_push_events": 80,
+          "completed_push_events": 78,
+          "fall_ended_incomplete_sequences": 2
+        }
+      ],
+      "max_abs_candidate_reward": 26.39641571044922,
+      "reward_finite_fraction": 1.0
+    }
+  ],
+  "selection": {
+    "acceptance_authority": false,
+    "contract_hash": "227f90104ae4c49b53a670e9d82c8009f745076a732def4838136d290ddc02a8",
+    "guard_reference_evidence_hash": "76b14f5b2b3d9ce5f45cdbd61c118494e7612bb21ec999992592f3ab3c6d60c9",
+    "reason": "public_dev_success_rank",
+    "schema_version": "true_rl_agent.task.push_recovery.selection.v1",
+    "screen_evidence_hashes": [
+      "9b831038adda1268d02d9f59aeb56518c03c8423052b3d0cae3aa0bd35577f9d",
+      "8770463e9c395b66a1b5fafc9b09b4a2d64acd1b110561228fa55df20655e713"
+    ],
+    "selected_trial_id": "go2-push-5rounds-20260923-a06-generation-004-lane-b"
+  },
+  "accept": {
+    "seed_successes": [
+      55,
+      54,
+      54
+    ],
+    "successes": 163,
+    "episodes": 192,
+    "score": 0.8489583333333334
+  },
+  "sealed": null,
+  "decision": {
+    "accepted": false,
+    "reason": "noise_aware_delta_not_met",
+    "sealed_validation": "not_run_due_to_early_reject"
+  },
+  "resulting_head": {
+    "candidate_id": "push_standing_recovery_height_barrier_v1",
+    "checkpoint_hash": "sha256:eceec46792aa9fc6341d70ed1cbfac0bb78f145a52428da789f98ef26792244f",
+    "public_score": 0.8333333333333334
+  },
+  "closure": {
+    "generation_record_hash": "3201a496a8b8d7e466440e24f6e31a11b56bbd616eca03eb6d70c8cae134d511",
+    "closure_hash": "cc9b77c2de632231d708b030ad63c95d4ee4c90e410d93d5efcdcef1d11f5bdf",
+    "ledger_prefix_hash": "07435919aa2461072036ae219eca840aa77978c6cc44d05267aaa550114f0223",
+    "cost_cap_checks_all_passed": true,
+    "open_attempts": 0,
+    "cumulative_actual_cost": {
+      "accounted_output_bytes": 357419976,
+      "allocated_gpu_capacity_hours_charged": 1.3651859251836111,
+      "conservatively_charged_gpu_capacity_ns": 0,
+      "eval_seed_units": 47,
+      "finalization_output_reserve_bytes": 1048576,
+      "job_attempts": 19,
+      "job_cost_evidence_hash": "375182ef6f980f991cfb8f915aea31d1c7ce534905b74c68d82b95ed9a81ae07",
+      "observed_output_bytes": 356371400,
+      "observed_output_files": 468,
+      "provider_attempts": 22,
+      "provider_conservative_attempts": 0,
+      "provider_reasoning_units": 219839,
+      "provider_request_units": 334145,
+      "provider_response_units": 239335,
+      "provider_total_units": 573480,
+      "resource_lease_wall_duration_ns": 4914669330661,
+      "simulated_control_steps": 295823424,
+      "train_jobs": 6,
+      "train_steps": 294912000,
+      "unmeasured_bound_attempts": 0
+    },
+    "generation_actual_cost_delta": {
+      "train_jobs": 2,
+      "eval_seed_units": 9,
+      "job_attempts": 5,
+      "provider_attempts": 8
+    }
+  },
+  "job_attempts": [
+    {
+      "job_id": "go2-push-5rounds-20260923-a06-generation-004-lane-b-train",
+      "attempt_index": 0,
+      "outcome": "completed",
+      "output_hash": "4707c987fbae28b4776d2493e9da044768cf2362c10c9a6064d72f44990938b7"
+    },
+    {
+      "job_id": "go2-push-5rounds-20260923-a06-generation-004-lane-b-eval-public-dev",
+      "attempt_index": 0,
+      "outcome": "completed",
+      "output_hash": "98fd33b9c408354ac3eadc910e07d9fb0412362375189c0a39e7525189dabf27"
+    },
+    {
+      "job_id": "go2-push-5rounds-20260923-a06-generation-004-lane-b-eval-public-accept",
+      "attempt_index": 0,
+      "outcome": "completed",
+      "output_hash": "7526ec6fa639032598eba0daa2877011afa9851916667a79e44f5733a9f30d6b"
+    },
+    {
+      "job_id": "go2-push-5rounds-20260923-a06-generation-004-lane-a-train",
+      "attempt_index": 0,
+      "outcome": "completed",
+      "output_hash": "b4e5ea5f3814b17633b1d42104ac8a2362c634aeb90c1be6c4cd33e41d11df1e"
+    },
+    {
+      "job_id": "go2-push-5rounds-20260923-a06-generation-004-lane-a-eval-public-dev",
+      "attempt_index": 0,
+      "outcome": "completed",
+      "output_hash": "9be0d2eb167ca3808a4a5d5c323af357df3e8380dd0a851f6d3bce23ed8f6598"
+    }
+  ],
+  "evidence_sha256": {
+    "attempt_06/session/resolved_cell_manifest.json": "a130b3a97ce4afde8574d19c575a430e8b83ec3750c40b43bc87465cfa0905dd",
+    "source_snapshot_06.json": "24d3b3eb22aaa6b76c8c707a80179c11ed73a106a3c9515696cd9ea6259ebfd9",
+    "attempt_06/session/ledger.jsonl": "0b733babdcb15579c72af5d9344b4b7db433acfee55b855ffe1d910b1eacdf38",
+    "attempt_06/session/generation_receipts/go2-push-5rounds-20260923-a06-generation-004/b1218d80dc5e5bbf7c354127cbebfb0e9498aca6018b58ce5710768e84157953/selection.json": "34b0954f7408888c69bcf3b9fe3fbbaf4df9f569d7bcc64354bdf29ef56452f8",
+    "attempt_06/session/generation_receipts/go2-push-5rounds-20260923-a06-generation-004/b1218d80dc5e5bbf7c354127cbebfb0e9498aca6018b58ce5710768e84157953/manifest.json": "145f35e2b8eedefb669dcfa3e3e5cf2f96c14f3a8702316ab76e10ce84b3d096",
+    "attempt_06/session/generation_session_contract.json": "5e4cf135b7bfe69107aa380843e37e14c8662d6dfe6949ceaa3b43184edf433d",
+    "attempt_06/session/session_genesis.json": "f106e800379935a820c446165d096d730dbe95c8bea13390f4e07b5086c07807",
+    "attempt_06/session/trial_receipts/go2-push-5rounds-20260923-a06-generation-001/lane-b/77de98783da842408a6555c3798722f31332595ef0c068a55050e47394e2f639/eval_phases/public_dev.json": "f3f6d49c06eee68d6d41d170278942532eed7ab4a9e6dfed0160f9a916ae16b6",
+    "attempt_06/session/trial_receipts/go2-push-5rounds-20260923-a06-generation-004/lane-a/ceae05ca7a24d85252077ab0c4a373d60128736260e45107118863a47fc95f6e/contract.json": "266fd29b726a2494c66920d402c6a21bd3302d310934c47422786493e5cfb98a",
+    "attempt_06/session/trial_receipts/go2-push-5rounds-20260923-a06-generation-004/lane-a/ceae05ca7a24d85252077ab0c4a373d60128736260e45107118863a47fc95f6e/train.json": "02d9924f88e22c51ff6a69a9c463159f2c56ece890ab9f85214745f3cb53edc6",
+    "attempt_06/session/trial_receipts/go2-push-5rounds-20260923-a06-generation-004/lane-a/ceae05ca7a24d85252077ab0c4a373d60128736260e45107118863a47fc95f6e/eval_phases/public_dev.json": "524392b168775b5ac6078a5762a8651606e87c8c4eeb6b6817885140a1f9c81c",
+    "attempt_06/session/runner/go2-push-5rounds-20260923-a06-generation-004-lane-a/train/summary.json": "b6f655b20146c5ab3f347293e5f40f72a733b1f68f56908a969f8d7c5eb2df7f",
+    ".tmp/go2_push_a06_live_09.zip::attempt_06/session/candidate_artifacts/go2-push-5rounds-20260923-a06-generation-004/lane-a/push_standing_recovery_impulse_absorb_v1/f222e26a2b35ef108b0c61172aa238053b48d231b37e6ebcf1803422c8bc556a/training_code/components.py": "b7fa63ea3dfc62029c7258b68395e9bd1a37f0f70f0a8d4423b1880e8e2a86c5",
+    "attempt_06/session/trial_receipts/go2-push-5rounds-20260923-a06-generation-004/lane-b/95ce9d5b554eb3bce61954586ec252db52fe9438d6db9c0d57ed299bf1594770/contract.json": "f950598fbbdd50730c8332d74fc0923badbf782b5fe9df4fa7d4ee6fb3d14d0b",
+    "attempt_06/session/trial_receipts/go2-push-5rounds-20260923-a06-generation-004/lane-b/95ce9d5b554eb3bce61954586ec252db52fe9438d6db9c0d57ed299bf1594770/train.json": "61cd23cd5cd0e49797d24ae35b642093b9030483e2e8f1905f46b2cafd6ea01e",
+    "attempt_06/session/trial_receipts/go2-push-5rounds-20260923-a06-generation-004/lane-b/95ce9d5b554eb3bce61954586ec252db52fe9438d6db9c0d57ed299bf1594770/eval_phases/public_dev.json": "66885167df6cfef4ffaeab281736b75a9803d841fba1a7ce7b0cec3d059235dd",
+    "attempt_06/session/runner/go2-push-5rounds-20260923-a06-generation-004-lane-b/train/summary.json": "b3ac3d0a8f0c2d50b0655da175e7eff4305764131981eb7c2cfd7035402df77d",
+    ".tmp/go2_push_a06_live_09.zip::attempt_06/session/candidate_artifacts/go2-push-5rounds-20260923-a06-generation-004/lane-b/push_standing_recovery_impulse_absorb_v1/5e195f19e865baa2a2058ee69c6bf7cc96dcd52d47540ab661ff90062bf4b9a3/training_code/components.py": "b0212688b7f5168802e2533214571914df7287cb9b6c686af299b4d484a07d9f",
+    "attempt_06/session/trial_receipts/go2-push-5rounds-20260923-a06-generation-004/lane-b/95ce9d5b554eb3bce61954586ec252db52fe9438d6db9c0d57ed299bf1594770/eval_phases/public_accept.json": "996e407acd517c93796d887e2e99a5d833c883ca1e0f4e96365f2bcb712df11e",
+    "attempt_06/session/generation_receipts/go2-push-5rounds-20260923-a06-generation-004/b1218d80dc5e5bbf7c354127cbebfb0e9498aca6018b58ce5710768e84157953/early_rejection.json": "6c57ea43479e2731f70c44d155f7ad3b5d07a03958133ba3ca00efe587200de2",
+    "attempt_06/session/generation_receipts/go2-push-5rounds-20260923-a06-generation-004/b1218d80dc5e5bbf7c354127cbebfb0e9498aca6018b58ce5710768e84157953/execution.json": "f6b7cba762cd27bb62c5f068ff01d6734b7e4112168785642ec784668e0183f5",
+    "attempt_06/session/generation_closures/go2-push-5rounds-20260923-a06-generation-004.json": "b7596406ec9c724091e5e0e54cf2bdf9c3fa6e43a209c5368615680f7b46ca04",
+    "attempt_06/session/runner/go2-push-5rounds-20260923-a06/eval/public_accept/summary.json": "8418394d261741060c5a19d9db2f4435e53e45bf20744057bdbf9862aff380fa",
+    "attempt_06/session/runner/go2-push-5rounds-20260923-a06/eval/public_dev/summary.json": "d5dedac335a918447bcb2ba5a8da0f692f6955405b083bfe4fe6515a5ddfd2e8",
+    "attempt_06/session/runner/go2-push-5rounds-20260923-a06/eval/sealed_validation/summary.json": "361f047ce9aaed52a6af5405cc68e587058e1d2773e672a3c3b6578bf7e1cffe",
+    "attempt_06/session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-a/eval/public_dev/summary.json": "d640a25e685e544f07a1489f6868bdc3c4be1770ea1d9e7ffc2cf6917a5d4982",
+    "attempt_06/session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-a/train/summary.json": "ac6a28e2fc95a3b13cf04e84be364553db5620c049d17ea8e67c602101bc62c2",
+    "attempt_06/session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-b/eval/public_accept/summary.json": "6f182561dc2460dae60534ed76b29a3854e75bd427956c05a8bf8428a993ab80",
+    "attempt_06/session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-b/eval/public_dev/summary.json": "1197ee109ed61f1a14ac762e0f5c400fcf33dc9123666677d8cdd4db91e463be",
+    "attempt_06/session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-b/eval/sealed_validation/summary.json": "1a764becd6da56c1e5c23cf0bc48d1c41bce9efc6e876c4b221e32b32f932ee5",
+    "attempt_06/session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-b/train/summary.json": "fa2bf7bf301ed1db665426e3f41f2745e3b576d2f623b6c8f07b42c1085c9dd3",
+    "attempt_06/session/runner/go2-push-5rounds-20260923-a06-generation-002-lane-a/eval/public_dev/summary.json": "5e2eec4693a804a9b18e14ed19e7d3212a06aea6b796e41c34e5f8eadc0a116e",
+    "attempt_06/session/runner/go2-push-5rounds-20260923-a06-generation-002-lane-a/train/summary.json": "5f9b17923c9b87aa9cbf35505e0d16c28cfacab359aa587033c2f0cde8ad4ad4",
+    "attempt_06/session/runner/go2-push-5rounds-20260923-a06-generation-002-lane-b/eval/public_accept/summary.json": "6158889964480e0672c86f3a804ff99f40b60cbe6b83a46a5f35672981e1b5c4",
+    "attempt_06/session/runner/go2-push-5rounds-20260923-a06-generation-002-lane-b/eval/public_dev/summary.json": "2b3a66b27da72cbd3ead75fa86ebaca3212e385b57f606efc3d1b153d2d4bbd7",
+    "attempt_06/session/runner/go2-push-5rounds-20260923-a06-generation-002-lane-b/train/summary.json": "bec8274735f3acda0f8c1bbf35283829c853ca03aacd8f7306e9ed6ce3f2ad57",
+    "attempt_06/session/runner/go2-push-5rounds-20260923-a06-generation-004-lane-a/eval/public_dev/summary.json": "e3e87e22331bb0d602bdc05517633290f88f48b6fd115ffcfe239906aff2d716",
+    "attempt_06/session/runner/go2-push-5rounds-20260923-a06-generation-004-lane-b/eval/public_accept/summary.json": "75c42e0aa8e488db5ab0efb9b0d6483ed1b685be5bd32bab4227621115c14e0a",
+    "attempt_06/session/runner/go2-push-5rounds-20260923-a06-generation-004-lane-b/eval/public_dev/summary.json": "aed1f3172e20fe1230dd3c38502c7f415abb69e09842a60d411c08222e6de573",
+    "attempt_06/session/job_attempts/03a823e44034711c4858740f/attempt_00.reservation.json": "bd2e373df244611b234d713539092ca317cfdd99183a01546184479875011ab4",
+    "attempt_06/session/job_attempts/03a823e44034711c4858740f/attempt_00.result.json": "448c68023ce70d80a16ec15dec9e569c4a0005e2e2f6bf0e19d8f9412b234159",
+    "attempt_06/session/job_attempts/25dd88e855b023af2e0fdac4/attempt_00.reservation.json": "e1783151486a4285c75666d7ed8fc11508942fadd85fd3b1d737285978af3569",
+    "attempt_06/session/job_attempts/25dd88e855b023af2e0fdac4/attempt_00.result.json": "12b1a9a4a4ab14a03778404ea492ee3ac686446b845ef45decbd27afa637c69e",
+    "attempt_06/session/job_attempts/561bc5f2ffbe1490652f5f6f/attempt_00.reservation.json": "a0f64d875d38cc00a1fab75c1fbd6e9a691a3de346e38c2dea46152dde3b55ec",
+    "attempt_06/session/job_attempts/561bc5f2ffbe1490652f5f6f/attempt_00.result.json": "dfd8e7f8f35a9edf15ded40bdef4f3c50e09137e90d5ad2e32ea38e5d89d0250",
+    "attempt_06/session/job_attempts/5678b3a9df86aae9082b3b9f/attempt_00.reservation.json": "39dad3ea41fdbcc5b973fd61e8ef14b10b477f61b74bcf1874b92be173f166f2",
+    "attempt_06/session/job_attempts/5678b3a9df86aae9082b3b9f/attempt_00.result.json": "944c66a8787aa0b3c9d8ebccb405b1a863d351b603ef3580bfaa40408a759a10",
+    "attempt_06/session/job_attempts/a32aee45132ccdf09ae630cc/attempt_00.reservation.json": "bb6b90bb0320aa0f3aa6e860c43de0265155151aecb15a69a7f929a4045fb887",
+    "attempt_06/session/job_attempts/a32aee45132ccdf09ae630cc/attempt_00.result.json": "880ceea28e6012e0a20f59f9cae1f5b4c9a90021a1a2c40fe63573de7aa1dc28",
+    "attempt_06/session/generation_actual_cost/0006-generation-004-settlement.json": "fe7cce3821255c4c208793e8d1c27d8ccd1b42894cb71b4fc1a68255ab679696",
+    "attempt_06/session/generation_actual_cost/0005-generation-003-settlement.json": "6e0e5aa7ddb19bc5085a46bc49e4185d9c894f4e2cdfdbbbba26abdca4813cb6"
+  },
+  "verified_frozen_source_sha256": {
+    "src/true_rl_agent/tasks/push_recovery/config.py": "d8618ca849775245e5834244136bfd8aca387835d56b510975dadbb5f42d0f77",
+    "src/true_rl_agent/tasks/push_recovery/phased_adapter.py": "e772df7548709015c32a2c8ea741ee976e65728830997deb3335dbb70860c1b7",
+    "src/true_rl_agent/tasks/push_recovery/plugin.py": "e0d135482e6d4b41e75eea3077982d77f6b52e245ad913ca21322c553a7423df",
+    "src/true_rl_agent/tasks/push_recovery/metrics.py": "4432b91518796bbfdbdf0e26aff05d67bb69ab0530fdbe217712019c21a99b50",
+    "src/true_rl_agent/agent_core/decision.py": "62f5665f4fe2001aaec7c030619efcc89fb1ddc7e5bf00595755926243f2b47e",
+    "src/true_rl_agent/agent_core/generation_early_rejection.py": "c41bf3e48133ea4157b0aae3831c9707964c98a5ac219be89d740d6fd0f4d8ec",
+    "src/true_rl_agent/agent_core/trial_receipts.py": "ff3e383a0ce03be3bd87dea17141d6cee23f97a187e5b9b51ac45001ed4a67e7",
+    "src/true_rl_agent/runner/base.py": "41c208763e1298b142c840ee0fee111f57cbdd18206419d67b9882f096cb80be",
+    "src/true_rl_agent/runner/subprocess_runner.py": "8d9c68c8590c6da9e75b1bd3be49f134abb1cf9837267d6c8fe2cbdaa2afe227"
+  },
+  "limits": [
+    "Checkpoint bytes remain remote; target safety and receipt-bound hashes were checked.",
+    "This checks one closed generation, not automatic final confirmation or whole-session completion.",
+    "Runtime periodic samples do not bound all-step reward magnitudes; no causal mechanism claim follows."
+  ]
+}

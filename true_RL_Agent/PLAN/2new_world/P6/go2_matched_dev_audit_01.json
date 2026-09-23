@@ -1,0 +1,384 @@
+{
+  "schema_version": "true_rl_agent.p6.go2_matched_dev_audit.v1",
+  "scope": "D1 engineering evidence and saved physical facts; C result remains NO-GO",
+  "limits": [
+    "Checkpoint bytes remain on target; only recorded checksum lineage is checked here",
+    "No complete step trajectories: saved recovery times do not independently prove continuous dwell",
+    "Seed/grid pairing does not prove identical initial raw poses, which were not saved",
+    "One training seed; paired outcomes are descriptive, not multi-training-seed causal evidence",
+    "No training, evaluation, holdout, simulator, or product code is invoked"
+  ],
+  "B_D_execution_versions": {
+    "B_environment_hash": "1db93042e1073d1319b50f807ee7577387463bb72b0e1c5794e1772712692867",
+    "D_environment_hash": "c451dd809d4a26db2d61fb2c9ea08de83ef39a8b8f809882a9c40e7430bbb2c8",
+    "D_declared_project_source_hash": "b73c055c54ecbe445c59e632f928712a43a163e6494d4cd0ab0406b79dc450f2",
+    "project_source_snapshots_equal": false,
+    "interpretation": "The above controlled fields are checked, but execution source versions changed; do not claim perfect single-factor isolation"
+  },
+  "training": {
+    "seed": 42,
+    "env_steps": 49152000,
+    "initial_policy_hash": "9a9c8718c855508ad5c96a0064d748a54542f3b87bfdbb151d59361e9b6e2e8b",
+    "verified_push_events": 209350,
+    "checkpoint_sha256": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff"
+  },
+  "D": {
+    "successes": 192,
+    "episodes": 192,
+    "rate": 1.0,
+    "seeds": [
+      {
+        "successes": 64,
+        "episodes": 64,
+        "rate": 1.0,
+        "strata": {
+          "low": {
+            "episodes": 16,
+            "successes": 16,
+            "success_rate": 1.0
+          },
+          "medium": {
+            "episodes": 16,
+            "successes": 16,
+            "success_rate": 1.0
+          },
+          "high": {
+            "episodes": 16,
+            "successes": 16,
+            "success_rate": 1.0
+          },
+          "repeated": {
+            "episodes": 16,
+            "successes": 16,
+            "success_rate": 1.0
+          }
+        },
+        "failure_counts": {
+          "success_recovered": 64
+        },
+        "events": 80,
+        "recovered_events": 80,
+        "missing_planned_events": []
+      },
+      {
+        "successes": 64,
+        "episodes": 64,
+        "rate": 1.0,
+        "strata": {
+          "low": {
+            "episodes": 16,
+            "successes": 16,
+            "success_rate": 1.0
+          },
+          "medium": {
+            "episodes": 16,
+            "successes": 16,
+            "success_rate": 1.0
+          },
+          "high": {
+            "episodes": 16,
+            "successes": 16,
+            "success_rate": 1.0
+          },
+          "repeated": {
+            "episodes": 16,
+            "successes": 16,
+            "success_rate": 1.0
+          }
+        },
+        "failure_counts": {
+          "success_recovered": 64
+        },
+        "events": 80,
+        "recovered_events": 80,
+        "missing_planned_events": []
+      },
+      {
+        "successes": 64,
+        "episodes": 64,
+        "rate": 1.0,
+        "strata": {
+          "low": {
+            "episodes": 16,
+            "successes": 16,
+            "success_rate": 1.0
+          },
+          "medium": {
+            "episodes": 16,
+            "successes": 16,
+            "success_rate": 1.0
+          },
+          "high": {
+            "episodes": 16,
+            "successes": 16,
+            "success_rate": 1.0
+          },
+          "repeated": {
+            "episodes": 16,
+            "successes": 16,
+            "success_rate": 1.0
+          }
+        },
+        "failure_counts": {
+          "success_recovered": 64
+        },
+        "events": 80,
+        "recovered_events": 80,
+        "missing_planned_events": []
+      }
+    ]
+  },
+  "C": {
+    "status": "NO-GO retained",
+    "successes": 176,
+    "episodes": 192,
+    "rate": 0.9166666666666666,
+    "seeds": [
+      {
+        "successes": 60,
+        "episodes": 64,
+        "rate": 0.9375,
+        "strata": {
+          "low": {
+            "episodes": 16,
+            "successes": 16,
+            "success_rate": 1.0
+          },
+          "medium": {
+            "episodes": 16,
+            "successes": 16,
+            "success_rate": 1.0
+          },
+          "high": {
+            "episodes": 16,
+            "successes": 12,
+            "success_rate": 0.75
+          },
+          "repeated": {
+            "episodes": 16,
+            "successes": 16,
+            "success_rate": 1.0
+          }
+        },
+        "failure_counts": {
+          "success_recovered": 60,
+          "fall_side": 4
+        },
+        "events": 80,
+        "recovered_events": 78,
+        "missing_planned_events": []
+      },
+      {
+        "successes": 59,
+        "episodes": 64,
+        "rate": 0.921875,
+        "strata": {
+          "low": {
+            "episodes": 16,
+            "successes": 16,
+            "success_rate": 1.0
+          },
+          "medium": {
+            "episodes": 16,
+            "successes": 14,
+            "success_rate": 0.875
+          },
+          "high": {
+            "episodes": 16,
+            "successes": 13,
+            "success_rate": 0.8125
+          },
+          "repeated": {
+            "episodes": 16,
+            "successes": 16,
+            "success_rate": 1.0
+          }
+        },
+        "failure_counts": {
+          "success_recovered": 59,
+          "fall_side": 3,
+          "not_recovered": 2
+        },
+        "events": 80,
+        "recovered_events": 78,
+        "missing_planned_events": []
+      },
+      {
+        "successes": 57,
+        "episodes": 64,
+        "rate": 0.890625,
+        "strata": {
+          "low": {
+            "episodes": 16,
+            "successes": 16,
+            "success_rate": 1.0
+          },
+          "medium": {
+            "episodes": 16,
+            "successes": 13,
+            "success_rate": 0.8125
+          },
+          "high": {
+            "episodes": 16,
+            "successes": 13,
+            "success_rate": 0.8125
+          },
+          "repeated": {
+            "episodes": 16,
+            "successes": 15,
+            "success_rate": 0.9375
+          }
+        },
+        "failure_counts": {
+          "success_recovered": 57,
+          "fall_side": 5,
+          "not_recovered": 2
+        },
+        "events": 79,
+        "recovered_events": 76,
+        "missing_planned_events": [
+          {
+            "env_id": 56,
+            "event_index": 1,
+            "failure": "fall_side"
+          }
+        ]
+      }
+    ]
+  },
+  "paired_changes": {
+    "rate_delta_D_minus_C": 0.08333333333333337,
+    "transitions": {
+      "C_1_D_1": 176,
+      "C_0_D_1": 16
+    },
+    "changed_rows": [
+      {
+        "run_index": 1,
+        "env_id": 38,
+        "stratum": "high",
+        "C_label": "fall_side",
+        "D_label": "success_recovered"
+      },
+      {
+        "run_index": 1,
+        "env_id": 42,
+        "stratum": "high",
+        "C_label": "fall_side",
+        "D_label": "success_recovered"
+      },
+      {
+        "run_index": 1,
+        "env_id": 43,
+        "stratum": "high",
+        "C_label": "fall_side",
+        "D_label": "success_recovered"
+      },
+      {
+        "run_index": 1,
+        "env_id": 44,
+        "stratum": "high",
+        "C_label": "fall_side",
+        "D_label": "success_recovered"
+      },
+      {
+        "run_index": 2,
+        "env_id": 21,
+        "stratum": "medium",
+        "C_label": "fall_side",
+        "D_label": "success_recovered"
+      },
+      {
+        "run_index": 2,
+        "env_id": 28,
+        "stratum": "medium",
+        "C_label": "fall_side",
+        "D_label": "success_recovered"
+      },
+      {
+        "run_index": 2,
+        "env_id": 35,
+        "stratum": "high",
+        "C_label": "fall_side",
+        "D_label": "success_recovered"
+      },
+      {
+        "run_index": 2,
+        "env_id": 36,
+        "stratum": "high",
+        "C_label": "not_recovered",
+        "D_label": "success_recovered"
+      },
+      {
+        "run_index": 2,
+        "env_id": 41,
+        "stratum": "high",
+        "C_label": "not_recovered",
+        "D_label": "success_recovered"
+      },
+      {
+        "run_index": 3,
+        "env_id": 21,
+        "stratum": "medium",
+        "C_label": "fall_side",
+        "D_label": "success_recovered"
+      },
+      {
+        "run_index": 3,
+        "env_id": 23,
+        "stratum": "medium",
+        "C_label": "not_recovered",
+        "D_label": "success_recovered"
+      },
+      {
+        "run_index": 3,
+        "env_id": 25,
+        "stratum": "medium",
+        "C_label": "fall_side",
+        "D_label": "success_recovered"
+      },
+      {
+        "run_index": 3,
+        "env_id": 32,
+        "stratum": "high",
+        "C_label": "fall_side",
+        "D_label": "success_recovered"
+      },
+      {
+        "run_index": 3,
+        "env_id": 39,
+        "stratum": "high",
+        "C_label": "fall_side",
+        "D_label": "success_recovered"
+      },
+      {
+        "run_index": 3,
+        "env_id": 46,
+        "stratum": "high",
+        "C_label": "not_recovered",
+        "D_label": "success_recovered"
+      },
+      {
+        "run_index": 3,
+        "env_id": 56,
+        "stratum": "repeated",
+        "C_label": "fall_side",
+        "D_label": "success_recovered"
+      }
+    ]
+  },
+  "process_wall_s": 679.3482296466827,
+  "status": "PASS",
+  "engineering_valid": true,
+  "checks": 2799,
+  "issues": [],
+  "development": {
+    "band": [
+      0.2,
+      0.9
+    ],
+    "observed_in_band": false,
+    "decision": "NO-GO",
+    "qualification": false
+  }
+}

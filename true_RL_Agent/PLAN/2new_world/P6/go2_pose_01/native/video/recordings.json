@@ -1,0 +1,496 @@
+{
+  "checkpoint": {
+    "byte_read_status": "pass",
+    "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+    "checkpoint_hash_match_status": "pass",
+    "expected_checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+    "file_exists": true,
+    "loader_error_class": null,
+    "loader_error_summary": null,
+    "reason": "checkpoint_safe_to_load",
+    "schema_version": "true_rl_agent.checkpoint_safety_report.v1",
+    "status": "pass",
+    "weights_only_load_status": "pass"
+  },
+  "checkpoint_loading": {
+    "actor_loaded": true,
+    "checkpoint_format": "rsl_rl_5",
+    "critic_loaded": true,
+    "iteration_loaded": false,
+    "optimizer_loaded": false
+  },
+  "reclassified_by_video_exporter": false,
+  "recordings": [
+    {
+      "camera_eye_offset": [
+        4.5,
+        -4.5,
+        3.0
+      ],
+      "camera_lookat_offset": [
+        0.8,
+        0.0,
+        0.0
+      ],
+      "control_dt_s": 0.02,
+      "encoder": "imageio_ffmpeg_raw_rgb",
+      "env_index": 32,
+      "episode_evidence_source": "pre_reset_task_state",
+      "episode_outcome": {
+        "control_failure_label": null,
+        "control_only": false,
+        "control_success": false,
+        "env_id": 32,
+        "episode_index": 1,
+        "episode_steps": 303,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.000812230515293777,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.11585137248039246,
+        "max_abs_roll_rad": 0.07926614582538605,
+        "max_pitch_rad": 0.0668647289276123,
+        "max_xy_drift_m": 0.4530494511127472,
+        "mean_action_l2": 16.92866098133251,
+        "mean_action_rate_l2": 0.5859251620352465,
+        "min_base_height_m": 0.3455657362937927,
+        "min_pitch_rad": -0.11585137248039246,
+        "planned_push_count": 1,
+        "push_event_count": 1,
+        "push_events": [
+          {
+            "control_step": 51,
+            "event_index": 0,
+            "injection_verified": true,
+            "observed_delta_v_world_mps": [
+              -1.2630226612091064,
+              1.5260320901870728
+            ],
+            "recovered": true,
+            "recovery_censored": false,
+            "recovery_control_step": 89,
+            "recovery_latency_s": 0.76,
+            "requested_delta_v_world_mps": [
+              -1.2630226612091064,
+              1.5260320901870728
+            ],
+            "time_s": 1.02,
+            "velocity_after_next_physics_step_world_6d": [
+              -1.1539260149002075,
+              1.4948092699050903,
+              0.0959291160106659,
+              0.6753238439559937,
+              0.8351628184318542,
+              0.1403617113828659
+            ],
+            "velocity_after_write_world_6d": [
+              -1.2617629766464233,
+              1.5335246324539185,
+              0.0006178868934512138,
+              0.010178711265325546,
+              0.01523156650364399,
+              -0.0049683693796396255
+            ],
+            "velocity_before_world_6d": [
+              0.0012597398599609733,
+              0.007492581382393837,
+              0.0006178868934512138,
+              0.010178711265325546,
+              0.01523156650364399,
+              -0.0049683693796396255
+            ]
+          }
+        ],
+        "recovered_event_count": 1,
+        "stratum": "high",
+        "success": true
+      },
+      "file": "public_dev-01.mp4",
+      "fps": 50.0,
+      "frame_count": 302,
+      "other_envs_visually_hidden": true,
+      "recording_status": "recorded",
+      "render_warmup_frames": 8,
+      "resolution": [
+        1280,
+        720
+      ],
+      "resolved_protocol_hash": "39f0d453a04e0c1a059395597b6a54aa3715dd739edd394b78f90641217f76e1",
+      "run_index": 1,
+      "seed": 10042,
+      "sha256": "700cdc69b3549eef96b2d4105e1e8fa590d7e73c400e25c0bfb36c14f9179eef",
+      "simulated_duration_s": 6.04,
+      "split": "public_dev",
+      "start_control_step": 1,
+      "starts_at_reset": false
+    },
+    {
+      "camera_eye_offset": [
+        4.5,
+        -4.5,
+        3.0
+      ],
+      "camera_lookat_offset": [
+        0.8,
+        0.0,
+        0.0
+      ],
+      "control_dt_s": 0.02,
+      "encoder": "imageio_ffmpeg_raw_rgb",
+      "env_index": 32,
+      "episode_evidence_source": "pre_reset_task_state",
+      "episode_outcome": {
+        "control_failure_label": null,
+        "control_only": false,
+        "control_success": false,
+        "env_id": 32,
+        "episode_index": 2,
+        "episode_steps": 303,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.0003172521246597171,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.044590119272470474,
+        "max_abs_roll_rad": 0.09103639423847198,
+        "max_pitch_rad": 0.044590119272470474,
+        "max_xy_drift_m": 0.33464479446411133,
+        "mean_action_l2": 16.974809199669966,
+        "mean_action_rate_l2": 0.40046165642565235,
+        "min_base_height_m": 0.38118240237236023,
+        "min_pitch_rad": -0.024318117648363113,
+        "planned_push_count": 1,
+        "push_event_count": 1,
+        "push_events": [
+          {
+            "control_step": 51,
+            "event_index": 0,
+            "injection_verified": true,
+            "observed_delta_v_world_mps": [
+              1.708682894706726,
+              1.0021989345550537
+            ],
+            "recovered": true,
+            "recovery_censored": false,
+            "recovery_control_step": 82,
+            "recovery_latency_s": 0.62,
+            "requested_delta_v_world_mps": [
+              1.708682894706726,
+              1.0021989345550537
+            ],
+            "time_s": 1.02,
+            "velocity_after_next_physics_step_world_6d": [
+              1.6922826766967773,
+              0.9601596593856812,
+              -0.12650719285011292,
+              0.2539874017238617,
+              -0.20801033079624176,
+              0.10357565432786942
+            ],
+            "velocity_after_write_world_6d": [
+              1.7007819414138794,
+              0.9980418682098389,
+              0.0018373534549027681,
+              -0.011157785542309284,
+              -0.0029227493796497583,
+              -0.00217161956243217
+            ],
+            "velocity_before_world_6d": [
+              -0.007900997065007687,
+              -0.004157084971666336,
+              0.0018373534549027681,
+              -0.011157785542309284,
+              -0.0029227493796497583,
+              -0.00217161956243217
+            ]
+          }
+        ],
+        "recovered_event_count": 1,
+        "stratum": "high",
+        "success": true
+      },
+      "file": "public_dev-02.mp4",
+      "fps": 50.0,
+      "frame_count": 302,
+      "other_envs_visually_hidden": true,
+      "recording_status": "recorded",
+      "render_warmup_frames": 8,
+      "resolution": [
+        1280,
+        720
+      ],
+      "resolved_protocol_hash": "39f0d453a04e0c1a059395597b6a54aa3715dd739edd394b78f90641217f76e1",
+      "run_index": 2,
+      "seed": 10043,
+      "sha256": "5db02702532f2cc4796bb22b5a09e9ee83b0f28911381fa8609268af793459ed",
+      "simulated_duration_s": 6.04,
+      "split": "public_dev",
+      "start_control_step": 1,
+      "starts_at_reset": false
+    },
+    {
+      "camera_eye_offset": [
+        4.5,
+        -4.5,
+        3.0
+      ],
+      "camera_lookat_offset": [
+        0.8,
+        0.0,
+        0.0
+      ],
+      "control_dt_s": 0.02,
+      "encoder": "imageio_ffmpeg_raw_rgb",
+      "env_index": 32,
+      "episode_evidence_source": "pre_reset_task_state",
+      "episode_outcome": {
+        "control_failure_label": null,
+        "control_only": false,
+        "control_success": false,
+        "env_id": 32,
+        "episode_index": 3,
+        "episode_steps": 303,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.0014556727837771177,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.08941511809825897,
+        "max_abs_roll_rad": 0.08802780508995056,
+        "max_pitch_rad": 0.033260226249694824,
+        "max_xy_drift_m": 0.49297598004341125,
+        "mean_action_l2": 16.954541499071784,
+        "mean_action_rate_l2": 0.47353849001843545,
+        "min_base_height_m": 0.32748374342918396,
+        "min_pitch_rad": -0.08941511809825897,
+        "planned_push_count": 1,
+        "push_event_count": 1,
+        "push_events": [
+          {
+            "control_step": 51,
+            "event_index": 0,
+            "injection_verified": true,
+            "observed_delta_v_world_mps": [
+              0.6180059909820557,
+              1.8820383548736572
+            ],
+            "recovered": true,
+            "recovery_censored": false,
+            "recovery_control_step": 86,
+            "recovery_latency_s": 0.7000000000000001,
+            "requested_delta_v_world_mps": [
+              0.6180059909820557,
+              1.8820383548736572
+            ],
+            "time_s": 1.02,
+            "velocity_after_next_physics_step_world_6d": [
+              0.5579425096511841,
+              1.843172311782837,
+              0.09166571497917175,
+              0.7532650828361511,
+              -1.1288701295852661,
+              0.05186539515852928
+            ],
+            "velocity_after_write_world_6d": [
+              0.6126721501350403,
+              1.8892544507980347,
+              0.0017153950175270438,
+              -0.005374199710786343,
+              0.012183750979602337,
+              -0.002263386268168688
+            ],
+            "velocity_before_world_6d": [
+              -0.005333864130079746,
+              0.007216077297925949,
+              0.0017153950175270438,
+              -0.005374199710786343,
+              0.012183750979602337,
+              -0.002263386268168688
+            ]
+          }
+        ],
+        "recovered_event_count": 1,
+        "stratum": "high",
+        "success": true
+      },
+      "file": "public_dev-03.mp4",
+      "fps": 50.0,
+      "frame_count": 302,
+      "other_envs_visually_hidden": true,
+      "recording_status": "recorded",
+      "render_warmup_frames": 8,
+      "resolution": [
+        1280,
+        720
+      ],
+      "resolved_protocol_hash": "39f0d453a04e0c1a059395597b6a54aa3715dd739edd394b78f90641217f76e1",
+      "run_index": 3,
+      "seed": 10044,
+      "sha256": "81f9572152e5a8ecc642059c5c7d39b8ab7c3eed596ab3c9fe33f4aade988054",
+      "simulated_duration_s": 6.04,
+      "split": "public_dev",
+      "start_control_step": 1,
+      "starts_at_reset": false
+    }
+  ],
+  "resolved_cell_manifest_hash": "ed8c2a3607025eecc8d8b2ca3b0f2bef0f8c32b22c360a1fc6f2b2cc4f79316e",
+  "runtime_dynamics": {
+    "active_profile": "strong_push",
+    "candidate_can_change": false,
+    "environment": {
+      "episode_length_s": 6.057825328153827
+    },
+    "observation_corruption": {
+      "eval": false,
+      "train": true
+    },
+    "push_protocol": {
+      "episode_time_scale": 30.0,
+      "fall_height_scale": 0.45,
+      "fall_tilt_rad": 0.8,
+      "first_push_time_scale": 5.0,
+      "gravity_mps2": 9.81,
+      "high_velocity_scale": 1.0,
+      "injection_tolerance_mps": 1e-05,
+      "low_velocity_scale": 0.3,
+      "max_displacement_scale": 3.0,
+      "medium_velocity_scale": 0.6,
+      "protocol_id": "push_recovery_planar_delta_velocity_v2",
+      "protocol_state": "active",
+      "recovery_angular_velocity_scale": 0.5,
+      "recovery_height_scale": 0.7,
+      "recovery_tilt_rad": 0.2,
+      "recovery_velocity_scale": 0.08,
+      "recovery_window_time_scale": 8.0,
+      "schema_version": "true_rl_agent.task.push_recovery.protocol.v2",
+      "second_push_time_scale": 17.0,
+      "stable_dwell_time_scale": 1.5
+    },
+    "push_resolved_protocol": {
+      "episode_length_s": 6.057825328153827,
+      "evaluation_cohort_counts": {
+        "high": 16,
+        "low": 16,
+        "medium": 16,
+        "repeated": 16
+      },
+      "evaluation_direction_policy": {
+        "angular_range_rad": [
+          0.0,
+          6.283185307179586
+        ],
+        "count": 16,
+        "phase": "python_random_runner_seed_uniform_0_2pi_v1",
+        "second_event_offset_rad": 1.5707963267948966
+      },
+      "fall_height_m": 0.18000000000000002,
+      "fall_tilt_rad": 0.8,
+      "injection_tolerance_mps": 1e-05,
+      "max_displacement_m": 1.2000000000000002,
+      "mechanism": "world_planar_velocity_increment",
+      "protocol_hash": "851d417544cd27a11b865cf86e6354b03fd2276312470962f1feaef4ea2edb82",
+      "push_times_s": [
+        1.0096375546923044,
+        3.432767685953835
+      ],
+      "recovery_angular_velocity_radps": 2.4761361028828768,
+      "recovery_height_m": 0.27999999999999997,
+      "recovery_tilt_rad": 0.2,
+      "recovery_velocity_mps": 0.15847271058450413,
+      "recovery_window_s": 1.6154200875076872,
+      "reset": {
+        "joint_position_scale": [
+          1.0,
+          1.0
+        ],
+        "joint_velocity_range": [
+          0.0,
+          0.0
+        ],
+        "root_pose_range": {
+          "x": [
+            0.0,
+            0.0
+          ],
+          "y": [
+            0.0,
+            0.0
+          ],
+          "yaw": [
+            -3.141592653589793,
+            3.141592653589793
+          ]
+        },
+        "root_velocity_range": {
+          "pitch": [
+            0.0,
+            0.0
+          ],
+          "roll": [
+            0.0,
+            0.0
+          ],
+          "x": [
+            0.0,
+            0.0
+          ],
+          "y": [
+            0.0,
+            0.0
+          ],
+          "yaw": [
+            0.0,
+            0.0
+          ],
+          "z": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "resolved_protocol_hash": "39f0d453a04e0c1a059395597b6a54aa3715dd739edd394b78f90641217f76e1",
+      "robot_scale_m": 0.4,
+      "schema_version": "true_rl_agent.task.push_recovery.resolved_protocol.v2",
+      "stable_dwell_s": 0.3028912664076914,
+      "time_scale_s": 0.2019275109384609,
+      "training_sampling": {
+        "angular_range_rad": [
+          0.0,
+          6.283185307179586
+        ],
+        "event_directions": "independent_uniform",
+        "stratum_probabilities": {
+          "high": 0.25,
+          "low": 0.25,
+          "medium": 0.25,
+          "repeated": 0.25
+        }
+      },
+      "velocity_magnitudes_mps": {
+        "high": 1.9809088823063015,
+        "low": 0.5942726646918904,
+        "medium": 1.1885453293837809
+      },
+      "velocity_scale_mps": 1.9809088823063015
+    },
+    "push_robot_scale_m": 0.4,
+    "reward_execution": {
+      "integration": "reward_manager_once_by_control_dt",
+      "mode": "complete_program_replacement",
+      "output": "reward_rate",
+      "state": "pre_reset_transition"
+    },
+    "runner_owned": true,
+    "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1",
+    "runtime_dynamics_hash": "sha256:cbd42e99a7a7c371a31008fee9df484880bd8664acbfb5e7462425ddaaa7e9f4",
+    "schema_version": "true_rl_agent.task.push_recovery.public_runtime_dynamics.v3",
+    "standing_command": {
+      "commanded_locomotion_is_zero": true
+    },
+    "task": {
+      "agent_configuration_hash": "f2cf1a2644ecdf61f3629f65c211ab29c274e06b6043c9067420e9e87a204789",
+      "environment_cfg_entrypoint": "true_rl_agent.robots.isaaclab_locomotion:_go2_environment_cfg",
+      "runner_cfg_entrypoint": "isaaclab_tasks.manager_based.locomotion.velocity.config.go2.agents.rsl_rl_ppo_cfg:UnitreeGo2RoughPPORunnerCfg",
+      "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1"
+    }
+  },
+  "schema_version": "true_rl_agent.push_recovery.native_video.v2"
+}

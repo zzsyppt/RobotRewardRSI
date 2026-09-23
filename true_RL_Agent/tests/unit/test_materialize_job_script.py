@@ -242,6 +242,8 @@ class MaterializeJobScriptTests(unittest.TestCase):
             candidate = self._write_candidate(Path(tmp))
             exit_code = main(
                 [
+                    "--cell-variant-id",
+                    "push.g1_29dof.legacy_v1",
                     "--round-id",
                     "round-001",
                     "--candidate-id",
@@ -314,6 +316,8 @@ class MaterializeJobScriptTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp, redirect_stdout(output):
             exit_code = main(
                 [
+                    "--cell-variant-id",
+                    "push.g1_29dof.legacy_v1",
                     "--job-kind",
                     "baseline-eval",
                     "--round-id",

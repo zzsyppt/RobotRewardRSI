@@ -1,0 +1,312 @@
+{
+  "scope": "A02 generation 001 both first live provider prompts and authored candidates; authoring completed, training ongoing, no candidate policy evaluation conclusion",
+  "status": "PASS",
+  "prompt_path": "session/authoring/go2-push-5rounds-20260922-a02-generation-001/lane-a/authoring_attempts/attempt_000001/prompt_payload.json",
+  "prompt_sha256": "5119dae9f796c40a30d2fdadc7b031428b345885c02d46185860784365239293",
+  "reference_eval_artifact_sha256": "8a98b94be86dd58efdd6e299a6097153b28d2ddbf9905c8b30345258e47127a7",
+  "measurements": {
+    "file_bytes": 48301,
+    "compact_json_bytes": 48301,
+    "estimated_context_units": 12076,
+    "provider_measured_input_tokens": 12381,
+    "task_section_bytes": 16096,
+    "task_section_limit_bytes": 57344,
+    "task_section_headroom_bytes": 41248,
+    "per_section_bytes": {
+      "schema_version": 33,
+      "task": 1999,
+      "loop_contract": 2190,
+      "candidate_capabilities": 3654,
+      "reward_inputs_contract": 10918,
+      "public_eval_contract": 948,
+      "control_effectiveness_contract": 694,
+      "known_good_examples": 2,
+      "selection_guidance": 761,
+      "source_catalog": 3692,
+      "candidate_lineage": 1991,
+      "source_payloads": 2475,
+      "public_feedback_summary": 1096,
+      "runtime_feedback_summary": 213,
+      "public_history": 1333,
+      "exploration_directive": 423,
+      "required_candidate_package": 12124,
+      "authoring_context_frame": 3343
+    },
+    "source_body_bytes": 1846,
+    "source_payload_count": 1,
+    "long_string_duplicate_excess_bytes": 965,
+    "long_string_duplicate_excess_fraction": 0.01997888242479452,
+    "duplicate_threshold_characters": 80,
+    "duplicate_groups": [
+      {
+        "chars": 156,
+        "utf8_bytes": 156,
+        "occurrences": 2,
+        "paths": [
+          "$.candidate_capabilities.prompt_visible_capabilities[0].component_signature",
+          "$.required_candidate_package.component_contract.classes.RewardTerm"
+        ]
+      },
+      {
+        "chars": 83,
+        "utf8_bytes": 83,
+        "occurrences": 2,
+        "paths": [
+          "$.candidate_capabilities.prompt_visible_capabilities[1].component_signature",
+          "$.required_candidate_package.component_contract.classes.DiagnosticTerm"
+        ]
+      },
+      {
+        "chars": 94,
+        "utf8_bytes": 94,
+        "occurrences": 2,
+        "paths": [
+          "$.reward_inputs_contract.fields.base_lin_vel.semantics",
+          "$.reward_inputs_contract.fields.base_ang_vel.semantics"
+        ]
+      },
+      {
+        "chars": 134,
+        "utf8_bytes": 134,
+        "occurrences": 2,
+        "paths": [
+          "$.source_catalog.items[4].candidate_use",
+          "$.source_catalog.items[5].candidate_use"
+        ]
+      },
+      {
+        "chars": 249,
+        "utf8_bytes": 249,
+        "occurrences": 3,
+        "paths": [
+          "$.candidate_lineage.current_best.source_summary",
+          "$.source_payloads[0].summary",
+          "$.authoring_context_frame.source_payload_summaries[0].summary"
+        ]
+      }
+    ]
+  },
+  "reference_feedback": {
+    "F4_live_status": "PASS",
+    "F2_failure_label_live_status": "PASS",
+    "source_selection": "reference_current_best",
+    "score": 0.734375,
+    "strata": {
+      "high": {
+        "episodes": 48,
+        "successes": 19,
+        "n_over_N": "19/48"
+      },
+      "low": {
+        "episodes": 48,
+        "successes": 48,
+        "n_over_N": "48/48"
+      },
+      "medium": {
+        "episodes": 48,
+        "successes": 47,
+        "n_over_N": "47/48"
+      },
+      "repeated": {
+        "episodes": 48,
+        "successes": 27,
+        "n_over_N": "27/48"
+      }
+    },
+    "failure_counts": {
+      "fall_backward": 11,
+      "fall_side": 13,
+      "height_collapse": 26,
+      "not_recovered": 1,
+      "success_recovered": 141
+    },
+    "dominant_outcome": "success_recovered",
+    "latest_failure_mode": "height_collapse_dominated",
+    "counts_match_saved_reference": true
+  },
+  "boundary_checks": {
+    "public_only_guard": "PASS",
+    "task_section_receipt_recomputed": "PASS",
+    "parent_source_hash_matches_verified_reference": "PASS",
+    "private_artifact_path_distinct_count_checked": 16,
+    "private_path_matches": 0,
+    "checkpoint_identity_distinct_count_checked": 1,
+    "checkpoint_identity_matches": 0,
+    "raw_accept_or_sealed_phase_object_paths": [],
+    "raw_seed_value_count_available_for_comparison": 0,
+    "raw_seed_comparison_limit": "These saved Genesis/reference artifacts do not contain raw seed values; this audit does not claim an independent hidden-seed value comparison."
+  },
+  "memory": {
+    "previous_rounds": 0,
+    "experiment_count": 0,
+    "memory_bytes": 996,
+    "omitted_experiment_count": 0,
+    "F1_live_status": "NOT_YET_EXERCISED",
+    "F2_multi_round_memory_live_status": "NOT_YET_EXERCISED",
+    "reason": "Initial prompt has no candidate history; later generation prompts are required to establish live trial delta and task-memory behavior."
+  },
+  "content_assessment": {
+    "task_semantics": "Force sequence completion, fresh final dwell, no fall; displacement is diagnostic only; reward does not define success.",
+    "robot_semantics": "Go2 adapter identity and nominal scale L=0.4 remain task-provided facts; the shared loop only states capabilities, provenance, budgets and authoring constraints.",
+    "redundancy": "No source body copied twice and no prior prompt nested. Long-string exact duplication is limited to contract signatures and source summaries.",
+    "additional_blocking_findings": [],
+    "additional_nonblocking_findings": [],
+    "candidate_use_of_public_evidence": {
+      "lane-a": "The hypothesis explicitly cites 26/192 height-collapse failures and high/repeated strata, all present in the prompt reference-dev evidence; adds one normalized-height/tilt reward term.",
+      "lane-b": "The hypothesis uses the same public height-collapse and high/repeated failures to replace one stationary component with posture-gated damping. The implementation also clips this component to [0,1], included in that single component change.",
+      "inference_limit": "These are coherent, permitted hypotheses. Authoring/smoke success does not establish training quality or recovery improvement."
+    },
+    "candidate_permission_boundary": "Sources import only candidate component constructors and operate on declared current public RewardInputs. The observed code contains no environment, evaluator, file, seed, checkpoint or protocol access."
+  },
+  "lanes": {
+    "lane-a": {
+      "prompt_path": "session/authoring/go2-push-5rounds-20260922-a02-generation-001/lane-a/authoring_attempts/attempt_000001/prompt_payload.json",
+      "prompt_sha256": "5119dae9f796c40a30d2fdadc7b031428b345885c02d46185860784365239293",
+      "prompt_bytes": 48301,
+      "provider_measured_input_tokens": 12381,
+      "task_section_bytes": 16096,
+      "long_string_duplicate_excess_bytes": 965,
+      "provider_finish_reason": "stop",
+      "provider_usage": {
+        "reasoning_units": 16708,
+        "request_cache_hit_units": 4736,
+        "request_cache_miss_units": 7645,
+        "request_units": 12381,
+        "response_units": 17606,
+        "total_units": 29987
+      },
+      "source_request_count": 0,
+      "authoring_attempt_count": 1,
+      "verifier_status": "pass",
+      "component_smoke_status": "pass",
+      "candidate_id": "push_standing_recovery_height_margin_v1",
+      "candidate_source_path": "session/provider_candidates/go2-push-5rounds-20260922-a02-generation-001/lane-a/001_push_standing_recovery_height_margin_v1/training_code/components.py",
+      "candidate_source_sha256": "sha256:31c5a5ba883d08440f6ff6d36d7ba2c89314456098c9df79833200ba25711ea4",
+      "candidate_source_bytes": 3126,
+      "parent_program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "changed_mechanisms": [
+        "RewardTerm:height_collapse"
+      ],
+      "preserved_reference_terms": [
+        "upright_height",
+        "stationary_v3",
+        "joint_pose",
+        "action_rate",
+        "fall"
+      ],
+      "preserved_reference_functions": [
+        "upright_height",
+        "stationary_v3",
+        "joint_pose",
+        "action_rate",
+        "fall"
+      ],
+      "added_term_names": [
+        "height_collapse"
+      ],
+      "removed_term_names": [],
+      "rationale": "The reference standing-recovery program reaches 0.734 public-dev score but fails mostly on high and repeated perturbations, with height_collapse the largest failure category (26 of 192). The reference only gives a positive exponential height reward, so a collapsed but non-terminated posture is not directly penalized. This candidate preserves every reference reward term and adds one bounded height-collapse penalty: below 0.75 normalized base height it charges the squared height deficit, amplified by tilt. The intended mechanism is an asymmetric, morphology-scaled posture cost that makes severe crouching unattractive while leaving the unchanged upright, damping, joint, action-rate and fall terms to shape normal recovery.",
+      "public_inputs_read": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "completed_policy_evaluation_claimed": false
+    },
+    "lane-b": {
+      "prompt_path": "session/authoring/go2-push-5rounds-20260922-a02-generation-001/lane-b/authoring_attempts/attempt_000001/prompt_payload.json",
+      "prompt_sha256": "a137901add23600bd8aeb39dd081a89bba914d28731670cf6691ff9f572a126b",
+      "prompt_bytes": 48990,
+      "provider_measured_input_tokens": 12580,
+      "task_section_bytes": 16096,
+      "long_string_duplicate_excess_bytes": 965,
+      "provider_finish_reason": "stop",
+      "provider_usage": {
+        "reasoning_units": 24013,
+        "request_cache_hit_units": 10624,
+        "request_cache_miss_units": 1956,
+        "request_units": 12580,
+        "response_units": 25040,
+        "total_units": 37620
+      },
+      "source_request_count": 0,
+      "authoring_attempt_count": 1,
+      "verifier_status": "pass",
+      "component_smoke_status": "pass",
+      "candidate_id": "push_recovery_posture_gated_damping_v1",
+      "candidate_source_path": "session/provider_candidates/go2-push-5rounds-20260922-a02-generation-001/lane-b/001_push_recovery_posture_gated_damping_v1/training_code/components.py",
+      "candidate_source_sha256": "sha256:4e9028aaac8cf2eba2658b7cfeb49ba6fab357588ccd6b141bdc1eb2e33172f6",
+      "candidate_source_bytes": 3552,
+      "parent_program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "changed_mechanisms": [
+        "RewardTerm:stationary_v3->stable_damping"
+      ],
+      "preserved_reference_terms": [
+        "upright_height",
+        "joint_pose",
+        "action_rate",
+        "fall"
+      ],
+      "preserved_reference_functions": [
+        "upright_height",
+        "joint_pose",
+        "action_rate",
+        "fall"
+      ],
+      "added_term_names": [
+        "stable_damping"
+      ],
+      "removed_term_names": [
+        "stationary_v3"
+      ],
+      "rationale": "The reference program stationary_v3 term grants full stillness reward regardless of base height or orientation, so a robot that collapses and remains still can collect the stationary bonus, and the same term penalizes the leg motion needed to recover from a large push. Replace only that mechanism with stable_damping: a posture-gated stillness reward that multiplies the original velocity penalty by smooth height and projected-gravity gates. The gates are zero when the base is low or tilted, so collapsed postures cannot collect the bonus, while recovery motion during the acute phase is not penalized. This targets the observed height-collapse failure mode and the high/repeated push strata without changing other reward mechanisms, weights, or task protocol.",
+      "public_inputs_read": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "projected_gravity",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "completed_policy_evaluation_claimed": false
+    }
+  },
+  "sibling_boundary": {
+    "status": "PASS",
+    "reference_parent_source_identical": true,
+    "reference_feedback_identical": true,
+    "lane_a_source_body_in_lane_b_prompt": false,
+    "lane_a_source_checksum_in_lane_b_prompt": false,
+    "allowed_sibling_exclusion": {
+      "schema_version": "true_rl_agent.single_component_semantic_exclusion.v1",
+      "operation": "add",
+      "canonical_mechanism_delta": "RewardTerm:height_collapse",
+      "component_kind": "RewardTerm",
+      "public_input_dependencies": [
+        "base_height_relative",
+        "pitch",
+        "roll"
+      ],
+      "parameter_normalized_semantic_signature": "ab7ac37dbfb216ecfbba7f0d523fa2518c9cea457b94788d7ae4585d4067080d",
+      "instruction": "Propose one component mechanism whose normalized callable, input, and clip structure is substantively different from this exclusion; renaming or changing only numeric parameters is not distinct.",
+      "exclusion_hash": "0187bafa52d6cbde72baaf35b92994261053cad1c79b340bd61f14dcfe836d28"
+    },
+    "sibling_semantic_exclusion_assessment": {
+      "blocking": false,
+      "equivalence": null,
+      "exclusion_hash": "0187bafa52d6cbde72baaf35b92994261053cad1c79b340bd61f14dcfe836d28",
+      "reason": "sibling_semantic_delta_distinct",
+      "schema_version": "true_rl_agent.sibling_semantic_exclusion_assessment.v1",
+      "status": "pass"
+    },
+    "comparison_note": "The two candidates change distinct mechanisms: A adds a bounded height-deficit penalty; B replaces the stationary term with posture-gated, nonnegative clipped stillness reward. Different names alone were not used as proof."
+  }
+}

@@ -8,12 +8,13 @@ from true_rl_agent.runner.argv_contract import option_occurrences
 from true_rl_agent.runner.initial_policy import (
     verified_initial_policy_state_pairing_hash,
 )
-from true_rl_agent.runner.specs import CheckpointRef, EvalJobSpec, GpuProcessBinding
+from true_rl_agent.runner.specs import CheckpointRef, EvalJobSpec, GpuProcessBinding, TrainJobSpec
 
 
 def bind_eval_spec_to_checkpoint(
     eval_spec: EvalJobSpec,
     checkpoint: CheckpointRef,
+    *, source_train_spec: TrainJobSpec | None = None,
 ) -> EvalJobSpec:
     if checkpoint.role != "eval" or not checkpoint.sealed:
         raise ValueError(
@@ -31,14 +32,20 @@ def bind_eval_spec_to_checkpoint(
         "program_source_checksum": eval_spec.program_source_checksum,
         "training_binding_hash": eval_spec.training_binding_hash,
         "capability_profile_hash": eval_spec.capability_profile_hash,
-        "execution_device": eval_spec.execution_device,
+        "execution_device": (
+            source_train_spec.execution_device if source_train_spec is not None else eval_spec.execution_device
+        ),
     }
     for field_name, expected in expected_lineage.items():
         if lineage.get(field_name) != expected:
             raise ValueError(
                 f"eval checkpoint lineage mismatch for {field_name}"
             )
-    expected_gpu_process_binding = eval_spec.gpu_process_binding
+    # A reused checkpoint retains the training execution's provenance while
+    # its new evaluation may run on a different device.
+    expected_gpu_process_binding = (
+        source_train_spec.gpu_process_binding if source_train_spec is not None else eval_spec.gpu_process_binding
+    )
     declared_gpu_process_binding = lineage.get("gpu_process_binding")
     if expected_gpu_process_binding is None:
         if declared_gpu_process_binding is not None:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import io
 import socket
 import ssl
 import sys
@@ -721,7 +722,7 @@ class OpenAICompatibleProviderTests(unittest.TestCase):
                         "reasoning_content": '{"candidate_id":"private"}',
                     },
                 },
-                "response_truncated",
+                "reasoning_output_exhausted",
             ),
             (
                 "nonempty_final",
@@ -733,6 +734,11 @@ class OpenAICompatibleProviderTests(unittest.TestCase):
                     },
                 },
                 "json_parse_error",
+            ),
+            (
+                "null_final_length_stopped",
+                {"finish_reason": "length", "message": {"content": None, "reasoning_content": "private"}},
+                "reasoning_output_exhausted",
             ),
         )
         for name, choice, expected_category in cases:
@@ -756,10 +762,8 @@ class OpenAICompatibleProviderTests(unittest.TestCase):
                     )
 
             self.assertEqual(caught.exception.category, expected_category)
-            self.assertNotIn(
-                "failure_kind",
-                caught.exception.to_public_dict()["details"],
-            )
+            self.assertEqual("failure_kind" in caught.exception.to_public_dict()["details"],
+                             expected_category == "reasoning_output_exhausted")
 
     def test_empty_final_retry_signal_requires_explicit_adaptive_opt_in(
         self,
@@ -810,7 +814,7 @@ class OpenAICompatibleProviderTests(unittest.TestCase):
         )
         self.assertEqual(default_adaptive["reasoning_effort"], "max")
 
-    def test_default_adaptive_mode_preserves_legacy_empty_final_failure(
+    def test_empty_final_classification_does_not_depend_on_retry_permission(
         self,
     ) -> None:
         response = {
@@ -844,11 +848,50 @@ class OpenAICompatibleProviderTests(unittest.TestCase):
 
         failure = caught.exception.to_public_dict()
         self.assertEqual(failure["category"], "json_parse_error")
-        self.assertNotIn("failure_kind", failure["details"])
+        self.assertEqual(failure["details"]["failure_kind"], PROVIDER_EMPTY_FINAL_REASONING_FAILURE_KIND)
         self.assertEqual(
             failure["reason"],
-            "candidate proposal was not valid JSON object",
+            "provider final content channel was empty",
         )
+
+    def test_capacity_receipt_uses_provider_tokens_and_compact_sent_payload(self):
+        from true_rl_agent.prompt_serialization import canonical_prompt_json
+        context = {"context_window_tokens": 16384, "max_output_tokens": 4096,
+                   "tokenizer_count_source": "provider_usage_prompt_tokens",
+                   "specification_source": "fixture model contract"}
+        response = self._response()
+        response["usage"] = {"prompt_tokens": 987, "completion_tokens": 311}
+        transport = _SequenceTransport([response])
+        with tempfile.TemporaryDirectory() as tmp:
+            config = OpenAICompatibleProviderConfig(model="fixture", output_dir=Path(tmp),
+                api_key="test-key", max_tokens=2000, model_context=context)
+            prompt = build_prompt_payload(public_context={"public_only": True})
+            result = OpenAICompatibleCandidateProvider(config, transport=transport).next_authoring_response(prompt_payload=prompt)
+        receipt = result.provider_receipt
+        self.assertEqual(receipt["input_tokens"], 987)
+        self.assertEqual(receipt["model_context"], context)
+        self.assertEqual(receipt["joint_capacity_status"], "within_declared_window")
+        self.assertEqual(normalize_provider_receipt(receipt), receipt)
+        sent = transport.calls[0]["payload"]["messages"][-1]["content"]
+        self.assertEqual(sent, canonical_prompt_json(prompt))
+        self.assertEqual(json.loads(sent), prompt)
+        self.assertNotIn('\n  "', sent)
+        from true_rl_agent.prompt_serialization import sealed_prompt_json, canonical_prompt_json_bytes
+        self.assertIn('\n  "', sealed_prompt_json({"schema_version": "true_rl_agent.prompt_payload.v4"}))
+        section = {"schema_version": "anything", "text": "unicode: \u4e2d\u6587"}
+        self.assertEqual(canonical_prompt_json_bytes(section), len(json.dumps(section, ensure_ascii=False, separators=(",", ":")).encode("utf-8")))
+        with self.assertRaisesRegex(ValueError, "capacity"):
+            OpenAICompatibleProviderConfig(model="fixture", output_dir=Path("unused"), max_tokens=5000, model_context=context)
+
+    def test_http_400_is_nonretryable_without_guessing_provider_error_semantics(self):
+        error = urllib.error.HTTPError("https://fixture.invalid", 400, "bad request", {},
+            io.BytesIO(json.dumps({"error": {"code": "context_length_exceeded", "message": "private prompt"}}).encode()))
+        with patch("urllib.request.build_opener", return_value=_FakeOpener(error=error)):
+            with self.assertRaises(ProviderCandidateError) as caught:
+                UrllibJsonTransport().post_json(url="https://fixture.invalid/chat/completions", payload={}, api_key="test-key", timeout_s=1)
+        self.assertEqual(caught.exception.category, "runtime_error")
+        self.assertFalse(caught.exception.details["retryable"])
+        self.assertNotIn("private prompt", str(caught.exception.to_public_dict()))
 
     def test_max_reasoning_effort_is_sent_only_for_thinking_requests(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

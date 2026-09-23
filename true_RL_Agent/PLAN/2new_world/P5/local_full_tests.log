@@ -1,0 +1,87 @@
+.................................ssss..............E...F...F........................................................................................................................s....................................................................................................................................................................................................................................................................s.................................s............Isaac SimulationApp close failed: close failed
+custom-source-policy
+custom-source-policy
+custom-source-policy
+custom-source-policy
+custom-source-policy
+.............................................................s.....................................F.............................................................................s........................................................................................................................................................................................................................................s...................................................................................................s.ss........................................................................................................bound child CUDA_VISIBLE_DEVICES must be one full GPU UUID
+bound child CUDA_VISIBLE_DEVICES must be one full GPU UUID
+{"status": "pass", "summary_path": "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9m46nue1\\eval-summary.json"}
+{"status": "pass", "summary_path": "C:\\Users\\lover\\AppData\\Local\\Temp\\tmp9m46nue1\\eval-summary.json"}
+....stair evaluation evidence publication failed: summary publication failed
+.backend execution environment drift
+backend execution environment drift
+.......installed source bytes drifted
+installed source bytes drifted
+..........................................................................................................................................................ss.ss.s...................................................F..........................................................................................................................................................................................{"error":"RuntimeError","message":"synthetic owned-child failure","status":"fail"}
+...{"error":"FileNotFoundError","message":"[WinError 2] 系统找不到指定的文件。: 'C:\\\\Users\\\\lover\\\\AppData\\\\Local\\\\Temp\\\\tmpnb6a8ygz\\\\leases'","status":"fail"}
+{"error":"ValueError","message":"shared GPU lease root must be an existing disjoint directory","status":"fail"}
+....................................................................s.................
+======================================================================
+ERROR: test_live_loop_repairs_provider_candidate_before_consuming_round (tests.integration.test_live_loop.LiveLoopTests.test_live_loop_repairs_provider_candidate_before_consuming_round)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_live_loop.py", line 1106, in test_live_loop_repairs_provider_candidate_before_consuming_round
+    summary = run_live_loop(
+              ^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_live_loop.py", line 91, in run_live_loop
+    return _run_live_loop(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\live_loop.py", line 187, in run_live_loop
+    result = _run_live_loop_locked(
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\live_loop.py", line 451, in _run_live_loop_locked
+    ).run_round(round_id=round_id, records=records)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_loop.py", line 527, in _run_round_locked
+    provider_response = next_authoring_response(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\authoring_response.py", line 144, in next_authoring_response
+    return CandidateDraftResponse(candidate=provider.next_candidate(prompt_payload=prompt_payload))
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_live_loop.py", line 133, in next_candidate
+    public_context = prompt_payload["public_history"]
+                     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+KeyError: 'public_history'
+
+======================================================================
+FAIL: test_next_round_prompt_uses_latest_runtime_failed_source_catalog (tests.integration.test_live_loop.LiveLoopTests.test_next_round_prompt_uses_latest_runtime_failed_source_catalog)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_live_loop.py", line 1650, in test_next_round_prompt_uses_latest_runtime_failed_source_catalog
+    self.assertEqual(len(failed_sources), 1)
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_runtime_failed_source_does_not_persist_after_success_round (tests.integration.test_live_loop.LiveLoopTests.test_runtime_failed_source_does_not_persist_after_success_round)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_live_loop.py", line 1800, in test_runtime_failed_source_does_not_persist_after_success_round
+    self.assertEqual(len(round_2_failed_sources), 1)
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_public_context_builder_saves_public_only_prompt_payload (tests.unit.test_memory_context_phase13.MemoryContextPhase13Tests.test_public_context_builder_saves_public_only_prompt_payload)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_memory_context_phase13.py", line 720, in test_public_context_builder_saves_public_only_prompt_payload
+    self.assertTrue(
+AssertionError: False is not true : {"schema_version":"true_rl_agent.prompt_payload.v5","task":{"schema_version":"tr
+
+======================================================================
+FAIL: test_task_projection_and_prompt_do_not_own_robot_morphology (tests.unit.test_stair_phase3b_contract.StairPhase3BContractTests.test_task_projection_and_prompt_do_not_own_robot_morphology)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_stair_phase3b_contract.py", line 678, in test_task_projection_and_prompt_do_not_own_robot_morphology
+    self.assertEqual(
+AssertionError: Items in the first set but not the second:
+'success_count_by_cell'
+'episodes_per_cell'
+
+----------------------------------------------------------------------
+Ran 1606 tests in 1802.038s
+
+FAILED (failures=4, errors=1, skipped=19)

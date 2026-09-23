@@ -1,0 +1,132 @@
+{
+  "automatic_retries": 0,
+  "base_seed": 42,
+  "cells": {
+    "g1": {
+      "cell_id": "push.g1_37dof.recovery_v2",
+      "device": "cuda:1",
+      "dt": 0.02,
+      "maximum_vector_steps": 824,
+      "output": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_independent_timing_20260912/g1",
+      "resolved_protocol_hash": "ff050770bf562710cbf49fe5837b7e8045a9f00d75a5ef043649bbed2302f28c",
+      "sources": {
+        "checkpoint": {
+          "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_formal_20260912/g1/runner/p6-reference-g1-20260912/checkpoints/best.pt",
+          "sha256": "sha256:0a16d82b0653a019ec7e23faaa9f18dd93e2cf5b9bb1d07c1c9674356b50243b"
+        },
+        "formal-dev-summary": {
+          "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/g1/runner/p6-reference-g1-20260912/eval/public_dev/summary.json",
+          "sha256": "sha256:42f359a60104998b3904ccffd50c2e83e29eed35e2ac79336f6da1bedb243379"
+        },
+        "manifest": {
+          "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/g1/resolved_cell_manifest.json",
+          "sha256": "sha256:412a0104ae6b8ba1e4dabcfa8b25bf9b55846dfc1905d22e23c30380319f1cb1"
+        },
+        "source-job": {
+          "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_native_dev_20260912/g1/native_dev_job.json",
+          "sha256": "sha256:1a5c99323310549239c3015966e0b9e372cd60ca7ca5b6201e5ad312f0d800ff"
+        }
+      },
+      "wrapper_command": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/run_owned_probe.py",
+        "--device",
+        "cuda:1",
+        "--output",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_independent_timing_20260912/g1_process",
+        "--timeout",
+        "900",
+        "--",
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/audit_push_episode_timing.py",
+        "capture",
+        "--source-job",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_native_dev_20260912/g1/native_dev_job.json",
+        "--formal-dev-summary",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/g1/runner/p6-reference-g1-20260912/eval/public_dev/summary.json",
+        "--manifest",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/g1/resolved_cell_manifest.json",
+        "--checkpoint",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_formal_20260912/g1/runner/p6-reference-g1-20260912/checkpoints/best.pt",
+        "--output",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_independent_timing_20260912/g1",
+        "--device",
+        "cuda:1"
+      ]
+    },
+    "go2": {
+      "cell_id": "push.go2_12dof.recovery_v2",
+      "device": "cuda:0",
+      "dt": 0.02,
+      "maximum_vector_steps": 606,
+      "output": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_independent_timing_20260912/go2",
+      "resolved_protocol_hash": "77deee1a36992c69915f6b939418c9f46db16789fd987bdb127fa27ddfa7ce4a",
+      "sources": {
+        "checkpoint": {
+          "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_formal_20260912/go2/runner/p6-reference-go2-20260912/checkpoints/best.pt",
+          "sha256": "sha256:55683f99894efeef440b07f53f1ddd9cc832e2cbcecf8d1f9dbd99262ccde5b2"
+        },
+        "formal-dev-summary": {
+          "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/go2/runner/p6-reference-go2-20260912/eval/public_dev/summary.json",
+          "sha256": "sha256:24e86fc586064513af85882ee72d7615f3c059cf71b6801312c67e81ac72cb0e"
+        },
+        "manifest": {
+          "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/go2/resolved_cell_manifest.json",
+          "sha256": "sha256:9c95810ff6523c4a699dd943a625cec3b5fa29b92922fa6381319def67732da7"
+        },
+        "source-job": {
+          "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_native_dev_20260912/go2/native_dev_job.json",
+          "sha256": "sha256:6f427659c4e8f01ebf94f6581c553e10cdc4e476b8a36e9563567a2b4853f672"
+        }
+      },
+      "wrapper_command": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/run_owned_probe.py",
+        "--device",
+        "cuda:0",
+        "--output",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_independent_timing_20260912/go2_process",
+        "--timeout",
+        "900",
+        "--",
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/audit_push_episode_timing.py",
+        "capture",
+        "--source-job",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_native_dev_20260912/go2/native_dev_job.json",
+        "--formal-dev-summary",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/go2/runner/p6-reference-go2-20260912/eval/public_dev/summary.json",
+        "--manifest",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/go2/resolved_cell_manifest.json",
+        "--checkpoint",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_formal_20260912/go2/runner/p6-reference-go2-20260912/checkpoints/best.pt",
+        "--output",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_independent_timing_20260912/go2",
+        "--device",
+        "cuda:0"
+      ]
+    }
+  },
+  "derived_public_dev_seed": 10042,
+  "diagnostic_only": true,
+  "enters_qualification": false,
+  "evaluation_environment_manifest_hash": "f0b44b6a00d6652c03a5dc38286c57331006ce0e7b311a96c474dcad72f07709",
+  "expected_product_source_hash": "eeea38f845775a77d94ecb24a19bf8faa3f8e9c8aa8265dec09e8952924223d4",
+  "frozen_at_utc": "2026-09-12T03:59:40.493383+00:00",
+  "holdout_jobs": 0,
+  "maximum_total_gpu_allocation_hours": 1,
+  "num_envs": 64,
+  "profiles": [
+    "strong_push",
+    "no_push"
+  ],
+  "provider_requests": 0,
+  "purpose": "Independent raw-state verification and same-checkpoint no-push control",
+  "run_index": 1,
+  "schema_version": "true_rl_agent.p6.independent_timing_diagnostic.v1",
+  "script_sha256": "sha256:746d22fa27f13777be1addd53bb54e1b7f2dee1c8a46144e69d13755677b5a9a",
+  "timeout_s_per_cell": 900,
+  "train_jobs": 0,
+  "video_jobs": 0,
+  "wrapper_sha256": "sha256:0f692d0ec27f50a8b4146a7fdbe69d3070cd98248be6ff92ffc265a049bcb3cd"
+}

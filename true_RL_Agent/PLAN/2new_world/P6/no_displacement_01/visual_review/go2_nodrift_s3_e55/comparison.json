@@ -1,0 +1,3209 @@
+{
+  "case_id": "go2_nodrift_s3_e55",
+  "status": "PASS",
+  "all_64_outcomes_equal": true,
+  "equal_outcome_count": 64,
+  "all_64_episode_records_equal": true,
+  "initial_xy_and_origins_exact": true,
+  "replay_seeds_including_preceding": [
+    10042,
+    10043,
+    10044
+  ],
+  "replayed_episodes_including_preceding": 192,
+  "all_valid_trajectory_arrays_exact": true,
+  "differences": {
+    "valid": {
+      "exact": true,
+      "max_abs_difference": 0.0
+    },
+    "steps": {
+      "exact": true,
+      "max_abs_difference": 0.0
+    },
+    "position": {
+      "exact": true,
+      "max_abs_difference": 0.0
+    },
+    "quaternion_xyzw": {
+      "exact": true,
+      "max_abs_difference": 0.0
+    },
+    "linear": {
+      "exact": true,
+      "max_abs_difference": 0.0
+    },
+    "angular": {
+      "exact": true,
+      "max_abs_difference": 0.0
+    },
+    "physics_control_step_before": {
+      "exact": true,
+      "max_abs_difference": 0.0
+    },
+    "physics_valid": {
+      "exact": true,
+      "max_abs_difference": 0.0
+    },
+    "physics_event_index": {
+      "exact": true,
+      "max_abs_difference": 0.0
+    },
+    "physics_requested_force_w": {
+      "exact": true,
+      "max_abs_difference": 0.0
+    },
+    "physics_delivered_force_b": {
+      "exact": true,
+      "max_abs_difference": 0.0
+    },
+    "physics_delivered_torque_b": {
+      "exact": true,
+      "max_abs_difference": 0.0
+    },
+    "physics_body_quaternion_xyzw": {
+      "exact": true,
+      "max_abs_difference": 0.0
+    },
+    "physics_body_com_position_w": {
+      "exact": true,
+      "max_abs_difference": 0.0
+    },
+    "physics_other_body_force_max": {
+      "exact": true,
+      "max_abs_difference": 0.0
+    },
+    "body_masses_kg": {
+      "exact": true,
+      "max_abs_difference": 0.0
+    },
+    "expected_force_w": {
+      "exact": true,
+      "max_abs_difference": 0.0
+    }
+  },
+  "decoded_frames": 303,
+  "metadata": {
+    "ffmpeg_version": "7.0.2-static https://johnvansickle.com/ffmpeg/ built with gcc 8 (Debian 8.3.0-6)",
+    "codec": "h264",
+    "pix_fmt": "yuv420p(progressive)",
+    "fps": 50.0,
+    "source_size": [
+      1280,
+      720
+    ],
+    "size": [
+      1280,
+      720
+    ],
+    "rotate": 0,
+    "duration": 6.06
+  },
+  "selected_episode": {
+    "env_id": 55,
+    "episode_steps": 303,
+    "failure_label": "success_recovered",
+    "final_xy_drift_m": 1.4850032329559326,
+    "first_old_boundary_crossing_control_step": 97,
+    "force_events": [
+      {
+        "actual_substeps": 44,
+        "completed": true,
+        "delivered_impulse_world_ns": [
+          -30.339555740356445,
+          -35.299583435058594,
+          -2.3752450317715557e-07
+        ],
+        "end_control_step": 62,
+        "event_index": 0,
+        "expected_substeps": 44,
+        "force_world_n": [
+          -137.9070281982422,
+          -160.45266723632812,
+          0.0
+        ],
+        "injection_verified": true,
+        "start_control_step": 51
+      },
+      {
+        "actual_substeps": 44,
+        "completed": true,
+        "delivered_impulse_world_ns": [
+          35.29958724975586,
+          -30.339561462402344,
+          -6.19888282926695e-07
+        ],
+        "end_control_step": 84,
+        "event_index": 1,
+        "expected_substeps": 44,
+        "force_world_n": [
+          160.4527130126953,
+          -137.90701293945312,
+          0.0
+        ],
+        "injection_verified": true,
+        "start_control_step": 73
+      }
+    ],
+    "invalid_injection_count": 0,
+    "max_xy_drift_m": 1.4906160831451416,
+    "planned_push_count": 2,
+    "sequence_recovered": true,
+    "sequence_recovery_control_step": 135,
+    "stratum": "repeated",
+    "success": true
+  },
+  "keyframe_steps": [
+    1,
+    51,
+    62,
+    73,
+    84,
+    88,
+    89,
+    104,
+    135,
+    303
+  ],
+  "frame_facts": [
+    {
+      "step": 1,
+      "time_s": 0.02,
+      "force_n": 0.0,
+      "tilt_deg": 0.5066407530406831,
+      "height_m": 0.4010235071182251,
+      "speed_mps": 0.037804488092660904,
+      "angular_radps": 0.5573413968086243,
+      "stable": true
+    },
+    {
+      "step": 2,
+      "time_s": 0.04,
+      "force_n": 0.0,
+      "tilt_deg": 1.362022092960933,
+      "height_m": 0.3988749086856842,
+      "speed_mps": 0.044393643736839294,
+      "angular_radps": 1.000226378440857,
+      "stable": true
+    },
+    {
+      "step": 3,
+      "time_s": 0.06,
+      "force_n": 0.0,
+      "tilt_deg": 0.6471255791949966,
+      "height_m": 0.3957292437553406,
+      "speed_mps": 0.06074180081486702,
+      "angular_radps": 1.47318434715271,
+      "stable": true
+    },
+    {
+      "step": 4,
+      "time_s": 0.08,
+      "force_n": 0.0,
+      "tilt_deg": 1.3200197983207256,
+      "height_m": 0.39661020040512085,
+      "speed_mps": 0.0823727548122406,
+      "angular_radps": 1.0949301719665527,
+      "stable": true
+    },
+    {
+      "step": 5,
+      "time_s": 0.1,
+      "force_n": 0.0,
+      "tilt_deg": 1.9128930730708602,
+      "height_m": 0.39936426281929016,
+      "speed_mps": 0.09880498796701431,
+      "angular_radps": 0.6197769641876221,
+      "stable": true
+    },
+    {
+      "step": 6,
+      "time_s": 0.12,
+      "force_n": 0.0,
+      "tilt_deg": 1.6740179635634693,
+      "height_m": 0.40235087275505066,
+      "speed_mps": 0.08905860036611557,
+      "angular_radps": 0.2921728193759918,
+      "stable": true
+    },
+    {
+      "step": 7,
+      "time_s": 0.14,
+      "force_n": 0.0,
+      "tilt_deg": 1.3540419425032715,
+      "height_m": 0.4044419527053833,
+      "speed_mps": 0.0689450278878212,
+      "angular_radps": 0.6844944357872009,
+      "stable": true
+    },
+    {
+      "step": 8,
+      "time_s": 0.16,
+      "force_n": 0.0,
+      "tilt_deg": 1.68026062098607,
+      "height_m": 0.40523561835289,
+      "speed_mps": 0.06382149457931519,
+      "angular_radps": 0.5658543109893799,
+      "stable": true
+    },
+    {
+      "step": 9,
+      "time_s": 0.18,
+      "force_n": 0.0,
+      "tilt_deg": 1.626868379151068,
+      "height_m": 0.4045206308364868,
+      "speed_mps": 0.06517954170703888,
+      "angular_radps": 0.2253640592098236,
+      "stable": true
+    },
+    {
+      "step": 10,
+      "time_s": 0.2,
+      "force_n": 0.0,
+      "tilt_deg": 1.5556949041394421,
+      "height_m": 0.4038926661014557,
+      "speed_mps": 0.05208660289645195,
+      "angular_radps": 0.3046550750732422,
+      "stable": true
+    },
+    {
+      "step": 11,
+      "time_s": 0.22,
+      "force_n": 0.0,
+      "tilt_deg": 1.4225540195428066,
+      "height_m": 0.40395066142082214,
+      "speed_mps": 0.040168602019548416,
+      "angular_radps": 0.41617104411125183,
+      "stable": true
+    },
+    {
+      "step": 12,
+      "time_s": 0.24,
+      "force_n": 0.0,
+      "tilt_deg": 1.3374023082200235,
+      "height_m": 0.4041747450828552,
+      "speed_mps": 0.03548366576433182,
+      "angular_radps": 0.5430455803871155,
+      "stable": true
+    },
+    {
+      "step": 13,
+      "time_s": 0.26,
+      "force_n": 0.0,
+      "tilt_deg": 1.1997033053327273,
+      "height_m": 0.40418949723243713,
+      "speed_mps": 0.036586880683898926,
+      "angular_radps": 0.4207914471626282,
+      "stable": true
+    },
+    {
+      "step": 14,
+      "time_s": 0.28,
+      "force_n": 0.0,
+      "tilt_deg": 0.9976356311457283,
+      "height_m": 0.4037612974643707,
+      "speed_mps": 0.04195224493741989,
+      "angular_radps": 0.5422411561012268,
+      "stable": true
+    },
+    {
+      "step": 15,
+      "time_s": 0.3,
+      "force_n": 0.0,
+      "tilt_deg": 0.8521889551414036,
+      "height_m": 0.4034023880958557,
+      "speed_mps": 0.054346587508916855,
+      "angular_radps": 0.5535460114479065,
+      "stable": true
+    },
+    {
+      "step": 16,
+      "time_s": 0.32,
+      "force_n": 0.0,
+      "tilt_deg": 1.1539736816493096,
+      "height_m": 0.4033883512020111,
+      "speed_mps": 0.059987813234329224,
+      "angular_radps": 0.32525506615638733,
+      "stable": true
+    },
+    {
+      "step": 17,
+      "time_s": 0.34,
+      "force_n": 0.0,
+      "tilt_deg": 0.8596394104058344,
+      "height_m": 0.40363356471061707,
+      "speed_mps": 0.03927074000239372,
+      "angular_radps": 0.4319722354412079,
+      "stable": true
+    },
+    {
+      "step": 18,
+      "time_s": 0.36,
+      "force_n": 0.0,
+      "tilt_deg": 0.713653659145548,
+      "height_m": 0.40330764651298523,
+      "speed_mps": 0.014733429998159409,
+      "angular_radps": 0.28921669721603394,
+      "stable": true
+    },
+    {
+      "step": 19,
+      "time_s": 0.38,
+      "force_n": 0.0,
+      "tilt_deg": 0.7795427226811982,
+      "height_m": 0.4031042754650116,
+      "speed_mps": 0.012714279815554619,
+      "angular_radps": 0.22438500821590424,
+      "stable": true
+    },
+    {
+      "step": 20,
+      "time_s": 0.4,
+      "force_n": 0.0,
+      "tilt_deg": 0.7832880452313312,
+      "height_m": 0.4031153619289398,
+      "speed_mps": 0.018020708113908768,
+      "angular_radps": 0.025355124846100807,
+      "stable": true
+    },
+    {
+      "step": 21,
+      "time_s": 0.42,
+      "force_n": 0.0,
+      "tilt_deg": 0.7702906283279394,
+      "height_m": 0.40314948558807373,
+      "speed_mps": 0.016550326719880104,
+      "angular_radps": 0.01977563463151455,
+      "stable": true
+    },
+    {
+      "step": 22,
+      "time_s": 0.44,
+      "force_n": 0.0,
+      "tilt_deg": 0.7602537773275625,
+      "height_m": 0.40320152044296265,
+      "speed_mps": 0.016005298122763634,
+      "angular_radps": 0.024834435433149338,
+      "stable": true
+    },
+    {
+      "step": 23,
+      "time_s": 0.46,
+      "force_n": 0.0,
+      "tilt_deg": 0.7491283269590892,
+      "height_m": 0.40323877334594727,
+      "speed_mps": 0.015447632409632206,
+      "angular_radps": 0.03910153731703758,
+      "stable": true
+    },
+    {
+      "step": 24,
+      "time_s": 0.48,
+      "force_n": 0.0,
+      "tilt_deg": 0.7444546390625667,
+      "height_m": 0.4032613933086395,
+      "speed_mps": 0.015011163428425789,
+      "angular_radps": 0.05814239755272865,
+      "stable": true
+    },
+    {
+      "step": 25,
+      "time_s": 0.5,
+      "force_n": 0.0,
+      "tilt_deg": 0.7418136601628771,
+      "height_m": 0.40327128767967224,
+      "speed_mps": 0.014809723943471909,
+      "angular_radps": 0.053904324769973755,
+      "stable": true
+    },
+    {
+      "step": 26,
+      "time_s": 0.52,
+      "force_n": 0.0,
+      "tilt_deg": 0.7404065139780479,
+      "height_m": 0.40327900648117065,
+      "speed_mps": 0.014762649312615395,
+      "angular_radps": 0.051032185554504395,
+      "stable": true
+    },
+    {
+      "step": 27,
+      "time_s": 0.54,
+      "force_n": 0.0,
+      "tilt_deg": 0.7382575897192987,
+      "height_m": 0.40329059958457947,
+      "speed_mps": 0.01480127964168787,
+      "angular_radps": 0.03939272090792656,
+      "stable": true
+    },
+    {
+      "step": 28,
+      "time_s": 0.56,
+      "force_n": 0.0,
+      "tilt_deg": 0.7345459313102651,
+      "height_m": 0.4033064842224121,
+      "speed_mps": 0.014645135961472988,
+      "angular_radps": 0.03600284829735756,
+      "stable": true
+    },
+    {
+      "step": 29,
+      "time_s": 0.58,
+      "force_n": 0.0,
+      "tilt_deg": 0.7302502228915105,
+      "height_m": 0.40332379937171936,
+      "speed_mps": 0.014406896196305752,
+      "angular_radps": 0.033233895897865295,
+      "stable": true
+    },
+    {
+      "step": 30,
+      "time_s": 0.6,
+      "force_n": 0.0,
+      "tilt_deg": 0.7267647567559243,
+      "height_m": 0.4033415615558624,
+      "speed_mps": 0.014154283329844475,
+      "angular_radps": 0.03437318280339241,
+      "stable": true
+    },
+    {
+      "step": 31,
+      "time_s": 0.62,
+      "force_n": 0.0,
+      "tilt_deg": 0.7217638639150946,
+      "height_m": 0.40335795283317566,
+      "speed_mps": 0.013897689990699291,
+      "angular_radps": 0.03446854650974274,
+      "stable": true
+    },
+    {
+      "step": 32,
+      "time_s": 0.64,
+      "force_n": 0.0,
+      "tilt_deg": 0.7176951371240597,
+      "height_m": 0.403375506401062,
+      "speed_mps": 0.013597982935607433,
+      "angular_radps": 0.03134797513484955,
+      "stable": true
+    },
+    {
+      "step": 33,
+      "time_s": 0.66,
+      "force_n": 0.0,
+      "tilt_deg": 0.713000127116937,
+      "height_m": 0.40339162945747375,
+      "speed_mps": 0.013378249481320381,
+      "angular_radps": 0.031918302178382874,
+      "stable": true
+    },
+    {
+      "step": 34,
+      "time_s": 0.68,
+      "force_n": 0.0,
+      "tilt_deg": 0.7089001256490447,
+      "height_m": 0.40340763330459595,
+      "speed_mps": 0.013111515901982784,
+      "angular_radps": 0.030962759628891945,
+      "stable": true
+    },
+    {
+      "step": 35,
+      "time_s": 0.7000000000000001,
+      "force_n": 0.0,
+      "tilt_deg": 0.7047204965767669,
+      "height_m": 0.4034259617328644,
+      "speed_mps": 0.012852150946855545,
+      "angular_radps": 0.03208942711353302,
+      "stable": true
+    },
+    {
+      "step": 36,
+      "time_s": 0.72,
+      "force_n": 0.0,
+      "tilt_deg": 0.7004385875846028,
+      "height_m": 0.4034404158592224,
+      "speed_mps": 0.01265900582075119,
+      "angular_radps": 0.027114732190966606,
+      "stable": true
+    },
+    {
+      "step": 37,
+      "time_s": 0.74,
+      "force_n": 0.0,
+      "tilt_deg": 0.6964874857440032,
+      "height_m": 0.4034545421600342,
+      "speed_mps": 0.012496409006416798,
+      "angular_radps": 0.02930280938744545,
+      "stable": true
+    },
+    {
+      "step": 38,
+      "time_s": 0.76,
+      "force_n": 0.0,
+      "tilt_deg": 0.6920530202658772,
+      "height_m": 0.40346941351890564,
+      "speed_mps": 0.012212037108838558,
+      "angular_radps": 0.0270069669932127,
+      "stable": true
+    },
+    {
+      "step": 39,
+      "time_s": 0.78,
+      "force_n": 0.0,
+      "tilt_deg": 0.6878940619928968,
+      "height_m": 0.4034864604473114,
+      "speed_mps": 0.011885320767760277,
+      "angular_radps": 0.028026090934872627,
+      "stable": true
+    },
+    {
+      "step": 40,
+      "time_s": 0.8,
+      "force_n": 0.0,
+      "tilt_deg": 0.683552423287863,
+      "height_m": 0.40350040793418884,
+      "speed_mps": 0.01164225209504366,
+      "angular_radps": 0.028817256912589073,
+      "stable": true
+    },
+    {
+      "step": 41,
+      "time_s": 0.8200000000000001,
+      "force_n": 0.0,
+      "tilt_deg": 0.6799395783996753,
+      "height_m": 0.40351319313049316,
+      "speed_mps": 0.011448008008301258,
+      "angular_radps": 0.027156438678503036,
+      "stable": true
+    },
+    {
+      "step": 42,
+      "time_s": 0.84,
+      "force_n": 0.0,
+      "tilt_deg": 0.6765525686190413,
+      "height_m": 0.40352752804756165,
+      "speed_mps": 0.011238190345466137,
+      "angular_radps": 0.027843564748764038,
+      "stable": true
+    },
+    {
+      "step": 43,
+      "time_s": 0.86,
+      "force_n": 0.0,
+      "tilt_deg": 0.6725867083071679,
+      "height_m": 0.4035393297672272,
+      "speed_mps": 0.011016993783414364,
+      "angular_radps": 0.02612362615764141,
+      "stable": true
+    },
+    {
+      "step": 44,
+      "time_s": 0.88,
+      "force_n": 0.0,
+      "tilt_deg": 0.6687811863091504,
+      "height_m": 0.4035528898239136,
+      "speed_mps": 0.010798335075378418,
+      "angular_radps": 0.02570684812963009,
+      "stable": true
+    },
+    {
+      "step": 45,
+      "time_s": 0.9,
+      "force_n": 0.0,
+      "tilt_deg": 0.6648920902037108,
+      "height_m": 0.4035658836364746,
+      "speed_mps": 0.010577218607068062,
+      "angular_radps": 0.025730891153216362,
+      "stable": true
+    },
+    {
+      "step": 46,
+      "time_s": 0.92,
+      "force_n": 0.0,
+      "tilt_deg": 0.6612103505435133,
+      "height_m": 0.4035784602165222,
+      "speed_mps": 0.010375427082180977,
+      "angular_radps": 0.025229929015040398,
+      "stable": true
+    },
+    {
+      "step": 47,
+      "time_s": 0.9400000000000001,
+      "force_n": 0.0,
+      "tilt_deg": 0.6575435357427895,
+      "height_m": 0.40359020233154297,
+      "speed_mps": 0.010185169987380505,
+      "angular_radps": 0.02553323656320572,
+      "stable": true
+    },
+    {
+      "step": 48,
+      "time_s": 0.96,
+      "force_n": 0.0,
+      "tilt_deg": 0.6539813410308196,
+      "height_m": 0.4036019742488861,
+      "speed_mps": 0.009985829703509808,
+      "angular_radps": 0.02465827949345112,
+      "stable": true
+    },
+    {
+      "step": 49,
+      "time_s": 0.98,
+      "force_n": 0.0,
+      "tilt_deg": 0.6504830472701953,
+      "height_m": 0.40361395478248596,
+      "speed_mps": 0.009789344854652882,
+      "angular_radps": 0.02386803738772869,
+      "stable": true
+    },
+    {
+      "step": 50,
+      "time_s": 1.0,
+      "force_n": 0.0,
+      "tilt_deg": 0.6479555799611799,
+      "height_m": 0.40362411737442017,
+      "speed_mps": 0.009635129943490028,
+      "angular_radps": 0.025035163387656212,
+      "stable": true
+    },
+    {
+      "step": 51,
+      "time_s": 1.02,
+      "force_n": 0.0,
+      "tilt_deg": 0.6437570363889232,
+      "height_m": 0.40363481640815735,
+      "speed_mps": 0.009451320394873619,
+      "angular_radps": 0.023169156163930893,
+      "stable": true
+    },
+    {
+      "step": 52,
+      "time_s": 1.04,
+      "force_n": 211.57363891601562,
+      "tilt_deg": 0.6614703208006267,
+      "height_m": 0.40358874201774597,
+      "speed_mps": 0.2932235300540924,
+      "angular_radps": 0.5179563164710999,
+      "stable": false
+    },
+    {
+      "step": 53,
+      "time_s": 1.06,
+      "force_n": 211.57363891601562,
+      "tilt_deg": 0.5246965360078747,
+      "height_m": 0.4042194187641144,
+      "speed_mps": 0.48838111758232117,
+      "angular_radps": 0.13564519584178925,
+      "stable": false
+    },
+    {
+      "step": 54,
+      "time_s": 1.08,
+      "force_n": 211.57363891601562,
+      "tilt_deg": 0.5820746298847179,
+      "height_m": 0.4052867293357849,
+      "speed_mps": 0.6542177796363831,
+      "angular_radps": 0.5202201008796692,
+      "stable": false
+    },
+    {
+      "step": 55,
+      "time_s": 1.1,
+      "force_n": 211.57363891601562,
+      "tilt_deg": 0.8267598238857888,
+      "height_m": 0.40689367055892944,
+      "speed_mps": 0.8204058408737183,
+      "angular_radps": 0.5384891033172607,
+      "stable": false
+    },
+    {
+      "step": 56,
+      "time_s": 1.12,
+      "force_n": 211.57363891601562,
+      "tilt_deg": 1.519925487083655,
+      "height_m": 0.4096392095088959,
+      "speed_mps": 1.002410888671875,
+      "angular_radps": 1.2723788022994995,
+      "stable": false
+    },
+    {
+      "step": 57,
+      "time_s": 1.1400000000000001,
+      "force_n": 211.57363891601562,
+      "tilt_deg": 2.831753527517683,
+      "height_m": 0.41202184557914734,
+      "speed_mps": 1.210670828819275,
+      "angular_radps": 1.7176464796066284,
+      "stable": false
+    },
+    {
+      "step": 58,
+      "time_s": 1.16,
+      "force_n": 211.57363891601562,
+      "tilt_deg": 6.300979134222999,
+      "height_m": 0.4088735282421112,
+      "speed_mps": 1.39589524269104,
+      "angular_radps": 3.423217535018921,
+      "stable": false
+    },
+    {
+      "step": 59,
+      "time_s": 1.18,
+      "force_n": 211.57363891601562,
+      "tilt_deg": 6.667103245922728,
+      "height_m": 0.4019666016101837,
+      "speed_mps": 1.6406676769256592,
+      "angular_radps": 1.893475890159607,
+      "stable": false
+    },
+    {
+      "step": 60,
+      "time_s": 1.2,
+      "force_n": 211.57363891601562,
+      "tilt_deg": 7.371510791785469,
+      "height_m": 0.3986400365829468,
+      "speed_mps": 1.848930835723877,
+      "angular_radps": 2.5544254779815674,
+      "stable": false
+    },
+    {
+      "step": 61,
+      "time_s": 1.22,
+      "force_n": 211.57363891601562,
+      "tilt_deg": 8.60557376890877,
+      "height_m": 0.40042924880981445,
+      "speed_mps": 2.0597779750823975,
+      "angular_radps": 1.328027367591858,
+      "stable": false
+    },
+    {
+      "step": 62,
+      "time_s": 1.24,
+      "force_n": 211.57363891601562,
+      "tilt_deg": 8.61940576043452,
+      "height_m": 0.40779221057891846,
+      "speed_mps": 2.1738791465759277,
+      "angular_radps": 1.8127424716949463,
+      "stable": false
+    },
+    {
+      "step": 63,
+      "time_s": 1.26,
+      "force_n": 0.0,
+      "tilt_deg": 10.493456970729602,
+      "height_m": 0.4108871519565582,
+      "speed_mps": 2.14021372795105,
+      "angular_radps": 3.634225368499756,
+      "stable": false
+    },
+    {
+      "step": 64,
+      "time_s": 1.28,
+      "force_n": 0.0,
+      "tilt_deg": 9.685458056994829,
+      "height_m": 0.40595370531082153,
+      "speed_mps": 2.0633223056793213,
+      "angular_radps": 3.4369699954986572,
+      "stable": false
+    },
+    {
+      "step": 65,
+      "time_s": 1.3,
+      "force_n": 0.0,
+      "tilt_deg": 8.375762894465744,
+      "height_m": 0.39648735523223877,
+      "speed_mps": 2.1010892391204834,
+      "angular_radps": 3.061253547668457,
+      "stable": false
+    },
+    {
+      "step": 66,
+      "time_s": 1.32,
+      "force_n": 0.0,
+      "tilt_deg": 7.051397009080884,
+      "height_m": 0.3903653919696808,
+      "speed_mps": 1.933741807937622,
+      "angular_radps": 2.5082337856292725,
+      "stable": false
+    },
+    {
+      "step": 67,
+      "time_s": 1.34,
+      "force_n": 0.0,
+      "tilt_deg": 5.918435935437046,
+      "height_m": 0.38788560032844543,
+      "speed_mps": 1.8770246505737305,
+      "angular_radps": 1.5973434448242188,
+      "stable": false
+    },
+    {
+      "step": 68,
+      "time_s": 1.36,
+      "force_n": 0.0,
+      "tilt_deg": 6.7161259496436125,
+      "height_m": 0.38232988119125366,
+      "speed_mps": 1.7942004203796387,
+      "angular_radps": 0.9302060604095459,
+      "stable": false
+    },
+    {
+      "step": 69,
+      "time_s": 1.3800000000000001,
+      "force_n": 0.0,
+      "tilt_deg": 7.292506215630494,
+      "height_m": 0.3719749450683594,
+      "speed_mps": 1.7266765832901,
+      "angular_radps": 1.7685734033584595,
+      "stable": false
+    },
+    {
+      "step": 70,
+      "time_s": 1.4000000000000001,
+      "force_n": 0.0,
+      "tilt_deg": 7.298345906161072,
+      "height_m": 0.35771283507347107,
+      "speed_mps": 1.7168045043945312,
+      "angular_radps": 1.9290730953216553,
+      "stable": false
+    },
+    {
+      "step": 71,
+      "time_s": 1.42,
+      "force_n": 0.0,
+      "tilt_deg": 6.556787881620934,
+      "height_m": 0.34119555354118347,
+      "speed_mps": 1.6778653860092163,
+      "angular_radps": 1.382261037826538,
+      "stable": false
+    },
+    {
+      "step": 72,
+      "time_s": 1.44,
+      "force_n": 0.0,
+      "tilt_deg": 6.98718215038082,
+      "height_m": 0.32581135630607605,
+      "speed_mps": 1.6225864887237549,
+      "angular_radps": 1.7006086111068726,
+      "stable": false
+    },
+    {
+      "step": 73,
+      "time_s": 1.46,
+      "force_n": 0.0,
+      "tilt_deg": 8.182889593590039,
+      "height_m": 0.31481918692588806,
+      "speed_mps": 1.3642854690551758,
+      "angular_radps": 1.5081874132156372,
+      "stable": false
+    },
+    {
+      "step": 74,
+      "time_s": 1.48,
+      "force_n": 211.5736541748047,
+      "tilt_deg": 8.711227976353308,
+      "height_m": 0.306964635848999,
+      "speed_mps": 1.1746177673339844,
+      "angular_radps": 1.7660616636276245,
+      "stable": false
+    },
+    {
+      "step": 75,
+      "time_s": 1.5,
+      "force_n": 211.5736541748047,
+      "tilt_deg": 9.358479530909765,
+      "height_m": 0.3030349314212799,
+      "speed_mps": 1.128388524055481,
+      "angular_radps": 1.289288878440857,
+      "stable": false
+    },
+    {
+      "step": 76,
+      "time_s": 1.52,
+      "force_n": 211.5736541748047,
+      "tilt_deg": 9.486786686730925,
+      "height_m": 0.30262166261672974,
+      "speed_mps": 1.1845147609710693,
+      "angular_radps": 2.4069883823394775,
+      "stable": false
+    },
+    {
+      "step": 77,
+      "time_s": 1.54,
+      "force_n": 211.5736541748047,
+      "tilt_deg": 8.414050081069286,
+      "height_m": 0.3043992519378662,
+      "speed_mps": 1.2982754707336426,
+      "angular_radps": 2.4312283992767334,
+      "stable": false
+    },
+    {
+      "step": 78,
+      "time_s": 1.56,
+      "force_n": 211.5736541748047,
+      "tilt_deg": 10.684600373534622,
+      "height_m": 0.3093341588973999,
+      "speed_mps": 1.4068633317947388,
+      "angular_radps": 3.0662453174591064,
+      "stable": false
+    },
+    {
+      "step": 79,
+      "time_s": 1.58,
+      "force_n": 211.5736541748047,
+      "tilt_deg": 13.833247702583385,
+      "height_m": 0.317371129989624,
+      "speed_mps": 1.5734105110168457,
+      "angular_radps": 2.6742823123931885,
+      "stable": false
+    },
+    {
+      "step": 80,
+      "time_s": 1.6,
+      "force_n": 211.5736541748047,
+      "tilt_deg": 16.158262545357903,
+      "height_m": 0.3266335427761078,
+      "speed_mps": 1.7714170217514038,
+      "angular_radps": 1.8936821222305298,
+      "stable": false
+    },
+    {
+      "step": 81,
+      "time_s": 1.62,
+      "force_n": 211.5736541748047,
+      "tilt_deg": 16.567780135234834,
+      "height_m": 0.3298024535179138,
+      "speed_mps": 1.8676800727844238,
+      "angular_radps": 2.271467685699463,
+      "stable": false
+    },
+    {
+      "step": 82,
+      "time_s": 1.6400000000000001,
+      "force_n": 211.5736541748047,
+      "tilt_deg": 11.655038480504231,
+      "height_m": 0.33142977952957153,
+      "speed_mps": 1.981871485710144,
+      "angular_radps": 4.726414203643799,
+      "stable": false
+    },
+    {
+      "step": 83,
+      "time_s": 1.6600000000000001,
+      "force_n": 211.5736541748047,
+      "tilt_deg": 15.98619225400437,
+      "height_m": 0.3374444544315338,
+      "speed_mps": 2.110595464706421,
+      "angular_radps": 6.231505870819092,
+      "stable": false
+    },
+    {
+      "step": 84,
+      "time_s": 1.68,
+      "force_n": 211.5736541748047,
+      "tilt_deg": 23.10081319479862,
+      "height_m": 0.3497978746891022,
+      "speed_mps": 2.635641098022461,
+      "angular_radps": 6.631926536560059,
+      "stable": false
+    },
+    {
+      "step": 85,
+      "time_s": 1.7,
+      "force_n": 0.0,
+      "tilt_deg": 20.72732212904762,
+      "height_m": 0.35545969009399414,
+      "speed_mps": 2.514331817626953,
+      "angular_radps": 1.6303640604019165,
+      "stable": false
+    },
+    {
+      "step": 86,
+      "time_s": 1.72,
+      "force_n": 0.0,
+      "tilt_deg": 28.177136596102926,
+      "height_m": 0.35376325249671936,
+      "speed_mps": 2.2871665954589844,
+      "angular_radps": 6.951387882232666,
+      "stable": false
+    },
+    {
+      "step": 87,
+      "time_s": 1.74,
+      "force_n": 0.0,
+      "tilt_deg": 30.557195402110338,
+      "height_m": 0.3492138385772705,
+      "speed_mps": 2.1873116493225098,
+      "angular_radps": 0.7127940654754639,
+      "stable": false
+    },
+    {
+      "step": 88,
+      "time_s": 1.76,
+      "force_n": 0.0,
+      "tilt_deg": 36.097280472475745,
+      "height_m": 0.3458556532859802,
+      "speed_mps": 2.411677837371826,
+      "angular_radps": 5.104300022125244,
+      "stable": false
+    },
+    {
+      "step": 89,
+      "time_s": 1.78,
+      "force_n": 0.0,
+      "tilt_deg": 34.20103984613906,
+      "height_m": 0.3469499945640564,
+      "speed_mps": 2.8236019611358643,
+      "angular_radps": 5.351327419281006,
+      "stable": false
+    },
+    {
+      "step": 90,
+      "time_s": 1.8,
+      "force_n": 0.0,
+      "tilt_deg": 33.94010210458531,
+      "height_m": 0.3485868573188782,
+      "speed_mps": 2.8024742603302,
+      "angular_radps": 2.707552909851074,
+      "stable": false
+    },
+    {
+      "step": 91,
+      "time_s": 1.82,
+      "force_n": 0.0,
+      "tilt_deg": 27.64616455782735,
+      "height_m": 0.3434674143791199,
+      "speed_mps": 2.5175023078918457,
+      "angular_radps": 5.19078254699707,
+      "stable": false
+    },
+    {
+      "step": 92,
+      "time_s": 1.84,
+      "force_n": 0.0,
+      "tilt_deg": 20.19168672161691,
+      "height_m": 0.3315688669681549,
+      "speed_mps": 2.263343334197998,
+      "angular_radps": 7.6364898681640625,
+      "stable": false
+    },
+    {
+      "step": 93,
+      "time_s": 1.86,
+      "force_n": 0.0,
+      "tilt_deg": 23.225431483683252,
+      "height_m": 0.31830549240112305,
+      "speed_mps": 2.3074285984039307,
+      "angular_radps": 4.956958293914795,
+      "stable": false
+    },
+    {
+      "step": 94,
+      "time_s": 1.8800000000000001,
+      "force_n": 0.0,
+      "tilt_deg": 26.281679036514053,
+      "height_m": 0.31024783849716187,
+      "speed_mps": 2.6604154109954834,
+      "angular_radps": 3.79695200920105,
+      "stable": false
+    },
+    {
+      "step": 95,
+      "time_s": 1.9000000000000001,
+      "force_n": 0.0,
+      "tilt_deg": 27.3810853394183,
+      "height_m": 0.3042048215866089,
+      "speed_mps": 2.3651323318481445,
+      "angular_radps": 4.002203464508057,
+      "stable": false
+    },
+    {
+      "step": 96,
+      "time_s": 1.92,
+      "force_n": 0.0,
+      "tilt_deg": 24.674517157391442,
+      "height_m": 0.29307880997657776,
+      "speed_mps": 2.269038677215576,
+      "angular_radps": 4.527303218841553,
+      "stable": false
+    },
+    {
+      "step": 97,
+      "time_s": 1.94,
+      "force_n": 0.0,
+      "tilt_deg": 21.578965331858,
+      "height_m": 0.27864405512809753,
+      "speed_mps": 2.0845468044281006,
+      "angular_radps": 5.6121649742126465,
+      "stable": false
+    },
+    {
+      "step": 98,
+      "time_s": 1.96,
+      "force_n": 0.0,
+      "tilt_deg": 20.02150306018165,
+      "height_m": 0.2658863663673401,
+      "speed_mps": 2.1230335235595703,
+      "angular_radps": 3.1508119106292725,
+      "stable": false
+    },
+    {
+      "step": 99,
+      "time_s": 1.98,
+      "force_n": 0.0,
+      "tilt_deg": 18.637949780910947,
+      "height_m": 0.25789904594421387,
+      "speed_mps": 2.022186756134033,
+      "angular_radps": 1.3718105554580688,
+      "stable": false
+    },
+    {
+      "step": 100,
+      "time_s": 2.0,
+      "force_n": 0.0,
+      "tilt_deg": 14.452631544934116,
+      "height_m": 0.25092655420303345,
+      "speed_mps": 1.8702946901321411,
+      "angular_radps": 5.092803001403809,
+      "stable": false
+    },
+    {
+      "step": 101,
+      "time_s": 2.02,
+      "force_n": 0.0,
+      "tilt_deg": 9.555128286505568,
+      "height_m": 0.24073566496372223,
+      "speed_mps": 1.7344839572906494,
+      "angular_radps": 4.978728771209717,
+      "stable": false
+    },
+    {
+      "step": 102,
+      "time_s": 2.04,
+      "force_n": 0.0,
+      "tilt_deg": 7.959671596351283,
+      "height_m": 0.23505225777626038,
+      "speed_mps": 1.5739351511001587,
+      "angular_radps": 3.995246410369873,
+      "stable": false
+    },
+    {
+      "step": 103,
+      "time_s": 2.06,
+      "force_n": 0.0,
+      "tilt_deg": 6.446032025426835,
+      "height_m": 0.23195843398571014,
+      "speed_mps": 1.373816967010498,
+      "angular_radps": 5.366397380828857,
+      "stable": false
+    },
+    {
+      "step": 104,
+      "time_s": 2.08,
+      "force_n": 0.0,
+      "tilt_deg": 3.836747210702285,
+      "height_m": 0.22934769093990326,
+      "speed_mps": 1.1859838962554932,
+      "angular_radps": 2.4761393070220947,
+      "stable": false
+    },
+    {
+      "step": 105,
+      "time_s": 2.1,
+      "force_n": 0.0,
+      "tilt_deg": 2.115761853097353,
+      "height_m": 0.22988411784172058,
+      "speed_mps": 0.9947310090065002,
+      "angular_radps": 2.208662986755371,
+      "stable": false
+    },
+    {
+      "step": 106,
+      "time_s": 2.12,
+      "force_n": 0.0,
+      "tilt_deg": 1.5102358547529995,
+      "height_m": 0.2340998351573944,
+      "speed_mps": 0.7950042486190796,
+      "angular_radps": 1.6581997871398926,
+      "stable": false
+    },
+    {
+      "step": 107,
+      "time_s": 2.14,
+      "force_n": 0.0,
+      "tilt_deg": 1.4394431743716096,
+      "height_m": 0.2415946125984192,
+      "speed_mps": 0.626328706741333,
+      "angular_radps": 1.5432047843933105,
+      "stable": false
+    },
+    {
+      "step": 108,
+      "time_s": 2.16,
+      "force_n": 0.0,
+      "tilt_deg": 1.2849052171434678,
+      "height_m": 0.25146403908729553,
+      "speed_mps": 0.5139085054397583,
+      "angular_radps": 1.1336251497268677,
+      "stable": false
+    },
+    {
+      "step": 109,
+      "time_s": 2.18,
+      "force_n": 0.0,
+      "tilt_deg": 1.1027618142213522,
+      "height_m": 0.2628822922706604,
+      "speed_mps": 0.42812293767929077,
+      "angular_radps": 0.8202172517776489,
+      "stable": false
+    },
+    {
+      "step": 110,
+      "time_s": 2.2,
+      "force_n": 0.0,
+      "tilt_deg": 1.412654978402174,
+      "height_m": 0.2757563889026642,
+      "speed_mps": 0.3309425413608551,
+      "angular_radps": 0.3919527530670166,
+      "stable": false
+    },
+    {
+      "step": 111,
+      "time_s": 2.22,
+      "force_n": 0.0,
+      "tilt_deg": 0.9426308315302911,
+      "height_m": 0.2897469401359558,
+      "speed_mps": 0.27075743675231934,
+      "angular_radps": 0.4152929186820984,
+      "stable": false
+    },
+    {
+      "step": 112,
+      "time_s": 2.24,
+      "force_n": 0.0,
+      "tilt_deg": 1.055091042211038,
+      "height_m": 0.3042696714401245,
+      "speed_mps": 0.20619314908981323,
+      "angular_radps": 0.34950488805770874,
+      "stable": false
+    },
+    {
+      "step": 113,
+      "time_s": 2.2600000000000002,
+      "force_n": 0.0,
+      "tilt_deg": 0.9286628939150667,
+      "height_m": 0.3185942769050598,
+      "speed_mps": 0.16625109314918518,
+      "angular_radps": 0.2682744860649109,
+      "stable": false
+    },
+    {
+      "step": 114,
+      "time_s": 2.2800000000000002,
+      "force_n": 0.0,
+      "tilt_deg": 0.9449232765146487,
+      "height_m": 0.33153465390205383,
+      "speed_mps": 0.17516501247882843,
+      "angular_radps": 0.5712599754333496,
+      "stable": false
+    },
+    {
+      "step": 115,
+      "time_s": 2.3000000000000003,
+      "force_n": 0.0,
+      "tilt_deg": 1.9149042460362358,
+      "height_m": 0.34157389402389526,
+      "speed_mps": 0.19836094975471497,
+      "angular_radps": 1.2671940326690674,
+      "stable": false
+    },
+    {
+      "step": 116,
+      "time_s": 2.32,
+      "force_n": 0.0,
+      "tilt_deg": 2.860357586906368,
+      "height_m": 0.3483445644378662,
+      "speed_mps": 0.22690258920192719,
+      "angular_radps": 0.8625601530075073,
+      "stable": false
+    },
+    {
+      "step": 117,
+      "time_s": 2.34,
+      "force_n": 0.0,
+      "tilt_deg": 3.2408438341097594,
+      "height_m": 0.3521767258644104,
+      "speed_mps": 0.22994698584079742,
+      "angular_radps": 0.14281819760799408,
+      "stable": false
+    },
+    {
+      "step": 118,
+      "time_s": 2.36,
+      "force_n": 0.0,
+      "tilt_deg": 3.176554611135244,
+      "height_m": 0.35379675030708313,
+      "speed_mps": 0.21947458386421204,
+      "angular_radps": 0.49030694365501404,
+      "stable": false
+    },
+    {
+      "step": 119,
+      "time_s": 2.38,
+      "force_n": 0.0,
+      "tilt_deg": 3.237839837669195,
+      "height_m": 0.35438916087150574,
+      "speed_mps": 0.17661575973033905,
+      "angular_radps": 0.14605742692947388,
+      "stable": false
+    },
+    {
+      "step": 120,
+      "time_s": 2.4,
+      "force_n": 0.0,
+      "tilt_deg": 2.4783336106219687,
+      "height_m": 0.3559507727622986,
+      "speed_mps": 0.11899241805076599,
+      "angular_radps": 0.8520362973213196,
+      "stable": true
+    },
+    {
+      "step": 121,
+      "time_s": 2.42,
+      "force_n": 0.0,
+      "tilt_deg": 1.903882295971877,
+      "height_m": 0.35658422112464905,
+      "speed_mps": 0.09599259495735168,
+      "angular_radps": 0.2271718978881836,
+      "stable": true
+    },
+    {
+      "step": 122,
+      "time_s": 2.44,
+      "force_n": 0.0,
+      "tilt_deg": 1.6716972374946746,
+      "height_m": 0.35669583082199097,
+      "speed_mps": 0.07150129973888397,
+      "angular_radps": 0.4685264825820923,
+      "stable": true
+    },
+    {
+      "step": 123,
+      "time_s": 2.46,
+      "force_n": 0.0,
+      "tilt_deg": 1.7672585298868764,
+      "height_m": 0.35704177618026733,
+      "speed_mps": 0.04990609735250473,
+      "angular_radps": 0.35690638422966003,
+      "stable": true
+    },
+    {
+      "step": 124,
+      "time_s": 2.48,
+      "force_n": 0.0,
+      "tilt_deg": 1.8693975573027843,
+      "height_m": 0.3573058843612671,
+      "speed_mps": 0.04699625074863434,
+      "angular_radps": 0.3450733721256256,
+      "stable": true
+    },
+    {
+      "step": 125,
+      "time_s": 2.5,
+      "force_n": 0.0,
+      "tilt_deg": 1.9659715965833477,
+      "height_m": 0.3573969900608063,
+      "speed_mps": 0.049147121608257294,
+      "angular_radps": 0.252230703830719,
+      "stable": true
+    },
+    {
+      "step": 126,
+      "time_s": 2.52,
+      "force_n": 0.0,
+      "tilt_deg": 2.043976882926881,
+      "height_m": 0.35759612917900085,
+      "speed_mps": 0.046105433255434036,
+      "angular_radps": 0.22048817574977875,
+      "stable": true
+    },
+    {
+      "step": 127,
+      "time_s": 2.54,
+      "force_n": 0.0,
+      "tilt_deg": 2.122149805641616,
+      "height_m": 0.3577849566936493,
+      "speed_mps": 0.03975175321102142,
+      "angular_radps": 0.22593870759010315,
+      "stable": true
+    },
+    {
+      "step": 128,
+      "time_s": 2.56,
+      "force_n": 0.0,
+      "tilt_deg": 2.2054382043356577,
+      "height_m": 0.35787490010261536,
+      "speed_mps": 0.03332185745239258,
+      "angular_radps": 0.1727581024169922,
+      "stable": true
+    },
+    {
+      "step": 129,
+      "time_s": 2.58,
+      "force_n": 0.0,
+      "tilt_deg": 2.2551887549789424,
+      "height_m": 0.35799115896224976,
+      "speed_mps": 0.031238969415426254,
+      "angular_radps": 0.15852667391300201,
+      "stable": true
+    },
+    {
+      "step": 130,
+      "time_s": 2.6,
+      "force_n": 0.0,
+      "tilt_deg": 2.321756474361388,
+      "height_m": 0.35812056064605713,
+      "speed_mps": 0.031163157895207405,
+      "angular_radps": 0.1711120903491974,
+      "stable": true
+    },
+    {
+      "step": 131,
+      "time_s": 2.62,
+      "force_n": 0.0,
+      "tilt_deg": 2.379918265624887,
+      "height_m": 0.3581787049770355,
+      "speed_mps": 0.029678942635655403,
+      "angular_radps": 0.10091395676136017,
+      "stable": true
+    },
+    {
+      "step": 132,
+      "time_s": 2.64,
+      "force_n": 0.0,
+      "tilt_deg": 2.4254361981055585,
+      "height_m": 0.35827481746673584,
+      "speed_mps": 0.027368944138288498,
+      "angular_radps": 0.13318991661071777,
+      "stable": true
+    },
+    {
+      "step": 133,
+      "time_s": 2.66,
+      "force_n": 0.0,
+      "tilt_deg": 2.4775195724404036,
+      "height_m": 0.3583468794822693,
+      "speed_mps": 0.02444562129676342,
+      "angular_radps": 0.1019684374332428,
+      "stable": true
+    },
+    {
+      "step": 134,
+      "time_s": 2.68,
+      "force_n": 0.0,
+      "tilt_deg": 2.5225538779065,
+      "height_m": 0.3584129214286804,
+      "speed_mps": 0.022862592712044716,
+      "angular_radps": 0.10746047645807266,
+      "stable": true
+    },
+    {
+      "step": 135,
+      "time_s": 2.7,
+      "force_n": 0.0,
+      "tilt_deg": 2.5601572997225372,
+      "height_m": 0.3584747314453125,
+      "speed_mps": 0.022827211767435074,
+      "angular_radps": 0.10906199365854263,
+      "stable": true
+    },
+    {
+      "step": 136,
+      "time_s": 2.72,
+      "force_n": 0.0,
+      "tilt_deg": 2.607914528765142,
+      "height_m": 0.3585396707057953,
+      "speed_mps": 0.021307462826371193,
+      "angular_radps": 0.08903516829013824,
+      "stable": true
+    },
+    {
+      "step": 137,
+      "time_s": 2.74,
+      "force_n": 0.0,
+      "tilt_deg": 2.63898283846504,
+      "height_m": 0.3585797846317291,
+      "speed_mps": 0.01986347883939743,
+      "angular_radps": 0.08216096460819244,
+      "stable": true
+    },
+    {
+      "step": 138,
+      "time_s": 2.7600000000000002,
+      "force_n": 0.0,
+      "tilt_deg": 2.672296445795471,
+      "height_m": 0.35862478613853455,
+      "speed_mps": 0.01885160803794861,
+      "angular_radps": 0.0945170596241951,
+      "stable": true
+    },
+    {
+      "step": 139,
+      "time_s": 2.7800000000000002,
+      "force_n": 0.0,
+      "tilt_deg": 2.7108993794601766,
+      "height_m": 0.35868674516677856,
+      "speed_mps": 0.01758940890431404,
+      "angular_radps": 0.0763218030333519,
+      "stable": true
+    },
+    {
+      "step": 140,
+      "time_s": 2.8000000000000003,
+      "force_n": 0.0,
+      "tilt_deg": 2.7360915271030377,
+      "height_m": 0.358714759349823,
+      "speed_mps": 0.016852879896759987,
+      "angular_radps": 0.07123319059610367,
+      "stable": true
+    },
+    {
+      "step": 141,
+      "time_s": 2.82,
+      "force_n": 0.0,
+      "tilt_deg": 2.766692715546986,
+      "height_m": 0.3587493896484375,
+      "speed_mps": 0.015999559313058853,
+      "angular_radps": 0.0752389207482338,
+      "stable": true
+    },
+    {
+      "step": 142,
+      "time_s": 2.84,
+      "force_n": 0.0,
+      "tilt_deg": 2.79477801063556,
+      "height_m": 0.35878777503967285,
+      "speed_mps": 0.014560626819729805,
+      "angular_radps": 0.044318873435258865,
+      "stable": true
+    },
+    {
+      "step": 143,
+      "time_s": 2.86,
+      "force_n": 0.0,
+      "tilt_deg": 2.8158030944438366,
+      "height_m": 0.3588249981403351,
+      "speed_mps": 0.013918274082243443,
+      "angular_radps": 0.07978501170873642,
+      "stable": true
+    },
+    {
+      "step": 144,
+      "time_s": 2.88,
+      "force_n": 0.0,
+      "tilt_deg": 2.8426386405161272,
+      "height_m": 0.3588521480560303,
+      "speed_mps": 0.013738038018345833,
+      "angular_radps": 0.06788375973701477,
+      "stable": true
+    },
+    {
+      "step": 145,
+      "time_s": 2.9,
+      "force_n": 0.0,
+      "tilt_deg": 2.8633671974308434,
+      "height_m": 0.3588712215423584,
+      "speed_mps": 0.013167210854589939,
+      "angular_radps": 0.06022213026881218,
+      "stable": true
+    },
+    {
+      "step": 146,
+      "time_s": 2.92,
+      "force_n": 0.0,
+      "tilt_deg": 2.8821380862636814,
+      "height_m": 0.35889703035354614,
+      "speed_mps": 0.012668445706367493,
+      "angular_radps": 0.0762876495718956,
+      "stable": true
+    },
+    {
+      "step": 147,
+      "time_s": 2.94,
+      "force_n": 0.0,
+      "tilt_deg": 2.9100402275830906,
+      "height_m": 0.35893791913986206,
+      "speed_mps": 0.011288988403975964,
+      "angular_radps": 0.06520606577396393,
+      "stable": true
+    },
+    {
+      "step": 148,
+      "time_s": 2.96,
+      "force_n": 0.0,
+      "tilt_deg": 2.921884203781422,
+      "height_m": 0.3589484691619873,
+      "speed_mps": 0.010879448615014553,
+      "angular_radps": 0.0555318184196949,
+      "stable": true
+    },
+    {
+      "step": 149,
+      "time_s": 2.98,
+      "force_n": 0.0,
+      "tilt_deg": 2.9415340489772506,
+      "height_m": 0.35897016525268555,
+      "speed_mps": 0.010602396912872791,
+      "angular_radps": 0.06754381954669952,
+      "stable": true
+    },
+    {
+      "step": 150,
+      "time_s": 3.0,
+      "force_n": 0.0,
+      "tilt_deg": 2.9566079881875416,
+      "height_m": 0.3589879274368286,
+      "speed_mps": 0.01034815888851881,
+      "angular_radps": 0.054082922637462616,
+      "stable": true
+    },
+    {
+      "step": 151,
+      "time_s": 3.02,
+      "force_n": 0.0,
+      "tilt_deg": 2.9715802381920877,
+      "height_m": 0.3590068221092224,
+      "speed_mps": 0.009923654608428478,
+      "angular_radps": 0.06172942742705345,
+      "stable": true
+    },
+    {
+      "step": 152,
+      "time_s": 3.04,
+      "force_n": 0.0,
+      "tilt_deg": 2.986956216316044,
+      "height_m": 0.359020471572876,
+      "speed_mps": 0.00927841104567051,
+      "angular_radps": 0.05812709778547287,
+      "stable": true
+    },
+    {
+      "step": 153,
+      "time_s": 3.06,
+      "force_n": 0.0,
+      "tilt_deg": 3.0056823074085934,
+      "height_m": 0.35904818773269653,
+      "speed_mps": 0.008239589631557465,
+      "angular_radps": 0.04035750404000282,
+      "stable": true
+    },
+    {
+      "step": 154,
+      "time_s": 3.08,
+      "force_n": 0.0,
+      "tilt_deg": 3.011700084885276,
+      "height_m": 0.3590603470802307,
+      "speed_mps": 0.008064267225563526,
+      "angular_radps": 0.06379251927137375,
+      "stable": true
+    },
+    {
+      "step": 155,
+      "time_s": 3.1,
+      "force_n": 0.0,
+      "tilt_deg": 3.028946012479726,
+      "height_m": 0.3590724468231201,
+      "speed_mps": 0.008066454902291298,
+      "angular_radps": 0.0615445077419281,
+      "stable": true
+    },
+    {
+      "step": 156,
+      "time_s": 3.12,
+      "force_n": 0.0,
+      "tilt_deg": 3.0380511670654244,
+      "height_m": 0.3590816259384155,
+      "speed_mps": 0.007927530445158482,
+      "angular_radps": 0.05387500673532486,
+      "stable": true
+    },
+    {
+      "step": 157,
+      "time_s": 3.14,
+      "force_n": 0.0,
+      "tilt_deg": 3.049296784882659,
+      "height_m": 0.3590989112854004,
+      "speed_mps": 0.007527163717895746,
+      "angular_radps": 0.05988314747810364,
+      "stable": true
+    },
+    {
+      "step": 158,
+      "time_s": 3.16,
+      "force_n": 0.0,
+      "tilt_deg": 3.0598983007002123,
+      "height_m": 0.3591059744358063,
+      "speed_mps": 0.007052336819469929,
+      "angular_radps": 0.05539928749203682,
+      "stable": true
+    },
+    {
+      "step": 159,
+      "time_s": 3.18,
+      "force_n": 0.0,
+      "tilt_deg": 3.0694679698947764,
+      "height_m": 0.3591163754463196,
+      "speed_mps": 0.0067574637942016125,
+      "angular_radps": 0.05810071900486946,
+      "stable": true
+    },
+    {
+      "step": 160,
+      "time_s": 3.2,
+      "force_n": 0.0,
+      "tilt_deg": 3.0783530619455126,
+      "height_m": 0.35912784934043884,
+      "speed_mps": 0.00651902798563242,
+      "angular_radps": 0.056487347930669785,
+      "stable": true
+    },
+    {
+      "step": 161,
+      "time_s": 3.22,
+      "force_n": 0.0,
+      "tilt_deg": 3.086834015996835,
+      "height_m": 0.35913488268852234,
+      "speed_mps": 0.006333903409540653,
+      "angular_radps": 0.056831348687410355,
+      "stable": true
+    },
+    {
+      "step": 162,
+      "time_s": 3.24,
+      "force_n": 0.0,
+      "tilt_deg": 3.094403765013573,
+      "height_m": 0.35914233326911926,
+      "speed_mps": 0.005764864385128021,
+      "angular_radps": 0.041772183030843735,
+      "stable": true
+    },
+    {
+      "step": 163,
+      "time_s": 3.2600000000000002,
+      "force_n": 0.0,
+      "tilt_deg": 3.104239352545137,
+      "height_m": 0.35916662216186523,
+      "speed_mps": 0.0054198927246034145,
+      "angular_radps": 0.06632331013679504,
+      "stable": true
+    },
+    {
+      "step": 164,
+      "time_s": 3.2800000000000002,
+      "force_n": 0.0,
+      "tilt_deg": 3.1127665793837105,
+      "height_m": 0.3591669201850891,
+      "speed_mps": 0.005451592616736889,
+      "angular_radps": 0.05582953989505768,
+      "stable": true
+    },
+    {
+      "step": 165,
+      "time_s": 3.3000000000000003,
+      "force_n": 0.0,
+      "tilt_deg": 3.118129726152376,
+      "height_m": 0.35917165875434875,
+      "speed_mps": 0.0053975689224898815,
+      "angular_radps": 0.055331040173769,
+      "stable": true
+    },
+    {
+      "step": 166,
+      "time_s": 3.3200000000000003,
+      "force_n": 0.0,
+      "tilt_deg": 3.124803245866128,
+      "height_m": 0.3591844141483307,
+      "speed_mps": 0.0053436183370649815,
+      "angular_radps": 0.06099390611052513,
+      "stable": true
+    },
+    {
+      "step": 167,
+      "time_s": 3.34,
+      "force_n": 0.0,
+      "tilt_deg": 3.131153522693174,
+      "height_m": 0.359186589717865,
+      "speed_mps": 0.005065426230430603,
+      "angular_radps": 0.0542740523815155,
+      "stable": true
+    },
+    {
+      "step": 168,
+      "time_s": 3.36,
+      "force_n": 0.0,
+      "tilt_deg": 3.1369314347186705,
+      "height_m": 0.3591929078102112,
+      "speed_mps": 0.0048328302800655365,
+      "angular_radps": 0.05692116916179657,
+      "stable": true
+    },
+    {
+      "step": 169,
+      "time_s": 3.38,
+      "force_n": 0.0,
+      "tilt_deg": 3.1422601427864296,
+      "height_m": 0.35920068621635437,
+      "speed_mps": 0.004624652676284313,
+      "angular_radps": 0.05693097785115242,
+      "stable": true
+    },
+    {
+      "step": 170,
+      "time_s": 3.4,
+      "force_n": 0.0,
+      "tilt_deg": 3.147467843272035,
+      "height_m": 0.35920387506484985,
+      "speed_mps": 0.0045008608140051365,
+      "angular_radps": 0.05670757219195366,
+      "stable": true
+    },
+    {
+      "step": 171,
+      "time_s": 3.42,
+      "force_n": 0.0,
+      "tilt_deg": 3.1525283641117143,
+      "height_m": 0.3592096269130707,
+      "speed_mps": 0.0043932367116212845,
+      "angular_radps": 0.05717090889811516,
+      "stable": true
+    },
+    {
+      "step": 172,
+      "time_s": 3.44,
+      "force_n": 0.0,
+      "tilt_deg": 3.157082796671691,
+      "height_m": 0.3592148721218109,
+      "speed_mps": 0.004256414715200663,
+      "angular_radps": 0.05664791911840439,
+      "stable": true
+    },
+    {
+      "step": 173,
+      "time_s": 3.46,
+      "force_n": 0.0,
+      "tilt_deg": 3.1616269395352634,
+      "height_m": 0.35921913385391235,
+      "speed_mps": 0.004072514828294516,
+      "angular_radps": 0.05504368618130684,
+      "stable": true
+    },
+    {
+      "step": 174,
+      "time_s": 3.48,
+      "force_n": 0.0,
+      "tilt_deg": 3.165577623181649,
+      "height_m": 0.3592223823070526,
+      "speed_mps": 0.003987920004874468,
+      "angular_radps": 0.05670934170484543,
+      "stable": true
+    },
+    {
+      "step": 175,
+      "time_s": 3.5,
+      "force_n": 0.0,
+      "tilt_deg": 3.169598882975502,
+      "height_m": 0.3592269718647003,
+      "speed_mps": 0.0039072586223483086,
+      "angular_radps": 0.057037338614463806,
+      "stable": true
+    },
+    {
+      "step": 176,
+      "time_s": 3.52,
+      "force_n": 0.0,
+      "tilt_deg": 3.173202422144823,
+      "height_m": 0.3592308759689331,
+      "speed_mps": 0.0037841270677745342,
+      "angular_radps": 0.055834345519542694,
+      "stable": true
+    },
+    {
+      "step": 177,
+      "time_s": 3.54,
+      "force_n": 0.0,
+      "tilt_deg": 3.176412376859351,
+      "height_m": 0.3592332899570465,
+      "speed_mps": 0.0036944968160241842,
+      "angular_radps": 0.056700751185417175,
+      "stable": true
+    },
+    {
+      "step": 178,
+      "time_s": 3.56,
+      "force_n": 0.0,
+      "tilt_deg": 3.180023409888266,
+      "height_m": 0.35923802852630615,
+      "speed_mps": 0.003565920516848564,
+      "angular_radps": 0.0555412657558918,
+      "stable": true
+    },
+    {
+      "step": 179,
+      "time_s": 3.58,
+      "force_n": 0.0,
+      "tilt_deg": 3.182787306851427,
+      "height_m": 0.3592395782470703,
+      "speed_mps": 0.003501357277855277,
+      "angular_radps": 0.05670778825879097,
+      "stable": true
+    },
+    {
+      "step": 180,
+      "time_s": 3.6,
+      "force_n": 0.0,
+      "tilt_deg": 3.1858985976203105,
+      "height_m": 0.35924264788627625,
+      "speed_mps": 0.0034636089112609625,
+      "angular_radps": 0.05758596211671829,
+      "stable": true
+    },
+    {
+      "step": 181,
+      "time_s": 3.62,
+      "force_n": 0.0,
+      "tilt_deg": 3.1885439139084935,
+      "height_m": 0.359246164560318,
+      "speed_mps": 0.0033584849443286657,
+      "angular_radps": 0.05583427473902702,
+      "stable": true
+    },
+    {
+      "step": 182,
+      "time_s": 3.64,
+      "force_n": 0.0,
+      "tilt_deg": 3.192572841440655,
+      "height_m": 0.3592424690723419,
+      "speed_mps": 0.0033596125431358814,
+      "angular_radps": 0.05739353969693184,
+      "stable": true
+    },
+    {
+      "step": 183,
+      "time_s": 3.66,
+      "force_n": 0.0,
+      "tilt_deg": 3.1946104227306726,
+      "height_m": 0.3592486083507538,
+      "speed_mps": 0.0032579705584794283,
+      "angular_radps": 0.05668036267161369,
+      "stable": true
+    },
+    {
+      "step": 184,
+      "time_s": 3.68,
+      "force_n": 0.0,
+      "tilt_deg": 3.194118519423512,
+      "height_m": 0.3592478930950165,
+      "speed_mps": 0.0033583238255232573,
+      "angular_radps": 0.07061947882175446,
+      "stable": true
+    },
+    {
+      "step": 185,
+      "time_s": 3.7,
+      "force_n": 0.0,
+      "tilt_deg": 3.2051611170892467,
+      "height_m": 0.3592662811279297,
+      "speed_mps": 0.0027383179403841496,
+      "angular_radps": 0.058650169521570206,
+      "stable": true
+    },
+    {
+      "step": 186,
+      "time_s": 3.72,
+      "force_n": 0.0,
+      "tilt_deg": 3.201550514476038,
+      "height_m": 0.3592621088027954,
+      "speed_mps": 0.002756822155788541,
+      "angular_radps": 0.05337018892168999,
+      "stable": true
+    },
+    {
+      "step": 187,
+      "time_s": 3.74,
+      "force_n": 0.0,
+      "tilt_deg": 3.2054367399326305,
+      "height_m": 0.3592670261859894,
+      "speed_mps": 0.0028128211852163076,
+      "angular_radps": 0.061676908284425735,
+      "stable": true
+    },
+    {
+      "step": 188,
+      "time_s": 3.7600000000000002,
+      "force_n": 0.0,
+      "tilt_deg": 3.2069456723203316,
+      "height_m": 0.35926681756973267,
+      "speed_mps": 0.0028840366285294294,
+      "angular_radps": 0.05477038770914078,
+      "stable": true
+    },
+    {
+      "step": 189,
+      "time_s": 3.7800000000000002,
+      "force_n": 0.0,
+      "tilt_deg": 3.2083025251401036,
+      "height_m": 0.3592694401741028,
+      "speed_mps": 0.0028414835687726736,
+      "angular_radps": 0.05806485190987587,
+      "stable": true
+    },
+    {
+      "step": 190,
+      "time_s": 3.8000000000000003,
+      "force_n": 0.0,
+      "tilt_deg": 3.210392735228198,
+      "height_m": 0.3592715263366699,
+      "speed_mps": 0.0027127086650580168,
+      "angular_radps": 0.05650157853960991,
+      "stable": true
+    },
+    {
+      "step": 191,
+      "time_s": 3.8200000000000003,
+      "force_n": 0.0,
+      "tilt_deg": 3.2117202867431947,
+      "height_m": 0.35927215218544006,
+      "speed_mps": 0.002637119498103857,
+      "angular_radps": 0.056663043797016144,
+      "stable": true
+    },
+    {
+      "step": 192,
+      "time_s": 3.84,
+      "force_n": 0.0,
+      "tilt_deg": 3.213199993531495,
+      "height_m": 0.35927480459213257,
+      "speed_mps": 0.0025998924393206835,
+      "angular_radps": 0.05696945637464523,
+      "stable": true
+    },
+    {
+      "step": 193,
+      "time_s": 3.86,
+      "force_n": 0.0,
+      "tilt_deg": 3.214403791514967,
+      "height_m": 0.35927560925483704,
+      "speed_mps": 0.002592673059552908,
+      "angular_radps": 0.057339467108249664,
+      "stable": true
+    },
+    {
+      "step": 194,
+      "time_s": 3.88,
+      "force_n": 0.0,
+      "tilt_deg": 3.215949723717133,
+      "height_m": 0.3592767119407654,
+      "speed_mps": 0.0025861712638288736,
+      "angular_radps": 0.057066410779953,
+      "stable": true
+    },
+    {
+      "step": 195,
+      "time_s": 3.9,
+      "force_n": 0.0,
+      "tilt_deg": 3.2168862587891414,
+      "height_m": 0.35927829146385193,
+      "speed_mps": 0.002517608692869544,
+      "angular_radps": 0.055908914655447006,
+      "stable": true
+    },
+    {
+      "step": 196,
+      "time_s": 3.92,
+      "force_n": 0.0,
+      "tilt_deg": 3.21797868787521,
+      "height_m": 0.3592793047428131,
+      "speed_mps": 0.0024612038396298885,
+      "angular_radps": 0.05600744113326073,
+      "stable": true
+    },
+    {
+      "step": 197,
+      "time_s": 3.94,
+      "force_n": 0.0,
+      "tilt_deg": 3.2189974093402545,
+      "height_m": 0.3592793643474579,
+      "speed_mps": 0.0024703347589820623,
+      "angular_radps": 0.056899555027484894,
+      "stable": true
+    },
+    {
+      "step": 198,
+      "time_s": 3.96,
+      "force_n": 0.0,
+      "tilt_deg": 3.219840746373915,
+      "height_m": 0.3592810034751892,
+      "speed_mps": 0.002469112165272236,
+      "angular_radps": 0.05768195167183876,
+      "stable": true
+    },
+    {
+      "step": 199,
+      "time_s": 3.98,
+      "force_n": 0.0,
+      "tilt_deg": 3.220849936992325,
+      "height_m": 0.3592817783355713,
+      "speed_mps": 0.0024164083879441023,
+      "angular_radps": 0.056390367448329926,
+      "stable": true
+    },
+    {
+      "step": 200,
+      "time_s": 4.0,
+      "force_n": 0.0,
+      "tilt_deg": 3.2219464782121903,
+      "height_m": 0.35928237438201904,
+      "speed_mps": 0.0023574766237288713,
+      "angular_radps": 0.05612589418888092,
+      "stable": true
+    },
+    {
+      "step": 201,
+      "time_s": 4.0200000000000005,
+      "force_n": 0.0,
+      "tilt_deg": 3.2224860483845004,
+      "height_m": 0.3592831492424011,
+      "speed_mps": 0.0023745715152472258,
+      "angular_radps": 0.05781479552388191,
+      "stable": true
+    },
+    {
+      "step": 202,
+      "time_s": 4.04,
+      "force_n": 0.0,
+      "tilt_deg": 3.2234403460944407,
+      "height_m": 0.3592846095561981,
+      "speed_mps": 0.0024138346780091524,
+      "angular_radps": 0.055544521659612656,
+      "stable": true
+    },
+    {
+      "step": 203,
+      "time_s": 4.0600000000000005,
+      "force_n": 0.0,
+      "tilt_deg": 3.223835936028676,
+      "height_m": 0.3592860698699951,
+      "speed_mps": 0.002390824956819415,
+      "angular_radps": 0.0565071739256382,
+      "stable": true
+    },
+    {
+      "step": 204,
+      "time_s": 4.08,
+      "force_n": 0.0,
+      "tilt_deg": 3.2249313509673434,
+      "height_m": 0.35928574204444885,
+      "speed_mps": 0.002285558730363846,
+      "angular_radps": 0.056890953332185745,
+      "stable": true
+    },
+    {
+      "step": 205,
+      "time_s": 4.1,
+      "force_n": 0.0,
+      "tilt_deg": 3.2257452445408856,
+      "height_m": 0.3592863976955414,
+      "speed_mps": 0.00224100798368454,
+      "angular_radps": 0.05614745616912842,
+      "stable": true
+    },
+    {
+      "step": 206,
+      "time_s": 4.12,
+      "force_n": 0.0,
+      "tilt_deg": 3.2260506329223433,
+      "height_m": 0.3592873811721802,
+      "speed_mps": 0.0022638514637947083,
+      "angular_radps": 0.05779094621539116,
+      "stable": true
+    },
+    {
+      "step": 207,
+      "time_s": 4.14,
+      "force_n": 0.0,
+      "tilt_deg": 3.2269844213784005,
+      "height_m": 0.3592885136604309,
+      "speed_mps": 0.0022358419373631477,
+      "angular_radps": 0.057056985795497894,
+      "stable": true
+    },
+    {
+      "step": 208,
+      "time_s": 4.16,
+      "force_n": 0.0,
+      "tilt_deg": 3.2273493910856237,
+      "height_m": 0.3592882454395294,
+      "speed_mps": 0.0022241356782615185,
+      "angular_radps": 0.056196387857198715,
+      "stable": true
+    },
+    {
+      "step": 209,
+      "time_s": 4.18,
+      "force_n": 0.0,
+      "tilt_deg": 3.2279273582758146,
+      "height_m": 0.3592890799045563,
+      "speed_mps": 0.00221849512308836,
+      "angular_radps": 0.05786052718758583,
+      "stable": true
+    },
+    {
+      "step": 210,
+      "time_s": 4.2,
+      "force_n": 0.0,
+      "tilt_deg": 3.228301164811475,
+      "height_m": 0.3592897653579712,
+      "speed_mps": 0.0022118573542684317,
+      "angular_radps": 0.057296790182590485,
+      "stable": true
+    },
+    {
+      "step": 211,
+      "time_s": 4.22,
+      "force_n": 0.0,
+      "tilt_deg": 3.2287939526964475,
+      "height_m": 0.35929015278816223,
+      "speed_mps": 0.002169856568798423,
+      "angular_radps": 0.05568944290280342,
+      "stable": true
+    },
+    {
+      "step": 212,
+      "time_s": 4.24,
+      "force_n": 0.0,
+      "tilt_deg": 3.2289047359811422,
+      "height_m": 0.35929033160209656,
+      "speed_mps": 0.0021862394642084837,
+      "angular_radps": 0.057838961482048035,
+      "stable": true
+    },
+    {
+      "step": 213,
+      "time_s": 4.26,
+      "force_n": 0.0,
+      "tilt_deg": 3.2291923528738797,
+      "height_m": 0.3592902719974518,
+      "speed_mps": 0.002231837250292301,
+      "angular_radps": 0.05729595571756363,
+      "stable": true
+    },
+    {
+      "step": 214,
+      "time_s": 4.28,
+      "force_n": 0.0,
+      "tilt_deg": 3.229582431725776,
+      "height_m": 0.3592907786369324,
+      "speed_mps": 0.0022082661744207144,
+      "angular_radps": 0.05682167783379555,
+      "stable": true
+    },
+    {
+      "step": 215,
+      "time_s": 4.3,
+      "force_n": 0.0,
+      "tilt_deg": 3.2297525064946044,
+      "height_m": 0.35929107666015625,
+      "speed_mps": 0.002177390968427062,
+      "angular_radps": 0.0570748969912529,
+      "stable": true
+    },
+    {
+      "step": 216,
+      "time_s": 4.32,
+      "force_n": 0.0,
+      "tilt_deg": 3.230271681087755,
+      "height_m": 0.3592914938926697,
+      "speed_mps": 0.0021414028014987707,
+      "angular_radps": 0.056282903999090195,
+      "stable": true
+    },
+    {
+      "step": 217,
+      "time_s": 4.34,
+      "force_n": 0.0,
+      "tilt_deg": 3.23045449684299,
+      "height_m": 0.35929232835769653,
+      "speed_mps": 0.0021208026446402073,
+      "angular_radps": 0.056444186717271805,
+      "stable": true
+    },
+    {
+      "step": 218,
+      "time_s": 4.36,
+      "force_n": 0.0,
+      "tilt_deg": 3.231034880488752,
+      "height_m": 0.35929223895072937,
+      "speed_mps": 0.002125270664691925,
+      "angular_radps": 0.05737245827913284,
+      "stable": true
+    },
+    {
+      "step": 219,
+      "time_s": 4.38,
+      "force_n": 0.0,
+      "tilt_deg": 3.231444192767595,
+      "height_m": 0.35929280519485474,
+      "speed_mps": 0.002122783102095127,
+      "angular_radps": 0.056658871471881866,
+      "stable": true
+    },
+    {
+      "step": 220,
+      "time_s": 4.4,
+      "force_n": 0.0,
+      "tilt_deg": 3.2318640680413133,
+      "height_m": 0.3592931926250458,
+      "speed_mps": 0.0020982990972697735,
+      "angular_radps": 0.05666233226656914,
+      "stable": true
+    },
+    {
+      "step": 221,
+      "time_s": 4.42,
+      "force_n": 0.0,
+      "tilt_deg": 3.2322070817210773,
+      "height_m": 0.35929346084594727,
+      "speed_mps": 0.002083349972963333,
+      "angular_radps": 0.05654750391840935,
+      "stable": true
+    },
+    {
+      "step": 222,
+      "time_s": 4.44,
+      "force_n": 0.0,
+      "tilt_deg": 3.2322228385780503,
+      "height_m": 0.35929352045059204,
+      "speed_mps": 0.0020800249185413122,
+      "angular_radps": 0.05654554441571236,
+      "stable": true
+    },
+    {
+      "step": 223,
+      "time_s": 4.46,
+      "force_n": 0.0,
+      "tilt_deg": 3.2325130644944755,
+      "height_m": 0.359293669462204,
+      "speed_mps": 0.0020928115118294954,
+      "angular_radps": 0.05641349405050278,
+      "stable": true
+    },
+    {
+      "step": 224,
+      "time_s": 4.48,
+      "force_n": 0.0,
+      "tilt_deg": 3.2326673222309497,
+      "height_m": 0.3592934310436249,
+      "speed_mps": 0.00210010283626616,
+      "angular_radps": 0.05705670267343521,
+      "stable": true
+    },
+    {
+      "step": 225,
+      "time_s": 4.5,
+      "force_n": 0.0,
+      "tilt_deg": 3.232762275435362,
+      "height_m": 0.35929325222969055,
+      "speed_mps": 0.0021005698945373297,
+      "angular_radps": 0.05622703209519386,
+      "stable": true
+    },
+    {
+      "step": 226,
+      "time_s": 4.5200000000000005,
+      "force_n": 0.0,
+      "tilt_deg": 3.2330840715505884,
+      "height_m": 0.359294056892395,
+      "speed_mps": 0.0020659787114709616,
+      "angular_radps": 0.05705307051539421,
+      "stable": true
+    },
+    {
+      "step": 227,
+      "time_s": 4.54,
+      "force_n": 0.0,
+      "tilt_deg": 3.233288033901586,
+      "height_m": 0.35929393768310547,
+      "speed_mps": 0.002038506558164954,
+      "angular_radps": 0.056818898767232895,
+      "stable": true
+    },
+    {
+      "step": 228,
+      "time_s": 4.5600000000000005,
+      "force_n": 0.0,
+      "tilt_deg": 3.23356725131916,
+      "height_m": 0.35929468274116516,
+      "speed_mps": 0.002030883450061083,
+      "angular_radps": 0.05718386918306351,
+      "stable": true
+    },
+    {
+      "step": 229,
+      "time_s": 4.58,
+      "force_n": 0.0,
+      "tilt_deg": 3.2338204655243143,
+      "height_m": 0.35929471254348755,
+      "speed_mps": 0.002035777550190687,
+      "angular_radps": 0.056920189410448074,
+      "stable": true
+    },
+    {
+      "step": 230,
+      "time_s": 4.6000000000000005,
+      "force_n": 0.0,
+      "tilt_deg": 3.2339566331060525,
+      "height_m": 0.3592946529388428,
+      "speed_mps": 0.0020446910057216883,
+      "angular_radps": 0.05645233392715454,
+      "stable": true
+    },
+    {
+      "step": 231,
+      "time_s": 4.62,
+      "force_n": 0.0,
+      "tilt_deg": 3.234056792346949,
+      "height_m": 0.35929492115974426,
+      "speed_mps": 0.0020447291899472475,
+      "angular_radps": 0.05692726746201515,
+      "stable": true
+    },
+    {
+      "step": 232,
+      "time_s": 4.64,
+      "force_n": 0.0,
+      "tilt_deg": 3.234220374627517,
+      "height_m": 0.35929495096206665,
+      "speed_mps": 0.002033481141552329,
+      "angular_radps": 0.056271616369485855,
+      "stable": true
+    },
+    {
+      "step": 233,
+      "time_s": 4.66,
+      "force_n": 0.0,
+      "tilt_deg": 3.234345015573273,
+      "height_m": 0.3592950701713562,
+      "speed_mps": 0.0020154581870883703,
+      "angular_radps": 0.05682274326682091,
+      "stable": true
+    },
+    {
+      "step": 234,
+      "time_s": 4.68,
+      "force_n": 0.0,
+      "tilt_deg": 3.234487521124587,
+      "height_m": 0.35929495096206665,
+      "speed_mps": 0.0020180149003863335,
+      "angular_radps": 0.05659884214401245,
+      "stable": true
+    },
+    {
+      "step": 235,
+      "time_s": 4.7,
+      "force_n": 0.0,
+      "tilt_deg": 3.234700198978237,
+      "height_m": 0.35929539799690247,
+      "speed_mps": 0.0020102376583963633,
+      "angular_radps": 0.05672159418463707,
+      "stable": true
+    },
+    {
+      "step": 236,
+      "time_s": 4.72,
+      "force_n": 0.0,
+      "tilt_deg": 3.2346674013886214,
+      "height_m": 0.3592953085899353,
+      "speed_mps": 0.002014137338846922,
+      "angular_radps": 0.057269856333732605,
+      "stable": true
+    },
+    {
+      "step": 237,
+      "time_s": 4.74,
+      "force_n": 0.0,
+      "tilt_deg": 3.234923254992449,
+      "height_m": 0.35929563641548157,
+      "speed_mps": 0.002020357409492135,
+      "angular_radps": 0.057206299155950546,
+      "stable": true
+    },
+    {
+      "step": 238,
+      "time_s": 4.76,
+      "force_n": 0.0,
+      "tilt_deg": 3.2347429893792428,
+      "height_m": 0.3592953085899353,
+      "speed_mps": 0.002032149350270629,
+      "angular_radps": 0.05722929909825325,
+      "stable": true
+    },
+    {
+      "step": 239,
+      "time_s": 4.78,
+      "force_n": 0.0,
+      "tilt_deg": 3.2352502778852825,
+      "height_m": 0.3592957854270935,
+      "speed_mps": 0.0020109808538109064,
+      "angular_radps": 0.05713442713022232,
+      "stable": true
+    },
+    {
+      "step": 240,
+      "time_s": 4.8,
+      "force_n": 0.0,
+      "tilt_deg": 3.235193460752308,
+      "height_m": 0.3592957854270935,
+      "speed_mps": 0.0019911406561732292,
+      "angular_radps": 0.05651530623435974,
+      "stable": true
+    },
+    {
+      "step": 241,
+      "time_s": 4.82,
+      "force_n": 0.0,
+      "tilt_deg": 3.235302900758885,
+      "height_m": 0.3592962920665741,
+      "speed_mps": 0.0019906286615878344,
+      "angular_radps": 0.057919811457395554,
+      "stable": true
+    },
+    {
+      "step": 242,
+      "time_s": 4.84,
+      "force_n": 0.0,
+      "tilt_deg": 3.235473171313445,
+      "height_m": 0.35929617285728455,
+      "speed_mps": 0.0019923830404877663,
+      "angular_radps": 0.05693349242210388,
+      "stable": true
+    },
+    {
+      "step": 243,
+      "time_s": 4.86,
+      "force_n": 0.0,
+      "tilt_deg": 3.235371310431123,
+      "height_m": 0.3592960834503174,
+      "speed_mps": 0.0020007614511996508,
+      "angular_radps": 0.056618425995111465,
+      "stable": true
+    },
+    {
+      "step": 244,
+      "time_s": 4.88,
+      "force_n": 0.0,
+      "tilt_deg": 3.235554608620354,
+      "height_m": 0.35929661989212036,
+      "speed_mps": 0.0019967369735240936,
+      "angular_radps": 0.05776334926486015,
+      "stable": true
+    },
+    {
+      "step": 245,
+      "time_s": 4.9,
+      "force_n": 0.0,
+      "tilt_deg": 3.23567400490651,
+      "height_m": 0.3592965006828308,
+      "speed_mps": 0.0020001623779535294,
+      "angular_radps": 0.05714406818151474,
+      "stable": true
+    },
+    {
+      "step": 246,
+      "time_s": 4.92,
+      "force_n": 0.0,
+      "tilt_deg": 3.2356752320311397,
+      "height_m": 0.35929644107818604,
+      "speed_mps": 0.0019808022771030664,
+      "angular_radps": 0.05621892958879471,
+      "stable": true
+    },
+    {
+      "step": 247,
+      "time_s": 4.94,
+      "force_n": 0.0,
+      "tilt_deg": 3.2356866071922834,
+      "height_m": 0.3592965006828308,
+      "speed_mps": 0.001980141270905733,
+      "angular_radps": 0.05694807693362236,
+      "stable": true
+    },
+    {
+      "step": 248,
+      "time_s": 4.96,
+      "force_n": 0.0,
+      "tilt_deg": 3.235855644594091,
+      "height_m": 0.35929688811302185,
+      "speed_mps": 0.0019658287055790424,
+      "angular_radps": 0.05651716887950897,
+      "stable": true
+    },
+    {
+      "step": 249,
+      "time_s": 4.98,
+      "force_n": 0.0,
+      "tilt_deg": 3.2357779852102464,
+      "height_m": 0.3592967987060547,
+      "speed_mps": 0.001988694304600358,
+      "angular_radps": 0.057104554027318954,
+      "stable": true
+    },
+    {
+      "step": 250,
+      "time_s": 5.0,
+      "force_n": 0.0,
+      "tilt_deg": 3.235990843742259,
+      "height_m": 0.3592965304851532,
+      "speed_mps": 0.0019816358108073473,
+      "angular_radps": 0.056482087820768356,
+      "stable": true
+    },
+    {
+      "step": 251,
+      "time_s": 5.0200000000000005,
+      "force_n": 0.0,
+      "tilt_deg": 3.2358638002371354,
+      "height_m": 0.3592967689037323,
+      "speed_mps": 0.0019758695270866156,
+      "angular_radps": 0.056296493858098984,
+      "stable": true
+    },
+    {
+      "step": 252,
+      "time_s": 5.04,
+      "force_n": 0.0,
+      "tilt_deg": 3.236014618830748,
+      "height_m": 0.3592970669269562,
+      "speed_mps": 0.0019614610355347395,
+      "angular_radps": 0.056630171835422516,
+      "stable": true
+    },
+    {
+      "step": 253,
+      "time_s": 5.0600000000000005,
+      "force_n": 0.0,
+      "tilt_deg": 3.236102193131733,
+      "height_m": 0.35929685831069946,
+      "speed_mps": 0.0019728539045900106,
+      "angular_radps": 0.05717894434928894,
+      "stable": true
+    },
+    {
+      "step": 254,
+      "time_s": 5.08,
+      "force_n": 0.0,
+      "tilt_deg": 3.2360479892237333,
+      "height_m": 0.3592970073223114,
+      "speed_mps": 0.001970377517864108,
+      "angular_radps": 0.055946316570043564,
+      "stable": true
+    },
+    {
+      "step": 255,
+      "time_s": 5.1000000000000005,
+      "force_n": 0.0,
+      "tilt_deg": 3.2361560332355634,
+      "height_m": 0.3592970371246338,
+      "speed_mps": 0.0019813079852610826,
+      "angular_radps": 0.05750390887260437,
+      "stable": true
+    },
+    {
+      "step": 256,
+      "time_s": 5.12,
+      "force_n": 0.0,
+      "tilt_deg": 3.236394247371959,
+      "height_m": 0.35929715633392334,
+      "speed_mps": 0.0019691125489771366,
+      "angular_radps": 0.05672207474708557,
+      "stable": true
+    },
+    {
+      "step": 257,
+      "time_s": 5.14,
+      "force_n": 0.0,
+      "tilt_deg": 3.2362698037006727,
+      "height_m": 0.35929709672927856,
+      "speed_mps": 0.0019683614373207092,
+      "angular_radps": 0.05674366280436516,
+      "stable": true
+    },
+    {
+      "step": 258,
+      "time_s": 5.16,
+      "force_n": 0.0,
+      "tilt_deg": 3.23627911459438,
+      "height_m": 0.3592969477176666,
+      "speed_mps": 0.0019861431792378426,
+      "angular_radps": 0.057368457317352295,
+      "stable": true
+    },
+    {
+      "step": 259,
+      "time_s": 5.18,
+      "force_n": 0.0,
+      "tilt_deg": 3.2364466826180105,
+      "height_m": 0.3592973053455353,
+      "speed_mps": 0.001991517608985305,
+      "angular_radps": 0.056917499750852585,
+      "stable": true
+    },
+    {
+      "step": 260,
+      "time_s": 5.2,
+      "force_n": 0.0,
+      "tilt_deg": 3.2363688205756134,
+      "height_m": 0.359296977519989,
+      "speed_mps": 0.0019806455820798874,
+      "angular_radps": 0.056604232639074326,
+      "stable": true
+    },
+    {
+      "step": 261,
+      "time_s": 5.22,
+      "force_n": 0.0,
+      "tilt_deg": 3.2363635832737243,
+      "height_m": 0.3592972755432129,
+      "speed_mps": 0.0019675707444548607,
+      "angular_radps": 0.056781135499477386,
+      "stable": true
+    },
+    {
+      "step": 262,
+      "time_s": 5.24,
+      "force_n": 0.0,
+      "tilt_deg": 3.2363022670667805,
+      "height_m": 0.3592970371246338,
+      "speed_mps": 0.0019771470688283443,
+      "angular_radps": 0.057433612644672394,
+      "stable": true
+    },
+    {
+      "step": 263,
+      "time_s": 5.26,
+      "force_n": 0.0,
+      "tilt_deg": 3.236444991784327,
+      "height_m": 0.3592969477176666,
+      "speed_mps": 0.001972990110516548,
+      "angular_radps": 0.0567496232688427,
+      "stable": true
+    },
+    {
+      "step": 264,
+      "time_s": 5.28,
+      "force_n": 0.0,
+      "tilt_deg": 3.236489992602718,
+      "height_m": 0.35929736495018005,
+      "speed_mps": 0.001964027527719736,
+      "angular_radps": 0.05696519464254379,
+      "stable": true
+    },
+    {
+      "step": 265,
+      "time_s": 5.3,
+      "force_n": 0.0,
+      "tilt_deg": 3.2365565583437195,
+      "height_m": 0.35929733514785767,
+      "speed_mps": 0.001960176508873701,
+      "angular_radps": 0.05695078894495964,
+      "stable": true
+    },
+    {
+      "step": 266,
+      "time_s": 5.32,
+      "force_n": 0.0,
+      "tilt_deg": 3.2365818186072306,
+      "height_m": 0.3592974841594696,
+      "speed_mps": 0.001965176546946168,
+      "angular_radps": 0.0572897344827652,
+      "stable": true
+    },
+    {
+      "step": 267,
+      "time_s": 5.34,
+      "force_n": 0.0,
+      "tilt_deg": 3.2366238324972407,
+      "height_m": 0.3592975437641144,
+      "speed_mps": 0.0019664510618895292,
+      "angular_radps": 0.05680648237466812,
+      "stable": true
+    },
+    {
+      "step": 268,
+      "time_s": 5.36,
+      "force_n": 0.0,
+      "tilt_deg": 3.236574290639865,
+      "height_m": 0.3592972755432129,
+      "speed_mps": 0.0019662140402942896,
+      "angular_radps": 0.05693021044135094,
+      "stable": true
+    },
+    {
+      "step": 269,
+      "time_s": 5.38,
+      "force_n": 0.0,
+      "tilt_deg": 3.236557993697085,
+      "height_m": 0.3592973053455353,
+      "speed_mps": 0.0019776697736233473,
+      "angular_radps": 0.05723532661795616,
+      "stable": true
+    },
+    {
+      "step": 270,
+      "time_s": 5.4,
+      "force_n": 0.0,
+      "tilt_deg": 3.23660000368931,
+      "height_m": 0.3592972159385681,
+      "speed_mps": 0.0019752017688006163,
+      "angular_radps": 0.05673496797680855,
+      "stable": true
+    },
+    {
+      "step": 271,
+      "time_s": 5.42,
+      "force_n": 0.0,
+      "tilt_deg": 3.2366078699970586,
+      "height_m": 0.35929739475250244,
+      "speed_mps": 0.0019688887987285852,
+      "angular_radps": 0.05673280358314514,
+      "stable": true
+    },
+    {
+      "step": 272,
+      "time_s": 5.44,
+      "force_n": 0.0,
+      "tilt_deg": 3.2366580135285288,
+      "height_m": 0.35929736495018005,
+      "speed_mps": 0.001961679896339774,
+      "angular_radps": 0.05676906555891037,
+      "stable": true
+    },
+    {
+      "step": 273,
+      "time_s": 5.46,
+      "force_n": 0.0,
+      "tilt_deg": 3.236548751850022,
+      "height_m": 0.3592972457408905,
+      "speed_mps": 0.0019672394264489412,
+      "angular_radps": 0.057017967104911804,
+      "stable": true
+    },
+    {
+      "step": 274,
+      "time_s": 5.48,
+      "force_n": 0.0,
+      "tilt_deg": 3.2366471294401133,
+      "height_m": 0.359297513961792,
+      "speed_mps": 0.001969738397747278,
+      "angular_radps": 0.05692018195986748,
+      "stable": true
+    },
+    {
+      "step": 275,
+      "time_s": 5.5,
+      "force_n": 0.0,
+      "tilt_deg": 3.2366287096447395,
+      "height_m": 0.35929709672927856,
+      "speed_mps": 0.0019679006654769182,
+      "angular_radps": 0.0568406879901886,
+      "stable": true
+    },
+    {
+      "step": 276,
+      "time_s": 5.5200000000000005,
+      "force_n": 0.0,
+      "tilt_deg": 3.2365948319160784,
+      "height_m": 0.35929742455482483,
+      "speed_mps": 0.001962909009307623,
+      "angular_radps": 0.05649939179420471,
+      "stable": true
+    },
+    {
+      "step": 277,
+      "time_s": 5.54,
+      "force_n": 0.0,
+      "tilt_deg": 3.2365345497321134,
+      "height_m": 0.359297513961792,
+      "speed_mps": 0.001964213792234659,
+      "angular_radps": 0.057515691965818405,
+      "stable": true
+    },
+    {
+      "step": 278,
+      "time_s": 5.5600000000000005,
+      "force_n": 0.0,
+      "tilt_deg": 3.2366874891843986,
+      "height_m": 0.3592972755432129,
+      "speed_mps": 0.0019721968565136194,
+      "angular_radps": 0.05699063092470169,
+      "stable": true
+    },
+    {
+      "step": 279,
+      "time_s": 5.58,
+      "force_n": 0.0,
+      "tilt_deg": 3.2365779953404474,
+      "height_m": 0.3592972457408905,
+      "speed_mps": 0.0019707258325070143,
+      "angular_radps": 0.05670217052102089,
+      "stable": true
+    },
+    {
+      "step": 280,
+      "time_s": 5.6000000000000005,
+      "force_n": 0.0,
+      "tilt_deg": 3.2366293057150366,
+      "height_m": 0.35929733514785767,
+      "speed_mps": 0.001962413312867284,
+      "angular_radps": 0.05692385137081146,
+      "stable": true
+    },
+    {
+      "step": 281,
+      "time_s": 5.62,
+      "force_n": 0.0,
+      "tilt_deg": 3.236651002856666,
+      "height_m": 0.3592971861362457,
+      "speed_mps": 0.0019595096819102764,
+      "angular_radps": 0.05673272907733917,
+      "stable": true
+    },
+    {
+      "step": 282,
+      "time_s": 5.64,
+      "force_n": 0.0,
+      "tilt_deg": 3.2365062985966944,
+      "height_m": 0.35929736495018005,
+      "speed_mps": 0.0019722627475857735,
+      "angular_radps": 0.057273901998996735,
+      "stable": true
+    },
+    {
+      "step": 283,
+      "time_s": 5.66,
+      "force_n": 0.0,
+      "tilt_deg": 3.236673121105667,
+      "height_m": 0.35929739475250244,
+      "speed_mps": 0.001969320699572563,
+      "angular_radps": 0.056632354855537415,
+      "stable": true
+    },
+    {
+      "step": 284,
+      "time_s": 5.68,
+      "force_n": 0.0,
+      "tilt_deg": 3.2365254708095827,
+      "height_m": 0.3592972159385681,
+      "speed_mps": 0.0019738972187042236,
+      "angular_radps": 0.05684826523065567,
+      "stable": true
+    },
+    {
+      "step": 285,
+      "time_s": 5.7,
+      "force_n": 0.0,
+      "tilt_deg": 3.236675804466223,
+      "height_m": 0.359297513961792,
+      "speed_mps": 0.0019748457707464695,
+      "angular_radps": 0.057177651673555374,
+      "stable": true
+    },
+    {
+      "step": 286,
+      "time_s": 5.72,
+      "force_n": 0.0,
+      "tilt_deg": 3.236648924182962,
+      "height_m": 0.3592971861362457,
+      "speed_mps": 0.0019563871901482344,
+      "angular_radps": 0.05628979206085205,
+      "stable": true
+    },
+    {
+      "step": 287,
+      "time_s": 5.74,
+      "force_n": 0.0,
+      "tilt_deg": 3.2365721471199262,
+      "height_m": 0.3592972457408905,
+      "speed_mps": 0.0019655702635645866,
+      "angular_radps": 0.05731956660747528,
+      "stable": true
+    },
+    {
+      "step": 288,
+      "time_s": 5.76,
+      "force_n": 0.0,
+      "tilt_deg": 3.236692278528343,
+      "height_m": 0.359297513961792,
+      "speed_mps": 0.0019687891472131014,
+      "angular_radps": 0.056908462196588516,
+      "stable": true
+    },
+    {
+      "step": 289,
+      "time_s": 5.78,
+      "force_n": 0.0,
+      "tilt_deg": 3.2366625680469405,
+      "height_m": 0.3592972755432129,
+      "speed_mps": 0.0019646212458610535,
+      "angular_radps": 0.0566861554980278,
+      "stable": true
+    },
+    {
+      "step": 290,
+      "time_s": 5.8,
+      "force_n": 0.0,
+      "tilt_deg": 3.236668068521192,
+      "height_m": 0.359297513961792,
+      "speed_mps": 0.0019713600631803274,
+      "angular_radps": 0.05711839720606804,
+      "stable": true
+    },
+    {
+      "step": 291,
+      "time_s": 5.82,
+      "force_n": 0.0,
+      "tilt_deg": 3.2366359421714477,
+      "height_m": 0.35929742455482483,
+      "speed_mps": 0.0019602710381150246,
+      "angular_radps": 0.05655510351061821,
+      "stable": true
+    },
+    {
+      "step": 292,
+      "time_s": 5.84,
+      "force_n": 0.0,
+      "tilt_deg": 3.2365119205099946,
+      "height_m": 0.3592972159385681,
+      "speed_mps": 0.001968884374946356,
+      "angular_radps": 0.057213250547647476,
+      "stable": true
+    },
+    {
+      "step": 293,
+      "time_s": 5.86,
+      "force_n": 0.0,
+      "tilt_deg": 3.2367673976767093,
+      "height_m": 0.3592972457408905,
+      "speed_mps": 0.0019635020289570093,
+      "angular_radps": 0.05682951211929321,
+      "stable": true
+    },
+    {
+      "step": 294,
+      "time_s": 5.88,
+      "force_n": 0.0,
+      "tilt_deg": 3.2366192260498976,
+      "height_m": 0.35929739475250244,
+      "speed_mps": 0.0019627073779702187,
+      "angular_radps": 0.056731004267930984,
+      "stable": true
+    },
+    {
+      "step": 295,
+      "time_s": 5.9,
+      "force_n": 0.0,
+      "tilt_deg": 3.2366901583424625,
+      "height_m": 0.3592974841594696,
+      "speed_mps": 0.0019615290220826864,
+      "angular_radps": 0.05682658776640892,
+      "stable": true
+    },
+    {
+      "step": 296,
+      "time_s": 5.92,
+      "force_n": 0.0,
+      "tilt_deg": 3.2365652336191433,
+      "height_m": 0.3592971861362457,
+      "speed_mps": 0.001969940960407257,
+      "angular_radps": 0.05695115402340889,
+      "stable": true
+    },
+    {
+      "step": 297,
+      "time_s": 5.94,
+      "force_n": 0.0,
+      "tilt_deg": 3.2366826363448316,
+      "height_m": 0.3592976927757263,
+      "speed_mps": 0.0019675393123179674,
+      "angular_radps": 0.05715010315179825,
+      "stable": true
+    },
+    {
+      "step": 298,
+      "time_s": 5.96,
+      "force_n": 0.0,
+      "tilt_deg": 3.2366474284764615,
+      "height_m": 0.3592972159385681,
+      "speed_mps": 0.001967805437743664,
+      "angular_radps": 0.05695163458585739,
+      "stable": true
+    },
+    {
+      "step": 299,
+      "time_s": 5.98,
+      "force_n": 0.0,
+      "tilt_deg": 3.2367107695664834,
+      "height_m": 0.359297513961792,
+      "speed_mps": 0.0019604640547186136,
+      "angular_radps": 0.05681038647890091,
+      "stable": true
+    },
+    {
+      "step": 300,
+      "time_s": 6.0,
+      "force_n": 0.0,
+      "tilt_deg": 3.236703175538752,
+      "height_m": 0.3592974841594696,
+      "speed_mps": 0.0019580430816859007,
+      "angular_radps": 0.05701007694005966,
+      "stable": true
+    },
+    {
+      "step": 301,
+      "time_s": 6.0200000000000005,
+      "force_n": 0.0,
+      "tilt_deg": 3.2367337676091217,
+      "height_m": 0.3592974543571472,
+      "speed_mps": 0.001970777753740549,
+      "angular_radps": 0.057354751974344254,
+      "stable": true
+    },
+    {
+      "step": 302,
+      "time_s": 6.04,
+      "force_n": 0.0,
+      "tilt_deg": 3.236792887321481,
+      "height_m": 0.3592974841594696,
+      "speed_mps": 0.0019684070721268654,
+      "angular_radps": 0.05670914798974991,
+      "stable": true
+    },
+    {
+      "step": 303,
+      "time_s": 6.0600000000000005,
+      "force_n": 0.0,
+      "tilt_deg": 3.236674874001145,
+      "height_m": 0.35929781198501587,
+      "speed_mps": 0.0019578083883970976,
+      "angular_radps": 0.05660239979624748,
+      "stable": true
+    }
+  ],
+  "native_video_sha256": "sha256:b10d997770a5d279bb4181eb0497f57659f2e5b4fa7c89fe6443a5050337e518",
+  "source_sha256": {
+    "PLAN/2new_world/P6/no_displacement_01/short/seed_03.json": "sha256:1098e44828804273d7bf8386a97b91a3510b49a6b67f5b7d9f7b844e26dac7ce",
+    "PLAN/2new_world/P6/no_displacement_01/videos/go2_nodrift_s3_e55/seed_03.json": "sha256:1098e44828804273d7bf8386a97b91a3510b49a6b67f5b7d9f7b844e26dac7ce",
+    "PLAN/2new_world/P6/no_displacement_01/short/seed_03.npz": "sha256:58c06fa4e5872f57452a517fca057027600998c47706b4217f2a53795d809942",
+    "PLAN/2new_world/P6/no_displacement_01/videos/go2_nodrift_s3_e55/seed_03.npz": "sha256:58c06fa4e5872f57452a517fca057027600998c47706b4217f2a53795d809942",
+    "PLAN/2new_world/P6/no_displacement_01/videos/go2_nodrift_s3_e55/video.json": "sha256:6b2b6c05e5be3bb666cc6fa2a70b9c05ca78f90206a8c83becf9a9f2ebc024e2"
+  },
+  "scope": "All 64 first episodes compared; decoded frame 1 corresponds to pre-reset control sample 1."
+}

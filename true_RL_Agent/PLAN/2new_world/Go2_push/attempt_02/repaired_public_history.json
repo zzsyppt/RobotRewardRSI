@@ -1,0 +1,3210 @@
+{
+  "scope": "Read-only receipt-bound replay; no simulation or session mutation.",
+  "records": [
+    {
+      "schema_version": "true_rl_agent.generation_ledger_record.v3",
+      "record_kind": "generation",
+      "round_id": "go2-push-5rounds-20260922-a02-generation-001",
+      "generation_id": "go2-push-5rounds-20260922-a02-generation-001",
+      "generation_index": 1,
+      "session_genesis_hash": "5117c78e1b541a0397a554d483cb31922ba0dc63e956162ed8f3d03cae629008",
+      "ledger_epoch_hash": "725ee53fffef0632648f6bc2391b4d5003818b17b70120ebae5e84daef9d2d4f",
+      "authoring_mode": "provider_authoring",
+      "decision": {
+        "outcome": "generation_head_retained",
+        "accepted": false,
+        "reason": "formal_rejected",
+        "generation_id": "go2-push-5rounds-20260922-a02-generation-001",
+        "acceptance_authority": false
+      },
+      "generation": {
+        "schema_version": "true_rl_agent.generation_public_history_projection.v3",
+        "generation_id": "go2-push-5rounds-20260922-a02-generation-001",
+        "generation_index": 1,
+        "generation_outcome": "formal_rejected",
+        "parent_current_best_hash": "e67cc05335c88b0cb0f0c40aeec61fd884a81d1dc69f884baef2ed4b7afb9b8f",
+        "parent_current_best": {
+          "acceptance_protocol_hash": "a9638274f7223f91ef1f115e2c9858fc75e40eddf6223ea891054ef15fe339bd",
+          "accepted_candidate_id": null,
+          "accepted_round_id": null,
+          "anchor_id": "push_standing_recovery_stationary_reference_v3",
+          "anchor_kind": "reference",
+          "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+          "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+          "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+          "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+          "gate_statuses": {
+            "accept_evidence_gate": "pass",
+            "budget_accounting": "pass",
+            "recovery_evidence_gate": "pass",
+            "reference_capability_gate": "pass",
+            "sealed_validation_gate": "pass"
+          },
+          "guard_score_stats": {},
+          "min_score_count": 3,
+          "mode": "reference",
+          "named_guard_evidence": {},
+          "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+          "public_accept_stats": {
+            "count": 3,
+            "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+            "mean": 0.7395833333333334,
+            "standard_error": 0.027559909490256152,
+            "statistics_version": "true_rl_agent.derived_statistics.v1",
+            "std": 0.047735163489123336
+          },
+          "public_score": 0.7395833333333334,
+          "sealed_validation_evidence": {
+            "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+            "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+            "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+            "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+            "evaluation_subject": {
+              "id": "push_standing_recovery_stationary_reference_v3",
+              "kind": "reference",
+              "schema_version": "true_rl_agent.experiment.subject.v2"
+            },
+            "expected_seed_count": 7,
+            "observed_seed_count": 7,
+            "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+            "reason": "push_recovery_holdout_contract_met",
+            "schema_version": "true_rl_agent.sealed_validation.evidence.v4",
+            "score_stats": {
+              "count": 7,
+              "episode_count": 448,
+              "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+              "mean": 0.765625,
+              "standard_error": 0.011811389781538352,
+              "statistics_version": "true_rl_agent.derived_statistics.v1",
+              "std": 0.03125,
+              "values": [
+                0.78125,
+                0.734375,
+                0.75,
+                0.75,
+                0.796875,
+                0.734375,
+                0.8125
+              ]
+            },
+            "status": "pass",
+            "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+            "training_binding_hash": "56b9f8f9ce1168684558273d47c16ce6400f5590832fdb60ae9f2a4f00b5e072"
+          },
+          "sealed_validation_gate": {
+            "candidate_code_loaded_in_eval": false,
+            "candidate_isolation_status": "pass",
+            "candidate_package_loaded_in_eval": false,
+            "candidate_path_argument_present": false,
+            "checkpoint_hash_match_status": "pass",
+            "checkpoint_safety_status": "pass",
+            "eval_protocol_hash_match_status": "pass",
+            "evaluation_binding_hash_match_status": "pass",
+            "holdout_rollout_status": "pass",
+            "reason": "sealed_validation_complete",
+            "status": "pass"
+          },
+          "seed_cohort_hash": "78fcd36dddb12ef0b3a520a87bf89c55bbf7d346c0c4c39e8666c44ac490c469",
+          "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+          "task_protocol_hash": "31622698100045fc8c2fac8707a71a39f84655c2cfde714421fd5b92f748407d",
+          "training_binding_hash": "56b9f8f9ce1168684558273d47c16ce6400f5590832fdb60ae9f2a4f00b5e072"
+        },
+        "resulting_current_best_hash": "e67cc05335c88b0cb0f0c40aeec61fd884a81d1dc69f884baef2ed4b7afb9b8f",
+        "trials": [
+          {
+            "authoring": {
+              "authoring_evidence_checksum": "sha256:15d3376d56730aa42399b843b52aedcc7091aaf9db94b685ae51f0f596dea9e0",
+              "base_public_context_hash": "4e189c7fa21ef63a31346b7b028a231a3089b753fb4e590174c724dabf5e0ceb",
+              "lane_intent_hash": "3deaf20298d0f8461603302146ae02c1eac1547fb1d96537961c34725ec6dae5",
+              "prompt_payload_checksum": "sha256:5119dae9f796c40a30d2fdadc7b031428b345885c02d46185860784365239293",
+              "sibling_exclusion_hash": null
+            },
+            "candidate": {
+              "artifact_hash": "23c3548cc87e64fb12bd6c4e00b4afe5c846eb3da35abbdf1ba7f5f403402be5",
+              "candidate_id": "push_standing_recovery_height_margin_v1",
+              "changed_components": [
+                "reward_callable"
+              ],
+              "program_source_checksum": "sha256:31c5a5ba883d08440f6ff6d36d7ba2c89314456098c9df79833200ba25711ea4",
+              "program_source_size_bytes": 3126,
+              "subject_manifest_hash": "93fa76f7b357d93c6af9d141a908c9b9b2639962c1dc2d92f5a26be8ddac29aa",
+              "verification": {
+                "policy": "true_rl_agent.static_candidate_verifier.pure_function.v2",
+                "policy_hash": "17e48a15617337729f47783f32d7b8940b4b25d06ef8632ee0e486c05e3add74",
+                "status": "pass",
+                "verification_hash": "0796f37f74961c7fe9180359fa5da54f587ee225219dc39be5efa74c2cfbc40b"
+              }
+            },
+            "candidate_surface": {
+              "classification": "code_level",
+              "eligible_for_policy_accept": true,
+              "reason": "code_level_candidate"
+            },
+            "execution_receipt_checksum": null,
+            "execution_record_hash": null,
+            "formal_record_hash": null,
+            "lane_id": "lane-a",
+            "mechanism_operation_delta": {
+              "after_component": {
+                "input_fields": [
+                  "base_height_relative",
+                  "pitch",
+                  "roll"
+                ],
+                "mechanism_id": "RewardTerm:height_collapse",
+                "parameter_normalized_structure_hash": "ab7ac37dbfb216ecfbba7f0d523fa2518c9cea457b94788d7ae4585d4067080d",
+                "structure_hash": "84c2c172de56af2a27620e7430ab9254597274c2605ce2e386d21e7ea541a05e"
+              },
+              "anchor_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+              "before_component": null,
+              "candidate_source_checksum": "sha256:31c5a5ba883d08440f6ff6d36d7ba2c89314456098c9df79833200ba25711ea4",
+              "operation": "add",
+              "schema_version": "true_rl_agent.candidate_mechanism_operation_delta.v2"
+            },
+            "public_accept": {
+              "checkpoint_hash": "sha256:96f48174647323cd8d753688fe90af8c9343eafd98101fec2eb245b4c9654c32",
+              "evaluation_plan_hash": "20675d087823448fd57df2fc2171b93660cb229d3d69c063e87fdd3f7dec2ea2",
+              "execution_device": "cuda:0",
+              "job_spec_hash": "42a067d1ba19daadb3b9d020ebf13f1b97baf41c71345831a8fe0820ccb9d18e",
+              "phase": "public_accept",
+              "phase_receipt_checksum": "sha256:91c08af02bc8ca4c1da6266feefb37a7e99448f60f5c98db5193ec05fd4d6573",
+              "phase_result_hash": "e3cf747de7319ce0153921cbb5f48fc04453fae681fde1c55e301c8200b22494",
+              "public_summary": {
+                "score_stats": {
+                  "count": 3,
+                  "episode_count": 192,
+                  "mean": 0.78125,
+                  "standard_error": 0.009021097956087902,
+                  "statistics_version": "true_rl_agent.derived_statistics.v1",
+                  "std": 0.015625,
+                  "values": [
+                    0.765625,
+                    0.796875,
+                    0.78125
+                  ]
+                },
+                "seed_results": [
+                  {
+                    "condition_flag_breakdown": null,
+                    "episodes": 64,
+                    "failure_breakdown": {
+                      "counts": {
+                        "fall_backward": 3,
+                        "fall_side": 4,
+                        "height_collapse": 8,
+                        "success_recovered": 49
+                      },
+                      "dominant_failure": "height_collapse",
+                      "rates": {
+                        "fall_backward": 0.046875,
+                        "fall_side": 0.0625,
+                        "height_collapse": 0.125,
+                        "success_recovered": 0.765625
+                      },
+                      "total": 64
+                    },
+                    "recovery_counts": {
+                      "completed_push_event_count": 78,
+                      "control_episode_count": 0,
+                      "eligible_episode_count": 64,
+                      "episodes": 64,
+                      "invalid_injection_count": 0,
+                      "planned_push_event_count": 80,
+                      "push_event_count": 79,
+                      "pushed_episode_count": 64,
+                      "sequence_recovered_count": 49,
+                      "successes": 49,
+                      "verified_push_event_count": 79
+                    },
+                    "run_index": 1,
+                    "secondary_metrics": {
+                      "mean_action_l2": 19.17595,
+                      "mean_action_rate_l2": 1.134022,
+                      "mean_episode_steps": 250.8125,
+                      "mean_final_planar_speed_mps": 0.390292,
+                      "mean_max_abs_pitch_rad": 0.224285,
+                      "mean_max_abs_roll_rad": 0.191694,
+                      "mean_max_xy_drift_m": 0.639484,
+                      "mean_min_base_height_m": 0.294678,
+                      "recovery_window_success_rate": 0.765625
+                    },
+                    "status": "pass",
+                    "stratum_results": {
+                      "high": {
+                        "episodes": 16,
+                        "successes": 7
+                      },
+                      "low": {
+                        "episodes": 16,
+                        "successes": 16
+                      },
+                      "medium": {
+                        "episodes": 16,
+                        "successes": 13
+                      },
+                      "repeated": {
+                        "episodes": 16,
+                        "successes": 13
+                      }
+                    },
+                    "success_rate": 0.765625
+                  },
+                  {
+                    "condition_flag_breakdown": null,
+                    "episodes": 64,
+                    "failure_breakdown": {
+                      "counts": {
+                        "fall_backward": 2,
+                        "fall_side": 2,
+                        "height_collapse": 8,
+                        "not_recovered": 1,
+                        "success_recovered": 51
+                      },
+                      "dominant_failure": "height_collapse",
+                      "rates": {
+                        "fall_backward": 0.03125,
+                        "fall_side": 0.03125,
+                        "height_collapse": 0.125,
+                        "not_recovered": 0.015625,
+                        "success_recovered": 0.796875
+                      },
+                      "total": 64
+                    },
+                    "recovery_counts": {
+                      "completed_push_event_count": 79,
+                      "control_episode_count": 0,
+                      "eligible_episode_count": 64,
+                      "episodes": 64,
+                      "invalid_injection_count": 0,
+                      "planned_push_event_count": 80,
+                      "push_event_count": 79,
+                      "pushed_episode_count": 64,
+                      "sequence_recovered_count": 51,
+                      "successes": 51,
+                      "verified_push_event_count": 79
+                    },
+                    "run_index": 2,
+                    "secondary_metrics": {
+                      "mean_action_l2": 18.719864,
+                      "mean_action_rate_l2": 1.043896,
+                      "mean_episode_steps": 261.8125,
+                      "mean_final_planar_speed_mps": 0.321986,
+                      "mean_max_abs_pitch_rad": 0.209086,
+                      "mean_max_abs_roll_rad": 0.196924,
+                      "mean_max_xy_drift_m": 0.695393,
+                      "mean_min_base_height_m": 0.291239,
+                      "recovery_window_success_rate": 0.796875
+                    },
+                    "status": "pass",
+                    "stratum_results": {
+                      "high": {
+                        "episodes": 16,
+                        "successes": 8
+                      },
+                      "low": {
+                        "episodes": 16,
+                        "successes": 16
+                      },
+                      "medium": {
+                        "episodes": 16,
+                        "successes": 15
+                      },
+                      "repeated": {
+                        "episodes": 16,
+                        "successes": 12
+                      }
+                    },
+                    "success_rate": 0.796875
+                  },
+                  {
+                    "condition_flag_breakdown": null,
+                    "episodes": 64,
+                    "failure_breakdown": {
+                      "counts": {
+                        "fall_side": 4,
+                        "height_collapse": 9,
+                        "not_recovered": 1,
+                        "success_recovered": 50
+                      },
+                      "dominant_failure": "height_collapse",
+                      "rates": {
+                        "fall_side": 0.0625,
+                        "height_collapse": 0.140625,
+                        "not_recovered": 0.015625,
+                        "success_recovered": 0.78125
+                      },
+                      "total": 64
+                    },
+                    "recovery_counts": {
+                      "completed_push_event_count": 80,
+                      "control_episode_count": 0,
+                      "eligible_episode_count": 64,
+                      "episodes": 64,
+                      "invalid_injection_count": 0,
+                      "planned_push_event_count": 80,
+                      "push_event_count": 80,
+                      "pushed_episode_count": 64,
+                      "sequence_recovered_count": 50,
+                      "successes": 50,
+                      "verified_push_event_count": 80
+                    },
+                    "run_index": 3,
+                    "secondary_metrics": {
+                      "mean_action_l2": 18.941579,
+                      "mean_action_rate_l2": 1.02089,
+                      "mean_episode_steps": 260.4375,
+                      "mean_final_planar_speed_mps": 0.343445,
+                      "mean_max_abs_pitch_rad": 0.225241,
+                      "mean_max_abs_roll_rad": 0.202357,
+                      "mean_max_xy_drift_m": 0.710722,
+                      "mean_min_base_height_m": 0.294669,
+                      "recovery_window_success_rate": 0.78125
+                    },
+                    "status": "pass",
+                    "stratum_results": {
+                      "high": {
+                        "episodes": 16,
+                        "successes": 8
+                      },
+                      "low": {
+                        "episodes": 16,
+                        "successes": 16
+                      },
+                      "medium": {
+                        "episodes": 16,
+                        "successes": 13
+                      },
+                      "repeated": {
+                        "episodes": 16,
+                        "successes": 13
+                      }
+                    },
+                    "success_rate": 0.78125
+                  }
+                ]
+              },
+              "resource_binding_hash": "6717a64dc87b7d45f2180d07bd7eab19de67aafd859e149b160c1deb76ce4bdc",
+              "schema_version": "true_rl_agent.generation_phase_projection.v1",
+              "task_evidence_hash": "d05cba8f73f18a7a084e8144fcc90277c147ee62170559848a608cec9073a297"
+            },
+            "public_dev": {
+              "checkpoint_hash": "sha256:96f48174647323cd8d753688fe90af8c9343eafd98101fec2eb245b4c9654c32",
+              "evaluation_plan_hash": "20675d087823448fd57df2fc2171b93660cb229d3d69c063e87fdd3f7dec2ea2",
+              "execution_device": "cuda:0",
+              "job_spec_hash": "600e240c97504a4ea039e30a6d4cdee01af0c2f178ad29d3df4744f9bd3e6841",
+              "phase": "public_dev",
+              "phase_receipt_checksum": "sha256:55795071076238e490a64ed6569af07f28b217715709d0e8459d373b74849ce8",
+              "phase_result_hash": "825c7fbe1fe2efe96585f6a5efb4e1ca80b8bde3bc0b4f3312678901b0c3e59f",
+              "public_summary": {
+                "score_stats": {
+                  "count": 3,
+                  "episode_count": 192,
+                  "mean": 0.8125,
+                  "standard_error": 0.04133986423538423,
+                  "statistics_version": "true_rl_agent.derived_statistics.v1",
+                  "std": 0.071602745233685,
+                  "values": [
+                    0.75,
+                    0.796875,
+                    0.890625
+                  ]
+                },
+                "seed_results": [
+                  {
+                    "condition_flag_breakdown": null,
+                    "episodes": 64,
+                    "failure_breakdown": {
+                      "counts": {
+                        "fall_backward": 4,
+                        "fall_side": 5,
+                        "height_collapse": 5,
+                        "not_recovered": 2,
+                        "success_recovered": 48
+                      },
+                      "dominant_failure": "fall_side",
+                      "rates": {
+                        "fall_backward": 0.0625,
+                        "fall_side": 0.078125,
+                        "height_collapse": 0.078125,
+                        "not_recovered": 0.03125,
+                        "success_recovered": 0.75
+                      },
+                      "total": 64
+                    },
+                    "recovery_counts": {
+                      "completed_push_event_count": 80,
+                      "control_episode_count": 0,
+                      "eligible_episode_count": 64,
+                      "episodes": 64,
+                      "invalid_injection_count": 0,
+                      "planned_push_event_count": 80,
+                      "push_event_count": 80,
+                      "pushed_episode_count": 64,
+                      "sequence_recovered_count": 48,
+                      "successes": 48,
+                      "verified_push_event_count": 80
+                    },
+                    "run_index": 1,
+                    "secondary_metrics": {
+                      "mean_action_l2": 18.968201,
+                      "mean_action_rate_l2": 1.216264,
+                      "mean_episode_steps": 255.296875,
+                      "mean_final_planar_speed_mps": 0.384485,
+                      "mean_max_abs_pitch_rad": 0.249009,
+                      "mean_max_abs_roll_rad": 0.223837,
+                      "mean_max_xy_drift_m": 0.653803,
+                      "mean_min_base_height_m": 0.299544,
+                      "recovery_window_success_rate": 0.75
+                    },
+                    "status": "pass",
+                    "stratum_results": {
+                      "high": {
+                        "episodes": 16,
+                        "successes": 7
+                      },
+                      "low": {
+                        "episodes": 16,
+                        "successes": 16
+                      },
+                      "medium": {
+                        "episodes": 16,
+                        "successes": 14
+                      },
+                      "repeated": {
+                        "episodes": 16,
+                        "successes": 11
+                      }
+                    },
+                    "success_rate": 0.75
+                  },
+                  {
+                    "condition_flag_breakdown": null,
+                    "episodes": 64,
+                    "failure_breakdown": {
+                      "counts": {
+                        "fall_side": 3,
+                        "height_collapse": 9,
+                        "not_recovered": 1,
+                        "success_recovered": 51
+                      },
+                      "dominant_failure": "height_collapse",
+                      "rates": {
+                        "fall_side": 0.046875,
+                        "height_collapse": 0.140625,
+                        "not_recovered": 0.015625,
+                        "success_recovered": 0.796875
+                      },
+                      "total": 64
+                    },
+                    "recovery_counts": {
+                      "completed_push_event_count": 80,
+                      "control_episode_count": 0,
+                      "eligible_episode_count": 64,
+                      "episodes": 64,
+                      "invalid_injection_count": 0,
+                      "planned_push_event_count": 80,
+                      "push_event_count": 80,
+                      "pushed_episode_count": 64,
+                      "sequence_recovered_count": 53,
+                      "successes": 51,
+                      "verified_push_event_count": 80
+                    },
+                    "run_index": 2,
+                    "secondary_metrics": {
+                      "mean_action_l2": 18.94594,
+                      "mean_action_rate_l2": 1.006318,
+                      "mean_episode_steps": 267.015625,
+                      "mean_final_planar_speed_mps": 0.364438,
+                      "mean_max_abs_pitch_rad": 0.212287,
+                      "mean_max_abs_roll_rad": 0.202742,
+                      "mean_max_xy_drift_m": 0.71509,
+                      "mean_min_base_height_m": 0.292373,
+                      "recovery_window_success_rate": 0.796875
+                    },
+                    "status": "pass",
+                    "stratum_results": {
+                      "high": {
+                        "episodes": 16,
+                        "successes": 9
+                      },
+                      "low": {
+                        "episodes": 16,
+                        "successes": 16
+                      },
+                      "medium": {
+                        "episodes": 16,
+                        "successes": 15
+                      },
+                      "repeated": {
+                        "episodes": 16,
+                        "successes": 11
+                      }
+                    },
+                    "success_rate": 0.796875
+                  },
+                  {
+                    "condition_flag_breakdown": null,
+                    "episodes": 64,
+                    "failure_breakdown": {
+                      "counts": {
+                        "height_collapse": 5,
+                        "not_recovered": 2,
+                        "success_recovered": 57
+                      },
+                      "dominant_failure": "height_collapse",
+                      "rates": {
+                        "height_collapse": 0.078125,
+                        "not_recovered": 0.03125,
+                        "success_recovered": 0.890625
+                      },
+                      "total": 64
+                    },
+                    "recovery_counts": {
+                      "completed_push_event_count": 80,
+                      "control_episode_count": 0,
+                      "eligible_episode_count": 64,
+                      "episodes": 64,
+                      "invalid_injection_count": 0,
+                      "planned_push_event_count": 80,
+                      "push_event_count": 80,
+                      "pushed_episode_count": 64,
+                      "sequence_recovered_count": 57,
+                      "successes": 57,
+                      "verified_push_event_count": 80
+                    },
+                    "run_index": 3,
+                    "secondary_metrics": {
+                      "mean_action_l2": 18.828345,
+                      "mean_action_rate_l2": 0.758624,
+                      "mean_episode_steps": 284.90625,
+                      "mean_final_planar_speed_mps": 0.178394,
+                      "mean_max_abs_pitch_rad": 0.180747,
+                      "mean_max_abs_roll_rad": 0.169254,
+                      "mean_max_xy_drift_m": 0.704677,
+                      "mean_min_base_height_m": 0.300171,
+                      "recovery_window_success_rate": 0.890625
+                    },
+                    "status": "pass",
+                    "stratum_results": {
+                      "high": {
+                        "episodes": 16,
+                        "successes": 10
+                      },
+                      "low": {
+                        "episodes": 16,
+                        "successes": 16
+                      },
+                      "medium": {
+                        "episodes": 16,
+                        "successes": 16
+                      },
+                      "repeated": {
+                        "episodes": 16,
+                        "successes": 15
+                      }
+                    },
+                    "success_rate": 0.890625
+                  }
+                ]
+              },
+              "resource_binding_hash": "6717a64dc87b7d45f2180d07bd7eab19de67aafd859e149b160c1deb76ce4bdc",
+              "schema_version": "true_rl_agent.generation_phase_projection.v1",
+              "task_evidence_hash": "24b4e81b292d602721598442a7acc9ead04ab7cc0954f0b6f4d6f7260618c309"
+            },
+            "schema_version": "true_rl_agent.generation_trial.v1",
+            "status_reason": "not_run_due_to_early_reject",
+            "train": {
+              "checkpoint_hash": "sha256:96f48174647323cd8d753688fe90af8c9343eafd98101fec2eb245b4c9654c32",
+              "execution_device": "cuda:0",
+              "job_spec_hash": "43fd8701901e5d4827a5167f5f53ea4b35e46787b2500aea4c9dee7aa6b55f3e",
+              "resource_binding_hash": "6717a64dc87b7d45f2180d07bd7eab19de67aafd859e149b160c1deb76ce4bdc",
+              "train_receipt_checksum": "sha256:a02678ad3762646dd3314d432295ef95330e1c83dd009e817df4bd689e3a7e07",
+              "train_result_hash": "8201059e7f62dca64c54cdb8814bb23b8b7a7dcad123900db513d7aac8b1a11a"
+            },
+            "trial_contract_hash": "6e6299e917f8d7b63c40be8f9e80a0463f176c4675d019ff94e40d15b508b667",
+            "trial_id": "go2-push-5rounds-20260922-a02-generation-001-lane-a",
+            "trial_status": "formal_rejected",
+            "verifier": {
+              "details": {
+                "candidate_package_contract_hash": "ea177ecd60812c8c3da7de62f594c1673e1dc7878e162e01fb25596255f6d785",
+                "derived_change_set": [
+                  "reward_callable"
+                ],
+                "verification_policy_hash": "17e48a15617337729f47783f32d7b8940b4b25d06ef8632ee0e486c05e3add74",
+                "verification_policy_id": "true_rl_agent.static_candidate_verifier.pure_function.v2"
+              },
+              "reason": "static_candidate_verifier_passed",
+              "status": "pass",
+              "verified_program_identity": {
+                "candidate_artifact_hash": "23c3548cc87e64fb12bd6c4e00b4afe5c846eb3da35abbdf1ba7f5f403402be5",
+                "candidate_id": "push_standing_recovery_height_margin_v1",
+                "program_source_checksum": "sha256:31c5a5ba883d08440f6ff6d36d7ba2c89314456098c9df79833200ba25711ea4",
+                "program_source_size_bytes": 3126,
+                "subject_manifest_hash": "93fa76f7b357d93c6af9d141a908c9b9b2639962c1dc2d92f5a26be8ddac29aa"
+              }
+            },
+            "lane_intent": {
+              "schema_version": "true_rl_agent.generation_lane_intent.exploration.v1",
+              "lane_id": "lane-a",
+              "mode": "novel",
+              "current_head_hash": "e67cc05335c88b0cb0f0c40aeec61fd884a81d1dc69f884baef2ed4b7afb9b8f",
+              "inspired_by_trial_id": null,
+              "inspired_by_card_hash": null,
+              "hypothesis": null,
+              "verifier_equivalence_exclusion_set_hash": "93af470f76fcae9ca4fe74dafd4f2b8a50c23dd6b53140d96aec7027db1af871",
+              "acceptance_authority": false
+            },
+            "authoring_status": {
+              "schema_version": "true_rl_agent.authoring_status.v1",
+              "stop_reason": "candidate_verified",
+              "attempt_count": 1,
+              "candidate_verified": true,
+              "candidate_id": "push_standing_recovery_height_margin_v1",
+              "program_source_checksum": "sha256:31c5a5ba883d08440f6ff6d36d7ba2c89314456098c9df79833200ba25711ea4",
+              "provider_failure": null,
+              "unresolved_candidate_failure": null
+            },
+            "runtime_activation_summary": {
+              "reward_term_calls": 72000,
+              "diagnostic_calls": 0,
+              "nonzero_reward_contribution": true,
+              "reward_output_stats": {
+                "finite_fraction": 1.0,
+                "mean": 1.571599
+              },
+              "diagnostic_outputs": {},
+              "component_activation_records": [
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": 3.0,
+                  "last_weighted_mean": 2.935588,
+                  "max_abs_weighted_contribution": 2.999997854232788,
+                  "name": "upright_height",
+                  "nonzero_observation_count": 500,
+                  "nonzero_observation_fraction": 1.0,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                },
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": 1.0,
+                  "last_weighted_mean": 0.790966,
+                  "max_abs_weighted_contribution": 3.3322458267211914,
+                  "name": "stationary_v3",
+                  "nonzero_observation_count": 500,
+                  "nonzero_observation_fraction": 1.0,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                },
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": -0.1,
+                  "last_weighted_mean": -0.015849,
+                  "max_abs_weighted_contribution": 0.3883422017097473,
+                  "name": "joint_pose",
+                  "nonzero_observation_count": 500,
+                  "nonzero_observation_fraction": 1.0,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                },
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": -0.01,
+                  "last_weighted_mean": -0.075016,
+                  "max_abs_weighted_contribution": 30.888134002685547,
+                  "name": "action_rate",
+                  "nonzero_observation_count": 500,
+                  "nonzero_observation_fraction": 1.0,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                },
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": -20.0,
+                  "last_weighted_mean": 0.0,
+                  "max_abs_weighted_contribution": 20.0,
+                  "name": "fall",
+                  "nonzero_observation_count": 118,
+                  "nonzero_observation_fraction": 0.236,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                },
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": -8.0,
+                  "last_weighted_mean": -2.5e-05,
+                  "max_abs_weighted_contribution": 1.7753657102584839,
+                  "name": "height_collapse",
+                  "nonzero_observation_count": 497,
+                  "nonzero_observation_fraction": 0.994,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                }
+              ],
+              "feature_activation_records": [],
+              "capability_activation_records": [
+                "reward_callable"
+              ]
+            },
+            "selection_screen": {
+              "acceptance_authority": false,
+              "behavior_passed": true,
+              "checkpoint_hash": "sha256:96f48174647323cd8d753688fe90af8c9343eafd98101fec2eb245b4c9654c32",
+              "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+              "evaluation_plan_hash": "20675d087823448fd57df2fc2171b93660cb229d3d69c063e87fdd3f7dec2ea2",
+              "execution_device": "cuda:0",
+              "phase_result_hash": "825c7fbe1fe2efe96585f6a5efb4e1ca80b8bde3bc0b4f3312678901b0c3e59f",
+              "resource_binding_hash": "6717a64dc87b7d45f2180d07bd7eab19de67aafd859e149b160c1deb76ce4bdc",
+              "schema_version": "true_rl_agent.task.push_recovery.public_dev_screen.v1",
+              "score_stats": {
+                "count": 3,
+                "episode_count": 192,
+                "mean": 0.8125,
+                "standard_error": 0.04133986423538423,
+                "statistics_version": "true_rl_agent.derived_statistics.v1",
+                "std": 0.071602745233685,
+                "values": [
+                  0.75,
+                  0.796875,
+                  0.890625
+                ]
+              },
+              "screen_role": "candidate",
+              "train_receipt_checksum": "sha256:a02678ad3762646dd3314d432295ef95330e1c83dd009e817df4bd689e3a7e07",
+              "trial_id": "go2-push-5rounds-20260922-a02-generation-001-lane-a"
+            }
+          },
+          {
+            "authoring": {
+              "authoring_evidence_checksum": "sha256:52edeee2a2abd359b77ef4f5d5a7e835d5b4100e640e9d2034051732e3dffcc1",
+              "base_public_context_hash": "4e189c7fa21ef63a31346b7b028a231a3089b753fb4e590174c724dabf5e0ceb",
+              "lane_intent_hash": "df4c111f790336e683ca0d4a0c58d2ebcd4830ea078001dc2c90c3fe485fa3c9",
+              "prompt_payload_checksum": "sha256:a137901add23600bd8aeb39dd081a89bba914d28731670cf6691ff9f572a126b",
+              "sibling_exclusion_hash": "0187bafa52d6cbde72baaf35b92994261053cad1c79b340bd61f14dcfe836d28"
+            },
+            "candidate": {
+              "artifact_hash": "41edf11477c2f0bfc5557aa75d69778010f51376799e62e4fe66300fc125a879",
+              "candidate_id": "push_recovery_posture_gated_damping_v1",
+              "changed_components": [
+                "reward_callable"
+              ],
+              "program_source_checksum": "sha256:4e9028aaac8cf2eba2658b7cfeb49ba6fab357588ccd6b141bdc1eb2e33172f6",
+              "program_source_size_bytes": 3552,
+              "subject_manifest_hash": "e9ec2d4d7ca7a7756ba16ea73c58edf566ec251f004f6c3b48bc056240d79e30",
+              "verification": {
+                "policy": "true_rl_agent.static_candidate_verifier.pure_function.v2",
+                "policy_hash": "17e48a15617337729f47783f32d7b8940b4b25d06ef8632ee0e486c05e3add74",
+                "status": "pass",
+                "verification_hash": "c51a17e09e6dbd2fe794061fdcc111ebb5a879404d5e7e05eb9c58a106c87e88"
+              }
+            },
+            "candidate_surface": {
+              "classification": "code_level",
+              "eligible_for_policy_accept": true,
+              "reason": "code_level_candidate"
+            },
+            "execution_receipt_checksum": null,
+            "execution_record_hash": null,
+            "formal_record_hash": null,
+            "lane_id": "lane-b",
+            "mechanism_operation_delta": {
+              "after_component": {
+                "input_fields": [
+                  "base_ang_vel_scaled",
+                  "base_height_relative",
+                  "base_lin_vel_scaled",
+                  "projected_gravity"
+                ],
+                "mechanism_id": "RewardTerm:stable_damping",
+                "parameter_normalized_structure_hash": "49ad0126092e357b3e9a8c7d91497c46a18fd04acc74c989315c4d38e1ae324c",
+                "structure_hash": "2fd2f993bce99ed25456567803fd0c9b96494b1b7854c9163faec00b17bf9cb5"
+              },
+              "anchor_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+              "before_component": {
+                "input_fields": [
+                  "base_ang_vel_scaled",
+                  "base_lin_vel_scaled"
+                ],
+                "mechanism_id": "RewardTerm:stationary_v3",
+                "parameter_normalized_structure_hash": "e589302ef7940f4ad92e03e4a004106a017d12c2c56a47914a0fd5d88181b675",
+                "structure_hash": "505339c55697aad5548902cf68c29a3f3d63866526290b006810958dd59d96bd"
+              },
+              "candidate_source_checksum": "sha256:4e9028aaac8cf2eba2658b7cfeb49ba6fab357588ccd6b141bdc1eb2e33172f6",
+              "operation": "rename",
+              "schema_version": "true_rl_agent.candidate_mechanism_operation_delta.v2"
+            },
+            "public_accept": null,
+            "public_dev": {
+              "checkpoint_hash": "sha256:acfd05618515e69bac092b628d59503dfe12d4912ff7b4df321a6db188d1ba05",
+              "evaluation_plan_hash": "68f40854a733c5061f519d908772a53e589dfabbad186f2a90491ef07e021f9a",
+              "execution_device": "cuda:0",
+              "job_spec_hash": "0deba51f5e32a05feb320e816e2d15a3a10bdbdee110eb8fd261aeb0bce49615",
+              "phase": "public_dev",
+              "phase_receipt_checksum": "sha256:d8986084fb082d0f81cd32ecf378dfd0962d156b197b92a2efbcad8e5d48bd9b",
+              "phase_result_hash": "64310cd1da5f64ad115ec4ef6b4bc0a6898d0f4399fac2ec421dc4031d420170",
+              "public_summary": {
+                "score_stats": {
+                  "count": 3,
+                  "episode_count": 192,
+                  "mean": 0.7395833333333334,
+                  "standard_error": 0.02270259866427434,
+                  "statistics_version": "true_rl_agent.derived_statistics.v1",
+                  "std": 0.039322054350368486,
+                  "values": [
+                    0.78125,
+                    0.734375,
+                    0.703125
+                  ]
+                },
+                "seed_results": [
+                  {
+                    "condition_flag_breakdown": null,
+                    "episodes": 64,
+                    "failure_breakdown": {
+                      "counts": {
+                        "fall_backward": 5,
+                        "fall_side": 4,
+                        "height_collapse": 4,
+                        "not_recovered": 1,
+                        "success_recovered": 50
+                      },
+                      "dominant_failure": "fall_backward",
+                      "rates": {
+                        "fall_backward": 0.078125,
+                        "fall_side": 0.0625,
+                        "height_collapse": 0.0625,
+                        "not_recovered": 0.015625,
+                        "success_recovered": 0.78125
+                      },
+                      "total": 64
+                    },
+                    "recovery_counts": {
+                      "completed_push_event_count": 78,
+                      "control_episode_count": 0,
+                      "eligible_episode_count": 64,
+                      "episodes": 64,
+                      "invalid_injection_count": 0,
+                      "planned_push_event_count": 80,
+                      "push_event_count": 79,
+                      "pushed_episode_count": 64,
+                      "sequence_recovered_count": 50,
+                      "successes": 50,
+                      "verified_push_event_count": 79
+                    },
+                    "run_index": 1,
+                    "secondary_metrics": {
+                      "mean_action_l2": 18.76702,
+                      "mean_action_rate_l2": 1.069444,
+                      "mean_episode_steps": 256.984375,
+                      "mean_final_planar_speed_mps": 0.416886,
+                      "mean_max_abs_pitch_rad": 0.230267,
+                      "mean_max_abs_roll_rad": 0.227571,
+                      "mean_max_xy_drift_m": 0.764357,
+                      "mean_min_base_height_m": 0.305638,
+                      "recovery_window_success_rate": 0.78125
+                    },
+                    "status": "pass",
+                    "stratum_results": {
+                      "high": {
+                        "episodes": 16,
+                        "successes": 7
+                      },
+                      "low": {
+                        "episodes": 16,
+                        "successes": 16
+                      },
+                      "medium": {
+                        "episodes": 16,
+                        "successes": 14
+                      },
+                      "repeated": {
+                        "episodes": 16,
+                        "successes": 13
+                      }
+                    },
+                    "success_rate": 0.78125
+                  },
+                  {
+                    "condition_flag_breakdown": null,
+                    "episodes": 64,
+                    "failure_breakdown": {
+                      "counts": {
+                        "fall_backward": 2,
+                        "fall_side": 6,
+                        "height_collapse": 7,
+                        "not_recovered": 2,
+                        "success_recovered": 47
+                      },
+                      "dominant_failure": "height_collapse",
+                      "rates": {
+                        "fall_backward": 0.03125,
+                        "fall_side": 0.09375,
+                        "height_collapse": 0.109375,
+                        "not_recovered": 0.03125,
+                        "success_recovered": 0.734375
+                      },
+                      "total": 64
+                    },
+                    "recovery_counts": {
+                      "completed_push_event_count": 77,
+                      "control_episode_count": 0,
+                      "eligible_episode_count": 64,
+                      "episodes": 64,
+                      "invalid_injection_count": 0,
+                      "planned_push_event_count": 80,
+                      "push_event_count": 78,
+                      "pushed_episode_count": 64,
+                      "sequence_recovered_count": 47,
+                      "successes": 47,
+                      "verified_push_event_count": 78
+                    },
+                    "run_index": 2,
+                    "secondary_metrics": {
+                      "mean_action_l2": 18.58921,
+                      "mean_action_rate_l2": 1.190453,
+                      "mean_episode_steps": 251.34375,
+                      "mean_final_planar_speed_mps": 0.462913,
+                      "mean_max_abs_pitch_rad": 0.208923,
+                      "mean_max_abs_roll_rad": 0.251292,
+                      "mean_max_xy_drift_m": 0.805532,
+                      "mean_min_base_height_m": 0.298985,
+                      "recovery_window_success_rate": 0.734375
+                    },
+                    "status": "pass",
+                    "stratum_results": {
+                      "high": {
+                        "episodes": 16,
+                        "successes": 7
+                      },
+                      "low": {
+                        "episodes": 16,
+                        "successes": 16
+                      },
+                      "medium": {
+                        "episodes": 16,
+                        "successes": 15
+                      },
+                      "repeated": {
+                        "episodes": 16,
+                        "successes": 9
+                      }
+                    },
+                    "success_rate": 0.734375
+                  },
+                  {
+                    "condition_flag_breakdown": null,
+                    "episodes": 64,
+                    "failure_breakdown": {
+                      "counts": {
+                        "fall_backward": 4,
+                        "fall_side": 9,
+                        "height_collapse": 6,
+                        "success_recovered": 45
+                      },
+                      "dominant_failure": "fall_side",
+                      "rates": {
+                        "fall_backward": 0.0625,
+                        "fall_side": 0.140625,
+                        "height_collapse": 0.09375,
+                        "success_recovered": 0.703125
+                      },
+                      "total": 64
+                    },
+                    "recovery_counts": {
+                      "completed_push_event_count": 79,
+                      "control_episode_count": 0,
+                      "eligible_episode_count": 64,
+                      "episodes": 64,
+                      "invalid_injection_count": 0,
+                      "planned_push_event_count": 80,
+                      "push_event_count": 79,
+                      "pushed_episode_count": 64,
+                      "sequence_recovered_count": 45,
+                      "successes": 45,
+                      "verified_push_event_count": 79
+                    },
+                    "run_index": 3,
+                    "secondary_metrics": {
+                      "mean_action_l2": 18.492781,
+                      "mean_action_rate_l2": 1.222631,
+                      "mean_episode_steps": 239.1875,
+                      "mean_final_planar_speed_mps": 0.5563,
+                      "mean_max_abs_pitch_rad": 0.254111,
+                      "mean_max_abs_roll_rad": 0.280967,
+                      "mean_max_xy_drift_m": 0.79832,
+                      "mean_min_base_height_m": 0.298589,
+                      "recovery_window_success_rate": 0.703125
+                    },
+                    "status": "pass",
+                    "stratum_results": {
+                      "high": {
+                        "episodes": 16,
+                        "successes": 5
+                      },
+                      "low": {
+                        "episodes": 16,
+                        "successes": 16
+                      },
+                      "medium": {
+                        "episodes": 16,
+                        "successes": 13
+                      },
+                      "repeated": {
+                        "episodes": 16,
+                        "successes": 11
+                      }
+                    },
+                    "success_rate": 0.703125
+                  }
+                ]
+              },
+              "resource_binding_hash": "179782fce40050a2836f5800bb3925f40dffb490510586d03a435f9b0c9e57d7",
+              "schema_version": "true_rl_agent.generation_phase_projection.v1",
+              "task_evidence_hash": "0ba4d1ae522927acbdd25f0d1a64f9fee662f0d1630f6bb86e05ac525da5688d"
+            },
+            "schema_version": "true_rl_agent.generation_trial.v1",
+            "status_reason": "sibling_not_selected",
+            "train": {
+              "checkpoint_hash": "sha256:acfd05618515e69bac092b628d59503dfe12d4912ff7b4df321a6db188d1ba05",
+              "execution_device": "cuda:0",
+              "job_spec_hash": "381902efd1d207550a71b2869f57b1b29d0e18d7ea5c7c2b4b59bd752aa4e83b",
+              "resource_binding_hash": "179782fce40050a2836f5800bb3925f40dffb490510586d03a435f9b0c9e57d7",
+              "train_receipt_checksum": "sha256:7649abcc214e224645a8ba2bd49c90c417e1008a2d7f18371b2389c7456fd3ce",
+              "train_result_hash": "d6c62f34964c57ccd2db537f2fd6aef0b19ee01cde3f163c4cd56eea6012f20e"
+            },
+            "trial_contract_hash": "75840f9e9ed196458f5af79f7da5be1555f993eb81180b31cd2c8d56c6971300",
+            "trial_id": "go2-push-5rounds-20260922-a02-generation-001-lane-b",
+            "trial_status": "qualified_not_selected",
+            "verifier": {
+              "details": {
+                "candidate_package_contract_hash": "ea177ecd60812c8c3da7de62f594c1673e1dc7878e162e01fb25596255f6d785",
+                "derived_change_set": [
+                  "reward_callable"
+                ],
+                "verification_policy_hash": "17e48a15617337729f47783f32d7b8940b4b25d06ef8632ee0e486c05e3add74",
+                "verification_policy_id": "true_rl_agent.static_candidate_verifier.pure_function.v2"
+              },
+              "reason": "static_candidate_verifier_passed",
+              "status": "pass",
+              "verified_program_identity": {
+                "candidate_artifact_hash": "41edf11477c2f0bfc5557aa75d69778010f51376799e62e4fe66300fc125a879",
+                "candidate_id": "push_recovery_posture_gated_damping_v1",
+                "program_source_checksum": "sha256:4e9028aaac8cf2eba2658b7cfeb49ba6fab357588ccd6b141bdc1eb2e33172f6",
+                "program_source_size_bytes": 3552,
+                "subject_manifest_hash": "e9ec2d4d7ca7a7756ba16ea73c58edf566ec251f004f6c3b48bc056240d79e30"
+              }
+            },
+            "lane_intent": {
+              "schema_version": "true_rl_agent.generation_lane_intent.exploration.v1",
+              "lane_id": "lane-b",
+              "mode": "novel",
+              "current_head_hash": "e67cc05335c88b0cb0f0c40aeec61fd884a81d1dc69f884baef2ed4b7afb9b8f",
+              "inspired_by_trial_id": null,
+              "inspired_by_card_hash": null,
+              "hypothesis": null,
+              "verifier_equivalence_exclusion_set_hash": "93af470f76fcae9ca4fe74dafd4f2b8a50c23dd6b53140d96aec7027db1af871",
+              "acceptance_authority": false
+            },
+            "authoring_status": {
+              "schema_version": "true_rl_agent.authoring_status.v1",
+              "stop_reason": "candidate_verified",
+              "attempt_count": 1,
+              "candidate_verified": true,
+              "candidate_id": "push_recovery_posture_gated_damping_v1",
+              "program_source_checksum": "sha256:4e9028aaac8cf2eba2658b7cfeb49ba6fab357588ccd6b141bdc1eb2e33172f6",
+              "provider_failure": null,
+              "unresolved_candidate_failure": null
+            },
+            "runtime_activation_summary": {
+              "reward_term_calls": 60000,
+              "diagnostic_calls": 0,
+              "nonzero_reward_contribution": true,
+              "reward_output_stats": {
+                "finite_fraction": 1.0,
+                "mean": 1.573971
+              },
+              "diagnostic_outputs": {},
+              "component_activation_records": [
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": 3.0,
+                  "last_weighted_mean": 2.959848,
+                  "max_abs_weighted_contribution": 2.9999966621398926,
+                  "name": "upright_height",
+                  "nonzero_observation_count": 500,
+                  "nonzero_observation_fraction": 1.0,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                },
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": 1.0,
+                  "last_weighted_mean": 0.822977,
+                  "max_abs_weighted_contribution": 0.9991989135742188,
+                  "name": "stable_damping",
+                  "nonzero_observation_count": 500,
+                  "nonzero_observation_fraction": 1.0,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                },
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": -0.1,
+                  "last_weighted_mean": -0.01701,
+                  "max_abs_weighted_contribution": 0.264819473028183,
+                  "name": "joint_pose",
+                  "nonzero_observation_count": 500,
+                  "nonzero_observation_fraction": 1.0,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                },
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": -0.01,
+                  "last_weighted_mean": -0.058902,
+                  "max_abs_weighted_contribution": 2425.3955078125,
+                  "name": "action_rate",
+                  "nonzero_observation_count": 500,
+                  "nonzero_observation_fraction": 1.0,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                },
+                {
+                  "component_kind": "reward_term",
+                  "effective_weight": -20.0,
+                  "last_weighted_mean": 0.0,
+                  "max_abs_weighted_contribution": 20.0,
+                  "name": "fall",
+                  "nonzero_observation_count": 130,
+                  "nonzero_observation_fraction": 0.26,
+                  "observation_count": 500,
+                  "sampling_interval_steps": 24
+                }
+              ],
+              "feature_activation_records": [],
+              "capability_activation_records": [
+                "reward_callable"
+              ]
+            },
+            "selection_screen": {
+              "acceptance_authority": false,
+              "behavior_passed": true,
+              "checkpoint_hash": "sha256:acfd05618515e69bac092b628d59503dfe12d4912ff7b4df321a6db188d1ba05",
+              "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+              "evaluation_plan_hash": "68f40854a733c5061f519d908772a53e589dfabbad186f2a90491ef07e021f9a",
+              "execution_device": "cuda:0",
+              "phase_result_hash": "64310cd1da5f64ad115ec4ef6b4bc0a6898d0f4399fac2ec421dc4031d420170",
+              "resource_binding_hash": "179782fce40050a2836f5800bb3925f40dffb490510586d03a435f9b0c9e57d7",
+              "schema_version": "true_rl_agent.task.push_recovery.public_dev_screen.v1",
+              "score_stats": {
+                "count": 3,
+                "episode_count": 192,
+                "mean": 0.7395833333333334,
+                "standard_error": 0.02270259866427434,
+                "statistics_version": "true_rl_agent.derived_statistics.v1",
+                "std": 0.039322054350368486,
+                "values": [
+                  0.78125,
+                  0.734375,
+                  0.703125
+                ]
+              },
+              "screen_role": "candidate",
+              "train_receipt_checksum": "sha256:7649abcc214e224645a8ba2bd49c90c417e1008a2d7f18371b2389c7456fd3ce",
+              "trial_id": "go2-push-5rounds-20260922-a02-generation-001-lane-b"
+            }
+          }
+        ],
+        "selection": {
+          "acceptance_authority": false,
+          "contract_hash": "227f90104ae4c49b53a670e9d82c8009f745076a732def4838136d290ddc02a8",
+          "guard_reference_evidence_hash": "c00d28272baa8162c82490d4e70988a8dac56d41e6397b9ca005bb2e7f8e5b10",
+          "reason": "public_dev_success_rank",
+          "schema_version": "true_rl_agent.task.push_recovery.selection.v1",
+          "screen_evidence_hashes": [
+            "9c2c5d296dce85203640fe3a6c172493eefee8ef918a3e55eb82ac433ef272e8",
+            "0e514e3297bd3a4a75f3163d15df85303f92405f3ab631cde54b7c816b44b787"
+          ],
+          "selected_trial_id": "go2-push-5rounds-20260922-a02-generation-001-lane-a"
+        },
+        "guard_reference": {
+          "acceptance_authority": false,
+          "behavior_passed": true,
+          "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+          "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+          "evaluation_plan_hash": "6b36c8877a325ec95238c470146a57e37496c124a35a3495365c3128f7c39660",
+          "execution_device": "cuda:0",
+          "phase_result_hash": "5970213e3c7845eb36ffab9ecefa12c191db47289940a442dc2a5de938b9be3d",
+          "resource_binding_hash": "6717a64dc87b7d45f2180d07bd7eab19de67aafd859e149b160c1deb76ce4bdc",
+          "schema_version": "true_rl_agent.task.push_recovery.public_dev_screen.v1",
+          "score_stats": {
+            "count": 3,
+            "episode_count": 192,
+            "mean": 0.734375,
+            "standard_error": 0.015625,
+            "statistics_version": "true_rl_agent.derived_statistics.v1",
+            "std": 0.027063293868263706,
+            "values": [
+              0.71875,
+              0.765625,
+              0.71875
+            ]
+          },
+          "screen_role": "guard_reference",
+          "train_receipt_checksum": null,
+          "trial_id": "genesis-parent"
+        },
+        "formal": null,
+        "sealed_validation": "not_run_due_to_early_reject"
+      }
+    }
+  ],
+  "initial_current_best": {
+    "mode": "reference",
+    "anchor_kind": "reference",
+    "anchor_id": "push_standing_recovery_stationary_reference_v3",
+    "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+    "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+    "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+    "training_binding_hash": "56b9f8f9ce1168684558273d47c16ce6400f5590832fdb60ae9f2a4f00b5e072",
+    "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+    "accepted_round_id": null,
+    "accepted_candidate_id": null,
+    "task_protocol_hash": "31622698100045fc8c2fac8707a71a39f84655c2cfde714421fd5b92f748407d",
+    "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+    "acceptance_protocol_hash": "a9638274f7223f91ef1f115e2c9858fc75e40eddf6223ea891054ef15fe339bd",
+    "seed_cohort_hash": "78fcd36dddb12ef0b3a520a87bf89c55bbf7d346c0c4c39e8666c44ac490c469",
+    "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+    "public_score": 0.7395833333333334,
+    "public_accept_stats": {
+      "count": 3,
+      "mean": 0.7395833333333334,
+      "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+      "std": 0.047735163489123336,
+      "standard_error": 0.027559909490256152,
+      "statistics_version": "true_rl_agent.derived_statistics.v1"
+    },
+    "guard_score_stats": {},
+    "named_guard_evidence": {},
+    "sealed_validation_evidence": {
+      "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+      "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+      "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+      "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+      "evaluation_subject": {
+        "id": "push_standing_recovery_stationary_reference_v3",
+        "kind": "reference",
+        "schema_version": "true_rl_agent.experiment.subject.v2"
+      },
+      "expected_seed_count": 7,
+      "observed_seed_count": 7,
+      "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "reason": "push_recovery_holdout_contract_met",
+      "schema_version": "true_rl_agent.sealed_validation.evidence.v4",
+      "score_stats": {
+        "count": 7,
+        "episode_count": 448,
+        "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+        "mean": 0.765625,
+        "standard_error": 0.011811389781538352,
+        "statistics_version": "true_rl_agent.derived_statistics.v1",
+        "std": 0.03125,
+        "values": [
+          0.78125,
+          0.734375,
+          0.75,
+          0.75,
+          0.796875,
+          0.734375,
+          0.8125
+        ]
+      },
+      "status": "pass",
+      "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+      "training_binding_hash": "56b9f8f9ce1168684558273d47c16ce6400f5590832fdb60ae9f2a4f00b5e072"
+    },
+    "sealed_validation_gate": {
+      "candidate_code_loaded_in_eval": false,
+      "candidate_isolation_status": "pass",
+      "candidate_package_loaded_in_eval": false,
+      "candidate_path_argument_present": false,
+      "checkpoint_hash_match_status": "pass",
+      "checkpoint_safety_status": "pass",
+      "eval_protocol_hash_match_status": "pass",
+      "evaluation_binding_hash_match_status": "pass",
+      "holdout_rollout_status": "pass",
+      "reason": "sealed_validation_complete",
+      "status": "pass"
+    },
+    "gate_statuses": {
+      "accept_evidence_gate": "pass",
+      "budget_accounting": "pass",
+      "recovery_evidence_gate": "pass",
+      "sealed_validation_gate": "pass",
+      "reference_capability_gate": "pass"
+    },
+    "min_score_count": 3
+  },
+  "session_genesis_hash": "5117c78e1b541a0397a554d483cb31922ba0dc63e956162ed8f3d03cae629008",
+  "acceptance_protocol_hash": "a9638274f7223f91ef1f115e2c9858fc75e40eddf6223ea891054ef15fe339bd",
+  "current_best": {
+    "mode": "reference",
+    "anchor_kind": "reference",
+    "anchor_id": "push_standing_recovery_stationary_reference_v3",
+    "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+    "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+    "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+    "training_binding_hash": "56b9f8f9ce1168684558273d47c16ce6400f5590832fdb60ae9f2a4f00b5e072",
+    "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+    "accepted_round_id": null,
+    "accepted_candidate_id": null,
+    "task_protocol_hash": "31622698100045fc8c2fac8707a71a39f84655c2cfde714421fd5b92f748407d",
+    "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+    "acceptance_protocol_hash": "a9638274f7223f91ef1f115e2c9858fc75e40eddf6223ea891054ef15fe339bd",
+    "seed_cohort_hash": "78fcd36dddb12ef0b3a520a87bf89c55bbf7d346c0c4c39e8666c44ac490c469",
+    "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+    "public_score": 0.7395833333333334,
+    "public_accept_stats": {
+      "count": 3,
+      "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+      "mean": 0.7395833333333334,
+      "standard_error": 0.027559909490256152,
+      "statistics_version": "true_rl_agent.derived_statistics.v1",
+      "std": 0.047735163489123336
+    },
+    "guard_score_stats": {},
+    "named_guard_evidence": {},
+    "sealed_validation_evidence": {
+      "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+      "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+      "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+      "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+      "evaluation_subject": {
+        "id": "push_standing_recovery_stationary_reference_v3",
+        "kind": "reference",
+        "schema_version": "true_rl_agent.experiment.subject.v2"
+      },
+      "expected_seed_count": 7,
+      "observed_seed_count": 7,
+      "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "reason": "push_recovery_holdout_contract_met",
+      "schema_version": "true_rl_agent.sealed_validation.evidence.v4",
+      "score_stats": {
+        "count": 7,
+        "episode_count": 448,
+        "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+        "mean": 0.765625,
+        "standard_error": 0.011811389781538352,
+        "statistics_version": "true_rl_agent.derived_statistics.v1",
+        "std": 0.03125,
+        "values": [
+          0.78125,
+          0.734375,
+          0.75,
+          0.75,
+          0.796875,
+          0.734375,
+          0.8125
+        ]
+      },
+      "status": "pass",
+      "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+      "training_binding_hash": "56b9f8f9ce1168684558273d47c16ce6400f5590832fdb60ae9f2a4f00b5e072"
+    },
+    "sealed_validation_gate": {
+      "candidate_code_loaded_in_eval": false,
+      "candidate_isolation_status": "pass",
+      "candidate_package_loaded_in_eval": false,
+      "candidate_path_argument_present": false,
+      "checkpoint_hash_match_status": "pass",
+      "checkpoint_safety_status": "pass",
+      "eval_protocol_hash_match_status": "pass",
+      "evaluation_binding_hash_match_status": "pass",
+      "holdout_rollout_status": "pass",
+      "reason": "sealed_validation_complete",
+      "status": "pass"
+    },
+    "gate_statuses": {
+      "accept_evidence_gate": "pass",
+      "budget_accounting": "pass",
+      "recovery_evidence_gate": "pass",
+      "reference_capability_gate": "pass",
+      "sealed_validation_gate": "pass"
+    },
+    "min_score_count": 3
+  },
+  "public_score_source": "public_accept.score_stats.mean",
+  "prompt_status": "PASS",
+  "provider_payload": {
+    "schema_version": "true_rl_agent.prompt_payload.v5",
+    "task": {
+      "schema_version": "true_rl_agent.task_prompt.push_recovery.v4",
+      "task_id": "unitree_push_recovery",
+      "name": "Unitree Complete Push Recovery",
+      "objective": "Recover stable standing after a complete finite external-force sequence.",
+      "robot_or_environment": {
+        "cell_variant_id": "push.go2_12dof.recovery_v3",
+        "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1"
+      },
+      "candidate_capability_profile": "push_complete_recovery_v2",
+      "candidate_capabilities": [
+        "reward_term",
+        "diagnostic_term",
+        "reward_weight_scale_schedule"
+      ],
+      "reward_program": {
+        "authority": "complete_replacement",
+        "composition": "All RewardTerm outputs form the complete reward program; upstream rewards are disabled.",
+        "integration": "Return per-environment reward rates. The task RewardManager sums weighted rates and multiplies the total by control dt exactly once, before reset. Do not multiply by dt in candidate code.",
+        "schedule": "reward_weight_scale changes the program weights only; it cannot change task timing or pushes."
+      },
+      "spatial_scale": {
+        "robot_scale_m": 0.4,
+        "velocity_scale_mps": 1.9809088823063015,
+        "time_scale_s": 0.2019275109384609
+      },
+      "scale_definition": "L is the bound robot's nominal base height in metres; velocity scale=sqrt(g*L), time scale=sqrt(L/g).",
+      "fixed_train_protocol_summary": {
+        "budget_steps": 49152000,
+        "train_num_envs": 4096,
+        "train_max_iterations": 500,
+        "train_steps_per_iteration": 24
+      },
+      "fixed_eval_protocol_summary": {
+        "success_predicate": "complete_force_sequence_then_fresh_stable_dwell_and_final_stable_without_fall",
+        "success_label": "success_recovered",
+        "prompt_score_source": "public_dev.score_stats.mean"
+      },
+      "success_authority": "The task controller verifies every planned force pulse, then requires one fresh stable dwell after the last pulse and a stable final state, without a fall. Displacement is diagnostic only. Reward values do not define success.",
+      "candidate_must_not_change": [
+        "task controller",
+        "push schedule or distribution",
+        "success predicates or counts",
+        "evaluation",
+        "training budget",
+        "seeds",
+        "checkpoints",
+        "PPO",
+        "robot or action ABI"
+      ]
+    },
+    "loop_contract": {
+      "schema_version": "true_rl_agent.loop_contract.v2",
+      "candidate_role": "Return a candidate package only.",
+      "candidate_may": [
+        "define pure callables over prompt-visible RewardInputs",
+        "combine public tensors with bounded arithmetic",
+        "set reward weight and optional output clips inside the candidate package",
+        "define pure diagnostic callables over prompt-visible RewardInputs",
+        "expose bounded public measurements for later feedback",
+        "use ScheduleTerm only with allowed effective keys",
+        "set reward_weight_scale through the allowed ScheduleTerm key"
+      ],
+      "runner_owned": [
+        "training budget",
+        "eval protocol",
+        "seed policy",
+        "checkpoint selection",
+        "success metric",
+        "accept/reject decision"
+      ],
+      "candidate_must_not_change": [
+        "runner",
+        "eval protocol",
+        "training budget",
+        "seed policy",
+        "checkpoints",
+        "PPO",
+        "acceptance rules",
+        "task invariants"
+      ],
+      "evidence_discipline": [
+        "Before authoring, compare the proposed mechanism with public_history.experiment_memory, recent_outcomes, and current-best evidence.",
+        "Treat lower scores, failed gates, and dominating or negligible runtime component contributions as negative evidence; do not silently repeat or combine those mechanisms.",
+        "Treat last_mean only as the last sampled weighted-contribution snapshot; never infer that a component is inactive or causally ineffective from last_mean alone. Compare max_abs, repeated runtime evidence, and fixed evaluation outcomes.",
+        "If reusing a rejected mechanism, the canonical hypothesis narrative embedded in TrainingComponents.rationale must name the closest prior candidate, state the exact code-level difference, and explain how it addresses the observed failure; keep mechanical repair notes out of that hypothesis.",
+        "Do not submit numeric-only, string-only, or formatting-only variants of an evaluated source; the historical-source gate rejects those variants before training.",
+        "Prefer the accepted current-best source, or when none exists the explicitly nonaccepted best-observed bootstrap anchor.",
+        "When an authoring anchor is present, change exactly one named canonical prompt-visible component mechanism relative to it and preserve every other component mechanism; without an anchor, author the complete initial component set."
+      ]
+    },
+    "candidate_capabilities": {
+      "schema_version": "true_rl_agent.candidate_authoring_capabilities.v1",
+      "registry_owner": "agent_core",
+      "registry_model": "closed_registry_with_prompt_visibility",
+      "prompt_visible_capabilities": [
+        {
+          "capability_id": "reward_term",
+          "kind": "reward_callable",
+          "owner": "candidate_components",
+          "prompt_visible": true,
+          "candidate_writable": true,
+          "effective_now": true,
+          "materializer_owner": "provider_candidate_package",
+          "verifier_owner": "static_candidate_verifier",
+          "runtime_effect": "guarded vector output can be added to training reward",
+          "public_feedback_projection": "runtime activation and public reward contribution summaries",
+          "component_class": "RewardTerm",
+          "component_signature": "RewardTerm(name: str, weight: float, fn: Callable[[RewardInputs], Any], clip_min: float | None = None, clip_max: float | None = None, description: str = '')",
+          "declared_changed_component": "reward_callable",
+          "derived_change_components": [
+            "reward_callable"
+          ],
+          "candidate_allowed_actions": [
+            "define pure callables over prompt-visible RewardInputs",
+            "combine public tensors with bounded arithmetic",
+            "set reward weight and optional output clips inside the candidate package"
+          ],
+          "source_items": [
+            "api/candidate_components.py"
+          ],
+          "effectiveness": "effective_now"
+        },
+        {
+          "capability_id": "diagnostic_term",
+          "kind": "diagnostic_callable",
+          "owner": "candidate_components",
+          "prompt_visible": true,
+          "candidate_writable": true,
+          "effective_now": true,
+          "materializer_owner": "provider_candidate_package",
+          "verifier_owner": "static_candidate_verifier",
+          "runtime_effect": "summarized for future prompt feedback; not a decision rule",
+          "public_feedback_projection": "public diagnostic output summaries",
+          "component_class": "DiagnosticTerm",
+          "component_signature": "DiagnosticTerm(name: str, fn: Callable[[RewardInputs], Any], description: str = '')",
+          "declared_changed_component": "diagnostic",
+          "derived_change_components": [
+            "diagnostic"
+          ],
+          "candidate_allowed_actions": [
+            "define pure diagnostic callables over prompt-visible RewardInputs",
+            "expose bounded public measurements for later feedback"
+          ],
+          "source_items": [
+            "api/candidate_components.py"
+          ],
+          "effectiveness": "public_feedback_only"
+        },
+        {
+          "capability_id": "reward_weight_scale_schedule",
+          "kind": "schedule_term",
+          "owner": "candidate_components",
+          "prompt_visible": true,
+          "candidate_writable": true,
+          "effective_now": true,
+          "materializer_owner": "provider_candidate_package",
+          "verifier_owner": "static_candidate_verifier",
+          "runtime_effect": "only currently effective schedule keys alter training",
+          "public_feedback_projection": "public candidate surface and mechanism attribution summaries",
+          "component_class": "ScheduleTerm",
+          "component_signature": "ScheduleTerm(name: str, key: str, value: float)",
+          "declared_changed_component": "reward_weight",
+          "derived_change_components": [
+            "reward_weight"
+          ],
+          "candidate_allowed_actions": [
+            "use ScheduleTerm only with allowed effective keys",
+            "set reward_weight_scale through the allowed ScheduleTerm key"
+          ],
+          "source_items": [
+            "api/candidate_components.py"
+          ],
+          "effectiveness": "key_specific",
+          "allowed_schedule_keys": [
+            "reward_weight_scale"
+          ],
+          "effective_schedule_keys": [
+            "reward_weight_scale"
+          ]
+        }
+      ],
+      "disabled_or_reserved_capabilities": [],
+      "provider_declared_components_prompt_advertised": [
+        "reward_callable",
+        "diagnostic",
+        "reward_weight"
+      ],
+      "policies": {
+        "non_prompt_visible_capabilities_are_not_candidate_writable": true,
+        "verifier_derived_change_set_is_authoritative": true,
+        "task_specific_metadata_owner": "task_prompt_adapter",
+        "runner_owned_capabilities_require_materializer_and_verifier_before_prompt_visibility": true,
+        "runner_owned_schema_preview_is_not_provider_output": true
+      },
+      "task_capability_profile_binding": {
+        "profile_id": "push_complete_recovery_v2",
+        "profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d"
+      }
+    },
+    "reward_inputs_contract": {
+      "schema_version": "true_rl_agent.reward_inputs_contract.push_recovery.v2",
+      "task_id": "unitree_push_recovery",
+      "field_order": [
+        "base_height",
+        "roll",
+        "pitch",
+        "base_pos_xy",
+        "base_lin_vel",
+        "base_ang_vel",
+        "projected_gravity",
+        "commanded_base_vel",
+        "joint_pos",
+        "joint_vel",
+        "joint_pos_error",
+        "last_action",
+        "prev_action",
+        "action_delta",
+        "progress_fraction",
+        "push_active",
+        "push_vec_public",
+        "nominal_base_height",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "base_ang_vel_scaled",
+        "terminated_non_timeout"
+      ],
+      "fields": {
+        "base_height": {
+          "name": "base_height",
+          "shape": [
+            "num_envs"
+          ],
+          "dtype_or_tensor_kind": "tensor_like_numeric",
+          "semantics": "root world z minus environment origin z",
+          "units": "m",
+          "coordinate_frame": "world_z",
+          "source_status": "observed",
+          "fallback_behavior": "required by the V2 runtime",
+          "candidate_usage_guidance": "use as a stance and fall-risk feature with roll and pitch",
+          "known_limitations": "metres; use base_height_relative to compare robot sizes"
+        },
+        "roll": {
+          "name": "roll",
+          "shape": [
+            "num_envs"
+          ],
+          "dtype_or_tensor_kind": "tensor_like_numeric",
+          "semantics": "base roll angle derived from root orientation",
+          "units": "rad",
+          "coordinate_frame": "base_orientation",
+          "source_status": "derived_or_zero_fallback",
+          "fallback_behavior": "zero fallback when orientation is unavailable",
+          "candidate_usage_guidance": "penalize large absolute roll as a stability risk",
+          "known_limitations": "zero fallback can hide missing orientation data"
+        },
+        "pitch": {
+          "name": "pitch",
+          "shape": [
+            "num_envs"
+          ],
+          "dtype_or_tensor_kind": "tensor_like_numeric",
+          "semantics": "base pitch angle derived from root orientation",
+          "units": "rad",
+          "coordinate_frame": "base_orientation",
+          "source_status": "derived_or_zero_fallback",
+          "fallback_behavior": "zero fallback when orientation is unavailable",
+          "candidate_usage_guidance": "penalize large absolute pitch as a forward/backward fall risk",
+          "known_limitations": "zero fallback can hide missing orientation data"
+        },
+        "base_pos_xy": {
+          "name": "base_pos_xy",
+          "shape": [
+            "num_envs",
+            "2"
+          ],
+          "dtype_or_tensor_kind": "tensor_like_numeric",
+          "semantics": "base xy position relative to the environment origin",
+          "units": "m",
+          "coordinate_frame": "env_origin_relative_world_xy",
+          "source_status": "derived_or_zero_fallback",
+          "fallback_behavior": "zero vector fallback when base position is unavailable",
+          "candidate_usage_guidance": "use for bounded drift diagnostics, not absolute map location",
+          "known_limitations": "origin-relative position is not a global navigation target"
+        },
+        "base_lin_vel": {
+          "name": "base_lin_vel",
+          "shape": [
+            "num_envs",
+            "3"
+          ],
+          "dtype_or_tensor_kind": "tensor_like_numeric",
+          "semantics": "raw SI velocity in the robot base frame; the corresponding scaled field uses world coordinates",
+          "units": "m/s",
+          "coordinate_frame": "robot_base_frame",
+          "source_status": "observed_or_zero_fallback",
+          "fallback_behavior": "zero vector fallback when velocity is unavailable",
+          "candidate_usage_guidance": "use for recovery damping and excessive drift penalties",
+          "known_limitations": "do not mix base-frame raw vectors with world-frame scaled vectors"
+        },
+        "base_ang_vel": {
+          "name": "base_ang_vel",
+          "shape": [
+            "num_envs",
+            "3"
+          ],
+          "dtype_or_tensor_kind": "tensor_like_numeric",
+          "semantics": "raw SI velocity in the robot base frame; the corresponding scaled field uses world coordinates",
+          "units": "rad/s",
+          "coordinate_frame": "robot_base_frame",
+          "source_status": "observed_or_zero_fallback",
+          "fallback_behavior": "zero vector fallback when angular velocity is unavailable",
+          "candidate_usage_guidance": "use for rotational damping and instability diagnostics",
+          "known_limitations": "do not mix base-frame raw vectors with world-frame scaled vectors"
+        },
+        "projected_gravity": {
+          "name": "projected_gravity",
+          "shape": [
+            "num_envs",
+            "3"
+          ],
+          "dtype_or_tensor_kind": "tensor_like_numeric",
+          "semantics": "gravity direction projected into the base frame",
+          "units": "unitless",
+          "coordinate_frame": "base_frame",
+          "source_status": "derived_or_zero_fallback",
+          "fallback_behavior": "zero vector fallback when orientation is unavailable",
+          "candidate_usage_guidance": "use as an orientation-stability feature",
+          "known_limitations": "zero fallback should not be interpreted as a valid gravity direction"
+        },
+        "commanded_base_vel": {
+          "name": "commanded_base_vel",
+          "shape": [
+            "num_envs",
+            "3"
+          ],
+          "dtype_or_tensor_kind": "tensor_like_numeric",
+          "semantics": "public commanded base velocity vector when a command manager is available",
+          "units": "m/s_and_rad/s",
+          "coordinate_frame": "command_frame_xy_yaw",
+          "source_status": "observed_command_or_zero_fallback",
+          "fallback_behavior": "zero vector fallback when command is unavailable",
+          "candidate_usage_guidance": "compare actual velocity to command only when command signal is meaningful",
+          "known_limitations": "zero command can mean either stand-still command or missing command source"
+        },
+        "joint_pos": {
+          "name": "joint_pos",
+          "shape": [
+            "num_envs",
+            "num_joints"
+          ],
+          "dtype_or_tensor_kind": "tensor_like_numeric",
+          "semantics": "joint position vector in runner joint order",
+          "units": "rad",
+          "coordinate_frame": "runner_joint_order",
+          "source_status": "observed_or_zero_fallback",
+          "fallback_behavior": "zero matrix fallback when joint positions are unavailable",
+          "candidate_usage_guidance": "use for posture regularization and range diagnostics",
+          "known_limitations": "joint order is runner-owned and should not be inferred from names"
+        },
+        "joint_vel": {
+          "name": "joint_vel",
+          "shape": [
+            "num_envs",
+            "num_joints"
+          ],
+          "dtype_or_tensor_kind": "tensor_like_numeric",
+          "semantics": "joint velocity vector in runner joint order",
+          "units": "rad/s",
+          "coordinate_frame": "runner_joint_order",
+          "source_status": "observed_or_zero_fallback",
+          "fallback_behavior": "zero matrix fallback when joint velocities are unavailable",
+          "candidate_usage_guidance": "use for smoothness and instability penalties",
+          "known_limitations": "large penalties can suppress recovery actions"
+        },
+        "joint_pos_error": {
+          "name": "joint_pos_error",
+          "shape": [
+            "num_envs",
+            "num_joints"
+          ],
+          "dtype_or_tensor_kind": "tensor_like_numeric",
+          "semantics": "joint_pos minus runner default joint position",
+          "units": "rad",
+          "coordinate_frame": "runner_joint_order",
+          "source_status": "derived_or_zero_fallback",
+          "fallback_behavior": "zero matrix fallback when default joint position is unavailable",
+          "candidate_usage_guidance": "use for soft posture bias, not hard constraints",
+          "known_limitations": "default posture is runner-owned and task fixed"
+        },
+        "last_action": {
+          "name": "last_action",
+          "shape": [
+            "num_envs",
+            "num_actions"
+          ],
+          "dtype_or_tensor_kind": "tensor_like_numeric",
+          "semantics": "current policy action vector for the step",
+          "units": "policy_action_units",
+          "coordinate_frame": "runner_action_order",
+          "source_status": "observed_current_action",
+          "fallback_behavior": "zero fallback when action is unavailable",
+          "candidate_usage_guidance": "use for action magnitude diagnostics or gentle regularization",
+          "known_limitations": "action units are policy-space values, not joint torques"
+        },
+        "prev_action": {
+          "name": "prev_action",
+          "shape": [
+            "num_envs",
+            "num_actions"
+          ],
+          "dtype_or_tensor_kind": "tensor_like_numeric",
+          "semantics": "previous policy action vector from runner-owned action history",
+          "units": "policy_action_units",
+          "coordinate_frame": "runner_action_order",
+          "source_status": "runner_derived_or_zero_fallback",
+          "fallback_behavior": "zero previous action on first step or reset",
+          "candidate_usage_guidance": "use with action_delta for smoothness diagnostics",
+          "known_limitations": "reset handling can produce legitimate zeros"
+        },
+        "action_delta": {
+          "name": "action_delta",
+          "shape": [
+            "num_envs",
+            "num_actions"
+          ],
+          "dtype_or_tensor_kind": "tensor_like_numeric",
+          "semantics": "current action minus previous action",
+          "units": "policy_action_units",
+          "coordinate_frame": "runner_action_order",
+          "source_status": "runner_derived_or_zero_fallback",
+          "fallback_behavior": "current action minus zero on first step or reset",
+          "candidate_usage_guidance": "use to discourage abrupt control changes without blocking recovery",
+          "known_limitations": "over-penalizing action changes can hurt push recovery"
+        },
+        "push_active": {
+          "name": "push_active",
+          "shape": [
+            "num_envs"
+          ],
+          "units": "bool_like",
+          "semantics": "one only on the current step of an actual task-controller injected push; zero otherwise",
+          "source_status": "verified_current_step_event",
+          "known_limitations": "not latched through recovery and never inferred from autonomous robot motion"
+        },
+        "push_vec_public": {
+          "name": "push_vec_public",
+          "shape": [
+            "num_envs",
+            "2"
+          ],
+          "units": "m/s",
+          "coordinate_frame": "world_xy_velocity_increment",
+          "source_status": "verified_current_step_event",
+          "semantics": "actual injected planar velocity increment for this step; zero when push_active is zero",
+          "known_limitations": "already occurred event only; no future timing, direction, severity or schedule"
+        },
+        "progress_fraction": {
+          "name": "progress_fraction",
+          "shape": [
+            "num_envs"
+          ],
+          "dtype_or_tensor_kind": "tensor_like_numeric",
+          "semantics": "runner-owned training progress fraction for the current step",
+          "units": "fraction",
+          "coordinate_frame": "not_applicable",
+          "source_status": "runner_owned",
+          "fallback_behavior": "runner supplies a clamped value in [0, 1]",
+          "candidate_usage_guidance": "use only for mild annealing inside candidate reward logic",
+          "known_limitations": "not an eval metric and not a budget control"
+        },
+        "nominal_base_height": {
+          "name": "nominal_base_height",
+          "shape": [
+            "num_envs"
+          ],
+          "units": "m",
+          "semantics": "bound robot nominal base height L; a spatial normalization, not a success threshold",
+          "dtype_or_tensor_kind": "tensor_like_numeric",
+          "source_status": "task_owned_current_step"
+        },
+        "base_height_relative": {
+          "name": "base_height_relative",
+          "shape": [
+            "num_envs"
+          ],
+          "units": "unitless",
+          "semantics": "origin-relative base height divided by nominal_base_height",
+          "dtype_or_tensor_kind": "tensor_like_numeric",
+          "source_status": "task_owned_current_step"
+        },
+        "base_lin_vel_scaled": {
+          "name": "base_lin_vel_scaled",
+          "shape": [
+            "num_envs",
+            "3"
+          ],
+          "units": "unitless",
+          "semantics": "world-frame linear velocity divided by sqrt(g*L)",
+          "dtype_or_tensor_kind": "tensor_like_numeric",
+          "source_status": "task_owned_current_step"
+        },
+        "base_ang_vel_scaled": {
+          "name": "base_ang_vel_scaled",
+          "shape": [
+            "num_envs",
+            "3"
+          ],
+          "units": "unitless",
+          "semantics": "world-frame angular velocity multiplied by sqrt(L/g)",
+          "dtype_or_tensor_kind": "tensor_like_numeric",
+          "source_status": "task_owned_current_step"
+        },
+        "terminated_non_timeout": {
+          "name": "terminated_non_timeout",
+          "shape": [
+            "num_envs"
+          ],
+          "units": "bool_like",
+          "semantics": "task termination mask before reset; timeout alone is excluded",
+          "dtype_or_tensor_kind": "tensor_like_numeric",
+          "source_status": "task_owned_current_step"
+        }
+      },
+      "public_push_signal_fields": [
+        "push_active",
+        "push_vec_public"
+      ],
+      "reserved_fields": {},
+      "reserved_field_policy": {
+        "candidate_must_not_use_reserved_fields": false,
+        "reason": "reserved fields are unavailable for candidate logic; an empty set means all listed fields are prompt-effective"
+      },
+      "candidate_does_not_receive": [
+        "env",
+        "runner",
+        "optimizer",
+        "checkpoint policy state",
+        "eval config",
+        "success metric internals",
+        "unprojected seed identifiers"
+      ],
+      "input_type": "PushRecoveryV2RewardInputs",
+      "training_scope": "These inputs describe the unchanged training perturbations. push_active and push_vec_public report an already executed training velocity increment in m/s; they do not describe evaluation force pulses."
+    },
+    "public_eval_contract": {
+      "schema_version": "true_rl_agent.public_eval_contract.push_recovery.v4",
+      "score_source": "public_dev.score_stats.mean",
+      "public_dev": "canonical task phase summary: recovery success statistics and aggregated recovery_counts",
+      "primary_success_label": "success_recovered",
+      "recovery_evidence_gate": "read-only status; validates pulse completion and verification separately from whole-sequence recovery",
+      "sealed_validation_gate": {
+        "prompt_visibility": "status_only"
+      },
+      "candidate_can_modify_eval": false,
+      "history_policy": "No acceptance scores, sealed rollout details, seed identifiers or arbitrary failure text enter authoring feedback.",
+      "trial_memory_semantics": "objective_delta is a descriptive candidate-minus-parent public-dev score; guard_delta is not applicable; runtime_effect is not_assessed because Push does not claim component-level causal attribution.",
+      "recovery_scope": "one fresh recovery window after the last complete planned external-force pulse"
+    },
+    "control_effectiveness_contract": {
+      "schema_version": "true_rl_agent.control_effectiveness_contract.v1",
+      "capability_schema_ref": "true_rl_agent.candidate_authoring_capabilities.v1",
+      "component_controls": {
+        "RewardTerm": {
+          "allowed": true,
+          "effectiveness": "effective_now",
+          "training_effect": "guarded vector output can be added to training reward"
+        },
+        "DiagnosticTerm": {
+          "allowed": true,
+          "effectiveness": "public_feedback_only",
+          "training_effect": "summarized for future prompt feedback; not a decision rule"
+        },
+        "ScheduleTerm": {
+          "allowed": true,
+          "effectiveness": "key_specific",
+          "training_effect": "only currently effective schedule keys alter training"
+        }
+      },
+      "schedule_controls": {
+        "allowed_keys": [
+          "reward_weight_scale"
+        ],
+        "effective_keys": [
+          "reward_weight_scale"
+        ]
+      }
+    },
+    "known_good_examples": [],
+    "selection_guidance": [
+      "Supply a complete recovery reward program through RewardTerm callables, with optional DiagnosticTerm and reward_weight_scale ScheduleTerm.",
+      "Use morphology-scaled height and world velocities for portable recovery shaping; raw SI joint and action signals retain their declared units.",
+      "Target public-dev failures and inspect the same trained program's runtime activation before changing reward logic.",
+      "push_active and push_vec_public describe only an already injected current-step event; use posture and velocity for later recovery.",
+      "success_recovered requires every planned force pulse to complete and be verified, followed by a fresh stable dwell after the last pulse and a stable final state without a fall; reward shaping cannot change that definition."
+    ],
+    "source_catalog": {
+      "schema_version": "true_rl_agent.source_catalog.v4",
+      "policy": {
+        "ids_are_closed_allowlist": true,
+        "provider_filesystem_access": false,
+        "source_request_enabled": true,
+        "source_resolution_owner": "runner_prompt_source_resolver"
+      },
+      "items": [
+        {
+          "logical_id": "api/candidate_components.py",
+          "role": "candidate_component_api_contract",
+          "candidate_use": "Use the canonical component contract already included in required_candidate_package.component_contract.",
+          "visibility": "prompt_visible_metadata",
+          "inline_by_default": false,
+          "requestable": false,
+          "max_bytes": 0,
+          "status": "available_via_required_candidate_package",
+          "content_sha256": null,
+          "pending_reason": "contract body is present in required_candidate_package.component_contract",
+          "source_owner": "agent_core",
+          "scrub_policy": "contract_projection_no_raw_module_source",
+          "recoverability": "unavailable_in_this_frame"
+        },
+        {
+          "logical_id": "current_best/training_code/components.py",
+          "role": "reference_program_anchor",
+          "candidate_use": "Use the verified reference program and public failure evidence to author a complete replacement.",
+          "visibility": "prompt_visible_metadata",
+          "inline_by_default": true,
+          "requestable": true,
+          "max_bytes": 24576,
+          "status": "inline",
+          "content_sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+          "bytes": 1846,
+          "hash_scope": "prompt_visible_sanitized_content",
+          "source_owner": "verified_session_genesis",
+          "scrub_policy": "path_secret_and_public_only_guard",
+          "recoverability": "inline"
+        },
+        {
+          "logical_id": "memory/best_observed/training_code/components.py",
+          "role": "best_observed_nonaccepted_candidate_source",
+          "candidate_use": "Use only as the highest-scoring evaluated bootstrap authoring anchor; it is not an accepted policy best and grants no acceptance authority.",
+          "visibility": "prompt_visible_metadata",
+          "inline_by_default": false,
+          "requestable": false,
+          "max_bytes": 24576,
+          "status": "pending",
+          "pending_reason": "no_eligible_nonaccepted_bootstrap_anchor",
+          "source_owner": "validated_nonaccepted_experiment_history",
+          "scrub_policy": "path_secret_and_public_only_guard",
+          "recoverability": "unavailable_in_this_frame"
+        },
+        {
+          "logical_id": "examples/known_good_reward_terms.py",
+          "role": "known_good_examples_slot",
+          "candidate_use": "Task provided examples are exposed through known_good_examples when available.",
+          "visibility": "prompt_visible_metadata",
+          "inline_by_default": false,
+          "requestable": false,
+          "max_bytes": 0,
+          "status": "pending",
+          "content_sha256": null,
+          "pending_reason": "task_prompt_adapter_provided_no_known_good_source",
+          "source_owner": "task_prompt_adapter",
+          "scrub_policy": "task_sections_public_sanitizer",
+          "recoverability": "unavailable_in_this_frame"
+        },
+        {
+          "logical_id": "attempt/latest_failed/training_code/components.py",
+          "role": "current_failed_candidate_source",
+          "candidate_use": "Use the latest nonaccepted source with its verifier, runtime, and eval feedback to repair, refute, or replace the attempted mechanism.",
+          "visibility": "prompt_visible_metadata",
+          "inline_by_default": false,
+          "requestable": false,
+          "max_bytes": 24576,
+          "status": "pending",
+          "pending_reason": "no_latest_failed_candidate",
+          "source_owner": "current_authoring_attempt",
+          "scrub_policy": "path_secret_and_public_only_guard",
+          "recoverability": "unavailable_in_this_frame"
+        },
+        {
+          "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+          "role": "latest_nonaccepted_candidate_source",
+          "candidate_use": "Use the latest nonaccepted source with its verifier, runtime, and eval feedback to repair, refute, or replace the attempted mechanism.",
+          "visibility": "prompt_visible_metadata",
+          "inline_by_default": true,
+          "requestable": true,
+          "max_bytes": 24576,
+          "status": "inline",
+          "content_sha256": "4e9028aaac8cf2eba2658b7cfeb49ba6fab357588ccd6b141bdc1eb2e33172f6",
+          "bytes": 3552,
+          "hash_scope": "prompt_visible_sanitized_content",
+          "feedback_identity": {
+            "candidate_id": "push_recovery_posture_gated_damping_v1",
+            "program_source_checksum": "sha256:4e9028aaac8cf2eba2658b7cfeb49ba6fab357588ccd6b141bdc1eb2e33172f6",
+            "trial_id": "go2-push-5rounds-20260922-a02-generation-001-lane-b",
+            "evidence_kind": "prior_ledger_trial"
+          },
+          "source_owner": "prior_ledger_record",
+          "scrub_policy": "path_secret_and_public_only_guard",
+          "recoverability": "inline"
+        }
+      ]
+    },
+    "candidate_lineage": {
+      "schema_version": "true_rl_agent.candidate_lineage.v4",
+      "status": "reference_current_best",
+      "parent_program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "current_best": {
+        "anchor_kind": "reference",
+        "reference_id": "push_standing_recovery_stationary_reference_v3",
+        "objective_score": 0.734375,
+        "score_source": "public_dev.score_stats.mean",
+        "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+        "current_head_program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+        "training_binding_hash": "56b9f8f9ce1168684558273d47c16ce6400f5590832fdb60ae9f2a4f00b5e072",
+        "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+        "task_protocol_hash": "31622698100045fc8c2fac8707a71a39f84655c2cfde714421fd5b92f748407d",
+        "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+        "acceptance_protocol_hash": "a9638274f7223f91ef1f115e2c9858fc75e40eddf6223ea891054ef15fe339bd",
+        "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+        "source_logical_id": "current_best/training_code/components.py",
+        "current_head_prompt_content_sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+        "source_hash_scope": "prompt_visible_sanitized_content",
+        "source_summary": "49 lines; from true_rl_agent.candidates.components import RewardTerm, TrainingComponents; def upright_height(inputs):; def stationary_v3(inputs):; def joint_pose(inputs):; def action_rate(inputs):; def fall(inputs):; def build_training_components():",
+        "source_delivery": "inline",
+        "source_payload_ref": "current_best/training_code/components.py"
+      },
+      "best_observed_experiment": null,
+      "guidance": [
+        "The verified reference program is the initial policy-best and source authority.",
+        "Author a complete replacement from the reference source and public failure evidence.",
+        "Only an accepted candidate can replace the reference current-best."
+      ]
+    },
+    "source_payloads": [
+      {
+        "schema_version": "true_rl_agent.prompt_source_payload.v1",
+        "logical_id": "current_best/training_code/components.py",
+        "role": "reference_program_anchor",
+        "delivery": "inline",
+        "content": "\"\"\"Complete, morphology-scaled standing recovery reward rates.\n\nThe task dispatcher replaces upstream rewards and integrates these rates once\nwith control dt. Joint penalties use means so changing joint count does not\nsilently multiply their weight. Perturbation schedules are not reward inputs.\n\"\"\"\n\nfrom true_rl_agent.candidates.components import RewardTerm, TrainingComponents\n\n\ndef upright_height(inputs):\n    tilt = inputs.roll.square() + inputs.pitch.square()\n    height_error = (inputs.base_height_relative - 1.0).square()\n    return (-4.0 * tilt - 4.0 * height_error).exp()\n\n\ndef stationary_v3(inputs):\n    planar_speed = inputs.base_lin_vel_scaled[:, :2].square().sum(dim=1).sqrt() / 0.08\n    angular_speed = inputs.base_ang_vel_scaled.square().sum(dim=1).sqrt() / 0.5\n    planar_core = planar_speed.clamp(max=1.0)\n    angular_core = angular_speed.clamp(max=1.0)\n    planar_penalty = 0.5 * planar_core.square() + planar_speed - planar_core\n    angular_penalty = 0.5 * angular_core.square() + angular_speed - angular_core\n    return 1.0 - 0.25 * (planar_penalty + angular_penalty)\n\n\ndef joint_pose(inputs):\n    return inputs.joint_pos_error.square().mean(dim=1)\n\n\ndef action_rate(inputs):\n    return inputs.action_delta.square().mean(dim=1)\n\n\ndef fall(inputs):\n    return inputs.terminated_non_timeout.float()\n\n\ndef build_training_components():\n    return TrainingComponents(\n        name=\"push_standing_recovery_stationary_reference_v3\",\n        reward_terms=[\n            RewardTerm(name=\"upright_height\", weight=3.0, fn=upright_height),\n            RewardTerm(name=\"stationary_v3\", weight=1.0, fn=stationary_v3),\n            RewardTerm(name=\"joint_pose\", weight=-0.1, fn=joint_pose),\n            RewardTerm(name=\"action_rate\", weight=-0.01, fn=action_rate),\n            RewardTerm(name=\"fall\", weight=-20.0, fn=fall),\n        ],\n    )\n",
+        "content_sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+        "bytes": 1846,
+        "summary": "49 lines; from true_rl_agent.candidates.components import RewardTerm, TrainingComponents; def upright_height(inputs):; def stationary_v3(inputs):; def joint_pose(inputs):; def action_rate(inputs):; def fall(inputs):; def build_training_components():",
+        "public_safe": true
+      },
+      {
+        "schema_version": "true_rl_agent.prompt_source_payload.v1",
+        "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+        "role": "latest_nonaccepted_candidate_source",
+        "delivery": "inline",
+        "content": "'''Complete, morphology-scaled standing recovery reward rates.\n\nThe task dispatcher replaces upstream rewards and integrates these rates once\nwith control dt. Joint penalties use means so changing joint count does not\nsilently multiply their weight. Perturbation schedules are not reward inputs.\n'''\n\nfrom true_rl_agent.candidates.components import RewardTerm, TrainingComponents\n\n\ndef upright_height(inputs):\n    tilt = inputs.roll.square() + inputs.pitch.square()\n    height_error = (inputs.base_height_relative - 1.0).square()\n    return (-4.0 * tilt - 4.0 * height_error).exp()\n\n\ndef stable_damping(inputs):\n    '''Reward stillness only when the base is upright and near nominal height.\n\n    The height and gravity gates suppress the stillness reward during acute\n    recovery, so a collapsed or tilted posture cannot collect the stationary\n    bonus and recovery motion is not penalized by this term.\n    '''\n    height_gate = ((inputs.base_height_relative - 0.5) / 0.5).clamp(min=0.0, max=1.0)\n    upright = (-inputs.projected_gravity[:, 2]).clamp(min=0.0, max=1.0)\n    upright_gate = ((upright - 0.5) / 0.5).clamp(min=0.0, max=1.0)\n    stable_gate = height_gate * upright_gate\n\n    planar_speed = inputs.base_lin_vel_scaled[:, :2].square().sum(dim=1).sqrt() / 0.08\n    angular_speed = inputs.base_ang_vel_scaled.square().sum(dim=1).sqrt() / 0.5\n    planar_core = planar_speed.clamp(max=1.0)\n    angular_core = angular_speed.clamp(max=1.0)\n    planar_penalty = 0.5 * planar_core.square() + planar_speed - planar_core\n    angular_penalty = 0.5 * angular_core.square() + angular_speed - angular_core\n\n    return stable_gate * (1.0 - 0.25 * (planar_penalty + angular_penalty))\n\n\ndef joint_pose(inputs):\n    return inputs.joint_pos_error.square().mean(dim=1)\n\n\ndef action_rate(inputs):\n    return inputs.action_delta.square().mean(dim=1)\n\n\ndef fall(inputs):\n    return inputs.terminated_non_timeout.float()\n\n\ndef build_training_components():\n    return TrainingComponents(\n        name='push_standing_recovery_posture_gated_damping_v1',\n        reward_terms=[\n            RewardTerm(name='upright_height', weight=3.0, fn=upright_height),\n            RewardTerm(\n                name='stable_damping',\n                weight=1.0,\n                fn=stable_damping,\n                clip_min=0.0,\n                clip_max=1.0,\n            ),\n            RewardTerm(name='joint_pose', weight=-0.1, fn=joint_pose),\n            RewardTerm(name='action_rate', weight=-0.01, fn=action_rate),\n            RewardTerm(name='fall', weight=-20.0, fn=fall),\n        ],\n        rationale=(\n            'The reference program stationary_v3 term grants full stillness '\n            'reward regardless of base height or orientation, so a robot that '\n            'collapses and remains still can collect the stationary bonus, and '\n            'the same term penalizes the leg motion needed to recover from a '\n            'large push. Replace only that mechanism with stable_damping: a '\n            'posture-gated stillness reward that multiplies the original '\n            'velocity penalty by smooth height and projected-gravity gates. '\n            'The gates are zero when the base is low or tilted, so collapsed '\n            'postures cannot collect the bonus, while recovery motion during '\n            'the acute phase is not penalized. This targets the observed '\n            'height-collapse failure mode and the high/repeated push strata '\n            'without changing other reward mechanisms, weights, or task '\n            'protocol.'\n        ),\n    )\n",
+        "content_sha256": "4e9028aaac8cf2eba2658b7cfeb49ba6fab357588ccd6b141bdc1eb2e33172f6",
+        "bytes": 3552,
+        "summary": "82 lines; from true_rl_agent.candidates.components import RewardTerm, TrainingComponents; def upright_height(inputs):; def stable_damping(inputs):; def joint_pose(inputs):; def action_rate(inputs):; def fall(inputs):; def build_training_components():",
+        "public_safe": true
+      }
+    ],
+    "public_feedback_summary": {
+      "schema_version": "true_rl_agent.public_feedback_summary.push_recovery.v3",
+      "status": "available",
+      "source_selection": "latest_trained_nonaccepted",
+      "source_round_id": "go2-push-5rounds-20260922-a02-generation-001-lane-b",
+      "source_candidate_id": "push_recovery_posture_gated_damping_v1",
+      "program_source_checksum": "sha256:4e9028aaac8cf2eba2658b7cfeb49ba6fab357588ccd6b141bdc1eb2e33172f6",
+      "latest_round": {
+        "round_id": "go2-push-5rounds-20260922-a02-generation-001-lane-b",
+        "candidate_id": "push_recovery_posture_gated_damping_v1",
+        "status_reason": "sibling_not_selected"
+      },
+      "latest_public_score": 0.7395833333333334,
+      "latest_failure_mode": "fall_dominated",
+      "public_dev": {
+        "score_stats": {
+          "count": 3,
+          "episode_count": 192,
+          "mean": 0.7395833333333334,
+          "std": 0.039322054350368486,
+          "standard_error": 0.02270259866427434
+        },
+        "recovery_counts": {
+          "episodes": 192,
+          "successes": 142,
+          "eligible_episode_count": 192,
+          "control_episode_count": 0,
+          "planned_push_event_count": 240,
+          "pushed_episode_count": 192,
+          "push_event_count": 236,
+          "invalid_injection_count": 0,
+          "completed_push_event_count": 234,
+          "verified_push_event_count": 236,
+          "sequence_recovered_count": 142
+        },
+        "stratum_results": {
+          "low": {
+            "episodes": 48,
+            "successes": 48,
+            "n_over_N": "48/48"
+          },
+          "medium": {
+            "episodes": 48,
+            "successes": 42,
+            "n_over_N": "42/48"
+          },
+          "high": {
+            "episodes": 48,
+            "successes": 19,
+            "n_over_N": "19/48"
+          },
+          "repeated": {
+            "episodes": 48,
+            "successes": 33,
+            "n_over_N": "33/48"
+          }
+        },
+        "failure_breakdown": {
+          "counts": {
+            "success_recovered": 142,
+            "not_recovered": 3,
+            "fall_backward": 11,
+            "fall_side": 19,
+            "height_collapse": 17
+          },
+          "total": 192
+        },
+        "dominant_outcome": "success_recovered"
+      },
+      "recovery_evidence_gate": {
+        "status": "not_available"
+      },
+      "sealed_validation_gate": {
+        "status": "not_available"
+      }
+    },
+    "runtime_feedback_summary": {
+      "schema_version": "true_rl_agent.runtime_feedback_summary.push_recovery.v2",
+      "status": "available",
+      "reason": "same_trial_training_receipt",
+      "source_selection": "latest_trained_nonaccepted",
+      "source_round_id": "go2-push-5rounds-20260922-a02-generation-001-lane-b",
+      "source_candidate_id": "push_recovery_posture_gated_damping_v1",
+      "program_source_checksum": "sha256:4e9028aaac8cf2eba2658b7cfeb49ba6fab357588ccd6b141bdc1eb2e33172f6",
+      "source_trial_status": "qualified_not_selected",
+      "candidate_package_loaded": "unknown",
+      "candidate_code_loaded_in_eval": false,
+      "eval_candidate_code_policy": "checkpoint_eval_only; candidate code is not expected to load in eval",
+      "latest_runtime_activation": {
+        "reward_term_calls": 60000,
+        "diagnostic_calls": 0,
+        "nonzero_reward_contribution": true,
+        "reward_output_stats": {
+          "finite_fraction": 1.0,
+          "mean": 1.573971
+        },
+        "reward_term_activation": {
+          "schema_version": "true_rl_agent.runtime_reward_term_activation_summary.v1",
+          "observation_scope": "bounded_periodic_samples_over_training_steps",
+          "term_count": 5,
+          "shown_term_count": 5,
+          "omitted_term_count": 0,
+          "byte_budget": 2048,
+          "terms": [
+            {
+              "term_id": "reward_term_001_26fe05dcd8dc",
+              "public_label": "upright_height",
+              "observation_count": 500,
+              "nonzero_observation_count": 500,
+              "nonzero_observation_fraction": 1.0,
+              "max_abs_weighted_contribution": 2.9999966621398926,
+              "last_weighted_mean": 2.959848,
+              "effective_weight": 3.0,
+              "sampling_interval_steps": 24
+            },
+            {
+              "term_id": "reward_term_002_ab458ee8831a",
+              "public_label": "stable_damping",
+              "observation_count": 500,
+              "nonzero_observation_count": 500,
+              "nonzero_observation_fraction": 1.0,
+              "max_abs_weighted_contribution": 0.9991989135742188,
+              "last_weighted_mean": 0.822977,
+              "effective_weight": 1.0,
+              "sampling_interval_steps": 24
+            },
+            {
+              "term_id": "reward_term_003_c0f88898ac59",
+              "public_label": "joint_pose",
+              "observation_count": 500,
+              "nonzero_observation_count": 500,
+              "nonzero_observation_fraction": 1.0,
+              "max_abs_weighted_contribution": 0.264819473028183,
+              "last_weighted_mean": -0.01701,
+              "effective_weight": -0.1,
+              "sampling_interval_steps": 24
+            },
+            {
+              "term_id": "reward_term_004_12120fd92d33",
+              "public_label": "action_rate",
+              "observation_count": 500,
+              "nonzero_observation_count": 500,
+              "nonzero_observation_fraction": 1.0,
+              "max_abs_weighted_contribution": 2425.3955078125,
+              "last_weighted_mean": -0.058902,
+              "effective_weight": -0.01,
+              "sampling_interval_steps": 24
+            },
+            {
+              "term_id": "reward_term_005_2dc46af1b78c",
+              "public_label": "fall",
+              "observation_count": 500,
+              "nonzero_observation_count": 130,
+              "nonzero_observation_fraction": 0.26,
+              "max_abs_weighted_contribution": 20.0,
+              "last_weighted_mean": 0.0,
+              "effective_weight": -20.0,
+              "sampling_interval_steps": 24
+            }
+          ]
+        },
+        "diagnostic_outputs": {
+          "schema_version": "true_rl_agent.runtime_diagnostic_outputs_summary.v1",
+          "field_count": 0,
+          "shown_field_count": 0,
+          "omitted_field_count": 0,
+          "byte_budget": 1536,
+          "fields": {},
+          "overflow_policy": "preserve_insertion_order_first_fields_with_anonymous_stable_key_hashes_and_counts"
+        },
+        "capability_activation_records": [
+          "reward_callable"
+        ]
+      },
+      "runtime_activation_gate": {},
+      "mechanism_attribution": {},
+      "runner_error": null
+    },
+    "public_history": {
+      "schema_version": "true_rl_agent.public_history.v4",
+      "previous_rounds": 1,
+      "best_public_score": 0.734375,
+      "public_score_source": "public_dev.score_stats.mean",
+      "last_outcome": "generation_head_retained",
+      "pure_knob_streak": 0,
+      "limits": {
+        "max_recent_rounds": 8,
+        "max_recent_outcomes_serialized_bytes": 8192
+      },
+      "omitted_round_count": 0,
+      "recent_outcomes": [
+        {
+          "round_id": "go2-push-5rounds-20260922-a02-generation-001",
+          "outcome": "generation_head_retained",
+          "accepted": false,
+          "reason": "runner_did_not_accept_candidate",
+          "comparison": {
+            "score_source": "public_dev.score_stats.mean"
+          },
+          "changed_components": [],
+          "candidate_runtime_activated_in_training": "unknown",
+          "candidate_code_loaded_in_eval": "unknown",
+          "runtime_activation": {
+            "status": "not_available"
+          },
+          "mechanism_attribution": {
+            "status": "not_available",
+            "reason": null
+          }
+        }
+      ],
+      "experiment_memory": {
+        "schema_version": "true_rl_agent.experiment_memory.v4",
+        "purpose": "bounded cross-round component/outcome index; consult it before proposing a candidate so previously evaluated mechanisms are not repeated blindly",
+        "limits": {
+          "max_rounds": 16,
+          "max_serialized_bytes": 14336,
+          "max_components_per_round": 8,
+          "max_candidate_components_per_round": 1
+        },
+        "candidate_component_semantics": "mechanism-delta-bound provider records use the sealed canonical delta plus runner activation; all other records use runtime identity difference",
+        "component_value_semantics": {
+          "weight": "runner-observed effective component weight",
+          "last_mean": "last sampled weighted mean contribution; one snapshot is not evidence of inactivity or causal effect",
+          "max_abs": "maximum absolute weighted contribution over bounded training samples"
+        },
+        "score_semantics": "objective and guard values are copied from decision.comparison with their authoritative score-source identities; no score is recomputed",
+        "omitted_experiment_count": 0,
+        "experiments": [
+          {
+            "round_index": 1,
+            "reason": "runner_did_not_accept_candidate",
+            "objective_score_source": "public_dev.score_stats.mean",
+            "accepted": false,
+            "trial_outcomes": [
+              [
+                "a",
+                "push_standing_recovery_height_margin_v1",
+                "add",
+                "RewardTerm:height_collapse",
+                "formal_rejected",
+                0.078125,
+                null,
+                "not_assessed",
+                "not_run_due_to_early_reject"
+              ],
+              [
+                "b",
+                "push_recovery_posture_gated_damping_v1",
+                "rename",
+                "RewardTerm:stable_damping",
+                "qualified_not_selected",
+                0.005208,
+                null,
+                "not_assessed",
+                "sibling_not_selected"
+              ]
+            ]
+          }
+        ],
+        "exploration_semantics": "ledger-derived, task-owned public hypotheses for bounded revisit; no acceptance authority and no checkpoint/source reuse authority",
+        "exploration": {
+          "schema_version": "true_rl_agent.exploration_prompt_projection.v2",
+          "task_id": "unitree_push_recovery",
+          "source_index_hash": "22371aa450642ae28b3fc5bc2fdf8f6e999f261b721d9974c5c17c1cc0cbff7b",
+          "current_head_hash": "e67cc05335c88b0cb0f0c40aeec61fd884a81d1dc69f884baef2ed4b7afb9b8f",
+          "semantics": "public exploration hypotheses only; they do not accept candidates, prove causality, or authorize checkpoint/source reuse; only priority cards may consume the automatic revisit lane",
+          "priority_or_eligible_cards": [],
+          "verifier_equivalent_avoidance_cards": [],
+          "repeated_negative_input_signature_advisories": [],
+          "blocked_verifier_equivalence_count": 0,
+          "omitted_verifier_equivalent_avoidance_count": 0,
+          "frontier_backlog_count": 0,
+          "omitted_frontier_card_count": 0,
+          "deferred_frontier_card_count": 0,
+          "ineligible_frontier_card_count": 0,
+          "acceptance_authority": false
+        },
+        "trial_outcome_columns": [
+          "lane",
+          "candidate_id",
+          "operation",
+          "mechanism",
+          "status",
+          "public_dev_delta",
+          "public_dev_guard_delta",
+          "runtime_effect",
+          "reason"
+        ],
+        "trial_outcome_semantics": "Task-projected public-dev differences against that generation's parent; null means unmeasured, runtime effect does not imply score improvement."
+      }
+    },
+    "exploration_directive": {
+      "schema_version": "true_rl_agent.exploration_directive.v2",
+      "mode": "reference_anchored_authoring",
+      "role": "guidance_only_not_acceptance_rule",
+      "instructions": [
+        "Treat the verified reference program as the current policy-best and source authority.",
+        "Use its complete source and public failure evidence to author a complete replacement.",
+        "Do not change runner-owned protocol, initialization, budget, seed, or acceptance rules."
+      ]
+    },
+    "required_candidate_package": {
+      "schema_version": "true_rl_agent.required_candidate_package.v1",
+      "candidate_role": "candidate_package_only",
+      "provider_json_output": {
+        "type": "object",
+        "json_only": true,
+        "no_prose_outside_json": true,
+        "response_shape": "one_of",
+        "one_of": {
+          "candidate_draft": {
+            "response_mode": "candidate_draft",
+            "required_keys": [
+              "candidate_id",
+              "declared_changed_components",
+              "components_py"
+            ],
+            "allowed_keys": [
+              "response_mode",
+              "candidate_id",
+              "declared_changed_components",
+              "components_py"
+            ],
+            "additional_keys_allowed": false
+          },
+          "source_request": {
+            "response_mode": "source_request",
+            "enabled": true,
+            "required_keys": [
+              "response_mode",
+              "logical_ids",
+              "rationale"
+            ],
+            "allowed_keys": [
+              "response_mode",
+              "logical_ids",
+              "rationale"
+            ],
+            "additional_keys_allowed": false,
+            "purpose": "controlled source resolver request for prompt source_catalog logical ids"
+          }
+        },
+        "additional_keys_allowed": false,
+        "prohibited_keys": [
+          "runner_patch",
+          "eval_patch",
+          "success_metric",
+          "budget",
+          "seed_policy",
+          "checkpoint",
+          "ppo_config",
+          "operation_diff",
+          "diagnostics",
+          "candidate_manifest",
+          "files"
+        ],
+        "authoring_response_protocol": {
+          "schema_version": "true_rl_agent.authoring_provider_response_contract.v2",
+          "response_mode_field": "response_mode",
+          "default_response_mode": "candidate_draft",
+          "supported_response_modes": [
+            "candidate_draft",
+            "source_request"
+          ],
+          "source_request_service_enabled": true,
+          "instructions": [
+            "Omit response_mode or set response_mode='candidate_draft' when returning candidate fields.",
+            "candidate_draft and source_request fields are mutually exclusive response shapes.",
+            "Use source_request only for logical ids declared in the prompt source_catalog.",
+            "After a source_followup prompt, return candidate_draft unless another bounded source read is necessary."
+          ]
+        },
+        "declared_changed_components_allowed_values": [
+          "reward_callable",
+          "diagnostic",
+          "reward_weight"
+        ],
+        "field_contracts": {
+          "response_mode": {
+            "type": "string",
+            "optional": true,
+            "default": "candidate_draft",
+            "allowed_values": [
+              "candidate_draft",
+              "source_request"
+            ],
+            "phase7_note": "source_request is serviced only through the prompt source_catalog allowlist"
+          },
+          "candidate_id": {
+            "type": "string",
+            "max_chars": 80,
+            "allowed_characters": "lowercase ASCII letters, digits, dot, underscore, and dash",
+            "format": "portable path segment beginning with a lowercase letter or digit",
+            "portability": "no trailing dot; basename must not be con, prn, aux, nul, com1-9, or lpt1-9",
+            "materialized_file": "candidate_manifest.yaml"
+          },
+          "rationale": {
+            "type": "string",
+            "available_in_response_modes": [
+              "source_request"
+            ],
+            "purpose": "bounded justification for an allowlisted source request",
+            "candidate_hypothesis": false
+          },
+          "declared_changed_components": {
+            "type": "array[string]",
+            "allowed_values": [
+              "reward_callable",
+              "diagnostic",
+              "reward_weight"
+            ],
+            "purpose": "provider declaration; verifier-derived change set remains authoritative",
+            "materialized_file": "operation_diff.json"
+          },
+          "components_py": {
+            "type": "string",
+            "purpose": "complete training_code/components.py source; the canonical experiment hypothesis must be a non-empty statically resolvable string literal in TrainingComponents.rationale",
+            "materialized_file": "training_code/components.py",
+            "derived_materialized_files": {
+              "rationale.md": "TrainingComponents.rationale"
+            },
+            "repair_provenance_rule": "keep the embedded hypothesis focused on the experiment mechanism; mechanical repair notes remain in authoring attempt provenance"
+          }
+        }
+      },
+      "candidate_files": {
+        "schema_version": "true_rl_agent.candidate_package_files.v2",
+        "package_contract_hash": "ea177ecd60812c8c3da7de62f594c1673e1dc7878e162e01fb25596255f6d785",
+        "package_contract": {
+          "schema_version": "true_rl_agent.candidate_package_contract.v1",
+          "provider_authored_files": [
+            "candidate_manifest.yaml",
+            "training_code/components.py",
+            "rationale.md",
+            "operation_diff.json",
+            "diagnostics.json"
+          ],
+          "file_max_bytes": {
+            "candidate_manifest.yaml": 2048,
+            "training_code/components.py": 24576,
+            "rationale.md": 8192,
+            "operation_diff.json": 8192,
+            "diagnostics.json": 8192
+          },
+          "max_total_bytes": 51200,
+          "all_files_required": true,
+          "additional_files_allowed": false,
+          "regular_files_required": true,
+          "symlinks_allowed": false,
+          "scope": "new_unsealed_candidate_packages",
+          "legacy_sealed_replay_enforces_new_size_limits": false
+        },
+        "materialized_files": [
+          "candidate_manifest.yaml",
+          "training_code/components.py",
+          "rationale.md",
+          "operation_diff.json",
+          "diagnostics.json"
+        ],
+        "llm_writable_provider_json_fields": [
+          "response_mode",
+          "candidate_id",
+          "declared_changed_components",
+          "components_py"
+        ],
+        "provider_materialized_files": {
+          "candidate_manifest.yaml": {
+            "source": "provider",
+            "purpose": "fixed schema, candidate_id, and controlled entrypoint"
+          },
+          "operation_diff.json": {
+            "source": "candidate_materializer",
+            "derived_from": [
+              "declared_changed_components"
+            ],
+            "authority": "provider declaration is provisional; verifier-derived change set remains authoritative",
+            "purpose": "public record of declared changed components; not an LLM-editable runner diff"
+          },
+          "diagnostics.json": {
+            "source": "candidate_materializer",
+            "derived_from": [
+              "provider_response_parse",
+              "candidate_materialization_status"
+            ],
+            "purpose": "public candidate-package diagnostics placeholder for future extensions"
+          },
+          "rationale.md": {
+            "source": "candidate_materializer",
+            "derived_from": [
+              "training_code/components.py:TrainingComponents.rationale"
+            ],
+            "authority": "the embedded TrainingComponents.rationale is the canonical experiment hypothesis for fresh provider candidates",
+            "purpose": "derived human-readable view of the canonical hypothesis"
+          }
+        },
+        "llm_must_not_output_files": [
+          "runner patches",
+          "eval patches",
+          "budget or seed files",
+          "checkpoint files",
+          "PPO config files"
+        ]
+      },
+      "component_contract": {
+        "schema_version": "true_rl_agent.candidate_component_contract.v1",
+        "capability_schema_ref": "true_rl_agent.candidate_authoring_capabilities.v1",
+        "status": "available",
+        "module": "true_rl_agent.candidates.components",
+        "entrypoint": "training_code.components:build_training_components",
+        "builder_signature": "def build_training_components() -> TrainingComponents:",
+        "allowed_import": "from true_rl_agent.candidates.components import DiagnosticTerm, RewardInputs, RewardTerm, ScheduleTerm, TrainingComponents",
+        "classes": {
+          "RewardTerm": "RewardTerm(name: str, weight: float, fn: Callable[[RewardInputs], Any], clip_min: float | None = None, clip_max: float | None = None, description: str = '')",
+          "DiagnosticTerm": "DiagnosticTerm(name: str, fn: Callable[[RewardInputs], Any], description: str = '')",
+          "ScheduleTerm": "ScheduleTerm(name: str, key: str, value: float)",
+          "TrainingComponents": "TrainingComponents(name: str, reward_terms: list[RewardTerm] = [], diagnostics: list[DiagnosticTerm] = [], schedules: list[ScheduleTerm] = [], metadata: dict = {}, rationale: str = '')"
+        },
+        "allowed_schedule_keys": [
+          "reward_weight_scale"
+        ],
+        "forbidden_surfaces": [
+          "runner state",
+          "environment objects",
+          "optimizer or PPO hyperparameters",
+          "eval protocol",
+          "success metric",
+          "seeds",
+          "budgets",
+          "checkpoints",
+          "filesystem"
+        ],
+        "static_verifier_rules": {
+          "schema_version": "true_rl_agent.static_candidate_verifier_prompt_rules.v1",
+          "rule_source": "StaticCandidateVerifier",
+          "verification_policy_id": "true_rl_agent.static_candidate_verifier.pure_function.v2",
+          "verification_policy_hash": "17e48a15617337729f47783f32d7b8940b4b25d06ef8632ee0e486c05e3add74",
+          "candidate_package_contract_hash": "ea177ecd60812c8c3da7de62f594c1673e1dc7878e162e01fb25596255f6d785",
+          "allowed_files": [
+            "candidate_manifest.yaml",
+            "diagnostics.json",
+            "operation_diff.json",
+            "rationale.md",
+            "training_code/components.py"
+          ],
+          "file_max_bytes": {
+            "candidate_manifest.yaml": 2048,
+            "training_code/components.py": 24576,
+            "rationale.md": 8192,
+            "operation_diff.json": 8192,
+            "diagnostics.json": 8192
+          },
+          "max_total_bytes": 51200,
+          "allowed_imports": {
+            "true_rl_agent.candidates.components": [
+              "DiagnosticTerm",
+              "RewardInputs",
+              "RewardTerm",
+              "ScheduleTerm",
+              "TrainingComponents"
+            ]
+          },
+          "blocked_text_fragments": [
+            "import os",
+            "subprocess",
+            "open(",
+            "optimizer",
+            "checkpoint policy selector surface",
+            "eval configuration surface",
+            "success metric surface",
+            "runner attribute access",
+            "environment attribute access"
+          ],
+          "blocked_names": [
+            "checkpoint policy selector surface",
+            "env",
+            "eval configuration surface",
+            "optimizer",
+            "runner",
+            "success metric surface"
+          ],
+          "blocked_name_prefixes": [
+            "__"
+          ],
+          "blocked_calls": [
+            "__import__",
+            "__setattr__",
+            "__setitem__",
+            "breakpoint",
+            "compile",
+            "delattr",
+            "dir",
+            "eval",
+            "exec",
+            "exit",
+            "getattr",
+            "globals",
+            "help",
+            "input",
+            "locals",
+            "open",
+            "print",
+            "quit",
+            "setattr",
+            "vars"
+          ],
+          "blocked_call_roots": [
+            "os",
+            "pathlib",
+            "shutil",
+            "socket",
+            "subprocess",
+            "sys"
+          ],
+          "blocked_mutating_methods": [
+            "append",
+            "clear",
+            "extend",
+            "insert",
+            "pop",
+            "remove",
+            "reverse",
+            "setdefault",
+            "sort",
+            "update"
+          ],
+          "blocked_mutating_call_suffix": "_",
+          "blocked_random_calls": [
+            "bernoulli",
+            "beta",
+            "cauchy",
+            "choice",
+            "choices",
+            "exponential",
+            "fork_rng",
+            "gamma",
+            "geometric",
+            "get_rng_state",
+            "initial_seed",
+            "log_normal",
+            "manual_seed",
+            "multinomial",
+            "normal",
+            "permutation",
+            "poisson",
+            "rand",
+            "randint",
+            "randn",
+            "random",
+            "random_sample",
+            "seed",
+            "set_rng_state",
+            "shuffle",
+            "standard_normal",
+            "uniform"
+          ],
+          "blocked_state_attributes": [
+            "__class__",
+            "__dict__",
+            "__globals__",
+            "data",
+            "storage",
+            "untyped_storage"
+          ],
+          "blocked_attribute_prefixes": [
+            "_"
+          ],
+          "blocked_ast_nodes": [
+            "AugAssign",
+            "Delete",
+            "Global",
+            "Import",
+            "NamedExpr",
+            "Nonlocal"
+          ],
+          "blocked_assignment_target_nodes": [
+            "Attribute",
+            "Subscript"
+          ],
+          "allowed_top_level_ast_nodes": [
+            "FunctionDef",
+            "ImportFrom",
+            "module_docstring"
+          ],
+          "allowed_schedule_keys": [
+            "reward_weight_scale"
+          ],
+          "function_decorators_allowed": false,
+          "nested_functions_allowed": false,
+          "mutable_or_dynamic_defaults_allowed": false,
+          "additional_files_allowed": false,
+          "import_aliases_allowed": false,
+          "relative_imports_allowed": false,
+          "component_callable_contract": {
+            "callable_type": "python_function",
+            "defined_in_canonical_components_source": true,
+            "positional_argument_count": 1,
+            "closures_allowed": false,
+            "component_name_contract": {
+              "max_chars": 64,
+              "max_utf8_bytes": 64,
+              "must_be_nonempty_and_trimmed": true,
+              "forbidden_substrings": [
+                ":",
+                "->"
+              ],
+              "control_characters_allowed": false
+            }
+          },
+          "component_load_timeout_s": 2.0
+        },
+        "reward_term_runtime_semantics": {
+          "composition_order": [
+            "raw_output = fn(reward_inputs)",
+            "guarded_output = clip(raw_output, clip_min, clip_max)",
+            "weighted_contribution = weight * guarded_output",
+            "training_reward = training_reward + weighted_contribution"
+          ],
+          "optimization_direction": "Training maximizes total reward: positive weighted contributions reinforce behavior and negative weighted contributions penalize behavior.",
+          "penalty_sign_rule": "With a positive weight, a penalty callable must return non-positive values; returning a positive cost rewards the behavior instead of penalizing it."
+        },
+        "minimal_components_py": "from __future__ import annotations\n\nfrom true_rl_agent.candidates.components import RewardInputs, RewardTerm, TrainingComponents\n\n\ndef stance_margin(inp: RewardInputs):\n    return inp.base_height - 0.5 * (inp.roll * inp.roll + inp.pitch * inp.pitch)\n\n\ndef build_training_components() -> TrainingComponents:\n    return TrainingComponents(\n        name=\"stance_margin_candidate\",\n        reward_terms=[RewardTerm(name=\"stance_margin\", weight=1.0, fn=stance_margin)],\n        diagnostics=[],\n        schedules=[],\n        rationale=\"Add a public reward callable over RewardInputs.\",\n    )\n"
+      },
+      "candidate_must_not_change": [
+        "runner code",
+        "runner",
+        "eval protocol",
+        "success metric",
+        "training budget",
+        "seed policy",
+        "checkpoints",
+        "PPO",
+        "acceptance rules"
+      ],
+      "operation_diff_contract": {
+        "materialized_by": "candidate_materializer",
+        "llm_output_key_allowed": false,
+        "derived_from": [
+          "declared_changed_components"
+        ],
+        "authority": "verifier-derived change set remains authoritative",
+        "purpose": "public provenance for declared changed components, not a runner patch"
+      },
+      "diagnostics_contract": {
+        "materialized_by": "candidate_materializer",
+        "llm_output_key_allowed": false,
+        "derived_from": [
+          "provider_response_parse",
+          "candidate_materialization_status"
+        ],
+        "purpose": "public candidate-package materialization diagnostics; task-owned diagnostics use only prompt-visible capabilities"
+      }
+    },
+    "authoring_context_frame": {
+      "schema_version": "true_rl_agent.authoring_context_frame.v2",
+      "frame_id": "candidate_draft.v1",
+      "frame_kind": "candidate_draft",
+      "purpose": "write a provider-compatible candidate package from the public contract and bounded history",
+      "stable_contract_refs": [
+        "task",
+        "loop_contract",
+        "required_candidate_package",
+        "candidate_capabilities",
+        "reward_inputs_contract",
+        "public_eval_contract",
+        "control_effectiveness_contract"
+      ],
+      "included_sections": [
+        "schema_version",
+        "task",
+        "loop_contract",
+        "candidate_capabilities",
+        "reward_inputs_contract",
+        "public_eval_contract",
+        "control_effectiveness_contract",
+        "known_good_examples",
+        "selection_guidance",
+        "source_catalog",
+        "candidate_lineage",
+        "source_payloads",
+        "public_feedback_summary",
+        "runtime_feedback_summary",
+        "public_history",
+        "exploration_directive",
+        "required_candidate_package"
+      ],
+      "omitted_sections": [],
+      "source_payloads": [
+        {
+          "logical_id": "current_best/training_code/components.py",
+          "content_sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+          "bytes": 1846,
+          "delivery": "inline"
+        },
+        {
+          "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+          "content_sha256": "4e9028aaac8cf2eba2658b7cfeb49ba6fab357588ccd6b141bdc1eb2e33172f6",
+          "bytes": 3552,
+          "delivery": "inline"
+        }
+      ],
+      "source_payload_summaries": [
+        {
+          "logical_id": "current_best/training_code/components.py",
+          "summary": "49 lines; from true_rl_agent.candidates.components import RewardTerm, TrainingComponents; def upright_height(inputs):; def stationary_v3(inputs):; def joint_pose(inputs):; def action_rate(inputs):; def fall(inputs):; def build_training_components():"
+        },
+        {
+          "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+          "summary": "82 lines; from true_rl_agent.candidates.components import RewardTerm, TrainingComponents; def upright_height(inputs):; def stable_damping(inputs):; def joint_pose(inputs):; def action_rate(inputs):; def fall(inputs):; def build_training_components():"
+        }
+      ],
+      "source_hashes": [
+        {
+          "logical_id": "current_best/training_code/components.py",
+          "content_sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d"
+        },
+        {
+          "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+          "content_sha256": "4e9028aaac8cf2eba2658b7cfeb49ba6fab357588ccd6b141bdc1eb2e33172f6"
+        }
+      ],
+      "feedback_items": [],
+      "frame_contract": {
+        "required_sections": [
+          "task",
+          "loop_contract",
+          "required_candidate_package",
+          "candidate_capabilities",
+          "reward_inputs_contract",
+          "public_eval_contract",
+          "control_effectiveness_contract",
+          "source_catalog",
+          "candidate_lineage",
+          "source_payloads",
+          "exploration_directive",
+          "public_history",
+          "selection_guidance",
+          "schema_version"
+        ],
+        "optional_sections": [
+          "public_feedback_summary",
+          "runtime_feedback_summary",
+          "known_good_examples"
+        ],
+        "source_followup_enabled": true
+      },
+      "budget_metadata": {
+        "section_serialized_bytes": {
+          "schema_version": 33,
+          "task": 1999,
+          "loop_contract": 2190,
+          "candidate_capabilities": 3654,
+          "reward_inputs_contract": 10918,
+          "public_eval_contract": 948,
+          "control_effectiveness_contract": 694,
+          "known_good_examples": 2,
+          "selection_guidance": 761,
+          "source_catalog": 4054,
+          "candidate_lineage": 1991,
+          "source_payloads": 6695,
+          "public_feedback_summary": 1636,
+          "runtime_feedback_summary": 2951,
+          "public_history": 3605,
+          "exploration_directive": 423,
+          "required_candidate_package": 11692
+        },
+        "estimated_prompt_bytes": 54246,
+        "estimated_prompt_context_units": 13562,
+        "hard_limits": {
+          "max_prompt_payload_bytes": 262144,
+          "max_section_bytes": 98304,
+          "max_source_inline_payload_bytes": 24576,
+          "max_source_request_bytes_per_round": 49152
+        },
+        "legacy_alias_section_bytes": {},
+        "provider_task_sections": {
+          "schema_version": "true_rl_agent.prompt.provider_task_sections_receipt.v2",
+          "serializer": "canonical_prompt_json.compact.v1",
+          "section_keys": [
+            "task",
+            "reward_inputs_contract",
+            "public_eval_contract",
+            "public_feedback_summary",
+            "runtime_feedback_summary",
+            "known_good_examples",
+            "selection_guidance"
+          ],
+          "content_hash": "64d4d20648d379a257dbf31ebbceacc4490aa50ded29627cd5b000f053f5da0e",
+          "serialized_bytes": 19374,
+          "max_serialized_bytes": 57344,
+          "headroom_bytes": 37970
+        },
+        "actual_prompt_payload_bytes": 58679,
+        "actual_prompt_payload_context_units": 14670
+      },
+      "legacy_alias_sections": []
+    }
+  },
+  "round_public_context": {
+    "public_only": true,
+    "previous_rounds": 1,
+    "best_public_score": 0.734375,
+    "public_score_source": "public_dev.score_stats.mean",
+    "last_outcome": "generation_head_retained",
+    "pure_knob_streak": 0,
+    "public_history_limits": {
+      "max_recent_rounds": 8,
+      "max_recent_outcomes_serialized_bytes": 8192
+    },
+    "public_history_omitted_round_count": 0,
+    "recent_outcomes": [
+      {
+        "round_id": "go2-push-5rounds-20260922-a02-generation-001",
+        "outcome": "generation_head_retained",
+        "accepted": false,
+        "reason": "runner_did_not_accept_candidate",
+        "comparison": {
+          "score_source": "public_dev.score_stats.mean"
+        },
+        "changed_components": [],
+        "candidate_runtime_activated_in_training": "unknown",
+        "candidate_code_loaded_in_eval": "unknown",
+        "runtime_activation": {
+          "status": "not_available"
+        },
+        "mechanism_attribution": {
+          "status": "not_available",
+          "reason": null
+        }
+      }
+    ],
+    "experiment_memory": {
+      "schema_version": "true_rl_agent.experiment_memory.v4",
+      "purpose": "bounded cross-round component/outcome index; consult it before proposing a candidate so previously evaluated mechanisms are not repeated blindly",
+      "limits": {
+        "max_rounds": 16,
+        "max_serialized_bytes": 14336,
+        "max_components_per_round": 8,
+        "max_candidate_components_per_round": 1
+      },
+      "candidate_component_semantics": "mechanism-delta-bound provider records use the sealed canonical delta plus runner activation; all other records use runtime identity difference",
+      "component_value_semantics": {
+        "weight": "runner-observed effective component weight",
+        "last_mean": "last sampled weighted mean contribution; one snapshot is not evidence of inactivity or causal effect",
+        "max_abs": "maximum absolute weighted contribution over bounded training samples"
+      },
+      "score_semantics": "objective and guard values are copied from decision.comparison with their authoritative score-source identities; no score is recomputed",
+      "omitted_experiment_count": 0,
+      "experiments": [
+        {
+          "round_index": 1,
+          "reason": "runner_did_not_accept_candidate",
+          "objective_score_source": "public_dev.score_stats.mean",
+          "accepted": false,
+          "trial_outcomes": [
+            [
+              "a",
+              "push_standing_recovery_height_margin_v1",
+              "add",
+              "RewardTerm:height_collapse",
+              "formal_rejected",
+              0.078125,
+              null,
+              "not_assessed",
+              "not_run_due_to_early_reject"
+            ],
+            [
+              "b",
+              "push_recovery_posture_gated_damping_v1",
+              "rename",
+              "RewardTerm:stable_damping",
+              "qualified_not_selected",
+              0.005208,
+              null,
+              "not_assessed",
+              "sibling_not_selected"
+            ]
+          ]
+        }
+      ],
+      "exploration_semantics": "ledger-derived, task-owned public hypotheses for bounded revisit; no acceptance authority and no checkpoint/source reuse authority",
+      "exploration": {
+        "schema_version": "true_rl_agent.exploration_prompt_projection.v2",
+        "task_id": "unitree_push_recovery",
+        "source_index_hash": "22371aa450642ae28b3fc5bc2fdf8f6e999f261b721d9974c5c17c1cc0cbff7b",
+        "current_head_hash": "e67cc05335c88b0cb0f0c40aeec61fd884a81d1dc69f884baef2ed4b7afb9b8f",
+        "semantics": "public exploration hypotheses only; they do not accept candidates, prove causality, or authorize checkpoint/source reuse; only priority cards may consume the automatic revisit lane",
+        "priority_or_eligible_cards": [],
+        "verifier_equivalent_avoidance_cards": [],
+        "repeated_negative_input_signature_advisories": [],
+        "blocked_verifier_equivalence_count": 0,
+        "omitted_verifier_equivalent_avoidance_count": 0,
+        "frontier_backlog_count": 0,
+        "omitted_frontier_card_count": 0,
+        "deferred_frontier_card_count": 0,
+        "ineligible_frontier_card_count": 0,
+        "acceptance_authority": false
+      },
+      "trial_outcome_columns": [
+        "lane",
+        "candidate_id",
+        "operation",
+        "mechanism",
+        "status",
+        "public_dev_delta",
+        "public_dev_guard_delta",
+        "runtime_effect",
+        "reason"
+      ],
+      "trial_outcome_semantics": "Task-projected public-dev differences against that generation's parent; null means unmeasured, runtime effect does not imply score improvement."
+    }
+  }
+}

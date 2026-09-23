@@ -48,7 +48,7 @@ from true_rl_agent.tasks.push_recovery.reward_input_contract import (
     push_recovery_reward_input_fields,
     reserved_zero_fallback_reward_input_fields,
 )
-from true_rl_agent.tasks.push_recovery.reward_inputs import PushRecoveryRewardInputs
+from true_rl_agent.tasks.push_recovery.reward_inputs import PushRecoveryRewardInputs, PushRecoveryV2RewardInputs
 
 PUBLIC_PUSH_DELTA_THRESHOLD_MPS = 0.12
 PUBLIC_PUSH_ACTIVE_KEYS = (
@@ -138,7 +138,9 @@ class RuntimeActivationState:
     last_diagnostics: list[dict[str, Any]] = field(default_factory=list)
     last_candidate_reward_mean: float = 0.0
     max_abs_candidate_reward: float = 0.0
+    max_abs_candidate_reward_frame: dict[str, Any] | None = None
     last_reward_weight_scale: float = 1.0
+    # Source availability for the latest reward inputs, not whole-run coverage.
     input_provenance: dict[str, str] | None = None
 
 
@@ -169,6 +171,7 @@ class CandidateRuntimeAdapter:
         self.planned_training_steps = planned_training_steps
         self.diagnostic_interval_steps = diagnostic_interval_steps
         self.runtime = RuntimeActivationState()
+        self.training_numeric_capture = None
         self._previous_action: Any = None
         self._previous_base_lin_vel_xy: Any = None
 
@@ -225,13 +228,43 @@ class CandidateRuntimeAdapter:
         )
 
     def public_summary(self) -> dict[str, Any]:
+        physical = bool(getattr(self, "_physical_program", False))
         return {
-            "schema_version": "true_rl_agent.push_recovery.candidate_runtime.summary.v1",
+            "schema_version": "true_rl_agent.push_recovery.candidate_runtime.summary.v2" if physical else "true_rl_agent.push_recovery.candidate_runtime.summary.v1",
             "enabled": True,
             "candidate": self.manifest.to_public_dict() if self.manifest is not None else None,
             "components": self.components.to_public_summary(),
-            "runtime_contract": runtime_contract(),
+            "runtime_contract": runtime_contract(physical=physical),
         }
+
+    def bind_training_numeric_capture(self, capture) -> None:
+        if self.training_numeric_capture is not None:
+            raise ValueError("Push training numeric capture already bound")
+        if capture.source_step_offset != self.runtime.step_calls or capture.num_envs != self.num_envs:
+            raise ValueError("Push training capture offset or environment count differs")
+        self.training_numeric_capture = capture
+
+    def training_numeric_semantics(self, *, control_dt: float) -> dict[str, Any]:
+        physical = bool(getattr(self, "_physical_program", False))
+        return {
+            "raw_term": "guarded_and_clipped_program_term_before_weight",
+            "weighted_term": "raw_term_times_declared_weight_times_recorded_schedule_scale",
+            "total": "actual_candidate_sum_before_addition_to_input_reward",
+            "control_dt_s": control_dt,
+            "reward_execution": "complete_reward_rate" if physical else "additive_step_reward",
+            "step_reward_relation": (
+                "RewardManager multiplies returned_reward rate by control_dt_s once"
+                if physical else "returned_reward already is a per_step reward; no further dt multiplication"
+            ),
+            "terms": [{"index": index, "name": term.name, "weight": float(term.weight),
+                       "clip_min": term.clip_min, "clip_max": term.clip_max}
+                      for index, term in enumerate(self.components.reward_terms)],
+        }
+
+    def enable_physical_program(self) -> None:
+        if not self.components.reward_terms:
+            raise RuntimeComponentError("Push v2 requires a nonempty full reward program")
+        self._physical_program = True
 
     @classmethod
     def from_reference_program(
@@ -254,13 +287,16 @@ class CandidateRuntimeAdapter:
         reward_stats = _stats_from_last_terms(self.runtime.last_reward_terms)
         diagnostic_outputs = _diagnostic_output_map(self.runtime.last_diagnostics)
         return {
-            "schema_version": "true_rl_agent.push_recovery.candidate_runtime.v1",
+            "schema_version": "true_rl_agent.push_recovery.candidate_runtime.v2" if getattr(self, "_physical_program", False) else "true_rl_agent.push_recovery.candidate_runtime.v1",
             "step_calls": self.runtime.step_calls,
+            "reward_term_count": len(self.components.reward_terms),
+            "diagnostic_term_count": len(self.components.diagnostics),
             "reward_term_calls": self.runtime.reward_term_calls,
             "diagnostic_calls": self.runtime.diagnostic_calls,
             "nonzero_reward_contribution": self.runtime.max_abs_candidate_reward > 1.0e-12,
             "last_candidate_reward_mean": self.runtime.last_candidate_reward_mean,
             "max_abs_candidate_reward": self.runtime.max_abs_candidate_reward,
+            "max_abs_candidate_reward_frame": self.runtime.max_abs_candidate_reward_frame,
             "last_reward_weight_scale": self.runtime.last_reward_weight_scale,
             "reward_output_stats": reward_stats,
             "diagnostic_outputs": diagnostic_outputs,
@@ -295,6 +331,10 @@ class CandidateRuntimeAdapter:
 
         candidate_reward = None
         reward_summaries: list[dict[str, Any]] = []
+        weighted_terms: list[Any] = []
+        capture = self.training_numeric_capture
+        capture_this_step = capture is not None and capture.wants_step(self.runtime.step_calls)
+        raw_terms: list[Any] = []
         for term in self.components.reward_terms:
             try:
                 raw_value = term.fn(inputs)
@@ -315,6 +355,9 @@ class CandidateRuntimeAdapter:
                 raise PushCandidateProgramFailure() from exc
             effective_weight = float(term.weight) * reward_weight_scale
             weighted = _scale_like(value, rewards, effective_weight)
+            weighted_terms.append(weighted)
+            if capture_this_step:
+                raw_terms.append(value)
             candidate_reward = (
                 weighted
                 if candidate_reward is None
@@ -355,13 +398,72 @@ class CandidateRuntimeAdapter:
 
         if candidate_reward is None:
             self.runtime.last_candidate_reward_mean = 0.0
+            if capture is not None:
+                capture.observe(self.runtime.step_calls,
+                    {"input_reward": rewards, "returned_reward": rewards} if capture_this_step else None,
+                    metadata={"reward_weight_scale": reward_weight_scale, "reward_term_count": 0})
             return rewards
         self.runtime.last_candidate_reward_mean = _vector_mean(candidate_reward)
+        step_abs_max = _vector_abs_max(candidate_reward)
+        if step_abs_max > self.runtime.max_abs_candidate_reward:
+            self.runtime.max_abs_candidate_reward_frame = self._reward_peak_frame(
+                candidate_reward, weighted_terms, reward_summaries,
+            )
         self.runtime.max_abs_candidate_reward = max(
             self.runtime.max_abs_candidate_reward,
-            _vector_abs_max(candidate_reward),
+            step_abs_max,
         )
-        return _add_like(rewards, candidate_reward)
+        returned_reward = _add_like(rewards, candidate_reward)
+        if capture is not None:
+            arrays = None
+            if capture_this_step:
+                arrays = {"input_reward": rewards, "candidate_total": candidate_reward,
+                          "returned_reward": returned_reward}
+                for index, (raw, weighted) in enumerate(zip(raw_terms, weighted_terms, strict=True)):
+                    arrays[f"raw_term_{index:03d}"] = raw
+                    arrays[f"weighted_term_{index:03d}"] = weighted
+            capture.observe(self.runtime.step_calls, arrays,
+                            metadata={"reward_weight_scale": reward_weight_scale})
+        return returned_reward
+
+    def _reward_peak_frame(
+        self,
+        candidate_reward: Any,
+        weighted_terms: list[Any],
+        reward_summaries: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        """Keep one same-step/env diagnostic, only when the global peak grows."""
+        torch_mod = torch_for(candidate_reward)
+        if torch_mod is not None:
+            env_index = int(candidate_reward.detach().abs().argmax().item())
+            values = torch_mod.stack([
+                candidate_reward[env_index],
+                *(value[env_index] for value in weighted_terms),
+            ]).detach().cpu().tolist()
+        else:
+            env_index = max(range(self.num_envs), key=lambda i: abs(candidate_reward[i]))
+            values = [candidate_reward[env_index], *(value[env_index] for value in weighted_terms)]
+        return {
+            "schema_version": "true_rl_agent.push_recovery.reward_peak_frame.v1",
+            "scope": "one_running_absolute_peak_of_candidate_reward",
+            "units": (
+                "reward_rate_before_control_dt_integration"
+                if getattr(self, "_physical_program", False)
+                else "legacy_reward_contribution"
+            ),
+            "control_step_1based": self.runtime.step_calls,
+            "env_index_0based": env_index,
+            "signed_total": float(values[0]),
+            "term_semantics": "signed contributions after clipping and effective weights; summed in runtime dtype and term order for signed_total",
+            "terms": [
+                {
+                    "name": summary["name"],
+                    "effective_weight": summary["effective_weight"],
+                    "signed_weighted_contribution": float(value),
+                }
+                for summary, value in zip(reward_summaries, values[1:], strict=True)
+            ],
+        }
 
     def _record_reward_term_activation(
         self,
@@ -503,16 +605,31 @@ class CandidateRuntimeAdapter:
             "joint_pos_error": provenance_tag(jerr_obs),
             "last_action": provenance_tag(action_obs),
             "prev_action": provenance_tag(prev_obs),
-            "action_delta": provenance_tag(delta_obs),
+            "action_delta": provenance_tag(delta_obs and action_obs and prev_obs),
             "push_active": provenance_tag(push_obs),
             "push_vec_public": provenance_tag(push_obs),
             "progress_fraction": "runner_owned",
         }
-        if self.runtime.input_provenance is None:
-            self.runtime.input_provenance = provenance
-        else:
-            self.runtime.input_provenance["push_active"] = provenance["push_active"]
-            self.runtime.input_provenance["push_vec_public"] = provenance["push_vec_public"]
+        # Refresh every field together; the first call's zero-initialized action
+        # history must not describe later calls that have observed history.
+        self.runtime.input_provenance = provenance
+        if getattr(base, "_push_full_program_runtime", False):
+            p = base.cfg.push_protocol_parameters
+            world_linear = as_torch(robot_data.root_lin_vel_w)
+            world_angular = as_torch(robot_data.root_ang_vel_w)
+            relative_height = as_torch(robot_data.root_pos_w)[:, 2] - as_torch(base.scene.env_origins)[:, 2]
+            mapping.update(
+                base_height=relative_height,
+                nominal_base_height=constant_like(rewards, p["robot_scale_m"]),
+                base_height_relative=relative_height / p["robot_scale_m"],
+                base_lin_vel_scaled=world_linear / p["velocity_scale_mps"],
+                base_ang_vel_scaled=world_angular * p["time_scale_s"],
+                terminated_non_timeout=as_torch(base.termination_manager.terminated).to(dtype=rewards.dtype),
+            )
+            self.runtime.input_provenance.update({name: "task_owned_bound_scale" for name in (
+                "nominal_base_height", "base_height_relative", "base_lin_vel_scaled", "base_ang_vel_scaled")})
+            self.runtime.input_provenance["terminated_non_timeout"] = "trusted_pre_reset_termination"
+            return PushRecoveryV2RewardInputs(**mapping)
         return PushRecoveryRewardInputs(**mapping)
 
     def _capability_activation_records(self) -> list[str]:
@@ -557,9 +674,9 @@ class CandidateRewardVecEnvWrapper:
         return tuple(mutable)
 
 
-def runtime_contract() -> dict[str, Any]:
+def runtime_contract(*, physical: bool = False) -> dict[str, Any]:
     reserved_zero_fallback_inputs = list(reserved_zero_fallback_reward_input_fields())
-    return {
+    result = {
         "candidate_receives": list(push_recovery_reward_input_fields()),
         "candidate_receives_prompt_effective": list(prompt_effective_reward_input_fields()),
         "public_push_signal_inputs": list(public_push_signal_reward_input_fields()),
@@ -572,6 +689,13 @@ def runtime_contract() -> dict[str, Any]:
             "bounds": schedule_key_bounds(),
         },
     }
+    if physical:
+        result.update(candidate_receives=list(PushRecoveryV2RewardInputs.field_names()),
+            candidate_receives_prompt_effective=list(PushRecoveryV2RewardInputs.field_names()),
+            reward_terms_added_to_env_reward=False, reward_mode="complete_program_replacement",
+            reward_output="rate", rate_integration="reward_manager_once_by_control_dt",
+            transition_source="before_auto_reset", push_signal_source="already_executed_event_only")
+    return result
 
 
 def validate_training_components(components: TrainingComponents) -> None:
@@ -812,6 +936,10 @@ def public_push_signal_from_env(
     current_base_lin_vel_xy: Any,
     previous_base_lin_vel_xy: Any,
 ) -> tuple[Any, Any, bool]:
+    physical_state = getattr(env, "_push_runtime_state", None)
+    if physical_state is not None:
+        # Exact, already executed events. Autonomous motion is never an event.
+        return physical_state.public_active.clone(), physical_state.public_delta.clone(), True
     sources = (step_extras, env)
     explicit_vec = public_signal_value(sources, PUBLIC_PUSH_VEC_KEYS)
     push_vec = public_push_vec_or_none(explicit_vec, rewards)

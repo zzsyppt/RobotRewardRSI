@@ -1,0 +1,779 @@
+{
+  "prepared_at": "2026-09-23T09:45:25.276455+00:00",
+  "endpoint": "https://api.deepseek.com/chat/completions",
+  "actual_candidate_generation": false,
+  "source_baseline": "source_baseline.json",
+  "frames": [
+    {
+      "name": "initial",
+      "provenance": "actual historical initial author request; v3 qualified reference",
+      "source_path": "PLAN/2new_world/P5/provider_live_01/authoring/authoring_attempts/attempt_000001/prompt_payload.json",
+      "source_sha256": "a45551049185606c231b00214c2a03dee70cd7328d782134725235f1a355aede",
+      "payload_sha256": "a45551049185606c231b00214c2a03dee70cd7328d782134725235f1a355aede",
+      "request_sha256": "2ace4d6395c53174bad9ac9f0febc9bb3bec9d902c154a72722fadf4b4fe45d9",
+      "payload_bytes": 61242,
+      "system_text_bytes": 1326,
+      "http_json_bytes": 67040,
+      "sections": [
+        {
+          "section": "schema_version",
+          "start_utf8_byte": 1,
+          "end_utf8_byte_exclusive": 51,
+          "entry_bytes": 50,
+          "fraction": 0.0008164331667809673,
+          "position_fraction": 1.6328663335619347e-05
+        },
+        {
+          "section": "task",
+          "start_utf8_byte": 52,
+          "end_utf8_byte_exclusive": 3043,
+          "entry_bytes": 2991,
+          "fraction": 0.04883903203683746,
+          "position_fraction": 0.000849090493452206
+        },
+        {
+          "section": "loop_contract",
+          "start_utf8_byte": 3044,
+          "end_utf8_byte_exclusive": 5007,
+          "entry_bytes": 1963,
+          "fraction": 0.032053166127820776,
+          "position_fraction": 0.04970445119362529
+        },
+        {
+          "section": "candidate_capabilities",
+          "start_utf8_byte": 5008,
+          "end_utf8_byte_exclusive": 7371,
+          "entry_bytes": 2363,
+          "fraction": 0.03858463146206852,
+          "position_fraction": 0.08177394598478169
+        },
+        {
+          "section": "reward_inputs_contract",
+          "start_utf8_byte": 7372,
+          "end_utf8_byte_exclusive": 20511,
+          "entry_bytes": 13139,
+          "fraction": 0.2145423075667026,
+          "position_fraction": 0.12037490611018582
+        },
+        {
+          "section": "public_eval_contract",
+          "start_utf8_byte": 20512,
+          "end_utf8_byte_exclusive": 25130,
+          "entry_bytes": 4618,
+          "fraction": 0.07540576728389015,
+          "position_fraction": 0.33493354234022404
+        },
+        {
+          "section": "control_effectiveness_contract",
+          "start_utf8_byte": 25131,
+          "end_utf8_byte_exclusive": 25542,
+          "entry_bytes": 411,
+          "fraction": 0.006711080630939551,
+          "position_fraction": 0.4103556382874498
+        },
+        {
+          "section": "known_good_examples",
+          "start_utf8_byte": 25543,
+          "end_utf8_byte_exclusive": 25567,
+          "entry_bytes": 24,
+          "fraction": 0.0003918879200548643,
+          "position_fraction": 0.417083047581725
+        },
+        {
+          "section": "selection_guidance",
+          "start_utf8_byte": 25568,
+          "end_utf8_byte_exclusive": 27305,
+          "entry_bytes": 1737,
+          "fraction": 0.028362888213970806,
+          "position_fraction": 0.41749126416511545
+        },
+        {
+          "section": "source_catalog",
+          "start_utf8_byte": 27306,
+          "end_utf8_byte_exclusive": 31015,
+          "entry_bytes": 3709,
+          "fraction": 0.06056301231181215,
+          "position_fraction": 0.4458704810424219
+        },
+        {
+          "section": "candidate_lineage",
+          "start_utf8_byte": 31016,
+          "end_utf8_byte_exclusive": 33116,
+          "entry_bytes": 2100,
+          "fraction": 0.03429019300480063,
+          "position_fraction": 0.5064498220175696
+        },
+        {
+          "section": "source_payloads",
+          "start_utf8_byte": 33117,
+          "end_utf8_byte_exclusive": 36176,
+          "entry_bytes": 3059,
+          "fraction": 0.04994938114365958,
+          "position_fraction": 0.5407563436857059
+        },
+        {
+          "section": "public_feedback_summary",
+          "start_utf8_byte": 36177,
+          "end_utf8_byte_exclusive": 44993,
+          "entry_bytes": 8816,
+          "fraction": 0.14395349596682017,
+          "position_fraction": 0.5907220534927011
+        },
+        {
+          "section": "runtime_feedback_summary",
+          "start_utf8_byte": 44994,
+          "end_utf8_byte_exclusive": 45155,
+          "entry_bytes": 161,
+          "fraction": 0.0026289147970347147,
+          "position_fraction": 0.7346918781228569
+        },
+        {
+          "section": "public_history",
+          "start_utf8_byte": 45156,
+          "end_utf8_byte_exclusive": 46554,
+          "entry_bytes": 1398,
+          "fraction": 0.022827471343195845,
+          "position_fraction": 0.7373371215832272
+        },
+        {
+          "section": "exploration_directive",
+          "start_utf8_byte": 46555,
+          "end_utf8_byte_exclusive": 47002,
+          "entry_bytes": 447,
+          "fraction": 0.0072989125110218475,
+          "position_fraction": 0.7601809215897587
+        },
+        {
+          "section": "required_candidate_package",
+          "start_utf8_byte": 47003,
+          "end_utf8_byte_exclusive": 57824,
+          "entry_bytes": 10821,
+          "fraction": 0.17669246595473695,
+          "position_fraction": 0.7674961627641161
+        },
+        {
+          "section": "authoring_context_frame",
+          "start_utf8_byte": 57825,
+          "end_utf8_byte_exclusive": 61241,
+          "entry_bytes": 3416,
+          "fraction": 0.05577871395447569,
+          "position_fraction": 0.9442049573821887
+        }
+      ],
+      "frame_kind": "candidate_draft",
+      "reserved_candidate_output_tokens": 32768
+    },
+    {
+      "name": "long_history",
+      "provenance": "frozen replay of another session; not original historical request",
+      "source_path": "PLAN/2new_world/P5/replay_context_final_c8/generation_09.json",
+      "source_sha256": "8cedb59d9c4e0c138cc1162cb0fd59a3be21d4681f3547c6a0668a01f998d621",
+      "payload_sha256": "8cedb59d9c4e0c138cc1162cb0fd59a3be21d4681f3547c6a0668a01f998d621",
+      "request_sha256": "a99b3d40a7b382c50817f2a1f31e4285f9adb1a4a491a26a29969f7f2d967dc6",
+      "payload_bytes": 99764,
+      "system_text_bytes": 1326,
+      "http_json_bytes": 108616,
+      "sections": [
+        {
+          "section": "schema_version",
+          "start_utf8_byte": 1,
+          "end_utf8_byte_exclusive": 51,
+          "entry_bytes": 50,
+          "fraction": 0.0005011827913876749,
+          "position_fraction": 1.0023655827753499e-05
+        },
+        {
+          "section": "task",
+          "start_utf8_byte": 52,
+          "end_utf8_byte_exclusive": 3040,
+          "entry_bytes": 2988,
+          "fraction": 0.029950683613327454,
+          "position_fraction": 0.0005212301030431819
+        },
+        {
+          "section": "loop_contract",
+          "start_utf8_byte": 3041,
+          "end_utf8_byte_exclusive": 5004,
+          "entry_bytes": 1963,
+          "fraction": 0.019676436389880116,
+          "position_fraction": 0.030481937372198387
+        },
+        {
+          "section": "candidate_capabilities",
+          "start_utf8_byte": 5005,
+          "end_utf8_byte_exclusive": 7368,
+          "entry_bytes": 2363,
+          "fraction": 0.023685898720981518,
+          "position_fraction": 0.05016839741790626
+        },
+        {
+          "section": "reward_inputs_contract",
+          "start_utf8_byte": 7369,
+          "end_utf8_byte_exclusive": 20419,
+          "entry_bytes": 13050,
+          "fraction": 0.13080870855218316,
+          "position_fraction": 0.07386431979471553
+        },
+        {
+          "section": "public_eval_contract",
+          "start_utf8_byte": 20420,
+          "end_utf8_byte_exclusive": 24849,
+          "entry_bytes": 4429,
+          "fraction": 0.04439477166112024,
+          "position_fraction": 0.20468305200272643
+        },
+        {
+          "section": "control_effectiveness_contract",
+          "start_utf8_byte": 24850,
+          "end_utf8_byte_exclusive": 25261,
+          "entry_bytes": 411,
+          "fraction": 0.004119722545206688,
+          "position_fraction": 0.24908784731967443
+        },
+        {
+          "section": "known_good_examples",
+          "start_utf8_byte": 25262,
+          "end_utf8_byte_exclusive": 25286,
+          "entry_bytes": 24,
+          "fraction": 0.00024056773986608397,
+          "position_fraction": 0.2532175935207089
+        },
+        {
+          "section": "selection_guidance",
+          "start_utf8_byte": 25287,
+          "end_utf8_byte_exclusive": 27024,
+          "entry_bytes": 1737,
+          "fraction": 0.017411090172807828,
+          "position_fraction": 0.2534681849164027
+        },
+        {
+          "section": "source_catalog",
+          "start_utf8_byte": 27025,
+          "end_utf8_byte_exclusive": 31115,
+          "entry_bytes": 4090,
+          "fraction": 0.04099675233551181,
+          "position_fraction": 0.2708892987450383
+        },
+        {
+          "section": "candidate_lineage",
+          "start_utf8_byte": 31116,
+          "end_utf8_byte_exclusive": 32775,
+          "entry_bytes": 1659,
+          "fraction": 0.016629245018243054,
+          "position_fraction": 0.31189607473637787
+        },
+        {
+          "section": "source_payloads",
+          "start_utf8_byte": 32776,
+          "end_utf8_byte_exclusive": 43303,
+          "entry_bytes": 10527,
+          "fraction": 0.10551902489876108,
+          "position_fraction": 0.32853534341044865
+        },
+        {
+          "section": "public_feedback_summary",
+          "start_utf8_byte": 43304,
+          "end_utf8_byte_exclusive": 61972,
+          "entry_bytes": 18668,
+          "fraction": 0.1871216069925023,
+          "position_fraction": 0.4340643919650375
+        },
+        {
+          "section": "runtime_feedback_summary",
+          "start_utf8_byte": 61973,
+          "end_utf8_byte_exclusive": 63474,
+          "entry_bytes": 1501,
+          "fraction": 0.015045507397458,
+          "position_fraction": 0.6211960226133676
+        },
+        {
+          "section": "public_history",
+          "start_utf8_byte": 63475,
+          "end_utf8_byte_exclusive": 84284,
+          "entry_bytes": 20809,
+          "fraction": 0.20858225411972253,
+          "position_fraction": 0.6362515536666533
+        },
+        {
+          "section": "exploration_directive",
+          "start_utf8_byte": 84285,
+          "end_utf8_byte_exclusive": 84782,
+          "entry_bytes": 497,
+          "fraction": 0.004981756946393488,
+          "position_fraction": 0.8448438314422037
+        },
+        {
+          "section": "required_candidate_package",
+          "start_utf8_byte": 84783,
+          "end_utf8_byte_exclusive": 95604,
+          "entry_bytes": 10821,
+          "fraction": 0.1084659797121206,
+          "position_fraction": 0.8498356120444248
+        },
+        {
+          "section": "authoring_context_frame",
+          "start_utf8_byte": 95605,
+          "end_utf8_byte_exclusive": 99763,
+          "entry_bytes": 4158,
+          "fraction": 0.041678360931799045,
+          "position_fraction": 0.9583116154123732
+        }
+      ],
+      "frame_kind": "candidate_draft",
+      "reserved_candidate_output_tokens": 32768
+    },
+    {
+      "name": "source_followup",
+      "provenance": "controlled source-service branch on real historical context; not naturally observed request",
+      "source_path": "PLAN/2new_world/P5/replay_context_final_c6/generation_13_source_followup.json",
+      "source_sha256": "6acb88d0e1df067bf44595910f80b4ba0b7de1677015ca4f6a71388dfa1b58d5",
+      "payload_sha256": "6acb88d0e1df067bf44595910f80b4ba0b7de1677015ca4f6a71388dfa1b58d5",
+      "request_sha256": "f4f6390773122ec277b8318499f944814654670167d933e70f24de05de8a7c5d",
+      "payload_bytes": 89447,
+      "system_text_bytes": 1326,
+      "http_json_bytes": 97407,
+      "sections": [
+        {
+          "section": "schema_version",
+          "start_utf8_byte": 1,
+          "end_utf8_byte_exclusive": 51,
+          "entry_bytes": 50,
+          "fraction": 0.0005589902400304091,
+          "position_fraction": 1.1179804800608181e-05
+        },
+        {
+          "section": "task",
+          "start_utf8_byte": 52,
+          "end_utf8_byte_exclusive": 3040,
+          "entry_bytes": 2988,
+          "fraction": 0.033405256744217245,
+          "position_fraction": 0.0005813498496316255
+        },
+        {
+          "section": "loop_contract",
+          "start_utf8_byte": 3041,
+          "end_utf8_byte_exclusive": 5004,
+          "entry_bytes": 1963,
+          "fraction": 0.02194595682359386,
+          "position_fraction": 0.03399778639864948
+        },
+        {
+          "section": "candidate_capabilities",
+          "start_utf8_byte": 5005,
+          "end_utf8_byte_exclusive": 7368,
+          "entry_bytes": 2363,
+          "fraction": 0.026417878743837133,
+          "position_fraction": 0.05595492302704395
+        },
+        {
+          "section": "reward_inputs_contract",
+          "start_utf8_byte": 7369,
+          "end_utf8_byte_exclusive": 20419,
+          "entry_bytes": 13050,
+          "fraction": 0.14589645264793677,
+          "position_fraction": 0.08238398157568169
+        },
+        {
+          "section": "public_eval_contract",
+          "start_utf8_byte": 20420,
+          "end_utf8_byte_exclusive": 24849,
+          "entry_bytes": 4429,
+          "fraction": 0.04951535546189364,
+          "position_fraction": 0.22829161402841908
+        },
+        {
+          "section": "control_effectiveness_contract",
+          "start_utf8_byte": 24850,
+          "end_utf8_byte_exclusive": 25261,
+          "entry_bytes": 411,
+          "fraction": 0.004594899773049963,
+          "position_fraction": 0.2778181492951133
+        },
+        {
+          "section": "known_good_examples",
+          "start_utf8_byte": 25262,
+          "end_utf8_byte_exclusive": 25286,
+          "entry_bytes": 24,
+          "fraction": 0.0002683153152145964,
+          "position_fraction": 0.28242422887296387
+        },
+        {
+          "section": "selection_guidance",
+          "start_utf8_byte": 25287,
+          "end_utf8_byte_exclusive": 27024,
+          "entry_bytes": 1737,
+          "fraction": 0.01941932093865641,
+          "position_fraction": 0.2827037239929791
+        },
+        {
+          "section": "source_catalog",
+          "start_utf8_byte": 27025,
+          "end_utf8_byte_exclusive": 31184,
+          "entry_bytes": 4159,
+          "fraction": 0.046496808165729424,
+          "position_fraction": 0.3021342247364361
+        },
+        {
+          "section": "candidate_lineage",
+          "start_utf8_byte": 31185,
+          "end_utf8_byte_exclusive": 32847,
+          "entry_bytes": 1662,
+          "fraction": 0.0185808355786108,
+          "position_fraction": 0.34864221270696616
+        },
+        {
+          "section": "source_payloads",
+          "start_utf8_byte": 32848,
+          "end_utf8_byte_exclusive": 38498,
+          "entry_bytes": 5650,
+          "fraction": 0.06316589712343622,
+          "position_fraction": 0.36723422809037753
+        },
+        {
+          "section": "public_feedback_summary",
+          "start_utf8_byte": 38499,
+          "end_utf8_byte_exclusive": 57008,
+          "entry_bytes": 18509,
+          "fraction": 0.20692700705445682,
+          "position_fraction": 0.43041130501861435
+        },
+        {
+          "section": "runtime_feedback_summary",
+          "start_utf8_byte": 57009,
+          "end_utf8_byte_exclusive": 58489,
+          "entry_bytes": 1480,
+          "fraction": 0.016546111104900108,
+          "position_fraction": 0.6373494918778718
+        },
+        {
+          "section": "public_history",
+          "start_utf8_byte": 58490,
+          "end_utf8_byte_exclusive": 73095,
+          "entry_bytes": 14605,
+          "fraction": 0.1632810491128825,
+          "position_fraction": 0.6539067827875725
+        },
+        {
+          "section": "exploration_directive",
+          "start_utf8_byte": 73096,
+          "end_utf8_byte_exclusive": 73593,
+          "entry_bytes": 497,
+          "fraction": 0.0055563629859022665,
+          "position_fraction": 0.8171990117052557
+        },
+        {
+          "section": "required_candidate_package",
+          "start_utf8_byte": 73594,
+          "end_utf8_byte_exclusive": 84415,
+          "entry_bytes": 10821,
+          "fraction": 0.12097666774738113,
+          "position_fraction": 0.8227665544959585
+        },
+        {
+          "section": "authoring_context_frame",
+          "start_utf8_byte": 84416,
+          "end_utf8_byte_exclusive": 88378,
+          "entry_bytes": 3962,
+          "fraction": 0.04429438662000961,
+          "position_fraction": 0.9437544020481402
+        },
+        {
+          "section": "provider_or_runtime_repair_feedback",
+          "start_utf8_byte": 88379,
+          "end_utf8_byte_exclusive": 89446,
+          "entry_bytes": 1067,
+          "fraction": 0.01192885172224893,
+          "position_fraction": 0.9880599684729504
+        }
+      ],
+      "frame_kind": "source_followup",
+      "reserved_candidate_output_tokens": 32768
+    },
+    {
+      "name": "repair",
+      "provenance": "historical verifier failure reconstructed as repair input",
+      "source_path": "PLAN/2new_world/P5/replay_context_final_c6/generation_13_repair.json",
+      "source_sha256": "ae6de96dbfa3f6137345cb8612768cc79352365a84ca16d5b15bf427774d1765",
+      "payload_sha256": "ae6de96dbfa3f6137345cb8612768cc79352365a84ca16d5b15bf427774d1765",
+      "request_sha256": "43600ef1663fddaa8688f1d76a5f8d41888c6d832280a6b6785cf39c87bc5ddf",
+      "payload_bytes": 54384,
+      "system_text_bytes": 1326,
+      "http_json_bytes": 59625,
+      "sections": [
+        {
+          "section": "schema_version",
+          "start_utf8_byte": 1,
+          "end_utf8_byte_exclusive": 51,
+          "entry_bytes": 50,
+          "fraction": 0.0009193880553103854,
+          "position_fraction": 1.8387761106207707e-05
+        },
+        {
+          "section": "task",
+          "start_utf8_byte": 52,
+          "end_utf8_byte_exclusive": 3040,
+          "entry_bytes": 2988,
+          "fraction": 0.05494263018534863,
+          "position_fraction": 0.0009561635775228008
+        },
+        {
+          "section": "loop_contract",
+          "start_utf8_byte": 3041,
+          "end_utf8_byte_exclusive": 5004,
+          "entry_bytes": 1963,
+          "fraction": 0.03609517505148573,
+          "position_fraction": 0.05591718152397764
+        },
+        {
+          "section": "candidate_capabilities",
+          "start_utf8_byte": 5005,
+          "end_utf8_byte_exclusive": 7368,
+          "entry_bytes": 2363,
+          "fraction": 0.04345027949396881,
+          "position_fraction": 0.09203074433656958
+        },
+        {
+          "section": "reward_inputs_contract",
+          "start_utf8_byte": 7369,
+          "end_utf8_byte_exclusive": 20419,
+          "entry_bytes": 13050,
+          "fraction": 0.23996028243601059,
+          "position_fraction": 0.1354994115916446
+        },
+        {
+          "section": "public_eval_contract",
+          "start_utf8_byte": 20420,
+          "end_utf8_byte_exclusive": 24849,
+          "entry_bytes": 4429,
+          "fraction": 0.08143939393939394,
+          "position_fraction": 0.3754780817887614
+        },
+        {
+          "section": "control_effectiveness_contract",
+          "start_utf8_byte": 24850,
+          "end_utf8_byte_exclusive": 25261,
+          "entry_bytes": 411,
+          "fraction": 0.0075573698146513685,
+          "position_fraction": 0.4569358634892616
+        },
+        {
+          "section": "source_catalog",
+          "start_utf8_byte": 25262,
+          "end_utf8_byte_exclusive": 29693,
+          "entry_bytes": 4431,
+          "fraction": 0.08147616946160635,
+          "position_fraction": 0.46451162106501914
+        },
+        {
+          "section": "candidate_lineage",
+          "start_utf8_byte": 29694,
+          "end_utf8_byte_exclusive": 31349,
+          "entry_bytes": 1655,
+          "fraction": 0.030431744630773756,
+          "position_fraction": 0.5460061782877317
+        },
+        {
+          "section": "source_payloads",
+          "start_utf8_byte": 31350,
+          "end_utf8_byte_exclusive": 37718,
+          "entry_bytes": 6368,
+          "fraction": 0.11709326272433068,
+          "position_fraction": 0.5764563106796117
+        },
+        {
+          "section": "exploration_directive",
+          "start_utf8_byte": 37719,
+          "end_utf8_byte_exclusive": 38216,
+          "entry_bytes": 497,
+          "fraction": 0.009138717269785232,
+          "position_fraction": 0.6935679611650486
+        },
+        {
+          "section": "required_candidate_package",
+          "start_utf8_byte": 38217,
+          "end_utf8_byte_exclusive": 49038,
+          "entry_bytes": 10821,
+          "fraction": 0.1989739629302736,
+          "position_fraction": 0.70272506619594
+        },
+        {
+          "section": "authoring_context_frame",
+          "start_utf8_byte": 49039,
+          "end_utf8_byte_exclusive": 53292,
+          "entry_bytes": 4253,
+          "fraction": 0.07820314798470138,
+          "position_fraction": 0.9017174168873198
+        },
+        {
+          "section": "provider_or_runtime_repair_feedback",
+          "start_utf8_byte": 53293,
+          "end_utf8_byte_exclusive": 54383,
+          "entry_bytes": 1090,
+          "fraction": 0.020042659605766403,
+          "position_fraction": 0.9799389526331274
+        }
+      ],
+      "frame_kind": "static_repair",
+      "reserved_candidate_output_tokens": 32768
+    },
+    {
+      "name": "minimum_core",
+      "provenance": "forced production minimum-core projection of real historical context; no historical usage for this branch",
+      "source_path": "PLAN/2new_world/P5/replay_context_final_c6/generation_13.json",
+      "source_sha256": "901efd07620f542b2409d72316996dbf506bf59eec9f1ab8142dbfac893eaf33",
+      "payload_sha256": "1adf3ea613bc5663ec93291d5b9e20ea4a802ad399ebf1e3672a59a694637e02",
+      "request_sha256": "c2c80a56da4c423380a642680b1e6039c141282d3506e4b28a47f1f04ef32d89",
+      "payload_bytes": 86804,
+      "system_text_bytes": 1326,
+      "http_json_bytes": 93946,
+      "sections": [
+        {
+          "section": "schema_version",
+          "start_utf8_byte": 1,
+          "end_utf8_byte_exclusive": 51,
+          "entry_bytes": 50,
+          "fraction": 0.0005760103221049721,
+          "position_fraction": 1.1520206442099443e-05
+        },
+        {
+          "section": "task",
+          "start_utf8_byte": 52,
+          "end_utf8_byte_exclusive": 2720,
+          "entry_bytes": 2668,
+          "fraction": 0.030735910787521314,
+          "position_fraction": 0.000599050734989171
+        },
+        {
+          "section": "loop_contract",
+          "start_utf8_byte": 2721,
+          "end_utf8_byte_exclusive": 4684,
+          "entry_bytes": 1963,
+          "fraction": 0.022614165245841207,
+          "position_fraction": 0.03134648172895258
+        },
+        {
+          "section": "candidate_capabilities",
+          "start_utf8_byte": 4685,
+          "end_utf8_byte_exclusive": 7048,
+          "entry_bytes": 2363,
+          "fraction": 0.027222247822680984,
+          "position_fraction": 0.05397216718123589
+        },
+        {
+          "section": "reward_inputs_contract",
+          "start_utf8_byte": 7049,
+          "end_utf8_byte_exclusive": 15284,
+          "entry_bytes": 8235,
+          "fraction": 0.0948689000506889,
+          "position_fraction": 0.08120593521035897
+        },
+        {
+          "section": "public_eval_contract",
+          "start_utf8_byte": 15285,
+          "end_utf8_byte_exclusive": 19714,
+          "entry_bytes": 4429,
+          "fraction": 0.05102299433205843,
+          "position_fraction": 0.17608635546749
+        },
+        {
+          "section": "control_effectiveness_contract",
+          "start_utf8_byte": 19715,
+          "end_utf8_byte_exclusive": 20126,
+          "entry_bytes": 411,
+          "fraction": 0.004734804847702871,
+          "position_fraction": 0.22712087000599052
+        },
+        {
+          "section": "known_good_examples",
+          "start_utf8_byte": 20127,
+          "end_utf8_byte_exclusive": 20151,
+          "entry_bytes": 24,
+          "fraction": 0.00027648495461038663,
+          "position_fraction": 0.23186719506013548
+        },
+        {
+          "section": "selection_guidance",
+          "start_utf8_byte": 20152,
+          "end_utf8_byte_exclusive": 21889,
+          "entry_bytes": 1737,
+          "fraction": 0.02001059858992673,
+          "position_fraction": 0.23215520022118796
+        },
+        {
+          "section": "source_catalog",
+          "start_utf8_byte": 21890,
+          "end_utf8_byte_exclusive": 25977,
+          "entry_bytes": 4087,
+          "fraction": 0.04708308372886042,
+          "position_fraction": 0.2521773190175568
+        },
+        {
+          "section": "candidate_lineage",
+          "start_utf8_byte": 25978,
+          "end_utf8_byte_exclusive": 27640,
+          "entry_bytes": 1662,
+          "fraction": 0.019146583106769272,
+          "position_fraction": 0.2992719229528593
+        },
+        {
+          "section": "source_payloads",
+          "start_utf8_byte": 27641,
+          "end_utf8_byte_exclusive": 39676,
+          "entry_bytes": 12035,
+          "fraction": 0.13864568453066678,
+          "position_fraction": 0.3184300262660707
+        },
+        {
+          "section": "public_feedback_summary",
+          "start_utf8_byte": 39677,
+          "end_utf8_byte_exclusive": 49048,
+          "entry_bytes": 9371,
+          "fraction": 0.10795585456891388,
+          "position_fraction": 0.45708723100317955
+        },
+        {
+          "section": "runtime_feedback_summary",
+          "start_utf8_byte": 49049,
+          "end_utf8_byte_exclusive": 49230,
+          "entry_bytes": 181,
+          "fraction": 0.0020851573660199993,
+          "position_fraction": 0.5650546057785355
+        },
+        {
+          "section": "public_history",
+          "start_utf8_byte": 49231,
+          "end_utf8_byte_exclusive": 71326,
+          "entry_bytes": 22095,
+          "fraction": 0.25453896133818715,
+          "position_fraction": 0.5671512833509976
+        },
+        {
+          "section": "exploration_directive",
+          "start_utf8_byte": 71327,
+          "end_utf8_byte_exclusive": 71824,
+          "entry_bytes": 497,
+          "fraction": 0.005725542601723423,
+          "position_fraction": 0.821701764895627
+        },
+        {
+          "section": "required_candidate_package",
+          "start_utf8_byte": 71825,
+          "end_utf8_byte_exclusive": 82646,
+          "entry_bytes": 10821,
+          "fraction": 0.12466015390995806,
+          "position_fraction": 0.8274388277037924
+        },
+        {
+          "section": "authoring_context_frame",
+          "start_utf8_byte": 82647,
+          "end_utf8_byte_exclusive": 86803,
+          "entry_bytes": 4156,
+          "fraction": 0.04787797797336528,
+          "position_fraction": 0.9521105018201926
+        }
+      ],
+      "frame_kind": "candidate_draft",
+      "reserved_candidate_output_tokens": 32768
+    }
+  ]
+}

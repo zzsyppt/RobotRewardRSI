@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "head": "b24ddfe9e54c7cc93318a4c6a2675eb9fb799d20",
+  "files": 385,
+  "evaluation_snapshot_sha256": "9b4113806a04249db9b825ce698db85a7382e7426f89371004c58c53a8ad8315",
+  "training_snapshot_sha256": "c0d0f1a27a2baeaacfcfcf936c1ae9441c77b8cfc00b7867bb6d496c81d3b389",
+  "changed_between_snapshots": [
+    {
+      "path": "scripts/training_numeric_smoke.py",
+      "evaluation_sha256": "d2d7adb63eae7992c123d4d2060418a102327d7da0093283be0e2be616f08b3f",
+      "final_sha256": "1cac41be02d3d3996a9336beb6f46ef70d1b2ccfde4a23c4161507ce6d5d2c4e"
+    },
+    {
+      "path": "src/true_rl_agent/runner/training_numeric_capture.py",
+      "evaluation_sha256": "b9dc341d2560ead25461e7779a39f3fc391038a1b007df6b684f5c1e1c8aa845",
+      "final_sha256": "b09d01a0458c3a8371e006bd386e43612208a0852b2e1b1facd7a91f17f42724"
+    }
+  ],
+  "final_working_tree_matches_training_snapshot": true,
+  "scope": "All evaluation production files are byte-identical across snapshots. Only training sampler and training smoke checker changed for the step-one anchor. Evaluation runs use source, all new training runs use source_training; original freeze remains immutable."
+}

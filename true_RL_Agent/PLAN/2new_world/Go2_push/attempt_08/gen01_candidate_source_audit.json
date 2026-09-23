@@ -1,0 +1,340 @@
+{
+  "status": "PASS_BOTH_LANES_SOURCE_REVIEW_WITH_NONBLOCKING_F9",
+  "session_id": "go2-push-5rounds-20260923-a08",
+  "generation_index": 1,
+  "snapshot": ".tmp/go2_push_a08_live_03.zip",
+  "scope": "Independent read-only actual candidate source, frozen prompt parent and authoring receipt review. Local CPU finite-input examples are not trajectory observations or training/evaluation results.",
+  "frozen_source_checks": {
+    "src/true_rl_agent/candidates/component_source_semantics.py": "963f3c7385f9e08a7a99b72e3499f27bcc4e55266a3e155b42d5fd2d2924d3f5",
+    "src/true_rl_agent/candidates/authoring_policy.py": "038dce885ac95d3dd2f3bfb5ac80d290648e9ff9277c95df797027e5f0530c9f",
+    "src/true_rl_agent/candidates/loader.py": "c0fd8526bd5c22c5e43f155bfb4b0745226dea0476985fcf0835442850379163",
+    "src/true_rl_agent/tasks/push_recovery/runtime_adapter.py": "b849651740e1362eafb085a990a8158b7821b1cdbf25f362bcd5d239b1f7d2f4"
+  },
+  "lane_a": {
+    "candidate_id": "push_recovery_nonsaturating_stance_v1",
+    "candidate_sha256": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+    "parent_sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+    "source_assessment_replay": {
+      "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+      "status": "pass",
+      "classification": "mechanism_delta_present",
+      "reason": "candidate_source_structure_differs_from_comparison_anchor",
+      "compares_to": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "candidate_source_sha256": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+      "blocking": false,
+      "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+      "changed_mechanism_count": 1,
+      "changed_mechanisms": [
+        "RewardTerm:upright_height->upright_recovery"
+      ],
+      "structural_comparison": "canonical_component_terms"
+    },
+    "mechanism_delta": {
+      "schema_version": "true_rl_agent.candidate_mechanism_operation_delta.v2",
+      "operation": "rename",
+      "before_component": {
+        "mechanism_id": "RewardTerm:upright_height",
+        "structure_hash": "6341b86533a072643eaa53d5d545084d46e51f46d122d6865a191e5da4a47238",
+        "parameter_normalized_structure_hash": "02dd8bf72343809b4d1d7b83dc6b9990001d146ecda0c0e1130403faac109406",
+        "input_fields": [
+          "base_height_relative",
+          "pitch",
+          "roll"
+        ]
+      },
+      "after_component": {
+        "mechanism_id": "RewardTerm:upright_recovery",
+        "structure_hash": "cf057376059bce8ba68eaca1b8b715187710ac99efeddc722f496e72db88828f",
+        "parameter_normalized_structure_hash": "0d23a63509a433fc52fda37ea25b8d9c53e3ded0445e89f425b3b414a273141f",
+        "input_fields": [
+          "base_height_relative",
+          "pitch",
+          "roll"
+        ]
+      },
+      "anchor_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "candidate_source_checksum": "sha256:64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775"
+    },
+    "verifier_equivalence_key": "31a7fdc85dfb586c26de16154c9cfbf3a4d578fb45747a5529f37fc66a5e123a",
+    "preserved_exact_function_asts": [
+      "stationary_v3",
+      "joint_pose",
+      "action_rate",
+      "fall"
+    ],
+    "preserved_other_weights_clips_and_bindings": true,
+    "single_component_mechanism": "Replace one stance term: exp(-4*(roll^2+pitch^2)-4*(h-1)^2) becomes clipped deadbanded polynomial 1-(5e+e^2+2u+2u^2), e=max(abs(h-1)-0.05,0), u=max(roll^2+pitch^2-0.01,0). Both weight3; candidate clips[-4,1].",
+    "non_parameter_proof": "New abs/deadband and piecewise polynomial with a flat near-goal region cannot be obtained by coefficients, names or formatting changes to the original exponential. Four unchanged reward terms preserve exact callable ASTs and parameters.",
+    "boundary_review": {
+      "imports": [
+        "true_rl_agent.candidates.components.RewardTerm",
+        "true_rl_agent.candidates.components.TrainingComponents"
+      ],
+      "term_input_fields": [
+        "base_height_relative",
+        "pitch",
+        "roll"
+      ],
+      "external_io_or_network_calls": false,
+      "training_or_evaluation_configuration_edits": false,
+      "diagnostics": 0,
+      "schedules": 0,
+      "constructor_return_paths": "Builder returns five terms; upright_recovery is bound directly as the first term.fn. No detached helper, hidden schedule or global side-effect path."
+    },
+    "authoring_gate": {
+      "attempts": 1,
+      "stop_reason": "candidate_verified",
+      "static_verifier": "pass",
+      "smoke": {
+        "status": "pass",
+        "checked_reward_terms": 5,
+        "checked_diagnostics": 0,
+        "changed_term": {
+          "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+          "effective_max_abs_after_clip_and_weight": 6.1575000286102295,
+          "kind": "RewardTerm",
+          "name": "upright_recovery",
+          "observed_clip_saturation_count": 0,
+          "observed_raw_nonzero_count": 4,
+          "observed_sample_count": 4,
+          "observed_shape": [
+            4
+          ],
+          "raw_max_abs": 2.052500009536743,
+          "reason": "reward_callable_returned_finite_expected_shape",
+          "status": "pass"
+        },
+        "evidence_scope": "Four finite task-owned fixture states only; not a training activation or universal behavior proof."
+      },
+      "history_scope": "Generation1 has zero measured candidates in this session, so evaluated-history family exclusion has no entries. A07 belongs to a different frozen session and is not imported as this session's measured evidence.",
+      "sibling_scope": "Lane A is first; B must compare against A when it arrives. No B result exists in snapshot02."
+    },
+    "nonblocking_F9_claim_findings": {
+      "clip_refutes_never_flattens": "At h=0 and h=.05, roll=pitch=0, actual raw values differ but clip[-4,1] produces -4 for both, weighted contribution -12 for both. Upward movement is not strictly rewarded at every height. These are finite synthetic inputs, not evidence of visited or nonterminated states.",
+      "deadband_refutes_near_goal_identical": "At h=.96, roll=.08, pitch=0, candidate guarded output1 and weighted3; parent guarded exp(-.032)=.96850658 and weighted2.90551975. Equality holds at the nominal point, not throughout the deadband.",
+      "causal_claim_not_observation": "The public height_collapse_dominated label does not establish a shallow low-stance optimum or identify the shaping slope as the cause. That causal explanation remains a hypothesis.",
+      "finite_inputs": {
+        "height_relative": [
+          0.0,
+          0.05,
+          0.96,
+          1.0
+        ],
+        "roll": [
+          0.0,
+          0.0,
+          0.08,
+          0.0
+        ],
+        "pitch": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "actual_raw_output": [
+        -4.6525,
+        -4.31,
+        1.0,
+        1.0
+      ],
+      "actual_guarded_output": [
+        -4.0,
+        -4.0,
+        1.0,
+        1.0
+      ],
+      "actual_weighted_rate": [
+        -12.0,
+        -12.0,
+        3.0,
+        3.0
+      ],
+      "parent_weighted_rate": [
+        0.054946916666202536,
+        0.08115554059905125,
+        2.9055197462375926,
+        3.0
+      ],
+      "handling": "Nonblocking explanation inaccuracies under existing F9; no new authoring or acceptance gate."
+    }
+  },
+  "lane_b": {
+    "candidate_id": "push_go2_recovery_gated_damping_v1",
+    "candidate_sha256": "bb3ae423e2f84d1a0aea017b323413582ceb125214d68798b5a0849f78b02fdd",
+    "parent_sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+    "source_assessment_replay": {
+      "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+      "status": "pass",
+      "classification": "mechanism_delta_present",
+      "reason": "candidate_source_structure_differs_from_comparison_anchor",
+      "compares_to": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "candidate_source_sha256": "bb3ae423e2f84d1a0aea017b323413582ceb125214d68798b5a0849f78b02fdd",
+      "blocking": false,
+      "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+      "changed_mechanism_count": 1,
+      "changed_mechanisms": [
+        "RewardTerm:stationary_v3->recovery_damping"
+      ],
+      "structural_comparison": "canonical_component_terms"
+    },
+    "mechanism_delta": {
+      "schema_version": "true_rl_agent.candidate_mechanism_operation_delta.v2",
+      "operation": "rename",
+      "before_component": {
+        "mechanism_id": "RewardTerm:stationary_v3",
+        "structure_hash": "505339c55697aad5548902cf68c29a3f3d63866526290b006810958dd59d96bd",
+        "parameter_normalized_structure_hash": "e589302ef7940f4ad92e03e4a004106a017d12c2c56a47914a0fd5d88181b675",
+        "input_fields": [
+          "base_ang_vel_scaled",
+          "base_lin_vel_scaled"
+        ]
+      },
+      "after_component": {
+        "mechanism_id": "RewardTerm:recovery_damping",
+        "structure_hash": "665642b90efb60ec87e1f67e4a2ad715e6c1e2a60f3a61940ba16bf2b2133b0e",
+        "parameter_normalized_structure_hash": "a0105f38cf068b33736b9555a47525eb4da2614913109e368469a2f1b349ec52",
+        "input_fields": [
+          "base_ang_vel_scaled",
+          "base_height_relative",
+          "base_lin_vel_scaled",
+          "pitch",
+          "roll"
+        ]
+      },
+      "anchor_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "candidate_source_checksum": "sha256:bb3ae423e2f84d1a0aea017b323413582ceb125214d68798b5a0849f78b02fdd"
+    },
+    "verifier_equivalence_key": "4cfc30e09614b65374600eb16b24911fbb73dd5c6c9e614c744038a22ba5beeb",
+    "sibling_comparison_replay": null,
+    "preserved_exact_function_asts": [
+      "upright_height",
+      "joint_pose",
+      "action_rate",
+      "fall"
+    ],
+    "preserved_other_weights_clips_and_bindings": true,
+    "single_component_mechanism": "Replace stationary_v3 with recovery_damping in one reward term, weight1 and clip[-1.5,1]. Combines a height/tilt-dependent velocity penalty and low-height/low-speed penalty inside that one returned term. Other four terms and empty schedules/diagnostics unchanged.",
+    "non_parameter_proof": {
+      "reason": "New roll, pitch and relative-height inputs change the velocity penalty, plus a low-height/low-speed product. Parent stationary_v3 depends on velocity only; these dependencies cannot result from coefficients or renaming. A edits stance instead, so sibling delta is distinct.",
+      "finite_synthetic_inputs": {
+        "height": [
+          1,
+          1
+        ],
+        "roll": [
+          0,
+          0.5
+        ],
+        "pitch": [
+          0,
+          0
+        ],
+        "scaled_linear_velocity": [
+          [
+            0.2,
+            0,
+            0
+          ],
+          [
+            0.2,
+            0,
+            0
+          ]
+        ],
+        "scaled_angular_velocity": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "parent_weighted_rate": [
+        0.5,
+        0.5
+      ],
+      "candidate_weighted_rate": [
+        0.8693840897959183,
+        0.9104987746111455
+      ],
+      "scope": "CPU function/guard examples only, not observed trajectories or performance evidence."
+    },
+    "boundary_review": {
+      "imports": [
+        "true_rl_agent.candidates.components.RewardTerm",
+        "true_rl_agent.candidates.components.TrainingComponents"
+      ],
+      "term_input_fields": [
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "pitch",
+        "roll"
+      ],
+      "external_io_or_network_calls": false,
+      "training_or_evaluation_configuration_edits": false,
+      "diagnostics": 0,
+      "schedules": 0,
+      "constructor_return_paths": "Builder directly binds recovery_damping as second term.fn; both gate and collapse subexpressions feed its returned scalar vector. No detached mechanism, hidden schedule or side-effect path."
+    },
+    "authoring_gate": {
+      "attempts": 1,
+      "stop_reason": "candidate_verified",
+      "static_verifier": "pass",
+      "smoke": {
+        "status": "pass",
+        "checked_reward_terms": 5,
+        "checked_diagnostics": 0,
+        "changed_term": {
+          "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+          "effective_max_abs_after_clip_and_weight": 0.9570176005363464,
+          "kind": "RewardTerm",
+          "name": "recovery_damping",
+          "observed_clip_saturation_count": 0,
+          "observed_raw_nonzero_count": 4,
+          "observed_sample_count": 4,
+          "observed_shape": [
+            4
+          ],
+          "raw_max_abs": 0.9570176005363464,
+          "reason": "reward_callable_returned_finite_expected_shape",
+          "status": "pass"
+        },
+        "evidence_scope": "Four finite task-owned fixture states only; not a training activation or universal behavior proof."
+      },
+      "actual_sibling_assessment": {
+        "blocking": false,
+        "equivalence": null,
+        "exclusion_hash": "f3661893cacb459947d7a1af10ea212e20f6de153603146beaca5613e1ffc6af",
+        "reason": "sibling_semantic_delta_distinct",
+        "schema_version": "true_rl_agent.sibling_semantic_exclusion_assessment.v1",
+        "status": "pass"
+      },
+      "history_scope": "Generation1 has no earlier measured candidates in this session. No historical-family rejection is expected; sibling A exclusion is independently distinct."
+    },
+    "interpretation_limit": "Gate floor0.2 preserves some velocity penalty even far from nominal, and the low-speed collapse guard can favor movement at low height by design. These are permitted candidate hypotheses whose benefit requires fixed evaluation; source review establishes neither successful recovery nor improved score."
+  },
+  "evidence_sha256": {
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-001/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "f2149a2e123542226138dca4ea571a177fb89249dd2c0365b752e4de800d779d",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-001/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "5119dae9f796c40a30d2fdadc7b031428b345885c02d46185860784365239293",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-001/lane-a/authoring_anchor.json": "5252210eb3b4d3eac917370ad921d5dcb7c3a840efab77f6d959ba1a7aa7c39f",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-001/lane-a/001_push_recovery_nonsaturating_stance_v1/training_code/components.py": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+    "PLAN/2new_world/Go2_push/source_snapshot_08.json": "bff645daff96c7afcdb71b46e8aa95cfcaef206499fe711bbe9d21e3cdbfa4b9",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-001/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "8270c2d13ecf661c5c18db1177e756075f5fe72e83a550cc9388bff5383640aa",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-001/lane-b/authoring_attempts/attempt_000001/prompt_payload.json": "b79a8ef749079b71a3de8dc4c25ac1d0e8924ce299f5d7d257bd39580548546c",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-001/lane-b/authoring_anchor.json": "6cae853f70c84351b199d9677f2b93906c814e3454e43100d020cfd417fc0c52",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-001/lane-b/001_push_go2_recovery_gated_damping_v1/training_code/components.py": "bb3ae423e2f84d1a0aea017b323413582ceb125214d68798b5a0849f78b02fdd"
+  },
+  "snapshot_scope": {
+    "lane_a": "Reviewed from snapshot02 and not recomputed for snapshot03",
+    "lane_b": "Added from snapshot03"
+  },
+  "training_evidence_limit": "Snapshot03/root status reports training started. This receipt asserts callable binding plus static finite smoke only; completed activation summaries, fixed evaluation, improvement and acceptance are not yet established."
+}

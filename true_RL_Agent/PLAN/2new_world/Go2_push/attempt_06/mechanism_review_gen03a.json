@@ -1,0 +1,146 @@
+{
+  "status": "CONFIRMED_BLOCKING_PARAMETER_FAMILY_FALSE_NEGATIVE",
+  "scope": "Independent read-only review of A06 generation 003 lane A; no claim about later session or GPU state.",
+  "candidate_id": "push_standing_recovery_velocity_brake_v2",
+  "candidate_source_sha256": "0d6169a0b666b52718297bf13892b3ddcd06bc96bf36d12c5331a4be10c63e22",
+  "anchor_source_sha256": "376785250b1dbfeb1c918c49ea37f3f24bf8b353279a14d25fe9b9f1667a36ae",
+  "frozen_comparator_source_matches_local": true,
+  "policy_evidence": {
+    "loop_contract_rule": "Do not submit numeric-only, string-only, or formatting-only variants of an evaluated source; the historical-source gate rejects those variants before training.",
+    "directive": "Do not submit identical, rationale-only, or numeric-only edits as policy improvements.",
+    "single_component_rule": "When an authoring anchor is present, change exactly one named canonical prompt-visible component mechanism relative to it and preserve every other component mechanism; without an anchor, author the complete initial component set."
+  },
+  "proof": {
+    "variable": "x denotes either normalized planar speed or normalized angular speed; c=min(x,1).",
+    "identity": "max(x-1,0)=x-min(x,1). For x<=1 both sides are zero; for x>1 both sides equal x-1.",
+    "parent_channel": "1 - 0.25 * sum(0.5*c*c + (x-c))",
+    "candidate_channel": "parent_channel - 0.5 * sum(max(x-1,0))",
+    "equivalent_candidate_channel": "1 - 0.25 * sum(0.5*c*c + 3*(x-c))",
+    "conclusion": "Only the existing tail coefficient changes from 1 to 3. Same inputs, breakpoint x=1, quadratic core and linear tail; no new mechanism.",
+    "scope": "Exact real-arithmetic identity; no claim of identical floating-point operation ordering or bitwise runtime equivalence.",
+    "rational_sanity_values": [
+      "-4",
+      "0",
+      "1/2",
+      "999/1000",
+      "1",
+      "1001/1000",
+      "3/2",
+      "2",
+      "10",
+      "10000"
+    ]
+  },
+  "observed_admission_replay": {
+    "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+    "status": "pass",
+    "classification": "mechanism_delta_present",
+    "reason": "candidate_source_structure_differs_from_comparison_anchor",
+    "compares_to": "376785250b1dbfeb1c918c49ea37f3f24bf8b353279a14d25fe9b9f1667a36ae",
+    "candidate_source_sha256": "0d6169a0b666b52718297bf13892b3ddcd06bc96bf36d12c5331a4be10c63e22",
+    "blocking": false,
+    "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+    "changed_mechanism_count": 1,
+    "changed_mechanisms": [
+      "RewardTerm:stationary_v3->stationary_brake"
+    ],
+    "structural_comparison": "canonical_component_terms"
+  },
+  "algebraically_explicit_tuning_admission_replay": {
+    "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+    "status": "fail",
+    "classification": "parameter_only_delta",
+    "reason": "candidate_changes_only_parameter_family",
+    "compares_to": "376785250b1dbfeb1c918c49ea37f3f24bf8b353279a14d25fe9b9f1667a36ae",
+    "candidate_source_sha256": "bdad14480f8015a19a64ec4bdf3c40054957c4041df6e48e78e9ef750608c9fe",
+    "blocking": true,
+    "feedback_for_author": "A redundant clamp, renaming, or scalar coefficient change does not introduce a component mechanism.",
+    "changed_mechanism_count": 1,
+    "changed_mechanisms": [
+      "RewardTerm:stationary_v3"
+    ],
+    "matched_parent_mechanism": "RewardTerm:stationary_v3",
+    "structural_comparison": "admission_only_parameter_family"
+  },
+  "saved_attempt_assessment": {
+    "blocking": false,
+    "candidate_authoring_anchor_available": true,
+    "candidate_source_sha256": "0d6169a0b666b52718297bf13892b3ddcd06bc96bf36d12c5331a4be10c63e22",
+    "changed_mechanism_count": 1,
+    "changed_mechanisms": [
+      "RewardTerm:stationary_v3->stationary_brake"
+    ],
+    "classification": "mechanism_delta_present",
+    "compares_to": "376785250b1dbfeb1c918c49ea37f3f24bf8b353279a14d25fe9b9f1667a36ae",
+    "comparison_anchor": "current_best",
+    "comparison_scope": "authoring_anchor_and_evaluated_history",
+    "evaluated_history_source_count": 0,
+    "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+    "history_sources_with_anchor": 0,
+    "history_sources_without_anchor": 0,
+    "reason": "candidate_source_structure_differs_from_comparison_anchor",
+    "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+    "status": "pass",
+    "structural_comparison": "canonical_component_terms"
+  },
+  "rationale_check": {
+    "claim": "The new brake introduces a persistent linear gradient where the saturating cores flattened.",
+    "finding": "The parent full penalty already includes x-c, so its tail derivative is nonzero. The candidate strengthens that existing linear gradient, not introduces it.",
+    "not_claimed": "No inference of malicious intent or future physical failure; no actual rollout score is discarded as fabricated."
+  },
+  "boundary_judgment": {
+    "classification": "A known violation of the frozen numeric-only rule; finite AST coverage is an implementation limitation, not an exemption.",
+    "owner": "Shared component_source_semantics admission-only projection, with task-neutral arithmetic only.",
+    "necessary_change": "Bounded straight-line expression comparison that recognizes this clamp residual identity and repeated linear atoms; compare parameter-family support without rewriting submitted code.",
+    "excluded_complexity": [
+      "No general symbolic algebra solver",
+      "No task-specific speed fields or ranges",
+      "No sampled runtime equivalence gate",
+      "No source/delta/scientific identity hash changes",
+      "No alteration of success or acceptance thresholds"
+    ],
+    "experiment_consequence": "A06 cannot be counted as a clean five-generation validation. Preserve its artifacts and results; a repaired source requires a fresh whole session per the user process."
+  },
+  "evidence": [
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_06/session/authoring/go2-push-5rounds-20260923-a06-generation-003/lane-a/authoring_attempts/attempt_000005/prompt_payload.json",
+      "sha256": "c0347883ea0f87123425cb93b8f3c8c270d63a039977a3965bc2fe0699f66a50",
+      "bytes": 55393
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_06/session/authoring/go2-push-5rounds-20260923-a06-generation-003/lane-a/authoring_attempts/attempt_000005/attempt_result.json",
+      "sha256": "e3cad187d3f949942acd7921b243094c70b9246f42442189828c108aff560db6",
+      "bytes": 14263
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_06/session/provider_candidates/go2-push-5rounds-20260923-a06-generation-003/lane-a/005_push_standing_recovery_velocity_brake_v2/training_code/components.py",
+      "sha256": "0d6169a0b666b52718297bf13892b3ddcd06bc96bf36d12c5331a4be10c63e22",
+      "bytes": 4950
+    },
+    {
+      "path": "src/true_rl_agent/candidates/component_source_semantics.py",
+      "sha256": "f030e8ea651af69a2efad607a5d5dd62725e1315ff12fb30155eaa2d1e2033bb",
+      "bytes": 78865
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_06/session/generation_receipts/go2-push-5rounds-20260923-a06-generation-003/9d1af7ffc0f5e7005289138b186bcb87c496a516ba1c16c6f22748490e9a4ca1/execution.json",
+      "sha256": "8b0d2f8200afb18d869957f5cd47eb087d91cc3c955843d140d0287661a3549d",
+      "bytes": 15533
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_06/session/generation_session_report.json",
+      "sha256": "ad95f30773dd8206ec653d4869fefecdaf0c472d8f8f008020c0a921105b01bb",
+      "bytes": 54257
+    }
+  ],
+  "experiment_effect": {
+    "actual_generation_003_outcome": "paired_authoring_incomplete",
+    "lane_a_status": "verified_not_run",
+    "candidate_training_started": false,
+    "accepted_checkpoint_polluted": false,
+    "final_head_candidate_id": "push_standing_recovery_height_barrier_v1",
+    "sibling_exclusion_used": "783ea5da0f7a9306a8c4d7bfa23265a17a902aded82e8af42a0d512f79ccc76f",
+    "remaining_effect": "Incorrect A admission supplied lane B exclusion and allowed a search closure containing a noncompliant verified candidate; no claim that this caused B failure.",
+    "state_source": "PLAN/2new_world/Go2_push/attempt_06/session/generation_receipts/go2-push-5rounds-20260923-a06-generation-003/9d1af7ffc0f5e7005289138b186bcb87c496a516ba1c16c6f22748490e9a4ca1/execution.json"
+  }
+}

@@ -1,0 +1,303 @@
+{
+  "schema_version": "p5_static_followup.v1",
+  "checked_reexport_consumers": [
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/generation_history.py",
+      "module": "true_rl_agent.tasks.stair_climbing.generation_session_cost",
+      "names": [
+        "DEVELOPMENT_GENERATION_PILOT_MODE",
+        "DEVELOPMENT_GENERATION_VALIDATION_MODE",
+        "FORMAL_GENERATION_SESSION_MODE",
+        "STAIR_FORMAL_GENERATION_PAUSE_BOUNDARIES",
+        "STAIR_GENERATION_MAX_INFRASTRUCTURE_RETRIES_PER_ELIGIBLE_JOB",
+        "STAIR_GENERATION_PROVIDER_ATTEMPTS_PER_LANE",
+        "STAIR_GENERATION_PROVIDER_INPUT_UNITS_PER_ATTEMPT",
+        "STAIR_GENERATION_PROVIDER_OUTPUT_UNITS_PER_ATTEMPT",
+        "STAIR_GENERATION_SESSION_COST_FILENAME",
+        "StairGenerationActualCostJournal",
+        "StairGenerationActualCostReceiptRef",
+        "StairGenerationSessionCostContractLike",
+        "StairGenerationSessionCostContractV2",
+        "StairGenerationSessionCostContractV3",
+        "StairGenerationSessionCostContractV4",
+        "build_stair_generation_scientific_cost_basis",
+        "load_stair_generation_session_cost_contract",
+        "replay_stair_generation_combined_cost_chain",
+        "replay_stair_generation_formal_cost_chain"
+      ]
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/generation_history.py",
+      "module": "true_rl_agent.tasks.stair_climbing.source_checkout",
+      "names": [
+        "require_stair_source_checkout"
+      ]
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/isaaclab_execution.py",
+      "module": "true_rl_agent.tasks.stair_climbing.isaaclab_unified_terrain",
+      "names": [
+        "apply_unified_initial_terrain_assignment"
+      ]
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/isaaclab_runtime_env.py",
+      "module": "true_rl_agent.tasks.stair_climbing.isaaclab_unified_terrain",
+      "names": [
+        "build_unified_train_terrain_generator",
+        "goal_progress_m_by_terrain_type",
+        "stair_goal_progress_levels"
+      ]
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/launch_history.py",
+      "module": "true_rl_agent.tasks.stair_climbing.generation_session_cost",
+      "names": [
+        "FORMAL_GENERATION_SESSION_MODE",
+        "STAIR_GENERATION_FORMAL_RETRY_OUTPUT_BYTES",
+        "STAIR_GENERATION_FORMAL_SUCCESSFUL_OUTPUT_BYTES",
+        "STAIR_GENERATION_SESSION_COST_FILENAME",
+        "STAIR_FORMAL_GENERATION_PAUSE_BOUNDARIES",
+        "StairGenerationActualCostJournal",
+        "StairGenerationSessionCostContractV3",
+        "load_stair_generation_session_cost_contract",
+        "replay_stair_generation_combined_cost_chain",
+        "replay_stair_generation_formal_cost_chain"
+      ]
+    },
+    {
+      "path": "src/true_rl_agent/tasks/stair_climbing/source_checkout.py",
+      "module": "true_rl_agent.runner.source_checkout",
+      "names": [
+        "EXECUTION_SOURCE_ROOTS",
+        "SourceCheckout",
+        "inspect_source_checkout",
+        "require_source_checkout"
+      ]
+    },
+    {
+      "path": "scripts/audit_stair_generation_history.py",
+      "module": "true_rl_agent.tasks.stair_climbing.generation_session_cost",
+      "names": [
+        "load_stair_generation_session_cost_contract"
+      ]
+    },
+    {
+      "path": "scripts/calibrate_stair_reference.py",
+      "module": "true_rl_agent.tasks.stair_climbing.isaaclab_unified_terrain",
+      "names": [
+        "build_unified_train_terrain_generator",
+        "unified_irregular_training_stairs_terrain"
+      ]
+    },
+    {
+      "path": "scripts/run_generation_session.py",
+      "module": "true_rl_agent.runner.source_checkout",
+      "names": [
+        "require_source_checkout"
+      ]
+    },
+    {
+      "path": "tests/unit/test_generation_entrypoint.py",
+      "module": "true_rl_agent.runner.source_checkout",
+      "names": [
+        "SourceCheckout"
+      ]
+    },
+    {
+      "path": "tests/unit/test_generation_historical_wire.py",
+      "module": "true_rl_agent.tasks.stair_climbing.generation_session_cost",
+      "names": [
+        "StairGenerationSessionCostContractV3"
+      ]
+    },
+    {
+      "path": "tests/unit/test_stair_generation_cost_recovery.py",
+      "module": "true_rl_agent.tasks.stair_climbing.generation_session_cost",
+      "names": [
+        "DEVELOPMENT_GENERATION_VALIDATION_MODE",
+        "STAIR_GENERATION_VALIDATION_RETRY_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_VALIDATION_RETRY_OUTPUT_BYTES",
+        "STAIR_GENERATION_VALIDATION_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_VALIDATION_SUCCESSFUL_OUTPUT_BYTES",
+        "StairGenerationActualCostJournal",
+        "StairGenerationActualCostUsage",
+        "StairGenerationActualCostUsageV2",
+        "StairGenerationSessionCostContractV2",
+        "build_stair_generation_scientific_cost_basis"
+      ]
+    },
+    {
+      "path": "tests/unit/test_stair_generation_operation_admission.py",
+      "module": "true_rl_agent.tasks.stair_climbing.generation_session_cost",
+      "names": [
+        "DEVELOPMENT_GENERATION_PILOT_MODE",
+        "DEVELOPMENT_GENERATION_VALIDATION_MODE",
+        "FORMAL_GENERATION_SESSION_MODE",
+        "STAIR_GENERATION_FORMAL_RETRY_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_FORMAL_RETRY_OUTPUT_BYTES",
+        "STAIR_GENERATION_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_FORMAL_SUCCESSFUL_OUTPUT_BYTES",
+        "STAIR_GENERATION_FINALIZATION_OUTPUT_RESERVE_BYTES",
+        "STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_OUTPUT_BYTES",
+        "STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_OUTPUT_BYTES",
+        "STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_OUTPUT_BYTES",
+        "STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_OUTPUT_BYTES",
+        "STAIR_GENERATION_VALIDATION_RETRY_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_VALIDATION_RETRY_OUTPUT_BYTES",
+        "STAIR_GENERATION_VALIDATION_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_VALIDATION_SUCCESSFUL_OUTPUT_BYTES",
+        "StairGenerationSessionCostContract",
+        "StairGenerationSessionCostContractV2",
+        "StairGenerationSessionCostContractV3",
+        "StairGenerationSessionCostContractV4",
+        "StairGenerationSessionCostContractV5",
+        "build_stair_generation_scientific_cost_basis",
+        "stair_generation_operation_cost_reserves"
+      ]
+    },
+    {
+      "path": "tests/unit/test_stair_generation_session.py",
+      "module": "true_rl_agent.tasks.stair_climbing.generation_session_cost",
+      "names": [
+        "DEVELOPMENT_GENERATION_VALIDATION_MODE",
+        "STAIR_GENERATION_VALIDATION_RETRY_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_VALIDATION_RETRY_OUTPUT_BYTES",
+        "STAIR_GENERATION_VALIDATION_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_VALIDATION_SUCCESSFUL_OUTPUT_BYTES",
+        "StairGenerationSessionCostContractV2",
+        "build_stair_generation_scientific_cost_basis",
+        "stair_generation_operation_cost_reserves"
+      ]
+    },
+    {
+      "path": "tests/unit/test_stair_generation_session_cost.py",
+      "module": "true_rl_agent.tasks.stair_climbing.generation_session_cost",
+      "names": [
+        "DEVELOPMENT_GENERATION_PILOT_MODE",
+        "DEVELOPMENT_GENERATION_VALIDATION_MODE",
+        "FORMAL_GENERATION_SESSION_MODE",
+        "STAIR_GENERATION_FORMAL_RETRY_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_FORMAL_RETRY_OUTPUT_BYTES",
+        "STAIR_GENERATION_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_FORMAL_SUCCESSFUL_OUTPUT_BYTES",
+        "STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_OUTPUT_BYTES",
+        "STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_OUTPUT_BYTES",
+        "STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_OPERATION_RESERVES_SCHEMA_VERSION",
+        "STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_RETRY_OUTPUT_BYTES",
+        "STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_IMPORTED_REFERENCE_FORMAL_SUCCESSFUL_OUTPUT_BYTES",
+        "STAIR_GENERATION_SESSION_COST_SCHEMA_VERSION",
+        "STAIR_GENERATION_SESSION_COST_V2_SCHEMA_VERSION",
+        "STAIR_GENERATION_SESSION_COST_V3_SCHEMA_VERSION",
+        "STAIR_GENERATION_SESSION_COST_V4_SCHEMA_VERSION",
+        "STAIR_GENERATION_SESSION_COST_V5_SCHEMA_VERSION",
+        "STAIR_GENERATION_VALIDATION_RETRY_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_VALIDATION_RETRY_OUTPUT_BYTES",
+        "STAIR_GENERATION_VALIDATION_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_VALIDATION_SUCCESSFUL_OUTPUT_BYTES",
+        "StairGenerationActualCostJournal",
+        "StairGenerationActualCostReceiptRef",
+        "StairGenerationActualCostUsage",
+        "StairGenerationSessionCostContract",
+        "StairGenerationSessionCostContractV2",
+        "StairGenerationSessionCostContractV3",
+        "StairGenerationSessionCostContractV4",
+        "StairGenerationSessionCostContractV5",
+        "build_stair_generation_scientific_cost_basis",
+        "create_stair_generation_session_cost_contract",
+        "load_stair_generation_session_cost_contract",
+        "replay_stair_generation_formal_cost_chain"
+      ]
+    },
+    {
+      "path": "tests/unit/test_stair_p6b_terminal_contract_resume.py",
+      "module": "true_rl_agent.tasks.stair_climbing.generation_session_cost",
+      "names": [
+        "DEVELOPMENT_GENERATION_PILOT_MODE"
+      ]
+    },
+    {
+      "path": "tests/unit/test_stair_source_checkout.py",
+      "module": "true_rl_agent.tasks.stair_climbing.source_checkout",
+      "names": [
+        "inspect_stair_source_checkout",
+        "require_stair_source_checkout"
+      ]
+    },
+    {
+      "path": "PLAN/Variant_construction/P3R/capture_phase3r_runtime_smoke.py",
+      "module": "true_rl_agent.tasks.stair_climbing.isaaclab_unified_terrain",
+      "names": [
+        "stair_goal_progress_levels"
+      ]
+    },
+    {
+      "path": "PLAN/Variant_construction/P6/test_verify_phase6.py",
+      "module": "true_rl_agent.tasks.stair_climbing.generation_session_cost",
+      "names": [
+        "StairGenerationActualCostJournal",
+        "StairGenerationActualCostUsage",
+        "StairGenerationSessionCostContract",
+        "StairGenerationSessionCostContractV2",
+        "StairGenerationSessionCostContractV4",
+        "STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_RETRY_OUTPUT_BYTES",
+        "STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_IMPORTED_REFERENCE_VALIDATION_SUCCESSFUL_OUTPUT_BYTES",
+        "STAIR_GENERATION_VALIDATION_RETRY_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_VALIDATION_RETRY_OUTPUT_BYTES",
+        "STAIR_GENERATION_VALIDATION_SUCCESSFUL_ALLOCATED_ACTIVE_GPU_HOURS",
+        "STAIR_GENERATION_VALIDATION_SUCCESSFUL_OUTPUT_BYTES",
+        "build_stair_generation_scientific_cost_basis"
+      ]
+    },
+    {
+      "path": "PLAN/Variant_construction/P6/verify_phase6.py",
+      "module": "true_rl_agent.tasks.stair_climbing.generation_session_cost",
+      "names": [
+        "DEVELOPMENT_GENERATION_PILOT_MODE",
+        "DEVELOPMENT_GENERATION_VALIDATION_MODE",
+        "StairGenerationActualCostJournal",
+        "StairGenerationSessionCostContract",
+        "StairGenerationSessionCostContractV2",
+        "StairGenerationSessionCostContractV4",
+        "load_stair_generation_session_cost_contract",
+        "replay_stair_generation_combined_cost_chain"
+      ]
+    }
+  ],
+  "changed_configs": [],
+  "ruff_F": [],
+  "final_shared_boundary_audit": {
+    "added_shared_lines": 504,
+    "task_robot_literals": [],
+    "scope": "added lines in agent_core/memory/prompting/runner/evaluation; structural review also recorded in ACCEPTANCE_ZH.md"
+  },
+  "frozen_validation_files": {
+    "file_count": 513,
+    "local_changed_after_freeze": [],
+    "remote_mismatches": [],
+    "normalization": "CRLF to LF"
+  },
+  "top_level_deployment_check": {
+    "pyproject.toml": "9f93763477115d00e5c9bec9cc39dd8ea6606dbc522978569f3d83da31486785",
+    "docs/stair_fresh_15round_runbook.md": "8d17e29dbe3cb680e8f1cc8798105a98c9a358b3ba71dedbb402eec5c6c9ec91",
+    "local_remote_match": true
+  },
+  "active_docs_stale_interface_check": {
+    "paths": [
+      "README.md",
+      "docs",
+      "scripts"
+    ],
+    "obsolete_payload_pause_or_helper_references": []
+  }
+}

@@ -1,0 +1,226 @@
+{
+  "status": "PASS_LOCAL_SELECTOR_AND_TASK_FEEDBACK_REPLAY",
+  "scope": "Post-fix read-only replay of the existing projected A02 ledger into the shared selector and Push task prompt sections; no provider, training, evaluation, or frozen session writes. Full source-catalog reconstruction is separate and pending root replay.",
+  "input": "attempt_02/repaired_public_history.json",
+  "input_sha256": "1f7b5a0e813135adc4250f91a3c3d2a392a0c462f8bc12241ee26577967f5735",
+  "before_source_trial_id": "go2-push-5rounds-20260922-a02-generation-001-lane-b",
+  "after_source_trial_id": "go2-push-5rounds-20260922-a02-generation-001-lane-a",
+  "after_candidate_id": "push_standing_recovery_height_margin_v1",
+  "after_program_source_checksum": "sha256:31c5a5ba883d08440f6ff6d36d7ba2c89314456098c9df79833200ba25711ea4",
+  "after_public_dev_score": 0.8125,
+  "after_public_feedback": {
+    "schema_version": "true_rl_agent.public_feedback_summary.push_recovery.v3",
+    "status": "available",
+    "source_selection": "latest_trained_nonaccepted",
+    "source_round_id": "go2-push-5rounds-20260922-a02-generation-001-lane-a",
+    "source_candidate_id": "push_standing_recovery_height_margin_v1",
+    "program_source_checksum": "sha256:31c5a5ba883d08440f6ff6d36d7ba2c89314456098c9df79833200ba25711ea4",
+    "latest_round": {
+      "round_id": "go2-push-5rounds-20260922-a02-generation-001-lane-a",
+      "candidate_id": "push_standing_recovery_height_margin_v1",
+      "status_reason": "not_run_due_to_early_reject"
+    },
+    "latest_public_score": 0.8125,
+    "latest_failure_mode": "height_collapse_dominated",
+    "public_dev": {
+      "score_stats": {
+        "count": 3,
+        "episode_count": 192,
+        "mean": 0.8125,
+        "std": 0.071602745233685,
+        "standard_error": 0.04133986423538423
+      },
+      "recovery_counts": {
+        "episodes": 192,
+        "successes": 156,
+        "eligible_episode_count": 192,
+        "control_episode_count": 0,
+        "planned_push_event_count": 240,
+        "pushed_episode_count": 192,
+        "push_event_count": 240,
+        "invalid_injection_count": 0,
+        "completed_push_event_count": 240,
+        "verified_push_event_count": 240,
+        "sequence_recovered_count": 158
+      },
+      "stratum_results": {
+        "low": {
+          "episodes": 48,
+          "successes": 48,
+          "n_over_N": "48/48"
+        },
+        "medium": {
+          "episodes": 48,
+          "successes": 45,
+          "n_over_N": "45/48"
+        },
+        "high": {
+          "episodes": 48,
+          "successes": 26,
+          "n_over_N": "26/48"
+        },
+        "repeated": {
+          "episodes": 48,
+          "successes": 37,
+          "n_over_N": "37/48"
+        }
+      },
+      "failure_breakdown": {
+        "counts": {
+          "success_recovered": 156,
+          "not_recovered": 5,
+          "fall_backward": 4,
+          "fall_side": 8,
+          "height_collapse": 19
+        },
+        "total": 192
+      },
+      "dominant_outcome": "success_recovered"
+    },
+    "recovery_evidence_gate": {
+      "status": "not_available"
+    },
+    "sealed_validation_gate": {
+      "status": "not_available"
+    }
+  },
+  "after_runtime_source": {
+    "source_round_id": "go2-push-5rounds-20260922-a02-generation-001-lane-a",
+    "source_candidate_id": "push_standing_recovery_height_margin_v1",
+    "program_source_checksum": "sha256:31c5a5ba883d08440f6ff6d36d7ba2c89314456098c9df79833200ba25711ea4",
+    "source_trial_status": "formal_rejected"
+  },
+  "current_best_unchanged": {
+    "mode": "reference",
+    "anchor_kind": "reference",
+    "anchor_id": "push_standing_recovery_stationary_reference_v3",
+    "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+    "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+    "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+    "training_binding_hash": "56b9f8f9ce1168684558273d47c16ce6400f5590832fdb60ae9f2a4f00b5e072",
+    "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+    "accepted_round_id": null,
+    "accepted_candidate_id": null,
+    "task_protocol_hash": "31622698100045fc8c2fac8707a71a39f84655c2cfde714421fd5b92f748407d",
+    "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+    "acceptance_protocol_hash": "a9638274f7223f91ef1f115e2c9858fc75e40eddf6223ea891054ef15fe339bd",
+    "seed_cohort_hash": "78fcd36dddb12ef0b3a520a87bf89c55bbf7d346c0c4c39e8666c44ac490c469",
+    "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+    "public_score": 0.7395833333333334,
+    "public_accept_stats": {
+      "count": 3,
+      "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+      "mean": 0.7395833333333334,
+      "standard_error": 0.027559909490256152,
+      "statistics_version": "true_rl_agent.derived_statistics.v1",
+      "std": 0.047735163489123336
+    },
+    "guard_score_stats": {},
+    "named_guard_evidence": {},
+    "sealed_validation_evidence": {
+      "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+      "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+      "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+      "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+      "evaluation_subject": {
+        "id": "push_standing_recovery_stationary_reference_v3",
+        "kind": "reference",
+        "schema_version": "true_rl_agent.experiment.subject.v2"
+      },
+      "expected_seed_count": 7,
+      "observed_seed_count": 7,
+      "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "reason": "push_recovery_holdout_contract_met",
+      "schema_version": "true_rl_agent.sealed_validation.evidence.v4",
+      "score_stats": {
+        "count": 7,
+        "episode_count": 448,
+        "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+        "mean": 0.765625,
+        "standard_error": 0.011811389781538352,
+        "statistics_version": "true_rl_agent.derived_statistics.v1",
+        "std": 0.03125,
+        "values": [
+          0.78125,
+          0.734375,
+          0.75,
+          0.75,
+          0.796875,
+          0.734375,
+          0.8125
+        ]
+      },
+      "status": "pass",
+      "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+      "training_binding_hash": "56b9f8f9ce1168684558273d47c16ce6400f5590832fdb60ae9f2a4f00b5e072"
+    },
+    "sealed_validation_gate": {
+      "candidate_code_loaded_in_eval": false,
+      "candidate_isolation_status": "pass",
+      "candidate_package_loaded_in_eval": false,
+      "candidate_path_argument_present": false,
+      "checkpoint_hash_match_status": "pass",
+      "checkpoint_safety_status": "pass",
+      "eval_protocol_hash_match_status": "pass",
+      "evaluation_binding_hash_match_status": "pass",
+      "holdout_rollout_status": "pass",
+      "reason": "sealed_validation_complete",
+      "status": "pass"
+    },
+    "gate_statuses": {
+      "accept_evidence_gate": "pass",
+      "budget_accounting": "pass",
+      "recovery_evidence_gate": "pass",
+      "reference_capability_gate": "pass",
+      "sealed_validation_gate": "pass"
+    },
+    "min_score_count": 3
+  },
+  "product_scope": [
+    "Shared helper only; task selector already chose the preferred candidate.",
+    "Accepted trials remain ineligible. Latest eligible sibling is used when there is no eligible selection.",
+    "No additional source roles, task scores, acceptance rules, or robot conditionals."
+  ],
+  "first_test_run": {
+    "tests": 128,
+    "failures": 1,
+    "errors": 0,
+    "elapsed_seconds": 11.352,
+    "failing_test": "tests.unit.test_stair_phase4_contract.StairPhase4ContractTests.test_provider_view_uses_public_dev_without_acceptance_result_leak",
+    "failure": "AssertionError: 'phase4-trial-a' != 'phase4-trial-b'",
+    "cause": "The old fixture asserted reverse-lane selection. Its trial-a now explicitly carries its own runtime observations (2 calls, distinct from B=37); expected source and detailed-feedback identity were updated to A. All existing acceptance/sealed non-leakage assertions remain.",
+    "evidence_kind": "Captured first-run tool result; full rerun log is the final run."
+  },
+  "final_test_run": {
+    "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_generation_contract tests.unit.test_prompt_source_catalog tests.unit.test_push_feedback_projection tests.unit.test_push_recovery_task tests.unit.test_stair_phase4_contract -v",
+    "tests": 128,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "elapsed_seconds": 9.856,
+    "log": "attempt_02/source_feedback_selection_tests.log"
+  },
+  "file_sha256": {
+    "src/true_rl_agent/agent_core/generation_contract.py": "130ad7f82c6300baa372d0df8176002f21b88dfb6078d5af272a1f4c1639d4ac",
+    "tests/unit/test_generation_contract.py": "61f1bd7b70e3aa607d0886934774292cecdd1b94f4de7d8ed115df3766f4d49f",
+    "tests/unit/test_stair_phase4_contract.py": "cbd25cf95f28da6eb01e42b3a9d57fa6b653b06e6f9954e437bb81f5c87c3721",
+    "tests/integration/test_fixed_width_generation.py": "4d66ce39d5320d094d6b0e4dd41dce73d9b29745f3839e0cc127771c9307afc8"
+  },
+  "integration_followup": {
+    "command": ".venv/Scripts/python.exe -m unittest tests.integration.test_fixed_width_generation -v",
+    "log": "attempt_02/source_feedback_selection_integration_tests.log",
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "elapsed_seconds": 44.902,
+    "initial_target_failure_scenario": "formal_reject_best_observed_source_matches_selected_lane",
+    "cause": "The previous integration expectation assigned best_observed=A and latest_nonaccepted=B with unequal hashes. Selected-rejected A now occupies latest_nonaccepted; the existing source deduplication aliases best_observed to that same source.",
+    "updated_assertions": [
+      "A is supplied in latest_nonaccepted; best_observed has no duplicate inline payload.",
+      "best_observed catalog is alias_of latest_nonaccepted and its content hash matches both the inline A source and observed lineage.",
+      "Observed source remains accepted=false with authoring_anchor_only_not_policy_best authority."
+    ],
+    "production_changes": false
+  }
+}

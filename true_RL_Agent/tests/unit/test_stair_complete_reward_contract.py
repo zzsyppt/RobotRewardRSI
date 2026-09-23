@@ -199,7 +199,7 @@ class StairCompleteRewardContractTests(unittest.TestCase):
         self.assertIn("0 newest", axes["foot_contact_force_history"])
         self.assertIn("0 left", axes["foot_contact_force_history"])
         self.assertIn("max all 3 history", axes["foot_contact_force_history"])
-        self.assertIn("index0 contact", axes["foot_contact_force_history"])
+        self.assertIn("does not identify every onset", axes["foot_contact_force_history"])
         self.assertIn("world +x stair-forward", axes["spatial_vectors"])
         remaining = prompt["field_semantics_constraints"][
             "remaining_goal_distance_m"

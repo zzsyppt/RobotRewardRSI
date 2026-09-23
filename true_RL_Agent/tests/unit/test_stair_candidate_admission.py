@@ -29,6 +29,10 @@ from true_rl_agent.candidates.artifact import (  # noqa: E402
 from true_rl_agent.candidates.capability_readiness import (
     COMPLETE_REWARD_PROGRAM_CAPABILITY_ID,
 )
+from true_rl_agent.candidates.component_source_semantics import (
+    assess_anti_degenerate_source,
+    project_single_component_operation_delta,
+)
 from true_rl_agent.candidates.package_contract import CANDIDATE_PACKAGE_FILE_MAX_BYTES
 from true_rl_agent.candidates.schema import CandidateChangeSet, CandidatePackageRef
 from true_rl_agent.candidates.verifier import (
@@ -45,7 +49,6 @@ from true_rl_agent.composition import (
 from true_rl_agent.json_contract import canonical_json_text
 from true_rl_agent.tasks.stair_climbing.candidate_admission import (
     StairCandidateAdmissionPolicy,
-    _duplicate_parent_reward_term_issue,
     _qualification_failure_evidence,
     _validate_qualification_worker_result,
     validate_stair_candidate_execution_authorization,
@@ -260,7 +263,7 @@ class StairCandidateAdmissionTests(unittest.TestCase):
 
         self.assertNotEqual(short.policy_hash, long.policy_hash)
 
-    def test_duplicate_parent_reward_term_rejects_alias_only(self) -> None:
+    def test_shared_admission_rejects_duplicate_parent_reward_term(self) -> None:
         parent, alias, renamed, novel = _parent_alias_sources()
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -277,35 +280,41 @@ class StairCandidateAdmissionTests(unittest.TestCase):
             admission = StairCandidateAdmissionPolicy(self.config)
             static_result = admission.verify(candidate)
             self.assertEqual(static_result.status, "pass")
-            with patch(
-                "true_rl_agent.tasks.stair_climbing.candidate_admission."
-                "seal_and_verify_candidate"
-            ) as temporary_admission:
-                duplicate = admission.verify_authoring_delta(
-                    candidate=candidate,
-                    verification=static_result,
-                    parent_source=parent,
-                )
 
-        self.assertEqual(duplicate.status, "fail")
-        self.assertEqual(duplicate.reason, "stair_candidate_authoring_delta_invalid")
-        self.assertEqual(
-            duplicate.details["issues"],
-            ["duplicate_parent_reward_term:alias_reward:matches=parent_reward"],
-        )
-        temporary_admission.assert_not_called()
-        self.assertIsNone(
-            _duplicate_parent_reward_term_issue(
-                candidate_source=renamed,
-                parent_source=parent,
-            )
-        )
-        self.assertIsNone(
-            _duplicate_parent_reward_term_issue(
-                candidate_source=novel,
-                parent_source=parent,
-            )
-        )
+        # Task qualification and parent-mechanism novelty have separate owners.
+        numeric_alias = alias.replace('name="alias_reward", weight=1.0', 'name="alias_reward", weight=0.25')
+        for source in (alias, numeric_alias):
+            with self.subTest(source=source):
+                duplicate = assess_anti_degenerate_source(
+                    candidate_source=source, current_best_source=parent)
+                self.assertEqual(duplicate["status"], "fail")
+                self.assertTrue(duplicate["blocking"])
+                self.assertEqual(duplicate["classification"], "duplicate_parent_reward_term")
+                self.assertEqual(duplicate["reason"], "candidate_adds_existing_parameter_family")
+                self.assertEqual(duplicate["matched_parent_mechanism"], "RewardTerm:parent_reward")
+        rename = assess_anti_degenerate_source(candidate_source=renamed, current_best_source=parent)
+        self.assertTrue(rename["blocking"])
+        self.assertEqual(rename["reason"], "candidate_changes_no_canonical_component_mechanism")
+        novel_assessment = assess_anti_degenerate_source(candidate_source=novel, current_best_source=parent)
+        self.assertEqual(novel_assessment["status"], "pass")
+        self.assertFalse(novel_assessment["blocking"])
+
+    def test_threshold_inclusivity_is_parameter_tuning_without_rewriting_delta_identity(self) -> None:
+        parent = _minimal_reward_source(expression="(inputs.base_height <= 0.2).float()")
+        candidate = parent.replace("<= 0.2", "< 0.3")
+        delta = project_single_component_operation_delta(candidate_source=candidate, anchor_source=parent)
+        # Old receipts retain their original comparator-sensitive hashes.
+        self.assertNotEqual(delta["before_component"]["parameter_normalized_structure_hash"],
+                            delta["after_component"]["parameter_normalized_structure_hash"])
+        assessment = assess_anti_degenerate_source(candidate_source=candidate, current_best_source=parent)
+        self.assertEqual(assessment["status"], "fail")
+        self.assertTrue(assessment["blocking"])
+        self.assertEqual(assessment["classification"], "parameter_only_delta")
+        self.assertEqual(assessment["reason"], "candidate_changes_only_parameter_family")
+        direction_change = assess_anti_degenerate_source(
+            candidate_source=parent.replace("<= 0.2", "> 0.3"), current_best_source=parent)
+        self.assertEqual(direction_change["status"], "pass")
+        self.assertFalse(direction_change["blocking"])
 
     def test_authoring_delta_source_reread_keeps_package_byte_bound(self) -> None:
         parent, alias, _, _ = _parent_alias_sources()

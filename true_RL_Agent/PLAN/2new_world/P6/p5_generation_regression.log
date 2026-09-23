@@ -1,0 +1,23 @@
+======================================================================
+FAIL: test_full_generation_is_serial_author_parallel_execute_and_single_commit (tests.integration.test_fixed_width_generation.FixedWidthGenerationTests.test_full_generation_is_serial_author_parallel_execute_and_single_commit) (scenario='v3_failed_authoring_keeps_b_not_started')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_fixed_width_generation.py", line 2308, in test_full_generation_is_serial_author_parallel_execute_and_single_commit
+    self.assertEqual(rows[1], ["b", None, None, None, "not_started", None, None, None, None])
+AssertionError: Lists differ: ['b', None, None, None, 'not_started', None, None, None, 'lane_not_started'] != ['b', None, None, None, 'not_started', None, None, None, None]
+
+First differing element 8:
+'lane_not_started'
+None
+
+- ['b', None, None, None, 'not_started', None, None, None, 'lane_not_started']
+?                                                          ^^^  -------------
+
++ ['b', None, None, None, 'not_started', None, None, None, None]
+?                                                          ^^
+
+
+----------------------------------------------------------------------
+Ran 2 tests in 39.615s
+
+FAILED (failures=1)

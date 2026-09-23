@@ -21,7 +21,6 @@ from true_rl_agent.candidates.schema import CandidatePackageRef
 from true_rl_agent.tasks.component_smoke import (
     ComponentSmokeAdapter,
     ComponentSmokeFixture,
-    SmokeTensor,
 )
 
 COMPONENT_SMOKE_SCHEMA_VERSION = "true_rl_agent.component_smoke_result.v2"
@@ -229,6 +228,8 @@ def _component_smoke_worker(
     worker_ready: Any,
     worker_start: Any,
 ) -> None:
+    # Spawn has already restored the task fixture, including Tensor imports.
+    # Only candidate loading and callable execution enter the shorter budgets.
     worker_ready.set()
     worker_start.wait()
     try:
@@ -476,6 +477,23 @@ def _smoke_reward_term(term: RewardTerm, fixture: ComponentSmokeFixture) -> dict
                 "observed_shape": output["shape"],
             }
         )
+    raw_values = output["values"]
+    observations = {
+        "observed_sample_count": len(raw_values),
+        "observed_raw_nonzero_count": sum(abs(value) > 1.0e-12 for value in raw_values),
+        "observed_clip_saturation_count": sum(
+            (term.clip_min is not None and value < term.clip_min)
+            or (term.clip_max is not None and value > term.clip_max)
+            for value in raw_values),
+        "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+    }
+    cases = fixture.public_summary.get("sample_cases", ())
+    if len(cases) == len(raw_values) and len(cases) <= 8:
+        observations["sample_case_outputs"] = [
+            {"case": case, "raw": raw, "weighted_after_clip": (
+                max(term.clip_min if term.clip_min is not None else -math.inf,
+                    min(term.clip_max if term.clip_max is not None else math.inf, raw)) * float(term.weight))}
+            for case, raw in zip(cases, raw_values, strict=True)]
     # A zero raw value can be valid on one synthetic fixture (for example, a
     # tracking error at its target). Advise only when declared runtime
     # semantics erase a signal the callable actually produced.
@@ -493,6 +511,7 @@ def _smoke_reward_term(term: RewardTerm, fixture: ComponentSmokeFixture) -> dict
                 "declared_clip_min": term.clip_min,
                 "declared_clip_max": term.clip_max,
                 "blocking": False,
+                **observations,
             }
         )
     return _public_result(
@@ -504,6 +523,7 @@ def _smoke_reward_term(term: RewardTerm, fixture: ComponentSmokeFixture) -> dict
             "observed_shape": output["shape"],
             "raw_max_abs": output["max_abs"],
             "effective_max_abs_after_clip_and_weight": effective_max_abs,
+            **observations,
         }
     )
 
@@ -559,8 +579,6 @@ def _declared_effective_max_abs(
 
 
 def _shape_and_values(value: Any) -> tuple[tuple[int, ...], tuple[float, ...]]:
-    if isinstance(value, SmokeTensor):
-        return value.shape, value.flatten()
     if _is_torch_tensor(value):
         detached = value.detach()
         if str(detached.device) != "cpu":

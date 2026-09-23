@@ -1,0 +1,141 @@
+{
+  "cells": {
+    "g1": {
+      "cell": "push.g1_37dof.recovery_v2",
+      "command": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/run_owned_probe.py",
+        "--device",
+        "cuda:1",
+        "--output",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/g1_process",
+        "--timeout",
+        "3600",
+        "--",
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/train_stationary_reference_dev.py",
+        "--mode",
+        "run",
+        "--cell",
+        "push.g1_37dof.recovery_v2",
+        "--device",
+        "cuda:1",
+        "--output",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/g1",
+        "--expected-source-sha256",
+        "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+        "--expected-environment-hash",
+        "1db93042e1073d1319b50f807ee7577387463bb72b0e1c5794e1772712692867"
+      ],
+      "device": "cuda:1",
+      "output": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/g1",
+      "preflight_output": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_preflight_20260912/g1"
+    },
+    "go2": {
+      "cell": "push.go2_12dof.recovery_v2",
+      "command": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/run_owned_probe.py",
+        "--device",
+        "cuda:0",
+        "--output",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/go2_process",
+        "--timeout",
+        "3600",
+        "--",
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/train_stationary_reference_dev.py",
+        "--mode",
+        "run",
+        "--cell",
+        "push.go2_12dof.recovery_v2",
+        "--device",
+        "cuda:0",
+        "--output",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/go2",
+        "--expected-source-sha256",
+        "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+        "--expected-environment-hash",
+        "1db93042e1073d1319b50f807ee7577387463bb72b0e1c5794e1772712692867"
+      ],
+      "device": "cuda:0",
+      "output": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/go2",
+      "preflight_output": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_preflight_20260912/go2"
+    }
+  },
+  "changes": [
+    "Only stationary reward replaced; four other functions/weights unchanged",
+    "Reward-term tuple changed to list to match existing verifier syntax",
+    "Task-owned write-attempt/read-back event counters; no physical transition change"
+  ],
+  "development_decision": {
+    "basic_learnability_floor": 0.2,
+    "engineering_requires": [
+      "Actual training complete at 500 iterations with finite evidence",
+      "injection_attempt_count > 0 and verified_event_count equals attempts",
+      "paired claim requires initial policy hash equal to original seed42",
+      "only public_dev executed; original holdouts untouched"
+    ],
+    "interpretation": [
+      "Report paired raw dev rates against original reference; one training seed is not replication",
+      "Go2 dev saturation is a task-calibration issue; do not relax headroom threshold",
+      "G1 below basic floor or standing readiness stops this hypothesis; no coefficient retries",
+      "No default reference promotion or Genesis from this study",
+      "New formal qualification needs separately frozen fresh unconsumed accept/sealed"
+    ],
+    "no_push_followup": {
+      "definition": "fraction of no-push first episodes having at least one full continuous stable dwell",
+      "episodes_per_profile": 64,
+      "profiles": [
+        "strong_push",
+        "no_push"
+      ],
+      "seed": "same first public_dev seed",
+      "standing_readiness_floor": 0.8
+    }
+  },
+  "driver_sha256": "sha256:4bb587d7350b4cb076f852cd787311ccf966ec5d3bfe9ca481d9b37c101dc82d",
+  "eval": {
+    "accept": 0,
+    "base_seed": 42,
+    "final": 0,
+    "num_envs": 64,
+    "public_dev_seeds": 3,
+    "sealed": 0
+  },
+  "execution_environment_manifest_hash": "1db93042e1073d1319b50f807ee7577387463bb72b0e1c5794e1772712692867",
+  "followup_diagnostic_script_sha256": "sha256:746d22fa27f13777be1addd53bb54e1b7f2dee1c8a46144e69d13755677b5a9a",
+  "frozen_at_utc": "2026-09-12T04:10:42.928341+00:00",
+  "physics_protocol_hash": "a51f190bab162281d6d014285dde612f73763fb20457bc690a5f7c3a5aaeb778",
+  "prior_formal_declaration_sha256": "sha256:c7e5b3d2369ccd6fc77fa703761aa590df158818ad68f54fda522346dcca0aa0",
+  "project_source_hash": "6c29dc596f651763109ccfcd2d5a1989f78f0c9afe55eff93e47f5f75686cffa",
+  "purpose": "One fixed dev-only test of stationary reward hypothesis; not reference qualification",
+  "reference_id": "push_standing_recovery_stationary_reference_v3",
+  "reference_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+  "reference_source_sha256": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+  "resources": {
+    "automatic_retries": 0,
+    "followup_diagnostic_wall_s_per_cell": 900,
+    "maximum_total_gpu_allocation_hours": 2.5,
+    "provider_requests": 0,
+    "total_train_dev_wall_s_per_cell": 3600
+  },
+  "schema_version": "true_rl_agent.p6.stationary_development.v1",
+  "train": {
+    "env_steps_per_cell": 49152000,
+    "initialization": "random",
+    "iterations": 500,
+    "jobs_per_cell": 1,
+    "num_envs": 4096,
+    "seed": 42,
+    "steps_per_iteration": 24
+  },
+  "unchanged": [
+    "PPO",
+    "robot profiles and assets",
+    "observation/action ABI",
+    "physics/reset/push distribution",
+    "recovery thresholds and windows"
+  ],
+  "wrapper_sha256": "sha256:0f692d0ec27f50a8b4146a7fdbe69d3070cd98248be6ff92ffc265a049bcb3cd"
+}

@@ -1,0 +1,32 @@
+{
+  "status": "PASS_GEN02_PARENT_GUARD_BINDING",
+  "scope": "Read-only pre-closure verification of actual gen2 manifest against gen1 accepted winner dev receipt. No gen2 result is asserted.",
+  "corrected_prior_interpretation": "parent_public_dev_source=genesis_receipt controls only initial bootstrap. Accepted transitions load the winning candidate dev receipt for the next generation.",
+  "parent_checkpoint_hash": "sha256:9543406087bc7482c33a8af938ee9bf458c96f5586b093f5586d1f102ea95360",
+  "parent_candidate_id": "push_standing_recovery_bounded_damping_v4",
+  "parent_public_dev_score": 0.8385416666666666,
+  "parent_accept_score": 0.8020833333333334,
+  "guard_reference_evidence_hash": "9a35818362f4704ad9b866b8299979b9fdf552bc9f5672c2756fa8917de9f26d",
+  "manifest_guard_hash_matches": true,
+  "future_public_dev_delta_denominator": "gen1 accepted B dev161/192, not initial reference141/192",
+  "source_chain": [
+    "generation_guard.load_next_generation_guard_reference",
+    "generation_guard.build_generation_guard_reference/assert_matches_parent",
+    "generation_record.project_generation_public_history guard_reference from bound selection receipt",
+    "push_recovery.exploration.public_dev_parent_reference",
+    "push_recovery.prompt_adapter._v2_prompt_record"
+  ],
+  "verified_frozen_source_sha256": {
+    "src/true_rl_agent/agent_core/generation_guard.py": "387139ea92e24cac6b1366d646fb3b071f7d707334f34af5ae7ec326b0b50379",
+    "src/true_rl_agent/agent_core/generation_session.py": "3183b8537f26bb96a8d0405b44b662ff3c4e23732a49b3e4e3b6162fe002d95d",
+    "src/true_rl_agent/agent_core/generation_record.py": "5dfa9bbfed8ff07fbd94046e920c41bc40434e1974f006a67fe2c69fe97e56e3",
+    "src/true_rl_agent/tasks/push_recovery/exploration.py": "3b69f1c8aa8b7a238ce543696567bc3eb1cd4c8d56c42f40757d79b5c0cf8ded",
+    "src/true_rl_agent/tasks/push_recovery/phased_adapter.py": "e772df7548709015c32a2c8ea741ee976e65728830997deb3335dbb70860c1b7",
+    "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py": "da876baeb3f7246878f2c407836312aea6fecf9ac9ef82352841fccaa10d7ea5"
+  },
+  "evidence_paths": [
+    "PLAN\\2new_world\\Go2_push\\attempt_03\\session\\trial_receipts\\go2-push-5rounds-20260922-a03-generation-001\\lane-b\\8acb41c3792a8d4270817a53090757f636ca6b009135ae2439852f802369304a\\eval_phases\\public_dev.json",
+    "PLAN\\2new_world\\Go2_push\\attempt_03\\session\\generation_receipts\\go2-push-5rounds-20260922-a03-generation-002\\546e1de05af068d6ec080ff2998716250c355e376c02648fb559a3cf2c368346\\manifest.json",
+    "PLAN\\2new_world\\Go2_push\\attempt_03\\session\\ledger.jsonl"
+  ]
+}

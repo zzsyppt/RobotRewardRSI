@@ -1,0 +1,232 @@
+{
+  "status": "PASS_BOUNDED_HARNESS_OWNERSHIP_NOT_EXPERIMENT_OR_MATRIX_GO",
+  "audited_at_utc": "2026-09-23T07:30:18.619738+00:00",
+  "session_id": "go2-push-5rounds-20260923-a08",
+  "source_commit": "f13ceb6660e01e5367f3a0961fca9a269737bf2c",
+  "frozen_source_archive": ".tmp/go2_push_source_08.zip",
+  "frozen_source_archive_sha256": "e7a8275f8a3f981288ac9b9d1db2873c091de877ca0cbe6ba00efcc58d4aba1c",
+  "snapshot_scope": ".tmp/go2_push_a08_live_03.zip",
+  "scope": "Read-only review of the four changed shared files, targeted owner/call paths and prior evidence. No product edits, tests, simulation, SSH, new architecture, or whole-repository scan.",
+  "navigation": {
+    "codegraph_first": true,
+    "codegraph_result": "Current on-disk exploration/history source and call paths were read through CodeGraph first. Its broad relationship expansion included unrelated PLAN probe symbols, so unresolved locations were inspected with narrow rg and bounded source slices. No assumption that graph relationships alone certify frozen source; local source bytes were compared with the A08 archive.",
+    "memory_role": "Prior ownership notes used only as navigation; current statements verified against local frozen A08 source and saved receipts."
+  },
+  "changed_file_checks": [
+    {
+      "path": "src/true_rl_agent/agent_core/exploration.py",
+      "frozen_a08_sha256": "f8186e72df46aa66a4d3606c0104e4936bc7880148c0aca5d56fec98a46e900f",
+      "matches_prelaunch_independent_review": true,
+      "current_matches_frozen_after_newline_normalization": true,
+      "task_robot_token_hits": []
+    },
+    {
+      "path": "src/true_rl_agent/agent_core/generation_lanes.py",
+      "frozen_a08_sha256": "b02f09b9b45b453028d89a51bf789b7d1d755bb621f570b12191fe4e8ce28b70",
+      "matches_prelaunch_independent_review": true,
+      "current_matches_frozen_after_newline_normalization": true,
+      "task_robot_token_hits": []
+    },
+    {
+      "path": "src/true_rl_agent/agent_core/authoring_loop.py",
+      "frozen_a08_sha256": "b4495703efe30a36b8e062ba44d95926223ef94bd3d2746c8e0bf00a1ce1e090",
+      "matches_prelaunch_independent_review": true,
+      "current_matches_frozen_after_newline_normalization": true,
+      "task_robot_token_hits": []
+    },
+    {
+      "path": "src/true_rl_agent/prompting/authoring_frame.py",
+      "frozen_a08_sha256": "428b010c8651e04038ab73a760f18dd9c7ad173cedc0d71e4ec00d85696cd65b",
+      "matches_prelaunch_independent_review": true,
+      "current_matches_frozen_after_newline_normalization": true,
+      "task_robot_token_hits": []
+    }
+  ],
+  "checks": [
+    {
+      "name": "changed_shared_files_remain_task_and_robot_neutral",
+      "status": "PASS",
+      "sources": [
+        "src/true_rl_agent/agent_core/exploration.py",
+        "src/true_rl_agent/agent_core/generation_lanes.py",
+        "src/true_rl_agent/agent_core/authoring_loop.py",
+        "src/true_rl_agent/prompting/authoring_frame.py"
+      ],
+      "finding": "The four A07-to-A08 diffs only change evaluated-history family keys, inject those keys into the existing authoring gate, retain separate negative/evaluated provenance, and recognize the existing family-repair category. They introduce no Push force, success, body, scale, Go2/G1 branch, threshold, task import or robot import. The candidate component-operation vocabulary is shared; physical task meaning is not interpreted here."
+    },
+    {
+      "name": "full_history_owner_and_compression_boundary",
+      "status": "PASS",
+      "sources": [
+        "src/true_rl_agent/agent_core/generation_runtime.py:74",
+        "src/true_rl_agent/agent_core/generation_runtime.py:107",
+        "src/true_rl_agent/evaluation/acceptance_replay.py:172",
+        "src/true_rl_agent/tasks/push_recovery/memory.py:34",
+        "src/true_rl_agent/agent_core/exploration.py:432",
+        "src/true_rl_agent/agent_core/exploration.py:498"
+      ],
+      "call_path": "shared load_ledger -> generation_public_history -> project_public_history full ordered replay -> typed ProjectedPublicHistory -> task memory adapter supplies its bound TaskExplorationProjector -> shared build_exploration_index over every record/trial -> evaluated_verifier_equivalence_keys -> generation_lanes -> CandidateAuthoringLoop",
+      "finding": "Shared replay owns record collection, Genesis/epoch/identity validation and reconstructed accepted head. Task projector interprets task evidence; it does not supply an independently truncated history. The evaluated set iterates all index.cards for the same current parent and public_dev/public_complete/formal tiers. Prompt memory limits, source catalog, source request availability and serialized recent-round summaries do not determine the gate set. Untrained drafts do not acquire evaluated status."
+    },
+    {
+      "name": "one_history_gate_and_unchanged_scientific_ownership",
+      "status": "PASS",
+      "sources": [
+        "src/true_rl_agent/agent_core/authoring_loop.py:191",
+        "src/true_rl_agent/agent_core/authoring_loop.py:874",
+        "src/true_rl_agent/agent_core/generation_lanes.py:137",
+        "src/true_rl_agent/prompting/authoring_frame.py:228"
+      ],
+      "finding": "The removed exact-only gate is replaced by one existing family comparison over union(negative,evaluated). Original negative evidence keys/lane-intent validation retain their meaning; union and member-set hashes identify the actual comparison. Author metadata exposes bounded hash/count/scope, not private history. Repair retains already-public comparison source bodies. No acceptance thresholds, scientific identity arithmetic, generation budget, evaluation metric or robot binding is changed by these four files.",
+      "existing_dynamic_evidence": "source_boundary_dynamic_probe.json was read and hash-bound, not rerun. It uses the actual A07 numeric variant and direct/nested repair payloads; this is local fixture evidence, not a new live history-gate event in A08."
+    },
+    {
+      "name": "candidate_failure_and_infrastructure_paths_remain_shared",
+      "status": "PASS",
+      "sources": [
+        "src/true_rl_agent/agent_core/generation.py:751",
+        "src/true_rl_agent/agent_core/generation.py:812",
+        "src/true_rl_agent/agent_core/generation.py:1266",
+        "src/true_rl_agent/agent_core/provider_errors.py:113",
+        "src/true_rl_agent/agent_core/authoring_loop.py:545",
+        "src/true_rl_agent/agent_core/generation_session.py:425"
+      ],
+      "finding": "CandidateRuntimeError becomes a generic candidate runtime failure receipt. RunnerExecutionError preserves infrastructure classification: nonretryable cases propagate; retryable failures become train_incomplete/eval_incomplete rather than an invented task score. Provider nonretryable HTTP401/402/403 uses service recovery and continuation instead of candidate repair; session exceptions use the shared cost/segment path. Shared outcome classification uses trial completeness/formal decision, not fall labels or robot body state.",
+      "limit": "This is source-path review plus reused prior evidence, not new injected-fault or recovery testing. External forced termination can leave reservations unsettled, as A07 showed; no terminal closure is inferred from process disappearance."
+    },
+    {
+      "name": "final_path_is_generic_orchestration_with_task_comparison",
+      "status": "PASS",
+      "sources": [
+        "src/true_rl_agent/agent_core/generation_application.py:71",
+        "src/true_rl_agent/tasks/push_recovery/plugin.py:182",
+        "src/true_rl_agent/tasks/push_recovery/plugin.py:192"
+      ],
+      "finding": "The shared finalizer reconstructs terminal targets, delegates phase materialization to backend, runs/reuses typed final receipts, invokes task_plugin.summarize_final_comparison, verifies ledger immutability and settles cost/resources. Task plugin owns confirmation cohort/summary semantics. The finalizer does not decode Push recovery or choose robot-specific thresholds.",
+      "source_identical_to_A06": true,
+      "historical_execution_evidence": "A06 terminal_audit_stdout.json records shared terminal/cost/final/resource replay PASS. A06 overall experiment remained NO_GO for admission; this historical finalizer exercise does not prove A08 terminal completion."
+    },
+    {
+      "name": "task_success_and_robot_scale_are_not_harness_authorities",
+      "status": "PASS",
+      "sources": [
+        "src/true_rl_agent/tasks/push_recovery/force_runtime.py:199",
+        "src/true_rl_agent/tasks/push_recovery/force_protocol.py:70",
+        "src/true_rl_agent/tasks/push_recovery/robot_binding.py:138",
+        "src/true_rl_agent/tasks/push_recovery/phased_adapter.py",
+        "src/true_rl_agent/tasks/push_recovery/plugin.py:168",
+        "configs/robots/unitree_go2_12dof_isaaclab_v1.json",
+        "configs/robots/unitree_g1_37dof_isaaclab_v1.json"
+      ],
+      "finding": "RobotProfile owns semantic base role, morphology and default height (Go2 base/0.4m; G1 torso_link/0.74m). RuntimeAdapter supplies the selected runtime ABI. Push binding checks profile scale and freezes its task projection. Push force protocol derives velocity/time/height values from the profile length; force runtime owns fall priority and whole-sequence recovery/final-stability success, while phased adapter/plugin own scoring/selection/qualification. Shared harness consumes their typed evidence and generic acceptance protocol, not body geometry or force constants.",
+      "historical_evidence": "P6 force_unified_01/boundary_audit.json supplies the prior G1/Go2 ownership map and same task-force protocol check. Its saved two-robot diagnostics are historical evidence only, not A08 matrix execution."
+    }
+  ],
+  "prior_A06_source_reuse": {
+    "reviewed_files": 20,
+    "unchanged_count": 18,
+    "matches": {
+      "src/true_rl_agent/agent_core/generation_lanes.py": false,
+      "src/true_rl_agent/agent_core/authoring_loop.py": false,
+      "scripts/run_generation_session.py": true,
+      "src/true_rl_agent/composition/base.py": true,
+      "src/true_rl_agent/agent_core/generation_preparation.py": true,
+      "src/true_rl_agent/agent_core/generation_runtime.py": true,
+      "src/true_rl_agent/agent_core/generation.py": true,
+      "src/true_rl_agent/agent_core/generation_session.py": true,
+      "src/true_rl_agent/agent_core/session_genesis.py": true,
+      "src/true_rl_agent/agent_core/provider_errors.py": true,
+      "src/true_rl_agent/agent_core/generation_provider_budget.py": true,
+      "src/true_rl_agent/evaluation/phased_adapter.py": true,
+      "src/true_rl_agent/memory/context_builder.py": true,
+      "src/true_rl_agent/prompting/task_sections.py": true,
+      "src/true_rl_agent/tasks/push_recovery/composition.py": true,
+      "src/true_rl_agent/tasks/push_recovery/plugin.py": true,
+      "src/true_rl_agent/tasks/push_recovery/phased_adapter.py": true,
+      "src/true_rl_agent/tasks/push_recovery/robot_binding.py": true,
+      "src/true_rl_agent/robots/defaults.py": true,
+      "configs/robots/unitree_go2_12dof_isaaclab_v1.json": true
+    },
+    "interpretation": "Reuse applies only to matching source bytes; the two changed previously-reviewed files were directly re-read as part of this A08 change audit."
+  },
+  "reviewed_frozen_source_sha256": {
+    "src/true_rl_agent/agent_core/exploration.py": "f8186e72df46aa66a4d3606c0104e4936bc7880148c0aca5d56fec98a46e900f",
+    "src/true_rl_agent/agent_core/generation_lanes.py": "b02f09b9b45b453028d89a51bf789b7d1d755bb621f570b12191fe4e8ce28b70",
+    "src/true_rl_agent/agent_core/authoring_loop.py": "b4495703efe30a36b8e062ba44d95926223ef94bd3d2746c8e0bf00a1ce1e090",
+    "src/true_rl_agent/prompting/authoring_frame.py": "428b010c8651e04038ab73a760f18dd9c7ad173cedc0d71e4ec00d85696cd65b",
+    "scripts/run_generation_session.py": "c22ca5aa3ef52223e68580181bf60fee1c0ea95b2873b3aec0f05cbd711e9336",
+    "src/true_rl_agent/composition/base.py": "cdaa30b0c718ce4632da9d0a096395f18f4c813c642b79b4463d9c6810697277",
+    "src/true_rl_agent/agent_core/generation_preparation.py": "2371299274e6c101a2e13d156adddea912c31a882517fb699ade15d12b36469f",
+    "src/true_rl_agent/agent_core/generation_runtime.py": "560fbf1ea8a0e073fa898f4b6c4b5246f261fad445cf712469c92a12868cbc3c",
+    "src/true_rl_agent/agent_core/generation.py": "74684688ace8d1b2247740327318114ebe5e57964752be88dcc4b2a245d412a0",
+    "src/true_rl_agent/agent_core/generation_session.py": "3183b8537f26bb96a8d0405b44b662ff3c4e23732a49b3e4e3b6162fe002d95d",
+    "src/true_rl_agent/agent_core/session_genesis.py": "b380bd43c0f68c80b89f2f08bc9cbeb221ded7fd82c992fb40e9e1cdb0ba6941",
+    "src/true_rl_agent/agent_core/provider_errors.py": "1be6369bd1214b82ffd485dffe2999a43507f6736d1d78a369cc4c6a90f93ca4",
+    "src/true_rl_agent/agent_core/generation_provider_budget.py": "87b357df10f89d9556a7166deeb7a7a1046cdc9ac3d3b9865440d6064f36d30f",
+    "src/true_rl_agent/evaluation/phased_adapter.py": "4eaeb153e3f5db4811bc300fcae1527b9c783dec5de41755b9b6643504afaec1",
+    "src/true_rl_agent/memory/context_builder.py": "4f96d6bd12ec33fcc872db43970ed55e068db90006039f4a0dc75337abddd9fd",
+    "src/true_rl_agent/prompting/task_sections.py": "8def44ab9852e8c4843f3abfa9d5286cd230c6c380e70965c74892111c35f6a1",
+    "src/true_rl_agent/tasks/push_recovery/composition.py": "7ac4a86578908d3ddff5ed307dc98056e2e9fac5f9dbcf97cb532891971e3a61",
+    "src/true_rl_agent/tasks/push_recovery/plugin.py": "e0d135482e6d4b41e75eea3077982d77f6b52e245ad913ca21322c553a7423df",
+    "src/true_rl_agent/tasks/push_recovery/phased_adapter.py": "e772df7548709015c32a2c8ea741ee976e65728830997deb3335dbb70860c1b7",
+    "src/true_rl_agent/tasks/push_recovery/robot_binding.py": "656f903192dfc7e95cc3bca6fa8b8353a31749938e8f811e606a9a567020ce84",
+    "src/true_rl_agent/robots/defaults.py": "6244b16085847a679882457948a0a32c13b33e1e8749b8ef2e3a055a4d6492a5",
+    "configs/robots/unitree_go2_12dof_isaaclab_v1.json": "970783e60cee799890028e0303ad2470cb9a257e27890bdf87564dadab55b804",
+    "src/true_rl_agent/evaluation/acceptance_replay.py": "bc72fcf6d8fc7ca7a51391a07217f36a38b17af9b1e138c351df2106496fab8b",
+    "src/true_rl_agent/agent_core/generation_application.py": "4ed140bc1abebe1a7787f586531fa912e4e822129175293cb43cf151318e4807",
+    "src/true_rl_agent/tasks/push_recovery/memory.py": "6f92f689aad9a925f92c57c854aab59fae0703aee34c9cdf1d7f581a887dad11",
+    "src/true_rl_agent/tasks/push_recovery/force_protocol.py": "b364811434e329e5a0356f4b90525fbe9d3dc0a1ff1a76d5b038fdfd6ac0cee0",
+    "src/true_rl_agent/tasks/push_recovery/force_runtime.py": "0ddd6282a69d943a1321b5f17016c5689ee45970d34d4c4e4b1352b62340e2f9",
+    "configs/robots/unitree_g1_37dof_isaaclab_v1.json": "35ea824bdead1691861e43ee4460ea4ac2084140c5e973a2a287b213ebd5cffe"
+  },
+  "selected_cell": {
+    "cell_variant_id": "push.go2_12dof.recovery_v3",
+    "task_id": "unitree_push_recovery",
+    "manifest_hash": "fb8a03c7df15a8b6ff1033be284d60d323fc5846b127f2042d34f7d60f75bf6e"
+  },
+  "current_observed_evidence": {
+    "reference_qualification_status": "PASS_REFERENCE_TRAINING_REUSE_AND_FRESH_QUALIFICATION",
+    "prompt_audit_status": "PASS_GEN01_COMPLETE_AUTHORING_PROMPT_PROVENANCE",
+    "public_boundaries_as_audited": {
+      "private_paths_checked": 19,
+      "checkpoint_hashes_checked": 2,
+      "literal_hits": 0,
+      "public_only_guard": "PASS",
+      "task_receipt_recomputed": "PASS"
+    },
+    "new_closed_generation_count_in_snapshot": 0,
+    "new_completed_train_summaries_in_snapshot": 0,
+    "full_nonempty_A08_evaluated_history_gate_physically_exercised_claimed": false
+  },
+  "reused_A06_terminal_receipt": {
+    "actual_cost_replayed": true,
+    "final_receipts_replayed": true,
+    "ledger_and_terminal_replayed": true,
+    "resource_closure_replayed": true,
+    "status": "PASS"
+  },
+  "findings": [],
+  "acceptance_authority": false,
+  "five_round_experiment_complete": false,
+  "matrix_2x2_verified": false,
+  "limitations": [
+    "Supports current Go2 x Push source ownership and saved partial-run evidence only. G1 x Push and the two Stair cells were not executed in this audit.",
+    "The shared host intentionally freezes two authoring lanes and dev/accept/sealed phases; this is not an arbitrary workflow engine.",
+    "Absence of task tokens is supplementary to actual call-path review, not a whole-repository proof of no coupling.",
+    "A06/P6 PASS subchecks retain their original limited scope; A06 overall NO_GO remains unchanged.",
+    "A08 snapshot03 has no closed generation or completed candidate training summary yet; source and fixture review are not substitutes for remaining real training/evaluation/history/final verification.",
+    "No inference of policy improvement, failure causality or physical robot generalization from architecture compliance."
+  ],
+  "evidence_sha256": {
+    "PLAN/2new_world/Go2_push/attempt_06/harness_boundary_audit.json": "a72ec6b7c301bc64d53da6b55abeda87b35cf473501ab93f563e19e701664d89",
+    "PLAN/2new_world/P6/force_unified_01/boundary_audit.json": "9b3f2569539ca0dbf79e138850c80d0022fa1975f0b393623bfdb8f094cbabf1",
+    "PLAN/2new_world/Go2_push/attempt_06/terminal_audit_stdout.json": "12b454056841660017946b4306d96a52bd1fddba35bd2f128a8fc74f45cb7de4",
+    "PLAN/2new_world/Go2_push/attempt_06/ACCEPTANCE_ZH.md": "d427222e5eec4ce4ed095ee38e3c9ad0bd1ab94b1f27259e3c9957a3079cb8ed",
+    "PLAN/2new_world/Go2_push/attempt_08/source_boundary_review.json": "87ba59939a7e256c2a0612e4d727686825d83d62a3b46110c8101a985a4cbfcd",
+    "PLAN/2new_world/Go2_push/attempt_08/source_boundary_dynamic_probe.json": "c84cfad794734918b7f8cb548e543210e87e59ba4b257739a8893efad221afb9",
+    "PLAN/2new_world/Go2_push/attempt_08/prompt_audit_gen01.json": "9243fbc7e3b64ad860ab9b49c411b523a32d5c693db808bade7edade26d63411",
+    "PLAN/2new_world/Go2_push/attempt_08/reference_audit.json": "4531657a57d375ed56eb9300d6f3801ecabb8f491837bfc5d4778506f3a69ab0",
+    "PLAN/2new_world/Go2_push/attempt_08/session/resolved_cell_manifest.json": "a130b3a97ce4afde8574d19c575a430e8b83ec3750c40b43bc87465cfa0905dd",
+    "PLAN/2new_world/Go2_push/attempt_08/process.json": "3460f1c9dcad02e1595e57d0c6b59288581bd977af730a6bf7e2597f8cbdfe32"
+  }
+}

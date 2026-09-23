@@ -133,6 +133,10 @@ class StairPhasedEvaluationAdapter:
             result=phase_result,
         )
 
+    def project_reference_public_dev_gate(self, *, phase_result):
+        # Stair qualification retains its existing complete-suite decision.
+        return None
+
     def project_public_accept_scores(self, *, phase_result):
         from true_rl_agent.evaluation.public_accept_scores import PublicAcceptScores
         from true_rl_agent.tasks.stair_climbing.unified_scoring import build_unified_score_projection

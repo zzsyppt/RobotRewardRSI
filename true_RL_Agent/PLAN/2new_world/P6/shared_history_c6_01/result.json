@@ -1,0 +1,155 @@
+{
+  "status": "PASS",
+  "source": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/formal_go2_stair_15round_20260901_c6ab8ba",
+  "provider_requests": 0,
+  "training_jobs": 0,
+  "physical_evaluation_jobs": 0,
+  "source_sha256": {
+    "src/true_rl_agent/agent_core/context.py": "0edcc28d350169da7a23d7952019a5061af6be972b33f0a70a0436ea43ec1e7c",
+    "src/true_rl_agent/agent_core/experiment_memory.py": "0f5fbf8bc3bb346443f310fbf621b2139cd00e058e31b2b6448299e098a54c57",
+    "src/true_rl_agent/agent_core/generation_contract.py": "db875ba8931fe1aafd9c8d471ac83e677ab24ba22e7e01f77fa6a570e754acf8",
+    "src/true_rl_agent/agent_core/generation_lanes.py": "c21a4460c06a9f849e743f4fb0bd4ac41b781d56205a2957151a2506398fae01",
+    "src/true_rl_agent/agent_core/generation_record.py": "5dfa9bbfed8ff07fbd94046e920c41bc40434e1974f006a67fe2c69fe97e56e3",
+    "src/true_rl_agent/agent_core/generation_runtime.py": "1313adb36ed7b4a045f95e812816e6fd95e7efc022a1924d9cb9c849ce05a438",
+    "src/true_rl_agent/agent_core/live_loop.py": "8184bda734c205e375c3e82ab2294c489409f2f890547212503711c766690ac3",
+    "src/true_rl_agent/evaluation/acceptance_replay.py": "bc72fcf6d8fc7ca7a51391a07217f36a38b17af9b1e138c351df2106496fab8b",
+    "src/true_rl_agent/memory/context_builder.py": "4f96d6bd12ec33fcc872db43970ed55e068db90006039f4a0dc75337abddd9fd",
+    "src/true_rl_agent/prompting/source_catalog.py": "c39ca4c8cd4b14b308bcb76814cb03b7765bd1efbe29706bf62cdc43013d99bd",
+    "src/true_rl_agent/tasks/push_recovery/loop_audit.py": "17c6aca9bf60824579d662e0713e5d52f4aa4abd531e9b69ffd0eb30cf8e544a",
+    "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py": "7809393dd06aa68329302c46f78fe893faf91910bfe9d53279aa0d3a2546c4d3",
+    "src/true_rl_agent/tasks/stair_climbing/exploration.py": "f87cc3ff514838b02862ee2b088f00eb0f1f917603a0650dce453819fb922cda",
+    "src/true_rl_agent/tasks/stair_climbing/generation_history.py": "b1cd203e6fe835d19486a113fda8187df920d4277536b00470f17bbdc93c446c",
+    "src/true_rl_agent/tasks/stair_climbing/prompt_adapter.py": "ef4867ea69bfeb7285b166c74ef6141bf7bb8091fb34ad7be2440cfcf7068706",
+    "src/true_rl_agent/tasks/stair_climbing/selection.py": "d14044722a913b2695eb2fbc9e9c063ae157e713342f2760564ec4d3670357de",
+    "src/true_rl_agent/tasks/stair_climbing/unified_scoring.py": "14928e380edaeb8c17189e4a89893118d57a979e26c10203edaef7fb3e408995",
+    "PLAN/2new_world/P6/audit_shared_public_history.py": "4cc1dea6f93360aff351e053e4fc5542ee57de6a609d1954e1d9b5a7f1fc4f96"
+  },
+  "injection_routes": {
+    "evidence_kind": "source inspection, not five independent session launches",
+    "routes": {
+      "agent_core/generation_runtime.py": [
+        {
+          "line": 69,
+          "adapter_expression": "foundation.phased_adapter"
+        }
+      ],
+      "agent_core/generation_lanes.py": [
+        {
+          "line": 49,
+          "adapter_expression": "phased_adapter"
+        }
+      ],
+      "agent_core/live_loop.py": [
+        {
+          "line": 405,
+          "adapter_expression": "task_plugin.phased_evaluation_adapter()"
+        }
+      ],
+      "tasks/stair_climbing/generation_history.py": [
+        {
+          "line": 1701,
+          "adapter_expression": "foundation.phased_adapter"
+        }
+      ],
+      "tasks/push_recovery/loop_audit.py": [
+        {
+          "line": 350,
+          "adapter_expression": "task.phased_evaluation_adapter()"
+        }
+      ]
+    }
+  },
+  "adapter": "StairPhasedEvaluationAdapter",
+  "frames": [
+    {
+      "next_generation": 4,
+      "prompt_bytes": 94946,
+      "memory_bytes": 8307,
+      "retained_trials": 6,
+      "g3_a_trial": "formal-go2-stair-15round-20260901-c6ab8ba-generation-003-lane-a",
+      "g3_b_trial": "formal-go2-stair-15round-20260901-c6ab8ba-generation-003-lane-b",
+      "g3_a_delta": [
+        0.000336,
+        0.000504
+      ],
+      "g3_parent_checkpoint": "sha256:fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729",
+      "g3_parent_summary_hash": "38a0d4f38c1b390ddd6c342824a065b778495ba9ed13a4c81444e6c0b44a7c02",
+      "g3_a_scheduler_effect": "positive",
+      "g3_a_revisit_disposition": "eligible",
+      "scheduler_lane_intents": [
+        {
+          "schema_version": "true_rl_agent.generation_lane_intent.exploration.v1",
+          "lane_id": "lane-a",
+          "mode": "novel",
+          "current_head_hash": "ad60929126dc8502e89bbeda14412b7eac8518c160c1f616e269025716ceac9b",
+          "inspired_by_trial_id": null,
+          "inspired_by_card_hash": null,
+          "hypothesis": null,
+          "verifier_equivalence_exclusion_set_hash": "e211db9cad51e9c95c80b2a3d1bd1a2485eabc008cc49951404a8ad00ac3965b",
+          "acceptance_authority": false
+        },
+        {
+          "schema_version": "true_rl_agent.generation_lane_intent.exploration.v1",
+          "lane_id": "lane-b",
+          "mode": "novel",
+          "current_head_hash": "ad60929126dc8502e89bbeda14412b7eac8518c160c1f616e269025716ceac9b",
+          "inspired_by_trial_id": null,
+          "inspired_by_card_hash": null,
+          "hypothesis": null,
+          "verifier_equivalence_exclusion_set_hash": "e211db9cad51e9c95c80b2a3d1bd1a2485eabc008cc49951404a8ad00ac3965b",
+          "acceptance_authority": false
+        }
+      ],
+      "same_parent_and_deltas": true,
+      "unmeasured_sibling_has_no_delta": true,
+      "private_safety_passed": true
+    },
+    {
+      "next_generation": 13,
+      "prompt_bytes": 102263,
+      "memory_bytes": 14080,
+      "retained_trials": 24,
+      "g3_a_trial": "formal-go2-stair-15round-20260901-c6ab8ba-generation-003-lane-a",
+      "g3_b_trial": "formal-go2-stair-15round-20260901-c6ab8ba-generation-003-lane-b",
+      "g3_a_delta": [
+        0.000336,
+        0.000504
+      ],
+      "g3_parent_checkpoint": "sha256:fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729",
+      "g3_parent_summary_hash": "38a0d4f38c1b390ddd6c342824a065b778495ba9ed13a4c81444e6c0b44a7c02",
+      "g3_a_scheduler_effect": "positive",
+      "g3_a_revisit_disposition": "eligible",
+      "scheduler_lane_intents": [
+        {
+          "schema_version": "true_rl_agent.generation_lane_intent.exploration.v1",
+          "lane_id": "lane-a",
+          "mode": "novel",
+          "current_head_hash": "7c2756aeb0ea21d1db378779d4db5fb3bade4081bd2e016302d889f750448eb9",
+          "inspired_by_trial_id": null,
+          "inspired_by_card_hash": null,
+          "hypothesis": null,
+          "verifier_equivalence_exclusion_set_hash": "3fd57ad0019c5bf1f85ff961a366083ccd81be7abd6d0ffa54ea42cd18efc1cd",
+          "acceptance_authority": false
+        },
+        {
+          "schema_version": "true_rl_agent.generation_lane_intent.exploration.v1",
+          "lane_id": "lane-b",
+          "mode": "novel",
+          "current_head_hash": "7c2756aeb0ea21d1db378779d4db5fb3bade4081bd2e016302d889f750448eb9",
+          "inspired_by_trial_id": null,
+          "inspired_by_card_hash": null,
+          "hypothesis": null,
+          "verifier_equivalence_exclusion_set_hash": "3fd57ad0019c5bf1f85ff961a366083ccd81be7abd6d0ffa54ea42cd18efc1cd",
+          "acceptance_authority": false
+        }
+      ],
+      "same_parent_and_deltas": true,
+      "unmeasured_sibling_has_no_delta": true,
+      "private_safety_passed": true
+    }
+  ],
+  "elapsed_s": 121.66845674812794,
+  "protected_file_count": 1271,
+  "protected_bytes": 619640092,
+  "source_unchanged": true
+}

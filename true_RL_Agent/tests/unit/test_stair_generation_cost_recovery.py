@@ -22,7 +22,6 @@ from true_rl_agent.tasks.stair_climbing.config import StairClimbingTaskConfig
 from true_rl_agent.agent_core.generation_session import (
     assert_actual_cost_receipt_matches_usage,
     _current_validation_boundary_cost_receipt,
-    publish_or_validate_generation_closure,
     _replay_validation_combined_cost_chain,
     _validation_boundary_was_already_paused,
 )

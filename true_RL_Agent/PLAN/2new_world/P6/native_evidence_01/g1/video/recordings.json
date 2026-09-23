@@ -1,0 +1,622 @@
+{
+  "checkpoint": {
+    "byte_read_status": "pass",
+    "checkpoint_hash": "sha256:0a16d82b0653a019ec7e23faaa9f18dd93e2cf5b9bb1d07c1c9674356b50243b",
+    "checkpoint_hash_match_status": "pass",
+    "expected_checkpoint_hash": "sha256:0a16d82b0653a019ec7e23faaa9f18dd93e2cf5b9bb1d07c1c9674356b50243b",
+    "file_exists": true,
+    "loader_error_class": null,
+    "loader_error_summary": null,
+    "reason": "checkpoint_safe_to_load",
+    "schema_version": "true_rl_agent.checkpoint_safety_report.v1",
+    "status": "pass",
+    "weights_only_load_status": "pass"
+  },
+  "checkpoint_loading": {
+    "actor_loaded": true,
+    "checkpoint_format": "rsl_rl_5",
+    "critic_loaded": true,
+    "iteration_loaded": false,
+    "optimizer_loaded": false
+  },
+  "reclassified_by_video_exporter": false,
+  "recordings": [
+    {
+      "camera_eye_offset": [
+        4.5,
+        -4.5,
+        3.0
+      ],
+      "camera_lookat_offset": [
+        0.8,
+        0.0,
+        0.0
+      ],
+      "control_dt_s": 0.02,
+      "encoder": "imageio_ffmpeg_raw_rgb",
+      "env_index": 48,
+      "episode_evidence_source": "pre_reset_task_state",
+      "episode_outcome": {
+        "control_failure_label": null,
+        "control_only": false,
+        "control_success": false,
+        "env_id": 48,
+        "episode_index": 1,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 0.6543988585472107,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.0671466514468193,
+        "max_abs_roll_rad": 0.10392596572637558,
+        "max_pitch_rad": 0.0671466514468193,
+        "max_xy_drift_m": 1.2050583362579346,
+        "mean_action_l2": 5.797945781818871,
+        "mean_action_rate_l2": 6.055470883267597,
+        "min_base_height_m": 0.642494797706604,
+        "min_pitch_rad": -0.05225657299160957,
+        "planned_push_count": 2,
+        "push_event_count": 2,
+        "push_events": [
+          {
+            "control_step": 69,
+            "event_index": 0,
+            "injection_verified": true,
+            "observed_delta_v_world_mps": [
+              -0.5153689384460449,
+              0.6226884126663208
+            ],
+            "recovered": false,
+            "recovery_censored": true,
+            "recovery_control_step": null,
+            "recovery_latency_s": 2.2,
+            "requested_delta_v_world_mps": [
+              -0.5153689980506897,
+              0.6226884126663208
+            ],
+            "time_s": 1.3800000000000001,
+            "velocity_after_next_physics_step_world_6d": [
+              -0.9997342228889465,
+              0.3967567980289459,
+              0.4443089962005615,
+              -0.3228427767753601,
+              1.1495435237884521,
+              -2.1245229244232178
+            ],
+            "velocity_after_write_world_6d": [
+              -0.9773896932601929,
+              1.0843925476074219,
+              0.1334773153066635,
+              1.3187391757965088,
+              0.5944560170173645,
+              0.7383366227149963
+            ],
+            "velocity_before_world_6d": [
+              -0.46202072501182556,
+              0.4617041349411011,
+              0.1334773153066635,
+              1.3187391757965088,
+              0.5944560170173645,
+              0.7383366227149963
+            ]
+          },
+          {
+            "control_step": 234,
+            "event_index": 1,
+            "injection_verified": true,
+            "observed_delta_v_world_mps": [
+              -0.6226884126663208,
+              -0.5153689384460449
+            ],
+            "recovered": false,
+            "recovery_censored": true,
+            "recovery_control_step": null,
+            "recovery_latency_s": 2.2,
+            "requested_delta_v_world_mps": [
+              -0.6226884722709656,
+              -0.5153689384460449
+            ],
+            "time_s": 4.68,
+            "velocity_after_next_physics_step_world_6d": [
+              -0.8508282899856567,
+              0.02738136611878872,
+              0.3660889267921448,
+              2.3545913696289062,
+              0.4586460292339325,
+              -3.02567458152771
+            ],
+            "velocity_after_write_world_6d": [
+              -0.5495548248291016,
+              -0.6659939289093018,
+              0.0972692221403122,
+              -1.4189106225967407,
+              -0.8647422194480896,
+              -1.558040738105774
+            ],
+            "velocity_before_world_6d": [
+              0.07313361763954163,
+              -0.15062496066093445,
+              0.0972692221403122,
+              -1.4189106225967407,
+              -0.8647422194480896,
+              -1.558040738105774
+            ]
+          }
+        ],
+        "recovered_event_count": 0,
+        "stratum": "repeated",
+        "success": false
+      },
+      "file": "public_dev-01.mp4",
+      "fps": 50.0,
+      "frame_count": 411,
+      "other_envs_visually_hidden": true,
+      "recording_status": "recorded",
+      "render_warmup_frames": 8,
+      "resolution": [
+        1280,
+        720
+      ],
+      "resolved_protocol_hash": "ff050770bf562710cbf49fe5837b7e8045a9f00d75a5ef043649bbed2302f28c",
+      "run_index": 1,
+      "seed": 10042,
+      "sha256": "9ed1db2e2827f43b89a4b4f4130de9f88a42020398b542e593195969a324d831",
+      "simulated_duration_s": 8.22,
+      "split": "public_dev",
+      "start_control_step": 1,
+      "starts_at_reset": false
+    },
+    {
+      "camera_eye_offset": [
+        4.5,
+        -4.5,
+        3.0
+      ],
+      "camera_lookat_offset": [
+        0.8,
+        0.0,
+        0.0
+      ],
+      "control_dt_s": 0.02,
+      "encoder": "imageio_ffmpeg_raw_rgb",
+      "env_index": 48,
+      "episode_evidence_source": "pre_reset_task_state",
+      "episode_outcome": {
+        "control_failure_label": null,
+        "control_only": false,
+        "control_success": false,
+        "env_id": 48,
+        "episode_index": 2,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 0.7136790752410889,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.07655420899391174,
+        "max_abs_roll_rad": 0.11324098706245422,
+        "max_pitch_rad": 0.07655420899391174,
+        "max_xy_drift_m": 0.8283722996711731,
+        "mean_action_l2": 6.022504788000607,
+        "mean_action_rate_l2": 6.076811262704794,
+        "min_base_height_m": 0.6587826609611511,
+        "min_pitch_rad": -0.07410073280334473,
+        "planned_push_count": 2,
+        "push_event_count": 2,
+        "push_events": [
+          {
+            "control_step": 69,
+            "event_index": 0,
+            "injection_verified": true,
+            "observed_delta_v_world_mps": [
+              0.6972180604934692,
+              0.4089413583278656
+            ],
+            "recovered": false,
+            "recovery_censored": true,
+            "recovery_control_step": null,
+            "recovery_latency_s": 2.2,
+            "requested_delta_v_world_mps": [
+              0.6972180604934692,
+              0.4089413583278656
+            ],
+            "time_s": 1.3800000000000001,
+            "velocity_after_next_physics_step_world_6d": [
+              0.7891390323638916,
+              0.10563318431377411,
+              -0.09924282878637314,
+              -1.489446759223938,
+              0.6579799056053162,
+              -2.95685076713562
+            ],
+            "velocity_after_write_world_6d": [
+              0.9388843774795532,
+              0.47432759404182434,
+              0.23838916420936584,
+              -0.29558342695236206,
+              1.4682613611221313,
+              -10.990639686584473
+            ],
+            "velocity_before_world_6d": [
+              0.24166634678840637,
+              0.06538623571395874,
+              0.23838916420936584,
+              -0.29558342695236206,
+              1.4682613611221313,
+              -10.990639686584473
+            ]
+          },
+          {
+            "control_step": 234,
+            "event_index": 1,
+            "injection_verified": true,
+            "observed_delta_v_world_mps": [
+              -0.4089413583278656,
+              0.6972180604934692
+            ],
+            "recovered": false,
+            "recovery_censored": true,
+            "recovery_control_step": null,
+            "recovery_latency_s": 2.2,
+            "requested_delta_v_world_mps": [
+              -0.4089413583278656,
+              0.6972180604934692
+            ],
+            "time_s": 4.68,
+            "velocity_after_next_physics_step_world_6d": [
+              -0.3932248055934906,
+              0.1744011789560318,
+              0.6964681148529053,
+              -3.8018903732299805,
+              -0.1854044646024704,
+              -3.0867772102355957
+            ],
+            "velocity_after_write_world_6d": [
+              -0.9004959464073181,
+              1.1873048543930054,
+              0.6078711748123169,
+              0.630587637424469,
+              2.8915719985961914,
+              -2.3526358604431152
+            ],
+            "velocity_before_world_6d": [
+              -0.4915545880794525,
+              0.49008679389953613,
+              0.6078711748123169,
+              0.630587637424469,
+              2.8915719985961914,
+              -2.3526358604431152
+            ]
+          }
+        ],
+        "recovered_event_count": 0,
+        "stratum": "repeated",
+        "success": false
+      },
+      "file": "public_dev-02.mp4",
+      "fps": 50.0,
+      "frame_count": 411,
+      "other_envs_visually_hidden": true,
+      "recording_status": "recorded",
+      "render_warmup_frames": 8,
+      "resolution": [
+        1280,
+        720
+      ],
+      "resolved_protocol_hash": "ff050770bf562710cbf49fe5837b7e8045a9f00d75a5ef043649bbed2302f28c",
+      "run_index": 2,
+      "seed": 10043,
+      "sha256": "28af311b8c7db8c221be1c8f4d090c25ff39d6622a19ee78df4d18fde3ed7ca0",
+      "simulated_duration_s": 8.22,
+      "split": "public_dev",
+      "start_control_step": 1,
+      "starts_at_reset": false
+    },
+    {
+      "camera_eye_offset": [
+        4.5,
+        -4.5,
+        3.0
+      ],
+      "camera_lookat_offset": [
+        0.8,
+        0.0,
+        0.0
+      ],
+      "control_dt_s": 0.02,
+      "encoder": "imageio_ffmpeg_raw_rgb",
+      "env_index": 48,
+      "episode_evidence_source": "pre_reset_task_state",
+      "episode_outcome": {
+        "control_failure_label": null,
+        "control_only": false,
+        "control_success": false,
+        "env_id": 48,
+        "episode_index": 3,
+        "episode_steps": 412,
+        "failure_label": "not_recovered",
+        "final_planar_speed_mps": 0.3964032530784607,
+        "final_recovery_condition": false,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.07859557121992111,
+        "max_abs_roll_rad": 0.10054367780685425,
+        "max_pitch_rad": 0.07859557121992111,
+        "max_xy_drift_m": 1.1423094272613525,
+        "mean_action_l2": 5.7882080078125,
+        "mean_action_rate_l2": 6.021617704224818,
+        "min_base_height_m": 0.656542181968689,
+        "min_pitch_rad": -0.04898892343044281,
+        "planned_push_count": 2,
+        "push_event_count": 2,
+        "push_events": [
+          {
+            "control_step": 69,
+            "event_index": 0,
+            "injection_verified": true,
+            "observed_delta_v_world_mps": [
+              0.2521737217903137,
+              0.7679546475410461
+            ],
+            "recovered": false,
+            "recovery_censored": true,
+            "recovery_control_step": null,
+            "recovery_latency_s": 2.2,
+            "requested_delta_v_world_mps": [
+              0.2521737217903137,
+              0.7679547071456909
+            ],
+            "time_s": 1.3800000000000001,
+            "velocity_after_next_physics_step_world_6d": [
+              0.013752352446317673,
+              1.1143710613250732,
+              0.8535107970237732,
+              1.458164930343628,
+              1.7155139446258545,
+              -4.59193229675293
+            ],
+            "velocity_after_write_world_6d": [
+              0.446949303150177,
+              1.3018662929534912,
+              -0.04939510300755501,
+              0.47458621859550476,
+              -1.7077388763427734,
+              -5.989026069641113
+            ],
+            "velocity_before_world_6d": [
+              0.19477558135986328,
+              0.5339116454124451,
+              -0.04939510300755501,
+              0.47458621859550476,
+              -1.7077388763427734,
+              -5.989026069641113
+            ]
+          },
+          {
+            "control_step": 234,
+            "event_index": 1,
+            "injection_verified": true,
+            "observed_delta_v_world_mps": [
+              -0.7679547667503357,
+              0.25217366218566895
+            ],
+            "recovered": false,
+            "recovery_censored": true,
+            "recovery_control_step": null,
+            "recovery_latency_s": 2.2,
+            "requested_delta_v_world_mps": [
+              -0.7679547667503357,
+              0.25217366218566895
+            ],
+            "time_s": 4.68,
+            "velocity_after_next_physics_step_world_6d": [
+              -1.7677321434020996,
+              0.7189839482307434,
+              0.035636886954307556,
+              1.202821135520935,
+              4.231608867645264,
+              1.1140602827072144
+            ],
+            "velocity_after_write_world_6d": [
+              -0.23100197315216064,
+              0.540696382522583,
+              0.12277445942163467,
+              -0.18704402446746826,
+              -2.7092220783233643,
+              -1.7351410388946533
+            ],
+            "velocity_before_world_6d": [
+              0.536952793598175,
+              0.28852272033691406,
+              0.12277445942163467,
+              -0.18704402446746826,
+              -2.7092220783233643,
+              -1.7351410388946533
+            ]
+          }
+        ],
+        "recovered_event_count": 0,
+        "stratum": "repeated",
+        "success": false
+      },
+      "file": "public_dev-03.mp4",
+      "fps": 50.0,
+      "frame_count": 411,
+      "other_envs_visually_hidden": true,
+      "recording_status": "recorded",
+      "render_warmup_frames": 8,
+      "resolution": [
+        1280,
+        720
+      ],
+      "resolved_protocol_hash": "ff050770bf562710cbf49fe5837b7e8045a9f00d75a5ef043649bbed2302f28c",
+      "run_index": 3,
+      "seed": 10044,
+      "sha256": "50b3a8892f4adf8e55c018c81a085fee06e33b1865b4d0e5ab93dd1b537239f8",
+      "simulated_duration_s": 8.22,
+      "split": "public_dev",
+      "start_control_step": 1,
+      "starts_at_reset": false
+    }
+  ],
+  "resolved_cell_manifest_hash": "7fca96669153de0679c7cdd52911fecd407dc48e9f9c6e56adfb588a34061ace",
+  "runtime_dynamics": {
+    "active_profile": "strong_push",
+    "candidate_can_change": false,
+    "environment": {
+      "episode_length_s": 8.239533254795488
+    },
+    "observation_corruption": {
+      "eval": false,
+      "train": true
+    },
+    "push_protocol": {
+      "episode_time_scale": 30.0,
+      "fall_height_scale": 0.45,
+      "fall_tilt_rad": 0.8,
+      "first_push_time_scale": 5.0,
+      "gravity_mps2": 9.81,
+      "high_velocity_scale": 0.5,
+      "injection_tolerance_mps": 1e-05,
+      "low_velocity_scale": 0.15,
+      "max_displacement_scale": 3.0,
+      "medium_velocity_scale": 0.3,
+      "protocol_id": "push_recovery_planar_delta_velocity_v2",
+      "protocol_state": "active",
+      "recovery_angular_velocity_scale": 0.5,
+      "recovery_height_scale": 0.7,
+      "recovery_tilt_rad": 0.2,
+      "recovery_velocity_scale": 0.08,
+      "recovery_window_time_scale": 8.0,
+      "schema_version": "true_rl_agent.task.push_recovery.protocol.v2",
+      "second_push_time_scale": 17.0,
+      "stable_dwell_time_scale": 1.5
+    },
+    "push_resolved_protocol": {
+      "episode_length_s": 8.239533254795488,
+      "evaluation_cohort_counts": {
+        "high": 16,
+        "low": 16,
+        "medium": 16,
+        "repeated": 16
+      },
+      "evaluation_direction_policy": {
+        "angular_range_rad": [
+          0.0,
+          6.283185307179586
+        ],
+        "count": 16,
+        "phase": "python_random_runner_seed_uniform_0_2pi_v1",
+        "second_event_offset_rad": 1.5707963267948966
+      },
+      "fall_height_m": 0.333,
+      "fall_tilt_rad": 0.8,
+      "injection_tolerance_mps": 1e-05,
+      "max_displacement_m": 2.2199999999999998,
+      "mechanism": "world_planar_velocity_increment",
+      "protocol_hash": "a51f190bab162281d6d014285dde612f73763fb20457bc690a5f7c3a5aaeb778",
+      "push_times_s": [
+        1.3732555424659145,
+        4.6690688443841095
+      ],
+      "recovery_angular_velocity_radps": 1.8204914691338683,
+      "recovery_height_m": 0.518,
+      "recovery_tilt_rad": 0.2,
+      "recovery_velocity_mps": 0.21554618994545,
+      "recovery_window_s": 2.1972088679454633,
+      "reset": {
+        "joint_position_scale": [
+          1.0,
+          1.0
+        ],
+        "joint_velocity_range": [
+          0.0,
+          0.0
+        ],
+        "root_pose_range": {
+          "x": [
+            0.0,
+            0.0
+          ],
+          "y": [
+            0.0,
+            0.0
+          ],
+          "yaw": [
+            -3.141592653589793,
+            3.141592653589793
+          ]
+        },
+        "root_velocity_range": {
+          "pitch": [
+            0.0,
+            0.0
+          ],
+          "roll": [
+            0.0,
+            0.0
+          ],
+          "x": [
+            0.0,
+            0.0
+          ],
+          "y": [
+            0.0,
+            0.0
+          ],
+          "yaw": [
+            0.0,
+            0.0
+          ],
+          "z": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "resolved_protocol_hash": "ff050770bf562710cbf49fe5837b7e8045a9f00d75a5ef043649bbed2302f28c",
+      "robot_scale_m": 0.74,
+      "schema_version": "true_rl_agent.task.push_recovery.resolved_protocol.v2",
+      "stable_dwell_s": 0.4119766627397744,
+      "time_scale_s": 0.2746511084931829,
+      "training_sampling": {
+        "angular_range_rad": [
+          0.0,
+          6.283185307179586
+        ],
+        "event_directions": "independent_uniform",
+        "stratum_probabilities": {
+          "high": 0.25,
+          "low": 0.25,
+          "medium": 0.25,
+          "repeated": 0.25
+        }
+      },
+      "velocity_magnitudes_mps": {
+        "high": 1.3471636871590624,
+        "low": 0.4041491061477187,
+        "medium": 0.8082982122954374
+      },
+      "velocity_scale_mps": 2.694327374318125
+    },
+    "push_robot_scale_m": 0.74,
+    "reward_execution": {
+      "integration": "reward_manager_once_by_control_dt",
+      "mode": "complete_program_replacement",
+      "output": "reward_rate",
+      "state": "pre_reset_transition"
+    },
+    "runner_owned": true,
+    "runtime_adapter_id": "g1_37dof_isaaclab_adapter_v2",
+    "runtime_dynamics_hash": "sha256:6a573c38fb16e12631f4d031208df83e3ee98255d4ab2c9179842488d8914343",
+    "schema_version": "true_rl_agent.task.push_recovery.public_runtime_dynamics.v3",
+    "standing_command": {
+      "commanded_locomotion_is_zero": true
+    },
+    "task": {
+      "agent_configuration_hash": "8a5d64c47ac034695d2eec23ff60a89ecbf1253694edb8c373a4da86872bb450",
+      "environment_cfg_entrypoint": "true_rl_agent.robots.isaaclab_locomotion:_g1_environment_cfg",
+      "runner_cfg_entrypoint": "isaaclab_tasks.manager_based.locomotion.velocity.config.g1.agents.rsl_rl_ppo_cfg:G1RoughPPORunnerCfg",
+      "runtime_adapter_id": "g1_37dof_isaaclab_adapter_v2"
+    }
+  },
+  "schema_version": "true_rl_agent.push_recovery.native_video.v2"
+}

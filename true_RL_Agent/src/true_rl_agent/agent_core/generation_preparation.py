@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from true_rl_agent.agent_core.generation_contract import GENERATION_LEDGER_RECORD_V2_SCHEMA_VERSION
+from true_rl_agent.agent_core.generation_contract import GENERATION_LEDGER_RECORD_V3_SCHEMA_VERSION
 
 from collections.abc import Mapping
 from dataclasses import dataclass, replace
@@ -13,12 +13,13 @@ from true_rl_agent.agent_core.generation_contract import (
     GENERATION_LANE_IDS, GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION,
     GenerationLaneAssignment, GenerationSessionContract,
     generation_resource_plan_hash, publish_generation_session_contract,
+    load_replay_generation_session_contract,
 )
 from true_rl_agent.agent_core.generation_cost import FrozenGenerationCostContract
 from true_rl_agent.agent_core.generation_finalization import GenerationFinalPlan, publish_final_plan
 from true_rl_agent.agent_core.generation_foundation import GenerationSessionFoundation
 from true_rl_agent.agent_core.generation_lifecycle import (
-    GENERATION_CONTINUATION_POLICY_V2_SCHEMA_VERSION,
+    GENERATION_CONTINUATION_POLICY_FILENAME, GENERATION_CONTINUATION_POLICY_V2_SCHEMA_VERSION,
     GenerationContinuationPolicy, publish_generation_continuation_policy,
 )
 from true_rl_agent.agent_core.generation_operations import OperationAdmission
@@ -48,6 +49,8 @@ class GenerationLaunchConfig:
     max_output_bytes: int
     source_reference_genesis_dir: Path | None = None
     source_reference_session_id: str | None = None
+    source_reference_training_genesis_dir: Path | None = None
+    source_reference_training_session_id: str | None = None
     resume_existing: bool = False
     pause_after_generation: int | None = None
     terminal_audit_only: bool = False
@@ -56,20 +59,37 @@ class GenerationLaunchConfig:
     max_generations: int = 15
 
     def __post_init__(self) -> None:
+        if type(self.max_generations) is not int or self.max_generations <= 0:
+            raise ValueError("generation max_generations must be a positive integer")
         for name in ("project_root", "output_dir", "lease_root", "provider_env_file"):
             value = getattr(self, name)
             if not isinstance(value, Path) or not value.is_absolute():
                 raise ValueError(f"generation {name} must be an absolute Path")
         if (self.source_reference_genesis_dir is None) != (self.source_reference_session_id is None):
             raise ValueError("reference import requires both source directory and session identity")
-        if self.pause_after_generation is not None and self.pause_after_generation not in (3, 6, 9, 12):
-            raise ValueError("pause must use a precommitted generation boundary")
+        if (self.source_reference_training_genesis_dir is None) != (self.source_reference_training_session_id is None):
+            raise ValueError("reference training reuse requires source directory and session identity")
+        if self.reuses_reference_training:
+            source = self.source_reference_training_genesis_dir
+            if not isinstance(source, Path) or not source.is_absolute() or source.resolve() == self.output_dir.resolve():
+                raise ValueError("reference training source must be an absolute, different directory")
+            if self.imports_reference_genesis:
+                raise ValueError("reference training reuse and full Genesis import are mutually exclusive")
+        if self.pause_after_generation is not None and (
+            type(self.pause_after_generation) is not int
+            or not 1 <= self.pause_after_generation < self.max_generations
+        ):
+            raise ValueError("pause must follow a nonterminal complete generation")
         if self.terminal_audit_only and (not self.resume_existing or self.pause_after_generation is not None):
             raise ValueError("terminal audit requires resume without an execution pause")
 
     @property
     def imports_reference_genesis(self) -> bool:
         return self.source_reference_genesis_dir is not None
+
+    @property
+    def reuses_reference_training(self) -> bool:
+        return self.source_reference_training_genesis_dir is not None
 
 
 def _json_value(value):
@@ -116,6 +136,10 @@ def prepare_generation_foundation(
             or cost.max_output_bytes > config.max_output_bytes):
         raise ValueError("operator limits cannot reserve the requested session")
     budget = cost.provider_budget
+    from true_rl_agent.agent_core.provider_limits import validate_provider_model_context
+    model_context = validate_provider_model_context(provider_policy.get("model_context"))
+    if budget.input_units_per_attempt_reserve + budget.output_units_per_attempt_cap > model_context["context_window_tokens"]:
+        raise ValueError("reserved input and requested output exceed the provider context window")
     generation_provider_config(output_dir=config.output_dir / "provider_candidates",
                                env_file=config.provider_env_file, policy=provider_policy)
     if (provider_policy["max_attempts_per_lane"] != budget.attempts_per_lane_per_generation
@@ -136,8 +160,23 @@ def prepare_generation_foundation(
         schema_version=GENERATION_CONTINUATION_POLICY_V2_SCHEMA_VERSION, max_segments=7,
         allowed_continuation_reasons=("operator_pause", "typed_infrastructure_failure", "exception",
                                       "budget_exhausted", "contract_incomplete"),
-        operator_pause_generation_boundaries=(3, 6, 9, 12),
+        operator_pause_generation_boundaries=tuple(range(1, config.max_generations)),
     )
+    if config.resume_existing:
+        stored_continuation = GenerationContinuationPolicy.from_mapping(
+            load_strict_json_object(config.output_dir / GENERATION_CONTINUATION_POLICY_FILENAME,
+                                    require_canonical=True, trailing_newline=True)
+        )
+        if not set(stored_continuation.operator_pause_generation_boundaries).issubset(
+            continuation.operator_pause_generation_boundaries
+        ):
+            raise ValueError("stored pause boundaries exceed the generation contract")
+        # Reuse the committed subset; publication still verifies every other policy field.
+        continuation = replace(continuation,
+            operator_pause_generation_boundaries=stored_continuation.operator_pause_generation_boundaries)
+    if (config.pause_after_generation is not None
+            and config.pause_after_generation not in continuation.operator_pause_generation_boundaries):
+        raise ValueError("requested pause is not declared by the frozen continuation policy")
     resource_assignments = tuple(
         GenerationLaneAssignment(
             lane_id=lane, execution_device=binding.process_execution_device,
@@ -147,7 +186,8 @@ def prepare_generation_foundation(
         ) for lane, binding in zip(GENERATION_LANE_IDS, bindings, strict=True)
     )
     authoring_policy = {
-        "schema_version": "true_rl_agent.generation_authoring_policy.v1",
+        "schema_version": "true_rl_agent.generation_authoring_policy.v2",
+        "failed_lane_does_not_cancel_sibling_authoring": False,
         "authoring_order": list(GENERATION_LANE_IDS),
         "sibling_semantic_exclusion": True, "both_candidates_ready_barrier": True,
         "candidate_admission_policy": _json_value(composition.candidate_admission_policy.admission_policy_descriptor().to_public_dict()),
@@ -163,7 +203,7 @@ def prepare_generation_foundation(
     }
     contract = GenerationSessionContract(
         schema_version=GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION,
-        ledger_record_schema=GENERATION_LEDGER_RECORD_V2_SCHEMA_VERSION,
+        ledger_record_schema=GENERATION_LEDGER_RECORD_V3_SCHEMA_VERSION,
         session_mode=config.session_mode, session_id=config.session_id,
         task_id=composition.task_id, backend_id=composition.backend_adapter.backend_id,
         max_generations=config.max_generations, max_trials=2 * config.max_generations,
@@ -198,9 +238,12 @@ def prepare_generation_foundation(
     publish_generation_continuation_policy(
         config.output_dir, continuation, require_existing=config.resume_existing,
     )
-    contract_ref = publish_generation_session_contract(
-        config.output_dir, contract, require_existing=config.resume_existing,
-    )
+    if config.terminal_audit_only:
+        contract, contract_ref = load_replay_generation_session_contract(config.output_dir, contract)
+    else:
+        contract_ref = publish_generation_session_contract(
+            config.output_dir, contract, require_existing=config.resume_existing,
+        )
     runner = replace(composition.runner, gpu_lease_manager=manager,
                      attempt_admission_hook=OperationAdmission(
                          output_dir=config.output_dir, session_id=config.session_id,

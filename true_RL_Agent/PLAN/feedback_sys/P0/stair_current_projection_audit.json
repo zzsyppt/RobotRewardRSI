@@ -1,0 +1,1574 @@
+[
+  {
+    "robot": "go2",
+    "source": "PLAN/2new_world/P3/results/cohort_alignment_20260909/go2_12dof_qualification/evaluation/public_dev/summary.json",
+    "kind": "cpu_current_task_feedback_projection_of_historical_real_public_dev",
+    "scope": "task_feedback_only; no_provider_request; no_session_genesis_mask_assertion",
+    "feedback": {
+      "source_split": "public_dev",
+      "generalization_summary": {
+        "public_dev_objective_score": 0.7466970595216049,
+        "j_id": 1.0,
+        "j_ood": 0.7466970595216049,
+        "named_guard_scores": {
+          "j_ood": 0.7466970595216049,
+          "c0_id": 1.0,
+          "c1_id": 1.0,
+          "joint_ood": 0.7142249412037037,
+          "phase_control": 1.0
+        },
+        "family_scores": {
+          "F_c1": 0.6255176638425926,
+          "F_c2": 0.8433088790740741,
+          "F_scalar": 0.7712646356481482
+        },
+        "qualified_ood_families": [
+          "F_c1",
+          "F_c2",
+          "F_scalar"
+        ],
+        "objective_family_mask_hash": null,
+        "ordered_suite_hash": "0ceb7ad4f7bf0091e62808c2542aca5af3d7c83d61020b85c6ab5762c5b28997",
+        "split_cohort_hash": "85c91d968e78e7fb4d31450b1d33b84bf1928942ccc16a73ff42420df7c19cec",
+        "success_count_by_cell": {
+          "public_dev.c0_id_level_3": 36,
+          "public_dev.c0_id_level_4": 36,
+          "public_dev.c0_id_level_5": 36,
+          "public_dev.c1_conditional_frontier_level_3": 36,
+          "public_dev.c1_conditional_frontier_level_4": 17,
+          "public_dev.c1_conditional_frontier_level_5": 2,
+          "public_dev.c1_id_level_3": 36,
+          "public_dev.c1_id_level_4": 36,
+          "public_dev.c1_id_level_5": 36,
+          "public_dev.c2_mechanism_ood_level_2": 33,
+          "public_dev.c2_mechanism_ood_level_4": 23,
+          "public_dev.c2_mechanism_ood_level_5": 27,
+          "public_dev.height_ood_level_1": 35,
+          "public_dev.height_ood_level_4": 19,
+          "public_dev.height_ood_level_5": 9,
+          "public_dev.joint_ood_level_1": 34,
+          "public_dev.joint_ood_level_2": 19,
+          "public_dev.joint_ood_level_3": 16,
+          "public_dev.phase_composition_ood_level_3": 36,
+          "public_dev.phase_composition_ood_level_4": 36,
+          "public_dev.phase_composition_ood_level_5": 36,
+          "public_dev.tread_ood_level_2": 35,
+          "public_dev.tread_ood_level_3": 33,
+          "public_dev.tread_ood_level_5": 27
+        },
+        "episodes_per_cell": 36,
+        "factor_diagnostics": {
+          "phase": {
+            "p0": {
+              "cell_count": 21,
+              "cell_ids": [
+                "public_dev.c0_id_level_3",
+                "public_dev.c0_id_level_4",
+                "public_dev.c0_id_level_5",
+                "public_dev.c1_conditional_frontier_level_3",
+                "public_dev.c1_conditional_frontier_level_4",
+                "public_dev.c1_conditional_frontier_level_5",
+                "public_dev.c1_id_level_3",
+                "public_dev.c1_id_level_4",
+                "public_dev.c1_id_level_5",
+                "public_dev.c2_mechanism_ood_level_2",
+                "public_dev.c2_mechanism_ood_level_4",
+                "public_dev.c2_mechanism_ood_level_5",
+                "public_dev.height_ood_level_1",
+                "public_dev.height_ood_level_4",
+                "public_dev.height_ood_level_5",
+                "public_dev.joint_ood_level_1",
+                "public_dev.joint_ood_level_2",
+                "public_dev.joint_ood_level_3",
+                "public_dev.tread_ood_level_2",
+                "public_dev.tread_ood_level_3",
+                "public_dev.tread_ood_level_5"
+              ],
+              "mean_progress_fraction": 0.8836587528703703,
+              "success_rate": 0.7685185185185185
+            },
+            "p1": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.phase_composition_ood_level_3"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "p2": {
+              "cell_count": 2,
+              "cell_ids": [
+                "public_dev.phase_composition_ood_level_4",
+                "public_dev.phase_composition_ood_level_5"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            }
+          },
+          "riser_band": {
+            "0.083": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c1_id_level_3"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.100": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.phase_composition_ood_level_3"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.106": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c1_id_level_4"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.112": {
+              "cell_count": 2,
+              "cell_ids": [
+                "public_dev.c1_id_level_5",
+                "public_dev.phase_composition_ood_level_5"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.115": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.phase_composition_ood_level_4"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.132": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c0_id_level_3"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.162": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.tread_ood_level_2"
+              ],
+              "mean_progress_fraction": 0.9824514633333333,
+              "success_rate": 0.9722222222222222
+            },
+            "0.167": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c1_conditional_frontier_level_3"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.172": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c0_id_level_4"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.174": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.tread_ood_level_3"
+              ],
+              "mean_progress_fraction": 0.9599795425,
+              "success_rate": 0.9166666666666666
+            },
+            "0.181": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.tread_ood_level_5"
+              ],
+              "mean_progress_fraction": 0.9114607711111111,
+              "success_rate": 0.75
+            },
+            "0.197": {
+              "cell_count": 4,
+              "cell_ids": [
+                "public_dev.c0_id_level_5",
+                "public_dev.c2_mechanism_ood_level_2",
+                "public_dev.c2_mechanism_ood_level_4",
+                "public_dev.c2_mechanism_ood_level_5"
+              ],
+              "mean_progress_fraction": 0.9385744297222223,
+              "success_rate": 0.8263888888888888
+            },
+            "0.203": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c1_conditional_frontier_level_4"
+              ],
+              "mean_progress_fraction": 0.5842113844444444,
+              "success_rate": 0.4722222222222222
+            },
+            "0.209": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.height_ood_level_1"
+              ],
+              "mean_progress_fraction": 0.9942315188888889,
+              "success_rate": 0.9722222222222222
+            },
+            "0.211": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.joint_ood_level_1"
+              ],
+              "mean_progress_fraction": 0.9729786136111112,
+              "success_rate": 0.9444444444444444
+            },
+            "0.214": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.joint_ood_level_2"
+              ],
+              "mean_progress_fraction": 0.7241280152777778,
+              "success_rate": 0.5277777777777778
+            },
+            "0.222": {
+              "cell_count": 2,
+              "cell_ids": [
+                "public_dev.height_ood_level_4",
+                "public_dev.joint_ood_level_3"
+              ],
+              "mean_progress_fraction": 0.7212407863888889,
+              "success_rate": 0.4861111111111111
+            },
+            "0.231": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.height_ood_level_5"
+              ],
+              "mean_progress_fraction": 0.5894963886111111,
+              "success_rate": 0.25
+            },
+            "0.236": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c1_conditional_frontier_level_5"
+              ],
+              "mean_progress_fraction": 0.6411168208333333,
+              "success_rate": 0.05555555555555555
+            }
+          },
+          "roughness_band": {
+            "0.000": {
+              "cell_count": 21,
+              "cell_ids": [
+                "public_dev.c0_id_level_3",
+                "public_dev.c0_id_level_4",
+                "public_dev.c0_id_level_5",
+                "public_dev.c1_conditional_frontier_level_3",
+                "public_dev.c1_conditional_frontier_level_4",
+                "public_dev.c1_conditional_frontier_level_5",
+                "public_dev.c1_id_level_3",
+                "public_dev.c1_id_level_4",
+                "public_dev.c1_id_level_5",
+                "public_dev.height_ood_level_1",
+                "public_dev.height_ood_level_4",
+                "public_dev.height_ood_level_5",
+                "public_dev.joint_ood_level_1",
+                "public_dev.joint_ood_level_2",
+                "public_dev.joint_ood_level_3",
+                "public_dev.phase_composition_ood_level_3",
+                "public_dev.phase_composition_ood_level_4",
+                "public_dev.phase_composition_ood_level_5",
+                "public_dev.tread_ood_level_2",
+                "public_dev.tread_ood_level_3",
+                "public_dev.tread_ood_level_5"
+              ],
+              "mean_progress_fraction": 0.895358861494709,
+              "success_rate": 0.8015873015873016
+            },
+            "0.073": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c2_mechanism_ood_level_2"
+              ],
+              "mean_progress_fraction": 0.9625536136111111,
+              "success_rate": 0.9166666666666666
+            },
+            "0.080": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c2_mechanism_ood_level_4"
+              ],
+              "mean_progress_fraction": 0.8765611577777778,
+              "success_rate": 0.6388888888888888
+            },
+            "0.083": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c2_mechanism_ood_level_5"
+              ],
+              "mean_progress_fraction": 0.9151829475,
+              "success_rate": 0.75
+            }
+          },
+          "sequence_pattern": {
+            "alternating": {
+              "cell_count": 3,
+              "cell_ids": [
+                "public_dev.c1_conditional_frontier_level_3",
+                "public_dev.c1_id_level_3",
+                "public_dev.phase_composition_ood_level_3"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "back_loaded": {
+              "cell_count": 3,
+              "cell_ids": [
+                "public_dev.c1_conditional_frontier_level_5",
+                "public_dev.c1_id_level_5",
+                "public_dev.phase_composition_ood_level_5"
+              ],
+              "mean_progress_fraction": 0.8803722736111111,
+              "success_rate": 0.6851851851851852
+            },
+            "front_loaded": {
+              "cell_count": 3,
+              "cell_ids": [
+                "public_dev.c1_conditional_frontier_level_4",
+                "public_dev.c1_id_level_4",
+                "public_dev.phase_composition_ood_level_4"
+              ],
+              "mean_progress_fraction": 0.8614037948148148,
+              "success_rate": 0.8240740740740741
+            },
+            "regular": {
+              "cell_count": 15,
+              "cell_ids": [
+                "public_dev.c0_id_level_3",
+                "public_dev.c0_id_level_4",
+                "public_dev.c0_id_level_5",
+                "public_dev.c2_mechanism_ood_level_2",
+                "public_dev.c2_mechanism_ood_level_4",
+                "public_dev.c2_mechanism_ood_level_5",
+                "public_dev.height_ood_level_1",
+                "public_dev.height_ood_level_4",
+                "public_dev.height_ood_level_5",
+                "public_dev.joint_ood_level_1",
+                "public_dev.joint_ood_level_2",
+                "public_dev.joint_ood_level_3",
+                "public_dev.tread_ood_level_2",
+                "public_dev.tread_ood_level_3",
+                "public_dev.tread_ood_level_5"
+              ],
+              "mean_progress_fraction": 0.8887670403333333,
+              "success_rate": 0.774074074074074
+            }
+          },
+          "surface_pattern": {
+            "flat": {
+              "cell_count": 21,
+              "cell_ids": [
+                "public_dev.c0_id_level_3",
+                "public_dev.c0_id_level_4",
+                "public_dev.c0_id_level_5",
+                "public_dev.c1_conditional_frontier_level_3",
+                "public_dev.c1_conditional_frontier_level_4",
+                "public_dev.c1_conditional_frontier_level_5",
+                "public_dev.c1_id_level_3",
+                "public_dev.c1_id_level_4",
+                "public_dev.c1_id_level_5",
+                "public_dev.height_ood_level_1",
+                "public_dev.height_ood_level_4",
+                "public_dev.height_ood_level_5",
+                "public_dev.joint_ood_level_1",
+                "public_dev.joint_ood_level_2",
+                "public_dev.joint_ood_level_3",
+                "public_dev.phase_composition_ood_level_3",
+                "public_dev.phase_composition_ood_level_4",
+                "public_dev.phase_composition_ood_level_5",
+                "public_dev.tread_ood_level_2",
+                "public_dev.tread_ood_level_3",
+                "public_dev.tread_ood_level_5"
+              ],
+              "mean_progress_fraction": 0.895358861494709,
+              "success_rate": 0.8015873015873016
+            },
+            "l3_y14": {
+              "cell_count": 3,
+              "cell_ids": [
+                "public_dev.c2_mechanism_ood_level_2",
+                "public_dev.c2_mechanism_ood_level_4",
+                "public_dev.c2_mechanism_ood_level_5"
+              ],
+              "mean_progress_fraction": 0.9180992396296296,
+              "success_rate": 0.7685185185185185
+            }
+          },
+          "tread_band": {
+            "0.277": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.tread_ood_level_5"
+              ],
+              "mean_progress_fraction": 0.9114607711111111,
+              "success_rate": 0.75
+            },
+            "0.296": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.tread_ood_level_3"
+              ],
+              "mean_progress_fraction": 0.9599795425,
+              "success_rate": 0.9166666666666666
+            },
+            "0.334": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.tread_ood_level_2"
+              ],
+              "mean_progress_fraction": 0.9824514633333333,
+              "success_rate": 0.9722222222222222
+            },
+            "0.349": {
+              "cell_count": 2,
+              "cell_ids": [
+                "public_dev.joint_ood_level_2",
+                "public_dev.joint_ood_level_3"
+              ],
+              "mean_progress_fraction": 0.6978521834722222,
+              "success_rate": 0.4861111111111111
+            },
+            "0.370": {
+              "cell_count": 2,
+              "cell_ids": [
+                "public_dev.c1_id_level_3",
+                "public_dev.phase_composition_ood_level_3"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.381": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c1_conditional_frontier_level_3"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.385": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.joint_ood_level_1"
+              ],
+              "mean_progress_fraction": 0.9729786136111112,
+              "success_rate": 0.9444444444444444
+            },
+            "0.389": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c1_conditional_frontier_level_4"
+              ],
+              "mean_progress_fraction": 0.5842113844444444,
+              "success_rate": 0.4722222222222222
+            },
+            "0.400": {
+              "cell_count": 11,
+              "cell_ids": [
+                "public_dev.c0_id_level_3",
+                "public_dev.c0_id_level_4",
+                "public_dev.c0_id_level_5",
+                "public_dev.c1_id_level_4",
+                "public_dev.c2_mechanism_ood_level_2",
+                "public_dev.c2_mechanism_ood_level_4",
+                "public_dev.c2_mechanism_ood_level_5",
+                "public_dev.height_ood_level_1",
+                "public_dev.height_ood_level_4",
+                "public_dev.height_ood_level_5",
+                "public_dev.phase_composition_ood_level_4"
+              ],
+              "mean_progress_fraction": 0.9189937134090909,
+              "success_rate": 0.8232323232323232
+            },
+            "0.430": {
+              "cell_count": 2,
+              "cell_ids": [
+                "public_dev.c1_id_level_5",
+                "public_dev.phase_composition_ood_level_5"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.434": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c1_conditional_frontier_level_5"
+              ],
+              "mean_progress_fraction": 0.6411168208333333,
+              "success_rate": 0.05555555555555555
+            }
+          }
+        },
+        "stratum_diagnostics": {
+          "c0_id": {
+            "cell_count": 3,
+            "cell_ids": [
+              "public_dev.c0_id_level_3",
+              "public_dev.c0_id_level_4",
+              "public_dev.c0_id_level_5"
+            ],
+            "score": 1.0,
+            "success_rate": 1.0,
+            "mean_progress_fraction": 1.0,
+            "primary_failure_breakdown": {
+              "base_orientation_instability": 0.0,
+              "forbidden_contact": 0.0,
+              "insufficient_clearance": 0.0,
+              "off_course": 0.0,
+              "slip": 0.0,
+              "timeout": 0.0
+            },
+            "diagnostic_flag_rates": {
+              "base_orientation_instability_detected": 0.0,
+              "first_valid_top_arrival_achieved": 1.0,
+              "goal_not_reached_detected": 0.0,
+              "insufficient_clearance_detected": 0.0,
+              "off_course_detected": 0.0,
+              "slip_detected": 0.8888888888888888
+            }
+          },
+          "c1_conditional_frontier": {
+            "cell_count": 3,
+            "cell_ids": [
+              "public_dev.c1_conditional_frontier_level_3",
+              "public_dev.c1_conditional_frontier_level_4",
+              "public_dev.c1_conditional_frontier_level_5"
+            ],
+            "score": 0.6255176638425926,
+            "success_rate": 0.5092592592592593,
+            "mean_progress_fraction": 0.7417760684259259,
+            "primary_failure_breakdown": {
+              "base_orientation_instability": 0.06481481481481481,
+              "forbidden_contact": 0.32407407407407407,
+              "insufficient_clearance": 0.0,
+              "off_course": 0.0,
+              "slip": 0.0,
+              "timeout": 0.10185185185185185
+            },
+            "diagnostic_flag_rates": {
+              "base_orientation_instability_detected": 0.2962962962962963,
+              "first_valid_top_arrival_achieved": 0.5092592592592593,
+              "goal_not_reached_detected": 0.49074074074074076,
+              "insufficient_clearance_detected": 0.0,
+              "off_course_detected": 0.0,
+              "slip_detected": 0.9444444444444444
+            }
+          },
+          "c1_id": {
+            "cell_count": 3,
+            "cell_ids": [
+              "public_dev.c1_id_level_3",
+              "public_dev.c1_id_level_4",
+              "public_dev.c1_id_level_5"
+            ],
+            "score": 1.0,
+            "success_rate": 1.0,
+            "mean_progress_fraction": 1.0,
+            "primary_failure_breakdown": {
+              "base_orientation_instability": 0.0,
+              "forbidden_contact": 0.0,
+              "insufficient_clearance": 0.0,
+              "off_course": 0.0,
+              "slip": 0.0,
+              "timeout": 0.0
+            },
+            "diagnostic_flag_rates": {
+              "base_orientation_instability_detected": 0.0,
+              "first_valid_top_arrival_achieved": 1.0,
+              "goal_not_reached_detected": 0.0,
+              "insufficient_clearance_detected": 0.0,
+              "off_course_detected": 0.0,
+              "slip_detected": 0.4351851851851852
+            }
+          },
+          "c2_mechanism_ood": {
+            "cell_count": 3,
+            "cell_ids": [
+              "public_dev.c2_mechanism_ood_level_2",
+              "public_dev.c2_mechanism_ood_level_4",
+              "public_dev.c2_mechanism_ood_level_5"
+            ],
+            "score": 0.8433088790740741,
+            "success_rate": 0.7685185185185185,
+            "mean_progress_fraction": 0.9180992396296296,
+            "primary_failure_breakdown": {
+              "base_orientation_instability": 0.046296296296296294,
+              "forbidden_contact": 0.10185185185185185,
+              "insufficient_clearance": 0.0,
+              "off_course": 0.0,
+              "slip": 0.0,
+              "timeout": 0.08333333333333333
+            },
+            "diagnostic_flag_rates": {
+              "base_orientation_instability_detected": 0.06481481481481481,
+              "first_valid_top_arrival_achieved": 0.7685185185185185,
+              "goal_not_reached_detected": 0.23148148148148148,
+              "insufficient_clearance_detected": 0.5648148148148148,
+              "off_course_detected": 0.0,
+              "slip_detected": 1.0
+            }
+          },
+          "height_ood": {
+            "cell_count": 3,
+            "cell_ids": [
+              "public_dev.height_ood_level_1",
+              "public_dev.height_ood_level_4",
+              "public_dev.height_ood_level_5"
+            ],
+            "score": 0.6841055214351852,
+            "success_rate": 0.5833333333333334,
+            "mean_progress_fraction": 0.7848777095370371,
+            "primary_failure_breakdown": {
+              "base_orientation_instability": 0.018518518518518517,
+              "forbidden_contact": 0.3333333333333333,
+              "insufficient_clearance": 0.0,
+              "off_course": 0.027777777777777776,
+              "slip": 0.0,
+              "timeout": 0.037037037037037035
+            },
+            "diagnostic_flag_rates": {
+              "base_orientation_instability_detected": 0.09259259259259259,
+              "first_valid_top_arrival_achieved": 0.5833333333333334,
+              "goal_not_reached_detected": 0.39814814814814814,
+              "insufficient_clearance_detected": 0.027777777777777776,
+              "off_course_detected": 0.027777777777777776,
+              "slip_detected": 0.9259259259259259
+            }
+          },
+          "joint_ood": {
+            "cell_count": 3,
+            "cell_ids": [
+              "public_dev.joint_ood_level_1",
+              "public_dev.joint_ood_level_2",
+              "public_dev.joint_ood_level_3"
+            ],
+            "score": 0.7142249412037037,
+            "success_rate": 0.6388888888888888,
+            "mean_progress_fraction": 0.7895609935185185,
+            "primary_failure_breakdown": {
+              "base_orientation_instability": 0.07407407407407407,
+              "forbidden_contact": 0.17592592592592593,
+              "insufficient_clearance": 0.0,
+              "off_course": 0.009259259259259259,
+              "slip": 0.0,
+              "timeout": 0.10185185185185185
+            },
+            "diagnostic_flag_rates": {
+              "base_orientation_instability_detected": 0.19444444444444445,
+              "first_valid_top_arrival_achieved": 0.6388888888888888,
+              "goal_not_reached_detected": 0.3611111111111111,
+              "insufficient_clearance_detected": 0.009259259259259259,
+              "off_course_detected": 0.009259259259259259,
+              "slip_detected": 0.9259259259259259
+            }
+          },
+          "phase_composition_ood": {
+            "cell_count": 3,
+            "cell_ids": [
+              "public_dev.phase_composition_ood_level_3",
+              "public_dev.phase_composition_ood_level_4",
+              "public_dev.phase_composition_ood_level_5"
+            ],
+            "score": 1.0,
+            "success_rate": 1.0,
+            "mean_progress_fraction": 1.0,
+            "primary_failure_breakdown": {
+              "base_orientation_instability": 0.0,
+              "forbidden_contact": 0.0,
+              "insufficient_clearance": 0.0,
+              "off_course": 0.0,
+              "slip": 0.0,
+              "timeout": 0.0
+            },
+            "diagnostic_flag_rates": {
+              "base_orientation_instability_detected": 0.0,
+              "first_valid_top_arrival_achieved": 1.0,
+              "goal_not_reached_detected": 0.0,
+              "insufficient_clearance_detected": 0.0,
+              "off_course_detected": 0.0,
+              "slip_detected": 0.5
+            }
+          },
+          "tread_ood": {
+            "cell_count": 3,
+            "cell_ids": [
+              "public_dev.tread_ood_level_2",
+              "public_dev.tread_ood_level_3",
+              "public_dev.tread_ood_level_5"
+            ],
+            "score": 0.9154634443055556,
+            "success_rate": 0.8796296296296297,
+            "mean_progress_fraction": 0.9512972589814814,
+            "primary_failure_breakdown": {
+              "base_orientation_instability": 0.0,
+              "forbidden_contact": 0.1111111111111111,
+              "insufficient_clearance": 0.0,
+              "off_course": 0.0,
+              "slip": 0.0,
+              "timeout": 0.009259259259259259
+            },
+            "diagnostic_flag_rates": {
+              "base_orientation_instability_detected": 0.1111111111111111,
+              "first_valid_top_arrival_achieved": 0.8796296296296297,
+              "goal_not_reached_detected": 0.12037037037037036,
+              "insufficient_clearance_detected": 0.0,
+              "off_course_detected": 0.0,
+              "slip_detected": 1.0
+            }
+          }
+        }
+      },
+      "primary_failure_breakdown": {
+        "base_orientation_instability": 0.02546296296296296,
+        "forbidden_contact": 0.13078703703703703,
+        "insufficient_clearance": 0.0,
+        "off_course": 0.004629629629629629,
+        "slip": 0.0,
+        "timeout": 0.041666666666666664
+      },
+      "dominant_failure": {
+        "reason": "forbidden_contact",
+        "rate": 0.13078703703703703
+      },
+      "diagnostic_flag_rates": {
+        "base_orientation_instability_detected": 0.09490740740740741,
+        "first_valid_top_arrival_achieved": 0.7974537037037037,
+        "goal_not_reached_detected": 0.20023148148148148,
+        "insufficient_clearance_detected": 0.07523148148148148,
+        "off_course_detected": 0.004629629629629629,
+        "slip_detected": 0.8275462962962963
+      },
+      "progress_summary": {
+        "mean_progress_fraction": 0.8982014087615741,
+        "mean_progress_fraction_by_cell": {
+          "public_dev.c0_id_level_3": 1.0,
+          "public_dev.c0_id_level_4": 1.0,
+          "public_dev.c0_id_level_5": 1.0,
+          "public_dev.c1_conditional_frontier_level_3": 1.0,
+          "public_dev.c1_conditional_frontier_level_4": 0.5842113844444444,
+          "public_dev.c1_conditional_frontier_level_5": 0.6411168208333333,
+          "public_dev.c1_id_level_3": 1.0,
+          "public_dev.c1_id_level_4": 1.0,
+          "public_dev.c1_id_level_5": 1.0,
+          "public_dev.c2_mechanism_ood_level_2": 0.9625536136111111,
+          "public_dev.c2_mechanism_ood_level_4": 0.8765611577777778,
+          "public_dev.c2_mechanism_ood_level_5": 0.9151829475,
+          "public_dev.height_ood_level_1": 0.9942315188888889,
+          "public_dev.height_ood_level_4": 0.7709052211111111,
+          "public_dev.height_ood_level_5": 0.5894963886111111,
+          "public_dev.joint_ood_level_1": 0.9729786136111112,
+          "public_dev.joint_ood_level_2": 0.7241280152777778,
+          "public_dev.joint_ood_level_3": 0.6715763516666666,
+          "public_dev.phase_composition_ood_level_3": 1.0,
+          "public_dev.phase_composition_ood_level_4": 1.0,
+          "public_dev.phase_composition_ood_level_5": 1.0,
+          "public_dev.tread_ood_level_2": 0.9824514633333333,
+          "public_dev.tread_ood_level_3": 0.9599795425,
+          "public_dev.tread_ood_level_5": 0.9114607711111111
+        }
+      },
+      "schema_version": "true_rl_agent.task.stair_climbing.prompt_feedback.v10",
+      "climb_completion_summary": {
+        "completion_mode": "first_valid_top_arrival_latched",
+        "success_rate": 0.7974537037037037,
+        "first_valid_top_arrival_rate": 0.7974537037037037
+      }
+    }
+  },
+  {
+    "robot": "g1",
+    "source": "PLAN/2new_world/P3/results/cohort_alignment_20260909/g1_37dof_qualification/evaluation/public_dev/summary.json",
+    "kind": "cpu_current_task_feedback_projection_of_historical_real_public_dev",
+    "scope": "task_feedback_only; no_provider_request; no_session_genesis_mask_assertion",
+    "feedback": {
+      "source_split": "public_dev",
+      "generalization_summary": {
+        "public_dev_objective_score": 0.7436874183847737,
+        "j_id": 0.9965397094675925,
+        "j_ood": 0.7436874183847737,
+        "named_guard_scores": {
+          "j_ood": 0.7436874183847737,
+          "c0_id": 0.9930794189351851,
+          "c1_id": 1.0,
+          "joint_ood": 0.5567507456481482,
+          "phase_control": 1.0
+        },
+        "family_scores": {
+          "F_c1": 0.812695496574074,
+          "F_c2": 0.8108066261111111,
+          "F_scalar": 0.6075601324691359
+        },
+        "qualified_ood_families": [
+          "F_c1",
+          "F_c2",
+          "F_scalar"
+        ],
+        "objective_family_mask_hash": null,
+        "ordered_suite_hash": "d78f19feeaeb8a7baf725e56acb178d7aaf58f8931f9b8e7e69ede9aa9aca73f",
+        "split_cohort_hash": "4beb232ca9765404c816c4cb5e9b94fe7d6467f527252cb64c8aeb998b95089f",
+        "success_count_by_cell": {
+          "public_dev.c0_id_level_3": 36,
+          "public_dev.c0_id_level_4": 36,
+          "public_dev.c0_id_level_5": 35,
+          "public_dev.c1_conditional_frontier_level_0": 35,
+          "public_dev.c1_conditional_frontier_level_4": 35,
+          "public_dev.c1_conditional_frontier_level_5": 6,
+          "public_dev.c1_id_level_3": 36,
+          "public_dev.c1_id_level_4": 36,
+          "public_dev.c1_id_level_5": 36,
+          "public_dev.c2_mechanism_ood_level_3": 24,
+          "public_dev.c2_mechanism_ood_level_4": 28,
+          "public_dev.c2_mechanism_ood_level_5": 22,
+          "public_dev.height_ood_level_2": 27,
+          "public_dev.height_ood_level_3": 14,
+          "public_dev.height_ood_level_4": 6,
+          "public_dev.joint_ood_level_2": 30,
+          "public_dev.joint_ood_level_3": 8,
+          "public_dev.joint_ood_level_4": 3,
+          "public_dev.phase_composition_ood_level_3": 36,
+          "public_dev.phase_composition_ood_level_4": 36,
+          "public_dev.phase_composition_ood_level_5": 36,
+          "public_dev.tread_ood_level_2": 34,
+          "public_dev.tread_ood_level_3": 18,
+          "public_dev.tread_ood_level_4": 5
+        },
+        "episodes_per_cell": 36,
+        "factor_diagnostics": {
+          "phase": {
+            "p0": {
+              "cell_count": 21,
+              "cell_ids": [
+                "public_dev.c0_id_level_3",
+                "public_dev.c0_id_level_4",
+                "public_dev.c0_id_level_5",
+                "public_dev.c1_conditional_frontier_level_0",
+                "public_dev.c1_conditional_frontier_level_4",
+                "public_dev.c1_conditional_frontier_level_5",
+                "public_dev.c1_id_level_3",
+                "public_dev.c1_id_level_4",
+                "public_dev.c1_id_level_5",
+                "public_dev.c2_mechanism_ood_level_3",
+                "public_dev.c2_mechanism_ood_level_4",
+                "public_dev.c2_mechanism_ood_level_5",
+                "public_dev.height_ood_level_2",
+                "public_dev.height_ood_level_3",
+                "public_dev.height_ood_level_4",
+                "public_dev.joint_ood_level_2",
+                "public_dev.joint_ood_level_3",
+                "public_dev.joint_ood_level_4",
+                "public_dev.tread_ood_level_2",
+                "public_dev.tread_ood_level_3",
+                "public_dev.tread_ood_level_4"
+              ],
+              "mean_progress_fraction": 0.8794716651190476,
+              "success_rate": 0.6746031746031746
+            },
+            "p1": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.phase_composition_ood_level_3"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "p2": {
+              "cell_count": 2,
+              "cell_ids": [
+                "public_dev.phase_composition_ood_level_4",
+                "public_dev.phase_composition_ood_level_5"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            }
+          },
+          "riser_band": {
+            "0.141": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c1_id_level_3"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.169": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.phase_composition_ood_level_3"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.180": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c1_id_level_4"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.189": {
+              "cell_count": 2,
+              "cell_ids": [
+                "public_dev.c1_id_level_5",
+                "public_dev.phase_composition_ood_level_5"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.194": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.phase_composition_ood_level_4"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.224": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c0_id_level_3"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.275": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.tread_ood_level_2"
+              ],
+              "mean_progress_fraction": 0.9662880716666666,
+              "success_rate": 0.9444444444444444
+            },
+            "0.292": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c0_id_level_4"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.295": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.tread_ood_level_3"
+              ],
+              "mean_progress_fraction": 0.7714486008333333,
+              "success_rate": 0.5
+            },
+            "0.307": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.tread_ood_level_4"
+              ],
+              "mean_progress_fraction": 0.6114117191666667,
+              "success_rate": 0.1388888888888889
+            },
+            "0.335": {
+              "cell_count": 4,
+              "cell_ids": [
+                "public_dev.c0_id_level_5",
+                "public_dev.c2_mechanism_ood_level_3",
+                "public_dev.c2_mechanism_ood_level_4",
+                "public_dev.c2_mechanism_ood_level_5"
+              ],
+              "mean_progress_fraction": 0.948884623125,
+              "success_rate": 0.7569444444444444
+            },
+            "0.344": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c1_conditional_frontier_level_0"
+              ],
+              "mean_progress_fraction": 0.9811563497222222,
+              "success_rate": 0.9722222222222222
+            },
+            "0.345": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c1_conditional_frontier_level_4"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 0.9722222222222222
+            },
+            "0.351": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.joint_ood_level_2"
+              ],
+              "mean_progress_fraction": 0.9451920611111111,
+              "success_rate": 0.8333333333333334
+            },
+            "0.373": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.joint_ood_level_3"
+              ],
+              "mean_progress_fraction": 0.6334183313888889,
+              "success_rate": 0.2222222222222222
+            },
+            "0.377": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.height_ood_level_2"
+              ],
+              "mean_progress_fraction": 0.9637951058333333,
+              "success_rate": 0.75
+            },
+            "0.388": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.joint_ood_level_4"
+              ],
+              "mean_progress_fraction": 0.6230051925000001,
+              "success_rate": 0.08333333333333333
+            },
+            "0.400": {
+              "cell_count": 2,
+              "cell_ids": [
+                "public_dev.c1_conditional_frontier_level_5",
+                "public_dev.height_ood_level_3"
+              ],
+              "mean_progress_fraction": 0.7820985929166666,
+              "success_rate": 0.2777777777777778
+            },
+            "0.414": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.height_ood_level_4"
+              ],
+              "mean_progress_fraction": 0.6134538569444444,
+              "success_rate": 0.16666666666666666
+            }
+          },
+          "roughness_band": {
+            "0.000": {
+              "cell_count": 21,
+              "cell_ids": [
+                "public_dev.c0_id_level_3",
+                "public_dev.c0_id_level_4",
+                "public_dev.c0_id_level_5",
+                "public_dev.c1_conditional_frontier_level_0",
+                "public_dev.c1_conditional_frontier_level_4",
+                "public_dev.c1_conditional_frontier_level_5",
+                "public_dev.c1_id_level_3",
+                "public_dev.c1_id_level_4",
+                "public_dev.c1_id_level_5",
+                "public_dev.height_ood_level_2",
+                "public_dev.height_ood_level_3",
+                "public_dev.height_ood_level_4",
+                "public_dev.joint_ood_level_2",
+                "public_dev.joint_ood_level_3",
+                "public_dev.joint_ood_level_4",
+                "public_dev.phase_composition_ood_level_3",
+                "public_dev.phase_composition_ood_level_4",
+                "public_dev.phase_composition_ood_level_5",
+                "public_dev.tread_ood_level_2",
+                "public_dev.tread_ood_level_3",
+                "public_dev.tread_ood_level_4"
+              ],
+              "mean_progress_fraction": 0.8885533698280423,
+              "success_rate": 0.7195767195767195
+            },
+            "0.066": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c2_mechanism_ood_level_3"
+              ],
+              "mean_progress_fraction": 0.9505076902777778,
+              "success_rate": 0.6666666666666666
+            },
+            "0.076": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c2_mechanism_ood_level_4"
+              ],
+              "mean_progress_fraction": 0.9620174808333334,
+              "success_rate": 0.7777777777777778
+            },
+            "0.087": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c2_mechanism_ood_level_5"
+              ],
+              "mean_progress_fraction": 0.89675903,
+              "success_rate": 0.6111111111111112
+            }
+          },
+          "sequence_pattern": {
+            "alternating": {
+              "cell_count": 3,
+              "cell_ids": [
+                "public_dev.c1_conditional_frontier_level_0",
+                "public_dev.c1_id_level_3",
+                "public_dev.phase_composition_ood_level_3"
+              ],
+              "mean_progress_fraction": 0.9937187832407407,
+              "success_rate": 0.9907407407407407
+            },
+            "back_loaded": {
+              "cell_count": 3,
+              "cell_ids": [
+                "public_dev.c1_conditional_frontier_level_5",
+                "public_dev.c1_id_level_5",
+                "public_dev.phase_composition_ood_level_5"
+              ],
+              "mean_progress_fraction": 0.9279685062037037,
+              "success_rate": 0.7222222222222222
+            },
+            "front_loaded": {
+              "cell_count": 3,
+              "cell_ids": [
+                "public_dev.c1_conditional_frontier_level_4",
+                "public_dev.c1_id_level_4",
+                "public_dev.phase_composition_ood_level_4"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 0.9907407407407407
+            },
+            "regular": {
+              "cell_count": 15,
+              "cell_ids": [
+                "public_dev.c0_id_level_3",
+                "public_dev.c0_id_level_4",
+                "public_dev.c0_id_level_5",
+                "public_dev.c2_mechanism_ood_level_3",
+                "public_dev.c2_mechanism_ood_level_4",
+                "public_dev.c2_mechanism_ood_level_5",
+                "public_dev.height_ood_level_2",
+                "public_dev.height_ood_level_3",
+                "public_dev.height_ood_level_4",
+                "public_dev.joint_ood_level_2",
+                "public_dev.joint_ood_level_3",
+                "public_dev.joint_ood_level_4",
+                "public_dev.tread_ood_level_2",
+                "public_dev.tread_ood_level_3",
+                "public_dev.tread_ood_level_4"
+              ],
+              "mean_progress_fraction": 0.8469228732777778,
+              "success_rate": 0.6037037037037037
+            }
+          },
+          "surface_pattern": {
+            "flat": {
+              "cell_count": 21,
+              "cell_ids": [
+                "public_dev.c0_id_level_3",
+                "public_dev.c0_id_level_4",
+                "public_dev.c0_id_level_5",
+                "public_dev.c1_conditional_frontier_level_0",
+                "public_dev.c1_conditional_frontier_level_4",
+                "public_dev.c1_conditional_frontier_level_5",
+                "public_dev.c1_id_level_3",
+                "public_dev.c1_id_level_4",
+                "public_dev.c1_id_level_5",
+                "public_dev.height_ood_level_2",
+                "public_dev.height_ood_level_3",
+                "public_dev.height_ood_level_4",
+                "public_dev.joint_ood_level_2",
+                "public_dev.joint_ood_level_3",
+                "public_dev.joint_ood_level_4",
+                "public_dev.phase_composition_ood_level_3",
+                "public_dev.phase_composition_ood_level_4",
+                "public_dev.phase_composition_ood_level_5",
+                "public_dev.tread_ood_level_2",
+                "public_dev.tread_ood_level_3",
+                "public_dev.tread_ood_level_4"
+              ],
+              "mean_progress_fraction": 0.8885533698280423,
+              "success_rate": 0.7195767195767195
+            },
+            "l2_y8": {
+              "cell_count": 3,
+              "cell_ids": [
+                "public_dev.c2_mechanism_ood_level_3",
+                "public_dev.c2_mechanism_ood_level_4",
+                "public_dev.c2_mechanism_ood_level_5"
+              ],
+              "mean_progress_fraction": 0.9364280670370371,
+              "success_rate": 0.6851851851851852
+            }
+          },
+          "tread_band": {
+            "0.190": {
+              "cell_count": 2,
+              "cell_ids": [
+                "public_dev.tread_ood_level_3",
+                "public_dev.tread_ood_level_4"
+              ],
+              "mean_progress_fraction": 0.69143016,
+              "success_rate": 0.3194444444444444
+            },
+            "0.250": {
+              "cell_count": 3,
+              "cell_ids": [
+                "public_dev.joint_ood_level_3",
+                "public_dev.joint_ood_level_4",
+                "public_dev.tread_ood_level_2"
+              ],
+              "mean_progress_fraction": 0.7409038651851853,
+              "success_rate": 0.41666666666666663
+            },
+            "0.310": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.joint_ood_level_2"
+              ],
+              "mean_progress_fraction": 0.9451920611111111,
+              "success_rate": 0.8333333333333334
+            },
+            "0.370": {
+              "cell_count": 2,
+              "cell_ids": [
+                "public_dev.c1_id_level_3",
+                "public_dev.phase_composition_ood_level_3"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.382": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c1_conditional_frontier_level_4"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 0.9722222222222222
+            },
+            "0.388": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c1_conditional_frontier_level_0"
+              ],
+              "mean_progress_fraction": 0.9811563497222222,
+              "success_rate": 0.9722222222222222
+            },
+            "0.400": {
+              "cell_count": 11,
+              "cell_ids": [
+                "public_dev.c0_id_level_3",
+                "public_dev.c0_id_level_4",
+                "public_dev.c0_id_level_5",
+                "public_dev.c1_id_level_4",
+                "public_dev.c2_mechanism_ood_level_3",
+                "public_dev.c2_mechanism_ood_level_4",
+                "public_dev.c2_mechanism_ood_level_5",
+                "public_dev.height_ood_level_2",
+                "public_dev.height_ood_level_3",
+                "public_dev.height_ood_level_4",
+                "public_dev.phase_composition_ood_level_4"
+              ],
+              "mean_progress_fraction": 0.9230071929545455,
+              "success_rate": 0.7575757575757576
+            },
+            "0.430": {
+              "cell_count": 2,
+              "cell_ids": [
+                "public_dev.c1_id_level_5",
+                "public_dev.phase_composition_ood_level_5"
+              ],
+              "mean_progress_fraction": 1.0,
+              "success_rate": 1.0
+            },
+            "0.436": {
+              "cell_count": 1,
+              "cell_ids": [
+                "public_dev.c1_conditional_frontier_level_5"
+              ],
+              "mean_progress_fraction": 0.7839055186111111,
+              "success_rate": 0.16666666666666666
+            }
+          }
+        },
+        "stratum_diagnostics": {
+          "c0_id": {
+            "cell_count": 3,
+            "cell_ids": [
+              "public_dev.c0_id_level_3",
+              "public_dev.c0_id_level_4",
+              "public_dev.c0_id_level_5"
+            ],
+            "score": 0.9930794189351851,
+            "success_rate": 0.9907407407407407,
+            "mean_progress_fraction": 0.9954180971296296,
+            "primary_failure_breakdown": {
+              "base_orientation_instability": 0.0,
+              "forbidden_contact": 0.009259259259259259,
+              "insufficient_clearance": 0.0,
+              "off_course": 0.0,
+              "slip": 0.0,
+              "timeout": 0.0
+            },
+            "diagnostic_flag_rates": {
+              "base_orientation_instability_detected": 0.0,
+              "first_valid_top_arrival_achieved": 0.9907407407407407,
+              "goal_not_reached_detected": 0.009259259259259259,
+              "insufficient_clearance_detected": 0.0,
+              "off_course_detected": 0.0,
+              "slip_detected": 0.1111111111111111
+            }
+          },
+          "c1_conditional_frontier": {
+            "cell_count": 3,
+            "cell_ids": [
+              "public_dev.c1_conditional_frontier_level_0",
+              "public_dev.c1_conditional_frontier_level_4",
+              "public_dev.c1_conditional_frontier_level_5"
+            ],
+            "score": 0.812695496574074,
+            "success_rate": 0.7037037037037037,
+            "mean_progress_fraction": 0.9216872894444444,
+            "primary_failure_breakdown": {
+              "base_orientation_instability": 0.0,
+              "forbidden_contact": 0.2962962962962963,
+              "insufficient_clearance": 0.0,
+              "off_course": 0.0,
+              "slip": 0.0,
+              "timeout": 0.0
+            },
+            "diagnostic_flag_rates": {
+              "base_orientation_instability_detected": 0.027777777777777776,
+              "first_valid_top_arrival_achieved": 0.7037037037037037,
+              "goal_not_reached_detected": 0.2777777777777778,
+              "insufficient_clearance_detected": 0.018518518518518517,
+              "off_course_detected": 0.027777777777777776,
+              "slip_detected": 0.3888888888888889
+            }
+          },
+          "c1_id": {
+            "cell_count": 3,
+            "cell_ids": [
+              "public_dev.c1_id_level_3",
+              "public_dev.c1_id_level_4",
+              "public_dev.c1_id_level_5"
+            ],
+            "score": 1.0,
+            "success_rate": 1.0,
+            "mean_progress_fraction": 1.0,
+            "primary_failure_breakdown": {
+              "base_orientation_instability": 0.0,
+              "forbidden_contact": 0.0,
+              "insufficient_clearance": 0.0,
+              "off_course": 0.0,
+              "slip": 0.0,
+              "timeout": 0.0
+            },
+            "diagnostic_flag_rates": {
+              "base_orientation_instability_detected": 0.0,
+              "first_valid_top_arrival_achieved": 1.0,
+              "goal_not_reached_detected": 0.0,
+              "insufficient_clearance_detected": 0.0,
+              "off_course_detected": 0.0,
+              "slip_detected": 0.0
+            }
+          },
+          "c2_mechanism_ood": {
+            "cell_count": 3,
+            "cell_ids": [
+              "public_dev.c2_mechanism_ood_level_3",
+              "public_dev.c2_mechanism_ood_level_4",
+              "public_dev.c2_mechanism_ood_level_5"
+            ],
+            "score": 0.8108066261111111,
+            "success_rate": 0.6851851851851852,
+            "mean_progress_fraction": 0.9364280670370371,
+            "primary_failure_breakdown": {
+              "base_orientation_instability": 0.0,
+              "forbidden_contact": 0.23148148148148148,
+              "insufficient_clearance": 0.0,
+              "off_course": 0.08333333333333333,
+              "slip": 0.0,
+              "timeout": 0.0
+            },
+            "diagnostic_flag_rates": {
+              "base_orientation_instability_detected": 0.08333333333333333,
+              "first_valid_top_arrival_achieved": 0.6851851851851852,
+              "goal_not_reached_detected": 0.18518518518518517,
+              "insufficient_clearance_detected": 0.0,
+              "off_course_detected": 0.10185185185185185,
+              "slip_detected": 0.5740740740740741
+            }
+          },
+          "height_ood": {
+            "cell_count": 3,
+            "cell_ids": [
+              "public_dev.height_ood_level_2",
+              "public_dev.height_ood_level_3",
+              "public_dev.height_ood_level_4"
+            ],
+            "score": 0.610516030925926,
+            "success_rate": 0.4351851851851852,
+            "mean_progress_fraction": 0.7858468766666666,
+            "primary_failure_breakdown": {
+              "base_orientation_instability": 0.0,
+              "forbidden_contact": 0.5277777777777778,
+              "insufficient_clearance": 0.0,
+              "off_course": 0.037037037037037035,
+              "slip": 0.0,
+              "timeout": 0.0
+            },
+            "diagnostic_flag_rates": {
+              "base_orientation_instability_detected": 0.046296296296296294,
+              "first_valid_top_arrival_achieved": 0.4351851851851852,
+              "goal_not_reached_detected": 0.5277777777777778,
+              "insufficient_clearance_detected": 0.009259259259259259,
+              "off_course_detected": 0.05555555555555555,
+              "slip_detected": 0.6388888888888888
+            }
+          },
+          "joint_ood": {
+            "cell_count": 3,
+            "cell_ids": [
+              "public_dev.joint_ood_level_2",
+              "public_dev.joint_ood_level_3",
+              "public_dev.joint_ood_level_4"
+            ],
+            "score": 0.5567507456481482,
+            "success_rate": 0.37962962962962965,
+            "mean_progress_fraction": 0.7338718616666667,
+            "primary_failure_breakdown": {
+              "base_orientation_instability": 0.0,
+              "forbidden_contact": 0.5,
+              "insufficient_clearance": 0.0,
+              "off_course": 0.05555555555555555,
+              "slip": 0.0,
+              "timeout": 0.06481481481481481
+            },
+            "diagnostic_flag_rates": {
+              "base_orientation_instability_detected": 0.2037037037037037,
+              "first_valid_top_arrival_achieved": 0.37962962962962965,
+              "goal_not_reached_detected": 0.5740740740740741,
+              "insufficient_clearance_detected": 0.05555555555555555,
+              "off_course_detected": 0.18518518518518517,
+              "slip_detected": 0.6203703703703703
+            }
+          },
+          "phase_composition_ood": {
+            "cell_count": 3,
+            "cell_ids": [
+              "public_dev.phase_composition_ood_level_3",
+              "public_dev.phase_composition_ood_level_4",
+              "public_dev.phase_composition_ood_level_5"
+            ],
+            "score": 1.0,
+            "success_rate": 1.0,
+            "mean_progress_fraction": 1.0,
+            "primary_failure_breakdown": {
+              "base_orientation_instability": 0.0,
+              "forbidden_contact": 0.0,
+              "insufficient_clearance": 0.0,
+              "off_course": 0.0,
+              "slip": 0.0,
+              "timeout": 0.0
+            },
+            "diagnostic_flag_rates": {
+              "base_orientation_instability_detected": 0.0,
+              "first_valid_top_arrival_achieved": 1.0,
+              "goal_not_reached_detected": 0.0,
+              "insufficient_clearance_detected": 0.0,
+              "off_course_detected": 0.0,
+              "slip_detected": 0.0
+            }
+          },
+          "tread_ood": {
+            "cell_count": 3,
+            "cell_ids": [
+              "public_dev.tread_ood_level_2",
+              "public_dev.tread_ood_level_3",
+              "public_dev.tread_ood_level_4"
+            ],
+            "score": 0.6554136208333333,
+            "success_rate": 0.5277777777777778,
+            "mean_progress_fraction": 0.7830494638888889,
+            "primary_failure_breakdown": {
+              "base_orientation_instability": 0.0,
+              "forbidden_contact": 0.25925925925925924,
+              "insufficient_clearance": 0.0,
+              "off_course": 0.018518518518518517,
+              "slip": 0.0,
+              "timeout": 0.19444444444444445
+            },
+            "diagnostic_flag_rates": {
+              "base_orientation_instability_detected": 0.12962962962962962,
+              "first_valid_top_arrival_achieved": 0.5277777777777778,
+              "goal_not_reached_detected": 0.4722222222222222,
+              "insufficient_clearance_detected": 0.037037037037037035,
+              "off_course_detected": 0.027777777777777776,
+              "slip_detected": 0.37037037037037035
+            }
+          }
+        }
+      },
+      "primary_failure_breakdown": {
+        "base_orientation_instability": 0.0,
+        "forbidden_contact": 0.22800925925925927,
+        "insufficient_clearance": 0.0,
+        "off_course": 0.024305555555555556,
+        "slip": 0.0,
+        "timeout": 0.032407407407407406
+      },
+      "dominant_failure": {
+        "reason": "forbidden_contact",
+        "rate": 0.22800925925925927
+      },
+      "diagnostic_flag_rates": {
+        "base_orientation_instability_detected": 0.061342592592592594,
+        "first_valid_top_arrival_achieved": 0.7152777777777778,
+        "goal_not_reached_detected": 0.25578703703703703,
+        "insufficient_clearance_detected": 0.015046296296296295,
+        "off_course_detected": 0.04976851851851852,
+        "slip_detected": 0.33796296296296297
+      },
+      "progress_summary": {
+        "mean_progress_fraction": 0.8945377069791667,
+        "mean_progress_fraction_by_cell": {
+          "public_dev.c0_id_level_3": 1.0,
+          "public_dev.c0_id_level_4": 1.0,
+          "public_dev.c0_id_level_5": 0.9862542913888889,
+          "public_dev.c1_conditional_frontier_level_0": 0.9811563497222222,
+          "public_dev.c1_conditional_frontier_level_4": 1.0,
+          "public_dev.c1_conditional_frontier_level_5": 0.7839055186111111,
+          "public_dev.c1_id_level_3": 1.0,
+          "public_dev.c1_id_level_4": 1.0,
+          "public_dev.c1_id_level_5": 1.0,
+          "public_dev.c2_mechanism_ood_level_3": 0.9505076902777778,
+          "public_dev.c2_mechanism_ood_level_4": 0.9620174808333334,
+          "public_dev.c2_mechanism_ood_level_5": 0.89675903,
+          "public_dev.height_ood_level_2": 0.9637951058333333,
+          "public_dev.height_ood_level_3": 0.7802916672222222,
+          "public_dev.height_ood_level_4": 0.6134538569444444,
+          "public_dev.joint_ood_level_2": 0.9451920611111111,
+          "public_dev.joint_ood_level_3": 0.6334183313888889,
+          "public_dev.joint_ood_level_4": 0.6230051925000001,
+          "public_dev.phase_composition_ood_level_3": 1.0,
+          "public_dev.phase_composition_ood_level_4": 1.0,
+          "public_dev.phase_composition_ood_level_5": 1.0,
+          "public_dev.tread_ood_level_2": 0.9662880716666666,
+          "public_dev.tread_ood_level_3": 0.7714486008333333,
+          "public_dev.tread_ood_level_4": 0.6114117191666667
+        }
+      },
+      "schema_version": "true_rl_agent.task.stair_climbing.prompt_feedback.v10",
+      "climb_completion_summary": {
+        "completion_mode": "first_valid_top_arrival_latched",
+        "success_rate": 0.7152777777777778,
+        "first_valid_top_arrival_rate": 0.7152777777777778
+      }
+    }
+  }
+]

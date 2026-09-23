@@ -1,0 +1,605 @@
+{
+  "cells": {
+    "g1": {
+      "abi_evidence_scope": "Current production observation-group and constructed learner checks plus successful sealed-checkpoint inference; these downloaded receipts do not include a separate expanded joint-order/action-scale/sensor ABI payload.",
+      "cell_variant_id": "stair.g1_37dof.unified_v3",
+      "checkpoint_load": {
+        "actor_loaded": true,
+        "checkpoint_format": "rsl_rl_5",
+        "critic_loaded": true,
+        "iteration_loaded": false,
+        "optimizer_loaded": false
+      },
+      "checkpoint_path_on_target": "/data/yuyangliu/isolated/new_world_p3_reference/true_RL_Agent/PLAN/2new_world/P3/results/g1_reference_train/runner/g1_reference_train/checkpoints/best.pt",
+      "checkpoint_safety_status": "pass",
+      "checks": {
+        "aggregate_recount": true,
+        "checkpoint_identity_chain": true,
+        "checkpoint_safety_and_eval_seal": true,
+        "closed_first_episode_steps_recount": true,
+        "complete_recorded_episode_facts_and_summary_identical_to_p3": true,
+        "constructed_learner_matches_p3_eval_and_training": true,
+        "current_and_prior_derived_statistics_rebuilt": true,
+        "current_backend_manifest_verified": true,
+        "current_manifest_recomputed": true,
+        "current_task_source_preflight_pass": true,
+        "eval_workload_recomputed": true,
+        "evaluation_binding_hash_recomputed": true,
+        "evaluation_plan_hash_recomputed": true,
+        "inference_load_only": true,
+        "job_spec_hash_recomputed": true,
+        "no_new_training_holdout_qualification": true,
+        "owned_gpu_matches_execution": true,
+        "owned_process_timing_and_budget": true,
+        "phase_scope": true,
+        "preserved_full_training_budget": true,
+        "preserved_training_binding_and_manifest": true,
+        "preserved_training_receipt_bytes": true,
+        "process_success": true,
+        "same_p3_cohort_and_suite": true,
+        "same_p3_evaluation_binding": true,
+        "same_p3_task_protocol": true,
+        "seed_1_cell_coverage": true,
+        "seed_1_recount": true,
+        "seed_2_cell_coverage": true,
+        "seed_2_recount": true,
+        "seed_3_cell_coverage": true,
+        "seed_3_recount": true,
+        "task_evidence_hash_recomputed": true
+      },
+      "constructed_learner": {
+        "algorithm": {
+          "clip_param": 0.2,
+          "desired_kl": 0.01,
+          "entropy_coef": 0.008,
+          "gamma": 0.99,
+          "lam": 0.95,
+          "learning_rate": 0.001,
+          "max_grad_norm": 1.0,
+          "normalize_advantage_per_mini_batch": false,
+          "num_learning_epochs": 5,
+          "num_mini_batches": 4,
+          "schedule": "adaptive",
+          "use_clipped_value_loss": true,
+          "value_loss_coef": 1.0
+        },
+        "configuration_mapping_version": "rsl_rl_3_actor_critic_to_rsl_rl_5_mlp.v1",
+        "initial_noise_std": 1.0,
+        "models": {
+          "actor": {
+            "activation": "ELU",
+            "hidden_dims": [
+              512,
+              256,
+              128
+            ],
+            "input_dim": 310,
+            "obs_groups": [
+              "policy"
+            ],
+            "obs_normalization": false,
+            "output_dim": 37
+          },
+          "critic": {
+            "activation": "ELU",
+            "hidden_dims": [
+              512,
+              256,
+              128
+            ],
+            "input_dim": 310,
+            "obs_groups": [
+              "policy"
+            ],
+            "obs_normalization": false,
+            "output_dim": 1
+          }
+        },
+        "noise_std_type": "scalar",
+        "optimizer": "Adam",
+        "optimizer_source": "frozen_v1_PPO_implicit_Adam",
+        "schema_version": "true_rl_agent.rsl_rl_constructed_learner.v1"
+      },
+      "constructed_learner_canonical_sha256": "9b700841c4335c5264948c96531df3980e95c5c04e23ad19ab9b8ff32b1a33c3",
+      "current_dev": {
+        "episodes": 864,
+        "j_id": 0.9965397094675925,
+        "j_ood": 0.7436874183847737,
+        "j_primary": 0.7436874183847737,
+        "per_seed": [
+          {
+            "episodes": 288,
+            "j_primary": 0.7650954079938271,
+            "seed_index": 1,
+            "success_rate": 0.7222222222222222,
+            "successes": 208
+          },
+          {
+            "episodes": 288,
+            "j_primary": 0.7302769228395062,
+            "seed_index": 2,
+            "success_rate": 0.7083333333333334,
+            "successes": 204
+          },
+          {
+            "episodes": 288,
+            "j_primary": 0.7356899243209877,
+            "seed_index": 3,
+            "success_rate": 0.7152777777777778,
+            "successes": 206
+          }
+        ],
+        "primary_outcome_counts": {
+          "base_orientation_instability": 0,
+          "forbidden_contact": 197,
+          "insufficient_clearance": 0,
+          "off_course": 21,
+          "slip": 0,
+          "success": 618,
+          "timeout": 28
+        },
+        "strata": {
+          "c0_id": {
+            "episodes": 108,
+            "score": 0.9930794189351851,
+            "success_rate": 0.9907407407407407,
+            "successes": 107
+          },
+          "c1_conditional_frontier": {
+            "episodes": 108,
+            "score": 0.812695496574074,
+            "success_rate": 0.7037037037037037,
+            "successes": 76
+          },
+          "c1_id": {
+            "episodes": 108,
+            "score": 1.0,
+            "success_rate": 1.0,
+            "successes": 108
+          },
+          "c2_mechanism_ood": {
+            "episodes": 108,
+            "score": 0.8108066261111111,
+            "success_rate": 0.6851851851851852,
+            "successes": 74
+          },
+          "height_ood": {
+            "episodes": 108,
+            "score": 0.610516030925926,
+            "success_rate": 0.4351851851851852,
+            "successes": 47
+          },
+          "joint_ood": {
+            "episodes": 108,
+            "score": 0.5567507456481482,
+            "success_rate": 0.37962962962962965,
+            "successes": 41
+          },
+          "phase_composition_ood": {
+            "episodes": 108,
+            "score": 1.0,
+            "success_rate": 1.0,
+            "successes": 108
+          },
+          "tread_ood": {
+            "episodes": 108,
+            "score": 0.6554136208333333,
+            "success_rate": 0.5277777777777778,
+            "successes": 57
+          }
+        },
+        "success_rate": 0.7152777777777778,
+        "successes": 618
+      },
+      "evaluation_binding": {
+        "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+        "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+        "evaluation_binding_hash": "6e96e04f07f8cb000d5e658c46913a788e3c0380aaea78ee8c46faa15251b666",
+        "schema_version": "true_rl_agent.evaluation.binding.v1",
+        "seed_cohort_hash": "a37aa82260394873113a6bf3ff92d5eee65378ad99fdda25dd73377bc6b333ae",
+        "task_protocol_hash": "69feeb5aaf2216e9725148cebb24aa736284b85f40066761059e7824b8e8e243"
+      },
+      "frozen_training_budget_reused_not_spent": {
+        "budget_steps": 196608000,
+        "config_derived_total_timesteps": 196608000,
+        "max_iterations": 2000,
+        "num_envs": 4096,
+        "num_steps_per_env": 24,
+        "planned_env_steps": 196608000,
+        "status": "pass"
+      },
+      "frozen_training_source": {
+        "bytes": 43572,
+        "path": "PLAN/2new_world/P3/results/g1_reference_training_summary.json",
+        "sha256": "sha256:a838d02206f277331d1c07a3288d4e5be54f1868edcec6f10e724ea1104e579b"
+      },
+      "identity": {
+        "checkpoint_sha256": "sha256:4f62db0e487cfc39c3cef61777bef9e4160b64f91f92fcca1cc795585ab8236c",
+        "current_manifest_hash": "351a6a670c8047035a4d94b16c5694bfdf27fbfbb698085f31367b46f16993bb",
+        "evaluation_plan_hash": "07c78cccb60ac34f0ba3e8899eded15c5121f8abdd9d4cab3ef5cbbbf1dca644",
+        "execution_environment_manifest_hash": "68dea27a9b939b8432c2ef7960482f87e21cacce4f816be52795c2509d00cf3c",
+        "preserved_training_binding_hash": "d7aea85d7742c57eae1753b8b236b32555269d9bcd8c25ed2b3742d2e045e14c",
+        "public_dev_job_spec_hash": "4e6317fefa618861206a2303f8678a75acbf6e388033b796579f6ada6596a930",
+        "source_training_manifest_hash": "dbd79e0074ce64f23ae447d3e50ebcf1997593fe121fa209b4efd61b410c79a1",
+        "training_summary_sha256": "sha256:a838d02206f277331d1c07a3288d4e5be54f1868edcec6f10e724ea1104e579b"
+      },
+      "new_evaluation_cost": {
+        "closed_first_episode_control_steps": 300247,
+        "evaluation_env_count_per_seed": 288,
+        "seed_count": 3,
+        "simulated_env_control_steps": 552960,
+        "vector_env_step_calls": 1920,
+        "wall_time_s": 209.38976
+      },
+      "owned_process": {
+        "child_pid": 2621605,
+        "execution_device": "cuda:1",
+        "phase_wall_cap_s": 1800,
+        "physical_gpu_uuid": "GPU-8cd998f2-d42e-394e-7aae-a6701bb9b187",
+        "returncode": 0,
+        "wall_time_s": 233.05133318901062
+      },
+      "prior_p3_dev_comparison": {
+        "all_recorded_episode_facts_identical": true,
+        "backend_manifest_changed": true,
+        "complete_summary_identical": true,
+        "j_primary_delta": 0.0,
+        "prior_backend_manifest_hash": "c9f3f098a5ea8a052613848d7aee7f59aec32e670ebfc49d115c98cb211318aa",
+        "prior_source_manifest_hash": "0604aa56b76a6b2f706ffde126958bf2ee1e3e36792ec8bb25fd6717fd4cf021",
+        "same_scientific_cohort": true,
+        "source": {
+          "bytes": 382195,
+          "path": "PLAN/2new_world/P3/results/cohort_alignment_20260909/g1_37dof_qualification/evaluation/public_dev/summary.json",
+          "sha256": "sha256:62674fe23a8a88d5f62c23560438dead07bf7df3fdab3364a83ec8a9a1fc1584"
+        },
+        "source_manifest_changed": true,
+        "success_delta": 0,
+        "summary_canonical_sha256": "7831574ca80e860def6b4788a8526d03419c75602d00c25f4208d6a387f98a5d"
+      },
+      "status": "PASS",
+      "task_source_preflight": {
+        "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+        "source_manifest_hash": "673aea24d4e75d7a2cee1aadb6dca9824590bbe9138561ac56921de5fdd91ed7",
+        "status": "pass",
+        "task_protocol_hash": "69feeb5aaf2216e9725148cebb24aa736284b85f40066761059e7824b8e8e243"
+      }
+    },
+    "go2": {
+      "abi_evidence_scope": "Current production observation-group and constructed learner checks plus successful sealed-checkpoint inference; these downloaded receipts do not include a separate expanded joint-order/action-scale/sensor ABI payload.",
+      "cell_variant_id": "stair.go2_12dof.unified_v3",
+      "checkpoint_load": {
+        "actor_loaded": true,
+        "checkpoint_format": "rsl_rl_5",
+        "critic_loaded": true,
+        "iteration_loaded": false,
+        "optimizer_loaded": false
+      },
+      "checkpoint_path_on_target": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit3_go2_full_train/runner/audit3_go2_full_train/checkpoints/best.pt",
+      "checkpoint_safety_status": "pass",
+      "checks": {
+        "aggregate_recount": true,
+        "checkpoint_identity_chain": true,
+        "checkpoint_safety_and_eval_seal": true,
+        "closed_first_episode_steps_recount": true,
+        "complete_recorded_episode_facts_and_summary_identical_to_p3": true,
+        "constructed_learner_matches_p3_eval_and_training": true,
+        "current_and_prior_derived_statistics_rebuilt": true,
+        "current_backend_manifest_verified": true,
+        "current_manifest_recomputed": true,
+        "current_task_source_preflight_pass": true,
+        "eval_workload_recomputed": true,
+        "evaluation_binding_hash_recomputed": true,
+        "evaluation_plan_hash_recomputed": true,
+        "inference_load_only": true,
+        "job_spec_hash_recomputed": true,
+        "no_new_training_holdout_qualification": true,
+        "owned_gpu_matches_execution": true,
+        "owned_process_timing_and_budget": true,
+        "phase_scope": true,
+        "preserved_full_training_budget": true,
+        "preserved_training_binding_and_manifest": true,
+        "preserved_training_receipt_bytes": true,
+        "process_success": true,
+        "same_p3_cohort_and_suite": true,
+        "same_p3_evaluation_binding": true,
+        "same_p3_task_protocol": true,
+        "seed_1_cell_coverage": true,
+        "seed_1_recount": true,
+        "seed_2_cell_coverage": true,
+        "seed_2_recount": true,
+        "seed_3_cell_coverage": true,
+        "seed_3_recount": true,
+        "task_evidence_hash_recomputed": true
+      },
+      "constructed_learner": {
+        "algorithm": {
+          "clip_param": 0.2,
+          "desired_kl": 0.01,
+          "entropy_coef": 0.01,
+          "gamma": 0.99,
+          "lam": 0.95,
+          "learning_rate": 0.001,
+          "max_grad_norm": 1.0,
+          "normalize_advantage_per_mini_batch": false,
+          "num_learning_epochs": 5,
+          "num_mini_batches": 4,
+          "schedule": "adaptive",
+          "use_clipped_value_loss": true,
+          "value_loss_coef": 1.0
+        },
+        "configuration_mapping_version": "rsl_rl_3_actor_critic_to_rsl_rl_5_mlp.v1",
+        "initial_noise_std": 1.0,
+        "models": {
+          "actor": {
+            "activation": "ELU",
+            "hidden_dims": [
+              512,
+              256,
+              128
+            ],
+            "input_dim": 235,
+            "obs_groups": [
+              "policy"
+            ],
+            "obs_normalization": false,
+            "output_dim": 12
+          },
+          "critic": {
+            "activation": "ELU",
+            "hidden_dims": [
+              512,
+              256,
+              128
+            ],
+            "input_dim": 235,
+            "obs_groups": [
+              "policy"
+            ],
+            "obs_normalization": false,
+            "output_dim": 1
+          }
+        },
+        "noise_std_type": "scalar",
+        "optimizer": "Adam",
+        "optimizer_source": "frozen_v1_PPO_implicit_Adam",
+        "schema_version": "true_rl_agent.rsl_rl_constructed_learner.v1"
+      },
+      "constructed_learner_canonical_sha256": "194dd3e9b85617800966dc2ca36d139234887902041637ed4e1199446333e867",
+      "current_dev": {
+        "episodes": 864,
+        "j_id": 1.0,
+        "j_ood": 0.7466970595216049,
+        "j_primary": 0.7466970595216049,
+        "per_seed": [
+          {
+            "episodes": 288,
+            "j_primary": 0.7533095189197531,
+            "seed_index": 1,
+            "success_rate": 0.8020833333333334,
+            "successes": 231
+          },
+          {
+            "episodes": 288,
+            "j_primary": 0.7542777456944445,
+            "seed_index": 2,
+            "success_rate": 0.8020833333333334,
+            "successes": 231
+          },
+          {
+            "episodes": 288,
+            "j_primary": 0.7325039139506173,
+            "seed_index": 3,
+            "success_rate": 0.7881944444444444,
+            "successes": 227
+          }
+        ],
+        "primary_outcome_counts": {
+          "base_orientation_instability": 22,
+          "forbidden_contact": 113,
+          "insufficient_clearance": 0,
+          "off_course": 4,
+          "slip": 0,
+          "success": 689,
+          "timeout": 36
+        },
+        "strata": {
+          "c0_id": {
+            "episodes": 108,
+            "score": 1.0,
+            "success_rate": 1.0,
+            "successes": 108
+          },
+          "c1_conditional_frontier": {
+            "episodes": 108,
+            "score": 0.6255176638425926,
+            "success_rate": 0.5092592592592593,
+            "successes": 55
+          },
+          "c1_id": {
+            "episodes": 108,
+            "score": 1.0,
+            "success_rate": 1.0,
+            "successes": 108
+          },
+          "c2_mechanism_ood": {
+            "episodes": 108,
+            "score": 0.8433088790740741,
+            "success_rate": 0.7685185185185185,
+            "successes": 83
+          },
+          "height_ood": {
+            "episodes": 108,
+            "score": 0.6841055214351852,
+            "success_rate": 0.5833333333333334,
+            "successes": 63
+          },
+          "joint_ood": {
+            "episodes": 108,
+            "score": 0.7142249412037037,
+            "success_rate": 0.6388888888888888,
+            "successes": 69
+          },
+          "phase_composition_ood": {
+            "episodes": 108,
+            "score": 1.0,
+            "success_rate": 1.0,
+            "successes": 108
+          },
+          "tread_ood": {
+            "episodes": 108,
+            "score": 0.9154634443055556,
+            "success_rate": 0.8796296296296297,
+            "successes": 95
+          }
+        },
+        "success_rate": 0.7974537037037037,
+        "successes": 689
+      },
+      "evaluation_binding": {
+        "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+        "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+        "evaluation_binding_hash": "ff0b754f727af4df616e77d10f8f67019cea485ed76b1b9c6b00cf902c451178",
+        "schema_version": "true_rl_agent.evaluation.binding.v1",
+        "seed_cohort_hash": "a7830816449821400a6ae51fabbb046f8d98ab3084bfcaeb56b240249ea790ea",
+        "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9"
+      },
+      "frozen_training_budget_reused_not_spent": {
+        "budget_steps": 196608000,
+        "config_derived_total_timesteps": 196608000,
+        "max_iterations": 2000,
+        "num_envs": 4096,
+        "num_steps_per_env": 24,
+        "planned_env_steps": 196608000,
+        "status": "pass"
+      },
+      "frozen_training_source": {
+        "bytes": 33300,
+        "path": "PLAN/2new_world/P2/results/audit3_go2_full_train/runner/audit3_go2_full_train/train/summary.json",
+        "sha256": "sha256:a02aaf0d926551a288e249532da77dfbe70ab6e7c2a91f35152ae32afd1b6d6f"
+      },
+      "identity": {
+        "checkpoint_sha256": "sha256:7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+        "current_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+        "evaluation_plan_hash": "e65a4a43b2abb855725892c2b79cbaa70e65832211c29fc8ef4879e48bb28f23",
+        "execution_environment_manifest_hash": "68dea27a9b939b8432c2ef7960482f87e21cacce4f816be52795c2509d00cf3c",
+        "preserved_training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98",
+        "public_dev_job_spec_hash": "19581322d083337c50dc6f05dd93fe392e5b115db122da268b7cfcf2d537dae7",
+        "source_training_manifest_hash": "193fa9038a6f46539fb71a7e73edc44bdc024be2b899785394b8f82113c91f37",
+        "training_summary_sha256": "sha256:a02aaf0d926551a288e249532da77dfbe70ab6e7c2a91f35152ae32afd1b6d6f"
+      },
+      "new_evaluation_cost": {
+        "closed_first_episode_control_steps": 300105,
+        "evaluation_env_count_per_seed": 288,
+        "seed_count": 3,
+        "simulated_env_control_steps": 550368,
+        "vector_env_step_calls": 1911,
+        "wall_time_s": 288.092267
+      },
+      "owned_process": {
+        "child_pid": 2620623,
+        "execution_device": "cuda:0",
+        "phase_wall_cap_s": 1800,
+        "physical_gpu_uuid": "GPU-06661cdd-1a0e-904e-a2e3-705eda5fb65b",
+        "returncode": 0,
+        "wall_time_s": 310.16742181777954
+      },
+      "prior_p3_dev_comparison": {
+        "all_recorded_episode_facts_identical": true,
+        "backend_manifest_changed": true,
+        "complete_summary_identical": true,
+        "j_primary_delta": 0.0,
+        "prior_backend_manifest_hash": "c9f3f098a5ea8a052613848d7aee7f59aec32e670ebfc49d115c98cb211318aa",
+        "prior_source_manifest_hash": "86fe5909f724a4fb890d27706ad823631ad8c9dd4c96bd4c7a34d5cb3314ce7d",
+        "same_scientific_cohort": true,
+        "source": {
+          "bytes": 401666,
+          "path": "PLAN/2new_world/P3/results/cohort_alignment_20260909/go2_12dof_qualification/evaluation/public_dev/summary.json",
+          "sha256": "sha256:d47b4e9ec12e3662f9637f55a62281c806a46f99369dec6260727a9d815bc3d2"
+        },
+        "source_manifest_changed": true,
+        "success_delta": 0,
+        "summary_canonical_sha256": "0fc351761972d40e1b2b10528f8ac791c3a20b6c88610d2c32e813b1172ffc76"
+      },
+      "status": "PASS",
+      "task_source_preflight": {
+        "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+        "source_manifest_hash": "dc4f199cf0c1fcca156291aa32f0747f99134c216572ed3c7d28399abf7a6520",
+        "status": "pass",
+        "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9"
+      }
+    }
+  },
+  "evidence_sources": [
+    {
+      "bytes": 2103,
+      "path": "PLAN/2new_world/P6/stair_dev_evidence_01/g1/public_dev_job.json",
+      "sha256": "sha256:f5aa29e085e7058b4fcf5a45eefcbc6e3af7898f7177c24ab363c209bf626328"
+    },
+    {
+      "bytes": 378402,
+      "path": "PLAN/2new_world/P6/stair_dev_evidence_01/g1/public_dev_result.json",
+      "sha256": "sha256:7ba778d906b323ddb91874505e86f92af1f679420009882efa71f6341dc8fc92"
+    },
+    {
+      "bytes": 357667,
+      "path": "PLAN/2new_world/P6/stair_dev_evidence_01/g1/result.json",
+      "sha256": "sha256:98b3645310eec4500f2447981e05c8c26b25d922213faedbc3230b1a435d4fa6"
+    },
+    {
+      "bytes": 1696,
+      "path": "PLAN/2new_world/P6/stair_dev_evidence_01/g1_process/process.json",
+      "sha256": "sha256:429ea5f933fae37162c890ea4c7b081f1e6b0c9106b06d4d2730ca52b80c47ee"
+    },
+    {
+      "bytes": 2104,
+      "path": "PLAN/2new_world/P6/stair_dev_evidence_01/go2/public_dev_job.json",
+      "sha256": "sha256:ad15cc16974c9ccf0c4910a953d870065ecb8bb099e118b8953f2c90bb465974"
+    },
+    {
+      "bytes": 397867,
+      "path": "PLAN/2new_world/P6/stair_dev_evidence_01/go2/public_dev_result.json",
+      "sha256": "sha256:7608aecc9f5e934f571445e38fefce81b5ecc658ca199145df618d6ea11e4bdc"
+    },
+    {
+      "bytes": 376129,
+      "path": "PLAN/2new_world/P6/stair_dev_evidence_01/go2/result.json",
+      "sha256": "sha256:6f1956a0aba0dc3dcaabdd2a127963711dc1b9a1a20b26ea0045f1eca2d64c6e"
+    },
+    {
+      "bytes": 1716,
+      "path": "PLAN/2new_world/P6/stair_dev_evidence_01/go2_process/process.json",
+      "sha256": "sha256:228660f67e8f576995a2d355986052cba13fb6d65626d3c27d8a505389ac4c9b"
+    }
+  ],
+  "limitations": [
+    "Current-code same-checkpoint public-dev regression only; no new reference qualification, training replication, acceptance/sealed/final evaluation, or cross-training-seed generalization.",
+    "Equality covers saved episode facts and derived summaries, not unrecorded full simulator trajectories.",
+    "Checkpoint bytes and safety were checked on the target; this local audit verifies receipt hashes and lineage, not locally downloaded checkpoint binaries.",
+    "The eight downloaded JSON files do not include full child stdout/stderr or a separate expanded runtime ABI payload; learner construction and source-preflight evidence are retained explicitly."
+  ],
+  "purpose": "Independent local recount and identity audit of current-code Stair V3 public-dev regression against frozen P3 checkpoints and the same cohort",
+  "schema_version": "true_rl_agent.p6.stair_dev_regression_audit.v1",
+  "scope": {
+    "final_jobs": 0,
+    "new_physics_executed_by_this_audit": false,
+    "new_reference_qualified": false,
+    "phases": [
+      "public_dev"
+    ],
+    "provider_requests": 0,
+    "public_accept_jobs": 0,
+    "reference_qualification_performed": false,
+    "sealed_validation_jobs": 0,
+    "training_jobs": 0
+  },
+  "status": "PASS",
+  "totals": {
+    "cells": 2,
+    "closed_first_episode_control_steps": 600352,
+    "episodes": 1728,
+    "public_dev_jobs": 2,
+    "simulated_env_control_steps": 1103328,
+    "successes": 1307,
+    "training_env_steps_new": 0
+  }
+}

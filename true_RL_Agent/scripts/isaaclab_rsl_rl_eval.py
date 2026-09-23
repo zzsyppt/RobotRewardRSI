@@ -96,6 +96,26 @@ def evaluation_binding_from_args(
     return binding
 
 
+def acceptance_protocol_from_args(args: argparse.Namespace) -> Any:
+    from true_rl_agent.tasks.push_recovery.config import PushRecoveryTaskConfig
+
+    values = {
+        "public_seed_count": int(args.public_seeds),
+        "public_accept_seed_count": int(args.public_accept_seeds),
+        "sealed_validation_seed_count": int(args.sealed_validation_seeds),
+        "eval_num_envs": int(args.num_envs),
+        "eval_protocol_version": str(args.eval_protocol_version),
+        "eval_base_seed": int(args.seed),
+    }
+    manifest = args.resolved_cell_manifest
+    config = (PushRecoveryTaskConfig.from_manifest(manifest, **values)
+              if manifest is not None else PushRecoveryTaskConfig(**values))
+    protocol = config.acceptance_protocol()
+    if protocol.protocol_hash != args.acceptance_protocol_hash:
+        raise ValueError("Push acceptance protocol differs from its resolved task configuration")
+    return protocol
+
+
 try:
     reject_candidate_path_arguments(sys.argv[1:])
 except ValueError as exc:
@@ -151,6 +171,10 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--action-scale", type=float, default=None)
     parser.add_argument("--status-file", default=None)
+    parser.add_argument("--numeric-evidence-dir", default=None)
+    parser.add_argument("--numeric-evidence-max-bytes", type=int, default=2 * 1024**3)
+    from true_rl_agent.runner.native_video import add_native_video_arguments
+    add_native_video_arguments(parser)
     add_resolved_cell_manifest_arguments(parser)
     add_gpu_process_binding_arguments(parser)
     AppLauncher.add_app_launcher_args(parser)
@@ -159,6 +183,8 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 args_cli = _build_parser().parse_args()
+from true_rl_agent.runner.native_video import native_video_options_from_args
+native_video = native_video_options_from_args(args_cli)
 try:
     if bool(args_cli.evaluation_phase) != bool(args_cli.evaluation_plan_hash):
         raise ValueError("evaluation phase and plan hash must be supplied together")
@@ -212,6 +238,7 @@ try:
             else args_cli.task_protocol_hash
         ),
     )
+    args_cli.acceptance_protocol = acceptance_protocol_from_args(args_cli)
     actual_seed_cohort_hash = build_seed_cohort_hash(
         base_seed=int(args_cli.seed),
         evaluation_protocol=evaluation_protocol_from_args(args_cli),
@@ -228,6 +255,15 @@ try:
 except ValueError as exc:
     print(str(exc), file=sys.stderr)
     raise SystemExit(2) from exc
+from true_rl_agent.tasks.push_recovery.runtime import (
+    physical_runtime_config_from_manifest, instantiate_physical_push_configs,
+    make_physical_push_environment, push_policy_io_evidence,
+)
+physical_config = physical_runtime_config_from_manifest(args_cli.resolved_cell_manifest, args_cli.profile, evaluation=True)
+from true_rl_agent.tasks.push_recovery.numeric_capture import push_numeric_capture_options_from_args
+push_numeric_capture_options_from_args(args_cli)  # Reject unsupported scope before launching the simulator.
+if native_video is not None and physical_config is None:
+    raise ValueError("Push native video requires the v2 physical protocol")
 bind_isaac_log_path(args_cli, args_cli.summary_path)
 app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
@@ -236,7 +272,8 @@ simulation_app = app_launcher.app
 import gymnasium as gym  # type: ignore[import-not-found]  # noqa: E402
 import isaaclab_tasks  # type: ignore[import-not-found]  # noqa: F401,E402
 import torch  # type: ignore[import-not-found]  # noqa: E402
-import unitree_rl_lab.tasks  # type: ignore[import-not-found]  # noqa: F401,E402
+if physical_config is None:
+    import unitree_rl_lab.tasks  # type: ignore[import-not-found]  # noqa: F401,E402
 from isaaclab.envs import (  # type: ignore[import-not-found]  # noqa: E402
     DirectMARLEnv,
     multi_agent_to_single_agent,
@@ -288,7 +325,7 @@ def main() -> int:
         expected_checkpoint_hash=args_cli.checkpoint_sha256,
     ).to_public_dict()
     try:
-        config = config_for_profile(load_runtime_config(args_cli.config), args_cli.profile)
+        config = physical_config or config_for_profile(load_runtime_config(args_cli.config), args_cli.profile)
         runtime_dynamics = public_runtime_dynamics(config)
         if runtime_dynamics["runtime_dynamics_hash"] != args_cli.runtime_dynamics_hash:
             raise ValueError(
@@ -296,30 +333,42 @@ def main() -> int:
                 f"expected={args_cli.runtime_dynamics_hash!r} "
                 f"actual={runtime_dynamics['runtime_dynamics_hash']!r}"
             )
-        task = args_cli.task or config["task"]["gym_id"]
+        task = "TrueRL-PushRecovery-v2" if physical_config else (args_cli.task or config["task"]["gym_id"])
         args_cli.task = task
         if args_cli.policy == "checkpoint":
             assert_safe_checkpoint(Path(args_cli.checkpoint), checkpoint_safety_report=checkpoint_safety_report)
-        env_cfg = instantiate_g1_29_environment_cfg(device=args_cli.device, num_envs=args_cli.num_envs)
-        apply_push_recovery_overlay(env_cfg, config, args_cli)
-        apply_eval_overrides(env_cfg, config)
-        base_env = gym.make(task, cfg=env_cfg, render_mode=None)
+        if physical_config:
+            env_cfg, agent_cfg = instantiate_physical_push_configs(config, args_cli, evaluation=True)
+            if native_video:
+                native_video.configure_viewer(env_cfg)
+            base_env = make_physical_push_environment(env_cfg, render_mode="rgb_array" if native_video else None)
+            if native_video:
+                from true_rl_agent.runner.native_video import NativeVideoRecorder
+                args_cli._push_video_recorder = NativeVideoRecorder(base_env, native_video)
+                base_env = args_cli._push_video_recorder.env
+        else:
+            env_cfg = instantiate_g1_29_environment_cfg(device=args_cli.device, num_envs=args_cli.num_envs)
+            apply_push_recovery_overlay(env_cfg, config, args_cli)
+            apply_eval_overrides(env_cfg, config)
+            base_env = gym.make(task, cfg=env_cfg, render_mode=None)
         if isinstance(base_env.unwrapped, DirectMARLEnv):
             base_env = multi_agent_to_single_agent(base_env)
         if str(base_env.unwrapped.device) != args_cli.device:
             raise RuntimeError(
                 "push evaluation device does not match the requested execution device"
             )
+        policy_io_evidence = push_policy_io_evidence(base_env, args_cli.resolved_cell_manifest) if physical_config else None
 
         inference_policy = None
         checkpoint_loading = None
         constructed_learner = None
         if args_cli.policy == "checkpoint":
-            from true_rl_agent.robots.rsl_rl_runtime import (
-                G1_29DOF_UNITREE_RL_LAB_AGENT_CONFIGURATION,
-            )
-
-            agent_cfg = instantiate_g1_29_runner_cfg()
+            from true_rl_agent.robots.rsl_rl_runtime import G1_29DOF_UNITREE_RL_LAB_AGENT_CONFIGURATION, rsl_rl_agent_configuration
+            if physical_config:
+                expected_agent_configuration = rsl_rl_agent_configuration(config["runtime_adapter_id"])
+            else:
+                agent_cfg = instantiate_g1_29_runner_cfg()
+                expected_agent_configuration = G1_29DOF_UNITREE_RL_LAB_AGENT_CONFIGURATION
             if hasattr(agent_cfg, "device") and args_cli.device is not None:
                 agent_cfg.device = args_cli.device
             if str(agent_cfg.device) != args_cli.device:
@@ -329,7 +378,7 @@ def main() -> int:
             env = RslRlVecEnvWrapper(base_env, clip_actions=agent_cfg.clip_actions)
             runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=None, device=agent_cfg.device)
             constructed_learner = (
-                G1_29DOF_UNITREE_RL_LAB_AGENT_CONFIGURATION.verify_runner(runner)
+                expected_agent_configuration.verify_runner(runner)
             )
             checkpoint_loading = load_inference_checkpoint(runner, args_cli.checkpoint)
             inference_policy = runner.get_inference_policy(device=env.unwrapped.device)
@@ -345,6 +394,16 @@ def main() -> int:
         )
         summary["checkpoint_loading"] = checkpoint_loading
         summary["constructed_learner"] = constructed_learner
+        if physical_config:
+            summary["policy_io_evidence"] = policy_io_evidence
+            recorder = getattr(args_cli, "_push_video_recorder", None)
+            if recorder is not None:
+                sidecar = {"schema_version": "true_rl_agent.push_recovery.native_video.v2",
+                    "checkpoint": checkpoint_safety_report, "checkpoint_loading": checkpoint_loading,
+                    "resolved_cell_manifest_hash": args_cli.resolved_cell_manifest.manifest_hash,
+                    "runtime_dynamics": runtime_dynamics, "recordings": recorder.records,
+                    "reclassified_by_video_exporter": False}
+                (native_video.output_dir / "recordings.json").write_text(json.dumps(sidecar, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         summary = attach_gpu_runtime_evidence(
             summary, gpu_runtime_binding,
             compute_context_observation=(
@@ -458,6 +517,7 @@ def run_public_eval(
     sealed_validation_evidence = build_push_sealed_rollout_evidence(
         summaries=sealed_validation_summaries,
         evaluation_protocol=evaluation_protocol,
+        acceptance_protocol=args.acceptance_protocol,
         checkpoint_hash=str(args.checkpoint_sha256),
         evaluation_binding_hash=args.evaluation_binding.binding_hash,
         evaluation_subject=args.evaluation_subject,
@@ -465,6 +525,8 @@ def run_public_eval(
         program_source_checksum=args.program_source_checksum,
         training_binding_hash=args.training_binding_hash,
         capability_profile_hash=args.capability_profile_hash,
+        public_accept_score=(sum(float(item["public_score"]) for item in public_accept_summaries) / len(public_accept_summaries)
+            if "push_protocol" in config and public_accept_summaries else None),
     )
     sealed_validation_gate = build_eval_sealed_validation_gate(
         checkpoint_safety_report,
@@ -478,6 +540,7 @@ def run_public_eval(
         budget_summary=None,
         min_public_accept_count=evaluation_protocol.public_accept_seed_count,
         evaluation_protocol=evaluation_protocol,
+        acceptance_protocol=args.acceptance_protocol,
     )
     first_summary = public_accept_summaries[0] if public_accept_summaries else public_dev_summaries[0]
     summary = {
@@ -537,6 +600,10 @@ def run_rollout(
     split_name: str = "public_eval",
     run_index: int = 1,
 ) -> dict[str, Any]:
+    if "push_protocol" in config:
+        from true_rl_agent.tasks.push_recovery.rollout import run_physical_push_rollout
+        return run_physical_push_rollout(env, config, args, inference_policy=inference_policy,
+            split_name=split_name, run_index=run_index, numeric_capture=push_numeric_capture_options_from_args(args))
     unwrapped = env.unwrapped
     device = torch.device(unwrapped.device)
     num_envs = int(unwrapped.num_envs)

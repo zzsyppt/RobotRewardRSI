@@ -1,0 +1,114 @@
+{
+  "frozen_at_unix": 1790051068.2872267,
+  "definition": {
+    "base_seed": 42,
+    "body_name": "base",
+    "comparison_scope": "I_2x_short_gap_80pct_with_displacement_failure",
+    "control_dt_s": 0.02,
+    "definition_hash": "73dc7608017e8758c0f1612cd21992f29ba17ba1b590e9fb7ce225fb4b0aed0b",
+    "derived_seeds": [
+      10042,
+      10043,
+      10044
+    ],
+    "direct_torque_nm": [
+      0,
+      0,
+      0
+    ],
+    "displacement_failure_rule": "disabled_displacement_is_diagnostic_only",
+    "dwell_steps": 16,
+    "envs_per_seed": 64,
+    "first_recovery_sample": "pulse_end_control_step_plus_one",
+    "force_rule": "force_scale * total_mass_kg * source_delta_v_world_mps / actual_pulse_duration_s",
+    "force_scale": 2.0,
+    "holdout_jobs": 0,
+    "is_global": true,
+    "mass_rule": "actual_all_robot_link_masses_sum_after_reset_per_environment",
+    "mechanism": "finite_world_horizontal_force_at_bound_base_link_com",
+    "physics_dt_s": 0.005,
+    "positions": null,
+    "previous_max_displacement_m": 1.2000000000000002,
+    "provider_calls": 0,
+    "pulse_control_steps": 11,
+    "pulse_duration_s": 0.22,
+    "recovery_scope": "all_planned_pulses_then_one_fresh_window_and_final_stable",
+    "repeat_gap_control_steps": 11,
+    "repeat_gap_rule": "ceil(time_scale_s / control_dt_s) * control_dt_s",
+    "repeat_gap_s": 0.22,
+    "repeated_high_fraction": 0.8,
+    "repeated_source_delta_v_rule": "source_high_delta_v_mps * repeated_high_fraction",
+    "robot": "go2",
+    "schema_version": "true_rl_agent.p6.external_force_diagnostic.v5",
+    "seed_count": 3,
+    "source_resolved_protocol_hash": "39f0d453a04e0c1a059395597b6a54aa3715dd739edd394b78f90641217f76e1",
+    "start_control_steps": [
+      51,
+      73
+    ],
+    "train_jobs": 0,
+    "wall_limit_s": 1800,
+    "window_steps": 81
+  },
+  "source_identity": {
+    "checkpoint_sha256": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+    "definition_hash": "73dc7608017e8758c0f1612cd21992f29ba17ba1b590e9fb7ce225fb4b0aed0b",
+    "diagnostic_execution_environment_hash": "e36549a8063e43f48c32fa4d81d5410c03bbe3624386d4672f123c71e0e84dc4",
+    "execution_source_changes": {
+      "src/true_rl_agent/tasks/push_recovery/failure_classifier.py": {
+        "after": "543f9ee57e151fa663d629bca45e48e3e683d67949c486ddb27dc30d90cce392",
+        "before": "3053fa1bb8b04626ace28ca686632ecc8cd4f2ed1d85a3dfe9fb8d806a628cfd"
+      },
+      "src/true_rl_agent/tasks/push_recovery/runtime.py": {
+        "after": "7c0686ea5c2c71a514a37b6a4f08c837bf79ed75a370963d851c8c84c9af295c",
+        "before": "2073d0bd9db4a93ce3454467420831beba8a121945fdbb5b310891f263538382"
+      }
+    },
+    "raw_conditions_sha256": "sha256:3a2a2682a0f3a38d49c8eaee04efab1a2f09f515394b87e3fc0e3013e84f4d45",
+    "scoring_sha256": "sha256:165ebae075226a04fbfda19c800996cb2a021d95fd945688ef468f33d17993de",
+    "script_sha256": "sha256:46da819a5bfb3128e0ea62ccee1431b1a2516aaf8c654aad5b8c757871fe79dd",
+    "source_dev_file_sha256": "sha256:a0300604413db5adbced1d0c9578eaa5e69e20342dc9c2a7172713dcd7332285",
+    "source_environment_hash": "c451dd809d4a26db2d61fb2c9ea08de83ef39a8b8f809882a9c40e7430bbb2c8",
+    "source_manifest_hash": "ed8c2a3607025eecc8d8b2ca3b0f2bef0f8c32b22c360a1fc6f2b2cc4f79316e",
+    "source_train_summary_sha256": "sha256:16be0e3ee7b7d9711d38546775287bf0968213b98ec104f0c5eae2cf7aa1b70c",
+    "source_training_binding_hash": "844cbee614c2f42651939254fa33e227bda6bd8fe76a713b771421b17ba567a5"
+  },
+  "command": [
+    "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+    "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/run_owned_probe.py",
+    "--device",
+    "cuda:0",
+    "--output",
+    "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/no_displacement_01/process_short",
+    "--timeout",
+    "1800",
+    "--",
+    "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+    "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/push_force_probe.py",
+    "--robot",
+    "go2",
+    "--mode",
+    "run",
+    "--output",
+    "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/no_displacement_01/short",
+    "--device",
+    "cuda:0",
+    "--force-scale",
+    "2",
+    "--short-repeat-sequence",
+    "--repeated-high-fraction",
+    "0.8",
+    "--no-displacement-limit",
+    "--expected-definition-hash",
+    "73dc7608017e8758c0f1612cd21992f29ba17ba1b590e9fb7ce225fb4b0aed0b"
+  ],
+  "scripts": {
+    "push_force_probe.py": "46da819a5bfb3128e0ea62ccee1431b1a2516aaf8c654aad5b8c757871fe79dd",
+    "push_sequence_scoring.py": "3a2a2682a0f3a38d49c8eaee04efab1a2f09f515394b87e3fc0e3013e84f4d45",
+    "push_force_scoring.py": "165ebae075226a04fbfda19c800996cb2a021d95fd945688ef468f33d17993de",
+    "run_owned_probe.py": "0f692d0ec27f50a8b4146a7fdbe69d3070cd98248be6ff92ffc265a049bcb3cd",
+    "NO_DISPLACEMENT_PLAN_ZH.md": "af30dc753d0ebd7e3d76ae3ebaf4cf161d2311254d6738d88bebd18a81a0dcd6",
+    "test_push_force_scoring.py": "76748d030edcff3f88608f27bf5ba9f9f17b3956b07f0384afe3187711cb3675"
+  },
+  "new_statistical_episodes": 192
+}

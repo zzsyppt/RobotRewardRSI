@@ -1,0 +1,3428 @@
+{
+  "source": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/formal_go2_stair_15round_20260901_c6ab8ba",
+  "read_only": true,
+  "generations": [
+    {
+      "generation": 1,
+      "outcome": "formal_rejected",
+      "lanes": [
+        {
+          "lane": "lane-a",
+          "status": "formal_rejected",
+          "reason": "named_guards_paired_headroom_delta_not_met",
+          "train_completed": true,
+          "public_dev_completed": true,
+          "evidence_checksum": "sha256:eb1e11763622d6eefeaa3c0411313614c85d38c4490315b774b31e683cc611a7",
+          "attempts": [
+            {
+              "attempt_id": "attempt_000001",
+              "candidate_id": "stair_forbidden_contact_force_penalty_v1",
+              "verifier_status": "pass",
+              "verifier_reason": "static_candidate_verifier_passed",
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 9,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_hash": "bf494e752a87f825169a87004ed416f3265e9afe57d354b56cb58a365c005bc0",
+                  "fixture_owner": "task_owned_stair_climbing",
+                  "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+                  "num_envs": 5,
+                  "purpose": "complete_reward_admission_preflight",
+                  "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v2"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "effective_max_abs_after_clip_and_weight": 3.5,
+                    "kind": "RewardTerm",
+                    "name": "track_lin_vel_xy_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.75,
+                    "kind": "RewardTerm",
+                    "name": "track_ang_vel_z_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.025050050020217898,
+                    "kind": "RewardTerm",
+                    "name": "ang_vel_xy_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 1.2525025010108948,
+                    "kind": "RewardTerm",
+                    "name": "flat_orientation_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0006133012294769288,
+                    "kind": "RewardTerm",
+                    "name": "dof_torques_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 7.666265368461608e-07,
+                    "kind": "RewardTerm",
+                    "name": "dof_acc_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.030665061473846435,
+                    "kind": "RewardTerm",
+                    "name": "action_rate_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.2985000014305115,
+                    "kind": "RewardTerm",
+                    "name": "feet_air_time",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.194000005722046,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.001735517144203186,
+                    "kind": "RewardTerm",
+                    "name": "forbidden_contact_force_l2_penalty",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.867758572101593,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_stair_climbing"
+              },
+              "provider_failure": null
+            }
+          ],
+          "prompts": [
+            {
+              "attempt": "attempt_000001",
+              "sha256": "7dde86b242d962f9d7fa53458153de3b68d98df08cb252a882b68add3cbe2ba5",
+              "stored_bytes": 83816,
+              "compact_bytes": 58600,
+              "feedback_candidate_ids": [
+                null
+              ],
+              "runtime_candidate_id": null,
+              "repair_category": null,
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb"
+              }
+            }
+          ]
+        },
+        {
+          "lane": "lane-b",
+          "status": "qualified_not_selected",
+          "reason": "sibling_not_selected",
+          "train_completed": true,
+          "public_dev_completed": true,
+          "evidence_checksum": "sha256:53e820965229875c30de5fe8ac9612f363b1981cd1103dd8f97ab79cafa5cf59",
+          "attempts": [
+            {
+              "attempt_id": "attempt_000001",
+              "candidate_id": "stair_climb_lift_v1",
+              "verifier_status": "pass",
+              "verifier_reason": "static_candidate_verifier_passed",
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 9,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_hash": "bf494e752a87f825169a87004ed416f3265e9afe57d354b56cb58a365c005bc0",
+                  "fixture_owner": "task_owned_stair_climbing",
+                  "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+                  "num_envs": 5,
+                  "purpose": "complete_reward_admission_preflight",
+                  "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v2"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "effective_max_abs_after_clip_and_weight": 3.5,
+                    "kind": "RewardTerm",
+                    "name": "track_lin_vel_xy_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.75,
+                    "kind": "RewardTerm",
+                    "name": "track_ang_vel_z_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.025050050020217898,
+                    "kind": "RewardTerm",
+                    "name": "ang_vel_xy_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 1.2525025010108948,
+                    "kind": "RewardTerm",
+                    "name": "flat_orientation_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0006133012294769288,
+                    "kind": "RewardTerm",
+                    "name": "dof_torques_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 7.666265368461608e-07,
+                    "kind": "RewardTerm",
+                    "name": "dof_acc_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.030665061473846435,
+                    "kind": "RewardTerm",
+                    "name": "action_rate_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.2985000014305115,
+                    "kind": "RewardTerm",
+                    "name": "feet_air_time",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.194000005722046,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.3764999806880951,
+                    "kind": "RewardTerm",
+                    "name": "climb_lift",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5019999742507935,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_stair_climbing"
+              },
+              "provider_failure": null
+            }
+          ],
+          "prompts": [
+            {
+              "attempt": "attempt_000001",
+              "sha256": "281769cca958975bf26a6fd4cbcdac26fc832fc4ab775fe751d202ea6f5e525e",
+              "stored_bytes": 84651,
+              "compact_bytes": 59296,
+              "feedback_candidate_ids": [
+                null
+              ],
+              "runtime_candidate_id": null,
+              "repair_category": null,
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "generation": 5,
+      "outcome": "no_selection",
+      "lanes": [
+        {
+          "lane": "lane-a",
+          "status": "qualified_not_selected",
+          "reason": "no_guard_eligible_candidate",
+          "train_completed": true,
+          "public_dev_completed": true,
+          "evidence_checksum": "sha256:c39a9892fd748a0de9c45ac3800db38f422d50ae978c9afd78c7dca6ab784323",
+          "attempts": [
+            {
+              "attempt_id": "attempt_000001",
+              "candidate_id": "stair_upslope_pitch_allowance_v1",
+              "verifier_status": "pass",
+              "verifier_reason": "static_candidate_verifier_passed",
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 8,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_hash": "bf494e752a87f825169a87004ed416f3265e9afe57d354b56cb58a365c005bc0",
+                  "fixture_owner": "task_owned_stair_climbing",
+                  "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+                  "num_envs": 5,
+                  "purpose": "complete_reward_admission_preflight",
+                  "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v2"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "effective_max_abs_after_clip_and_weight": 3.5,
+                    "kind": "RewardTerm",
+                    "name": "track_lin_vel_xy_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.75,
+                    "kind": "RewardTerm",
+                    "name": "track_ang_vel_z_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.025050050020217898,
+                    "kind": "RewardTerm",
+                    "name": "ang_vel_xy_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.8525025099515915,
+                    "kind": "RewardTerm",
+                    "name": "flat_orientation_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.3410010039806366,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0006133012294769288,
+                    "kind": "RewardTerm",
+                    "name": "dof_torques_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 7.666265368461608e-07,
+                    "kind": "RewardTerm",
+                    "name": "dof_acc_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.030665061473846435,
+                    "kind": "RewardTerm",
+                    "name": "action_rate_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.2985000014305115,
+                    "kind": "RewardTerm",
+                    "name": "feet_air_time",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.194000005722046,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_stair_climbing"
+              },
+              "provider_failure": null
+            }
+          ],
+          "prompts": [
+            {
+              "attempt": "attempt_000001",
+              "sha256": "c53c6de6883ca67f3998e103e1239bc8b9d236a1053cf7f477445df04c8436b1",
+              "stored_bytes": 119741,
+              "compact_bytes": 85292,
+              "feedback_candidate_ids": [
+                null,
+                "stair_forbidden_contact_force_penalty_v1",
+                "stair_foot_clearance_gap_penalty_v1",
+                "stair_forbidden_contact_terminal_penalty_v1"
+              ],
+              "runtime_candidate_id": "stair_forbidden_contact_terminal_penalty_v1",
+              "repair_category": null,
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+                "memory/best_observed/training_code/components.py": "83e764471a0da8b91bb60472cb7ee4f2bbb421c0b3ae50f64c11caf49d02b9b4",
+                "attempt/latest_failed/training_code/components.py": "833e0edbec55c328625ab485152b16e6b815cdc32fc5c5b5e58ccb538118abac"
+              }
+            }
+          ]
+        },
+        {
+          "lane": "lane-b",
+          "status": "qualified_not_selected",
+          "reason": "no_guard_eligible_candidate",
+          "train_completed": true,
+          "public_dev_completed": true,
+          "evidence_checksum": "sha256:7cd255aa574bf1c9a0ad6f7492b5eb483a3401e0068726f6fc5d29f2d56276ac",
+          "attempts": [
+            {
+              "attempt_id": "attempt_000001",
+              "candidate_id": "stair_stable_forward_progress_v1",
+              "verifier_status": "pass",
+              "verifier_reason": "static_candidate_verifier_passed",
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 9,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_hash": "bf494e752a87f825169a87004ed416f3265e9afe57d354b56cb58a365c005bc0",
+                  "fixture_owner": "task_owned_stair_climbing",
+                  "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+                  "num_envs": 5,
+                  "purpose": "complete_reward_admission_preflight",
+                  "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v2"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "effective_max_abs_after_clip_and_weight": 3.5,
+                    "kind": "RewardTerm",
+                    "name": "track_lin_vel_xy_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.75,
+                    "kind": "RewardTerm",
+                    "name": "track_ang_vel_z_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.025050050020217898,
+                    "kind": "RewardTerm",
+                    "name": "ang_vel_xy_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 1.2525025010108948,
+                    "kind": "RewardTerm",
+                    "name": "flat_orientation_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0006133012294769288,
+                    "kind": "RewardTerm",
+                    "name": "dof_torques_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 7.666265368461608e-07,
+                    "kind": "RewardTerm",
+                    "name": "dof_acc_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.030665061473846435,
+                    "kind": "RewardTerm",
+                    "name": "action_rate_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.2985000014305115,
+                    "kind": "RewardTerm",
+                    "name": "feet_air_time",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.194000005722046,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0,
+                    "kind": "RewardTerm",
+                    "name": "stair_stable_forward_progress_bonus",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_stair_climbing"
+              },
+              "provider_failure": null
+            }
+          ],
+          "prompts": [
+            {
+              "attempt": "attempt_000001",
+              "sha256": "beb9114dbea3a9b4094c1f24f85df76ffc5d3cf996cd6df56c7c6a3449024330",
+              "stored_bytes": 120558,
+              "compact_bytes": 85970,
+              "feedback_candidate_ids": [
+                null,
+                "stair_forbidden_contact_force_penalty_v1",
+                "stair_foot_clearance_gap_penalty_v1",
+                "stair_forbidden_contact_terminal_penalty_v1"
+              ],
+              "runtime_candidate_id": "stair_forbidden_contact_terminal_penalty_v1",
+              "repair_category": null,
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+                "memory/best_observed/training_code/components.py": "83e764471a0da8b91bb60472cb7ee4f2bbb421c0b3ae50f64c11caf49d02b9b4",
+                "attempt/latest_failed/training_code/components.py": "833e0edbec55c328625ab485152b16e6b815cdc32fc5c5b5e58ccb538118abac"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "generation": 6,
+      "outcome": "paired_authoring_incomplete",
+      "lanes": [
+        {
+          "lane": "lane-a",
+          "status": "verified_not_run",
+          "reason": "paired_authoring_incomplete",
+          "train_completed": false,
+          "public_dev_completed": false,
+          "evidence_checksum": "sha256:253a7b5f94f7ed9bea9d45012ab104ecd219866b7436dd02623c81520b10f207",
+          "attempts": [
+            {
+              "attempt_id": "attempt_000001",
+              "candidate_id": null,
+              "verifier_status": null,
+              "verifier_reason": null,
+              "component_smoke": null,
+              "provider_failure": {
+                "category": "json_parse_error",
+                "details": {
+                  "failure_kind": "empty_final_content_with_reasoning",
+                  "finish_reason": "stop"
+                },
+                "reason": "provider final content channel was empty",
+                "schema_version": "true_rl_agent.provider_failure.v1"
+              }
+            },
+            {
+              "attempt_id": "attempt_000002",
+              "candidate_id": "stair_swing_foot_clearance_penalty_v1",
+              "verifier_status": "pass",
+              "verifier_reason": "static_candidate_verifier_passed",
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 9,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_hash": "bf494e752a87f825169a87004ed416f3265e9afe57d354b56cb58a365c005bc0",
+                  "fixture_owner": "task_owned_stair_climbing",
+                  "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+                  "num_envs": 5,
+                  "purpose": "complete_reward_admission_preflight",
+                  "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v2"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "effective_max_abs_after_clip_and_weight": 3.5,
+                    "kind": "RewardTerm",
+                    "name": "track_lin_vel_xy_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.75,
+                    "kind": "RewardTerm",
+                    "name": "track_ang_vel_z_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.025050050020217898,
+                    "kind": "RewardTerm",
+                    "name": "ang_vel_xy_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 1.2525025010108948,
+                    "kind": "RewardTerm",
+                    "name": "flat_orientation_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0006133012294769288,
+                    "kind": "RewardTerm",
+                    "name": "dof_torques_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 7.666265368461608e-07,
+                    "kind": "RewardTerm",
+                    "name": "dof_acc_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.030665061473846435,
+                    "kind": "RewardTerm",
+                    "name": "action_rate_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.2985000014305115,
+                    "kind": "RewardTerm",
+                    "name": "feet_air_time",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.194000005722046,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0006300034146988764,
+                    "kind": "RewardTerm",
+                    "name": "swing_foot_clearance_penalty",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.0001260006829397753,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_stair_climbing"
+              },
+              "provider_failure": null
+            }
+          ],
+          "prompts": [
+            {
+              "attempt": "attempt_000001",
+              "sha256": "c24f5f257a2f9b1a1f16e3a35a92250e81f4aa157094a10a51dcf08ecf034251",
+              "stored_bytes": 120593,
+              "compact_bytes": 85917,
+              "feedback_candidate_ids": [
+                null,
+                "stair_forbidden_contact_force_penalty_v1",
+                "stair_foot_clearance_gap_penalty_v1",
+                "stair_forbidden_contact_terminal_penalty_v1"
+              ],
+              "runtime_candidate_id": "stair_forbidden_contact_terminal_penalty_v1",
+              "repair_category": null,
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+                "memory/best_observed/training_code/components.py": "83e764471a0da8b91bb60472cb7ee4f2bbb421c0b3ae50f64c11caf49d02b9b4",
+                "attempt/latest_failed/training_code/components.py": "77219135bd55eb4bf9840b975fb405d74f6b2ff09fb2ce480c5c7b5b88b6af79"
+              }
+            },
+            {
+              "attempt": "attempt_000002",
+              "sha256": "3bc0f615ac430d8aa86ec0a07a7d25072d8154be1d20e27238999a92ece8bd19",
+              "stored_bytes": 122222,
+              "compact_bytes": 87308,
+              "feedback_candidate_ids": [
+                null,
+                "stair_forbidden_contact_force_penalty_v1",
+                "stair_foot_clearance_gap_penalty_v1",
+                "stair_forbidden_contact_terminal_penalty_v1"
+              ],
+              "runtime_candidate_id": "stair_forbidden_contact_terminal_penalty_v1",
+              "repair_category": "json_parse_error",
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+                "memory/best_observed/training_code/components.py": "83e764471a0da8b91bb60472cb7ee4f2bbb421c0b3ae50f64c11caf49d02b9b4",
+                "attempt/latest_failed/training_code/components.py": "77219135bd55eb4bf9840b975fb405d74f6b2ff09fb2ce480c5c7b5b88b6af79"
+              }
+            }
+          ]
+        },
+        {
+          "lane": "lane-b",
+          "status": "candidate_failed",
+          "reason": "authoring_provider_failed",
+          "train_completed": false,
+          "public_dev_completed": false,
+          "evidence_checksum": "sha256:5ae02c9d38519ea46bb69f0f2a8c251d2c51dff958fb5bfc94daa11e3ff6633c",
+          "attempts": [
+            {
+              "attempt_id": "attempt_000001",
+              "candidate_id": "stair_stance_swing_phase_clearance_v1",
+              "verifier_status": "fail",
+              "verifier_reason": "static_candidate_verifier_failed",
+              "component_smoke": null,
+              "provider_failure": null
+            },
+            {
+              "attempt_id": "attempt_000002",
+              "candidate_id": null,
+              "verifier_status": null,
+              "verifier_reason": null,
+              "component_smoke": null,
+              "provider_failure": {
+                "category": "json_parse_error",
+                "details": {
+                  "failure_kind": "empty_final_content_with_reasoning",
+                  "finish_reason": "stop"
+                },
+                "reason": "provider final content channel was empty",
+                "schema_version": "true_rl_agent.provider_failure.v1"
+              }
+            },
+            {
+              "attempt_id": "attempt_000003",
+              "candidate_id": "stair_swing_foot_clearance_penalty_v2",
+              "verifier_status": "fail",
+              "verifier_reason": "static_candidate_verifier_failed",
+              "component_smoke": null,
+              "provider_failure": null
+            },
+            {
+              "attempt_id": "attempt_000004",
+              "candidate_id": null,
+              "verifier_status": null,
+              "verifier_reason": null,
+              "component_smoke": null,
+              "provider_failure": {
+                "category": "json_parse_error",
+                "details": {
+                  "failure_kind": "empty_final_content_with_reasoning",
+                  "finish_reason": "stop"
+                },
+                "reason": "provider final content channel was empty",
+                "schema_version": "true_rl_agent.provider_failure.v1"
+              }
+            },
+            {
+              "attempt_id": "attempt_000005",
+              "candidate_id": null,
+              "verifier_status": null,
+              "verifier_reason": null,
+              "component_smoke": null,
+              "provider_failure": {
+                "category": "json_parse_error",
+                "details": {
+                  "finish_reason": "stop"
+                },
+                "reason": "candidate proposal was not valid JSON object",
+                "schema_version": "true_rl_agent.provider_failure.v1"
+              }
+            }
+          ],
+          "prompts": [
+            {
+              "attempt": "attempt_000001",
+              "sha256": "83f30e3da8658a91b1cf98ebb51ac6918bccd4b11556cce62dd2b52d4b854d59",
+              "stored_bytes": 121488,
+              "compact_bytes": 86660,
+              "feedback_candidate_ids": [
+                null,
+                "stair_forbidden_contact_force_penalty_v1",
+                "stair_foot_clearance_gap_penalty_v1",
+                "stair_forbidden_contact_terminal_penalty_v1"
+              ],
+              "runtime_candidate_id": "stair_forbidden_contact_terminal_penalty_v1",
+              "repair_category": null,
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+                "memory/best_observed/training_code/components.py": "83e764471a0da8b91bb60472cb7ee4f2bbb421c0b3ae50f64c11caf49d02b9b4",
+                "attempt/latest_failed/training_code/components.py": "77219135bd55eb4bf9840b975fb405d74f6b2ff09fb2ce480c5c7b5b88b6af79"
+              }
+            },
+            {
+              "attempt": "attempt_000002",
+              "sha256": "f26acf085738d9b1c69289cb28682c73d08c6d020b127eb858002b42597b1a54",
+              "stored_bytes": 61168,
+              "compact_bytes": 48891,
+              "feedback_candidate_ids": [],
+              "runtime_candidate_id": null,
+              "repair_category": "verifier_error",
+              "repair_candidate_id": "stair_stance_swing_phase_clearance_v1",
+              "source_checksums": {
+                "attempt/latest_failed/training_code/components.py": "0b706bdee2fe40daa060435a2a954ebf8bd7a08826547f2eb891393698355de5"
+              }
+            },
+            {
+              "attempt": "attempt_000003",
+              "sha256": "30d05d86f66b89b8388d1f7bfbe4472eda22c7f99de2283a3a242429be35b49a",
+              "stored_bytes": 60737,
+              "compact_bytes": 48484,
+              "feedback_candidate_ids": [],
+              "runtime_candidate_id": null,
+              "repair_category": "json_parse_error",
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "attempt/latest_failed/training_code/components.py": "0b706bdee2fe40daa060435a2a954ebf8bd7a08826547f2eb891393698355de5"
+              }
+            },
+            {
+              "attempt": "attempt_000004",
+              "sha256": "ddb5a63a826614a00eb19ba8992074fc9c448d0325ca76aaba3d170fe4efea2c",
+              "stored_bytes": 61168,
+              "compact_bytes": 48891,
+              "feedback_candidate_ids": [],
+              "runtime_candidate_id": null,
+              "repair_category": "verifier_error",
+              "repair_candidate_id": "stair_swing_foot_clearance_penalty_v2",
+              "source_checksums": {
+                "attempt/latest_failed/training_code/components.py": "b7f802c4e49b3a339705bdeae22e0627b4a067d38a6356c5a21d73d97ebd98fd"
+              }
+            },
+            {
+              "attempt": "attempt_000005",
+              "sha256": "f708df7d6fc818d6ae5a68d58d05212f0ebdab26d5ab5bae5693e21933447544",
+              "stored_bytes": 60737,
+              "compact_bytes": 48484,
+              "feedback_candidate_ids": [],
+              "runtime_candidate_id": null,
+              "repair_category": "json_parse_error",
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "attempt/latest_failed/training_code/components.py": "b7f802c4e49b3a339705bdeae22e0627b4a067d38a6356c5a21d73d97ebd98fd"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "generation": 7,
+      "outcome": "formal_rejected",
+      "lanes": [
+        {
+          "lane": "lane-a",
+          "status": "qualified_not_selected",
+          "reason": "sibling_not_selected",
+          "train_completed": true,
+          "public_dev_completed": true,
+          "evidence_checksum": "sha256:ddcdad146bebd4b5439541c8a387c692ed81d5f4d4d01bb8cf94baa97b1efa11",
+          "attempts": [
+            {
+              "attempt_id": "attempt_000001",
+              "candidate_id": "stair_progressive_foot_clearance_v1",
+              "verifier_status": "pass",
+              "verifier_reason": "static_candidate_verifier_passed",
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 9,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_hash": "bf494e752a87f825169a87004ed416f3265e9afe57d354b56cb58a365c005bc0",
+                  "fixture_owner": "task_owned_stair_climbing",
+                  "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+                  "num_envs": 5,
+                  "purpose": "complete_reward_admission_preflight",
+                  "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v2"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "effective_max_abs_after_clip_and_weight": 3.5,
+                    "kind": "RewardTerm",
+                    "name": "track_lin_vel_xy_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.75,
+                    "kind": "RewardTerm",
+                    "name": "track_ang_vel_z_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.025050050020217898,
+                    "kind": "RewardTerm",
+                    "name": "ang_vel_xy_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 1.2525025010108948,
+                    "kind": "RewardTerm",
+                    "name": "flat_orientation_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0006133012294769288,
+                    "kind": "RewardTerm",
+                    "name": "dof_torques_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 7.666265368461608e-07,
+                    "kind": "RewardTerm",
+                    "name": "dof_acc_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.030665061473846435,
+                    "kind": "RewardTerm",
+                    "name": "action_rate_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.2985000014305115,
+                    "kind": "RewardTerm",
+                    "name": "feet_air_time",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.194000005722046,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0004050002826261334,
+                    "kind": "RewardTerm",
+                    "name": "foot_clearance_riser_aware_penalty",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 8.100005652522668e-05,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_stair_climbing"
+              },
+              "provider_failure": null
+            }
+          ],
+          "prompts": [
+            {
+              "attempt": "attempt_000001",
+              "sha256": "988fe8c8c7c5d737e49df14bc73db804e1abe1e21c01e1dec95903b815416f3c",
+              "stored_bytes": 114539,
+              "compact_bytes": 79875,
+              "feedback_candidate_ids": [
+                null,
+                "stair_forbidden_contact_force_penalty_v1",
+                "stair_foot_clearance_gap_penalty_v1",
+                "stair_forbidden_contact_terminal_penalty_v1"
+              ],
+              "runtime_candidate_id": "stair_forbidden_contact_terminal_penalty_v1",
+              "repair_category": null,
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+                "memory/best_observed/training_code/components.py": "83e764471a0da8b91bb60472cb7ee4f2bbb421c0b3ae50f64c11caf49d02b9b4"
+              }
+            }
+          ]
+        },
+        {
+          "lane": "lane-b",
+          "status": "formal_rejected",
+          "reason": "named_guards_paired_headroom_delta_not_met",
+          "train_completed": true,
+          "public_dev_completed": true,
+          "evidence_checksum": "sha256:a3e9261edbafeada3048dabe55f16d302be5687c4b3baf5f01bccc62637a33d9",
+          "attempts": [
+            {
+              "attempt_id": "attempt_000001",
+              "candidate_id": "stair_swing_foot_low_forward_penalty_v1",
+              "verifier_status": "pass",
+              "verifier_reason": "static_candidate_verifier_passed",
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 9,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_hash": "bf494e752a87f825169a87004ed416f3265e9afe57d354b56cb58a365c005bc0",
+                  "fixture_owner": "task_owned_stair_climbing",
+                  "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+                  "num_envs": 5,
+                  "purpose": "complete_reward_admission_preflight",
+                  "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v2"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "effective_max_abs_after_clip_and_weight": 3.5,
+                    "kind": "RewardTerm",
+                    "name": "track_lin_vel_xy_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.75,
+                    "kind": "RewardTerm",
+                    "name": "track_ang_vel_z_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.025050050020217898,
+                    "kind": "RewardTerm",
+                    "name": "ang_vel_xy_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 1.2525025010108948,
+                    "kind": "RewardTerm",
+                    "name": "flat_orientation_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0006133012294769288,
+                    "kind": "RewardTerm",
+                    "name": "dof_torques_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 7.666265368461608e-07,
+                    "kind": "RewardTerm",
+                    "name": "dof_acc_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.030665061473846435,
+                    "kind": "RewardTerm",
+                    "name": "action_rate_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.2985000014305115,
+                    "kind": "RewardTerm",
+                    "name": "feet_air_time",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.194000005722046,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.32360000610351564,
+                    "kind": "RewardTerm",
+                    "name": "swing_foot_low_forward_penalty",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.6180000305175781,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_stair_climbing"
+              },
+              "provider_failure": null
+            }
+          ],
+          "prompts": [
+            {
+              "attempt": "attempt_000001",
+              "sha256": "7b842dc9552e2209a89f6224af3a7deaed7bf1e6b43377cf2b4b2c7c7a96e136",
+              "stored_bytes": 115440,
+              "compact_bytes": 80624,
+              "feedback_candidate_ids": [
+                null,
+                "stair_forbidden_contact_force_penalty_v1",
+                "stair_foot_clearance_gap_penalty_v1",
+                "stair_forbidden_contact_terminal_penalty_v1"
+              ],
+              "runtime_candidate_id": "stair_forbidden_contact_terminal_penalty_v1",
+              "repair_category": null,
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+                "memory/best_observed/training_code/components.py": "83e764471a0da8b91bb60472cb7ee4f2bbb421c0b3ae50f64c11caf49d02b9b4"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "generation": 10,
+      "outcome": "formal_rejected",
+      "lanes": [
+        {
+          "lane": "lane-a",
+          "status": "formal_rejected",
+          "reason": "named_guard_score_regression",
+          "train_completed": true,
+          "public_dev_completed": true,
+          "evidence_checksum": "sha256:0bb7b17fcf7b2e608d3495db812324ae5baff9ea4e2cde521afc76d53b4b1511",
+          "attempts": [
+            {
+              "attempt_id": "attempt_000001",
+              "candidate_id": "stair_swing_foot_banded_vertical_gate_v1",
+              "verifier_status": "pass",
+              "verifier_reason": "static_candidate_verifier_passed",
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 9,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_hash": "bf494e752a87f825169a87004ed416f3265e9afe57d354b56cb58a365c005bc0",
+                  "fixture_owner": "task_owned_stair_climbing",
+                  "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+                  "num_envs": 5,
+                  "purpose": "complete_reward_admission_preflight",
+                  "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v2"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "effective_max_abs_after_clip_and_weight": 3.5,
+                    "kind": "RewardTerm",
+                    "name": "track_lin_vel_xy_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.75,
+                    "kind": "RewardTerm",
+                    "name": "track_ang_vel_z_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.025050050020217898,
+                    "kind": "RewardTerm",
+                    "name": "ang_vel_xy_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 1.2525025010108948,
+                    "kind": "RewardTerm",
+                    "name": "flat_orientation_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0006133012294769288,
+                    "kind": "RewardTerm",
+                    "name": "dof_torques_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 7.666265368461608e-07,
+                    "kind": "RewardTerm",
+                    "name": "dof_acc_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.030665061473846435,
+                    "kind": "RewardTerm",
+                    "name": "action_rate_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.2985000014305115,
+                    "kind": "RewardTerm",
+                    "name": "feet_air_time",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.194000005722046,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.2436000108718872,
+                    "kind": "RewardTerm",
+                    "name": "swing_foot_banded_vertical_gate_penalty",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.218000054359436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_stair_climbing"
+              },
+              "provider_failure": null
+            }
+          ],
+          "prompts": [
+            {
+              "attempt": "attempt_000001",
+              "sha256": "3a132f41d4e74807aecc52d04626461aabdd590d4e40aef68b5bcf0dbfecaa18",
+              "stored_bytes": 114599,
+              "compact_bytes": 82439,
+              "feedback_candidate_ids": [
+                "stair_swing_foot_low_forward_penalty_v1",
+                "stair_swing_foot_level_sweep_penalty_v1",
+                "stair_swing_foot_vertical_lift_penalty_v1"
+              ],
+              "runtime_candidate_id": "stair_swing_foot_vertical_lift_penalty_v1",
+              "repair_category": null,
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45",
+                "attempt/latest_failed/training_code/components.py": "559049777cefad62d2574693b51f70f6785966fbe64c7ba4d90a173ecafc8f62"
+              }
+            }
+          ]
+        },
+        {
+          "lane": "lane-b",
+          "status": "qualified_not_selected",
+          "reason": "sibling_not_selected",
+          "train_completed": true,
+          "public_dev_completed": true,
+          "evidence_checksum": "sha256:fce4c28e369d537bc47681bb7cd76340276e13729de1bfe6f2162662b89f3e84",
+          "attempts": [
+            {
+              "attempt_id": "attempt_000001",
+              "candidate_id": "stair_swing_foot_vertical_first_penalty_v1",
+              "verifier_status": "pass",
+              "verifier_reason": "static_candidate_verifier_passed",
+              "component_smoke": {
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 9,
+                "fixture_summary": {
+                  "fixture_hash": "bf494e752a87f825169a87004ed416f3265e9afe57d354b56cb58a365c005bc0",
+                  "fixture_owner": "task_owned_stair_climbing",
+                  "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+                  "num_envs": 5,
+                  "purpose": "complete_reward_admission_preflight",
+                  "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v2"
+                },
+                "reason": "reward_callable_failed",
+                "reward_results": [
+                  {
+                    "effective_max_abs_after_clip_and_weight": 3.5,
+                    "kind": "RewardTerm",
+                    "name": "track_lin_vel_xy_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.75,
+                    "kind": "RewardTerm",
+                    "name": "track_ang_vel_z_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.025050050020217898,
+                    "kind": "RewardTerm",
+                    "name": "ang_vel_xy_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 1.2525025010108948,
+                    "kind": "RewardTerm",
+                    "name": "flat_orientation_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0006133012294769288,
+                    "kind": "RewardTerm",
+                    "name": "dof_torques_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 7.666265368461608e-07,
+                    "kind": "RewardTerm",
+                    "name": "dof_acc_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.030665061473846435,
+                    "kind": "RewardTerm",
+                    "name": "action_rate_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.2985000014305115,
+                    "kind": "RewardTerm",
+                    "name": "feet_air_time",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.194000005722046,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "error": "\"bitwise_and_cpu\" not implemented for 'Float'",
+                    "error_type": "RuntimeError",
+                    "kind": "RewardTerm",
+                    "name": "swing_foot_vertical_first_penalty",
+                    "reason": "reward_callable_failed",
+                    "status": "fail"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "fail",
+                "task_id": "unitree_stair_climbing"
+              },
+              "provider_failure": null
+            },
+            {
+              "attempt_id": "attempt_000002",
+              "candidate_id": "stair_swing_foot_vertical_first_penalty_v2",
+              "verifier_status": "pass",
+              "verifier_reason": "static_candidate_verifier_passed",
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 9,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_hash": "bf494e752a87f825169a87004ed416f3265e9afe57d354b56cb58a365c005bc0",
+                  "fixture_owner": "task_owned_stair_climbing",
+                  "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+                  "num_envs": 5,
+                  "purpose": "complete_reward_admission_preflight",
+                  "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v2"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "effective_max_abs_after_clip_and_weight": 3.5,
+                    "kind": "RewardTerm",
+                    "name": "track_lin_vel_xy_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.75,
+                    "kind": "RewardTerm",
+                    "name": "track_ang_vel_z_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.025050050020217898,
+                    "kind": "RewardTerm",
+                    "name": "ang_vel_xy_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 1.2525025010108948,
+                    "kind": "RewardTerm",
+                    "name": "flat_orientation_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0006133012294769288,
+                    "kind": "RewardTerm",
+                    "name": "dof_torques_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 7.666265368461608e-07,
+                    "kind": "RewardTerm",
+                    "name": "dof_acc_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.030665061473846435,
+                    "kind": "RewardTerm",
+                    "name": "action_rate_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.2985000014305115,
+                    "kind": "RewardTerm",
+                    "name": "feet_air_time",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.194000005722046,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.2436000108718872,
+                    "kind": "RewardTerm",
+                    "name": "swing_foot_vertical_first_penalty",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.218000054359436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_stair_climbing"
+              },
+              "provider_failure": null
+            }
+          ],
+          "prompts": [
+            {
+              "attempt": "attempt_000001",
+              "sha256": "1f30b821deb4a75282936b0c936dc36cb62e26ebbcc49c0375153fb5f36bdc9e",
+              "stored_bytes": 115635,
+              "compact_bytes": 83271,
+              "feedback_candidate_ids": [
+                "stair_swing_foot_low_forward_penalty_v1",
+                "stair_swing_foot_level_sweep_penalty_v1",
+                "stair_swing_foot_vertical_lift_penalty_v1"
+              ],
+              "runtime_candidate_id": "stair_swing_foot_vertical_lift_penalty_v1",
+              "repair_category": null,
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45",
+                "attempt/latest_failed/training_code/components.py": "559049777cefad62d2574693b51f70f6785966fbe64c7ba4d90a173ecafc8f62"
+              }
+            },
+            {
+              "attempt": "attempt_000002",
+              "sha256": "69b0526be63e2a6e0eca39c20ad4ff66f2aa482f00a83df1080f2e041d75339f",
+              "stored_bytes": 64049,
+              "compact_bytes": 50750,
+              "feedback_candidate_ids": [],
+              "runtime_candidate_id": null,
+              "repair_category": "component_smoke_error",
+              "repair_candidate_id": "stair_swing_foot_vertical_first_penalty_v1",
+              "source_checksums": {
+                "attempt/latest_failed/training_code/components.py": "ca4ea3dcb2e0f33309bf5de778035cf1069223a04cb03b3c2f41152dbe3b8ae5"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "generation": 11,
+      "outcome": "formal_rejected",
+      "lanes": [
+        {
+          "lane": "lane-a",
+          "status": "qualified_not_selected",
+          "reason": "sibling_not_selected",
+          "train_completed": true,
+          "public_dev_completed": true,
+          "evidence_checksum": "sha256:d6b1ce92648a7ce4b15083e884e334aa9e3b0d3c5040ace7c20923dcbc01fa80",
+          "attempts": [
+            {
+              "attempt_id": "attempt_000001",
+              "candidate_id": null,
+              "verifier_status": null,
+              "verifier_reason": null,
+              "component_smoke": null,
+              "provider_failure": {
+                "category": "json_parse_error",
+                "details": {
+                  "failure_kind": "empty_final_content_with_reasoning",
+                  "finish_reason": "stop"
+                },
+                "reason": "provider final content channel was empty",
+                "schema_version": "true_rl_agent.provider_failure.v1"
+              }
+            },
+            {
+              "attempt_id": "attempt_000002",
+              "candidate_id": "stair_swing_foot_vertical_clearance_penalty_v1",
+              "verifier_status": "pass",
+              "verifier_reason": "static_candidate_verifier_passed",
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 9,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_hash": "bf494e752a87f825169a87004ed416f3265e9afe57d354b56cb58a365c005bc0",
+                  "fixture_owner": "task_owned_stair_climbing",
+                  "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+                  "num_envs": 5,
+                  "purpose": "complete_reward_admission_preflight",
+                  "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v2"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "effective_max_abs_after_clip_and_weight": 3.5,
+                    "kind": "RewardTerm",
+                    "name": "track_lin_vel_xy_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.75,
+                    "kind": "RewardTerm",
+                    "name": "track_ang_vel_z_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.025050050020217898,
+                    "kind": "RewardTerm",
+                    "name": "ang_vel_xy_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 1.2525025010108948,
+                    "kind": "RewardTerm",
+                    "name": "flat_orientation_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0006133012294769288,
+                    "kind": "RewardTerm",
+                    "name": "dof_torques_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 7.666265368461608e-07,
+                    "kind": "RewardTerm",
+                    "name": "dof_acc_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.030665061473846435,
+                    "kind": "RewardTerm",
+                    "name": "action_rate_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.2985000014305115,
+                    "kind": "RewardTerm",
+                    "name": "feet_air_time",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.194000005722046,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0,
+                    "kind": "RewardTerm",
+                    "name": "swing_foot_vertical_clearance_penalty",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_stair_climbing"
+              },
+              "provider_failure": null
+            },
+            {
+              "attempt_id": "attempt_000003",
+              "candidate_id": "stair_stance_contact_slip_penalty_v1",
+              "verifier_status": "pass",
+              "verifier_reason": "static_candidate_verifier_passed",
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 9,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_hash": "bf494e752a87f825169a87004ed416f3265e9afe57d354b56cb58a365c005bc0",
+                  "fixture_owner": "task_owned_stair_climbing",
+                  "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+                  "num_envs": 5,
+                  "purpose": "complete_reward_admission_preflight",
+                  "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v2"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "effective_max_abs_after_clip_and_weight": 3.5,
+                    "kind": "RewardTerm",
+                    "name": "track_lin_vel_xy_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.75,
+                    "kind": "RewardTerm",
+                    "name": "track_ang_vel_z_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.025050050020217898,
+                    "kind": "RewardTerm",
+                    "name": "ang_vel_xy_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 1.2525025010108948,
+                    "kind": "RewardTerm",
+                    "name": "flat_orientation_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0006133012294769288,
+                    "kind": "RewardTerm",
+                    "name": "dof_torques_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 7.666265368461608e-07,
+                    "kind": "RewardTerm",
+                    "name": "dof_acc_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.030665061473846435,
+                    "kind": "RewardTerm",
+                    "name": "action_rate_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.2985000014305115,
+                    "kind": "RewardTerm",
+                    "name": "feet_air_time",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.194000005722046,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 1.029396504163742,
+                    "kind": "RewardTerm",
+                    "name": "support_contact_slip_penalty",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.6862643361091614,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_stair_climbing"
+              },
+              "provider_failure": null
+            }
+          ],
+          "prompts": [
+            {
+              "attempt": "attempt_000001",
+              "sha256": "98f8f758a6cf1aae3142806a74f058830055af26d03139f60157daa89b8cf18e",
+              "stored_bytes": 122775,
+              "compact_bytes": 86982,
+              "feedback_candidate_ids": [
+                "stair_swing_foot_low_forward_penalty_v1",
+                "stair_swing_foot_level_sweep_penalty_v1",
+                "stair_swing_foot_vertical_lift_penalty_v1",
+                "stair_swing_foot_banded_vertical_gate_v1"
+              ],
+              "runtime_candidate_id": "stair_swing_foot_banded_vertical_gate_v1",
+              "repair_category": null,
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45",
+                "attempt/latest_failed/training_code/components.py": "4a7d642b06d4999c161bc85cef324bdbf6b246908d69645458a334fd1e1555c9"
+              }
+            },
+            {
+              "attempt": "attempt_000002",
+              "sha256": "eef877cf33620033c00a8fa3e723c1dc049b53d7c0ff445b0690596f25a843c6",
+              "stored_bytes": 124404,
+              "compact_bytes": 88373,
+              "feedback_candidate_ids": [
+                "stair_swing_foot_low_forward_penalty_v1",
+                "stair_swing_foot_level_sweep_penalty_v1",
+                "stair_swing_foot_vertical_lift_penalty_v1",
+                "stair_swing_foot_banded_vertical_gate_v1"
+              ],
+              "runtime_candidate_id": "stair_swing_foot_banded_vertical_gate_v1",
+              "repair_category": "json_parse_error",
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45",
+                "attempt/latest_failed/training_code/components.py": "4a7d642b06d4999c161bc85cef324bdbf6b246908d69645458a334fd1e1555c9"
+              }
+            },
+            {
+              "attempt": "attempt_000003",
+              "sha256": "8d2d1bc5684acaf0479628bde3b3a8aa97d5f201c1baaef072776b10c2f03294",
+              "stored_bytes": 59408,
+              "compact_bytes": 47421,
+              "feedback_candidate_ids": [],
+              "runtime_candidate_id": null,
+              "repair_category": "authoring_policy_violation",
+              "repair_candidate_id": "stair_swing_foot_vertical_clearance_penalty_v1",
+              "source_checksums": {
+                "attempt/latest_failed/training_code/components.py": "6963b76bbee26c29df9d4a436b681f59df4a9709ba4c5893586eb60ddc55c59b"
+              }
+            }
+          ]
+        },
+        {
+          "lane": "lane-b",
+          "status": "formal_rejected",
+          "reason": "named_guard_score_regression",
+          "train_completed": true,
+          "public_dev_completed": true,
+          "evidence_checksum": "sha256:b43e951ed828b4f4fa7f4f4ad0d66b9cceed1b34b5f6615a98246efb74e3f41c",
+          "attempts": [
+            {
+              "attempt_id": "attempt_000001",
+              "candidate_id": "stair_swing_forward_nudge_success_only_v1",
+              "verifier_status": "pass",
+              "verifier_reason": "static_candidate_verifier_passed",
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 9,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_hash": "bf494e752a87f825169a87004ed416f3265e9afe57d354b56cb58a365c005bc0",
+                  "fixture_owner": "task_owned_stair_climbing",
+                  "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+                  "num_envs": 5,
+                  "purpose": "complete_reward_admission_preflight",
+                  "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v2"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "effective_max_abs_after_clip_and_weight": 3.5,
+                    "kind": "RewardTerm",
+                    "name": "track_lin_vel_xy_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.75,
+                    "kind": "RewardTerm",
+                    "name": "track_ang_vel_z_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.025050050020217898,
+                    "kind": "RewardTerm",
+                    "name": "ang_vel_xy_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 1.2525025010108948,
+                    "kind": "RewardTerm",
+                    "name": "flat_orientation_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0006133012294769288,
+                    "kind": "RewardTerm",
+                    "name": "dof_torques_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 7.666265368461608e-07,
+                    "kind": "RewardTerm",
+                    "name": "dof_acc_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.030665061473846435,
+                    "kind": "RewardTerm",
+                    "name": "action_rate_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.2985000014305115,
+                    "kind": "RewardTerm",
+                    "name": "feet_air_time",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.194000005722046,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.20297765731811523,
+                    "kind": "RewardTerm",
+                    "name": "blocked_swing_forward_nudge",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0148882865905762,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_stair_climbing"
+              },
+              "provider_failure": null
+            }
+          ],
+          "prompts": [
+            {
+              "attempt": "attempt_000001",
+              "sha256": "4eda904e837ff1e9229e7dd491c8dfb896632c4ca32b6cd0f1a3285633fa1e31",
+              "stored_bytes": 123695,
+              "compact_bytes": 87724,
+              "feedback_candidate_ids": [
+                "stair_swing_foot_low_forward_penalty_v1",
+                "stair_swing_foot_level_sweep_penalty_v1",
+                "stair_swing_foot_vertical_lift_penalty_v1",
+                "stair_swing_foot_banded_vertical_gate_v1"
+              ],
+              "runtime_candidate_id": "stair_swing_foot_banded_vertical_gate_v1",
+              "repair_category": null,
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45",
+                "attempt/latest_failed/training_code/components.py": "4a7d642b06d4999c161bc85cef324bdbf6b246908d69645458a334fd1e1555c9"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "generation": 13,
+      "outcome": "paired_authoring_incomplete",
+      "lanes": [
+        {
+          "lane": "lane-a",
+          "status": "verified_not_run",
+          "reason": "paired_authoring_incomplete",
+          "train_completed": false,
+          "public_dev_completed": false,
+          "evidence_checksum": "sha256:6658d88ef1c4b1317a6cff78743cd1de75f8170a6e4003a8a788fa1ccf20427b",
+          "attempts": [
+            {
+              "attempt_id": "attempt_000001",
+              "candidate_id": "stair_swing_step_height_clearance_nudge_v1",
+              "verifier_status": "pass",
+              "verifier_reason": "static_candidate_verifier_passed",
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 9,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_hash": "bf494e752a87f825169a87004ed416f3265e9afe57d354b56cb58a365c005bc0",
+                  "fixture_owner": "task_owned_stair_climbing",
+                  "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+                  "num_envs": 5,
+                  "purpose": "complete_reward_admission_preflight",
+                  "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v2"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "effective_max_abs_after_clip_and_weight": 3.5,
+                    "kind": "RewardTerm",
+                    "name": "track_lin_vel_xy_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.75,
+                    "kind": "RewardTerm",
+                    "name": "track_ang_vel_z_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.025050050020217898,
+                    "kind": "RewardTerm",
+                    "name": "ang_vel_xy_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 1.2525025010108948,
+                    "kind": "RewardTerm",
+                    "name": "flat_orientation_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0006133012294769288,
+                    "kind": "RewardTerm",
+                    "name": "dof_torques_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 7.666265368461608e-07,
+                    "kind": "RewardTerm",
+                    "name": "dof_acc_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.030665061473846435,
+                    "kind": "RewardTerm",
+                    "name": "action_rate_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.2985000014305115,
+                    "kind": "RewardTerm",
+                    "name": "feet_air_time",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.194000005722046,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0,
+                    "kind": "RewardTerm",
+                    "name": "forward_step_clearance_bonus",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_stair_climbing"
+              },
+              "provider_failure": null
+            }
+          ],
+          "prompts": [
+            {
+              "attempt": "attempt_000001",
+              "sha256": "4e531a30a1cb1e28d2af404ad3c6b5a9b9fc60aa03a2bb5e5ed25984ac508706",
+              "stored_bytes": 112028,
+              "compact_bytes": 82886,
+              "feedback_candidate_ids": [
+                "stair_swing_foot_low_forward_penalty_v1",
+                "stair_swing_foot_level_sweep_penalty_v1",
+                "stair_swing_foot_banded_vertical_gate_v1",
+                "stair_swing_forward_nudge_success_only_v1",
+                "stair_swing_rise_clearance_bonus_v1"
+              ],
+              "runtime_candidate_id": "stair_swing_rise_clearance_bonus_v1",
+              "repair_category": null,
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45",
+                "attempt/latest_failed/training_code/components.py": "706ee39fe8d73500d62224f2d8a2e58ade08f00c8b39a041d0057b3dbd898f57"
+              }
+            }
+          ]
+        },
+        {
+          "lane": "lane-b",
+          "status": "candidate_failed",
+          "reason": "authoring_provider_failed",
+          "train_completed": false,
+          "public_dev_completed": false,
+          "evidence_checksum": "sha256:6e2fb607ad22401147522053c8123ca4a912acba673845c0325d8589298adc6c",
+          "attempts": [
+            {
+              "attempt_id": "attempt_000001",
+              "candidate_id": "stair_swing_vertical_clearance_rhythm_v1",
+              "verifier_status": "fail",
+              "verifier_reason": "training_components_invalid",
+              "component_smoke": null,
+              "provider_failure": null
+            },
+            {
+              "attempt_id": "attempt_000002",
+              "candidate_id": null,
+              "verifier_status": null,
+              "verifier_reason": null,
+              "component_smoke": null,
+              "provider_failure": {
+                "category": "json_parse_error",
+                "details": {
+                  "failure_kind": "empty_final_content_with_reasoning",
+                  "finish_reason": "stop"
+                },
+                "reason": "provider final content channel was empty",
+                "schema_version": "true_rl_agent.provider_failure.v1"
+              }
+            },
+            {
+              "attempt_id": "attempt_000003",
+              "candidate_id": null,
+              "verifier_status": null,
+              "verifier_reason": null,
+              "component_smoke": null,
+              "provider_failure": {
+                "category": "json_parse_error",
+                "details": {
+                  "finish_reason": "stop"
+                },
+                "reason": "candidate proposal was not valid JSON object",
+                "schema_version": "true_rl_agent.provider_failure.v1"
+              }
+            },
+            {
+              "attempt_id": "attempt_000004",
+              "candidate_id": "stair_swing_foot_height_floor_corridor_bonus_v1",
+              "verifier_status": "fail",
+              "verifier_reason": "training_components_invalid",
+              "component_smoke": null,
+              "provider_failure": null
+            },
+            {
+              "attempt_id": "attempt_000005",
+              "candidate_id": null,
+              "verifier_status": null,
+              "verifier_reason": null,
+              "component_smoke": null,
+              "provider_failure": {
+                "category": "json_parse_error",
+                "details": {
+                  "failure_kind": "empty_final_content_with_reasoning",
+                  "finish_reason": "stop"
+                },
+                "reason": "provider final content channel was empty",
+                "schema_version": "true_rl_agent.provider_failure.v1"
+              }
+            }
+          ],
+          "prompts": [
+            {
+              "attempt": "attempt_000001",
+              "sha256": "99bc6e7ad04f598eca954f25d3c11b2ae523a053a52be687af37da2be6aea6c0",
+              "stored_bytes": 113087,
+              "compact_bytes": 83728,
+              "feedback_candidate_ids": [
+                "stair_swing_foot_low_forward_penalty_v1",
+                "stair_swing_foot_level_sweep_penalty_v1",
+                "stair_swing_foot_banded_vertical_gate_v1",
+                "stair_swing_forward_nudge_success_only_v1",
+                "stair_swing_rise_clearance_bonus_v1"
+              ],
+              "runtime_candidate_id": "stair_swing_rise_clearance_bonus_v1",
+              "repair_category": null,
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45",
+                "attempt/latest_failed/training_code/components.py": "706ee39fe8d73500d62224f2d8a2e58ade08f00c8b39a041d0057b3dbd898f57"
+              }
+            },
+            {
+              "attempt": "attempt_000002",
+              "sha256": "0ffadb09c50344a3767f560516fea64a567540be728d72308cf8af5aee73d347",
+              "stored_bytes": 59968,
+              "compact_bytes": 47856,
+              "feedback_candidate_ids": [],
+              "runtime_candidate_id": null,
+              "repair_category": "verifier_error",
+              "repair_candidate_id": "stair_swing_vertical_clearance_rhythm_v1",
+              "source_checksums": {
+                "attempt/latest_failed/training_code/components.py": "84ae1029e3627496320c546d91ea1c07677eb52b104f4bdf68b8be65c7a0f583"
+              }
+            },
+            {
+              "attempt": "attempt_000003",
+              "sha256": "b49b3dde17524529daad4a1491ac585d76e691149d2fc03628ae4421bcdf73b0",
+              "stored_bytes": 59873,
+              "compact_bytes": 47769,
+              "feedback_candidate_ids": [],
+              "runtime_candidate_id": null,
+              "repair_category": "json_parse_error",
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "attempt/latest_failed/training_code/components.py": "84ae1029e3627496320c546d91ea1c07677eb52b104f4bdf68b8be65c7a0f583"
+              }
+            },
+            {
+              "attempt": "attempt_000004",
+              "sha256": "d8936554a51260daa88e49d1942e897c1af2c1131e7081a5b0b9f92450c42eae",
+              "stored_bytes": 59819,
+              "compact_bytes": 47725,
+              "feedback_candidate_ids": [],
+              "runtime_candidate_id": null,
+              "repair_category": "json_parse_error",
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "attempt/latest_failed/training_code/components.py": "84ae1029e3627496320c546d91ea1c07677eb52b104f4bdf68b8be65c7a0f583"
+              }
+            },
+            {
+              "attempt": "attempt_000005",
+              "sha256": "d8fc3f9bac8e6b38e879e42001601b8350689e3fa7d4d4836a31b4d0b656fd76",
+              "stored_bytes": 59254,
+              "compact_bytes": 47142,
+              "feedback_candidate_ids": [],
+              "runtime_candidate_id": null,
+              "repair_category": "verifier_error",
+              "repair_candidate_id": "stair_swing_foot_height_floor_corridor_bonus_v1",
+              "source_checksums": {
+                "attempt/latest_failed/training_code/components.py": "5016febb705a63a3c10166c07855680459b681f2c19d8863a7ef0ef86f76e5b4"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "generation": 14,
+      "outcome": "paired_authoring_incomplete",
+      "lanes": [
+        {
+          "lane": "lane-a",
+          "status": "verified_not_run",
+          "reason": "paired_authoring_incomplete",
+          "train_completed": false,
+          "public_dev_completed": false,
+          "evidence_checksum": "sha256:1e2a9625f6a8d53090cbd2e67f2526d1cd6918113ee33e19d7e6472e1b93706d",
+          "attempts": [
+            {
+              "attempt_id": "attempt_000001",
+              "candidate_id": "stair_swing_foot_safety_margin_penalty_v1",
+              "verifier_status": "pass",
+              "verifier_reason": "static_candidate_verifier_passed",
+              "component_smoke": {
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 9,
+                "fixture_summary": {
+                  "fixture_hash": "bf494e752a87f825169a87004ed416f3265e9afe57d354b56cb58a365c005bc0",
+                  "fixture_owner": "task_owned_stair_climbing",
+                  "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+                  "num_envs": 5,
+                  "purpose": "complete_reward_admission_preflight",
+                  "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v2"
+                },
+                "reason": "reward_callable_failed",
+                "reward_results": [
+                  {
+                    "effective_max_abs_after_clip_and_weight": 3.5,
+                    "kind": "RewardTerm",
+                    "name": "track_lin_vel_xy_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.75,
+                    "kind": "RewardTerm",
+                    "name": "track_ang_vel_z_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.025050050020217898,
+                    "kind": "RewardTerm",
+                    "name": "ang_vel_xy_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 1.2525025010108948,
+                    "kind": "RewardTerm",
+                    "name": "flat_orientation_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0006133012294769288,
+                    "kind": "RewardTerm",
+                    "name": "dof_torques_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 7.666265368461608e-07,
+                    "kind": "RewardTerm",
+                    "name": "dof_acc_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.030665061473846435,
+                    "kind": "RewardTerm",
+                    "name": "action_rate_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.2985000014305115,
+                    "kind": "RewardTerm",
+                    "name": "feet_air_time",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.194000005722046,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "error": "The size of tensor a (5) must match the size of tensor b (4) at non-singleton dimension 1",
+                    "error_type": "RuntimeError",
+                    "kind": "RewardTerm",
+                    "name": "swing_foot_safety_margin_penalty",
+                    "reason": "reward_callable_failed",
+                    "status": "fail"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "fail",
+                "task_id": "unitree_stair_climbing"
+              },
+              "provider_failure": null
+            },
+            {
+              "attempt_id": "attempt_000002",
+              "candidate_id": "stair_swing_foot_safety_margin_penalty_v2",
+              "verifier_status": "pass",
+              "verifier_reason": "static_candidate_verifier_passed",
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 9,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_hash": "bf494e752a87f825169a87004ed416f3265e9afe57d354b56cb58a365c005bc0",
+                  "fixture_owner": "task_owned_stair_climbing",
+                  "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+                  "num_envs": 5,
+                  "purpose": "complete_reward_admission_preflight",
+                  "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v2"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "effective_max_abs_after_clip_and_weight": 3.5,
+                    "kind": "RewardTerm",
+                    "name": "track_lin_vel_xy_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.75,
+                    "kind": "RewardTerm",
+                    "name": "track_ang_vel_z_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.025050050020217898,
+                    "kind": "RewardTerm",
+                    "name": "ang_vel_xy_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 1.2525025010108948,
+                    "kind": "RewardTerm",
+                    "name": "flat_orientation_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0006133012294769288,
+                    "kind": "RewardTerm",
+                    "name": "dof_torques_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 7.666265368461608e-07,
+                    "kind": "RewardTerm",
+                    "name": "dof_acc_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.030665061473846435,
+                    "kind": "RewardTerm",
+                    "name": "action_rate_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.2985000014305115,
+                    "kind": "RewardTerm",
+                    "name": "feet_air_time",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.194000005722046,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.2436000108718872,
+                    "kind": "RewardTerm",
+                    "name": "swing_foot_safety_margin_penalty",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.218000054359436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_stair_climbing"
+              },
+              "provider_failure": null
+            }
+          ],
+          "prompts": [
+            {
+              "attempt": "attempt_000001",
+              "sha256": "12ff368656dc137efbcfe80b0824096c9ea53d9f86ea3411db56d40f2461751f",
+              "stored_bytes": 105350,
+              "compact_bytes": 76220,
+              "feedback_candidate_ids": [
+                "stair_swing_foot_low_forward_penalty_v1",
+                "stair_swing_foot_level_sweep_penalty_v1",
+                "stair_swing_foot_banded_vertical_gate_v1",
+                "stair_swing_forward_nudge_success_only_v1",
+                "stair_swing_rise_clearance_bonus_v1"
+              ],
+              "runtime_candidate_id": "stair_swing_rise_clearance_bonus_v1",
+              "repair_category": null,
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45"
+              }
+            },
+            {
+              "attempt": "attempt_000002",
+              "sha256": "a46775a41ea303743e5b0ca5bcfe8f7bb73d784bccf6264b4a5e953ada0d8afd",
+              "stored_bytes": 62988,
+              "compact_bytes": 49893,
+              "feedback_candidate_ids": [],
+              "runtime_candidate_id": null,
+              "repair_category": "component_smoke_error",
+              "repair_candidate_id": "stair_swing_foot_safety_margin_penalty_v1",
+              "source_checksums": {
+                "attempt/latest_failed/training_code/components.py": "6a51d26c4b83989c37405b28e4d617d7b387b2e0a3c7ae6e185fe97ad727fb24"
+              }
+            }
+          ]
+        },
+        {
+          "lane": "lane-b",
+          "status": "candidate_failed",
+          "reason": "authoring_provider_failed",
+          "train_completed": false,
+          "public_dev_completed": false,
+          "evidence_checksum": "sha256:a65a45315e79f4d0b9522107a704d33a4192cc875b2a17251390e983a6e640d6",
+          "attempts": [
+            {
+              "attempt_id": "attempt_000001",
+              "candidate_id": null,
+              "verifier_status": null,
+              "verifier_reason": null,
+              "component_smoke": null,
+              "provider_failure": {
+                "category": "json_parse_error",
+                "details": {
+                  "failure_kind": "empty_final_content_with_reasoning",
+                  "finish_reason": "stop"
+                },
+                "reason": "provider final content channel was empty",
+                "schema_version": "true_rl_agent.provider_failure.v1"
+              }
+            },
+            {
+              "attempt_id": "attempt_000002",
+              "candidate_id": null,
+              "verifier_status": null,
+              "verifier_reason": null,
+              "component_smoke": null,
+              "provider_failure": {
+                "category": "json_parse_error",
+                "details": {
+                  "finish_reason": "stop"
+                },
+                "reason": "candidate proposal was not valid JSON object",
+                "schema_version": "true_rl_agent.provider_failure.v1"
+              }
+            },
+            {
+              "attempt_id": "attempt_000003",
+              "candidate_id": null,
+              "verifier_status": null,
+              "verifier_reason": null,
+              "component_smoke": null,
+              "provider_failure": {
+                "category": "response_truncated",
+                "details": {
+                  "finish_reason": "length"
+                },
+                "reason": "provider response reached its output limit before candidate JSON completed",
+                "schema_version": "true_rl_agent.provider_failure.v1"
+              }
+            },
+            {
+              "attempt_id": "attempt_000004",
+              "candidate_id": null,
+              "verifier_status": null,
+              "verifier_reason": null,
+              "component_smoke": null,
+              "provider_failure": {
+                "category": "schema_error",
+                "details": {},
+                "reason": "components_py must set TrainingComponents.rationale to a non-empty statically resolvable string literal",
+                "schema_version": "true_rl_agent.provider_failure.v1"
+              }
+            },
+            {
+              "attempt_id": "attempt_000005",
+              "candidate_id": null,
+              "verifier_status": null,
+              "verifier_reason": null,
+              "component_smoke": null,
+              "provider_failure": {
+                "category": "response_truncated",
+                "details": {
+                  "finish_reason": "length"
+                },
+                "reason": "provider response reached its output limit before candidate JSON completed",
+                "schema_version": "true_rl_agent.provider_failure.v1"
+              }
+            }
+          ],
+          "prompts": [
+            {
+              "attempt": "attempt_000001",
+              "sha256": "87c39bb1880b18a9d6ac72bdfab31c5743ba46dac1e413d4aa16a661f07928e7",
+              "stored_bytes": 106379,
+              "compact_bytes": 77045,
+              "feedback_candidate_ids": [
+                "stair_swing_foot_low_forward_penalty_v1",
+                "stair_swing_foot_level_sweep_penalty_v1",
+                "stair_swing_foot_banded_vertical_gate_v1",
+                "stair_swing_forward_nudge_success_only_v1",
+                "stair_swing_rise_clearance_bonus_v1"
+              ],
+              "runtime_candidate_id": "stair_swing_rise_clearance_bonus_v1",
+              "repair_category": null,
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45"
+              }
+            },
+            {
+              "attempt": "attempt_000002",
+              "sha256": "b2115751b2a2e0915a010143a0995d9ef94083c96193ea88ebdb1553e8dce531",
+              "stored_bytes": 108008,
+              "compact_bytes": 78436,
+              "feedback_candidate_ids": [
+                "stair_swing_foot_low_forward_penalty_v1",
+                "stair_swing_foot_level_sweep_penalty_v1",
+                "stair_swing_foot_banded_vertical_gate_v1",
+                "stair_swing_forward_nudge_success_only_v1",
+                "stair_swing_rise_clearance_bonus_v1"
+              ],
+              "runtime_candidate_id": "stair_swing_rise_clearance_bonus_v1",
+              "repair_category": "json_parse_error",
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45"
+              }
+            },
+            {
+              "attempt": "attempt_000003",
+              "sha256": "45e0f868c53c2d3a72cce258b98108133da4940230e3bca394fb0e28080057cd",
+              "stored_bytes": 107954,
+              "compact_bytes": 78392,
+              "feedback_candidate_ids": [
+                "stair_swing_foot_low_forward_penalty_v1",
+                "stair_swing_foot_level_sweep_penalty_v1",
+                "stair_swing_foot_banded_vertical_gate_v1",
+                "stair_swing_forward_nudge_success_only_v1",
+                "stair_swing_rise_clearance_bonus_v1"
+              ],
+              "runtime_candidate_id": "stair_swing_rise_clearance_bonus_v1",
+              "repair_category": "json_parse_error",
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45"
+              }
+            },
+            {
+              "attempt": "attempt_000004",
+              "sha256": "ccfe04f3319d9564cff6b655df893cbbce67e5c559eb488465e9307d53d48e22",
+              "stored_bytes": 108278,
+              "compact_bytes": 78702,
+              "feedback_candidate_ids": [
+                "stair_swing_foot_low_forward_penalty_v1",
+                "stair_swing_foot_level_sweep_penalty_v1",
+                "stair_swing_foot_banded_vertical_gate_v1",
+                "stair_swing_forward_nudge_success_only_v1",
+                "stair_swing_rise_clearance_bonus_v1"
+              ],
+              "runtime_candidate_id": "stair_swing_rise_clearance_bonus_v1",
+              "repair_category": "response_truncated",
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45"
+              }
+            },
+            {
+              "attempt": "attempt_000005",
+              "sha256": "3394559040f06afd84c4b4793595e4075c3c942d2ea7571d1fcca017701309c2",
+              "stored_bytes": 108021,
+              "compact_bytes": 78476,
+              "feedback_candidate_ids": [
+                "stair_swing_foot_low_forward_penalty_v1",
+                "stair_swing_foot_level_sweep_penalty_v1",
+                "stair_swing_foot_banded_vertical_gate_v1",
+                "stair_swing_forward_nudge_success_only_v1",
+                "stair_swing_rise_clearance_bonus_v1"
+              ],
+              "runtime_candidate_id": "stair_swing_rise_clearance_bonus_v1",
+              "repair_category": "schema_error",
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "generation": 15,
+      "outcome": "formal_rejected",
+      "lanes": [
+        {
+          "lane": "lane-a",
+          "status": "formal_rejected",
+          "reason": "named_guards_paired_headroom_delta_not_met",
+          "train_completed": true,
+          "public_dev_completed": true,
+          "evidence_checksum": "sha256:a1721bf8416ce3e4ec6dc71ed780ade06ec92cb211bf2f0906817ee802d867af",
+          "attempts": [
+            {
+              "attempt_id": "attempt_000001",
+              "candidate_id": "stair_swing_sweep_stance_grip_v1",
+              "verifier_status": "pass",
+              "verifier_reason": "static_candidate_verifier_passed",
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 9,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_hash": "bf494e752a87f825169a87004ed416f3265e9afe57d354b56cb58a365c005bc0",
+                  "fixture_owner": "task_owned_stair_climbing",
+                  "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+                  "num_envs": 5,
+                  "purpose": "complete_reward_admission_preflight",
+                  "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v2"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "effective_max_abs_after_clip_and_weight": 3.5,
+                    "kind": "RewardTerm",
+                    "name": "track_lin_vel_xy_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.75,
+                    "kind": "RewardTerm",
+                    "name": "track_ang_vel_z_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.025050050020217898,
+                    "kind": "RewardTerm",
+                    "name": "ang_vel_xy_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 1.2525025010108948,
+                    "kind": "RewardTerm",
+                    "name": "flat_orientation_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0006133012294769288,
+                    "kind": "RewardTerm",
+                    "name": "dof_torques_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 7.666265368461608e-07,
+                    "kind": "RewardTerm",
+                    "name": "dof_acc_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.030665061473846435,
+                    "kind": "RewardTerm",
+                    "name": "action_rate_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.2985000014305115,
+                    "kind": "RewardTerm",
+                    "name": "feet_air_time",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.194000005722046,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.14283564686775208,
+                    "kind": "RewardTerm",
+                    "name": "swing_sweep_stance_grip_penalty",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5713425874710083,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_stair_climbing"
+              },
+              "provider_failure": null
+            }
+          ],
+          "prompts": [
+            {
+              "attempt": "attempt_000001",
+              "sha256": "15991153c84f3748adbce8b0e63e5b1b989eb6a835253592789bbc48fa3d3544",
+              "stored_bytes": 104500,
+              "compact_bytes": 75913,
+              "feedback_candidate_ids": [
+                "stair_swing_foot_low_forward_penalty_v1",
+                "stair_swing_foot_level_sweep_penalty_v1",
+                "stair_swing_foot_banded_vertical_gate_v1",
+                "stair_swing_forward_nudge_success_only_v1",
+                "stair_swing_rise_clearance_bonus_v1"
+              ],
+              "runtime_candidate_id": "stair_swing_rise_clearance_bonus_v1",
+              "repair_category": null,
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45"
+              }
+            }
+          ]
+        },
+        {
+          "lane": "lane-b",
+          "status": "qualified_not_selected",
+          "reason": "sibling_not_selected",
+          "train_completed": true,
+          "public_dev_completed": true,
+          "evidence_checksum": "sha256:c5f08b6ee4086377463b3419ef365f11fbda13a15aaf49f4607409cd0a5a7fb0",
+          "attempts": [
+            {
+              "attempt_id": "attempt_000001",
+              "candidate_id": null,
+              "verifier_status": null,
+              "verifier_reason": null,
+              "component_smoke": null,
+              "provider_failure": {
+                "category": "response_truncated",
+                "details": {
+                  "finish_reason": "length"
+                },
+                "reason": "provider response reached its output limit before candidate JSON completed",
+                "schema_version": "true_rl_agent.provider_failure.v1"
+              }
+            },
+            {
+              "attempt_id": "attempt_000002",
+              "candidate_id": null,
+              "verifier_status": null,
+              "verifier_reason": null,
+              "component_smoke": null,
+              "provider_failure": {
+                "category": "schema_error",
+                "details": {},
+                "reason": "components_py must set TrainingComponents.rationale to a non-empty statically resolvable string literal",
+                "schema_version": "true_rl_agent.provider_failure.v1"
+              }
+            },
+            {
+              "attempt_id": "attempt_000003",
+              "candidate_id": "stair_terminal_stair_lift_penalty_v1",
+              "verifier_status": "pass",
+              "verifier_reason": "static_candidate_verifier_passed",
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 10,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_hash": "bf494e752a87f825169a87004ed416f3265e9afe57d354b56cb58a365c005bc0",
+                  "fixture_owner": "task_owned_stair_climbing",
+                  "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+                  "num_envs": 5,
+                  "purpose": "complete_reward_admission_preflight",
+                  "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v2"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "effective_max_abs_after_clip_and_weight": 3.5,
+                    "kind": "RewardTerm",
+                    "name": "track_lin_vel_xy_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.75,
+                    "kind": "RewardTerm",
+                    "name": "track_ang_vel_z_exp",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.025050050020217898,
+                    "kind": "RewardTerm",
+                    "name": "ang_vel_xy_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 1.2525025010108948,
+                    "kind": "RewardTerm",
+                    "name": "flat_orientation_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.5010010004043579,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0006133012294769288,
+                    "kind": "RewardTerm",
+                    "name": "dof_torques_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 7.666265368461608e-07,
+                    "kind": "RewardTerm",
+                    "name": "dof_acc_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.030665061473846435,
+                    "kind": "RewardTerm",
+                    "name": "action_rate_l2",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 3.0665061473846436,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.2985000014305115,
+                    "kind": "RewardTerm",
+                    "name": "feet_air_time",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 1.194000005722046,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0,
+                    "kind": "RewardTerm",
+                    "name": "swing_foot_level_sweep_penalty",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "effective_max_abs_after_clip_and_weight": 0.0,
+                    "kind": "RewardTerm",
+                    "name": "terminal_stair_lift_penalty",
+                    "observed_shape": [
+                      5
+                    ],
+                    "raw_max_abs": 0.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_stair_climbing"
+              },
+              "provider_failure": null
+            }
+          ],
+          "prompts": [
+            {
+              "attempt": "attempt_000001",
+              "sha256": "fce2def322e4bdfa4a1a1193a00dabb62d56627238f0d12764d04af1d8968413",
+              "stored_bytes": 105528,
+              "compact_bytes": 76737,
+              "feedback_candidate_ids": [
+                "stair_swing_foot_low_forward_penalty_v1",
+                "stair_swing_foot_level_sweep_penalty_v1",
+                "stair_swing_foot_banded_vertical_gate_v1",
+                "stair_swing_forward_nudge_success_only_v1",
+                "stair_swing_rise_clearance_bonus_v1"
+              ],
+              "runtime_candidate_id": "stair_swing_rise_clearance_bonus_v1",
+              "repair_category": null,
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45"
+              }
+            },
+            {
+              "attempt": "attempt_000002",
+              "sha256": "55ab3daf9a3b1ce010f639fef791a106e4f3c3c91b347cd855ee51af6642a1ad",
+              "stored_bytes": 107427,
+              "compact_bytes": 78394,
+              "feedback_candidate_ids": [
+                "stair_swing_foot_low_forward_penalty_v1",
+                "stair_swing_foot_level_sweep_penalty_v1",
+                "stair_swing_foot_banded_vertical_gate_v1",
+                "stair_swing_forward_nudge_success_only_v1",
+                "stair_swing_rise_clearance_bonus_v1"
+              ],
+              "runtime_candidate_id": "stair_swing_rise_clearance_bonus_v1",
+              "repair_category": "response_truncated",
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45"
+              }
+            },
+            {
+              "attempt": "attempt_000003",
+              "sha256": "b67d4feb2fa16f7e1209e1b7d6f6d630491f6a9b9af3f1de3ad628c187ad549c",
+              "stored_bytes": 107170,
+              "compact_bytes": 78168,
+              "feedback_candidate_ids": [
+                "stair_swing_foot_low_forward_penalty_v1",
+                "stair_swing_foot_level_sweep_penalty_v1",
+                "stair_swing_foot_banded_vertical_gate_v1",
+                "stair_swing_forward_nudge_success_only_v1",
+                "stair_swing_rise_clearance_bonus_v1"
+              ],
+              "runtime_candidate_id": "stair_swing_rise_clearance_bonus_v1",
+              "repair_category": "schema_error",
+              "repair_candidate_id": null,
+              "source_checksums": {
+                "current_best/training_code/components.py": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

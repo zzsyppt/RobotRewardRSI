@@ -472,6 +472,7 @@ class PushRecoveryTaskTests(unittest.TestCase):
         values = dict(provider.cli_defaults())
         values.update(
             {
+                "cell_variant_id": "push.g1_29dof.legacy_v1",
                 "isaac_python": "/opt/isaac/python.sh",
                 "train_entrypoint": "train_push.py",
                 "eval_entrypoint": "eval_push.py",
@@ -816,7 +817,7 @@ class PushRecoveryTaskTests(unittest.TestCase):
         payload = PublicContextBuilder(task_prompt_adapter=PushRecoveryTaskPlugin().prompt_adapter()).build_prompt_payload([])
 
         self.assertEqual(payload["task"]["task_id"], "unitree_push_recovery")
-        self.assertNotIn("task_prompt_sections", payload["public_context"])
+        self.assertNotIn("public_context", payload)
         self.assertIn("push_active", payload["reward_inputs_contract"]["fields"])
         self.assertIn("push_vec_public", payload["reward_inputs_contract"]["fields"])
         self.assertNotIn("push_active", payload["reward_inputs_contract"]["reserved_fields"])
@@ -966,6 +967,46 @@ class PushRecoveryTaskTests(unittest.TestCase):
                 self.assertNotIn("/data/", section_text)
         assert_public_only_prompt_payload(direct_sections)
 
+    def test_push_runtime_follows_trained_nonaccepted_source_across_generation_gaps(self) -> None:
+        def trial(lane: str, status: str, calls: int) -> dict:
+            return {
+                "trial_id": f"generation-1-lane-{lane}", "lane_id": f"lane-{lane}",
+                "trial_status": status, "candidate": {"candidate_id": lane},
+                "train": {"receipt_hash": "training-evidence"},
+                "runtime_activation_summary": {"reward_term_calls": calls},
+            }
+
+        accepted = trial("a", "accepted", 11)
+        nonaccepted = trial("b", "qualified_not_selected", 22)
+        generation = {"generation": {"trials": [accepted, nonaccepted]},
+                      "decision": {"accepted": True}}
+        untrained = {"generation": {"trials": [{"trial_status": "authoring_failed",
+                     "candidate": {"candidate_id": "new"}, "train": None}]},
+                     "decision": {"accepted": False}}
+        adapter = PushRecoveryTaskPlugin().prompt_adapter()
+        runtime = adapter.build_prompt_sections(
+            public_records=[generation, untrained], public_context={}
+        )["runtime_feedback_summary"]
+        self.assertEqual(runtime["source_round_id"], nonaccepted["trial_id"])
+        self.assertEqual(runtime["source_candidate_id"], "b")
+        self.assertEqual(runtime["latest_runtime_activation"]["reward_term_calls"], 22)
+
+        nonaccepted.pop("runtime_activation_summary")
+        runtime = adapter.build_prompt_sections(
+            public_records=[generation, untrained], public_context={}
+        )["runtime_feedback_summary"]
+        self.assertEqual(runtime["source_candidate_id"], "b")
+        self.assertEqual(runtime["status"], "not_available")
+        self.assertNotIn("latest_runtime_activation", runtime)
+
+        generation["generation"]["trials"] = [accepted]
+        runtime = adapter.build_prompt_sections(
+            public_records=[generation, untrained], public_context={}
+        )["runtime_feedback_summary"]
+        self.assertEqual(runtime["source_candidate_id"], "a")
+        self.assertEqual(runtime["source_selection"], "accepted_current_best")
+        self.assertEqual(runtime["latest_runtime_activation"]["reward_term_calls"], 11)
+
     def test_push_prompt_adapter_summarizes_public_history_and_runtime_feedback(self) -> None:
         record = ExperimentRecord.from_ledger_record(
             {
@@ -1029,12 +1070,8 @@ class PushRecoveryTaskTests(unittest.TestCase):
         # top-level score must not be reintroduced by the task adapter.
         self.assertIsNone(feedback["latest_public_score"])
         self.assertEqual(feedback["latest_failure_mode"], "fall_dominated")
-        self.assertEqual(runtime["latest_runtime_activation"]["reward_term_calls"], 4)
-        self.assertTrue(runtime["latest_runtime_activation"]["nonzero_reward_contribution"])
-        self.assertEqual(runtime["runtime_activation_gate"]["status"], "pass")
-        self.assertEqual(runtime["mechanism_attribution"]["status"], "not_attributed")
-        self.assertTrue(runtime["candidate_package_loaded"])
-        self.assertFalse(runtime["candidate_code_loaded_in_eval"])
+        self.assertEqual(runtime["status"], "no_prior_runtime_feedback")
+        self.assertNotIn("latest_runtime_activation", runtime)
         assert_public_only_prompt_payload(sections)
 
     def test_push_runtime_feedback_bounds_large_diagnostic_outputs(self) -> None:
@@ -1052,6 +1089,8 @@ class PushRecoveryTaskTests(unittest.TestCase):
         }
         record = {
             "round_id": "push-round-large-diagnostics",
+            "candidate": {"candidate_id": "large-diagnostics"},
+            "train_result": {"summary": {}},
             "runtime_activation_summary": {
                 "reward_term_calls": 2,
                 "diagnostic_calls": 300,
@@ -1105,6 +1144,8 @@ class PushRecoveryTaskTests(unittest.TestCase):
     ) -> None:
         record = {
             "round_id": "push-round-authorization-safety",
+            "candidate": {"candidate_id": "authorization-safety"},
+            "train_result": {"summary": {}},
             "runtime_activation_summary": {
                 "reward_term_calls": 0,
                 "diagnostic_calls": 1,
@@ -1142,6 +1183,8 @@ class PushRecoveryTaskTests(unittest.TestCase):
     def test_push_runtime_feedback_preserves_bounded_activation_evidence(self) -> None:
         record = {
             "round_id": "push-round-runtime-evidence",
+            "candidate": {"candidate_id": "runtime-evidence"},
+            "train_result": {"summary": {}},
             "runtime_activation_summary": {
                 "reward_term_calls": 200,
                 "diagnostic_calls": 10,
@@ -1226,6 +1269,8 @@ class PushRecoveryTaskTests(unittest.TestCase):
             public_records=[
                 {
                     "round_id": "push-round-long-diagnostic-names",
+                    "candidate": {"candidate_id": "long-diagnostics"},
+                    "train_result": {"summary": {}},
                     "runtime_activation_summary": {
                         "reward_term_calls": 2,
                         "diagnostic_calls": 24,
@@ -1274,6 +1319,8 @@ class PushRecoveryTaskTests(unittest.TestCase):
             public_records=[
                 {
                     "round_id": "push-round-wide-diagnostic-field",
+                    "candidate": {"candidate_id": "wide-diagnostics"},
+                    "train_result": {"summary": {}},
                     "runtime_activation_summary": {
                         "reward_term_calls": 2,
                         "diagnostic_calls": 1,
@@ -1304,6 +1351,8 @@ class PushRecoveryTaskTests(unittest.TestCase):
             public_records=[
                 {
                     "round_id": "push-round-candidate-diagnostic-keys",
+                    "candidate": {"candidate_id": "diagnostic-keys"},
+                    "train_result": {"summary": {}},
                     "runtime_activation_summary": {
                         "reward_term_calls": 2,
                         "diagnostic_calls": 2,
@@ -1352,6 +1401,8 @@ class PushRecoveryTaskTests(unittest.TestCase):
             public_records=[
                 {
                     "round_id": "push-round-flattened-key-policy",
+                    "candidate": {"candidate_id": "flattened-keys"},
+                    "train_result": {"summary": {}},
                     "runtime_activation_summary": {
                         "reward_term_calls": 10,
                         "diagnostic_calls": 0,

@@ -1,0 +1,237 @@
+{
+  "status": "PASS",
+  "audited_at_utc": "2026-09-23T07:39:24.915681+00:00",
+  "snapshot": ".tmp/go2_push_a08_live_05.zip",
+  "scope": "Completed candidate train summaries, their closed job attempts, full learner iteration logs, latest input provenance and same-frame reward arithmetic available in this snapshot.",
+  "training_count": 2,
+  "rows": [
+    {
+      "path": "session/runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/train/summary.json",
+      "sha256": "8349850b6c0925c520e56cf68345386bbb37ba3ac191eba2b8e7d4b819a8b01d",
+      "job_id": "go2-push-5rounds-20260923-a08-generation-001-lane-a-train",
+      "candidate_id": "push_recovery_nonsaturating_stance_v1",
+      "status": "PASS",
+      "failures": [],
+      "training": {
+        "iterations": 500,
+        "num_envs": 4096,
+        "steps_per_env_per_iteration": 24,
+        "control_steps": 12000,
+        "env_steps": 49152000,
+        "reward_term_count": 5,
+        "reward_calls": 60000,
+        "full_learner_iteration_log": true,
+        "checkpoint_iteration": 499,
+        "initial_policy_hash": "9a9c8718c855508ad5c96a0064d748a54542f3b87bfdbb151d59361e9b6e2e8b",
+        "candidate_source_checksum": "sha256:64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+        "checkpoint_checksum_as_recorded": "sha256:0fcb1ddc36bc0a602f2312bdf3c4741bdf000976429fcd6a840ece79f3f1f1a1",
+        "complete_journal_result": "completed",
+        "push_exposure_as_recorded": {
+          "control_only": false,
+          "evaluation": false,
+          "injection_attempt_count": 231250,
+          "schema_version": "true_rl_agent.push_recovery.exposure.v1",
+          "scope": "this_runtime_instance_all_episodes",
+          "verified_event_count": 231250
+        }
+      },
+      "input_provenance": {
+        "action_delta": "observed",
+        "base_ang_vel": "observed",
+        "base_ang_vel_scaled": "task_owned_bound_scale",
+        "base_height": "observed",
+        "base_height_relative": "task_owned_bound_scale",
+        "base_lin_vel": "observed",
+        "base_lin_vel_scaled": "task_owned_bound_scale",
+        "base_pos_xy": "observed",
+        "commanded_base_vel": "observed",
+        "joint_pos": "observed",
+        "joint_pos_error": "observed",
+        "joint_vel": "observed",
+        "last_action": "observed",
+        "nominal_base_height": "task_owned_bound_scale",
+        "pitch": "observed",
+        "prev_action": "observed",
+        "progress_fraction": "runner_owned",
+        "projected_gravity": "observed",
+        "push_active": "observed",
+        "push_vec_public": "observed",
+        "roll": "observed",
+        "terminated_non_timeout": "trusted_pre_reset_termination"
+      },
+      "reward_peak_frame": {
+        "control_step_1based": 2392,
+        "env_index_0based": 3236,
+        "schema_version": "true_rl_agent.push_recovery.reward_peak_frame.v1",
+        "scope": "one_running_absolute_peak_of_candidate_reward",
+        "signed_total": -36.602413177490234,
+        "term_semantics": "signed contributions after clipping and effective weights; summed in runtime dtype and term order for signed_total",
+        "terms": [
+          {
+            "effective_weight": 3.0,
+            "name": "upright_recovery",
+            "signed_weighted_contribution": -12.0
+          },
+          {
+            "effective_weight": 1.0,
+            "name": "stationary_v3",
+            "signed_weighted_contribution": -4.565803527832031
+          },
+          {
+            "effective_weight": -0.1,
+            "name": "joint_pose",
+            "signed_weighted_contribution": -0.018637437373399734
+          },
+          {
+            "effective_weight": -0.01,
+            "name": "action_rate",
+            "signed_weighted_contribution": -0.017973436042666435
+          },
+          {
+            "effective_weight": -20.0,
+            "name": "fall",
+            "signed_weighted_contribution": -20.0
+          }
+        ],
+        "units": "reward_rate_before_control_dt_integration"
+      },
+      "float32_ordered_sum": -36.602413177490234,
+      "last_reward_mean": 3.2601096630096436,
+      "reward_output_stats_as_recorded": {
+        "finite_fraction": 1.0,
+        "mean": 3.084035
+      }
+    },
+    {
+      "path": "session/runner/go2-push-5rounds-20260923-a08-generation-001-lane-b/train/summary.json",
+      "sha256": "1fd866630c40caa6b4cafe4a2a0b71d847e4183c9cf947a4b3086d43d8569012",
+      "job_id": "go2-push-5rounds-20260923-a08-generation-001-lane-b-train",
+      "candidate_id": "push_go2_recovery_gated_damping_v1",
+      "status": "PASS",
+      "failures": [],
+      "training": {
+        "iterations": 500,
+        "num_envs": 4096,
+        "steps_per_env_per_iteration": 24,
+        "control_steps": 12000,
+        "env_steps": 49152000,
+        "reward_term_count": 5,
+        "reward_calls": 60000,
+        "full_learner_iteration_log": true,
+        "checkpoint_iteration": 499,
+        "initial_policy_hash": "9a9c8718c855508ad5c96a0064d748a54542f3b87bfdbb151d59361e9b6e2e8b",
+        "candidate_source_checksum": "sha256:bb3ae423e2f84d1a0aea017b323413582ceb125214d68798b5a0849f78b02fdd",
+        "checkpoint_checksum_as_recorded": "sha256:549c40f5e978912fc5c482b7386b58c97937bd8514b690ca112754e3891554ad",
+        "complete_journal_result": "completed",
+        "push_exposure_as_recorded": {
+          "control_only": false,
+          "evaluation": false,
+          "injection_attempt_count": 215461,
+          "schema_version": "true_rl_agent.push_recovery.exposure.v1",
+          "scope": "this_runtime_instance_all_episodes",
+          "verified_event_count": 215461
+        }
+      },
+      "input_provenance": {
+        "action_delta": "observed",
+        "base_ang_vel": "observed",
+        "base_ang_vel_scaled": "task_owned_bound_scale",
+        "base_height": "observed",
+        "base_height_relative": "task_owned_bound_scale",
+        "base_lin_vel": "observed",
+        "base_lin_vel_scaled": "task_owned_bound_scale",
+        "base_pos_xy": "observed",
+        "commanded_base_vel": "observed",
+        "joint_pos": "observed",
+        "joint_pos_error": "observed",
+        "joint_vel": "observed",
+        "last_action": "observed",
+        "nominal_base_height": "task_owned_bound_scale",
+        "pitch": "observed",
+        "prev_action": "observed",
+        "progress_fraction": "runner_owned",
+        "projected_gravity": "observed",
+        "push_active": "observed",
+        "push_vec_public": "observed",
+        "roll": "observed",
+        "terminated_non_timeout": "trusted_pre_reset_termination"
+      },
+      "reward_peak_frame": {
+        "control_step_1based": 9856,
+        "env_index_0based": 642,
+        "schema_version": "true_rl_agent.push_recovery.reward_peak_frame.v1",
+        "scope": "one_running_absolute_peak_of_candidate_reward",
+        "signed_total": -388.1664733886719,
+        "term_semantics": "signed contributions after clipping and effective weights; summed in runtime dtype and term order for signed_total",
+        "terms": [
+          {
+            "effective_weight": 3.0,
+            "name": "upright_height",
+            "signed_weighted_contribution": 0.07638546824455261
+          },
+          {
+            "effective_weight": 1.0,
+            "name": "recovery_damping",
+            "signed_weighted_contribution": 0.35978221893310547
+          },
+          {
+            "effective_weight": -0.1,
+            "name": "joint_pose",
+            "signed_weighted_contribution": -0.32794949412345886
+          },
+          {
+            "effective_weight": -0.01,
+            "name": "action_rate",
+            "signed_weighted_contribution": -368.2746887207031
+          },
+          {
+            "effective_weight": -20.0,
+            "name": "fall",
+            "signed_weighted_contribution": -20.0
+          }
+        ],
+        "units": "reward_rate_before_control_dt_integration"
+      },
+      "float32_ordered_sum": -388.1664733886719,
+      "last_reward_mean": 3.520941734313965,
+      "reward_output_stats_as_recorded": {
+        "finite_fraction": 1.0,
+        "mean": 2.761612
+      }
+    }
+  ],
+  "incremental_audit": {
+    "new_training_count": 2,
+    "generation": 1,
+    "previous_report": null,
+    "prior_evidence_reused_after_sha256_verification": false
+  },
+  "limitations": [
+    "No checkpoint tensor download or independent rehash; checkpoint digest equality verifies exported bindings only.",
+    "Input provenance describes latest recorded inputs, not every historical transition.",
+    "Same-frame peak contributions identify reward arithmetic, not why policy/actions/state reached that frame.",
+    "Finite_fraction and push exposure are runtime exports, not independently reconstructed full trajectories.",
+    "Training retains frozen velocity-increment perturbations; external-force protocol, no displacement gate and repeated 80%/.22s are evaluation conditions audited separately.",
+    "Partial snapshot does not claim missing dev/accept/sealed jobs completed or generation accepted."
+  ],
+  "evidence_sha256": {
+    "PLAN/2new_world/Go2_push/attempt_06/session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-a/train/summary.json": "ac6a28e2fc95a3b13cf04e84be364553db5620c049d17ea8e67c602101bc62c2",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/train/summary.json": "8349850b6c0925c520e56cf68345386bbb37ba3ac191eba2b8e7d4b819a8b01d",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-001/lane-a/001_push_recovery_nonsaturating_stance_v1/training_code/components.py": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+    "PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/28e6b7fd1fc6fa0efa8c18ef/attempt_00.reservation.json": "aac69536ca4650ddccf387ce6d4840885f39543c735c735fcd44287bc233f29b",
+    "PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/28e6b7fd1fc6fa0efa8c18ef/attempt_00.result.json": "1cf823ca5f8aa4402ed482c383ffea7fad9e235a475dd9149c029ef6b98bd4bd",
+    "PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/28e6b7fd1fc6fa0efa8c18ef/attempt_00.logs/stdout.log": "e1eccef98a7716341e3f0258b210b5931ca8ae1c3a1f37c08b96ec3b7d21eb2b",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-001-lane-b/train/summary.json": "1fd866630c40caa6b4cafe4a2a0b71d847e4183c9cf947a4b3086d43d8569012",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-001/lane-b/001_push_go2_recovery_gated_damping_v1/training_code/components.py": "bb3ae423e2f84d1a0aea017b323413582ceb125214d68798b5a0849f78b02fdd",
+    "PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/c240a8c5783aad8c3530f978/attempt_00.reservation.json": "ceb1bf11e7e997a1cda131400566f593da5ce3c550e9151d210ae539db91f86a",
+    "PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/c240a8c5783aad8c3530f978/attempt_00.result.json": "705b13eebb1a552d36aaca710ede88b23149dfa444229a7ed73d7d10b0bd2051",
+    "PLAN/2new_world/Go2_push/attempt_08/session/job_attempts/c240a8c5783aad8c3530f978/attempt_00.logs/stdout.log": "4c061f88ab89937f4ee55e1abf6c5948830cd992095ffe73fff59241a74402d3"
+  },
+  "audit_script_sha256": "23ff62971d7d516579d01251a9ca833f21afcac3dfaa0de67436872693decf6b",
+  "subsequent_snapshot_verification": {
+    "prior_report_sha256": "5f3eb090eb7a6ead0d0718edf5d7385fb13d5c211bd50a3b6530ce4babba873d",
+    "at_utc": "2026-09-23T07:40:32.238149+00:00",
+    "all_evidence_sha256_unchanged": true,
+    "training_arithmetic_repeated": false
+  }
+}

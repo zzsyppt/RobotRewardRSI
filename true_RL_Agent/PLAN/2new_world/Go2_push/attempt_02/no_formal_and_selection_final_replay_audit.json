@@ -1,0 +1,106 @@
+{
+  "status": "PASS",
+  "scope": "Read-only final merged-fix replay through actual receipt-bound PublicContextBuilder.build_prompt; no provider request, training or new qualification.",
+  "validated_history_unchanged": true,
+  "selected_trial_id": "go2-push-5rounds-20260922-a02-generation-001-lane-a",
+  "selected_candidate_id": "push_standing_recovery_height_margin_v1",
+  "selected_source_checksum": "sha256:31c5a5ba883d08440f6ff6d36d7ba2c89314456098c9df79833200ba25711ea4",
+  "source": {
+    "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+    "delivery": "inline",
+    "requestable": true,
+    "bytes": 3126,
+    "exact_local_frozen_source_match": true
+  },
+  "public_runtime_source_identity_matches": true,
+  "public_feedback": {
+    "score": 0.8125,
+    "successes": 156,
+    "episodes": 192,
+    "failure_mode": "height_collapse_dominated",
+    "failure_counts": {
+      "fall_backward": 4,
+      "fall_side": 8,
+      "height_collapse": 19,
+      "not_recovered": 5,
+      "success_recovered": 156
+    },
+    "stratum_counts": {
+      "high": {
+        "episodes": 48,
+        "successes": 26
+      },
+      "low": {
+        "episodes": 48,
+        "successes": 48
+      },
+      "medium": {
+        "episodes": 48,
+        "successes": 45
+      },
+      "repeated": {
+        "episodes": 48,
+        "successes": 37
+      }
+    },
+    "raw_dev_aggregate_matches": true
+  },
+  "runtime_feedback": {
+    "reward_term_calls": 72000,
+    "terms": 6,
+    "all_displayed_activation_fields_match_raw_same_trial": true,
+    "observation_scope": "bounded_periodic_samples_over_training_steps"
+  },
+  "sibling_b": {
+    "candidate_id": "push_recovery_posture_gated_damping_v1",
+    "mechanism": "RewardTerm:stable_damping",
+    "status": "qualified_not_selected",
+    "public_dev_delta": 0.005208,
+    "trial_memory_unchanged": true
+  },
+  "reference": {
+    "lineage_unchanged": true,
+    "status": "reference_current_best",
+    "score": 0.734375,
+    "parent_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d"
+  },
+  "size": {
+    "before_bytes": 58679,
+    "after_bytes": 58586,
+    "delta_bytes": -93,
+    "memory_bytes": 2799,
+    "memory_unchanged": true,
+    "source_payload_count": 2,
+    "task_sections_bytes": 19666,
+    "task_sections_headroom_bytes": 37678,
+    "duplicate_long_strings_excess_bytes_before": 1215,
+    "duplicate_long_strings_excess_bytes_after": 1244,
+    "provider_input_tokens": null,
+    "token_limit": "Offline replay has no measured provider token usage."
+  },
+  "public_boundaries": {
+    "public_only_guard": "PASS",
+    "task_receipt_recomputation": "PASS",
+    "distinct_private_paths_checked": 29,
+    "distinct_checkpoint_hashes_checked": 4,
+    "private_literal_hits": 0,
+    "private_phase_objects_or_seed_rows": []
+  },
+  "limitations": [
+    "This is a reconstructed next-round prompt, not a completed live five-round validation.",
+    "No raw hidden seed literals were independently enumerated; structural seed rows/identifiers and exported private identity strings were checked.",
+    "Runtime maxima/sample counts are observations, not proof of causal efficacy.",
+    "Candidate A remains formally rejected; public-dev improvement alone does not accept it.",
+    "Sibling B retains bounded trial memory; its full source is not added as an extra slot."
+  ],
+  "evidence_sha256": {
+    "repaired_public_history_final.json": "4bc8f510aa3ae29d1593536c4978b87a0c396babf499743d70005360682dd70b",
+    "repaired_public_history.json": "1f7b5a0e813135adc4250f91a3c3d2a392a0c462f8bc12241ee26577967f5735",
+    "session/ledger.jsonl": "8e6d7688c9d75b2974220a6b4fda00f1eb22ea7b6624293f13cb958c3e82c0c2"
+  },
+  "raw_selected_evidence_sha256": {
+    "session\\runner\\go2-push-5rounds-20260922-a02-generation-001-lane-a\\eval\\public_dev\\summary.json": "d84b8deadfb5000d5b3b75c3645d456d34d440550c2b6e3651f89a36862d2526",
+    "session\\runner\\go2-push-5rounds-20260922-a02-generation-001-lane-a\\train\\summary.json": "213adceab0242997304b7f6467e0080323004efe67aca2f425c704d2d21f938c",
+    "session\\provider_candidates\\go2-push-5rounds-20260922-a02-generation-001\\lane-a\\001_push_standing_recovery_height_margin_v1\\training_code\\components.py": "31c5a5ba883d08440f6ff6d36d7ba2c89314456098c9df79833200ba25711ea4"
+  }
+}

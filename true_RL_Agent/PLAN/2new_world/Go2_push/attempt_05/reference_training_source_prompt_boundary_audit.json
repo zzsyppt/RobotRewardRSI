@@ -1,0 +1,124 @@
+{
+  "status": "PASS_STATIC_AND_A05_GEN01_LANE_A_ACTUAL_PROMPT",
+  "scope": "Only the new reference_training_source execution provenance field and its prompt-facing consumers; no product modifications or new tests.",
+  "private_source_fields": [
+    "source_session_id",
+    "source_session_genesis_hash",
+    "source_session_genesis_uri",
+    "source_session_genesis_checksum"
+  ],
+  "trace": [
+    {
+      "location": "agent_core/session_genesis.py::_load_completed_reference_training and prepare_session_genesis",
+      "finding": "Four-field source reference is created from retained original training evidence and stored only in runtime_snapshot.execution_placement.reference_training_source. Scientific hash computation excludes execution_placement."
+    },
+    {
+      "location": "agent_core/session_genesis.py::_load_verified_session_genesis; agent_core/generation_job_evidence.py::_append_local_reference_job_cost_artifacts",
+      "finding": "Direct consumers compare restored source identity and exclude original training from new actual costs. These are private execution/recovery/accounting paths."
+    },
+    {
+      "location": "agent_core/generation_lanes.py:49",
+      "finding": "PublicContextBuilder receives initial_current_best, current session Genesis hash, source code string, and explicit initial public evaluation projection. It does not receive raw Genesis or runtime_snapshot/execution_placement."
+    },
+    {
+      "location": "agent_core/session_genesis.py::initial_anchor_public_evidence",
+      "finding": "Explicit projection has anchor_kind/public_result/public_result_hash only. New reference evaluations populate the anchor; old source evaluation is not reused."
+    },
+    {
+      "location": "agent_core/session_genesis.py::_reference_program_source_from_private_artifact",
+      "finding": "Reads checksum-bound private artifact but returns only program_source after manifest source-byte verification, not private path, source Genesis hash or train metadata."
+    },
+    {
+      "location": "memory/context_builder.py::build_prompt; prompting/source_catalog.py::_reference_anchor_from_history and _resolve_program_source_content",
+      "finding": "Provider source catalog is rebuilt from verified source text plus a fixed set of public scientific IDs and task-owned prompt score. No raw execution source object is copied."
+    },
+    {
+      "location": "tasks/push_recovery/prompt_adapter.py::project_prompt_public_history",
+      "finding": "Active initial prompt score explicitly selects new public_dev.score_stats.mean. New execution provenance has no task-adapter consumer."
+    },
+    {
+      "location": "prompting/payload.py::build_prompt_payload",
+      "finding": "Provider payload is assembled from explicit sections and passes existing public-only guard. This is corroborating boundary evidence, not a claim that the guard recognizes every novel provenance field."
+    }
+  ],
+  "ownership": "The added shared logic is generic job/GPU/source provenance and evidence accounting. No Push/Go2 mechanics, score thresholds or robot-specific branches were added to these shared paths.",
+  "source_sha256": {
+    "src/true_rl_agent/agent_core/session_genesis.py": "b380bd43c0f68c80b89f2f08bc9cbeb221ded7fd82c992fb40e9e1cdb0ba6941",
+    "src/true_rl_agent/agent_core/generation_lanes.py": "c21a4460c06a9f849e743f4fb0bd4ac41b781d56205a2957151a2506398fae01",
+    "src/true_rl_agent/agent_core/generation_job_evidence.py": "2dcab886b24bc8a2b2c5135752cdd910c057adc444e99b08b8c589754ee190a1",
+    "src/true_rl_agent/memory/context_builder.py": "4f96d6bd12ec33fcc872db43970ed55e068db90006039f4a0dc75337abddd9fd",
+    "src/true_rl_agent/prompting/source_catalog.py": "c39ca4c8cd4b14b308bcb76814cb03b7765bd1efbe29706bf62cdc43013d99bd",
+    "src/true_rl_agent/prompting/payload.py": "e1d0db8325441944a33471e35c6a7ad1d1c167bc9e8f826f6b03c294908f9f1d",
+    "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py": "da876baeb3f7246878f2c407836312aea6fecf9ac9ef82352841fccaa10d7ea5"
+  },
+  "actual_prompt_verification": {
+    "status": "PASS",
+    "prompt": "session/authoring/go2-push-5rounds-20260922-a05-generation-001/lane-a/authoring_attempts/attempt_000001/prompt_payload.json",
+    "prompt_sha256": "5119dae9f796c40a30d2fdadc7b031428b345885c02d46185860784365239293",
+    "prompt_file_bytes": 48301,
+    "provider_request_status": "Prepared first request payload; response/usage receipt and lane-b not yet in downloaded snapshot.",
+    "private_provenance_scan": {
+      "labelled_values_checked": 86,
+      "unique_values_checked": 39,
+      "leak_matches": [],
+      "scope": "Actual A03 source session id/Genesis hash/checksum/uri; all retained and current private /data paths found in source/new Genesis and reference artifacts; reference checkpoint and initial policy hashes; private reference-artifact checksums; old/current execution manifest hashes. SHA256 values checked both prefixed and bare."
+    },
+    "public_source_identity": {
+      "parent_program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "inline_source_bodies": 1,
+      "inline_source_bytes": 1846,
+      "status": "Intentional public reference-program identity; source text checksum matches manifest and is distinct from execution provenance/checkpoint identities."
+    },
+    "reference_feedback_source": {
+      "job_id": "go2-push-5rounds-20260922-a05-eval-public-dev",
+      "raw_summary": "session/runner/go2-push-5rounds-20260922-a05/eval/public_dev/summary.json",
+      "phase_receipt": "session/reference_program_artifacts/evaluation_receipts/98383a79456bfb68efb87fe36696a5a0698cd1c6158b6bd4aaae50dda5e9b7e6/eval_phases/public_dev.json",
+      "phase_receipt_checksum": "sha256:3a722cc1bfbcba8376749f87a09206cdd5b23ee80fa3ee2ace1219c7c8713371",
+      "task_evidence_hash": "2b76509c4757e5e9ca0537c3da5c5d0099d645b8ab9ef9ec4cc184b6c2b8f7a5",
+      "execution_manifest_hash": "b6ea7f219d53f43c8229f380bbdd605d0038d72c9b1c559328e498ee8162d6f3",
+      "checks": [
+        "New A05 summary job id and execution environment verified against new Genesis.",
+        "Receipt bytes match the new assembly checksum and task evidence equals the A05 raw phase summary.",
+        "New anchor public result equals new reference private artifact public result.",
+        "Prompt recovery counts, every stratum count and failure counts equal independent aggregation of three A05 public-dev seed summaries.",
+        "Prompt score and source lineage use public_dev; failure label is height collapse despite majority successful episodes."
+      ],
+      "episodes": 192,
+      "successes": 141,
+      "score": 0.734375,
+      "strata": {
+        "high": {
+          "episodes": 48,
+          "successes": 19
+        },
+        "low": {
+          "episodes": 48,
+          "successes": 48
+        },
+        "medium": {
+          "episodes": 48,
+          "successes": 47
+        },
+        "repeated": {
+          "episodes": 48,
+          "successes": 27
+        }
+      },
+      "failure_counts": {
+        "fall_backward": 11,
+        "fall_side": 13,
+        "height_collapse": 26,
+        "not_recovered": 1,
+        "success_recovered": 141
+      },
+      "latest_failure_mode": "height_collapse_dominated",
+      "same_numbers_are_not_reuse_proof": "Reference training/checkpoint are retained; A05 dev scalar results happen to match A03. Freshness is established by new job/environment/phase receipts and source wiring, not by requiring numeric differences."
+    },
+    "limitations": [
+      "Only the downloaded gen1 lane-a first payload is audited here.",
+      "No claim about candidate response quality, lane-b isolation or completed five-round acceptance.",
+      "Private scan is finite evidence from actual artifacts plus source-traced projection boundaries, not a proof against every hypothetical field."
+    ]
+  },
+  "required_product_fixes": []
+}

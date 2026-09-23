@@ -386,6 +386,14 @@ def prepare_candidate_trial(inputs: RoundInputs) -> PreparedCandidateTrial:
         except ValueError:
             task_invariants_valid = False
 
+    if jobs is not None and authoring_mechanism_operation_delta is not None:
+        from true_rl_agent.candidates.authoring_policy import select_authoring_anchor_source
+        parent_source, _, _ = select_authoring_anchor_source(verify_authoring_anchor_prompt(authoring_evidence))
+        jobs = replace(jobs, train_spec=inputs.task_plugin.bind_training_diagnostics(
+            jobs.train_spec, parent_source=parent_source,
+            parent_evidence=inputs.current_best_eval_stats.to_public_dict(),
+            mechanism_operation_delta=authoring_mechanism_operation_delta))
+
     trial_journal = _build_trial_receipt_journal(
         inputs=inputs,
         ledger_epoch_hash=ledger_epoch_hash,
@@ -539,9 +547,11 @@ def finalize_prepared_candidate_trial(
     surface_policy = inputs.task_plugin.candidate_surface_policy()
     runtime_evidence = RuntimeActivationEvidence()
     if train_result is not None:
-        runtime_evidence = RuntimeActivationEvidence.from_mapping(
-            train_result.summary.get("runtime_activation_summary")
-        )
+        runtime_evidence = RuntimeActivationEvidence.from_train_summary(train_result.summary)
+    elif isinstance(runner_error, Mapping) and runner_error.get("type") == "CandidateRuntimeError":
+        details = runner_error.get("details")
+        if isinstance(details, Mapping) and "training_sampling" in details:
+            runtime_evidence = RuntimeActivationEvidence(training_sampling=details["training_sampling"])
     runtime_activation_gate = MechanismEvidenceGate().evaluate(
         surface=surface,
         evidence=runtime_evidence,

@@ -1,0 +1,280 @@
+{
+  "schema_version": "true_rl_agent.p6.force_unification.boundary_audit.v1",
+  "status": "PASS",
+  "scope": "Independent local source, saved manifest/receipt and active-document boundary audit. Recounted episode dictionaries; not an independent raw-physics reconstruction or qualification execution. No SSH, GPU, product edits or new experiments.",
+  "task_owned_authorities": {
+    "evaluation_semantics": "src/true_rl_agent/tasks/push_recovery/force_protocol.py:19",
+    "training_defaults_and_old_manifest_reader": "src/true_rl_agent/tasks/push_recovery/config.py:78",
+    "robot_fact_binding": "src/true_rl_agent/tasks/push_recovery/robot_binding.py:138",
+    "evaluation_only_runtime_dispatch": "src/true_rl_agent/tasks/push_recovery/runtime.py:14",
+    "force_injection_and_sequence_outcome": "src/true_rl_agent/tasks/push_recovery/force_runtime.py:33",
+    "public_projection_and_scoring": "src/true_rl_agent/tasks/push_recovery/metrics.py",
+    "shared_layer_boundary": "Generic native recording step capture only; no Push force strengths or success thresholds in shared host."
+  },
+  "same_force_protocol_both_robots": true,
+  "robot_specific_facts": "RobotProfile base link, default root height, action/observation/runtime ABI; actual full articulated body mass is measured at reset. Fixed gap remains 0.22 s while pulse and recovery timings scale with T.",
+  "evaluation_only_no_new_force_training_or_qualification": true,
+  "robots": [
+    {
+      "robot": "go2",
+      "cell": "push.go2_12dof.recovery_v3",
+      "checks": {
+        "same_training_protocol": true,
+        "same_robot_profile": true,
+        "same_runtime_adapter": true,
+        "same_action_observation_agent_sensor_contracts": true,
+        "old_manifest_identity_preserved": true,
+        "old_training_binding_preserved": true,
+        "old_checkpoint_checksum_preserved": true,
+        "old_reference_identity_preserved": true,
+        "new_evaluation_identity_distinct": true,
+        "frozen_protocol_resolves_exactly": true,
+        "source_identity_self_hash": true,
+        "no_training_holdout_provider_retries": true,
+        "no_qualification_claim": true,
+        "three_dev_calls_once": true,
+        "count_matches_saved_aggregate": true
+      },
+      "episodes": 192,
+      "successes": 141,
+      "success_rate": 0.734375,
+      "strata": {
+        "low": 48,
+        "medium": 48,
+        "high": 48,
+        "repeated": 48
+      },
+      "seed_results": [
+        {
+          "run_index": 1,
+          "episodes": 64,
+          "successes": 46,
+          "split": "public_dev"
+        },
+        {
+          "run_index": 2,
+          "episodes": 64,
+          "successes": 49,
+          "split": "public_dev"
+        },
+        {
+          "run_index": 3,
+          "episodes": 64,
+          "successes": 46,
+          "split": "public_dev"
+        }
+      ],
+      "sequence_recovered_count": 141,
+      "sequence_recovered_is_not_alone_episode_success": true,
+      "invalid_injection_count": 0,
+      "robot_scale_m": 0.4,
+      "control_dt_s": 0.02,
+      "pulse_control_steps": 11,
+      "pulse_duration_s": 0.22,
+      "gap_control_steps": 11,
+      "gap_duration_s": 0.22,
+      "scheduled_force_start_steps": [
+        51,
+        73
+      ],
+      "recovery_window_steps": 81,
+      "dwell_steps": 16,
+      "episode_steps": 303,
+      "checkpoint_sha256": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+      "source_training_manifest_hash": "ed8c2a3607025eecc8d8b2ca3b0f2bef0f8c32b22c360a1fc6f2b2cc4f79316e",
+      "evaluation_manifest_hash": "c0fc5eb506d1af528feed4cc4de53beaeff0f13e72aef16e4e4e721e9b8e0783",
+      "evidence": [
+        {
+          "path": "PLAN/2new_world/P6/force_unified_01/go2_public_dev_03/result.json",
+          "sha256": "0d6313a2e5a15b429a9458b1b4e6e266ee0977a7101658d0442cd047c99cfa5f"
+        },
+        {
+          "path": "PLAN/2new_world/P6/force_unified_01/go2_public_dev_03/source_identity.json",
+          "sha256": "77db737db86054bc04ff1b00de65a05415d6b078317a93fc9c10e5443c45f3f3"
+        },
+        {
+          "path": "PLAN/2new_world/P6/force_unified_01/go2_public_dev_03/composition/resolved_cell_manifest.json",
+          "sha256": "b6b9732c625423c7c32266abbde5a4c7801522ef0b60cf69f3938eb1d07cf984"
+        },
+        {
+          "path": "PLAN/2new_world/P6/force_unified_01/go2_public_dev_03/seed_01.json",
+          "sha256": "bfec7f38a51076b73abf89767ff6d4512185288fc60ac07c657aa23ea5dc2f85"
+        },
+        {
+          "path": "PLAN/2new_world/P6/force_unified_01/go2_public_dev_03/seed_02.json",
+          "sha256": "51985a553ba19cda0b5244ac59e4ed4823b656f01cdf71fc37bce775243c8a15"
+        },
+        {
+          "path": "PLAN/2new_world/P6/force_unified_01/go2_public_dev_03/seed_03.json",
+          "sha256": "08073124609f0de034ba92ac393fb111196fd54c47f7b69b125045f3663d2e18"
+        }
+      ]
+    },
+    {
+      "robot": "g1",
+      "cell": "push.g1_37dof.recovery_v3",
+      "checks": {
+        "same_training_protocol": true,
+        "same_robot_profile": true,
+        "same_runtime_adapter": true,
+        "same_action_observation_agent_sensor_contracts": true,
+        "old_manifest_identity_preserved": true,
+        "old_training_binding_preserved": true,
+        "old_checkpoint_checksum_preserved": true,
+        "old_reference_identity_preserved": true,
+        "new_evaluation_identity_distinct": true,
+        "frozen_protocol_resolves_exactly": true,
+        "source_identity_self_hash": true,
+        "no_training_holdout_provider_retries": true,
+        "no_qualification_claim": true,
+        "three_dev_calls_once": true,
+        "count_matches_saved_aggregate": true
+      },
+      "episodes": 192,
+      "successes": 33,
+      "success_rate": 0.171875,
+      "strata": {
+        "low": 48,
+        "medium": 48,
+        "high": 48,
+        "repeated": 48
+      },
+      "seed_results": [
+        {
+          "run_index": 1,
+          "episodes": 64,
+          "successes": 11,
+          "split": "public_dev"
+        },
+        {
+          "run_index": 2,
+          "episodes": 64,
+          "successes": 11,
+          "split": "public_dev"
+        },
+        {
+          "run_index": 3,
+          "episodes": 64,
+          "successes": 11,
+          "split": "public_dev"
+        }
+      ],
+      "sequence_recovered_count": 40,
+      "sequence_recovered_is_not_alone_episode_success": true,
+      "invalid_injection_count": 0,
+      "robot_scale_m": 0.74,
+      "control_dt_s": 0.02,
+      "pulse_control_steps": 14,
+      "pulse_duration_s": 0.28,
+      "gap_control_steps": 11,
+      "gap_duration_s": 0.22,
+      "scheduled_force_start_steps": [
+        69,
+        94
+      ],
+      "recovery_window_steps": 110,
+      "dwell_steps": 21,
+      "episode_steps": 412,
+      "checkpoint_sha256": "sha256:91c00d4e61492dcfb6511aa0ae9ef85121c5bb08dafde7eabf29c10281ad1749",
+      "source_training_manifest_hash": "65cf26a941c75bbea4def58a975325a2389ec07a954528ce5c73a82cd20d4a84",
+      "evaluation_manifest_hash": "795cfd32eb558684f21dbc66d70c0f0e32f3c76cea3e01409db47c1b2ac7cee8",
+      "evidence": [
+        {
+          "path": "PLAN/2new_world/P6/force_unified_01/g1_public_dev_03/result.json",
+          "sha256": "f6466ebb0abedbc2fde46be126b17c339c775206db7da68cee619db35c315cb3"
+        },
+        {
+          "path": "PLAN/2new_world/P6/force_unified_01/g1_public_dev_03/source_identity.json",
+          "sha256": "b4200bf4734031c7109580478b50ad041ebd7c4cd078e2c7e6441d8dee3fdebd"
+        },
+        {
+          "path": "PLAN/2new_world/P6/force_unified_01/g1_public_dev_03/composition/resolved_cell_manifest.json",
+          "sha256": "fe160f1d18291dd5bdf6f4789ceee5f8d7de95924abb0e6e49cca0fe3a4e00b4"
+        },
+        {
+          "path": "PLAN/2new_world/P6/force_unified_01/g1_public_dev_03/seed_01.json",
+          "sha256": "ffe59bfb94f786c7887b8d94cde6c8f6d8554cb51c15ff5376c57224066c773a"
+        },
+        {
+          "path": "PLAN/2new_world/P6/force_unified_01/g1_public_dev_03/seed_02.json",
+          "sha256": "0b29319a998e70233356249018d24c30b0b8e5766d170c267ef985b2d7fb0936"
+        },
+        {
+          "path": "PLAN/2new_world/P6/force_unified_01/g1_public_dev_03/seed_03.json",
+          "sha256": "d143027ee121af4e9f7b79e000e2257d5918af2bbb4976edfbf9aeb4cc72c895"
+        }
+      ]
+    }
+  ],
+  "current_product_source_matches_executed_snapshot": {
+    "matched_file_count": 373,
+    "file_count": 373,
+    "mismatches": [],
+    "execution_environment_hash": "0ea249c9cab50880a848b298052d500fbeff0636b648d50a2807b47e885737c7"
+  },
+  "active_and_historical_entrypoints": {
+    "default_task": "unitree_push_recovery",
+    "default_cell": "push.g1_37dof.recovery_v3",
+    "cli_choices": [
+      "push.g1_37dof.recovery_v3",
+      "push.go2_12dof.recovery_v3",
+      "push.g1_29dof.legacy_v1",
+      "push.g1_29dof.reference_v1"
+    ],
+    "v2_new_cli_retired": true,
+    "v2_reader_and_programmatic_frozen_replay_retained": true,
+    "g1_29_explicit_historical_audit_cli_retained": true,
+    "g1_29_is_not_current_matrix": true,
+    "only_remaining_push_configs": [
+      "push_g1_29dof_legacy_binding_v1.json",
+      "push_recovery_robot_policy_abi_v2.json"
+    ],
+    "archived_g1_training_protocol": {
+      "path": "PLAN/2new_world/P6/history/push_g1_37dof_velocity_training_v3.json",
+      "sha256": "4a42e33eebc2084e5d3e4acdd5736d437211efb3176abaf636791aaabaf7db9a"
+    },
+    "removed_yaml_references": "Remaining src/scripts/config operational readers do not reference deleted push_recovery.yaml; test string fixtures keep historical path values. Frozen PLAN snapshots may retain original historical paths and are not rewritten."
+  },
+  "document_corrections": [
+    {
+      "file": "docs/task_extension_guides/stair_climbing.md",
+      "sha256": "74ff073b635fa7c4e276f5acaa71f87ff7c363db0e2b86df654e97fa67218510"
+    },
+    {
+      "file": "docs/stair_fresh_15round_runbook.md",
+      "sha256": "d316d362f24f5960a13991b06e14c6c8ac27d3a637cc7f7190cc1c5944897b16"
+    },
+    {
+      "file": "docs/extension_and_boundary_guide.md",
+      "sha256": "794805bb3f2bc05118df9e293337bb85f1ab0ae2624a67f69f694b18f95c6fdd"
+    }
+  ],
+  "corrected_claims": [
+    "Application registry default task Push now resolves active G1 force V3, not legacy Push.",
+    "Runbook new-row selection now points to force V3 and requires new-domain qualification before formal generation.",
+    "P4 reference_v1 floor and sealed rules are explicitly historical only.",
+    "Current authoring distinguishes V3 force evaluation from retained V2 reward input ABI."
+  ],
+  "remaining_document_notes": [
+    {
+      "owner": "root",
+      "paths": [
+        "README.md",
+        "PLAN/2new_world/P6/FORCE_UNIFICATION_ACCEPTANCE_ZH.md"
+      ],
+      "action": "Replace in-progress engineering acceptance status with verified results 141/192 and 33/192, explicitly retaining no qualification GO."
+    },
+    {
+      "owner": "root",
+      "path": "README.md:22",
+      "action": "Prefer historical reading and explicit audit/replay wording for G1-29; its explicit CLI remains callable, so do not describe it as technically read-only."
+    }
+  ],
+  "linked_documents_exist": true,
+  "issues": [],
+  "limitations": [
+    "This audit did not rehash the remote checkpoint bytes; saved receipt checksum equality and original training lineage were compared locally.",
+    "No accept/sealed consumed and no full new reference qualification was executed; the old G1 qualification is valid only in its original velocity-increment domain.",
+    "Product source snapshot match excludes documentation, PLAN artifacts and server simulator state; it is not a claim that every historical artifact was re-audited."
+  ]
+}

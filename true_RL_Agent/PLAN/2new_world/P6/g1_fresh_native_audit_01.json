@@ -1,0 +1,65 @@
+{
+  "status": "PASS",
+  "compared_episodes": 192,
+  "comparison": "independent JSON equality including numeric type spelling and nested events",
+  "mismatches": 0,
+  "source_kind": "qualified_reference_genesis",
+  "genesis_hash": "23ca89c5e73daf93aa49fa115f35aeaf2c0c1621d829761c868b01dfd59025be",
+  "checkpoint_sha256": "sha256:91c00d4e61492dcfb6511aa0ae9ef85121c5bb08dafde7eabf29c10281ad1749",
+  "passes": 1,
+  "train_jobs": 0,
+  "accept_jobs": 0,
+  "sealed_jobs": 0,
+  "all_media_decoded": true,
+  "videos": [
+    {
+      "video": "PLAN\\2new_world\\P6\\g1_native_01\\native\\video\\public_dev-01.mp4",
+      "sha256": "90de098eae5a831663c57296faf23330cf087fb8466f26310eb70ab7c9d55a11",
+      "decoded_frames": 298,
+      "resolution": [
+        1280,
+        720
+      ],
+      "fps": 50.0,
+      "label": "fall_side",
+      "verified_pushes": 2,
+      "seed": 1000010000,
+      "frame_png": "PLAN\\2new_world\\P6\\g1_native_01\\frames\\public_dev-01-last.png",
+      "last_frame_control_step": 298
+    },
+    {
+      "video": "PLAN\\2new_world\\P6\\g1_native_01\\native\\video\\public_dev-02.mp4",
+      "sha256": "b2e61eff1b16f9aad43f073e87ec108c9456cecb30f89b59d444ab8070b70452",
+      "decoded_frames": 411,
+      "resolution": [
+        1280,
+        720
+      ],
+      "fps": 50.0,
+      "label": "success_recovered",
+      "verified_pushes": 2,
+      "seed": 1000010001,
+      "frame_png": "PLAN\\2new_world\\P6\\g1_native_01\\frames\\public_dev-02-last.png",
+      "last_frame_control_step": 411
+    },
+    {
+      "video": "PLAN\\2new_world\\P6\\g1_native_01\\native\\video\\public_dev-03.mp4",
+      "sha256": "ffbed3fda2ebde4d9c15f3ef2c40da8b63baef1406d8d6b7a985fc64267ec861",
+      "decoded_frames": 263,
+      "resolution": [
+        1280,
+        720
+      ],
+      "fps": 50.0,
+      "label": "fall_forward",
+      "verified_pushes": 2,
+      "seed": 1000010002,
+      "frame_png": "PLAN\\2new_world\\P6\\g1_native_01\\frames\\public_dev-03-last.png",
+      "last_frame_control_step": 263
+    }
+  ],
+  "limits": [
+    "Video terminates before reset; final PNG is last preterminal frame, not post-fall ground pose",
+    "Same environment index across original three dev seeds, chosen for illustrative mixed outcomes; not extra qualification evidence"
+  ]
+}

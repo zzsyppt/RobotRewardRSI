@@ -1,0 +1,304 @@
+{
+  "status": "PASS_BOTH_LANES_SOURCE_AUDIT_WITH_EXPLICIT_PROVIDER_EVIDENCE_LIMIT",
+  "session_id": "go2-push-5rounds-20260923-a07",
+  "generation_index": 1,
+  "snapshot": ".tmp/go2_push_a07_live_03.zip",
+  "scope": "Read-only candidate source and authoring-failure review; no training, evaluation or improvement claim.",
+  "frozen_source_files_match": [
+    "src/true_rl_agent/candidates/component_source_semantics.py",
+    "src/true_rl_agent/candidates/authoring_policy.py",
+    "src/true_rl_agent/agent_core/openai_compatible_provider.py",
+    "src/true_rl_agent/agent_core/authoring_loop.py"
+  ],
+  "lane_a": {
+    "candidate_id": "push_recovery_tilt_damping_v5",
+    "parent_sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+    "candidate_sha256": "42940100443169b3b9b8529b3a58387f749c10d5629ac065c63ec4c95fc5f264",
+    "assessment_replay": {
+      "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+      "status": "pass",
+      "classification": "mechanism_delta_present",
+      "reason": "candidate_source_structure_differs_from_comparison_anchor",
+      "compares_to": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "candidate_source_sha256": "42940100443169b3b9b8529b3a58387f749c10d5629ac065c63ec4c95fc5f264",
+      "blocking": false,
+      "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+      "changed_mechanism_count": 1,
+      "changed_mechanisms": [
+        "RewardTerm:tilt_damping"
+      ],
+      "structural_comparison": "canonical_component_terms"
+    },
+    "mechanism_delta": {
+      "schema_version": "true_rl_agent.candidate_mechanism_operation_delta.v2",
+      "operation": "add",
+      "before_component": null,
+      "after_component": {
+        "mechanism_id": "RewardTerm:tilt_damping",
+        "structure_hash": "a52c5432bda0e365e825a3321f058d499f1077e3f9897cd04ac73cc7a23a1284",
+        "parameter_normalized_structure_hash": "e8b98d4f97ce4ac94e863be93abd52f2f25fd0f150341edf404c499041460413",
+        "input_fields": [
+          "base_ang_vel_scaled",
+          "pitch",
+          "roll"
+        ]
+      },
+      "anchor_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "candidate_source_checksum": "sha256:42940100443169b3b9b8529b3a58387f749c10d5629ac065c63ec4c95fc5f264"
+    },
+    "preserved_exact_function_asts": [
+      "upright_height",
+      "stationary_v3",
+      "joint_pose",
+      "action_rate",
+      "fall"
+    ],
+    "parent_reward_weights_clips_and_bindings_unchanged": true,
+    "no_diagnostics_or_schedules_added": true,
+    "independent_mechanism_proof": {
+      "new_term": "-(roll^2+pitch^2)*(omega_x^2+omega_y^2)",
+      "reason": "Parent posture and speed channels are additively separable with other inputs fixed. This nonzero tilt-angular-rate interaction cannot be produced by changing only their scalar weights or magnitude parameters.",
+      "four_point_values": [
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.014400000000000003
+      ],
+      "mixed_difference": -0.014400000000000003,
+      "units": "Synthetic CPU Torch values over public RewardInputs, not simulator evidence.",
+      "not_repeated": "No parent callable has this interaction, earlier lane-A draft adds height-only deficit plus diagnostic/schedule, and this fresh session has zero evaluated history sources. No claim of global novelty or B-lane distinctness."
+    },
+    "hypothesis_limits": "The term penalizes angular motion in either direction when tilted, including corrective motion. Whether that improves recovery is an untested hypothesis; its nonzero smoke output or code structure does not establish usefulness."
+  },
+  "prior_attempt_failures": [
+    {
+      "attempt": 1,
+      "classification": "reasoning_output_exhausted",
+      "judgment": "SUPPORTED_BY_RESPONSE_RECEIPT",
+      "evidence": "finish_reason length; 32768 reasoning output units; final content 0 bytes; no candidate to assess.",
+      "continuation": "Later attempts use declared disabled-thinking recovery; no false physical failure conclusion."
+    },
+    {
+      "attempt": 2,
+      "classification": "compound_mechanism_delta",
+      "judgment": "INDEPENDENT_SOURCE_REPLAY_CONFIRMED",
+      "changed_mechanisms": [
+        "DiagnosticTerm:height_diag",
+        "RewardTerm:height_hold",
+        "ScheduleTerm:reward_weight_scale"
+      ],
+      "evidence": "Draft adds height_hold RewardTerm, height_diag DiagnosticTerm and reward_weight_scale ScheduleTerm. Frozen rule permits exactly one canonical named component; a neutral schedule value does not erase its declaration."
+    },
+    {
+      "attempt": 3,
+      "classification": "json_parse_error",
+      "judgment": "CONSISTENT_WITH_PROVIDER_RECEIPT_NOT_INDEPENDENTLY_REPLAYABLE",
+      "evidence": "finish_reason stop; final output 3326 bytes; receipt has SHA but the raw provider response text is absent from this snapshot. Current frozen parser emits this category only when object parsing fails.",
+      "limit": "Cannot verify the exact malformed JSON or independently reproduce parsing from a SHA receipt. No claim that a valid candidate was disproved."
+    }
+  ],
+  "frozen_prompt_rules": {
+    "single_component": "When an authoring anchor is present, change exactly one named canonical prompt-visible component mechanism relative to it and preserve every other component mechanism; without an anchor, author the complete initial component set.",
+    "non_numeric": "Do not submit numeric-only, string-only, or formatting-only variants of an evaluated source; the historical-source gate rejects those variants before training."
+  },
+  "parent_delivery_across_attempts": [
+    {
+      "attempt": 1,
+      "parent_source_inline": true,
+      "parent_sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "prompt_bytes": 48301
+    },
+    {
+      "attempt": 2,
+      "parent_source_inline": true,
+      "parent_sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "prompt_bytes": 49929
+    },
+    {
+      "attempt": 3,
+      "parent_source_inline": true,
+      "parent_sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "prompt_bytes": 51981
+    },
+    {
+      "attempt": 4,
+      "parent_source_inline": true,
+      "parent_sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "prompt_bytes": 52921
+    }
+  ],
+  "lane_b": {
+    "status": "PASS_STATIC_SOURCE_NOT_PERFORMANCE",
+    "candidate_id": "push_recovery_stance_height_support_v1",
+    "parent_sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+    "candidate_sha256": "bb24660ee5b071fffbc0656f960da919e0e8f18022f291da3139bcfb3fb0d772",
+    "assessment_replay": {
+      "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+      "status": "pass",
+      "classification": "mechanism_delta_present",
+      "reason": "candidate_source_structure_differs_from_comparison_anchor",
+      "compares_to": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "candidate_source_sha256": "bb24660ee5b071fffbc0656f960da919e0e8f18022f291da3139bcfb3fb0d772",
+      "blocking": false,
+      "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+      "changed_mechanism_count": 1,
+      "changed_mechanisms": [
+        "RewardTerm:stance_height_support"
+      ],
+      "structural_comparison": "canonical_component_terms"
+    },
+    "mechanism_delta": {
+      "schema_version": "true_rl_agent.candidate_mechanism_operation_delta.v2",
+      "operation": "add",
+      "before_component": null,
+      "after_component": {
+        "mechanism_id": "RewardTerm:stance_height_support",
+        "structure_hash": "8e1191f19925e03ad1bb798d9cf87be17c61268cd70be53a55aeab3b24b49a83",
+        "parameter_normalized_structure_hash": "ca66d143e97b41aceee207b4427d1c4d59528f12e545944216cb4ae87d09d60d",
+        "input_fields": [
+          "base_height_relative"
+        ]
+      },
+      "anchor_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+      "candidate_source_checksum": "sha256:bb24660ee5b071fffbc0656f960da919e0e8f18022f291da3139bcfb3fb0d772"
+    },
+    "preserved_exact_function_asts": [
+      "upright_height",
+      "stationary_v3",
+      "joint_pose",
+      "action_rate",
+      "fall"
+    ],
+    "parent_reward_weights_clips_and_bindings_unchanged": true,
+    "no_diagnostics_or_schedules_added": true,
+    "independent_mechanism_proof": {
+      "new_term": "-((max(1-h,0))/0.30)^2; weight 3.0",
+      "reason": "Parent height contribution is a bounded, symmetric exponential around h=1; the new term is one-sided and quadratic. It adds a different shape, rather than changing a coefficient of an existing parent tail.",
+      "height_values": [
+        1.2,
+        1.0,
+        0.9,
+        0.8,
+        0.7,
+        0.4
+      ],
+      "unweighted_rates": [
+        -0.0,
+        -0.0,
+        -0.11111111111111106,
+        -0.44444444444444425,
+        -1.0000000000000004,
+        -4.0
+      ],
+      "weighted_rates": [
+        -0.0,
+        -0.0,
+        -0.3333333333333332,
+        -1.3333333333333328,
+        -3.0000000000000013,
+        -12.0
+      ],
+      "source_of_values": "Synthetic CPU Torch calculation, not simulator episodes."
+    },
+    "nonrepeat_scope": {
+      "parent": "No duplicate parent reward family.",
+      "lane_a_final": "A adds tilt-angular-rate interaction; B adds height-only one-sided support. Production single-component delta comparison also returns no equivalence.",
+      "lane_a_attempt_2": "The height-only part matches the earlier failed A draft up to scalar factors. That draft was never qualified/trained because it also declared a diagnostic and schedule. This is not an evaluated failed mechanism nor the final sibling delta, so it is not a prohibited repeat in the frozen comparison domain.",
+      "history": "No previously evaluated candidates in this fresh session; no global novelty claim."
+    },
+    "prompt_boundary": {
+      "source_payloads": [
+        "current_best/training_code/components.py"
+      ],
+      "sibling_metadata_only": {
+        "schema_version": "true_rl_agent.single_component_semantic_exclusion.v1",
+        "operation": "add",
+        "canonical_mechanism_delta": "RewardTerm:tilt_damping",
+        "component_kind": "RewardTerm",
+        "public_input_dependencies": [
+          "base_ang_vel_scaled",
+          "pitch",
+          "roll"
+        ],
+        "parameter_normalized_semantic_signature": "e8b98d4f97ce4ac94e863be93abd52f2f25fd0f150341edf404c499041460413",
+        "instruction": "Propose one component mechanism whose normalized callable, input, and clip structure is substantively different from this exclusion; renaming or changing only numeric parameters is not distinct.",
+        "exclusion_hash": "093bc8bc019dda50bad8c8ae31febe122b97c5c625167646c4fc8fb87974ce2a"
+      },
+      "sibling_source_included": false
+    },
+    "hypothesis_limits": [
+      "height_collapse counts do not establish a stable crouching equilibrium or its reward cause.",
+      "The added term is strictly more negative at lower h below nominal when other inputs are fixed; it cannot prove that all dynamic crouched behaviors are worse under the total reward.",
+      "The code applies on every reward step, not only after the last push; whether it helps recovery remains for evaluation."
+    ]
+  },
+  "evidence": [
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-a/004_push_recovery_tilt_damping_v5/training_code/components.py",
+      "sha256": "42940100443169b3b9b8529b3a58387f749c10d5629ac065c63ec4c95fc5f264",
+      "bytes": 3709
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-a/002_push_recovery_height_hold_v4/training_code/components.py",
+      "sha256": "89132297726ec510ac83c661107555504164aa13949c9091d03d2bf01785da99",
+      "bytes": 3293
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-a/authoring_attempts/attempt_000004/prompt_payload.json",
+      "sha256": "d80ce2aec65899635eebdd49ba9ad5fb5ace56dd2a9f4afc3bb41aff06efcf8d",
+      "bytes": 52921
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-a/authoring_attempts/attempt_000001/attempt_result.json",
+      "sha256": "3243c474b75a7889cc93b6072c1485c91e37ee87bedd9368b931f2e64e8881d0",
+      "bytes": 6281
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-a/authoring_attempts/attempt_000002/attempt_result.json",
+      "sha256": "da819cddb7df71e2a5fe2babd2b63f4429b8d378077204d2f7337f5376f8b8ff",
+      "bytes": 12146
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-a/authoring_attempts/attempt_000003/attempt_result.json",
+      "sha256": "add3ba0e7557190fc562c5a3ac2acfc0d698ff765f0b204edabe625c99c709f6",
+      "bytes": 8227
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-a/authoring_attempts/attempt_000004/attempt_result.json",
+      "sha256": "3af74931068e0dcaa21ff4581015db6e117ae37e6b0992d1c432b5699280b99c",
+      "bytes": 9271
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-b/001_push_recovery_stance_height_support_v1/training_code/components.py",
+      "sha256": "bb24660ee5b071fffbc0656f960da919e0e8f18022f291da3139bcfb3fb0d772",
+      "bytes": 4449
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-b/authoring_attempts/attempt_000001/prompt_payload.json",
+      "sha256": "a804b1aac8db05a34ab34eb0eb58a559b9a90a5ca8c13b8575ef31de7b430a37",
+      "bytes": 48986
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-001/lane-b/authoring_attempts/attempt_000001/attempt_result.json",
+      "sha256": "fe8e95eab6726f0eafd6c0ae1d1a0d38c09c31ae226e612e1f7f2b3f88d52fd7",
+      "bytes": 9487
+    }
+  ],
+  "snapshot_history": [
+    {
+      "snapshot": ".tmp/go2_push_a07_live_02.zip",
+      "scope": "Lane A candidate and its four attempts; lane B prompt only."
+    },
+    {
+      "snapshot": ".tmp/go2_push_a07_live_03.zip",
+      "scope": "Added lane B source, first response and sibling comparison. Earlier A audit retained; source checksum reconfirmed."
+    }
+  ],
+  "pair_comparison": {
+    "status": "DISTINCT_ADMISSIBLE_SOURCE_DELTAS",
+    "same_reference_anchor": true,
+    "production_delta_equivalence": null,
+    "source_analysis": "A couples tilt to angular-rate squared; B shapes normalized height deficit only.",
+    "performance_status": "NOT_ASSESSED"
+  }
+}

@@ -123,6 +123,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--run-dir", default=None)
     parser.add_argument("--candidate-diagnostic-interval-steps", type=int, default=24)
+    parser.add_argument("--capture-training-numeric", action="store_true")
     add_gpu_process_binding_arguments(parser)
     AppLauncher.add_app_launcher_args(parser)
     parser.set_defaults(headless=True)
@@ -145,6 +146,11 @@ if (
     )
 else:
     args_cli.resolved_cell_manifest = None
+from true_rl_agent.tasks.push_recovery.runtime import (
+    physical_runtime_config_from_manifest, instantiate_physical_push_configs,
+    make_physical_push_environment, push_policy_io_evidence,
+)
+physical_config = physical_runtime_config_from_manifest(args_cli.resolved_cell_manifest, args_cli.profile)
 args_cli.device = require_execution_device(
     args_cli.device,
     "push train execution device",
@@ -260,7 +266,8 @@ simulation_app = app_launcher.app
 import gymnasium as gym  # type: ignore[import-not-found]  # noqa: E402
 import isaaclab_tasks  # type: ignore[import-not-found]  # noqa: F401,E402
 import torch  # type: ignore[import-not-found]  # noqa: E402
-import unitree_rl_lab.tasks  # type: ignore[import-not-found]  # noqa: F401,E402
+if physical_config is None:
+    import unitree_rl_lab.tasks  # type: ignore[import-not-found]  # noqa: F401,E402
 from isaaclab.envs import (  # type: ignore[import-not-found]  # noqa: E402
     DirectMARLEnv,
     multi_agent_to_single_agent,
@@ -272,11 +279,13 @@ from isaaclab_rl.rsl_rl import (
 from rsl_rl.runners import (
     OnPolicyRunner,  # type: ignore[import-not-found]  # noqa: E402
 )
-from unitree_rl_lab.utils.export_deploy_cfg import (
-    export_deploy_cfg,  # type: ignore[import-not-found]  # noqa: E402
-)
+if physical_config is None:
+    from unitree_rl_lab.utils.export_deploy_cfg import export_deploy_cfg
 
 from true_rl_agent.runner.budget import build_budget_accounting  # noqa: E402
+from true_rl_agent.runner.training_numeric_capture import (  # noqa: E402
+    TrainingNumericCapture, finish_training_numeric_capture,
+)
 from true_rl_agent.tasks.push_recovery.isaac_config import (  # noqa: E402
     config_for_profile,
     load_runtime_config,
@@ -308,6 +317,7 @@ def main() -> int:
     env = None
     candidate_adapter = None
     candidate_summary = None
+    training_capture = None
     try:
         if checkpoint_output.exists():
             raise FileExistsError(
@@ -325,7 +335,7 @@ def main() -> int:
                     f"expected={args_cli.init_checkpoint_sha256!r} "
                     f"actual={actual_init_checksum!r}"
                 )
-        config = config_for_profile(load_runtime_config(args_cli.config), args_cli.profile)
+        config = physical_config or config_for_profile(load_runtime_config(args_cli.config), args_cli.profile)
         runtime_dynamics = public_runtime_dynamics(config)
         if runtime_dynamics["runtime_dynamics_hash"] != args_cli.runtime_dynamics_hash:
             raise ValueError(
@@ -333,11 +343,14 @@ def main() -> int:
                 f"expected={args_cli.runtime_dynamics_hash!r} "
                 f"actual={runtime_dynamics['runtime_dynamics_hash']!r}"
             )
-        task = args_cli.task or config["task"]["gym_id"]
+        task = "TrueRL-PushRecovery-v2" if physical_config else (args_cli.task or config["task"]["gym_id"])
         args_cli.task = task
-        env_cfg = instantiate_g1_29_environment_cfg(device=args_cli.device, num_envs=args_cli.num_envs)
-        apply_push_recovery_overlay(env_cfg, config, args_cli)
-        agent_cfg = instantiate_g1_29_runner_cfg()
+        if physical_config:
+            env_cfg, agent_cfg = instantiate_physical_push_configs(config, args_cli, evaluation=False)
+        else:
+            env_cfg = instantiate_g1_29_environment_cfg(device=args_cli.device, num_envs=args_cli.num_envs)
+            apply_push_recovery_overlay(env_cfg, config, args_cli)
+            agent_cfg = instantiate_g1_29_runner_cfg()
         training_agent_configuration.apply_to(agent_cfg)
         if getattr(agent_cfg, "experiment_name", "") == "":
             agent_cfg.experiment_name = task.lower().replace("-", "_")
@@ -366,7 +379,8 @@ def main() -> int:
         )
         agent_cfg.run_name = f"true_rl_agent_{args_cli.round}"
 
-        env = gym.make(task, cfg=env_cfg, render_mode=None)
+        env = make_physical_push_environment(env_cfg) if physical_config else gym.make(task, cfg=env_cfg, render_mode=None)
+        policy_io_evidence = push_policy_io_evidence(env, args_cli.resolved_cell_manifest) if physical_config else None
         if isinstance(env.unwrapped, DirectMARLEnv):
             env = multi_agent_to_single_agent(env)
         if (
@@ -394,8 +408,12 @@ def main() -> int:
                 expected_program_source_checksum=program_source_checksum,
                 expected_candidate_artifact_hash=candidate_execution_artifact.artifact_hash,
             )
+        if physical_config:
+            candidate_adapter.enable_physical_program()
+            env.unwrapped._push_reward_adapter = candidate_adapter
+        else:
+            wrapped_env = CandidateRewardVecEnvWrapper(wrapped_env, candidate_adapter)
         candidate_summary = candidate_adapter.public_summary()
-        wrapped_env = CandidateRewardVecEnvWrapper(wrapped_env, candidate_adapter)
 
         log_dir = run_dir / "rsl_rl"
         runner = OnPolicyRunner(wrapped_env, agent_cfg.to_dict(), log_dir=str(log_dir), device=agent_cfg.device)
@@ -415,10 +433,30 @@ def main() -> int:
         params_dir.mkdir(parents=True, exist_ok=True)
         dump_yaml(str(params_dir / "env.yaml"), env_cfg)
         dump_yaml(str(params_dir / "agent.yaml"), agent_cfg)
-        export_deploy_cfg(wrapped_env.unwrapped, str(log_dir))
+        if physical_config is None:
+            export_deploy_cfg(wrapped_env.unwrapped, str(log_dir))
         shutil.copy(inspect.getfile(env_cfg.__class__), params_dir / Path(inspect.getfile(env_cfg.__class__)).name)
 
-        runner.learn(num_learning_iterations=agent_cfg.max_iterations, init_at_random_ep_len=True)
+        if args_cli.capture_training_numeric:
+            training_capture = TrainingNumericCapture(
+                run_dir / "training_numeric_evidence",
+                identity={"task": "push_recovery", "job": job_identity.to_public_dict(),
+                          "train_attempt_id": train_attempt_id, "program_source_checksum": program_source_checksum,
+                          "training_binding_hash": training_binding_hash, "initial_policy_state_hash": initial_policy_state_hash,
+                          "resolved_cell_manifest_hash": args_cli.resolved_cell_manifest.manifest_hash if args_cli.resolved_cell_manifest else None,
+                          "resolved_cell_identity": args_cli.resolved_cell_manifest.summary_identity() if args_cli.resolved_cell_manifest else None,
+                          "task_protocol_hash": args_cli.task_protocol_hash,
+                          "backend_execution_environment_verification": backend_execution_environment_verification,
+                          "training_seed": args_cli.seed, "initialization": args_cli.init,
+                          "initialization_checkpoint_sha256": args_cli.init_checkpoint_sha256, "run_dir": str(run_dir)},
+                semantics=candidate_adapter.training_numeric_semantics(control_dt=float(env.unwrapped.step_dt)),
+                planned_control_steps=planned_training_steps, num_envs=args_cli.num_envs,
+                steps_per_iteration=num_steps_per_env, source_step_offset=candidate_adapter.runtime.step_calls,
+                initial_learning_iteration=int(runner.current_learning_iteration),
+                reported_iteration=lambda: int(runner.current_learning_iteration),
+            )
+            candidate_adapter.bind_training_numeric_capture(training_capture)
+        runner.learn(num_learning_iterations=agent_cfg.max_iterations, init_at_random_ep_len=physical_config is None)
         latest_checkpoint = find_latest_checkpoint(log_dir)
         if latest_checkpoint is None:
             raise RuntimeError(f"no RSL-RL model checkpoint found under {log_dir}")
@@ -428,6 +466,10 @@ def main() -> int:
         if source_hash != checkpoint_hash:
             raise RuntimeError("checkpoint copy hash mismatch")
         runtime_activation = candidate_adapter.runtime_summary()
+        push_exposure = {}
+        if physical_config:
+            from true_rl_agent.tasks.push_recovery.runtime import push_runtime_state
+            push_exposure = {"push_exposure": push_runtime_state(env.unwrapped).exposure_summary()}
         summary = status_summary(
             "pass",
             checkpoint={
@@ -444,6 +486,9 @@ def main() -> int:
             candidate=candidate_summary,
             runtime_activation_summary=runtime_activation,
             training={
+                **push_exposure,
+                "numeric_evidence": finish_training_numeric_capture(
+                    training_capture, training_status="pass", requested=args_cli.capture_training_numeric),
                 "initial_policy_state_hash": initial_policy_state_hash,
                 "initial_policy_state_hash_schema_version": INITIAL_MODEL_STATE_HASH_SCHEMA_VERSION,
                 "expected_initial_policy_state_hash": args_cli.expected_initial_policy_state_hash,
@@ -471,8 +516,10 @@ def main() -> int:
                 "config_path": str(Path(args_cli.config).resolve()) if args_cli.config else None,
                 "active_profile": config.get("active_profile"),
                 "runtime_dynamics_hash": runtime_dynamics["runtime_dynamics_hash"],
-                "standing_command": config["standing_command"],
-                "push": config["push"],
+                "standing_command": runtime_dynamics["standing_command"],
+                "push": runtime_dynamics.get("push", runtime_dynamics.get("push_resolved_protocol")),
+                **({"physical_protocol": runtime_dynamics, "policy_io_evidence": policy_io_evidence,
+                    "reward_execution": runtime_dynamics["reward_execution"]} if physical_config else {}),
             },
             errors=[],
         )
@@ -486,6 +533,8 @@ def main() -> int:
     except PushCandidateProgramFailure as exc:
         summary = status_summary(
             "fail",
+            training={"numeric_evidence": finish_training_numeric_capture(
+                training_capture, training_status="fail", requested=args_cli.capture_training_numeric)},
             candidate=candidate_summary,
             runtime_activation_summary=(
                 candidate_adapter.runtime_summary()
@@ -501,6 +550,8 @@ def main() -> int:
     except Exception as exc:  # noqa: BLE001
         summary = status_summary(
             "fail",
+            training={"numeric_evidence": finish_training_numeric_capture(
+                training_capture, training_status="fail", requested=args_cli.capture_training_numeric)},
             candidate=candidate_summary,
             runtime_activation_summary=candidate_adapter.runtime_summary() if candidate_adapter is not None else None,
             errors=[{"type": type(exc).__name__, "message": str(exc)}],

@@ -1,0 +1,200 @@
+{
+  "source": "PLAN/2new_world/P6/shared_history_c6_01/generation_13.json",
+  "source_sha256": "ed31a03ca11af75c7a2fef3031fa0e979b8626388c365d87728ae195ae91da8b",
+  "kind": "historical_unified_v2_prompt_reconstruction_not_new_provider_call",
+  "source_run_receipt": "PLAN/2new_world/P6/shared_history_c6_01/result.json",
+  "root_keys": [
+    "schema_version",
+    "task",
+    "loop_contract",
+    "candidate_capabilities",
+    "reward_inputs_contract",
+    "public_eval_contract",
+    "control_effectiveness_contract",
+    "known_good_examples",
+    "selection_guidance",
+    "source_catalog",
+    "candidate_lineage",
+    "source_payloads",
+    "public_feedback_summary",
+    "runtime_feedback_summary",
+    "public_history",
+    "exploration_directive",
+    "required_candidate_package",
+    "authoring_context_frame"
+  ],
+  "feedback_entry_count": 5,
+  "feedback_entry_keys": [
+    [
+      "round_id",
+      "candidate_id",
+      "program_source_checksum",
+      "objective_score",
+      "accepted",
+      "feedback",
+      "selection_basis",
+      "detail_omissions"
+    ],
+    [
+      "round_id",
+      "candidate_id",
+      "program_source_checksum",
+      "objective_score",
+      "accepted",
+      "feedback",
+      "selection_basis"
+    ],
+    [
+      "round_id",
+      "candidate_id",
+      "program_source_checksum",
+      "objective_score",
+      "accepted",
+      "feedback",
+      "selection_basis",
+      "detail_omissions"
+    ],
+    [
+      "round_id",
+      "candidate_id",
+      "program_source_checksum",
+      "objective_score",
+      "accepted",
+      "feedback",
+      "selection_basis",
+      "detail_omissions"
+    ],
+    [
+      "round_id",
+      "candidate_id",
+      "program_source_checksum",
+      "objective_score",
+      "accepted",
+      "feedback",
+      "selection_basis"
+    ]
+  ],
+  "feedback_keys": [
+    [
+      "dominant_failure",
+      "generalization_summary",
+      "primary_failure_breakdown",
+      "progress_summary"
+    ],
+    [
+      "source_split",
+      "generalization_summary",
+      "primary_failure_breakdown",
+      "dominant_failure",
+      "diagnostic_flag_rates",
+      "progress_summary",
+      "schema_version",
+      "climb_completion_summary"
+    ],
+    [
+      "dominant_failure",
+      "generalization_summary",
+      "primary_failure_breakdown",
+      "progress_summary"
+    ],
+    [
+      "dominant_failure",
+      "generalization_summary",
+      "primary_failure_breakdown",
+      "progress_summary"
+    ],
+    [
+      "source_split",
+      "generalization_summary",
+      "primary_failure_breakdown",
+      "dominant_failure",
+      "diagnostic_flag_rates",
+      "progress_summary",
+      "schema_version",
+      "climb_completion_summary"
+    ]
+  ],
+  "runtime_feedback_summary": {
+    "schema_version": "true_rl_agent.runtime_feedback_summary.stair.v2",
+    "status": "available",
+    "reason": "same_trial_training_receipt",
+    "source_round_id": "formal-go2-stair-15round-20260901-c6ab8ba-generation-012-lane-b",
+    "source_candidate_id": "stair_swing_rise_clearance_bonus_v1",
+    "program_source_checksum": "sha256:706ee39fe8d73500d62224f2d8a2e58ade08f00c8b39a041d0057b3dbd898f57",
+    "source_trial_status": "formal_rejected",
+    "latest_runtime_activation": {
+      "reward_term_calls": 432009,
+      "nonzero_reward_contribution": true,
+      "capability_activation_records": [
+        "complete_reward_program"
+      ],
+      "component_count": 9,
+      "omitted_component_count": 0,
+      "components": [
+        {
+          "kind": "reward_term",
+          "name": "dof_acc_l2",
+          "last_mean": -0.17572936,
+          "max_abs": 40.96464539
+        },
+        {
+          "kind": "reward_term",
+          "name": "ang_vel_xy_l2",
+          "last_mean": -0.14316607,
+          "max_abs": 14.28730965
+        },
+        {
+          "kind": "reward_term",
+          "name": "track_lin_vel_xy_exp",
+          "last_mean": 3.31587362,
+          "max_abs": 3.5
+        },
+        {
+          "kind": "reward_term",
+          "name": "feet_air_time",
+          "last_mean": -0.01790394,
+          "max_abs": 2.60755682
+        },
+        {
+          "kind": "reward_term",
+          "name": "flat_orientation_l2",
+          "last_mean": -0.03272207,
+          "max_abs": 2.50000048
+        },
+        {
+          "kind": "reward_term",
+          "name": "action_rate_l2",
+          "last_mean": -0.1685922,
+          "max_abs": 1.96148431
+        },
+        {
+          "kind": "reward_term",
+          "name": "dof_torques_l2",
+          "last_mean": -0.12282877,
+          "max_abs": 1.1374476
+        },
+        {
+          "kind": "reward_term",
+          "name": "track_ang_vel_z_exp",
+          "last_mean": 0.6313678,
+          "max_abs": 0.75
+        },
+        {
+          "kind": "reward_term",
+          "name": "swing_rise_clearance_bonus",
+          "last_mean": 0.12252408,
+          "max_abs": 0.5
+        }
+      ]
+    }
+  },
+  "exact_key_presence": {
+    "episode_facts_by_cell": false,
+    "support_progress_m": false,
+    "support_surface_clearances_m": false,
+    "episode_step": false,
+    "termination_terms": false,
+    "primary_failure_breakdown": true,
+    "diagnostic_flag_rates": true
+  }
+}

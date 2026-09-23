@@ -308,6 +308,12 @@ def run_push_recovery_loop_audit(
         raise ValueError(
             "push recovery audit requires a unitree_push_recovery composition"
         )
+    if composition.genesis_anchor_kind != "bootstrap":
+        raise ValueError(
+            "Push deterministic dry-run audit requires the legacy bootstrap cell: "
+            "--cell-variant-id push.g1_29dof.legacy_v1 with random initialization; "
+            "reference-program cells require measured reference Genesis and cannot use synthetic audit scores"
+        )
     session_id = session_id or f"audit-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}"
     output_dir.mkdir(parents=True, exist_ok=True)
     ledger_path = output_dir / "ledger.jsonl"
@@ -348,6 +354,7 @@ def run_push_recovery_loop_audit(
         train_summary_builder=build_push_dry_run_train_summary,
     )
     context_builder = PublicContextBuilder(
+        phased_evaluation_adapter=task.phased_evaluation_adapter(),
         task_memory_adapter=composition.task_memory_adapter,
         task_prompt_adapter=task.prompt_adapter(),
         acceptance_protocol=acceptance_protocol,

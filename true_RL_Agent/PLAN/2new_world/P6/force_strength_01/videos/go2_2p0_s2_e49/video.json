@@ -1,0 +1,67 @@
+{
+  "capture_point": "after_physics_before_termination_and_reset",
+  "diagnostic_replay_only": true,
+  "env_index": 49,
+  "file": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/force_strength_01/videos/go2_2p0_s2_e49/video/seed_02_env_49.mp4",
+  "first_control_step": 1,
+  "fps": 50.0,
+  "frame_count": 303,
+  "last_control_step": 303,
+  "seed": 10043,
+  "seed_index": 2,
+  "selected_episode": {
+    "env_id": 49,
+    "episode_steps": 303,
+    "event_recovery_control_steps": [
+      91,
+      null
+    ],
+    "failure_label": "not_recovered",
+    "force_events": [
+      {
+        "actual_substeps": 44,
+        "completed": true,
+        "delivered_impulse_world_ns": [
+          23.60369873046875,
+          31.201772689819336,
+          -2.594664749722142e-07
+        ],
+        "end_control_step": 62,
+        "event_index": 0,
+        "expected_substeps": 44,
+        "force_world_n": [
+          107.28950500488281,
+          141.82627868652344,
+          0.0
+        ],
+        "injection_verified": true,
+        "start_control_step": 51
+      },
+      {
+        "actual_substeps": 44,
+        "completed": true,
+        "delivered_impulse_world_ns": [
+          -31.201766967773438,
+          23.603700637817383,
+          -9.432434922018729e-08
+        ],
+        "end_control_step": 183,
+        "event_index": 1,
+        "expected_substeps": 44,
+        "force_world_n": [
+          -141.82626342773438,
+          107.28952026367188,
+          0.0
+        ],
+        "injection_verified": true,
+        "start_control_step": 172
+      }
+    ],
+    "invalid_injection_count": 0,
+    "planned_push_count": 2,
+    "recovered_event_count": 1,
+    "stratum": "repeated",
+    "success": false
+  },
+  "sha256": "sha256:e7b29f247048fc7c8d17cbcdd71d5972361b3e4c70688ad5c36b287e6eb8e7f4"
+}

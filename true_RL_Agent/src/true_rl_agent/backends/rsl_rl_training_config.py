@@ -6,7 +6,10 @@ import copy
 import math
 from dataclasses import dataclass, field
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import TYPE_CHECKING, Any, Mapping
+
+if TYPE_CHECKING:
+    from true_rl_agent.training_binding import TrainingBinding
 
 from true_rl_agent.evaluation.binding import (
     canonical_json_hash,
@@ -150,6 +153,29 @@ class RslRlAgentConfiguration:
 
     def to_canonical_json(self) -> str:
         return canonical_json_text(self.to_dict())
+
+    def training_binding(
+        self, *, initialization_mode: str, train_seed: int, budget_steps: int,
+        capability_profile_hash: str, initialization_checkpoint_hash: str | None = None,
+        task_protocol_hash: str | None = None,
+    ) -> TrainingBinding:
+        """Bind a fixed-seed execution without choosing its task/lineage domain."""
+        from true_rl_agent.training_binding import (
+            TrainingBinding, fixed_training_seed_resolver_hash, initialization_seed_schedule_hash,
+        )
+
+        return TrainingBinding(
+            initialization_mode=initialization_mode,
+            initialization_checkpoint_hash=initialization_checkpoint_hash,
+            policy_architecture_hash=str(self.policy_architecture_hash),
+            agent_configuration_hash=str(self.agent_configuration_hash),
+            optimizer_training_profile_hash=str(self.optimizer_training_profile_hash),
+            initialization_seed_schedule_hash=initialization_seed_schedule_hash(train_seed),
+            budget_steps=budget_steps,
+            private_training_seed_resolver_hash=fixed_training_seed_resolver_hash(train_seed),
+            capability_profile_hash=capability_profile_hash,
+            task_protocol_hash=task_protocol_hash,
+        )
 
     def apply_to(self, agent_cfg: Any) -> None:
         """Materialize the bound scientific payload in the RSL-RL 5 config."""

@@ -1,0 +1,127 @@
+{
+  "status": "PASS_SCOPED_REVIEW",
+  "scope": "Independent read-only B3 shared admission/Stair ownership review; not complete target restart acceptance. No equivalence rule or product edits made by reviewer.",
+  "identity_isolation": {
+    "normalization_owner": "private admission-only AST copy; no task-specific field ranges",
+    "admission_projection_consumers": "Only before/after component extraction in _admission_parameter_match; original source/delta hash producers unchanged",
+    "real_fixture_checks": [
+      {
+        "case": "parameter_B",
+        "source_sha256": "53a183d5b92a446d88b4b8f0c9aeb33d2e4708b043cd97a6db165259919b2411",
+        "exact_actual_candidate_source_match": true,
+        "original_ast_unchanged": true,
+        "source_delta_hash_before_after": "4d25721ab5ab31ea83f419d439eb202501ffc193efebafcf1db521a44f5fe736",
+        "assessment": {
+          "status": "fail",
+          "blocking": true,
+          "classification": "parameter_only_delta",
+          "reason": "candidate_changes_only_parameter_family"
+        }
+      },
+      {
+        "case": "structural_A",
+        "source_sha256": "8d32268957c93080771df4d286faf4020cb52e7c553fc4621ae3378432d544be",
+        "exact_actual_candidate_source_match": true,
+        "original_ast_unchanged": true,
+        "source_delta_hash_before_after": "b0fd28c2cb1832a7163346cadcecafccee6d8154d50e25068c4e23e9ee4bce27",
+        "assessment": {
+          "status": "pass",
+          "blocking": false,
+          "classification": "mechanism_delta_present",
+          "reason": "candidate_source_structure_differs_from_comparison_anchor"
+        }
+      }
+    ]
+  },
+  "conservative_unknown_handling": [
+    {
+      "case": "unknown_call",
+      "admission_clamp_ast_retained": true
+    },
+    {
+      "case": "unknown_bound",
+      "admission_clamp_ast_retained": true
+    },
+    {
+      "case": "control_flow",
+      "admission_clamp_ast_retained": true
+    }
+  ],
+  "stair_gate_migration": {
+    "removed": "task-owned duplicate parent/parameter reward novelty checker and duplicate parameter_family_signature property",
+    "retained": "source byte recheck, task environment-axis/complete reward qualification, temporary sealed program validation",
+    "shared_pretraining_block": "CandidateAuthoringLoop consumes anti_degenerate.blocking before accepting candidate for training",
+    "verified_cases": {
+      "duplicate_add": {
+        "status": "fail",
+        "blocking": true,
+        "classification": "duplicate_parent_reward_term",
+        "reason": "candidate_adds_existing_parameter_family"
+      },
+      "duplicate_add_weight_change": {
+        "status": "fail",
+        "blocking": true,
+        "classification": "duplicate_parent_reward_term",
+        "reason": "candidate_adds_existing_parameter_family"
+      },
+      "name_only_rename": {
+        "status": "fail",
+        "blocking": true,
+        "classification": "no_component_mechanism_delta",
+        "reason": "candidate_changes_no_canonical_component_mechanism"
+      },
+      "novel_reward": {
+        "status": "pass",
+        "blocking": false,
+        "classification": "mechanism_delta_present",
+        "reason": "candidate_source_structure_differs_from_comparison_anchor"
+      },
+      "threshold_inclusivity": {
+        "status": "fail",
+        "blocking": true,
+        "classification": "parameter_only_delta",
+        "reason": "candidate_changes_only_parameter_family"
+      },
+      "direction": {
+        "status": "pass",
+        "blocking": false,
+        "classification": "mechanism_delta_present",
+        "reason": "candidate_source_structure_differs_from_comparison_anchor"
+      },
+      "equality": {
+        "status": "pass",
+        "blocking": false,
+        "classification": "mechanism_delta_present",
+        "reason": "candidate_source_structure_differs_from_comparison_anchor"
+      }
+    }
+  },
+  "test_modules": {
+    "tests.unit.test_component_smoke_and_antidegenerate": 48,
+    "tests.unit.test_stair_candidate_admission": 16
+  },
+  "local_test_status": {
+    "status": "PASS",
+    "count": 64,
+    "failures": 0,
+    "errors": 0,
+    "exit_code": 0,
+    "duration_seconds": 37.93,
+    "log": "mechanism_admission_review_tests.log",
+    "count_note": "Fresh discovery is 48 shared + 16 Stair, not the earlier estimated 48 + 17."
+  },
+  "target_suite_status_at_review": {
+    "receipt": "../target_restart_tests_04.json",
+    "initial_run": "FAIL:271 tests,3 errors in old test_candidate_authoring_loop fixtures",
+    "fixture_update": "Root reports fixture updates; final target rerun not yet independently observed",
+    "overall_target_acceptance": "NOT_ASSERTED"
+  },
+  "limits": [
+    "Admission family comparison is a bounded structural tuning policy, not full semantic equivalence or numerical behavior verification.",
+    "Effective or unknown clamps remain structurally meaningful; no sampled equivalence or task-specific assumptions introduced."
+  ],
+  "reviewed_source_sha256": {
+    "src/true_rl_agent/candidates/component_source_semantics.py": "f030e8ea651af69a2efad607a5d5dd62725e1315ff12fb30155eaa2d1e2033bb",
+    "src/true_rl_agent/tasks/stair_climbing/candidate_admission.py": "484d5dbc2638b29ee191943d4e7a44176e900f9c82c7bd1012ce5ea7c1dec323"
+  }
+}

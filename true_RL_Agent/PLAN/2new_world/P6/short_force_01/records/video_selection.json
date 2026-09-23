@@ -1,0 +1,122 @@
+{
+  "frozen_at_unix": 1790048881.03409,
+  "cases": [
+    {
+      "case_id": "go2_short_s3_e50",
+      "seed_index": 3,
+      "seed": 10044,
+      "env_index": 50,
+      "selection_reason": "earliest_physical_failure",
+      "expected_episode": {
+        "env_id": 50,
+        "episode_steps": 78,
+        "failure_label": "fall_backward",
+        "force_events": [
+          {
+            "actual_substeps": 44,
+            "completed": true,
+            "delivered_impulse_world_ns": [
+              -15.787364959716797,
+              31.22477912902832,
+              -7.539987478821786e-08
+            ],
+            "end_control_step": 62,
+            "event_index": 0,
+            "expected_substeps": 44,
+            "force_world_n": [
+              -71.76078033447266,
+              141.93081665039062,
+              0.0
+            ],
+            "injection_verified": true,
+            "start_control_step": 51
+          },
+          {
+            "actual_substeps": 20,
+            "completed": false,
+            "delivered_impulse_world_ns": [
+              -14.193082809448242,
+              -7.176078796386719,
+              -7.24792471373803e-07
+            ],
+            "end_control_step": 78,
+            "event_index": 1,
+            "expected_substeps": 44,
+            "force_world_n": [
+              -141.9307861328125,
+              -71.76080322265625,
+              0.0
+            ],
+            "injection_verified": true,
+            "start_control_step": 73
+          }
+        ],
+        "invalid_injection_count": 0,
+        "planned_push_count": 2,
+        "sequence_recovered": false,
+        "sequence_recovery_control_step": null,
+        "stratum": "repeated",
+        "success": false
+      }
+    },
+    {
+      "case_id": "go2_short_s3_e63",
+      "seed_index": 3,
+      "seed": 10044,
+      "env_index": 63,
+      "selection_reason": "latest_sequence_recovery_success",
+      "expected_episode": {
+        "env_id": 63,
+        "episode_steps": 303,
+        "failure_label": "success_recovered",
+        "force_events": [
+          {
+            "actual_substeps": 44,
+            "completed": true,
+            "delivered_impulse_world_ns": [
+              23.16616439819336,
+              26.953447341918945,
+              5.360692512113019e-08
+            ],
+            "end_control_step": 62,
+            "event_index": 0,
+            "expected_substeps": 44,
+            "force_world_n": [
+              105.30071258544922,
+              122.51569366455078,
+              0.0
+            ],
+            "injection_verified": true,
+            "start_control_step": 51
+          },
+          {
+            "actual_substeps": 44,
+            "completed": true,
+            "delivered_impulse_world_ns": [
+              -26.953453063964844,
+              23.166162490844727,
+              -3.4272670035306874e-08
+            ],
+            "end_control_step": 84,
+            "event_index": 1,
+            "expected_substeps": 44,
+            "force_world_n": [
+              -122.51570129394531,
+              105.30068969726562,
+              0.0
+            ],
+            "injection_verified": true,
+            "start_control_step": 73
+          }
+        ],
+        "invalid_injection_count": 0,
+        "planned_push_count": 2,
+        "sequence_recovered": true,
+        "sequence_recovery_control_step": 154,
+        "stratum": "repeated",
+        "success": true
+      }
+    }
+  ],
+  "new_statistical_samples": 0
+}

@@ -52,6 +52,26 @@ TEST_ACCEPTANCE_PROTOCOL = AcceptanceProtocol(
 
 
 class IsaacLabBackendTests(unittest.TestCase):
+    def test_numeric_capture_defaults_apply_to_training_and_public_dev_only(self):
+        from true_rl_agent.runner.job_argv import validate_train_job_argv
+        adapter = IsaacLabRslRlBackendAdapter(
+            replace(self.adapter.config, capture_public_dev_numeric=True, capture_training_numeric=True),
+            execution_environment_resolver=make_test_isaac_lab_execution_environment_manifest,
+        )
+        jobs = adapter.materialize_jobs(round_id="numeric-defaults", task_spec=self.task,
+            candidate=self.candidate, policy_initialization=PolicyInitialization.random())
+        self.assertIn("--capture-training-numeric", jobs.train_spec.metadata["cli_argv"])
+        validate_train_job_argv(jobs.train_spec, jobs.train_spec.metadata["cli_argv"])
+        plan = replace(jobs.eval_spec, checkpoint=CheckpointRef(uri="artifact://numeric/best.pt",
+            checksum="sha256:" + "8" * 64, role="eval", sealed=True), checkpoint_output_plan=None)
+        for phase in EvaluationPhase:
+            materialized = adapter.materialize_eval_phase(eval_plan=plan, phase=phase)
+            argv = materialized.metadata["cli_argv"]
+            validate_eval_job_argv(materialized, argv)
+            self.assertEqual("--numeric-evidence-dir" in argv, phase is EvaluationPhase.PUBLIC_DEV)
+        off = adapter.materialize_eval_phase(eval_plan=plan, phase=EvaluationPhase.PUBLIC_DEV, capture_numeric=False)
+        self.assertNotIn("--numeric-evidence-dir", off.metadata["cli_argv"])
+
     def test_materialize_eval_phase_reuses_the_complete_bound_plan(self) -> None:
         jobs = self.adapter.materialize_jobs(
             round_id="round-phased-eval",

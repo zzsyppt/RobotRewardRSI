@@ -1,0 +1,196 @@
+{
+  "status": "PASS_PAIRED_NO_TRAIN_CLOSURE_WITH_KNOWN_LANE_A_ADMISSION_FAILURE",
+  "generation": 3,
+  "lane_B_attempts": [
+    {
+      "attempt": 1,
+      "candidate_id": null,
+      "provider_status": "fail",
+      "provider_failure": "reasoning_output_exhausted",
+      "verifier_status_as_recorded": null,
+      "continuation_stop": null,
+      "repair_reason": null,
+      "provider_usage": {
+        "reasoning_units": 32768,
+        "request_cache_hit_units": 14592,
+        "request_cache_miss_units": 2234,
+        "request_units": 16826,
+        "response_units": 32768,
+        "total_units": 49594
+      },
+      "source_request_count": 0
+    },
+    {
+      "attempt": 2,
+      "candidate_id": "push_standing_recovery_tilt_arrest_v3",
+      "provider_status": "pass",
+      "provider_failure": null,
+      "verifier_status_as_recorded": "pass",
+      "continuation_stop": null,
+      "repair_reason": "historical_exact_program_repeat",
+      "provider_usage": {
+        "request_cache_hit_units": 14592,
+        "request_cache_miss_units": 2556,
+        "request_units": 17148,
+        "response_units": 1319,
+        "total_units": 18467
+      },
+      "source_request_count": 0
+    },
+    {
+      "attempt": 3,
+      "candidate_id": "push_standing_recovery_tilt_arrest_v4",
+      "provider_status": "pass",
+      "provider_failure": null,
+      "verifier_status_as_recorded": "pass",
+      "continuation_stop": null,
+      "repair_reason": "historical_exact_program_repeat",
+      "provider_usage": {
+        "request_cache_hit_units": 5632,
+        "request_cache_miss_units": 7316,
+        "request_units": 12948,
+        "response_units": 1449,
+        "total_units": 14397
+      },
+      "source_request_count": 0
+    },
+    {
+      "attempt": 4,
+      "candidate_id": "push_standing_recovery_tilt_arrest_v5",
+      "provider_status": "pass",
+      "provider_failure": null,
+      "verifier_status_as_recorded": "pass",
+      "continuation_stop": null,
+      "repair_reason": "historical_exact_program_repeat",
+      "provider_usage": {
+        "request_cache_hit_units": 5632,
+        "request_cache_miss_units": 7442,
+        "request_units": 13074,
+        "response_units": 1431,
+        "total_units": 14505
+      },
+      "source_request_count": 0
+    },
+    {
+      "attempt": 5,
+      "candidate_id": "push_standing_recovery_tilt_arrest_v6",
+      "provider_status": "pass",
+      "provider_failure": null,
+      "verifier_status_as_recorded": "pass",
+      "continuation_stop": "static_failed",
+      "repair_reason": "historical_exact_program_repeat",
+      "provider_usage": {
+        "request_cache_hit_units": 5632,
+        "request_cache_miss_units": 7440,
+        "request_units": 13072,
+        "response_units": 1445,
+        "total_units": 14517
+      },
+      "source_request_count": 0
+    }
+  ],
+  "lane_B_executable_comparisons": [
+    {
+      "source": "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-003/lane-b/002_push_standing_recovery_tilt_arrest_v3/training_code/components.py",
+      "sha256": "f0d16051b145f95c594ff50caa24931d08cd8fbaafa6fa967eff4f270842ab32",
+      "executable_functions_and_effective_term_configuration": "identical_to_generation_2_B"
+    },
+    {
+      "source": "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-003/lane-b/003_push_standing_recovery_tilt_arrest_v4/training_code/components.py",
+      "sha256": "76733af725b527e7d770925ee2b633c22cbc7492f722e569b38d336de4089d2a",
+      "executable_functions_and_effective_term_configuration": "identical_to_generation_2_B"
+    },
+    {
+      "source": "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-003/lane-b/004_push_standing_recovery_tilt_arrest_v5/training_code/components.py",
+      "sha256": "365c5b23ea22e6c5896b0e8d80ee93a606857dd2c791e15b2f7a94961c209cca",
+      "executable_functions_and_effective_term_configuration": "identical_to_generation_2_B"
+    },
+    {
+      "source": "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-003/lane-b/005_push_standing_recovery_tilt_arrest_v6/training_code/components.py",
+      "sha256": "1b9311c33da5ba013263a6842c39c69d6ee309abcb5b8128ca64e08fa4fbcf4a",
+      "executable_functions_and_effective_term_configuration": "identical_to_generation_2_B"
+    }
+  ],
+  "paired_closure": {
+    "no_candidate_train": true,
+    "no_candidate_eval": true,
+    "no_trial_contracts": true,
+    "no_selected_candidate": true,
+    "no_formal_decision": true,
+    "accepted_head_unchanged": true,
+    "reason": "Frozen width-2 authoring contract does not start either candidate until both lanes verify; B exhausted its five attempts. This is not a physical performance failure."
+  },
+  "author_findings": [
+    "v4-v6 rationale asserts new velocity/cubic channels absent from executable source; repeated-program rejections are correct.",
+    "The rationale treats historical exclusion as failed performance, but these excluded drafts have no new rollout."
+  ],
+  "known_blocker": "Generation-3 A stationary_brake was falsely admitted although it only reweights existing Huber linear tails; it was not trained because sibling B failed. See mechanism_review_gen03a.json. Receipt candidate_verified is not an independent PASS.",
+  "audited_at_utc": "2026-09-23T05:44:16.020240+00:00",
+  "snapshot": ".tmp/go2_push_a06_live_09.zip",
+  "frozen_source_archive_sha256": "fd9c6435c8c1386b7adb3df504fb2aea24ed9b2a16ceaa1530a0ec3045c63d4f",
+  "frozen_source_commit": "7c58ec32f6dcdd4da238fe52321c58c9abf582c8",
+  "evidence_sha256": {
+    "session/ledger.jsonl": "0b733babdcb15579c72af5d9344b4b7db433acfee55b855ffe1d910b1eacdf38",
+    "session/session_genesis.json": "f106e800379935a820c446165d096d730dbe95c8bea13390f4e07b5086c07807",
+    "session/reference_eval_artifact.json": "946d829f98522fb85833ae9de2a2a67e3e5b5f241268a0730a18b2e56cf577e7",
+    "session/runner/go2-push-5rounds-20260923-a06/eval/public_accept/summary.json": "8418394d261741060c5a19d9db2f4435e53e45bf20744057bdbf9862aff380fa",
+    "session/runner/go2-push-5rounds-20260923-a06/eval/public_dev/summary.json": "d5dedac335a918447bcb2ba5a8da0f692f6955405b083bfe4fe6515a5ddfd2e8",
+    "session/runner/go2-push-5rounds-20260923-a06/eval/sealed_validation/summary.json": "361f047ce9aaed52a6af5405cc68e587058e1d2773e672a3c3b6578bf7e1cffe",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-a/eval/public_dev/summary.json": "d640a25e685e544f07a1489f6868bdc3c4be1770ea1d9e7ffc2cf6917a5d4982",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-b/eval/public_accept/summary.json": "6f182561dc2460dae60534ed76b29a3854e75bd427956c05a8bf8428a993ab80",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-b/eval/public_dev/summary.json": "1197ee109ed61f1a14ac762e0f5c400fcf33dc9123666677d8cdd4db91e463be",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-001-lane-b/eval/sealed_validation/summary.json": "1a764becd6da56c1e5c23cf0bc48d1c41bce9efc6e876c4b221e32b32f932ee5",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-002-lane-a/eval/public_dev/summary.json": "5e2eec4693a804a9b18e14ed19e7d3212a06aea6b796e41c34e5f8eadc0a116e",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-002-lane-b/eval/public_accept/summary.json": "6158889964480e0672c86f3a804ff99f40b60cbe6b83a46a5f35672981e1b5c4",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-002-lane-b/eval/public_dev/summary.json": "2b3a66b27da72cbd3ead75fa86ebaca3212e385b57f606efc3d1b153d2d4bbd7",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-004-lane-a/eval/public_dev/summary.json": "e3e87e22331bb0d602bdc05517633290f88f48b6fd115ffcfe239906aff2d716",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-004-lane-b/eval/public_accept/summary.json": "75c42e0aa8e488db5ab0efb9b0d6483ed1b685be5bd32bab4227621115c14e0a",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-004-lane-b/eval/public_dev/summary.json": "aed1f3172e20fe1230dd3c38502c7f415abb69e09842a60d411c08222e6de573",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-005-lane-a/eval/public_accept/summary.json": "c75e360d665128ed4dcdbdac66c66187ced8fb654e3f9dbdc024d0b7c77fd2f7",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-005-lane-a/eval/public_dev/summary.json": "7e6489dc1fd1cb7c3014370f8220d5745d5efeadc527ebcf42849d48b717af9f",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-005-lane-b/eval/public_dev/summary.json": "29302e0eddbe096c03e321defc069f43f63c43e87d0f1eb5e0f5605ca3b4daa6",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-002-lane-b/train/summary.json": "bec8274735f3acda0f8c1bbf35283829c853ca03aacd8f7306e9ed6ce3f2ad57",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "711efdea63b04c8f5ea94f670fb2f3c5a8db7904b46d93d6f144dbf1aa55be9b",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-001/lane-b/001_push_standing_recovery_height_barrier_v1/training_code/components.py": "376785250b1dbfeb1c918c49ea37f3f24bf8b353279a14d25fe9b9f1667a36ae",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-002/lane-b/001_push_standing_recovery_stance_barriers_v2/training_code/components.py": "4486713e0573f36267f54501391586538b93e03c8d1f95b4fc85bcde742dee97",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "e72fd254a90de95738ba4bbc610f1ca5739c66f78864358af897a0f91d199d92",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000002/prompt_payload.json": "aa10840f8cedd3c9ae312acd30a98c144157a6ccd6623d606ed029137da47e01",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000002/attempt_result.json": "1d4520ba415f5e8cc03b5966f62dff9980078ee16dad08fd0b1d13626172baa7",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000003/prompt_payload.json": "698d558dbeeec4ea4f7f1713a0093e3372f41eb00c7543f800c8a964e0ff7f26",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-004/lane-a/002_push_standing_recovery_tilt_arrest_v7/training_code/components.py": "91bcdcc06a3fc5111cf3b415f68ed9fdf5313fd07063388e491315db3dca173a",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000003/attempt_result.json": "22cf5406fdb62faaa909caf9d6075942b4a60b73958166246dbffc8ac9f10589",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000004/prompt_payload.json": "9d9c5d72152080f00f9a9d1a794e865f9c20f2546d547f5969da19813d3aa4f9",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-a/authoring_attempts/attempt_000004/attempt_result.json": "4e16955dcb8594614db22a86f295b24c67cf29b4d1c869a27006ce8f02abfbeb",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000001/prompt_payload.json": "0dc7ec18ec42e076aa852608767b0cf567db315e9f6d391ed88e3cc5ee9dcf1f",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "41f78ba5d1ed8232e06d593a9e839bd8896e4ad8ca23504ee2334e27f617236b",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000002/prompt_payload.json": "7b67944be165254fea9a9f67b3f153950e05472c00fd71f13c4bed00dfd3a50f",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000002/attempt_result.json": "47567bb1b9747cc8516635ebba9126b5ece454e97e8c17c497fb896e3bd8c07c",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000003/prompt_payload.json": "30258745393fad90d499c822f0521c8f36214468c1fa45644c98e40a9bdee793",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-004/lane-b/002_push_standing_recovery_tilt_arrest_barrier_v1/training_code/components.py": "74d92dc9a06a69d616770bb5f68221d1009f211e83127e407d042c32b23ea515",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000003/attempt_result.json": "54e6b9aaf8c9c5ef6211f7d2c67709fee0a650ed40c46c397bc32828939ecea4",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000004/prompt_payload.json": "ce891e1119ba5d3a1a5b5d1489396664e528d8fc8445d9488ffec4bf02c00816",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-004/lane-b/authoring_attempts/attempt_000004/attempt_result.json": "d6916aafcfdf5861650319e16f010fb6968eeeba63e1d646bdd7aae3bee8e501",
+    "session/runner/go2-push-5rounds-20260923-a06-generation-004-lane-b/train/summary.json": "b3ac3d0a8f0c2d50b0655da175e7eff4305764131981eb7c2cfd7035402df77d",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-005/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "c9b6c8b58e6eb69ab5523c2d276c10c7dd2683806aaa04f294c9bbbb5219ef14",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-004/lane-b/004_push_standing_recovery_impulse_absorb_v1/training_code/components.py": "b0212688b7f5168802e2533214571914df7287cb9b6c686af299b4d484a07d9f",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-005/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "74b4f2bd64bd2c98a1c84ff97363147018a07ac95cf56cac875add8638dfca7c",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-005/lane-a/authoring_attempts/attempt_000002/prompt_payload.json": "8a96377322c296cfc7c71237d93d17b675254f12bd9c8c24542b5f3f8794b77a",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-005/lane-a/authoring_attempts/attempt_000002/attempt_result.json": "c7832b6cb25e895a91db70ad0dbceec1f09e24100f24a2b09eb0372b87c1211c",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-005/lane-a/authoring_attempts/attempt_000003/prompt_payload.json": "8e4569e149f8bee343c1441305586e93595af7ddfc40d7b2beb5ea04e99d8fc8",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-005/lane-a/002_push_standing_recovery_impulse_absorb_v2/training_code/components.py": "f34b02a15e8984e214094802bd7adfaa2714b3eb4de3db96304ae2cbfc919bcc",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-005/lane-a/authoring_attempts/attempt_000003/attempt_result.json": "bc5f36ba02ba320474ed3a75fffce86916fe7b79099cd9939c7927eeed32a251",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-005/lane-b/authoring_attempts/attempt_000001/prompt_payload.json": "10032793126a7b4e5414a221f8699e94510478bd5b4e26eb013b7179685abac6",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-005/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "24bfb6c4efd2165e09ec31d80ea14066d720d97c5986e845f03dac2a71dc9f47",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-003/lane-b/002_push_standing_recovery_tilt_arrest_v3/training_code/components.py": "f0d16051b145f95c594ff50caa24931d08cd8fbaafa6fa967eff4f270842ab32",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-003/lane-b/003_push_standing_recovery_tilt_arrest_v4/training_code/components.py": "76733af725b527e7d770925ee2b633c22cbc7492f722e569b38d336de4089d2a",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-003/lane-b/004_push_standing_recovery_tilt_arrest_v5/training_code/components.py": "365c5b23ea22e6c5896b0e8d80ee93a606857dd2c791e15b2f7a94961c209cca",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-003/lane-b/005_push_standing_recovery_tilt_arrest_v6/training_code/components.py": "1b9311c33da5ba013263a6842c39c69d6ee309abcb5b8128ca64e08fa4fbcf4a",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-003/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "c68f73bf51db7ed1cce5a0cd579793f3e5737040decd70d5274c054c871f629f",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-003/lane-b/authoring_attempts/attempt_000002/attempt_result.json": "a0793710f89d2d65c730f169403c61e24e24a00db9e2a292307dafba1b318bdd",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-003/lane-b/authoring_attempts/attempt_000003/attempt_result.json": "b379ec67716751bd079baf6c24dff5af4704d64aa6ef38f31499582acca2014c",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-003/lane-b/authoring_attempts/attempt_000004/attempt_result.json": "c31678c0a6c4bfa57b47b208677427597dbba51c54b66fe300f823ea17056472",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-003/lane-b/authoring_attempts/attempt_000005/attempt_result.json": "44e56be8d3ef8482b166cb38a97822de468a7add1f3ca9630ad93cb791d5de27"
+  },
+  "experiment_verdict": "NO_GO_ADMISSION_GAP",
+  "audit_limit": "Read-only local snapshot; private checkpoints not downloaded/rehashed; no simulator visualization. Receipt PASS is not independent mechanism approval."
+}

@@ -1,0 +1,190 @@
+{
+  "status": "READ_ONLY_CLOSURE_REVIEW_COMPLETE",
+  "reviewed_at_utc": "2026-09-22T10:17:36.267072+00:00",
+  "session_id": "go2-push-5rounds-20260922-a02",
+  "source_commit": "46d5d9e5fff072e7154840bbe8b6fd474cb236be",
+  "scope": "Current source verified byte-for-byte against A02 snapshot, frozen plan and existing tests. No tests or server jobs executed in this review; terminal experiment acceptance remains pending.",
+  "experiment_complete": false,
+  "counting_rule": {
+    "authority": "ledger generation records indexed 1..5 plus their automatic cost/resource closures; not accepted count, provider calls or train-job count",
+    "source": [
+      "agent_core/generation_session.py:275",
+      "agent_core/generation.py:941",
+      "agent_core/generation_closure.py:36"
+    ],
+    "branches": [
+      {
+        "branch": "accepted",
+        "generation_delta": 1,
+        "head": "accepted selected candidate",
+        "note": "Both public-dev screens; one selected public-accept and sealed confirmation; exactly one ledger record."
+      },
+      {
+        "branch": "formal_rejected",
+        "generation_delta": 1,
+        "head": "unchanged",
+        "note": "Includes task early rejection after public-accept (sealed explicitly not run), or completed sealed-dependent rejection."
+      },
+      {
+        "branch": "no_selection",
+        "generation_delta": 1,
+        "head": "unchanged",
+        "note": "Both screens exist, selector chooses none; no public-accept or sealed job."
+      },
+      {
+        "branch": "paired_authoring_incomplete",
+        "generation_delta": 1,
+        "head": "unchanged",
+        "note": "No-training status pairs (candidate_failed, not_started), (verified_not_run, candidate_failed), or (candidate_failed, verified_not_run). Lane A failure leaves B not_started; a verified sibling is verified_not_run. Both preparation failures fall into candidate_execution_incomplete instead."
+      },
+      {
+        "branch": "candidate_execution_incomplete",
+        "generation_delta": 1,
+        "head": "unchanged",
+        "note": "Caught candidate runtime error, post-train task rejection, or typed retryable runner failure recorded as train_incomplete/eval_incomplete. Requires real closed attempt/cost evidence; an open reservation stops host closure. Also covers both preparation failures; outcome follows the frozen status classification, not an inferred scientific rejection."
+      },
+      {
+        "branch": "authoring repair / runner attempt retry / replay",
+        "generation_delta": 0,
+        "note": "Internal retries add no generation. Replaying an already committed execution adds no record; if a valid execution receipt was published before a crash but not yet committed, recovery appends its single original generation record once."
+      },
+      {
+        "branch": "uncaught contract/programming/provider exception before commit",
+        "generation_delta": 0,
+        "note": "Segment fails and cost evidence is saved; no artificial generation record. Resume remains at same next index."
+      },
+      {
+        "branch": "exception or budget overrun after ledger commit but before automatic closure",
+        "generation_delta": "already appended record remains; no extra record",
+        "note": "Not a valid finished round until closure is reconciled. Recovery may complete the last existing closure; report/terminal acceptance stays blocked while incomplete or over budget."
+      },
+      {
+        "branch": "reference qualification/Genesis failure",
+        "generation_delta": 0,
+        "note": "Before generation loop; cannot produce five-round terminal result."
+      },
+      {
+        "branch": "final-confirmation failure after five closed generations",
+        "generation_delta": 0,
+        "note": "Ledger stays at five; no completed report. Resume existing run to finish/reuse final jobs, then run independent audit."
+      }
+    ],
+    "classification_source": [
+      "agent_core/generation.py:260",
+      "agent_core/generation.py:648",
+      "agent_core/generation.py:751",
+      "agent_core/generation.py:812",
+      "agent_core/generation.py:1266"
+    ],
+    "fatal_recovery_source": [
+      "agent_core/generation_session.py:199",
+      "agent_core/generation_session.py:422"
+    ]
+  },
+  "automatic_terminal_flow": {
+    "automatic": true,
+    "steps": [
+      "Loop stops at exactly contract.max_generations=5; prevalidate checks budget, generation_index=5 and zero open attempts.",
+      "Close segment completed/normal at five; rebuild authoritative ledger/head/lifecycle binding and verify all attempt journals.",
+      "Bind two new final-confirmation jobs: Genesis reference versus terminal accepted current_best; if no candidate was accepted, both use the reference checkpoint but remain separate jobs.",
+      "Run genesis then final on lane-a using frozen sealed cohort: 7 seeds x 64 episodes each, 14 seed units / 896 episodes total. Reuse only this same terminal job receipt when recovering.",
+      "Publish final result without acceptance authority or public feedback; settle final costs, validate resource closure and publish generation_session_report.json."
+    ],
+    "source": [
+      "agent_core/generation_runtime.py:134",
+      "agent_core/generation_session.py:412",
+      "agent_core/generation_session.py:462",
+      "agent_core/generation_application.py:71",
+      "agent_core/generation_finalization.py:164",
+      "agent_core/generation_finalization.py:337"
+    ],
+    "plan_hash": "660ea831e58077823918bef3fdc4f1f32c7bfa5d657cd70445d6da10a9adb140",
+    "cohort_source": "existing_sealed_validation",
+    "new_seed_generalization_claim": false,
+    "new_geometry_generalization_claim": false
+  },
+  "independent_terminal_audit": {
+    "when": "Only after generation_session_report.json exists and the experiment process has finished. Do not use audit-only to complete a missing final stage.",
+    "cwd": "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_02",
+    "command_posix": "/data/yuyangliu/envs/isaaclab6_validation/bin/python /data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_02/scripts/run_generation_session.py --task-id unitree_push_recovery --cell-variant-id push.go2_12dof.recovery_v3 --max-generations 5 --output-dir /data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/attempt_02/session --session-id go2-push-5rounds-20260922-a02 --lease-root /data/yuyangliu/AGENT/true_RL_Agent/outputs/gpu_leases --provider-env-file /data/yuyangliu/secrets/deepseek.env --provider-policy /data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/provider_policy.json --cost-contract /data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/cost_contract.json --machine-id deyugptserver --gpu0-uuid GPU-06661cdd-1a0e-904e-a2e3-705eda5fb65b --gpu1-uuid GPU-8cd998f2-d42e-394e-7aae-a6701bb9b187 --expected-source-commit 46d5d9e5fff072e7154840bbe8b6fd474cb236be --max-allocated-active-gpu-hours 9.34388888888889 --max-simulated-control-steps 592034688 --max-output-bytes 15843983360 --isaac-python /data/yuyangliu/envs/isaaclab6_validation/bin/python --runner-timeout-s 7200 --resume-existing --terminal-audit-only",
+    "expected_returncode": 0,
+    "expected_stdout": {
+      "status": "PASS",
+      "ledger_and_terminal_replayed": true,
+      "actual_cost_replayed": true,
+      "final_receipts_replayed": true,
+      "resource_closure_replayed": true
+    },
+    "behavior": "Re-enter frozen preparation and Genesis validation; require existing final receipts/settlement/resource/report; recompute and compare. No new provider requests, training or evaluation, no GPU idle check. Source checkout and evidence paths must remain intact.",
+    "record_result_outside_session": "attempt_02/terminal_audit_result.json and terminal_audit.log; preserve process return code plus stdout/stderr",
+    "source": [
+      "scripts/run_generation_session.py:94",
+      "scripts/run_generation_session.py:116",
+      "agent_core/generation_application.py:198",
+      "agent_core/generation_application.py:43",
+      "agent_core/generation_finalization.py:384"
+    ],
+    "if_report_absent_after_interruption": "Use the original launch argv plus --resume-existing without --terminal-audit-only. This is recovery work and may execute outstanding jobs; it is not the independent audit."
+  },
+  "minimum_real_acceptance_checks": [
+    {
+      "evidence": "experiment process result + independent terminal-audit result",
+      "required": "Both returncode=0; audit stdout exact five PASS fields. Report existence alone is not enough."
+    },
+    {
+      "evidence": "generation_session_report.json, ledger.jsonl, generation_closures/*.json",
+      "required": "session_id A02; max_generations=5; closed_generation_count=5; terminal_binding required_generation_count=closed_generation_count=5; five consecutive unique ledger indices and corresponding closure hashes; sum(generation_outcomes.values())=5."
+    },
+    {
+      "evidence": "ledger trials, authoring attempts and runner receipts",
+      "required": "Report actual authored, trained, public-dev-screened and formally confirmed counts separately. A count of five does not assert ten successful trainings or five acceptances; examine any incomplete-generation reason against evidence."
+    },
+    {
+      "evidence": "final_confirmation/{plan,reservation,result}.json and phase_receipts/{genesis,final}",
+      "required": "Plan hash matches frozen A02 contract; two correctly bound checkpoints and job IDs; each result score_stats.count=7; seven paired seed deltas; 64 episodes per seed. Final checkpoint equals terminal current_best, not merely best observed rejected candidate."
+    },
+    {
+      "evidence": "final-confirmation-settlement cost receipt + final_confirmation/resource_closure.json",
+      "required": "Cap checks all_passed=true; no open attempt reservations; source/protocol/resource bindings replay; final usage includes final evaluation. Remain within frozen caps including any retries."
+    },
+    {
+      "evidence": "report, final result and public feedback records",
+      "required": "Final information_flow acceptance_authority=false, feedback_allowed=false and public_history_projection=false. Final comparison cannot rewrite ledger or promote a rejected candidate."
+    },
+    {
+      "evidence": "independent audit before/after evidence inventory",
+      "required": "Keep the audit log outside session; confirm existing session artifacts are unchanged (size/mtime inventory suffices as mutation check; content/identity is validated by production replay). No new generation or final job is launched."
+    }
+  ],
+  "existing_test_evidence": {
+    "not_rerun_in_this_review": true,
+    "target_receipt": "target_followup_tests_02.json",
+    "target_receipt_returncode": 0,
+    "five_round_target_test": "tests.integration.test_generation_session.SharedGenerationSessionTests.test_five_generation_session_finishes_and_replays_at_its_frozen_boundary",
+    "coverage_boundary": "This fixture closes 1 accepted + 4 paired_authoring_incomplete, then automatically finalizes and replays the identical report; it does not substitute for A02 physical execution.",
+    "source_checks": [
+      "tests/integration/test_generation_session.py:306",
+      "tests/integration/test_generation_session.py:367",
+      "tests/integration/test_fixed_width_generation.py:2314",
+      "tests/integration/test_fixed_width_generation.py:2459",
+      "tests/integration/test_fixed_width_generation.py:2500",
+      "tests/integration/test_fixed_width_generation.py:2523",
+      "tests/unit/test_generation_entrypoint.py:27"
+    ]
+  },
+  "verified_frozen_source_sha256": {
+    "scripts/run_generation_session.py": "ab0fc5b88fcb2f81ac57dd5781bc9206fb0dc02c09769e0124218c544f090dd0",
+    "src/true_rl_agent/agent_core/generation_preparation.py": "4033b5efc33d1c9b6061ba57e455acae2967c5de1a8bd1e7c6c13f950ed77f1c",
+    "src/true_rl_agent/agent_core/generation.py": "74684688ace8d1b2247740327318114ebe5e57964752be88dcc4b2a245d412a0",
+    "src/true_rl_agent/agent_core/generation_session.py": "3183b8537f26bb96a8d0405b44b662ff3c4e23732a49b3e4e3b6162fe002d95d",
+    "src/true_rl_agent/agent_core/generation_runtime.py": "1313adb36ed7b4a045f95e812816e6fd95e7efc022a1924d9cb9c849ce05a438",
+    "src/true_rl_agent/agent_core/generation_closure.py": "aefa10dd060506acc7fb29611086e2a227fec7a1afb808919a2a5228a91756a2",
+    "src/true_rl_agent/agent_core/generation_lifecycle.py": "dffbeb28ad274146cc2642d9514ba1de9fb228d732f779062dc4cf22d5db4698",
+    "src/true_rl_agent/agent_core/generation_application.py": "4ed140bc1abebe1a7787f586531fa912e4e822129175293cb43cf151318e4807",
+    "src/true_rl_agent/agent_core/generation_finalization.py": "e82ce9c8373a2afc95b287311aa0d38dea6f08bf8c05ffa5a734ec735aef1297",
+    "src/true_rl_agent/agent_core/generation_resources.py": "26cbe8143c4d936b1e216dba9bad887c9c46655cd3da75e818a1751d7d06f548",
+    "src/true_rl_agent/agent_core/generation_accounting.py": "455973d0dddc47b425c70c52840eb9a44a5e4c0ece808d9bf894115c142ee474",
+    "src/true_rl_agent/tasks/push_recovery/generation_finalization.py": "471e7de412b725d7af8332c51c9f66667c76923cededd06d62e0bdc1aad2ef1f"
+  },
+  "source_reference_base": "agent_core/ and tasks/ references are relative to src/true_rl_agent/; scripts/ and tests/ references are project-root-relative."
+}

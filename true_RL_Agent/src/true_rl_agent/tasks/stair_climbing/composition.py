@@ -46,6 +46,9 @@ from true_rl_agent.tasks.stair_climbing.final_confirmation import (
     load_stair_final_confirmation_plan,
     stair_final_confirmation_plan_path,
 )
+from true_rl_agent.tasks.stair_climbing.checkpoint_ancestry import (
+    build_stair_checkpoint_ancestry_admission,
+)
 from true_rl_agent.tasks.stair_climbing.generation_finalization import read_stair_final_plan
 from true_rl_agent.tasks.stair_climbing.memory import StairTaskMemoryAdapter
 from true_rl_agent.tasks.stair_climbing.plugin import StairClimbingTaskPlugin
@@ -513,6 +516,10 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
                 allowed_executables=(composition_config.isaac_python,),
                 timeout_s=composition_config.runner_timeout_s,
                 cwd=context.project_root,
+                eval_checkpoint_admission_hook=(
+                    build_stair_checkpoint_ancestry_admission(task_config, resolved_cell_manifest)
+                    if task_config.is_unified_protocol else None
+                ),
             ),
             candidate_admission_policy=candidate_admission_policy,
             policy_initialization=PolicyInitialization.random(),
@@ -614,6 +621,8 @@ def _build_stair_backend_config(
         policy_architecture = str(compatibility["policy_architecture"])
     admission = candidate_admission_policy.admission_policy_descriptor()
     return IsaacLabRslRlBackendConfig(
+        capture_public_dev_numeric=task_config.is_unified_protocol,
+        capture_training_numeric=task_config.is_unified_protocol,
         isaac_lab_python=composition_config.isaac_python,
         train_entrypoint=composition_config.train_entrypoint,
         eval_entrypoint=composition_config.eval_entrypoint,

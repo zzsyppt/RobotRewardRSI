@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "tests_run": 122,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "exit_code": 0,
+  "seconds": 133.999,
+  "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_push_recovery_v2_prompt_smoke tests.unit.test_component_smoke_and_antidegenerate tests.unit.test_candidate_authoring_loop tests.integration.test_live_loop -v",
+  "log": "smoke_tensor_fix_tests.log",
+  "log_sha256": "7f95e33010b7bdbfcd337cbdd56d2e801b0b90294d966dab4732a879160d9644",
+  "original_candidate_production_replay": "attempt_01/first_candidate_production_smoke_audit.json",
+  "dependency_boundary": "Task fixture lazily imports torch only when building CPU float32 tensors; core fixture protocol has no numerical dependency. Test extra already pins torch 2.11.0. No fake fallback.",
+  "startup_budget": "Tensor restoration/import happens before worker_ready under existing startup budget; candidate load and each callable keep independent budgets. Existing startup and per-call timeout tests pass.",
+  "retired": "SmokeTensor and its arithmetic/indexing helpers removed completely; no src/tests/docs consumers remain. Two tests only of retired arithmetic removed; all consumer and failure checks retained.",
+  "source_checks": [
+    "Ruff F/E9 PASS",
+    "git diff --check PASS"
+  ],
+  "files": {
+    "src/true_rl_agent/tasks/component_smoke.py": "76f5b71f4009f0c2a518d791df04ce0514937715880a41dffbf0b395a9838e13",
+    "src/true_rl_agent/tasks/push_recovery/component_smoke.py": "2a1ccf1373a0cb9878491af9ce3f08537962d85449274bc999022bfdbc6a6e34",
+    "src/true_rl_agent/candidates/component_smoke_runtime.py": "a7fdf844d2e2dc8786bb4a952e2bd0c69b839bf059e2be2ffec30b56408f70ec",
+    "tests/unit/test_component_smoke_and_antidegenerate.py": "379ddc405770d1eefe291a4619e73998eca7e14306ec598ec412a5fb555087ea",
+    "tests/unit/test_candidate_authoring_loop.py": "11121fbd65f12afc36e980a53697a9070fa7851c38e85e0c45f1162f37334f6b",
+    "tests/integration/test_live_loop.py": "0059058fa98b41bd9f9c109e8da10e2f327713a79146ccfb905d82a94561ebb7",
+    "tests/unit/test_push_recovery_v2_prompt_smoke.py": "6ea54760fe136f23862bd92905fd4c4da903757dab148081b2cf714fdc94bfd4"
+  }
+}

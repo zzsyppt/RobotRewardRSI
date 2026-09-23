@@ -1,0 +1,353 @@
+{
+  "status": "PASS_BOTH_LANES_SOURCE_WITH_NONBLOCKING_F9_RATIONALE_COUNTEREXAMPLES",
+  "session_id": "go2-push-5rounds-20260923-a07",
+  "generation_index": 2,
+  "snapshot": ".tmp/go2_push_a07_live_07.zip",
+  "scope": "Independent read-only source/admission review; no training score or simulator-state claim.",
+  "frozen_source_files_match": [
+    "src/true_rl_agent/candidates/component_source_semantics.py",
+    "src/true_rl_agent/candidates/authoring_policy.py",
+    "src/true_rl_agent/tasks/push_recovery/runtime_adapter.py",
+    "src/true_rl_agent/candidates/components.py"
+  ],
+  "lane_a": {
+    "candidate_id": "push_recovery_stance_gated_quietness_v6",
+    "parent_id": "push_recovery_tilt_damping_v5",
+    "parent_sha256": "42940100443169b3b9b8529b3a58387f749c10d5629ac065c63ec4c95fc5f264",
+    "candidate_sha256": "8aad5bc6fade8720789a978452c8c000ef7e74d402a7e5aa04677340e791d4b1",
+    "assessment_replay": {
+      "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+      "status": "pass",
+      "classification": "mechanism_delta_present",
+      "reason": "candidate_source_structure_differs_from_comparison_anchor",
+      "compares_to": "42940100443169b3b9b8529b3a58387f749c10d5629ac065c63ec4c95fc5f264",
+      "candidate_source_sha256": "8aad5bc6fade8720789a978452c8c000ef7e74d402a7e5aa04677340e791d4b1",
+      "blocking": false,
+      "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+      "changed_mechanism_count": 1,
+      "changed_mechanisms": [
+        "RewardTerm:stationary_v3"
+      ],
+      "structural_comparison": "canonical_component_terms"
+    },
+    "mechanism_delta": {
+      "schema_version": "true_rl_agent.candidate_mechanism_operation_delta.v2",
+      "operation": "modify",
+      "before_component": {
+        "mechanism_id": "RewardTerm:stationary_v3",
+        "structure_hash": "505339c55697aad5548902cf68c29a3f3d63866526290b006810958dd59d96bd",
+        "parameter_normalized_structure_hash": "e589302ef7940f4ad92e03e4a004106a017d12c2c56a47914a0fd5d88181b675",
+        "input_fields": [
+          "base_ang_vel_scaled",
+          "base_lin_vel_scaled"
+        ]
+      },
+      "after_component": {
+        "mechanism_id": "RewardTerm:stationary_v3",
+        "structure_hash": "9b2984a545973ef09fae9e4a923339bc79454dfb85564f5929a6cbdeed596f35",
+        "parameter_normalized_structure_hash": "8e713659f4fcd4512503f964b08fa82e3fba5fd12154b5f180aa81869b68fd9a",
+        "input_fields": [
+          "base_ang_vel_scaled",
+          "base_height_relative",
+          "base_lin_vel_scaled",
+          "pitch",
+          "roll"
+        ]
+      },
+      "anchor_source_checksum": "sha256:42940100443169b3b9b8529b3a58387f749c10d5629ac065c63ec4c95fc5f264",
+      "candidate_source_checksum": "sha256:8aad5bc6fade8720789a978452c8c000ef7e74d402a7e5aa04677340e791d4b1"
+    },
+    "preserved_exact_function_asts": [
+      "upright_height",
+      "tilt_damping",
+      "joint_pose",
+      "action_rate",
+      "fall"
+    ],
+    "all_term_names_weights_clips_and_bindings_preserved": true,
+    "no_diagnostics_or_schedules_added": true,
+    "independent_mechanism_proof": {
+      "change": "stationary_v3 now returns stance_gate * quiet, where gate=exp(-4*(roll^2+pitch^2)-12*max(1-h,0)^2).",
+      "reason": "Height/tilt-dependent multiplication introduces a state-speed interaction. With roll and angular rate fixed at zero, all original parent terms are separable in height and planar speed; changing scalar coefficients cannot produce this interaction.",
+      "synthetic_inputs": {
+        "heights": [
+          1.0,
+          1.0,
+          0.8,
+          0.8
+        ],
+        "planar_scaled_velocities": [
+          0.0,
+          1.6,
+          0.0,
+          1.6
+        ],
+        "roll_pitch_angular_velocity": 0
+      },
+      "parent_weighted_rates": [
+        1.0,
+        -3.875,
+        1.0,
+        -3.875
+      ],
+      "candidate_weighted_rates": [
+        1.0,
+        -3.875,
+        0.618783391806141,
+        -2.3977856432487963
+      ],
+      "candidate_mixed_difference": 1.8584309649450628,
+      "distinct_from_latest_nonaccepted": "Rejected Gen1B adds a height-only quadratic term. This candidate multiplies an existing speed-dependent term by a stance gate; it is not that same additive penalty up to parameters."
+    }
+  },
+  "followup_evidence": [
+    {
+      "existing_issue": "F9",
+      "blocking": false,
+      "claim": "This candidate adds no penalty and no new weight, so its maximum possible effect is the removal of 1.0 rate unit from a quiet crouch and it cannot dominate the transient regime.",
+      "judgment": "The universal effect bound is false. Quiet has a non-saturating negative speed tail; multiplying it by a gate below one can increase the reward by more than one.",
+      "finite_counterexample": {
+        "base_height_relative": 0.8,
+        "roll": 0,
+        "pitch": 0,
+        "base_lin_vel_scaled": [
+          1.6,
+          0,
+          0
+        ],
+        "base_ang_vel_scaled": [
+          0,
+          0,
+          0
+        ],
+        "normalized_planar_speed": 20.0,
+        "gate": 0.618783391806141,
+        "parent_quiet_weighted_rate": -3.875,
+        "candidate_weighted_rate": -2.3977856432487963,
+        "difference": 1.4772143567512037,
+        "weight": 1.0,
+        "clip_min": null,
+        "clip_max": null,
+        "runtime_guard_clip_applied": false,
+        "schedule_count": 0,
+        "rate_integration": "Control dt multiplication occurs later once; this counterexample compares the rate units claimed by the rationale."
+      },
+      "method": "Execute both actual candidate callables on finite CPU tensors; use production Push guard_vector with their declared clips, then actual term weights. All other terms are unchanged so their contributions cancel in the comparison.",
+      "evidence_limit": "This is a mathematical counterexample only. It does not establish that this state occurred in training, that the term dominated actual rewards, or that the candidate is harmful. No change to admission/evaluation rules is requested."
+    },
+    {
+      "existing_issue": "F9",
+      "lane": "lane-b",
+      "blocking": false,
+      "claim": "It is non-positive and vanishes at zero angular rate, so it cannot reward motion and cannot conflict with the upright_height stance bonus.",
+      "judgment": "Nonpositivity does not establish compatible incentives. At fixed angular rate, the new term increases as tilt grows; even the total candidate reward can prefer a small tilt for finite inputs.",
+      "finite_counterexample": {
+        "base_height_relative": [
+          1,
+          1
+        ],
+        "roll": [
+          0,
+          0.1
+        ],
+        "pitch": [
+          0,
+          0
+        ],
+        "base_ang_vel_scaled": [
+          [
+            1.4142135623730951,
+            0.0,
+            0.0
+          ],
+          [
+            1.4142135623730951,
+            0.0,
+            0.0
+          ]
+        ],
+        "base_lin_vel_scaled": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "joint_pose_error_and_action_delta": "all zero",
+        "terminated_non_timeout": [
+          false,
+          false
+        ],
+        "added_term_weighted_rates": [
+          -2.0000000000000004,
+          -1.851851851851852
+        ],
+        "upright_height_weighted_rates": [
+          3.0,
+          2.8823683174569696
+        ],
+        "parent_total_weighted_rates": [
+          3.4178932188134525,
+          3.280261536270422
+        ],
+        "candidate_total_weighted_rates": [
+          1.417893218813452,
+          1.42840968441857
+        ],
+        "candidate_total_increase_when_tilt_grows": 0.010516465605117986,
+        "added_term_weight": 1.0,
+        "all_clip_min_and_max": null,
+        "schedule_count": 0
+      },
+      "method": "Actual complete parent/candidate programs, production guard_vector, declared weights and clips, finite CPU inputs; rate units before control dt.",
+      "evidence_limit": "Synthetic counterexample to the universal no-conflict claim, not evidence that these jointly specified states occurred or are reached by the learned policy. It neither establishes observed exploitation nor predicts training harm; do not add a new admission/evaluation gate."
+    }
+  ],
+  "prior_attempt_failures": [
+    {
+      "lane": "lane-b",
+      "attempt": 1,
+      "classification": "reasoning_output_exhausted",
+      "judgment": "SUPPORTED_BY_RESPONSE_RECEIPT",
+      "finish_reason": "length",
+      "reasoning_units": 32768,
+      "final_content_bytes": 0,
+      "next_attempt": "Succeeded with declared disabled-thinking recovery; no candidate-physics failure inferred."
+    }
+  ],
+  "lane_b": {
+    "status": "PASS_STATIC_SOURCE_NOT_PERFORMANCE",
+    "candidate_id": "push_recovery_tilt_rate_brake_v6",
+    "parent_sha256": "42940100443169b3b9b8529b3a58387f749c10d5629ac065c63ec4c95fc5f264",
+    "candidate_sha256": "127a3d5bbf1ce80ce69533186dd42c9e01dc3a2198a937a264572a92e98dabdc",
+    "assessment_replay": {
+      "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+      "status": "pass",
+      "classification": "mechanism_delta_present",
+      "reason": "candidate_source_structure_differs_from_comparison_anchor",
+      "compares_to": "42940100443169b3b9b8529b3a58387f749c10d5629ac065c63ec4c95fc5f264",
+      "candidate_source_sha256": "127a3d5bbf1ce80ce69533186dd42c9e01dc3a2198a937a264572a92e98dabdc",
+      "blocking": false,
+      "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+      "changed_mechanism_count": 1,
+      "changed_mechanisms": [
+        "RewardTerm:tilt_rate_brake"
+      ],
+      "structural_comparison": "canonical_component_terms"
+    },
+    "mechanism_delta": {
+      "schema_version": "true_rl_agent.candidate_mechanism_operation_delta.v2",
+      "operation": "add",
+      "before_component": null,
+      "after_component": {
+        "mechanism_id": "RewardTerm:tilt_rate_brake",
+        "structure_hash": "3990102c609a08568b905b79ec56ead6a4c9d91290e978621806f4bd58879cb2",
+        "parameter_normalized_structure_hash": "50b81aeef72aa41a4a2d244bdbbc82c4e1e4cd616a9a51fa0a87d3b2c5c64e0b",
+        "input_fields": [
+          "base_ang_vel_scaled",
+          "pitch",
+          "roll"
+        ]
+      },
+      "anchor_source_checksum": "sha256:42940100443169b3b9b8529b3a58387f749c10d5629ac065c63ec4c95fc5f264",
+      "candidate_source_checksum": "sha256:127a3d5bbf1ce80ce69533186dd42c9e01dc3a2198a937a264572a92e98dabdc"
+    },
+    "preserved_exact_function_asts": [
+      "upright_height",
+      "stationary_v3",
+      "tilt_damping",
+      "joint_pose",
+      "action_rate",
+      "fall"
+    ],
+    "parent_reward_weights_clips_and_bindings_unchanged": true,
+    "no_diagnostics_or_schedules_added": true,
+    "independent_mechanism_proof": {
+      "new_term": "-omega_xy_squared/(1+8*(roll^2+pitch^2))",
+      "reason": "The reciprocal tilt dependence differs from the parent tilt_damping product. At zero tilt the parent product vanishes but the new term remains negative for nonzero angular rate; no scalar rescaling of the parent product produces it. Parent stationary channel depends on angular speed alone, so its coefficient tuning cannot create this reciprocal coupling.",
+      "distinct_from_sibling": "A multiplies the full stationary term by a height/tilt exponential; B adds a new reciprocal tilt-angular-rate penalty, without height or planar-speed dependence.",
+      "nonrepeat_scope": "Distinct from parent and current sibling, and from the preceding rejected height-only term; not a claim of global novelty."
+    },
+    "prompt_boundary": {
+      "sibling_exclusion": {
+        "schema_version": "true_rl_agent.single_component_semantic_exclusion.v1",
+        "operation": "modify",
+        "canonical_mechanism_delta": "RewardTerm:stationary_v3",
+        "component_kind": "RewardTerm",
+        "public_input_dependencies": [
+          "base_ang_vel_scaled",
+          "base_height_relative",
+          "base_lin_vel_scaled",
+          "pitch",
+          "roll"
+        ],
+        "parameter_normalized_semantic_signature": "8e713659f4fcd4512503f964b08fa82e3fba5fd12154b5f180aa81869b68fd9a",
+        "instruction": "Propose one component mechanism whose normalized callable, input, and clip structure is substantively different from this exclusion; renaming or changing only numeric parameters is not distinct.",
+        "exclusion_hash": "7241588ec666b81521033dece692020b108770b0ac06cc2de618d671fd8a5fe3"
+      },
+      "source_payload_ids": [
+        "current_best/training_code/components.py",
+        "memory/latest_nonaccepted/training_code/components.py"
+      ],
+      "sibling_source_included": false
+    }
+  },
+  "pair_comparison": {
+    "status": "DISTINCT_ADMISSIBLE_SOURCE_DELTAS",
+    "same_parent": true,
+    "production_delta_equivalence": null,
+    "performance_status": "NOT_ASSESSED"
+  },
+  "evidence": [
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-002/lane-a/001_push_recovery_stance_gated_quietness_v6/training_code/components.py",
+      "sha256": "8aad5bc6fade8720789a978452c8c000ef7e74d402a7e5aa04677340e791d4b1",
+      "bytes": 5749
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-002/lane-a/authoring_attempts/attempt_000001/prompt_payload.json",
+      "sha256": "6b39bc2af5afe3fb93c36462054dcb05758c6fa41a6b534034c37a0e507a6b5d",
+      "bytes": 64447
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-002/lane-a/authoring_attempts/attempt_000001/attempt_result.json",
+      "sha256": "2fb928220b4924fe9f2fe1dcde5841efe61540296e6170fde1c91aaa166c4752",
+      "bytes": 13362
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-002/lane-b/002_push_recovery_tilt_rate_brake_v6/training_code/components.py",
+      "sha256": "127a3d5bbf1ce80ce69533186dd42c9e01dc3a2198a937a264572a92e98dabdc",
+      "bytes": 4648
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-002/lane-b/authoring_attempts/attempt_000002/prompt_payload.json",
+      "sha256": "c56425ebe145943c8b622681e756040b723dd10f5c34ef48765c647255031099",
+      "bytes": 66809
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-002/lane-b/authoring_attempts/attempt_000002/attempt_result.json",
+      "sha256": "5a561e0de18f074cb268c545d020e82258aa598da8e0d8da7ca2b5089c9a72c5",
+      "bytes": 14197
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-002/lane-b/authoring_attempts/attempt_000001/attempt_result.json",
+      "sha256": "6962d3e68f8be9d3237a5bcb6ecb91a12415a2b509c36fb444ed0630d24adc02",
+      "bytes": 10429
+    }
+  ],
+  "snapshot_history": [
+    {
+      "snapshot": ".tmp/go2_push_a07_live_06.zip",
+      "scope": "Lane A source and first response, B pending."
+    },
+    {
+      "snapshot": ".tmp/go2_push_a07_live_07.zip",
+      "scope": "Added B final source, two attempt receipts and sibling comparison; A audit retained."
+    }
+  ]
+}

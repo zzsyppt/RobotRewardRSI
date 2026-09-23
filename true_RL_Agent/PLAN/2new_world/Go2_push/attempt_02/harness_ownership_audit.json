@@ -1,0 +1,432 @@
+{
+  "schema_version": "true_rl_agent.experiment.harness_ownership_audit.v1",
+  "created_at_utc": "2026-09-22T10:19:23.078773+00:00",
+  "status": "PASS_WITH_STATED_SCOPE",
+  "acceptance_authority": false,
+  "session_id": "go2-push-5rounds-20260922-a02",
+  "source_commit": "46d5d9e5fff072e7154840bbe8b6fd474cb236be",
+  "scope": "A02 shared launch -> native reference Genesis -> width-2 generations -> prompt/history/memory -> acceptance -> final comparison boundaries; static source ownership plus frozen A02 contract/reference evidence. No remote/GPU work and no product changes.",
+  "method": [
+    "CodeGraph was queried first. Its available index did not resolve new generation symbols; exact current source and bounded source searches were used for the unresolved sections.",
+    "All 60 scanned shared files match frozen A02 source ZIP byte-for-byte. Concrete Push/Stair adapter call sites were manually traced; token absence is supporting evidence, not the sole architecture argument.",
+    "Recomputed active Push adapter contracts from the A02 manifest and matched the four hashes frozen in generation_session_contract.json.",
+    "Compared A01/A02 source ZIP changes to distinguish this restart repair from pre-existing code."
+  ],
+  "findings": [],
+  "checks": {
+    "shared_source_matches_frozen_a02": true,
+    "scientific_token_scan_has_no_hits": true,
+    "bound_task_contracts_match": {
+      "selector": true,
+      "evaluation_cost": true,
+      "exploration_projector": true,
+      "evaluation_protocol": true
+    },
+    "both_tasks_supply_same_harness_hooks": true
+  },
+  "ownership": [
+    {
+      "boundary": "composition and robot binding",
+      "shared_owns": "Launch arguments, registry dispatch and a resolved composition object.",
+      "task_or_robot_owns": "Push/Stair providers resolve task configuration, task plugin, memory, backend and cell manifest. Go2 profile and runtime adapter are values in the bound manifest; shared generation code does not select morphology or push forces.",
+      "evidence": [
+        {
+          "file": "scripts/run_generation_session.py",
+          "line": 78,
+          "source_sha256": "sha256:ab0fc5b88fcb2f81ac57dd5781bc9206fb0dc02c09769e0124218c544f090dd0"
+        },
+        {
+          "file": "src/true_rl_agent/tasks/push_recovery/composition.py",
+          "line": 268,
+          "source_sha256": "sha256:7ac4a86578908d3ddff5ed307dc98056e2e9fac5f9dbcf97cb532891971e3a61"
+        },
+        {
+          "file": "src/true_rl_agent/tasks/push_recovery/composition.py",
+          "line": 303,
+          "source_sha256": "sha256:7ac4a86578908d3ddff5ed307dc98056e2e9fac5f9dbcf97cb532891971e3a61"
+        },
+        {
+          "file": "src/true_rl_agent/tasks/stair_climbing/composition.py",
+          "line": 504,
+          "source_sha256": "sha256:1009e06a1f6ac493a1a8f58de81c957e87b00c8fe5be58de38c203f4b8508e8b"
+        }
+      ],
+      "wiring_exception": "composition/defaults.py deliberately names the two concrete providers; this is registration, not a scientific branch."
+    },
+    {
+      "boundary": "reference training and qualification",
+      "shared_owns": "Run/recover fixed train and phase jobs, validate immutable identities/receipts, create Genesis only after the returned task gate passes.",
+      "task_or_robot_owns": "Reference reward program, public-dev qualification and full reference qualification.",
+      "evidence": [
+        {
+          "file": "src/true_rl_agent/agent_core/generation_runtime.py",
+          "line": 44,
+          "source_sha256": "sha256:1313adb36ed7b4a045f95e812816e6fd95e7efc022a1924d9cb9c849ce05a438"
+        },
+        {
+          "file": "src/true_rl_agent/agent_core/session_genesis.py",
+          "line": 2291,
+          "source_sha256": "sha256:6ddadc0323be6ba3f59015dbc5e0013c96800ddbf8a49c422a6d36083b0475f0"
+        },
+        {
+          "file": "src/true_rl_agent/agent_core/session_genesis.py",
+          "line": 2455,
+          "source_sha256": "sha256:6ddadc0323be6ba3f59015dbc5e0013c96800ddbf8a49c422a6d36083b0475f0"
+        },
+        {
+          "file": "src/true_rl_agent/tasks/push_recovery/plugin.py",
+          "line": 168,
+          "source_sha256": "sha256:e0d135482e6d4b41e75eea3077982d77f6b52e245ad913ca21322c553a7423df"
+        }
+      ]
+    },
+    {
+      "boundary": "multi-generation lifecycle and phased selection",
+      "shared_owns": "Fixed two-lane author/train/dev topology, selected candidate accept/sealed sequencing, one committed generation record, resource/cost closure and continuation/head replay.",
+      "task_or_robot_owns": "Dev screen contents, scientific selection ranking, evaluation summary and post-training semantic gate.",
+      "evidence": [
+        {
+          "file": "src/true_rl_agent/agent_core/generation.py",
+          "line": 367,
+          "source_sha256": "sha256:74684688ace8d1b2247740327318114ebe5e57964752be88dcc4b2a245d412a0"
+        },
+        {
+          "file": "src/true_rl_agent/agent_core/generation.py",
+          "line": 387,
+          "source_sha256": "sha256:74684688ace8d1b2247740327318114ebe5e57964752be88dcc4b2a245d412a0"
+        },
+        {
+          "file": "src/true_rl_agent/agent_core/generation.py",
+          "line": 404,
+          "source_sha256": "sha256:74684688ace8d1b2247740327318114ebe5e57964752be88dcc4b2a245d412a0"
+        },
+        {
+          "file": "src/true_rl_agent/agent_core/generation.py",
+          "line": 652,
+          "source_sha256": "sha256:74684688ace8d1b2247740327318114ebe5e57964752be88dcc4b2a245d412a0"
+        },
+        {
+          "file": "src/true_rl_agent/agent_core/generation_session.py",
+          "line": 276,
+          "source_sha256": "sha256:3183b8537f26bb96a8d0405b44b662ff3c4e23732a49b3e4e3b6162fe002d95d"
+        },
+        {
+          "file": "src/true_rl_agent/agent_core/generation_session.py",
+          "line": 343,
+          "source_sha256": "sha256:3183b8537f26bb96a8d0405b44b662ff3c4e23732a49b3e4e3b6162fe002d95d"
+        }
+      ]
+    },
+    {
+      "boundary": "prompt and bounded memory",
+      "shared_owns": "Validate/project ledger history, sanitize public records, package source catalog and bounded experiment/outcome rows; no interpretation of force, falls or strata.",
+      "task_or_robot_owns": "Prompt-visible score definition, aggregation of dev outcome counts, first-reference dev feedback and exploration assessment.",
+      "evidence": [
+        {
+          "file": "src/true_rl_agent/memory/context_builder.py",
+          "line": 282,
+          "source_sha256": "sha256:4f96d6bd12ec33fcc872db43970ed55e068db90006039f4a0dc75337abddd9fd"
+        },
+        {
+          "file": "src/true_rl_agent/memory/context_builder.py",
+          "line": 414,
+          "source_sha256": "sha256:4f96d6bd12ec33fcc872db43970ed55e068db90006039f4a0dc75337abddd9fd"
+        },
+        {
+          "file": "src/true_rl_agent/memory/context_builder.py",
+          "line": 435,
+          "source_sha256": "sha256:4f96d6bd12ec33fcc872db43970ed55e068db90006039f4a0dc75337abddd9fd"
+        },
+        {
+          "file": "src/true_rl_agent/agent_core/experiment_memory.py",
+          "line": 443,
+          "source_sha256": "sha256:0f5fbf8bc3bb346443f310fbf621b2139cd00e058e31b2b6448299e098a54c57"
+        },
+        {
+          "file": "src/true_rl_agent/agent_core/exploration.py",
+          "line": 1009,
+          "source_sha256": "sha256:2363a74231469f85f122b1262e9b73488894db17b8f153e6b47670d640c35585"
+        },
+        {
+          "file": "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py",
+          "line": 537,
+          "source_sha256": "sha256:fad72610985a05130bce5742bdd65204dfbd0291e9f963c7e3df38a8c95581cf"
+        },
+        {
+          "file": "src/true_rl_agent/tasks/push_recovery/exploration.py",
+          "line": 26,
+          "source_sha256": "sha256:3b69f1c8aa8b7a238ce543696567bc3eb1cd4c8d56c42f40757d79b5c0cf8ded"
+        }
+      ],
+      "a02_fix": "Only dev parent/initial dev evidence supplies authoring feedback. objective_delta remains descriptive; Push returns unknown effect/value and the shared accept path does not read prompt_outcome."
+    },
+    {
+      "boundary": "acceptance authority",
+      "shared_owns": "Validate score/gate evidence against the frozen task AcceptanceProtocol, generic uncertainty/headroom/guard rules, runtime activation and append-only decision replay.",
+      "task_or_robot_owns": "Which score and gates mean recovery/climbing success, their protocol values and evaluation assembly.",
+      "evidence": [
+        {
+          "file": "src/true_rl_agent/agent_core/generation.py",
+          "line": 450,
+          "source_sha256": "sha256:74684688ace8d1b2247740327318114ebe5e57964752be88dcc4b2a245d412a0"
+        },
+        {
+          "file": "src/true_rl_agent/agent_core/generation.py",
+          "line": 916,
+          "source_sha256": "sha256:74684688ace8d1b2247740327318114ebe5e57964752be88dcc4b2a245d412a0"
+        },
+        {
+          "file": "src/true_rl_agent/agent_core/round.py",
+          "line": 593,
+          "source_sha256": "sha256:dd838b6e52986e337122936026fa2c58fd033225009e3ff7a782eaeb27f93594"
+        },
+        {
+          "file": "src/true_rl_agent/agent_core/decision.py",
+          "line": 81,
+          "source_sha256": "sha256:62f5665f4fe2001aaec7c030619efcc89fb1ddc7e5bf00595755926243f2b47e"
+        }
+      ]
+    },
+    {
+      "boundary": "final confirmation",
+      "shared_owns": "Choose bound reference/final checkpoints and execute/persist the final phase.",
+      "task_or_robot_owns": "Final cohort contract and comparison interpretation. Push explicitly reuses its frozen sealed cohort; Stair supplies its own final binding.",
+      "evidence": [
+        {
+          "file": "src/true_rl_agent/agent_core/generation_application.py",
+          "line": 115,
+          "source_sha256": "sha256:4ed140bc1abebe1a7787f586531fa912e4e822129175293cb43cf151318e4807"
+        },
+        {
+          "file": "src/true_rl_agent/tasks/push_recovery/plugin.py",
+          "line": 182,
+          "source_sha256": "sha256:e0d135482e6d4b41e75eea3077982d77f6b52e245ad913ca21322c553a7423df"
+        },
+        {
+          "file": "src/true_rl_agent/tasks/stair_climbing/plugin.py",
+          "line": 504,
+          "source_sha256": "sha256:2efea17cc56f0352bf73ad223feb10b9e4c473fe4f75364a721c1f05b277da7b"
+        }
+      ]
+    }
+  ],
+  "a02_shared_repairs": [
+    {
+      "files": [
+        "src/true_rl_agent/agent_core/session_genesis.py"
+      ],
+      "boundary_result": "F3 persists task-returned qualification gate/evidence and their identities without interpreting Push failures."
+    },
+    {
+      "files": [
+        "src/true_rl_agent/prompting/authoring_frame.py"
+      ],
+      "boundary_result": "F5 reuses the existing authoring-anchor selector to retain source during mechanism repair; no task or robot condition."
+    },
+    {
+      "files": [
+        "src/true_rl_agent/tasks/component_smoke.py",
+        "src/true_rl_agent/candidates/component_smoke_runtime.py"
+      ],
+      "boundary_result": "The incomplete SmokeTensor implementation was removed. Task adapters supply fixtures; shared smoke validates callable outputs/shape/finiteness using real CPU tensors, without Push reward-input formulas."
+    }
+  ],
+  "shared_interface_implementations": {
+    "push_recovery": {
+      "class": "PushRecoveryTaskPlugin",
+      "file": "src/true_rl_agent/tasks/push_recovery/plugin.py",
+      "shared_hooks": {
+        "qualify_reference_result": 168,
+        "prompt_adapter": 205,
+        "component_smoke_adapter": 212,
+        "phased_evaluation_adapter": 177,
+        "bind_final_eval_plan": 182,
+        "summarize_final_comparison": 186,
+        "prepare_final_confirmation": 192
+      }
+    },
+    "stair_climbing": {
+      "class": "StairClimbingTaskPlugin",
+      "file": "src/true_rl_agent/tasks/stair_climbing/plugin.py",
+      "shared_hooks": {
+        "qualify_reference_result": 426,
+        "prompt_adapter": 463,
+        "component_smoke_adapter": 475,
+        "phased_evaluation_adapter": 485,
+        "bind_final_eval_plan": 504,
+        "summarize_final_comparison": 509,
+        "prepare_final_confirmation": 516
+      }
+    }
+  },
+  "active_binding": {
+    "cell_variant_id": "push.go2_12dof.recovery_v3",
+    "robot_profile_id": "unitree_go2_12dof_isaaclab_v1",
+    "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1",
+    "adapter_contract_hashes": {
+      "selector": "af27c18fba34832c6989c3db3e434f7885a7db9433a711ed116b93fa138424c7",
+      "evaluation_cost": "53b2842c9648c3fbd1c4659a1c88ab4df1c0addfd3fdc61a216edf95da220b1f",
+      "exploration_projector": "10eac6e5a52b09f4925dd5d993e3960f357f3b1110464a3860fc218ebe6781e7",
+      "evaluation_protocol": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5"
+    },
+    "session_width": 2,
+    "required_closed_generations": 5
+  },
+  "scan": {
+    "file_count": 60,
+    "pattern": "push_recovery|stair_climbing|\\bGo2\\b|\\bgo2\\b|\\bG1\\b|g1_|fall_height|stable_dwell|recovery_tilt|success_recovered|base_height_relative|push_active|F_c2|riser|tread_depth",
+    "hits": [],
+    "current_vs_frozen_mismatches": [],
+    "files": [
+      "scripts/run_generation_session.py",
+      "src/true_rl_agent/agent_core/generation.py",
+      "src/true_rl_agent/agent_core/generation_accounting.py",
+      "src/true_rl_agent/agent_core/generation_application.py",
+      "src/true_rl_agent/agent_core/generation_attempt_scopes.py",
+      "src/true_rl_agent/agent_core/generation_closure.py",
+      "src/true_rl_agent/agent_core/generation_contract.py",
+      "src/true_rl_agent/agent_core/generation_cost.py",
+      "src/true_rl_agent/agent_core/generation_cost_journal.py",
+      "src/true_rl_agent/agent_core/generation_early_rejection.py",
+      "src/true_rl_agent/agent_core/generation_finalization.py",
+      "src/true_rl_agent/agent_core/generation_foundation.py",
+      "src/true_rl_agent/agent_core/generation_guard.py",
+      "src/true_rl_agent/agent_core/generation_job_evidence.py",
+      "src/true_rl_agent/agent_core/generation_lanes.py",
+      "src/true_rl_agent/agent_core/generation_lifecycle.py",
+      "src/true_rl_agent/agent_core/generation_operations.py",
+      "src/true_rl_agent/agent_core/generation_preparation.py",
+      "src/true_rl_agent/agent_core/generation_provider_budget.py",
+      "src/true_rl_agent/agent_core/generation_receipts.py",
+      "src/true_rl_agent/agent_core/generation_record.py",
+      "src/true_rl_agent/agent_core/generation_resources.py",
+      "src/true_rl_agent/agent_core/generation_runtime.py",
+      "src/true_rl_agent/agent_core/generation_session.py",
+      "src/true_rl_agent/agent_core/session_genesis.py",
+      "src/true_rl_agent/agent_core/round.py",
+      "src/true_rl_agent/agent_core/decision.py",
+      "src/true_rl_agent/agent_core/authoring_loop.py",
+      "src/true_rl_agent/agent_core/context.py",
+      "src/true_rl_agent/agent_core/experiment_memory.py",
+      "src/true_rl_agent/agent_core/exploration.py",
+      "src/true_rl_agent/agent_core/ledger.py",
+      "src/true_rl_agent/memory/context_builder.py",
+      "src/true_rl_agent/prompting/authoring_frame.py",
+      "src/true_rl_agent/prompting/capabilities.py",
+      "src/true_rl_agent/prompting/capacity.py",
+      "src/true_rl_agent/prompting/payload.py",
+      "src/true_rl_agent/prompting/public_safety.py",
+      "src/true_rl_agent/prompting/runner_capability_schemas.py",
+      "src/true_rl_agent/prompting/serialization.py",
+      "src/true_rl_agent/prompting/source_catalog.py",
+      "src/true_rl_agent/prompting/task_sections.py",
+      "src/true_rl_agent/prompting/__init__.py",
+      "src/true_rl_agent/evaluation/acceptance_contract.py",
+      "src/true_rl_agent/evaluation/acceptance_phase.py",
+      "src/true_rl_agent/evaluation/acceptance_protocol.py",
+      "src/true_rl_agent/evaluation/acceptance_replay.py",
+      "src/true_rl_agent/evaluation/phased_adapter.py",
+      "src/true_rl_agent/evaluation/phases.py",
+      "src/true_rl_agent/evaluation/current_best.py",
+      "src/true_rl_agent/evaluation/decision_record_contract.py",
+      "src/true_rl_agent/evaluation/public_accept_scores.py",
+      "src/true_rl_agent/evaluation/public_result.py",
+      "src/true_rl_agent/evaluation/public_metric_contract.py",
+      "src/true_rl_agent/tasks/base.py",
+      "src/true_rl_agent/tasks/prompt_adapter.py",
+      "src/true_rl_agent/tasks/component_smoke.py",
+      "src/true_rl_agent/candidates/authoring_policy.py",
+      "src/true_rl_agent/candidates/component_smoke_runtime.py",
+      "src/true_rl_agent/candidates/mechanism.py"
+    ]
+  },
+  "limitations": [
+    "Static reusable interfaces do not prove completed dynamic acceptance for all four task/robot cells. A02 is Go2 x Push only.",
+    "The current harness intentionally supports fixed width 2 and three evaluation phases; arbitrary task topologies and unseen robots were not tested.",
+    "The audit covers the named reachable orchestration/feedback/acceptance boundaries, not a whole-repository or simulator audit.",
+    "Provider content and later-generation behavior still require the live five-generation evidence review; this audit does not claim experiment completion."
+  ],
+  "source_sha256": {
+    "scripts/run_generation_session.py": "sha256:ab0fc5b88fcb2f81ac57dd5781bc9206fb0dc02c09769e0124218c544f090dd0",
+    "src/true_rl_agent/agent_core/generation.py": "sha256:74684688ace8d1b2247740327318114ebe5e57964752be88dcc4b2a245d412a0",
+    "src/true_rl_agent/agent_core/generation_accounting.py": "sha256:455973d0dddc47b425c70c52840eb9a44a5e4c0ece808d9bf894115c142ee474",
+    "src/true_rl_agent/agent_core/generation_application.py": "sha256:4ed140bc1abebe1a7787f586531fa912e4e822129175293cb43cf151318e4807",
+    "src/true_rl_agent/agent_core/generation_attempt_scopes.py": "sha256:a4589585715e6465edbdb1e65aac49dd11c21d026298635d94d9d81345dc0975",
+    "src/true_rl_agent/agent_core/generation_closure.py": "sha256:aefa10dd060506acc7fb29611086e2a227fec7a1afb808919a2a5228a91756a2",
+    "src/true_rl_agent/agent_core/generation_contract.py": "sha256:db875ba8931fe1aafd9c8d471ac83e677ab24ba22e7e01f77fa6a570e754acf8",
+    "src/true_rl_agent/agent_core/generation_cost.py": "sha256:173d7877006d56c16d9f28496d4bc06304b21fe1d7dd6f8a977018a8c642589f",
+    "src/true_rl_agent/agent_core/generation_cost_journal.py": "sha256:ac202dc62460b37b77eb05b46cccc20a8291d5b0a60ba3958b8b8a23d5e7b297",
+    "src/true_rl_agent/agent_core/generation_early_rejection.py": "sha256:c41bf3e48133ea4157b0aae3831c9707964c98a5ac219be89d740d6fd0f4d8ec",
+    "src/true_rl_agent/agent_core/generation_finalization.py": "sha256:e82ce9c8373a2afc95b287311aa0d38dea6f08bf8c05ffa5a734ec735aef1297",
+    "src/true_rl_agent/agent_core/generation_foundation.py": "sha256:c17674ae415c4d57deda7e9cf99e719904d0f9c07ce23430c91ce5d5e2b2b0f4",
+    "src/true_rl_agent/agent_core/generation_guard.py": "sha256:387139ea92e24cac6b1366d646fb3b071f7d707334f34af5ae7ec326b0b50379",
+    "src/true_rl_agent/agent_core/generation_job_evidence.py": "sha256:d3c1c7b5c1e6606764e6ad581c3e979347426840a218891cab61dae6a1b6ba0b",
+    "src/true_rl_agent/agent_core/generation_lanes.py": "sha256:c21a4460c06a9f849e743f4fb0bd4ac41b781d56205a2957151a2506398fae01",
+    "src/true_rl_agent/agent_core/generation_lifecycle.py": "sha256:dffbeb28ad274146cc2642d9514ba1de9fb228d732f779062dc4cf22d5db4698",
+    "src/true_rl_agent/agent_core/generation_operations.py": "sha256:3631ca25ca2796b3d23b0672a5aa505bd762260a49d41525d0ee523b8fac0928",
+    "src/true_rl_agent/agent_core/generation_preparation.py": "sha256:4033b5efc33d1c9b6061ba57e455acae2967c5de1a8bd1e7c6c13f950ed77f1c",
+    "src/true_rl_agent/agent_core/generation_provider_budget.py": "sha256:87b357df10f89d9556a7166deeb7a7a1046cdc9ac3d3b9865440d6064f36d30f",
+    "src/true_rl_agent/agent_core/generation_receipts.py": "sha256:7b73840e1b5172a09cf3d05a3d1b19eebc83dc208a483fcdca0b0d9dee0166a0",
+    "src/true_rl_agent/agent_core/generation_record.py": "sha256:5dfa9bbfed8ff07fbd94046e920c41bc40434e1974f006a67fe2c69fe97e56e3",
+    "src/true_rl_agent/agent_core/generation_resources.py": "sha256:26cbe8143c4d936b1e216dba9bad887c9c46655cd3da75e818a1751d7d06f548",
+    "src/true_rl_agent/agent_core/generation_runtime.py": "sha256:1313adb36ed7b4a045f95e812816e6fd95e7efc022a1924d9cb9c849ce05a438",
+    "src/true_rl_agent/agent_core/generation_session.py": "sha256:3183b8537f26bb96a8d0405b44b662ff3c4e23732a49b3e4e3b6162fe002d95d",
+    "src/true_rl_agent/agent_core/session_genesis.py": "sha256:6ddadc0323be6ba3f59015dbc5e0013c96800ddbf8a49c422a6d36083b0475f0",
+    "src/true_rl_agent/agent_core/round.py": "sha256:dd838b6e52986e337122936026fa2c58fd033225009e3ff7a782eaeb27f93594",
+    "src/true_rl_agent/agent_core/decision.py": "sha256:62f5665f4fe2001aaec7c030619efcc89fb1ddc7e5bf00595755926243f2b47e",
+    "src/true_rl_agent/agent_core/authoring_loop.py": "sha256:e61f49245534161547efdcdb1283912b6f5450556a188e168f21f8684400158c",
+    "src/true_rl_agent/agent_core/context.py": "sha256:0edcc28d350169da7a23d7952019a5061af6be972b33f0a70a0436ea43ec1e7c",
+    "src/true_rl_agent/agent_core/experiment_memory.py": "sha256:0f5fbf8bc3bb346443f310fbf621b2139cd00e058e31b2b6448299e098a54c57",
+    "src/true_rl_agent/agent_core/exploration.py": "sha256:2363a74231469f85f122b1262e9b73488894db17b8f153e6b47670d640c35585",
+    "src/true_rl_agent/agent_core/ledger.py": "sha256:6d693bbc2925bf365ef63d864a668c9efc8d5ba8c51d74c20f0e2f2b776fb8fd",
+    "src/true_rl_agent/memory/context_builder.py": "sha256:4f96d6bd12ec33fcc872db43970ed55e068db90006039f4a0dc75337abddd9fd",
+    "src/true_rl_agent/prompting/authoring_frame.py": "sha256:8d6624848b9056149eb6505dce1f09cafcd49902ff469372f6069139fe3d711a",
+    "src/true_rl_agent/prompting/capabilities.py": "sha256:27d015f5b840249ad0c2e066b038c275720f6367737151beb06e5e7f655bf103",
+    "src/true_rl_agent/prompting/capacity.py": "sha256:a4fdd7c2016c02c4c1b553294cbf8a2f74fb19aeaef799ecd3769cd35debd4aa",
+    "src/true_rl_agent/prompting/payload.py": "sha256:e1d0db8325441944a33471e35c6a7ad1d1c167bc9e8f826f6b03c294908f9f1d",
+    "src/true_rl_agent/prompting/public_safety.py": "sha256:bf2b571f1f57268dd139b8df36905f6870d29fe560cef7e4e0071e1c6b9d540d",
+    "src/true_rl_agent/prompting/runner_capability_schemas.py": "sha256:b1e492c820485666f56bc025f000232bc310c848d322cc0b4625c268de75f59e",
+    "src/true_rl_agent/prompting/serialization.py": "sha256:deb1ef4746a0cbdf1b46c6fb782711cfccdd112ec2bc13905722adbc95f4c175",
+    "src/true_rl_agent/prompting/source_catalog.py": "sha256:c39ca4c8cd4b14b308bcb76814cb03b7765bd1efbe29706bf62cdc43013d99bd",
+    "src/true_rl_agent/prompting/task_sections.py": "sha256:8def44ab9852e8c4843f3abfa9d5286cd230c6c380e70965c74892111c35f6a1",
+    "src/true_rl_agent/prompting/__init__.py": "sha256:65a32d0ce3120a2cc8d7d1b75e37526ffe3afb1ee1ff4c20570b16ee0610378c",
+    "src/true_rl_agent/evaluation/acceptance_contract.py": "sha256:63f1fd8e45f9a3c49b43a7385ff58d38db8511960bb99616a25eaf12e4905cd7",
+    "src/true_rl_agent/evaluation/acceptance_phase.py": "sha256:f506cffb0c0d32f8a45f9cf0fd2dfc2a62767d66c206921417843b1e2deaca73",
+    "src/true_rl_agent/evaluation/acceptance_protocol.py": "sha256:3c409ad2f7cc8b60b7e78ef4eb566e0db7e08358b4344ee7de9235a5074c8ffa",
+    "src/true_rl_agent/evaluation/acceptance_replay.py": "sha256:bc72fcf6d8fc7ca7a51391a07217f36a38b17af9b1e138c351df2106496fab8b",
+    "src/true_rl_agent/evaluation/phased_adapter.py": "sha256:4eaeb153e3f5db4811bc300fcae1527b9c783dec5de41755b9b6643504afaec1",
+    "src/true_rl_agent/evaluation/phases.py": "sha256:5479f555e2acb390ab69990d61ce48d30b87d7ca5fc62d7dcd21d07acf0c4dc1",
+    "src/true_rl_agent/evaluation/current_best.py": "sha256:f404389bef77f8757ff114154366452af3de05f34fedf85d801f100a6cdc050a",
+    "src/true_rl_agent/evaluation/decision_record_contract.py": "sha256:3700224ec5f0731e42fdb70d70ae3343ab48b755455b2769bfd1bec07ae0ce29",
+    "src/true_rl_agent/evaluation/public_accept_scores.py": "sha256:e7191a5eeeda1706a8aba853ff8428d48e105ef84d1537c6162d53cdb4738416",
+    "src/true_rl_agent/evaluation/public_result.py": "sha256:d5795252b5a01d2a7b9477108bb9f9c9da108a8ad27d703005293f908fb4f006",
+    "src/true_rl_agent/evaluation/public_metric_contract.py": "sha256:8d46a4490d37b25c5370c4f0b3f326f99aeee9ad00e9681cf8ecbf2f41149c54",
+    "src/true_rl_agent/tasks/base.py": "sha256:30fb53ca420fe3452ba9cccc90f17adb949e3a047a57bdcc534e056a8eb72de1",
+    "src/true_rl_agent/tasks/prompt_adapter.py": "sha256:a0c2c5e6cbb69b977cd36f6c2ce0ffbdfa624ac6a5c57330259ddb50c8d65efa",
+    "src/true_rl_agent/tasks/component_smoke.py": "sha256:76f5b71f4009f0c2a518d791df04ce0514937715880a41dffbf0b395a9838e13",
+    "src/true_rl_agent/candidates/authoring_policy.py": "sha256:038dce885ac95d3dd2f3bfb5ac80d290648e9ff9277c95df797027e5f0530c9f",
+    "src/true_rl_agent/candidates/component_smoke_runtime.py": "sha256:a7fdf844d2e2dc8786bb4a952e2bd0c69b839bf059e2be2ffec30b56408f70ec",
+    "src/true_rl_agent/candidates/mechanism.py": "sha256:542a5e507a2d75204046dc37e2d2b812b198c8e8558ad31f95764ef032389c77",
+    "src/true_rl_agent/tasks/push_recovery/plugin.py": "sha256:e0d135482e6d4b41e75eea3077982d77f6b52e245ad913ca21322c553a7423df",
+    "src/true_rl_agent/tasks/push_recovery/composition.py": "sha256:7ac4a86578908d3ddff5ed307dc98056e2e9fac5f9dbcf97cb532891971e3a61",
+    "src/true_rl_agent/tasks/push_recovery/phased_adapter.py": "sha256:e772df7548709015c32a2c8ea741ee976e65728830997deb3335dbb70860c1b7",
+    "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py": "sha256:fad72610985a05130bce5742bdd65204dfbd0291e9f963c7e3df38a8c95581cf",
+    "src/true_rl_agent/tasks/push_recovery/memory.py": "sha256:6f92f689aad9a925f92c57c854aab59fae0703aee34c9cdf1d7f581a887dad11",
+    "src/true_rl_agent/tasks/push_recovery/generation_finalization.py": "sha256:471e7de412b725d7af8332c51c9f66667c76923cededd06d62e0bdc1aad2ef1f",
+    "src/true_rl_agent/tasks/stair_climbing/plugin.py": "sha256:2efea17cc56f0352bf73ad223feb10b9e4c473fe4f75364a721c1f05b277da7b",
+    "src/true_rl_agent/tasks/stair_climbing/composition.py": "sha256:1009e06a1f6ac493a1a8f58de81c957e87b00c8fe5be58de38c203f4b8508e8b",
+    "src/true_rl_agent/tasks/stair_climbing/phased_adapter.py": "sha256:6795f17c91a491256e87c1d5c5f9221793512b605bbd51ff4899a2f3bb9564ee",
+    "src/true_rl_agent/tasks/stair_climbing/prompt_adapter.py": "sha256:ef4867ea69bfeb7285b166c74ef6141bf7bb8091fb34ad7be2440cfcf7068706",
+    "src/true_rl_agent/tasks/stair_climbing/memory.py": "sha256:6523e936cb6767666c0ec818e024397f9e28f9dc5a0ffbb558c660148f2124a8",
+    "src/true_rl_agent/tasks/stair_climbing/generation_finalization.py": "sha256:a3779405bb3174877859f33a2165ceb1378bf4ec165036fcf3107dce6caed841",
+    "src/true_rl_agent/tasks/push_recovery/exploration.py": "sha256:3b69f1c8aa8b7a238ce543696567bc3eb1cd4c8d56c42f40757d79b5c0cf8ded",
+    "src/true_rl_agent/tasks/push_recovery/metrics.py": "sha256:4432b91518796bbfdbdf0e26aff05d67bb69ab0530fdbe217712019c21a99b50",
+    "src/true_rl_agent/composition/defaults.py": "sha256:94e521a96ecd53489f373c2840037ce1b8f80ae96b59671d96e3d3f46854c08a"
+  },
+  "runtime_evidence_sha256": {
+    "PLAN/2new_world/Go2_push/attempt_02/process.json": "sha256:de29bb2fcda40ecdbf613f5e15b8a4482cea7511ca2a1b720b9bf1a9fec695f1",
+    "PLAN/2new_world/Go2_push/attempt_02/session/generation_session_contract.json": "sha256:74e69b26f4211c493d0f36bb7083d2c5ef4e242165496f08e98709a9a8a215a5",
+    "PLAN/2new_world/Go2_push/attempt_02/session/resolved_cell_manifest.json": "sha256:a130b3a97ce4afde8574d19c575a430e8b83ec3750c40b43bc87465cfa0905dd",
+    "PLAN/2new_world/Go2_push/attempt_02/reference_reproduction_audit.json": "sha256:f79623b1f2ac36ab91cf04bf580a0ad8faa96e2132f7cb304b8a12640ff48d1d"
+  }
+}

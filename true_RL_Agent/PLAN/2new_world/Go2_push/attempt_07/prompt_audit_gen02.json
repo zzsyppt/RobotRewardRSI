@@ -1,0 +1,601 @@
+{
+  "status": "PASS_GEN02_COMPLETE_AUTHORING_PROMPT_PROVENANCE_AND_BOTH_SOURCE_READBACKS",
+  "audited_at_utc": "2026-09-23T06:30:32.204185+00:00",
+  "generation": 2,
+  "snapshot": ".tmp/go2_push_a07_live_07.zip",
+  "snapshot_sha256": "8e1bafcc0c7ad298244e2847279d12b4aabcdc1e96805c076fb6941b628221b3",
+  "frozen_source_commit": "5f13b475335b871a8aa458d667ece16763dd78f6",
+  "frozen_source_archive_sha256": "5fcfc6fd1fb186bbc242b99b352d48cbee28ddfbbfec88738a2afb5b82e3a329",
+  "source_manifest_verified": true,
+  "accepted_head_source_checksum": "sha256:42940100443169b3b9b8529b3a58387f749c10d5629ac065c63ec4c95fc5f264",
+  "snapshot_files_checked": 21,
+  "feedback_trial": "go2-push-5rounds-20260923-a07-generation-001-lane-b",
+  "current_best_dev": {
+    "score": 0.8541666666666666,
+    "failure_counts": {
+      "fall_side": 5,
+      "height_collapse": 18,
+      "not_recovered": 2,
+      "success_recovered": 164,
+      "fall_backward": 3
+    },
+    "strata": {
+      "high": {
+        "episodes": 48,
+        "successes": 29
+      },
+      "low": {
+        "episodes": 48,
+        "successes": 48
+      },
+      "medium": {
+        "episodes": 48,
+        "successes": 48
+      },
+      "repeated": {
+        "episodes": 48,
+        "successes": 39
+      }
+    },
+    "recovery_counts": {
+      "completed_push_event_count": 236,
+      "control_episode_count": 0,
+      "control_success_count": 0,
+      "eligible_episode_count": 192,
+      "episodes": 192,
+      "invalid_injection_count": 0,
+      "planned_push_event_count": 240,
+      "push_event_count": 237,
+      "pushed_episode_count": 192,
+      "sequence_recovered_count": 164,
+      "success_count": 164,
+      "successes": 164,
+      "verified_push_event_count": 237
+    }
+  },
+  "detailed_feedback_dev": {
+    "score": 0.0,
+    "failure_counts": {
+      "height_collapse": 192
+    },
+    "strata": {
+      "high": {
+        "episodes": 48,
+        "successes": 0
+      },
+      "low": {
+        "episodes": 48,
+        "successes": 0
+      },
+      "medium": {
+        "episodes": 48,
+        "successes": 0
+      },
+      "repeated": {
+        "episodes": 48,
+        "successes": 0
+      }
+    },
+    "recovery_counts": {
+      "completed_push_event_count": 0,
+      "control_episode_count": 0,
+      "control_success_count": 0,
+      "eligible_episode_count": 192,
+      "episodes": 192,
+      "invalid_injection_count": 0,
+      "planned_push_event_count": 240,
+      "push_event_count": 0,
+      "pushed_episode_count": 0,
+      "sequence_recovered_count": 0,
+      "success_count": 0,
+      "successes": 0,
+      "verified_push_event_count": 0
+    }
+  },
+  "lanes": [
+    {
+      "lane": "lane-a",
+      "prompts": [
+        {
+          "path": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-002/lane-a/authoring_attempts/attempt_000001/prompt_payload.json",
+          "sha256": "6b39bc2af5afe3fb93c36462054dcb05758c6fa41a6b534034c37a0e507a6b5d",
+          "frame_kind": "candidate_draft",
+          "bytes": 64447,
+          "task_section_bytes": 20831,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "42940100443169b3b9b8529b3a58387f749c10d5629ac065c63ec4c95fc5f264",
+              "bytes": 3709,
+              "source": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-a/004_push_recovery_tilt_damping_v5/training_code/components.py"
+            },
+            {
+              "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+              "sha256": "bb24660ee5b071fffbc0656f960da919e0e8f18022f291da3139bcfb3fb0d772",
+              "bytes": 4449,
+              "source": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-b/001_push_recovery_stance_height_support_v1/training_code/components.py"
+            }
+          ],
+          "long_string_duplicate_excess_bytes": 1304
+        }
+      ],
+      "attempt_results": [
+        {
+          "attempt": "attempt_000001",
+          "provider_status": "pass",
+          "provider_failure": null,
+          "verifier_status": "pass",
+          "stop_reason": "candidate_verified",
+          "repair_feedback": null,
+          "provider_usage": {
+            "reasoning_units": 29942,
+            "request_cache_hit_units": 5376,
+            "request_cache_miss_units": 11431,
+            "request_units": 16807,
+            "response_units": 31575,
+            "total_units": 48382
+          },
+          "source_request_count": 0
+        }
+      ],
+      "memory_bytes": 3551,
+      "memory_experiments": 1,
+      "memory_trial_rows": [
+        {
+          "generation": 1,
+          "lane": "a",
+          "candidate_id": "push_recovery_tilt_damping_v5",
+          "operation": "add",
+          "mechanism": "RewardTerm:tilt_damping",
+          "status": "accepted",
+          "public_dev_delta": 0.119792,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "formal_acceptance_passed"
+        },
+        {
+          "generation": 1,
+          "lane": "b",
+          "candidate_id": "push_recovery_stance_height_support_v1",
+          "operation": "add",
+          "mechanism": "RewardTerm:stance_height_support",
+          "status": "qualified_not_selected",
+          "public_dev_delta": -0.734375,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "sibling_not_selected"
+        }
+      ]
+    },
+    {
+      "lane": "lane-b",
+      "prompts": [
+        {
+          "path": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-002/lane-b/authoring_attempts/attempt_000001/prompt_payload.json",
+          "sha256": "af70ace800681924a0196a7b6133d2fc7f4f5a22b65a7379509a532a75d6667e",
+          "frame_kind": "candidate_draft",
+          "bytes": 65181,
+          "task_section_bytes": 20831,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "42940100443169b3b9b8529b3a58387f749c10d5629ac065c63ec4c95fc5f264",
+              "bytes": 3709,
+              "source": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-a/004_push_recovery_tilt_damping_v5/training_code/components.py"
+            },
+            {
+              "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+              "sha256": "bb24660ee5b071fffbc0656f960da919e0e8f18022f291da3139bcfb3fb0d772",
+              "bytes": 4449,
+              "source": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-b/001_push_recovery_stance_height_support_v1/training_code/components.py"
+            }
+          ],
+          "long_string_duplicate_excess_bytes": 1304
+        },
+        {
+          "path": "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-002/lane-b/authoring_attempts/attempt_000002/prompt_payload.json",
+          "sha256": "c56425ebe145943c8b622681e756040b723dd10f5c34ef48765c647255031099",
+          "frame_kind": "static_repair",
+          "bytes": 66809,
+          "task_section_bytes": 20831,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "42940100443169b3b9b8529b3a58387f749c10d5629ac065c63ec4c95fc5f264",
+              "bytes": 3709,
+              "source": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-a/004_push_recovery_tilt_damping_v5/training_code/components.py"
+            },
+            {
+              "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+              "sha256": "bb24660ee5b071fffbc0656f960da919e0e8f18022f291da3139bcfb3fb0d772",
+              "bytes": 4449,
+              "source": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-b/001_push_recovery_stance_height_support_v1/training_code/components.py"
+            }
+          ],
+          "long_string_duplicate_excess_bytes": 1304
+        }
+      ],
+      "attempt_results": [
+        {
+          "attempt": "attempt_000001",
+          "provider_status": "fail",
+          "provider_failure": "reasoning_output_exhausted",
+          "verifier_status": null,
+          "stop_reason": null,
+          "repair_feedback": null,
+          "provider_usage": {
+            "reasoning_units": 32768,
+            "request_cache_hit_units": 14848,
+            "request_cache_miss_units": 2175,
+            "request_units": 17023,
+            "response_units": 32768,
+            "total_units": 49791
+          },
+          "source_request_count": 0
+        },
+        {
+          "attempt": "attempt_000002",
+          "provider_status": "pass",
+          "provider_failure": null,
+          "verifier_status": "pass",
+          "stop_reason": "candidate_verified",
+          "repair_feedback": null,
+          "provider_usage": {
+            "request_cache_hit_units": 5376,
+            "request_cache_miss_units": 11969,
+            "request_units": 17345,
+            "response_units": 1345,
+            "total_units": 18690
+          },
+          "source_request_count": 0
+        }
+      ],
+      "memory_bytes": 3551,
+      "memory_experiments": 1,
+      "memory_trial_rows": [
+        {
+          "generation": 1,
+          "lane": "a",
+          "candidate_id": "push_recovery_tilt_damping_v5",
+          "operation": "add",
+          "mechanism": "RewardTerm:tilt_damping",
+          "status": "accepted",
+          "public_dev_delta": 0.119792,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "formal_acceptance_passed"
+        },
+        {
+          "generation": 1,
+          "lane": "b",
+          "candidate_id": "push_recovery_stance_height_support_v1",
+          "operation": "add",
+          "mechanism": "RewardTerm:stance_height_support",
+          "status": "qualified_not_selected",
+          "public_dev_delta": -0.734375,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "sibling_not_selected"
+        }
+      ]
+    }
+  ],
+  "initial_sibling_differing_sections": [
+    "required_candidate_package",
+    "authoring_context_frame"
+  ],
+  "F10_current_best_distinct_dev_checked": true,
+  "F11_actual_comparison_repairs": [],
+  "candidate_claims_for_readback": [
+    {
+      "lane": "lane-a",
+      "attempt": "attempt_000001",
+      "candidate_id": "push_recovery_stance_gated_quietness_v6",
+      "source": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-002/lane-a/001_push_recovery_stance_gated_quietness_v6/training_code/components.py",
+      "source_checksum": "sha256:8aad5bc6fade8720789a978452c8c000ef7e74d402a7e5aa04677340e791d4b1",
+      "stop_reason": "candidate_verified",
+      "literal_rationales": [
+        "Anchor: accepted current best push_recovery_tilt_damping_v5 (public_dev mean 0.85417; low 48/48, medium 48/48, high 29/48, repeated 39/48; outcomes success_recovered 164, height_collapse 18, fall_side 5, fall_backward 3, not_recovered 2). Exact code-level difference: exactly one named mechanism changes, the bounded quietness reward stationary_v3; its planar and angular speed core and its weight of 1.0 are unchanged, but its output is now multiplied by a stance gate exp(-4.0 * (roll^2 + pitch^2) - 12.0 * clamp(1.0 - base_height_relative, 0.0)^2) computed from the same public inputs, so the bonus is paid in full only for a tall, upright stance. upright_height, tilt_damping, joint_pose, action_rate and fall keep their original callables, weights and mechanisms; no term is added or removed and no diagnostic or schedule component is introduced. Hypothesis: the anchor pays up to +1.0 rate for any low-motion state, so a crouched post-push equilibrium collects nearly the whole quietness bonus while giving up only about 0.44 rate of the exponential stance bonus at 0.8 relative height; that cheap crouch attractor matches the labelled height_collapse outcomes, and the same unconditional damping also taxes the fast postural corrections that the strongest pulses need exactly while the robot is still tilted, which is where the side and backward falls and the not_recovered outcomes sit. Multiplying the quietness bonus by a bounded stance gate removes the crouch discount without adding any penalty: at 0.8 relative height the bonus falls from 1.0 to about 0.62 and the standing restoring force rises from about 4.1 to about 7.1 rate units per unit of relative height, while at 0.5 rad of tilt the damping pressure is cut to about 0.37 so recovery motion during a strong pulse is not taxed. Expected outcome: fewer crouch settles after the last pulse and fewer tilt-phase recoveries lost to damping, so height_collapse and the fall labels shrink while the low and medium strata are preserved because the gate is close to one in the tall upright stance those strata already hold. Closest rejected prior is the sibling push_recovery_stance_height_support_v1 (public_dev 0.0, all 192 episodes height_collapse, zero verified push events), which instead added a separate one-sided quadratic height-deficit penalty of weight 3.0 whose weighted magnitude reached 15.35; that cost applied throughout deep transient crouches and dominated the program. This candidate adds no penalty and no new weight, so its maximum possible effect is the removal of 1.0 rate unit from a quiet crouch and it cannot dominate the transient regime."
+      ],
+      "public_input_fields": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "causal_or_mathematical_claims": "Pending independent source/evidence readback; verifier PASS is not proof.",
+      "undeclared_input_fields": []
+    },
+    {
+      "lane": "lane-b",
+      "attempt": "attempt_000002",
+      "candidate_id": "push_recovery_tilt_rate_brake_v6",
+      "source": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-002/lane-b/002_push_recovery_tilt_rate_brake_v6/training_code/components.py",
+      "source_checksum": "sha256:127a3d5bbf1ce80ce69533186dd42c9e01dc3a2198a937a264572a92e98dabdc",
+      "stop_reason": "candidate_verified",
+      "literal_rationales": [
+        "Closest prior candidate is the accepted current best push_recovery_tilt_damping_v5 (public_dev mean 0.8541666666666666; outcomes success_recovered 164, height_collapse 18, fall_side 5, fall_backward 3, not_recovered 2; low 48/48, medium 48/48, high 29/48, repeated 39/48). Its dominant residual failure mode is height_collapse, concentrated in the high and repeated pulse strata, so the remaining gap is the large-pulse recovery transient rather than the small-pulse regime. The v5 mechanism tilt_damping is the negative product of squared tilt magnitude and squared planar angular rate, so its magnitude is proportional to tilt: at small tilt it is nearly silent, and it only becomes a strong brake once the robot is already substantially tilted, which is late in a large pulse excursion. This candidate changes exactly one named canonical prompt-visible component mechanism relative to v5: it adds a single new reward callable, tilt_rate_brake, defined as the negative planar angular rate magnitude divided by (1 + 8 * tilt), weighted +1.0. Because the denominator is one at zero tilt and grows with tilt, this term is a strong angular-rate brake while the robot is still near upright and is progressively attenuated as tilt grows, so it supplies an early, tilt-gated damping gradient that arrests rotation before the excursion becomes a collapse, while never penalizing tilt itself, height, or action magnitude. It is non-positive and vanishes at zero angular rate, so it cannot reward motion and cannot conflict with the upright_height stance bonus. All other v5 mechanisms (upright_height, stationary_v3, tilt_damping, joint_pose, action_rate, fall) are preserved unchanged, and no diagnostics or schedules are added. Expected outcome: large-pulse excursions are braked earlier, so height_collapse shrinks and the high and repeated strata improve while the already-solved low and medium strata are preserved."
+      ],
+      "public_input_fields": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "causal_or_mathematical_claims": "Pending independent source/evidence readback; verifier PASS is not proof.",
+      "undeclared_input_fields": []
+    }
+  ],
+  "public_boundaries": {
+    "private_paths_checked": 34,
+    "checkpoint_hashes_checked": 4,
+    "literal_hits": 0,
+    "public_only_guard": "PASS",
+    "task_receipt_recomputed": "PASS"
+  },
+  "audit_limits": [
+    "Snapshot only; missing attempt results remain in flight, not failures.",
+    "Source readback is needed to distinguish causal claims from measured facts; this script does not approve candidate mechanisms.",
+    "Checkpoint files are not downloaded/rehashed; no simulation visual inspection; no inferred seed leakage from numeric coincidences."
+  ],
+  "evidence_sha256": {
+    "PLAN/2new_world/Go2_push/source_snapshot_07.json": "826a7f995c69bce4efad140d964abc0dbeee14c1d0f968296e513c1aa807edff",
+    "PLAN/2new_world/Go2_push/launch_07.json": "a311263a17b4af6d3e6e7b160d287b0e48654929f3bd2498d917412220f48649",
+    "PLAN/2new_world/Go2_push/attempt_07/session/session_genesis.json": "2155c2f9bc5f2de68e709fda3a9a3ef2b58bc0b145f20d1fe14dc69b8de9930a",
+    "PLAN/2new_world/Go2_push/attempt_07/session/reference_eval_artifact.json": "7bbbd4843aada507d16cf25c3b2849227e795b6f6f9d4c781fdab5d59bfad9a7",
+    "PLAN/2new_world/Go2_push/attempt_07/session/ledger.jsonl": "54395f4a4e246f1b7a001af7741a3097f1be703e6372a69e63a042de6d1fd720",
+    "PLAN/2new_world/Go2_push/attempt_07/session/runner/go2-push-5rounds-20260923-a07-generation-001-lane-a/eval/public_dev/summary.json": "5b3f893e691d112ae05475b9e248abfcf254fec38b8ca9378de1cf37d5d438cd",
+    "PLAN/2new_world/Go2_push/attempt_07/session/runner/go2-push-5rounds-20260923-a07-generation-001-lane-b/eval/public_dev/summary.json": "7fb9c62228bc746b8256c6e536824d94b18d28487c3772af01640aceeb236ecd",
+    "PLAN/2new_world/Go2_push/attempt_07/session/runner/go2-push-5rounds-20260923-a07/eval/public_accept/summary.json": "1df3cc34804f6c940def3ce87bf415f730ce980ca3fff39ba95fcfba4e1ceb8e",
+    "PLAN/2new_world/Go2_push/attempt_07/session/runner/go2-push-5rounds-20260923-a07/eval/public_dev/summary.json": "beabef02bce80b49ff579aa13b68f9e2ad08b97d6339398c656ebf64da5bddac",
+    "PLAN/2new_world/Go2_push/attempt_07/session/runner/go2-push-5rounds-20260923-a07/eval/sealed_validation/summary.json": "82b5106af4b4158265bed7972fcce4bf6d27236fff5524e80e6b9f3275eab256",
+    "PLAN/2new_world/Go2_push/attempt_07/session/runner/go2-push-5rounds-20260923-a07-generation-001-lane-a/eval/public_accept/summary.json": "1f5dd427f687e04b6a6f1be47c5458184c274cfcce74fd2d8c015f237f7ac0d9",
+    "PLAN/2new_world/Go2_push/attempt_07/session/runner/go2-push-5rounds-20260923-a07-generation-001-lane-a/eval/sealed_validation/summary.json": "005fb1df8f469ead223997c7487902a6576d028a173c755e3e99dbf9957b205f",
+    "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-002/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "6b39bc2af5afe3fb93c36462054dcb05758c6fa41a6b534034c37a0e507a6b5d",
+    "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-a/004_push_recovery_tilt_damping_v5/training_code/components.py": "42940100443169b3b9b8529b3a58387f749c10d5629ac065c63ec4c95fc5f264",
+    "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-001/lane-b/001_push_recovery_stance_height_support_v1/training_code/components.py": "bb24660ee5b071fffbc0656f960da919e0e8f18022f291da3139bcfb3fb0d772",
+    "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-002/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "2fb928220b4924fe9f2fe1dcde5841efe61540296e6170fde1c91aaa166c4752",
+    "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-002/lane-a/001_push_recovery_stance_gated_quietness_v6/training_code/components.py": "8aad5bc6fade8720789a978452c8c000ef7e74d402a7e5aa04677340e791d4b1",
+    "PLAN/2new_world/Go2_push/attempt_07/session/runner/go2-push-5rounds-20260923-a07-generation-001-lane-b/train/summary.json": "9bdda6a98afb12c2b90807ce62439b624be8c3b2efdd0a92b6f75eea89be7947",
+    "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-002/lane-b/authoring_attempts/attempt_000001/prompt_payload.json": "af70ace800681924a0196a7b6133d2fc7f4f5a22b65a7379509a532a75d6667e",
+    "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-002/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "6962d3e68f8be9d3237a5bcb6ecb91a12415a2b509c36fb444ed0630d24adc02",
+    "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-002/lane-b/authoring_attempts/attempt_000002/prompt_payload.json": "c56425ebe145943c8b622681e756040b723dd10f5c34ef48765c647255031099",
+    "PLAN/2new_world/Go2_push/attempt_07/session/authoring/go2-push-5rounds-20260923-a07-generation-002/lane-b/authoring_attempts/attempt_000002/attempt_result.json": "5a561e0de18f074cb268c545d020e82258aa598da8e0d8da7ca2b5089c9a72c5",
+    "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-002/lane-b/002_push_recovery_tilt_rate_brake_v6/training_code/components.py": "127a3d5bbf1ce80ce69533186dd42c9e01dc3a2198a937a264572a92e98dabdc"
+  },
+  "provider_calls": 0,
+  "training_jobs": 0,
+  "evaluation_jobs": 0,
+  "manual_reviews": [
+    {
+      "reviewed_at_utc": "2026-09-23T06:29:47.174734+00:00",
+      "scope": "live06: Gen2 A complete authoring and B initial input only; no B response, training result, public-dev result or generation decision is certified.",
+      "F10_live_wiring": {
+        "status": "PASS_ACTUAL_PROVIDER_INPUT",
+        "accepted_parent": {
+          "candidate_id": "push_recovery_tilt_damping_v5",
+          "dev": "164/192",
+          "strata_low_medium_high_repeated": [
+            "48/48",
+            "48/48",
+            "29/48",
+            "39/48"
+          ],
+          "failures": {
+            "height_collapse": 18,
+            "fall_backward": 3,
+            "fall_side": 5,
+            "not_recovered": 2
+          }
+        },
+        "latest_nonaccepted": {
+          "candidate_id": "push_recovery_stance_height_support_v1",
+          "dev": "0/192",
+          "failures": {
+            "height_collapse": 192
+          },
+          "verified_push_events": 0
+        },
+        "identity_and_content": "Actual current_best and latest_trained_nonaccepted have separate trial ID, candidate ID, source checksum and dev aggregation. All displayed counts match independent raw public-dev aggregation. A rationale quotes both sources correctly without substituting B failures for parent failures.",
+        "causal_limit": "Separate public evidence supports choosing a hypothesis; it does not show why the earlier candidate improved or why B collapsed. B zero verified push events supports failure before push completion, not a post-push recovery explanation."
+      },
+      "public_boundary": {
+        "status": "PASS",
+        "private_paths_checked": 34,
+        "checkpoint_hashes_checked": 4,
+        "literal_hits": 0,
+        "numerical_measurements": "Feedback scores/failure tables and memory deltas derive from public-dev. Public prior acceptance/sealed gate status is deliberately visible; private accept/sealed scores, seed records, checkpoint identifiers and server paths are absent. No claim of exhaustive hidden-seed inference detection."
+      },
+      "source_and_memory": {
+        "inline_sources": "Exactly two different prior program bodies, each once: accepted parent A and trained nonaccepted B. No same-generation A candidate body is given to B.",
+        "prompt_bytes_A_B": [
+          64447,
+          65181
+        ],
+        "task_section_bytes": 20831,
+        "memory_bytes": 3551,
+        "memory_rounds": 1,
+        "memory_trial_rows": 2,
+        "round_boundary": "Memory contains only closed Gen1, with dev deltas against Gen1 reference: A +0.119792, B -0.734375; no current Gen2 results and no causal runtime-effect claim.",
+        "long_string_duplicate_excess_bytes": 1304,
+        "duplication_readback": "Repeated text consists of short interface signatures, source-use instructions and 276/285-byte summaries shared across lineage, payload metadata and frame metadata; no full source or failure table is serialized twice under the same source. This is bounded metadata duplication, not exploding history."
+      },
+      "lane_A_source_readback": {
+        "candidate_id": "push_recovery_stance_gated_quietness_v6",
+        "source_checksum": "sha256:8aad5bc6fade8720789a978452c8c000ef7e74d402a7e5aa04677340e791d4b1",
+        "changed_functions": [
+          "stationary_v3"
+        ],
+        "unchanged_functions": [
+          "action_rate",
+          "fall",
+          "joint_pose",
+          "tilt_damping",
+          "upright_height"
+        ],
+        "all_reward_names_weights_callables_unchanged": true,
+        "only_change": "stationary_v3 retains planar/angular Huber speed core then multiplies it by exp(-4*(roll^2+pitch^2)-12*clamp(1-height_relative,min=0)^2). New state coupling is structural, not a numeric-only rewrite. No component added/removed, no diagnostic or schedule added.",
+        "admission": "First author attempt passes; selected parent checksum is accepted Gen1 A. Six-term finite fixture smoke is authoring evidence, not evidence of physical success.",
+        "source_requests": 0
+      },
+      "lane_B_isolation": {
+        "status": "PASS_AVAILABLE_INITIAL_INPUT",
+        "same_generation_A_id_absent": true,
+        "same_generation_A_checksum_absent": true,
+        "same_generation_A_code_absent": true,
+        "same_public_feedback_memory_as_A": true,
+        "differing_sections": [
+          "required_candidate_package",
+          "authoring_context_frame"
+        ],
+        "permitted_sibling_exclusion": {
+          "schema_version": "true_rl_agent.single_component_semantic_exclusion.v1",
+          "operation": "modify",
+          "canonical_mechanism_delta": "RewardTerm:stationary_v3",
+          "component_kind": "RewardTerm",
+          "public_input_dependencies": [
+            "base_ang_vel_scaled",
+            "base_height_relative",
+            "base_lin_vel_scaled",
+            "pitch",
+            "roll"
+          ],
+          "parameter_normalized_semantic_signature": "8e713659f4fcd4512503f964b08fa82e3fba5fd12154b5f180aa81869b68fd9a",
+          "instruction": "Propose one component mechanism whose normalized callable, input, and clip structure is substantively different from this exclusion; renaming or changing only numeric parameters is not distinct.",
+          "exclusion_hash": "7241588ec666b81521033dece692020b108770b0ac06cc2de618d671fd8a5fe3"
+        },
+        "limit": "B response is absent in live06; no assertion about its candidate or outcome."
+      },
+      "rationale_math_readback": {
+        "accurate_local_arithmetic": {
+          "zero_tilt_height_08_stance_bonus_loss": 0.44356863310136596,
+          "quiet_gate_at_height_08": 0.6187833918061408,
+          "height_derivative_at_zero_tilt_zero_speed_before": 4.090290187037815,
+          "height_derivative_after": 7.060450467707291,
+          "gate_at_tilt_05": 0.36787944117144233
+        },
+        "nonblocking_F9_type_overclaim": "Rationale calls quietness bounded and says maximum effect is removal of 1 rate unit and cannot dominate transient regime. Only the stance gate is bounded; quietness is unbounded below as speed increases. Therefore multiplying can also increase reward by reducing a negative penalty, potentially by more than 1. At 0.5 rad, speed penalties are attenuated, not eliminated. The claimed restoring force is a partial reward derivative at fixed inputs, not measured mechanical force or a proven PPO gradient.",
+        "counterexample": {
+          "input_interpretation": "Mathematical public-input example only; not an observed simulation state. Relative height .8, roll=pitch=0, planar scaled speed norm2, angular speed0.",
+          "quiet_before": -5.125,
+          "gate": 0.6187833918061408,
+          "quiet_after": -3.171264883006472,
+          "reward_delta": 1.9537351169935282
+        },
+        "causal_limit": "The explicitly marked crouch-attractor/damping hypothesis and B-cost-dominated-program assertion are not established by aggregate outcomes or a max contribution. Candidate efficacy remains to be measured; no new static rationale gate is warranted."
+      },
+      "F11_coverage": "No Gen2 repair yet. A07 Gen1 covers nested policy/syntax comparison retention; historical-exact repair branch remains covered by A06 real-artifact replay, not falsely claimed as A07 live coverage.",
+      "evidence_unchanged": true,
+      "product_source_modified": false,
+      "blocking_issues_found": []
+    }
+  ],
+  "authoring_stage_complete": true,
+  "candidate_public_dev_available": false,
+  "generation_closed": false,
+  "manual_review": {
+    "reviewed_at_utc": "2026-09-23T06:32:34.623537+00:00",
+    "scope": "live07 adds Gen2 B full authoring. Prior live06 F10, A source, B initial isolation and rationale readback preserved in manual_reviews. This receipt certifies authoring provenance only; training/public-dev/decision results are outside scope.",
+    "lane_B_attempts": [
+      {
+        "attempt": 1,
+        "outcome": "reasoning_output_exhausted",
+        "finish_reason": "length",
+        "reasoning_tokens": 32768,
+        "response_tokens": 32768,
+        "final_response_bytes": 0,
+        "classification": "Matches actual provider receipt; no candidate was materialized and no verifier rejection occurred."
+      },
+      {
+        "attempt": 2,
+        "outcome": "candidate_verified",
+        "finish_reason": "stop",
+        "thinking_mode": "disabled",
+        "request_tokens": 17345,
+        "response_tokens": 1345,
+        "final_response_bytes": 4924,
+        "classification": "Existing exhaustion repair policy returned complete candidate; no source request or human intervention."
+      }
+    ],
+    "lane_B_repair_prompt": {
+      "bytes": 66809,
+      "changed_sections": [
+        "authoring_context_frame",
+        "provider_or_runtime_repair_feedback"
+      ],
+      "original_two_source_payloads_identical": true,
+      "feedback_and_memory_identical": true,
+      "parent_source_present": true,
+      "source_request_count": 0,
+      "reason_for_full_draft_context": "Pre-materialization provider failure has no failed candidate source, so existing static-repair frame retains draft context. This is not a historical-exact comparison repair or evidence of F11 live branch coverage."
+    },
+    "lane_B_source": {
+      "candidate_id": "push_recovery_tilt_rate_brake_v6",
+      "source_checksum": "sha256:127a3d5bbf1ce80ce69533186dd42c9e01dc3a2198a937a264572a92e98dabdc",
+      "added_function": "tilt_rate_brake",
+      "formula": "-(base_ang_vel_scaled[:,:2].square().sum(dim=1) / (1 + 8*(roll.square()+pitch.square())))",
+      "unchanged_parent_functions": [
+        "action_rate",
+        "fall",
+        "joint_pose",
+        "stationary_v3",
+        "tilt_damping",
+        "upright_height"
+      ],
+      "unchanged_parent_reward_registrations": [
+        "action_rate",
+        "fall",
+        "joint_pose",
+        "stationary_v3",
+        "tilt_damping",
+        "upright_height"
+      ],
+      "added_reward": {
+        "name": "tilt_rate_brake",
+        "weight": 1.0
+      },
+      "diagnostics_added": false,
+      "schedules_added": false,
+      "authoring_only_evidence": "Seven reward terms pass finite4env fixture; selected parent remains Gen1 A. New division by a state-dependent denominator is a structural mechanism, not renaming/numeric-only edit."
+    },
+    "sibling_isolation": {
+      "same_generation_A_id_or_source_hash_in_B_prompts": false,
+      "only_sibling_information": "The frozen semantic exclusion for modifying stationary_v3 is present identically in both B attempts. It includes dependencies/signature, not A body/rationale/measurements. B instead adds a new tilt-rate term; actual sibling exclusion receipt passes with matching exclusion hash.",
+      "exclusion_hash": "7241588ec666b81521033dece692020b108770b0ac06cc2de618d671fd8a5fe3"
+    },
+    "rationale_readback": {
+      "public_counts_match_parent": true,
+      "public_counts_source": "Current-best Gen1A dev164/192; low48/48 medium48/48 high29/48 repeated39/48; height18 side5 back3 not_recovered2. As low/medium have no failures, residual failures belong to high/repeated. The temporal claim that they are late recovery transients is still a hypothesis, not supplied trajectory evidence.",
+      "true_function_properties": "For finite public inputs, denominator >=1, term <=0, term zero at zero planar angular rate; penalty magnitude decreases as tilt squared increases at fixed rate.",
+      "nonblocking_claim_limits": [
+        "Rationale says planar angular rate magnitude, while code uses squared magnitude.",
+        "Non-positive output does not imply cannot conflict with the stance reward: at fixed nonzero angular rate, larger tilt increases this term by making it less negative. It can oppose the stance preference; usefulness still requires training/evaluation.",
+        "Braking earlier, preventing collapse and preserving solved strata are candidate hypotheses, not established by authoring PASS."
+      ],
+      "finite_counterexample": {
+        "kind": "Mathematical public-input pair, not observed simulation states.",
+        "fixed_inputs": "relative_height=1, planar_scaled_velocity unchanged, planar_scaled_angular_velocity=(2,0), joint/action/fall inputs unchanged. Compare roll=pitch=0 with roll=.1,pitch=0.",
+        "added_term_before": -4,
+        "added_term_after": -3.7037037037037033,
+        "added_term_delta": 0.2962962962962967,
+        "upright_height_weighted_delta": -0.11763168254303047,
+        "existing_tilt_damping_delta": -0.04,
+        "total_rate_delta_all_other_terms_fixed": 0.13866461375326625,
+        "interpretation": "At these finite inputs the final candidate total reward increases slightly with tilt, refuting the universal no-conflict assertion; this does not prove that training visits or exploits those states."
+      }
+    },
+    "history_budget": "Both B attempts retain only Gen1 memory3551B, two trial rows; no Gen2 train/eval results entered authoring.",
+    "F10_live_status": "PASS: both actual B inputs retain distinct current-best A and latest-nonaccepted B dev summaries; initial A result is unchanged from live06.",
+    "evidence_unchanged": true,
+    "product_source_modified": false,
+    "blocking_issues_found": []
+  }
+}

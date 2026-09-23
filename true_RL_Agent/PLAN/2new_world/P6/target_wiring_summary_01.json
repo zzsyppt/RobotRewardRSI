@@ -1,0 +1,639 @@
+{
+  "schema_version": "true_rl_agent.p6.target_wiring_audit.v1",
+  "status": "PASS",
+  "scope": "Independent local recount and cross-file identity audit of downloaded real target receipts; no simulator or network executed by this audit",
+  "not_established": [
+    "Full-budget reference learnability or qualification",
+    "Accept/sealed holdout behavior",
+    "Current active-protocol hash identity: these wiring receipts used the earlier draft state",
+    "Independent local checkpoint binary hashes: checkpoint files were not downloaded; target safety/reload receipts are cross-checked"
+  ],
+  "verification": [
+    "All listed JSON source bytes hashed locally",
+    "ABI evidence hash and every manifest check validated",
+    "Raw episode/event counts, velocity-component preservation and next-physics presence recounted",
+    "Production train/eval job hashes, task evidence hash, checkpoint/lineage and plan identity cross-checked"
+  ],
+  "rows": [
+    {
+      "cell": "push.g1_37dof.recovery_v2",
+      "wiring_status": "PASS",
+      "wiring_manifest_hash": "4726c3887360627fe63502e0ed7ae893be8bd757b429e91d5c21758145b04098",
+      "protocol_state": "draft",
+      "protocol_hash": "640b82a7e25cbe6fc8438b6a835d01f1af671c6552319e5735ce351af8ad3518",
+      "actual_abi": {
+        "train": {
+          "action_dim": 37,
+          "policy_observation_dim": 123,
+          "checks": {
+            "joint_names": true,
+            "actions": true,
+            "control": true,
+            "policy_observation": true,
+            "action_dimension": true,
+            "policy_observation_dimension": true,
+            "term_dimensions": true,
+            "sensors": true,
+            "effective_action_scales": true,
+            "resolved_action_joint_order": true,
+            "observation_corruption": true,
+            "height_scanner_removed": true
+          },
+          "evidence_hash": "149675f52611f9715497178da698c600058bd136cf5291846cc9261da815410b",
+          "verified_declared_content_hashes": {
+            "action_content_hash": "eee8cc1e190d79989d4ea761a812e058f74b1efd70d7197f702922da003d4c75",
+            "observation_content_hash": "1ceddcd6103065838c8b1b4e61757284fc751862d7d736d50a5a3f35513a0573",
+            "sensor_schema_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+            "policy_io_schema_hash": "c73d93eb768f237396ce0fdbd84725625f0228624e1432195f839aa900f48114"
+          }
+        },
+        "no_push": {
+          "action_dim": 37,
+          "policy_observation_dim": 123,
+          "checks": {
+            "joint_names": true,
+            "actions": true,
+            "control": true,
+            "policy_observation": true,
+            "action_dimension": true,
+            "policy_observation_dimension": true,
+            "term_dimensions": true,
+            "sensors": true,
+            "effective_action_scales": true,
+            "resolved_action_joint_order": true,
+            "observation_corruption": true,
+            "height_scanner_removed": true
+          },
+          "evidence_hash": "1de22e975d1028a349b36bb81e7cb2a56849de329f754623c0bb411ebde60df8",
+          "verified_declared_content_hashes": {
+            "action_content_hash": "eee8cc1e190d79989d4ea761a812e058f74b1efd70d7197f702922da003d4c75",
+            "observation_content_hash": "1ceddcd6103065838c8b1b4e61757284fc751862d7d736d50a5a3f35513a0573",
+            "sensor_schema_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+            "policy_io_schema_hash": "c73d93eb768f237396ce0fdbd84725625f0228624e1432195f839aa900f48114"
+          }
+        },
+        "recovery_v2": {
+          "action_dim": 37,
+          "policy_observation_dim": 123,
+          "checks": {
+            "joint_names": true,
+            "actions": true,
+            "control": true,
+            "policy_observation": true,
+            "action_dimension": true,
+            "policy_observation_dimension": true,
+            "term_dimensions": true,
+            "sensors": true,
+            "effective_action_scales": true,
+            "resolved_action_joint_order": true,
+            "observation_corruption": true,
+            "height_scanner_removed": true
+          },
+          "evidence_hash": "1de22e975d1028a349b36bb81e7cb2a56849de329f754623c0bb411ebde60df8",
+          "verified_declared_content_hashes": {
+            "action_content_hash": "eee8cc1e190d79989d4ea761a812e058f74b1efd70d7197f702922da003d4c75",
+            "observation_content_hash": "1ceddcd6103065838c8b1b4e61757284fc751862d7d736d50a5a3f35513a0573",
+            "sensor_schema_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+            "policy_io_schema_hash": "c73d93eb768f237396ce0fdbd84725625f0228624e1432195f839aa900f48114"
+          }
+        }
+      },
+      "ppo_and_resume": {
+        "control_steps": 4608,
+        "checkpoint_sha256": "sha256:286273d73fa6cee2b972297e739796daf3d72475202037975966d7daa43c8ab8",
+        "resumed_checkpoint_sha256": "sha256:dfe9973ddb14452505feeafe7f69755bd3deb874978ca8351d24fd9d92372e32",
+        "optimizer_and_inference_reload_exact": true,
+        "num_envs": 64,
+        "steps_per_iteration": 24,
+        "iterations_before_save": 2,
+        "iterations_after_exact_reload": 1,
+        "reward_term_calls": 360,
+        "reward_program_nonzero": true
+      },
+      "zero_action_control": {
+        "episodes": 64,
+        "successes": 0,
+        "rate": 0.0,
+        "score_role": "diagnostic_standing_control",
+        "stratum_results": {},
+        "planned_events": 0,
+        "observed_events": 0,
+        "recovered_events": 0,
+        "invalid_injections": 0,
+        "failure_counts": {
+          "fall_forward": 64
+        },
+        "max_episode_steps": 55,
+        "execution_cost": {
+          "evaluation_env_count": 64,
+          "vector_env_step_calls": 55,
+          "closed_first_episode_control_steps": 3520
+        }
+      },
+      "zero_action_push": {
+        "episodes": 64,
+        "successes": 0,
+        "rate": 0.0,
+        "score_role": "diagnostic_zero_action_recovery",
+        "stratum_results": {
+          "low": {
+            "episodes": 16,
+            "successes": 0,
+            "success_rate": 0.0
+          },
+          "medium": {
+            "episodes": 16,
+            "successes": 0,
+            "success_rate": 0.0
+          },
+          "high": {
+            "episodes": 16,
+            "successes": 0,
+            "success_rate": 0.0
+          },
+          "repeated": {
+            "episodes": 16,
+            "successes": 0,
+            "success_rate": 0.0
+          }
+        },
+        "planned_events": 80,
+        "observed_events": 0,
+        "recovered_events": 0,
+        "invalid_injections": 0,
+        "failure_counts": {
+          "fall_forward": 64
+        },
+        "max_episode_steps": 55,
+        "execution_cost": {
+          "evaluation_env_count": 64,
+          "vector_env_step_calls": 55,
+          "closed_first_episode_control_steps": 3520
+        }
+      },
+      "original_first_push_control_step": 69,
+      "production_pipeline": {
+        "status": "PASS",
+        "training_env_steps": 3072,
+        "training_iterations": 2,
+        "training_seed": 731,
+        "checkpoint_sha256": "sha256:9b335bd1c5c935a3ab537f6ee9cfef5762ec2b7b1d1fb6d8c5e84f1cf74ed1e9",
+        "train_job_spec_hash": "270c64507cf09e7660f0dccce92e4141b94c6a6fcf49053270fbd1a312ab8ca2",
+        "public_dev_job_spec_hash": "8ce9b96bcf6adb456b1a03e3237a3ed16c9614e91726c3d7f7fb2fde156da730",
+        "training_binding_hash": "708ebbb5925d031a5939cfc6ac8c5d5b08ffd1843f97dc5e3a7669266c55f851",
+        "checkpoint_safety_status": "pass",
+        "backend_manifest_hash": "60a2b0b7d45629963d389e858f1a9e998d27e623313af1a4ddc00be369755660",
+        "backend_source_manifest_hash": "c172ca3c0dd6c819a3d9b6fd8071483c2014894e3cff42f30f80b5f6be1968cf",
+        "phases_executed": [
+          "public_dev"
+        ],
+        "trained_checkpoint_public_dev": {
+          "episodes": 64,
+          "successes": 0,
+          "rate": 0.0,
+          "score_role": "diagnostic_trained_checkpoint_public_dev",
+          "stratum_results": {
+            "high": {
+              "episodes": 16,
+              "success_rate": 0.0,
+              "successes": 0
+            },
+            "low": {
+              "episodes": 16,
+              "success_rate": 0.0,
+              "successes": 0
+            },
+            "medium": {
+              "episodes": 16,
+              "success_rate": 0.0,
+              "successes": 0
+            },
+            "repeated": {
+              "episodes": 16,
+              "success_rate": 0.0,
+              "successes": 0
+            }
+          },
+          "planned_events": 80,
+          "observed_events": 0,
+          "recovered_events": 0,
+          "invalid_injections": 0,
+          "failure_counts": {
+            "fall_forward": 64
+          },
+          "max_episode_steps": 56,
+          "execution_cost": {
+            "closed_first_episode_control_steps": 3584,
+            "evaluation_env_count": 64,
+            "vector_env_step_calls": 56
+          }
+        },
+        "genesis_created": false,
+        "reference_qualification_performed": false,
+        "provider_requests": 0,
+        "infrastructure_retries": 0
+      }
+    },
+    {
+      "cell": "push.go2_12dof.recovery_v2",
+      "wiring_status": "PASS",
+      "wiring_manifest_hash": "ef5288a11ca72810114abf780a5f0f32192f33b05cd087a6496d0b56340f457d",
+      "protocol_state": "draft",
+      "protocol_hash": "640b82a7e25cbe6fc8438b6a835d01f1af671c6552319e5735ce351af8ad3518",
+      "actual_abi": {
+        "train": {
+          "action_dim": 12,
+          "policy_observation_dim": 48,
+          "checks": {
+            "joint_names": true,
+            "actions": true,
+            "control": true,
+            "policy_observation": true,
+            "action_dimension": true,
+            "policy_observation_dimension": true,
+            "term_dimensions": true,
+            "sensors": true,
+            "effective_action_scales": true,
+            "resolved_action_joint_order": true,
+            "observation_corruption": true,
+            "height_scanner_removed": true
+          },
+          "evidence_hash": "8906857fae5105879f09d32b7e5ebba7e97578c1c74a49b8f4aff8bbcf1425b3",
+          "verified_declared_content_hashes": {
+            "action_content_hash": "fef9a8161334ea16e61effbab51a03782f314eb54a8f046a15bfb8e82303bb1c",
+            "observation_content_hash": "16ffb52f1f249bc9f89e1cc5fe9c3195d71505c9b9e281864afb8046e1ddae1a",
+            "sensor_schema_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+            "policy_io_schema_hash": "a40716069a496d94e8b24a26d9ca3e4d9ad0c67aed69a4ae009d1223a3a6249d"
+          }
+        },
+        "no_push": {
+          "action_dim": 12,
+          "policy_observation_dim": 48,
+          "checks": {
+            "joint_names": true,
+            "actions": true,
+            "control": true,
+            "policy_observation": true,
+            "action_dimension": true,
+            "policy_observation_dimension": true,
+            "term_dimensions": true,
+            "sensors": true,
+            "effective_action_scales": true,
+            "resolved_action_joint_order": true,
+            "observation_corruption": true,
+            "height_scanner_removed": true
+          },
+          "evidence_hash": "7fd0f222a942c60d1dc9c9f3bbd2947283d103505e90329ea437cca5141eb371",
+          "verified_declared_content_hashes": {
+            "action_content_hash": "fef9a8161334ea16e61effbab51a03782f314eb54a8f046a15bfb8e82303bb1c",
+            "observation_content_hash": "16ffb52f1f249bc9f89e1cc5fe9c3195d71505c9b9e281864afb8046e1ddae1a",
+            "sensor_schema_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+            "policy_io_schema_hash": "a40716069a496d94e8b24a26d9ca3e4d9ad0c67aed69a4ae009d1223a3a6249d"
+          }
+        },
+        "recovery_v2": {
+          "action_dim": 12,
+          "policy_observation_dim": 48,
+          "checks": {
+            "joint_names": true,
+            "actions": true,
+            "control": true,
+            "policy_observation": true,
+            "action_dimension": true,
+            "policy_observation_dimension": true,
+            "term_dimensions": true,
+            "sensors": true,
+            "effective_action_scales": true,
+            "resolved_action_joint_order": true,
+            "observation_corruption": true,
+            "height_scanner_removed": true
+          },
+          "evidence_hash": "7fd0f222a942c60d1dc9c9f3bbd2947283d103505e90329ea437cca5141eb371",
+          "verified_declared_content_hashes": {
+            "action_content_hash": "fef9a8161334ea16e61effbab51a03782f314eb54a8f046a15bfb8e82303bb1c",
+            "observation_content_hash": "16ffb52f1f249bc9f89e1cc5fe9c3195d71505c9b9e281864afb8046e1ddae1a",
+            "sensor_schema_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+            "policy_io_schema_hash": "a40716069a496d94e8b24a26d9ca3e4d9ad0c67aed69a4ae009d1223a3a6249d"
+          }
+        }
+      },
+      "ppo_and_resume": {
+        "control_steps": 4608,
+        "checkpoint_sha256": "sha256:393fa6b5fb64a897a1f4fd97d0d0820f08e04f2754f51055dc585ed626427452",
+        "resumed_checkpoint_sha256": "sha256:5c959bc9435dde969f0ab5aa1a2b607d559f7951a0cd040b65ac9ef631c74f98",
+        "optimizer_and_inference_reload_exact": true,
+        "num_envs": 64,
+        "steps_per_iteration": 24,
+        "iterations_before_save": 2,
+        "iterations_after_exact_reload": 1,
+        "reward_term_calls": 360,
+        "reward_program_nonzero": true
+      },
+      "zero_action_control": {
+        "episodes": 64,
+        "successes": 64,
+        "rate": 1.0,
+        "score_role": "diagnostic_standing_control",
+        "stratum_results": {},
+        "planned_events": 0,
+        "observed_events": 0,
+        "recovered_events": 0,
+        "invalid_injections": 0,
+        "failure_counts": {
+          "null": 64
+        },
+        "max_episode_steps": 303,
+        "execution_cost": {
+          "evaluation_env_count": 64,
+          "vector_env_step_calls": 303,
+          "closed_first_episode_control_steps": 19392
+        }
+      },
+      "zero_action_push": {
+        "episodes": 64,
+        "successes": 15,
+        "rate": 0.234375,
+        "score_role": "diagnostic_zero_action_recovery",
+        "stratum_results": {
+          "low": {
+            "episodes": 16,
+            "successes": 10,
+            "success_rate": 0.625
+          },
+          "medium": {
+            "episodes": 16,
+            "successes": 5,
+            "success_rate": 0.3125
+          },
+          "high": {
+            "episodes": 16,
+            "successes": 0,
+            "success_rate": 0.0
+          },
+          "repeated": {
+            "episodes": 16,
+            "successes": 0,
+            "success_rate": 0.0
+          }
+        },
+        "planned_events": 80,
+        "observed_events": 80,
+        "recovered_events": 25,
+        "invalid_injections": 0,
+        "failure_counts": {
+          "success_recovered": 15,
+          "not_recovered": 47,
+          "fall_side": 2
+        },
+        "max_episode_steps": 303,
+        "execution_cost": {
+          "evaluation_env_count": 64,
+          "vector_env_step_calls": 303,
+          "closed_first_episode_control_steps": 19066
+        }
+      },
+      "original_first_push_control_step": 51,
+      "production_pipeline": {
+        "status": "PASS",
+        "training_env_steps": 3072,
+        "training_iterations": 2,
+        "training_seed": 731,
+        "checkpoint_sha256": "sha256:0b658498a3ab777aa6a52dc9f9e4d4e23dfa31698e250242fa1b946fc609a641",
+        "train_job_spec_hash": "7e33153c63383a92fb548084d46e29dcdbb5f323ddb55c46d274be7c6c9d1023",
+        "public_dev_job_spec_hash": "26767c1cf043a17695352aa1b976e7d7ab693a27d25c841b804ef7ff4d553516",
+        "training_binding_hash": "eacad42694ac0f356fda5cfa193b290a1ae51a1ef440a03695a720ca5652bc98",
+        "checkpoint_safety_status": "pass",
+        "backend_manifest_hash": "60a2b0b7d45629963d389e858f1a9e998d27e623313af1a4ddc00be369755660",
+        "backend_source_manifest_hash": "c172ca3c0dd6c819a3d9b6fd8071483c2014894e3cff42f30f80b5f6be1968cf",
+        "phases_executed": [
+          "public_dev"
+        ],
+        "trained_checkpoint_public_dev": {
+          "episodes": 64,
+          "successes": 16,
+          "rate": 0.25,
+          "score_role": "diagnostic_trained_checkpoint_public_dev",
+          "stratum_results": {
+            "high": {
+              "episodes": 16,
+              "success_rate": 0.0,
+              "successes": 0
+            },
+            "low": {
+              "episodes": 16,
+              "success_rate": 0.5625,
+              "successes": 9
+            },
+            "medium": {
+              "episodes": 16,
+              "success_rate": 0.25,
+              "successes": 4
+            },
+            "repeated": {
+              "episodes": 16,
+              "success_rate": 0.1875,
+              "successes": 3
+            }
+          },
+          "planned_events": 80,
+          "observed_events": 80,
+          "recovered_events": 25,
+          "invalid_injections": 0,
+          "failure_counts": {
+            "not_recovered": 47,
+            "success_recovered": 16,
+            "fall_side": 1
+          },
+          "max_episode_steps": 303,
+          "execution_cost": {
+            "closed_first_episode_control_steps": 19235,
+            "evaluation_env_count": 64,
+            "vector_env_step_calls": 303
+          }
+        },
+        "genesis_created": false,
+        "reference_qualification_performed": false,
+        "provider_requests": 0,
+        "infrastructure_retries": 0
+      }
+    }
+  ],
+  "g1_early_event_diagnostic": {
+    "status": "PASS",
+    "source_protocol_hash": "640b82a7e25cbe6fc8438b6a835d01f1af671c6552319e5735ce351af8ad3518",
+    "diagnostic_protocol_hash": "94bb45eb2473aa99e28b0d7775333e44707bdabe93962337f36ed81e8e34407c",
+    "overrides": {
+      "protocol_id": {
+        "source": "push_recovery_planar_delta_velocity_v2",
+        "diagnostic": "p6_g1_event_only_early_timing_diagnostic_v1"
+      },
+      "first_push_time_scale": {
+        "source": 5.0,
+        "diagnostic": 0.14563931753070947
+      },
+      "second_push_time_scale": {
+        "source": 17.0,
+        "diagnostic": 0.4369179525921284
+      },
+      "recovery_window_time_scale": {
+        "source": 8.0,
+        "diagnostic": 0.14563931753070947
+      },
+      "stable_dwell_time_scale": {
+        "source": 1.5,
+        "diagnostic": 0.07281965876535473
+      }
+    },
+    "scheduled_control_steps": [
+      2,
+      6
+    ],
+    "observed_events": 80,
+    "repeated_episodes_with_two_events": 16,
+    "all_observed_injections_verified": true,
+    "all_next_physics_evidence_finite": true,
+    "z_and_angular_components_preserved": true,
+    "execution_cost": {
+      "num_envs": 64,
+      "vector_env_step_calls": 12,
+      "control_steps": 768
+    },
+    "original_protocol_unchanged": true,
+    "original_task_recovery_qualification": false
+  },
+  "source_artifacts": {
+    "g1_wiring": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/g1_02/result.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/g1_02/result.json",
+      "sha256": "d27a138a8a7f49a7fdfee49e03743820882221941a50e8aefa017c52b75b4363",
+      "bytes": 32608
+    },
+    "g1_wiring_process": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/g1_process_02/process.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/g1_process_02/process.json",
+      "sha256": "4dbc00d38089a2ac854a9be253c319de7105bbb2d3bb512d948f9f1242eda1c4",
+      "bytes": 1300
+    },
+    "g1_zero_control": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/g1_02/no_push.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/g1_02/no_push.json",
+      "sha256": "7ec66c0d16934e35c3d867177da455e83b34473867a2cb1600b8ada6561e07d0",
+      "bytes": 63504
+    },
+    "g1_zero_push": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/g1_02/recovery_v2.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/g1_02/recovery_v2.json",
+      "sha256": "19606fbbed9c102b620938b684123c57e9e0481f6e4a13dfa1a2cdca2429d98c",
+      "bytes": 63274
+    },
+    "g1_pipeline": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/g1_pipeline_01/result.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/g1_pipeline_01/result.json",
+      "sha256": "16fecef650cadec08aa901aeb5e3dbac210f9ae1b8227936a9fd62fa4045728a",
+      "bytes": 55033
+    },
+    "g1_pipeline_process": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/g1_pipeline_process_01/process.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/g1_pipeline_process_01/process.json",
+      "sha256": "435ad4001318bec2fee6d1aadc482890a69be7c8a340e25e4fca8a9d60a9d507",
+      "bytes": 1383
+    },
+    "g1_train_job": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/g1_pipeline_01/train_job.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/g1_pipeline_01/train_job.json",
+      "sha256": "7d7f8792bae30b6a56fcb471a838e88d76c1c4a6272644bb5cd5c70beb1c2a7d",
+      "bytes": 2036
+    },
+    "g1_train_result": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/g1_pipeline_01/train_result.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/g1_pipeline_01/train_result.json",
+      "sha256": "4887054a305ef2e41e393133f84bf35e7194dc7ed8aea262d5740ed23ba5ca30",
+      "bytes": 1820
+    },
+    "g1_dev_job": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/g1_pipeline_01/public_dev_job.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/g1_pipeline_01/public_dev_job.json",
+      "sha256": "5c4b531c330e9ad6a3b7168c516f3e5a74f98cc1fd46ae36c4c27aa4d2165118",
+      "bytes": 2102
+    },
+    "g1_dev_result": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/g1_pipeline_01/public_dev_result.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/g1_pipeline_01/public_dev_result.json",
+      "sha256": "de188b86baf338cab15ad6b9c98ee42811c0a58af0e0d21ef8785349ef4dde11",
+      "bytes": 79935
+    },
+    "go2_wiring": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/go2_02/result.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/go2_02/result.json",
+      "sha256": "66595ee4b992ed89230856f8ad2fb84f57069bccea4e8b65e92a9da2f592c813",
+      "bytes": 27677
+    },
+    "go2_wiring_process": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/go2_process_02/process.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/go2_process_02/process.json",
+      "sha256": "832de0307810bec5c770648ed8a1057ceb300343b5f353f6cecc876ea7ae3b38",
+      "bytes": 1304
+    },
+    "go2_zero_control": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/go2_02/no_push.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/go2_02/no_push.json",
+      "sha256": "0eff41fc9595ecccfda983661d80e0b1151de02e6a0779c2647f05770c4d9618",
+      "bytes": 63266
+    },
+    "go2_zero_push": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/go2_02/recovery_v2.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/go2_02/recovery_v2.json",
+      "sha256": "5c4646f30fa94698d7886daafb18ec4dc7cf5325ee94089e674ad09b9b72f0c6",
+      "bytes": 168916
+    },
+    "go2_pipeline": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/go2_pipeline_01/result.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/go2_pipeline_01/result.json",
+      "sha256": "d04935ab60bb21975fc04707df41fe0c9a60ea941803354e3dada99ea0536b52",
+      "bytes": 55199
+    },
+    "go2_pipeline_process": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/go2_pipeline_process_01/process.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/go2_pipeline_process_01/process.json",
+      "sha256": "d6e62097b68cd7594218039a33fbdf96799f838ec7ef86869fd280f4436b2f40",
+      "bytes": 1387
+    },
+    "go2_train_job": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/go2_pipeline_01/train_job.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/go2_pipeline_01/train_job.json",
+      "sha256": "e9226a9ab20c5ac64ec7ce07f47a7327a27ae5727f19356d1c84b6787df4c2ed",
+      "bytes": 2036
+    },
+    "go2_train_result": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/go2_pipeline_01/train_result.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/go2_pipeline_01/train_result.json",
+      "sha256": "7e927ca986c86a78a7e43d6b34415fd1f73d3fe5d86f94f897f40374a0f41ef1",
+      "bytes": 1820
+    },
+    "go2_dev_job": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/go2_pipeline_01/public_dev_job.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/go2_pipeline_01/public_dev_job.json",
+      "sha256": "5149aeeac206101cd8c85bf3f237a1b0a610507baaae9e513329ad2fb3df69cb",
+      "bytes": 2102
+    },
+    "go2_dev_result": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/go2_pipeline_01/public_dev_result.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/go2_pipeline_01/public_dev_result.json",
+      "sha256": "fb50a85deeff532c4cec9fa4c03918c80e51a1d6813bbf9b26ef82748249697e",
+      "bytes": 205915
+    },
+    "g1_early_event": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/g1_event_01/result.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/g1_event_01/result.json",
+      "sha256": "bd32458de34d87c580058b25f68a60207b1c60e96f4302b70452d4f534366c63",
+      "bytes": 102563
+    },
+    "g1_early_event_process": {
+      "local_path": "PLAN/2new_world/P6/target_wiring_evidence_01/g1_event_process_01/process.json",
+      "target_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_wiring_20260911/g1_event_process_01/process.json",
+      "sha256": "f74c31a379066d32d208f22913215a2a5a40a7ba9fa65f0abb8d7714fc67aab6",
+      "bytes": 1274
+    }
+  },
+  "summary_hash": "9b3557950b123177848bd474d5b198e835187ca37faa1461819c3ef5b3374ada"
+}

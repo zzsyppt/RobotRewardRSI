@@ -1,0 +1,113 @@
+{
+  "status": "PASS",
+  "source_manifest_sha256": "cb571c766e5257561a429395b5a0748482d33d3a28599a55ee876d0f0671b9ce",
+  "g3_a_public_dev_delta": 0.000336,
+  "g3_a_guard_delta": 0.000504,
+  "parent_checkpoint_hash": "sha256:fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729",
+  "frames": [
+    {
+      "session": "c6",
+      "generation": 1,
+      "bytes": 59330,
+      "previous_bytes": 58959,
+      "feedback_bytes": 7153,
+      "memory_bytes": 996,
+      "detailed_candidates": [
+        "reference_anchor"
+      ],
+      "retained_trials": 0
+    },
+    {
+      "session": "c6",
+      "generation": 4,
+      "bytes": 93277,
+      "previous_bytes": null,
+      "feedback_bytes": 17441,
+      "memory_bytes": 6639,
+      "detailed_candidates": [
+        "reference_anchor",
+        "stair_swing_foot_clearance_penalty_v1"
+      ],
+      "retained_trials": 6
+    },
+    {
+      "session": "c6",
+      "generation": 7,
+      "bytes": 98667,
+      "previous_bytes": 112455,
+      "feedback_bytes": 18598,
+      "memory_bytes": 8843,
+      "detailed_candidates": [
+        "reference_anchor",
+        "stair_stable_forward_progress_v1"
+      ],
+      "retained_trials": 12
+    },
+    {
+      "session": "c6",
+      "generation": 9,
+      "bytes": 99721,
+      "previous_bytes": 105707,
+      "feedback_bytes": 16367,
+      "memory_bytes": 13782,
+      "detailed_candidates": [
+        "stair_swing_foot_level_sweep_penalty_v1",
+        "stair_swing_foot_clearance_reward_v1"
+      ],
+      "retained_trials": 16
+    },
+    {
+      "session": "c6",
+      "generation": 13,
+      "bytes": 102380,
+      "previous_bytes": 114943,
+      "feedback_bytes": 18483,
+      "memory_bytes": 14197,
+      "detailed_candidates": [
+        "stair_swing_foot_level_sweep_penalty_v1",
+        "stair_swing_rise_clearance_bonus_v1"
+      ],
+      "retained_trials": 24
+    },
+    {
+      "session": "c6",
+      "generation": 15,
+      "bytes": 102136,
+      "previous_bytes": 114583,
+      "feedback_bytes": 18483,
+      "memory_bytes": 13920,
+      "detailed_candidates": [
+        "stair_swing_foot_level_sweep_penalty_v1",
+        "stair_swing_rise_clearance_bonus_v1"
+      ],
+      "retained_trials": 28
+    },
+    {
+      "session": "c8",
+      "generation": 9,
+      "bytes": 99764,
+      "previous_bytes": 112363,
+      "feedback_bytes": 18642,
+      "memory_bytes": 12922,
+      "detailed_candidates": [
+        "go2_stair_clearance_aware_contact_v1",
+        "go2_stair_strike_velocity_clearance_v3"
+      ],
+      "retained_trials": 16
+    }
+  ],
+  "branches": [
+    {
+      "kind": "repair",
+      "bytes": 54384,
+      "feedback_scope": "current failed candidate; historical diagnostics not included"
+    },
+    {
+      "kind": "source_followup",
+      "bytes": 89447,
+      "shared_headers_retained": true
+    }
+  ],
+  "provider_requests": 0,
+  "training_jobs": 0
+}

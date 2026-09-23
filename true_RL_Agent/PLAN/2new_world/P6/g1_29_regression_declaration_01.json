@@ -1,0 +1,35 @@
+{
+  "frozen_at_utc": "2026-09-12T05:04:53.365086+00:00",
+  "purpose": "P6 current-backend G1-29 legacy checkpoint eval-only regression, not current physical Push qualification",
+  "command": [
+    "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+    "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P3/push_eval_preflight.py",
+    "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit2_push_resume/resumed.pt",
+    "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_29_eval_01",
+    "cuda:1"
+  ],
+  "script_sha256": "d3ea9b14d108928d5b10e07d8be85faa3cc162e6258e7588662e6643018d9749",
+  "checkpoint_current_sha256": "aae678721d4e9686f64fccd96410ac252a5150b6c88b10951081977254134043",
+  "checkpoint_bytes": 10011095,
+  "checkpoint_mtime_ns": 1788797091206193062,
+  "historical_checkpoint_hash_recorded": false,
+  "historical_result_sha256": "836363e5b0b9ae38514d84a144a6671f976554c928df9aad051689d5723c347a",
+  "historical_process_sha256": "183d76fd382eeecba821777111151f9a1e2d2028ee9eb6b3fbf660255d8f6296",
+  "source_hash": "5b6898803fc34d248f9a26617774c10c3da7e24b75a14e64fccac09fb2c38b37",
+  "limits": {
+    "training_jobs": 0,
+    "provider_calls": 0,
+    "auto_retries": 0,
+    "timeout_s": 300,
+    "num_envs": 16,
+    "max_steps_per_seed": 100,
+    "base_seed": 20260908,
+    "split_seed_counts": [
+      3,
+      3,
+      7
+    ]
+  },
+  "seed_scope": "previously consumed legacy diagnostic cohorts, no new recovery_v2 holdouts",
+  "lease_owner": "existing P3 script"
+}

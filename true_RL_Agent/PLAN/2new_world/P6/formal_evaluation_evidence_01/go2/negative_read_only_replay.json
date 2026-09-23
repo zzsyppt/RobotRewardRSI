@@ -1,0 +1,80 @@
+{
+  "accept_jobs": 0,
+  "budget": {
+    "dev_seeds": 3,
+    "envs_per_seed": 64,
+    "episodes": 192,
+    "max_env_control_steps": 58176,
+    "runner_timeout_s": 1800
+  },
+  "cell": "push.go2_12dof.recovery_v2",
+  "checkpoint_sha256": "sha256:55683f99894efeef440b07f53f1ddd9cc832e2cbcecf8d1f9dbd99262ccde5b2",
+  "completed_training_import_hash": "d4f140bb8018c725e4da0a8a1c39531b9e9a5fca1180fade49b64bd2cb893667",
+  "contract_hash": "b4312c04828d1fea4dbc9525048628447ca083f30a3c8a265829ed33be3201c1",
+  "ended_at_unix": 1789147761.4949186,
+  "formal_dir": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/go2",
+  "formal_evidence_replaced": false,
+  "formal_phase_receipts": {
+    "public_accept": {
+      "checksum": "sha256:fa481361000ea6c36bac7f12543a6b99a9ad77a0268303db1a7cf061fbc267c5",
+      "kind": "eval_phase",
+      "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/go2/reference_program_artifacts/evaluation_receipts/150a0dea051f6517f1b55bb2f8c5194c904c94edc012a40e46d87da4506f0dc0/eval_phases/public_accept.json",
+      "schema_version": "true_rl_agent.trial_receipt_ref.v1",
+      "size_bytes": 345687
+    },
+    "public_dev": {
+      "checksum": "sha256:2216998c0bf7c69f12c83bce312f728b9388c409f169a1514f8fee439b12e0d4",
+      "kind": "eval_phase",
+      "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/go2/reference_program_artifacts/evaluation_receipts/150a0dea051f6517f1b55bb2f8c5194c904c94edc012a40e46d87da4506f0dc0/eval_phases/public_dev.json",
+      "schema_version": "true_rl_agent.trial_receipt_ref.v1",
+      "size_bytes": 345397
+    },
+    "sealed_validation": {
+      "checksum": "sha256:edf9f4de4f06402be14f61374c334a910142355f95f52e865c33f5f3d464a158",
+      "kind": "eval_phase",
+      "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/go2/reference_program_artifacts/evaluation_receipts/150a0dea051f6517f1b55bb2f8c5194c904c94edc012a40e46d87da4506f0dc0/eval_phases/sealed_validation.json",
+      "schema_version": "true_rl_agent.trial_receipt_ref.v1",
+      "size_bytes": 802417
+    }
+  },
+  "genesis_created": false,
+  "infrastructure_retries": 0,
+  "mode": "preflight",
+  "phases_executed": [],
+  "provider_requests": 0,
+  "purpose": "P6 same-checkpoint native public-dev diagnostic",
+  "qualification_evidence": {
+    "evidence_hash": "07c84de5ca462b879aa37697ac6b86dc381dadd7c62d99c2d88a0f4452800f8d",
+    "gate_statuses": {
+      "accept_evidence_gate": "pass",
+      "budget_accounting": "pass",
+      "recovery_evidence_gate": "pass",
+      "sealed_validation_gate": "pass"
+    },
+    "protocol_hash": "6ceaeb7b2db365683d5b7a6009e562077ab7b322077b08729f36f4614075fe0d",
+    "public_accept_score": 1.0,
+    "public_dev_reference_band": [
+      0.2,
+      0.9
+    ],
+    "public_dev_score": 1.0,
+    "qualification_contract_hash": "c3cdb7afdce9895e692feb353c55abd1b4a7b1c68ec39856378887207c427e97",
+    "schema_version": "true_rl_agent.task.push_recovery.reference_evidence.v2",
+    "scope": "standing_recovery_task_and_reference"
+  },
+  "qualification_gate": {
+    "evidence_hash": "07c84de5ca462b879aa37697ac6b86dc381dadd7c62d99c2d88a0f4452800f8d",
+    "protocol_hash": "6ceaeb7b2db365683d5b7a6009e562077ab7b322077b08729f36f4614075fe0d",
+    "schema_version": "true_rl_agent.reference_qualification_gate.v1",
+    "status": "fail"
+  },
+  "sealed_jobs": 0,
+  "selected_env_index": 48,
+  "source_evaluation_plan_hash": "c7def35c8af0a5eed18ab3111f3d006b8e9b35393ec33a65000b9044d193c19d",
+  "source_kind": "unqualified_reference_diagnostic",
+  "started_at_unix": 1789147760.1363764,
+  "status": "PREPARED",
+  "train_jobs": 0,
+  "train_summary_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_formal_20260912/go2/runner/p6-reference-go2-20260912/train/summary.json",
+  "train_summary_sha256": "sha256:0e16f716c7fe82198523bc847aba436dc7d1870edf8ef21d0ce501f290bfd2a2"
+}

@@ -1,5 +1,22 @@
 """Dependency-light defaults for provider request limits."""
 
+from collections.abc import Mapping
+
+
+def validate_provider_model_context(value: Mapping) -> dict:
+    """Freeze declared model capacity; token counts come from the serving provider."""
+    if not isinstance(value, Mapping) or set(value) != {
+        "context_window_tokens", "max_output_tokens", "tokenizer_count_source", "specification_source"
+    }:
+        raise ValueError("provider model context fields mismatch")
+    for key in ("context_window_tokens", "max_output_tokens"):
+        if isinstance(value[key], bool) or not isinstance(value[key], int) or value[key] <= 0:
+            raise ValueError(f"provider {key} must be a positive integer")
+    if (value["tokenizer_count_source"] != "provider_usage_prompt_tokens"
+            or not isinstance(value["specification_source"], str) or not value["specification_source"]):
+        raise ValueError("provider capacity must state its specification and token-count authority")
+    return dict(value)
+
 # This is a practical ceiling, not a tokenizer or JSON-capacity proof.  It was
 # validated against production-shaped Stair prompts.  V4-Pro completed at 16K,
 # but V4-Flash with max reasoning exhausted 16K before emitting final JSON in

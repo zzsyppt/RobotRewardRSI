@@ -1,0 +1,142 @@
+{
+  "status": "FAILED_SESSION_CLOSURE_VERIFIED_PROVIDER_USAGE_PARTLY_UNKNOWN",
+  "audited_at_utc": "2026-09-23T02:59:01.578768+00:00",
+  "session_id": "go2-push-5rounds-20260922-a05",
+  "source_commit": "e4966704e6af631cc296b210daeef5f543186114",
+  "acceptance_authority": false,
+  "experiment_complete": false,
+  "counts": {
+    "ledger_records": 1,
+    "closed_generation_count": 1,
+    "paired_authoring_incomplete": 1,
+    "candidate_trains": 0,
+    "candidate_evaluations": 0,
+    "completed_scientific_candidate_trials": 0,
+    "reference_eval_jobs": 3,
+    "reference_eval_seed_units": 13,
+    "provider_requests_actually_dispatched": 3,
+    "authoritative_usage_receipts": 2,
+    "HTTP402_requests_without_authoritative_usage": 1,
+    "generation_2_prompt_reservations": 1,
+    "generation_2_provider_requests": 0,
+    "final_confirmation_jobs": 0
+  },
+  "provider_usage": {
+    "known_authoritative_totals": {
+      "request_units": 25084,
+      "response_units": 33505,
+      "total_units": 58589,
+      "reasoning_units": 32768
+    },
+    "HTTP402_actual_usage": null,
+    "HTTP402_actual_monetary_cost": null,
+    "per_conservative_reserve": {
+      "request_units": 65536,
+      "response_units": 32768,
+      "total_units": 98304
+    },
+    "recorded_accounting_totals": {
+      "provider_attempts": 4,
+      "provider_conservative_attempts": 2,
+      "provider_reasoning_units": 32768,
+      "provider_request_units": 156156,
+      "provider_response_units": 99041,
+      "provider_total_units": 255197
+    },
+    "conservative_charges": [
+      "provider-full-reserve:go2-push-5rounds-20260922-a05-generation-001-lane-a:3",
+      "provider-full-reserve:go2-push-5rounds-20260922-a05-generation-002-lane-a:1"
+    ],
+    "attempts": [
+      {
+        "attempt": 1,
+        "failure_category": "reasoning_output_exhausted",
+        "http_status": null,
+        "authoritative_usage": {
+          "reasoning_units": 32768,
+          "request_cache_hit_units": 12160,
+          "request_cache_miss_units": 221,
+          "request_units": 12381,
+          "response_units": 32768,
+          "total_units": 45149
+        }
+      },
+      {
+        "attempt": 2,
+        "failure_category": "json_parse_error",
+        "http_status": null,
+        "authoritative_usage": {
+          "request_cache_hit_units": 5248,
+          "request_cache_miss_units": 7455,
+          "request_units": 12703,
+          "response_units": 737,
+          "total_units": 13440
+        }
+      },
+      {
+        "attempt": 3,
+        "failure_category": "runtime_error",
+        "http_status": 402,
+        "authoritative_usage": null
+      }
+    ],
+    "meaning": "The recorded four provider attempts include one generation-2 prompt reservation blocked before delegate dispatch. Totals contain two full reserves: unknown HTTP402 usage and that unsent prompt reservation. This is conservative budget accounting, not four network requests, exact usage, or a settled monetary bill."
+  },
+  "measured_simulation_cost": {
+    "train_jobs": 0,
+    "train_steps": 0,
+    "eval_seed_units": 13,
+    "job_attempts": 3,
+    "simulated_control_steps": 252096,
+    "resource_lease_wall_duration_ns": 196744752699,
+    "allocated_gpu_capacity_hours_charged": 0.054651320194166665
+  },
+  "closure": {
+    "generation_record_hash": "a902b81a9328e5fb7bdc8566f3c6fe811ff5b9f176a3eb0d8e7af782adae0fb5",
+    "closure_hash": "c2d9925b63e63df16999bd4f468c2816e5511c648655674dea99a4e055299495",
+    "failed_segment_cost_hash": "52ea17bb2f7c406015642e203c7f553abee5ffeec7edc6a8cfcf49258cf33cad",
+    "recorded_cap_checks_passed": true,
+    "open_job_reservations": 0,
+    "process_returncode": 1,
+    "current_best_unchanged": true,
+    "owned_processes_after_stop": []
+  },
+  "preserved_reference_audit": {
+    "sha256": "54af2a41985c58ab8410f0ce966b8fcc1c7086c1e301f84f05b7d3c9edb34e8e",
+    "unchanged": true,
+    "checks": 63,
+    "rerun": false
+  },
+  "scope": "Read-only stopped-snapshot audit. A05 is failed and has not performed candidate scientific validation; its incomplete generation cannot be reused toward the fresh five-round run.",
+  "limits": [
+    "HTTP402 actual usage remains unknown and is not inferred as zero. No vendor billing statement or monetary reconciliation was inspected.",
+    "Available job and cost evidence closes the failed process with conservative reservations; reference qualification remains a separate valid reference-only result."
+  ],
+  "evidence_sha256": {
+    "PLAN/2new_world/Go2_push/attempt_05/reference_audit.json": "54af2a41985c58ab8410f0ce966b8fcc1c7086c1e301f84f05b7d3c9edb34e8e",
+    "PLAN/2new_world/Go2_push/attempt_05/session/ledger.jsonl": "1bbe52d4cc1aeb7c13c6b7337ad627280aefcd2e25a68e51ea6a08f0fc678e2f",
+    "PLAN/2new_world/Go2_push/attempt_05/session/generation_closures/go2-push-5rounds-20260922-a05-generation-001.json": "8752506ecac20ffcd498b813427af8d4fb93522faa80a40a7f3d493e36357459",
+    "PLAN/2new_world/Go2_push/attempt_05/session/generation_receipts/go2-push-5rounds-20260922-a05-generation-001/aa12ac90bbe35623aa5cb7d1985c306c8b776115e92cb947b6eb87fd7be586d8/execution.json": "decbd6260e4ab97bdfbf2973d65bf1422500fb58138c9cd033f70500742abe7e",
+    "PLAN/2new_world/Go2_push/attempt_05/session/generation_actual_cost/0000-session-reservation.json": "7c0f621dcc571e42af44e96fa73c034c861da6c29a1a74b3c744f23402ab62c2",
+    "PLAN/2new_world/Go2_push/attempt_05/session/generation_actual_cost/0001-post-genesis.json": "881038656666fdb2b674c5118c5b14126fbd82002170f078d26aef9bc065a521",
+    "PLAN/2new_world/Go2_push/attempt_05/session/generation_actual_cost/0002-post-parent-bootstrap.json": "ba0cca4d0a6ef74474a622e6b34cedcd715ba97450f94ab22bcff02efbc0ea10",
+    "PLAN/2new_world/Go2_push/attempt_05/session/generation_actual_cost/0003-generation-001-settlement.json": "b6b460ac96ff85c9a6ddc3589d93ccc4f6ad0ca59ed9330e4bae8579e5e70b65",
+    "PLAN/2new_world/Go2_push/attempt_05/session/generation_actual_cost/0004-segment-eb71eb6e3c824137adcdf0188ed8a52e-failed-generation-001.json": "6dfb0bea8938c4930e867c9be6303bd7db02af73dab2e0a47093353621c8c881",
+    "PLAN/2new_world/Go2_push/attempt_05/session/authoring/go2-push-5rounds-20260922-a05-generation-001/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "5401d53093028afb9f30ba189d7ce2ecb0f3322b3aef9687c6508e494c6bb06e",
+    "PLAN/2new_world/Go2_push/attempt_05/session/authoring/go2-push-5rounds-20260922-a05-generation-001/lane-a/authoring_attempts/attempt_000002/attempt_result.json": "0ad888a658fcaaf38313a07c2a6dbaf799e9604c5a2c0e701ea2efe99b8b30f1",
+    "PLAN/2new_world/Go2_push/attempt_05/session/authoring/go2-push-5rounds-20260922-a05-generation-001/lane-a/authoring_attempts/attempt_000003/attempt_result.json": "7acf68f13474495b1fcbbf258bf9cf78649051fa091ffd22fb9149dd5ee7cedf",
+    "PLAN/2new_world/Go2_push/attempt_05/session/authoring/go2-push-5rounds-20260922-a05-generation-002/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "143a6b018a5ec96eed8ee4a8b0fc58b92e47774c6b6661d3d50cc33cdad8d925",
+    "PLAN/2new_world/Go2_push/source_snapshot_05.json": "da8b2cc067a149ef22a988adc83ec0e78d7dbfeee489527461c261da0e0a1f33",
+    "src/true_rl_agent/agent_core/generation_provider_budget.py": "87b357df10f89d9556a7166deeb7a7a1046cdc9ac3d3b9865440d6064f36d30f",
+    "PLAN/2new_world/Go2_push/attempt_05/stderr.log": "e38426fc92d502f67fb917b714122b1e9a6491c1eea3ceb8951e645549e07583",
+    "PLAN/2new_world/Go2_push/attempt_05/session/generation_segments/segment-0000-eb71eb6e3c824137adcdf0188ed8a52e/exit.json": "75b247f7a8db759843236a21194cd497ad760121c924faee05e2c739ebc2fdf0",
+    "PLAN/2new_world/Go2_push/attempt_05/process.json": "f7deacdca5227252a72d1ada8f03be8eccca204b9a4ae60f7c41a33b7f2659e3",
+    "PLAN/2new_world/Go2_push/attempt_05/stop_for_provider_402.json": "1912087c69591500f86fd3786f9cf61c1ff74fac75c79050d72a8640641002e5",
+    "PLAN/2new_world/Go2_push/attempt_05/session/job_attempts/1993f2eac5d71df4b0aa523a/attempt_00.reservation.json": "d0599a2ca36b70e147803345b6e9011672f52616cf43f4afbc96a065573b7de9",
+    "PLAN/2new_world/Go2_push/attempt_05/session/job_attempts/1993f2eac5d71df4b0aa523a/attempt_00.result.json": "e044615795463e67372c0ab334bd7485e2ed56e3393380ade86aaba58b0c9668",
+    "PLAN/2new_world/Go2_push/attempt_05/session/job_attempts/46c0cdb32cfc14be8bd04d9e/attempt_00.reservation.json": "18dfdfd4cc2d229008c78083af8a6a5690d343bde5dadba7f475fe97128ecc7f",
+    "PLAN/2new_world/Go2_push/attempt_05/session/job_attempts/46c0cdb32cfc14be8bd04d9e/attempt_00.result.json": "0228f6f2dc0ecd8a412d71c7ead6f9406f53bc8bff1719fcce457514e5792d66",
+    "PLAN/2new_world/Go2_push/attempt_05/session/job_attempts/788dc2f1c31950ec4baa3298/attempt_00.reservation.json": "3a2c0adb305aea3f12c40f7f826ac145b05ea45e0d11088326ce939a079da6d9",
+    "PLAN/2new_world/Go2_push/attempt_05/session/job_attempts/788dc2f1c31950ec4baa3298/attempt_00.result.json": "99b52a655170be498e52a74db285ba0cc7d35ee737260776993d30fc14567d9b"
+  }
+}

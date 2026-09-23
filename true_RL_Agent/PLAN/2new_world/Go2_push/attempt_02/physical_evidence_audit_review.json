@@ -1,0 +1,45 @@
+{
+  "status": "PASS",
+  "scope": "Experiment audit script review only; no product code or frozen runtime changed. Synthetic mutations validate record-consistency checks, not simulator correctness.",
+  "script_sha256": "ed47b2eb95e634684d2faf677f8cc9ee89e24abda0a2950c389fc01326800a77",
+  "source_semantics_reviewed": [
+    "src/true_rl_agent/tasks/push_recovery/force_runtime.py:ForcePushRuntimeState",
+    "src/true_rl_agent/tasks/push_recovery/runtime.py:PushRuntimeState._observe_pose"
+  ],
+  "real_summary_count": 3,
+  "real_episodes": 832,
+  "real_force_events": 1025,
+  "early_fall_episodes_with_incomplete_pulses": 40,
+  "targeted_checks": [
+    {
+      "case": "completed flag inconsistency rejected",
+      "status": "FAIL",
+      "expected": "FAIL",
+      "matched_failure": "completed flag"
+    },
+    {
+      "case": "recovery before full fresh dwell rejected",
+      "status": "FAIL",
+      "expected": "FAIL",
+      "matched_failure": "fresh recovery window"
+    },
+    {
+      "case": "early fall cannot explain truncation after pulse deadline",
+      "status": "FAIL",
+      "expected": "FAIL",
+      "matched_failure": "event end before episode closure"
+    },
+    {
+      "case": "inclusive Torch float32 threshold equality preserved",
+      "status": "PASS",
+      "expected": "PASS",
+      "matched_failure": null
+    }
+  ],
+  "limitations": [
+    "Pose extrema and wrench verification are runtime exports, not independently read sensor/PhysX data.",
+    "No raw-frame reconstruction of continuous stable dwell, or final angular velocity, roll/pitch and height.",
+    "Pulse timing/count checks use the recorded control dt and expected substep count; physics dt is not independently reconstructed.",
+    "Fall labels use exported extrema and the same strict threshold ordering as episode_records; this is not a new outcome definition."
+  ]
+}

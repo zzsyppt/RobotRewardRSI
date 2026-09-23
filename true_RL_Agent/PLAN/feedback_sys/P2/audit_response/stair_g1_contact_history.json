@@ -1,0 +1,118 @@
+{
+  "profile": "stair.unified_first_episode.v2",
+  "identity": {
+    "job_id": "stair-dev-replay-4f62db0e487cfc39-eval-public-dev",
+    "task_id": "unitree_stair_climbing",
+    "subject_kind": "reference",
+    "subject_id": "official-g1-rough-reward-vnext-v1",
+    "subject_manifest_hash": "4090bd3b80113ee956400870e17dbe60809cf55d0a15e351ff11583942ff924f",
+    "program_source_checksum": "sha256:3462bdf78d874ce2e4ab527cea3c1530ebc93cf9750d2b4fc64292e3a63adfb8",
+    "training_binding_hash": "d7aea85d7742c57eae1753b8b236b32555269d9bcd8c25ed2b3742d2e045e14c",
+    "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+    "evaluation_binding": {
+      "schema_version": "true_rl_agent.evaluation.binding.v1",
+      "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+      "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+      "task_protocol_hash": "69feeb5aaf2216e9725148cebb24aa736284b85f40066761059e7824b8e8e243",
+      "seed_cohort_hash": "a37aa82260394873113a6bf3ff92d5eee65378ad99fdda25dd73377bc6b333ae",
+      "evaluation_binding_hash": "6e96e04f07f8cb000d5e658c46913a788e3c0380aaea78ee8c46faa15251b666"
+    },
+    "evaluation_plan_hash": "075d59f093fdd0af4f3b25886fd7c002a6713a7067c478de2ba40203672e074e",
+    "checkpoint_hash": "sha256:4f62db0e487cfc39c3cef61777bef9e4160b64f91f92fcca1cc795585ab8236c",
+    "resolved_cell_manifest_hash": "351a6a670c8047035a4d94b16c5694bfdf27fbfbb698085f31367b46f16993bb",
+    "seed_namespace": "formal_reference_candidate_eval",
+    "splits": [
+      "public_dev"
+    ],
+    "environment_source_preflight": {
+      "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+      "status": "pass",
+      "task_protocol_hash": "69feeb5aaf2216e9725148cebb24aa736284b85f40066761059e7824b8e8e243",
+      "source_manifest_hash": "7e5fd18144903c4798bd5506a300a239d81bb56853756e68c73664ac75059146"
+    },
+    "backend_execution_environment_verification": {
+      "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+      "backend_id": "isaac_lab_rsl_rl",
+      "status": "pass",
+      "expected_manifest_hash": "c472e507378f1256f95a7ffd69a3408cadd69fdcfdc6282a842e54562916fac0",
+      "actual_manifest_hash": "c472e507378f1256f95a7ffd69a3408cadd69fdcfdc6282a842e54562916fac0"
+    }
+  },
+  "reference": {
+    "manifest_path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/stair_g1_on/numeric_evidence/manifest.json",
+    "manifest_sha256": "4632b5b250844906078da85fa3766a57c89feea95ceda069fa5b2877ba3a31c6",
+    "schema_version": "true_rl_agent.numeric_evidence.ref.v1"
+  },
+  "status": "PASS",
+  "contact_force_history": {
+    "status": "recorded",
+    "schema_version": "true_rl_agent.stair.contact_force_history.v1",
+    "source": "contact_sensor.net_forces_w_history",
+    "force_semantics": "world_frame_net_normal_contact_force_N_not_contact_pair_or_surface",
+    "history_length": 3,
+    "history_order": "newest_to_oldest",
+    "history_clock": "contact_sensor_buffer_update_events",
+    "configured_sensor_update_period_s": 0.005,
+    "physics_dt_s": 0.005,
+    "control_dt_s": 0.02,
+    "physics_steps_per_control": 4,
+    "lazy_sensor_update": true,
+    "per_history_slot_timestamps": "not_recorded; configured_update_period_is_not_observed_sample_spacing",
+    "coverage": "existing_sensor_buffer_at_pre_reset_control_step_end; not_full_physics_trajectory",
+    "reset_history": "sensor_zeroes_history_on_reset; no_per_slot_validity_flags",
+    "array_axes": [
+      "control_step",
+      "environment",
+      "history",
+      "bound_body",
+      "xyz"
+    ]
+  },
+  "resolved_roles": {
+    "base": [
+      "torso_link"
+    ],
+    "support_effector": [
+      "left_ankle_roll_link",
+      "right_ankle_roll_link"
+    ],
+    "forbidden_contact": [
+      "torso_link"
+    ]
+  },
+  "forbidden_threshold_N": 1.0,
+  "support_threshold_N": 1.0,
+  "counts": {
+    "valid_control_frames": 300247,
+    "invalid_padding_frames": 218153,
+    "predicate_mismatches": 0,
+    "manager_contact_frames": 197,
+    "history_contact_frames": 197,
+    "manager_contact_terminal_frames": 197,
+    "instantaneous_zero_history_nonzero_terminal_frames": 11,
+    "instantaneous_below_threshold_history_above_terminal_frames": 11,
+    "support_history_vs_instantaneous_disagree_body_frames": 11240,
+    "valid_support_body_frames": 600494,
+    "nonzero_history_in_invalid_padding": 0
+  },
+  "first_mismatches": [],
+  "dtypes": {
+    "support_contact_forces_w_history": [
+      "float32"
+    ],
+    "forbidden_contact_forces_w_history": [
+      "float32"
+    ]
+  },
+  "resources": {
+    "max_chunk_raw_bytes": 7028352,
+    "total_raw_bytes": 197527680,
+    "archive_disk_bytes": 80557814
+  },
+  "boundaries": [
+    "A terminal count here is the nonexclusive manager term plus done mask, not primary_reason classification.",
+    "Support disagreement compares two saved operands; it does not change the existing instantaneous decoder semantics.",
+    "No contact pair, contact surface, per-slot timestamp or causal explanation is inferred.",
+    "Run verify_stair_pair.py separately for complete outcome/summary equivalence and on/off timing/RSS."
+  ]
+}

@@ -1,0 +1,221 @@
+{
+  "actual_training": [
+    {
+      "control_steps": 8,
+      "env_transitions": 128,
+      "excluded_preflight_steps": 1,
+      "latest_checkpoint_iteration": 0
+    },
+    {
+      "control_steps": 8,
+      "env_transitions": 128,
+      "excluded_preflight_steps": 1,
+      "latest_checkpoint_iteration": 0
+    }
+  ],
+  "archive_identity": {
+    "backend_execution_environment_verification": {
+      "actual_manifest_hash": "bf347ace6d0f82458d28bd772b72c88e20d65b7b05dbaff7f1bc14d220822c2b",
+      "backend_id": "isaac_lab_rsl_rl",
+      "expected_manifest_hash": "bf347ace6d0f82458d28bd772b72c88e20d65b7b05dbaff7f1bc14d220822c2b",
+      "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+      "status": "pass"
+    },
+    "diagnostic_smoke": true,
+    "environment_source_preflight": {
+      "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+      "source_manifest_hash": "7e5fd18144903c4798bd5506a300a239d81bb56853756e68c73664ac75059146",
+      "status": "pass",
+      "task_protocol_hash": "69feeb5aaf2216e9725148cebb24aa736284b85f40066761059e7824b8e8e243"
+    },
+    "initial_policy_state_hash": "db15c670321ef2c01c970eb2d4bb7b02bc194cc2e4b6ccd441f840ecb988e694",
+    "job": {
+      "job_id": "training-numeric-smoke-stair-train",
+      "subject_id": "official-g1-rough-reward-vnext-v1",
+      "subject_kind": "reference",
+      "subject_manifest_hash": "4090bd3b80113ee956400870e17dbe60809cf55d0a15e351ff11583942ff924f",
+      "task_id": "unitree_stair_climbing"
+    },
+    "program": {
+      "input_schema_hash": "1e8010af97ca3d384316e9c4987a9093bd719e72fa3adecf379cf7d2d51d9b56",
+      "program_source_checksum": "sha256:3462bdf78d874ce2e4ab527cea3c1530ebc93cf9750d2b4fc64292e3a63adfb8",
+      "program_source_size_bytes": 4126,
+      "qualification_hash": "4ebd610a3cb0ae915487f1fc6bc7868390c57359f67278799d63b2e199594a5e",
+      "schema_version": "true_rl_agent.task.stair_climbing.qualified_reward_program.v1",
+      "static_verifier_policy_hash": "310e04b305b2744a1ea62a6d5416e993905bdff401ffd33187fa1028bc402275",
+      "subject": {
+        "id": "official-g1-rough-reward-vnext-v1",
+        "kind": "reference",
+        "schema_version": "true_rl_agent.experiment.subject.v2"
+      },
+      "subject_manifest_hash": "4090bd3b80113ee956400870e17dbe60809cf55d0a15e351ff11583942ff924f",
+      "term_names": [
+        "termination_penalty",
+        "track_lin_vel_xy_exp",
+        "track_ang_vel_z_exp",
+        "feet_air_time",
+        "feet_slide",
+        "dof_pos_limits",
+        "joint_deviation_hip",
+        "joint_deviation_arms",
+        "joint_deviation_fingers",
+        "joint_deviation_torso",
+        "ang_vel_xy_l2",
+        "flat_orientation_l2",
+        "action_rate_l2",
+        "dof_acc_l2",
+        "dof_torques_l2"
+      ]
+    },
+    "resolved_cell_identity": {
+      "cell_variant_id": "stair.g1_37dof.unified_v3",
+      "environment_id": "stair_unified_c0_c1_environment_v3",
+      "resolved_cell_task_protocol_hash": "69feeb5aaf2216e9725148cebb24aa736284b85f40066761059e7824b8e8e243",
+      "robot_profile_id": "unitree_g1_37dof_isaaclab_v2",
+      "robot_task_binding_id": "stair_g1_37dof_unified_binding_v3",
+      "robot_task_cell_id": "unitree_stair_climbing.g1_37dof_v1",
+      "runtime_adapter_id": "g1_37dof_isaaclab_adapter_v2"
+    },
+    "resolved_cell_manifest_hash": "351a6a670c8047035a4d94b16c5694bfdf27fbfbb698085f31367b46f16993bb",
+    "run_dir": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_g1_on/run",
+    "run_name": "training_numeric_smoke",
+    "task": "stair_climbing",
+    "task_protocol_hash": "69feeb5aaf2216e9725148cebb24aa736284b85f40066761059e7824b8e8e243",
+    "training_binding_hash": "d7aea85d7742c57eae1753b8b236b32555269d9bcd8c25ed2b3742d2e045e14c",
+    "training_seed": 1275486543,
+    "workload_kind": "phase_d_smoke"
+  },
+  "cell_variant_id": "stair.g1_37dof.unified_v3",
+  "checkpoint_states": {
+    "checkpoint_iteration_equal": true,
+    "checkpoint_iterations": [
+      0,
+      0
+    ],
+    "file_hash_equal": true,
+    "first_mismatches": [],
+    "load_mode": "torch.load(map_location=cpu, weights_only=True)",
+    "mismatch_count": 0,
+    "model_keys": [
+      "actor_state_dict",
+      "critic_state_dict"
+    ],
+    "model_optimizer_exact": true,
+    "model_tensors": 17,
+    "optimizer_keys": [
+      "optimizer_state_dict"
+    ],
+    "optimizer_tensors": 51,
+    "other_top_level_metadata_excluded": [
+      "infos"
+    ]
+  },
+  "checks": {
+    "actual_training_steps": true,
+    "archive_backend_identity": true,
+    "archive_cell_identity": true,
+    "archive_initial_policy_identity": true,
+    "archive_program_identity": true,
+    "archive_training_binding_identity": true,
+    "checkpoint_files_match_training_receipts": true,
+    "checkpoint_iteration_equal": true,
+    "completed_on_off": true,
+    "coverage_equals_sealed_manifest": true,
+    "execution_argv_only_capture_and_outputs_differ": true,
+    "final_checkpoint_iteration": true,
+    "initial_policy_hash_equal": true,
+    "model_optimizer_exact": true,
+    "numeric_archive_within_2_gib": true,
+    "numeric_chunks_within_64_mib": true,
+    "off_capture_disabled": true,
+    "on_receipt_equals_archive_reference": true,
+    "paired_device": true,
+    "paired_diagnostic_workload": true,
+    "paired_extra_rss_within_512_mib": true,
+    "paired_program_source_checksum": true,
+    "paired_source_argv_sha256": true,
+    "paired_subject_kind": true,
+    "paired_task": true,
+    "planned_and_observed_control_steps": true,
+    "preflight_excluded": true,
+    "runtime_reward_observations_equal": true,
+    "sample_count_equals_coverage": true,
+    "summary_files_match_driver_receipts": true,
+    "three_windows_exact": true
+  },
+  "cost": {
+    "added_numeric_archive_bytes": 87534,
+    "cost_is_single_pair_observation_not_overhead_estimate": true,
+    "max_chunk_raw_bytes": 2112,
+    "max_rss_bytes_delta": 22401024,
+    "numeric_raw_bytes": 16960,
+    "off_output_tree_bytes": 15780544,
+    "off_wall_seconds": 19.296732431277633,
+    "on_output_tree_bytes": 15880615,
+    "on_wall_seconds": 18.895970154553652,
+    "output_tree_bytes_delta": 100071,
+    "resource_budget_checks": {
+      "numeric_archive_within_2_gib": true,
+      "numeric_chunks_within_64_mib": true,
+      "paired_extra_rss_within_512_mib": true
+    },
+    "resource_limits_bytes": {
+      "archive": 2147483648,
+      "paired_extra_rss": 536870912,
+      "raw_chunk": 67108864
+    },
+    "rss": {
+      "off": {
+        "elapsed_s": 19.46,
+        "max_rss_bytes": 5165924352,
+        "scope": "GNU time per-process high-water RSS including waited children; not sum of simultaneous process-tree RSS",
+        "source": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_g1_off.time",
+        "source_sha256": "sha256:13bb4c6f10907736510c6e80737e08575abb4f0a6f78964a6a4415db78419f68",
+        "status": "OBSERVED"
+      },
+      "on": {
+        "elapsed_s": 19.09,
+        "max_rss_bytes": 5188325376,
+        "scope": "GNU time per-process high-water RSS including waited children; not sum of simultaneous process-tree RSS",
+        "source": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_g1_on.time",
+        "source_sha256": "sha256:9295f82956609b395bf1a67aed90db5eec3f2f35d71ea4c25f4bc2183c067d50",
+        "status": "OBSERVED"
+      }
+    },
+    "training_wall_ratio_is_observation_only": true,
+    "wall_ratio": 0.979231599020651,
+    "wall_scope": "whole driver including child startup, training, teardown and numeric verification; not isolated training throughput",
+    "wall_seconds_delta": -0.4007622767239809
+  },
+  "failed_checks": [],
+  "limitations": [
+    "Short diagnostic training only; no policy qualification or scientific benefit claim.",
+    "Exact-state mismatch fails invariance; one uncontrolled GPU pair cannot attribute causation to capture."
+  ],
+  "numeric_and_training_invariance_pass": true,
+  "off_dir": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_g1_off",
+  "on_dir": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_g1_on",
+  "sampled_reward_recompute": {
+    "coverage_matches": true,
+    "identity_matches": true,
+    "observed_training_env_transitions": 128,
+    "planned_training_env_transitions": 128,
+    "ppo_post_manager_reward_observed": false,
+    "raw_weighted_sum_arithmetic_matches": true,
+    "tolerance": {
+      "atol": 1e-06,
+      "rtol": 1e-06
+    },
+    "verified_chunks": 9,
+    "verified_sampled_control_steps": 8,
+    "verified_sampled_env_transitions": 128
+  },
+  "schema_version": "true_rl_agent.p2.training_pair_check.v1",
+  "status": "PASS",
+  "task": "stair",
+  "full_report": {
+    "path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/train_stair_g1_verification.json",
+    "bytes": 8685,
+    "sha256": "f4ac74c7cca2766798fb75adc9ddae4ae3db1112dc985fbcca7807d364258125"
+  }
+}

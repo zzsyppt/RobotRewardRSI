@@ -17,6 +17,12 @@ def as_pair(value: Any) -> tuple[float, float]:
 def apply_push_recovery_overlay(env_cfg: Any, config: dict[str, Any], args: argparse.Namespace) -> None:
     """Mutate the Unitree velocity task cfg into standing push recovery."""
 
+    if "push_protocol" in config:
+        from true_rl_agent.tasks.push_recovery.runtime import apply_physical_push_overlay
+
+        apply_physical_push_overlay(env_cfg, config, args, evaluation=bool(getattr(args, "push_evaluation", False)))
+        return
+
     public_runtime_dynamics(config)
     env_cfg.seed = args.seed
     env_cfg.scene.num_envs = args.num_envs
@@ -70,6 +76,8 @@ def apply_push_recovery_overlay(env_cfg: Any, config: dict[str, Any], args: argp
 
 def apply_eval_overrides(env_cfg: Any, config: dict[str, Any]) -> None:
     public_runtime_dynamics(config)
+    if "push_protocol" in config:
+        return
     evaluation_cfg = config.get("evaluation", {})
     if bool(evaluation_cfg.get("disable_vendor_fall_terminations", False)):
         for name in ("base_height", "bad_orientation"):

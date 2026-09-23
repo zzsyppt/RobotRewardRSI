@@ -1,0 +1,383 @@
+{
+  "status": "PASS_GEN01_DECISION_AND_CLOSURE",
+  "audited_at_utc": "2026-09-23T07:39:47.921403+00:00",
+  "generation_id": "go2-push-5rounds-20260923-a08-generation-001",
+  "snapshot": ".tmp/go2_push_a08_live_05.zip",
+  "source_commit": "f13ceb6660e01e5367f3a0961fca9a269737bf2c",
+  "acceptance_authority": false,
+  "generation_closed_verified": true,
+  "five_round_experiment_complete": false,
+  "checks": {
+    "source_and_training_and_runtime_binding": true,
+    "selector_recomputed": true,
+    "accept_and_sealed_or_early_reject_recomputed": true,
+    "parent_head_chain": true,
+    "ledger_prefix_execution_closure": true,
+    "job_output_cost_and_resource_binding": true
+  },
+  "parent": {
+    "candidate_id": "push_standing_recovery_stationary_reference_v3",
+    "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+    "accept_score": 0.7395833333333334,
+    "dev_score": 0.734375,
+    "dev_receipt": "attempt_08/session/reference_program_artifacts/evaluation_receipts/0f31de7181c37d67cfebaca6e86eec1e1a8e6fd70364c7739d3d6e75e98b41ea/eval_phases/public_dev.json"
+  },
+  "lanes": [
+    {
+      "lane_id": "lane-a",
+      "candidate_id": "push_recovery_nonsaturating_stance_v1",
+      "train_steps": 49152000,
+      "iterations": 500,
+      "last_checkpoint_iteration": 499,
+      "checkpoint_hash": "sha256:0fcb1ddc36bc0a602f2312bdf3c4741bdf000976429fcd6a840ece79f3f1f1a1",
+      "candidate_source_checksum": "sha256:64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+      "training_binding_hash": "56b9f8f9ce1168684558273d47c16ce6400f5590832fdb60ae9f2a4f00b5e072",
+      "initial_policy_state_hash": "9a9c8718c855508ad5c96a0064d748a54542f3b87bfdbb151d59361e9b6e2e8b",
+      "gpu_uuid": "GPU-06661cdd-1a0e-904e-a2e3-705eda5fb65b",
+      "resource_binding_hash": "6717a64dc87b7d45f2180d07bd7eab19de67aafd859e149b160c1deb76ce4bdc",
+      "changed_component": {
+        "component_kind": "reward_term",
+        "effective_weight": 3.0,
+        "last_weighted_mean": 2.91338,
+        "max_abs_weighted_contribution": 12.0,
+        "name": "upright_recovery",
+        "nonzero_observation_count": 500,
+        "nonzero_observation_fraction": 1.0,
+        "observation_count": 500,
+        "sampling_interval_steps": 24
+      },
+      "training_runtime_gate_passed": true,
+      "verified_train_push_event_count": 231250,
+      "dev_successes": 169,
+      "dev_episodes": 192,
+      "dev_score": 0.8802083333333334,
+      "dev_seed_results": [
+        {
+          "successes": 54,
+          "episodes": 64,
+          "planned_push_events": 80,
+          "verified_push_events": 80,
+          "completed_push_events": 79,
+          "fall_ended_incomplete_sequences": 1
+        },
+        {
+          "successes": 56,
+          "episodes": 64,
+          "planned_push_events": 80,
+          "verified_push_events": 80,
+          "completed_push_events": 79,
+          "fall_ended_incomplete_sequences": 1
+        },
+        {
+          "successes": 59,
+          "episodes": 64,
+          "planned_push_events": 80,
+          "verified_push_events": 80,
+          "completed_push_events": 80,
+          "fall_ended_incomplete_sequences": 0
+        }
+      ],
+      "max_abs_candidate_reward": 36.602413177490234,
+      "reward_finite_fraction": 1.0
+    },
+    {
+      "lane_id": "lane-b",
+      "candidate_id": "push_go2_recovery_gated_damping_v1",
+      "train_steps": 49152000,
+      "iterations": 500,
+      "last_checkpoint_iteration": 499,
+      "checkpoint_hash": "sha256:549c40f5e978912fc5c482b7386b58c97937bd8514b690ca112754e3891554ad",
+      "candidate_source_checksum": "sha256:bb3ae423e2f84d1a0aea017b323413582ceb125214d68798b5a0849f78b02fdd",
+      "training_binding_hash": "56b9f8f9ce1168684558273d47c16ce6400f5590832fdb60ae9f2a4f00b5e072",
+      "initial_policy_state_hash": "9a9c8718c855508ad5c96a0064d748a54542f3b87bfdbb151d59361e9b6e2e8b",
+      "gpu_uuid": "GPU-8cd998f2-d42e-394e-7aae-a6701bb9b187",
+      "resource_binding_hash": "179782fce40050a2836f5800bb3925f40dffb490510586d03a435f9b0c9e57d7",
+      "changed_component": {
+        "component_kind": "reward_term",
+        "effective_weight": 1.0,
+        "last_weighted_mean": 0.749577,
+        "max_abs_weighted_contribution": 1.5,
+        "name": "recovery_damping",
+        "nonzero_observation_count": 500,
+        "nonzero_observation_fraction": 1.0,
+        "observation_count": 500,
+        "sampling_interval_steps": 24
+      },
+      "training_runtime_gate_passed": true,
+      "verified_train_push_event_count": 215461,
+      "dev_successes": 163,
+      "dev_episodes": 192,
+      "dev_score": 0.8489583333333334,
+      "dev_seed_results": [
+        {
+          "successes": 54,
+          "episodes": 64,
+          "planned_push_events": 80,
+          "verified_push_events": 80,
+          "completed_push_events": 80,
+          "fall_ended_incomplete_sequences": 0
+        },
+        {
+          "successes": 53,
+          "episodes": 64,
+          "planned_push_events": 80,
+          "verified_push_events": 80,
+          "completed_push_events": 80,
+          "fall_ended_incomplete_sequences": 0
+        },
+        {
+          "successes": 56,
+          "episodes": 64,
+          "planned_push_events": 80,
+          "verified_push_events": 80,
+          "completed_push_events": 79,
+          "fall_ended_incomplete_sequences": 1
+        }
+      ],
+      "max_abs_candidate_reward": 388.1664733886719,
+      "reward_finite_fraction": 1.0
+    }
+  ],
+  "selection": {
+    "acceptance_authority": false,
+    "contract_hash": "227f90104ae4c49b53a670e9d82c8009f745076a732def4838136d290ddc02a8",
+    "guard_reference_evidence_hash": "215a9ecdd82d6a9929e8ddb6c9c5d7c787b652d34a91ddc7be421964440360f9",
+    "reason": "public_dev_success_rank",
+    "schema_version": "true_rl_agent.task.push_recovery.selection.v1",
+    "screen_evidence_hashes": [
+      "ac06157e5977aef70e1186341405e23b82fde8376eab2a9ebd9bbab973899ef5",
+      "5cbb931c3e240632c62ea97d3b5dfcec51dd325ffab447626415c995e1123f72"
+    ],
+    "selected_trial_id": "go2-push-5rounds-20260923-a08-generation-001-lane-a"
+  },
+  "accept": {
+    "seed_successes": [
+      54,
+      55,
+      50
+    ],
+    "successes": 159,
+    "episodes": 192,
+    "score": 0.828125
+  },
+  "sealed": {
+    "seed_successes": [
+      52,
+      58,
+      55,
+      57,
+      59,
+      61,
+      52
+    ],
+    "successes": 394,
+    "episodes": 448,
+    "score": 0.8794642857142857,
+    "public_to_sealed_drop": -0.0513392857142857
+  },
+  "decision": {
+    "outcome": "policy_improvement_accept",
+    "accepted": true,
+    "reason": "noise_aware_delta",
+    "surface_classification": "code_level",
+    "public_score": 0.828125,
+    "comparison": {
+      "mode": "reference",
+      "score_source": "public_accept.score_stats.mean",
+      "acceptance_protocol_hash": "a9638274f7223f91ef1f115e2c9858fc75e40eddf6223ea891054ef15fe339bd",
+      "candidate_score": 0.828125,
+      "current_best_score": 0.7395833333333334,
+      "absolute_accept_floor": 0.0,
+      "candidate_score_stats": {
+        "count": 3,
+        "mean": 0.828125,
+        "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+        "std": 0.04133986423538423,
+        "standard_error": 0.023867581744561668,
+        "statistics_version": "true_rl_agent.derived_statistics.v1"
+      },
+      "best_score_stats": {
+        "count": 3,
+        "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+        "mean": 0.7395833333333334,
+        "standard_error": 0.027559909490256152,
+        "statistics_version": "true_rl_agent.derived_statistics.v1",
+        "std": 0.047735163489123336
+      },
+      "candidate_evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234",
+      "current_best": {
+        "mode": "reference",
+        "anchor_kind": "reference",
+        "anchor_id": "push_standing_recovery_stationary_reference_v3",
+        "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+        "subject_manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+        "program_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+        "training_binding_hash": "56b9f8f9ce1168684558273d47c16ce6400f5590832fdb60ae9f2a4f00b5e072",
+        "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+        "accepted_round_id": null,
+        "accepted_candidate_id": null,
+        "task_protocol_hash": "31622698100045fc8c2fac8707a71a39f84655c2cfde714421fd5b92f748407d",
+        "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+        "acceptance_protocol_hash": "a9638274f7223f91ef1f115e2c9858fc75e40eddf6223ea891054ef15fe339bd",
+        "seed_cohort_hash": "78fcd36dddb12ef0b3a520a87bf89c55bbf7d346c0c4c39e8666c44ac490c469",
+        "evaluation_binding_hash": "bce62f19a9f0a396a0785ac4bc920581f1219ac2320cf3808b38c4ef2c7bf234"
+      },
+      "public_score": 0.828125,
+      "delta": 0.08854166666666663,
+      "threshold": 0.05,
+      "delta_met": true
+    },
+    "consumed_gates": [
+      "accept_evidence_gate",
+      "budget_accounting",
+      "recovery_evidence_gate",
+      "sealed_validation_gate"
+    ],
+    "gate_statuses": {
+      "accept_evidence_gate": "pass",
+      "budget_accounting": "pass",
+      "recovery_evidence_gate": "pass",
+      "sealed_validation_gate": "pass"
+    }
+  },
+  "resulting_head": {
+    "candidate_id": "push_recovery_nonsaturating_stance_v1",
+    "checkpoint_hash": "sha256:0fcb1ddc36bc0a602f2312bdf3c4741bdf000976429fcd6a840ece79f3f1f1a1",
+    "public_score": 0.828125
+  },
+  "closure": {
+    "generation_record_hash": "7a9e884e05c32fd64884b45c0388b4ca1226d8b8236b044d4c8406d96a70277c",
+    "closure_hash": "8528673440f06383e061beb16921ebec5808df679cf1c59a9790196693b36cb6",
+    "ledger_prefix_hash": "2a4167451cd776915ab414dfd01c787548dae9ad4c2b9635af3351b4dea8efe3",
+    "cost_cap_checks_all_passed": true,
+    "open_attempts": 0,
+    "cumulative_actual_cost": {
+      "accounted_output_bytes": 125733616,
+      "allocated_gpu_capacity_hours_charged": 0.5206099616222222,
+      "conservatively_charged_gpu_capacity_ns": 0,
+      "eval_seed_units": 29,
+      "finalization_output_reserve_bytes": 1048576,
+      "job_attempts": 9,
+      "job_cost_evidence_hash": "81bd4452caba4d32ec7d04c662ac63b823a651c1aee7adea8956ae2c4c4c2d8d",
+      "observed_output_bytes": 124685040,
+      "observed_output_files": 157,
+      "provider_attempts": 2,
+      "provider_conservative_attempts": 0,
+      "provider_reasoning_units": 41105,
+      "provider_request_units": 24966,
+      "provider_response_units": 43341,
+      "provider_total_units": 68307,
+      "resource_lease_wall_duration_ns": 1874195861840,
+      "simulated_control_steps": 98866368,
+      "train_jobs": 2,
+      "train_steps": 98304000,
+      "unmeasured_bound_attempts": 0
+    },
+    "generation_actual_cost_delta": {
+      "train_jobs": 2,
+      "eval_seed_units": 16,
+      "job_attempts": 6,
+      "provider_attempts": 2
+    }
+  },
+  "job_attempts": [
+    {
+      "job_id": "go2-push-5rounds-20260923-a08-generation-001-lane-a-train",
+      "attempt_index": 0,
+      "outcome": "completed",
+      "output_hash": "8a1159f3c73426fb672713d1ed7c4432914e82d3eba66278d488f80138e6705b"
+    },
+    {
+      "job_id": "go2-push-5rounds-20260923-a08-generation-001-lane-a-eval-public-accept",
+      "attempt_index": 0,
+      "outcome": "completed",
+      "output_hash": "6041ae414abd3b3a2cb9b1d2906270e83d69629ab9a5282b3fe89bd2ef24dfee"
+    },
+    {
+      "job_id": "go2-push-5rounds-20260923-a08-generation-001-lane-a-eval-sealed-validation",
+      "attempt_index": 0,
+      "outcome": "completed",
+      "output_hash": "9276cbaf354abc5a59665124632adf17c7c5c23d348c2815565df3daffa3c431"
+    },
+    {
+      "job_id": "go2-push-5rounds-20260923-a08-generation-001-lane-b-eval-public-dev",
+      "attempt_index": 0,
+      "outcome": "completed",
+      "output_hash": "cb52b63ffdd40681d00268aecb5f9d4457cc02d27c12bbfd21d443a9829b85b8"
+    },
+    {
+      "job_id": "go2-push-5rounds-20260923-a08-generation-001-lane-b-train",
+      "attempt_index": 0,
+      "outcome": "completed",
+      "output_hash": "96d0211308f15603131b179185bb898fe2c14c44f49238d4902bc814b1d2d922"
+    },
+    {
+      "job_id": "go2-push-5rounds-20260923-a08-generation-001-lane-a-eval-public-dev",
+      "attempt_index": 0,
+      "outcome": "completed",
+      "output_hash": "3ea86a70093b3f3b7b0d989d0ea666585fd1f72947e9575b69abcbf50acb18bb"
+    }
+  ],
+  "evidence_sha256": {
+    "attempt_08/session/resolved_cell_manifest.json": "a130b3a97ce4afde8574d19c575a430e8b83ec3750c40b43bc87465cfa0905dd",
+    "source_snapshot_08.json": "bff645daff96c7afcdb71b46e8aa95cfcaef206499fe711bbe9d21e3cdbfa4b9",
+    "attempt_08/session/ledger.jsonl": "e652d3699dcf4a4fbe281b8203389d9bc1fbe46c1fd6f0d3cd312384d2ca79ac",
+    "attempt_08/session/generation_receipts/go2-push-5rounds-20260923-a08-generation-001/90fc0e58851d717fae9e43e7b556567163867281071760e91fc0aff3ca7ad7f0/selection.json": "e3da576206180e237bb1277ed205a93f82706631f751928c3ad9a8316c7a6ccd",
+    "attempt_08/session/generation_receipts/go2-push-5rounds-20260923-a08-generation-001/90fc0e58851d717fae9e43e7b556567163867281071760e91fc0aff3ca7ad7f0/manifest.json": "59f8cf99273ad7ba4674ecc577dee4519bb8f359db1b5d34552ac320eea3ba02",
+    "attempt_08/session/generation_session_contract.json": "28def818f21427ffe3e78e53a0dd1831409a2cc6cb22c9933b3dacffc024b82e",
+    "attempt_08/session/session_genesis.json": "15d54f658aa68263401f8e11fd5046ad5e3b181089fd05bb975144c9e953c837",
+    "attempt_08/session/reference_program_artifacts/evaluation_receipts/0f31de7181c37d67cfebaca6e86eec1e1a8e6fd70364c7739d3d6e75e98b41ea/eval_phases/public_dev.json": "9358c3056f59ad334020a38fc54a38673bfe65a8df4f5cb68db919dd9ea0d238",
+    "attempt_08/session/trial_receipts/go2-push-5rounds-20260923-a08-generation-001/lane-a/f2891c9b2181d12741710499cb6c5e50d0e8b40103d9368c8192269f92a9bd81/contract.json": "8278028c005d5050252a209f23d11df8b8ce870307ee4435b348ebc5be922b69",
+    "attempt_08/session/trial_receipts/go2-push-5rounds-20260923-a08-generation-001/lane-a/f2891c9b2181d12741710499cb6c5e50d0e8b40103d9368c8192269f92a9bd81/train.json": "76dbd48250304e116e2247b52747dbad2fde355e9b6b907d3df99156a4f2290a",
+    "attempt_08/session/trial_receipts/go2-push-5rounds-20260923-a08-generation-001/lane-a/f2891c9b2181d12741710499cb6c5e50d0e8b40103d9368c8192269f92a9bd81/eval_phases/public_dev.json": "911e6f8d5d7d7cae5e36ff9d84fb289b3b9d9ce0f829bf0f1318f8c72e38b214",
+    "attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/train/summary.json": "8349850b6c0925c520e56cf68345386bbb37ba3ac191eba2b8e7d4b819a8b01d",
+    ".tmp/go2_push_a08_live_05.zip::attempt_08/session/candidate_artifacts/go2-push-5rounds-20260923-a08-generation-001/lane-a/push_recovery_nonsaturating_stance_v1/008dbeae66a3772e2f9da31246d35b5704a05b71b293301c8043600688c4ad53/training_code/components.py": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+    "attempt_08/session/trial_receipts/go2-push-5rounds-20260923-a08-generation-001/lane-b/bb0908a708f5e91b8c87120b5886941a41487f6d39f0055c56351a5812532ce8/contract.json": "6e14de32169456d925140a612bea8e7814f9eb0aa7c48de8ef6f0a92620a0214",
+    "attempt_08/session/trial_receipts/go2-push-5rounds-20260923-a08-generation-001/lane-b/bb0908a708f5e91b8c87120b5886941a41487f6d39f0055c56351a5812532ce8/train.json": "b9ea451835614317a26ab008c53f5ff93009ecce14cd538fa011013e8c2f78b8",
+    "attempt_08/session/trial_receipts/go2-push-5rounds-20260923-a08-generation-001/lane-b/bb0908a708f5e91b8c87120b5886941a41487f6d39f0055c56351a5812532ce8/eval_phases/public_dev.json": "6e6d112f3d615d30bf79fb1fb85d115fed95f5d85cf76dc2cb4ad9fb717a1ebd",
+    "attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-001-lane-b/train/summary.json": "1fd866630c40caa6b4cafe4a2a0b71d847e4183c9cf947a4b3086d43d8569012",
+    ".tmp/go2_push_a08_live_05.zip::attempt_08/session/candidate_artifacts/go2-push-5rounds-20260923-a08-generation-001/lane-b/push_go2_recovery_gated_damping_v1/cc12312cf39b683a41410a01acbb7f300b1e558107eb62db028edd4216c1cc5c/training_code/components.py": "bb3ae423e2f84d1a0aea017b323413582ceb125214d68798b5a0849f78b02fdd",
+    "attempt_08/session/trial_receipts/go2-push-5rounds-20260923-a08-generation-001/lane-a/f2891c9b2181d12741710499cb6c5e50d0e8b40103d9368c8192269f92a9bd81/eval_phases/public_accept.json": "161afa2407e9ea60ed9f54d3c7251ac40ffb536bc7ef4176df03410c69ab0b37",
+    "attempt_08/session/trial_receipts/go2-push-5rounds-20260923-a08-generation-001/lane-a/f2891c9b2181d12741710499cb6c5e50d0e8b40103d9368c8192269f92a9bd81/eval_phases/sealed_validation.json": "2d635c6aec970931accef476e89f0097eebafe24bf2a9d2906e2b36ac484db1d",
+    "attempt_08/session/trial_receipts/go2-push-5rounds-20260923-a08-generation-001/lane-a/f2891c9b2181d12741710499cb6c5e50d0e8b40103d9368c8192269f92a9bd81/execution.json": "68f1e812d9f404cd6289de8f6bf8f59df3fe3db23c4743db55d15cd6055119df",
+    "attempt_08/session/generation_receipts/go2-push-5rounds-20260923-a08-generation-001/90fc0e58851d717fae9e43e7b556567163867281071760e91fc0aff3ca7ad7f0/execution.json": "281a357539f6192fdefb751b67f73be5716bc6c0e22649ded6d5fdd290e08602",
+    "attempt_08/session/generation_closures/go2-push-5rounds-20260923-a08-generation-001.json": "2029fc8bdba6015335d5d9900d1908a47e1be7d857e4265f582a7e95bafcea55",
+    "attempt_08/session/runner/go2-push-5rounds-20260923-a08/eval/public_accept/summary.json": "d0fa6612026127c9dd32364e2dd14e9425aa88ab127b086a51a3fd75e08fd97e",
+    "attempt_08/session/runner/go2-push-5rounds-20260923-a08/eval/public_dev/summary.json": "9792c53e8d55883a90fc03a31b407b54919d271a87cc05a2521461aa60067e1f",
+    "attempt_08/session/runner/go2-push-5rounds-20260923-a08/eval/sealed_validation/summary.json": "1ec4b6d1773ff357056f40848ef3db1f03fd18f6ac4ae1fa0493434e1b7ed58e",
+    "attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/eval/public_accept/summary.json": "a4f098d3681b0d1ecb5ef9ac1f2d6ecf03cb564abc1a10127c4c7f4252e18d9e",
+    "attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/eval/public_dev/summary.json": "5b571b1d26f768e6e4e2af17894cc1e1eafc800af6bd92f915df0dd7b17eb919",
+    "attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/eval/sealed_validation/summary.json": "f090c7ea005afe513aa56ef278e20aca7a30ebad2470e12d6114296cfb9eed9d",
+    "attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-001-lane-b/eval/public_dev/summary.json": "2e2944c1f703759a1d590663ac419aabc660b7cb488bdffe11f5107e83033386",
+    "attempt_08/session/job_attempts/28e6b7fd1fc6fa0efa8c18ef/attempt_00.reservation.json": "aac69536ca4650ddccf387ce6d4840885f39543c735c735fcd44287bc233f29b",
+    "attempt_08/session/job_attempts/28e6b7fd1fc6fa0efa8c18ef/attempt_00.result.json": "1cf823ca5f8aa4402ed482c383ffea7fad9e235a475dd9149c029ef6b98bd4bd",
+    "attempt_08/session/job_attempts/362b89115174d67cd35bff4f/attempt_00.reservation.json": "b0d6a2cf16fc78460c22e04076c92e69ebbf09a6a9fe1ffd6d6c9be120ba969f",
+    "attempt_08/session/job_attempts/362b89115174d67cd35bff4f/attempt_00.result.json": "15f3d2a0b9029bdb58ade039fe2bf9624b48d76cf5d8cd22c83ee8b8bcbefc0b",
+    "attempt_08/session/job_attempts/6d4b23daf734d8d872534f10/attempt_00.reservation.json": "53521eb875c85f6537efae3fd7d13110e81f7bf3e9f4c0f86dcb0711923fa759",
+    "attempt_08/session/job_attempts/6d4b23daf734d8d872534f10/attempt_00.result.json": "58eddf7dc1137ae90dd7f1a86c2de8afa3b3f07396a0e7103b381df30c34d851",
+    "attempt_08/session/job_attempts/97e4f8321ef9b1d5ba3f17fc/attempt_00.reservation.json": "650342493684763de0cc2ac974c5eae124c300139ba5e7669862dc1cf768f08b",
+    "attempt_08/session/job_attempts/97e4f8321ef9b1d5ba3f17fc/attempt_00.result.json": "34fb77ac5207a85f6e7214b10d022cacb3afd27c3097585e6ecc42a363275dec",
+    "attempt_08/session/job_attempts/c240a8c5783aad8c3530f978/attempt_00.reservation.json": "ceb1bf11e7e997a1cda131400566f593da5ce3c550e9151d210ae539db91f86a",
+    "attempt_08/session/job_attempts/c240a8c5783aad8c3530f978/attempt_00.result.json": "705b13eebb1a552d36aaca710ede88b23149dfa444229a7ed73d7d10b0bd2051",
+    "attempt_08/session/job_attempts/c491f941f1180c2c851f1c2c/attempt_00.reservation.json": "4fa4f72f972f74fb34f424ad23e56dd463fa915849cf7313976c36508a0c3c83",
+    "attempt_08/session/job_attempts/c491f941f1180c2c851f1c2c/attempt_00.result.json": "40241ffc766336904d5a75167c83cb9cf7c7d08bef793e40b5b71f208241f05d",
+    "attempt_08/session/generation_actual_cost/0003-generation-001-settlement.json": "5cb7c91de59be969e516e47e775f05b988a6aa202f1a6f0ac0a49e5058b08289",
+    "attempt_08/session/generation_actual_cost/0002-post-parent-bootstrap.json": "6619aafc510ad59d771aadd033040889f5cf8f57b2a807555d38627e1dcc7f03"
+  },
+  "verified_frozen_source_sha256": {
+    "src/true_rl_agent/tasks/push_recovery/config.py": "d8618ca849775245e5834244136bfd8aca387835d56b510975dadbb5f42d0f77",
+    "src/true_rl_agent/tasks/push_recovery/phased_adapter.py": "e772df7548709015c32a2c8ea741ee976e65728830997deb3335dbb70860c1b7",
+    "src/true_rl_agent/tasks/push_recovery/plugin.py": "e0d135482e6d4b41e75eea3077982d77f6b52e245ad913ca21322c553a7423df",
+    "src/true_rl_agent/tasks/push_recovery/metrics.py": "4432b91518796bbfdbdf0e26aff05d67bb69ab0530fdbe217712019c21a99b50",
+    "src/true_rl_agent/agent_core/decision.py": "62f5665f4fe2001aaec7c030619efcc89fb1ddc7e5bf00595755926243f2b47e",
+    "src/true_rl_agent/agent_core/generation_early_rejection.py": "c41bf3e48133ea4157b0aae3831c9707964c98a5ac219be89d740d6fd0f4d8ec",
+    "src/true_rl_agent/agent_core/trial_receipts.py": "ff3e383a0ce03be3bd87dea17141d6cee23f97a187e5b9b51ac45001ed4a67e7",
+    "src/true_rl_agent/runner/base.py": "41c208763e1298b142c840ee0fee111f57cbdd18206419d67b9882f096cb80be",
+    "src/true_rl_agent/runner/subprocess_runner.py": "8d9c68c8590c6da9e75b1bd3be49f134abb1cf9837267d6c8fe2cbdaa2afe227"
+  },
+  "limits": [
+    "Checkpoint bytes remain remote; target safety and receipt-bound hashes were checked.",
+    "This checks one closed generation, not automatic final confirmation or whole-session completion.",
+    "Runtime periodic samples do not bound all-step reward magnitudes; no causal mechanism claim follows."
+  ]
+}

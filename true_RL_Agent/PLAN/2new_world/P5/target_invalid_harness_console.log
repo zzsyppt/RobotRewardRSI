@@ -1,0 +1,89 @@
+Traceback (most recent call last):
+  File "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P5/run_full_tests.py", line 29, in <module>
+    result = unittest.TextTestRunner(stream=stream, verbosity=1).run(suite)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/runner.py", line 240, in run
+    test(result)
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/suite.py", line 84, in __call__
+    return self.run(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/suite.py", line 122, in run
+    test(result)
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/suite.py", line 84, in __call__
+    return self.run(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/suite.py", line 122, in run
+    test(result)
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/suite.py", line 84, in __call__
+    return self.run(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/suite.py", line 122, in run
+    test(result)
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/case.py", line 690, in __call__
+    return self.run(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/case.py", line 634, in run
+    self._callTestMethod(testMethod)
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/unittest/case.py", line 589, in _callTestMethod
+    if method() is not None:
+       ^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/tests/integration/test_generation_session.py", line 303, in test_push_accepted_head_resumes_and_closes_final
+    self._accepted_head_session(PushRecoveryCompositionProvider(), "push.g1_29dof.reference_v1",
+  File "/data/yuyangliu/AGENT/true_RL_Agent/tests/integration/test_generation_session.py", line 317, in _accepted_head_session
+    paused = run_generation_session(foundation)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation_application.py", line 238, in run_generation_session
+    return run_bounded_generation_session(foundation, genesis=genesis, cost_journal=journal,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation_session.py", line 291, in run_bounded_generation_session
+    result = execute_fixed_width_generation(generation_inputs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation.py", line 269, in execute_fixed_width_generation
+    state.authoring = state.runtime.author(exclusion)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation_lanes.py", line 216, in <lambda>
+    author=(lambda exclusion, lane_id=lane_id: author(lane_id, exclusion)),
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation_lanes.py", line 144, in author
+    return record_authoring(
+           ^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation_runtime.py", line 129, in <lambda>
+    record_authoring=lambda *, author, **_: author())
+                                            ^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/generation_lanes.py", line 150, in <lambda>
+    author=lambda: authoring_loop.run_round(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/authoring_loop.py", line 269, in run_round
+    return self._run_round_locked(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/authoring_loop.py", line 654, in _run_round_locked
+    verification = self.candidate_admission_policy.verify(candidate)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/candidates/verifier.py", line 872, in verify
+    result = self._verify_trusted_candidate(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/candidates/verifier.py", line 946, in _verify_trusted_candidate
+    loaded = _load_components_summary_with_timeout(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/candidates/verifier.py", line 1372, in _load_components_summary_with_timeout
+    outcome = run_ready_worker(
+              ^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/candidates/isolated_worker.py", line 65, in run_ready_worker
+    ready = _receive_message(
+            ^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/candidates/isolated_worker.py", line 111, in _receive_message
+    if not connection.poll(timeout_s):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/multiprocessing/connection.py", line 257, in poll
+    return self._poll(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/multiprocessing/connection.py", line 440, in _poll
+    r = wait([self], timeout)
+        ^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/multiprocessing/connection.py", line 1136, in wait
+    ready = selector.select(timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/selectors.py", line 415, in select
+    fd_event_list = self._selector.poll(timeout)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt

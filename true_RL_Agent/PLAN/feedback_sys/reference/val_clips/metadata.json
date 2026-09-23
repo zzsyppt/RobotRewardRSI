@@ -1,0 +1,315 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-28T10:53:51+08:00",
+  "source": {
+    "feedback_json": "/Users/luyichen.lyc/Downloads/test_vlms/data_v2.json",
+    "baseline_json": "/Users/luyichen.lyc/Downloads/test_vlms/data.json",
+    "video_directory": "/Users/luyichen.lyc/Downloads/test_vlms/episodes",
+    "sampling_basis": "decision and rejection_reasons from data_v2.json",
+    "parse_note": "The provided data_v2.json snapshot ends with an incomplete JSON episode. Sampling used only the 97 complete episode objects recovered before the incomplete record; all selected case records were complete."
+  },
+  "sampling": {
+    "method": "deterministic_stratified_representative_sampling",
+    "sample_count": 10,
+    "unique_episode_count": 10,
+    "single_error_case_count": 5,
+    "multi_error_case_count": 5,
+    "excluded_error_types": [
+      "grammar",
+      "spelling_error",
+      "consistency",
+      "segment_timing"
+    ],
+    "included_error_types": [
+      "missed_action",
+      "wrong_action",
+      "wrong_object",
+      "added_action",
+      "missed_object",
+      "added_object"
+    ],
+    "error_type_case_counts": {
+      "missed_action": 4,
+      "wrong_action": 3,
+      "wrong_object": 4,
+      "added_action": 3,
+      "missed_object": 2,
+      "added_object": 1
+    },
+    "clip_policy": {
+      "start_and_end": "exact source segment timestamps",
+      "context_padding_seconds": 0,
+      "encoding": "H.264 MP4 with optional AAC audio",
+      "duration_note": "Encoded durations may differ from source timestamp duration by up to one source video frame."
+    }
+  },
+  "cases": [
+    {
+      "case_id": "case_01",
+      "clip_file": "case_01_missed_action_696b6b7cbca2a8a11cbb624f_seg001.mp4",
+      "episode_id": "696b6b7cbca2a8a11cbb624f",
+      "source_video_file": "696b6b7cbca2a8a11cbb624f.mp4",
+      "segment_index": 1,
+      "start_seconds": 4.398,
+      "end_seconds": 7.997,
+      "source_segment_duration_seconds": 3.599,
+      "encoded_duration_seconds": 3.6,
+      "decision": "rejected",
+      "error_types": [
+        "missed_action"
+      ],
+      "error_combination": "missed_action",
+      "test_label": "hold motor with left hand, place down power drill on table with right hand, pick up screw with right hand",
+      "gt_label": "hold motor with left hand, drill motor with power drill in right hand, place down power drill on table with right hand, pick up screw with right hand",
+      "video": {
+        "codec": "h264",
+        "width": 854,
+        "height": 480,
+        "frame_count": 108
+      },
+      "file_size_bytes": 982091,
+      "sha256": "6097da3c7036f848b5fdfd25ab416f470eeb05e73ed74b68e3cbdcea395e9001"
+    },
+    {
+      "case_id": "case_02",
+      "clip_file": "case_02_wrong_action_6971fdfea54a91d712a33f3b_seg005.mp4",
+      "episode_id": "6971fdfea54a91d712a33f3b",
+      "source_video_file": "6971fdfea54a91d712a33f3b.mp4",
+      "segment_index": 5,
+      "start_seconds": 10.797,
+      "end_seconds": 15.729,
+      "source_segment_duration_seconds": 4.932,
+      "encoded_duration_seconds": 4.933333,
+      "decision": "rejected",
+      "error_types": [
+        "wrong_action"
+      ],
+      "error_combination": "wrong_action",
+      "test_label": "hold electrical switch with left hand, loosen screw in electrical switch with screwdriver in right hand",
+      "gt_label": "hold electrical switch with left hand, tighten screw in electrical switch with screwdriver in right hand",
+      "video": {
+        "codec": "h264",
+        "width": 854,
+        "height": 480,
+        "frame_count": 148
+      },
+      "file_size_bytes": 920994,
+      "sha256": "c413714f08884033aba6296f9d5b4d51f4215b8a3b3f2180c81dd54552bb8ace"
+    },
+    {
+      "case_id": "case_03",
+      "clip_file": "case_03_wrong_object_68edd99fd9e06c0d054770f2_seg001.mp4",
+      "episode_id": "68edd99fd9e06c0d054770f2",
+      "source_video_file": "68edd99fd9e06c0d054770f2.mp4",
+      "segment_index": 1,
+      "start_seconds": 5.328,
+      "end_seconds": 7.723,
+      "source_segment_duration_seconds": 2.395,
+      "encoded_duration_seconds": 2.4,
+      "decision": "rejected",
+      "error_types": [
+        "wrong_object"
+      ],
+      "error_combination": "wrong_object",
+      "test_label": "hold container with left hand, spread ink on screen with spatula in right hand",
+      "gt_label": "hold container with left hand, spread ink on screen with rod in right hand",
+      "video": {
+        "codec": "h264",
+        "width": 1920,
+        "height": 1080,
+        "frame_count": 72
+      },
+      "file_size_bytes": 3479050,
+      "sha256": "1953c6d4ed29e598851e4bc69f2c505c10858888e8bea5ee2049edd2b2b03824"
+    },
+    {
+      "case_id": "case_04",
+      "clip_file": "case_04_added_action_68d3ffc2925361f5ea9d720d_seg002.mp4",
+      "episode_id": "68d3ffc2925361f5ea9d720d",
+      "source_video_file": "68d3ffc2925361f5ea9d720d.mp4",
+      "segment_index": 2,
+      "start_seconds": 7.93,
+      "end_seconds": 8.99,
+      "source_segment_duration_seconds": 1.06,
+      "encoded_duration_seconds": 1.066667,
+      "decision": "rejected",
+      "error_types": [
+        "added_action"
+      ],
+      "error_combination": "added_action",
+      "test_label": "pass wooden piece from right hand to left hand, place wooden piece on table with left hand",
+      "gt_label": "pass wooden piece from right hand to left hand",
+      "video": {
+        "codec": "h264",
+        "width": 1920,
+        "height": 1080,
+        "frame_count": 32
+      },
+      "file_size_bytes": 1449842,
+      "sha256": "5c9ad6f79dbfe4d763c21d43b91f824f12be9da803ec70bddd8b8ab1e9390272"
+    },
+    {
+      "case_id": "case_05",
+      "clip_file": "case_05_missed_object_696d30fca534b5c917588bf6_seg009.mp4",
+      "episode_id": "696d30fca534b5c917588bf6",
+      "source_video_file": "696d30fca534b5c917588bf6.mp4",
+      "segment_index": 9,
+      "start_seconds": 62.053,
+      "end_seconds": 69.053,
+      "source_segment_duration_seconds": 7,
+      "encoded_duration_seconds": 7,
+      "decision": "rejected",
+      "error_types": [
+        "missed_object"
+      ],
+      "error_combination": "missed_object",
+      "test_label": "hold plastic bag with left hand, mix snacks in bowl with right hand",
+      "gt_label": "hold plastic bag with left hand, mix snacks in bowl with spoon in right hand",
+      "video": {
+        "codec": "h264",
+        "width": 1920,
+        "height": 1080,
+        "frame_count": 210
+      },
+      "file_size_bytes": 7802619,
+      "sha256": "ff0486ede475b49cd3ab425e7c3ecc24d1a2b9d7792f2209168dc722fbfe9f06"
+    },
+    {
+      "case_id": "case_06",
+      "clip_file": "case_06_added_object_missed_action_6971d205e81248586273a5f2_seg017.mp4",
+      "episode_id": "6971d205e81248586273a5f2",
+      "source_video_file": "6971d205e81248586273a5f2.mp4",
+      "segment_index": 17,
+      "start_seconds": 74.514,
+      "end_seconds": 78.38,
+      "source_segment_duration_seconds": 3.866,
+      "encoded_duration_seconds": 3.833333,
+      "decision": "rejected",
+      "error_types": [
+        "added_object",
+        "missed_action"
+      ],
+      "error_combination": "added_object+missed_action",
+      "test_label": "press tape onto wooden structure with left hand, pick up utility knife with right hand",
+      "gt_label": "press wooden structure with left hand, pick up utility knife with right hand, score wooden structure with utility knife in right hand",
+      "video": {
+        "codec": "h264",
+        "width": 1920,
+        "height": 1080,
+        "frame_count": 115
+      },
+      "file_size_bytes": 6438018,
+      "sha256": "d989b414a2d775e3e301b693cb13d5d25db484ce66432f01d01ebe50a577fa54"
+    },
+    {
+      "case_id": "case_07",
+      "clip_file": "case_07_missed_action_wrong_object_693a5d4a6d31efd205d002bd_seg018.mp4",
+      "episode_id": "693a5d4a6d31efd205d002bd",
+      "source_video_file": "693a5d4a6d31efd205d002bd.mp4",
+      "segment_index": 18,
+      "start_seconds": 84.784,
+      "end_seconds": 88.516,
+      "source_segment_duration_seconds": 3.732,
+      "encoded_duration_seconds": 3.733008,
+      "decision": "rejected",
+      "error_types": [
+        "missed_action",
+        "wrong_object"
+      ],
+      "error_combination": "missed_action+wrong_object",
+      "test_label": "hold wire conductor with left hand, place screwdriver on table with right hand, pick up wire with right hand",
+      "gt_label": "hold electrical plug pin with left hand, place screwdriver on table with right hand, pick up wire with right hand, place electrical plug pin on table with left hand",
+      "video": {
+        "codec": "h264",
+        "width": 854,
+        "height": 480,
+        "frame_count": 112
+      },
+      "file_size_bytes": 975439,
+      "sha256": "298ef1103cd844e27388e6a525fb60905631d0ae56863e855c56ae8076653e43"
+    },
+    {
+      "case_id": "case_08",
+      "clip_file": "case_08_wrong_action_wrong_object_68d3b1b89fb5ff43243332bc_seg013.mp4",
+      "episode_id": "68d3b1b89fb5ff43243332bc",
+      "source_video_file": "68d3b1b89fb5ff43243332bc.mp4",
+      "segment_index": 13,
+      "start_seconds": 92.574,
+      "end_seconds": 98.2,
+      "source_segment_duration_seconds": 5.626,
+      "encoded_duration_seconds": 5.6,
+      "decision": "rejected",
+      "error_types": [
+        "wrong_action",
+        "wrong_object"
+      ],
+      "error_combination": "wrong_action+wrong_object",
+      "test_label": "hold metal sheet with right hand, sand metal sheet with sander in left hand",
+      "gt_label": "hold metal sheet with right hand, polish metal sheet with rotary buffer in left hand",
+      "video": {
+        "codec": "h264",
+        "width": 1920,
+        "height": 1080,
+        "frame_count": 168
+      },
+      "file_size_bytes": 6556235,
+      "sha256": "a4845a62f145b6f377141b8d31f4b99971bc2885249f02e194300b65c8d31ecb"
+    },
+    {
+      "case_id": "case_09",
+      "clip_file": "case_09_added_action_missed_action_wrong_object_698159339e5122fa965db4d9_seg004.mp4",
+      "episode_id": "698159339e5122fa965db4d9",
+      "source_video_file": "698159339e5122fa965db4d9.mp4",
+      "segment_index": 4,
+      "start_seconds": 32.525,
+      "end_seconds": 39.324,
+      "source_segment_duration_seconds": 6.799,
+      "encoded_duration_seconds": 6.8,
+      "decision": "rejected",
+      "error_types": [
+        "added_action",
+        "missed_action",
+        "wrong_object"
+      ],
+      "error_combination": "added_action+missed_action+wrong_object",
+      "test_label": "level sand on driftwood with spoon in right hand, place spoon in container with right hand",
+      "gt_label": "pour sand into tank with right hand, level sand in tank with spoon in right hand",
+      "video": {
+        "codec": "h264",
+        "width": 854,
+        "height": 480,
+        "frame_count": 204
+      },
+      "file_size_bytes": 1623465,
+      "sha256": "3da860cd41bbbf68b48a32815d0851880a2caa8ee9a42eb36566bec0c6f48b8e"
+    },
+    {
+      "case_id": "case_10",
+      "clip_file": "case_10_added_action_missed_object_wrong_action_68f37b77c5f30fab54f76a7b_seg010.mp4",
+      "episode_id": "68f37b77c5f30fab54f76a7b",
+      "source_video_file": "68f37b77c5f30fab54f76a7b.mp4",
+      "segment_index": 10,
+      "start_seconds": 32.53,
+      "end_seconds": 36.33,
+      "source_segment_duration_seconds": 3.8,
+      "encoded_duration_seconds": 3.8,
+      "decision": "rejected",
+      "error_types": [
+        "added_action",
+        "missed_object",
+        "wrong_action"
+      ],
+      "error_combination": "added_action+missed_object+wrong_action",
+      "test_label": "grease baking pan with brush in right hand, hold and rotate baking pan with left hand",
+      "gt_label": "spread butter in baking pan with brush in right hand, rotate baking pan with left hand",
+      "video": {
+        "codec": "h264",
+        "width": 1920,
+        "height": 1080,
+        "frame_count": 114
+      },
+      "file_size_bytes": 7217334,
+      "sha256": "bb370ceb3d7eedc9f9d7feb1a44521686b4babe835686530d4620cffacfaa485"
+    }
+  ]
+}

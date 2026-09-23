@@ -1,0 +1,168 @@
+{
+  "label": "retention_current_stair",
+  "root": "/data/yuyangliu/p1_retention_fix_20260923_01/current/true_RL_Agent",
+  "task": "stair",
+  "source": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/formal_go2_stair_15round_20260901_c6ab8ba",
+  "generation_record_sha256": "ae92dfb636ed",
+  "composition_context": "scratch",
+  "adapter": "StairPhasedEvaluationAdapter",
+  "ledger_records": 15,
+  "ledger_schema": [
+    "true_rl_agent.generation_ledger_record.v1"
+  ],
+  "memory_variant": "full",
+  "full_replay": {
+    "elapsed_s": 56.32,
+    "records": 15
+  },
+  "phase_summaries_checked": 33,
+  "phase_summaries_equal_to_ledger": 33,
+  "lane_runtime_summary_sample": [
+    {
+      "generation": 1,
+      "lane": "lane-a",
+      "trial_status": "formal_rejected",
+      "runtime_activation_summary_keys": [
+        "capability_activation_records",
+        "component_activation_records",
+        "diagnostic_calls",
+        "diagnostic_outputs",
+        "diagnostic_term_count",
+        "feature_activation_records",
+        "nonzero_reward_contribution",
+        "reward_output_stats",
+        "reward_term_calls",
+        "reward_term_count",
+        "status",
+        "step_calls"
+      ]
+    },
+    {
+      "generation": 1,
+      "lane": "lane-b",
+      "trial_status": "qualified_not_selected",
+      "runtime_activation_summary_keys": [
+        "capability_activation_records",
+        "component_activation_records",
+        "diagnostic_calls",
+        "diagnostic_outputs",
+        "diagnostic_term_count",
+        "feature_activation_records",
+        "nonzero_reward_contribution",
+        "reward_output_stats",
+        "reward_term_calls",
+        "reward_term_count",
+        "status",
+        "step_calls"
+      ]
+    },
+    {
+      "generation": 2,
+      "lane": "lane-a",
+      "trial_status": "qualified_not_selected",
+      "runtime_activation_summary_keys": [
+        "capability_activation_records",
+        "component_activation_records",
+        "diagnostic_calls",
+        "diagnostic_outputs",
+        "diagnostic_term_count",
+        "feature_activation_records",
+        "nonzero_reward_contribution",
+        "reward_output_stats",
+        "reward_term_calls",
+        "reward_term_count",
+        "status",
+        "step_calls"
+      ]
+    },
+    {
+      "generation": 2,
+      "lane": "lane-b",
+      "trial_status": "formal_rejected",
+      "runtime_activation_summary_keys": [
+        "capability_activation_records",
+        "component_activation_records",
+        "diagnostic_calls",
+        "diagnostic_outputs",
+        "diagnostic_term_count",
+        "feature_activation_records",
+        "nonzero_reward_contribution",
+        "reward_output_stats",
+        "reward_term_calls",
+        "reward_term_count",
+        "status",
+        "step_calls"
+      ]
+    }
+  ],
+  "current_best_after": "sha256:bcd8de3a9d0e6e6a6c84b8c7833dc4a1b0ed697758ddee6f9c9eb31416a2f93c",
+  "frames": [
+    {
+      "next_generation": 13,
+      "build_s": 54.45,
+      "prompt_bytes": 102543,
+      "memory_bytes": 13814,
+      "omitted_experiment_count": 0,
+      "experiments_retained": 12,
+      "trial_outcome_columns": [
+        "lane",
+        "candidate_id",
+        "operation",
+        "mechanism",
+        "status",
+        "public_dev_delta",
+        "public_dev_guard_delta",
+        "runtime_effect",
+        "reason",
+        "runtime_observation"
+      ],
+      "trial_rows": 24,
+      "row_widths": [
+        10
+      ],
+      "summarized_entries": 12,
+      "last_row_measurements": null,
+      "top_runtime_observation": null,
+      "runtime_feedback_status": "available",
+      "deterministic": true
+    },
+    {
+      "next_generation": 16,
+      "build_s": 62.88,
+      "prompt_bytes": 102051,
+      "memory_bytes": 14111,
+      "omitted_experiment_count": 2,
+      "experiments_retained": 13,
+      "trial_outcome_columns": [
+        "lane",
+        "candidate_id",
+        "operation",
+        "mechanism",
+        "status",
+        "public_dev_delta",
+        "public_dev_guard_delta",
+        "runtime_effect",
+        "reason",
+        "runtime_observation"
+      ],
+      "trial_rows": 26,
+      "row_widths": [
+        10
+      ],
+      "summarized_entries": 13,
+      "last_row_measurements": null,
+      "top_runtime_observation": null,
+      "runtime_feedback_status": "available",
+      "deterministic": true
+    }
+  ],
+  "summary_only_tamper": {
+    "path": [
+      "aggregate_stratum_scores",
+      "c0_id"
+    ],
+    "rejected": true,
+    "error": "generation public summary/phase receipt mismatch"
+  },
+  "status": "PASS"
+}

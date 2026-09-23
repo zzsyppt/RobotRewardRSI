@@ -461,6 +461,12 @@ class _PhasedReferenceRunner(_ReferenceRunner):
 
 
 class _ReferencePhasedAdapter:
+    def __init__(self, gate_status=None):
+        self.gate_status = gate_status
+
+    def project_reference_public_dev_gate(self, *, phase_result):
+        return None if self.gate_status is None else {"status": self.gate_status}
+
     def assemble_reference_full_summary(
         self,
         *,
@@ -1748,6 +1754,38 @@ class ReferenceGenesisContractTests(unittest.TestCase):
             self.assertEqual(loaded.session_genesis_hash, created.session_genesis_hash)
             self.assertEqual(runner.phase_calls, list(EvaluationPhase))
 
+    def test_reference_dev_gate_stops_before_holdouts_and_reuses_failed_receipt(self):
+        from unittest.mock import patch
+        from true_rl_agent.agent_core.session_genesis import _run_reference_phased_evaluation
+
+        for status in ("pass", "fail"):
+            with self.subTest(status=status), tempfile.TemporaryDirectory() as tmp:
+                output_dir = Path(tmp)
+                task, backend, runner = _ReferenceTaskPlugin(), _CountingReferenceBackend(), _PhasedReferenceRunner()
+                _, reference = _reference_program_for_task(output_dir, task)
+                kwargs = dict(output_dir=output_dir, session_id="dev-gated-reference", task_plugin=task,
+                    backend_adapter=backend, runner=runner, policy_initialization=PolicyInitialization.random(),
+                    genesis_identity_snapshot={"fixture": "dev-gated-reference"}, reference_program_artifact=reference,
+                    reference_phased_evaluation_adapter=_ReferencePhasedAdapter(status))
+                with patch("true_rl_agent.agent_core.session_genesis._run_reference_phased_evaluation",
+                           wraps=_run_reference_phased_evaluation) as invoked:
+                    if status == "fail":
+                        with self.assertRaisesRegex(ValueError, "task-owned public-dev gate"):
+                            prepare_session_genesis(**kwargs)
+                    else:
+                        prepare_session_genesis(**kwargs)
+                gate_path = output_dir / "reference_public_dev_gate.json"
+                original = (gate_path.read_bytes(), gate_path.stat().st_mtime_ns)
+                self.assertEqual(json.loads(original[0])["task_gate"]["status"], status)
+                self.assertEqual(runner.phase_calls, [EvaluationPhase.PUBLIC_DEV] if status == "fail" else list(EvaluationPhase))
+                self.assertEqual(runner.train_calls, 1)
+                if status == "fail":
+                    self.assertFalse((output_dir / SESSION_GENESIS_FILENAME).exists())
+                    with self.assertRaisesRegex(ValueError, "task-owned public-dev gate"):
+                        _run_reference_phased_evaluation(**invoked.call_args.kwargs)
+                    self.assertEqual(runner.phase_calls, [EvaluationPhase.PUBLIC_DEV])
+                    self.assertEqual((gate_path.read_bytes(), gate_path.stat().st_mtime_ns), original)
+
     def test_gpu_bound_phased_reference_round_trips_three_receipts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = Path(tmp)
@@ -2009,6 +2047,26 @@ class ReferenceGenesisContractTests(unittest.TestCase):
             self.assertFalse((tmp_path / SESSION_GENESIS_FILENAME).exists())
             self.assertFalse((tmp_path / "reference_eval_artifact.json").exists())
             self.assertFalse((tmp_path / "ledger.jsonl").exists())
+            failure = json.loads(
+                (tmp_path / "reference_qualification_failure.json").read_text("utf-8")
+            )
+            self.assertEqual(failure["session_id"], "failed-reference-session")
+            self.assertEqual(failure["reference_manifest_hash"], reference.manifest.manifest_hash)
+            self.assertEqual(failure["qualification_gate"]["status"], "fail")
+            evidence = failure["qualification_evidence"]
+            self.assertEqual(evidence["result"], "fixture-fail")
+            self.assertEqual(
+                failure["qualification_gate"]["evidence_hash"],
+                canonical_json_hash({k: v for k, v in evidence.items() if k != "evidence_hash"}),
+            )
+            self.assertEqual(
+                failure["evaluation_binding"]["task_protocol_hash"],
+                task.task_spec.resolved_task_protocol_hash(),
+            )
+            from true_rl_agent.agent_core.session_genesis import _reject_partial_session_without_genesis
+            with self.assertRaisesRegex(ValueError, "reference_qualification_failure.json"):
+                _reject_partial_session_without_genesis(
+                    tmp_path, session_id="failed-reference-session", allow_pre_genesis_state=True)
 
     def test_wrong_qualification_protocol_fails_before_genesis_commit(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -2035,6 +2093,7 @@ class ReferenceGenesisContractTests(unittest.TestCase):
             self.assertFalse((tmp_path / SESSION_GENESIS_FILENAME).exists())
             self.assertFalse((tmp_path / "reference_eval_artifact.json").exists())
             self.assertFalse((tmp_path / "ledger.jsonl").exists())
+            self.assertFalse((tmp_path / "reference_qualification_failure.json").exists())
 
     def test_restores_current_best_and_source_projection(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

@@ -1,0 +1,123 @@
+{
+  "actual_training": [
+    {
+      "control_steps": 8,
+      "env_transitions": 128,
+      "excluded_preflight_steps": 1,
+      "latest_checkpoint_iteration": 0
+    },
+    {
+      "control_steps": 8,
+      "env_transitions": 128,
+      "excluded_preflight_steps": 1,
+      "latest_checkpoint_iteration": 0
+    }
+  ],
+  "archive_schema_version": "true_rl_agent.training_numeric_capture.v1",
+  "case": "training_stair_g1_verification",
+  "cell_variant_id": "stair.g1_37dof.unified_v3",
+  "checkpoint_states": {
+    "checkpoint_iteration_equal": true,
+    "checkpoint_iterations": [
+      0,
+      0
+    ],
+    "file_hash_equal": true,
+    "first_mismatches": [],
+    "load_mode": "torch.load(map_location=cpu, weights_only=True)",
+    "mismatch_count": 0,
+    "model_keys": [
+      "actor_state_dict",
+      "critic_state_dict"
+    ],
+    "model_optimizer_exact": true,
+    "model_tensors": 17,
+    "optimizer_keys": [
+      "optimizer_state_dict"
+    ],
+    "optimizer_tensors": 51,
+    "other_top_level_metadata_excluded": [
+      "infos"
+    ]
+  },
+  "checks": {
+    "actual_training_steps": true,
+    "archive_backend_identity": true,
+    "archive_cell_identity": true,
+    "archive_initial_policy_identity": true,
+    "archive_program_identity": true,
+    "archive_training_binding_identity": true,
+    "checkpoint_files_match_training_receipts": true,
+    "checkpoint_iteration_equal": true,
+    "completed_on_off": true,
+    "coverage_equals_sealed_manifest": true,
+    "execution_argv_only_capture_and_outputs_differ": true,
+    "expected_robot_cell": true,
+    "final_checkpoint_iteration": true,
+    "initial_policy_hash_equal": true,
+    "model_optimizer_exact": true,
+    "numeric_archive_within_2_gib": true,
+    "numeric_chunks_within_64_mib": true,
+    "off_capture_disabled": true,
+    "on_receipt_equals_archive_reference": true,
+    "paired_device": true,
+    "paired_diagnostic_workload": true,
+    "paired_extra_rss_within_512_mib": true,
+    "paired_program_source_checksum": true,
+    "paired_source_argv_sha256": true,
+    "paired_subject_kind": true,
+    "paired_task": true,
+    "planned_and_observed_control_steps": true,
+    "preflight_excluded": true,
+    "runtime_reward_observations_equal": true,
+    "sample_count_equals_coverage": true,
+    "summary_files_match_driver_receipts": true,
+    "three_windows_exact": true
+  },
+  "cpu_recheck_wall_seconds": 0.27062457986176014,
+  "current_pair_status": "PASS",
+  "equivalent_to_legacy_report": {
+    "actual_training": true,
+    "archive_identity": true,
+    "checkpoint_states": true,
+    "checks": true,
+    "sampled_reward_recompute": true
+  },
+  "failed_checks": [],
+  "new_model_calls": 0,
+  "new_simulator_runs": 0,
+  "off_dir": "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_g1_off",
+  "on_dir": "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_g1_on",
+  "original_file_count": 10,
+  "original_file_hashes": {
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_g1_off.time": "c589ebd8e9f26e1291f8e270d5665114b77627305e2889844416b24535724901",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_g1_off/executed_train_argv.json": "de17d160d1c813d4bd09782f9ce9c289cc55bdd2967f438a9ad6c3b99bfc27fa",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_g1_off/result.json": "e4e34477302ac3ab98eb4e395b89a40f4d98bcd40209779531ad409512e9b9ec",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_g1_off/training_summary.json": "0d3b0232e88619b1e35eb9dd8ac60ff72381a7af6ffedaba1b702bbb7d873eff",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_g1_on.time": "1dabfa00d6327d337f3c5f4044c6d645d316e9c0df33b166ecd79347a69d10f8",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_g1_on/executed_train_argv.json": "d5de73c877f2fced2203cd28b4f14b083392b98f00ea720fa2dea07bb7c78f55",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_g1_on/result.json": "1ab3a7c3867df492d03f7dc393b2216575d0d017bbc425ed5eaca468f0229f05",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_g1_on/run/training_numeric_evidence/manifest.json": "ddd466a54457b9832b88df276c483c10e34b7649e7650a4f87486889d602ca2d",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r6_train_stair_g1_on/training_summary.json": "c54362714771f134b02fdf57b40303fd32acdb2672cbadb95882614cc8215ff1",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/training_stair_g1_verification.json": "c7b63ecbab16b13ef7e24a5482d6519d195e51681ecea50abcd1f84cb35dbd98"
+  },
+  "original_files_unchanged": true,
+  "sampled_reward_recompute": {
+    "coverage_matches": true,
+    "identity_matches": true,
+    "observed_training_env_transitions": 128,
+    "planned_training_env_transitions": 128,
+    "ppo_post_manager_reward_observed": false,
+    "raw_weighted_sum_arithmetic_matches": true,
+    "tolerance": {
+      "atol": 1e-06,
+      "rtol": 1e-06
+    },
+    "verified_chunks": 9,
+    "verified_sampled_control_steps": 8,
+    "verified_sampled_env_transitions": 128
+  },
+  "source_report": "/data/yuyangliu/AGENT/feedback_p2_20260923/training_stair_g1_verification.json",
+  "source_report_sha256": "c7b63ecbab16b13ef7e24a5482d6519d195e51681ecea50abcd1f84cb35dbd98",
+  "status": "PASS"
+}

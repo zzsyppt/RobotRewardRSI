@@ -1,0 +1,47 @@
+{
+  "status": "PASS",
+  "source": "saved per_episode records; no raw trajectory reconstruction",
+  "robots": {
+    "go2": {
+      "no_push": {
+        "episodes": 64,
+        "successes": 0,
+        "control_successes": 64,
+        "final_recovery_condition_count": 64,
+        "push_events": 0,
+        "eligible_episode_count": 0,
+        "source_sha256": "2b8dc4b6a55d000587cf0b4dff2e8bb461a7719b38bcf9c5440cb7677ceaf09b"
+      },
+      "zero_action": {
+        "episodes": 64,
+        "successes": 0,
+        "control_successes": 0,
+        "final_recovery_condition_count": 0,
+        "push_events": 68,
+        "eligible_episode_count": 64,
+        "source_sha256": "cddb67f37fdc54cf28e62737fbe9fc9134f867829b08626b91b489bae462c760"
+      }
+    },
+    "g1": {
+      "no_push": {
+        "episodes": 64,
+        "successes": 0,
+        "control_successes": 64,
+        "final_recovery_condition_count": 44,
+        "push_events": 0,
+        "eligible_episode_count": 0,
+        "source_sha256": "22f563957e48592938e8c26338c15864c3eae197789c2b5d2819c5c6ade19f1a"
+      },
+      "zero_action": {
+        "episodes": 64,
+        "successes": 0,
+        "control_successes": 0,
+        "final_recovery_condition_count": 0,
+        "push_events": 0,
+        "eligible_episode_count": 64,
+        "source_sha256": "ff44c5f058c3acdeca6e56fe8b66e5c7be9bba907f981b16a5e888e78eb411c5"
+      }
+    }
+  },
+  "interpretation": "control_success only records no tilt/height failure; it is not a final-stability or recovery-success count."
+}

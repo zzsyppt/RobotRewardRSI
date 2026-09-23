@@ -1,0 +1,294 @@
+{
+  "accept_jobs": 0,
+  "all_media_decoded": true,
+  "budget": {
+    "dev_seeds": 3,
+    "envs_per_seed": 64,
+    "episodes": 192,
+    "max_env_control_steps": 79104,
+    "runner_timeout_s": 1800
+  },
+  "cell": "push.g1_37dof.recovery_v2",
+  "checkpoint_sha256": "sha256:0a16d82b0653a019ec7e23faaa9f18dd93e2cf5b9bb1d07c1c9674356b50243b",
+  "completed_training_import_hash": "8ff58e551b86d698182efc5e67df7579eb42e1038d29dd737850dcbbb1beae50",
+  "contract_hash": "83009811979522cf1dc6b4cf0881c1ad93cf625aca652dc00c63f947ed1ade90",
+  "ended_at_unix": 1789147997.1133182,
+  "evaluation_execution_cost": {
+    "clock_source": "time.perf_counter_ns",
+    "measurement_scope": "split_rollout_and_summary_aggregation",
+    "schema_version": "true_rl_agent.evaluation.execution_cost.v1",
+    "splits": {
+      "public_dev": {
+        "closed_first_episode_control_steps": 79076,
+        "evaluation_env_count_per_seed": 64,
+        "seed_count": 3,
+        "simulated_env_control_steps": 79104,
+        "vector_env_step_calls": 1236,
+        "wall_time_s": 129.839806707
+      }
+    }
+  },
+  "formal_dir": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/g1",
+  "formal_evidence_replaced": false,
+  "formal_phase_receipts": {
+    "public_accept": {
+      "checksum": "sha256:2eef7c8311f32479b33c0ae872b810454bc03770b17b8541c922c5e53c048b8e",
+      "kind": "eval_phase",
+      "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/g1/reference_program_artifacts/evaluation_receipts/be966d2ea54dbd2d385e014191e70e479ae77302a3282c0d3dc768ae5e9b4f0f/eval_phases/public_accept.json",
+      "schema_version": "true_rl_agent.trial_receipt_ref.v1",
+      "size_bytes": 340994
+    },
+    "public_dev": {
+      "checksum": "sha256:2f259379d1caba8dca41891aaf1a07af45c07d27efba545fdc3b47cf279c4e6b",
+      "kind": "eval_phase",
+      "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/g1/reference_program_artifacts/evaluation_receipts/be966d2ea54dbd2d385e014191e70e479ae77302a3282c0d3dc768ae5e9b4f0f/eval_phases/public_dev.json",
+      "schema_version": "true_rl_agent.trial_receipt_ref.v1",
+      "size_bytes": 341049
+    },
+    "sealed_validation": {
+      "checksum": "sha256:18ef746be50cd93b67e3e7071394f8a59ea55121852c43d2b53c72d70bec2e1a",
+      "kind": "eval_phase",
+      "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/g1/reference_program_artifacts/evaluation_receipts/be966d2ea54dbd2d385e014191e70e479ae77302a3282c0d3dc768ae5e9b4f0f/eval_phases/sealed_validation.json",
+      "schema_version": "true_rl_agent.trial_receipt_ref.v1",
+      "size_bytes": 791195
+    }
+  },
+  "genesis_created": false,
+  "infrastructure_retries": 0,
+  "mode": "run",
+  "phases_executed": [
+    "public_dev"
+  ],
+  "provider_requests": 0,
+  "public_dev": {
+    "score_stats": {
+      "count": 3,
+      "episode_count": 192,
+      "mean": 0.0,
+      "standard_error": 0.0,
+      "statistics_version": "true_rl_agent.derived_statistics.v1",
+      "std": 0.0,
+      "values": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "seed_results": [
+      {
+        "condition_flag_breakdown": null,
+        "episodes": 64,
+        "failure_breakdown": {
+          "counts": {
+            "not_recovered": 64
+          },
+          "dominant_failure": "not_recovered",
+          "rates": {
+            "not_recovered": 1.0
+          },
+          "total": 64
+        },
+        "recovery_counts": {
+          "control_episode_count": 0,
+          "eligible_episode_count": 64,
+          "episodes": 64,
+          "invalid_injection_count": 0,
+          "planned_push_event_count": 80,
+          "push_event_count": 80,
+          "pushed_episode_count": 64,
+          "recovered_event_count": 0,
+          "successes": 0
+        },
+        "run_index": 1,
+        "secondary_metrics": {
+          "mean_action_l2": 5.806789,
+          "mean_action_rate_l2": 6.010565,
+          "mean_episode_steps": 412.0,
+          "mean_final_planar_speed_mps": 0.47385,
+          "mean_final_xy_drift_m": 0.910497,
+          "mean_max_abs_pitch_rad": 0.077878,
+          "mean_max_abs_roll_rad": 0.106198,
+          "mean_min_base_height_m": 0.64671,
+          "recovery_window_success_rate": 0.0
+        },
+        "status": "pass",
+        "stratum_results": {
+          "high": {
+            "episodes": 16,
+            "successes": 0
+          },
+          "low": {
+            "episodes": 16,
+            "successes": 0
+          },
+          "medium": {
+            "episodes": 16,
+            "successes": 0
+          },
+          "repeated": {
+            "episodes": 16,
+            "successes": 0
+          }
+        },
+        "success_rate": 0.0
+      },
+      {
+        "condition_flag_breakdown": null,
+        "episodes": 64,
+        "failure_breakdown": {
+          "counts": {
+            "not_recovered": 64
+          },
+          "dominant_failure": "not_recovered",
+          "rates": {
+            "not_recovered": 1.0
+          },
+          "total": 64
+        },
+        "recovery_counts": {
+          "control_episode_count": 0,
+          "eligible_episode_count": 64,
+          "episodes": 64,
+          "invalid_injection_count": 0,
+          "planned_push_event_count": 80,
+          "push_event_count": 80,
+          "pushed_episode_count": 64,
+          "recovered_event_count": 0,
+          "successes": 0
+        },
+        "run_index": 2,
+        "secondary_metrics": {
+          "mean_action_l2": 5.807989,
+          "mean_action_rate_l2": 6.058496,
+          "mean_episode_steps": 412.0,
+          "mean_final_planar_speed_mps": 0.523495,
+          "mean_final_xy_drift_m": 0.975713,
+          "mean_max_abs_pitch_rad": 0.080511,
+          "mean_max_abs_roll_rad": 0.106199,
+          "mean_min_base_height_m": 0.647536,
+          "recovery_window_success_rate": 0.0
+        },
+        "status": "pass",
+        "stratum_results": {
+          "high": {
+            "episodes": 16,
+            "successes": 0
+          },
+          "low": {
+            "episodes": 16,
+            "successes": 0
+          },
+          "medium": {
+            "episodes": 16,
+            "successes": 0
+          },
+          "repeated": {
+            "episodes": 16,
+            "successes": 0
+          }
+        },
+        "success_rate": 0.0
+      },
+      {
+        "condition_flag_breakdown": null,
+        "episodes": 64,
+        "failure_breakdown": {
+          "counts": {
+            "not_recovered": 63,
+            "out_of_bounds": 1
+          },
+          "dominant_failure": "not_recovered",
+          "rates": {
+            "not_recovered": 0.984375,
+            "out_of_bounds": 0.015625
+          },
+          "total": 64
+        },
+        "recovery_counts": {
+          "control_episode_count": 0,
+          "eligible_episode_count": 64,
+          "episodes": 64,
+          "invalid_injection_count": 0,
+          "planned_push_event_count": 80,
+          "push_event_count": 80,
+          "pushed_episode_count": 64,
+          "recovered_event_count": 0,
+          "successes": 0
+        },
+        "run_index": 3,
+        "secondary_metrics": {
+          "mean_action_l2": 5.833032,
+          "mean_action_rate_l2": 6.056902,
+          "mean_episode_steps": 411.5625,
+          "mean_final_planar_speed_mps": 0.530408,
+          "mean_final_xy_drift_m": 0.936413,
+          "mean_max_abs_pitch_rad": 0.079492,
+          "mean_max_abs_roll_rad": 0.1068,
+          "mean_min_base_height_m": 0.64494,
+          "recovery_window_success_rate": 0.0
+        },
+        "status": "pass",
+        "stratum_results": {
+          "high": {
+            "episodes": 16,
+            "successes": 0
+          },
+          "low": {
+            "episodes": 16,
+            "successes": 0
+          },
+          "medium": {
+            "episodes": 16,
+            "successes": 0
+          },
+          "repeated": {
+            "episodes": 16,
+            "successes": 0
+          }
+        },
+        "success_rate": 0.0
+      }
+    ]
+  },
+  "purpose": "P6 same-checkpoint native public-dev diagnostic",
+  "qualification_evidence": {
+    "evidence_hash": "e1e671ec089def79a9a9483f937c7786732b4a6c05992ec8992ceb6b40ec0495",
+    "gate_statuses": {
+      "accept_evidence_gate": "pass",
+      "budget_accounting": "pass",
+      "recovery_evidence_gate": "pass",
+      "sealed_validation_gate": "fail"
+    },
+    "protocol_hash": "5cdf5001a4354d818fcb76ff9c40e5e7c025fc4e78dcabae5e4fd42e2eee8c2b",
+    "public_accept_score": 0.0,
+    "public_dev_reference_band": [
+      0.2,
+      0.9
+    ],
+    "public_dev_score": 0.0,
+    "qualification_contract_hash": "c3cdb7afdce9895e692feb353c55abd1b4a7b1c68ec39856378887207c427e97",
+    "schema_version": "true_rl_agent.task.push_recovery.reference_evidence.v2",
+    "scope": "standing_recovery_task_and_reference"
+  },
+  "qualification_gate": {
+    "evidence_hash": "e1e671ec089def79a9a9483f937c7786732b4a6c05992ec8992ceb6b40ec0495",
+    "protocol_hash": "5cdf5001a4354d818fcb76ff9c40e5e7c025fc4e78dcabae5e4fd42e2eee8c2b",
+    "schema_version": "true_rl_agent.reference_qualification_gate.v1",
+    "status": "fail"
+  },
+  "recorded_outcomes": [
+    "not_recovered",
+    "not_recovered",
+    "not_recovered"
+  ],
+  "recordings_sha256": "sha256:a3f3f27deacc432994c28b86dc3227f00805375f914a67d28f3fd0eb15d5a958",
+  "sealed_jobs": 0,
+  "selected_env_index": 48,
+  "source_evaluation_plan_hash": "503375975f12caf48dd74dfc2cde693592455e60ee769397e13578930343d3bd",
+  "source_kind": "unqualified_reference_diagnostic",
+  "started_at_unix": 1789147834.794734,
+  "status": "PASS",
+  "train_jobs": 0,
+  "train_summary_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_formal_20260912/g1/runner/p6-reference-g1-20260912/train/summary.json",
+  "train_summary_sha256": "sha256:37f407d896c4884bbd8cde0a060f34bbcf2194f4b106f26c5c15c0f7d710b75b"
+}

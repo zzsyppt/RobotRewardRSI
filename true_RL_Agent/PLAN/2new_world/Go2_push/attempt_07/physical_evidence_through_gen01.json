@@ -1,0 +1,128 @@
+{
+  "status": "PASS",
+  "scope": "Saved episode-summary arithmetic consistency only; PASS is not independent physical or visual validation.",
+  "limitations": [
+    "Pose extrema and wrench verification are runtime exports, not independently read sensor/PhysX data.",
+    "No raw-frame reconstruction of continuous stable dwell, or final angular velocity, roll/pitch and height.",
+    "Pulse timing/count checks use the recorded control dt and expected substep count; physics dt is not independently reconstructed.",
+    "Fall labels use exported extrema and the same strict threshold ordering as episode_records; this is not a new outcome definition."
+  ],
+  "numerical_tolerances": {
+    "force_amplitude_relative": 2e-06,
+    "impulse_absolute_rounding_ns": 0.0001,
+    "impulse_total_rule": "force_tolerance_n * delivered_duration_s + float32 accumulation allowance"
+  },
+  "summary_count": 7,
+  "summaries": [
+    {
+      "path": "runner/go2-push-5rounds-20260923-a07/eval/public_accept/summary.json",
+      "sha256": "1df3cc34804f6c940def3ce87bf415f730ce980ca3fff39ba95fcfba4e1ceb8e",
+      "counts": {
+        "checks": 3250,
+        "force_events": 233,
+        "successful_episodes": 142,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 16
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000274658203125,
+        "impulse_residual_ns": 2.9907226561931566e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a07/eval/public_dev/summary.json",
+      "sha256": "beabef02bce80b49ff579aa13b68f9e2ad08b97d6339398c656ebf64da5bddac",
+      "counts": {
+        "checks": 3270,
+        "force_events": 237,
+        "successful_episodes": 141,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 11
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000274658203125,
+        "impulse_residual_ns": 3.3721923827556566e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a07/eval/sealed_validation/summary.json",
+      "sha256": "82b5106af4b4158265bed7972fcce4bf6d27236fff5524e80e6b9f3275eab256",
+      "counts": {
+        "checks": 7672,
+        "force_events": 555,
+        "successful_episodes": 343,
+        "episodes": 448,
+        "episodes_with_incomplete_pulses": 13
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000274658203125,
+        "impulse_residual_ns": 3.2806396482953915e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a07-generation-001-lane-a/eval/public_accept/summary.json",
+      "sha256": "1f5dd427f687e04b6a6f1be47c5458184c274cfcce74fd2d8c015f237f7ac0d9",
+      "counts": {
+        "checks": 3320,
+        "force_events": 239,
+        "successful_episodes": 156,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 2
+      },
+      "observed_maxima": {
+        "force_error_n": 0.00030517578125,
+        "impulse_residual_ns": 2.8991699224434342e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a07-generation-001-lane-a/eval/public_dev/summary.json",
+      "sha256": "5b3f893e691d112ae05475b9e248abfcf254fec38b8ca9378de1cf37d5d438cd",
+      "counts": {
+        "checks": 3332,
+        "force_events": 237,
+        "successful_episodes": 164,
+        "episodes": 192,
+        "episodes_with_incomplete_pulses": 4
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000274658203125,
+        "impulse_residual_ns": 3.2806396482953915e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a07-generation-001-lane-a/eval/sealed_validation/summary.json",
+      "sha256": "005fb1df8f469ead223997c7487902a6576d028a173c755e3e99dbf9957b205f",
+      "counts": {
+        "checks": 7769,
+        "force_events": 558,
+        "successful_episodes": 371,
+        "episodes": 448,
+        "episodes_with_incomplete_pulses": 5
+      },
+      "observed_maxima": {
+        "force_error_n": 0.000274658203125,
+        "impulse_residual_ns": 3.082275389942879e-05
+      },
+      "failures": []
+    },
+    {
+      "path": "runner/go2-push-5rounds-20260923-a07-generation-001-lane-b/eval/public_dev/summary.json",
+      "sha256": "7fb9c62228bc746b8256c6e536824d94b18d28487c3772af01640aceeb236ecd",
+      "counts": {
+        "checks": 1369,
+        "episodes_with_incomplete_pulses": 192,
+        "episodes": 192
+      },
+      "observed_maxima": {
+        "force_error_n": 0.0,
+        "impulse_residual_ns": 0.0
+      },
+      "failures": []
+    }
+  ]
+}

@@ -57,14 +57,15 @@ class NativeVideoRecorder:
         self.control_dt_s = float(env.unwrapped.step_dt)
         self.fps = 1.0 / self.control_dt_s
         self._recording = False
+        self._task_records_steps = False
         self._frames: list[Any] = []
         owner = self
 
         class RecordingEnv(Wrapper):
             def step(self, action: Any) -> Any:
                 transition = self.env.step(action)
-                if owner._recording:
-                    owner._frames.append(self.env.render())
+                if not owner._task_records_steps:
+                    owner.record_step()
                 return transition
 
         self.env = RecordingEnv(env)
@@ -73,8 +74,9 @@ class NativeVideoRecorder:
         self._name = ""
         self._seed = 0
 
-    def start(self, name: str, seed: int) -> None:
+    def start(self, name: str, seed: int, *, task_records_steps: bool = False) -> None:
         self._name, self._seed = name, seed
+        self._task_records_steps = task_records_steps
         # Kit creates the RGB annotator lazily and initially returns a blank
         # frame. Prime rendering without stepping physics, then capture the
         # first native frame after the first control step. Lab's
@@ -84,6 +86,11 @@ class NativeVideoRecorder:
             self.env.render()
         self._frames = []
         self._recording = True
+
+    def record_step(self) -> None:
+        """Capture the state selected by the task, before any task-owned reset."""
+        if self._recording:
+            self._frames.append(self.env.render().copy())
 
     def finish(self, *, frame_count: int) -> dict[str, Any]:
         if not self._recording or not 0 <= frame_count <= len(self._frames):

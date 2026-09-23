@@ -69,7 +69,10 @@ class BaselineEvalOnlyIntegrationTests(unittest.TestCase):
         provider = PushRecoveryCompositionProvider()
         composition = resolve_task_composition(
             provider=provider,
-            values=dict(provider.cli_defaults()),
+            values={
+                **provider.cli_defaults(),
+                "cell_variant_id": "push.g1_29dof.legacy_v1",
+            },
             context=TaskCompositionContext(
                 project_root=PROJECT_ROOT,
                 output_dir=output_dir,

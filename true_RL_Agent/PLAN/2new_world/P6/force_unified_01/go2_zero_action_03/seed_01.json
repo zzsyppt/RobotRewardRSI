@@ -1,0 +1,3626 @@
+{
+  "aggregate": {
+    "completed_push_event_count": 67,
+    "control_episode_count": 0,
+    "control_success_count": 0,
+    "eligible_episode_count": 64,
+    "episodes": 64,
+    "failure_breakdown": {
+      "counts": {
+        "fall_forward": 1,
+        "fall_side": 46,
+        "not_recovered": 17
+      },
+      "dominant_failure": "fall_side",
+      "rates": {
+        "fall_forward": 0.015625,
+        "fall_side": 0.71875,
+        "not_recovered": 0.265625
+      },
+      "total": 64
+    },
+    "invalid_injection_count": 0,
+    "planned_push_event_count": 80,
+    "push_event_count": 68,
+    "pushed_episode_count": 64,
+    "sequence_recovered_count": 2,
+    "stratum_results": {
+      "high": {
+        "episodes": 16,
+        "success_rate": 0.0,
+        "successes": 0
+      },
+      "low": {
+        "episodes": 16,
+        "success_rate": 0.0,
+        "successes": 0
+      },
+      "medium": {
+        "episodes": 16,
+        "success_rate": 0.0,
+        "successes": 0
+      },
+      "repeated": {
+        "episodes": 16,
+        "success_rate": 0.0,
+        "successes": 0
+      }
+    },
+    "success_count": 0,
+    "success_rate": 0.0,
+    "successes": 0,
+    "verified_push_event_count": 68
+  },
+  "candidate_code_loaded_in_eval": false,
+  "candidate_package_loaded": false,
+  "candidate_package_loaded_in_eval": false,
+  "configuration": {
+    "active_profile": "strong_push",
+    "candidate_can_change": false,
+    "environment": {
+      "episode_length_s": 6.057825328153827
+    },
+    "force_body_name": "base",
+    "observation_corruption": {
+      "eval": false,
+      "train": true
+    },
+    "push_evaluation_protocol": {
+      "episode_time_scale": 30.0,
+      "fall_height_scale": 0.45,
+      "fall_tilt_rad": 0.8,
+      "first_push_time_scale": 5.0,
+      "force_tolerance_n": 0.001,
+      "gravity_mps2": 9.81,
+      "high_impulse_scale": 2.0,
+      "low_impulse_scale": 0.6,
+      "medium_impulse_scale": 1.2,
+      "protocol_id": "push_force_sequence_no_displacement_v1",
+      "pulse_duration_time_scale": 1.0,
+      "recovery_angular_velocity_scale": 0.5,
+      "recovery_height_scale": 0.7,
+      "recovery_tilt_rad": 0.2,
+      "recovery_velocity_scale": 0.08,
+      "recovery_window_time_scale": 8.0,
+      "repeated_gap_s": 0.22,
+      "repeated_high_fraction": 0.8,
+      "schema_version": "true_rl_agent.task.push_recovery.force_evaluation.v1",
+      "stable_dwell_time_scale": 1.5
+    },
+    "push_resolved_evaluation_protocol": {
+      "control_step_quantization": "ceil_duration_over_control_dt",
+      "displacement_failure_rule": "disabled_displacement_is_diagnostic_only",
+      "episode_length_s": 6.057825328153827,
+      "evaluation_cohort_counts": {
+        "high": 16,
+        "low": 16,
+        "medium": 16,
+        "repeated": 16
+      },
+      "evaluation_direction_policy": {
+        "angular_range_rad": [
+          0.0,
+          6.283185307179586
+        ],
+        "count": 16,
+        "phase": "python_random_runner_seed_uniform_0_2pi_v1",
+        "second_event_offset_rad": 1.5707963267948966
+      },
+      "fall_height_m": 0.18000000000000002,
+      "fall_tilt_rad": 0.8,
+      "force_application": "world_horizontal_at_bound_base_link_com_zero_direct_torque",
+      "force_rule": "mass_kg * impulse_velocity_mps / quantized_pulse_duration_s",
+      "force_tolerance_n": 0.001,
+      "impulse_velocity_mps": {
+        "high": 3.961817764612603,
+        "low": 1.1885453293837809,
+        "medium": 2.3770906587675618
+      },
+      "mass_source": "sum_actual_link_masses_after_reset",
+      "max_displacement_m": null,
+      "mechanism": "world_planar_external_force",
+      "protocol_hash": "522b4ed4aeefeaf694c89364463adb895dc2f779d5fbe708ae0f995df048812c",
+      "pulse_duration_s": 0.2019275109384609,
+      "push_times_s": [
+        1.0096375546923044
+      ],
+      "recovery_angular_velocity_radps": 2.4761361028828768,
+      "recovery_height_m": 0.27999999999999997,
+      "recovery_scope": "all_planned_pulses_then_one_fresh_window_and_final_stable",
+      "recovery_tilt_rad": 0.2,
+      "recovery_velocity_mps": 0.15847271058450413,
+      "recovery_window_s": 1.6154200875076872,
+      "repeated_gap_s": 0.22,
+      "repeated_high_fraction": 0.8,
+      "reset": {
+        "joint_position_scale": [
+          1.0,
+          1.0
+        ],
+        "joint_velocity_range": [
+          0.0,
+          0.0
+        ],
+        "root_pose_range": {
+          "x": [
+            0.0,
+            0.0
+          ],
+          "y": [
+            0.0,
+            0.0
+          ],
+          "yaw": [
+            -3.141592653589793,
+            3.141592653589793
+          ]
+        },
+        "root_velocity_range": {
+          "pitch": [
+            0.0,
+            0.0
+          ],
+          "roll": [
+            0.0,
+            0.0
+          ],
+          "x": [
+            0.0,
+            0.0
+          ],
+          "y": [
+            0.0,
+            0.0
+          ],
+          "yaw": [
+            0.0,
+            0.0
+          ],
+          "z": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "resolved_protocol_hash": "8404a906a0c19ba762d7e0e416cf920c92fa3bf3cd957ef6945c45688f6fa7f7",
+      "robot_scale_m": 0.4,
+      "scale_source": "RobotProfile.runtime_facts.morphology.default_root_height_m",
+      "schema_version": "true_rl_agent.task.push_recovery.resolved_force_evaluation.v1",
+      "stable_dwell_s": 0.3028912664076914,
+      "time_scale_s": 0.2019275109384609,
+      "velocity_scale_mps": 1.9809088823063015
+    },
+    "push_robot_scale_m": 0.4,
+    "reward_execution": {
+      "integration": "reward_manager_once_by_control_dt",
+      "mode": "complete_program_replacement",
+      "output": "reward_rate",
+      "state": "pre_reset_transition"
+    },
+    "runner_owned": true,
+    "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1",
+    "runtime_dynamics_hash": "sha256:bab69286788ff6905f77ffc622cfb3d4fa1a8222181ca10b57d12930fbc9f565",
+    "schema_version": "true_rl_agent.task.push_recovery.public_runtime_dynamics.v4",
+    "standing_command": {
+      "commanded_locomotion_is_zero": true
+    },
+    "task": {
+      "agent_configuration_hash": "f2cf1a2644ecdf61f3629f65c211ab29c274e06b6043c9067420e9e87a204789",
+      "environment_cfg_entrypoint": "true_rl_agent.robots.isaaclab_locomotion:_go2_environment_cfg",
+      "runner_cfg_entrypoint": "isaaclab_tasks.manager_based.locomotion.velocity.config.go2.agents.rsl_rl_ppo_cfg:UnitreeGo2RoughPPORunnerCfg",
+      "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1"
+    }
+  },
+  "created_at_utc": "2026-09-22T06:05:38.628713+00:00",
+  "environment": {
+    "max_steps": 303,
+    "num_envs": 64,
+    "step_dt": 0.02
+  },
+  "errors": [],
+  "evidence": {
+    "all_first_episodes_closed": true,
+    "events_recorded_at_injection": true,
+    "observation_finite": true,
+    "outcomes_captured_before_reset": true,
+    "reset_ok": true,
+    "resolved_protocol_hash": "8404a906a0c19ba762d7e0e416cf920c92fa3bf3cd957ef6945c45688f6fa7f7",
+    "reward_finite": true
+  },
+  "execution_cost": {
+    "closed_first_episode_control_steps": 8595,
+    "evaluation_env_count": 64,
+    "vector_env_step_calls": 303
+  },
+  "metrics": {
+    "failure_breakdown": {
+      "counts": {
+        "fall_forward": 1,
+        "fall_side": 46,
+        "not_recovered": 17
+      },
+      "dominant_failure": "fall_side",
+      "rates": {
+        "fall_forward": 0.015625,
+        "fall_side": 0.71875,
+        "not_recovered": 0.265625
+      },
+      "total": 64
+    },
+    "success_rate": 0.0
+  },
+  "per_episode": [
+    {
+      "actual_total_mass_kg": 17.277496337890625,
+      "completed_push_event_count": 1,
+      "control_failure_label": null,
+      "control_only": false,
+      "control_success": false,
+      "env_id": 0,
+      "episode_index": 1,
+      "episode_steps": 303,
+      "failure_label": "not_recovered",
+      "final_planar_speed_mps": 0.00110546313226223,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -13.746779441833496,
+            -15.255030632019043,
+            -3.665685710529942e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -62.48538589477539,
+            -69.34102630615234,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 5.340576171875e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.2949371337890625,
+      "max_abs_roll_rad": 0.036888595670461655,
+      "max_pitch_rad": 0.2532790005207062,
+      "max_xy_drift_m": 0.27180927991867065,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.21758770942687988,
+      "min_pitch_rad": -0.2949371337890625,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "low",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 16.646005630493164,
+      "completed_push_event_count": 1,
+      "control_failure_label": null,
+      "control_only": false,
+      "control_success": false,
+      "env_id": 1,
+      "episode_index": 1,
+      "episode_steps": 303,
+      "failure_label": "not_recovered",
+      "final_planar_speed_mps": 0.0012075754348188639,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -6.611694812774658,
+            -18.647071838378906,
+            -1.573562542489526e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -30.053178787231445,
+            -84.7593994140625,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 5.340576171875e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.3027583360671997,
+      "max_abs_roll_rad": 0.03354176506400108,
+      "max_pitch_rad": 0.2337038815021515,
+      "max_xy_drift_m": 0.26818525791168213,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.22314846515655518,
+      "min_pitch_rad": -0.3027583360671997,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "low",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 17.45067596435547,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 2,
+      "episode_index": 1,
+      "episode_steps": 92,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 0.3109447658061981,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            1.077175259590149,
+            -20.71293830871582,
+            -1.6988252582450514e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            4.896244525909424,
+            -94.14967346191406,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 4.57763671875e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.25981882214546204,
+      "max_abs_roll_rad": 0.8055183291435242,
+      "max_pitch_rad": 0.25981882214546204,
+      "max_xy_drift_m": 0.3044523000717163,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.21587099134922028,
+      "min_pitch_rad": -0.16080395877361298,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "low",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 14.791239738464355,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 3,
+      "episode_index": 1,
+      "episode_steps": 99,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 0.3960476219654083,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            7.562037944793701,
+            -15.870536804199219,
+            -3.106891810489287e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            34.372894287109375,
+            -72.1388168334961,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 3.814697265625e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.5139181017875671,
+      "max_abs_roll_rad": 0.8028295636177063,
+      "max_pitch_rad": 0.5139181017875671,
+      "max_xy_drift_m": 0.39770618081092834,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.20886898040771484,
+      "min_pitch_rad": -0.06412430852651596,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "low",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 17.889389038085938,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 4,
+      "episode_index": 1,
+      "episode_steps": 73,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 0.6202903389930725,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            15.795293807983398,
+            -14.23363208770752,
+            -5.736945141165961e-09
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            71.7967758178711,
+            -64.69831848144531,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 8.392333984375e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.2756378948688507,
+      "max_abs_roll_rad": 0.8069145083427429,
+      "max_pitch_rad": 0.2756378948688507,
+      "max_xy_drift_m": 0.30593764781951904,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.2113141566514969,
+      "min_pitch_rad": -0.13291485607624054,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "low",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 14.42276668548584,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 5,
+      "episode_index": 1,
+      "episode_steps": 82,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 0.3851318955421448,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            16.156572341918945,
+            -5.728638172149658,
+            9.057115057942156e-10
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            73.43894958496094,
+            -26.039268493652344,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 3.0517578125e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.16828127205371857,
+      "max_abs_roll_rad": 0.828549861907959,
+      "max_pitch_rad": 0.16828127205371857,
+      "max_xy_drift_m": 0.3129638135433197,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.2399282455444336,
+      "min_pitch_rad": -0.16451285779476166,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "low",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 17.327871322631836,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 6,
+      "episode_index": 1,
+      "episode_steps": 88,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 0.6181931495666504,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            20.56717300415039,
+            1.069594144821167,
+            -4.9133092261399725e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            93.48712158203125,
+            4.861804008483887,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 6.103515625e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.2558208405971527,
+      "max_abs_roll_rad": 0.8289746642112732,
+      "max_pitch_rad": 0.2558208405971527,
+      "max_xy_drift_m": 0.3127283751964569,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.2170167714357376,
+      "min_pitch_rad": -0.07340262830257416,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "low",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 14.537962913513184,
+      "completed_push_event_count": 1,
+      "control_failure_label": null,
+      "control_only": false,
+      "control_success": false,
+      "env_id": 7,
+      "episode_index": 1,
+      "episode_steps": 303,
+      "failure_label": "not_recovered",
+      "final_planar_speed_mps": 0.00655902037397027,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            15.598786354064941,
+            7.432549476623535,
+            -4.3809407657136035e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            70.90355682373047,
+            33.78432846069336,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 3.814697265625e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.209006667137146,
+      "max_abs_roll_rad": 0.24370026588439941,
+      "max_pitch_rad": 0.1711144894361496,
+      "max_xy_drift_m": 0.235571950674057,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.23929278552532196,
+      "min_pitch_rad": -0.209006667137146,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": true,
+      "sequence_recovery_control_step": 109,
+      "stratum": "low",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 14.254255294799805,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 8,
+      "episode_index": 1,
+      "episode_steps": 106,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 0.2971464991569519,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            11.341357231140137,
+            12.585681915283203,
+            -1.5343539772061376e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            51.55160903930664,
+            57.20762634277344,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 4.1961669921875e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.5490055084228516,
+      "max_abs_roll_rad": 0.8070226311683655,
+      "max_pitch_rad": 0.5490055084228516,
+      "max_xy_drift_m": 0.39467233419418335,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.20586450397968292,
+      "min_pitch_rad": -0.06436630338430405,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "low",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 16.64127540588379,
+      "completed_push_event_count": 1,
+      "control_failure_label": null,
+      "control_only": false,
+      "control_success": false,
+      "env_id": 9,
+      "episode_index": 1,
+      "episode_steps": 303,
+      "failure_label": "not_recovered",
+      "final_planar_speed_mps": 0.010989411734044552,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            6.60982608795166,
+            18.641769409179688,
+            -1.1140480182803003e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            30.04465103149414,
+            84.73530578613281,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 5.7220458984375e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.23340559005737305,
+      "max_abs_roll_rad": 0.3892997205257416,
+      "max_pitch_rad": 0.23340559005737305,
+      "max_xy_drift_m": 0.24112701416015625,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.22324374318122864,
+      "min_pitch_rad": -0.17704233527183533,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "low",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 15.937978744506836,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 10,
+      "episode_index": 1,
+      "episode_steps": 115,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 0.24475638568401337,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -0.9838081002235413,
+            18.917449951171875,
+            -9.059906602715273e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -4.471846103668213,
+            85.98839569091797,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 4.57763671875e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.45466482639312744,
+      "max_abs_roll_rad": 0.8016469478607178,
+      "max_pitch_rad": 0.45466482639312744,
+      "max_xy_drift_m": 0.4119289219379425,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.20593400299549103,
+      "min_pitch_rad": -0.06571973115205765,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "low",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 15.015969276428223,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 11,
+      "episode_index": 1,
+      "episode_steps": 86,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 0.6846804618835449,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -7.676933288574219,
+            16.11166763305664,
+            1.5683472298633205e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -34.89516067504883,
+            73.23484802246094,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 3.0517578125e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.18436875939369202,
+      "max_abs_roll_rad": 0.8284320831298828,
+      "max_pitch_rad": 0.18436875939369202,
+      "max_xy_drift_m": 0.3252101540565491,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.23598024249076843,
+      "min_pitch_rad": -0.06506600230932236,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "low",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 16.848983764648438,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 12,
+      "episode_index": 1,
+      "episode_steps": 75,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 0.5675473809242249,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -14.876669883728027,
+            13.405841827392578,
+            -2.7894972731701273e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -67.62120819091797,
+            60.935665130615234,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 6.103515625e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.23949825763702393,
+      "max_abs_roll_rad": 0.8418992757797241,
+      "max_pitch_rad": 0.23949825763702393,
+      "max_xy_drift_m": 0.31504738330841064,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.2215518206357956,
+      "min_pitch_rad": -0.15037085115909576,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "low",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 15.110936164855957,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 13,
+      "episode_index": 1,
+      "episode_steps": 121,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 0.16971273720264435,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -16.92746925354004,
+            6.001967906951904,
+            -9.149313484613231e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -76.94303131103516,
+            27.281681060791016,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 5.340576171875e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.4330383837223053,
+      "max_abs_roll_rad": 0.8060483336448669,
+      "max_pitch_rad": 0.4330383837223053,
+      "max_xy_drift_m": 0.43647173047065735,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.2044052928686142,
+      "min_pitch_rad": -0.06504537165164948,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "low",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 14.411053657531738,
+      "completed_push_event_count": 1,
+      "control_failure_label": null,
+      "control_only": false,
+      "control_success": false,
+      "env_id": 14,
+      "episode_index": 1,
+      "episode_steps": 303,
+      "failure_label": "not_recovered",
+      "final_planar_speed_mps": 0.004256464075297117,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -17.10508155822754,
+            -0.8895487785339355,
+            -1.0401009831184638e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -77.75035095214844,
+            -4.043399810791016,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 3.0517578125e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.20567795634269714,
+      "max_abs_roll_rad": 0.2804012894630432,
+      "max_pitch_rad": 0.16751685738563538,
+      "max_xy_drift_m": 0.23511993885040283,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.24011766910552979,
+      "min_pitch_rad": -0.20567795634269714,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": true,
+      "sequence_recovery_control_step": 111,
+      "stratum": "low",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 15.134149551391602,
+      "completed_push_event_count": 1,
+      "control_failure_label": null,
+      "control_only": false,
+      "control_success": false,
+      "env_id": 15,
+      "episode_index": 1,
+      "episode_steps": 303,
+      "failure_label": "not_recovered",
+      "final_planar_speed_mps": 0.002706759376451373,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -16.238473892211914,
+            -7.737353324890137,
+            5.080364573473162e-09
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -73.81124114990234,
+            -35.169776916503906,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 5.340576171875e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.4872390329837799,
+      "max_abs_roll_rad": 0.09995921701192856,
+      "max_pitch_rad": 0.4872390329837799,
+      "max_xy_drift_m": 0.32507410645484924,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.20847758650779724,
+      "min_pitch_rad": -0.06504890322685242,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "low",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 17.942264556884766,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 16,
+      "episode_index": 1,
+      "episode_steps": 64,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 1.9837682247161865,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -28.551410675048828,
+            -31.6839599609375,
+            -1.169443066828535e-06
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -129.77914428710938,
+            -144.01797485351562,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001220703125,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.27764174342155457,
+      "max_abs_roll_rad": 0.8998124003410339,
+      "max_pitch_rad": 0.27764174342155457,
+      "max_xy_drift_m": 0.36308011412620544,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.21069972217082977,
+      "min_pitch_rad": -0.12430894374847412,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "medium",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 16.75322151184082,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 17,
+      "episode_index": 1,
+      "episode_steps": 73,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 1.083292007446289,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -13.308570861816406,
+            -37.53435516357422,
+            8.098781023591073e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -60.49349594116211,
+            -170.6106414794922,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.000110626220703125,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.5115591883659363,
+      "max_abs_roll_rad": 0.8571118116378784,
+      "max_pitch_rad": 0.5115591883659363,
+      "max_xy_drift_m": 0.5179158449172974,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.2223638892173767,
+      "min_pitch_rad": -0.07095808535814285,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "medium",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 17.93766212463379,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 18,
+      "episode_index": 1,
+      "episode_steps": 79,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 0.5507907271385193,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            2.2144625186920166,
+            -42.581905364990234,
+            6.303189792333797e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            10.065762519836426,
+            -193.5541229248047,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001220703125,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.5430472493171692,
+      "max_abs_roll_rad": 0.8420135378837585,
+      "max_pitch_rad": 0.5430472493171692,
+      "max_xy_drift_m": 0.547736406326294,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.21059495210647583,
+      "min_pitch_rad": -0.07228828966617584,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "medium",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 14.85716724395752,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 19,
+      "episode_index": 1,
+      "episode_steps": 72,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 0.9108673930168152,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            15.191478729248047,
+            -31.88256072998047,
+            -1.7415732855852184e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            69.05220794677734,
+            -144.9207305908203,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001068115234375,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.5012096166610718,
+      "max_abs_roll_rad": 0.9045361876487732,
+      "max_pitch_rad": 0.5012096166610718,
+      "max_xy_drift_m": 0.5229039192199707,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.22221992909908295,
+      "min_pitch_rad": -0.06453496962785721,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "medium",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 15.720160484313965,
+      "completed_push_event_count": 1,
+      "control_failure_label": null,
+      "control_only": false,
+      "control_success": false,
+      "env_id": 20,
+      "episode_index": 1,
+      "episode_steps": 303,
+      "failure_label": "not_recovered",
+      "final_planar_speed_mps": 0.001293187728151679,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            27.75998878479004,
+            -25.01537322998047,
+            -5.006788938999307e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            126.18171691894531,
+            -113.70629119873047,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001068115234375,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.3583202064037323,
+      "max_abs_roll_rad": 0.046900633722543716,
+      "max_pitch_rad": 0.20355910062789917,
+      "max_xy_drift_m": 0.5407334566116333,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.23072856664657593,
+      "min_pitch_rad": -0.3583202064037323,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "medium",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 16.80736541748047,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 21,
+      "episode_index": 1,
+      "episode_steps": 65,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 1.6678471565246582,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            37.655662536621094,
+            -13.351578712463379,
+            -1.7642972238718357e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            171.1620635986328,
+            -60.68898010253906,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001068115234375,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.2382252961397171,
+      "max_abs_roll_rad": 0.8481180667877197,
+      "max_pitch_rad": 0.2382252961397171,
+      "max_xy_drift_m": 0.3837132155895233,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.22190868854522705,
+      "min_pitch_rad": -0.14594334363937378,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "medium",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 14.234416007995605,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 22,
+      "episode_index": 1,
+      "episode_steps": 69,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 1.7263411283493042,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            33.790828704833984,
+            1.7572931051254272,
+            -6.554647313805617e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            153.59471130371094,
+            7.987702369689941,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 7.62939453125e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.3135216236114502,
+      "max_abs_roll_rad": 0.8694177865982056,
+      "max_pitch_rad": 0.3135216236114502,
+      "max_xy_drift_m": 0.43898263573646545,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.2412547469139099,
+      "min_pitch_rad": -0.06432846933603287,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "medium",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 14.40206527709961,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 23,
+      "episode_index": 1,
+      "episode_steps": 75,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 0.691195011138916,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            30.905942916870117,
+            14.726150512695312,
+            -8.706003029601561e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            140.48153686523438,
+            66.9370346069336,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 6.103515625e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.5623130798339844,
+      "max_abs_roll_rad": 0.8202783465385437,
+      "max_pitch_rad": 0.5623130798339844,
+      "max_xy_drift_m": 0.5508601665496826,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.22807419300079346,
+      "min_pitch_rad": -0.06475704908370972,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "medium",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 14.67165756225586,
+      "completed_push_event_count": 1,
+      "control_failure_label": null,
+      "control_only": false,
+      "control_success": false,
+      "env_id": 24,
+      "episode_index": 1,
+      "episode_steps": 303,
+      "failure_label": "not_recovered",
+      "final_planar_speed_mps": 0.0009032636880874634,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            23.346923828125,
+            25.908443450927734,
+            -1.1920927533992653e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            106.12235260009766,
+            117.765625,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.00012969970703125,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.29245245456695557,
+      "max_abs_roll_rad": 0.12568604946136475,
+      "max_pitch_rad": 0.1750151515007019,
+      "max_xy_drift_m": 0.5099043250083923,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.23841123282909393,
+      "min_pitch_rad": -0.29245245456695557,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "medium",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 15.441631317138672,
+      "completed_push_event_count": 1,
+      "control_failure_label": null,
+      "control_only": false,
+      "control_success": false,
+      "env_id": 25,
+      "episode_index": 1,
+      "episode_steps": 303,
+      "failure_label": "not_recovered",
+      "final_planar_speed_mps": 0.0009028612403199077,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            12.266664505004883,
+            34.595821380615234,
+            -2.1338462374842493e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            55.75756072998047,
+            157.2537384033203,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.00011444091796875,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.35602837800979614,
+      "max_abs_roll_rad": 0.05188138037919998,
+      "max_pitch_rad": 0.1954488754272461,
+      "max_xy_drift_m": 0.5374971032142639,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.23267558217048645,
+      "min_pitch_rad": -0.35602837800979614,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "medium",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 15.669236183166504,
+      "completed_push_event_count": 1,
+      "control_failure_label": null,
+      "control_only": false,
+      "control_success": false,
+      "env_id": 26,
+      "episode_index": 1,
+      "episode_steps": 303,
+      "failure_label": "not_recovered",
+      "final_planar_speed_mps": 0.0009397692047059536,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -1.9344308376312256,
+            37.19693374633789,
+            -2.9325482842068595e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -8.792885780334473,
+            169.0769500732422,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 9.1552734375e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.35238543152809143,
+      "max_abs_roll_rad": 0.04547540843486786,
+      "max_pitch_rad": 0.20233385264873505,
+      "max_xy_drift_m": 0.5453417897224426,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.23097090423107147,
+      "min_pitch_rad": -0.35238543152809143,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "medium",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 14.608410835266113,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 27,
+      "episode_index": 1,
+      "episode_steps": 70,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 1.7017613649368286,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -14.937140464782715,
+            31.348730087280273,
+            -1.5348195603337444e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -67.8960952758789,
+            142.4942626953125,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 7.62939453125e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.3848528265953064,
+      "max_abs_roll_rad": 0.8788083791732788,
+      "max_pitch_rad": 0.3848528265953064,
+      "max_xy_drift_m": 0.4697299599647522,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.23878762125968933,
+      "min_pitch_rad": -0.0646936446428299,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "medium",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 14.336222648620605,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 28,
+      "episode_index": 1,
+      "episode_steps": 65,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 1.8126007318496704,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -25.316085815429688,
+            22.813146591186523,
+            -6.318092005130893e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -115.0731430053711,
+            103.6961441040039,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 8.392333984375e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.165409654378891,
+      "max_abs_roll_rad": 0.8206362128257751,
+      "max_pitch_rad": 0.165409654378891,
+      "max_xy_drift_m": 0.3389851152896881,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.24060140550136566,
+      "min_pitch_rad": -0.06461886316537857,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "medium",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 17.28705596923828,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 29,
+      "episode_index": 1,
+      "episode_steps": 73,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 1.0635915994644165,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -38.730369567871094,
+            13.732626914978027,
+            1.192092824453539e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -176.04713439941406,
+            62.4210090637207,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 7.62939453125e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.5174996852874756,
+      "max_abs_roll_rad": 0.8903185725212097,
+      "max_pitch_rad": 0.5174996852874756,
+      "max_xy_drift_m": 0.5146973133087158,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.21734753251075745,
+      "min_pitch_rad": -0.07523851841688156,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "medium",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 14.533483505249023,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 30,
+      "episode_index": 1,
+      "episode_steps": 65,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 1.8150008916854858,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -34.50079345703125,
+            -1.7942079305648804,
+            -1.8954274594307208e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -156.82176208496094,
+            -8.155501365661621,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 6.198883056640625e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.1712396740913391,
+      "max_abs_roll_rad": 0.9089829921722412,
+      "max_pitch_rad": 0.1712396740913391,
+      "max_xy_drift_m": 0.3621829152107239,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.2392609715461731,
+      "min_pitch_rad": -0.06487523764371872,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "medium",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 17.860172271728516,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 31,
+      "episode_index": 1,
+      "episode_steps": 64,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 1.9512420892715454,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -38.32682418823242,
+            -18.262069702148438,
+            -8.392333938900265e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -174.21282958984375,
+            -83.00938415527344,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001373291015625,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.27480483055114746,
+      "max_abs_roll_rad": 0.8426728844642639,
+      "max_pitch_rad": 0.27480483055114746,
+      "max_xy_drift_m": 0.3389336168766022,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.21154829859733582,
+      "min_pitch_rad": -0.07793661206960678,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "medium",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 14.056620597839355,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 32,
+      "episode_index": 1,
+      "episode_steps": 62,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 3.503265142440796,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -37.280357360839844,
+            -41.370601654052734,
+            -1.907348234908568e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -169.4561309814453,
+            -188.04815673828125,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001983642578125,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.15731744468212128,
+      "max_abs_roll_rad": 0.926360547542572,
+      "max_pitch_rad": 0.15731744468212128,
+      "max_xy_drift_m": 0.41461411118507385,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.24241945147514343,
+      "min_pitch_rad": -0.06423250585794449,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "high",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 17.12451934814453,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 33,
+      "episode_index": 1,
+      "episode_steps": 62,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 3.5118930339813232,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -22.672548294067383,
+            -63.943702697753906,
+            -1.925230037613801e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -103.0570068359375,
+            -290.6531066894531,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001220703125,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.24817264080047607,
+      "max_abs_roll_rad": 0.8766315579414368,
+      "max_pitch_rad": 0.24817264080047607,
+      "max_xy_drift_m": 0.389903724193573,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.21892258524894714,
+      "min_pitch_rad": -0.07381609827280045,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "high",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 16.244611740112305,
+      "completed_push_event_count": 1,
+      "control_failure_label": null,
+      "control_only": false,
+      "control_success": false,
+      "env_id": 34,
+      "episode_index": 1,
+      "episode_steps": 303,
+      "failure_label": "not_recovered",
+      "final_planar_speed_mps": 0.002017231658101082,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            3.3424289226531982,
+            -64.27134704589844,
+            -2.7894972731701273e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            15.192838668823242,
+            -292.1424560546875,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001544952392578125,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.3743332326412201,
+      "max_abs_roll_rad": 0.07372661679983139,
+      "max_pitch_rad": 0.22127965092658997,
+      "max_xy_drift_m": 1.2270920276641846,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.22001521289348602,
+      "min_pitch_rad": -0.3743332326412201,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "high",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 16.921737670898438,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 35,
+      "episode_index": 1,
+      "episode_steps": 64,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 3.322866678237915,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            28.837509155273438,
+            -60.52165603637695,
+            -1.501738893239235e-06
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            131.0796356201172,
+            -275.09844970703125,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.000152587890625,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.3544585704803467,
+      "max_abs_roll_rad": 0.9513620734214783,
+      "max_pitch_rad": 0.3544585704803467,
+      "max_xy_drift_m": 0.47756338119506836,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.22080270946025848,
+      "min_pitch_rad": -0.07188404351472855,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "high",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 16.567211151123047,
+      "completed_push_event_count": 1,
+      "control_failure_label": null,
+      "control_only": false,
+      "control_success": false,
+      "env_id": 36,
+      "episode_index": 1,
+      "episode_steps": 303,
+      "failure_label": "not_recovered",
+      "final_planar_speed_mps": 0.0013272205833345652,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            48.75962829589844,
+            -43.93880081176758,
+            -1.1920927533992653e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            221.63462829589844,
+            -199.7218780517578,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001983642578125,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.3746311068534851,
+      "max_abs_roll_rad": 0.052689701318740845,
+      "max_pitch_rad": 0.2308986335992813,
+      "max_xy_drift_m": 1.252498984336853,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.22141307592391968,
+      "min_pitch_rad": -0.3746311068534851,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "high",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 17.718191146850586,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 37,
+      "episode_index": 1,
+      "episode_steps": 64,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 3.1128180027008057,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            66.16047668457031,
+            -23.458528518676758,
+            -7.824600629646739e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            300.7294616699219,
+            -106.62972259521484,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.000244140625,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.26974326372146606,
+      "max_abs_roll_rad": 0.9051361083984375,
+      "max_pitch_rad": 0.26974326372146606,
+      "max_xy_drift_m": 0.5811877250671387,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.21309983730316162,
+      "min_pitch_rad": -0.16705277562141418,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "high",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 15.672935485839844,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 38,
+      "episode_index": 1,
+      "episode_steps": 64,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 3.343773603439331,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            62.009521484375,
+            3.2248144149780273,
+            -6.575882025572355e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            281.8614501953125,
+            14.658223152160645,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001220703125,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.3393952250480652,
+      "max_abs_roll_rad": 0.8906592130661011,
+      "max_pitch_rad": 0.3393952250480652,
+      "max_xy_drift_m": 0.4832577109336853,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.2310333102941513,
+      "min_pitch_rad": -0.06548697501420975,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "high",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 14.318598747253418,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 39,
+      "episode_index": 1,
+      "episode_steps": 62,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 3.5155913829803467,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            51.211368560791016,
+            24.401344299316406,
+            -1.4469027576069493e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            232.77896118164062,
+            110.91517639160156,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001678466796875,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.16488493978977203,
+      "max_abs_roll_rad": 0.9632865786552429,
+      "max_pitch_rad": 0.16488493978977203,
+      "max_xy_drift_m": 0.4289937913417816,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.24071571230888367,
+      "min_pitch_rad": -0.08586694300174713,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "high",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 14.581785202026367,
+      "completed_push_event_count": 1,
+      "control_failure_label": null,
+      "control_only": false,
+      "control_success": false,
+      "env_id": 40,
+      "episode_index": 1,
+      "episode_steps": 303,
+      "failure_label": "not_recovered",
+      "final_planar_speed_mps": 0.0014162189327180386,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            38.673187255859375,
+            42.91621780395508,
+            -2.0742415074437304e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            175.7871551513672,
+            195.07374572753906,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001983642578125,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.4082406759262085,
+      "max_abs_roll_rad": 0.15915481746196747,
+      "max_pitch_rad": 0.1723179966211319,
+      "max_xy_drift_m": 1.2209172248840332,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.22976772487163544,
+      "min_pitch_rad": -0.4082406759262085,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "high",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 14.420647621154785,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 41,
+      "episode_index": 1,
+      "episode_steps": 69,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 2.5490245819091797,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            19.092674255371094,
+            53.84730529785156,
+            -9.313225746154785e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            86.78488159179688,
+            244.76048278808594,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001373291015625,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.5859248042106628,
+      "max_abs_roll_rad": 0.8618856072425842,
+      "max_pitch_rad": 0.5859248042106628,
+      "max_xy_drift_m": 0.7930068373680115,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.23714396357536316,
+      "min_pitch_rad": -0.06466244906187057,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "high",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 15.608019828796387,
+      "completed_push_event_count": 1,
+      "control_failure_label": null,
+      "control_only": false,
+      "control_success": false,
+      "env_id": 42,
+      "episode_index": 1,
+      "episode_steps": 303,
+      "failure_label": "not_recovered",
+      "final_planar_speed_mps": 0.0032341349869966507,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -3.211456775665283,
+            61.75266647338867,
+            -3.79085548729563e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -14.597555160522461,
+            280.6940002441406,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.000152587890625,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.36996200680732727,
+      "max_abs_roll_rad": 0.15364743769168854,
+      "max_pitch_rad": 0.20030568540096283,
+      "max_xy_drift_m": 1.221023440361023,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.2208026498556137,
+      "min_pitch_rad": -0.36996200680732727,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "high",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 16.83900260925293,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 43,
+      "episode_index": 1,
+      "episode_steps": 62,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 3.523897886276245,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -28.696556091308594,
+            60.225746154785156,
+            -2.869963964258204e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -130.4388427734375,
+            273.7533874511719,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.000213623046875,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.23939979076385498,
+      "max_abs_roll_rad": 0.9564489126205444,
+      "max_pitch_rad": 0.23939979076385498,
+      "max_xy_drift_m": 0.4083060324192047,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.22157010436058044,
+      "min_pitch_rad": -0.0715811550617218,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "high",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 17.516590118408203,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 44,
+      "episode_index": 1,
+      "episode_steps": 66,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 3.2960762977600098,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -51.55376434326172,
+            46.45676803588867,
+            -6.544590291923669e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -234.335205078125,
+            211.1670684814453,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001983642578125,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.5631701946258545,
+      "max_abs_roll_rad": 0.8056487441062927,
+      "max_pitch_rad": 0.5631701946258545,
+      "max_xy_drift_m": 0.574150025844574,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.2150949388742447,
+      "min_pitch_rad": -0.07522868365049362,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "high",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 16.833372116088867,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 45,
+      "episode_index": 1,
+      "episode_steps": 79,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 1.5666102170944214,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -62.85655975341797,
+            22.287025451660156,
+            -1.0259636837872677e-06
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -285.7115173339844,
+            101.30470275878906,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.00018310546875,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.23950764536857605,
+      "max_abs_roll_rad": 0.819874107837677,
+      "max_pitch_rad": 0.23950764536857605,
+      "max_xy_drift_m": 1.16474187374115,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.22153499722480774,
+      "min_pitch_rad": -0.20804838836193085,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "high",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 17.722000122070312,
+      "completed_push_event_count": 1,
+      "control_failure_label": null,
+      "control_only": false,
+      "control_success": false,
+      "env_id": 46,
+      "episode_index": 1,
+      "episode_steps": 303,
+      "failure_label": "not_recovered",
+      "final_planar_speed_mps": 0.0012022755108773708,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -70.1166000366211,
+            -3.646406888961792,
+            -7.849186545172415e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -318.71173095703125,
+            -16.574575424194336,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.000152587890625,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.367343932390213,
+      "max_abs_roll_rad": 0.07497797906398773,
+      "max_pitch_rad": 0.27012866735458374,
+      "max_xy_drift_m": 1.36067795753479,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.21299858391284943,
+      "min_pitch_rad": -0.367343932390213,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "high",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 16.491973876953125,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 47,
+      "episode_index": 1,
+      "episode_steps": 65,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 3.3268494606018066,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -58.984588623046875,
+            -28.105113983154297,
+            -6.081163519411348e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -268.11175537109375,
+            -127.75059509277344,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.00018310546875,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.46763190627098083,
+      "max_abs_roll_rad": 0.80016028881073,
+      "max_pitch_rad": 0.46763190627098083,
+      "max_xy_drift_m": 0.5252441763877869,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.22451220452785492,
+      "min_pitch_rad": -0.06849759817123413,
+      "planned_push_count": 1,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "high",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 14.921865463256836,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 48,
+      "episode_index": 1,
+      "episode_steps": 69,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 1.962798833847046,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -31.660085678100586,
+            -35.13369369506836,
+            1.347064824130939e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -143.9095001220703,
+            -159.6986541748047,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001068115234375,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.522727370262146,
+      "max_abs_roll_rad": 0.8059096932411194,
+      "max_pitch_rad": 0.522727370262146,
+      "max_xy_drift_m": 0.6170532703399658,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.22922997176647186,
+      "min_pitch_rad": -0.0647347941994667,
+      "planned_push_count": 2,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "repeated",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 17.58188247680664,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 49,
+      "episode_index": 1,
+      "episode_steps": 67,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 2.517437219619751,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -18.622468948364258,
+            -52.521209716796875,
+            -4.816055252376827e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -84.6475601196289,
+            -238.73269653320312,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.00012969970703125,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.4742944836616516,
+      "max_abs_roll_rad": 0.8551335334777832,
+      "max_pitch_rad": 0.4742944836616516,
+      "max_xy_drift_m": 0.4835887849330902,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.21453851461410522,
+      "min_pitch_rad": -0.07723173499107361,
+      "planned_push_count": 2,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "repeated",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 14.79137897491455,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 50,
+      "episode_index": 1,
+      "episode_steps": 63,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 2.675576686859131,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            2.4347312450408936,
+            -46.817317962646484,
+            -4.589556112932769e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            11.066956520080566,
+            -212.80604553222656,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001373291015625,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.17846037447452545,
+      "max_abs_roll_rad": 0.9182785153388977,
+      "max_pitch_rad": 0.17846037447452545,
+      "max_xy_drift_m": 0.39221322536468506,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.23762072622776031,
+      "min_pitch_rad": -0.06405077129602432,
+      "planned_push_count": 2,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "repeated",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 16.676313400268555,
+      "completed_push_event_count": 2,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 51,
+      "episode_index": 1,
+      "episode_steps": 90,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 2.34055233001709,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            22.735424041748047,
+            -47.71511459350586,
+            -2.9087061648169765e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            103.34281158447266,
+            -216.88685607910156,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.00017547607421875,
+          "start_control_step": 51
+        },
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            47.71511459350586,
+            22.735429763793945,
+            1.1253355296503287e-06
+          ],
+          "end_control_step": 84,
+          "event_index": 1,
+          "expected_substeps": 44,
+          "force_world_n": [
+            216.8868408203125,
+            103.34285736083984,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.00016021728515625,
+          "start_control_step": 73
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.4187094569206238,
+      "max_abs_roll_rad": 0.921302080154419,
+      "max_pitch_rad": 0.4187094569206238,
+      "max_xy_drift_m": 1.0391652584075928,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.22289519011974335,
+      "min_pitch_rad": -0.3577898144721985,
+      "planned_push_count": 2,
+      "push_event_count": 2,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "repeated",
+      "success": false,
+      "verified_push_event_count": 2
+    },
+    {
+      "actual_total_mass_kg": 15.012216567993164,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 52,
+      "episode_index": 1,
+      "episode_steps": 70,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 1.8273621797561646,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            35.346435546875,
+            -31.85177230834961,
+            -7.058679898364062e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            160.66563415527344,
+            -144.78082275390625,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 9.1552734375e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.5405752062797546,
+      "max_abs_roll_rad": 0.8621805310249329,
+      "max_pitch_rad": 0.5405752062797546,
+      "max_xy_drift_m": 0.6518880128860474,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.23123686015605927,
+      "min_pitch_rad": -0.06506937742233276,
+      "planned_push_count": 2,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "repeated",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 17.421405792236328,
+      "completed_push_event_count": 2,
+      "control_failure_label": null,
+      "control_only": false,
+      "control_success": false,
+      "env_id": 53,
+      "episode_index": 1,
+      "episode_steps": 303,
+      "failure_label": "not_recovered",
+      "final_planar_speed_mps": 0.0014668391086161137,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            52.041839599609375,
+            -18.45248031616211,
+            3.814697180359872e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            236.55372619628906,
+            -83.87491607666016,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001373291015625,
+          "start_control_step": 51
+        },
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            18.452482223510742,
+            52.04184341430664,
+            -7.915496667010302e-07
+          ],
+          "end_control_step": 84,
+          "event_index": 1,
+          "expected_substeps": 44,
+          "force_world_n": [
+            83.8748779296875,
+            236.55374145507812,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.000152587890625,
+          "start_control_step": 73
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.36361899971961975,
+      "max_abs_roll_rad": 0.19215911626815796,
+      "max_pitch_rad": 0.2596060633659363,
+      "max_xy_drift_m": 1.3451318740844727,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.21601426601409912,
+      "min_pitch_rad": -0.36361899971961975,
+      "planned_push_count": 2,
+      "push_event_count": 2,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "repeated",
+      "success": false,
+      "verified_push_event_count": 2
+    },
+    {
+      "actual_total_mass_kg": 17.14162826538086,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 54,
+      "episode_index": 1,
+      "episode_steps": 70,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 1.8131446838378906,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            54.25627517700195,
+            2.821603775024414,
+            -1.0520219717591317e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            246.61947631835938,
+            12.825461387634277,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001373291015625,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.592856228351593,
+      "max_abs_roll_rad": 0.8636404275894165,
+      "max_pitch_rad": 0.592856228351593,
+      "max_xy_drift_m": 0.6031336188316345,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.2188679277896881,
+      "min_pitch_rad": -0.07447943836450577,
+      "planned_push_count": 2,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "repeated",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 17.667369842529297,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 55,
+      "episode_index": 1,
+      "episode_steps": 62,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 2.8215842247009277,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            50.550758361816406,
+            24.086580276489258,
+            -1.0597705113468692e-06
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            229.77621459960938,
+            109.48442077636719,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.00018310546875,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.2680646479129791,
+      "max_abs_roll_rad": 0.8286876082420349,
+      "max_pitch_rad": 0.2680646479129791,
+      "max_xy_drift_m": 0.3746396601200104,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.21362200379371643,
+      "min_pitch_rad": -0.12891216576099396,
+      "planned_push_count": 2,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "repeated",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 17.823741912841797,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 56,
+      "episode_index": 1,
+      "episode_steps": 63,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 2.6469967365264893,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            37.81708908081055,
+            41.9661979675293,
+            -1.9941107893828303e-06
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            171.8957977294922,
+            190.7554473876953,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001983642578125,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.27356934547424316,
+      "max_abs_roll_rad": 0.9111714959144592,
+      "max_pitch_rad": 0.27356934547424316,
+      "max_xy_drift_m": 0.427331805229187,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.21196666359901428,
+      "min_pitch_rad": -0.14451764523983002,
+      "planned_push_count": 2,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "repeated",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 15.956286430358887,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 57,
+      "episode_index": 1,
+      "episode_steps": 67,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 2.5290982723236084,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            16.900657653808594,
+            47.6651496887207,
+            -1.0955334346363088e-06
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            76.82119750976562,
+            216.6597900390625,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001220703125,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.44407662749290466,
+      "max_abs_roll_rad": 0.870151162147522,
+      "max_pitch_rad": 0.44407662749290466,
+      "max_xy_drift_m": 0.5061970353126526,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.22893716394901276,
+      "min_pitch_rad": -0.06588787585496902,
+      "planned_push_count": 2,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "repeated",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 15.146495819091797,
+      "completed_push_event_count": 2,
+      "control_failure_label": null,
+      "control_only": false,
+      "control_success": false,
+      "env_id": 58,
+      "episode_index": 1,
+      "episode_steps": 303,
+      "failure_label": "not_recovered",
+      "final_planar_speed_mps": 0.0031413824763149023,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -2.4931936264038086,
+            47.94135665893555,
+            -5.507469040821888e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -11.332728385925293,
+            217.9151611328125,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001220703125,
+          "start_control_step": 51
+        },
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -47.94135284423828,
+            -2.4931814670562744,
+            -1.077651972991589e-06
+          ],
+          "end_control_step": 84,
+          "event_index": 1,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -217.9151611328125,
+            -11.332658767700195,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001220703125,
+          "start_control_step": 73
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.39611366391181946,
+      "max_abs_roll_rad": 0.07592065632343292,
+      "max_pitch_rad": 0.18791207671165466,
+      "max_xy_drift_m": 1.1340490579605103,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.2334669679403305,
+      "min_pitch_rad": -0.39611366391181946,
+      "planned_push_count": 2,
+      "push_event_count": 2,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "repeated",
+      "success": false,
+      "verified_push_event_count": 2
+    },
+    {
+      "actual_total_mass_kg": 15.707036018371582,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 59,
+      "episode_index": 1,
+      "episode_steps": 65,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 2.572028636932373,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -21.413982391357422,
+            44.941768646240234,
+            2.0164995362392801e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -97.33628845214844,
+            204.2807159423828,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001068115234375,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.29602357745170593,
+      "max_abs_roll_rad": 0.8095853924751282,
+      "max_pitch_rad": 0.29602357745170593,
+      "max_xy_drift_m": 0.4184815287590027,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.23068028688430786,
+      "min_pitch_rad": -0.0653301477432251,
+      "planned_push_count": 2,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "repeated",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 14.525164604187012,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 60,
+      "episode_index": 1,
+      "episode_steps": 66,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 2.551882743835449,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -34.19965362548828,
+            30.81841468811035,
+            -5.900859534335723e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -155.4529571533203,
+            140.08370971679688,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 7.62939453125e-05,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.3167426884174347,
+      "max_abs_roll_rad": 0.8696978092193604,
+      "max_pitch_rad": 0.3167426884174347,
+      "max_xy_drift_m": 0.4766796827316284,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.23928962647914886,
+      "min_pitch_rad": -0.06488679349422455,
+      "planned_push_count": 2,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "repeated",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 16.54182243347168,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_forward",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 61,
+      "episode_index": 1,
+      "episode_steps": 77,
+      "failure_label": "fall_forward",
+      "final_planar_speed_mps": 1.5865377187728882,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -49.41429138183594,
+            17.52082061767578,
+            -1.87754629621395e-08
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -224.61045837402344,
+            79.64010620117188,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.000152587890625,
+          "start_control_step": 51
+        },
+        {
+          "actual_substeps": 16,
+          "completed": false,
+          "delivered_impulse_world_ns": [
+            -6.371215343475342,
+            -17.968835830688477,
+            3.2424927098873013e-07
+          ],
+          "end_control_step": 77,
+          "event_index": 1,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -79.64018249511719,
+            -224.6104278564453,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001068115234375,
+          "start_control_step": 73
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.8271536231040955,
+      "max_abs_roll_rad": 0.852054238319397,
+      "max_pitch_rad": 0.8271536231040955,
+      "max_xy_drift_m": 0.7874383330345154,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.22409649193286896,
+      "min_pitch_rad": -0.06885280460119247,
+      "planned_push_count": 2,
+      "push_event_count": 2,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "repeated",
+      "success": false,
+      "verified_push_event_count": 2
+    },
+    {
+      "actual_total_mass_kg": 14.483657836914062,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 62,
+      "episode_index": 1,
+      "episode_steps": 63,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 2.6711905002593994,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -45.843326568603516,
+            -2.384073257446289,
+            -9.20295690320927e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -208.37881469726562,
+            -10.836721420288086,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.0001277923583984375,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.16982458531856537,
+      "max_abs_roll_rad": 0.9133339524269104,
+      "max_pitch_rad": 0.16982458531856537,
+      "max_xy_drift_m": 0.3927682936191559,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.23958319425582886,
+      "min_pitch_rad": -0.06545370817184448,
+      "planned_push_count": 2,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "repeated",
+      "success": false,
+      "verified_push_event_count": 1
+    },
+    {
+      "actual_total_mass_kg": 17.045808792114258,
+      "completed_push_event_count": 1,
+      "control_failure_label": "fall_side",
+      "control_only": false,
+      "control_success": false,
+      "env_id": 63,
+      "episode_index": 1,
+      "episode_steps": 62,
+      "failure_label": "fall_side",
+      "final_planar_speed_mps": 2.7903730869293213,
+      "final_recovery_condition": false,
+      "force_events": [
+        {
+          "actual_substeps": 44,
+          "completed": true,
+          "delivered_impulse_world_ns": [
+            -48.772342681884766,
+            -23.239171981811523,
+            -6.341933271869493e-07
+          ],
+          "end_control_step": 62,
+          "event_index": 0,
+          "expected_substeps": 44,
+          "force_world_n": [
+            -221.69239807128906,
+            -105.63257598876953,
+            0.0
+          ],
+          "injection_verified": true,
+          "max_force_error_n": 0.00016021728515625,
+          "start_control_step": 51
+        }
+      ],
+      "invalid_injection_count": 0,
+      "max_abs_pitch_rad": 0.24567104876041412,
+      "max_abs_roll_rad": 0.8262210488319397,
+      "max_pitch_rad": 0.24567104876041412,
+      "max_xy_drift_m": 0.3560904860496521,
+      "mean_action_l2": 0.0,
+      "mean_action_rate_l2": 0.0,
+      "min_base_height_m": 0.21977078914642334,
+      "min_pitch_rad": -0.08349939435720444,
+      "planned_push_count": 2,
+      "push_event_count": 1,
+      "sequence_recovered": false,
+      "sequence_recovery_control_step": null,
+      "stratum": "repeated",
+      "success": false,
+      "verified_push_event_count": 1
+    }
+  ],
+  "public_score": 0.0,
+  "run": {
+    "round_id": "go2_zero_action_03",
+    "run_index": 1,
+    "seed_policy": "runner_owned_split_derived_counts_only_no_raw_seed_ids",
+    "split": "public_dev",
+    "split_seed_count": 3,
+    "subject_id": "p6-force-evaluation-push.go2_12dof.recovery_v3",
+    "subject_kind": "baseline",
+    "task_id": "unitree_push_recovery"
+  },
+  "schema_version": "true_rl_agent.push_recovery.rollout.v3",
+  "secondary_metrics": {
+    "mean_action_l2": 0.0,
+    "mean_action_rate_l2": 0.0,
+    "mean_episode_steps": 134.296875,
+    "mean_final_planar_speed_mps": 1.3933851372366917,
+    "mean_max_abs_pitch_rad": 0.35531543171964586,
+    "mean_max_abs_roll_rad": 0.6647086758748628,
+    "mean_max_xy_drift_m": 0.548534894362092,
+    "mean_min_base_height_m": 0.2243705454748124,
+    "recovery_window_success_rate": 0.0
+  },
+  "status": "pass",
+  "task": {
+    "diagnostic_control_only": false,
+    "mechanism": "world_planar_external_force"
+  }
+}

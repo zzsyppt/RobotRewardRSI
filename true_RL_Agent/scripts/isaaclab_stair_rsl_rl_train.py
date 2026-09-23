@@ -95,6 +95,8 @@ def _build_parser() -> argparse.ArgumentParser:
     artifact_group.add_argument("--reference-artifact")
     parser.add_argument("--candidate-artifact-hash", default=None)
     parser.add_argument("--candidate-verification-hash", default=None)
+    parser.add_argument("--runtime-comparison-json", default=None)
+    parser.add_argument("--runtime-comparison-hash", default=None)
     parser.add_argument(
         "--candidate-execution-authorization-json",
         default=None,
@@ -104,6 +106,7 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
     )
     parser.add_argument("--reference-artifact-hash", default=None)
+    parser.add_argument("--capture-training-numeric", action="store_true")
     parser.add_argument(
         "--expected-initial-policy-state-hash",
         default=None,
@@ -286,6 +289,9 @@ def _run_training(
     attempt_id = uuid.uuid4().hex
     run_dir = summary_path.parent / "run" / f"attempt-{attempt_id}"
     summary_path.parent.mkdir(parents=True, exist_ok=True)
+    from true_rl_agent.tasks.stair_climbing.training_diagnostics import load_stair_training_comparison
+    comparison = load_stair_training_comparison(args.runtime_comparison_json, args.runtime_comparison_hash,
+        context=context, candidate_program=reward_program)
     result = execute_stair_training(
         config=context.config,
         source_manifest_preflight=source_manifest_preflight,
@@ -299,8 +305,18 @@ def _run_training(
             context.expected_initial_policy_state_hash
         ),
         resolved_cell_manifest=getattr(args, "resolved_cell_manifest", None),
+        runtime_comparison=comparison,
+        capture_training_numeric=getattr(args, "capture_training_numeric", False),
+        numeric_evidence_identity={
+            "job": context.identity.to_public_dict(),
+            "training_binding_hash": context.training_binding.binding_hash,
+            "train_attempt_id": attempt_id,
+            "backend_execution_environment_verification": execution_environment_verification,
+        },
     )
     fields = result.to_summary_fields()
+    if comparison is not None:
+        fields["runtime_diagnostic_context_hash"] = comparison["context_hash"]
     compute_context_observation = (
         capture_gpu_compute_context(gpu_runtime_binding)
         if gpu_runtime_binding is not None

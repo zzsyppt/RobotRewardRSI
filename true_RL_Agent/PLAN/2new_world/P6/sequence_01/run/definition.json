@@ -1,0 +1,37 @@
+{
+  "affected_stratum": "repeated",
+  "arms": [
+    "original",
+    "continuous"
+  ],
+  "automatic_retries": 0,
+  "base_seed": 42,
+  "checkpoint_role": "existing_D_inference_only_not_new_protocol_training",
+  "continuous_second_push_time_scale": 6.0,
+  "control_dt_s": 0.02,
+  "definition_hash": "52110e4c179208c709828b42445f924366d03989fe385539e9b3835ef255905c",
+  "derived_seeds": [
+    10042,
+    10043,
+    10044
+  ],
+  "dwell_steps": 16,
+  "envs_per_seed": 64,
+  "first_push_time_scale": 5.0,
+  "first_recovery_sample": "last_injection_step_plus_one",
+  "holdout_jobs": 0,
+  "old_event_recovery_values_used_for_sequence_success": false,
+  "original_second_push_time_scale": 17.0,
+  "provider_calls": 0,
+  "require_final_stable": true,
+  "require_no_fall_or_boundary_exit_during_entire_episode": true,
+  "require_two_verified_pushes": true,
+  "schema_version": "true_rl_agent.p6.push_sequence_diagnostic.v1",
+  "sequence_recovery": "continuous_dwell_after_last_verified_push",
+  "source_resolved_protocol_hash": "39f0d453a04e0c1a059395597b6a54aa3715dd739edd394b78f90641217f76e1",
+  "step_rounding": "ceil_each_absolute_time_divided_by_control_dt",
+  "train_jobs": 0,
+  "wall_limit_s": 1800,
+  "window_inclusive": true,
+  "window_steps": 81
+}

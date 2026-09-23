@@ -1,0 +1,1385 @@
+{
+  "cells": {
+    "g1": {
+      "cell_variant_id": "push.g1_37dof.recovery_v2",
+      "event_numeric_audit": {
+        "continuous_dwell_reconstruction": "NOT_AVAILABLE_FROM_SAVED_RECORDS",
+        "events_checked": 1040,
+        "finite_next_physics_velocity_records": 1040,
+        "full_recovery_window_within_recorded_episode_count": 1040,
+        "injection_check": "PASS",
+        "maximum_absolute_errors": {
+          "direction_error_mps": 1.139272243211309e-06,
+          "magnitude_error_mps": 1.1683748124546867e-07,
+          "post_minus_pre_vs_observed_mps": 5.960464477539063e-08,
+          "post_minus_pre_vs_requested_mps": 5.960464477539063e-08,
+          "requested_vs_observed_mps": 1.1920928955078125e-07,
+          "z_angular_write_change": 0.0
+        },
+        "next_physics_different_from_post_write": 1040,
+        "post_write_z_and_angular_preserved_exactly": 1040,
+        "protocol_mismatch_counts": {},
+        "recovered_elapsed_steps_range": null,
+        "recovered_latency_s_range": null,
+        "recovery_window_timing_check": "PASS"
+      },
+      "evidence_checks": {
+        "all_planned_injections_and_next_physics_present": true,
+        "all_recovery_windows_fit_recorded_episode_duration": true,
+        "evaluation_public_plan_hash_reconstructed": true,
+        "event_numeric_protocol_checks": true,
+        "exactly_three_phase_receipts": true,
+        "formal_max_eval_budget_enforced": true,
+        "full_training_budget_preserved": true,
+        "import_and_contract_hashes": true,
+        "import_source_execution_contract_bytes": true,
+        "import_source_execution_environment_bytes": true,
+        "import_source_process_bytes": true,
+        "import_source_resolved_cell_bytes": true,
+        "import_source_started_bytes": true,
+        "import_source_summary_bytes": true,
+        "no_new_training_and_no_retries": true,
+        "original_checkpoint_and_summary_bound": true,
+        "phase_receipt_commitment": true,
+        "phase_receipt_contract_hash": true,
+        "prior_wall_time_charged": true,
+        "process_argv_and_cap": true,
+        "public_accept_1_aggregate_integer_recount": true,
+        "public_accept_1_cohort_and_closure": true,
+        "public_accept_1_cost_recount": true,
+        "public_accept_1_high_recount": true,
+        "public_accept_1_low_recount": true,
+        "public_accept_1_medium_recount": true,
+        "public_accept_1_protocol_runtime_hashes": true,
+        "public_accept_1_repeated_recount": true,
+        "public_accept_2_aggregate_integer_recount": true,
+        "public_accept_2_cohort_and_closure": true,
+        "public_accept_2_cost_recount": true,
+        "public_accept_2_high_recount": true,
+        "public_accept_2_low_recount": true,
+        "public_accept_2_medium_recount": true,
+        "public_accept_2_protocol_runtime_hashes": true,
+        "public_accept_2_repeated_recount": true,
+        "public_accept_3_aggregate_integer_recount": true,
+        "public_accept_3_cohort_and_closure": true,
+        "public_accept_3_cost_recount": true,
+        "public_accept_3_high_recount": true,
+        "public_accept_3_low_recount": true,
+        "public_accept_3_medium_recount": true,
+        "public_accept_3_protocol_runtime_hashes": true,
+        "public_accept_3_repeated_recount": true,
+        "public_accept_abi_expanded_actual_matches": true,
+        "public_accept_abi_hash": true,
+        "public_accept_checkpoint_and_cell": true,
+        "public_accept_constructed_learner_and_inference_only": true,
+        "public_accept_effective_scales_joint_pos": true,
+        "public_accept_finite_and_execution_pass": true,
+        "public_accept_job_spec_hash_reconstructed": true,
+        "public_accept_new_eval_execution_environment": true,
+        "public_accept_plan_and_subject_identity": true,
+        "public_accept_protocol_binding": true,
+        "public_accept_receipt_exact_bytes": true,
+        "public_accept_receipt_result_hash": true,
+        "public_accept_resolved_action_joint_order": true,
+        "public_accept_seed_count_and_ordinals": true,
+        "public_accept_task_evidence_hash": true,
+        "public_accept_total_cost_recount": true,
+        "public_dev_1_aggregate_integer_recount": true,
+        "public_dev_1_cohort_and_closure": true,
+        "public_dev_1_cost_recount": true,
+        "public_dev_1_high_recount": true,
+        "public_dev_1_low_recount": true,
+        "public_dev_1_medium_recount": true,
+        "public_dev_1_protocol_runtime_hashes": true,
+        "public_dev_1_repeated_recount": true,
+        "public_dev_2_aggregate_integer_recount": true,
+        "public_dev_2_cohort_and_closure": true,
+        "public_dev_2_cost_recount": true,
+        "public_dev_2_high_recount": true,
+        "public_dev_2_low_recount": true,
+        "public_dev_2_medium_recount": true,
+        "public_dev_2_protocol_runtime_hashes": true,
+        "public_dev_2_repeated_recount": true,
+        "public_dev_3_aggregate_integer_recount": true,
+        "public_dev_3_cohort_and_closure": true,
+        "public_dev_3_cost_recount": true,
+        "public_dev_3_high_recount": true,
+        "public_dev_3_low_recount": true,
+        "public_dev_3_medium_recount": true,
+        "public_dev_3_protocol_runtime_hashes": true,
+        "public_dev_3_repeated_recount": true,
+        "public_dev_abi_expanded_actual_matches": true,
+        "public_dev_abi_hash": true,
+        "public_dev_checkpoint_and_cell": true,
+        "public_dev_constructed_learner_and_inference_only": true,
+        "public_dev_effective_scales_joint_pos": true,
+        "public_dev_finite_and_execution_pass": true,
+        "public_dev_job_spec_hash_reconstructed": true,
+        "public_dev_new_eval_execution_environment": true,
+        "public_dev_plan_and_subject_identity": true,
+        "public_dev_protocol_binding": true,
+        "public_dev_receipt_exact_bytes": true,
+        "public_dev_receipt_result_hash": true,
+        "public_dev_resolved_action_joint_order": true,
+        "public_dev_seed_count_and_ordinals": true,
+        "public_dev_task_evidence_hash": true,
+        "public_dev_total_cost_recount": true,
+        "qualification_recomputed_exactly": true,
+        "resolved_protocol_exact": true,
+        "same_scientific_identity": true,
+        "same_training_cell_manifest": true,
+        "sealed_validation_1_aggregate_integer_recount": true,
+        "sealed_validation_1_cohort_and_closure": true,
+        "sealed_validation_1_cost_recount": true,
+        "sealed_validation_1_high_recount": true,
+        "sealed_validation_1_low_recount": true,
+        "sealed_validation_1_medium_recount": true,
+        "sealed_validation_1_protocol_runtime_hashes": true,
+        "sealed_validation_1_repeated_recount": true,
+        "sealed_validation_2_aggregate_integer_recount": true,
+        "sealed_validation_2_cohort_and_closure": true,
+        "sealed_validation_2_cost_recount": true,
+        "sealed_validation_2_high_recount": true,
+        "sealed_validation_2_low_recount": true,
+        "sealed_validation_2_medium_recount": true,
+        "sealed_validation_2_protocol_runtime_hashes": true,
+        "sealed_validation_2_repeated_recount": true,
+        "sealed_validation_3_aggregate_integer_recount": true,
+        "sealed_validation_3_cohort_and_closure": true,
+        "sealed_validation_3_cost_recount": true,
+        "sealed_validation_3_high_recount": true,
+        "sealed_validation_3_low_recount": true,
+        "sealed_validation_3_medium_recount": true,
+        "sealed_validation_3_protocol_runtime_hashes": true,
+        "sealed_validation_3_repeated_recount": true,
+        "sealed_validation_4_aggregate_integer_recount": true,
+        "sealed_validation_4_cohort_and_closure": true,
+        "sealed_validation_4_cost_recount": true,
+        "sealed_validation_4_high_recount": true,
+        "sealed_validation_4_low_recount": true,
+        "sealed_validation_4_medium_recount": true,
+        "sealed_validation_4_protocol_runtime_hashes": true,
+        "sealed_validation_4_repeated_recount": true,
+        "sealed_validation_5_aggregate_integer_recount": true,
+        "sealed_validation_5_cohort_and_closure": true,
+        "sealed_validation_5_cost_recount": true,
+        "sealed_validation_5_high_recount": true,
+        "sealed_validation_5_low_recount": true,
+        "sealed_validation_5_medium_recount": true,
+        "sealed_validation_5_protocol_runtime_hashes": true,
+        "sealed_validation_5_repeated_recount": true,
+        "sealed_validation_6_aggregate_integer_recount": true,
+        "sealed_validation_6_cohort_and_closure": true,
+        "sealed_validation_6_cost_recount": true,
+        "sealed_validation_6_high_recount": true,
+        "sealed_validation_6_low_recount": true,
+        "sealed_validation_6_medium_recount": true,
+        "sealed_validation_6_protocol_runtime_hashes": true,
+        "sealed_validation_6_repeated_recount": true,
+        "sealed_validation_7_aggregate_integer_recount": true,
+        "sealed_validation_7_cohort_and_closure": true,
+        "sealed_validation_7_cost_recount": true,
+        "sealed_validation_7_high_recount": true,
+        "sealed_validation_7_low_recount": true,
+        "sealed_validation_7_medium_recount": true,
+        "sealed_validation_7_protocol_runtime_hashes": true,
+        "sealed_validation_7_repeated_recount": true,
+        "sealed_validation_abi_expanded_actual_matches": true,
+        "sealed_validation_abi_hash": true,
+        "sealed_validation_checkpoint_and_cell": true,
+        "sealed_validation_constructed_learner_and_inference_only": true,
+        "sealed_validation_effective_scales_joint_pos": true,
+        "sealed_validation_finite_and_execution_pass": true,
+        "sealed_validation_job_spec_hash_reconstructed": true,
+        "sealed_validation_new_eval_execution_environment": true,
+        "sealed_validation_plan_and_subject_identity": true,
+        "sealed_validation_protocol_binding": true,
+        "sealed_validation_receipt_exact_bytes": true,
+        "sealed_validation_receipt_result_hash": true,
+        "sealed_validation_resolved_action_joint_order": true,
+        "sealed_validation_seed_count_and_ordinals": true,
+        "sealed_validation_task_evidence_hash": true,
+        "sealed_validation_total_cost_recount": true,
+        "source_execution_environment_preserved": true,
+        "training_binding_preserved": true
+      },
+      "formal_totals": {
+        "actual_events": 1040,
+        "censored_events": 1040,
+        "early_closed_episodes": 1,
+        "episodes": 832,
+        "failure_counts": {
+          "not_recovered": 831,
+          "out_of_bounds": 1
+        },
+        "invalid_injections": 0,
+        "planned_events": 1040,
+        "recovered_events": 0,
+        "success_rate": 0.0,
+        "successes": 0
+      },
+      "identity": {
+        "cell_manifest_hash": "7fca96669153de0679c7cdd52911fecd407dc48e9f9c6e56adfb588a34061ace",
+        "checkpoint_sha256": "sha256:0a16d82b0653a019ec7e23faaa9f18dd93e2cf5b9bb1d07c1c9674356b50243b",
+        "completed_training_import_hash": "8ff58e551b86d698182efc5e67df7579eb42e1038d29dd737850dcbbb1beae50",
+        "evaluation_plan_hash": "503375975f12caf48dd74dfc2cde693592455e60ee769397e13578930343d3bd",
+        "genesis_identity_hash": "0bc26def904828bcb72b5ede8ea751dea39bf69d52f22367d40150878c5ec7b7",
+        "new_evaluation_execution_environment_hash": "f0b44b6a00d6652c03a5dc38286c57331006ce0e7b311a96c474dcad72f07709",
+        "old_training_execution_environment_hash": "68dea27a9b939b8432c2ef7960482f87e21cacce4f816be52795c2509d00cf3c",
+        "physical_protocol_hash": "a51f190bab162281d6d014285dde612f73763fb20457bc690a5f7c3a5aaeb778",
+        "reference_manifest_hash": "a9531a959b8ea7b0edd4559fb9a80ad3da2c665bf83186b89ba308b11802a8ec",
+        "resolved_protocol_hash": "ff050770bf562710cbf49fe5837b7e8045a9f00d75a5ef043649bbed2302f28c",
+        "seed_cohort_hash": "40a4ca0894609e14d15da22038e1384baf9a322dcc0b20907181f46781eb2c51",
+        "source_checksum": "sha256:f5b0faee114283ab96056cacbd37b346f797d53984daf6c18f52e13cbbd2506e",
+        "task_protocol_hash": "5cdf5001a4354d818fcb76ff9c40e5e7c025fc4e78dcabae5e4fd42e2eee8c2b",
+        "training_binding_hash": "6a523f9ff068b2dd1969ff64a1809fd7770693048b3011048573725e13f87e26"
+      },
+      "interpretation": "Rollout execution and saved-data consistency pass; reference qualification fails the frozen task-level score requirements. A failure is not missing physical injection evidence.",
+      "negative_replay_scope": {
+        "additional_phases_executed": [],
+        "formal_evidence_replaced": false,
+        "genesis_created": false,
+        "read_only_preflight": true
+      },
+      "no_go_reasons": [
+        "public_dev_score_0.0_below_frozen_reference_band_min_0.2",
+        "public_accept_score_0.0_below_absolute_floor_0.2",
+        "sealed_score_0.0_below_absolute_floor_0.2"
+      ],
+      "phases": {
+        "public_accept": {
+          "episodes": 192,
+          "events": 240,
+          "execution_cost": {
+            "closed_first_episode_control_steps": 79104,
+            "evaluation_env_count_per_seed": 64,
+            "seed_count": 3,
+            "simulated_env_control_steps": 79104,
+            "vector_env_step_calls": 1236,
+            "wall_time_s": 39.819611989
+          },
+          "failure_counts": {
+            "not_recovered": 192
+          },
+          "recovered_events": 0,
+          "seeds": [
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 0,
+              "run_index": 1,
+              "successes": 0
+            },
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 0,
+              "run_index": 2,
+              "successes": 0
+            },
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 0,
+              "run_index": 3,
+              "successes": 0
+            }
+          ],
+          "strata": {
+            "high": {
+              "episodes": 48,
+              "successes": 0
+            },
+            "low": {
+              "episodes": 48,
+              "successes": 0
+            },
+            "medium": {
+              "episodes": 48,
+              "successes": 0
+            },
+            "repeated": {
+              "episodes": 48,
+              "successes": 0
+            }
+          },
+          "success_rate": 0.0,
+          "successes": 0
+        },
+        "public_dev": {
+          "episodes": 192,
+          "events": 240,
+          "execution_cost": {
+            "closed_first_episode_control_steps": 79076,
+            "evaluation_env_count_per_seed": 64,
+            "seed_count": 3,
+            "simulated_env_control_steps": 79104,
+            "vector_env_step_calls": 1236,
+            "wall_time_s": 38.67626512
+          },
+          "failure_counts": {
+            "not_recovered": 191,
+            "out_of_bounds": 1
+          },
+          "recovered_events": 0,
+          "seeds": [
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 0,
+              "run_index": 1,
+              "successes": 0
+            },
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 0,
+              "run_index": 2,
+              "successes": 0
+            },
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 0,
+              "run_index": 3,
+              "successes": 0
+            }
+          ],
+          "strata": {
+            "high": {
+              "episodes": 48,
+              "successes": 0
+            },
+            "low": {
+              "episodes": 48,
+              "successes": 0
+            },
+            "medium": {
+              "episodes": 48,
+              "successes": 0
+            },
+            "repeated": {
+              "episodes": 48,
+              "successes": 0
+            }
+          },
+          "success_rate": 0.0,
+          "successes": 0
+        },
+        "sealed_validation": {
+          "episodes": 448,
+          "events": 560,
+          "execution_cost": {
+            "closed_first_episode_control_steps": 184576,
+            "evaluation_env_count_per_seed": 64,
+            "seed_count": 7,
+            "simulated_env_control_steps": 184576,
+            "vector_env_step_calls": 2884,
+            "wall_time_s": 86.745434453
+          },
+          "failure_counts": {
+            "not_recovered": 448
+          },
+          "recovered_events": 0,
+          "seeds": [
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 0,
+              "run_index": 1,
+              "successes": 0
+            },
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 0,
+              "run_index": 2,
+              "successes": 0
+            },
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 0,
+              "run_index": 3,
+              "successes": 0
+            },
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 0,
+              "run_index": 4,
+              "successes": 0
+            },
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 0,
+              "run_index": 5,
+              "successes": 0
+            },
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 0,
+              "run_index": 6,
+              "successes": 0
+            },
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 0,
+              "run_index": 7,
+              "successes": 0
+            }
+          ],
+          "strata": {
+            "high": {
+              "episodes": 112,
+              "successes": 0
+            },
+            "low": {
+              "episodes": 112,
+              "successes": 0
+            },
+            "medium": {
+              "episodes": 112,
+              "successes": 0
+            },
+            "repeated": {
+              "episodes": 112,
+              "successes": 0
+            }
+          },
+          "success_rate": 0.0,
+          "successes": 0
+        }
+      },
+      "protocol": {
+        "control_dt_s": 0.02,
+        "episode_steps": 412,
+        "recovery_angular_velocity_radps": 1.8204914691338683,
+        "recovery_height_m": 0.518,
+        "recovery_tilt_rad": 0.2,
+        "recovery_velocity_mps": 0.21554618994545,
+        "recovery_window_steps": 110,
+        "robot_scale_m": 0.74,
+        "scheduled_event_steps": [
+          69,
+          234
+        ],
+        "stable_dwell_steps": 21,
+        "velocity_magnitudes_mps": {
+          "high": 1.3471636871590624,
+          "low": 0.4041491061477187,
+          "medium": 0.8082982122954374
+        }
+      },
+      "qualification_contract": {
+        "band_purpose": "basic_learnability_and_nonzero_improvement_headroom",
+        "evaluation_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+        "independent_validation": {
+          "distribution_relation": "same_balanced_magnitude_and_direction_distribution_independent_seeds",
+          "max_public_to_sealed_score_drop": 0.1,
+          "schema_version": "true_rl_agent.push_recovery.validation.v2",
+          "validation_feedback": "status_only"
+        },
+        "minimum_score": 0.2,
+        "public_dev_reference_band": [
+          0.2,
+          0.9
+        ],
+        "recovery_protocol_hash": "a51f190bab162281d6d014285dde612f73763fb20457bc690a5f7c3a5aaeb778",
+        "required_gates": [
+          "accept_evidence_gate",
+          "budget_accounting",
+          "recovery_evidence_gate",
+          "sealed_validation_gate"
+        ],
+        "schema_version": "true_rl_agent.task.push_recovery.reference_capability.v2",
+        "scope": "standing_recovery_task_and_reference",
+        "score_source": "public_accept.score_stats.mean",
+        "train_budget_steps": 49152000
+      },
+      "qualification_evidence": {
+        "evidence_hash": "e1e671ec089def79a9a9483f937c7786732b4a6c05992ec8992ceb6b40ec0495",
+        "gate_statuses": {
+          "accept_evidence_gate": "pass",
+          "budget_accounting": "pass",
+          "recovery_evidence_gate": "pass",
+          "sealed_validation_gate": "fail"
+        },
+        "protocol_hash": "5cdf5001a4354d818fcb76ff9c40e5e7c025fc4e78dcabae5e4fd42e2eee8c2b",
+        "public_accept_score": 0.0,
+        "public_dev_reference_band": [
+          0.2,
+          0.9
+        ],
+        "public_dev_score": 0.0,
+        "qualification_contract_hash": "c3cdb7afdce9895e692feb353c55abd1b4a7b1c68ec39856378887207c427e97",
+        "schema_version": "true_rl_agent.task.push_recovery.reference_evidence.v2",
+        "scope": "standing_recovery_task_and_reference"
+      },
+      "qualification_gate": {
+        "evidence_hash": "e1e671ec089def79a9a9483f937c7786732b4a6c05992ec8992ceb6b40ec0495",
+        "protocol_hash": "5cdf5001a4354d818fcb76ff9c40e5e7c025fc4e78dcabae5e4fd42e2eee8c2b",
+        "schema_version": "true_rl_agent.reference_qualification_gate.v1",
+        "status": "fail"
+      },
+      "qualification_verdict": "NO_GO",
+      "sample_budget": {
+        "applied_remaining_wall_cap_s": 13468,
+        "combined_wall_s": 1149.170358741656,
+        "continuation_wall_s": 217.43542881309986,
+        "episodes_formal": 832,
+        "evaluation_envs_per_seed": 64,
+        "evaluation_seed_counts": {
+          "public_accept": 3,
+          "public_dev": 3,
+          "sealed_validation": 7
+        },
+        "max_eval_control_steps": 342784,
+        "original_wall_cap_s": 14400,
+        "original_wall_s": 931.7349299285561,
+        "stratum_episode_counts": {
+          "high": 208,
+          "low": 208,
+          "medium": 208,
+          "repeated": 208
+        },
+        "total_closed_first_episode_control_steps": 342756,
+        "total_simulated_env_control_steps": 342784,
+        "training_env_steps_original": 49152000,
+        "training_jobs_continuation": 0,
+        "training_jobs_original": 1
+      }
+    },
+    "go2": {
+      "cell_variant_id": "push.go2_12dof.recovery_v2",
+      "event_numeric_audit": {
+        "continuous_dwell_reconstruction": "NOT_AVAILABLE_FROM_SAVED_RECORDS",
+        "events_checked": 1040,
+        "finite_next_physics_velocity_records": 1040,
+        "full_recovery_window_within_recorded_episode_count": 1040,
+        "injection_check": "PASS",
+        "maximum_absolute_errors": {
+          "direction_error_mps": 8.636700364883509e-07,
+          "magnitude_error_mps": 7.434591153820946e-08,
+          "post_minus_pre_vs_observed_mps": 2.9802322387695312e-08,
+          "post_minus_pre_vs_requested_mps": 2.9802322387695312e-08,
+          "requested_vs_observed_mps": 5.960464477539063e-08,
+          "z_angular_write_change": 0.0
+        },
+        "next_physics_different_from_post_write": 1040,
+        "post_write_z_and_angular_preserved_exactly": 1040,
+        "protocol_mismatch_counts": {},
+        "recovered_elapsed_steps_range": [
+          17,
+          57
+        ],
+        "recovered_latency_s_range": [
+          0.34,
+          1.1400000000000001
+        ],
+        "recovery_window_timing_check": "PASS"
+      },
+      "evidence_checks": {
+        "all_planned_injections_and_next_physics_present": true,
+        "all_recovery_windows_fit_recorded_episode_duration": true,
+        "evaluation_public_plan_hash_reconstructed": true,
+        "event_numeric_protocol_checks": true,
+        "exactly_three_phase_receipts": true,
+        "formal_max_eval_budget_enforced": true,
+        "full_training_budget_preserved": true,
+        "import_and_contract_hashes": true,
+        "import_source_execution_contract_bytes": true,
+        "import_source_execution_environment_bytes": true,
+        "import_source_process_bytes": true,
+        "import_source_resolved_cell_bytes": true,
+        "import_source_started_bytes": true,
+        "import_source_summary_bytes": true,
+        "no_new_training_and_no_retries": true,
+        "original_checkpoint_and_summary_bound": true,
+        "phase_receipt_commitment": true,
+        "phase_receipt_contract_hash": true,
+        "prior_wall_time_charged": true,
+        "process_argv_and_cap": true,
+        "public_accept_1_aggregate_integer_recount": true,
+        "public_accept_1_cohort_and_closure": true,
+        "public_accept_1_cost_recount": true,
+        "public_accept_1_high_recount": true,
+        "public_accept_1_low_recount": true,
+        "public_accept_1_medium_recount": true,
+        "public_accept_1_protocol_runtime_hashes": true,
+        "public_accept_1_repeated_recount": true,
+        "public_accept_2_aggregate_integer_recount": true,
+        "public_accept_2_cohort_and_closure": true,
+        "public_accept_2_cost_recount": true,
+        "public_accept_2_high_recount": true,
+        "public_accept_2_low_recount": true,
+        "public_accept_2_medium_recount": true,
+        "public_accept_2_protocol_runtime_hashes": true,
+        "public_accept_2_repeated_recount": true,
+        "public_accept_3_aggregate_integer_recount": true,
+        "public_accept_3_cohort_and_closure": true,
+        "public_accept_3_cost_recount": true,
+        "public_accept_3_high_recount": true,
+        "public_accept_3_low_recount": true,
+        "public_accept_3_medium_recount": true,
+        "public_accept_3_protocol_runtime_hashes": true,
+        "public_accept_3_repeated_recount": true,
+        "public_accept_abi_expanded_actual_matches": true,
+        "public_accept_abi_hash": true,
+        "public_accept_checkpoint_and_cell": true,
+        "public_accept_constructed_learner_and_inference_only": true,
+        "public_accept_effective_scales_joint_pos": true,
+        "public_accept_finite_and_execution_pass": true,
+        "public_accept_job_spec_hash_reconstructed": true,
+        "public_accept_new_eval_execution_environment": true,
+        "public_accept_plan_and_subject_identity": true,
+        "public_accept_protocol_binding": true,
+        "public_accept_receipt_exact_bytes": true,
+        "public_accept_receipt_result_hash": true,
+        "public_accept_resolved_action_joint_order": true,
+        "public_accept_seed_count_and_ordinals": true,
+        "public_accept_task_evidence_hash": true,
+        "public_accept_total_cost_recount": true,
+        "public_dev_1_aggregate_integer_recount": true,
+        "public_dev_1_cohort_and_closure": true,
+        "public_dev_1_cost_recount": true,
+        "public_dev_1_high_recount": true,
+        "public_dev_1_low_recount": true,
+        "public_dev_1_medium_recount": true,
+        "public_dev_1_protocol_runtime_hashes": true,
+        "public_dev_1_repeated_recount": true,
+        "public_dev_2_aggregate_integer_recount": true,
+        "public_dev_2_cohort_and_closure": true,
+        "public_dev_2_cost_recount": true,
+        "public_dev_2_high_recount": true,
+        "public_dev_2_low_recount": true,
+        "public_dev_2_medium_recount": true,
+        "public_dev_2_protocol_runtime_hashes": true,
+        "public_dev_2_repeated_recount": true,
+        "public_dev_3_aggregate_integer_recount": true,
+        "public_dev_3_cohort_and_closure": true,
+        "public_dev_3_cost_recount": true,
+        "public_dev_3_high_recount": true,
+        "public_dev_3_low_recount": true,
+        "public_dev_3_medium_recount": true,
+        "public_dev_3_protocol_runtime_hashes": true,
+        "public_dev_3_repeated_recount": true,
+        "public_dev_abi_expanded_actual_matches": true,
+        "public_dev_abi_hash": true,
+        "public_dev_checkpoint_and_cell": true,
+        "public_dev_constructed_learner_and_inference_only": true,
+        "public_dev_effective_scales_joint_pos": true,
+        "public_dev_finite_and_execution_pass": true,
+        "public_dev_job_spec_hash_reconstructed": true,
+        "public_dev_new_eval_execution_environment": true,
+        "public_dev_plan_and_subject_identity": true,
+        "public_dev_protocol_binding": true,
+        "public_dev_receipt_exact_bytes": true,
+        "public_dev_receipt_result_hash": true,
+        "public_dev_resolved_action_joint_order": true,
+        "public_dev_seed_count_and_ordinals": true,
+        "public_dev_task_evidence_hash": true,
+        "public_dev_total_cost_recount": true,
+        "qualification_recomputed_exactly": true,
+        "resolved_protocol_exact": true,
+        "same_scientific_identity": true,
+        "same_training_cell_manifest": true,
+        "sealed_validation_1_aggregate_integer_recount": true,
+        "sealed_validation_1_cohort_and_closure": true,
+        "sealed_validation_1_cost_recount": true,
+        "sealed_validation_1_high_recount": true,
+        "sealed_validation_1_low_recount": true,
+        "sealed_validation_1_medium_recount": true,
+        "sealed_validation_1_protocol_runtime_hashes": true,
+        "sealed_validation_1_repeated_recount": true,
+        "sealed_validation_2_aggregate_integer_recount": true,
+        "sealed_validation_2_cohort_and_closure": true,
+        "sealed_validation_2_cost_recount": true,
+        "sealed_validation_2_high_recount": true,
+        "sealed_validation_2_low_recount": true,
+        "sealed_validation_2_medium_recount": true,
+        "sealed_validation_2_protocol_runtime_hashes": true,
+        "sealed_validation_2_repeated_recount": true,
+        "sealed_validation_3_aggregate_integer_recount": true,
+        "sealed_validation_3_cohort_and_closure": true,
+        "sealed_validation_3_cost_recount": true,
+        "sealed_validation_3_high_recount": true,
+        "sealed_validation_3_low_recount": true,
+        "sealed_validation_3_medium_recount": true,
+        "sealed_validation_3_protocol_runtime_hashes": true,
+        "sealed_validation_3_repeated_recount": true,
+        "sealed_validation_4_aggregate_integer_recount": true,
+        "sealed_validation_4_cohort_and_closure": true,
+        "sealed_validation_4_cost_recount": true,
+        "sealed_validation_4_high_recount": true,
+        "sealed_validation_4_low_recount": true,
+        "sealed_validation_4_medium_recount": true,
+        "sealed_validation_4_protocol_runtime_hashes": true,
+        "sealed_validation_4_repeated_recount": true,
+        "sealed_validation_5_aggregate_integer_recount": true,
+        "sealed_validation_5_cohort_and_closure": true,
+        "sealed_validation_5_cost_recount": true,
+        "sealed_validation_5_high_recount": true,
+        "sealed_validation_5_low_recount": true,
+        "sealed_validation_5_medium_recount": true,
+        "sealed_validation_5_protocol_runtime_hashes": true,
+        "sealed_validation_5_repeated_recount": true,
+        "sealed_validation_6_aggregate_integer_recount": true,
+        "sealed_validation_6_cohort_and_closure": true,
+        "sealed_validation_6_cost_recount": true,
+        "sealed_validation_6_high_recount": true,
+        "sealed_validation_6_low_recount": true,
+        "sealed_validation_6_medium_recount": true,
+        "sealed_validation_6_protocol_runtime_hashes": true,
+        "sealed_validation_6_repeated_recount": true,
+        "sealed_validation_7_aggregate_integer_recount": true,
+        "sealed_validation_7_cohort_and_closure": true,
+        "sealed_validation_7_cost_recount": true,
+        "sealed_validation_7_high_recount": true,
+        "sealed_validation_7_low_recount": true,
+        "sealed_validation_7_medium_recount": true,
+        "sealed_validation_7_protocol_runtime_hashes": true,
+        "sealed_validation_7_repeated_recount": true,
+        "sealed_validation_abi_expanded_actual_matches": true,
+        "sealed_validation_abi_hash": true,
+        "sealed_validation_checkpoint_and_cell": true,
+        "sealed_validation_constructed_learner_and_inference_only": true,
+        "sealed_validation_effective_scales_joint_pos": true,
+        "sealed_validation_finite_and_execution_pass": true,
+        "sealed_validation_job_spec_hash_reconstructed": true,
+        "sealed_validation_new_eval_execution_environment": true,
+        "sealed_validation_plan_and_subject_identity": true,
+        "sealed_validation_protocol_binding": true,
+        "sealed_validation_receipt_exact_bytes": true,
+        "sealed_validation_receipt_result_hash": true,
+        "sealed_validation_resolved_action_joint_order": true,
+        "sealed_validation_seed_count_and_ordinals": true,
+        "sealed_validation_task_evidence_hash": true,
+        "sealed_validation_total_cost_recount": true,
+        "source_execution_environment_preserved": true,
+        "training_binding_preserved": true
+      },
+      "formal_totals": {
+        "actual_events": 1040,
+        "censored_events": 0,
+        "early_closed_episodes": 0,
+        "episodes": 832,
+        "failure_counts": {
+          "success_recovered": 832
+        },
+        "invalid_injections": 0,
+        "planned_events": 1040,
+        "recovered_events": 1040,
+        "success_rate": 1.0,
+        "successes": 832
+      },
+      "identity": {
+        "cell_manifest_hash": "a82c526bd986363c63d6a88a7474c30777ae38e4589d3e421d110196c46043a7",
+        "checkpoint_sha256": "sha256:55683f99894efeef440b07f53f1ddd9cc832e2cbcecf8d1f9dbd99262ccde5b2",
+        "completed_training_import_hash": "d4f140bb8018c725e4da0a8a1c39531b9e9a5fca1180fade49b64bd2cb893667",
+        "evaluation_plan_hash": "c7def35c8af0a5eed18ab3111f3d006b8e9b35393ec33a65000b9044d193c19d",
+        "genesis_identity_hash": "26d826578486ba776f38faacb3c35edda457b3676bc7984c4c1dafef2b4af41c",
+        "new_evaluation_execution_environment_hash": "f0b44b6a00d6652c03a5dc38286c57331006ce0e7b311a96c474dcad72f07709",
+        "old_training_execution_environment_hash": "68dea27a9b939b8432c2ef7960482f87e21cacce4f816be52795c2509d00cf3c",
+        "physical_protocol_hash": "a51f190bab162281d6d014285dde612f73763fb20457bc690a5f7c3a5aaeb778",
+        "reference_manifest_hash": "a9531a959b8ea7b0edd4559fb9a80ad3da2c665bf83186b89ba308b11802a8ec",
+        "resolved_protocol_hash": "77deee1a36992c69915f6b939418c9f46db16789fd987bdb127fa27ddfa7ce4a",
+        "seed_cohort_hash": "40a4ca0894609e14d15da22038e1384baf9a322dcc0b20907181f46781eb2c51",
+        "source_checksum": "sha256:f5b0faee114283ab96056cacbd37b346f797d53984daf6c18f52e13cbbd2506e",
+        "task_protocol_hash": "6ceaeb7b2db365683d5b7a6009e562077ab7b322077b08729f36f4614075fe0d",
+        "training_binding_hash": "2c8f08c278ceae93fe03f1004b104289cbdaf47606e3fa7834ccd73d3b5b1494"
+      },
+      "interpretation": "Rollout execution and saved-data consistency pass; reference qualification fails the frozen task-level score requirements. A failure is not missing physical injection evidence.",
+      "negative_replay_scope": {
+        "additional_phases_executed": [],
+        "formal_evidence_replaced": false,
+        "genesis_created": false,
+        "read_only_preflight": true
+      },
+      "no_go_reasons": [
+        "public_dev_score_1.0_above_frozen_reference_band_max_0.9_no_improvement_headroom"
+      ],
+      "phases": {
+        "public_accept": {
+          "episodes": 192,
+          "events": 240,
+          "execution_cost": {
+            "closed_first_episode_control_steps": 58176,
+            "evaluation_env_count_per_seed": 64,
+            "seed_count": 3,
+            "simulated_env_control_steps": 58176,
+            "vector_env_step_calls": 909,
+            "wall_time_s": 18.13606899
+          },
+          "failure_counts": {
+            "success_recovered": 192
+          },
+          "recovered_events": 240,
+          "seeds": [
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 80,
+              "run_index": 1,
+              "successes": 64
+            },
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 80,
+              "run_index": 2,
+              "successes": 64
+            },
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 80,
+              "run_index": 3,
+              "successes": 64
+            }
+          ],
+          "strata": {
+            "high": {
+              "episodes": 48,
+              "successes": 48
+            },
+            "low": {
+              "episodes": 48,
+              "successes": 48
+            },
+            "medium": {
+              "episodes": 48,
+              "successes": 48
+            },
+            "repeated": {
+              "episodes": 48,
+              "successes": 48
+            }
+          },
+          "success_rate": 1.0,
+          "successes": 192
+        },
+        "public_dev": {
+          "episodes": 192,
+          "events": 240,
+          "execution_cost": {
+            "closed_first_episode_control_steps": 58176,
+            "evaluation_env_count_per_seed": 64,
+            "seed_count": 3,
+            "simulated_env_control_steps": 58176,
+            "vector_env_step_calls": 909,
+            "wall_time_s": 17.969447396
+          },
+          "failure_counts": {
+            "success_recovered": 192
+          },
+          "recovered_events": 240,
+          "seeds": [
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 80,
+              "run_index": 1,
+              "successes": 64
+            },
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 80,
+              "run_index": 2,
+              "successes": 64
+            },
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 80,
+              "run_index": 3,
+              "successes": 64
+            }
+          ],
+          "strata": {
+            "high": {
+              "episodes": 48,
+              "successes": 48
+            },
+            "low": {
+              "episodes": 48,
+              "successes": 48
+            },
+            "medium": {
+              "episodes": 48,
+              "successes": 48
+            },
+            "repeated": {
+              "episodes": 48,
+              "successes": 48
+            }
+          },
+          "success_rate": 1.0,
+          "successes": 192
+        },
+        "sealed_validation": {
+          "episodes": 448,
+          "events": 560,
+          "execution_cost": {
+            "closed_first_episode_control_steps": 135744,
+            "evaluation_env_count_per_seed": 64,
+            "seed_count": 7,
+            "simulated_env_control_steps": 135744,
+            "vector_env_step_calls": 2121,
+            "wall_time_s": 38.881712187
+          },
+          "failure_counts": {
+            "success_recovered": 448
+          },
+          "recovered_events": 560,
+          "seeds": [
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 80,
+              "run_index": 1,
+              "successes": 64
+            },
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 80,
+              "run_index": 2,
+              "successes": 64
+            },
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 80,
+              "run_index": 3,
+              "successes": 64
+            },
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 80,
+              "run_index": 4,
+              "successes": 64
+            },
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 80,
+              "run_index": 5,
+              "successes": 64
+            },
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 80,
+              "run_index": 6,
+              "successes": 64
+            },
+            {
+              "episodes": 64,
+              "events": 80,
+              "recovered_events": 80,
+              "run_index": 7,
+              "successes": 64
+            }
+          ],
+          "strata": {
+            "high": {
+              "episodes": 112,
+              "successes": 112
+            },
+            "low": {
+              "episodes": 112,
+              "successes": 112
+            },
+            "medium": {
+              "episodes": 112,
+              "successes": 112
+            },
+            "repeated": {
+              "episodes": 112,
+              "successes": 112
+            }
+          },
+          "success_rate": 1.0,
+          "successes": 448
+        }
+      },
+      "protocol": {
+        "control_dt_s": 0.02,
+        "episode_steps": 303,
+        "recovery_angular_velocity_radps": 2.4761361028828768,
+        "recovery_height_m": 0.27999999999999997,
+        "recovery_tilt_rad": 0.2,
+        "recovery_velocity_mps": 0.15847271058450413,
+        "recovery_window_steps": 81,
+        "robot_scale_m": 0.4,
+        "scheduled_event_steps": [
+          51,
+          172
+        ],
+        "stable_dwell_steps": 16,
+        "velocity_magnitudes_mps": {
+          "high": 0.9904544411531507,
+          "low": 0.2971363323459452,
+          "medium": 0.5942726646918904
+        }
+      },
+      "qualification_contract": {
+        "band_purpose": "basic_learnability_and_nonzero_improvement_headroom",
+        "evaluation_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+        "independent_validation": {
+          "distribution_relation": "same_balanced_magnitude_and_direction_distribution_independent_seeds",
+          "max_public_to_sealed_score_drop": 0.1,
+          "schema_version": "true_rl_agent.push_recovery.validation.v2",
+          "validation_feedback": "status_only"
+        },
+        "minimum_score": 0.2,
+        "public_dev_reference_band": [
+          0.2,
+          0.9
+        ],
+        "recovery_protocol_hash": "a51f190bab162281d6d014285dde612f73763fb20457bc690a5f7c3a5aaeb778",
+        "required_gates": [
+          "accept_evidence_gate",
+          "budget_accounting",
+          "recovery_evidence_gate",
+          "sealed_validation_gate"
+        ],
+        "schema_version": "true_rl_agent.task.push_recovery.reference_capability.v2",
+        "scope": "standing_recovery_task_and_reference",
+        "score_source": "public_accept.score_stats.mean",
+        "train_budget_steps": 49152000
+      },
+      "qualification_evidence": {
+        "evidence_hash": "07c84de5ca462b879aa37697ac6b86dc381dadd7c62d99c2d88a0f4452800f8d",
+        "gate_statuses": {
+          "accept_evidence_gate": "pass",
+          "budget_accounting": "pass",
+          "recovery_evidence_gate": "pass",
+          "sealed_validation_gate": "pass"
+        },
+        "protocol_hash": "6ceaeb7b2db365683d5b7a6009e562077ab7b322077b08729f36f4614075fe0d",
+        "public_accept_score": 1.0,
+        "public_dev_reference_band": [
+          0.2,
+          0.9
+        ],
+        "public_dev_score": 1.0,
+        "qualification_contract_hash": "c3cdb7afdce9895e692feb353c55abd1b4a7b1c68ec39856378887207c427e97",
+        "schema_version": "true_rl_agent.task.push_recovery.reference_evidence.v2",
+        "scope": "standing_recovery_task_and_reference"
+      },
+      "qualification_gate": {
+        "evidence_hash": "07c84de5ca462b879aa37697ac6b86dc381dadd7c62d99c2d88a0f4452800f8d",
+        "protocol_hash": "6ceaeb7b2db365683d5b7a6009e562077ab7b322077b08729f36f4614075fe0d",
+        "schema_version": "true_rl_agent.reference_qualification_gate.v1",
+        "status": "fail"
+      },
+      "qualification_verdict": "NO_GO",
+      "sample_budget": {
+        "applied_remaining_wall_cap_s": 13733,
+        "combined_wall_s": 793.1082830186933,
+        "continuation_wall_s": 126.2923480309546,
+        "episodes_formal": 832,
+        "evaluation_envs_per_seed": 64,
+        "evaluation_seed_counts": {
+          "public_accept": 3,
+          "public_dev": 3,
+          "sealed_validation": 7
+        },
+        "max_eval_control_steps": 252096,
+        "original_wall_cap_s": 14400,
+        "original_wall_s": 666.8159349877387,
+        "stratum_episode_counts": {
+          "high": 208,
+          "low": 208,
+          "medium": 208,
+          "repeated": 208
+        },
+        "total_closed_first_episode_control_steps": 252096,
+        "total_simulated_env_control_steps": 252096,
+        "training_env_steps_original": 49152000,
+        "training_jobs_continuation": 0,
+        "training_jobs_original": 1
+      }
+    }
+  },
+  "downloaded_file_count_verified": 30,
+  "evidence_audit_status": "PASS_WITH_RECORDED_DATA_LIMITS",
+  "issues": [],
+  "limitations": [
+    "No per-control-step recovery predicate history or stable-dwell counter history was saved. Recovery timestamps obey the required dwell/window bounds, but continuous satisfaction of height, tilt, planar speed and angular speed cannot be independently rebuilt from these event snapshots.",
+    "The source runtime increments dwell on stable steps and resets it on unstable steps before assigning recovery; this is code evidence, not a separately recorded physical trace.",
+    "Next-physics six-dimensional velocities are present, finite and differ from post-write values. Their provenance is the producer observe path; the records do not include an independent next-physics step timestamp.",
+    "Checkpoint binaries were checked by target production loaders. This local audit verifies the downloaded training summaries, import hashes, checkpoint identity chain and six phase loader receipts; it does not rehash a locally downloaded checkpoint binary.",
+    "Native video replays are separate diagnostics and are excluded from all formal episode, seed, event and qualification counts."
+  ],
+  "qualification_verdict": "NO_GO_BOTH_CELLS",
+  "schema_version": "true_rl_agent.p6.push_qualification_audit.v1",
+  "scope": {
+    "native_diagnostics_in_formal_denominator": false,
+    "new_evaluation": false,
+    "new_training": false,
+    "source_artifacts_modified": false
+  },
+  "sources": [
+    {
+      "bytes": 620308,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/go2/public_dev.json",
+      "sha256": "sha256:24e86fc586064513af85882ee72d7615f3c059cf71b6801312c67e81ac72cb0e",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/go2/runner/p6-reference-go2-20260912/eval/public_dev/summary.json"
+    },
+    {
+      "bytes": 620598,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/go2/public_accept.json",
+      "sha256": "sha256:48638aadd199444ca38e157ac7e1b7f5f52644538b5671f3b1b315cc1679f557",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/go2/runner/p6-reference-go2-20260912/eval/public_accept/summary.json"
+    },
+    {
+      "bytes": 1433008,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/go2/sealed_validation.json",
+      "sha256": "sha256:d983cd7fb5e8f5ff988fafec0d45ac24f3a646bbda8d675fd786c96d3df18f19",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/go2/runner/p6-reference-go2-20260912/eval/sealed_validation/summary.json"
+    },
+    {
+      "bytes": 13829,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/go2/completed_reference_training_import.json",
+      "sha256": "sha256:7b533c4f9210d6e27dd67402d289dce85add609f3b6daab4ddccfca354df5913",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/go2/completed_reference_training_import.json"
+    },
+    {
+      "bytes": 1341,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/go2/reference_qualification_execution.json",
+      "sha256": "sha256:fe3a27dc3aeda0bac778ffbc9bac32c07d528edeea0df3e75ee87d11c58ea399",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/go2/reference_qualification_execution.json"
+    },
+    {
+      "bytes": 204,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/go2/reference_qualification_started.json",
+      "sha256": "sha256:5cc776e56beea1df93f21cab396578ef50165ee205149dd67233ef17ef8fc777",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/go2/reference_qualification_started.json"
+    },
+    {
+      "bytes": 11505,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/go2/resolved_cell_manifest.json",
+      "sha256": "sha256:9c95810ff6523c4a699dd943a625cec3b5fa29b92922fa6381319def67732da7",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/go2/resolved_cell_manifest.json"
+    },
+    {
+      "bytes": 2626,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/go2/process_process.json",
+      "sha256": "sha256:f54cf80f83988244da8a70d43fb7c86673bfecdb9c71fdbd6b523816b652ad89",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/go2_process/process.json"
+    },
+    {
+      "bytes": 1080,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/go2/process_stderr.log",
+      "sha256": "sha256:ff9edf5162aaea534ab717a96605c56c57154b987252d31b281287dcb78f6b74",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/go2_process/stderr.log"
+    },
+    {
+      "bytes": 3962,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/go2/negative_read_only_replay.json",
+      "sha256": "sha256:29aad71f65c0a9f8d02e3f1beabf1cb0ed3449f1f3cda925060e89395afed3c2",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/p6_native_preflight_01/go2/result.json"
+    },
+    {
+      "bytes": 899,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/go2/phase_receipt_0.json",
+      "sha256": "sha256:1ceb6982ed98ec6dd996ce5e61ccf3ca500e6fac97f6c1e5a4c2563fdd3967b7",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/go2/reference_program_artifacts/evaluation_receipts/150a0dea051f6517f1b55bb2f8c5194c904c94edc012a40e46d87da4506f0dc0/contract.json"
+    },
+    {
+      "bytes": 345687,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/go2/phase_receipt_1.json",
+      "sha256": "sha256:fa481361000ea6c36bac7f12543a6b99a9ad77a0268303db1a7cf061fbc267c5",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/go2/reference_program_artifacts/evaluation_receipts/150a0dea051f6517f1b55bb2f8c5194c904c94edc012a40e46d87da4506f0dc0/eval_phases/public_accept.json"
+    },
+    {
+      "bytes": 345397,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/go2/phase_receipt_2.json",
+      "sha256": "sha256:2216998c0bf7c69f12c83bce312f728b9388c409f169a1514f8fee439b12e0d4",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/go2/reference_program_artifacts/evaluation_receipts/150a0dea051f6517f1b55bb2f8c5194c904c94edc012a40e46d87da4506f0dc0/eval_phases/public_dev.json"
+    },
+    {
+      "bytes": 802417,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/go2/phase_receipt_3.json",
+      "sha256": "sha256:edf9f4de4f06402be14f61374c334a910142355f95f52e865c33f5f3d464a158",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/go2/reference_program_artifacts/evaluation_receipts/150a0dea051f6517f1b55bb2f8c5194c904c94edc012a40e46d87da4506f0dc0/eval_phases/sealed_validation.json"
+    },
+    {
+      "bytes": 617699,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/g1/public_dev.json",
+      "sha256": "sha256:42f359a60104998b3904ccffd50c2e83e29eed35e2ac79336f6da1bedb243379",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/g1/runner/p6-reference-g1-20260912/eval/public_dev/summary.json"
+    },
+    {
+      "bytes": 617580,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/g1/public_accept.json",
+      "sha256": "sha256:017abdf184a4e000ec5f8c50787d088332052d8b11f5bfaac55e40fe073a8555",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/g1/runner/p6-reference-g1-20260912/eval/public_accept/summary.json"
+    },
+    {
+      "bytes": 1423461,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/g1/sealed_validation.json",
+      "sha256": "sha256:e6b3bf5f9eae721791da1d890bc755e3dbf57d945c3f38835781e8755b196c3b",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/g1/runner/p6-reference-g1-20260912/eval/sealed_validation/summary.json"
+    },
+    {
+      "bytes": 13796,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/g1/completed_reference_training_import.json",
+      "sha256": "sha256:74b2e45406455de644a1dbf1943b4de4d6e88f99d4bb373218b49247efcff8f2",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/g1/completed_reference_training_import.json"
+    },
+    {
+      "bytes": 1340,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/g1/reference_qualification_execution.json",
+      "sha256": "sha256:3a338f550a3c46df412695898a1af40ea6015e941f9301ff0af6a552206f4513",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/g1/reference_qualification_execution.json"
+    },
+    {
+      "bytes": 204,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/g1/reference_qualification_started.json",
+      "sha256": "sha256:8b2ef4d35c276d56c8be70e4be2f3746975c3f7cefd3115bc18e3cac28223755",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/g1/reference_qualification_started.json"
+    },
+    {
+      "bytes": 13853,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/g1/resolved_cell_manifest.json",
+      "sha256": "sha256:412a0104ae6b8ba1e4dabcfa8b25bf9b55846dfc1905d22e23c30380319f1cb1",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/g1/resolved_cell_manifest.json"
+    },
+    {
+      "bytes": 2619,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/g1/process_process.json",
+      "sha256": "sha256:163524af2b58821f8e9ab02f37b195928468c4262ff8a208122e0de32849b4bd",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/g1_process/process.json"
+    },
+    {
+      "bytes": 1080,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/g1/process_stderr.log",
+      "sha256": "sha256:ff9edf5162aaea534ab717a96605c56c57154b987252d31b281287dcb78f6b74",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/g1_process/stderr.log"
+    },
+    {
+      "bytes": 3955,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/g1/negative_read_only_replay.json",
+      "sha256": "sha256:fff323957577e36f5c163a3817f0180210eed98d152da083ad93084dca315819",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/p6_native_preflight_01/g1/result.json"
+    },
+    {
+      "bytes": 897,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/g1/phase_receipt_0.json",
+      "sha256": "sha256:d22fb0135ae011d2ebeec29123982a895e131f6d4348f5a9d4fe298e0f18d67e",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/g1/reference_program_artifacts/evaluation_receipts/be966d2ea54dbd2d385e014191e70e479ae77302a3282c0d3dc768ae5e9b4f0f/contract.json"
+    },
+    {
+      "bytes": 340994,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/g1/phase_receipt_1.json",
+      "sha256": "sha256:2eef7c8311f32479b33c0ae872b810454bc03770b17b8541c922c5e53c048b8e",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/g1/reference_program_artifacts/evaluation_receipts/be966d2ea54dbd2d385e014191e70e479ae77302a3282c0d3dc768ae5e9b4f0f/eval_phases/public_accept.json"
+    },
+    {
+      "bytes": 341049,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/g1/phase_receipt_2.json",
+      "sha256": "sha256:2f259379d1caba8dca41891aaf1a07af45c07d27efba545fdc3b47cf279c4e6b",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/g1/reference_program_artifacts/evaluation_receipts/be966d2ea54dbd2d385e014191e70e479ae77302a3282c0d3dc768ae5e9b4f0f/eval_phases/public_dev.json"
+    },
+    {
+      "bytes": 791195,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/g1/phase_receipt_3.json",
+      "sha256": "sha256:18ef746be50cd93b67e3e7071394f8a59ea55121852c43d2b53c72d70bec2e1a",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/g1/reference_program_artifacts/evaluation_receipts/be966d2ea54dbd2d385e014191e70e479ae77302a3282c0d3dc768ae5e9b4f0f/eval_phases/sealed_validation.json"
+    },
+    {
+      "bytes": 2685,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/commands.json",
+      "sha256": "sha256:d03a6643bd1f9395fbc826c4078acad21862d7c1d06ddf2c068f6f0aefb1d82a",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/commands.json"
+    },
+    {
+      "bytes": 3944,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/launch.json",
+      "sha256": "sha256:2579792fdfa778cbdaf7fb28e3cd53d748a5f449462d569587d5b34c742ea10d",
+      "target_source_path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_reference_continuation_20260912/launch.json"
+    },
+    {
+      "bytes": 9256,
+      "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/download_manifest.json",
+      "sha256": "sha256:9cdee20625a6efb3bdbf85b71223c02630cb354a25cf233d8edd7c14c266cc0a"
+    },
+    {
+      "bytes": 29876,
+      "path": "PLAN/2new_world/P6/completed_training_evidence_01/go2/runner/p6-reference-go2-20260912/train/summary.json",
+      "sha256": "sha256:0e16f716c7fe82198523bc847aba436dc7d1870edf8ef21d0ce501f290bfd2a2"
+    },
+    {
+      "bytes": 1893,
+      "path": "PLAN/2new_world/P6/completed_training_evidence_01/go2_process/process.json",
+      "sha256": "sha256:fac731b533a7368face50e08fff9358bd7ba05a903df55387d760018f4c1e1c4"
+    },
+    {
+      "bytes": 11505,
+      "path": "PLAN/2new_world/P6/completed_training_evidence_01/go2/resolved_cell_manifest.json",
+      "sha256": "sha256:9c95810ff6523c4a699dd943a625cec3b5fa29b92922fa6381319def67732da7"
+    },
+    {
+      "bytes": 971,
+      "path": "PLAN/2new_world/P6/completed_training_evidence_01/go2/reference_qualification_execution.json",
+      "sha256": "sha256:47e0ee43c76345db913569f167ec5a2669330a7bd2c885adf32cf00fbe1d543b"
+    },
+    {
+      "bytes": 204,
+      "path": "PLAN/2new_world/P6/completed_training_evidence_01/go2/reference_qualification_started.json",
+      "sha256": "sha256:99beb30b28aa4483adf2af38958d94f48c30ed7d672ea4d310b5a1bf277b8163"
+    },
+    {
+      "bytes": 50482,
+      "path": "PLAN/2new_world/P6/original_training_execution_environment_01.json",
+      "sha256": "sha256:e161e4d36f7ac5881517bf107738fb5753f94585fdeea52589535b422dfdf7af"
+    },
+    {
+      "bytes": 31564,
+      "path": "PLAN/2new_world/P6/completed_training_evidence_01/g1/runner/p6-reference-g1-20260912/train/summary.json",
+      "sha256": "sha256:37f407d896c4884bbd8cde0a060f34bbcf2194f4b106f26c5c15c0f7d710b75b"
+    },
+    {
+      "bytes": 1889,
+      "path": "PLAN/2new_world/P6/completed_training_evidence_01/g1_process/process.json",
+      "sha256": "sha256:e26d373df2424a5e00d711d2ff1bd56dca5c73d2f6ca1ea42e9f1d8505dc9143"
+    },
+    {
+      "bytes": 13853,
+      "path": "PLAN/2new_world/P6/completed_training_evidence_01/g1/resolved_cell_manifest.json",
+      "sha256": "sha256:412a0104ae6b8ba1e4dabcfa8b25bf9b55846dfc1905d22e23c30380319f1cb1"
+    },
+    {
+      "bytes": 970,
+      "path": "PLAN/2new_world/P6/completed_training_evidence_01/g1/reference_qualification_execution.json",
+      "sha256": "sha256:164d04e6729bf37f5e51c53f9a2bc4fa804efff901d1c42eeaa243e02b1ce639"
+    },
+    {
+      "bytes": 204,
+      "path": "PLAN/2new_world/P6/completed_training_evidence_01/g1/reference_qualification_started.json",
+      "sha256": "sha256:1d4292aee59c4f18de40994e0041dd2038620bd338d50a27c5bdc88f20af3d84"
+    },
+    {
+      "bytes": 50482,
+      "path": "PLAN/2new_world/P6/original_training_execution_environment_01.json",
+      "sha256": "sha256:e161e4d36f7ac5881517bf107738fb5753f94585fdeea52589535b422dfdf7af"
+    }
+  ],
+  "totals": {
+    "actual_push_events": 2080,
+    "formal_episodes": 1664,
+    "new_training_jobs_in_continuation": 0,
+    "planned_push_events": 2080,
+    "qualified_cells": 0,
+    "recovered_push_events": 1040
+  }
+}

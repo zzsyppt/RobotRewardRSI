@@ -1,0 +1,680 @@
+{
+  "acceptance_interpretation": "Together with the already archived same-checkpoint 3 x 288 public-dev regression per robot, the measured joint/order/shape/control ABI is sufficient for the agreed P6 regression scope. Do not relabel it as an exhaustive live-config comparison or a new reference qualification; no additional GPU probe is required for this scope.",
+  "cells": {
+    "g1": {
+      "actual": {
+        "action": {
+          "implementation_name": "JointPositionAction",
+          "resolved_joint_indices": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36
+          ],
+          "resolved_joint_names_order": [
+            "left_hip_pitch_joint",
+            "right_hip_pitch_joint",
+            "torso_joint",
+            "left_hip_roll_joint",
+            "right_hip_roll_joint",
+            "left_shoulder_pitch_joint",
+            "right_shoulder_pitch_joint",
+            "left_hip_yaw_joint",
+            "right_hip_yaw_joint",
+            "left_shoulder_roll_joint",
+            "right_shoulder_roll_joint",
+            "left_knee_joint",
+            "right_knee_joint",
+            "left_shoulder_yaw_joint",
+            "right_shoulder_yaw_joint",
+            "left_ankle_pitch_joint",
+            "right_ankle_pitch_joint",
+            "left_elbow_pitch_joint",
+            "right_elbow_pitch_joint",
+            "left_ankle_roll_joint",
+            "right_ankle_roll_joint",
+            "left_elbow_roll_joint",
+            "right_elbow_roll_joint",
+            "left_five_joint",
+            "left_three_joint",
+            "left_zero_joint",
+            "right_five_joint",
+            "right_three_joint",
+            "right_zero_joint",
+            "left_six_joint",
+            "left_four_joint",
+            "left_one_joint",
+            "right_six_joint",
+            "right_four_joint",
+            "right_one_joint",
+            "left_two_joint",
+            "right_two_joint"
+          ],
+          "terms": [
+            {
+              "dimension": 37,
+              "index": 0,
+              "name": "joint_pos"
+            }
+          ],
+          "total_dimension": 37
+        },
+        "control": {
+          "control_dt_s": 0.02,
+          "rendering_dt_s": 0.02,
+          "simulation_dt_s": 0.005
+        },
+        "derived_decimation": {
+          "basis": "control_dt_s / simulation_dt_s; not a separately printed config field",
+          "value": 4.0
+        },
+        "environment_device": "cuda:1",
+        "environment_seed": 170100,
+        "num_envs": 288,
+        "observation": {
+          "group_count": 1,
+          "group_name": "policy",
+          "terms": [
+            {
+              "index": 0,
+              "name": "base_lin_vel",
+              "shape": [
+                3
+              ]
+            },
+            {
+              "index": 1,
+              "name": "base_ang_vel",
+              "shape": [
+                3
+              ]
+            },
+            {
+              "index": 2,
+              "name": "projected_gravity",
+              "shape": [
+                3
+              ]
+            },
+            {
+              "index": 3,
+              "name": "velocity_commands",
+              "shape": [
+                3
+              ]
+            },
+            {
+              "index": 4,
+              "name": "joint_pos",
+              "shape": [
+                37
+              ]
+            },
+            {
+              "index": 5,
+              "name": "joint_vel",
+              "shape": [
+                37
+              ]
+            },
+            {
+              "index": 6,
+              "name": "actions",
+              "shape": [
+                37
+              ]
+            },
+            {
+              "index": 7,
+              "name": "height_scan",
+              "shape": [
+                187
+              ]
+            }
+          ],
+          "total_shape": [
+            310
+          ]
+        },
+        "sensor_evidence": {
+          "height_scan_output_shape": [
+            187
+          ],
+          "scope": "Actual successful rollout consumed the height_scan term; this log does not expose sensor instance configuration."
+        },
+        "simulation_joint_names_order": [
+          "left_hip_pitch_joint",
+          "right_hip_pitch_joint",
+          "torso_joint",
+          "left_hip_roll_joint",
+          "right_hip_roll_joint",
+          "left_shoulder_pitch_joint",
+          "right_shoulder_pitch_joint",
+          "left_hip_yaw_joint",
+          "right_hip_yaw_joint",
+          "left_shoulder_roll_joint",
+          "right_shoulder_roll_joint",
+          "left_knee_joint",
+          "right_knee_joint",
+          "left_shoulder_yaw_joint",
+          "right_shoulder_yaw_joint",
+          "left_ankle_pitch_joint",
+          "right_ankle_pitch_joint",
+          "left_elbow_pitch_joint",
+          "right_elbow_pitch_joint",
+          "left_ankle_roll_joint",
+          "right_ankle_roll_joint",
+          "left_elbow_roll_joint",
+          "right_elbow_roll_joint",
+          "left_five_joint",
+          "left_three_joint",
+          "left_zero_joint",
+          "right_five_joint",
+          "right_three_joint",
+          "right_zero_joint",
+          "left_six_joint",
+          "left_four_joint",
+          "left_one_joint",
+          "right_six_joint",
+          "right_four_joint",
+          "right_one_joint",
+          "left_two_joint",
+          "right_two_joint"
+        ]
+      },
+      "cell_variant_id": "stair.g1_37dof.unified_v3",
+      "comparisons": {
+        "action_dimension_equals_profile_joint_count": true,
+        "action_single_joint_position_term": true,
+        "action_term_names_order_equals_frozen_binding": true,
+        "action_total_equals_actual_actor_output": true,
+        "control_dt_equals_frozen_binding": true,
+        "derived_decimation_equals_frozen_binding": true,
+        "observation_dimensions_sum_to_manager_total": true,
+        "observation_shapes_match_profile_and_scan_dimension": true,
+        "observation_single_policy_group": true,
+        "observation_term_indices_contiguous": true,
+        "observation_term_names_order_equals_frozen_binding": true,
+        "observation_total_equals_actual_actor_and_critic_inputs": true,
+        "resolved_action_indices_cover_profile_in_order": true,
+        "resolved_action_joint_order_equals_frozen_robot_profile": true,
+        "simulation_dt_equals_frozen_binding": true,
+        "simulation_joint_order_equals_frozen_robot_profile": true
+      },
+      "existing_execution_receipt": {
+        "checkpoint_sha256": "sha256:4f62db0e487cfc39c3cef61777bef9e4160b64f91f92fcca1cc795585ab8236c",
+        "constructed_learner_models": {
+          "actor": {
+            "activation": "ELU",
+            "hidden_dims": [
+              512,
+              256,
+              128
+            ],
+            "input_dim": 310,
+            "obs_groups": [
+              "policy"
+            ],
+            "obs_normalization": false,
+            "output_dim": 37
+          },
+          "critic": {
+            "activation": "ELU",
+            "hidden_dims": [
+              512,
+              256,
+              128
+            ],
+            "input_dim": 310,
+            "obs_groups": [
+              "policy"
+            ],
+            "obs_normalization": false,
+            "output_dim": 1
+          }
+        },
+        "current_manifest_hash": "351a6a670c8047035a4d94b16c5694bfdf27fbfbb698085f31367b46f16993bb",
+        "path": "PLAN/2new_world/P6/stair_dev_evidence_01/g1/result.json",
+        "source_training_manifest_hash": "dbd79e0074ce64f23ae447d3e50ebcf1997593fe121fa209b4efd61b410c79a1"
+      },
+      "frozen_comparison": {
+        "action_terms": [
+          {
+            "asset_name": "robot",
+            "class": "isaaclab.envs.mdp.actions.actions_cfg.JointPositionActionCfg",
+            "joint_names": [
+              ".*"
+            ],
+            "name": "joint_pos",
+            "scale": 0.5,
+            "use_default_offset": true
+          }
+        ],
+        "binding_facts_hash": "01ac5380ca24821668655a582d0ce911fb4de30ef166f518c4ae0c68698f9d7e",
+        "binding_id": "stair_g1_37dof_unified_binding_v2",
+        "binding_version_note": "Existing V3 evaluation successor retains the V2 robot binding facts; this audit compares robot/action/observation/control fields, not the cohort or cell-key identity.",
+        "control": {
+          "control_dt_s": 0.02,
+          "decimation": 4,
+          "simulation_dt_s": 0.005
+        },
+        "observation_term_names": [
+          "base_lin_vel",
+          "base_ang_vel",
+          "projected_gravity",
+          "velocity_commands",
+          "joint_pos",
+          "joint_vel",
+          "actions",
+          "height_scan"
+        ],
+        "robot_joint_names": [
+          "left_hip_pitch_joint",
+          "right_hip_pitch_joint",
+          "torso_joint",
+          "left_hip_roll_joint",
+          "right_hip_roll_joint",
+          "left_shoulder_pitch_joint",
+          "right_shoulder_pitch_joint",
+          "left_hip_yaw_joint",
+          "right_hip_yaw_joint",
+          "left_shoulder_roll_joint",
+          "right_shoulder_roll_joint",
+          "left_knee_joint",
+          "right_knee_joint",
+          "left_shoulder_yaw_joint",
+          "right_shoulder_yaw_joint",
+          "left_ankle_pitch_joint",
+          "right_ankle_pitch_joint",
+          "left_elbow_pitch_joint",
+          "right_elbow_pitch_joint",
+          "left_ankle_roll_joint",
+          "right_ankle_roll_joint",
+          "left_elbow_roll_joint",
+          "right_elbow_roll_joint",
+          "left_five_joint",
+          "left_three_joint",
+          "left_zero_joint",
+          "right_five_joint",
+          "right_three_joint",
+          "right_zero_joint",
+          "left_six_joint",
+          "left_four_joint",
+          "left_one_joint",
+          "right_six_joint",
+          "right_four_joint",
+          "right_one_joint",
+          "left_two_joint",
+          "right_two_joint"
+        ],
+        "robot_profile_id": "unitree_g1_37dof_isaaclab_v2",
+        "shape_expectation_basis": "Base vectors have 3 components; joint_pos/joint_vel/actions use frozen profile joint count; height_scan has 187 rays from the declared 1.6 by 1.0 m grid at 0.1 m spacing. The logged total is separately compared with the actual constructed learner receipt."
+      },
+      "original_target_stdout": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stair_dev_regression_01/g1/evaluation/public_dev/runner_process/stdout.log",
+      "passed_comparison_count": 16,
+      "source_line_starts": {
+        "action_manager": 101,
+        "control": 4,
+        "observation_manager": 110,
+        "resolved_action_joint_names": 100,
+        "simulation_joint_table": 21
+      },
+      "source_stderr": "PLAN/2new_world/P6/calibration_evidence_01/stair_existing_logs/g1/stderr.log",
+      "source_stdout": "PLAN/2new_world/P6/calibration_evidence_01/stair_existing_logs/g1/stdout.log",
+      "status": "PASS_FOR_MEASURED_SCOPE"
+    },
+    "go2": {
+      "actual": {
+        "action": {
+          "implementation_name": "JointPositionAction",
+          "resolved_joint_indices": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11
+          ],
+          "resolved_joint_names_order": [
+            "FL_hip_joint",
+            "FR_hip_joint",
+            "RL_hip_joint",
+            "RR_hip_joint",
+            "FL_thigh_joint",
+            "FR_thigh_joint",
+            "RL_thigh_joint",
+            "RR_thigh_joint",
+            "FL_calf_joint",
+            "FR_calf_joint",
+            "RL_calf_joint",
+            "RR_calf_joint"
+          ],
+          "terms": [
+            {
+              "dimension": 12,
+              "index": 0,
+              "name": "joint_pos"
+            }
+          ],
+          "total_dimension": 12
+        },
+        "control": {
+          "control_dt_s": 0.02,
+          "rendering_dt_s": 0.02,
+          "simulation_dt_s": 0.005
+        },
+        "derived_decimation": {
+          "basis": "control_dt_s / simulation_dt_s; not a separately printed config field",
+          "value": 4.0
+        },
+        "environment_device": "cuda:0",
+        "environment_seed": 170100,
+        "num_envs": 288,
+        "observation": {
+          "group_count": 1,
+          "group_name": "policy",
+          "terms": [
+            {
+              "index": 0,
+              "name": "base_lin_vel",
+              "shape": [
+                3
+              ]
+            },
+            {
+              "index": 1,
+              "name": "base_ang_vel",
+              "shape": [
+                3
+              ]
+            },
+            {
+              "index": 2,
+              "name": "projected_gravity",
+              "shape": [
+                3
+              ]
+            },
+            {
+              "index": 3,
+              "name": "velocity_commands",
+              "shape": [
+                3
+              ]
+            },
+            {
+              "index": 4,
+              "name": "joint_pos",
+              "shape": [
+                12
+              ]
+            },
+            {
+              "index": 5,
+              "name": "joint_vel",
+              "shape": [
+                12
+              ]
+            },
+            {
+              "index": 6,
+              "name": "actions",
+              "shape": [
+                12
+              ]
+            },
+            {
+              "index": 7,
+              "name": "height_scan",
+              "shape": [
+                187
+              ]
+            }
+          ],
+          "total_shape": [
+            235
+          ]
+        },
+        "sensor_evidence": {
+          "height_scan_output_shape": [
+            187
+          ],
+          "scope": "Actual successful rollout consumed the height_scan term; this log does not expose sensor instance configuration."
+        },
+        "simulation_joint_names_order": [
+          "FL_hip_joint",
+          "FR_hip_joint",
+          "RL_hip_joint",
+          "RR_hip_joint",
+          "FL_thigh_joint",
+          "FR_thigh_joint",
+          "RL_thigh_joint",
+          "RR_thigh_joint",
+          "FL_calf_joint",
+          "FR_calf_joint",
+          "RL_calf_joint",
+          "RR_calf_joint"
+        ]
+      },
+      "cell_variant_id": "stair.go2_12dof.unified_v3",
+      "comparisons": {
+        "action_dimension_equals_profile_joint_count": true,
+        "action_single_joint_position_term": true,
+        "action_term_names_order_equals_frozen_binding": true,
+        "action_total_equals_actual_actor_output": true,
+        "control_dt_equals_frozen_binding": true,
+        "derived_decimation_equals_frozen_binding": true,
+        "observation_dimensions_sum_to_manager_total": true,
+        "observation_shapes_match_profile_and_scan_dimension": true,
+        "observation_single_policy_group": true,
+        "observation_term_indices_contiguous": true,
+        "observation_term_names_order_equals_frozen_binding": true,
+        "observation_total_equals_actual_actor_and_critic_inputs": true,
+        "resolved_action_indices_cover_profile_in_order": true,
+        "resolved_action_joint_order_equals_frozen_robot_profile": true,
+        "simulation_dt_equals_frozen_binding": true,
+        "simulation_joint_order_equals_frozen_robot_profile": true
+      },
+      "existing_execution_receipt": {
+        "checkpoint_sha256": "sha256:7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+        "constructed_learner_models": {
+          "actor": {
+            "activation": "ELU",
+            "hidden_dims": [
+              512,
+              256,
+              128
+            ],
+            "input_dim": 235,
+            "obs_groups": [
+              "policy"
+            ],
+            "obs_normalization": false,
+            "output_dim": 12
+          },
+          "critic": {
+            "activation": "ELU",
+            "hidden_dims": [
+              512,
+              256,
+              128
+            ],
+            "input_dim": 235,
+            "obs_groups": [
+              "policy"
+            ],
+            "obs_normalization": false,
+            "output_dim": 1
+          }
+        },
+        "current_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+        "path": "PLAN/2new_world/P6/stair_dev_evidence_01/go2/result.json",
+        "source_training_manifest_hash": "193fa9038a6f46539fb71a7e73edc44bdc024be2b899785394b8f82113c91f37"
+      },
+      "frozen_comparison": {
+        "action_terms": [
+          {
+            "asset_name": "robot",
+            "class": "isaaclab.envs.mdp.actions.actions_cfg.JointPositionActionCfg",
+            "joint_names": [
+              ".*"
+            ],
+            "name": "joint_pos",
+            "scale": 0.25,
+            "use_default_offset": true
+          }
+        ],
+        "binding_facts_hash": "1160a2a4544eb3cb8d55aa436988a73eca46019296d2b559eab246749798a53f",
+        "binding_id": "stair_go2_12dof_unified_binding_v2",
+        "binding_version_note": "Existing V3 evaluation successor retains the V2 robot binding facts; this audit compares robot/action/observation/control fields, not the cohort or cell-key identity.",
+        "control": {
+          "control_dt_s": 0.02,
+          "decimation": 4,
+          "simulation_dt_s": 0.005
+        },
+        "observation_term_names": [
+          "base_lin_vel",
+          "base_ang_vel",
+          "projected_gravity",
+          "velocity_commands",
+          "joint_pos",
+          "joint_vel",
+          "actions",
+          "height_scan"
+        ],
+        "robot_joint_names": [
+          "FL_hip_joint",
+          "FR_hip_joint",
+          "RL_hip_joint",
+          "RR_hip_joint",
+          "FL_thigh_joint",
+          "FR_thigh_joint",
+          "RL_thigh_joint",
+          "RR_thigh_joint",
+          "FL_calf_joint",
+          "FR_calf_joint",
+          "RL_calf_joint",
+          "RR_calf_joint"
+        ],
+        "robot_profile_id": "unitree_go2_12dof_isaaclab_v1",
+        "shape_expectation_basis": "Base vectors have 3 components; joint_pos/joint_vel/actions use frozen profile joint count; height_scan has 187 rays from the declared 1.6 by 1.0 m grid at 0.1 m spacing. The logged total is separately compared with the actual constructed learner receipt."
+      },
+      "original_target_stdout": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stair_dev_regression_01/go2/evaluation/public_dev/runner_process/stdout.log",
+      "passed_comparison_count": 16,
+      "source_line_starts": {
+        "action_manager": 77,
+        "control": 4,
+        "observation_manager": 86,
+        "resolved_action_joint_names": 76,
+        "simulation_joint_table": 21
+      },
+      "source_stderr": "PLAN/2new_world/P6/calibration_evidence_01/stair_existing_logs/go2/stderr.log",
+      "source_stdout": "PLAN/2new_world/P6/calibration_evidence_01/stair_existing_logs/go2/stdout.log",
+      "status": "PASS_FOR_MEASURED_SCOPE"
+    }
+  },
+  "created_at_utc": "2026-09-12T05:06:38.050842+00:00",
+  "extraction_method": "Parse the actual simulation joint table, resolved action joint names and indices, action/observation manager tables, and printed time steps; compare exact ordered lists and numeric values with frozen robot/binding JSON and the existing constructed-learner receipt.",
+  "purpose": "Supplement the existing current-code Stair public-dev regression with actual joint/order/shape/control evidence extracted from its preserved runtime logs. No new physical execution or reference qualification.",
+  "related_existing_regression_report": "PLAN/2new_world/P6/stair_dev_summary_01.json",
+  "schema_version": "true_rl_agent.p6.stair_current_abi_log_audit.v1",
+  "scope": {
+    "new_evaluation_jobs": 0,
+    "new_gpu_jobs": 0,
+    "new_training_jobs": 0,
+    "product_files_modified": false,
+    "provider_requests": 0,
+    "source_artifacts_modified": false
+  },
+  "source_hashes_rechecked_unchanged_before_write": true,
+  "sources": {
+    "PLAN/2new_world/P6/calibration_evidence_01/stair_existing_logs/g1/stderr.log": {
+      "sha256": "847153aed88540c0799275a835008bec21a46cb6416497e3d4763b550f91cedc",
+      "size_bytes": 569
+    },
+    "PLAN/2new_world/P6/calibration_evidence_01/stair_existing_logs/g1/stdout.log": {
+      "sha256": "de81867d4a6a28953f9e43e67927e623e5f5bcbf3ad13e1b109c0bf6c4e10d1f",
+      "size_bytes": 15820
+    },
+    "PLAN/2new_world/P6/calibration_evidence_01/stair_existing_logs/go2/stderr.log": {
+      "sha256": "0c21c658f4e694623f2a76352dd55ec54120f896fd08275f1f981f1bbfad7144",
+      "size_bytes": 569
+    },
+    "PLAN/2new_world/P6/calibration_evidence_01/stair_existing_logs/go2/stdout.log": {
+      "sha256": "a145b3f9d2693a6ce9ef808e71030655b8ac9898667578d4f3f7ec571955fe7e",
+      "size_bytes": 10074
+    },
+    "PLAN/2new_world/P6/stair_dev_evidence_01/g1/result.json": {
+      "sha256": "98b3645310eec4500f2447981e05c8c26b25d922213faedbc3230b1a435d4fa6",
+      "size_bytes": 357667
+    },
+    "PLAN/2new_world/P6/stair_dev_evidence_01/go2/result.json": {
+      "sha256": "6f1956a0aba0dc3dcaabdd2a127963711dc1b9a1a20b26ea0045f1eca2d64c6e",
+      "size_bytes": 376129
+    },
+    "configs/robots/unitree_g1_37dof_isaaclab_v2.json": {
+      "sha256": "0c91b93bc80f69bcdafc14500a66d66b717f5abffe98cd59f9239c40c33d0d81",
+      "size_bytes": 17519
+    },
+    "configs/robots/unitree_go2_12dof_isaaclab_v1.json": {
+      "sha256": "970783e60cee799890028e0303ad2470cb9a257e27890bdf87564dadab55b804",
+      "size_bytes": 6068
+    },
+    "configs/tasks/stair_g1_37dof_unified_binding_v2.json": {
+      "sha256": "8763e420533d28aeb92e7f215e0aaf1cfecee1b771643d9494102e938cbacf8e",
+      "size_bytes": 5145
+    },
+    "configs/tasks/stair_go2_12dof_unified_binding_v2.json": {
+      "sha256": "d4ac671d02528575424bb94bc91e09f5d7489e407d707880088776a6f919c88b",
+      "size_bytes": 4657
+    }
+  },
+  "status": "PASS_FOR_MEASURED_SCOPE",
+  "unmeasured_or_not_expanded": [
+    "Effective action scale and use_default_offset/default offsets are not printed; frozen declarations are G1 scale 0.5 and Go2 scale 0.25, both use_default_offset true.",
+    "Observation callable identity, parameter bindings, scale, clip, noise parameters, enable_corruption and per-term joint selection are not directly printed.",
+    "Sensor instance class/configuration, contact history length/update period/air-time tracking and prim/body mapping are not directly printed.",
+    "Height-scanner geometry, ray ordering/alignment, offsets, attachment prim and update period are not independently measured by the 187-element output shape.",
+    "The full phase0_binding_facts/content hashes are not reconstructed from live manager configuration by this audit; no claim of complete runtime-facts equality is made.",
+    "This is evaluation evidence only; no new training-mode ABI or reward-authority validation is claimed."
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schema_version": "feedback_p0.push_cpu_regression.v1",
+  "scope": "existing synthetic CPU unit tests; no simulator/provider/training acceptance",
+  "python": "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Scripts\\python.exe",
+  "python_version": "3.12.14",
+  "torch_version": "2.11.0+cpu",
+  "cuda_visible_devices": "-1",
+  "cuda_available": false,
+  "torch_threads": 1,
+  "modules": [
+    "test_push_physical_protocol",
+    "test_push_force_protocol",
+    "test_push_force_runtime",
+    "test_push_force_consumers",
+    "test_push_feedback_projection",
+    "test_push_recovery_runtime_adapter",
+    "test_push_recovery_v2_prompt_smoke",
+    "test_push_phased_evaluation"
+  ],
+  "tests_run": 50,
+  "failures": [],
+  "errors": [
+    {
+      "test": "test_force_phase_rejects_old_schema_and_gates_both_robot_cells (test_push_force_consumers.PushForceConsumersTests.test_force_phase_rejects_old_schema_and_gates_both_robot_cells)",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\humanoid_agent\\true_RL_Agent\\tests\\unit\\test_push_force_consumers.py\", line 72, in test_force_phase_rejects_old_schema_and_gates_both_robot_cells\n    from tests.unit.test_push_recovery_v2_metrics import rollout as old_rollout\nModuleNotFoundError: No module named 'tests'\n"
+    },
+    {
+      "test": "test_unknown_or_mixed_schema_never_falls_back_to_legacy_scoring (test_push_force_consumers.PushForceConsumersTests.test_unknown_or_mixed_schema_never_falls_back_to_legacy_scoring)",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\humanoid_agent\\true_RL_Agent\\tests\\unit\\test_push_force_consumers.py\", line 91, in test_unknown_or_mixed_schema_never_falls_back_to_legacy_scoring\n    from tests.unit.test_push_recovery_v2_metrics import rollout as old_rollout\nModuleNotFoundError: No module named 'tests'\n"
+    },
+    {
+      "test": "test_push_feedback_projection (unittest.loader._FailedTest.test_push_feedback_projection)",
+      "traceback": "ImportError: Failed to import test module: test_push_feedback_projection\nTraceback (most recent call last):\n  File \"C:\\Users\\lover\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\Lib\\unittest\\loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\humanoid_agent\\true_RL_Agent\\tests\\unit\\test_push_feedback_projection.py\", line 7, in <module>\n    from tests.fakes.decision_records import valid_accepted_ledger_record\nModuleNotFoundError: No module named 'tests'\n\n"
+    },
+    {
+      "test": "test_push_recovery_v2_prompt_smoke (unittest.loader._FailedTest.test_push_recovery_v2_prompt_smoke)",
+      "traceback": "ImportError: Failed to import test module: test_push_recovery_v2_prompt_smoke\nTraceback (most recent call last):\n  File \"C:\\Users\\lover\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\Lib\\unittest\\loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\humanoid_agent\\true_RL_Agent\\tests\\unit\\test_push_recovery_v2_prompt_smoke.py\", line 15, in <module>\n    from tests.fakes.decision_records import (\nModuleNotFoundError: No module named 'tests'\n\n"
+    },
+    {
+      "test": "test_push_phased_evaluation (unittest.loader._FailedTest.test_push_phased_evaluation)",
+      "traceback": "ImportError: Failed to import test module: test_push_phased_evaluation\nTraceback (most recent call last):\n  File \"C:\\Users\\lover\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\Lib\\unittest\\loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\humanoid_agent\\true_RL_Agent\\tests\\unit\\test_push_phased_evaluation.py\", line 11, in <module>\n    from tests.fakes.backend_environment import (\nModuleNotFoundError: No module named 'tests'\n\n"
+    }
+  ],
+  "skipped": [],
+  "passed_without_skip": false,
+  "elapsed_seconds": 10.160989046096802,
+  "test_source_sha256": {
+    "test_push_physical_protocol": "6debae32c9971e0126a0cedf4bc4499ecbf373ef9a4c033d983e0799fa2e4a23",
+    "test_push_force_protocol": "4b1bff123dd504676e43ecfe12e587c933e2ad2e4f5769ad24b45ad923370b0e",
+    "test_push_force_runtime": "0ffeed5d4cb7ce5bf8744fd4a80c60aa068ffd656caacbe523ea3fe866488136",
+    "test_push_force_consumers": "91a1c73ae2f03c23e8ae8553244fef85bc33a6d2f0365f0a7ac86014f679bca9",
+    "test_push_feedback_projection": "51c69b6925416b44785fcac819a76246f75693533e2a7dbc3c84e8c6f386e946",
+    "test_push_recovery_runtime_adapter": "d34cdc28c4ec525c05cf7da6356c6212fad464121ceb2e784076c4a1bde28dcd",
+    "test_push_recovery_v2_prompt_smoke": "f80037f1fc8fdc069d5e102d8a441dfa47f5acb12cda5308623dbffeb8464a4d",
+    "test_push_phased_evaluation": "65987083c7b281b93a916cd6f0cfcff9f6e4be902b91637e78519d144f276c03"
+  }
+}

@@ -1,0 +1,597 @@
+{
+  "status": "PASS_GEN01_COMPLETE_AUTHORING_PROMPT_PROVENANCE",
+  "audited_at_utc": "2026-09-23T07:25:01.902005+00:00",
+  "generation": 1,
+  "snapshot": ".tmp/go2_push_a08_live_03.zip",
+  "snapshot_sha256": "9617372ed2bf7833c9adbfe086bd1b8ad7ec1da9b16f630e142f6f2470eed2fc",
+  "frozen_source_commit": "f13ceb6660e01e5367f3a0961fca9a269737bf2c",
+  "frozen_source_archive_sha256": "e7a8275f8a3f981288ac9b9d1db2873c091de877ca0cbe6ba00efcc58d4aba1c",
+  "source_manifest_verified": true,
+  "accepted_head_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+  "evaluated_history_reconciliation": {
+    "scope": "same_parent_and_session_comparison_domain",
+    "current_head_hash": null,
+    "prior_generation_count": 0,
+    "prior_trial_count": 0,
+    "eligible_trials": [],
+    "keys": [],
+    "count": 0,
+    "key_set_hash": "93af470f76fcae9ca4fe74dafd4f2b8a50c23dd6b53140d96aec7027db1af871"
+  },
+  "snapshot_files_checked": 11,
+  "feedback_trial": "go2-push-5rounds-20260923-a08",
+  "current_best_dev": {
+    "score": 0.734375,
+    "failure_counts": {
+      "fall_backward": 11,
+      "fall_side": 13,
+      "height_collapse": 26,
+      "not_recovered": 1,
+      "success_recovered": 141
+    },
+    "strata": {
+      "high": {
+        "episodes": 48,
+        "successes": 19
+      },
+      "low": {
+        "episodes": 48,
+        "successes": 48
+      },
+      "medium": {
+        "episodes": 48,
+        "successes": 47
+      },
+      "repeated": {
+        "episodes": 48,
+        "successes": 27
+      }
+    },
+    "recovery_counts": {
+      "completed_push_event_count": 229,
+      "control_episode_count": 0,
+      "control_success_count": 0,
+      "eligible_episode_count": 192,
+      "episodes": 192,
+      "invalid_injection_count": 0,
+      "planned_push_event_count": 240,
+      "push_event_count": 237,
+      "pushed_episode_count": 192,
+      "sequence_recovered_count": 141,
+      "success_count": 141,
+      "successes": 141,
+      "verified_push_event_count": 237
+    }
+  },
+  "detailed_feedback_dev": {
+    "score": 0.734375,
+    "failure_counts": {
+      "fall_backward": 11,
+      "fall_side": 13,
+      "height_collapse": 26,
+      "not_recovered": 1,
+      "success_recovered": 141
+    },
+    "strata": {
+      "high": {
+        "episodes": 48,
+        "successes": 19
+      },
+      "low": {
+        "episodes": 48,
+        "successes": 48
+      },
+      "medium": {
+        "episodes": 48,
+        "successes": 47
+      },
+      "repeated": {
+        "episodes": 48,
+        "successes": 27
+      }
+    },
+    "recovery_counts": {
+      "completed_push_event_count": 229,
+      "control_episode_count": 0,
+      "control_success_count": 0,
+      "eligible_episode_count": 192,
+      "episodes": 192,
+      "invalid_injection_count": 0,
+      "planned_push_event_count": 240,
+      "push_event_count": 237,
+      "pushed_episode_count": 192,
+      "sequence_recovered_count": 141,
+      "success_count": 141,
+      "successes": 141,
+      "verified_push_event_count": 237
+    }
+  },
+  "lanes": [
+    {
+      "lane": "lane-a",
+      "prompts": [
+        {
+          "path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-001/lane-a/authoring_attempts/attempt_000001/prompt_payload.json",
+          "sha256": "5119dae9f796c40a30d2fdadc7b031428b345885c02d46185860784365239293",
+          "frame_kind": "candidate_draft",
+          "bytes": 48301,
+          "task_section_bytes": 16096,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+              "bytes": 1846,
+              "source": "reference_eval_artifact.json:program_source"
+            }
+          ],
+          "evaluated_mechanism_families": null,
+          "long_string_duplicate_excess_bytes": 965
+        }
+      ],
+      "attempt_results": [
+        {
+          "attempt": "attempt_000001",
+          "provider_status": "pass",
+          "provider_failure": null,
+          "verifier_status": "pass",
+          "stop_reason": "candidate_verified",
+          "repair_feedback": null,
+          "provider_usage": {
+            "reasoning_units": 16753,
+            "request_cache_hit_units": 12160,
+            "request_cache_miss_units": 221,
+            "request_units": 12381,
+            "response_units": 18050,
+            "total_units": 30431
+          },
+          "source_request_count": 0,
+          "gate_audit": {
+            "recorded_assessments": {
+              "anti_degenerate_assessment": {
+                "blocking": false,
+                "candidate_authoring_anchor_available": true,
+                "candidate_source_sha256": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+                "changed_mechanism_count": 1,
+                "changed_mechanisms": [
+                  "RewardTerm:upright_height->upright_recovery"
+                ],
+                "classification": "mechanism_delta_present",
+                "compares_to": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+                "comparison_anchor": "current_best",
+                "comparison_scope": "authoring_anchor_and_evaluated_history",
+                "evaluated_history_source_count": 0,
+                "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+                "history_sources_with_anchor": 0,
+                "history_sources_without_anchor": 0,
+                "reason": "candidate_source_structure_differs_from_comparison_anchor",
+                "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+                "status": "pass",
+                "structural_comparison": "canonical_component_terms"
+              },
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 5,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_owner": "task_owned_push_recovery",
+                  "num_actions": 12,
+                  "num_envs": 4,
+                  "num_joints": 12,
+                  "purpose": "authoring_time_reward_callable_smoke_only"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 6.1575000286102295,
+                    "kind": "RewardTerm",
+                    "name": "upright_recovery",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 2.052500009536743,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.7704204320907593,
+                    "kind": "RewardTerm",
+                    "name": "stationary_v3",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.7704204320907593,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.0346666693687439,
+                    "kind": "RewardTerm",
+                    "name": "joint_pose",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.34666669368743896,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.0008666667342185975,
+                    "kind": "RewardTerm",
+                    "name": "action_rate",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.08666667342185974,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 20.0,
+                    "kind": "RewardTerm",
+                    "name": "fall",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 1,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_push_recovery"
+              }
+            },
+            "blocking_assessments": [],
+            "candidate_family_key_from_actual_source": "31a7fdc85dfb586c26de16154c9cfbf3a4d578fb45747a5529f37fc66a5e123a",
+            "union_validation": "not_reached_or_empty",
+            "status": "PASS_AVAILABLE_GATE_EVIDENCE",
+            "pending_review": [],
+            "candidate_admitted": true
+          }
+        }
+      ],
+      "memory_bytes": 996,
+      "memory_experiments": 0,
+      "memory_trial_rows": []
+    },
+    {
+      "lane": "lane-b",
+      "prompts": [
+        {
+          "path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-001/lane-b/authoring_attempts/attempt_000001/prompt_payload.json",
+          "sha256": "b79a8ef749079b71a3de8dc4c25ac1d0e8924ce299f5d7d257bd39580548546c",
+          "frame_kind": "candidate_draft",
+          "bytes": 48994,
+          "task_section_bytes": 16096,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+              "bytes": 1846,
+              "source": "reference_eval_artifact.json:program_source"
+            }
+          ],
+          "evaluated_mechanism_families": null,
+          "long_string_duplicate_excess_bytes": 965
+        }
+      ],
+      "attempt_results": [
+        {
+          "attempt": "attempt_000001",
+          "provider_status": "pass",
+          "provider_failure": null,
+          "verifier_status": "pass",
+          "stop_reason": "candidate_verified",
+          "repair_feedback": null,
+          "provider_usage": {
+            "reasoning_units": 24352,
+            "request_cache_hit_units": 10880,
+            "request_cache_miss_units": 1705,
+            "request_units": 12585,
+            "response_units": 25291,
+            "total_units": 37876
+          },
+          "source_request_count": 0,
+          "gate_audit": {
+            "recorded_assessments": {
+              "anti_degenerate_assessment": {
+                "blocking": false,
+                "candidate_authoring_anchor_available": true,
+                "candidate_source_sha256": "bb3ae423e2f84d1a0aea017b323413582ceb125214d68798b5a0849f78b02fdd",
+                "changed_mechanism_count": 1,
+                "changed_mechanisms": [
+                  "RewardTerm:stationary_v3->recovery_damping"
+                ],
+                "classification": "mechanism_delta_present",
+                "compares_to": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+                "comparison_anchor": "current_best",
+                "comparison_scope": "authoring_anchor_and_evaluated_history",
+                "evaluated_history_source_count": 0,
+                "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+                "history_sources_with_anchor": 0,
+                "history_sources_without_anchor": 0,
+                "reason": "candidate_source_structure_differs_from_comparison_anchor",
+                "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+                "status": "pass",
+                "structural_comparison": "canonical_component_terms"
+              },
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 5,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_owner": "task_owned_push_recovery",
+                  "num_actions": 12,
+                  "num_envs": 4,
+                  "num_joints": 12,
+                  "purpose": "authoring_time_reward_callable_smoke_only"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 2.984440505504608,
+                    "kind": "RewardTerm",
+                    "name": "upright_height",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.9948135018348694,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.9570176005363464,
+                    "kind": "RewardTerm",
+                    "name": "recovery_damping",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.9570176005363464,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.0346666693687439,
+                    "kind": "RewardTerm",
+                    "name": "joint_pose",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.34666669368743896,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.0008666667342185975,
+                    "kind": "RewardTerm",
+                    "name": "action_rate",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.08666667342185974,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 20.0,
+                    "kind": "RewardTerm",
+                    "name": "fall",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 1,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_push_recovery"
+              },
+              "sibling_semantic_exclusion_assessment": {
+                "blocking": false,
+                "equivalence": null,
+                "exclusion_hash": "f3661893cacb459947d7a1af10ea212e20f6de153603146beaca5613e1ffc6af",
+                "reason": "sibling_semantic_delta_distinct",
+                "schema_version": "true_rl_agent.sibling_semantic_exclusion_assessment.v1",
+                "status": "pass"
+              }
+            },
+            "blocking_assessments": [],
+            "candidate_family_key_from_actual_source": "4cfc30e09614b65374600eb16b24911fbb73dd5c6c9e614c744038a22ba5beeb",
+            "union_validation": "not_reached_or_empty",
+            "status": "PASS_AVAILABLE_GATE_EVIDENCE",
+            "pending_review": [],
+            "candidate_admitted": true
+          }
+        }
+      ],
+      "memory_bytes": 996,
+      "memory_experiments": 0,
+      "memory_trial_rows": []
+    }
+  ],
+  "initial_sibling_differing_sections": [
+    "required_candidate_package",
+    "authoring_context_frame"
+  ],
+  "F10_current_best_distinct_dev_checked": false,
+  "F11_actual_comparison_repairs": [],
+  "candidate_claims_for_readback": [
+    {
+      "lane": "lane-a",
+      "attempt": "attempt_000001",
+      "candidate_id": "push_recovery_nonsaturating_stance_v1",
+      "source": "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-001/lane-a/001_push_recovery_nonsaturating_stance_v1/training_code/components.py",
+      "source_checksum": "sha256:64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+      "stop_reason": "candidate_verified",
+      "literal_rationales": [
+        "Closest prior program: push_standing_recovery_stationary_reference_v3, the current-best reference anchor. Sole mechanism change: the upright and height reward kernel; every other term, weight, sign, and the empty schedule and diagnostic lists are preserved. The anchor scored stance with a saturating Gaussian well over squared tilt and squared relative-height error at weight 3.0, so its shaping slope decays as the base sinks and a base held at 40-70 percent height loss still collected nearly the full 1.0-weighted stationary term. The observed height_collapse_dominated outcome is exactly that shallow optimum: staying low is cheap and the pull-up slope is too weak to escape. The replacement callable upright_recovery keeps weight 3.0 and returns 1.0 - (5*e + e*e + 2*u + 2*u*u), where e = clamp(abs(base_height_relative - 1) - 0.05, 0) and u = clamp(roll*roll + pitch*pitch - 0.01, 0), with clip_min -4.0 and clip_max 1.0. The height branch is linear-dominant, so unlike the anchor it never flattens: its slope stays about 5 per unit of relative height (about 15 per step at weight 3.0) at any depth, and a base at 30-50 percent relative height now earns roughly -6 to -10 per step instead of about 1, so any upward progress is strictly better than lying low at every height. The 0.05 height and 0.01 tilt-squared deadbands keep the near-goal value identical to the anchor, so the low and medium force strata that already recover keep the same signal, while the tilt branch becomes steeper than the anchor beyond about 30 degrees to also suppress the residual backward and side falls."
+      ],
+      "public_input_fields": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "causal_or_mathematical_claims": "Pending independent source/evidence readback; verifier PASS is not proof.",
+      "undeclared_input_fields": []
+    },
+    {
+      "lane": "lane-b",
+      "attempt": "attempt_000001",
+      "candidate_id": "push_go2_recovery_gated_damping_v1",
+      "source": "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-001/lane-b/001_push_go2_recovery_gated_damping_v1/training_code/components.py",
+      "source_checksum": "sha256:bb3ae423e2f84d1a0aea017b323413582ceb125214d68798b5a0849f78b02fdd",
+      "stop_reason": "candidate_verified",
+      "literal_rationales": [
+        "Reference candidate push_standing_recovery_stationary_reference_v3 uses stationary_v3, an unconditional velocity penalty that is strongest exactly when the robot needs corrective motion after large pushes. This replacement keeps every other reference reward mechanism unchanged and replaces stationary_v3 with recovery_damping: a stability-gated velocity damping term that scales damping down when tilt or height error is large, so recovery motion is not suppressed, and adds a low-height low-speed collapse guard that penalizes a quiescent crouched state after the push sequence. The mechanism targets the public high and repeated strata failures and the dominant height_collapse mode by allowing transient recovery motion while still shaping a tall, low-velocity stable dwell."
+      ],
+      "public_input_fields": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "causal_or_mathematical_claims": "Pending independent source/evidence readback; verifier PASS is not proof.",
+      "undeclared_input_fields": []
+    }
+  ],
+  "public_boundaries": {
+    "private_paths_checked": 19,
+    "checkpoint_hashes_checked": 2,
+    "literal_hits": 0,
+    "public_only_guard": "PASS",
+    "task_receipt_recomputed": "PASS"
+  },
+  "audit_limits": [
+    "Snapshot only; missing attempt results remain in flight, not failures.",
+    "Source readback is needed to distinguish causal claims from measured facts; this script does not approve candidate mechanisms.",
+    "Checkpoint files are not downloaded/rehashed; no simulation visual inspection; no inferred seed leakage from numeric coincidences."
+  ],
+  "evidence_sha256": {
+    "PLAN/2new_world/Go2_push/source_snapshot_08.json": "bff645daff96c7afcdb71b46e8aa95cfcaef206499fe711bbe9d21e3cdbfa4b9",
+    "PLAN/2new_world/Go2_push/launch_08.json": "88ce667c229cda37c2e53281cbcb9245e4e39c2d5bcab57cb057813606493c6b",
+    "PLAN/2new_world/Go2_push/attempt_08/session/session_genesis.json": "15d54f658aa68263401f8e11fd5046ad5e3b181089fd05bb975144c9e953c837",
+    "PLAN/2new_world/Go2_push/attempt_08/session/reference_eval_artifact.json": "9310047437b4a1eaec79fb6047fbf55a8f08446edcf1237006e522624da96086",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08/eval/public_dev/summary.json": "9792c53e8d55883a90fc03a31b407b54919d271a87cc05a2521461aa60067e1f",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08/eval/public_accept/summary.json": "d0fa6612026127c9dd32364e2dd14e9425aa88ab127b086a51a3fd75e08fd97e",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08/eval/sealed_validation/summary.json": "1ec4b6d1773ff357056f40848ef3db1f03fd18f6ac4ae1fa0493434e1b7ed58e",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-001/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "5119dae9f796c40a30d2fdadc7b031428b345885c02d46185860784365239293",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-001/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "f2149a2e123542226138dca4ea571a177fb89249dd2c0365b752e4de800d779d",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-001/lane-a/001_push_recovery_nonsaturating_stance_v1/training_code/components.py": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-001/lane-b/authoring_attempts/attempt_000001/prompt_payload.json": "b79a8ef749079b71a3de8dc4c25ac1d0e8924ce299f5d7d257bd39580548546c",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-001/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "8270c2d13ecf661c5c18db1177e756075f5fe72e83a550cc9388bff5383640aa",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-001/lane-b/001_push_go2_recovery_gated_damping_v1/training_code/components.py": "bb3ae423e2f84d1a0aea017b323413582ceb125214d68798b5a0849f78b02fdd"
+  },
+  "provider_calls": 0,
+  "training_jobs": 0,
+  "evaluation_jobs": 0,
+  "prompt_provenance_status": "PASS_GEN01_COMPLETE_AUTHORING_PROMPT_PROVENANCE",
+  "pending_gate_readback": [],
+  "authoring_completion": {
+    "terminal_lanes": [
+      "lane-a",
+      "lane-b"
+    ],
+    "required_lanes": [
+      "lane-a",
+      "lane-b"
+    ],
+    "complete": true
+  },
+  "manual_reviews": [
+    {
+      "snapshot": ".tmp/go2_push_a08_live_01.zip",
+      "scope": "Gen1 lane A first prompt only; response and lane B absent in downloaded snapshot.",
+      "findings": [
+        "Reference public-dev detail independently reconciles to 141/192, including strata 48/48,47/48,19/48,27/48 and failure counts; no accept/sealed score is sent.",
+        "A single 1846-byte reference source is inline; zero prior experiments and no evaluated-family metadata are correct for fresh Gen1.",
+        "Prompt 48301 B; task sections 16096 B; memory 996 B. No duplicate inline source body. The 965 B long-string repetition counter is not evidence of exploding memory.",
+        "Observed private paths and checkpoint hashes have no literal prompt hits; frozen public-only guard and task receipt recomputation pass.",
+        "No candidate or gate result yet. F10 distinct-source feedback and F11 repair-source retention have not yet been exercised in A08."
+      ],
+      "blocking_findings": [],
+      "status": "PARTIAL_READBACK_NO_AVAILABLE_PROMPT_BLOCKER"
+    },
+    {
+      "snapshot": ".tmp/go2_push_a08_live_02.zip",
+      "scope": "Gen1 A first response completed, B initial prompt only; no candidate dev results.",
+      "findings": [
+        "A source 64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775 uses only declared public inputs; source identity and parent anchor are intact.",
+        "The final actual A result has pass static verifier, pass finite-fixture smoke, and pass anti-degenerate assessment. Full prior evaluated history is empty, so no historical-family assessment is required.",
+        "B prompt differs only in required_candidate_package and frame metadata; it receives the same reference feedback/source, with no A source or measured result.",
+        "A rationale states that height_collapse proves a shallow optimum and that its new potential never flattens. These are candidate assertions, not measurements; independent source audit is pending and static PASS does not validate them.",
+        "No source requests, repair frames, or cross-round feedback yet; F10/F11 live behavior cannot yet be certified."
+      ],
+      "blocking_findings": [],
+      "status": "PARTIAL_READBACK_A_COMPLETE_B_IN_FLIGHT"
+    },
+    {
+      "snapshot": ".tmp/go2_push_a08_live_03.zip",
+      "scope": "Both Gen1 lanes completed authoring on first attempt. This is authoring-stage evidence only, not generation closure or scientific acceptance.",
+      "findings": [
+        "A and B received independently reconciled reference public-dev feedback and the exact single reference source; neither received measured candidate feedback, checkpoint identities, private paths, or private cohort scores.",
+        "B additionally received the public bounded sibling semantic exclusion only: operation, mechanism, inputs, normalized signature and hash. The actual sibling assessment binds the same f3661893cacb459947d7a1af10ea212e20f6de153603146beaca5613e1ffc6af exclusion and passes. A source body and reasoning are absent.",
+        "Both final results pass static verification, finite-fixture smoke and anti-degenerate admission. B also passes sibling exclusion. No hidden later historical assessment is being ignored; prior history is empty.",
+        "B source uses only declared morphology-scaled public inputs. Its damping gate and low-height low-speed term do not read push schedules, seed identity, case identity, evaluator state, or checkpoint artifacts.",
+        "Both authors make recovery hypotheses. B mathematically gates damping with height/tilt, but public aggregate failures alone do not prove excessive damping caused those failures. A stronger causal/mathematical claims remain a separate source-review concern; no new rationale gate is proposed.",
+        "A/B prompt sizes 48301/48994 B, task sections each 16096 B, memories each 996 B with zero prior experiments. Both use one 1846 B source and zero source requests; no repair or growth history has yet occurred.",
+        "F10 distinct current-best/nonaccepted detail and F11 repair retention remain unexercised in this first generation; later snapshots are required."
+      ],
+      "blocking_findings": [],
+      "status": "PASS_COMPLETE_AUTHORING_PROMPT_BOUNDARIES_ONLY"
+    }
+  ]
+}

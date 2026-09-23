@@ -1,0 +1,313 @@
+{
+  "checkpoint_loading": {
+    "actor_loaded": true,
+    "checkpoint_format": "rsl_rl_5",
+    "critic_loaded": true,
+    "iteration_loaded": false,
+    "optimizer_loaded": false
+  },
+  "learner": {
+    "algorithm": {
+      "clip_param": 0.2,
+      "desired_kl": 0.01,
+      "entropy_coef": 0.008,
+      "gamma": 0.99,
+      "lam": 0.95,
+      "learning_rate": 0.001,
+      "max_grad_norm": 1.0,
+      "normalize_advantage_per_mini_batch": false,
+      "num_learning_epochs": 5,
+      "num_mini_batches": 4,
+      "schedule": "adaptive",
+      "use_clipped_value_loss": true,
+      "value_loss_coef": 1.0
+    },
+    "configuration_mapping_version": "rsl_rl_3_actor_critic_to_rsl_rl_5_mlp.v1",
+    "initial_noise_std": 1.0,
+    "models": {
+      "actor": {
+        "activation": "ELU",
+        "hidden_dims": [
+          512,
+          256,
+          128
+        ],
+        "input_dim": 123,
+        "obs_groups": [
+          "policy"
+        ],
+        "obs_normalization": false,
+        "output_dim": 37
+      },
+      "critic": {
+        "activation": "ELU",
+        "hidden_dims": [
+          512,
+          256,
+          128
+        ],
+        "input_dim": 123,
+        "obs_groups": [
+          "policy"
+        ],
+        "obs_normalization": false,
+        "output_dim": 1
+      }
+    },
+    "noise_std_type": "scalar",
+    "optimizer": "Adam",
+    "optimizer_source": "frozen_v1_PPO_implicit_Adam",
+    "schema_version": "true_rl_agent.rsl_rl_constructed_learner.v1"
+  },
+  "policy_io": {
+    "action_dim": 37,
+    "action_terms": [
+      "joint_pos"
+    ],
+    "actions": [
+      {
+        "asset_name": "robot",
+        "class": "isaaclab.envs.mdp.actions.actions_cfg.JointPositionActionCfg",
+        "joint_names": [
+          ".*"
+        ],
+        "name": "joint_pos",
+        "scale": 0.5,
+        "use_default_offset": true
+      }
+    ],
+    "control": {
+      "control_dt_s": 0.02,
+      "decimation": 4,
+      "simulation_dt_s": 0.005
+    },
+    "control_dt_s": 0.02,
+    "effective_actions": [
+      {
+        "joint_names": [
+          "left_hip_pitch_joint",
+          "right_hip_pitch_joint",
+          "torso_joint",
+          "left_hip_roll_joint",
+          "right_hip_roll_joint",
+          "left_shoulder_pitch_joint",
+          "right_shoulder_pitch_joint",
+          "left_hip_yaw_joint",
+          "right_hip_yaw_joint",
+          "left_shoulder_roll_joint",
+          "right_shoulder_roll_joint",
+          "left_knee_joint",
+          "right_knee_joint",
+          "left_shoulder_yaw_joint",
+          "right_shoulder_yaw_joint",
+          "left_ankle_pitch_joint",
+          "right_ankle_pitch_joint",
+          "left_elbow_pitch_joint",
+          "right_elbow_pitch_joint",
+          "left_ankle_roll_joint",
+          "right_ankle_roll_joint",
+          "left_elbow_roll_joint",
+          "right_elbow_roll_joint",
+          "left_five_joint",
+          "left_three_joint",
+          "left_zero_joint",
+          "right_five_joint",
+          "right_three_joint",
+          "right_zero_joint",
+          "left_six_joint",
+          "left_four_joint",
+          "left_one_joint",
+          "right_six_joint",
+          "right_four_joint",
+          "right_one_joint",
+          "left_two_joint",
+          "right_two_joint"
+        ],
+        "name": "joint_pos",
+        "scale": 0.5
+      }
+    ],
+    "effective_observation_corruption": false,
+    "evidence_hash": "1de22e975d1028a349b36bb81e7cb2a56849de329f754623c0bb411ebde60df8",
+    "height_scanner_present": false,
+    "joint_names": [
+      "left_hip_pitch_joint",
+      "right_hip_pitch_joint",
+      "torso_joint",
+      "left_hip_roll_joint",
+      "right_hip_roll_joint",
+      "left_shoulder_pitch_joint",
+      "right_shoulder_pitch_joint",
+      "left_hip_yaw_joint",
+      "right_hip_yaw_joint",
+      "left_shoulder_roll_joint",
+      "right_shoulder_roll_joint",
+      "left_knee_joint",
+      "right_knee_joint",
+      "left_shoulder_yaw_joint",
+      "right_shoulder_yaw_joint",
+      "left_ankle_pitch_joint",
+      "right_ankle_pitch_joint",
+      "left_elbow_pitch_joint",
+      "right_elbow_pitch_joint",
+      "left_ankle_roll_joint",
+      "right_ankle_roll_joint",
+      "left_elbow_roll_joint",
+      "right_elbow_roll_joint",
+      "left_five_joint",
+      "left_three_joint",
+      "left_zero_joint",
+      "right_five_joint",
+      "right_three_joint",
+      "right_zero_joint",
+      "left_six_joint",
+      "left_four_joint",
+      "left_one_joint",
+      "right_six_joint",
+      "right_four_joint",
+      "right_one_joint",
+      "left_two_joint",
+      "right_two_joint"
+    ],
+    "manifest_checks": {
+      "action_dimension": true,
+      "actions": true,
+      "control": true,
+      "effective_action_scales": true,
+      "height_scanner_removed": true,
+      "joint_names": true,
+      "observation_corruption": true,
+      "policy_observation": true,
+      "policy_observation_dimension": true,
+      "resolved_action_joint_order": true,
+      "sensors": true,
+      "term_dimensions": true
+    },
+    "observation_group_dims": {
+      "policy": [
+        123
+      ]
+    },
+    "observation_group_terms": {
+      "policy": [
+        "base_lin_vel",
+        "base_ang_vel",
+        "projected_gravity",
+        "velocity_commands",
+        "joint_pos",
+        "joint_vel",
+        "actions"
+      ]
+    },
+    "policy_observation": {
+      "concatenate_terms": true,
+      "enable_corruption_by_mode": {
+        "eval": false,
+        "train": true
+      },
+      "history_length": null,
+      "terms": [
+        {
+          "callable": "isaaclab.envs.mdp.observations.base_lin_vel",
+          "clip": null,
+          "name": "base_lin_vel",
+          "noise": {
+            "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+            "n_max": 0.1,
+            "n_min": -0.1,
+            "operation": "add"
+          },
+          "params": {},
+          "scale": null
+        },
+        {
+          "callable": "isaaclab.envs.mdp.observations.base_ang_vel",
+          "clip": null,
+          "name": "base_ang_vel",
+          "noise": {
+            "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+            "n_max": 0.2,
+            "n_min": -0.2,
+            "operation": "add"
+          },
+          "params": {},
+          "scale": null
+        },
+        {
+          "callable": "isaaclab.envs.mdp.observations.projected_gravity",
+          "clip": null,
+          "name": "projected_gravity",
+          "noise": {
+            "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+            "n_max": 0.05,
+            "n_min": -0.05,
+            "operation": "add"
+          },
+          "params": {},
+          "scale": null
+        },
+        {
+          "callable": "isaaclab.envs.mdp.observations.generated_commands",
+          "clip": null,
+          "name": "velocity_commands",
+          "noise": null,
+          "params": {
+            "command_name": "base_velocity"
+          },
+          "scale": null
+        },
+        {
+          "callable": "isaaclab.envs.mdp.observations.joint_pos_rel",
+          "clip": null,
+          "name": "joint_pos",
+          "noise": {
+            "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+            "n_max": 0.01,
+            "n_min": -0.01,
+            "operation": "add"
+          },
+          "params": {},
+          "scale": null
+        },
+        {
+          "callable": "isaaclab.envs.mdp.observations.joint_vel_rel",
+          "clip": null,
+          "name": "joint_vel",
+          "noise": {
+            "class": "isaaclab.utils.noise.noise_cfg.UniformNoiseCfg",
+            "n_max": 1.5,
+            "n_min": -1.5,
+            "operation": "add"
+          },
+          "params": {},
+          "scale": null
+        },
+        {
+          "callable": "isaaclab.envs.mdp.observations.last_action",
+          "clip": null,
+          "name": "actions",
+          "noise": null,
+          "params": {},
+          "scale": null
+        }
+      ]
+    },
+    "policy_observation_term_dimensions": {
+      "actions": 37,
+      "base_ang_vel": 3,
+      "base_lin_vel": 3,
+      "joint_pos": 37,
+      "joint_vel": 37,
+      "projected_gravity": 3,
+      "velocity_commands": 3
+    },
+    "schema_version": "true_rl_agent.task.push_recovery.runtime_policy_io.v2",
+    "sensors": {},
+    "verified_declared_content_hashes": {
+      "action_content_hash": "eee8cc1e190d79989d4ea761a812e058f74b1efd70d7197f702922da003d4c75",
+      "observation_content_hash": "1ceddcd6103065838c8b1b4e61757284fc751862d7d736d50a5a3f35513a0573",
+      "policy_io_schema_hash": "c73d93eb768f237396ce0fdbd84725625f0228624e1432195f839aa900f48114",
+      "sensor_schema_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    }
+  }
+}

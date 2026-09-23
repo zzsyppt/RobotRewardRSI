@@ -102,16 +102,19 @@ def _append_local_reference_job_cost_artifacts(
     if not isinstance(train_result, Mapping):
         raise TypeError("reference Genesis train result is invalid")
     train_job_id = str(train_result.get("job_id"))
-    _insert_unique_cost(
-        train_steps,
-        train_job_id,
-        _train_planned_steps(
-            train_result.get("summary"),
-            expected_steps=(
-                foundation.cost_contract.scientific_cost_basis.train_steps_per_job
+    training_source = (genesis.artifact.runtime_snapshot or {}).get(
+        "execution_placement", {}).get("reference_training_source")
+    if training_source is None:
+        _insert_unique_cost(
+            train_steps,
+            train_job_id,
+            _train_planned_steps(
+                train_result.get("summary"),
+                expected_steps=(
+                    foundation.cost_contract.scientific_cost_basis.train_steps_per_job
+                ),
             ),
-        ),
-    )
+        )
     eval_plan = genesis.reference_eval_plan()
     if eval_plan is None:
         raise ValueError("reference Genesis has no eval plan")
@@ -329,4 +332,3 @@ def _insert_unique_cost(target: dict[str, Any], job_id: str, value: Any) -> None
     if not job_id or job_id == "None" or job_id in target:
         raise ValueError("job cost artifact identity is duplicated")
     target[job_id] = value
-

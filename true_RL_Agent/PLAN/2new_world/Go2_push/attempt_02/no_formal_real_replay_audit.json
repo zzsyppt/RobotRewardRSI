@@ -1,0 +1,97 @@
+{
+  "status": "PASS",
+  "scope": "Actual A02 receipt-bound ledger replay into PublicContextBuilder.build_prompt; diagnostic only, no provider request, training, or new qualification.",
+  "root_cause": "Push task projection dropped explicit generation.formal=None for a no-formal-round early rejection.",
+  "old_error": "current provider record has invalid mechanism attribution",
+  "repaired_prompt_status": "PASS",
+  "validated_history_unchanged": true,
+  "public_dev_comparisons": [
+    {
+      "lane": "lane-a",
+      "candidate_id": "push_standing_recovery_height_margin_v1",
+      "public_dev": 0.8125,
+      "parent_public_dev": 0.734375,
+      "memory_delta": 0.078125,
+      "trial_status": "formal_rejected",
+      "runtime_effect": "not_assessed"
+    },
+    {
+      "lane": "lane-b",
+      "candidate_id": "push_recovery_posture_gated_damping_v1",
+      "public_dev": 0.7395833333333334,
+      "parent_public_dev": 0.734375,
+      "memory_delta": 0.005208,
+      "trial_status": "qualified_not_selected",
+      "runtime_effect": "not_assessed"
+    }
+  ],
+  "prompt_bytes": 58679,
+  "provider_input_tokens": null,
+  "provider_tokens_reason": "Offline replay not sent to a model; frame context units are estimates.",
+  "memory_bytes": 2799,
+  "memory_experiments": 1,
+  "omitted_experiment_count": 0,
+  "duplicate_long_strings_excess_bytes": 1215,
+  "feedback_source_candidate": "push_recovery_posture_gated_damping_v1",
+  "feedback_source_selection": "latest_trained_nonaccepted",
+  "feedback_failure_mode": "fall_dominated",
+  "feedback_failure_counts": {
+    "counts": {
+      "success_recovered": 142,
+      "not_recovered": 3,
+      "fall_backward": 11,
+      "fall_side": 19,
+      "height_collapse": 17
+    },
+    "total": 192
+  },
+  "runtime_feedback_same_trial_and_source": true,
+  "reference_anchor_retained": true,
+  "source_payloads": [
+    {
+      "logical_id": "current_best/training_code/components.py",
+      "bytes": 1846,
+      "sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d"
+    },
+    {
+      "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+      "bytes": 3552,
+      "sha256": "4e9028aaac8cf2eba2658b7cfeb49ba6fab357588ccd6b141bdc1eb2e33172f6"
+    }
+  ],
+  "public_boundaries": {
+    "public_only_guard": "PASS",
+    "task_receipt": "PASS",
+    "distinct_private_paths_checked": 29,
+    "distinct_checkpoint_hashes_checked": 4,
+    "literal_hits": 0,
+    "private_phase_objects_or_seed_rows": [],
+    "limitation": "No claim about unexported numeric seeds. Score literals can coincide across phases, so their structural source is checked."
+  },
+  "retention_limits": {
+    "lane_a_preserved": [
+      "candidate_id",
+      "operation add",
+      "RewardTerm:height_collapse",
+      "formal_rejected",
+      "public_dev_delta +0.078125",
+      "not_run_due_to_early_reject"
+    ],
+    "lane_a_source_inline": false,
+    "lane_a_source_requestable": false,
+    "lane_a_absolute_score_or_strata": false,
+    "lane_a_source_reason": "Only reference and latest_nonaccepted lane B are requestable. best_observed source slot is pending/no_eligible_nonaccepted_bootstrap_anchor; exploration cards are empty.",
+    "task_failure_memory_summary": "Absent because no top-level public_result exists. Shared trial_outcomes and task feedback carry evidence; standalone task failure-history summary is not exercised."
+  },
+  "conclusion": "The blocker is fixed without changing the common attribution validator or falsely promoting a rejected sibling. Lane A remains visible but not source-retrievable in this bounded view. Descriptive dev deltas do not establish causal gains or acceptance.",
+  "reproduction_script": "../audit_a02_history.py",
+  "commands": [
+    "python audit_a02_history.py --project-root <A02_frozen_project> --session-dir <A02_session> --output validated_public_history.json",
+    "python audit_a02_history.py --project-root <A02_frozen_project> --session-dir <A02_session> --output repaired_public_history.json --prompt-adapter-source <repaired_prompt_adapter.py>"
+  ],
+  "evidence_sha256": {
+    "validated_public_history.json": "f0ba04de7e8dbf806b73d27b95f13b5ec169ca2b3bac239032b4c712688816ae",
+    "repaired_public_history.json": "1f7b5a0e813135adc4250f91a3c3d2a392a0c462f8bc12241ee26577967f5735",
+    "session/ledger.jsonl": "8e6d7688c9d75b2974220a6b4fda00f1eb22ea7b6624293f13cb958c3e82c0c2"
+  }
+}

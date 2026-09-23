@@ -1,0 +1,341 @@
+{
+  "status": "PASS_REFERENCE_TRAINING_REUSE_AND_FRESH_QUALIFICATION",
+  "audited_at_utc": "2026-09-23T03:14:19.271300+00:00",
+  "session_id": "go2-push-5rounds-20260923-a06",
+  "source_commit": "7c58ec32f6dcdd4da238fe52321c58c9abf582c8",
+  "session_genesis_hash": "866b21a0d40d4ba1254d034702837636cce2a84da5757dd63bb92ca174fb521b",
+  "scientific_runtime_snapshot_hash": "019e21e60a05e9a7aeb50e5d4c59a1b92c7ddd895fd7d17c7f459f4969492955",
+  "original_training_execution_environment_hash": "a35eae286da48ca60c59922249191ec4e6697b510024135790b8fb6d71e3fa7e",
+  "new_evaluation_execution_environment_hash": "f5e0471dd14279c38933cd3f1f275bb9b9732187ec6b4dfa66c97c83c414e3ed",
+  "scope": "A03 training reused exactly; A06 qualification rerun; ledger empty at audited snapshot.",
+  "acceptance_authority": false,
+  "five_round_experiment_complete": false,
+  "source_training": {
+    "source_session_genesis_checksum": "sha256:bf5171cbbe79ca6886f79c60a3bfc77c5a5c188ec590d4e6781163018ad913ab",
+    "source_session_genesis_hash": "cdfded707707805dd114e63458dc82d74045b4a2cfd0ca2629da63703b6dd329",
+    "source_session_genesis_uri": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/attempt_03/session/session_genesis.json",
+    "source_session_id": "go2-push-5rounds-20260922-a03"
+  },
+  "checkpoint_hash": "sha256:1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+  "checks": {
+    "frozen_source:src/true_rl_agent/agent_core/session_genesis.py": true,
+    "frozen_source:src/true_rl_agent/evaluation/phases.py": true,
+    "frozen_source:src/true_rl_agent/runner/subprocess_runner.py": true,
+    "frozen_source:src/true_rl_agent/runner/specs.py": true,
+    "frozen_source:src/true_rl_agent/tasks/push_recovery/reference_program.py": true,
+    "frozen_source:src/true_rl_agent/tasks/push_recovery/config.py": true,
+    "frozen_A06_execution_commit": true,
+    "fresh_A06_session_and_genesis": true,
+    "original_training_source_binding": true,
+    "same_scientific_identity": true,
+    "new_execution_environment": true,
+    "training_only_reuse_not_reference_evaluation_import": true,
+    "old_training_execution_evidence_retained_exactly": true,
+    "same_reference_checkpoint": true,
+    "new_genesis_binds_new_private_artifact": true,
+    "no_A06_reference_training_directory": true,
+    "ledger_empty_at_reference_audit": true,
+    "recovered_train_keeps_original_gpu_binding": true,
+    "original_completion_binds_raw_summary": true,
+    "original_full_training_and_runtime_activation": true,
+    "new_eval_plan_old_training_binding": true,
+    "three_phase_assembly_plan_binding": true,
+    "three_distinct_phases": true,
+    "public_dev:new_contract": true,
+    "public_dev:receipt_integrity": true,
+    "public_dev:new_execution_identity": true,
+    "public_dev:current_environment_and_binding": true,
+    "public_dev:old_checkpoint_new_evaluation_binding": true,
+    "public_dev:checkpoint_isolation": true,
+    "public_dev:receipt_matches_raw_task_evidence": true,
+    "public_dev:full_cohort_and_valid_injection": true,
+    "public_dev:measured_seed_cost": true,
+    "public_accept:new_contract": true,
+    "public_accept:receipt_integrity": true,
+    "public_accept:new_execution_identity": true,
+    "public_accept:current_environment_and_binding": true,
+    "public_accept:old_checkpoint_new_evaluation_binding": true,
+    "public_accept:checkpoint_isolation": true,
+    "public_accept:receipt_matches_raw_task_evidence": true,
+    "public_accept:full_cohort_and_valid_injection": true,
+    "public_accept:measured_seed_cost": true,
+    "sealed_validation:new_contract": true,
+    "sealed_validation:receipt_integrity": true,
+    "sealed_validation:new_execution_identity": true,
+    "sealed_validation:current_environment_and_binding": true,
+    "sealed_validation:old_checkpoint_new_evaluation_binding": true,
+    "sealed_validation:checkpoint_isolation": true,
+    "sealed_validation:receipt_matches_raw_task_evidence": true,
+    "sealed_validation:full_cohort_and_valid_injection": true,
+    "sealed_validation:measured_seed_cost": true,
+    "qualification_replayed_from_current_task_owner": true,
+    "no_reference_train_attempt:go2-push-5rounds-20260923-a06-eval-public-dev": true,
+    "closed_new_phase_attempt:go2-push-5rounds-20260923-a06-eval-public-dev": true,
+    "no_reference_train_attempt:go2-push-5rounds-20260923-a06-eval-sealed-validation": true,
+    "closed_new_phase_attempt:go2-push-5rounds-20260923-a06-eval-sealed-validation": true,
+    "no_reference_train_attempt:go2-push-5rounds-20260923-a06-eval-public-accept": true,
+    "closed_new_phase_attempt:go2-push-5rounds-20260923-a06-eval-public-accept": true,
+    "three_reference_eval_attempts_no_retries": true,
+    "actual_cost_excludes_source_training": true,
+    "actual_eval_steps_and_gpu_time": true,
+    "actual_cost_evidence_hash": true,
+    "actual_cost_bound_and_within_caps": true,
+    "fresh_five_generation_contract": true,
+    "original_source_unchanged_after_A06_qualification": true
+  },
+  "phases": {
+    "public_dev": {
+      "seeds": 3,
+      "episodes": 192,
+      "successes": 141,
+      "strata": {
+        "high": {
+          "episodes": 48,
+          "successes": 19
+        },
+        "low": {
+          "episodes": 48,
+          "successes": 48
+        },
+        "medium": {
+          "episodes": 48,
+          "successes": 47
+        },
+        "repeated": {
+          "episodes": 48,
+          "successes": 27
+        }
+      },
+      "outcome_counts": {
+        "fall_backward": 11,
+        "fall_side": 13,
+        "height_collapse": 26,
+        "not_recovered": 1,
+        "success_recovered": 141
+      },
+      "job_id": "go2-push-5rounds-20260923-a06-eval-public-dev",
+      "phase_result_hash": "f42d4e137647ae59c17f694d954da042e1ec2612f349d685fdbae266b4cb772e",
+      "task_evidence_changes_vs_A03": [
+        "/seed_summaries/0/created_at_utc",
+        "/seed_summaries/0/run/round_id",
+        "/seed_summaries/1/created_at_utc",
+        "/seed_summaries/1/run/round_id",
+        "/seed_summaries/2/created_at_utc",
+        "/seed_summaries/2/run/round_id"
+      ],
+      "task_evidence_reproduces_A03_except_run_identity": true,
+      "new_process_id": 1410198
+    },
+    "public_accept": {
+      "seeds": 3,
+      "episodes": 192,
+      "successes": 142,
+      "strata": {
+        "high": {
+          "episodes": 48,
+          "successes": 18
+        },
+        "low": {
+          "episodes": 48,
+          "successes": 48
+        },
+        "medium": {
+          "episodes": 48,
+          "successes": 48
+        },
+        "repeated": {
+          "episodes": 48,
+          "successes": 28
+        }
+      },
+      "outcome_counts": {
+        "fall_backward": 6,
+        "fall_side": 5,
+        "height_collapse": 38,
+        "success_recovered": 142,
+        "not_recovered": 1
+      },
+      "job_id": "go2-push-5rounds-20260923-a06-eval-public-accept",
+      "phase_result_hash": "31f302fdd5ae6d2316abec1b9f98d7babc753b0c9c735c545a023e08d5b9fbc4",
+      "task_evidence_changes_vs_A03": [
+        "/seed_summaries/0/created_at_utc",
+        "/seed_summaries/0/run/round_id",
+        "/seed_summaries/1/created_at_utc",
+        "/seed_summaries/1/run/round_id",
+        "/seed_summaries/2/created_at_utc",
+        "/seed_summaries/2/run/round_id"
+      ],
+      "task_evidence_reproduces_A03_except_run_identity": true,
+      "new_process_id": 1410663
+    },
+    "sealed_validation": {
+      "seeds": 7,
+      "episodes": 448,
+      "successes": 343,
+      "strata": {
+        "high": {
+          "episodes": 112,
+          "successes": 44
+        },
+        "low": {
+          "episodes": 112,
+          "successes": 112
+        },
+        "medium": {
+          "episodes": 112,
+          "successes": 107
+        },
+        "repeated": {
+          "episodes": 112,
+          "successes": 80
+        }
+      },
+      "outcome_counts": {
+        "fall_backward": 13,
+        "fall_side": 19,
+        "height_collapse": 69,
+        "success_recovered": 343,
+        "not_recovered": 4
+      },
+      "job_id": "go2-push-5rounds-20260923-a06-eval-sealed-validation",
+      "phase_result_hash": "8b77cf9fa878db3d684dd89fc9dd5231b173f2dd2e0d634c3412caaf08d0e8ee",
+      "task_evidence_changes_vs_A03": [
+        "/seed_summaries/0/created_at_utc",
+        "/seed_summaries/0/run/round_id",
+        "/seed_summaries/1/created_at_utc",
+        "/seed_summaries/1/run/round_id",
+        "/seed_summaries/2/created_at_utc",
+        "/seed_summaries/2/run/round_id",
+        "/seed_summaries/3/created_at_utc",
+        "/seed_summaries/3/run/round_id",
+        "/seed_summaries/4/created_at_utc",
+        "/seed_summaries/4/run/round_id",
+        "/seed_summaries/5/created_at_utc",
+        "/seed_summaries/5/run/round_id",
+        "/seed_summaries/6/created_at_utc",
+        "/seed_summaries/6/run/round_id"
+      ],
+      "task_evidence_reproduces_A03_except_run_identity": true,
+      "new_process_id": 1411145
+    }
+  },
+  "post_genesis_actual_cost": {
+    "accounted_output_bytes": 7899486,
+    "allocated_gpu_capacity_hours_charged": 0.05554003024666666,
+    "conservatively_charged_gpu_capacity_ns": 0,
+    "eval_seed_units": 13,
+    "finalization_output_reserve_bytes": 0,
+    "job_attempts": 3,
+    "job_cost_evidence_hash": "cc37c89fbeff161b4f1bb1873aba58cc7b93b225b38f76be3abb06bc61c11542",
+    "observed_output_bytes": 7899486,
+    "observed_output_files": 35,
+    "provider_attempts": 0,
+    "provider_conservative_attempts": 0,
+    "provider_reasoning_units": 0,
+    "provider_request_units": 0,
+    "provider_response_units": 0,
+    "provider_total_units": 0,
+    "resource_lease_wall_duration_ns": 199944108888,
+    "simulated_control_steps": 252096,
+    "train_jobs": 0,
+    "train_steps": 0,
+    "unmeasured_bound_attempts": 0
+  },
+  "evidence_sha256": {
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\source_snapshot_06.json": "sha256:24d3b3eb22aaa6b76c8c707a80179c11ed73a106a3c9515696cd9ea6259ebfd9",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_03\\session\\session_genesis.json": "sha256:bf5171cbbe79ca6886f79c60a3bfc77c5a5c188ec590d4e6781163018ad913ab",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_03\\session\\reference_eval_artifact.json": "sha256:be27a1a3266d2504982fa3efedac3d37cb3b0d47b017fe40eb039c432101dee0",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\session\\session_genesis.json": "sha256:f106e800379935a820c446165d096d730dbe95c8bea13390f4e07b5086c07807",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\session\\reference_eval_artifact.json": "sha256:946d829f98522fb85833ae9de2a2a67e3e5b5f241268a0730a18b2e56cf577e7",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\process.json": "sha256:e1b4e80b11d47134bc5ad3dc36e0dafe300387657cfbe9f123bf93e9c1dfb4e0",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_03\\session\\runner\\go2-push-5rounds-20260922-a03\\train\\summary.json": "sha256:6f0ed68cf38e66f253fe457720d58f9192af6b5ae71fb25cc4520fdf133c3ebe",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\session\\reference_program_artifacts\\evaluation_receipts\\7d8918b7f1d0507d410f11f063b7591d0571d6d8dbab12df545f1e6ceb0300ca\\eval_phases\\public_dev.json": "sha256:f6791369961efa76e3d22c54ef654b585ea00c0739776ae352f9aed4154dc439",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\session\\runner\\go2-push-5rounds-20260923-a06\\eval\\public_dev\\summary.json": "sha256:d5dedac335a918447bcb2ba5a8da0f692f6955405b083bfe4fe6515a5ddfd2e8",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_03\\session\\runner\\go2-push-5rounds-20260922-a03\\eval\\public_dev\\summary.json": "sha256:b89a0a7c66b6b1b6acf9e95ab47c16e16eb6b14f29a0f7b928bd2b04daa75c6b",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\session\\reference_program_artifacts\\evaluation_receipts\\7d8918b7f1d0507d410f11f063b7591d0571d6d8dbab12df545f1e6ceb0300ca\\contract.json": "sha256:84d592d84f4ea9688892bd09c9d88e7bd4fe3b2674d9dddfe20665e238a4dc57",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\session\\reference_program_artifacts\\evaluation_receipts\\7d8918b7f1d0507d410f11f063b7591d0571d6d8dbab12df545f1e6ceb0300ca\\eval_phases\\public_accept.json": "sha256:6c3ee184c2fbacd2f0fd823472908e2c9003624e41a6a133b2671fc81d023a48",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\session\\runner\\go2-push-5rounds-20260923-a06\\eval\\public_accept\\summary.json": "sha256:8418394d261741060c5a19d9db2f4435e53e45bf20744057bdbf9862aff380fa",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_03\\session\\runner\\go2-push-5rounds-20260922-a03\\eval\\public_accept\\summary.json": "sha256:30a8a34b367b9a85f967e26aaf302bc6cbfa0bcdc9fa945e2fdcfd4bde812198",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\session\\reference_program_artifacts\\evaluation_receipts\\7d8918b7f1d0507d410f11f063b7591d0571d6d8dbab12df545f1e6ceb0300ca\\eval_phases\\sealed_validation.json": "sha256:47ea0eaf38ff93a48bb0584e9ca1304376ec61d43d17f3f16cd9792284ab298d",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\session\\runner\\go2-push-5rounds-20260923-a06\\eval\\sealed_validation\\summary.json": "sha256:361f047ce9aaed52a6af5405cc68e587058e1d2773e672a3c3b6578bf7e1cffe",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_03\\session\\runner\\go2-push-5rounds-20260922-a03\\eval\\sealed_validation\\summary.json": "sha256:b4ddc86e6f87c8a3390780919fb671a0ff69b6e0e30a897e6b94414df1123fc9",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\session\\resolved_cell_manifest.json": "sha256:a130b3a97ce4afde8574d19c575a430e8b83ec3750c40b43bc87465cfa0905dd",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\session\\generation_session_contract.json": "sha256:5e4cf135b7bfe69107aa380843e37e14c8662d6dfe6949ceaa3b43184edf433d",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\session\\generation_actual_cost\\0001-post-genesis.json": "sha256:935ef6d0adf987523cb4ba25abc478185ff5a03c40d0a6381c7e74d6cc5c3e8c",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\session\\job_attempts\\5f360d0aa9dbae57f1e04656\\attempt_00.reservation.json": "sha256:b6ed75329999884af3b9504837e49ed36955c614d25e830514b80c9792bebedb",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\session\\job_attempts\\5f360d0aa9dbae57f1e04656\\attempt_00.result.json": "sha256:0e4ebc0d6c18e6d261211f296cd9ac17a95b51c52f1506c2c4ac23b07ac143d1",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\session\\job_attempts\\d48da14deea01a1b884d0ab2\\attempt_00.reservation.json": "sha256:fd8337f0d839fa24b976f1e23bacac39bcc5179a352d9ec43e4045f35a558e38",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\session\\job_attempts\\d48da14deea01a1b884d0ab2\\attempt_00.result.json": "sha256:2fc25c96486a1ff4ae4f2000b3f2eecef446424f6367f65d2b98021d6b65fb2a",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\session\\job_attempts\\fdbc2724457cd1ca57980c95\\attempt_00.reservation.json": "sha256:0b2a2fb90cacdf841d47303aa58028c8be26d05f07fbad96cbd6b4ab859ffe87",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\session\\job_attempts\\fdbc2724457cd1ca57980c95\\attempt_00.result.json": "sha256:d5d3135c37e7d51bb7b16af2ba2064d9fe761728b014e2fd288e4ce1226150bb",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\reference_source_before.json": "sha256:99e821e109f9a020574d9321d6bf63b8b3556b1606997653297f06d118aeb3ba",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\reference_source_after_qualification.json": "sha256:99e821e109f9a020574d9321d6bf63b8b3556b1606997653297f06d118aeb3ba"
+  },
+  "audit_script_adaptations": [
+    "Initial local audit used the private eval spec for the plan hash. session_genesis._job_spec_to_private_dict preserves host GPU topology; _run_reference_phased_evaluation hashes EvalJobSpec.to_public_dict. The audit now uses GpuProcessBinding.to_public_dict for this hash; checks remain intact.",
+    "Initial audit assumed a top-level eval creation time. The actual summaries store it in each task_evidence.seed_summaries entry. Freshness now compares new earliest seed time against old latest seed time."
+  ],
+  "limits": [
+    "Checkpoint bytes remain remote; this audit verifies bound checksums and target safety receipts, not a second local tensor hash.",
+    "Original training execution belongs to A03; the current checkout is used only to replay A06 qualification.",
+    "Source reserves may still include training; reserves are caps, not actual training charges.",
+    "No success-rate equality to A03 is required; fresh measured outcomes and the frozen qualification rule decide readiness.",
+    "Five generation closures, final confirmation and independent terminal audit remain separate acceptance steps."
+  ],
+  "source_before_integrity": {
+    "path": "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\reference_source_before.json",
+    "sha256": "99e821e109f9a020574d9321d6bf63b8b3556b1606997653297f06d118aeb3ba",
+    "checks": [
+      {
+        "path": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/attempt_03/session/session_genesis.json",
+        "sha256": "bf5171cbbe79ca6886f79c60a3bfc77c5a5c188ec590d4e6781163018ad913ab",
+        "verified": "original A03 local evidence size and checksum match target before receipt"
+      },
+      {
+        "path": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/attempt_03/session/reference_eval_artifact.json",
+        "sha256": "be27a1a3266d2504982fa3efedac3d37cb3b0d47b017fe40eb039c432101dee0",
+        "verified": "original A03 local evidence size and checksum match target before receipt"
+      },
+      {
+        "path": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/attempt_03/session/runner/go2-push-5rounds-20260922-a03/train/summary.json",
+        "sha256": "6f0ed68cf38e66f253fe457720d58f9192af6b5ae71fb25cc4520fdf133c3ebe",
+        "verified": "original A03 local evidence size and checksum match target before receipt"
+      },
+      {
+        "path": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/attempt_03/session/runner/go2-push-5rounds-20260922-a03/checkpoints/best.pt",
+        "sha256": "1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff",
+        "verified": "original target checkpoint checksum equals retained train/Genesis binding; no local bytes"
+      }
+    ],
+    "after_run_target_bytes_and_mtime_verified": true
+  },
+  "source_after_qualification_integrity": {
+    "path": "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\Go2_push\\attempt_06\\reference_source_after_qualification.json",
+    "sha256": "99e821e109f9a020574d9321d6bf63b8b3556b1606997653297f06d118aeb3ba",
+    "original_source_files": 4,
+    "before_equals_after_size_mtime_ns_sha256": true,
+    "files": {
+      "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/attempt_03/session/session_genesis.json": {
+        "size": 72232,
+        "mtime_ns": 1790075054180840492,
+        "sha256": "bf5171cbbe79ca6886f79c60a3bfc77c5a5c188ec590d4e6781163018ad913ab"
+      },
+      "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/attempt_03/session/reference_eval_artifact.json": {
+        "size": 85868,
+        "mtime_ns": 1790075054024837873,
+        "sha256": "be27a1a3266d2504982fa3efedac3d37cb3b0d47b017fe40eb039c432101dee0"
+      },
+      "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/attempt_03/session/runner/go2-push-5rounds-20260922-a03/train/summary.json": {
+        "size": 31407,
+        "mtime_ns": 1790074857033582059,
+        "sha256": "6f0ed68cf38e66f253fe457720d58f9192af6b5ae71fb25cc4520fdf133c3ebe"
+      },
+      "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/Go2_push/attempt_03/session/runner/go2-push-5rounds-20260922-a03/checkpoints/best.pt": {
+        "size": 4584363,
+        "mtime_ns": 1790074852777512980,
+        "sha256": "1495390b192b913432b8472cb150e2db07fdc2eb811eeabe4ab87c577b24e0ff"
+      }
+    },
+    "scope": "Original A03 Genesis, private reference artifact, raw training summary and best.pt are byte/stat identical before and after A06 fresh qualification. This does not claim future immutability."
+  }
+}

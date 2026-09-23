@@ -1,0 +1,35 @@
+E..E....................................
+======================================================================
+ERROR: test_full_generation_is_serial_author_parallel_execute_and_single_commit (tests.integration.test_fixed_width_generation.FixedWidthGenerationTests.test_full_generation_is_serial_author_parallel_execute_and_single_commit) (scenario='post_train_runtime_stop_keeps_receipts_and_skips_eval')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_fixed_width_generation.py", line 2431, in test_full_generation_is_serial_author_parallel_execute_and_single_commit
+    stopped = execute_fixed_width_generation(stopped_inputs)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\generation.py", line 366, in execute_fixed_width_generation
+    _check_training_runtime_effect(state)
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\generation.py", line 672, in _check_training_runtime_effect
+    state.trial_execution = finalize_prepared_candidate_trial(prepared,
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\round.py", line 707, in finalize_prepared_candidate_trial
+    round_stage = _validate_trial_record(
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\round.py", line 1055, in _validate_trial_record
+    decision_validation.raise_for_failure()
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\evaluation\decision_record_contract.py", line 175, in raise_for_failure
+    raise ValueError(f"invalid decision record: {detail}")
+ValueError: invalid decision record: candidate_runtime_error_fields_invalid, candidate_runtime_error_type_invalid, candidate_runtime_error_message_missing, candidate_runtime_error_details_invalid
+
+======================================================================
+ERROR: test_nominal_fixture_keeps_cross_row_markers_and_real_contact_cases (tests.unit.test_stair_p5_runtime.StairP5RuntimeTests.test_nominal_fixture_keeps_cross_row_markers_and_real_contact_cases)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_stair_p5_runtime.py", line 40, in test_nominal_fixture_keeps_cross_row_markers_and_real_contact_cases
+    self.assertTrue(values["support_first_contact"][1].all())
+                    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'support_first_contact'
+
+----------------------------------------------------------------------
+Ran 40 tests in 39.882s
+
+FAILED (errors=2)

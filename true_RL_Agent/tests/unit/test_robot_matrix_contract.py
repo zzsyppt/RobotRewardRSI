@@ -746,7 +746,7 @@ sys.stdout.buffer.write(canonical_json_bytes(manifest.to_dict(), trailing_newlin
         provider = PushRecoveryCompositionProvider()
         with tempfile.TemporaryDirectory() as tmp:
             composition = provider.resolve(
-                values=dict(provider.cli_defaults()),
+                values={**provider.cli_defaults(), "cell_variant_id": PUSH_G1_29DOF_LEGACY_CELL_VARIANT_ID},
                 context=TaskCompositionContext(
                     project_root=PROJECT_ROOT,
                     output_dir=Path(tmp),

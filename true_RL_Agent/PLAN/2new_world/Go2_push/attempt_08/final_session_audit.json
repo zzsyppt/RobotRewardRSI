@@ -1,0 +1,261 @@
+{
+  "status": "PASS_GO2_PUSH_FIVE_GENERATION_VALIDATION",
+  "audited_at_utc": "2026-09-23T09:14:36.539165+00:00",
+  "session_id": "go2-push-5rounds-20260923-a08",
+  "source_commit": "f13ceb6660e01e5367f3a0961fca9a269737bf2c",
+  "scope": "One Go2 x Push cell, five fresh generations of width two, full final and terminal closure; not a 2x2 physical matrix acceptance.",
+  "generation_outcomes": {
+    "accepted": 2,
+    "formal_rejected": 3
+  },
+  "generations": [
+    {
+      "generation": 1,
+      "accepted": true,
+      "accept": {
+        "seed_successes": [
+          54,
+          55,
+          50
+        ],
+        "successes": 159,
+        "episodes": 192,
+        "score": 0.828125
+      },
+      "sealed": {
+        "seed_successes": [
+          52,
+          58,
+          55,
+          57,
+          59,
+          61,
+          52
+        ],
+        "successes": 394,
+        "episodes": 448,
+        "score": 0.8794642857142857,
+        "public_to_sealed_drop": -0.0513392857142857
+      },
+      "resulting_head": {
+        "candidate_id": "push_recovery_nonsaturating_stance_v1",
+        "checkpoint_hash": "sha256:0fcb1ddc36bc0a602f2312bdf3c4741bdf000976429fcd6a840ece79f3f1f1a1",
+        "public_score": 0.828125
+      }
+    },
+    {
+      "generation": 2,
+      "accepted": false,
+      "accept": {
+        "seed_successes": [
+          32,
+          35,
+          32
+        ],
+        "successes": 99,
+        "episodes": 192,
+        "score": 0.515625
+      },
+      "sealed": null,
+      "resulting_head": {
+        "candidate_id": "push_recovery_nonsaturating_stance_v1",
+        "checkpoint_hash": "sha256:0fcb1ddc36bc0a602f2312bdf3c4741bdf000976429fcd6a840ece79f3f1f1a1",
+        "public_score": 0.828125
+      }
+    },
+    {
+      "generation": 3,
+      "accepted": false,
+      "accept": {
+        "seed_successes": [
+          51,
+          52,
+          49
+        ],
+        "successes": 152,
+        "episodes": 192,
+        "score": 0.7916666666666666
+      },
+      "sealed": null,
+      "resulting_head": {
+        "candidate_id": "push_recovery_nonsaturating_stance_v1",
+        "checkpoint_hash": "sha256:0fcb1ddc36bc0a602f2312bdf3c4741bdf000976429fcd6a840ece79f3f1f1a1",
+        "public_score": 0.828125
+      }
+    },
+    {
+      "generation": 4,
+      "accepted": true,
+      "accept": {
+        "seed_successes": [
+          57,
+          58,
+          59
+        ],
+        "successes": 174,
+        "episodes": 192,
+        "score": 0.90625
+      },
+      "sealed": {
+        "seed_successes": [
+          59,
+          55,
+          61,
+          60,
+          57,
+          59,
+          58
+        ],
+        "successes": 409,
+        "episodes": 448,
+        "score": 0.9129464285714286,
+        "public_to_sealed_drop": -0.006696428571428603
+      },
+      "resulting_head": {
+        "candidate_id": "push_recovery_lateral_brace_v1",
+        "checkpoint_hash": "sha256:5714a1f0f73ffee68bc980fe28439fc48eb70f31320c058a4a75f3a9b868118f",
+        "public_score": 0.90625
+      }
+    },
+    {
+      "generation": 5,
+      "accepted": false,
+      "accept": {
+        "seed_successes": [
+          52,
+          53,
+          54
+        ],
+        "successes": 159,
+        "episodes": 192,
+        "score": 0.828125
+      },
+      "sealed": null,
+      "resulting_head": {
+        "candidate_id": "push_recovery_lateral_brace_v1",
+        "checkpoint_hash": "sha256:5714a1f0f73ffee68bc980fe28439fc48eb70f31320c058a4a75f3a9b868118f",
+        "public_score": 0.90625
+      }
+    }
+  ],
+  "final_head": {
+    "anchor_id": "push_recovery_lateral_brace_v1",
+    "checkpoint_hash": "sha256:5714a1f0f73ffee68bc980fe28439fc48eb70f31320c058a4a75f3a9b868118f",
+    "public_score": 0.90625,
+    "accepted_round_id": "go2-push-5rounds-20260923-a08-generation-004-lane-b"
+  },
+  "final_paired_statistics": {
+    "count": 7,
+    "mean": 0.14732142857142858,
+    "standard_error": 0.0173380657704331,
+    "std": 0.045872210243447474
+  },
+  "cost_actual": {
+    "accounted_output_bytes": 591654692,
+    "allocated_gpu_capacity_hours_charged": 2.3397953699294445,
+    "conservatively_charged_gpu_capacity_ns": 0,
+    "eval_seed_units": 86,
+    "finalization_output_reserve_bytes": 1048576,
+    "job_attempts": 32,
+    "job_cost_evidence_hash": "da95d143746dc91297b161ce1da634c64dc64201cb605218ccb9f5d44514dc85",
+    "observed_output_bytes": 590606116,
+    "observed_output_files": 639,
+    "provider_attempts": 15,
+    "provider_conservative_attempts": 0,
+    "provider_reasoning_units": 277999,
+    "provider_request_units": 258805,
+    "provider_response_units": 292987,
+    "provider_total_units": 551792,
+    "resource_lease_wall_duration_ns": 8423263331746,
+    "simulated_control_steps": 493131648,
+    "train_jobs": 10,
+    "train_steps": 491520000,
+    "unmeasured_bound_attempts": 0
+  },
+  "authoring": {
+    "provider_attempts": 15,
+    "verified_candidates": 10,
+    "provider_failures": 5,
+    "source_requests_from_final_lane_counters": 0,
+    "prompt_bytes_range": [
+      48301,
+      72684
+    ],
+    "memory_bytes_range": [
+      996,
+      5624
+    ],
+    "public_boundary": {
+      "prompts_rechecked": 15,
+      "observed_private_paths": 101,
+      "observed_checkpoint_hashes": 10,
+      "literal_private_hits": 0,
+      "public_only_and_task_receipt_revalidation": "PASS",
+      "duplicate_inline_source_bodies": 0,
+      "limit": "Checks actual observed identifiers and structural public-only rules; no claim of ruling out arbitrary covert numeric encodings."
+    },
+    "live_vs_offline_coverage": {
+      "F10": "Live distinct current-best/latest-nonaccepted feedback exercised Gen2-5, including parent changes; raw public-dev and same-trial runtime identities reconciled.",
+      "F13": "Live full-history comparisons executed for four candidates in Gen3/4 against two/four keys. All were distinct and passed. No historical repeat rejection naturally occurred in A08.",
+      "F11": "A08 has five provider-exhaustion retry frames and no historical-repeat repair frame. Direct/nested historical repair retention is offline source-boundary probe coverage, not an A08 live-trigger claim.",
+      "offline_receipts": {
+        "source_boundary_review.json": "87ba59939a7e256c2a0612e4d727686825d83d62a3b46110c8101a985a4cbfcd",
+        "source_boundary_dynamic_probe.json": "c84cfad794734918b7f8cb548e543210e87e59ba4b257739a8893efad221afb9",
+        "prompt_audit_tool_preparation.json": "7c492462335a73632c87a0ae296c0145d63130b942edd49cded89cdfc778d98c"
+      }
+    }
+  },
+  "checks": {
+    "production_terminal_replay": true,
+    "five_generation_decisions_recomputed": true,
+    "ten_candidate_source_and_admission_reviews": true,
+    "fifteen_actual_prompt_and_memory_reviews": true,
+    "ten_full_training_and_twenty_two_evaluation_summaries": true,
+    "final_roles_and_existing_cohort": true,
+    "provider_cost_reconciled": true,
+    "no_open_jobs_and_compute_idle": true,
+    "reference_and_candidate_checkpoint_hashes": true,
+    "execution_hashes_and_historical_size_mtime": true
+  },
+  "open_nonblocking_issues": [
+    "F9: candidate mechanism explanations can contradict the reward code; no causal credit is inferred.",
+    "F12: five reasoning-exhausted requests consumed real budget before successful frozen fallback."
+  ],
+  "limits": [
+    "Same frozen sealed cohort was replayed; not independent new-seed or geometry generalization.",
+    "One training seed and five generations do not establish stable gains across runs or other matrix cells.",
+    "Historical 1357 files were checked by size/mtime, not rehashed.",
+    "No historical-repeat repair naturally occurred in A08; offline repair checks are separately identified."
+  ],
+  "evidence_sha256": {
+    "process.json": "92acfbaff5afc6cb360b4a5573c9d09c35f0175d4f595bd2af1bbf7666cb0bb4",
+    "session/generation_session_report.json": "eafc209e0c732405a1a08973051ae9857aba1b150a1a6bef0a42f75d366a79c9",
+    "terminal_audit_stdout.json": "12b454056841660017946b4306d96a52bd1fddba35bd2f128a8fc74f45cb7de4",
+    "terminal_audit_process.json": "da46dffa1a959b417ef84d8be84ea2f26457a28fb5d646de1d7951e862cadcc0",
+    "gen01_decision_audit.json": "69e2b4648a5d34f2093919956dc368389d97ab61dbcbc1b2f6506cc66634517f",
+    "gen01_candidate_source_audit.json": "ab6d4182a102bc503913e81fddcf9cb0db200eabe103c6e9f89c14fbd7c8ad6f",
+    "prompt_audit_gen01.json": "9243fbc7e3b64ad860ab9b49c411b523a32d5c693db808bade7edade26d63411",
+    "gen02_decision_audit.json": "0d17f708166c861b2af279fd310b577d2cd8b99db2a55f429698bb140028bd56",
+    "gen02_candidate_source_audit.json": "2029f1f447b1b0769f09d0a2d6a80ae8c7526bffe922a40ece19ba7c04c79396",
+    "prompt_audit_gen02.json": "672d4fbf3b994a626d3c13d122a665b7084481a80ed22ac68e7f52075b89ab1d",
+    "gen03_decision_audit.json": "f375c39696272c7bee7361afb3f42a2fb6061ccb14b703df487de6ec00f3798a",
+    "gen03_candidate_source_audit.json": "c56fee765a7ced29bd4623ab6b1cdd19875e7352fbee482abd48bd4cbe4ea111",
+    "prompt_audit_gen03.json": "24d70fc1688665cb3c48942d8ea510c30fb62a00185688e2d34d91ed4e624370",
+    "gen04_decision_audit.json": "5d2349688993779abeea5a21c32e3d09caa4a39f93772aeeaf1abc5d9c9b54b2",
+    "gen04_candidate_source_audit.json": "15edf7b072229bf91561586291fc36b8f040b0b50b077b88a5feff2b04d8e240",
+    "prompt_audit_gen04.json": "ffae9367f221f0a95ac79fc81a06e04e011d7d7832f03b75d8638a9c8e36ef24",
+    "gen05_decision_audit.json": "2e2102d84058a3b882eb4679d0610c309741f7f5e6bc16de6cb647db32bff5bf",
+    "gen05_candidate_source_audit.json": "be4c139d54b27ab4b880579c189237fa7581f14bd29c5758b11991a8f627f45d",
+    "prompt_audit_gen05.json": "b63053169b8ebffb6aa54d7d6f7e82fe77714e39e7d71feadff0387048a09302",
+    "training_evidence_through_gen05.json": "3d765341fa31dfa33438f1fe8d3e2be9eb827a23082a6820364055be6571da65",
+    "physical_evidence_final.json": "36f8000cb027e72f13e5bc898e9b457068d804c0c9158a46accfed1a47503d74",
+    "harness_boundary_audit.json": "362ef33c88d237b1075e9154b2cc6430e599b0146aa50dda34abb17572ff5320",
+    "post_terminal_resources.json": "10c3914a37180fdbbea985eceaff914f36625341d33b2a798792b29e7b2ebf46",
+    "candidate_checkpoints_after_final.json": "f8a0edb49b33df8bc20d18c368a8265aba50f2dbd4d9d3457c1b6027fd88311c",
+    "reference_source_before.json": "1d9f53fef3a48d6e2493c24c8d90da923d1f2bd4a3c8be4b0adf03bc77b8898e",
+    "reference_source_after_final.json": "99e821e109f9a020574d9321d6bf63b8b3556b1606997653297f06d118aeb3ba",
+    "execution_source_after_final.json": "e08f726ddb6aa3b19ac99301484b753ec8a466a2fb2b8df411004a915da42a46",
+    "protected_after_08.json": "4203ec1e49109c732ccbe43e6d4dbabc36dfa27ec548b8433d24777dedaeb913",
+    "session/final_confirmation/result.json": "dfaaa679f6ef38058bac4dbc0cbf204dd684ea480469e1a3402f5873230a957c"
+  }
+}

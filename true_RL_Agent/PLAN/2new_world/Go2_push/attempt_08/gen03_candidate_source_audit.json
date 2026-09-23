@@ -1,0 +1,344 @@
+{
+  "status": "PASS_BOTH_LANES_SOURCE_REVIEW_WITH_NONBLOCKING_F9",
+  "session_id": "go2-push-5rounds-20260923-a08",
+  "generation_index": 3,
+  "snapshot": ".tmp/go2_push_a08_live_10.zip",
+  "scope": "Independent source and executed historical-gate audit. Local finite CPU outputs are not trajectory, training activation or performance evidence.",
+  "frozen_source_checks": {
+    "src/true_rl_agent/candidates/component_source_semantics.py": "963f3c7385f9e08a7a99b72e3499f27bcc4e55266a3e155b42d5fd2d2924d3f5",
+    "src/true_rl_agent/candidates/authoring_policy.py": "038dce885ac95d3dd2f3bfb5ac80d290648e9ff9277c95df797027e5f0530c9f",
+    "src/true_rl_agent/agent_core/authoring_loop.py": "b4495703efe30a36b8e062ba44d95926223ef94bd3d2746c8e0bf00a1ce1e090",
+    "src/true_rl_agent/agent_core/exploration.py": "f8186e72df46aa66a4d3606c0104e4936bc7880148c0aca5d56fec98a46e900f",
+    "src/true_rl_agent/tasks/push_recovery/runtime_adapter.py": "b849651740e1362eafb085a990a8158b7821b1cdbf25f362bcd5d239b1f7d2f4"
+  },
+  "historical_scope": {
+    "current_parent_head_hash": "c011cc5fa3ac6e6125e7d9e0cb4ee82f7cb7b11773e6114d94b568a5632f266f",
+    "same_parent_measured_trial_ids": [
+      "go2-push-5rounds-20260923-a08-generation-002-lane-a",
+      "go2-push-5rounds-20260923-a08-generation-002-lane-b"
+    ],
+    "same_parent_measured_candidate_ids": [
+      "push_recovery_linear_tilt_ramp_v1",
+      "push_recovery_tilt_aware_stance_v2"
+    ],
+    "verifier_family_keys": [
+      "1c99d43308fa4a320214b89159285e3ca5be2d31d182dcfbd08fb5e297cc001b",
+      "38881adccf70b64ed6b78e26475f484f79da62b91734266b570fe72a94bad6cc"
+    ],
+    "key_set_hash": "8e1978a92acdbf52fb4daaf7777520d4e35bcb2610d8d970c855bf433433d76b",
+    "negative_set_hash": "93af470f76fcae9ca4fe74dafd4f2b8a50c23dd6b53140d96aec7027db1af871",
+    "finding": "Both Gen2 measured deltas remain in the same-parent evaluated set even though neither was accepted. Gen1 had a different reference parent. Actual executed gate set hashes and candidate key match reconstruction from authoritative ledger deltas, independently of prompt source truncation."
+  },
+  "lane_a": {
+    "candidate_id": "push_recovery_rate_damped_v1",
+    "candidate_sha256": "2aa64e0b57a20a76595e41628dc732222f464402c204789a2896fbd3319055de",
+    "parent_sha256": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+    "source_assessment_replay": {
+      "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+      "status": "pass",
+      "classification": "mechanism_delta_present",
+      "reason": "candidate_source_structure_differs_from_comparison_anchor",
+      "compares_to": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+      "candidate_source_sha256": "2aa64e0b57a20a76595e41628dc732222f464402c204789a2896fbd3319055de",
+      "blocking": false,
+      "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+      "changed_mechanism_count": 1,
+      "changed_mechanisms": [
+        "RewardTerm:fall_rate_damping"
+      ],
+      "structural_comparison": "canonical_component_terms"
+    },
+    "mechanism_delta": {
+      "schema_version": "true_rl_agent.candidate_mechanism_operation_delta.v2",
+      "operation": "add",
+      "before_component": null,
+      "after_component": {
+        "mechanism_id": "RewardTerm:fall_rate_damping",
+        "structure_hash": "78f0d2a2b5df0f8558633609f85fe938bfa78a5de13373160c2245aa140ad15f",
+        "parameter_normalized_structure_hash": "729e6c7052c6ea4bde8d5fe997a721a2b3b7af679512c173014a5531c4d03213",
+        "input_fields": [
+          "base_ang_vel_scaled",
+          "base_lin_vel_scaled"
+        ]
+      },
+      "anchor_source_checksum": "sha256:64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+      "candidate_source_checksum": "sha256:2aa64e0b57a20a76595e41628dc732222f464402c204789a2896fbd3319055de"
+    },
+    "verifier_equivalence_key": "3852cb4fa6652f69b5ee37127c0a14aef4bb48cd2d042308e2d0768804a4705f",
+    "preserved_exact_functions_weights_clips_bindings": [
+      "upright_recovery",
+      "stationary_v3",
+      "joint_pose",
+      "action_rate",
+      "fall"
+    ],
+    "single_mechanism_proof": "Adds one directly bound reward term using vertical velocity index2, absent from the parent's effective inputs, plus deadbanded x/y angular-rate magnitude. All existing five terms remain exact. Not a numeric variant of Gen2's stance-variable transform or height-times-tilt coupling; actual normalized key is outside both historical families.",
+    "boundary": "Only imports controlled RewardTerm/TrainingComponents and reads public input tensors. No external I/O/network, hidden global execution, diagnostics/schedules or training/evaluation configuration changes. Added expressions feed the actual returned term.fn; static smoke establishes finite samples only.",
+    "authoring_gate": {
+      "provider_attempts": 1,
+      "stop_reason": "candidate_verified",
+      "verifier_status": "pass",
+      "actual_historical_assessment": {
+        "blocking": false,
+        "evaluated_exclusion_set_hash": "8e1978a92acdbf52fb4daaf7777520d4e35bcb2610d8d970c855bf433433d76b",
+        "exclusion_set_hash": "8e1978a92acdbf52fb4daaf7777520d4e35bcb2610d8d970c855bf433433d76b",
+        "exclusion_sources": [],
+        "negative_evidence_exclusion_set_hash": "93af470f76fcae9ca4fe74dafd4f2b8a50c23dd6b53140d96aec7027db1af871",
+        "reason": "historical_verifier_equivalent_distinct",
+        "schema_version": "true_rl_agent.historical_verifier_exclusion_assessment.v1",
+        "status": "pass",
+        "verifier_equivalence_key": "3852cb4fa6652f69b5ee37127c0a14aef4bb48cd2d042308e2d0768804a4705f"
+      },
+      "smoke_status": "pass",
+      "changed_term_smoke": {
+        "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+        "effective_max_abs_after_clip_and_weight": 0.0,
+        "kind": "RewardTerm",
+        "name": "fall_rate_damping",
+        "observed_clip_saturation_count": 0,
+        "observed_raw_nonzero_count": 0,
+        "observed_sample_count": 4,
+        "observed_shape": [
+          4
+        ],
+        "raw_max_abs": 0.0,
+        "reason": "reward_callable_returned_finite_expected_shape",
+        "status": "pass"
+      }
+    },
+    "nonblocking_F9": {
+      "claim": "The cost is identically zero in near-goal stance, prices only downward velocity beyond the stated threshold, and slow displaced states retain exactly the parent signal.",
+      "source_fact": "sink=max(.05-v_z_scaled,0), so it activates whenever v_z_scaled<+.05, including zero and small positive upward velocity. A downward deadband would have a different sign; the chosen reward is still a valid new mechanism.",
+      "finite_synthetic_inputs": {
+        "scaled_vertical_velocity": [
+          0,
+          0.05,
+          -0.05
+        ],
+        "scaled_horizontal_velocity": [
+          0,
+          0
+        ],
+        "scaled_angular_velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "actual_raw_cost": [
+        0.052500000000000005,
+        0.0,
+        0.11000000000000001
+      ],
+      "actual_clip_bounds": [
+        0.0,
+        8.0
+      ],
+      "actual_weight": -1.0,
+      "actual_weighted_rate": [
+        -0.052500000000000005,
+        -0.0,
+        -0.11000000000000001
+      ],
+      "interpretation_limit": "These inputs show a code/claim mismatch, not a visited trajectory, exploit or failed experiment. The asserted transient cause and cap-never-binds operating range are not established by aggregate failure labels. Record under existing F9; no new gate."
+    }
+  },
+  "lane_b": {
+    "candidate_id": "push_recovery_vel_damped_stance_v1",
+    "candidate_sha256": "da09ff5d4a0f618d5d86e49c59214478fb973305710d872e47a29f4337b8f30c",
+    "parent_sha256": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+    "source_assessment_replay": {
+      "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+      "status": "pass",
+      "classification": "mechanism_delta_present",
+      "reason": "candidate_source_structure_differs_from_comparison_anchor",
+      "compares_to": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+      "candidate_source_sha256": "da09ff5d4a0f618d5d86e49c59214478fb973305710d872e47a29f4337b8f30c",
+      "blocking": false,
+      "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+      "changed_mechanism_count": 1,
+      "changed_mechanisms": [
+        "RewardTerm:recovery_damping"
+      ],
+      "structural_comparison": "canonical_component_terms"
+    },
+    "mechanism_delta": {
+      "schema_version": "true_rl_agent.candidate_mechanism_operation_delta.v2",
+      "operation": "add",
+      "before_component": null,
+      "after_component": {
+        "mechanism_id": "RewardTerm:recovery_damping",
+        "structure_hash": "afa9905e2c5347adf27bdc29200526131302f706935c3d5c43fe3fff40e3ace0",
+        "parameter_normalized_structure_hash": "97487694334d518e645c210bd8f3a97aa6dd2315a2a0be4f742a948a3da0e13d",
+        "input_fields": [
+          "base_ang_vel_scaled",
+          "base_height_relative",
+          "base_lin_vel_scaled",
+          "pitch",
+          "roll"
+        ]
+      },
+      "anchor_source_checksum": "sha256:64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+      "candidate_source_checksum": "sha256:da09ff5d4a0f618d5d86e49c59214478fb973305710d872e47a29f4337b8f30c"
+    },
+    "verifier_equivalence_key": "5c8a7232ac355bccecac90ec7e405453d300073fa6cab31e36fb66119defdebd",
+    "preserved_exact_functions_weights_clips_bindings": [
+      "upright_recovery",
+      "stationary_v3",
+      "joint_pose",
+      "action_rate",
+      "fall"
+    ],
+    "single_mechanism_proof": "Adds one stance-displacement-gated velocity term. Parent stance and speed mechanisms are independent; new gate multiplies excess height/tilt by speed. Not a coefficient-only rewrite. Unlike sibling A, this term reads height/tilt, uses planar rather than vertical velocity, includes all angular axes, and has a different rational gate; independent sibling comparison returns distinct.",
+    "historical_proof": "Actual B key lies outside the same two ledger-derived Gen2 family keys retained in the A audit. Actual evaluated/union hashes match that set, negative-evidence hash remains the separate empty set. This compares authoritative history identities even though anti-degenerate prompt-source count is zero.",
+    "boundary": "Only public tensor inputs and controlled component constructors. Six directly bound reward terms; no diagnostics/schedules, external I/O/network or training/evaluation configuration edits. Added expression feeds returned term.fn.",
+    "authoring_gate": {
+      "provider_attempts": 2,
+      "stop_reason": "candidate_verified",
+      "verifier_status": "pass",
+      "actual_historical_assessment": {
+        "blocking": false,
+        "evaluated_exclusion_set_hash": "8e1978a92acdbf52fb4daaf7777520d4e35bcb2610d8d970c855bf433433d76b",
+        "exclusion_set_hash": "8e1978a92acdbf52fb4daaf7777520d4e35bcb2610d8d970c855bf433433d76b",
+        "exclusion_sources": [],
+        "negative_evidence_exclusion_set_hash": "93af470f76fcae9ca4fe74dafd4f2b8a50c23dd6b53140d96aec7027db1af871",
+        "reason": "historical_verifier_equivalent_distinct",
+        "schema_version": "true_rl_agent.historical_verifier_exclusion_assessment.v1",
+        "status": "pass",
+        "verifier_equivalence_key": "5c8a7232ac355bccecac90ec7e405453d300073fa6cab31e36fb66119defdebd"
+      },
+      "actual_sibling_assessment": {
+        "blocking": false,
+        "equivalence": null,
+        "exclusion_hash": "b0f9a3e428779df924b6f47722be80c53b254cd720baa03c0b0724dba0c2473d",
+        "reason": "sibling_semantic_delta_distinct",
+        "schema_version": "true_rl_agent.sibling_semantic_exclusion_assessment.v1",
+        "status": "pass"
+      },
+      "smoke_status": "pass",
+      "smoke_advisory_names": [],
+      "changed_term_smoke": {
+        "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+        "effective_max_abs_after_clip_and_weight": 0.19676615297794342,
+        "kind": "RewardTerm",
+        "name": "recovery_damping",
+        "observed_clip_saturation_count": 0,
+        "observed_raw_nonzero_count": 3,
+        "observed_sample_count": 4,
+        "observed_shape": [
+          4
+        ],
+        "raw_max_abs": 0.39353230595588684,
+        "reason": "reward_callable_returned_finite_expected_shape",
+        "status": "pass"
+      }
+    },
+    "first_attempt_failure": {
+      "recorded_failure": {
+        "category": "reasoning_output_exhausted",
+        "details": {
+          "failure_kind": "empty_final_content_with_reasoning",
+          "finish_reason": "length"
+        },
+        "reason": "reasoning exhausted the output budget before final JSON",
+        "schema_version": "true_rl_agent.provider_failure.v1"
+      },
+      "response_receipt": {
+        "finish_reason": "length",
+        "response_text_present": true,
+        "reasoning_content_present": true
+      },
+      "judgment": "Reasoning-output exhaustion before candidate final JSON, not a scientific rejection. Second bounded provider attempt is consistent with existing fallback; no raw-reasoning reconstruction claimed."
+    },
+    "nonblocking_F9": {
+      "claim": "The added term penalizes residual drift and damps recovery velocity.",
+      "source_fact": "fn is nonpositive, clip[-2,0] keeps it nonpositive, and weight=-.5 turns it into a nonnegative reward. Its effective contribution lies in [0,1] and rewards speed at nonzero displacement. This reverses the stated damping interpretation.",
+      "finite_synthetic_inputs": {
+        "height_relative": [
+          0.8,
+          0.8,
+          1.0
+        ],
+        "roll": [
+          0.5,
+          0.5,
+          0.0
+        ],
+        "pitch": [
+          0,
+          0,
+          0
+        ],
+        "scaled_linear_velocity": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0.2,
+            0,
+            0
+          ],
+          [
+            0.2,
+            0,
+            0
+          ]
+        ],
+        "scaled_angular_velocity": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "actual_raw": [
+        -0.0,
+        -0.12187500000000001,
+        -0.0
+      ],
+      "actual_clip_bounds": [
+        -2.0,
+        0.0
+      ],
+      "actual_weight": -0.5,
+      "actual_weighted_rate": [
+        0.0,
+        0.060937500000000006,
+        0.0
+      ],
+      "prompt_penalty_sign_guidance": "With a positive weight, a penalty callable must return non-positive values; returning a positive cost rewards the behavior instead of penalizing it.",
+      "interpretation_limit": "This proves the new term's sign/claim mismatch only, not that the complete reward favors drift or that real trajectories exploit it. Existing stationary_v3 remains an unbounded linear-tail speed penalty, not a saturated free-drift term. Benefits, harms and acceptance remain for fixed evaluation. No new rationale/sign gate."
+    }
+  },
+  "evidence_sha256": {
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-003/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "791e70940bc2abd43f71e1b5d84a05e40ebc7194ea05edd17d195b73fbd83a54",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-003/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "bcc6daecd6b54aa98bb56362772120d46ec66ee6ef10f2181523d9d872786dac",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-003/lane-a/authoring_anchor.json": "7528defb0bfb58225e5fcdb98729af0f77008be6d04187866c63c6a12672498b",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-003/lane-a/001_push_recovery_rate_damped_v1/training_code/components.py": "2aa64e0b57a20a76595e41628dc732222f464402c204789a2896fbd3319055de",
+    "PLAN/2new_world/Go2_push/attempt_08/session/ledger.jsonl": "edaca1d376fc1e75f891335ce6fd04ca7683463b5512de0a44b04bcbfa7998b1",
+    "PLAN/2new_world/Go2_push/source_snapshot_08.json": "bff645daff96c7afcdb71b46e8aa95cfcaef206499fe711bbe9d21e3cdbfa4b9",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-003/lane-b/authoring_attempts/attempt_000002/attempt_result.json": "09db2125bfb650136f428bd91ad55af50bb506c3c792af40a4c2e0003edc5259",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-003/lane-b/authoring_attempts/attempt_000002/prompt_payload.json": "d27895befe5350b41ae976cbf1849b24057e03f4ea057e95ab07312e5a1b719b",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-003/lane-b/authoring_anchor.json": "502da5f477fffda5f0e45704fad8c97d9918b65cfab7bfac51adf89d9ca1b7ad",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-003/lane-b/002_push_recovery_vel_damped_stance_v1/training_code/components.py": "da09ff5d4a0f618d5d86e49c59214478fb973305710d872e47a29f4337b8f30c",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-003/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "4a45591ba5aac96302f7b61daf2654c69c6c6d338272ad858e77f5b1869575a5"
+  },
+  "snapshot_scope": {
+    "lane_a": "A review and evidence hashes retained from snapshot09; no earlier generation rerun.",
+    "lane_b": "Incremental actual source and gate review from snapshot10."
+  },
+  "training_evidence_limit": "Root reports dual-card training started; this source receipt does not assert completed activation summaries, fixed evaluation, score gain or acceptance."
+}

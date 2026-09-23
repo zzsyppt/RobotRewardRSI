@@ -1,0 +1,120 @@
+{
+  "profile": "stair.unified_first_episode.v2",
+  "identity": {
+    "job_id": "stair-dev-replay-fca6a59c8142d012-eval-public-dev",
+    "task_id": "unitree_stair_climbing",
+    "subject_kind": "reference",
+    "subject_id": "go2-stair-official-flat-derived-v1",
+    "subject_manifest_hash": "ece5ad653267f11e5b791403208472f42622e44661fdbc7162776799a370dbd4",
+    "program_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+    "training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98",
+    "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+    "evaluation_binding": {
+      "schema_version": "true_rl_agent.evaluation.binding.v1",
+      "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+      "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+      "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+      "seed_cohort_hash": "a7830816449821400a6ae51fabbb046f8d98ab3084bfcaeb56b240249ea790ea",
+      "evaluation_binding_hash": "ff0b754f727af4df616e77d10f8f67019cea485ed76b1b9c6b00cf902c451178"
+    },
+    "evaluation_plan_hash": "febc1c36a47b3681812197eef04c19d2e1b9de258d8332b73be571e84f6b76ea",
+    "checkpoint_hash": "sha256:fca6a59c8142d0120c5b534addab03885995dd64931fc3b974b9f94b997fe729",
+    "resolved_cell_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+    "seed_namespace": "formal_reference_candidate_eval",
+    "splits": [
+      "public_dev"
+    ],
+    "environment_source_preflight": {
+      "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+      "status": "pass",
+      "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+      "source_manifest_hash": "ef434773192061f3e8d32c369a64c8178da802727440ebcf35aee855e77e9991"
+    },
+    "backend_execution_environment_verification": {
+      "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+      "backend_id": "isaac_lab_rsl_rl",
+      "status": "pass",
+      "expected_manifest_hash": "c472e507378f1256f95a7ffd69a3408cadd69fdcfdc6282a842e54562916fac0",
+      "actual_manifest_hash": "c472e507378f1256f95a7ffd69a3408cadd69fdcfdc6282a842e54562916fac0"
+    }
+  },
+  "reference": {
+    "manifest_path": "/data/yuyangliu/AGENT/feedback_p2_audit_20260924/stair_parent_on/numeric_evidence/manifest.json",
+    "manifest_sha256": "0389a10d7cb9dbe14fff063f43c56482fcc6fbd918281a37beacb59c043db8d3",
+    "schema_version": "true_rl_agent.numeric_evidence.ref.v1"
+  },
+  "status": "PASS",
+  "contact_force_history": {
+    "status": "recorded",
+    "schema_version": "true_rl_agent.stair.contact_force_history.v1",
+    "source": "contact_sensor.net_forces_w_history",
+    "force_semantics": "world_frame_net_normal_contact_force_N_not_contact_pair_or_surface",
+    "history_length": 3,
+    "history_order": "newest_to_oldest",
+    "history_clock": "contact_sensor_buffer_update_events",
+    "configured_sensor_update_period_s": 0.005,
+    "physics_dt_s": 0.005,
+    "control_dt_s": 0.02,
+    "physics_steps_per_control": 4,
+    "lazy_sensor_update": true,
+    "per_history_slot_timestamps": "not_recorded; configured_update_period_is_not_observed_sample_spacing",
+    "coverage": "existing_sensor_buffer_at_pre_reset_control_step_end; not_full_physics_trajectory",
+    "reset_history": "sensor_zeroes_history_on_reset; no_per_slot_validity_flags",
+    "array_axes": [
+      "control_step",
+      "environment",
+      "history",
+      "bound_body",
+      "xyz"
+    ]
+  },
+  "resolved_roles": {
+    "base": [
+      "base"
+    ],
+    "support_effector": [
+      "FL_foot",
+      "FR_foot",
+      "RL_foot",
+      "RR_foot"
+    ],
+    "forbidden_contact": [
+      "base"
+    ]
+  },
+  "forbidden_threshold_N": 1.0,
+  "support_threshold_N": 1.0,
+  "counts": {
+    "valid_control_frames": 276259,
+    "invalid_padding_frames": 193757,
+    "predicate_mismatches": 0,
+    "manager_contact_frames": 72,
+    "history_contact_frames": 72,
+    "manager_contact_terminal_frames": 72,
+    "instantaneous_zero_history_nonzero_terminal_frames": 26,
+    "instantaneous_below_threshold_history_above_terminal_frames": 26,
+    "support_history_vs_instantaneous_disagree_body_frames": 13295,
+    "valid_support_body_frames": 1105036,
+    "nonzero_history_in_invalid_padding": 0
+  },
+  "first_mismatches": [],
+  "dtypes": {
+    "support_contact_forces_w_history": [
+      "float32"
+    ],
+    "forbidden_contact_forces_w_history": [
+      "float32"
+    ]
+  },
+  "resources": {
+    "max_chunk_raw_bytes": 7839360,
+    "total_raw_bytes": 199774080,
+    "archive_disk_bytes": 75258064
+  },
+  "boundaries": [
+    "A terminal count here is the nonexclusive manager term plus done mask, not primary_reason classification.",
+    "Support disagreement compares two saved operands; it does not change the existing instantaneous decoder semantics.",
+    "No contact pair, contact surface, per-slot timestamp or causal explanation is inferred.",
+    "Run verify_stair_pair.py separately for complete outcome/summary equivalence and on/off timing/RSS."
+  ]
+}

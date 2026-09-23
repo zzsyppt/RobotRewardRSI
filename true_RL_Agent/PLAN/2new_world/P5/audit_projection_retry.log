@@ -1,0 +1,68 @@
+custom-source-policy
+custom-source-policy
+custom-source-policy
+custom-source-policy
+custom-source-policy
+======================================================================
+ERROR: test_latest_runtime_failed_record_exposes_failed_source_without_public_path (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_latest_runtime_failed_record_exposes_failed_source_without_public_path)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 737, in test_latest_runtime_failed_record_exposes_failed_source_without_public_path
+    failed_payload = payload["source_payloads"][0]
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+IndexError: list index out of range
+
+======================================================================
+FAIL: test_contradictory_accept_does_not_become_current_best_lineage (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_contradictory_accept_does_not_become_current_best_lineage)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 390, in test_contradictory_accept_does_not_become_current_best_lineage
+    self.assertEqual(payload["source_payloads"], [])
+AssertionError: Lists differ: [{'schema_version': 'true_rl_agent.prompt_[398 chars]rue}] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+{'schema_version': 'true_rl_agent.prompt_source_payload.v1', 'logical_id': 'memory/latest_nonaccepted/training_code/components.py', 'role': 'latest_nonaccepted_candidate_source', 'delivery': 'inline', 'content': 'def invalid_accept_source(inp):\r\n    return 0.0\r\n', 'content_sha256': '63798a9f2a41d36253876a5f724862f45eac581f14fba440980618dfd0f90c6f', 'bytes': 49, 'summary': '2 lines; def invalid_accept_source(inp):', 'public_safe': True}
+
++ []
+- [{'bytes': 49,
+-   'content': 'def invalid_accept_source(inp):\r\n    return 0.0\r\n',
+-   'content_sha256': '63798a9f2a41d36253876a5f724862f45eac581f14fba440980618dfd0f90c6f',
+-   'delivery': 'inline',
+-   'logical_id': 'memory/latest_nonaccepted/training_code/components.py',
+-   'public_safe': True,
+-   'role': 'latest_nonaccepted_candidate_source',
+-   'schema_version': 'true_rl_agent.prompt_source_payload.v1',
+-   'summary': '2 lines; def invalid_accept_source(inp):'}]
+
+======================================================================
+FAIL: test_sequence_invalid_accept_cannot_replace_lineage_source (tests.unit.test_prompt_source_catalog.PromptSourceCatalogTests.test_sequence_invalid_accept_cannot_replace_lineage_source)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_prompt_source_catalog.py", line 431, in test_sequence_invalid_accept_cannot_replace_lineage_source
+    self.assertNotIn("forged_source", source_text)
+AssertionError: 'forged_source' unexpectedly found in '[{"bytes": 46, "content": "def first_valid_source(inp):\\r\\n    return 0.0\\r\\n", "content_sha256": "a3d564c62c9e170c1012b027e3d51263d593d21740728b3c8580113bef5084dc", "delivery": "inline", "logical_id": "current_best/training_code/components.py", "public_safe": true, "role": "latest_accepted_candidate_source", "schema_version": "true_rl_agent.prompt_source_payload.v1", "summary": "2 lines; def first_valid_source(inp):"}, {"bytes": 41, "content": "def forged_source(inp):\\r\\n    return 0.0\\r\\n", "content_sha256": "7ea3e885e702a9f2a616f976151f99e767ef7d1a68eca2029aef28b745f61a9b", "delivery": "inline", "logical_id": "memory/latest_nonaccepted/training_code/components.py", "public_safe": true, "role": "latest_nonaccepted_candidate_source", "schema_version": "true_rl_agent.prompt_source_payload.v1", "summary": "2 lines; def forged_source(inp):"}]'
+
+======================================================================
+FAIL: test_component_smoke_advisory_repairs_once_then_allows_training (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_component_smoke_advisory_repairs_once_then_allows_training)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 2803, in test_component_smoke_advisory_repairs_once_then_allows_training
+    self.assertEqual(len(result.attempt_records), 2)
+AssertionError: 1 != 2
+
+======================================================================
+FAIL: test_repeated_source_requests_use_full_round_source_repository_not_followup_subset (tests.unit.test_candidate_authoring_loop.CandidateAuthoringLoopTests.test_repeated_source_requests_use_full_round_source_repository_not_followup_subset)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_candidate_authoring_loop.py", line 1916, in test_repeated_source_requests_use_full_round_source_repository_not_followup_subset
+    self.assertEqual(result.attempt_records[1]["source_request_result"]["status"], "source_payload_returned")
+AssertionError: 'source_request_denied' != 'source_payload_returned'
+- source_request_denied
++ source_payload_returned
+
+
+----------------------------------------------------------------------
+Ran 141 tests in 37.039s
+
+FAILED (failures=4, errors=1)

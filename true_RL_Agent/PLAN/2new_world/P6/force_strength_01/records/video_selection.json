@@ -1,0 +1,453 @@
+{
+  "selected_at_unix": 1790009152.420794,
+  "maximum_cases": 8,
+  "replay_not_new_statistical_samples": true,
+  "plan_sha256": "c24d14d01227e93ce401152d506773a999c9eb2f230268f3f653f9b2490f2536",
+  "selector_sha256": "af380f4dc730c44d3a857febb3d0e6095af418776e8ec31156ae55694029d6a5",
+  "cases": [
+    {
+      "seed_index": 1,
+      "seed": 10042,
+      "env_index": 35,
+      "max_abs_tilt_rad": 0.30520451068878174,
+      "worst_tilt_step": 79,
+      "recovery_delay_steps": 73,
+      "expected_episode": {
+        "env_id": 35,
+        "episode_steps": 303,
+        "event_recovery_control_steps": [
+          135
+        ],
+        "failure_label": "success_recovered",
+        "force_events": [
+          {
+            "actual_substeps": 44,
+            "completed": true,
+            "delivered_impulse_world_ns": [
+              -33.02677536010742,
+              -10.168511390686035,
+              -2.101063678594528e-08
+            ],
+            "end_control_step": 62,
+            "event_index": 0,
+            "expected_substeps": 44,
+            "force_world_n": [
+              -150.12173461914062,
+              -46.22050094604492,
+              0.0
+            ],
+            "injection_verified": true,
+            "start_control_step": 51
+          }
+        ],
+        "invalid_injection_count": 0,
+        "planned_push_count": 1,
+        "recovered_event_count": 1,
+        "stratum": "high",
+        "success": true
+      },
+      "source_raw_sha256": "sha256:ddc26b6c47cb360681498376cc3b974f8676022120a4286944c89cf6d2bd261c",
+      "source_dir": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/force_01/go2",
+      "robot": "go2",
+      "force_scale": 1.0,
+      "selection_reason": "slowest_success",
+      "case_id": "go2_1p0_s1_e35"
+    },
+    {
+      "seed_index": 2,
+      "seed": 10043,
+      "env_index": 21,
+      "max_abs_tilt_rad": 0.36894071102142334,
+      "worst_tilt_step": 73,
+      "recovery_delay_steps": 71,
+      "expected_episode": {
+        "env_id": 21,
+        "episode_steps": 303,
+        "event_recovery_control_steps": [
+          133
+        ],
+        "failure_label": "success_recovered",
+        "force_events": [
+          {
+            "actual_substeps": 44,
+            "completed": true,
+            "delivered_impulse_world_ns": [
+              -24.908981323242188,
+              18.84326934814453,
+              2.38418573772492e-09
+            ],
+            "end_control_step": 62,
+            "event_index": 0,
+            "expected_substeps": 44,
+            "force_world_n": [
+              -113.22261047363281,
+              85.65122985839844,
+              0.0
+            ],
+            "injection_verified": true,
+            "start_control_step": 51
+          }
+        ],
+        "invalid_injection_count": 0,
+        "planned_push_count": 1,
+        "recovered_event_count": 1,
+        "stratum": "medium",
+        "success": true
+      },
+      "source_raw_sha256": "sha256:6fb53ae327b5d5543bf60e650eac52f59f1b2c18cc1133e7bb25137fc5c146d9",
+      "source_dir": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/force_strength_01/scale_1p5",
+      "robot": "go2",
+      "force_scale": 1.5,
+      "selection_reason": "slowest_success",
+      "case_id": "go2_1p5_s2_e21"
+    },
+    {
+      "seed_index": 3,
+      "seed": 10044,
+      "env_index": 54,
+      "max_abs_tilt_rad": 0.5247893333435059,
+      "worst_tilt_step": 188,
+      "recovery_delay_steps": 65,
+      "expected_episode": {
+        "env_id": 54,
+        "episode_steps": 303,
+        "event_recovery_control_steps": [
+          92,
+          248
+        ],
+        "failure_label": "success_recovered",
+        "force_events": [
+          {
+            "actual_substeps": 44,
+            "completed": true,
+            "delivered_impulse_world_ns": [
+              -23.921354293823242,
+              -12.094741821289062,
+              -7.5101851848558e-08
+            ],
+            "end_control_step": 62,
+            "event_index": 0,
+            "expected_substeps": 44,
+            "force_world_n": [
+              -108.73347473144531,
+              -54.97610092163086,
+              0.0
+            ],
+            "injection_verified": true,
+            "start_control_step": 51
+          },
+          {
+            "actual_substeps": 44,
+            "completed": true,
+            "delivered_impulse_world_ns": [
+              12.094744682312012,
+              -23.921356201171875,
+              -1.6868114016688196e-07
+            ],
+            "end_control_step": 183,
+            "event_index": 1,
+            "expected_substeps": 44,
+            "force_world_n": [
+              54.976112365722656,
+              -108.73346710205078,
+              0.0
+            ],
+            "injection_verified": true,
+            "start_control_step": 172
+          }
+        ],
+        "invalid_injection_count": 0,
+        "planned_push_count": 2,
+        "recovered_event_count": 2,
+        "stratum": "repeated",
+        "success": true
+      },
+      "source_raw_sha256": "sha256:1b7832a00d532ee813e1723d772908c0f306646c1616b5e94a72a88f5483c799",
+      "source_dir": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/force_strength_01/scale_1p5",
+      "robot": "go2",
+      "force_scale": 1.5,
+      "selection_reason": "largest_tilt_success",
+      "case_id": "go2_1p5_s3_e54"
+    },
+    {
+      "seed_index": 1,
+      "seed": 10042,
+      "env_index": 35,
+      "max_abs_tilt_rad": 0.8349388241767883,
+      "worst_tilt_step": 72,
+      "recovery_delay_steps": -1,
+      "expected_episode": {
+        "env_id": 35,
+        "episode_steps": 72,
+        "event_recovery_control_steps": [
+          null
+        ],
+        "failure_label": "fall_backward",
+        "force_events": [
+          {
+            "actual_substeps": 44,
+            "completed": true,
+            "delivered_impulse_world_ns": [
+              -49.54017639160156,
+              -15.25277328491211,
+              -6.347894299096879e-08
+            ],
+            "end_control_step": 62,
+            "event_index": 0,
+            "expected_substeps": 44,
+            "force_world_n": [
+              -225.18260192871094,
+              -69.33074951171875,
+              0.0
+            ],
+            "injection_verified": true,
+            "start_control_step": 51
+          }
+        ],
+        "invalid_injection_count": 0,
+        "planned_push_count": 1,
+        "recovered_event_count": 0,
+        "stratum": "high",
+        "success": false
+      },
+      "source_raw_sha256": "sha256:6398167116774bdd744aee644e120734ea271bedeb634cf53e89b99749cfc403",
+      "source_dir": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/force_strength_01/scale_1p5",
+      "robot": "go2",
+      "force_scale": 1.5,
+      "selection_reason": "earliest_failure",
+      "case_id": "go2_1p5_s1_e35"
+    },
+    {
+      "seed_index": 2,
+      "seed": 10043,
+      "env_index": 49,
+      "max_abs_tilt_rad": 0.646863579750061,
+      "worst_tilt_step": 200,
+      "recovery_delay_steps": 74,
+      "expected_episode": {
+        "env_id": 49,
+        "episode_steps": 303,
+        "event_recovery_control_steps": [
+          90,
+          257
+        ],
+        "failure_label": "success_recovered",
+        "force_events": [
+          {
+            "actual_substeps": 44,
+            "completed": true,
+            "delivered_impulse_world_ns": [
+              23.603694915771484,
+              31.201772689819336,
+              -5.462206900119781e-07
+            ],
+            "end_control_step": 62,
+            "event_index": 0,
+            "expected_substeps": 44,
+            "force_world_n": [
+              107.28950500488281,
+              141.82627868652344,
+              0.0
+            ],
+            "injection_verified": true,
+            "start_control_step": 51
+          },
+          {
+            "actual_substeps": 44,
+            "completed": true,
+            "delivered_impulse_world_ns": [
+              -31.20176887512207,
+              23.60369873046875,
+              -1.1704862146189043e-07
+            ],
+            "end_control_step": 183,
+            "event_index": 1,
+            "expected_substeps": 44,
+            "force_world_n": [
+              -141.82626342773438,
+              107.28952026367188,
+              0.0
+            ],
+            "injection_verified": true,
+            "start_control_step": 172
+          }
+        ],
+        "invalid_injection_count": 0,
+        "planned_push_count": 2,
+        "recovered_event_count": 2,
+        "stratum": "repeated",
+        "success": true
+      },
+      "source_raw_sha256": "sha256:1422cc5cd581f87b41ad8f514d1c61775a5dd83bdac01d818c0cc81933033479",
+      "source_dir": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/force_strength_01/scale_2p0",
+      "robot": "go2",
+      "force_scale": 2.0,
+      "selection_reason": "slowest_success",
+      "case_id": "go2_2p0_s2_e49"
+    },
+    {
+      "seed_index": 1,
+      "seed": 10042,
+      "env_index": 48,
+      "max_abs_tilt_rad": 0.6932007670402527,
+      "worst_tilt_step": 205,
+      "recovery_delay_steps": 66,
+      "expected_episode": {
+        "env_id": 48,
+        "episode_steps": 303,
+        "event_recovery_control_steps": [
+          92,
+          249
+        ],
+        "failure_label": "success_recovered",
+        "force_events": [
+          {
+            "actual_substeps": 44,
+            "completed": true,
+            "delivered_impulse_world_ns": [
+              -21.90955352783203,
+              26.471967697143555,
+              -2.359878266133819e-07
+            ],
+            "end_control_step": 62,
+            "event_index": 0,
+            "expected_substeps": 44,
+            "force_world_n": [
+              -99.58888244628906,
+              120.32707977294922,
+              0.0
+            ],
+            "injection_verified": true,
+            "start_control_step": 51
+          },
+          {
+            "actual_substeps": 44,
+            "completed": true,
+            "delivered_impulse_world_ns": [
+              -26.471967697143555,
+              -21.90955352783203,
+              -5.7183203949762174e-08
+            ],
+            "end_control_step": 183,
+            "event_index": 1,
+            "expected_substeps": 44,
+            "force_world_n": [
+              -120.32708740234375,
+              -99.58887481689453,
+              0.0
+            ],
+            "injection_verified": true,
+            "start_control_step": 172
+          }
+        ],
+        "invalid_injection_count": 0,
+        "planned_push_count": 2,
+        "recovered_event_count": 2,
+        "stratum": "repeated",
+        "success": true
+      },
+      "source_raw_sha256": "sha256:939e1e7f2b0785bc35279c762350b9f0087324682c9359bdd2d39e22e1e1ed9d",
+      "source_dir": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/force_strength_01/scale_2p0",
+      "robot": "go2",
+      "force_scale": 2.0,
+      "selection_reason": "largest_tilt_success",
+      "case_id": "go2_2p0_s1_e48"
+    },
+    {
+      "seed_index": 1,
+      "seed": 10042,
+      "env_index": 35,
+      "max_abs_tilt_rad": 0.8005127310752869,
+      "worst_tilt_step": 67,
+      "recovery_delay_steps": -1,
+      "expected_episode": {
+        "env_id": 35,
+        "episode_steps": 67,
+        "event_recovery_control_steps": [
+          null
+        ],
+        "failure_label": "fall_backward",
+        "force_events": [
+          {
+            "actual_substeps": 44,
+            "completed": true,
+            "delivered_impulse_world_ns": [
+              -66.05355072021484,
+              -20.337024688720703,
+              -1.3558566251958837e-06
+            ],
+            "end_control_step": 62,
+            "event_index": 0,
+            "expected_substeps": 44,
+            "force_world_n": [
+              -300.24346923828125,
+              -92.44100189208984,
+              0.0
+            ],
+            "injection_verified": true,
+            "start_control_step": 51
+          }
+        ],
+        "invalid_injection_count": 0,
+        "planned_push_count": 1,
+        "recovered_event_count": 0,
+        "stratum": "high",
+        "success": false
+      },
+      "source_raw_sha256": "sha256:939e1e7f2b0785bc35279c762350b9f0087324682c9359bdd2d39e22e1e1ed9d",
+      "source_dir": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/force_strength_01/scale_2p0",
+      "robot": "go2",
+      "force_scale": 2.0,
+      "selection_reason": "earliest_failure",
+      "case_id": "go2_2p0_s1_e35"
+    },
+    {
+      "seed_index": 3,
+      "seed": 1000010002,
+      "env_index": 41,
+      "max_abs_tilt_rad": 0.8146683573722839,
+      "worst_tilt_step": 87,
+      "recovery_delay_steps": -1,
+      "expected_episode": {
+        "env_id": 41,
+        "episode_steps": 87,
+        "event_recovery_control_steps": [
+          null
+        ],
+        "failure_label": "fall_side",
+        "force_events": [
+          {
+            "actual_substeps": 56,
+            "completed": true,
+            "delivered_impulse_world_ns": [
+              43.070884704589844,
+              48.87724685668945,
+              1.3911724181525642e-06
+            ],
+            "end_control_step": 83,
+            "event_index": 0,
+            "expected_substeps": 56,
+            "force_world_n": [
+              153.82461547851562,
+              174.56167602539062,
+              0.0
+            ],
+            "injection_verified": true,
+            "start_control_step": 69
+          }
+        ],
+        "invalid_injection_count": 0,
+        "planned_push_count": 1,
+        "recovered_event_count": 0,
+        "stratum": "high",
+        "success": false
+      },
+      "source_raw_sha256": "sha256:92728ab1e49cfb46d5aa6686d8a174b3140b7bac84ae6571a9af6a313b58453a",
+      "source_dir": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/force_01/g1",
+      "robot": "g1",
+      "force_scale": 1.0,
+      "selection_reason": "earliest_failure",
+      "case_id": "g1_1p0_s3_e41"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+======================================================================
+ERROR: test_full_generation_is_serial_author_parallel_execute_and_single_commit (tests.integration.test_fixed_width_generation.FixedWidthGenerationTests.test_full_generation_is_serial_author_parallel_execute_and_single_commit) (scenario='post_train_runtime_stop_keeps_receipts_and_skips_eval')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_fixed_width_generation.py", line 2443, in test_full_generation_is_serial_author_parallel_execute_and_single_commit
+    stopped = execute_fixed_width_generation(stopped_inputs)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\generation.py", line 366, in execute_fixed_width_generation
+    _check_training_runtime_effect(state)
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\generation.py", line 672, in _check_training_runtime_effect
+    state.trial_execution = finalize_prepared_candidate_trial(prepared,
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\agent_core\round.py", line 530, in finalize_prepared_candidate_trial
+    raise ValueError("reused trial execution cannot be finalized again")
+ValueError: reused trial execution cannot be finalized again
+
+----------------------------------------------------------------------
+Ran 2 tests in 42.525s
+
+FAILED (errors=1)

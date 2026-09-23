@@ -153,7 +153,7 @@ class _ScoreProvider:
 
     def next_candidate(self, *, prompt_payload: dict) -> CandidatePackageRef:
         self.payloads.append(prompt_payload)
-        round_number = int(prompt_payload["public_context"]["previous_rounds"]) + 1
+        round_number = int(prompt_payload["public_history"]["previous_rounds"]) + 1
         reward_expression = {
             1: "inputs.base_height + inputs.roll",
             2: "inputs.base_height - inputs.roll",

@@ -1,0 +1,62 @@
+{
+  "status": "PASS_EARLY_FAILURE_RECEIPT_CLASSIFICATION",
+  "audited_at_utc": "2026-09-23T06:29:28.700939+00:00",
+  "snapshot": ".tmp/go2_push_a07_live_05.zip",
+  "scope": "Frozen task rules and all 192 B dev episode summaries; no independent sensor reconstruction or native replay.",
+  "job_id": "go2-push-5rounds-20260923-a07-generation-001-lane-b-eval-public-dev",
+  "episode_count": 192,
+  "success_count": 0,
+  "failure_counts": {
+    "height_collapse": 192
+  },
+  "per_stratum_episodes": {
+    "low": 48,
+    "medium": 48,
+    "high": 48,
+    "repeated": 48
+  },
+  "episode_indices_by_seed": [
+    [
+      1
+    ],
+    [
+      2
+    ],
+    [
+      3
+    ]
+  ],
+  "timing": {
+    "control_dt_s": 0.02,
+    "all_episode_end_control_step": 11,
+    "all_episode_end_time_s": 0.22,
+    "first_force_planned_control_step": 51,
+    "first_force_planned_time_s": 1.02,
+    "injection_occurred_before_early_closure": false
+  },
+  "pose_evidence": {
+    "fall_height_m": 0.18000000000000002,
+    "observed_min_height_range_m": [
+      0.1636611819267273,
+      0.16650021076202393
+    ],
+    "fall_tilt_rad": 0.8,
+    "max_abs_roll_over_episodes_rad": 0.024008547887206078,
+    "max_abs_pitch_over_episodes_rad": 0.11561582237482071,
+    "max_xy_drift_over_episodes_m": 0.0094651710242033
+  },
+  "classification_rule": "force_runtime.py:199-214 applies pose failure first. Missing planned pulses count as invalid injection only if no fall occurred. Early failure retains the episode in the original denominator; it is not a control-only episode or exclusion.",
+  "interpretation": "B fails the standing prerequisite at about .22 s, before any external push could start. Zero delivered pushes follow from early failure; exported observations support height collapse rather than tilt or injection failure.",
+  "not_established": [
+    "Actual rendered posture has not yet been independently inspected.",
+    "The optimization cause is not established by summaries or candidate rationale.",
+    "No raw trajectory reconstructs the threshold-crossing path; timing is runtime closure."
+  ],
+  "visual_followup": "After formal A07 terminal completion and GPU release, replay the same candidate checkpoint, original 64 environments and three public-dev seeds using native video. Separate diagnostic output only; no changes to physics, episode limits, predicates, official evidence or acceptance.",
+  "evidence_sha256": {
+    "PLAN/2new_world/Go2_push/attempt_07/session/runner/go2-push-5rounds-20260923-a07-generation-001-lane-b/eval/public_dev/summary.json": "7fb9c62228bc746b8256c6e536824d94b18d28487c3772af01640aceeb236ecd",
+    "src/true_rl_agent/tasks/push_recovery/force_runtime.py": "0ddd6282a69d943a1321b5f17016c5689ee45970d34d4c4e4b1352b62340e2f9",
+    "attempt_07/physical_evidence_through_gen01.json": "4180d775381ea09eaac612457be83734da61767d6978628c907463111b9ef7a3",
+    "attempt_07/training_evidence_through_gen01.json": "cebb2323ba2a987b8aa90d1c6f9fc2b66ac4d65c1c60ffa36c9ee223eac3fd5f"
+  }
+}

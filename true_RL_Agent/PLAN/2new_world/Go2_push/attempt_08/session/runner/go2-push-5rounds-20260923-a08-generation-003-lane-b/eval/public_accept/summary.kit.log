@@ -1,0 +1,29 @@
+2026-09-23T08:16:18Z [0ms] [Warning] [omni.ext.plugin] [ext: isaaclab_visualizers] Extensions config 'extension.toml' doesn't exist '/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab_visualizers' or '/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab_visualizers/config'
+2026-09-23T08:16:18Z [714ms] [Warning] [omni.usd_config.extension] Enable omni.materialx.libs extension to use MaterialX
+2026-09-23T08:16:18Z [740ms] [Warning] [omni.platforminfo.plugin] failed to open the default display.  Can't verify X Server version.
+2026-09-23T08:16:26Z [8,843ms] [Warning] [isaaclab_physx.physics.physx_manager] TGS solver with enable_external_forces_every_iteration=False may cause noisy velocities.
+2026-09-23T08:16:37Z [19,106ms] [Warning] [omni.client.python] Detected a blocking function. This will cause hitches or hangs in the UI. Please switch to the async version:
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_08/scripts/isaaclab_rsl_rl_eval.py", line 1065, in <module>
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_08/scripts/isaaclab_rsl_rl_eval.py", line 340, in main
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_08/src/true_rl_agent/tasks/push_recovery/runtime.py", line 116, in make_physical_push_environment
+  File "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab/isaaclab/envs/manager_based_rl_env.py", line 88, in __init__
+  File "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab/isaaclab/envs/manager_based_env.py", line 125, in __init__
+  File "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab/isaaclab/envs/manager_based_env.py", line 176, in _init_sim
+  File "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab/isaaclab/scene/interactive_scene.py", line 200, in __init__
+  File "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab/isaaclab/scene/interactive_scene.py", line 916, in _add_entities_from_cfg
+  File "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab/isaaclab/utils/string.py", line 221, in __call__
+  File "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab/isaaclab/assets/articulation/articulation.py", line 30, in __new__
+  File "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab/isaaclab/utils/backend_utils.py", line 134, in __new__
+  File "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab_physx/isaaclab_physx/assets/articulation/articulation.py", line 126, in __init__
+  File "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab/isaaclab/assets/articulation/base_articulation.py", line 98, in __init__
+  File "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab/isaaclab/assets/asset_base.py", line 92, in __init__
+  File "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab/isaaclab/utils/string.py", line 221, in __call__
+  File "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab/isaaclab/sim/utils/prims.py", line 704, in wrapper
+  File "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab/isaaclab/sim/spawners/from_files/from_files.py", line 82, in spawn_from_usd
+  File "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab/isaaclab/sim/spawners/from_files/from_files.py", line 317, in _spawn_from_usd_file
+  File "/data/yuyangliu/isolated/isaac_sim_6_validation/IsaacLab-v3.0.0-beta2.patch1/source/isaaclab/isaaclab/utils/assets.py", line 81, in check_file_path
+  File "/data/yuyangliu/envs/isaaclab6_validation/lib/python3.12/site-packages/isaacsim/kit/extscore/omni.client.lib/omni/client/impl/__init__.py", line 144, in stat
+
+2026-09-23T08:16:40Z [22,572ms] [Warning] [isaaclab.terrains.terrain_importer] Visual material specified for ground plane but no diffuse color found. Using default color: (0.0, 0.0, 0.0)
+2026-09-23T08:16:44Z [26,694ms] [Warning] [usdrt.population.plugin] Last global time was not created. Did you call setEnableUsdNoticeHandling?
+2026-09-23T08:16:45Z [27,102ms] [Warning] [isaaclab.envs.mdp.commands.velocity_command] The velocity command has the 'ranges.heading' attribute set to '(-3.141592653589793, 3.141592653589793)' but the heading command is not active. Consider setting the flag for the heading command to True.

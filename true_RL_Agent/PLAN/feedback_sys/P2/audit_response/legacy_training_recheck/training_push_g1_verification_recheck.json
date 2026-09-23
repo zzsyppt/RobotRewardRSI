@@ -1,0 +1,123 @@
+{
+  "actual_training": [
+    {
+      "control_steps": 24,
+      "env_transitions": 384,
+      "excluded_preflight_steps": 0,
+      "latest_checkpoint_iteration": 2
+    },
+    {
+      "control_steps": 24,
+      "env_transitions": 384,
+      "excluded_preflight_steps": 0,
+      "latest_checkpoint_iteration": 2
+    }
+  ],
+  "archive_schema_version": "true_rl_agent.training_numeric_capture.v1",
+  "case": "training_push_g1_verification",
+  "cell_variant_id": "push.g1_37dof.recovery_v3",
+  "checkpoint_states": {
+    "checkpoint_iteration_equal": true,
+    "checkpoint_iterations": [
+      2,
+      2
+    ],
+    "file_hash_equal": true,
+    "first_mismatches": [],
+    "load_mode": "torch.load(map_location=cpu, weights_only=True)",
+    "mismatch_count": 0,
+    "model_keys": [
+      "actor_state_dict",
+      "critic_state_dict"
+    ],
+    "model_optimizer_exact": true,
+    "model_tensors": 17,
+    "optimizer_keys": [
+      "optimizer_state_dict"
+    ],
+    "optimizer_tensors": 51,
+    "other_top_level_metadata_excluded": [
+      "infos"
+    ]
+  },
+  "checks": {
+    "actual_training_steps": true,
+    "archive_backend_identity": true,
+    "archive_cell_identity": true,
+    "archive_initial_policy_identity": true,
+    "archive_program_identity": true,
+    "archive_training_binding_identity": true,
+    "checkpoint_files_match_training_receipts": true,
+    "checkpoint_iteration_equal": true,
+    "completed_on_off": true,
+    "coverage_equals_sealed_manifest": true,
+    "execution_argv_only_capture_and_outputs_differ": true,
+    "expected_robot_cell": true,
+    "final_checkpoint_iteration": true,
+    "initial_policy_hash_equal": true,
+    "model_optimizer_exact": true,
+    "numeric_archive_within_2_gib": true,
+    "numeric_chunks_within_64_mib": true,
+    "off_capture_disabled": true,
+    "on_receipt_equals_archive_reference": true,
+    "paired_device": true,
+    "paired_diagnostic_workload": true,
+    "paired_extra_rss_within_512_mib": true,
+    "paired_program_source_checksum": true,
+    "paired_source_argv_sha256": true,
+    "paired_subject_kind": true,
+    "paired_task": true,
+    "planned_and_observed_control_steps": true,
+    "preflight_excluded": true,
+    "runtime_reward_observations_equal": true,
+    "sample_count_equals_coverage": true,
+    "summary_files_match_driver_receipts": true,
+    "three_windows_exact": true
+  },
+  "cpu_recheck_wall_seconds": 0.2528952695429325,
+  "current_pair_status": "PASS",
+  "equivalent_to_legacy_report": {
+    "actual_training": true,
+    "archive_identity": true,
+    "checkpoint_states": true,
+    "checks": true,
+    "sampled_reward_recompute": true
+  },
+  "failed_checks": [],
+  "new_model_calls": 0,
+  "new_simulator_runs": 0,
+  "off_dir": "/data/yuyangliu/AGENT/feedback_p2_20260923/r5_train_push_g1_off",
+  "on_dir": "/data/yuyangliu/AGENT/feedback_p2_20260923/r5_train_push_g1_on",
+  "original_file_count": 10,
+  "original_file_hashes": {
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r5_train_push_g1_off.time": "6e79cb321718daa00de9196b9542bf471a0a0886494509f25417debec83ccc30",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r5_train_push_g1_off/executed_train_argv.json": "b93f3d3b3e3a1cf27b2a215066d395dceeabd10a29394c131b96097c7046f515",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r5_train_push_g1_off/result.json": "2b96a430ea9b525ebaf159c25b3b5825c469b88ca5085c1e574b148fded20795",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r5_train_push_g1_off/training_summary.json": "4bda62a81c2e2c7791b7d57274ba4eefb69d50d5a2c1a2846e3e88cf420c2fd8",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r5_train_push_g1_on.time": "06002749bb76b1b071a1bad9b7ddc2ebd32be11ebc1a109e012c593eb7aaa288",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r5_train_push_g1_on/executed_train_argv.json": "b4ca2c4e984026f4c23ca02dab93b05c1ad106e10cdfca1956a340424940f45a",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r5_train_push_g1_on/result.json": "6dbbcd3579c0cddd52870481f5c19598318028c5b74bc8f7565a33798ed2ca4b",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r5_train_push_g1_on/run/attempt-b7eaad4bae374cba8c683ced5cb6c334/training_numeric_evidence/manifest.json": "3d1f97d614c479b8eb82b30e6e34db01a58a7b4ea4badbe6321f319028dc03a8",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/r5_train_push_g1_on/training_summary.json": "b58efbf49bbe3d23d2a2a31c1fa7ad3c16e4b07d3e32958c149e164f1e6ae9c9",
+    "/data/yuyangliu/AGENT/feedback_p2_20260923/training_push_g1_verification.json": "ede21f190a8780cb4b93fb4633a08ef7ab365338b80b157b3828051c24583b59"
+  },
+  "original_files_unchanged": true,
+  "sampled_reward_recompute": {
+    "coverage_matches": true,
+    "identity_matches": true,
+    "observed_training_env_transitions": 384,
+    "planned_training_env_transitions": 384,
+    "ppo_post_manager_reward_observed": false,
+    "raw_weighted_sum_arithmetic_matches": true,
+    "tolerance": {
+      "atol": 1e-06,
+      "rtol": 1e-06
+    },
+    "verified_chunks": 25,
+    "verified_sampled_control_steps": 24,
+    "verified_sampled_env_transitions": 384
+  },
+  "source_report": "/data/yuyangliu/AGENT/feedback_p2_20260923/training_push_g1_verification.json",
+  "source_report_sha256": "ede21f190a8780cb4b93fb4633a08ef7ab365338b80b157b3828051c24583b59",
+  "status": "PASS"
+}

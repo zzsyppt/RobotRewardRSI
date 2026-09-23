@@ -1,0 +1,15 @@
+{
+  "model": "deepseek-v4-flash",
+  "max_tokens": 32768,
+  "reasoning_mode": "adaptive",
+  "reasoning_effort": "max",
+  "empty_final_reasoning_retry": true,
+  "model_context": {
+    "context_window_tokens": 1048576,
+    "max_output_tokens": 393216,
+    "tokenizer_count_source": "provider_usage_prompt_tokens",
+    "specification_source": "https://api-docs.deepseek.com/quick_start/pricing"
+  },
+  "max_attempts": 5,
+  "capacity_scope": "Fresh production frame; provider usage is measured, no bytes/4 token claim"
+}

@@ -1,0 +1,50 @@
+test_fresh_and_resumed_cli_require_credentials_until_the_report_exists (tests.unit.test_generation_entrypoint.GenerationEntrypointTests.test_fresh_and_resumed_cli_require_credentials_until_the_report_exists) ... ok
+test_gpu_inventory_rejects_malformed_and_duplicate_rows (tests.unit.test_generation_entrypoint.GenerationEntrypointTests.test_gpu_inventory_rejects_malformed_and_duplicate_rows) ... ok
+test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli (tests.unit.test_generation_entrypoint.GenerationEntrypointTests.test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli) ... 
+  test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli (tests.unit.test_generation_entrypoint.GenerationEntrypointTests.test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli) (cell='push.g1_29dof.reference_v1', max_generations=15) ... FAIL
+  test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli (tests.unit.test_generation_entrypoint.GenerationEntrypointTests.test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli) (cell='push.go2_12dof.recovery_v3', max_generations=5) ... FAIL
+test_imported_reference_removes_only_local_reference_work_and_retry (tests.unit.test_generation_cost_contract.GenerationCostContractTests.test_imported_reference_removes_only_local_reference_work_and_retry) ... ok
+test_push_eval_work_uses_frozen_control_period_and_runtime_episode_horizon (tests.unit.test_generation_cost_contract.GenerationCostContractTests.test_push_eval_work_uses_frozen_control_period_and_runtime_episode_horizon) ... ok
+test_real_task_robot_workloads_share_one_operation_and_receipt_contract (tests.unit.test_generation_cost_contract.GenerationCostContractTests.test_real_task_robot_workloads_share_one_operation_and_receipt_contract) ... ok
+test_three_cells_use_the_same_foundation_without_changing_their_scientific_identity (tests.unit.test_generation_cost_contract.GenerationCostContractTests.test_three_cells_use_the_same_foundation_without_changing_their_scientific_identity) ... ok
+test_five_generation_session_finishes_and_replays_at_its_frozen_boundary (tests.integration.test_generation_session.SharedGenerationSessionTests.test_five_generation_session_finishes_and_replays_at_its_frozen_boundary) ... ok
+test_push_accepted_head_resumes_and_closes_final (tests.integration.test_generation_session.SharedGenerationSessionTests.test_push_accepted_head_resumes_and_closes_final) ... ok
+test_push_early_rejection_closes_without_sealed_or_a_full_result (tests.integration.test_generation_session.SharedGenerationSessionTests.test_push_early_rejection_closes_without_sealed_or_a_full_result) ... ok
+test_push_keeps_sealed_dependent_rejection_and_no_selection_distinct (tests.integration.test_generation_session.SharedGenerationSessionTests.test_push_keeps_sealed_dependent_rejection_and_no_selection_distinct) ... ok
+test_push_reference_head_uses_shared_preparation_session_final_and_replay (tests.integration.test_generation_session.SharedGenerationSessionTests.test_push_reference_head_uses_shared_preparation_session_final_and_replay) ... ok
+test_push_runtime_and_infrastructure_failures_keep_distinct_evidence (tests.integration.test_generation_session.SharedGenerationSessionTests.test_push_runtime_and_infrastructure_failures_keep_distinct_evidence) ... ok
+test_stair_accepted_head_resumes_and_closes_final (tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_accepted_head_resumes_and_closes_final) ... skipped 'Stair runtime source closure requires target Isaac installation'
+test_stair_early_rejection_sealed_rejection_and_no_selection (tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_early_rejection_sealed_rejection_and_no_selection) ... skipped 'Stair runtime source closure requires target Isaac installation'
+test_stair_reference_head_uses_shared_preparation_session_final_and_replay (tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_reference_head_uses_shared_preparation_session_final_and_replay) ... skipped 'Stair runtime source closure requires target Isaac installation'
+test_stair_runtime_and_infrastructure_failures_keep_distinct_evidence (tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_runtime_and_infrastructure_failures_keep_distinct_evidence) ... skipped 'Stair runtime source closure requires target Isaac installation'
+
+======================================================================
+FAIL: test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli (tests.unit.test_generation_entrypoint.GenerationEntrypointTests.test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli) (cell='push.g1_29dof.reference_v1', max_generations=15)
+----------------------------------------------------------------------
+ValueError: resolved cell manifest fields mismatch
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_generation_entrypoint.py", line 185, in test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli
+    with self.assertRaisesRegex(ValueError, "existing resolved cell manifest differs"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "existing resolved cell manifest differs" does not match "resolved cell manifest fields mismatch"
+
+======================================================================
+FAIL: test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli (tests.unit.test_generation_entrypoint.GenerationEntrypointTests.test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli) (cell='push.go2_12dof.recovery_v3', max_generations=5)
+----------------------------------------------------------------------
+ValueError: resolved cell manifest fields mismatch
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_generation_entrypoint.py", line 185, in test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli
+    with self.assertRaisesRegex(ValueError, "existing resolved cell manifest differs"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "existing resolved cell manifest differs" does not match "resolved cell manifest fields mismatch"
+
+----------------------------------------------------------------------
+Ran 17 tests in 654.749s
+
+FAILED (failures=2, skipped=4)

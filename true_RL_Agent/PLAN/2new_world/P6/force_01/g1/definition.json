@@ -1,0 +1,42 @@
+{
+  "base_seed": 1000000000,
+  "body_name": "torso_link",
+  "comparison_scope": "source_velocity_result_is_historical_different_mechanism",
+  "control_dt_s": 0.02,
+  "definition_hash": "c960b46f1e6ab8bd976199d1da2f41d5b73f0bb7cdf7766e2e68cad4f9a410e0",
+  "derived_seeds": [
+    1000010000,
+    1000010001,
+    1000010002
+  ],
+  "direct_torque_nm": [
+    0,
+    0,
+    0
+  ],
+  "dwell_steps": 21,
+  "envs_per_seed": 64,
+  "first_recovery_sample": "pulse_end_control_step_plus_one",
+  "force_rule": "total_mass_kg * source_delta_v_world_mps / actual_pulse_duration_s",
+  "holdout_jobs": 0,
+  "is_global": true,
+  "mass_rule": "actual_all_robot_link_masses_sum_after_reset_per_environment",
+  "mechanism": "finite_world_horizontal_force_at_bound_base_link_com",
+  "physics_dt_s": 0.005,
+  "positions": null,
+  "provider_calls": 0,
+  "pulse_control_steps": 14,
+  "pulse_duration_s": 0.28,
+  "recovery_scope": "every_completed_pulse_independent_window_then_final_stable",
+  "robot": "g1",
+  "schema_version": "true_rl_agent.p6.external_force_diagnostic.v1",
+  "seed_count": 3,
+  "source_resolved_protocol_hash": "db74aed6c8ecba7e0834e15117e0b65eead237478a5ea10822101691ae9172ce",
+  "start_control_steps": [
+    69,
+    234
+  ],
+  "train_jobs": 0,
+  "wall_limit_s": 1800,
+  "window_steps": 110
+}

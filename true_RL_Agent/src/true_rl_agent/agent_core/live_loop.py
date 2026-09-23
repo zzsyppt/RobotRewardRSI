@@ -403,6 +403,7 @@ def _run_live_loop_locked(
     resumed_from_round_count = len(initial_ledger)
 
     context_builder = PublicContextBuilder(
+        phased_evaluation_adapter=task_plugin.phased_evaluation_adapter(),
         task_memory_adapter=task_memory_adapter,
         task_prompt_adapter=task_prompt_adapter,
         acceptance_protocol=acceptance_protocol,

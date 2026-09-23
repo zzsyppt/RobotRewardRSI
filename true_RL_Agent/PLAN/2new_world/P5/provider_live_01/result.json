@@ -1,0 +1,1122 @@
+{
+  "purpose": "Provider/authoring verification only; no training or acceptance",
+  "stop_reason": "candidate_verified",
+  "candidate": {
+    "candidate_id": "stair_goal_progress_ascent_v1",
+    "changed_components": [
+      "reward_callable"
+    ]
+  },
+  "attempt_records": [
+    {
+      "round_id": "p5-provider-probe",
+      "attempt": 1,
+      "attempt_id": "attempt_000001",
+      "provider_status": "fail",
+      "provider_failure": {
+        "schema_version": "true_rl_agent.provider_failure.v1",
+        "category": "reasoning_output_exhausted",
+        "reason": "reasoning exhausted the output budget before final JSON",
+        "details": {
+          "failure_kind": "empty_final_content_with_reasoning",
+          "finish_reason": "length"
+        }
+      },
+      "provider_usage": {
+        "request_units": 17438,
+        "response_units": 32768,
+        "total_units": 50206,
+        "request_cache_hit_units": 0,
+        "request_cache_miss_units": 17438,
+        "reasoning_units": 32768
+      },
+      "provider_response_receipt": {
+        "schema_version": "true_rl_agent.provider_response_receipt.v4",
+        "requested_model": "deepseek-v4-flash",
+        "response_model": "deepseek-flash",
+        "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669",
+        "finish_reason": "length",
+        "transport_policy_id": "true_rl_agent.openai_compatible_transport.https_or_loopback_http_no_redirect.v1",
+        "requested_thinking_mode": "enabled",
+        "requested_reasoning_effort": "max",
+        "response_text_present": true,
+        "reasoning_content_present": true,
+        "requested_output_units": 32768,
+        "response_max_bytes": 524288,
+        "response_text_utf8_bytes": 0,
+        "reasoning_content_utf8_bytes": 133594,
+        "response_text_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reasoning_content_sha256": "sha256:6b447a662fc721fed0a67580b355270eb8f60816f09321855009e7e01d1b97a0",
+        "model_context": {
+          "context_window_tokens": 1048576,
+          "max_output_tokens": 393216,
+          "tokenizer_count_source": "provider_usage_prompt_tokens",
+          "specification_source": "https://api-docs.deepseek.com/quick_start/pricing"
+        },
+        "input_tokens": 17438,
+        "joint_capacity_status": "within_declared_window"
+      }
+    },
+    {
+      "round_id": "p5-provider-probe",
+      "attempt": 2,
+      "attempt_id": "attempt_000002",
+      "provider_usage": {
+        "request_units": 17749,
+        "response_units": 1342,
+        "total_units": 19091,
+        "request_cache_hit_units": 0,
+        "request_cache_miss_units": 17749
+      },
+      "provider_response_receipt": {
+        "schema_version": "true_rl_agent.provider_response_receipt.v4",
+        "requested_model": "deepseek-v4-flash",
+        "response_model": "deepseek-flash",
+        "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669",
+        "finish_reason": "stop",
+        "transport_policy_id": "true_rl_agent.openai_compatible_transport.https_or_loopback_http_no_redirect.v1",
+        "requested_thinking_mode": "disabled",
+        "requested_reasoning_effort": "provider_default",
+        "response_text_present": true,
+        "reasoning_content_present": false,
+        "requested_output_units": 32768,
+        "response_max_bytes": 524288,
+        "response_text_utf8_bytes": 4542,
+        "reasoning_content_utf8_bytes": 0,
+        "response_text_sha256": "sha256:3f6bb80be915ef458073a9f005aa2b696e08c9de912c2ae5ae672179614f8161",
+        "reasoning_content_sha256": null,
+        "model_context": {
+          "context_window_tokens": 1048576,
+          "max_output_tokens": 393216,
+          "tokenizer_count_source": "provider_usage_prompt_tokens",
+          "specification_source": "https://api-docs.deepseek.com/quick_start/pricing"
+        },
+        "input_tokens": 17749,
+        "joint_capacity_status": "within_declared_window"
+      },
+      "provider_status": "pass",
+      "provider_response_mode": "candidate_draft",
+      "candidate_id": "stair_contact_aware_ascent_v1",
+      "candidate_changed_components": [
+        "reward_callable"
+      ],
+      "candidate_source_visibility": "private_non_prompt_artifact",
+      "candidate_source_included_in_prompt": false,
+      "verifier_status": "pass",
+      "verifier_reason": "static_candidate_verifier_passed",
+      "candidate_subject_manifest_hash": "194c2d5c0c9ae0c979cec25702043f2cb151ad970d1b2e82ddcff36cade24fe5",
+      "candidate_program_source_checksum": "sha256:3826cb9f0ece693cce202853fb56e7e282faeac71ed63292cc894585a9345076",
+      "candidate_program_source_size_bytes": 4248,
+      "component_smoke": {
+        "schema_version": "true_rl_agent.component_smoke_result.v2",
+        "status": "pass",
+        "reason": "component_smoke_passed",
+        "task_id": "unitree_stair_climbing",
+        "checked_reward_terms": 11,
+        "checked_diagnostics": 0,
+        "fixture_summary": {
+          "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v3",
+          "fixture_owner": "task_owned_stair_climbing",
+          "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+          "fixture_hash": "2c0adf7997c26e112a9408403a78788d2f8926400c0af0305b7b3842129fc4fc",
+          "num_envs": 5,
+          "purpose": "complete_reward_admission_preflight",
+          "sample_cases": [
+            "nominal_upright_support",
+            "landing",
+            "airborne",
+            "tilted_support",
+            "inverted"
+          ],
+          "coverage": "five synthetic transitions; no proof of universal zero or causal benefit",
+          "nominal_morphology": {
+            "gravity_mps2": 9.81,
+            "length_source": "nominal_root_to_support_body_center_z_m",
+            "robot_profile_hash": "3e9c110449be639fceb48d6792fc8f683f43bd34978286325bba99547d20f1c0",
+            "support_length_m": 0.422776,
+            "usage": "nominal body scale, not terrain-relative base clearance or a success threshold"
+          }
+        },
+        "reward_results": [
+          {
+            "name": "track_lin_vel_xy_exp",
+            "kind": "RewardTerm",
+            "status": "pass",
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "observed_shape": [
+              5
+            ],
+            "raw_max_abs": 1.0,
+            "effective_max_abs_after_clip_and_weight": 3.5,
+            "observed_sample_count": 5,
+            "observed_raw_nonzero_count": 5,
+            "observed_clip_saturation_count": 0,
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "sample_case_outputs": [
+              {
+                "case": "nominal_upright_support",
+                "raw": 1.0,
+                "weighted_after_clip": 3.5
+              },
+              {
+                "case": "landing",
+                "raw": 1.0,
+                "weighted_after_clip": 3.5
+              },
+              {
+                "case": "airborne",
+                "raw": 1.0,
+                "weighted_after_clip": 3.5
+              },
+              {
+                "case": "tilted_support",
+                "raw": 1.0,
+                "weighted_after_clip": 3.5
+              },
+              {
+                "case": "inverted",
+                "raw": 1.0,
+                "weighted_after_clip": 3.5
+              }
+            ]
+          },
+          {
+            "name": "track_ang_vel_z_exp",
+            "kind": "RewardTerm",
+            "status": "pass",
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "observed_shape": [
+              5
+            ],
+            "raw_max_abs": 1.0,
+            "effective_max_abs_after_clip_and_weight": 0.75,
+            "observed_sample_count": 5,
+            "observed_raw_nonzero_count": 5,
+            "observed_clip_saturation_count": 0,
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "sample_case_outputs": [
+              {
+                "case": "nominal_upright_support",
+                "raw": 1.0,
+                "weighted_after_clip": 0.75
+              },
+              {
+                "case": "landing",
+                "raw": 1.0,
+                "weighted_after_clip": 0.75
+              },
+              {
+                "case": "airborne",
+                "raw": 1.0,
+                "weighted_after_clip": 0.75
+              },
+              {
+                "case": "tilted_support",
+                "raw": 1.0,
+                "weighted_after_clip": 0.75
+              },
+              {
+                "case": "inverted",
+                "raw": 1.0,
+                "weighted_after_clip": 0.75
+              }
+            ]
+          },
+          {
+            "name": "ang_vel_xy_l2",
+            "kind": "RewardTerm",
+            "status": "pass",
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "observed_shape": [
+              5
+            ],
+            "raw_max_abs": 0.5010010004043579,
+            "effective_max_abs_after_clip_and_weight": 0.025050050020217898,
+            "observed_sample_count": 5,
+            "observed_raw_nonzero_count": 5,
+            "observed_clip_saturation_count": 0,
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "sample_case_outputs": [
+              {
+                "case": "nominal_upright_support",
+                "raw": 0.020201001316308975,
+                "weighted_after_clip": -0.0010100500658154488
+              },
+              {
+                "case": "landing",
+                "raw": 0.08040100336074829,
+                "weighted_after_clip": -0.0040200501680374146
+              },
+              {
+                "case": "airborne",
+                "raw": 0.18060100078582764,
+                "weighted_after_clip": -0.009030050039291382
+              },
+              {
+                "case": "tilted_support",
+                "raw": 0.3208010196685791,
+                "weighted_after_clip": -0.016040050983428956
+              },
+              {
+                "case": "inverted",
+                "raw": 0.5010010004043579,
+                "weighted_after_clip": -0.025050050020217898
+              }
+            ]
+          },
+          {
+            "name": "flat_orientation_l2",
+            "kind": "RewardTerm",
+            "status": "pass",
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "observed_shape": [
+              5
+            ],
+            "raw_max_abs": 0.22984886169433594,
+            "effective_max_abs_after_clip_and_weight": 0.5746221542358398,
+            "observed_sample_count": 5,
+            "observed_raw_nonzero_count": 1,
+            "observed_clip_saturation_count": 0,
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "sample_case_outputs": [
+              {
+                "case": "nominal_upright_support",
+                "raw": 0.0,
+                "weighted_after_clip": -0.0
+              },
+              {
+                "case": "landing",
+                "raw": 0.0,
+                "weighted_after_clip": -0.0
+              },
+              {
+                "case": "airborne",
+                "raw": 0.0,
+                "weighted_after_clip": -0.0
+              },
+              {
+                "case": "tilted_support",
+                "raw": 0.22984886169433594,
+                "weighted_after_clip": -0.5746221542358398
+              },
+              {
+                "case": "inverted",
+                "raw": 7.64274186065882e-15,
+                "weighted_after_clip": -1.910685465164705e-14
+              }
+            ]
+          },
+          {
+            "name": "dof_torques_l2",
+            "kind": "RewardTerm",
+            "status": "pass",
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "observed_shape": [
+              5
+            ],
+            "raw_max_abs": 3.0665061473846436,
+            "effective_max_abs_after_clip_and_weight": 0.0006133012294769288,
+            "observed_sample_count": 5,
+            "observed_raw_nonzero_count": 5,
+            "observed_clip_saturation_count": 0,
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "sample_case_outputs": [
+              {
+                "case": "nominal_upright_support",
+                "raw": 0.1337060034275055,
+                "weighted_after_clip": -2.67412006855011e-05
+              },
+              {
+                "case": "landing",
+                "raw": 0.5069060325622559,
+                "weighted_after_clip": -0.00010138120651245118
+              },
+              {
+                "case": "airborne",
+                "raw": 1.1201061010360718,
+                "weighted_after_clip": -0.00022402122020721436
+              },
+              {
+                "case": "tilted_support",
+                "raw": 1.9733059406280518,
+                "weighted_after_clip": -0.0003946611881256104
+              },
+              {
+                "case": "inverted",
+                "raw": 3.0665061473846436,
+                "weighted_after_clip": -0.0006133012294769288
+              }
+            ]
+          },
+          {
+            "name": "dof_acc_l2",
+            "kind": "RewardTerm",
+            "status": "pass",
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "observed_shape": [
+              5
+            ],
+            "raw_max_abs": 3.0665061473846436,
+            "effective_max_abs_after_clip_and_weight": 7.666265368461608e-07,
+            "observed_sample_count": 5,
+            "observed_raw_nonzero_count": 5,
+            "observed_clip_saturation_count": 0,
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "sample_case_outputs": [
+              {
+                "case": "nominal_upright_support",
+                "raw": 0.1337060034275055,
+                "weighted_after_clip": -3.3426500856876375e-08
+              },
+              {
+                "case": "landing",
+                "raw": 0.5069060325622559,
+                "weighted_after_clip": -1.2672650814056396e-07
+              },
+              {
+                "case": "airborne",
+                "raw": 1.1201061010360718,
+                "weighted_after_clip": -2.8002652525901796e-07
+              },
+              {
+                "case": "tilted_support",
+                "raw": 1.9733059406280518,
+                "weighted_after_clip": -4.93326485157013e-07
+              },
+              {
+                "case": "inverted",
+                "raw": 3.0665061473846436,
+                "weighted_after_clip": -7.666265368461608e-07
+              }
+            ]
+          },
+          {
+            "name": "action_rate_l2",
+            "kind": "RewardTerm",
+            "status": "pass",
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "observed_shape": [
+              5
+            ],
+            "raw_max_abs": 3.0665061473846436,
+            "effective_max_abs_after_clip_and_weight": 0.030665061473846435,
+            "observed_sample_count": 5,
+            "observed_raw_nonzero_count": 5,
+            "observed_clip_saturation_count": 0,
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "sample_case_outputs": [
+              {
+                "case": "nominal_upright_support",
+                "raw": 0.1337060034275055,
+                "weighted_after_clip": -0.001337060034275055
+              },
+              {
+                "case": "landing",
+                "raw": 0.5069060325622559,
+                "weighted_after_clip": -0.005069060325622559
+              },
+              {
+                "case": "airborne",
+                "raw": 1.1201061010360718,
+                "weighted_after_clip": -0.011201061010360717
+              },
+              {
+                "case": "tilted_support",
+                "raw": 1.9733059406280518,
+                "weighted_after_clip": -0.019733059406280517
+              },
+              {
+                "case": "inverted",
+                "raw": 3.0665061473846436,
+                "weighted_after_clip": -0.030665061473846435
+              }
+            ]
+          },
+          {
+            "name": "feet_air_time",
+            "kind": "RewardTerm",
+            "status": "pass",
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "observed_shape": [
+              5
+            ],
+            "raw_max_abs": 0.40000009536743164,
+            "effective_max_abs_after_clip_and_weight": 0.10000002384185791,
+            "observed_sample_count": 5,
+            "observed_raw_nonzero_count": 1,
+            "observed_clip_saturation_count": 0,
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "sample_case_outputs": [
+              {
+                "case": "nominal_upright_support",
+                "raw": 0.0,
+                "weighted_after_clip": 0.0
+              },
+              {
+                "case": "landing",
+                "raw": 0.40000009536743164,
+                "weighted_after_clip": 0.10000002384185791
+              },
+              {
+                "case": "airborne",
+                "raw": 0.0,
+                "weighted_after_clip": 0.0
+              },
+              {
+                "case": "tilted_support",
+                "raw": 0.0,
+                "weighted_after_clip": 0.0
+              },
+              {
+                "case": "inverted",
+                "raw": 0.0,
+                "weighted_after_clip": 0.0
+              }
+            ]
+          },
+          {
+            "name": "goal_progress_rate",
+            "kind": "RewardTerm",
+            "status": "pass",
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "observed_shape": [
+              5
+            ],
+            "raw_max_abs": 0.5,
+            "effective_max_abs_after_clip_and_weight": 0.75,
+            "observed_sample_count": 5,
+            "observed_raw_nonzero_count": 5,
+            "observed_clip_saturation_count": 0,
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "sample_case_outputs": [
+              {
+                "case": "nominal_upright_support",
+                "raw": 0.10000000149011612,
+                "weighted_after_clip": 0.15000000223517418
+              },
+              {
+                "case": "landing",
+                "raw": 0.20000000298023224,
+                "weighted_after_clip": 0.30000000447034836
+              },
+              {
+                "case": "airborne",
+                "raw": 0.30000001192092896,
+                "weighted_after_clip": 0.45000001788139343
+              },
+              {
+                "case": "tilted_support",
+                "raw": 0.4000000059604645,
+                "weighted_after_clip": 0.6000000089406967
+              },
+              {
+                "case": "inverted",
+                "raw": 0.5,
+                "weighted_after_clip": 0.75
+              }
+            ]
+          },
+          {
+            "name": "support_contact_reward",
+            "kind": "RewardTerm",
+            "status": "pass",
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "observed_shape": [
+              5
+            ],
+            "raw_max_abs": 4.0,
+            "effective_max_abs_after_clip_and_weight": 1.2,
+            "observed_sample_count": 5,
+            "observed_raw_nonzero_count": 3,
+            "observed_clip_saturation_count": 5,
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "sample_case_outputs": [
+              {
+                "case": "nominal_upright_support",
+                "raw": 4.0,
+                "weighted_after_clip": 1.2
+              },
+              {
+                "case": "landing",
+                "raw": 4.0,
+                "weighted_after_clip": 1.2
+              },
+              {
+                "case": "airborne",
+                "raw": 0.0,
+                "weighted_after_clip": 0.0
+              },
+              {
+                "case": "tilted_support",
+                "raw": 4.0,
+                "weighted_after_clip": 1.2
+              },
+              {
+                "case": "inverted",
+                "raw": 0.0,
+                "weighted_after_clip": 0.0
+              }
+            ]
+          },
+          {
+            "name": "upright_posture",
+            "kind": "RewardTerm",
+            "status": "pass",
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "observed_shape": [
+              5
+            ],
+            "raw_max_abs": 1.0,
+            "effective_max_abs_after_clip_and_weight": 0.5,
+            "observed_sample_count": 5,
+            "observed_raw_nonzero_count": 5,
+            "observed_clip_saturation_count": 5,
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "sample_case_outputs": [
+              {
+                "case": "nominal_upright_support",
+                "raw": 1.0,
+                "weighted_after_clip": 0.0
+              },
+              {
+                "case": "landing",
+                "raw": 1.0,
+                "weighted_after_clip": 0.0
+              },
+              {
+                "case": "airborne",
+                "raw": 1.0,
+                "weighted_after_clip": 0.0
+              },
+              {
+                "case": "tilted_support",
+                "raw": 0.8775825500488281,
+                "weighted_after_clip": 0.0
+              },
+              {
+                "case": "inverted",
+                "raw": -1.0,
+                "weighted_after_clip": -0.5
+              }
+            ]
+          }
+        ],
+        "diagnostic_results": [],
+        "advisory_reward_term_names": []
+      },
+      "anti_degenerate_assessment": {
+        "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+        "status": "fail",
+        "classification": "compound_mechanism_delta",
+        "reason": "candidate_changes_multiple_component_mechanisms",
+        "compares_to": "10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+        "candidate_source_sha256": "3826cb9f0ece693cce202853fb56e7e282faeac71ed63292cc894585a9345076",
+        "blocking": true,
+        "feedback_for_author": "When an authoring anchor is present, change exactly one named canonical prompt-visible component mechanism relative to it and preserve every other component mechanism; without an anchor, author the complete initial component set.",
+        "changed_mechanism_count": 3,
+        "changed_mechanisms": [
+          "RewardTerm:goal_progress_rate",
+          "RewardTerm:support_contact_reward",
+          "RewardTerm:upright_posture"
+        ],
+        "structural_comparison": "canonical_component_terms",
+        "comparison_anchor": "current_best",
+        "evaluated_history_source_count": 0,
+        "history_sources_with_anchor": 0,
+        "history_sources_without_anchor": 0,
+        "candidate_authoring_anchor_available": true
+      }
+    },
+    {
+      "round_id": "p5-provider-probe",
+      "attempt": 3,
+      "attempt_id": "attempt_000003",
+      "provider_usage": {
+        "request_units": 14452,
+        "response_units": 28463,
+        "total_units": 42915,
+        "request_cache_hit_units": 6656,
+        "request_cache_miss_units": 7796,
+        "reasoning_units": 26755
+      },
+      "provider_response_receipt": {
+        "schema_version": "true_rl_agent.provider_response_receipt.v4",
+        "requested_model": "deepseek-v4-flash",
+        "response_model": "deepseek-flash",
+        "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669",
+        "finish_reason": "stop",
+        "transport_policy_id": "true_rl_agent.openai_compatible_transport.https_or_loopback_http_no_redirect.v1",
+        "requested_thinking_mode": "enabled",
+        "requested_reasoning_effort": "max",
+        "response_text_present": true,
+        "reasoning_content_present": true,
+        "requested_output_units": 32768,
+        "response_max_bytes": 524288,
+        "response_text_utf8_bytes": 6260,
+        "reasoning_content_utf8_bytes": 111626,
+        "response_text_sha256": "sha256:fee4d4b4e2b288a3fd3e462afbf8a49074d3786d6019345f94d442f9e7b0f9e1",
+        "reasoning_content_sha256": "sha256:da7c5ba62304df2e127b11897cc7d175f40741c6be470cab2a859c9452ad235b",
+        "model_context": {
+          "context_window_tokens": 1048576,
+          "max_output_tokens": 393216,
+          "tokenizer_count_source": "provider_usage_prompt_tokens",
+          "specification_source": "https://api-docs.deepseek.com/quick_start/pricing"
+        },
+        "input_tokens": 14452,
+        "joint_capacity_status": "within_declared_window"
+      },
+      "provider_status": "pass",
+      "provider_response_mode": "candidate_draft",
+      "candidate_id": "stair_goal_progress_ascent_v1",
+      "candidate_changed_components": [
+        "reward_callable"
+      ],
+      "candidate_source_visibility": "private_non_prompt_artifact",
+      "candidate_source_included_in_prompt": false,
+      "verifier_status": "pass",
+      "verifier_reason": "static_candidate_verifier_passed",
+      "candidate_subject_manifest_hash": "76fce3290148dcdf6e92117e3be06afabb051e83777b1e326cc8f0e79e6ada39",
+      "candidate_program_source_checksum": "sha256:5625ab8f745f0baa0ee72ff946a1229762f3fe9a607837d7ef2c8a70dd747074",
+      "candidate_program_source_size_bytes": 5867,
+      "component_smoke": {
+        "schema_version": "true_rl_agent.component_smoke_result.v2",
+        "status": "pass",
+        "reason": "component_smoke_passed",
+        "task_id": "unitree_stair_climbing",
+        "checked_reward_terms": 9,
+        "checked_diagnostics": 0,
+        "fixture_summary": {
+          "schema_version": "true_rl_agent.task.stair_climbing.complete_reward_smoke_fixture.v3",
+          "fixture_owner": "task_owned_stair_climbing",
+          "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+          "fixture_hash": "2c0adf7997c26e112a9408403a78788d2f8926400c0af0305b7b3842129fc4fc",
+          "num_envs": 5,
+          "purpose": "complete_reward_admission_preflight",
+          "sample_cases": [
+            "nominal_upright_support",
+            "landing",
+            "airborne",
+            "tilted_support",
+            "inverted"
+          ],
+          "coverage": "five synthetic transitions; no proof of universal zero or causal benefit",
+          "nominal_morphology": {
+            "gravity_mps2": 9.81,
+            "length_source": "nominal_root_to_support_body_center_z_m",
+            "robot_profile_hash": "3e9c110449be639fceb48d6792fc8f683f43bd34978286325bba99547d20f1c0",
+            "support_length_m": 0.422776,
+            "usage": "nominal body scale, not terrain-relative base clearance or a success threshold"
+          }
+        },
+        "reward_results": [
+          {
+            "name": "track_lin_vel_xy_exp",
+            "kind": "RewardTerm",
+            "status": "pass",
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "observed_shape": [
+              5
+            ],
+            "raw_max_abs": 1.0,
+            "effective_max_abs_after_clip_and_weight": 3.5,
+            "observed_sample_count": 5,
+            "observed_raw_nonzero_count": 5,
+            "observed_clip_saturation_count": 0,
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "sample_case_outputs": [
+              {
+                "case": "nominal_upright_support",
+                "raw": 1.0,
+                "weighted_after_clip": 3.5
+              },
+              {
+                "case": "landing",
+                "raw": 1.0,
+                "weighted_after_clip": 3.5
+              },
+              {
+                "case": "airborne",
+                "raw": 1.0,
+                "weighted_after_clip": 3.5
+              },
+              {
+                "case": "tilted_support",
+                "raw": 1.0,
+                "weighted_after_clip": 3.5
+              },
+              {
+                "case": "inverted",
+                "raw": 1.0,
+                "weighted_after_clip": 3.5
+              }
+            ]
+          },
+          {
+            "name": "track_ang_vel_z_exp",
+            "kind": "RewardTerm",
+            "status": "pass",
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "observed_shape": [
+              5
+            ],
+            "raw_max_abs": 1.0,
+            "effective_max_abs_after_clip_and_weight": 0.75,
+            "observed_sample_count": 5,
+            "observed_raw_nonzero_count": 5,
+            "observed_clip_saturation_count": 0,
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "sample_case_outputs": [
+              {
+                "case": "nominal_upright_support",
+                "raw": 1.0,
+                "weighted_after_clip": 0.75
+              },
+              {
+                "case": "landing",
+                "raw": 1.0,
+                "weighted_after_clip": 0.75
+              },
+              {
+                "case": "airborne",
+                "raw": 1.0,
+                "weighted_after_clip": 0.75
+              },
+              {
+                "case": "tilted_support",
+                "raw": 1.0,
+                "weighted_after_clip": 0.75
+              },
+              {
+                "case": "inverted",
+                "raw": 1.0,
+                "weighted_after_clip": 0.75
+              }
+            ]
+          },
+          {
+            "name": "ang_vel_xy_l2",
+            "kind": "RewardTerm",
+            "status": "pass",
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "observed_shape": [
+              5
+            ],
+            "raw_max_abs": 0.5010010004043579,
+            "effective_max_abs_after_clip_and_weight": 0.025050050020217898,
+            "observed_sample_count": 5,
+            "observed_raw_nonzero_count": 5,
+            "observed_clip_saturation_count": 0,
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "sample_case_outputs": [
+              {
+                "case": "nominal_upright_support",
+                "raw": 0.020201001316308975,
+                "weighted_after_clip": -0.0010100500658154488
+              },
+              {
+                "case": "landing",
+                "raw": 0.08040100336074829,
+                "weighted_after_clip": -0.0040200501680374146
+              },
+              {
+                "case": "airborne",
+                "raw": 0.18060100078582764,
+                "weighted_after_clip": -0.009030050039291382
+              },
+              {
+                "case": "tilted_support",
+                "raw": 0.3208010196685791,
+                "weighted_after_clip": -0.016040050983428956
+              },
+              {
+                "case": "inverted",
+                "raw": 0.5010010004043579,
+                "weighted_after_clip": -0.025050050020217898
+              }
+            ]
+          },
+          {
+            "name": "flat_orientation_l2",
+            "kind": "RewardTerm",
+            "status": "pass",
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "observed_shape": [
+              5
+            ],
+            "raw_max_abs": 0.22984886169433594,
+            "effective_max_abs_after_clip_and_weight": 0.5746221542358398,
+            "observed_sample_count": 5,
+            "observed_raw_nonzero_count": 1,
+            "observed_clip_saturation_count": 0,
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "sample_case_outputs": [
+              {
+                "case": "nominal_upright_support",
+                "raw": 0.0,
+                "weighted_after_clip": -0.0
+              },
+              {
+                "case": "landing",
+                "raw": 0.0,
+                "weighted_after_clip": -0.0
+              },
+              {
+                "case": "airborne",
+                "raw": 0.0,
+                "weighted_after_clip": -0.0
+              },
+              {
+                "case": "tilted_support",
+                "raw": 0.22984886169433594,
+                "weighted_after_clip": -0.5746221542358398
+              },
+              {
+                "case": "inverted",
+                "raw": 7.64274186065882e-15,
+                "weighted_after_clip": -1.910685465164705e-14
+              }
+            ]
+          },
+          {
+            "name": "dof_torques_l2",
+            "kind": "RewardTerm",
+            "status": "pass",
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "observed_shape": [
+              5
+            ],
+            "raw_max_abs": 3.0665061473846436,
+            "effective_max_abs_after_clip_and_weight": 0.0006133012294769288,
+            "observed_sample_count": 5,
+            "observed_raw_nonzero_count": 5,
+            "observed_clip_saturation_count": 0,
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "sample_case_outputs": [
+              {
+                "case": "nominal_upright_support",
+                "raw": 0.1337060034275055,
+                "weighted_after_clip": -2.67412006855011e-05
+              },
+              {
+                "case": "landing",
+                "raw": 0.5069060325622559,
+                "weighted_after_clip": -0.00010138120651245118
+              },
+              {
+                "case": "airborne",
+                "raw": 1.1201061010360718,
+                "weighted_after_clip": -0.00022402122020721436
+              },
+              {
+                "case": "tilted_support",
+                "raw": 1.9733059406280518,
+                "weighted_after_clip": -0.0003946611881256104
+              },
+              {
+                "case": "inverted",
+                "raw": 3.0665061473846436,
+                "weighted_after_clip": -0.0006133012294769288
+              }
+            ]
+          },
+          {
+            "name": "dof_acc_l2",
+            "kind": "RewardTerm",
+            "status": "pass",
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "observed_shape": [
+              5
+            ],
+            "raw_max_abs": 3.0665061473846436,
+            "effective_max_abs_after_clip_and_weight": 7.666265368461608e-07,
+            "observed_sample_count": 5,
+            "observed_raw_nonzero_count": 5,
+            "observed_clip_saturation_count": 0,
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "sample_case_outputs": [
+              {
+                "case": "nominal_upright_support",
+                "raw": 0.1337060034275055,
+                "weighted_after_clip": -3.3426500856876375e-08
+              },
+              {
+                "case": "landing",
+                "raw": 0.5069060325622559,
+                "weighted_after_clip": -1.2672650814056396e-07
+              },
+              {
+                "case": "airborne",
+                "raw": 1.1201061010360718,
+                "weighted_after_clip": -2.8002652525901796e-07
+              },
+              {
+                "case": "tilted_support",
+                "raw": 1.9733059406280518,
+                "weighted_after_clip": -4.93326485157013e-07
+              },
+              {
+                "case": "inverted",
+                "raw": 3.0665061473846436,
+                "weighted_after_clip": -7.666265368461608e-07
+              }
+            ]
+          },
+          {
+            "name": "action_rate_l2",
+            "kind": "RewardTerm",
+            "status": "pass",
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "observed_shape": [
+              5
+            ],
+            "raw_max_abs": 3.0665061473846436,
+            "effective_max_abs_after_clip_and_weight": 0.030665061473846435,
+            "observed_sample_count": 5,
+            "observed_raw_nonzero_count": 5,
+            "observed_clip_saturation_count": 0,
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "sample_case_outputs": [
+              {
+                "case": "nominal_upright_support",
+                "raw": 0.1337060034275055,
+                "weighted_after_clip": -0.001337060034275055
+              },
+              {
+                "case": "landing",
+                "raw": 0.5069060325622559,
+                "weighted_after_clip": -0.005069060325622559
+              },
+              {
+                "case": "airborne",
+                "raw": 1.1201061010360718,
+                "weighted_after_clip": -0.011201061010360717
+              },
+              {
+                "case": "tilted_support",
+                "raw": 1.9733059406280518,
+                "weighted_after_clip": -0.019733059406280517
+              },
+              {
+                "case": "inverted",
+                "raw": 3.0665061473846436,
+                "weighted_after_clip": -0.030665061473846435
+              }
+            ]
+          },
+          {
+            "name": "feet_air_time",
+            "kind": "RewardTerm",
+            "status": "pass",
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "observed_shape": [
+              5
+            ],
+            "raw_max_abs": 0.40000009536743164,
+            "effective_max_abs_after_clip_and_weight": 0.10000002384185791,
+            "observed_sample_count": 5,
+            "observed_raw_nonzero_count": 1,
+            "observed_clip_saturation_count": 0,
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "sample_case_outputs": [
+              {
+                "case": "nominal_upright_support",
+                "raw": 0.0,
+                "weighted_after_clip": 0.0
+              },
+              {
+                "case": "landing",
+                "raw": 0.40000009536743164,
+                "weighted_after_clip": 0.10000002384185791
+              },
+              {
+                "case": "airborne",
+                "raw": 0.0,
+                "weighted_after_clip": 0.0
+              },
+              {
+                "case": "tilted_support",
+                "raw": 0.0,
+                "weighted_after_clip": 0.0
+              },
+              {
+                "case": "inverted",
+                "raw": 0.0,
+                "weighted_after_clip": 0.0
+              }
+            ]
+          },
+          {
+            "name": "goal_progress",
+            "kind": "RewardTerm",
+            "status": "pass",
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "observed_shape": [
+              5
+            ],
+            "raw_max_abs": 0.5,
+            "effective_max_abs_after_clip_and_weight": 0.5,
+            "observed_sample_count": 5,
+            "observed_raw_nonzero_count": 5,
+            "observed_clip_saturation_count": 0,
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "sample_case_outputs": [
+              {
+                "case": "nominal_upright_support",
+                "raw": 0.10000000149011612,
+                "weighted_after_clip": 0.10000000149011612
+              },
+              {
+                "case": "landing",
+                "raw": 0.20000000298023224,
+                "weighted_after_clip": 0.20000000298023224
+              },
+              {
+                "case": "airborne",
+                "raw": 0.30000001192092896,
+                "weighted_after_clip": 0.30000001192092896
+              },
+              {
+                "case": "tilted_support",
+                "raw": 0.4000000059604645,
+                "weighted_after_clip": 0.4000000059604645
+              },
+              {
+                "case": "inverted",
+                "raw": 0.5,
+                "weighted_after_clip": 0.5
+              }
+            ]
+          }
+        ],
+        "diagnostic_results": [],
+        "advisory_reward_term_names": []
+      },
+      "anti_degenerate_assessment": {
+        "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+        "status": "pass",
+        "classification": "mechanism_delta_present",
+        "reason": "candidate_source_structure_differs_from_comparison_anchor",
+        "compares_to": "10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+        "candidate_source_sha256": "5625ab8f745f0baa0ee72ff946a1229762f3fe9a607837d7ef2c8a70dd747074",
+        "blocking": false,
+        "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+        "changed_mechanism_count": 1,
+        "changed_mechanisms": [
+          "RewardTerm:goal_progress"
+        ],
+        "structural_comparison": "canonical_component_terms",
+        "comparison_anchor": "current_best",
+        "comparison_scope": "authoring_anchor_and_evaluated_history",
+        "evaluated_history_source_count": 0,
+        "history_sources_with_anchor": 0,
+        "history_sources_without_anchor": 0,
+        "candidate_authoring_anchor_available": true
+      }
+    }
+  ],
+  "prompt_paths": [
+    "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P5/provider_live_01/authoring/authoring_attempts/attempt_000001/prompt_payload.json",
+    "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P5/provider_live_01/authoring/authoring_attempts/attempt_000002/prompt_payload.json",
+    "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P5/provider_live_01/authoring/authoring_attempts/attempt_000003/prompt_payload.json"
+  ]
+}

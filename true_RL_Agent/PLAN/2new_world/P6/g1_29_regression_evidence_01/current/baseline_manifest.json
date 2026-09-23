@@ -1,0 +1,25 @@
+{
+  "schema_version": "true_rl_agent.baseline_manifest.v2",
+  "baseline_id": "p2-short-resume-diagnostic",
+  "task_id": "unitree_push_recovery",
+  "checkpoint": {
+    "uri": "artifact://p2/audit2_push_resume/resumed.pt",
+    "checksum": "sha256:aae678721d4e9686f64fccd96410ac252a5150b6c88b10951081977254134043",
+    "role": "warm_start",
+    "sealed": true
+  },
+  "provenance": {
+    "source_run_id": "audit2_push_resume",
+    "source_task_id": "unitree_push_recovery",
+    "created_by": "PLAN/2new_world/P2/push_runtime_probe.py"
+  },
+  "compatibility": {
+    "backend_id": "isaac_lab_rsl_rl",
+    "robot": "unitree_g1",
+    "observation_schema_hash": "push_recovery_obs_v1",
+    "action_schema_hash": "unitree_actions_v1",
+    "policy_architecture": "rsl_rl_ppo_mlp"
+  },
+  "source_binding": null,
+  "manifest_hash": "6076bd2decde4708c8be9c4f4376b80b44279514bec4e8a9e739648f67c8aa1f"
+}

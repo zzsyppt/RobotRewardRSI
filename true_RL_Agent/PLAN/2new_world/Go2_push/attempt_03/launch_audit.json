@@ -1,0 +1,85 @@
+{
+  "schema_version": "true_rl_agent.experiment.launch_audit.v1",
+  "created_at_utc": "2026-09-22T10:54:48.138727+00:00",
+  "status": "PASS",
+  "acceptance_authority": false,
+  "session_id": "go2-push-5rounds-20260922-a03",
+  "source_commit": "f9305ed993f6277c65ae0f94f4e281bb6bcb41f0",
+  "session_contract_hash": "672fa64ec00c8cfb940de287224fb7a5a37752b3eecaf3ebb5664ac51cef2f23",
+  "scope": "Bounded A03 launch/source-sync/scientific-freeze check against A02. Reference training was still in progress at this startup snapshot; not a completed-reference or five-round acceptance report.",
+  "checks": {
+    "source_commit_matches_launch_process_bundle_head": true,
+    "prepare_contract_matches_session": true,
+    "five_complete_generations_width_two": true,
+    "source_sync_verifies_373_execution_files": true,
+    "resolved_scientific_manifest_unchanged": true,
+    "cost_contract_and_budgets_unchanged": true,
+    "all_bound_contracts_unchanged_except_session_specific_final_plan": true,
+    "no_reference_import_enabled": true,
+    "new_reference_training_reservation": true,
+    "reference_scientific_identity_unchanged": true,
+    "new_output_and_execution_root": true,
+    "resume_is_same_new_prepare_not_old_attempt": true,
+    "final_confirmation_unchanged_except_new_session_identity": true,
+    "only_two_reviewed_execution_files_changed": true,
+    "all_373_current_execution_files_match_final_zip": true,
+    "shared_f8_choice_does_not_read_task_scores": true
+  },
+  "source": {
+    "final_zip": ".tmp/go2_push_source_03_final.zip",
+    "final_zip_sha256": "sha256:6d50dcf6bf0ce7894355989a5d2c6f93455832f631ef4f2a00b370edf6bf91ba",
+    "bundle_head_verified_by": "git bundle list-heads PLAN/2new_world/Go2_push/execution_source_03.bundle",
+    "bundle_head": "f9305ed993f6277c65ae0f94f4e281bb6bcb41f0",
+    "source_sync_receipt": {
+      "status": "PASS",
+      "updated_files": [
+        "src/true_rl_agent/agent_core/generation_contract.py",
+        "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py",
+        "tests/integration/test_fixed_width_generation.py",
+        "tests/unit/test_generation_contract.py",
+        "tests/unit/test_push_feedback_projection.py",
+        "tests/unit/test_stair_phase4_contract.py"
+      ],
+      "all_execution_files_verified": 373
+    },
+    "execution_files_verified_locally": 373,
+    "execution_file_hash_map_digest": "a1264f9a700a0a3743638fa7def61bfffd47f40440a1babd9f8e9aaeffc97a07",
+    "changed_execution_files_vs_a02": [
+      "src/true_rl_agent/agent_core/generation_contract.py",
+      "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py"
+    ],
+    "source_verification_limit": "Local final ZIP and current 373-file content checked independently. Remote 373-file equality uses the downloaded source_sync PASS receipt; no new SSH or GPU query."
+  },
+  "f8_semantic_review": {
+    "shared_change": "latest_nonaccepted_trial prefers the task selector's already selected trained nonaccepted trial, with existing eligible-sibling fallback. It consumes selection identity, not task scores or scientific formulas.",
+    "push_projection_change": "Preserve formal=null so shared memory does not invent a single formal candidate attribution for a generation with only sibling trial outcomes.",
+    "acceptance_and_science": "Task protocol, resolved manifest, reference reward source, simulator settings, acceptance/qualification/selector code and all cost/reserve values are byte-identical to A02."
+  },
+  "session_contract_difference_paths": [
+    "/bound_contract_hashes/final_confirmation_plan",
+    "/contract_hash",
+    "/session_id"
+  ],
+  "manifest_hash": "fb8a03c7df15a8b6ff1033be284d60d323fc5846b127f2042d34f7d60f75bf6e",
+  "task_protocol_hash": "31622698100045fc8c2fac8707a71a39f84655c2cfde714421fd5b92f748407d",
+  "cost_contract_hash": "31a9fd57c1a91df882fae2d6a02d765d4db7384a54dd9c7977c091ff79ff57b3",
+  "start_snapshot_source_sha256": {
+    "launch_03.json": "sha256:ab72bf5d5d6ea18b13b1c2ff30e79e37c3028e88ec1f6ba41af6ed0844ed15c4",
+    "prepare_03.json": "sha256:2891f7ab9bf7aef580790168248a91be90d2df562af78e6171442e853856c154",
+    "source_sync_03.json": "sha256:16f9095d2127b5a338e7198d9271b69cc823bc7daf2af9e48d28bf3ee908f29b",
+    "execution_source_03.bundle": "sha256:9a9e86ba2359140c0ed2f06ec7f8ce80e5195e01294c04e3d41733be3f7a35e8"
+  },
+  "evidence_sha256": {
+    "PLAN/2new_world/Go2_push/attempt_03/process.json": "sha256:015ef27d0c5086c0fc8b9e6dbbbbe11ec5af7ba25cf19079f9c07bfec2a49e5c",
+    "PLAN/2new_world/Go2_push/attempt_03/session/generation_session_contract.json": "sha256:017f13b7824b7d43371c3345da277c396b5c8303dbc95b9e5154622f795ba513",
+    "PLAN/2new_world/Go2_push/attempt_03/session/generation_session_cost.json": "sha256:acf81748ff8f79465564e5ef0d07fb051c470d82fd879d38c27aa91f0d9389d6",
+    "PLAN/2new_world/Go2_push/attempt_03/session/resolved_cell_manifest.json": "sha256:a130b3a97ce4afde8574d19c575a430e8b83ec3750c40b43bc87465cfa0905dd",
+    "PLAN/2new_world/Go2_push/attempt_03/session/job_attempts/3fd42ec5be09d8d736ec3115/attempt_00.reservation.json": "sha256:4ccc98862da2299d88b66c980af9f65ba093512887db6c1d7ade24a51dd8a709",
+    "PLAN/2new_world/Go2_push/attempt_03/session/final_confirmation/plan.json": "sha256:485bf05d501eeb11c887018f1db8c7327a37b7ac128ec315d5bc875875718763"
+  },
+  "limits": [
+    "The new train reservation and new output/session establish fresh execution intent; completion and checkpoint provenance must be checked after A03 training finishes.",
+    "--resume-existing resumes the newly prepared A03 directory and does not import A02 Genesis/history/checkpoint.",
+    "This check did not repeat the previous harness ownership audit or run additional tests."
+  ]
+}

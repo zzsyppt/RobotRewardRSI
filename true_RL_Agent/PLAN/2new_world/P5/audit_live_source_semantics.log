@@ -1,0 +1,50 @@
+test_completion_validator_failure_is_not_recorded_as_completed (tests.integration.test_live_loop.LiveLoopTests.test_completion_validator_failure_is_not_recorded_as_completed) ... ok
+test_denied_source_then_same_round_success_reaches_next_round_history (tests.integration.test_live_loop.LiveLoopTests.test_denied_source_then_same_round_success_reaches_next_round_history) ... ok
+test_final_attempt_source_denial_uses_same_next_round_feedback_shape (tests.integration.test_live_loop.LiveLoopTests.test_final_attempt_source_denial_uses_same_next_round_feedback_shape) ... ok
+test_lifecycle_write_failure_does_not_mask_original_exception (tests.integration.test_live_loop.LiveLoopTests.test_lifecycle_write_failure_does_not_mask_original_exception) ... ok
+test_lifecycle_write_failure_preserves_exception_without_add_note (tests.integration.test_live_loop.LiveLoopTests.test_lifecycle_write_failure_preserves_exception_without_add_note) ... ok
+test_live_loop_mixed_verifier_then_provider_failure_projects_sealed_attempts (tests.integration.test_live_loop.LiveLoopTests.test_live_loop_mixed_verifier_then_provider_failure_projects_sealed_attempts) ... ok
+test_live_loop_passes_saved_prompt_payload_to_provider (tests.integration.test_live_loop.LiveLoopTests.test_live_loop_passes_saved_prompt_payload_to_provider) ... ok
+test_live_loop_records_keyboard_interrupt_without_ledgering_partial_round (tests.integration.test_live_loop.LiveLoopTests.test_live_loop_records_keyboard_interrupt_without_ledgering_partial_round) ... ok
+test_live_loop_records_max_attempt_smoke_failure_without_training (tests.integration.test_live_loop.LiveLoopTests.test_live_loop_records_max_attempt_smoke_failure_without_training) ... ok
+test_live_loop_records_max_attempt_verifier_failure_without_training (tests.integration.test_live_loop.LiveLoopTests.test_live_loop_records_max_attempt_verifier_failure_without_training) ... ok
+test_live_loop_records_provider_failure_when_all_attempts_fail_before_candidate (tests.integration.test_live_loop.LiveLoopTests.test_live_loop_records_provider_failure_when_all_attempts_fail_before_candidate) ... ok
+test_live_loop_records_runtime_failure_without_same_round_repair (tests.integration.test_live_loop.LiveLoopTests.test_live_loop_records_runtime_failure_without_same_round_repair) ... ok
+test_live_loop_refuses_ledger_without_genesis (tests.integration.test_live_loop.LiveLoopTests.test_live_loop_refuses_ledger_without_genesis) ... ok
+test_live_loop_rejects_oversized_failed_source_before_repair_read (tests.integration.test_live_loop.LiveLoopTests.test_live_loop_rejects_oversized_failed_source_before_repair_read) ... ok
+test_live_loop_repairs_provider_candidate_before_consuming_round (tests.integration.test_live_loop.LiveLoopTests.test_live_loop_repairs_provider_candidate_before_consuming_round) ... ok
+test_live_loop_repairs_provider_parse_failure_before_consuming_round (tests.integration.test_live_loop.LiveLoopTests.test_live_loop_repairs_provider_parse_failure_before_consuming_round) ... ok
+test_live_loop_saves_prompt_payloads_and_ledger_summary (tests.integration.test_live_loop.LiveLoopTests.test_live_loop_saves_prompt_payloads_and_ledger_summary) ... ok
+test_live_loop_scrubs_paths_from_previous_components_in_repair_prompt (tests.integration.test_live_loop.LiveLoopTests.test_live_loop_scrubs_paths_from_previous_components_in_repair_prompt) ... ok
+test_nonzero_train_failure_summary_is_ledgered_and_next_round_continues (tests.integration.test_live_loop.LiveLoopTests.test_nonzero_train_failure_summary_is_ledgered_and_next_round_continues) ... ok
+test_prompt_capacity_preflight_fails_before_invocation_journal (tests.integration.test_live_loop.LiveLoopTests.test_prompt_capacity_preflight_fails_before_invocation_journal) ... ok
+test_resume_rejects_all_unsealed_authoring_ledger_projections (tests.integration.test_live_loop.LiveLoopTests.test_resume_rejects_all_unsealed_authoring_ledger_projections) ... ok
+test_source_feedback_is_persisted_on_static_authoring_failure_path (tests.integration.test_live_loop.LiveLoopTests.test_source_feedback_is_persisted_on_static_authoring_failure_path) ... ok
+test_trained_rejected_source_persists_after_success_round (tests.integration.test_live_loop.LiveLoopTests.test_trained_rejected_source_persists_after_success_round) ... FAIL
+test_untrained_runtime_failure_remains_in_history_without_performance_source (tests.integration.test_live_loop.LiveLoopTests.test_untrained_runtime_failure_remains_in_history_without_performance_source) ... ok
+test_agent_core_context_imports_before_prompting_in_clean_interpreter (tests.unit.test_source_request_feedback.SourceRequestRoundFeedbackTests.test_agent_core_context_imports_before_prompting_in_clean_interpreter) ... ok
+test_byte_bound_evicts_oldest_returned_ids_before_denials (tests.unit.test_source_request_feedback.SourceRequestRoundFeedbackTests.test_byte_bound_evicts_oldest_returned_ids_before_denials) ... ok
+test_empty_or_wrong_schema_feedback_fails_closed (tests.unit.test_source_request_feedback.SourceRequestRoundFeedbackTests.test_empty_or_wrong_schema_feedback_fails_closed) ... ok
+test_partial_feedback_prioritizes_recent_denials_and_latest_reason (tests.unit.test_source_request_feedback.SourceRequestRoundFeedbackTests.test_partial_feedback_prioritizes_recent_denials_and_latest_reason) ... ok
+test_projector_drops_tainted_fields_and_is_idempotent (tests.unit.test_source_request_feedback.SourceRequestRoundFeedbackTests.test_projector_drops_tainted_fields_and_is_idempotent) ... ok
+test_projector_fails_closed_when_invalid_ids_are_only_opposite_status_evidence (tests.unit.test_source_request_feedback.SourceRequestRoundFeedbackTests.test_projector_fails_closed_when_invalid_ids_are_only_opposite_status_evidence) ... ok
+test_projector_rejects_inconsistent_status_or_request_count (tests.unit.test_source_request_feedback.SourceRequestRoundFeedbackTests.test_projector_rejects_inconsistent_status_or_request_count) ... ok
+test_projector_uses_provider_canonical_bytes_for_hard_limit (tests.unit.test_source_request_feedback.SourceRequestRoundFeedbackTests.test_projector_uses_provider_canonical_bytes_for_hard_limit) ... ok
+test_repeated_returned_ids_preserve_first_encounter_order (tests.unit.test_source_request_feedback.SourceRequestRoundFeedbackTests.test_repeated_returned_ids_preserve_first_encounter_order) ... ok
+test_returned_round_feedback_has_fixed_public_shape (tests.unit.test_source_request_feedback.SourceRequestRoundFeedbackTests.test_returned_round_feedback_has_fixed_public_shape) ... ok
+
+======================================================================
+FAIL: test_trained_rejected_source_persists_after_success_round (tests.integration.test_live_loop.LiveLoopTests.test_trained_rejected_source_persists_after_success_round)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\integration\test_live_loop.py", line 1799, in test_trained_rejected_source_persists_after_success_round
+    self.assertEqual(round_3_failed_item["status"], "available")
+AssertionError: 'inline' != 'available'
+- inline
++ available
+
+
+----------------------------------------------------------------------
+Ran 34 tests in 31.608s
+
+FAILED (failures=1)

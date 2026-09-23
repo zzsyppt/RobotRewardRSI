@@ -1,0 +1,158 @@
+{
+  "status": "PASS_ADMISSION_FIX_ONLY",
+  "timestamp_utc": "2026-09-23T07:08:22.204030+00:00",
+  "scope": "Local production CandidateAuthoringLoop with actual A07 frozen candidate sources, fake provider/verifier/current-parent receipt scaffolding, and measured trial delta keys from A07 ledger. No LLM, training, evaluation, server mutation, or historical receipt rewrite.",
+  "root_cause": "Evaluated same-parent historical trials were routed only to exact implementation keys; the existing normalized verifier-equivalence gate had only scientific-negative keys. A07 Gen3B changed an evaluated added term weight 1.0 to 0.5 and passed the exact-only route.",
+  "repair": "Authoritative evaluated-trial deltas now provide the existing normalized keys to the single historical verifier comparison. Negative evidence set and its lane-intent hash remain separate. Active parallel exact-history gate removed; old receipt reading retained. No algebra or identity algorithm change.",
+  "comparison_domain": {
+    "session_genesis_hash": "ede6519bcdb8cd7efacf98bd9aab44f9d9ebd0d98cb75b31b4985017a8300873",
+    "parent_current_best_hash": "e9607763aec564c106ac3e2c0bfc9206510033ddfd4be430ec7ed6ff0ae8913d"
+  },
+  "ledger_sha256": "29cbb78139486608a86fc74df5b981c81e544016cac2f652bb5f30ea35ead0c0",
+  "measured_trial_ids": [
+    "go2-push-5rounds-20260923-a07-generation-002-lane-a",
+    "go2-push-5rounds-20260923-a07-generation-002-lane-b"
+  ],
+  "evaluated_keys": [
+    "53747b3c96045bcdf264f26e8690b491fe024485fe20324d00beec3e70bdd871",
+    "c4a5129f193f6f060df7900d709a844d37697365f14721a8bbcc374a65740deb"
+  ],
+  "authoritative_prior_delta_equals_actual_source_delta": true,
+  "cases": [
+    {
+      "case": "gen02_b_before_first_evaluation",
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-002/lane-b/002_push_recovery_tilt_rate_brake_v6/training_code/components.py",
+      "source_sha256": "127a3d5bbf1ce80ce69533186dd42c9e01dc3a2198a937a264572a92e98dabdc",
+      "stop_reason": "candidate_verified",
+      "assessment": null,
+      "historical_source_count_in_anti_degenerate": 0,
+      "public_rule": null
+    },
+    {
+      "case": "gen02_b_exact_replay_after_evaluation",
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-002/lane-b/002_push_recovery_tilt_rate_brake_v6/training_code/components.py",
+      "source_sha256": "127a3d5bbf1ce80ce69533186dd42c9e01dc3a2198a937a264572a92e98dabdc",
+      "stop_reason": "static_failed",
+      "assessment": {
+        "schema_version": "true_rl_agent.historical_verifier_exclusion_assessment.v1",
+        "status": "fail",
+        "blocking": true,
+        "reason": "historical_verifier_equivalent_repeat",
+        "verifier_equivalence_key": "53747b3c96045bcdf264f26e8690b491fe024485fe20324d00beec3e70bdd871",
+        "exclusion_set_hash": "7b77bc3293499f97ed65acf51929319b448af1b0cc389d9b705449d0768a8cf7",
+        "exclusion_sources": [
+          "same_parent_evaluated"
+        ],
+        "negative_evidence_exclusion_set_hash": "93af470f76fcae9ca4fe74dafd4f2b8a50c23dd6b53140d96aec7027db1af871",
+        "evaluated_exclusion_set_hash": "7b77bc3293499f97ed65acf51929319b448af1b0cc389d9b705449d0768a8cf7"
+      },
+      "historical_source_count_in_anti_degenerate": 0,
+      "public_rule": {
+        "scope": "same_parent_and_session_comparison_domain",
+        "key_set_hash": "7b77bc3293499f97ed65acf51929319b448af1b0cc389d9b705449d0768a8cf7",
+        "count": 2,
+        "rule": "Already evaluated mechanism families are repairable repeats, regardless of score; renaming and numeric-only variants do not confer novelty."
+      }
+    },
+    {
+      "case": "gen03_a_renamed_history_repeat",
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-003/lane-a/002_push_recovery_tilt_brake_v7/training_code/components.py",
+      "source_sha256": "1d9ad4ab01a470a30c93c79cba0cf15059dbf02579f1bc965e5eccd2f5fbea5e",
+      "stop_reason": "static_failed",
+      "assessment": {
+        "schema_version": "true_rl_agent.historical_verifier_exclusion_assessment.v1",
+        "status": "fail",
+        "blocking": true,
+        "reason": "historical_verifier_equivalent_repeat",
+        "verifier_equivalence_key": "53747b3c96045bcdf264f26e8690b491fe024485fe20324d00beec3e70bdd871",
+        "exclusion_set_hash": "7b77bc3293499f97ed65acf51929319b448af1b0cc389d9b705449d0768a8cf7",
+        "exclusion_sources": [
+          "same_parent_evaluated"
+        ],
+        "negative_evidence_exclusion_set_hash": "93af470f76fcae9ca4fe74dafd4f2b8a50c23dd6b53140d96aec7027db1af871",
+        "evaluated_exclusion_set_hash": "7b77bc3293499f97ed65acf51929319b448af1b0cc389d9b705449d0768a8cf7"
+      },
+      "historical_source_count_in_anti_degenerate": 0,
+      "public_rule": {
+        "scope": "same_parent_and_session_comparison_domain",
+        "key_set_hash": "7b77bc3293499f97ed65acf51929319b448af1b0cc389d9b705449d0768a8cf7",
+        "count": 2,
+        "rule": "Already evaluated mechanism families are repairable repeats, regardless of score; renaming and numeric-only variants do not confer novelty."
+      }
+    },
+    {
+      "case": "gen03_b_weight_only_history_variant",
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-003/lane-b/002_push_recovery_tilt_rate_brake_v7/training_code/components.py",
+      "source_sha256": "5353c685f0241b15de7dd07ab6876abda0c21ce42e595f65a59f88d35d388047",
+      "stop_reason": "static_failed",
+      "assessment": {
+        "schema_version": "true_rl_agent.historical_verifier_exclusion_assessment.v1",
+        "status": "fail",
+        "blocking": true,
+        "reason": "historical_verifier_equivalent_repeat",
+        "verifier_equivalence_key": "53747b3c96045bcdf264f26e8690b491fe024485fe20324d00beec3e70bdd871",
+        "exclusion_set_hash": "7b77bc3293499f97ed65acf51929319b448af1b0cc389d9b705449d0768a8cf7",
+        "exclusion_sources": [
+          "same_parent_evaluated"
+        ],
+        "negative_evidence_exclusion_set_hash": "93af470f76fcae9ca4fe74dafd4f2b8a50c23dd6b53140d96aec7027db1af871",
+        "evaluated_exclusion_set_hash": "7b77bc3293499f97ed65acf51929319b448af1b0cc389d9b705449d0768a8cf7"
+      },
+      "historical_source_count_in_anti_degenerate": 0,
+      "public_rule": {
+        "scope": "same_parent_and_session_comparison_domain",
+        "key_set_hash": "7b77bc3293499f97ed65acf51929319b448af1b0cc389d9b705449d0768a8cf7",
+        "count": 2,
+        "rule": "Already evaluated mechanism families are repairable repeats, regardless of score; renaming and numeric-only variants do not confer novelty."
+      }
+    },
+    {
+      "case": "gen03_a_new_impulse_mechanism",
+      "path": "PLAN/2new_world/Go2_push/attempt_07/session/provider_candidates/go2-push-5rounds-20260923-a07-generation-003/lane-a/003_push_recovery_impulse_absorb_v8/training_code/components.py",
+      "source_sha256": "a290b8c793bdbbbd4d7f670b6ea0040f650ce68b3693f90e4c95a5f05f8a805b",
+      "stop_reason": "candidate_verified",
+      "assessment": {
+        "schema_version": "true_rl_agent.historical_verifier_exclusion_assessment.v1",
+        "status": "pass",
+        "blocking": false,
+        "reason": "historical_verifier_equivalent_distinct",
+        "verifier_equivalence_key": "37e7bf4e2a7c9d4e6c755bf5a793b34ca7d83b45d42c19790850bb85eb166a8f",
+        "exclusion_set_hash": "7b77bc3293499f97ed65acf51929319b448af1b0cc389d9b705449d0768a8cf7",
+        "exclusion_sources": [],
+        "negative_evidence_exclusion_set_hash": "93af470f76fcae9ca4fe74dafd4f2b8a50c23dd6b53140d96aec7027db1af871",
+        "evaluated_exclusion_set_hash": "7b77bc3293499f97ed65acf51929319b448af1b0cc389d9b705449d0768a8cf7"
+      },
+      "historical_source_count_in_anti_degenerate": 0,
+      "public_rule": {
+        "scope": "same_parent_and_session_comparison_domain",
+        "key_set_hash": "7b77bc3293499f97ed65acf51929319b448af1b0cc389d9b705449d0768a8cf7",
+        "count": 2,
+        "rule": "Already evaluated mechanism families are repairable repeats, regardless of score; renaming and numeric-only variants do not confer novelty."
+      }
+    }
+  ],
+  "identity_source_files_unchanged_from_a07": {
+    "src/true_rl_agent/candidates/authoring_policy.py": "038dce885ac95d3dd2f3bfb5ac80d290648e9ff9277c95df797027e5f0530c9f",
+    "src/true_rl_agent/candidates/component_source_semantics.py": "963f3c7385f9e08a7a99b72e3499f27bcc4e55266a3e155b42d5fd2d2924d3f5",
+    "src/true_rl_agent/candidates/sibling_exclusion.py": "4e831614c0e0f4e13881b730e6f862f72a3c87818b4839810bf7c719f32b0ac4"
+  },
+  "repaired_product_source_sha256": {
+    "src/true_rl_agent/agent_core/exploration.py": "f8186e72df46aa66a4d3606c0104e4936bc7880148c0aca5d56fec98a46e900f",
+    "src/true_rl_agent/agent_core/generation_lanes.py": "b02f09b9b45b453028d89a51bf789b7d1d755bb621f570b12191fe4e8ce28b70",
+    "src/true_rl_agent/agent_core/authoring_loop.py": "b4495703efe30a36b8e062ba44d95926223ef94bd3d2746c8e0bf00a1ce1e090",
+    "src/true_rl_agent/prompting/authoring_frame.py": "428b010c8651e04038ab73a760f18dd9c7ad173cedc0d71e4ec00d85696cd65b"
+  },
+  "validation": {
+    "unittest_command": ".venv/Scripts/python.exe -m unittest tests.unit.test_candidate_authoring_loop tests.unit.test_exploration_frontier tests.unit.test_prompt_projection_and_mechanism tests.integration.test_fixed_width_generation -q",
+    "tests": 101,
+    "failures": 0,
+    "errors": 0,
+    "exit_code": 0,
+    "ruff": "check --select F,E9: PASS for four product and three directly related test files"
+  },
+  "limits": [
+    "Equivalence is the existing verifier-defined normalized component family, not arbitrary mathematical equality.",
+    "This is source admission validation, not a replacement for a new five-generation experiment.",
+    "A07 was stopped after the invalid Gen3B candidate started training. No claim of completed Gen3B evaluation or accepted-head contamination is made."
+  ]
+}

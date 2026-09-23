@@ -1,0 +1,119 @@
+{
+  "status": "PASS",
+  "checked_at_unix": 1789115175.3731499,
+  "purpose": "Saved real provider candidate on final admission; no new API request, training, or scientific acceptance",
+  "candidate_source_checksum": "sha256:5625ab8f745f0baa0ee72ff946a1229762f3fe9a607837d7ef2c8a70dd747074",
+  "source_bytes_unchanged": true,
+  "authoring": {
+    "status": "pass",
+    "reason": "static_candidate_verifier_passed",
+    "details": {
+      "derived_change_set": [
+        "reward_callable"
+      ],
+      "verification_policy_id": "true_rl_agent.static_candidate_verifier.pure_function.v2",
+      "verification_policy_hash": "17e48a15617337729f47783f32d7b8940b4b25d06ef8632ee0e486c05e3add74",
+      "candidate_package_contract_hash": "ea177ecd60812c8c3da7de62f594c1673e1dc7878e162e01fb25596255f6d785"
+    },
+    "verified_program_identity": {
+      "candidate_id": "stair_goal_progress_ascent_v1",
+      "subject_manifest_hash": "76fce3290148dcdf6e92117e3be06afabb051e83777b1e326cc8f0e79e6ada39",
+      "program_source_checksum": "sha256:5625ab8f745f0baa0ee72ff946a1229762f3fe9a607837d7ef2c8a70dd747074",
+      "program_source_size_bytes": 5867,
+      "candidate_artifact_hash": null
+    }
+  },
+  "execution_admission": {
+    "status": "pass",
+    "reason": "stair_candidate_admission_passed",
+    "details": {
+      "derived_change_set": [
+        "reward_callable"
+      ],
+      "verification_policy_id": "true_rl_agent.stair_climbing.complete_reward_admission.v1",
+      "verification_policy_hash": "a14259d5662fefe6daf99bd0d4f71b984ed1b321df9484b3b3cebbd1b4bc4c3f",
+      "capability_ids": [
+        "complete_reward_program"
+      ],
+      "static_verification_hash": "133ada7136c8e6897b7ec2b93ccc92bc10bff40c91a90f1a58acd1120b7f0555",
+      "task_qualification": {
+        "schema_version": "true_rl_agent.task.stair_climbing.candidate_qualification.v1",
+        "status": "pass",
+        "reason": "stair_candidate_reward_program_qualified",
+        "qualification": {
+          "schema_version": "true_rl_agent.task.stair_climbing.qualified_reward_program.v1",
+          "subject": {
+            "schema_version": "true_rl_agent.experiment.subject.v2",
+            "kind": "candidate",
+            "id": "stair_goal_progress_ascent_v1"
+          },
+          "subject_manifest_hash": "76fce3290148dcdf6e92117e3be06afabb051e83777b1e326cc8f0e79e6ada39",
+          "program_source_checksum": "sha256:5625ab8f745f0baa0ee72ff946a1229762f3fe9a607837d7ef2c8a70dd747074",
+          "program_source_size_bytes": 5867,
+          "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+          "static_verifier_policy_hash": "310e04b305b2744a1ea62a6d5416e993905bdff401ffd33187fa1028bc402275",
+          "term_names": [
+            "track_lin_vel_xy_exp",
+            "track_ang_vel_z_exp",
+            "ang_vel_xy_l2",
+            "flat_orientation_l2",
+            "dof_torques_l2",
+            "dof_acc_l2",
+            "action_rate_l2",
+            "feet_air_time",
+            "goal_progress"
+          ],
+          "qualification_hash": "3bf72cd3024dc24531473aed675f49921c73afecc0e39dd9eaed3b6c9322cfcb"
+        },
+        "determinism": {
+          "schema_version": "true_rl_agent.task.stair_climbing.reward_determinism.v1",
+          "status": "pass",
+          "repeat_count": 2,
+          "term_names": [
+            "track_lin_vel_xy_exp",
+            "track_ang_vel_z_exp",
+            "ang_vel_xy_l2",
+            "flat_orientation_l2",
+            "dof_torques_l2",
+            "dof_acc_l2",
+            "action_rate_l2",
+            "feet_air_time",
+            "goal_progress"
+          ]
+        },
+        "environment_axis": {
+          "schema_version": "true_rl_agent.task.stair_climbing.reward_environment_axis.v1",
+          "status": "pass",
+          "reverse_permutation_checks": 9,
+          "single_row_locality_checks": 9,
+          "term_names": [
+            "track_lin_vel_xy_exp",
+            "track_ang_vel_z_exp",
+            "ang_vel_xy_l2",
+            "flat_orientation_l2",
+            "dof_torques_l2",
+            "dof_acc_l2",
+            "action_rate_l2",
+            "feet_air_time",
+            "goal_progress"
+          ]
+        },
+        "smoke_fixture_hash": "d24deec0be15bf6e307af4a2bf13ca90bb02586086357b62db767f652342473c"
+      }
+    },
+    "verified_program_identity": {
+      "candidate_id": "stair_goal_progress_ascent_v1",
+      "subject_manifest_hash": "76fce3290148dcdf6e92117e3be06afabb051e83777b1e326cc8f0e79e6ada39",
+      "program_source_checksum": "sha256:5625ab8f745f0baa0ee72ff946a1229762f3fe9a607837d7ef2c8a70dd747074",
+      "program_source_size_bytes": 5867,
+      "candidate_artifact_hash": "b11d6d8c79e5816624c488e1a86fd12027d92fb02ebea0fb72250f3c825ce7cb"
+    },
+    "execution_authorization": {
+      "schema_version": "true_rl_agent.candidate_execution_authorization.v1",
+      "admission_policy_id": "true_rl_agent.stair_climbing.complete_reward_admission.v1",
+      "admission_policy_hash": "a14259d5662fefe6daf99bd0d4f71b984ed1b321df9484b3b3cebbd1b4bc4c3f",
+      "payload_schema_version": "true_rl_agent.task.stair_climbing.candidate_execution_authorization.v1",
+      "authorization_hash": "f30e837b97cfec268a03492d8a04459c1bff3d37e4e528164f01583c23cabac9"
+    }
+  }
+}

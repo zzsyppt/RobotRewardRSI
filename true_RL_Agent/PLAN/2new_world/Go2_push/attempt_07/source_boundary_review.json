@@ -1,0 +1,236 @@
+{
+  "status": "PASS_SOURCE_BOUNDARY_REVIEW",
+  "audited_at_utc": "2026-09-23T05:55:43.779438+00:00",
+  "scope": "Three actual product changes relative to frozen A06 zip, LF-normalized diff, independent old/new replay on nine A06 candidate sources, current-parent dev projection and bounded targeted tests. No provider, training or simulation calls.",
+  "a06_archive_sha256": "fd9c6435c8c1386b7adb3df504fb2aea24ed9b2a16ceaa1530a0ec3045c63d4f",
+  "product_changes": [
+    {
+      "path": "src/true_rl_agent/candidates/component_source_semantics.py",
+      "before_sha256_normalized_lf": "f030e8ea651af69a2efad607a5d5dd62725e1315ff12fb30155eaa2d1e2033bb",
+      "after_sha256_normalized_lf": "963f3c7385f9e08a7a99b72e3499f27bcc4e55266a3e155b42d5fd2d2924d3f5",
+      "after_sha256_bytes": "963f3c7385f9e08a7a99b72e3499f27bcc4e55266a3e155b42d5fd2d2924d3f5",
+      "modified_top_level_functions": [
+        "_admission_parameter_match"
+      ],
+      "added_top_level_functions": [
+        "_admission_additive_reward_family"
+      ],
+      "deleted_top_level_functions": []
+    },
+    {
+      "path": "src/true_rl_agent/prompting/authoring_frame.py",
+      "before_sha256_normalized_lf": "202267c89a3276ba38abd5e909ea218287e4f8f8a9d798eb5851c4addd52d466",
+      "after_sha256_normalized_lf": "b3a0a938bec46df8c073ff6f1d9694b37ca7126e8e1a7c4a90fdafe7d5048780",
+      "after_sha256_bytes": "7ad261b36d2f6f5cffec00f7b45792674bb9f470a5c4160a3229c09f2e9425a8",
+      "modified_top_level_functions": [
+        "project_sections_for_authoring_frame"
+      ],
+      "added_top_level_functions": [],
+      "deleted_top_level_functions": []
+    },
+    {
+      "path": "src/true_rl_agent/tasks/push_recovery/prompt_adapter.py",
+      "before_sha256_normalized_lf": "33dc9897317b06d473bff9ceeab940a3350c68bc2cb9fc2748f43cf2da1c567e",
+      "after_sha256_normalized_lf": "af13790dee8becaa616ba95af3a09389bfb9374b1ab979e75bd72484de6eda2d",
+      "after_sha256_bytes": "f28a46f1759648ce1f3afc768a53057c963056933e6a07e392eab26993837f71",
+      "modified_top_level_functions": [
+        "_minimum_core_push_prompt_sections",
+        "_v2_feedback_summary",
+        "_feedback_source"
+      ],
+      "added_top_level_functions": [
+        "_accepted_feedback_source",
+        "_v2_reference_feedback",
+        "_v2_trial_feedback"
+      ],
+      "deleted_top_level_functions": []
+    }
+  ],
+  "admission": {
+    "ownership": "Shared task-neutral admission only; no robot/task branch, no evaluation or runtime reward mutation.",
+    "algorithm_boundary": "Inline single-assignment straight-line locals; split only additive literal scalar coefficients. Exactly max(x-k,0)=x-min(x,k) for literal k. Require one such rewrite before basis comparison. Unknown helpers/control flow are declined, not guessed.",
+    "false_positive_review": "Nonlinear atom interiors preserve thresholds, input fields, indices and tensor operations; state-dependent products stay opaque atoms. Existing normalization strips annotations before inline processing. No additional rejection of the eight actually trained A06 candidates.",
+    "limits": "This is a bounded admission family check, not a general mathematical equivalence proof. Exact AST atoms can miss other equivalent rewrites; no claim of universal semantic completeness.",
+    "old_replay": [
+      {
+        "trial_id": "go2-push-5rounds-20260923-a06-generation-001-lane-a",
+        "classification": "mechanism_delta_present",
+        "blocking": false,
+        "delta_hash": "935d8024c6b0a4da0ce80cc9ee945cdce448337973035ce682851cf94fc4f71b",
+        "recorded_delta_hash": "935d8024c6b0a4da0ce80cc9ee945cdce448337973035ce682851cf94fc4f71b"
+      },
+      {
+        "trial_id": "go2-push-5rounds-20260923-a06-generation-001-lane-b",
+        "classification": "mechanism_delta_present",
+        "blocking": false,
+        "delta_hash": "55abf63d2a40c837a5f9b9494a3e5c28c2745116c8f87f02eea2cfff2e757892",
+        "recorded_delta_hash": "55abf63d2a40c837a5f9b9494a3e5c28c2745116c8f87f02eea2cfff2e757892"
+      },
+      {
+        "trial_id": "go2-push-5rounds-20260923-a06-generation-002-lane-a",
+        "classification": "mechanism_delta_present",
+        "blocking": false,
+        "delta_hash": "8afb8b8576434ae4f1060a6d14e802b856984071832b0914c7c19c8cb649a2eb",
+        "recorded_delta_hash": "8afb8b8576434ae4f1060a6d14e802b856984071832b0914c7c19c8cb649a2eb"
+      },
+      {
+        "trial_id": "go2-push-5rounds-20260923-a06-generation-002-lane-b",
+        "classification": "mechanism_delta_present",
+        "blocking": false,
+        "delta_hash": "28ffc7436e477c8cab6a9f70e653c1ab3ab3a9aa2d1a2e4ebde5dff6cdd9601f",
+        "recorded_delta_hash": "28ffc7436e477c8cab6a9f70e653c1ab3ab3a9aa2d1a2e4ebde5dff6cdd9601f"
+      },
+      {
+        "trial_id": "go2-push-5rounds-20260923-a06-generation-003-lane-a",
+        "classification": "mechanism_delta_present",
+        "blocking": false,
+        "delta_hash": "c2f50b0615392c728bae72fc843c2c542cf9eb04e1cae7a52500384f3bc3debd",
+        "recorded_delta_hash": "c2f50b0615392c728bae72fc843c2c542cf9eb04e1cae7a52500384f3bc3debd"
+      },
+      {
+        "trial_id": "go2-push-5rounds-20260923-a06-generation-004-lane-a",
+        "classification": "mechanism_delta_present",
+        "blocking": false,
+        "delta_hash": "14b9b4938d6f8c960bfc3284a71a0edce087dfaa520bb9bf72740d0272d6039b",
+        "recorded_delta_hash": "14b9b4938d6f8c960bfc3284a71a0edce087dfaa520bb9bf72740d0272d6039b"
+      },
+      {
+        "trial_id": "go2-push-5rounds-20260923-a06-generation-004-lane-b",
+        "classification": "mechanism_delta_present",
+        "blocking": false,
+        "delta_hash": "552f0acaecc7abb29d4fc001bd16860eade8032ece3d01a03fcbba560091661d",
+        "recorded_delta_hash": "552f0acaecc7abb29d4fc001bd16860eade8032ece3d01a03fcbba560091661d"
+      },
+      {
+        "trial_id": "go2-push-5rounds-20260923-a06-generation-005-lane-a",
+        "classification": "mechanism_delta_present",
+        "blocking": false,
+        "delta_hash": "4773d724d6fd38dc0bb70d4eaff99598a55986d34e7302551c7c7dbd2a6167ae",
+        "recorded_delta_hash": "4773d724d6fd38dc0bb70d4eaff99598a55986d34e7302551c7c7dbd2a6167ae"
+      },
+      {
+        "trial_id": "go2-push-5rounds-20260923-a06-generation-005-lane-b",
+        "classification": "mechanism_delta_present",
+        "blocking": false,
+        "delta_hash": "c306a91354fed7c4adcc9ca5a9e5b795d186fa94d02ed93bb61d3395a4ebd69b",
+        "recorded_delta_hash": "c306a91354fed7c4adcc9ca5a9e5b795d186fa94d02ed93bb61d3395a4ebd69b"
+      }
+    ],
+    "new_replay": [
+      {
+        "trial_id": "go2-push-5rounds-20260923-a06-generation-001-lane-a",
+        "classification": "mechanism_delta_present",
+        "blocking": false,
+        "delta_hash": "935d8024c6b0a4da0ce80cc9ee945cdce448337973035ce682851cf94fc4f71b",
+        "recorded_delta_hash": "935d8024c6b0a4da0ce80cc9ee945cdce448337973035ce682851cf94fc4f71b"
+      },
+      {
+        "trial_id": "go2-push-5rounds-20260923-a06-generation-001-lane-b",
+        "classification": "mechanism_delta_present",
+        "blocking": false,
+        "delta_hash": "55abf63d2a40c837a5f9b9494a3e5c28c2745116c8f87f02eea2cfff2e757892",
+        "recorded_delta_hash": "55abf63d2a40c837a5f9b9494a3e5c28c2745116c8f87f02eea2cfff2e757892"
+      },
+      {
+        "trial_id": "go2-push-5rounds-20260923-a06-generation-002-lane-a",
+        "classification": "mechanism_delta_present",
+        "blocking": false,
+        "delta_hash": "8afb8b8576434ae4f1060a6d14e802b856984071832b0914c7c19c8cb649a2eb",
+        "recorded_delta_hash": "8afb8b8576434ae4f1060a6d14e802b856984071832b0914c7c19c8cb649a2eb"
+      },
+      {
+        "trial_id": "go2-push-5rounds-20260923-a06-generation-002-lane-b",
+        "classification": "mechanism_delta_present",
+        "blocking": false,
+        "delta_hash": "28ffc7436e477c8cab6a9f70e653c1ab3ab3a9aa2d1a2e4ebde5dff6cdd9601f",
+        "recorded_delta_hash": "28ffc7436e477c8cab6a9f70e653c1ab3ab3a9aa2d1a2e4ebde5dff6cdd9601f"
+      },
+      {
+        "trial_id": "go2-push-5rounds-20260923-a06-generation-003-lane-a",
+        "classification": "parameter_only_delta",
+        "blocking": true,
+        "delta_hash": "c2f50b0615392c728bae72fc843c2c542cf9eb04e1cae7a52500384f3bc3debd",
+        "recorded_delta_hash": "c2f50b0615392c728bae72fc843c2c542cf9eb04e1cae7a52500384f3bc3debd"
+      },
+      {
+        "trial_id": "go2-push-5rounds-20260923-a06-generation-004-lane-a",
+        "classification": "mechanism_delta_present",
+        "blocking": false,
+        "delta_hash": "14b9b4938d6f8c960bfc3284a71a0edce087dfaa520bb9bf72740d0272d6039b",
+        "recorded_delta_hash": "14b9b4938d6f8c960bfc3284a71a0edce087dfaa520bb9bf72740d0272d6039b"
+      },
+      {
+        "trial_id": "go2-push-5rounds-20260923-a06-generation-004-lane-b",
+        "classification": "mechanism_delta_present",
+        "blocking": false,
+        "delta_hash": "552f0acaecc7abb29d4fc001bd16860eade8032ece3d01a03fcbba560091661d",
+        "recorded_delta_hash": "552f0acaecc7abb29d4fc001bd16860eade8032ece3d01a03fcbba560091661d"
+      },
+      {
+        "trial_id": "go2-push-5rounds-20260923-a06-generation-005-lane-a",
+        "classification": "mechanism_delta_present",
+        "blocking": false,
+        "delta_hash": "4773d724d6fd38dc0bb70d4eaff99598a55986d34e7302551c7c7dbd2a6167ae",
+        "recorded_delta_hash": "4773d724d6fd38dc0bb70d4eaff99598a55986d34e7302551c7c7dbd2a6167ae"
+      },
+      {
+        "trial_id": "go2-push-5rounds-20260923-a06-generation-005-lane-b",
+        "classification": "mechanism_delta_present",
+        "blocking": false,
+        "delta_hash": "c306a91354fed7c4adcc9ca5a9e5b795d186fa94d02ed93bb61d3395a4ebd69b",
+        "recorded_delta_hash": "c306a91354fed7c4adcc9ca5a9e5b795d186fa94d02ed93bb61d3395a4ebd69b"
+      }
+    ],
+    "identity": "All nine canonical operation-delta hashes equal both frozen-code outputs and recorded A06 ledger values. Only admission classification of the known untrained Gen3A changes.",
+    "tests": {
+      "returncode": 0,
+      "test_names": [
+        "tests.unit.test_component_smoke_and_antidegenerate.ComponentSmokeAndAntiDegenerateTests.test_real_duplicate_tail_is_parameter_only_without_changing_identity",
+        "tests.unit.test_component_smoke_and_antidegenerate.ComponentSmokeAndAntiDegenerateTests.test_additive_tail_comparison_preserves_new_atoms"
+      ],
+      "output": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.578s\n\nOK",
+      "new_atoms_retained": [
+        "threshold",
+        "input",
+        "index",
+        "nonlinear tail",
+        "state-dependent coefficient"
+      ]
+    }
+  },
+  "prompt_boundaries": {
+    "current_parent": "Push task owns both dev projections. Accepted-source selection is extracted once within the task and reused by public/runtime feedback. Added parent table uses the accepted trial identity and its own public_dev; no memory aggregate, accept or sealed score is substituted.",
+    "independent_projection": {
+      "parent_score": 0.78125,
+      "parent_failure_counts": {
+        "fall_backward": 9,
+        "fall_side": 13,
+        "height_collapse": 16,
+        "not_recovered": 4,
+        "success_recovered": 150
+      },
+      "nonaccepted_score": 0.703125,
+      "source_ids_distinct": true,
+      "public_only_guard": "PASS"
+    },
+    "repair_sources": "authoring_frame changes retention of already-present public source_payloads only; current anchor selected by existing select_authoring_anchor_source, latest-nonaccepted uses existing logical ID. No filesystem/network/private artifact reader added. Syntax repair behavior unchanged.",
+    "existing_replay_receipt_hash": "1e46f814f4228bf94a6734214e262ae545aec409278ed04f886a7c0a22d8be60",
+    "existing_replay_product_hashes_match_current": true,
+    "existing_replay_scope": "Sibling agent production frame replay for actual Gen3/Gen5 repair payloads independently inspected; three existing sources retained, historical feedback unchanged. This review does not claim avoided future provider calls.",
+    "single_truth": "Both accepted-parent and nonaccepted tables pass through the same existing _v2_dev_summary whitelist; identities remain explicit and tables are distinct evidence subjects, not duplicate authorities."
+  },
+  "unchanged_boundaries": [
+    "No src file outside three listed files differs from A06 after LF normalization",
+    "No acceptance evaluator, protocol, robot profile, backend, runtime, seed or training-budget implementation changed",
+    "Source-snapshot execution identity is expected to change for A07; immutable A06 scientific evidence/delta hashes are not rewritten"
+  ],
+  "findings": [],
+  "a07_experiment_acceptance": "Not established by source review; requires fresh authorized five-generation run and terminal audit.",
+  "evidence_sha256": {
+    "attempt_07/a06_gen01_public_history.json": "d088057db98cb6b962b0bc9b19aa54083e0af1366454f7de381b36834a90c821",
+    "attempt_07/prompt_repairs_audit.json": "1e46f814f4228bf94a6734214e262ae545aec409278ed04f886a7c0a22d8be60",
+    "attempt_07/prompt_repairs_local_tests.json": "c1a0bfa770495bd9eb723b6dfea9defa33a3d2f4150414f4a697bdc6c8584bae",
+    "attempt_06/session/ledger.jsonl": "0b733babdcb15579c72af5d9344b4b7db433acfee55b855ffe1d910b1eacdf38",
+    "audit_script": "bb97923ff2768d51e762c9dbb4176aaf610c58762d97506fdab52e9dcca540ed"
+  }
+}

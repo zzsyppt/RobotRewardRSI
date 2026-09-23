@@ -1,0 +1,49 @@
+{
+  "rows": {
+    "go2": {
+      "variant": "stair.go2_12dof.unified_v3",
+      "suite": "0ceb7ad4f7bf0091e62808c2542aca5af3d7c83d61020b85c6ab5762c5b28997",
+      "fields": 39
+    },
+    "g1": {
+      "variant": "stair.g1_37dof.unified_v3",
+      "suite": "d78f19feeaeb8a7baf725e56acb178d7aaf58f8931f9b8e7e69ede9aa9aca73f",
+      "fields": 45
+    }
+  },
+  "real_evidence": [
+    {
+      "robot": "go2",
+      "n": 864,
+      "validation": {
+        "status": "pass"
+      },
+      "primary_counts": {
+        "base_orientation_instability": 22,
+        "forbidden_contact": 113,
+        "insufficient_clearance": 0,
+        "off_course": 4,
+        "slip": 0,
+        "success": 689,
+        "timeout": 36
+      }
+    },
+    {
+      "robot": "g1",
+      "n": 864,
+      "validation": {
+        "status": "pass"
+      },
+      "primary_counts": {
+        "base_orientation_instability": 0,
+        "forbidden_contact": 197,
+        "insufficient_clearance": 0,
+        "off_course": 21,
+        "slip": 0,
+        "success": 618,
+        "timeout": 28
+      }
+    }
+  ],
+  "written_cooccurrence_rows": 700
+}

@@ -1,0 +1,1 @@
+Only seed_index=1 cases here are admitted for final review. The four seed_index>1 cases skipped their original preceding rollouts and do not exactly reproduce the old numeric trajectories; use their videos_v3 replacements. See ../records/video_admission.json.

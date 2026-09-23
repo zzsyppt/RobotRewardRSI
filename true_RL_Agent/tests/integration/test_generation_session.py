@@ -175,19 +175,19 @@ class PushCandidateProvider(_FormalFixtureProvider):
             metadata={}), provider_usage=_provider_usage())
 
 
-def build_fixture_foundation(root, *, provider, cell, resume=False, pause=None, audit=False):
+def build_fixture_foundation(root, *, provider, cell, resume=False, pause=None, audit=False, max_generations=15):
     context = TaskCompositionContext(project_root=ROOT, output_dir=root / "session", read_only=resume)
     values = {**provider.cli_defaults(), "cell_variant_id": cell}
     composition = resolve_task_composition(provider=provider, values=values, context=context)
     final_plan = composition.task_plugin.prepare_final_confirmation(
         output_dir=context.output_dir, session_id=FORMAL_SESSION_ID,
-        required_closed_generations=15, resume_existing=resume)
+        required_closed_generations=max_generations, resume_existing=resume)
     values.update(mode="formal_generation_session", session_id=FORMAL_SESSION_ID,
-        max_generations=15, final_confirmation_plan=context.output_dir / "final_confirmation" / "plan.json")
+        max_generations=max_generations, final_confirmation_plan=context.output_dir / "final_confirmation" / "plan.json")
     composition = resolve_task_composition(provider=provider, values=values, context=context)
     work = composition.task_plugin.phased_evaluation_adapter().generation_workload(
         cell_manifest=composition.resolved_cell_manifest)
-    cost = fixture_cost(work)
+    cost = fixture_cost(work, max_generations=max_generations)
     cost = replace(cost, operation_reserves=tuple(replace(item,
         source_allocated_gpu_capacity_ns=50_000_000_000_000,
         source_output_bytes=100_000_000,
@@ -204,7 +204,7 @@ def build_fixture_foundation(root, *, provider, cell, resume=False, pause=None, 
         max_allocated_active_gpu_hours=cost.max_allocated_active_gpu_hours,
         max_simulated_control_steps=cost.max_simulated_control_steps, max_output_bytes=cost.max_output_bytes,
         nvidia_smi_executable=str(executable), resume_existing=resume,
-        pause_after_generation=pause, terminal_audit_only=audit)
+        pause_after_generation=pause, terminal_audit_only=audit, max_generations=max_generations)
     return prepare_generation_foundation(launch, composition=composition, source_commit="a" * 40,
         inventory=GPU_UUIDS, cost=cost, final_plan=final_plan,
         provider_policy={"max_attempts_per_lane": 3, "max_output_tokens": 2000,
@@ -212,7 +212,10 @@ def build_fixture_foundation(root, *, provider, cell, resume=False, pause=None, 
             "base_url": "https://fixture.invalid", "endpoint": "/chat/completions",
             "model": "fixture", "timeout_s": 30, "temperature": 0.6,
             "reasoning_mode": "adaptive", "reasoning_effort": "high",
-            "empty_final_reasoning_retry": True})
+            "empty_final_reasoning_retry": True,
+            "model_context": {"context_window_tokens": 16384, "max_output_tokens": 4096,
+                "tokenizer_count_source": "provider_usage_prompt_tokens",
+                "specification_source": "fixture model contract"}})
 
 
 class SharedGenerationSessionTests(unittest.TestCase):
@@ -300,11 +303,16 @@ class SharedGenerationSessionTests(unittest.TestCase):
         self._accepted_head_session(PushRecoveryCompositionProvider(), "push.g1_29dof.reference_v1",
                                     SharedPushRunner, PushCandidateProvider)
 
-    def _accepted_head_session(self, provider, cell, runner_type, candidate_provider):
+    def test_five_generation_session_finishes_and_replays_at_its_frozen_boundary(self):
+        self._accepted_head_session(PushRecoveryCompositionProvider(), "push.g1_29dof.reference_v1",
+                                    SharedPushRunner, PushCandidateProvider, max_generations=5)
+
+    def _accepted_head_session(self, provider, cell, runner_type, candidate_provider, *, max_generations=15):
         with tempfile.TemporaryDirectory() as directory, use_test_isaac_lab_execution_environment():
             root = Path(directory).resolve()
             (root / "provider.env").write_text("FIXTURE_KEY=fixture-only\n", encoding="utf-8")
-            foundation = build_fixture_foundation(root, provider=provider, cell=cell, pause=3)
+            foundation = build_fixture_foundation(root, provider=provider, cell=cell, pause=2,
+                                                   max_generations=max_generations)
             runner = runner_type(foundation=foundation)
             runner.scenario = "accepted"
             foundation = replace(foundation, runner=runner)
@@ -313,17 +321,20 @@ class SharedGenerationSessionTests(unittest.TestCase):
                     generation_runtime, "OpenAICompatibleCandidateProvider", candidate_provider):
                 paused = run_generation_session(foundation)
                 self.assertEqual(paused["status"], "paused")
+                self.assertEqual(paused["closed_generation_count"], 2)
                 first = load_ledger(foundation.config.output_dir / "ledger.jsonl")[0]
                 self.assertEqual(first["generation_outcome"], "accepted",
                     [trial["status_reason"] for trial in first["trials"]])
                 self.assertIsNone(first["early_rejection"])
-                resumed = build_fixture_foundation(root, provider=provider, cell=cell, resume=True)
+                resumed = build_fixture_foundation(root, provider=provider, cell=cell, resume=True,
+                                                  max_generations=max_generations)
                 resumed = replace(resumed, runner=runner)
                 report = run_generation_session(resumed)
             self.assertEqual(report["checks"]["status"], "PASS")
             self.assertEqual(report["current_best"]["anchor_kind"], "candidate")
-            self.assertEqual(report["closed_generation_count"], 15)
-            self.assertEqual(report["generation_outcomes"], {"accepted": 1, "paired_authoring_incomplete": 14})
+            self.assertEqual(report["closed_generation_count"], max_generations)
+            self.assertEqual(report["generation_outcomes"], {
+                "accepted": 1, "paired_authoring_incomplete": max_generations - 1})
             audit = replace(resumed, config=replace(resumed.config, terminal_audit_only=True))
             self.assertEqual(run_generation_session(audit), report)
 
@@ -371,8 +382,19 @@ class SharedGenerationSessionTests(unittest.TestCase):
             self.assertEqual(report["current_best"]["anchor_kind"], "reference")
             ledger_path = foundation.config.output_dir / "ledger.jsonl"
             before = ledger_path.read_bytes()
-            audit = replace(foundation, config=replace(foundation.config, resume_existing=True,
-                                                       terminal_audit_only=True))
+            # Re-enter real preparation after admission policy evolution. Reusing
+            # the old in-memory foundation would hide historical replay drift.
+            from true_rl_agent.agent_core import generation_preparation
+            original_hash = generation_preparation.canonical_json_hash
+            def changed_authoring_hash(value):
+                if isinstance(value, dict) and value.get("schema_version") == "true_rl_agent.generation_authoring_policy.v2":
+                    return original_hash({**value, "admission_revision": "next"})
+                return original_hash(value)
+            with patch.object(generation_preparation, "canonical_json_hash", changed_authoring_hash):
+                with self.assertRaises(FileExistsError):
+                    build_fixture_foundation(root, provider=provider, cell=cell, resume=True)
+                audit = build_fixture_foundation(root, provider=provider, cell=cell, resume=True, audit=True)
+            audit = replace(audit, runner=runner)
             with patch.object(generation_application, "build_generation_terminal_binding",
                               wraps=generation_application.build_generation_terminal_binding) as terminal_replay:
                 self.assertEqual(run_generation_session(audit), report)

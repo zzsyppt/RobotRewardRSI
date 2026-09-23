@@ -1,0 +1,56 @@
+{
+  "tests_wrapper_pid": 2738312,
+  "started_at_unix": 1789189067.6265802,
+  "preflights": {
+    "g1": {
+      "pid": 2738313,
+      "command": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/calibrate_push_reference_dev.py",
+        "--mode",
+        "preflight",
+        "--cell",
+        "push.g1_37dof.recovery_v2",
+        "--device",
+        "cuda:1",
+        "--output",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_calibration_preflight_20260912/g1",
+        "--checkpoint",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/g1/composition/runner/p6-stationary-v3-dev-g1/checkpoints/best.pt",
+        "--training-summary",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/g1/composition/runner/p6-stationary-v3-dev-g1/train/summary.json",
+        "--training-manifest",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/g1/composition/resolved_cell_manifest.json",
+        "--push-protocol-path",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/calibration_protocols_01/scale_1p5.json",
+        "--expected-protocol-sha256",
+        "sha256:4a42e33eebc2084e5d3e4acdd5736d437211efb3176abaf636791aaabaf7db9a"
+      ]
+    },
+    "go2": {
+      "pid": 2738314,
+      "command": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/calibrate_push_reference_dev.py",
+        "--mode",
+        "preflight",
+        "--cell",
+        "push.go2_12dof.recovery_v2",
+        "--device",
+        "cuda:0",
+        "--output",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_calibration_preflight_20260912/go2",
+        "--checkpoint",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/go2/composition/runner/p6-stationary-v3-dev-go2/checkpoints/best.pt",
+        "--training-summary",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/go2/composition/runner/p6-stationary-v3-dev-go2/train/summary.json",
+        "--training-manifest",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_stationary_v3_dev_20260912/go2/composition/resolved_cell_manifest.json",
+        "--push-protocol-path",
+        "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/calibration_protocols_01/scale_1p5.json",
+        "--expected-protocol-sha256",
+        "sha256:4a42e33eebc2084e5d3e4acdd5736d437211efb3176abaf636791aaabaf7db9a"
+      ]
+    }
+  }
+}

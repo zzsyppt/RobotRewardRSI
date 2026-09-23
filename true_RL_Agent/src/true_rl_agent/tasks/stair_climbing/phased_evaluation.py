@@ -88,6 +88,23 @@ def build_stair_eval_phase_summary(
         execution=execution,
         expected_seed_namespace=expected_seed_namespace,
     )
+    if execution.numeric_evidence is not None:
+        from true_rl_agent.runner.numeric_evidence import load_numeric_evidence_manifest
+        archive = load_numeric_evidence_manifest(execution.numeric_evidence)
+        expected = {
+            **identity.to_public_dict(),
+            "checkpoint_hash": execution.checkpoint_hash,
+            "evaluation_plan_hash": evaluation_plan_hash,
+            "evaluation_binding": evaluation_binding.to_public_dict(),
+            "seed_namespace": expected_seed_namespace,
+            "splits": [phase.value],
+            "environment_source_preflight": dict(execution.source_manifest_preflight),
+            "backend_execution_environment_verification": dict(execution.backend_execution_environment_verification),
+        }
+        if (phase is not EvaluationPhase.PUBLIC_DEV
+                or any(archive["identity"].get(key) != value for key, value in expected.items())
+                or archive["metadata"].get("summary") != task_evidence["summary"]):
+            raise ValueError("Stair numeric evidence execution binding mismatch")
     return {
         "schema_version": EVALUATION_PHASE_SUMMARY_SCHEMA_VERSION,
         **identity.to_public_dict(),
@@ -144,6 +161,7 @@ def build_stair_phase_task_evidence(
         "phase": phase.value,
         "execution_identity": execution.execution_identity(),
         "summary": canonical_summary,
+        **({"numeric_evidence": dict(execution.numeric_evidence)} if execution.numeric_evidence is not None else {}),
     }
 
 
@@ -690,7 +708,8 @@ def canonical_stair_phase_result_summary(
     expected_seed_namespace: str = STAIR_FORMAL_EVAL_NAMESPACE,
 ) -> dict[str, Any]:
     evidence = result.task_evidence
-    if set(evidence) != {"schema_version", "phase", "execution_identity", "summary"}:
+    required_fields = {"schema_version", "phase", "execution_identity", "summary"}
+    if set(evidence) not in (required_fields, required_fields | {"numeric_evidence"}):
         raise ValueError("Stair phase task evidence fields mismatch")
     if (
         evidence.get("schema_version") != STAIR_PHASE_EVIDENCE_SCHEMA_VERSION
@@ -698,6 +717,13 @@ def canonical_stair_phase_result_summary(
     ):
         raise ValueError("Stair phase task evidence identity mismatch")
     execution_identity = evidence.get("execution_identity")
+    if "numeric_evidence" in evidence:
+        from true_rl_agent.runner.numeric_evidence import validate_numeric_evidence_reference
+        if expected_phase is not EvaluationPhase.PUBLIC_DEV:
+            raise ValueError("Stair numeric evidence is public_dev-only")
+        # The producer bound the attachment before sealing this phase. Summary
+        # replay must not depend on that machine's attachment path remaining online.
+        validate_numeric_evidence_reference(evidence["numeric_evidence"])
     if not isinstance(execution_identity, Mapping):
         raise ValueError("Stair phase execution identity is invalid")
     expected_splits = [expected_phase.value]

@@ -1,0 +1,88 @@
+{
+  "schema_version": "go2_push.source_boundary_review.v1",
+  "status": "PASS_REVIEWED_SOURCE_BOUNDARIES_NOT_EXPERIMENT_GO",
+  "reviewed_at_utc": "2026-09-23T07:11:21.193485+00:00",
+  "reviewer": "a07_prompt_repairs independent read-only review",
+  "comparison_base": {
+    "source_commit": "5f13b475335b871a8aa458d667ece16763dd78f6",
+    "archive": ".tmp/go2_push_source_07.zip",
+    "archive_sha256": "5fcfc6fd1fb186bbc242b99b352d48cbee28ddfbbfec88738a2afb5b82e3a329"
+  },
+  "reviewed_files": [
+    {
+      "path": "src/true_rl_agent/agent_core/exploration.py",
+      "frozen_a07_sha256": "2363a74231469f85f122b1262e9b73488894db17b8f153e6b47670d640c35585",
+      "reviewed_sha256": "f8186e72df46aa66a4d3606c0104e4936bc7880148c0aca5d56fec98a46e900f"
+    },
+    {
+      "path": "src/true_rl_agent/agent_core/generation_lanes.py",
+      "frozen_a07_sha256": "c21a4460c06a9f849e743f4fb0bd4ac41b781d56205a2957151a2506398fae01",
+      "reviewed_sha256": "b02f09b9b45b453028d89a51bf789b7d1d755bb621f570b12191fe4e8ce28b70"
+    },
+    {
+      "path": "src/true_rl_agent/agent_core/authoring_loop.py",
+      "frozen_a07_sha256": "6e020c2d74ebb32ba55c61a1946f9579f525bdbdfa349bc4653fb986e7ded97c",
+      "reviewed_sha256": "b4495703efe30a36b8e062ba44d95926223ef94bd3d2746c8e0bf00a1ce1e090"
+    },
+    {
+      "path": "src/true_rl_agent/prompting/authoring_frame.py",
+      "frozen_a07_sha256": "7ad261b36d2f6f5cffec00f7b45792674bb9f470a5c4160a3229c09f2e9425a8",
+      "reviewed_sha256": "428b010c8651e04038ab73a760f18dd9c7ad173cedc0d71e4ec00d85696cd65b"
+    }
+  ],
+  "related_unchanged_boundary_sources": {
+    "src/true_rl_agent/agent_core/generation_runtime.py": "560fbf1ea8a0e073fa898f4b6c4b5246f261fad445cf712469c92a12868cbc3c",
+    "src/true_rl_agent/evaluation/acceptance_replay.py": "bc72fcf6d8fc7ca7a51391a07217f36a38b17af9b1e138c351df2106496fab8b",
+    "src/true_rl_agent/candidates/authoring_policy.py": "038dce885ac95d3dd2f3bfb5ac80d290648e9ff9277c95df797027e5f0530c9f"
+  },
+  "all_product_src_changes_relative_to_A07": [
+    "src/true_rl_agent/agent_core/authoring_loop.py",
+    "src/true_rl_agent/agent_core/exploration.py",
+    "src/true_rl_agent/agent_core/generation_lanes.py",
+    "src/true_rl_agent/prompting/authoring_frame.py"
+  ],
+  "checks": [
+    {
+      "boundary": "complete measured history independent of author prompt compression",
+      "status": "PASS",
+      "evidence": "generation_runtime.prepare_generation_inputs loads full ledger then generation_public_history calls project_public_history with explicit Genesis/protocol/epoch. acceptance_replay.project_public_history snapshots all records, replays identity and projects every entry. exploration.build_exploration_index appends cards for every history record/trial; frontier/prompt truncation occurs separately. evaluated_verifier_equivalence_keys iterates index.cards with same current parent, evidence tier public_dev/public_complete/formal and verified delta. No prompt history limit/source catalog/inline source dependency was introduced.",
+      "scope_limit": "Existing same-parent/session comparison boundary retained; untrained/verified-only trials do not enter evaluated set."
+    },
+    {
+      "boundary": "negative evidence retains original identity",
+      "status": "PASS",
+      "evidence": "Original blocked_keys/lane_intent verifier_equivalence_exclusion_set_hash validation block is byte-for-byte unchanged relative to frozen A07. Evaluated keys use a distinct constructor parameter/property/metadata. Negative dispositions and lane-intent keys are not rewritten.",
+      "dynamic": "Probe exercises one unrelated negative key plus actual evaluated family key; original negative tuple and lane intent remain unchanged."
+    },
+    {
+      "boundary": "one gate compares actual union and receipts bind that union",
+      "status": "PASS",
+      "evidence": "Removed historical exact-only comparison. Existing family comparison sees sorted union(negative,evaluated) once. Both fail/pass comparison branches hash historical_keys. Assessment separately records negative/evaluated hashes and matched exclusion_sources. evaluated_mechanism_families public metadata includes same_parent_and_session_comparison_domain,key_set_hash,count.",
+      "dynamic": "Real A07 weight-only candidate is rejected with historical inline-source path disabled, empty source history and a2-element union. Union/evaluated/negative hashes independently recomputed and match. Exclusion source is same_parent_evaluated, not negative_evidence; no historical_exact assessment remains."
+    },
+    {
+      "boundary": "direct and nested family repair retain comparison sources",
+      "status": "PASS",
+      "evidence": "Existing historical_comparison predicate now recognizes failure_category=historical_verifier_equivalent_repeat in immediate feedback or unresolved_candidate_repair. It retains the selected authoring anchor by digest plus latest_nonaccepted and latest_failed. Legacy exact stage still supported.",
+      "dynamic": "Production frame projection on actual A07 Gen3A repair payload retains3 exact original source bodies for direct and nested family feedback; ordinary syntax-only case retains only failed source. No source-fetch or private evidence release needed."
+    },
+    {
+      "boundary": "bounded prompts and frozen round anchor remain intact",
+      "status": "PASS",
+      "evidence": "No changes to prompt/source size limits, source request service, public guard, immutable round anchor, selected parent checksum, task feedback ownership or memory projection. Candidate comparison remains against round_authoring_anchor_prompt. New public metadata is bounded set hash/count/rule; full key list/code history is not inlined.",
+      "dynamic": "Frame source text totals14,622B for three-source repairs and5,164B for ordinary syntax; already-public bodies unchanged. This is projection-only verification, not a claim to have sent finalized provider prompts."
+    }
+  ],
+  "dynamic_probe": {
+    "path": "PLAN/2new_world/Go2_push/attempt_08/source_boundary_dynamic_probe.json",
+    "sha256": "c84cfad794734918b7f8cb548e543210e87e59ba4b257739a8893efad221afb9",
+    "status": "PASS",
+    "duration_scope": "One local fake-provider authoring flow using actual A07 sources plus three section-projection cases; no API calls or simulator workloads."
+  },
+  "findings": [],
+  "residual_limits": [
+    "Root/source agent own full regression, target-environment verification, source packaging and restart.",
+    "A07 remains NO_GO; this source review cannot retroactively validate its invalid Gen3B admission or count it as a completed five-round experiment.",
+    "No product files edited by this reviewer; signatures bind only the reviewed four file bytes listed above."
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "status": "PASS",
+  "checked_at_unix": 1789130879.0431108,
+  "tests": {
+    "replay_local": {
+      "sha256": "cd04440a07d0ca3c96b49c617a857329828facfddc6568e6ded1f80dc333ef7e",
+      "tests_run": 1611,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 19
+    },
+    "replay_target": {
+      "sha256": "af55a811de81ca5b9b9e0322428f6dd80666a98980e92943d7b7d527895ba507",
+      "tests_run": 1611,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    }
+  },
+  "source_status": "PASS",
+  "source_manifest_sha256": "cb571c766e5257561a429395b5a0748482d33d3a28599a55ee876d0f0671b9ce",
+  "p5_live_test_processes": [],
+  "lease_files": [
+    {
+      "name": "028d6f63aeed6f60252131318909e429e52f16337501960c8c2d8cf6295b4acb.lock",
+      "locked": false
+    },
+    {
+      "name": "3b93a5c76b648a2b40a6f3599b9b3ff58196f6d1787872f168c860ce91bdc0d2.lock",
+      "locked": false
+    },
+    {
+      "name": "a05046acbf95598780af3d439b8ab24f42c7c65832d3063fd68d45bb72900ac4.lock",
+      "locked": false
+    },
+    {
+      "name": "a57856084a9d0c880569edb124f01821dc1061b59385c12b951e2d6a5d6f0deb.lock",
+      "locked": false
+    }
+  ],
+  "gpu_compute_processes": [],
+  "historical_identity_files": [
+    {
+      "path": "outputs/formal_go2_stair_15round_20260901_83824cd/session_genesis.json",
+      "sha256": "c4f6fc287714f32be18f4e766ee5a3d76094fa26de4f1cfc2c7b612f748d4b00",
+      "unchanged": true
+    },
+    {
+      "path": "outputs/formal_go2_stair_15round_20260901_83824cd/ledger.jsonl",
+      "sha256": "6d366ea3a2be22d4f0715d092b405da7d99829ae4277808525ca842cb4c75efa",
+      "unchanged": true
+    }
+  ],
+  "provider_requests": 0,
+  "training_jobs": 0,
+  "note": "This follow-up only ran tests and readonly evidence replay. Existing non-P5 GPU workloads were observed, not stopped; persistent lease metadata was not rewritten."
+}

@@ -1,0 +1,37 @@
+Traceback (most recent call last):
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_04/src/true_rl_agent/runner/subprocess_runner.py", line 1270, in _execute_summary_job
+    self._validated_gpu_process_binding_from_summary(
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_04/src/true_rl_agent/runner/subprocess_runner.py", line 1376, in _validated_gpu_process_binding_from_summary
+    raise ValueError("unbound summary cannot claim a GPU process binding")
+ValueError: unbound summary cannot claim a GPU process binding
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_04/scripts/run_generation_session.py", line 145, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_04/scripts/run_generation_session.py", line 139, in main
+    result = run_generation_session(foundation)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_04/src/true_rl_agent/agent_core/generation_application.py", line 215, in run_generation_session
+    genesis = prepare_generation_genesis(foundation)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_04/src/true_rl_agent/agent_core/generation_runtime.py", line 50, in prepare_generation_genesis
+    genesis = prepare_session_genesis(output_dir=config.output_dir, session_id=config.session_id,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_04/src/true_rl_agent/agent_core/session_genesis.py", line 1643, in prepare_session_genesis
+    completed_reference_training, training_source_ref = _load_completed_reference_training(
+                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_04/src/true_rl_agent/agent_core/session_genesis.py", line 1315, in _load_completed_reference_training
+    recovered = runner.recover_completed_train(spec)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_04/src/true_rl_agent/runner/subprocess_runner.py", line 231, in recover_completed_train
+    return self._run_train_once(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_04/src/true_rl_agent/runner/subprocess_runner.py", line 260, in _run_train_once
+    completion = self._execute_summary_job(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/.tmp/go2_push_source_04/src/true_rl_agent/runner/subprocess_runner.py", line 1283, in _execute_summary_job
+    raise RunnerExecutionError(
+true_rl_agent.runner.base.RunnerExecutionError: go2-push-5rounds-20260922-a03-train: reusable train summary is invalid: unbound summary cannot claim a GPU process binding

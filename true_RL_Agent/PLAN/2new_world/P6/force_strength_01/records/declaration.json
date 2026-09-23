@@ -1,0 +1,170 @@
+{
+  "frozen_at_unix": 1790008976.72932,
+  "statistical_new_episodes": 384,
+  "training_jobs": 0,
+  "holdout_jobs": 0,
+  "definitions": {
+    "1p5": {
+      "base_seed": 42,
+      "body_name": "base",
+      "comparison_scope": "source_velocity_result_is_historical_different_mechanism",
+      "control_dt_s": 0.02,
+      "definition_hash": "3fe24c4699667864582fa1506f4ab1d370edc88a21364bbdc5396972a4ab3521",
+      "derived_seeds": [
+        10042,
+        10043,
+        10044
+      ],
+      "direct_torque_nm": [
+        0,
+        0,
+        0
+      ],
+      "dwell_steps": 16,
+      "envs_per_seed": 64,
+      "first_recovery_sample": "pulse_end_control_step_plus_one",
+      "force_rule": "force_scale * total_mass_kg * source_delta_v_world_mps / actual_pulse_duration_s",
+      "force_scale": 1.5,
+      "holdout_jobs": 0,
+      "is_global": true,
+      "mass_rule": "actual_all_robot_link_masses_sum_after_reset_per_environment",
+      "mechanism": "finite_world_horizontal_force_at_bound_base_link_com",
+      "physics_dt_s": 0.005,
+      "positions": null,
+      "provider_calls": 0,
+      "pulse_control_steps": 11,
+      "pulse_duration_s": 0.22,
+      "recovery_scope": "every_completed_pulse_independent_window_then_final_stable",
+      "robot": "go2",
+      "schema_version": "true_rl_agent.p6.external_force_diagnostic.v2",
+      "seed_count": 3,
+      "source_resolved_protocol_hash": "39f0d453a04e0c1a059395597b6a54aa3715dd739edd394b78f90641217f76e1",
+      "start_control_steps": [
+        51,
+        172
+      ],
+      "train_jobs": 0,
+      "wall_limit_s": 1800,
+      "window_steps": 81
+    },
+    "2p0": {
+      "base_seed": 42,
+      "body_name": "base",
+      "comparison_scope": "source_velocity_result_is_historical_different_mechanism",
+      "control_dt_s": 0.02,
+      "definition_hash": "b2649b6ff0d8fb5de04b7be52addf57d0c0a230c0d553a6e6f22f15ea30dcd16",
+      "derived_seeds": [
+        10042,
+        10043,
+        10044
+      ],
+      "direct_torque_nm": [
+        0,
+        0,
+        0
+      ],
+      "dwell_steps": 16,
+      "envs_per_seed": 64,
+      "first_recovery_sample": "pulse_end_control_step_plus_one",
+      "force_rule": "force_scale * total_mass_kg * source_delta_v_world_mps / actual_pulse_duration_s",
+      "force_scale": 2.0,
+      "holdout_jobs": 0,
+      "is_global": true,
+      "mass_rule": "actual_all_robot_link_masses_sum_after_reset_per_environment",
+      "mechanism": "finite_world_horizontal_force_at_bound_base_link_com",
+      "physics_dt_s": 0.005,
+      "positions": null,
+      "provider_calls": 0,
+      "pulse_control_steps": 11,
+      "pulse_duration_s": 0.22,
+      "recovery_scope": "every_completed_pulse_independent_window_then_final_stable",
+      "robot": "go2",
+      "schema_version": "true_rl_agent.p6.external_force_diagnostic.v2",
+      "seed_count": 3,
+      "source_resolved_protocol_hash": "39f0d453a04e0c1a059395597b6a54aa3715dd739edd394b78f90641217f76e1",
+      "start_control_steps": [
+        51,
+        172
+      ],
+      "train_jobs": 0,
+      "wall_limit_s": 1800,
+      "window_steps": 81
+    }
+  },
+  "protected_before": {
+    "D": {
+      "files": 37,
+      "checkpoints": 12
+    },
+    "G1": {
+      "files": 49,
+      "checkpoints": 13
+    },
+    "c6": {
+      "files": 1271,
+      "checkpoints": 71
+    }
+  },
+  "source_files": 373,
+  "scripts": {
+    "FORCE_STRENGTH_PLAN_ZH.md": "c24d14d01227e93ce401152d506773a999c9eb2f230268f3f653f9b2490f2536",
+    "push_sequence_scoring.py": "d5b27bcd37df35200614018ce261b7a521bd96b8f7dd7b4b1343195db2b31d16",
+    "run_owned_probe.py": "0f692d0ec27f50a8b4146a7fdbe69d3070cd98248be6ff92ffc265a049bcb3cd",
+    "test_push_force_scoring.py": "257a71b2c51bd7f49d7def9536212bccd03b84141d2c17f0ded91c28926c8a4c",
+    "push_force_probe.py": "6d81855b29ad2b030ae3512cf4051588aec9f4dc1ec9358f054da2f70eacfb92",
+    "push_force_scoring.py": "55cf95081dfff87fd6644145151e57efb9c29587a81f6cebdae6d113aae24d1e"
+  },
+  "commands": [
+    [
+      "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+      "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/run_owned_probe.py",
+      "--device",
+      "cuda:0",
+      "--output",
+      "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/force_strength_01/process_1p5",
+      "--timeout",
+      "1800",
+      "--",
+      "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+      "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/push_force_probe.py",
+      "--robot",
+      "go2",
+      "--mode",
+      "run",
+      "--output",
+      "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/force_strength_01/scale_1p5",
+      "--device",
+      "cuda:0",
+      "--force-scale",
+      "1.5",
+      "--expected-definition-hash",
+      "3fe24c4699667864582fa1506f4ab1d370edc88a21364bbdc5396972a4ab3521"
+    ],
+    [
+      "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+      "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/run_owned_probe.py",
+      "--device",
+      "cuda:0",
+      "--output",
+      "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/force_strength_01/process_2p0",
+      "--timeout",
+      "1800",
+      "--",
+      "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+      "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/push_force_probe.py",
+      "--robot",
+      "go2",
+      "--mode",
+      "run",
+      "--output",
+      "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/force_strength_01/scale_2p0",
+      "--device",
+      "cuda:0",
+      "--force-scale",
+      "2.0",
+      "--expected-definition-hash",
+      "b2649b6ff0d8fb5de04b7be52addf57d0c0a230c0d553a6e6f22f15ea30dcd16"
+    ]
+  ],
+  "plan_sha256": "c24d14d01227e93ce401152d506773a999c9eb2f230268f3f653f9b2490f2536"
+}

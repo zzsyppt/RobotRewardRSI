@@ -1,0 +1,258 @@
+{
+  "method": "Human-selected retrospective annotations. The script checks cited values and AST; these are not model judgments or held-out prediction labels.",
+  "push_reviews": [
+    {
+      "candidate_id": "push_recovery_nonsaturating_stance_v1",
+      "source_sha256": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+      "payload_sha256": "5119dae9f796c40a30d2fdadc7b031428b345885c02d46185860784365239293",
+      "strata": [],
+      "negatives": [],
+      "mechanism_quote": "The observed height_collapse_dominated outcome is exactly that shallow optimum",
+      "assessment_zh": "高度塌陷标签可核；低姿态局部最优及拉升不足是由奖励函数提出的解释，未观察到回合过程。",
+      "additional_claims": []
+    },
+    {
+      "candidate_id": "push_go2_recovery_gated_damping_v1",
+      "source_sha256": "bb3ae423e2f84d1a0aea017b323413582ceb125214d68798b5a0849f78b02fdd",
+      "payload_sha256": "b79a8ef749079b71a3de8dc4c25ac1d0e8924ce299f5d7d257bd39580548546c",
+      "strata": [],
+      "negatives": [],
+      "mechanism_quote": "an unconditional velocity penalty that is strongest exactly when the robot needs corrective motion after large pushes",
+      "assessment_zh": "high/repeated 较弱与高度塌陷可核；阻尼恰在纠正运动时最强及其抑制恢复的效果未获时序支持。",
+      "additional_claims": []
+    },
+    {
+      "candidate_id": "push_recovery_linear_tilt_ramp_v1",
+      "source_sha256": "31f2bc0b1787bcd77f85cd5ca62bcbd36a1b57e360f98234936a4bc166982d8b",
+      "payload_sha256": "21fb6e1fab35611fc17e04a6fd90dbff1612f54b17b7f5baca2cf636e594ceb6",
+      "strata": [],
+      "negatives": [],
+      "mechanism_quote": "consistent with a tilt branch that stays shallow until the lean has already run away",
+      "assessment_zh": "15侧倒/1前倒可核；6至15度是失守窗口、先倾斜失控再触发惩罚，仍是机制推断。",
+      "additional_claims": []
+    },
+    {
+      "candidate_id": "push_recovery_tilt_aware_stance_v2",
+      "source_sha256": "80a0f71379defc448b9040babd8a1a045b2d6f8f7c207361e15d65caeacaca58",
+      "payload_sha256": "acc8313e0c431393e8757a089086393188c42a73e90830c5201af81159b2aba7",
+      "strata": [],
+      "negatives": [],
+      "mechanism_quote": "the residual side falls occur when the base is both sunk and rolled",
+      "assessment_zh": "分数及失败计数可核；低高度与roll同时发生及其先后关系未在输入中提供。",
+      "additional_claims": []
+    },
+    {
+      "candidate_id": "push_recovery_rate_damped_v1",
+      "source_sha256": "2aa64e0b57a20a76595e41628dc732222f464402c204789a2896fbd3319055de",
+      "payload_sha256": "bcc6daecd6b54aa98bb56362772120d46ec66ee6ef10f2181523d9d872786dac",
+      "strata": [
+        [
+          "low",
+          "47/48"
+        ],
+        [
+          "medium",
+          "43/48"
+        ],
+        [
+          "high",
+          "37/48"
+        ],
+        [
+          "repeated",
+          "42/48"
+        ]
+      ],
+      "negatives": [
+        {
+          "candidate_id": "push_recovery_linear_tilt_ramp_v1",
+          "quoted_score": null,
+          "score_basis": []
+        },
+        {
+          "candidate_id": "push_recovery_tilt_aware_stance_v2",
+          "quoted_score": null,
+          "score_basis": []
+        },
+        {
+          "candidate_id": "push_go2_recovery_gated_damping_v1",
+          "quoted_score": null,
+          "score_basis": []
+        }
+      ],
+      "mechanism_quote": "the base dropping and rotating faster than the legs can replace support",
+      "assessment_zh": "计数、分层与负历史机制可核；下降/旋转相对换支撑速度没有观测证据。对前轮失败原因的解释仍待检验。",
+      "additional_claims": []
+    },
+    {
+      "candidate_id": "push_recovery_vel_damped_stance_v1",
+      "source_sha256": "da09ff5d4a0f618d5d86e49c59214478fb973305710d872e47a29f4337b8f30c",
+      "payload_sha256": "d27895befe5350b41ae976cbf1849b24057e03f4ea057e95ab07312e5a1b719b",
+      "strata": [],
+      "negatives": [
+        {
+          "candidate_id": "push_recovery_tilt_aware_stance_v2",
+          "quoted_score": "0.5521",
+          "score_basis": [
+            "/public_feedback_summary/latest_public_score"
+          ]
+        }
+      ],
+      "mechanism_quote": "the residual side falls are consistent with that unpenalized drift",
+      "assessment_zh": "前轮结果与拒绝可核；残余漂移导致侧倒、平滑gate绝不阻挡恢复，均未被过程事实证明。",
+      "additional_claims": []
+    },
+    {
+      "candidate_id": "push_recovery_side_braced_stance_v1",
+      "source_sha256": "c3a43ee3c713aa2918c39dca634cbc7cc711f6e07ea410e455e2b4b98cb5cd7f",
+      "payload_sha256": "6a450db9296ca754d56f11c2c4c08732a329921dc70e344411ebaaa75c71d4be",
+      "strata": [],
+      "negatives": [
+        {
+          "candidate_id": "push_recovery_tilt_aware_stance_v2",
+          "quoted_score": "0.5521",
+          "score_basis": [
+            "/public_feedback_summary/current_best/public_dev/score_stats/mean",
+            "/public_history/experiment_memory/experiments/1/trial_outcomes/1/5"
+          ]
+        },
+        {
+          "candidate_id": "push_recovery_vel_damped_stance_v1",
+          "quoted_score": "0.7656",
+          "score_basis": [
+            "/public_feedback_summary/latest_public_score"
+          ]
+        }
+      ],
+      "mechanism_quote": "Both failed because they perturbed the recovery transient or the near-goal signal rather than the lateral posture itself",
+      "assessment_zh": "两候选的负结果可核；because 后的失败原因超出了计数与结果差异。",
+      "additional_claims": [
+        {
+          "type": "negative_candidate_failure_count",
+          "quote": "32 side falls",
+          "pointer": "/public_feedback_summary/public_dev/failure_breakdown/counts/fall_side",
+          "value": 32,
+          "identity_pointer": "/public_feedback_summary/source_candidate_id",
+          "candidate_id": "push_recovery_vel_damped_stance_v1"
+        }
+      ]
+    },
+    {
+      "candidate_id": "push_recovery_lateral_brace_v1",
+      "source_sha256": "0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336",
+      "payload_sha256": "c04aaefd5b475947a2a4adf965274cd8855b7484106e520f712b5bd9a6649756",
+      "strata": [],
+      "negatives": [
+        {
+          "candidate_id": "push_recovery_tilt_aware_stance_v2",
+          "quoted_score": null,
+          "score_basis": []
+        },
+        {
+          "candidate_id": "push_recovery_vel_damped_stance_v1",
+          "quoted_score": null,
+          "score_basis": []
+        }
+      ],
+      "mechanism_quote": "a base that is tipping sideways can therefore accumulate roll and lateral drift at little extra cost",
+      "assessment_zh": "15侧倒/1前倒/3高度塌陷及历史拒绝可核；roll与横移过程未给出，且新增项的惩罚方向与实际符号相反。",
+      "additional_claims": []
+    },
+    {
+      "candidate_id": "push_recovery_roll_braced_stance_v2",
+      "source_sha256": "79baa37b5dcacd0591a20d849189c68ab7dc7b2e33b1e6b740f55c2ef5fe5398",
+      "payload_sha256": "b834948e4c1be7c137a51e04b4edfebfeafa237a3702f0a79cbfe0b3a4d4c1e4",
+      "strata": [
+        [
+          "high",
+          "37/48"
+        ],
+        [
+          "low",
+          "48/48"
+        ],
+        [
+          "medium",
+          "48/48"
+        ]
+      ],
+      "negatives": [
+        {
+          "candidate_id": "push_recovery_side_braced_stance_v1",
+          "quoted_score": "0.8385",
+          "score_basis": [
+            "/public_feedback_summary/latest_public_score"
+          ]
+        }
+      ],
+      "mechanism_quote": "a base tipping sideways under a strong push can accumulate large roll at only a linear cost",
+      "assessment_zh": "当前parent计数/分层及未选中sibling可核；大roll实际演化、线性项弱导致失败、绝不抑制其他恢复通道为推断。",
+      "additional_claims": []
+    },
+    {
+      "candidate_id": "push_recovery_lateral_tilt_decay_v1",
+      "source_sha256": "019090cb328b1e8eea37310feaf1226a3e0ad6e89e9758228970e874a40bd3b2",
+      "payload_sha256": "8bbf275cc2074531481e376988277cf90e23f21c4a171f43919fbe8b966fcb7a",
+      "strata": [
+        [
+          "high",
+          "37/48"
+        ],
+        [
+          "repeated",
+          "42/48"
+        ]
+      ],
+      "negatives": [
+        {
+          "candidate_id": "push_recovery_side_braced_stance_v1",
+          "quoted_score": "0.8385",
+          "score_basis": [
+            "/public_feedback_summary/latest_public_score"
+          ]
+        },
+        {
+          "candidate_id": "push_recovery_tilt_aware_stance_v2",
+          "quoted_score": null,
+          "score_basis": []
+        },
+        {
+          "candidate_id": "push_recovery_vel_damped_stance_v1",
+          "quoted_score": null,
+          "score_basis": []
+        }
+      ],
+      "mechanism_quote": "shortens the window in which a repeated-pulse sequence can re-topple a base that is still rolling",
+      "assessment_zh": "175成功/10侧倒/7未恢复及分层可核；侧倾增长/衰减、再次推倒时间窗与新项缩短窗口是未验证预测。",
+      "additional_claims": [
+        {
+          "type": "closed_count_table_zero",
+          "quote": "height_collapse and fall_forward vanished completely",
+          "pointer": "/public_feedback_summary/current_best/public_dev/failure_breakdown",
+          "basis": "exhaustive labelled counts close to total; these two outcomes have zero count in this saved evaluation",
+          "claim_limit": "zero observed events in this sample, not permanent elimination or a causal attribution",
+          "labels": [
+            "height_collapse",
+            "fall_forward"
+          ]
+        }
+      ]
+    }
+  ],
+  "source_semantic_review": {
+    "candidate_id": "push_recovery_lateral_brace_v1",
+    "settings": {
+      "weight": -1.0,
+      "clip_min": -2.0,
+      "clip_max": 0.0
+    },
+    "runtime_rule": "runtime_adapter.py:326-327 multiplies clipped value by effective_weight",
+    "activation_pointer": "/public_history/experiment_memory/experiments/3/candidate_components/0",
+    "finding": "rationale calls it a penalty/restoring slope; clipped nonpositive output times negative weight yields nonnegative reward",
+    "causal_claim": "no causal explanation of the score improvement is inferred",
+    "term_name": "lateral_brace",
+    "function_name": "lateral_brace",
+    "expected_return_expression": "-(roll_excess + 0.5 * lateral_speed)",
+    "consumer_candidate_id": "push_recovery_lateral_tilt_decay_v1"
+  }
+}

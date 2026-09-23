@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "/data/yuyangliu/AGENT/true_RL_Agent/scripts/qualify_reference.py", line 180, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/scripts/qualify_reference.py", line 170, in main
+    genesis = prepare(composition.runner, require_existing=False)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/scripts/qualify_reference.py", line 135, in prepare
+    return prepare_session_genesis(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/session_genesis.py", line 1766, in prepare_session_genesis
+    artifact = _create_reference_genesis(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/session_genesis.py", line 2256, in _create_reference_genesis
+    _validate_reference_train_result(jobs.train_spec, train_result)
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/session_genesis.py", line 2533, in _validate_reference_train_result
+    raise ValueError("reference train did not execute formal training")
+ValueError: reference train did not execute formal training

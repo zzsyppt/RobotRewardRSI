@@ -1,0 +1,387 @@
+{
+  "cells": [
+    {
+      "candidate_capability_ids": [
+        "diagnostic_term",
+        "reward_term",
+        "reward_weight_scale_schedule"
+      ],
+      "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+      "cell": "push.g1_37dof.recovery_v2",
+      "float32_stationary_rates": [
+        1.0,
+        0.75,
+        -3.75,
+        -8.75
+      ],
+      "full_program_fall_upper_bound_case_rates": [
+        -16.0,
+        -16.0,
+        -16.0,
+        -16.0
+      ],
+      "full_program_stable_rates": [
+        4.0,
+        4.0,
+        4.0,
+        4.0
+      ],
+      "joint_and_action_dimension": 37,
+      "old_stationary_rates_same_inputs": [
+        1.0,
+        0.8712729289072828,
+        1.0361485876900852e-06,
+        1.1526253250171552e-24
+      ],
+      "rotation_scores": [
+        0.75,
+        0.75,
+        0.75,
+        0.75
+      ],
+      "smoke": {
+        "advisory_reward_term_names": [],
+        "checked_diagnostics": 0,
+        "checked_reward_terms": 5,
+        "diagnostic_results": [],
+        "fixture_summary": {
+          "fixture_owner": "task_owned_push_recovery",
+          "num_actions": 37,
+          "num_envs": 4,
+          "num_joints": 37,
+          "purpose": "authoring_time_reward_callable_smoke_only"
+        },
+        "reason": "component_smoke_passed",
+        "reward_results": [
+          {
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "effective_max_abs_after_clip_and_weight": 2.9844404897873003,
+            "kind": "RewardTerm",
+            "name": "upright_height",
+            "observed_clip_saturation_count": 0,
+            "observed_raw_nonzero_count": 4,
+            "observed_sample_count": 4,
+            "observed_shape": [
+              4
+            ],
+            "raw_max_abs": 0.9948134965957668,
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "status": "pass"
+          },
+          {
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "effective_max_abs_after_clip_and_weight": 0.8622715419570726,
+            "kind": "RewardTerm",
+            "name": "stationary_v3",
+            "observed_clip_saturation_count": 0,
+            "observed_raw_nonzero_count": 4,
+            "observed_sample_count": 4,
+            "observed_shape": [
+              4
+            ],
+            "raw_max_abs": 0.8622715419570726,
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "status": "pass"
+          },
+          {
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "effective_max_abs_after_clip_and_weight": 0.30400000000000005,
+            "kind": "RewardTerm",
+            "name": "joint_pose",
+            "observed_clip_saturation_count": 0,
+            "observed_raw_nonzero_count": 4,
+            "observed_sample_count": 4,
+            "observed_shape": [
+              4
+            ],
+            "raw_max_abs": 3.04,
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "status": "pass"
+          },
+          {
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "effective_max_abs_after_clip_and_weight": 0.0076,
+            "kind": "RewardTerm",
+            "name": "action_rate",
+            "observed_clip_saturation_count": 0,
+            "observed_raw_nonzero_count": 4,
+            "observed_sample_count": 4,
+            "observed_shape": [
+              4
+            ],
+            "raw_max_abs": 0.76,
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "status": "pass"
+          },
+          {
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "effective_max_abs_after_clip_and_weight": 20.0,
+            "kind": "RewardTerm",
+            "name": "fall",
+            "observed_clip_saturation_count": 0,
+            "observed_raw_nonzero_count": 1,
+            "observed_sample_count": 4,
+            "observed_shape": [
+              4
+            ],
+            "raw_max_abs": 1.0,
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "status": "pass"
+          }
+        ],
+        "schema_version": "true_rl_agent.component_smoke_result.v2",
+        "status": "pass",
+        "task_id": "unitree_push_recovery"
+      },
+      "speed_multiples_of_gate": [
+        0.0,
+        1.0,
+        10.0,
+        20.0
+      ],
+      "stationary_rates": [
+        1.0,
+        0.75,
+        -3.75,
+        -8.75
+      ],
+      "torch_behavior_checks": {
+        "fall_total_below_stable_and_nonpositive": true,
+        "float32_finite_monotonic_and_matches_formula": true,
+        "high_speed_tail_distinguishes_10x_and_20x": true,
+        "other_four_outputs_identical": true,
+        "outputs_finite_correct_shape": true,
+        "requested_piecewise_formula_equal": true,
+        "rotation_same_norm_same_score": true,
+        "zero_above_gate_above_high_speed": true
+      }
+    },
+    {
+      "candidate_capability_ids": [
+        "diagnostic_term",
+        "reward_term",
+        "reward_weight_scale_schedule"
+      ],
+      "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+      "cell": "push.go2_12dof.recovery_v2",
+      "float32_stationary_rates": [
+        1.0,
+        0.75,
+        -3.75,
+        -8.75
+      ],
+      "full_program_fall_upper_bound_case_rates": [
+        -16.0,
+        -16.0,
+        -16.0,
+        -16.0
+      ],
+      "full_program_stable_rates": [
+        4.0,
+        4.0,
+        4.0,
+        4.0
+      ],
+      "joint_and_action_dimension": 12,
+      "old_stationary_rates_same_inputs": [
+        1.0,
+        0.8712729289072828,
+        1.0361485876900852e-06,
+        1.1526253250171552e-24
+      ],
+      "rotation_scores": [
+        0.75,
+        0.75,
+        0.75,
+        0.75
+      ],
+      "smoke": {
+        "advisory_reward_term_names": [],
+        "checked_diagnostics": 0,
+        "checked_reward_terms": 5,
+        "diagnostic_results": [],
+        "fixture_summary": {
+          "fixture_owner": "task_owned_push_recovery",
+          "num_actions": 12,
+          "num_envs": 4,
+          "num_joints": 12,
+          "purpose": "authoring_time_reward_callable_smoke_only"
+        },
+        "reason": "component_smoke_passed",
+        "reward_results": [
+          {
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "effective_max_abs_after_clip_and_weight": 2.9844404897873003,
+            "kind": "RewardTerm",
+            "name": "upright_height",
+            "observed_clip_saturation_count": 0,
+            "observed_raw_nonzero_count": 4,
+            "observed_sample_count": 4,
+            "observed_shape": [
+              4
+            ],
+            "raw_max_abs": 0.9948134965957668,
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "status": "pass"
+          },
+          {
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "effective_max_abs_after_clip_and_weight": 0.7704204480385113,
+            "kind": "RewardTerm",
+            "name": "stationary_v3",
+            "observed_clip_saturation_count": 0,
+            "observed_raw_nonzero_count": 4,
+            "observed_sample_count": 4,
+            "observed_shape": [
+              4
+            ],
+            "raw_max_abs": 0.7704204480385113,
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "status": "pass"
+          },
+          {
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "effective_max_abs_after_clip_and_weight": 0.03466666666666667,
+            "kind": "RewardTerm",
+            "name": "joint_pose",
+            "observed_clip_saturation_count": 0,
+            "observed_raw_nonzero_count": 4,
+            "observed_sample_count": 4,
+            "observed_shape": [
+              4
+            ],
+            "raw_max_abs": 0.3466666666666667,
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "status": "pass"
+          },
+          {
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "effective_max_abs_after_clip_and_weight": 0.0008666666666666667,
+            "kind": "RewardTerm",
+            "name": "action_rate",
+            "observed_clip_saturation_count": 0,
+            "observed_raw_nonzero_count": 4,
+            "observed_sample_count": 4,
+            "observed_shape": [
+              4
+            ],
+            "raw_max_abs": 0.08666666666666667,
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "status": "pass"
+          },
+          {
+            "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+            "effective_max_abs_after_clip_and_weight": 20.0,
+            "kind": "RewardTerm",
+            "name": "fall",
+            "observed_clip_saturation_count": 0,
+            "observed_raw_nonzero_count": 1,
+            "observed_sample_count": 4,
+            "observed_shape": [
+              4
+            ],
+            "raw_max_abs": 1.0,
+            "reason": "reward_callable_returned_finite_expected_shape",
+            "status": "pass"
+          }
+        ],
+        "schema_version": "true_rl_agent.component_smoke_result.v2",
+        "status": "pass",
+        "task_id": "unitree_push_recovery"
+      },
+      "speed_multiples_of_gate": [
+        0.0,
+        1.0,
+        10.0,
+        20.0
+      ],
+      "stationary_rates": [
+        1.0,
+        0.75,
+        -3.75,
+        -8.75
+      ],
+      "torch_behavior_checks": {
+        "fall_total_below_stable_and_nonpositive": true,
+        "float32_finite_monotonic_and_matches_formula": true,
+        "high_speed_tail_distinguishes_10x_and_20x": true,
+        "other_four_outputs_identical": true,
+        "outputs_finite_correct_shape": true,
+        "requested_piecewise_formula_equal": true,
+        "rotation_same_norm_same_score": true,
+        "zero_above_gate_above_high_speed": true
+      }
+    }
+  ],
+  "container_format_change": {
+    "development": "list",
+    "original": "tuple",
+    "reason": "Existing static verifier requires reward_terms to be a list; term order and weights are unchanged."
+  },
+  "effectiveness": "Unmeasured development hypothesis; no claim of root-cause repair, learnability, recovery, or episode-return incentive alignment.",
+  "eval_jobs": 0,
+  "instantaneous_fall_rate_bound": {
+    "maximum_when_terminated_non_timeout": -16.0,
+    "reason": "upright_height <= 1, stationary_v3 <= 1, joint/action penalties <= 0, fall weight = -20",
+    "scope": "Single control-step weighted reward rate only. This does not establish that deliberate falling cannot improve full-episode or discounted return.",
+    "stable": 4.0
+  },
+  "original_source_path": "src/true_rl_agent/tasks/push_recovery/reference_programs/standing_recovery_v2/training_code/components.py",
+  "original_source_sha256": "sha256:f5b0faee114283ab96056cacbd37b346f797d53984daf6c18f52e13cbbd2506e",
+  "provider_requests": 0,
+  "qualification_status": "not_qualified_development_hypothesis",
+  "reference_manifest": {
+    "authorship_origin": "llm_generated",
+    "capability_profile_hash": "05385bf399db4494b43313490f7a298b605b5b84b34cfd4f3403d547157f534d",
+    "entrypoint": "training_code.components:build_training_components",
+    "manifest_hash": "3ba402e052a8fce86a0f5a83a7ac5e39889a717011b083b602e1351aa04c3dc6",
+    "reference_id": "push_standing_recovery_stationary_reference_v3",
+    "schema_version": "true_rl_agent.reference_program_manifest.v1",
+    "source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+    "source_path": "training_code/components.py",
+    "source_size_bytes": 1846,
+    "source_uri": "artifact://reference-program/43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d/training_code/components.py",
+    "task_id": "unitree_push_recovery",
+    "upstream_project": "true_RL_Agent",
+    "upstream_revision": "standing_recovery_v2_stationary_only_v3",
+    "upstream_source_path": "PLAN/2new_world/P6/dev_reference_stationary_v3/training_code/components.py"
+  },
+  "reference_verification_hash": "cb574fa59cd69ed61107f6132655d976d5336633832724a43f8cfd3d9f954ed7",
+  "report_hash": "693b257d1041bc1a318a36402305b6502f1881a0e86a71868867ef538f083ff1",
+  "schema_version": "true_rl_agent.p6.dev_reference_stationary_v3_cpu_validation.v1",
+  "scope": "Static verifier, task-owned isolated smoke and Torch CPU behavior only; no training, evaluation, GPU, provider or qualification.",
+  "source_path": "PLAN/2new_world/P6/dev_reference_stationary_v3/training_code/components.py",
+  "source_sha256": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+  "static_verifier": {
+    "policy": {
+      "capability_ids": [],
+      "policy_hash": "17e48a15617337729f47783f32d7b8940b4b25d06ef8632ee0e486c05e3add74",
+      "policy_id": "true_rl_agent.static_candidate_verifier.pure_function.v2"
+    },
+    "reason": "static_candidate_verifier_passed",
+    "status": "pass"
+  },
+  "status": "pass",
+  "structural_checks": {
+    "complete_five_term_program": true,
+    "imports_unchanged": true,
+    "no_diagnostics_or_schedules_added": true,
+    "only_stationary_term_id_changed": true,
+    "original_source_bytes_and_mtime_unchanged": true,
+    "other_four_function_sources_identical": true,
+    "reference_id_independent": true,
+    "weights_and_clips_unchanged": true
+  },
+  "tensor_operations": [
+    "square",
+    "sum(dim=1)",
+    "sqrt",
+    "clamp(max=1)",
+    "slicing",
+    "scalar arithmetic"
+  ],
+  "torch_device": "cpu",
+  "torch_version": "2.11.0+cpu",
+  "train_jobs": 0,
+  "validated_at_utc": "2026-09-12T03:48:01.994711+00:00"
+}

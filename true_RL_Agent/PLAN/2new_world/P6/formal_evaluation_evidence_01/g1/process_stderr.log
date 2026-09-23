@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/data/yuyangliu/AGENT/true_RL_Agent/scripts/qualify_reference.py", line 365, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/scripts/qualify_reference.py", line 353, in main
+    genesis = prepare(composition.runner, require_existing=False)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/scripts/qualify_reference.py", line 310, in prepare
+    return prepare_session_genesis(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/session_genesis.py", line 1783, in prepare_session_genesis
+    artifact = _create_reference_genesis(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/agent_core/session_genesis.py", line 2318, in _create_reference_genesis
+    raise ValueError("reference program failed the task-owned capability gate")
+ValueError: reference program failed the task-owned capability gate

@@ -16,11 +16,6 @@ from true_rl_agent.candidates.artifact import (
 from true_rl_agent.candidates.capability_readiness import (
     COMPLETE_REWARD_PROGRAM_CAPABILITY_ID,
 )
-from true_rl_agent.candidates.component_source_semantics import (
-    SingleComponentDeltaComparisonUnavailable,
-    project_canonical_reward_term_sources,
-    project_single_component_operation_delta,
-)
 from true_rl_agent.candidates.isolated_worker import (
     IsolatedWorkerProtocolError,
     IsolatedWorkerStartupError,
@@ -76,7 +71,7 @@ STAIR_CANDIDATE_ADMISSION_POLICY_ID = (
     "true_rl_agent.stair_climbing.complete_reward_admission.v1"
 )
 STAIR_CANDIDATE_ADMISSION_POLICY_SCHEMA_VERSION = (
-    "true_rl_agent.task.stair_climbing.candidate_admission_policy.v4"
+    "true_rl_agent.task.stair_climbing.candidate_admission_policy.v5"
 )
 STAIR_CANDIDATE_EXECUTION_AUTHORIZATION_SCHEMA_VERSION = (
     "true_rl_agent.task.stair_climbing.candidate_execution_authorization.v1"
@@ -197,7 +192,8 @@ class StairCandidateAdmissionPolicy(CandidateVerifier):
         )
 
     def authoring_prompt_rules(self) -> Mapping[str, Any]:
-        return self.static_verifier.authoring_prompt_rules()
+        return {**self.static_verifier.authoring_prompt_rules(),
+                "reward_research_scope": "One structural reward mechanism; numeric-only modifications and numeric-only renames require repair."}
 
     def verify_authoring_delta(
         self,
@@ -209,7 +205,7 @@ class StairCandidateAdmissionPolicy(CandidateVerifier):
         if verification.status != "pass":
             return verification
         try:
-            candidate_source = _verified_mutable_candidate_source(
+            _verified_mutable_candidate_source(
                 candidate,
                 verification,
             )
@@ -222,18 +218,6 @@ class StairCandidateAdmissionPolicy(CandidateVerifier):
                     + type(exc).__name__
                 ),
             )
-        if parent_source is not None:
-            duplicate_issue = _duplicate_parent_reward_term_issue(
-                candidate_source=candidate_source,
-                parent_source=parent_source,
-            )
-            if duplicate_issue is not None:
-                return _authoring_verification_failure(
-                    verification,
-                    reason="stair_candidate_authoring_delta_invalid",
-                    issue=duplicate_issue,
-                )
-
         with tempfile.TemporaryDirectory(
             prefix=".stair-authoring-admission-"
         ) as artifact_root:
@@ -881,56 +865,6 @@ def _verified_mutable_candidate_source(
     ):
         raise ValueError("candidate program identity changed after static verification")
     return source_bytes.decode("utf-8-sig")
-
-
-def _duplicate_parent_reward_term_issue(
-    *,
-    candidate_source: str,
-    parent_source: str,
-) -> str | None:
-    try:
-        operation = project_single_component_operation_delta(
-            candidate_source=candidate_source,
-            anchor_source=parent_source,
-        )
-    except SingleComponentDeltaComparisonUnavailable:
-        return None
-    if operation.get("operation") != "add":
-        return None
-    after = operation.get("after_component")
-    if not isinstance(after, Mapping):
-        return None
-    mechanism_id = after.get("mechanism_id")
-    if not isinstance(mechanism_id, str) or not mechanism_id.startswith(
-        "RewardTerm:"
-    ):
-        return None
-    candidate_terms = project_canonical_reward_term_sources(candidate_source)
-    parent_terms = project_canonical_reward_term_sources(parent_source)
-    if candidate_terms is None or parent_terms is None:
-        return None
-    added = next(
-        (term for term in candidate_terms if term.mechanism_id == mechanism_id),
-        None,
-    )
-    if added is None:
-        return None
-    duplicate = next(
-        (
-            term
-            for term in parent_terms
-            if term.structure_signature == added.structure_signature
-        ),
-        None,
-    )
-    if duplicate is None:
-        return None
-    return (
-        "duplicate_parent_reward_term:"
-        + mechanism_id.removeprefix("RewardTerm:")
-        + ":matches="
-        + duplicate.mechanism_id.removeprefix("RewardTerm:")
-    )
 
 
 def _authoring_verification_failure(

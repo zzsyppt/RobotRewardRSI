@@ -251,6 +251,7 @@ class PromptSourceCatalogTests(unittest.TestCase):
                 "memory/best_observed/training_code/components.py",
                 "examples/known_good_reward_terms.py",
                 "attempt/latest_failed/training_code/components.py",
+                "memory/latest_nonaccepted/training_code/components.py",
             ],
         )
         for item in catalog["items"]:
@@ -360,7 +361,7 @@ class PromptSourceCatalogTests(unittest.TestCase):
         self.assertNotIn("/secrets/", text)
         self.assertNotIn(str(latest_dir), text)
         self.assertNotIn(str(old_dir), text)
-        self.assertNotIn('"path"', json.dumps(payload["public_context"], sort_keys=True))
+        self.assertNotIn('"path"', json.dumps(payload, sort_keys=True))
         assert_public_only_prompt_payload(payload)
 
     def test_contradictory_accept_does_not_become_current_best_lineage(self) -> None:
@@ -669,7 +670,7 @@ class PromptSourceCatalogTests(unittest.TestCase):
         self.assertEqual(payload["source_payloads"], [])
         assert_public_only_prompt_payload(payload)
 
-    def test_latest_runtime_failed_record_exposes_failed_source_without_public_path(self) -> None:
+    def test_untrained_runtime_failure_is_not_historical_training_feedback(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             candidate_dir = Path(tmp) / "candidate-runtime-failed"
             (candidate_dir / "training_code").mkdir(parents=True)
@@ -732,16 +733,14 @@ class PromptSourceCatalogTests(unittest.TestCase):
 
             payload = build_prompt_payload(public_context=build_prompt_source_context([record]))
 
-        failed_item = _catalog_item(payload, "attempt/latest_failed/training_code/components.py")
-        failed_payload = payload["source_payloads"][0]
+        failed_item = _catalog_item(payload, "memory/latest_nonaccepted/training_code/components.py")
         text = json.dumps(payload, sort_keys=True)
 
         self.assertEqual(payload["candidate_lineage"]["status"], "none")
-        self.assertEqual(failed_item["status"], "inline")
-        self.assertEqual(failed_payload["logical_id"], "attempt/latest_failed/training_code/components.py")
-        self.assertIn("runtime_failed_reward", failed_payload["content"])
+        self.assertEqual(failed_item["status"], "pending")
+        self.assertEqual(payload["source_payloads"], [])
         self.assertNotIn(str(candidate_dir), text)
-        self.assertNotIn('"path"', json.dumps(payload["public_context"], sort_keys=True))
+        self.assertNotIn('"path"', json.dumps(payload, sort_keys=True))
         assert_public_only_prompt_payload(payload)
 
     def test_cross_round_mutable_failed_directory_is_not_a_source_authority(
@@ -821,7 +820,7 @@ class PromptSourceCatalogTests(unittest.TestCase):
 
         failed_item = _catalog_item(
             payload,
-            "attempt/latest_failed/training_code/components.py",
+            "memory/latest_nonaccepted/training_code/components.py",
         )
         failed_payload = payload["source_payloads"][0]
         payload_text = json.dumps(payload, sort_keys=True)
@@ -888,7 +887,7 @@ class PromptSourceCatalogTests(unittest.TestCase):
 
         failed_item = _catalog_item(
             prompt,
-            "attempt/latest_failed/training_code/components.py",
+            "memory/latest_nonaccepted/training_code/components.py",
         )
         self.assertEqual(
             failed_item["source_owner"],
@@ -955,7 +954,7 @@ class PromptSourceCatalogTests(unittest.TestCase):
             set(payloads),
             {
                 "memory/best_observed/training_code/components.py",
-                "attempt/latest_failed/training_code/components.py",
+                "memory/latest_nonaccepted/training_code/components.py",
             },
         )
         self.assertIn(
@@ -967,14 +966,14 @@ class PromptSourceCatalogTests(unittest.TestCase):
         self.assertIn(
             "worse_reward",
             payloads[
-                "attempt/latest_failed/training_code/components.py"
+                "memory/latest_nonaccepted/training_code/components.py"
             ]["content"],
         )
         self.assertNotEqual(
             payloads["memory/best_observed/training_code/components.py"][
                 "content_sha256"
             ],
-            payloads["attempt/latest_failed/training_code/components.py"][
+            payloads["memory/latest_nonaccepted/training_code/components.py"][
                 "content_sha256"
             ],
         )
@@ -1026,7 +1025,7 @@ class PromptSourceCatalogTests(unittest.TestCase):
         )
         self.assertIn(
             "worse_reward",
-            payloads["attempt/latest_failed/training_code/components.py"][
+            payloads["memory/latest_nonaccepted/training_code/components.py"][
                 "content"
             ],
         )
@@ -1210,7 +1209,7 @@ class PromptSourceCatalogTests(unittest.TestCase):
             set(payloads),
             {
                 "current_best/training_code/components.py",
-                "attempt/latest_failed/training_code/components.py",
+                "memory/latest_nonaccepted/training_code/components.py",
             },
         )
         self.assertIn(
@@ -1220,7 +1219,7 @@ class PromptSourceCatalogTests(unittest.TestCase):
         self.assertIn(
             "0.5 * inp.pitch",
             payloads[
-                "attempt/latest_failed/training_code/components.py"
+                "memory/latest_nonaccepted/training_code/components.py"
             ]["content"],
         )
         assert_public_only_prompt_payload(payload)
@@ -1561,7 +1560,7 @@ class PromptSourceCatalogTests(unittest.TestCase):
                         [ExperimentRecord.from_ledger_record(record)]
                     )
                     logical_id = (
-                        "attempt/latest_failed/training_code/components.py"
+                        "memory/latest_nonaccepted/training_code/components.py"
                     )
 
                 source = next(

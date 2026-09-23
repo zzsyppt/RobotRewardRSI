@@ -1,0 +1,335 @@
+{
+  "source_video": "PLAN/2new_world/P6/go2_pose_01/native/video/public_dev-01.mp4",
+  "source_video_sha256": "700cdc69b3549eef96b2d4105e1e8fa590d7e73c400e25c0bfb36c14f9179eef",
+  "source_recordings": "PLAN/2new_world/P6/go2_pose_01/native/video/recordings.json",
+  "source_recordings_sha256": "a8741dc278b4c414e52157b08b54c977172393e67b07c4cc248b7b297d59fd53",
+  "frame_path": "media/go2_native_frame_150.png",
+  "frame_sha256": "0ce000ee69202cd1121fe7754637dd5d605529dcd52b3bbc8921d257eb3b9ab5",
+  "frame_index_zero_based": 150,
+  "transform": "decode one original frame; no resize, crop, overlay or layout",
+  "episode_identity_source": "recordings.json recording public_dev-01; this is a diagnostic replay run",
+  "recordings": [
+    {
+      "camera_eye_offset": [
+        4.5,
+        -4.5,
+        3.0
+      ],
+      "camera_lookat_offset": [
+        0.8,
+        0.0,
+        0.0
+      ],
+      "control_dt_s": 0.02,
+      "encoder": "imageio_ffmpeg_raw_rgb",
+      "env_index": 32,
+      "episode_evidence_source": "pre_reset_task_state",
+      "episode_outcome": {
+        "control_failure_label": null,
+        "control_only": false,
+        "control_success": false,
+        "env_id": 32,
+        "episode_index": 1,
+        "episode_steps": 303,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.000812230515293777,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.11585137248039246,
+        "max_abs_roll_rad": 0.07926614582538605,
+        "max_pitch_rad": 0.0668647289276123,
+        "max_xy_drift_m": 0.4530494511127472,
+        "mean_action_l2": 16.92866098133251,
+        "mean_action_rate_l2": 0.5859251620352465,
+        "min_base_height_m": 0.3455657362937927,
+        "min_pitch_rad": -0.11585137248039246,
+        "planned_push_count": 1,
+        "push_event_count": 1,
+        "push_events": [
+          {
+            "control_step": 51,
+            "event_index": 0,
+            "injection_verified": true,
+            "observed_delta_v_world_mps": [
+              -1.2630226612091064,
+              1.5260320901870728
+            ],
+            "recovered": true,
+            "recovery_censored": false,
+            "recovery_control_step": 89,
+            "recovery_latency_s": 0.76,
+            "requested_delta_v_world_mps": [
+              -1.2630226612091064,
+              1.5260320901870728
+            ],
+            "time_s": 1.02,
+            "velocity_after_next_physics_step_world_6d": [
+              -1.1539260149002075,
+              1.4948092699050903,
+              0.0959291160106659,
+              0.6753238439559937,
+              0.8351628184318542,
+              0.1403617113828659
+            ],
+            "velocity_after_write_world_6d": [
+              -1.2617629766464233,
+              1.5335246324539185,
+              0.0006178868934512138,
+              0.010178711265325546,
+              0.01523156650364399,
+              -0.0049683693796396255
+            ],
+            "velocity_before_world_6d": [
+              0.0012597398599609733,
+              0.007492581382393837,
+              0.0006178868934512138,
+              0.010178711265325546,
+              0.01523156650364399,
+              -0.0049683693796396255
+            ]
+          }
+        ],
+        "recovered_event_count": 1,
+        "stratum": "high",
+        "success": true
+      },
+      "file": "public_dev-01.mp4",
+      "fps": 50.0,
+      "frame_count": 302,
+      "other_envs_visually_hidden": true,
+      "recording_status": "recorded",
+      "render_warmup_frames": 8,
+      "resolution": [
+        1280,
+        720
+      ],
+      "resolved_protocol_hash": "39f0d453a04e0c1a059395597b6a54aa3715dd739edd394b78f90641217f76e1",
+      "run_index": 1,
+      "seed": 10042,
+      "sha256": "700cdc69b3549eef96b2d4105e1e8fa590d7e73c400e25c0bfb36c14f9179eef",
+      "simulated_duration_s": 6.04,
+      "split": "public_dev",
+      "start_control_step": 1,
+      "starts_at_reset": false
+    },
+    {
+      "camera_eye_offset": [
+        4.5,
+        -4.5,
+        3.0
+      ],
+      "camera_lookat_offset": [
+        0.8,
+        0.0,
+        0.0
+      ],
+      "control_dt_s": 0.02,
+      "encoder": "imageio_ffmpeg_raw_rgb",
+      "env_index": 32,
+      "episode_evidence_source": "pre_reset_task_state",
+      "episode_outcome": {
+        "control_failure_label": null,
+        "control_only": false,
+        "control_success": false,
+        "env_id": 32,
+        "episode_index": 2,
+        "episode_steps": 303,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.0003172521246597171,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.044590119272470474,
+        "max_abs_roll_rad": 0.09103639423847198,
+        "max_pitch_rad": 0.044590119272470474,
+        "max_xy_drift_m": 0.33464479446411133,
+        "mean_action_l2": 16.974809199669966,
+        "mean_action_rate_l2": 0.40046165642565235,
+        "min_base_height_m": 0.38118240237236023,
+        "min_pitch_rad": -0.024318117648363113,
+        "planned_push_count": 1,
+        "push_event_count": 1,
+        "push_events": [
+          {
+            "control_step": 51,
+            "event_index": 0,
+            "injection_verified": true,
+            "observed_delta_v_world_mps": [
+              1.708682894706726,
+              1.0021989345550537
+            ],
+            "recovered": true,
+            "recovery_censored": false,
+            "recovery_control_step": 82,
+            "recovery_latency_s": 0.62,
+            "requested_delta_v_world_mps": [
+              1.708682894706726,
+              1.0021989345550537
+            ],
+            "time_s": 1.02,
+            "velocity_after_next_physics_step_world_6d": [
+              1.6922826766967773,
+              0.9601596593856812,
+              -0.12650719285011292,
+              0.2539874017238617,
+              -0.20801033079624176,
+              0.10357565432786942
+            ],
+            "velocity_after_write_world_6d": [
+              1.7007819414138794,
+              0.9980418682098389,
+              0.0018373534549027681,
+              -0.011157785542309284,
+              -0.0029227493796497583,
+              -0.00217161956243217
+            ],
+            "velocity_before_world_6d": [
+              -0.007900997065007687,
+              -0.004157084971666336,
+              0.0018373534549027681,
+              -0.011157785542309284,
+              -0.0029227493796497583,
+              -0.00217161956243217
+            ]
+          }
+        ],
+        "recovered_event_count": 1,
+        "stratum": "high",
+        "success": true
+      },
+      "file": "public_dev-02.mp4",
+      "fps": 50.0,
+      "frame_count": 302,
+      "other_envs_visually_hidden": true,
+      "recording_status": "recorded",
+      "render_warmup_frames": 8,
+      "resolution": [
+        1280,
+        720
+      ],
+      "resolved_protocol_hash": "39f0d453a04e0c1a059395597b6a54aa3715dd739edd394b78f90641217f76e1",
+      "run_index": 2,
+      "seed": 10043,
+      "sha256": "5db02702532f2cc4796bb22b5a09e9ee83b0f28911381fa8609268af793459ed",
+      "simulated_duration_s": 6.04,
+      "split": "public_dev",
+      "start_control_step": 1,
+      "starts_at_reset": false
+    },
+    {
+      "camera_eye_offset": [
+        4.5,
+        -4.5,
+        3.0
+      ],
+      "camera_lookat_offset": [
+        0.8,
+        0.0,
+        0.0
+      ],
+      "control_dt_s": 0.02,
+      "encoder": "imageio_ffmpeg_raw_rgb",
+      "env_index": 32,
+      "episode_evidence_source": "pre_reset_task_state",
+      "episode_outcome": {
+        "control_failure_label": null,
+        "control_only": false,
+        "control_success": false,
+        "env_id": 32,
+        "episode_index": 3,
+        "episode_steps": 303,
+        "failure_label": "success_recovered",
+        "final_planar_speed_mps": 0.0014556727837771177,
+        "final_recovery_condition": true,
+        "invalid_injection_count": 0,
+        "max_abs_pitch_rad": 0.08941511809825897,
+        "max_abs_roll_rad": 0.08802780508995056,
+        "max_pitch_rad": 0.033260226249694824,
+        "max_xy_drift_m": 0.49297598004341125,
+        "mean_action_l2": 16.954541499071784,
+        "mean_action_rate_l2": 0.47353849001843545,
+        "min_base_height_m": 0.32748374342918396,
+        "min_pitch_rad": -0.08941511809825897,
+        "planned_push_count": 1,
+        "push_event_count": 1,
+        "push_events": [
+          {
+            "control_step": 51,
+            "event_index": 0,
+            "injection_verified": true,
+            "observed_delta_v_world_mps": [
+              0.6180059909820557,
+              1.8820383548736572
+            ],
+            "recovered": true,
+            "recovery_censored": false,
+            "recovery_control_step": 86,
+            "recovery_latency_s": 0.7000000000000001,
+            "requested_delta_v_world_mps": [
+              0.6180059909820557,
+              1.8820383548736572
+            ],
+            "time_s": 1.02,
+            "velocity_after_next_physics_step_world_6d": [
+              0.5579425096511841,
+              1.843172311782837,
+              0.09166571497917175,
+              0.7532650828361511,
+              -1.1288701295852661,
+              0.05186539515852928
+            ],
+            "velocity_after_write_world_6d": [
+              0.6126721501350403,
+              1.8892544507980347,
+              0.0017153950175270438,
+              -0.005374199710786343,
+              0.012183750979602337,
+              -0.002263386268168688
+            ],
+            "velocity_before_world_6d": [
+              -0.005333864130079746,
+              0.007216077297925949,
+              0.0017153950175270438,
+              -0.005374199710786343,
+              0.012183750979602337,
+              -0.002263386268168688
+            ]
+          }
+        ],
+        "recovered_event_count": 1,
+        "stratum": "high",
+        "success": true
+      },
+      "file": "public_dev-03.mp4",
+      "fps": 50.0,
+      "frame_count": 302,
+      "other_envs_visually_hidden": true,
+      "recording_status": "recorded",
+      "render_warmup_frames": 8,
+      "resolution": [
+        1280,
+        720
+      ],
+      "resolved_protocol_hash": "39f0d453a04e0c1a059395597b6a54aa3715dd739edd394b78f90641217f76e1",
+      "run_index": 3,
+      "seed": 10044,
+      "sha256": "81f9572152e5a8ecc642059c5c7d39b8ab7c3eed596ab3c9fe33f4aade988054",
+      "simulated_duration_s": 6.04,
+      "split": "public_dev",
+      "start_control_step": 1,
+      "starts_at_reset": false
+    }
+  ],
+  "extraction_command": [
+    "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Lib\\site-packages\\imageio_ffmpeg\\binaries\\ffmpeg-win-x86_64-v7.1.exe",
+    "-v",
+    "error",
+    "-i",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\2new_world\\P6\\go2_pose_01\\native\\video\\public_dev-01.mp4",
+    "-vf",
+    "select=eq(n\\,150)",
+    "-frames:v",
+    "1",
+    "-y",
+    "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\P0\\media\\go2_native_frame_150.png"
+  ]
+}

@@ -1,0 +1,752 @@
+{
+  "status": "PASS_GEN02_COMPLETE_AUTHORING_PROMPT_PROVENANCE",
+  "audited_at_utc": "2026-09-23T07:44:14.743597+00:00",
+  "generation": 2,
+  "snapshot": ".tmp/go2_push_a08_live_06.zip",
+  "snapshot_sha256": "b8e87ff00933a57ae01dc4c2e3324cf42e22d67a93f07896bfeee821505d634d",
+  "frozen_source_commit": "f13ceb6660e01e5367f3a0961fca9a269737bf2c",
+  "frozen_source_archive_sha256": "e7a8275f8a3f981288ac9b9d1db2873c091de877ca0cbe6ba00efcc58d4aba1c",
+  "source_manifest_verified": true,
+  "accepted_head_source_checksum": "sha256:64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+  "evaluated_history_reconciliation": {
+    "scope": "same_parent_and_session_comparison_domain",
+    "current_head_hash": "c011cc5fa3ac6e6125e7d9e0cb4ee82f7cb7b11773e6114d94b568a5632f266f",
+    "prior_generation_count": 1,
+    "prior_trial_count": 2,
+    "eligible_trials": [],
+    "keys": [],
+    "count": 0,
+    "key_set_hash": "93af470f76fcae9ca4fe74dafd4f2b8a50c23dd6b53140d96aec7027db1af871"
+  },
+  "snapshot_files_checked": 21,
+  "feedback_trial": "go2-push-5rounds-20260923-a08-generation-001-lane-b",
+  "current_best_dev": {
+    "score": 0.8802083333333334,
+    "failure_counts": {
+      "fall_forward": 1,
+      "fall_side": 15,
+      "height_collapse": 3,
+      "success_recovered": 169,
+      "not_recovered": 4
+    },
+    "strata": {
+      "high": {
+        "episodes": 48,
+        "successes": 37
+      },
+      "low": {
+        "episodes": 48,
+        "successes": 47
+      },
+      "medium": {
+        "episodes": 48,
+        "successes": 43
+      },
+      "repeated": {
+        "episodes": 48,
+        "successes": 42
+      }
+    },
+    "recovery_counts": {
+      "completed_push_event_count": 238,
+      "control_episode_count": 0,
+      "control_success_count": 0,
+      "eligible_episode_count": 192,
+      "episodes": 192,
+      "invalid_injection_count": 0,
+      "planned_push_event_count": 240,
+      "push_event_count": 240,
+      "pushed_episode_count": 192,
+      "sequence_recovered_count": 169,
+      "success_count": 169,
+      "successes": 169,
+      "verified_push_event_count": 240
+    }
+  },
+  "detailed_feedback_dev": {
+    "score": 0.8489583333333334,
+    "failure_counts": {
+      "fall_side": 8,
+      "height_collapse": 13,
+      "not_recovered": 8,
+      "success_recovered": 163
+    },
+    "strata": {
+      "high": {
+        "episodes": 48,
+        "successes": 31
+      },
+      "low": {
+        "episodes": 48,
+        "successes": 48
+      },
+      "medium": {
+        "episodes": 48,
+        "successes": 45
+      },
+      "repeated": {
+        "episodes": 48,
+        "successes": 39
+      }
+    },
+    "recovery_counts": {
+      "completed_push_event_count": 239,
+      "control_episode_count": 0,
+      "control_success_count": 0,
+      "eligible_episode_count": 192,
+      "episodes": 192,
+      "invalid_injection_count": 0,
+      "planned_push_event_count": 240,
+      "push_event_count": 240,
+      "pushed_episode_count": 192,
+      "sequence_recovered_count": 165,
+      "success_count": 163,
+      "successes": 163,
+      "verified_push_event_count": 240
+    }
+  },
+  "lanes": [
+    {
+      "lane": "lane-a",
+      "prompts": [
+        {
+          "path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-a/authoring_attempts/attempt_000001/prompt_payload.json",
+          "sha256": "21fb6e1fab35611fc17e04a6fd90dbff1612f54b17b7f5baca2cf636e594ceb6",
+          "frame_kind": "candidate_draft",
+          "bytes": 63418,
+          "task_section_bytes": 20635,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+              "bytes": 4362,
+              "source": "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-001/lane-a/001_push_recovery_nonsaturating_stance_v1/training_code/components.py"
+            },
+            {
+              "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+              "sha256": "bb3ae423e2f84d1a0aea017b323413582ceb125214d68798b5a0849f78b02fdd",
+              "bytes": 3190,
+              "source": "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-001/lane-b/001_push_go2_recovery_gated_damping_v1/training_code/components.py"
+            }
+          ],
+          "evaluated_mechanism_families": null,
+          "long_string_duplicate_excess_bytes": 1221
+        }
+      ],
+      "attempt_results": [
+        {
+          "attempt": "attempt_000001",
+          "provider_status": "pass",
+          "provider_failure": null,
+          "verifier_status": "pass",
+          "stop_reason": "candidate_verified",
+          "repair_feedback": null,
+          "provider_usage": {
+            "reasoning_units": 17104,
+            "request_cache_hit_units": 5376,
+            "request_cache_miss_units": 11294,
+            "request_units": 16670,
+            "response_units": 18646,
+            "total_units": 35316
+          },
+          "source_request_count": 0,
+          "gate_audit": {
+            "recorded_assessments": {
+              "anti_degenerate_assessment": {
+                "blocking": false,
+                "candidate_authoring_anchor_available": true,
+                "candidate_source_sha256": "31f2bc0b1787bcd77f85cd5ca62bcbd36a1b57e360f98234936a4bc166982d8b",
+                "changed_mechanism_count": 1,
+                "changed_mechanisms": [
+                  "RewardTerm:upright_recovery->upright_recovery_linear_tilt"
+                ],
+                "classification": "mechanism_delta_present",
+                "compares_to": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+                "comparison_anchor": "current_best",
+                "comparison_scope": "authoring_anchor_and_evaluated_history",
+                "evaluated_history_source_count": 0,
+                "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+                "history_sources_with_anchor": 0,
+                "history_sources_without_anchor": 0,
+                "reason": "candidate_source_structure_differs_from_comparison_anchor",
+                "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+                "status": "pass",
+                "structural_comparison": "canonical_component_terms"
+              },
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 5,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_owner": "task_owned_push_recovery",
+                  "num_actions": 12,
+                  "num_envs": 4,
+                  "num_joints": 12,
+                  "purpose": "authoring_time_reward_callable_smoke_only"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 6.1575000286102295,
+                    "kind": "RewardTerm",
+                    "name": "upright_recovery_linear_tilt",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 2.052500009536743,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.7704204320907593,
+                    "kind": "RewardTerm",
+                    "name": "stationary_v3",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.7704204320907593,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.0346666693687439,
+                    "kind": "RewardTerm",
+                    "name": "joint_pose",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.34666669368743896,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.0008666667342185975,
+                    "kind": "RewardTerm",
+                    "name": "action_rate",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.08666667342185974,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 20.0,
+                    "kind": "RewardTerm",
+                    "name": "fall",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 1,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_push_recovery"
+              }
+            },
+            "blocking_assessments": [],
+            "candidate_family_key_from_actual_source": "38881adccf70b64ed6b78e26475f484f79da62b91734266b570fe72a94bad6cc",
+            "union_validation": "not_reached_or_empty",
+            "status": "PASS_AVAILABLE_GATE_EVIDENCE",
+            "pending_review": [],
+            "candidate_admitted": true
+          }
+        }
+      ],
+      "memory_bytes": 3465,
+      "memory_experiments": 1,
+      "memory_trial_rows": [
+        {
+          "generation": 1,
+          "lane": "a",
+          "candidate_id": "push_recovery_nonsaturating_stance_v1",
+          "operation": "rename",
+          "mechanism": "RewardTerm:upright_recovery",
+          "status": "accepted",
+          "public_dev_delta": 0.145833,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "formal_acceptance_passed"
+        },
+        {
+          "generation": 1,
+          "lane": "b",
+          "candidate_id": "push_go2_recovery_gated_damping_v1",
+          "operation": "rename",
+          "mechanism": "RewardTerm:recovery_damping",
+          "status": "qualified_not_selected",
+          "public_dev_delta": 0.114583,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "sibling_not_selected"
+        }
+      ]
+    },
+    {
+      "lane": "lane-b",
+      "prompts": [
+        {
+          "path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-b/authoring_attempts/attempt_000001/prompt_payload.json",
+          "sha256": "d567e13b0a9a0238a57eb6095359349c8569d1574f5ac15fb719e932bc21787b",
+          "frame_kind": "candidate_draft",
+          "bytes": 64123,
+          "task_section_bytes": 20635,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+              "bytes": 4362,
+              "source": "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-001/lane-a/001_push_recovery_nonsaturating_stance_v1/training_code/components.py"
+            },
+            {
+              "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+              "sha256": "bb3ae423e2f84d1a0aea017b323413582ceb125214d68798b5a0849f78b02fdd",
+              "bytes": 3190,
+              "source": "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-001/lane-b/001_push_go2_recovery_gated_damping_v1/training_code/components.py"
+            }
+          ],
+          "evaluated_mechanism_families": null,
+          "long_string_duplicate_excess_bytes": 1221
+        },
+        {
+          "path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-b/authoring_attempts/attempt_000002/prompt_payload.json",
+          "sha256": "acc8313e0c431393e8757a089086393188c42a73e90830c5201af81159b2aba7",
+          "frame_kind": "static_repair",
+          "bytes": 65751,
+          "task_section_bytes": 20635,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+              "bytes": 4362,
+              "source": "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-001/lane-a/001_push_recovery_nonsaturating_stance_v1/training_code/components.py"
+            },
+            {
+              "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+              "sha256": "bb3ae423e2f84d1a0aea017b323413582ceb125214d68798b5a0849f78b02fdd",
+              "bytes": 3190,
+              "source": "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-001/lane-b/001_push_go2_recovery_gated_damping_v1/training_code/components.py"
+            }
+          ],
+          "evaluated_mechanism_families": null,
+          "long_string_duplicate_excess_bytes": 1221
+        }
+      ],
+      "attempt_results": [
+        {
+          "attempt": "attempt_000001",
+          "provider_status": "fail",
+          "provider_failure": "reasoning_output_exhausted",
+          "verifier_status": null,
+          "stop_reason": null,
+          "repair_feedback": null,
+          "provider_usage": {
+            "reasoning_units": 32768,
+            "request_cache_hit_units": 14720,
+            "request_cache_miss_units": 2158,
+            "request_units": 16878,
+            "response_units": 32768,
+            "total_units": 49646
+          },
+          "source_request_count": 0,
+          "gate_audit": {
+            "recorded_assessments": {},
+            "blocking_assessments": [],
+            "candidate_family_key_from_actual_source": null,
+            "union_validation": "not_reached_or_empty",
+            "status": "PASS_AVAILABLE_GATE_EVIDENCE",
+            "pending_review": [],
+            "candidate_admitted": false
+          }
+        },
+        {
+          "attempt": "attempt_000002",
+          "provider_status": "pass",
+          "provider_failure": null,
+          "verifier_status": "pass",
+          "stop_reason": "candidate_verified",
+          "repair_feedback": null,
+          "provider_usage": {
+            "request_cache_hit_units": 5376,
+            "request_cache_miss_units": 11824,
+            "request_units": 17200,
+            "response_units": 1236,
+            "total_units": 18436
+          },
+          "source_request_count": 0,
+          "gate_audit": {
+            "recorded_assessments": {
+              "anti_degenerate_assessment": {
+                "blocking": false,
+                "candidate_authoring_anchor_available": true,
+                "candidate_source_sha256": "80a0f71379defc448b9040babd8a1a045b2d6f8f7c207361e15d65caeacaca58",
+                "changed_mechanism_count": 1,
+                "changed_mechanisms": [
+                  "RewardTerm:upright_recovery"
+                ],
+                "classification": "mechanism_delta_present",
+                "compares_to": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+                "comparison_anchor": "current_best",
+                "comparison_scope": "authoring_anchor_and_evaluated_history",
+                "evaluated_history_source_count": 0,
+                "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+                "history_sources_with_anchor": 0,
+                "history_sources_without_anchor": 0,
+                "reason": "candidate_source_structure_differs_from_comparison_anchor",
+                "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+                "status": "pass",
+                "structural_comparison": "canonical_component_terms"
+              },
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 5,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_owner": "task_owned_push_recovery",
+                  "num_actions": 12,
+                  "num_envs": 4,
+                  "num_joints": 12,
+                  "purpose": "authoring_time_reward_callable_smoke_only"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 6.1575000286102295,
+                    "kind": "RewardTerm",
+                    "name": "upright_recovery",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 2.052500009536743,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.7704204320907593,
+                    "kind": "RewardTerm",
+                    "name": "stationary_v3",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.7704204320907593,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.0346666693687439,
+                    "kind": "RewardTerm",
+                    "name": "joint_pose",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.34666669368743896,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.0008666667342185975,
+                    "kind": "RewardTerm",
+                    "name": "action_rate",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.08666667342185974,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 20.0,
+                    "kind": "RewardTerm",
+                    "name": "fall",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 1,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_push_recovery"
+              },
+              "sibling_semantic_exclusion_assessment": {
+                "blocking": false,
+                "equivalence": null,
+                "exclusion_hash": "dbf1e40e4127532384895742cf0bafe1aa632ce18949f040f74c1b7714bb699a",
+                "reason": "sibling_semantic_delta_distinct",
+                "schema_version": "true_rl_agent.sibling_semantic_exclusion_assessment.v1",
+                "status": "pass"
+              }
+            },
+            "blocking_assessments": [],
+            "candidate_family_key_from_actual_source": "1c99d43308fa4a320214b89159285e3ca5be2d31d182dcfbd08fb5e297cc001b",
+            "union_validation": "not_reached_or_empty",
+            "status": "PASS_AVAILABLE_GATE_EVIDENCE",
+            "pending_review": [],
+            "candidate_admitted": true
+          }
+        }
+      ],
+      "memory_bytes": 3465,
+      "memory_experiments": 1,
+      "memory_trial_rows": [
+        {
+          "generation": 1,
+          "lane": "a",
+          "candidate_id": "push_recovery_nonsaturating_stance_v1",
+          "operation": "rename",
+          "mechanism": "RewardTerm:upright_recovery",
+          "status": "accepted",
+          "public_dev_delta": 0.145833,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "formal_acceptance_passed"
+        },
+        {
+          "generation": 1,
+          "lane": "b",
+          "candidate_id": "push_go2_recovery_gated_damping_v1",
+          "operation": "rename",
+          "mechanism": "RewardTerm:recovery_damping",
+          "status": "qualified_not_selected",
+          "public_dev_delta": 0.114583,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "sibling_not_selected"
+        }
+      ]
+    }
+  ],
+  "initial_sibling_differing_sections": [
+    "required_candidate_package",
+    "authoring_context_frame"
+  ],
+  "F10_current_best_distinct_dev_checked": true,
+  "F11_actual_comparison_repairs": [],
+  "candidate_claims_for_readback": [
+    {
+      "lane": "lane-a",
+      "attempt": "attempt_000001",
+      "candidate_id": "push_recovery_linear_tilt_ramp_v1",
+      "source": "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-002/lane-a/001_push_recovery_linear_tilt_ramp_v1/training_code/components.py",
+      "source_checksum": "sha256:31f2bc0b1787bcd77f85cd5ca62bcbd36a1b57e360f98234936a4bc166982d8b",
+      "stop_reason": "candidate_verified",
+      "literal_rationales": [
+        "Closest prior program: push_recovery_nonsaturating_stance_v1, the accepted current-best anchor. Sole mechanism change: the tilt branch of the stance potential callable, renamed upright_recovery_linear_tilt; every other callable body, weight, sign, clip, and the empty schedule and diagnostic lists are preserved. The anchor scored tilt with u = clamp(roll*roll + pitch*pitch - 0.01, 0) and penalty 2*u + 2*u*u, so its tilt pull-back slope is 4*theta*(1 + 2*u) per radian: about 0.4 at the deadband edge and about 0.85 at 0.2 radians. That leaves the first 6 to 15 degrees of a lean almost free, exactly the window in which a lateral perturbation has to be arrested. The anchor's residual public-dev failures are dominated by sideways falls (15 fall_side against 1 fall_forward), consistent with a tilt branch that stays shallow until the lean has already run away, after which only the fall penalty remains. The replacement keeps the identical kernel shape and coefficients (2*x + 2*x*x) but applies them to the tilt-magnitude excess v = clamp(sqrt(roll*roll + pitch*pitch + 1e-6) - 0.1, 0) instead of to the squared-tilt excess u, which makes the tilt branch linear-dominant in the lean angle and mirrors the height branch the previous round already made linear-dominant for the same reason. The deadband is unchanged in value, since 0.1 radians is exactly the anchor's sqrt(0.01) tilt wall, and at 0.9 radians the two forms take the same value again, so the near-goal potential and the deep-lean magnitude are both preserved while the 0.1 to 0.9 radian ramp is strictly steeper. Concretely the slope becomes 2.0 + 4*v per radian, that is 2.0 versus 0.4 at the deadband edge and 2.4 versus 0.85 at 0.2 radians, and a 10 to 25 degree lean now costs about 0.5 to 2.7 weighted stance reward per step instead of about 0.13 to 1.3. The term weight, clip bounds, and the posture, action-rate, velocity-damping and fall terms are untouched, so the low and medium force strata that already recover keep their existing signal while the policy receives a graded early pull-back gradient for the leans that dominate the remaining failures."
+      ],
+      "public_input_fields": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "causal_or_mathematical_claims": "Pending independent source/evidence readback; verifier PASS is not proof.",
+      "undeclared_input_fields": []
+    },
+    {
+      "lane": "lane-b",
+      "attempt": "attempt_000002",
+      "candidate_id": "push_recovery_tilt_aware_stance_v2",
+      "source": "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-002/lane-b/002_push_recovery_tilt_aware_stance_v2/training_code/components.py",
+      "source_checksum": "sha256:80a0f71379defc448b9040babd8a1a045b2d6f8f7c207361e15d65caeacaca58",
+      "stop_reason": "candidate_verified",
+      "literal_rationales": [
+        "Closest prior program: push_recovery_nonsaturating_stance_v1, the accepted current best (public_dev mean 0.8802, dominant failure fall_dominated with 15 fall_side and 1 fall_forward). Sole mechanism change: the upright_recovery kernel gains a tilt-aware coupling term; every other term, weight, sign, clip, and the empty schedule and diagnostic lists are preserved. The anchor's kernel is 1 - (5*e + e*e + 2*u + 2*u*u) with e = clamp(abs(base_height_relative - 1) - 0.05, 0) and u = clamp(roll*roll + pitch*pitch - 0.01, 0). Its height and tilt branches are additive and independent, so a base that is simultaneously low and tilted receives the same slope as a base that is only low or only tilted; the residual side falls occur when the base is both sunk and rolled, where the anchor's pull-up slope is weakest relative to the destabilizing torque. The replacement adds 4*e*u to the penalty, so the gradient with respect to height grows with tilt and the gradient with respect to tilt grows with height. Near the goal (e = 0 or u = 0) the coupling vanishes and the value is identical to the anchor, so the low and medium strata that already recover keep the same signal. Far from the goal the coupling adds up to about 4 per unit of e*u, which at weight 3.0 roughly doubles the effective pull-up slope for a base that is both sunk and rolled, directly targeting the fall_side mode without changing the success definition."
+      ],
+      "public_input_fields": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "causal_or_mathematical_claims": "Pending independent source/evidence readback; verifier PASS is not proof.",
+      "undeclared_input_fields": []
+    }
+  ],
+  "public_boundaries": {
+    "private_paths_checked": 34,
+    "checkpoint_hashes_checked": 4,
+    "literal_hits": 0,
+    "public_only_guard": "PASS",
+    "task_receipt_recomputed": "PASS"
+  },
+  "audit_limits": [
+    "Snapshot only; missing attempt results remain in flight, not failures.",
+    "Source readback is needed to distinguish causal claims from measured facts; this script does not approve candidate mechanisms.",
+    "Checkpoint files are not downloaded/rehashed; no simulation visual inspection; no inferred seed leakage from numeric coincidences."
+  ],
+  "evidence_sha256": {
+    "PLAN/2new_world/Go2_push/source_snapshot_08.json": "bff645daff96c7afcdb71b46e8aa95cfcaef206499fe711bbe9d21e3cdbfa4b9",
+    "PLAN/2new_world/Go2_push/launch_08.json": "88ce667c229cda37c2e53281cbcb9245e4e39c2d5bcab57cb057813606493c6b",
+    "PLAN/2new_world/Go2_push/attempt_08/session/session_genesis.json": "15d54f658aa68263401f8e11fd5046ad5e3b181089fd05bb975144c9e953c837",
+    "PLAN/2new_world/Go2_push/attempt_08/session/reference_eval_artifact.json": "9310047437b4a1eaec79fb6047fbf55a8f08446edcf1237006e522624da96086",
+    "PLAN/2new_world/Go2_push/attempt_08/session/ledger.jsonl": "e652d3699dcf4a4fbe281b8203389d9bc1fbe46c1fd6f0d3cd312384d2ca79ac",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/eval/public_dev/summary.json": "5b571b1d26f768e6e4e2af17894cc1e1eafc800af6bd92f915df0dd7b17eb919",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-001-lane-b/eval/public_dev/summary.json": "2e2944c1f703759a1d590663ac419aabc660b7cb488bdffe11f5107e83033386",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08/eval/public_accept/summary.json": "d0fa6612026127c9dd32364e2dd14e9425aa88ab127b086a51a3fd75e08fd97e",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08/eval/public_dev/summary.json": "9792c53e8d55883a90fc03a31b407b54919d271a87cc05a2521461aa60067e1f",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08/eval/sealed_validation/summary.json": "1ec4b6d1773ff357056f40848ef3db1f03fd18f6ac4ae1fa0493434e1b7ed58e",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/eval/public_accept/summary.json": "a4f098d3681b0d1ecb5ef9ac1f2d6ecf03cb564abc1a10127c4c7f4252e18d9e",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/eval/sealed_validation/summary.json": "f090c7ea005afe513aa56ef278e20aca7a30ebad2470e12d6114296cfb9eed9d",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "21fb6e1fab35611fc17e04a6fd90dbff1612f54b17b7f5baca2cf636e594ceb6",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-001/lane-a/001_push_recovery_nonsaturating_stance_v1/training_code/components.py": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-001/lane-b/001_push_go2_recovery_gated_damping_v1/training_code/components.py": "bb3ae423e2f84d1a0aea017b323413582ceb125214d68798b5a0849f78b02fdd",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "5a6113cffe613deb559b0bcb46fbd1ad31304fdf6c8b03edd69d926f05f35244",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-002/lane-a/001_push_recovery_linear_tilt_ramp_v1/training_code/components.py": "31f2bc0b1787bcd77f85cd5ca62bcbd36a1b57e360f98234936a4bc166982d8b",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-001-lane-b/train/summary.json": "1fd866630c40caa6b4cafe4a2a0b71d847e4183c9cf947a4b3086d43d8569012",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-b/authoring_attempts/attempt_000001/prompt_payload.json": "d567e13b0a9a0238a57eb6095359349c8569d1574f5ac15fb719e932bc21787b",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "261f6be6395314a893e6b4b37b94795bf3c7439ea2fbcd33fad4adf0e7a8aa61",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-b/authoring_attempts/attempt_000002/prompt_payload.json": "acc8313e0c431393e8757a089086393188c42a73e90830c5201af81159b2aba7",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-b/authoring_attempts/attempt_000002/attempt_result.json": "bf33fd5eeccc051b86c29224aba87672fe2b53bcdee4c4042b24ed1ddfc6b726",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-002/lane-b/002_push_recovery_tilt_aware_stance_v2/training_code/components.py": "80a0f71379defc448b9040babd8a1a045b2d6f8f7c207361e15d65caeacaca58"
+  },
+  "provider_calls": 0,
+  "training_jobs": 0,
+  "evaluation_jobs": 0,
+  "prompt_provenance_status": "PASS_GEN02_COMPLETE_AUTHORING_PROMPT_PROVENANCE",
+  "pending_gate_readback": [],
+  "authoring_completion": {
+    "terminal_lanes": [
+      "lane-a",
+      "lane-b"
+    ],
+    "required_lanes": [
+      "lane-a",
+      "lane-b"
+    ],
+    "complete": true
+  },
+  "manual_reviews": [
+    {
+      "snapshot": ".tmp/go2_push_a08_live_05.zip",
+      "scope": "Gen2 lane A first prompt only in this snapshot; no A response or lane B artifact is present here.",
+      "findings": [
+        "Accepted parent is Gen1A source 64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775; latest trained nonaccepted source is Gen1B bb3ae423e2f84d1a0aea017b323413582ceb125214d68798b5a0849f78b02fdd. Both exact source bodies occur once, in the correct slots.",
+        "F10 is now exercised: current-best dev is independently 169/192 and latest-nonaccepted dev is 163/192. Parent failures side15, height3, forward1, not-recovered4 remain separate from B side8, height13, not-recovered8; strata and recovery counters match raw dev summaries.",
+        "Runtime activation feedback is tied to B train evidence, not attributed to parent A. No causal effect is inferred from these samples.",
+        "Memory contains one experiment with exactly two lane outcomes; A accepted and B qualified_not_selected, deltas 0.145833 and 0.114583 against original reference dev141/192 independently recount correctly. No trial or experiment was omitted.",
+        "Full prior ledger includes two evaluated trials, both under the previous reference parent. Because Gen1 accepted A, the current parent changed; the same-parent evaluated-family set is correctly empty and the metadata is absent. This does not erase either trial from memory.",
+        "Prompt 63418 B, task sections 20635 B, memory3465 B, sources4362+3190 B with no duplicate bodies. Private paths34/checkpoint hashes4 yield no hits. Only public-dev numerical results enter author feedback.",
+        "No repair frame in this snapshot, so F11 remains pending actual exercise. A response and B prompt must be checked from a later numbered snapshot, not inferred from process status."
+      ],
+      "blocking_findings": [],
+      "status": "PARTIAL_GEN02_INITIAL_PROMPT_F10_AND_MEMORY_PASS"
+    },
+    {
+      "snapshot": ".tmp/go2_push_a08_live_06.zip",
+      "scope": "Complete Gen2 authoring: A first attempt verified; B first provider failure then second attempt verified. Paired training/evaluation and generation closure are outside this receipt.",
+      "findings": [
+        "All three prompts retain Gen1A source64f336... as current best, independent 169/192 dev detail, and Gen1B sourcebb3ae4... as latest nonaccepted with independent163/192 detail. Source body identities, public strata/failure/recovery data and B runtime feedback match raw evidence.",
+        "Both initial prompts differ only in required_candidate_package and frame. B retry preserves every original section except frame, and adds one provider failure feedback block. No failed candidate exists after reasoning exhaustion, so no fabricated failed source appears.",
+        "B retry retains both public source bodies once, the same one-generation/two-trial memory, sibling exclusion and parent checksum. No source request was needed. This exercises provider-error recovery, not F11 historical-mechanism repair.",
+        "Full prior ledger has two evaluated trials from reference parent; current head is accepted A. Same-parent evaluated-family set is therefore empty, while cross-round memory retains both trials. No bounded prompt slot is used to truncate trusted history.",
+        "A final static/smoke/anti-degenerate results all pass. B final static/smoke/anti-degenerate/sibling results all pass; sibling hashdbf1e40e4127532384895742cf0bafe1aa632ce18949f040f74c1b7714bb699a matches actual B prompt. The earlier B provider failure is recorded, not treated as a candidate or a passing gate.",
+        "A and B rationales correctly reference current-parent side15/forward1 failures rather than B height13 failures, demonstrating separate F10 sources are actually available. Claims about causal recovery dynamics remain hypotheses and mathematical generalizations require separate source review.",
+        "Prompt sizes63418/64123/65751 B, task sections20635 B each, memory3465 B each, source bodies7552 B each, within frozen budgets. Every request has zero source requests. Private34paths/4checkpoint hashes yield no literal hits."
+      ],
+      "provider_recovery_evidence": {
+        "failed_attempt": {
+          "lane": "b",
+          "attempt": 1,
+          "failure": "reasoning_output_exhausted",
+          "input_units": 16878,
+          "reasoning_units": 32768,
+          "response_units": 32768,
+          "response_text_bytes": 0,
+          "total_units": 49646,
+          "thinking": "enabled"
+        },
+        "successful_retry": {
+          "lane": "b",
+          "attempt": 2,
+          "input_units": 17200,
+          "response_units": 1236,
+          "response_text_bytes": 4405,
+          "total_units": 18436,
+          "thinking": "disabled",
+          "stop_reason": "candidate_verified"
+        }
+      },
+      "blocking_findings": [],
+      "nonblocking_issue_reference": "FOLLOWUP_ZH.md F12; actual A08 evidence appended only to that section.",
+      "status": "PASS_COMPLETE_AUTHORING_PROMPT_BOUNDARIES_AND_PROVIDER_RETRY"
+    }
+  ],
+  "actual_prompt_budget_checks": [
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-a/authoring_attempts/attempt_000001/prompt_payload.json",
+      "actual_prompt_bytes": 63418,
+      "prompt_limit": 262144,
+      "source_content_bytes": 7552,
+      "inline_limit": 24576
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-b/authoring_attempts/attempt_000001/prompt_payload.json",
+      "actual_prompt_bytes": 64123,
+      "prompt_limit": 262144,
+      "source_content_bytes": 7552,
+      "inline_limit": 24576
+    },
+    {
+      "path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-b/authoring_attempts/attempt_000002/prompt_payload.json",
+      "actual_prompt_bytes": 65751,
+      "prompt_limit": 262144,
+      "source_content_bytes": 7552,
+      "inline_limit": 24576
+    }
+  ]
+}

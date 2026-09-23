@@ -1,0 +1,82 @@
+test_fresh_and_resumed_cli_require_credentials_until_the_report_exists (tests.unit.test_generation_entrypoint.GenerationEntrypointTests.test_fresh_and_resumed_cli_require_credentials_until_the_report_exists) ... ok
+test_gpu_inventory_rejects_malformed_and_duplicate_rows (tests.unit.test_generation_entrypoint.GenerationEntrypointTests.test_gpu_inventory_rejects_malformed_and_duplicate_rows) ... ok
+test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli (tests.unit.test_generation_entrypoint.GenerationEntrypointTests.test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli) ... 
+  test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli (tests.unit.test_generation_entrypoint.GenerationEntrypointTests.test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli) (cell='push.g1_29dof.reference_v1', max_generations=15) ... ERROR
+  test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli (tests.unit.test_generation_entrypoint.GenerationEntrypointTests.test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli) (cell='push.go2_12dof.recovery_v3', max_generations=5) ... ERROR
+
+======================================================================
+ERROR: test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli (tests.unit.test_generation_entrypoint.GenerationEntrypointTests.test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli) (cell='push.g1_29dof.reference_v1', max_generations=15)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\json_contract.py", line 90, in load_strict_json_object
+    payload = resolved.read_bytes()
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\lover\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\pathlib.py", line 1019, in read_bytes
+    with self.open(mode='rb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\lover\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\lover\\AppData\\Local\\Temp\\tmpcdj3jhmd\\session\\resolved_cell_manifest.json'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_generation_entrypoint.py", line 193, in test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli
+    entrypoint.prepare_from_args(audit_args)
+  File "D:\humanoid_agent\true_RL_Agent\scripts\run_generation_session.py", line 84, in prepare_from_args
+    composition = resolve_task_composition(provider=provider, values=values, context=context)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\composition\base.py", line 387, in resolve_task_composition
+    composition = provider.resolve(values=values, context=context)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\push_recovery\composition.py", line 245, in resolve
+    frozen = load_resolved_cell_manifest(context.output_dir / "resolved_cell_manifest.json")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\composition\cell_manifest.py", line 807, in load_resolved_cell_manifest
+    payload = load_strict_json_object(
+              ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\json_contract.py", line 92, in load_strict_json_object
+    raise ValueError(f"failed to read {field_context}") from exc
+ValueError: failed to read resolved cell manifest
+
+======================================================================
+ERROR: test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli (tests.unit.test_generation_entrypoint.GenerationEntrypointTests.test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli) (cell='push.go2_12dof.recovery_v3', max_generations=5)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\json_contract.py", line 90, in load_strict_json_object
+    payload = resolved.read_bytes()
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\lover\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\pathlib.py", line 1019, in read_bytes
+    with self.open(mode='rb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\lover\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\lover\\AppData\\Local\\Temp\\tmp7qh2jjhs\\session\\resolved_cell_manifest.json'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\humanoid_agent\true_RL_Agent\tests\unit\test_generation_entrypoint.py", line 193, in test_real_cells_and_generation_counts_prepare_and_resume_through_one_cli
+    entrypoint.prepare_from_args(audit_args)
+  File "D:\humanoid_agent\true_RL_Agent\scripts\run_generation_session.py", line 84, in prepare_from_args
+    composition = resolve_task_composition(provider=provider, values=values, context=context)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\composition\base.py", line 387, in resolve_task_composition
+    composition = provider.resolve(values=values, context=context)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\tasks\push_recovery\composition.py", line 245, in resolve
+    frozen = load_resolved_cell_manifest(context.output_dir / "resolved_cell_manifest.json")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\composition\cell_manifest.py", line 807, in load_resolved_cell_manifest
+    payload = load_strict_json_object(
+              ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\humanoid_agent\true_RL_Agent\src\true_rl_agent\json_contract.py", line 92, in load_strict_json_object
+    raise ValueError(f"failed to read {field_context}") from exc
+ValueError: failed to read resolved cell manifest
+
+----------------------------------------------------------------------
+Ran 3 tests in 37.615s
+
+FAILED (errors=2)

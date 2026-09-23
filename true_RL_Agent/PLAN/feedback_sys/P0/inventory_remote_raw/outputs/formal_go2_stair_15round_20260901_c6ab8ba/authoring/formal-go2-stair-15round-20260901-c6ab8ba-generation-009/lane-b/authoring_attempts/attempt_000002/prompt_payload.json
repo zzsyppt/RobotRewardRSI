@@ -1,0 +1,2793 @@
+{
+  "schema_version": "true_rl_agent.prompt_payload.v4",
+  "task": {
+    "schema_version": "true_rl_agent.task_prompt.stair_climbing.v4",
+    "task_id": "unitree_stair_climbing",
+    "name": "Stair Climbing",
+    "objective": "Improve one reward program for the unified Stair task across runner-owned C0/C1 training regimes, with OOD performance as the primary emphasis and in-distribution performance protected by named guards.",
+    "candidate_authoring_status": "complete_reward_program_only",
+    "fixed_train_protocol_summary": {
+      "budget_steps": 196608000,
+      "train_num_envs": 4096,
+      "train_max_iterations": 2000,
+      "train_steps_per_iteration": 24,
+      "policy_initialization": "random",
+      "terrain_regime_allocation": {
+        "c0_regular_fraction": 0.5,
+        "c1_irregular_flat_fraction": 0.5
+      },
+      "c0_support": {
+        "riser_range_m": [
+          0.03,
+          0.206
+        ],
+        "tread_depth_m": 0.4
+      },
+      "c1_support": {
+        "riser_base_range_m": [
+          0.047,
+          0.118
+        ],
+        "riser_offset_m": 0.007069,
+        "tread_bases_m": [
+          0.37,
+          0.4,
+          0.43
+        ],
+        "tread_offset_m": 0.018
+      },
+      "c1_pattern_families": [
+        "alternating",
+        "front_loaded",
+        "back_loaded"
+      ],
+      "c1_training_phase_steps": 0,
+      "c2_training_exposure": "forbidden",
+      "adaptive_difficulty_authority": "runner_owned",
+      "complete_reward_runtime_available": true
+    },
+    "fixed_eval_protocol_summary": {
+      "strata": [
+        "c0_id",
+        "c1_id",
+        "height_ood",
+        "tread_ood",
+        "joint_ood",
+        "phase_composition_ood",
+        "c1_conditional_frontier",
+        "c2_mechanism_ood"
+      ],
+      "cells_per_stratum": 3,
+      "episodes_per_seed_per_cell": 3,
+      "public_seed_count": 3,
+      "public_accept_seed_count": 5,
+      "sealed_validation_seed_count": 7,
+      "seed_values_exposed": false,
+      "statistics_unit": "cell_then_stratum_then_paired_seed",
+      "success_criteria": {
+        "completion_mode": "first_valid_top_arrival_latched",
+        "minimum_progress_fraction": 1.0,
+        "pre_arrival_blocking_latches": [
+          "forbidden_contact",
+          "off_course"
+        ],
+        "maximum_abs_roll_or_pitch_rad": 0.65
+      }
+    },
+    "primary_outcomes": [
+      "success",
+      "forbidden_contact",
+      "off_course",
+      "base_orientation_instability",
+      "slip",
+      "insufficient_clearance",
+      "timeout"
+    ],
+    "diagnostic_flags": [
+      "base_orientation_instability_detected",
+      "slip_detected",
+      "insufficient_clearance_detected",
+      "off_course_detected",
+      "goal_not_reached_detected",
+      "first_valid_top_arrival_achieved"
+    ],
+    "candidate_must_not_change": [
+      "terrain_generator",
+      "training_distribution",
+      "curriculum",
+      "seed_policy",
+      "training_budget",
+      "ppo_hyperparameters",
+      "checkpoint_policy",
+      "evaluation_suite",
+      "success_definition",
+      "failure_thresholds",
+      "observation_space",
+      "action_space",
+      "acceptance_protocol"
+    ]
+  },
+  "loop_contract": {
+    "schema_version": "true_rl_agent.loop_contract.v2",
+    "candidate_role": "Return a candidate package only.",
+    "candidate_may": [
+      "replace the complete reward with pure RewardTerm callables",
+      "use only fields declared by the task reward input contract",
+      "set finite weights and optional bounded output clips"
+    ],
+    "runner_owned": [
+      "training budget",
+      "eval protocol",
+      "seed policy",
+      "checkpoint selection",
+      "success metric",
+      "accept/reject decision"
+    ],
+    "candidate_must_not_change": [
+      "runner",
+      "eval protocol",
+      "training budget",
+      "seed policy",
+      "checkpoints",
+      "PPO",
+      "acceptance rules",
+      "task invariants"
+    ],
+    "evidence_discipline": [
+      "Before authoring, compare the proposed mechanism with public_history.experiment_memory, recent_outcomes, and current-best evidence.",
+      "Treat lower scores, failed gates, and dominating or negligible runtime component contributions as negative evidence; do not silently repeat or combine those mechanisms.",
+      "Treat last_mean only as the last sampled weighted-contribution snapshot; never infer that a component is inactive or causally ineffective from last_mean alone. Compare max_abs, repeated runtime evidence, and fixed evaluation outcomes.",
+      "If reusing a rejected mechanism, the canonical hypothesis narrative embedded in TrainingComponents.rationale must name the closest prior candidate, state the exact code-level difference, and explain how it addresses the observed failure; keep mechanical repair notes out of that hypothesis.",
+      "Do not submit numeric-only, string-only, or formatting-only variants of an evaluated source; the historical-source gate rejects those variants before training.",
+      "Prefer the accepted current-best source, or when none exists the explicitly nonaccepted best-observed bootstrap anchor.",
+      "When an authoring anchor is present, change exactly one named canonical prompt-visible component mechanism relative to it and preserve every other component mechanism; without an anchor, author the complete initial component set."
+    ]
+  },
+  "candidate_capabilities": {
+    "schema_version": "true_rl_agent.candidate_authoring_capabilities.v1",
+    "registry_owner": "agent_core",
+    "registry_model": "closed_registry_with_prompt_visibility",
+    "prompt_visible_capabilities": [
+      {
+        "capability_id": "complete_reward_program",
+        "kind": "complete_reward_program",
+        "owner": "candidate_components",
+        "prompt_visible": true,
+        "candidate_writable": true,
+        "effective_now": true,
+        "materializer_owner": "provider_candidate_package",
+        "verifier_owner": "composition_candidate_admission_policy",
+        "runtime_effect": "all weighted RewardTerm outputs replace the complete training reward",
+        "public_feedback_projection": "task-owned complete reward activation and bounded term summaries",
+        "component_class": "RewardTerm",
+        "component_signature": "RewardTerm(name: str, weight: float, fn: Callable[[task RewardInputs], Any], clip_min: float | None = None, clip_max: float | None = None, description: str = '')",
+        "declared_changed_component": "reward_callable",
+        "derived_change_components": [
+          "reward_callable"
+        ],
+        "candidate_allowed_actions": [
+          "replace the complete reward with pure RewardTerm callables",
+          "use only fields declared by the task reward input contract",
+          "set finite weights and optional bounded output clips"
+        ],
+        "source_items": [
+          "current_best/training_code/components.py",
+          "api/candidate_components.py"
+        ],
+        "effectiveness": "effective_now",
+        "activation_mode": "complete_replacement",
+        "readiness": {
+          "status": "ready",
+          "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+          "admission_policy_id": "true_rl_agent.stair_climbing.complete_reward_admission.v1",
+          "admission_policy_hash": "809b9cfcb1287f001557bab8a145028dfe1dae8645e42224df9887f02a184599",
+          "readiness_hash": "3dc652587c851f222a73f01acdbca951aa40d4e5bf20358b56985798425c2bd3"
+        }
+      }
+    ],
+    "disabled_or_reserved_capabilities": [],
+    "provider_declared_components_prompt_advertised": [
+      "reward_callable"
+    ],
+    "policies": {
+      "non_prompt_visible_capabilities_are_not_candidate_writable": true,
+      "verifier_derived_change_set_is_authoritative": true,
+      "task_specific_metadata_owner": "task_prompt_adapter",
+      "runner_owned_capabilities_require_materializer_and_verifier_before_prompt_visibility": true,
+      "runner_owned_schema_preview_is_not_provider_output": true
+    },
+    "task_capability_profile_binding": {
+      "profile_id": "unitree_stair_complete_reward_unified_v1",
+      "profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db"
+    }
+  },
+  "reward_inputs_contract": {
+    "schema_version": "true_rl_agent.reward_inputs_contract.stair.v13",
+    "status": "available",
+    "input_schema_hash": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+    "input_type": "true_rl_agent.tasks.stair_climbing.reward_inputs.StairRewardInputsVNext",
+    "field_semantics_constraints": {
+      "high_risk_axis_semantics": {
+        "environment": "dim0=independent environments at one control step; output[i] only from input[i]; no diff/roll/cumsum/sort/index/reduction across dim0; declared history fields carry time",
+        "support_contact_force_history": "axes=[env,history(0 newest; larger older),support(opaque members),xyz]; contact=norm xyz,max all 3 history,then threshold; air-to-contact=index0 contact and older air",
+        "spatial_vectors": "components=[x,y,z]; world +x stair-forward,+y left,+z up; body/yaw +x robot-forward,+y left,+z up"
+      },
+      "remaining_goal_distance_m": {
+        "source_equivalence": "goal_x-current_x",
+        "sign": "positive before, zero at, negative beyond goal"
+      },
+      "base_height": {
+        "source_equivalence": "base_pos_relative_to_terrain_origin[:, 2]",
+        "reference_frame": "terrain origin at the bottom start platform",
+        "local_clearance": false,
+        "candidate_usage": "Includes staircase elevation, not clearance above the supporting step; standing-height thresholds do not prove posture or support. Use roll/pitch/projected_gravity, goal_progress_fraction, and contact fields."
+      },
+      "projected_gravity": {
+        "source_equivalence": "robot_data.projected_gravity_b[:, :3]",
+        "reference_frame": "FLU base frame (+x forward,+y left,+z up)",
+        "definition": "right-handed R_WB=Rz(yaw)@Ry(pitch)@Rx(roll); g_b=R_WB.T@[0,0,-1]",
+        "components_xyz": [
+          "sin(pitch)",
+          "-sin(roll)*cos(pitch)",
+          "-cos(roll)*cos(pitch)"
+        ],
+        "small_angle_xyz": [
+          "pitch",
+          "-roll",
+          "-1"
+        ],
+        "candidate_usage": "Use -z for upright reward; +z favors inversion."
+      },
+      "height_scan": {
+        "source_transform_ref": "source_transforms.height_scan",
+        "sensor_semantics": "downward terrain scan; positive=lower/farther, negative=higher/closer; no overhead or torso obstacle sensing",
+        "flattened_index_to_ray_mapping": "not_exposed",
+        "candidate_usage": "Use order-invariant reductions only; ray directions are not exposed."
+      },
+      "raw_physical_magnitudes": {
+        "fields": [
+          "forbidden_contact_force",
+          "joint_acc",
+          "joint_torque",
+          "support_contact_force",
+          "support_contact_force_history"
+        ],
+        "units": [
+          "N",
+          "N*m",
+          "rad/s^2"
+        ],
+        "normalization_status": "raw_not_normalized",
+        "enforcement": "active_reward_term_final_clip",
+        "candidate_usage": "New or modified RewardTerms using these fields require finite clip_min and clip_max. Callable-only transforms do not replace this final clip; runtime clips before weight. Exact unchanged reference mechanisms are exempt only by canonical structure signature. The declared clip and weight expose the resulting weighted bound."
+      },
+      "forbidden_contact_force": {
+        "semantics": "current resolved forbidden-contact role force vectors in Newtons",
+        "binary_alternative": "forbidden_contact",
+        "candidate_usage": "Use forbidden_contact for the task-owned binary failure signal; dense force terms follow raw_physical_magnitudes."
+      },
+      "termination_masks": {
+        "fixed_active_terms": [
+          "time_out",
+          "forbidden_contact"
+        ],
+        "equivalent_fields": {
+          "terminated_non_timeout": "forbidden_contact"
+        },
+        "candidate_usage": "Frozen Stair: forbidden_contact and terminated_non_timeout are identical masks; do not add both."
+      },
+      "progress_fraction": {
+        "semantics": "elapsed fraction of the current episode horizon",
+        "spatial_alternative": "goal_progress_fraction",
+        "candidate_usage": "For episode-time scheduling only; it does not mean training progress, position, proximity to the top, or completion. Spatial progress is goal_progress_fraction."
+      },
+      "goal_progress_fraction": {
+        "semantics": "instantaneous clamped spatial position from the frozen start coordinate toward the frozen goal coordinate",
+        "temporal_behavior": "recomputed every control step; may decrease when the robot moves backward; not latched, absorbing, or a completion event",
+        "completion_alternative": "task-owned first_valid_top_arrival event"
+      },
+      "support_contact_force": {
+        "semantics": "support/contact force in Newtons; nonzero is required for support",
+        "candidate_usage": "Contact is not inherently bad; normalize force-derived terms."
+      },
+      "support_contact": {
+        "semantics": "boolean contact threshold over the maximum force in the configured 3-sample support_contact_force_history window",
+        "temporal_behavior": "recent-history indicator, not current-sample-only contact"
+      }
+    },
+    "fields": {
+      "schema_version": "true_rl_agent.task.stair_climbing.reward_input_field_table.v1",
+      "row_format": "name|dtype|trailing_shape_csv|unit; empty shape means scalar",
+      "rows": [
+        "base_height|float||m",
+        "roll|float||rad",
+        "pitch|float||rad",
+        "base_pos_xy|float|2|m",
+        "base_lin_vel|float|3|m/s",
+        "base_ang_vel|float|3|rad/s",
+        "projected_gravity|float|3|unit_vector",
+        "commanded_base_vel|float|3|mixed_mps_radps",
+        "joint_pos|float|12|rad",
+        "joint_vel|float|12|rad/s",
+        "joint_pos_error|float|12|rad",
+        "last_action|float|12|policy_action",
+        "prev_action|float|12|policy_action",
+        "action_delta|float|12|policy_action",
+        "progress_fraction|float||fraction",
+        "joint_acc|float|12|rad/s^2",
+        "joint_torque|float|12|N*m",
+        "soft_joint_pos_limits|float|12,2|rad",
+        "base_lin_vel_yaw|float|3|m/s",
+        "base_ang_vel_world|float|3|rad/s",
+        "base_quat_world|float|4|unit_quaternion_wxyz",
+        "support_air_time|float|4|s",
+        "support_contact_time|float|4|s",
+        "support_last_air_time|float|4|s",
+        "support_first_contact|bool|4|boolean",
+        "support_contact_force_history|float|3,4,3|N",
+        "support_contact_force|float|4,3|N",
+        "support_contact|bool|4|boolean",
+        "support_lin_vel|float|4,3|m/s",
+        "support_pos_relative_to_terrain_origin|float|4,3|m",
+        "base_pos_relative_to_terrain_origin|float|3|m",
+        "forbidden_contact_force|float|1,3|N",
+        "height_scan|float|187|m",
+        "forward_progress_m|float||m",
+        "remaining_goal_distance_m|float||m",
+        "goal_progress_fraction|float||fraction",
+        "terminated_non_timeout|bool||boolean",
+        "time_out|bool||boolean",
+        "forbidden_contact|bool||boolean"
+      ]
+    },
+    "source_transforms": {
+      "height_scan": {
+        "clip_max": 1.0,
+        "clip_min": -1.0,
+        "corruption": "disabled",
+        "offset_m": 0.5,
+        "ray_miss_policy": "saturate_infinity_to_clip_preserve_nan",
+        "source_formula": "sensor_pos_w_z_minus_ray_hit_w_z_minus_offset"
+      }
+    },
+    "opaque_axis_contract": {
+      "schema_version": "true_rl_agent.task.stair_climbing.reward_source_semantics.v2",
+      "opaque_trailing_axis_groups": [
+        {
+          "axes": [
+            0
+          ],
+          "fields": [
+            "action_delta",
+            "forbidden_contact_force",
+            "height_scan",
+            "joint_acc",
+            "joint_pos",
+            "joint_pos_error",
+            "joint_torque",
+            "joint_vel",
+            "last_action",
+            "prev_action",
+            "soft_joint_pos_limits",
+            "support_air_time",
+            "support_contact",
+            "support_contact_force",
+            "support_contact_time",
+            "support_lin_vel",
+            "support_pos_relative_to_terrain_origin"
+          ]
+        },
+        {
+          "axes": [
+            1
+          ],
+          "fields": [
+            "support_contact_force_history"
+          ]
+        }
+      ],
+      "usage_rule": "Member mapping is hidden. Only whole-axis order-invariant reductions are valid; fixed or partial indexing, positional selection, and pre-reduction reshaping are forbidden. Helpers that consume these fields must be top-level functions."
+    },
+    "isolation": "detached_clone_per_field",
+    "forbidden_context": [
+      "runner_execution_objects",
+      "private_evaluation_assignment",
+      "acceptance_and_artifact_state"
+    ],
+    "capacity_projection": "field_descriptions_omitted_fields_tabulated"
+  },
+  "public_eval_contract": {
+    "schema_version": "true_rl_agent.public_eval_contract.stair.unified.v5",
+    "prompt_score_semantics": {
+      "score_sources_by_role": {
+        "objective_score": "prompt_feedback.generalization_summary.public_dev_objective_score",
+        "named_guards": {
+          "j_ood": "prompt_feedback.generalization_summary.named_guard_scores.j_ood",
+          "c0_id": "prompt_feedback.generalization_summary.named_guard_scores.c0_id",
+          "c1_id": "prompt_feedback.generalization_summary.named_guard_scores.c1_id"
+        }
+      },
+      "source_split": "public_dev",
+      "acceptance_result_metrics_visible": false
+    },
+    "primary_objective": "(2*J_OOD+J_ID)/3",
+    "objective_structure": {
+      "j_id": "0.5*S_C0-ID+0.5*S_C1-ID",
+      "j_ood": "equal_weight_mean_over_qualified_nonempty_families",
+      "ood_families": {
+        "F_scalar": [
+          "height_ood",
+          "tread_ood",
+          "joint_ood"
+        ],
+        "F_c1": [
+          "phase_composition_ood",
+          "c1_conditional_frontier"
+        ],
+        "F_c2": [
+          "c2_mechanism_ood"
+        ]
+      },
+      "family_mask": {
+        "source_split": "public_accept_reference",
+        "mode": "exclude_reference_floor_only",
+        "minimum_reference_score": 0.1,
+        "frozen_for_session": true
+      }
+    },
+    "named_non_regression_guards": [
+      "j_ood",
+      "c0_id",
+      "c1_id"
+    ],
+    "public_dev_selector": {
+      "rule": "named_guard_min_and_runtime_eligible_public_dev_rank_v1",
+      "objective_score_source": "public_dev.unified_score.j_primary.seed_macro_scores",
+      "guard_seed_score_source": "public_dev.minimum_of_named_guard_seed_scores",
+      "guard_anchor_aggregation": "mean_across_seeds_of_minimum_named_guard_per_seed",
+      "guard_rule": "parent_relative_hard_regression_cap_only",
+      "guard_max_regression": 0.05,
+      "runtime_effect_rule": "candidate_reward_operation_runtime_effect.status_must_pass",
+      "ranking_policy": "always_rank_selection_eligible_candidates; paired noise is evidence only",
+      "acceptance_authority": false
+    },
+    "aggregation": "episode_to_cell_to_stratum_to_paired_seed",
+    "generalization_claims": {
+      "c0_id": "in_distribution",
+      "c1_id": "in_distribution",
+      "height_ood": "scalar_extrapolation",
+      "tread_ood": "scalar_extrapolation",
+      "joint_ood": "joint_scalar_extrapolation",
+      "phase_composition_ood": "known_family_held_out_phase",
+      "c1_conditional_frontier": "conditional_on_c1_support",
+      "c2_mechanism_ood": "surface_mechanism_shift"
+    },
+    "generalization_claim_semantics": {
+      "c0_id": {
+        "protocol_claim_kind": "in_distribution",
+        "meaning": "in_distribution"
+      },
+      "c1_id": {
+        "protocol_claim_kind": "in_distribution",
+        "meaning": "in_distribution"
+      },
+      "height_ood": {
+        "protocol_claim_kind": "scalar_extrapolation",
+        "meaning": "scalar_extrapolation"
+      },
+      "tread_ood": {
+        "protocol_claim_kind": "scalar_extrapolation",
+        "meaning": "scalar_extrapolation"
+      },
+      "joint_ood": {
+        "protocol_claim_kind": "joint_scalar_extrapolation",
+        "meaning": "simultaneous scalar extrapolation of stair riser height and stair tread depth",
+        "robot_joint_state_ood": false
+      },
+      "phase_composition_ood": {
+        "protocol_claim_kind": "known_family_held_out_phase",
+        "meaning": "known_family_held_out_phase"
+      },
+      "c1_conditional_frontier": {
+        "protocol_claim_kind": "conditional_on_c1_support",
+        "meaning": "conditional_on_c1_support"
+      },
+      "c2_mechanism_ood": {
+        "protocol_claim_kind": "surface_mechanism_shift",
+        "meaning": "surface_mechanism_shift"
+      }
+    },
+    "c2_evidence_scope": "current evaluation-only surface/contact mechanism shift; zero training exposure; height-scan policy salience not claimed",
+    "factor_diagnostic_table": {
+      "schema_version": "true_rl_agent.task.stair_climbing.factor_feedback_table.v1",
+      "role": "diagnostic_only_overlapping_group_aggregates",
+      "factor_names": [
+        "phase",
+        "riser_band",
+        "tread_band",
+        "sequence_pattern",
+        "roughness_band",
+        "surface_pattern"
+      ],
+      "columns": [
+        "factor_name",
+        "factor_level",
+        "cell_count",
+        "success_rate",
+        "mean_progress_fraction"
+      ],
+      "cell_membership_source": "fixed_ordered_public_dev_suite",
+      "cell_ids_repeated_per_candidate": false,
+      "interpretation": "groups overlap and are not objective weights; saturated groups remain visible as capabilities to preserve"
+    },
+    "stratum_diagnostic_table": {
+      "schema_version": "true_rl_agent.task.stair_climbing.stratum_feedback_table.v3",
+      "role": "task_owned_failure_and_diagnostic_breakdown",
+      "cell_membership_source": "fixed_ordered_public_dev_suite",
+      "cell_ids_repeated_per_candidate": false,
+      "omitted_rate_columns_are_zero": true
+    },
+    "completion_derived_diagnostic_rates": {
+      "first_valid_top_arrival_achieved": "success_rate"
+    },
+    "public_feedback_source": "public_dev_unified_stratum_projection",
+    "primary_failure_is_mutually_exclusive": true,
+    "diagnostic_flags_may_overlap": true,
+    "diagnostic_interpretation": "latched or recent-history correlates for hypothesis formation; they may coexist with success and do not prove failure causality",
+    "classification_warnings_block_pass": true
+  },
+  "control_effectiveness_contract": {
+    "schema_version": "true_rl_agent.control_effectiveness_contract.v1",
+    "capability_schema_ref": "true_rl_agent.candidate_authoring_capabilities.v1",
+    "component_controls": {
+      "RewardTerm": {
+        "allowed": true,
+        "effectiveness": "effective_now",
+        "training_effect": "all weighted RewardTerm outputs replace the complete training reward"
+      }
+    },
+    "schedule_controls": {
+      "allowed_keys": [],
+      "effective_keys": []
+    }
+  },
+  "known_good_examples": [],
+  "selection_guidance": [
+    "Use only validated public failure/diagnostic/progress summaries.",
+    "After rejection, use current_best as the default parent; reuse a rejected mechanism or weight only with public evidence.",
+    "Keep each candidate attributable: change one reward mechanism, preserve current-best coefficients, and avoid unrelated retuning.",
+    "Prefer a recent-untried mechanism only when task score, failure, or progress evidence supports it. Diagnostic rates, even extreme ones, are correlates rather than optimization targets or causal proof; judge a hypothesis by objective and guard movement.",
+    "Code plus verifier/runtime evidence are authoritative over prose rationale; claim a maximum weighted contribution only with conditions, clips, weight, and an analytic bound.",
+    "Success is the first physically valid top-platform arrival; post-arrival stopping position and settling are not evaluated.",
+    "climb_completion_summary.success_rate and first_valid_top_arrival_rate describe the same absorbing task completion event.",
+    "Optimize J_primary=(2*J_OOD+J_ID)/3 while all three runner-owned named guards J_OOD, C0-ID, and C1-ID remain within their paired non-regression tolerances; no score can compensate for a failed guard.",
+    "Match candidate feedback to source_catalog by candidate_id and program_source_checksum when that source is available; reference_anchor feedback belongs to the current_best source.",
+    "When the shared candidate_capabilities section marks complete_reward_program prompt-visible, return a complete replacement reward program, not an additive patch.",
+    "Use only fields declared by the StairRewardInputsVNext contract.",
+    "Do not change training budget, PPO, seeds, terrain bins, termination rules, or acceptance rules."
+  ],
+  "source_catalog": {
+    "schema_version": "true_rl_agent.source_catalog.v3",
+    "policy": {
+      "ids_are_closed_allowlist": true,
+      "provider_filesystem_access": false,
+      "source_request_enabled": true,
+      "source_resolution_owner": "runner_prompt_source_resolver"
+    },
+    "items": [
+      {
+        "logical_id": "api/candidate_components.py",
+        "role": "candidate_component_api_contract",
+        "candidate_use": "Use the canonical component contract already included in required_candidate_package.component_contract.",
+        "visibility": "prompt_visible_metadata",
+        "inline_by_default": false,
+        "requestable": false,
+        "max_bytes": 0,
+        "status": "available_via_required_candidate_package",
+        "content_sha256": null,
+        "pending_reason": "contract body is present in required_candidate_package.component_contract",
+        "source_owner": "agent_core",
+        "scrub_policy": "contract_projection_no_raw_module_source"
+      },
+      {
+        "logical_id": "current_best/training_code/components.py",
+        "role": "latest_accepted_candidate_source",
+        "candidate_use": "Inherit, rewrite, recombine, or refute the current best mechanism without copying it blindly.",
+        "visibility": "prompt_visible_metadata",
+        "inline_by_default": true,
+        "requestable": true,
+        "max_bytes": 24576,
+        "status": "inline",
+        "content_sha256": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45",
+        "bytes": 4902,
+        "hash_scope": "prompt_visible_sanitized_content",
+        "source_owner": "accepted_candidate_lineage",
+        "scrub_policy": "path_secret_and_public_only_guard"
+      },
+      {
+        "logical_id": "memory/best_observed/training_code/components.py",
+        "role": "best_observed_nonaccepted_candidate_source",
+        "candidate_use": "Use only as the highest-scoring evaluated bootstrap authoring anchor; it is not an accepted policy best and grants no acceptance authority.",
+        "visibility": "prompt_visible_metadata",
+        "inline_by_default": false,
+        "requestable": false,
+        "max_bytes": 24576,
+        "status": "pending",
+        "pending_reason": "no_eligible_nonaccepted_bootstrap_anchor",
+        "source_owner": "validated_nonaccepted_experiment_history",
+        "scrub_policy": "path_secret_and_public_only_guard"
+      },
+      {
+        "logical_id": "examples/known_good_reward_terms.py",
+        "role": "known_good_examples_slot",
+        "candidate_use": "Task provided examples are exposed through known_good_examples when available.",
+        "visibility": "prompt_visible_metadata",
+        "inline_by_default": false,
+        "requestable": false,
+        "max_bytes": 0,
+        "status": "pending",
+        "content_sha256": null,
+        "pending_reason": "task_prompt_adapter_provided_no_known_good_source",
+        "source_owner": "task_prompt_adapter",
+        "scrub_policy": "task_sections_public_sanitizer"
+      },
+      {
+        "logical_id": "attempt/latest_failed/training_code/components.py",
+        "role": "latest_nonaccepted_candidate_source",
+        "candidate_use": "Use the latest nonaccepted source with its verifier, runtime, and eval feedback to repair, refute, or replace the attempted mechanism.",
+        "visibility": "prompt_visible_metadata",
+        "inline_by_default": false,
+        "requestable": false,
+        "max_bytes": 24576,
+        "status": "pending",
+        "pending_reason": "no_latest_failed_candidate",
+        "source_owner": "none_available",
+        "scrub_policy": "path_secret_and_public_only_guard"
+      }
+    ]
+  },
+  "candidate_lineage": {
+    "schema_version": "true_rl_agent.candidate_lineage.v4",
+    "status": "accepted_current_best",
+    "parent_program_source_checksum": "sha256:29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45",
+    "current_best": {
+      "round_id": "formal-go2-stair-15round-20260901-c6ab8ba-generation-008-lane-a",
+      "candidate_id": "stair_swing_foot_level_sweep_penalty_v1",
+      "objective_score": 0.9482670629766803,
+      "score_source": "prompt_feedback.generalization_summary.public_dev_objective_score",
+      "changed_components": [
+        "reward_callable"
+      ],
+      "source_logical_id": "current_best/training_code/components.py",
+      "current_head_program_source_checksum": "sha256:29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45",
+      "current_head_prompt_content_sha256": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45",
+      "source_hash_scope": "prompt_visible_sanitized_content",
+      "source_summary": "106 lines; from true_rl_agent.candidates.components import RewardTerm, TrainingComponents; def track_lin_vel_xy_exp(inputs):; def track_ang_vel_z_exp(inputs):; def ang_vel_xy_l2(inputs):; def flat_orientation_l2(inputs):; def dof_torques_l2(inputs):; def dof_acc_l2(inputs):; def action_rate_l2(inputs):",
+      "source_delivery": "inline",
+      "source_payload_ref": "current_best/training_code/components.py"
+    },
+    "best_observed_experiment": null,
+    "guidance": [
+      "Current best is reusable evidence, not a template that must receive a minimal numeric tweak.",
+      "A valid candidate may inherit, rewrite, recombine, or replace the current mechanism when public evidence justifies it.",
+      "If reusing the current best, explain the mechanism-level reason for the change rather than only changing weights or names."
+    ]
+  },
+  "source_payloads": [
+    {
+      "schema_version": "true_rl_agent.prompt_source_payload.v1",
+      "logical_id": "current_best/training_code/components.py",
+      "role": "latest_accepted_candidate_source",
+      "delivery": "inline",
+      "content": "'''Go2 Stair reward: reference flat-derived terms plus a level-sweep trip-hazard penalty for OOD riser/tread extrapolation.'''\n\nfrom true_rl_agent.candidates.components import RewardTerm, TrainingComponents\n\n\ndef track_lin_vel_xy_exp(inputs):\n    error = (\n        inputs.commanded_base_vel[:, :2] - inputs.base_lin_vel[:, :2]\n    ).square().sum(dim=1)\n    return (-error / 0.25).exp()\n\n\ndef track_ang_vel_z_exp(inputs):\n    error = (\n        inputs.commanded_base_vel[:, 2] - inputs.base_ang_vel[:, 2]\n    ).square()\n    return (-error / 0.25).exp()\n\n\ndef ang_vel_xy_l2(inputs):\n    return inputs.base_ang_vel[:, :2].square().sum(dim=1)\n\n\ndef flat_orientation_l2(inputs):\n    return inputs.projected_gravity[:, :2].square().sum(dim=1)\n\n\ndef dof_torques_l2(inputs):\n    return inputs.joint_torque.square().sum(dim=1)\n\n\ndef dof_acc_l2(inputs):\n    return inputs.joint_acc.square().sum(dim=1)\n\n\ndef action_rate_l2(inputs):\n    return inputs.action_delta.square().sum(dim=1)\n\n\ndef feet_air_time(inputs):\n    reward = (\n        (inputs.support_last_air_time - 0.5)\n        * inputs.support_first_contact.float()\n    ).sum(dim=1)\n    moving = inputs.commanded_base_vel[:, :2].norm(dim=1) > 0.1\n    return reward * moving.float()\n\n\ndef swing_foot_level_sweep_penalty(inputs):\n    foot_z = inputs.support_pos_relative_to_terrain_origin[:, :, 2]\n    base_z = inputs.base_pos_relative_to_terrain_origin[:, 2].unsqueeze(1)\n    rel_z = foot_z - base_z\n    low_band = ((rel_z > -0.15) & (rel_z < 0.2)).float()\n    swing = (~inputs.support_contact).float()\n    forward_vel = inputs.support_lin_vel[:, :, 0].clamp(min=0.0)\n    vertical_vel = inputs.support_lin_vel[:, :, 2]\n    level_or_down = (vertical_vel <= 0.2).float()\n    elevated = (inputs.base_height > 0.1).float()\n    before_goal = (inputs.goal_progress_fraction < 1.0).float()\n    penalty = (\n        low_band * swing * forward_vel * level_or_down\n    ).sum(dim=1) * elevated * before_goal\n    return penalty\n\n\ndef build_training_components():\n    return TrainingComponents(\n        name='go2_stair_official_flat_derived_level_sweep_v1',\n        reward_terms=[\n            RewardTerm(name='track_lin_vel_xy_exp', weight=3.5, fn=track_lin_vel_xy_exp),\n            RewardTerm(name='track_ang_vel_z_exp', weight=0.75, fn=track_ang_vel_z_exp),\n            RewardTerm(name='ang_vel_xy_l2', weight=-0.05, fn=ang_vel_xy_l2),\n            RewardTerm(name='flat_orientation_l2', weight=-2.5, fn=flat_orientation_l2),\n            RewardTerm(name='dof_torques_l2', weight=-0.0002, fn=dof_torques_l2),\n            RewardTerm(name='dof_acc_l2', weight=-2.5e-7, fn=dof_acc_l2),\n            RewardTerm(name='action_rate_l2', weight=-0.01, fn=action_rate_l2),\n            RewardTerm(name='feet_air_time', weight=0.25, fn=feet_air_time),\n            RewardTerm(\n                name='swing_foot_level_sweep_penalty',\n                weight=-0.2,\n                fn=swing_foot_level_sweep_penalty,\n                clip_min=0.0,\n                clip_max=2.0,\n                description='Penalize forward sweep of swing feet near the base plane while the foot is not actively lifting, on elevated stair terrain before the goal.',\n            ),\n        ],\n        rationale=(\n            'Anchor is the verified current-best reference go2_stair_official_flat_derived_v1 '\n            '(objective 0.9344); all eight reference terms and weights are preserved exactly. '\n            'The single mechanism change is a new RewardTerm swing_foot_level_sweep_penalty that '\n            'evolves the closest prior rejected candidate stair_swing_foot_low_forward_penalty_v1 '\n            '(objective 0.9527, F_scalar 0.787, residual dominant forbidden_contact 10.2 percent, '\n            'joint_ood forbidden_contact 59.3 percent) at the code level: the prior term penalized the '\n            'forward world-x velocity of every low swing foot regardless of vertical motion, while this '\n            'term additionally gates the penalty by vertical_vel <= 0.2 m/s, so only level or downward '\n            'horizontal sweeps in the low-clearance band are penalized and feet that are actively lifting '\n            'are not. The raw term is clipped to [0, 2.0] with weight -0.2, so its weighted contribution '\n            'is at most -0.4 per step; activation gates (swing contact, base_height > 0.1, and '\n            'goal_progress_fraction < 1.0) keep it silent on the flat start, flat behavior, and after '\n            'arrival. Hypothesis: the residual OOD forbidden-contact failures on simultaneous '\n            'riser/tread extrapolation come from swing feet slicing forward without sufficient vertical '\n            'lift; penalizing only non-lifting sweeps preserves forward progression of properly lifted '\n            'feet while teaching vertical-first foot clearance, protecting height_ood, tread_ood, and '\n            'the C0/C1 in-distribution guards.'\n        ),\n    )\n",
+      "content_sha256": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45",
+      "bytes": 4902,
+      "summary": "106 lines; from true_rl_agent.candidates.components import RewardTerm, TrainingComponents; def track_lin_vel_xy_exp(inputs):; def track_ang_vel_z_exp(inputs):; def ang_vel_xy_l2(inputs):; def flat_orientation_l2(inputs):; def dof_torques_l2(inputs):; def dof_acc_l2(inputs):; def action_rate_l2(inputs):",
+      "public_safe": true
+    }
+  ],
+  "public_feedback_summary": {
+    "schema_version": "true_rl_agent.task.stair_climbing.public_feedback_summary.v12",
+    "status": "available",
+    "feedback_entries": [
+      {
+        "round_id": "formal-go2-stair-15round-20260901-c6ab8ba-generation-004-lane-a",
+        "candidate_id": "stair_forbidden_contact_terminal_penalty_v1",
+        "program_source_checksum": "sha256:d0b0ce053b81491f6d425262f799390ac20e84f130126de209c8c0ae4e189737",
+        "objective_score": 0.9224392256652948,
+        "accepted": false,
+        "feedback": {
+          "climb_completion_summary": {
+            "completion_mode": "first_valid_top_arrival_latched",
+            "success_rate": 0.8333333333333334,
+            "first_valid_top_arrival_rate": 0.8333333333333334
+          },
+          "diagnostic_flag_rates": {
+            "base_orientation_instability_detected": 0.10648148148148148,
+            "goal_not_reached_detected": 0.16666666666666666,
+            "insufficient_clearance_detected": 0.08796296296296297,
+            "off_course_detected": 0.004629629629629629,
+            "slip_detected": 0.3055555555555556
+          },
+          "dominant_failure": {
+            "reason": "forbidden_contact",
+            "rate": 0.125
+          },
+          "generalization_summary": {
+            "public_dev_objective_score": 0.9224392256652948,
+            "j_id": 1.0,
+            "j_ood": 0.8836588384979424,
+            "named_guard_scores": {
+              "j_ood": 0.8836588384979424,
+              "c0_id": 1.0,
+              "c1_id": 1.0
+            },
+            "family_scores": {
+              "F_scalar": 0.6509765154938272,
+              "F_c1": 1.0,
+              "F_c2": 1.0
+            },
+            "qualified_ood_families": [
+              "F_scalar",
+              "F_c1",
+              "F_c2"
+            ],
+            "objective_family_mask_hash": "78cc09cc36d6b297f1566b75f9b847e9f5c81dc64ce39c3aa86e2f7408efaa10",
+            "ordered_suite_hash": "f7d744df40eb9708ace9772b6f23f366090a6d312fcfef93e54e85cd4e0dd18b",
+            "split_cohort_hash": "a93720d1247acba0f21eb607b95edcaf222f4643eae1a05c311f4dbb94de71c2",
+            "stratum_diagnostics": {
+              "schema_version": "true_rl_agent.task.stair_climbing.stratum_feedback_table.v3",
+              "columns": [
+                "stratum_id",
+                "score",
+                "success_rate",
+                "mean_progress_fraction",
+                "primary_failure_rates",
+                "diagnostic_flag_rates"
+              ],
+              "primary_failure_rate_columns": [
+                "base_orientation_instability",
+                "forbidden_contact",
+                "timeout"
+              ],
+              "diagnostic_flag_rate_columns": [
+                "base_orientation_instability_detected",
+                "goal_not_reached_detected",
+                "insufficient_clearance_detected",
+                "off_course_detected",
+                "slip_detected"
+              ],
+              "omitted_primary_failure_rates_are_zero": true,
+              "omitted_diagnostic_rates_are_zero": true,
+              "rows": [
+                [
+                  "c0_id",
+                  1.0,
+                  1.0,
+                  1.0,
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.07407407407407407
+                  ]
+                ],
+                [
+                  "c1_conditional_frontier",
+                  1.0,
+                  1.0,
+                  1.0,
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.1111111111111111
+                  ]
+                ],
+                [
+                  "c1_id",
+                  1.0,
+                  1.0,
+                  1.0,
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ]
+                ],
+                [
+                  "c2_mechanism_ood",
+                  1.0,
+                  1.0,
+                  1.0,
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.7037037037037037,
+                    0.0,
+                    0.0
+                  ]
+                ],
+                [
+                  "height_ood",
+                  0.6260159394444444,
+                  0.5185185185185185,
+                  0.7335133603703703,
+                  [
+                    0.07407407407407407,
+                    0.3333333333333333,
+                    0.07407407407407407
+                  ],
+                  [
+                    0.25925925925925924,
+                    0.48148148148148145,
+                    0.0,
+                    0.037037037037037035,
+                    0.9259259259259259
+                  ]
+                ],
+                [
+                  "joint_ood",
+                  0.42756673944444445,
+                  0.2962962962962963,
+                  0.5588371825925925,
+                  [
+                    0.07407407407407407,
+                    0.5555555555555556,
+                    0.07407407407407407
+                  ],
+                  [
+                    0.5555555555555556,
+                    0.7037037037037037,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                [
+                  "phase_composition_ood",
+                  1.0,
+                  1.0,
+                  1.0,
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ]
+                ],
+                [
+                  "tread_ood",
+                  0.8993468675925925,
+                  0.8518518518518517,
+                  0.9468418833333333,
+                  [
+                    0.0,
+                    0.1111111111111111,
+                    0.037037037037037035
+                  ],
+                  [
+                    0.037037037037037035,
+                    0.14814814814814814,
+                    0.0,
+                    0.0,
+                    0.3333333333333333
+                  ]
+                ]
+              ],
+              "derived_diagnostic_rate_columns_omitted": [
+                "first_valid_top_arrival_achieved"
+              ]
+            }
+          },
+          "primary_failure_breakdown": {
+            "base_orientation_instability": 0.018518518518518517,
+            "forbidden_contact": 0.125,
+            "timeout": 0.023148148148148147
+          },
+          "progress_summary": {
+            "mean_progress_fraction": 0.90489905
+          }
+        },
+        "selection_basis": [
+          "recent_evaluated"
+        ]
+      },
+      {
+        "round_id": "formal-go2-stair-15round-20260901-c6ab8ba-generation-007-lane-b",
+        "candidate_id": "stair_swing_foot_low_forward_penalty_v1",
+        "program_source_checksum": "sha256:7ef9988077a577b22bad5e53fffc5f9b57d13adaaec4bed3f9081fba1a4589d0",
+        "objective_score": 0.9527384804115225,
+        "accepted": false,
+        "feedback": {
+          "climb_completion_summary": {
+            "completion_mode": "first_valid_top_arrival_latched",
+            "success_rate": 0.8935185185185185,
+            "first_valid_top_arrival_rate": 0.8935185185185185
+          },
+          "diagnostic_flag_rates": {
+            "base_orientation_instability_detected": 0.06944444444444445,
+            "goal_not_reached_detected": 0.10648148148148148,
+            "insufficient_clearance_detected": 0.023148148148148147,
+            "slip_detected": 0.16203703703703703
+          },
+          "dominant_failure": {
+            "reason": "forbidden_contact",
+            "rate": 0.10185185185185185
+          },
+          "generalization_summary": {
+            "public_dev_objective_score": 0.9527384804115225,
+            "j_id": 1.0,
+            "j_ood": 0.9291077206172839,
+            "named_guard_scores": {
+              "j_ood": 0.9291077206172839,
+              "c0_id": 1.0,
+              "c1_id": 1.0
+            },
+            "family_scores": {
+              "F_scalar": 0.7873231618518518,
+              "F_c1": 1.0,
+              "F_c2": 1.0
+            },
+            "qualified_ood_families": [
+              "F_scalar",
+              "F_c1",
+              "F_c2"
+            ],
+            "objective_family_mask_hash": "78cc09cc36d6b297f1566b75f9b847e9f5c81dc64ce39c3aa86e2f7408efaa10",
+            "ordered_suite_hash": "f7d744df40eb9708ace9772b6f23f366090a6d312fcfef93e54e85cd4e0dd18b",
+            "split_cohort_hash": "a93720d1247acba0f21eb607b95edcaf222f4643eae1a05c311f4dbb94de71c2",
+            "stratum_diagnostics": {
+              "schema_version": "true_rl_agent.task.stair_climbing.stratum_feedback_table.v3",
+              "columns": [
+                "stratum_id",
+                "score",
+                "success_rate",
+                "mean_progress_fraction",
+                "primary_failure_rates",
+                "diagnostic_flag_rates"
+              ],
+              "primary_failure_rate_columns": [
+                "base_orientation_instability",
+                "forbidden_contact"
+              ],
+              "diagnostic_flag_rate_columns": [
+                "base_orientation_instability_detected",
+                "goal_not_reached_detected",
+                "insufficient_clearance_detected",
+                "slip_detected"
+              ],
+              "omitted_primary_failure_rates_are_zero": true,
+              "omitted_diagnostic_rates_are_zero": true,
+              "rows": [
+                [
+                  "c0_id",
+                  1.0,
+                  1.0,
+                  1.0,
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ]
+                ],
+                [
+                  "c1_conditional_frontier",
+                  1.0,
+                  1.0,
+                  1.0,
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ]
+                ],
+                [
+                  "c1_id",
+                  1.0,
+                  1.0,
+                  1.0,
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ]
+                ],
+                [
+                  "c2_mechanism_ood",
+                  1.0,
+                  1.0,
+                  1.0,
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.18518518518518517,
+                    0.0
+                  ]
+                ],
+                [
+                  "height_ood",
+                  0.8813272505555555,
+                  0.8518518518518517,
+                  0.9108026492592592,
+                  [
+                    0.0,
+                    0.14814814814814814
+                  ],
+                  [
+                    0.0,
+                    0.14814814814814814,
+                    0.0,
+                    0.07407407407407407
+                  ]
+                ],
+                [
+                  "joint_ood",
+                  0.5573519338888889,
+                  0.40740740740740744,
+                  0.7072964603703703,
+                  [
+                    0.0,
+                    0.5925925925925926
+                  ],
+                  [
+                    0.37037037037037035,
+                    0.5925925925925926,
+                    0.0,
+                    0.8888888888888888
+                  ]
+                ],
+                [
+                  "phase_composition_ood",
+                  1.0,
+                  1.0,
+                  1.0,
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ]
+                ],
+                [
+                  "tread_ood",
+                  0.9232903011111112,
+                  0.8888888888888888,
+                  0.9576917133333334,
+                  [
+                    0.037037037037037035,
+                    0.07407407407407407
+                  ],
+                  [
+                    0.18518518518518517,
+                    0.1111111111111111,
+                    0.0,
+                    0.3333333333333333
+                  ]
+                ]
+              ],
+              "derived_diagnostic_rate_columns_omitted": [
+                "first_valid_top_arrival_achieved"
+              ]
+            }
+          },
+          "primary_failure_breakdown": {
+            "base_orientation_instability": 0.004629629629629629,
+            "forbidden_contact": 0.10185185185185185
+          },
+          "progress_summary": {
+            "mean_progress_fraction": 0.94697385
+          }
+        },
+        "selection_basis": [
+          "recent_evaluated",
+          "best_observed_nonaccepted"
+        ]
+      },
+      {
+        "round_id": "formal-go2-stair-15round-20260901-c6ab8ba-generation-008-lane-a",
+        "candidate_id": "stair_swing_foot_level_sweep_penalty_v1",
+        "program_source_checksum": "sha256:29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45",
+        "objective_score": 0.9482670629766803,
+        "accepted": true,
+        "feedback": {
+          "climb_completion_summary": {
+            "completion_mode": "first_valid_top_arrival_latched",
+            "success_rate": 0.8842592592592592,
+            "first_valid_top_arrival_rate": 0.8842592592592592
+          },
+          "diagnostic_flag_rates": {
+            "base_orientation_instability_detected": 0.06018518518518518,
+            "goal_not_reached_detected": 0.11574074074074074,
+            "insufficient_clearance_detected": 0.06018518518518518,
+            "slip_detected": 0.14351851851851852
+          },
+          "dominant_failure": {
+            "reason": "forbidden_contact",
+            "rate": 0.09722222222222222
+          },
+          "generalization_summary": {
+            "public_dev_objective_score": 0.9482670629766803,
+            "j_id": 1.0,
+            "j_ood": 0.9224005944650205,
+            "named_guard_scores": {
+              "j_ood": 0.9224005944650205,
+              "c0_id": 1.0,
+              "c1_id": 1.0
+            },
+            "family_scores": {
+              "F_scalar": 0.7672017833950617,
+              "F_c1": 1.0,
+              "F_c2": 1.0
+            },
+            "qualified_ood_families": [
+              "F_scalar",
+              "F_c1",
+              "F_c2"
+            ],
+            "objective_family_mask_hash": "78cc09cc36d6b297f1566b75f9b847e9f5c81dc64ce39c3aa86e2f7408efaa10",
+            "ordered_suite_hash": "f7d744df40eb9708ace9772b6f23f366090a6d312fcfef93e54e85cd4e0dd18b",
+            "split_cohort_hash": "a93720d1247acba0f21eb607b95edcaf222f4643eae1a05c311f4dbb94de71c2",
+            "stratum_diagnostics": {
+              "schema_version": "true_rl_agent.task.stair_climbing.stratum_feedback_table.v3",
+              "columns": [
+                "stratum_id",
+                "score",
+                "success_rate",
+                "mean_progress_fraction",
+                "primary_failure_rates",
+                "diagnostic_flag_rates"
+              ],
+              "primary_failure_rate_columns": [
+                "base_orientation_instability",
+                "forbidden_contact"
+              ],
+              "diagnostic_flag_rate_columns": [
+                "base_orientation_instability_detected",
+                "goal_not_reached_detected",
+                "insufficient_clearance_detected",
+                "slip_detected"
+              ],
+              "omitted_primary_failure_rates_are_zero": true,
+              "omitted_diagnostic_rates_are_zero": true,
+              "rows": [
+                [
+                  "c0_id",
+                  1.0,
+                  1.0,
+                  1.0,
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.07407407407407407
+                  ]
+                ],
+                [
+                  "c1_conditional_frontier",
+                  1.0,
+                  1.0,
+                  1.0,
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.037037037037037035
+                  ]
+                ],
+                [
+                  "c1_id",
+                  1.0,
+                  1.0,
+                  1.0,
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ]
+                ],
+                [
+                  "c2_mechanism_ood",
+                  1.0,
+                  1.0,
+                  1.0,
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.48148148148148145,
+                    0.0
+                  ]
+                ],
+                [
+                  "height_ood",
+                  0.9158650277777779,
+                  0.8888888888888888,
+                  0.9428411666666667,
+                  [
+                    0.0,
+                    0.1111111111111111
+                  ],
+                  [
+                    0.0,
+                    0.1111111111111111,
+                    0.0,
+                    0.0
+                  ]
+                ],
+                [
+                  "joint_ood",
+                  0.41240484481481476,
+                  0.2222222222222222,
+                  0.6025874674074074,
+                  [
+                    0.1111111111111111,
+                    0.6666666666666666
+                  ],
+                  [
+                    0.4074074074074074,
+                    0.7777777777777778,
+                    0.0,
+                    0.6666666666666666
+                  ]
+                ],
+                [
+                  "phase_composition_ood",
+                  1.0,
+                  1.0,
+                  1.0,
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.037037037037037035
+                  ]
+                ],
+                [
+                  "tread_ood",
+                  0.9733354775925926,
+                  0.9629629629629629,
+                  0.9837079922222222,
+                  [
+                    0.037037037037037035,
+                    0.0
+                  ],
+                  [
+                    0.07407407407407407,
+                    0.037037037037037035,
+                    0.0,
+                    0.3333333333333333
+                  ]
+                ]
+              ],
+              "derived_diagnostic_rate_columns_omitted": [
+                "first_valid_top_arrival_achieved"
+              ]
+            }
+          },
+          "primary_failure_breakdown": {
+            "base_orientation_instability": 0.018518518518518517,
+            "forbidden_contact": 0.09722222222222222
+          },
+          "progress_summary": {
+            "mean_progress_fraction": 0.94114208
+          }
+        },
+        "selection_basis": [
+          "recent_evaluated",
+          "latest_evaluated",
+          "accepted_current_best"
+        ]
+      }
+    ],
+    "omitted_candidate_feedback_entry_count": 2,
+    "byte_budget_compaction_applied": true,
+    "limits": {
+      "max_recent_candidate_records": 3,
+      "max_candidate_feedback_entries": 5,
+      "max_task_prompt_sections_bytes": 57344,
+      "reserved_task_prompt_headroom_bytes": 512,
+      "max_latest_generation_trial_comparisons": 2
+    },
+    "latest_generation_trial_comparisons": [
+      {
+        "trial_id": "formal-go2-stair-15round-20260901-c6ab8ba-generation-008-lane-a",
+        "lane_id": "lane-a",
+        "candidate_id": "stair_swing_foot_level_sweep_penalty_v1",
+        "program_source_checksum": "sha256:29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45",
+        "selected": true,
+        "trial_status": "accepted",
+        "objective_score": 0.9482670629766803,
+        "objective_delta": 0.013828580919067135,
+        "named_guard_scores": {
+          "j_ood": 0.9224005944650205,
+          "c0_id": 1.0,
+          "c1_id": 1.0
+        },
+        "selector_guard_floor_score": 0.9224005944650205,
+        "selector_guard_regression": -0.020742871378600758,
+        "selector_guard_max_regression": 0.05,
+        "selector_eligible": true,
+        "selector_status": "selected",
+        "generation_selector_reason": "public_dev_objective_rank",
+        "runtime_effect_evidence": {
+          "acceptance_authority": false,
+          "reason": "candidate_reward_operation_runtime_effect_observed",
+          "schema_version": "true_rl_agent.task.stair_climbing.candidate_runtime_effect_evidence.v1",
+          "status": "pass"
+        },
+        "observed_effect": "strong_positive",
+        "reason_codes": [
+          "selected_public_dev_objective_improved_without_guard_regression"
+        ]
+      },
+      {
+        "trial_id": "formal-go2-stair-15round-20260901-c6ab8ba-generation-008-lane-b",
+        "lane_id": "lane-b",
+        "candidate_id": "stair_swing_foot_clearance_reward_v1",
+        "program_source_checksum": "sha256:2270d16f491970b27197298dc4c6ce20cf8c036c0b1de44e18aef32e5a8ae4cf",
+        "selected": false,
+        "trial_status": "qualified_not_selected",
+        "objective_score": 0.9373783577640603,
+        "objective_delta": 0.0029398757064471592,
+        "named_guard_scores": {
+          "j_ood": 0.9060675366460904,
+          "c0_id": 1.0,
+          "c1_id": 1.0
+        },
+        "selector_guard_floor_score": 0.9060675366460904,
+        "selector_guard_regression": -0.004409813559670628,
+        "selector_guard_max_regression": 0.05,
+        "selector_eligible": true,
+        "selector_status": "eligible_not_selected",
+        "generation_selector_reason": "public_dev_objective_rank",
+        "runtime_effect_evidence": {
+          "acceptance_authority": false,
+          "reason": "candidate_reward_operation_runtime_effect_observed",
+          "schema_version": "true_rl_agent.task.stair_climbing.candidate_runtime_effect_evidence.v1",
+          "status": "pass"
+        },
+        "observed_effect": "positive",
+        "reason_codes": [
+          "public_dev_objective_improved_without_guard_regression"
+        ]
+      }
+    ],
+    "latest_generation_trial_comparison_basis": "public_dev_selector_vs_parent",
+    "feedback_entry_projection": {
+      "detail_level": "core",
+      "schema_version": "true_rl_agent.task.stair_climbing.feedback_entry_projection.v6",
+      "source_split": "public_dev",
+      "omitted_rates_are_zero": true
+    },
+    "capacity_projection_receipt": {
+      "schema_version": "true_rl_agent.prompt.capacity_projection_receipt.v2",
+      "projection_id": "stair_climbing.static_contract_and_feedback_core.v1",
+      "mode": "minimum_core",
+      "original_content_hash": "192241babd8a7456779d71e9d7173125d6f5ce33489bd1ba0066ded8d7e8f7bf",
+      "original_bytes": 87208,
+      "projected_content_without_receipt_hash": "6c3386b65f290157b578d4ee51ecacb9e4211df956a41328c50a79703bd446a8",
+      "projected_content_without_receipt_bytes": 45946,
+      "omitted": [
+        "duplicated_task_identity_detail",
+        "feedback_detail_for_capacity",
+        "reward_field_descriptions"
+      ]
+    }
+  },
+  "runtime_feedback_summary": {
+    "schema_version": "true_rl_agent.runtime_feedback_summary.stair.v1",
+    "status": "available",
+    "source_round_id": "formal-go2-stair-15round-20260901-c6ab8ba-generation-008-lane-a",
+    "source_candidate_id": "stair_swing_foot_level_sweep_penalty_v1",
+    "source_decision_reason": "runner_accepted_candidate",
+    "latest_runtime_activation": {
+      "reward_term_calls": 432009,
+      "nonzero_reward_contribution": true,
+      "capability_activation_records": [
+        "complete_reward_program"
+      ],
+      "component_count": 9,
+      "omitted_component_count": 0,
+      "components": [
+        {
+          "kind": "reward_term",
+          "name": "dof_acc_l2",
+          "last_mean": -0.13496262,
+          "max_abs": 32.87678146
+        },
+        {
+          "kind": "reward_term",
+          "name": "ang_vel_xy_l2",
+          "last_mean": -0.11272934,
+          "max_abs": 19.69676971
+        },
+        {
+          "kind": "reward_term",
+          "name": "track_lin_vel_xy_exp",
+          "last_mean": 3.32693315,
+          "max_abs": 3.5
+        },
+        {
+          "kind": "reward_term",
+          "name": "action_rate_l2",
+          "last_mean": -0.11593448,
+          "max_abs": 2.90914106
+        },
+        {
+          "kind": "reward_term",
+          "name": "feet_air_time",
+          "last_mean": -0.01489919,
+          "max_abs": 2.76505423
+        },
+        {
+          "kind": "reward_term",
+          "name": "flat_orientation_l2",
+          "last_mean": -0.02525742,
+          "max_abs": 2.50000095
+        },
+        {
+          "kind": "reward_term",
+          "name": "dof_torques_l2",
+          "last_mean": -0.09554234,
+          "max_abs": 0.97622359
+        },
+        {
+          "kind": "reward_term",
+          "name": "track_ang_vel_z_exp",
+          "last_mean": 0.63464117,
+          "max_abs": 0.75
+        },
+        {
+          "kind": "reward_term",
+          "name": "swing_foot_level_sweep_penalty",
+          "last_mean": -0.0090299,
+          "max_abs": 0.40000001
+        }
+      ]
+    }
+  },
+  "public_history": {
+    "schema_version": "true_rl_agent.public_history.v4",
+    "previous_rounds": 8,
+    "best_public_score": 0.9482670629766803,
+    "public_score_source": "prompt_feedback.generalization_summary.public_dev_objective_score",
+    "last_outcome": "policy_improvement_accept",
+    "pure_knob_streak": 0,
+    "limits": {
+      "max_recent_rounds": 8,
+      "max_recent_outcomes_serialized_bytes": 8192
+    },
+    "omitted_round_count": 1,
+    "recent_outcomes": [
+      {
+        "round_id": "formal-go2-stair-15round-20260901-c6ab8ba-generation-002-lane-b",
+        "candidate_id": "stair_foot_clearance_gap_penalty_v1",
+        "outcome": "reject",
+        "accepted": false,
+        "reason": "runner_did_not_accept_candidate",
+        "surface_classification": "code_level",
+        "public_score": 0.9347747573662551,
+        "public_score_source": "prompt_feedback.generalization_summary.public_dev_objective_score",
+        "comparison": {
+          "mode": "prompt_visible_public_dev_absolute_v1",
+          "score_source": "prompt_feedback.generalization_summary.public_dev_objective_score",
+          "candidate_score": 0.9347747573662551
+        },
+        "changed_components": [
+          "reward_callable"
+        ],
+        "dominant_failure": {
+          "reason": "forbidden_contact",
+          "rate": 0.125
+        },
+        "candidate_runtime_activated_in_training": true,
+        "candidate_code_loaded_in_eval": false,
+        "runtime_activation": {
+          "status": "available",
+          "reward_term_calls": 432009,
+          "diagnostic_calls": 0,
+          "nonzero_reward_contribution": true,
+          "capability_activation_records": [
+            "complete_reward_program"
+          ],
+          "feature_activation_records": [],
+          "reward_output_stats": {},
+          "diagnostic_outputs": {}
+        },
+        "mechanism_attribution": {
+          "status": "not_attributed",
+          "reason": "shadow_ablation_not_run"
+        }
+      },
+      {
+        "round_id": "formal-go2-stair-15round-20260901-c6ab8ba-generation-003",
+        "outcome": "generation_head_retained",
+        "accepted": false,
+        "reason": "candidate_execution_incomplete",
+        "changed_components": [],
+        "candidate_runtime_activated_in_training": "unknown",
+        "candidate_code_loaded_in_eval": "unknown",
+        "runtime_activation": {
+          "status": "not_available"
+        },
+        "mechanism_attribution": {
+          "status": "not_available",
+          "reason": null
+        }
+      },
+      {
+        "round_id": "formal-go2-stair-15round-20260901-c6ab8ba-generation-004-lane-a",
+        "candidate_id": "stair_forbidden_contact_terminal_penalty_v1",
+        "outcome": "reject",
+        "accepted": false,
+        "reason": "runner_did_not_accept_candidate",
+        "surface_classification": "code_level",
+        "public_score": 0.9224392256652948,
+        "public_score_source": "prompt_feedback.generalization_summary.public_dev_objective_score",
+        "comparison": {
+          "mode": "prompt_visible_public_dev_absolute_v1",
+          "score_source": "prompt_feedback.generalization_summary.public_dev_objective_score",
+          "candidate_score": 0.9224392256652948
+        },
+        "changed_components": [
+          "reward_callable"
+        ],
+        "dominant_failure": {
+          "reason": "forbidden_contact",
+          "rate": 0.125
+        },
+        "candidate_runtime_activated_in_training": true,
+        "candidate_code_loaded_in_eval": false,
+        "runtime_activation": {
+          "status": "available",
+          "reward_term_calls": 432009,
+          "diagnostic_calls": 0,
+          "nonzero_reward_contribution": true,
+          "capability_activation_records": [
+            "complete_reward_program"
+          ],
+          "feature_activation_records": [],
+          "reward_output_stats": {},
+          "diagnostic_outputs": {}
+        },
+        "mechanism_attribution": {
+          "status": "not_attributed",
+          "reason": "shadow_ablation_not_run"
+        }
+      },
+      {
+        "round_id": "formal-go2-stair-15round-20260901-c6ab8ba-generation-005",
+        "outcome": "generation_head_retained",
+        "accepted": false,
+        "reason": "no_selection",
+        "changed_components": [],
+        "candidate_runtime_activated_in_training": "unknown",
+        "candidate_code_loaded_in_eval": "unknown",
+        "runtime_activation": {
+          "status": "not_available"
+        },
+        "mechanism_attribution": {
+          "status": "not_available",
+          "reason": null
+        }
+      },
+      {
+        "round_id": "formal-go2-stair-15round-20260901-c6ab8ba-generation-006",
+        "outcome": "generation_head_retained",
+        "accepted": false,
+        "reason": "paired_authoring_incomplete",
+        "changed_components": [],
+        "candidate_runtime_activated_in_training": "unknown",
+        "candidate_code_loaded_in_eval": "unknown",
+        "runtime_activation": {
+          "status": "not_available"
+        },
+        "mechanism_attribution": {
+          "status": "not_available",
+          "reason": null
+        }
+      },
+      {
+        "round_id": "formal-go2-stair-15round-20260901-c6ab8ba-generation-007-lane-b",
+        "candidate_id": "stair_swing_foot_low_forward_penalty_v1",
+        "outcome": "reject",
+        "accepted": false,
+        "reason": "runner_did_not_accept_candidate",
+        "surface_classification": "code_level",
+        "public_score": 0.9527384804115225,
+        "public_score_source": "prompt_feedback.generalization_summary.public_dev_objective_score",
+        "comparison": {
+          "mode": "prompt_visible_public_dev_absolute_v1",
+          "score_source": "prompt_feedback.generalization_summary.public_dev_objective_score",
+          "candidate_score": 0.9527384804115225
+        },
+        "changed_components": [
+          "reward_callable"
+        ],
+        "dominant_failure": {
+          "reason": "forbidden_contact",
+          "rate": 0.10185185185185185
+        },
+        "candidate_runtime_activated_in_training": true,
+        "candidate_code_loaded_in_eval": false,
+        "runtime_activation": {
+          "status": "available",
+          "reward_term_calls": 432009,
+          "diagnostic_calls": 0,
+          "nonzero_reward_contribution": true,
+          "capability_activation_records": [
+            "complete_reward_program"
+          ],
+          "feature_activation_records": [],
+          "reward_output_stats": {},
+          "diagnostic_outputs": {}
+        },
+        "mechanism_attribution": {
+          "status": "not_attributed",
+          "reason": "shadow_ablation_not_run"
+        }
+      },
+      {
+        "round_id": "formal-go2-stair-15round-20260901-c6ab8ba-generation-008-lane-a",
+        "candidate_id": "stair_swing_foot_level_sweep_penalty_v1",
+        "outcome": "policy_improvement_accept",
+        "accepted": true,
+        "reason": "runner_accepted_candidate",
+        "surface_classification": "code_level",
+        "public_score": 0.9482670629766803,
+        "public_score_source": "prompt_feedback.generalization_summary.public_dev_objective_score",
+        "comparison": {
+          "mode": "prompt_visible_public_dev_absolute_v1",
+          "score_source": "prompt_feedback.generalization_summary.public_dev_objective_score",
+          "candidate_score": 0.9482670629766803
+        },
+        "changed_components": [
+          "reward_callable"
+        ],
+        "dominant_failure": {
+          "reason": "forbidden_contact",
+          "rate": 0.09722222222222222
+        },
+        "candidate_runtime_activated_in_training": true,
+        "candidate_code_loaded_in_eval": false,
+        "runtime_activation": {
+          "status": "available",
+          "reward_term_calls": 432009,
+          "diagnostic_calls": 0,
+          "nonzero_reward_contribution": true,
+          "capability_activation_records": [
+            "complete_reward_program"
+          ],
+          "feature_activation_records": [],
+          "reward_output_stats": {},
+          "diagnostic_outputs": {}
+        },
+        "mechanism_attribution": {
+          "status": "not_attributed",
+          "reason": "shadow_ablation_not_run"
+        }
+      }
+    ],
+    "experiment_memory": {
+      "schema_version": "true_rl_agent.experiment_memory.v4",
+      "purpose": "bounded cross-round component/outcome index; consult it before proposing a candidate so previously evaluated mechanisms are not repeated blindly",
+      "limits": {
+        "max_rounds": 16,
+        "max_serialized_bytes": 14336,
+        "max_components_per_round": 8,
+        "max_candidate_components_per_round": 1
+      },
+      "candidate_component_semantics": "mechanism-delta-bound provider records use the sealed canonical delta plus runner activation; all other records use runtime identity difference",
+      "component_value_semantics": {
+        "weight": "runner-observed effective component weight",
+        "last_mean": "last sampled weighted mean contribution; one snapshot is not evidence of inactivity or causal effect",
+        "max_abs": "maximum absolute weighted contribution over bounded training samples"
+      },
+      "score_semantics": "objective and guard values are copied from decision.comparison with their authoritative score-source identities; no score is recomputed",
+      "omitted_experiment_count": 0,
+      "experiments": [
+        {
+          "round_index": 1,
+          "candidate_id": "stair_forbidden_contact_force_penalty_v1",
+          "reason": "runner_did_not_accept_candidate",
+          "objective_score_source": "prompt_feedback.generalization_summary.public_dev_objective_score",
+          "accepted": false,
+          "objective_score": 0.9184304334705075,
+          "candidate_components": [
+            {
+              "mechanism": "RewardTerm:forbidden_contact_force_l2_penalty",
+              "last_mean": 0.0,
+              "max_abs": 0.60000002
+            }
+          ]
+        },
+        {
+          "round_index": 2,
+          "candidate_id": "stair_foot_clearance_gap_penalty_v1",
+          "reason": "runner_did_not_accept_candidate",
+          "objective_score_source": "prompt_feedback.generalization_summary.public_dev_objective_score",
+          "accepted": false,
+          "objective_score": 0.9347747573662551,
+          "candidate_components": [
+            {
+              "mechanism": "RewardTerm:foot_clearance_gap_penalty",
+              "last_mean": -0.00273159,
+              "max_abs": 0.80000007
+            }
+          ]
+        },
+        {
+          "round_index": 3,
+          "reason": "candidate_execution_incomplete",
+          "accepted": false
+        },
+        {
+          "round_index": 4,
+          "candidate_id": "stair_forbidden_contact_terminal_penalty_v1",
+          "surface": "code_level",
+          "reason": "runner_did_not_accept_candidate",
+          "objective_score_source": "prompt_feedback.generalization_summary.public_dev_objective_score",
+          "accepted": false,
+          "objective_score": 0.9224392256652948,
+          "candidate_components": [
+            {
+              "mechanism": "RewardTerm:forbidden_contact_terminal_penalty",
+              "last_mean": -0.0012207,
+              "max_abs": 5.0
+            }
+          ],
+          "activated_components": [
+            {
+              "kind": "reward_term",
+              "name": "dof_acc_l2",
+              "last_mean": -0.16413257,
+              "max_abs": 40.7177887
+            },
+            {
+              "kind": "reward_term",
+              "name": "ang_vel_xy_l2",
+              "last_mean": -0.12314913,
+              "max_abs": 15.30393505
+            },
+            {
+              "kind": "reward_term",
+              "name": "track_lin_vel_xy_exp",
+              "last_mean": 3.30887794,
+              "max_abs": 3.5
+            },
+            {
+              "kind": "reward_term",
+              "name": "feet_air_time",
+              "last_mean": -0.01602956,
+              "max_abs": 2.74880385
+            },
+            {
+              "kind": "reward_term",
+              "name": "flat_orientation_l2",
+              "last_mean": -0.0292657,
+              "max_abs": 2.50000048
+            },
+            {
+              "kind": "reward_term",
+              "name": "action_rate_l2",
+              "last_mean": -0.14022304,
+              "max_abs": 2.06498981
+            },
+            {
+              "kind": "reward_term",
+              "name": "dof_torques_l2",
+              "last_mean": -0.11621016,
+              "max_abs": 1.05975592
+            },
+            {
+              "kind": "reward_term",
+              "name": "track_ang_vel_z_exp",
+              "last_mean": 0.62345779,
+              "max_abs": 0.75
+            }
+          ]
+        },
+        {
+          "round_index": 5,
+          "reason": "no_selection",
+          "accepted": false
+        },
+        {
+          "round_index": 6,
+          "reason": "paired_authoring_incomplete",
+          "accepted": false
+        },
+        {
+          "round_index": 7,
+          "candidate_id": "stair_swing_foot_low_forward_penalty_v1",
+          "surface": "code_level",
+          "reason": "runner_did_not_accept_candidate",
+          "objective_score_source": "prompt_feedback.generalization_summary.public_dev_objective_score",
+          "accepted": false,
+          "objective_score": 0.9527384804115225,
+          "candidate_components": [
+            {
+              "mechanism": "RewardTerm:swing_foot_low_forward_penalty",
+              "last_mean": -0.01443848,
+              "max_abs": 0.40000001
+            }
+          ],
+          "activated_components": [
+            {
+              "kind": "reward_term",
+              "name": "dof_acc_l2",
+              "last_mean": -0.14228556,
+              "max_abs": 36.95087814
+            },
+            {
+              "kind": "reward_term",
+              "name": "ang_vel_xy_l2",
+              "last_mean": -0.11841914,
+              "max_abs": 13.78848934
+            },
+            {
+              "kind": "reward_term",
+              "name": "track_lin_vel_xy_exp",
+              "last_mean": 3.31517076,
+              "max_abs": 3.5
+            },
+            {
+              "kind": "reward_term",
+              "name": "flat_orientation_l2",
+              "last_mean": -0.02909213,
+              "max_abs": 2.50000024
+            },
+            {
+              "kind": "reward_term",
+              "name": "action_rate_l2",
+              "last_mean": -0.12286064,
+              "max_abs": 2.12799692
+            },
+            {
+              "kind": "reward_term",
+              "name": "feet_air_time",
+              "last_mean": -0.01712974,
+              "max_abs": 1.67003906
+            },
+            {
+              "kind": "reward_term",
+              "name": "dof_torques_l2",
+              "last_mean": -0.10107014,
+              "max_abs": 0.93028855
+            },
+            {
+              "kind": "reward_term",
+              "name": "track_ang_vel_z_exp",
+              "last_mean": 0.62470138,
+              "max_abs": 0.75
+            }
+          ]
+        },
+        {
+          "round_index": 8,
+          "candidate_id": "stair_swing_foot_level_sweep_penalty_v1",
+          "surface": "code_level",
+          "reason": "runner_accepted_candidate",
+          "objective_score_source": "prompt_feedback.generalization_summary.public_dev_objective_score",
+          "accepted": true,
+          "objective_score": 0.9482670629766803,
+          "candidate_components": [
+            {
+              "mechanism": "RewardTerm:swing_foot_level_sweep_penalty",
+              "last_mean": -0.0090299,
+              "max_abs": 0.40000001
+            }
+          ],
+          "activated_components": [
+            {
+              "kind": "reward_term",
+              "name": "dof_acc_l2",
+              "last_mean": -0.13496262,
+              "max_abs": 32.87678146
+            },
+            {
+              "kind": "reward_term",
+              "name": "ang_vel_xy_l2",
+              "last_mean": -0.11272934,
+              "max_abs": 19.69676971
+            },
+            {
+              "kind": "reward_term",
+              "name": "track_lin_vel_xy_exp",
+              "last_mean": 3.32693315,
+              "max_abs": 3.5
+            },
+            {
+              "kind": "reward_term",
+              "name": "action_rate_l2",
+              "last_mean": -0.11593448,
+              "max_abs": 2.90914106
+            },
+            {
+              "kind": "reward_term",
+              "name": "feet_air_time",
+              "last_mean": -0.01489919,
+              "max_abs": 2.76505423
+            },
+            {
+              "kind": "reward_term",
+              "name": "flat_orientation_l2",
+              "last_mean": -0.02525742,
+              "max_abs": 2.50000095
+            },
+            {
+              "kind": "reward_term",
+              "name": "dof_torques_l2",
+              "last_mean": -0.09554234,
+              "max_abs": 0.97622359
+            },
+            {
+              "kind": "reward_term",
+              "name": "track_ang_vel_z_exp",
+              "last_mean": 0.63464117,
+              "max_abs": 0.75
+            }
+          ]
+        }
+      ],
+      "exploration_semantics": "ledger-derived, task-owned public hypotheses for bounded revisit; no acceptance authority and no checkpoint/source reuse authority",
+      "exploration": {
+        "schema_version": "true_rl_agent.exploration_prompt_projection.v2",
+        "task_id": "unitree_stair_climbing",
+        "source_index_hash": "67eca42f3af2e83da52409032c8b044e734174228fa06c0e1021a21686f58dc9",
+        "current_head_hash": "7c2756aeb0ea21d1db378779d4db5fb3bade4081bd2e016302d889f750448eb9",
+        "semantics": "public exploration hypotheses only; they do not accept candidates, prove causality, or authorize checkpoint/source reuse; only priority cards may consume the automatic revisit lane",
+        "priority_or_eligible_cards": [
+          {
+            "trial_id": "formal-go2-stair-15round-20260901-c6ab8ba-generation-008-lane-b",
+            "card_hash": "bd4f397d1f1fa04d4932cf1d1edae08dcd38920d1f91fc4c1e464aa48bfed60a",
+            "verifier_equivalence_key": "eef5c0be1abfce9ef5bf5379cabcd738e2a59def1b95524b1e3b9351d8be8c0c",
+            "operation": "add",
+            "operation_effect": "add",
+            "component_kind": "RewardTerm",
+            "public_input_fields": [
+              "base_height",
+              "base_pos_relative_to_terrain_origin",
+              "commanded_base_vel",
+              "goal_progress_fraction",
+              "support_contact",
+              "support_pos_relative_to_terrain_origin"
+            ],
+            "evidence_tier": "public_dev",
+            "observed_effect": "positive",
+            "value_label": "medium",
+            "selection_status": "qualified_not_selected",
+            "revisit_disposition": "eligible",
+            "public_evidence_summary": {
+              "status": "public_complete",
+              "source_split": "public_dev",
+              "objective_family_mask_hash": "78cc09cc36d6b297f1566b75f9b847e9f5c81dc64ce39c3aa86e2f7408efaa10",
+              "qualified_ood_families": [
+                "F_scalar",
+                "F_c1",
+                "F_c2"
+              ],
+              "objective": {
+                "score_source": "prompt_feedback.generalization_summary.public_dev_objective_score",
+                "candidate": 0.9373783577640603,
+                "parent": 0.9344384820576132,
+                "delta": 0.0029398757064471592
+              },
+              "named_guards": {
+                "j_ood": {
+                  "score_source": "prompt_feedback.generalization_summary.named_guard_scores.j_ood",
+                  "candidate": 0.9060675366460904
+                },
+                "c0_id": {
+                  "score_source": "prompt_feedback.generalization_summary.named_guard_scores.c0_id",
+                  "candidate": 1.0
+                },
+                "c1_id": {
+                  "score_source": "prompt_feedback.generalization_summary.named_guard_scores.c1_id",
+                  "candidate": 1.0
+                }
+              },
+              "guard_floor": {
+                "score_source": "minimum_named_guard_per_seed_then_mean",
+                "candidate": 0.9060675366460904,
+                "parent": 0.9016577230864198,
+                "delta": 0.004409813559670628
+              },
+              "selection_status": "not_selected",
+              "runtime_effect_evidence": {
+                "acceptance_authority": false,
+                "reason": "candidate_reward_operation_runtime_effect_observed",
+                "schema_version": "true_rl_agent.task.stair_climbing.candidate_runtime_effect_evidence.v1",
+                "status": "pass"
+              }
+            },
+            "reason_codes": [
+              "public_dev_objective_improved_without_guard_regression"
+            ]
+          }
+        ],
+        "verifier_equivalent_avoidance_cards": [
+          {
+            "card_hash": "a278592feacac4aa0da2e9bd8e8471ad442a89665cec54f61bd0bd82b9876b58",
+            "component_kind": "RewardTerm",
+            "observed_effect": "negative",
+            "operation": "add",
+            "public_input_fields": [
+              "base_pos_relative_to_terrain_origin",
+              "support_pos_relative_to_terrain_origin"
+            ],
+            "revisit_disposition": "suppress_equivalent",
+            "trial_id": "formal-go2-stair-15round-20260901-c6ab8ba-generation-007-lane-a",
+            "value_label": "low",
+            "verifier_equivalence_key": "080c0665f4d8be4d2a0c41d74efda5c8ad92ea0bfa889f9850c76369dcd047bb",
+            "operation_effect": "add"
+          },
+          {
+            "card_hash": "b4729efd2bb68a20195da5dea5b7ce3db722ad77c02fa06eca38948a1f3fb488",
+            "component_kind": "RewardTerm",
+            "observed_effect": "negative",
+            "operation": "add",
+            "public_input_fields": [
+              "base_lin_vel_yaw",
+              "commanded_base_vel",
+              "forbidden_contact",
+              "projected_gravity",
+              "support_contact"
+            ],
+            "revisit_disposition": "suppress_equivalent",
+            "trial_id": "formal-go2-stair-15round-20260901-c6ab8ba-generation-005-lane-b",
+            "value_label": "low",
+            "verifier_equivalence_key": "d32cdd51ff611d38d8568839bd4cc49de7ec0eaf5e57cf5f39c6ad447a61923b",
+            "operation_effect": "add"
+          }
+        ],
+        "repeated_negative_input_signature_advisories": [],
+        "blocked_verifier_equivalence_count": 6,
+        "omitted_verifier_equivalent_avoidance_count": 4,
+        "frontier_backlog_count": 1,
+        "omitted_frontier_card_count": 0,
+        "deferred_frontier_card_count": 0,
+        "ineligible_frontier_card_count": 0,
+        "acceptance_authority": false
+      }
+    }
+  },
+  "public_context": {
+    "schema_version": "true_rl_agent.public_context_legacy_summary.v1",
+    "deprecated": true,
+    "public_only": true,
+    "previous_rounds": 8,
+    "best_public_score": 0.9482670629766803,
+    "last_outcome": "policy_improvement_accept",
+    "pure_knob_streak": 0,
+    "canonical_sections": {
+      "history": "public_history",
+      "public_feedback": "public_feedback_summary",
+      "runtime_feedback": "runtime_feedback_summary"
+    },
+    "candidate_repair_feedback_ref": {
+      "available": true,
+      "canonical_section": "provider_or_runtime_repair_feedback"
+    }
+  },
+  "exploration_directive": {
+    "schema_version": "true_rl_agent.exploration_directive.v2",
+    "mode": "exploit_refine",
+    "role": "guidance_only_not_acceptance_rule",
+    "instructions": [
+      "Use current-best source and public feedback to make a mechanism-level candidate change.",
+      "When the source catalog exposes a latest nonaccepted candidate, compare its exact code and failure evidence with the current best before reusing it.",
+      "Do not submit identical, rationale-only, or numeric-only edits as policy improvements."
+    ]
+  },
+  "required_candidate_package": {
+    "schema_version": "true_rl_agent.required_candidate_package.v1",
+    "candidate_role": "candidate_package_only",
+    "provider_json_output": {
+      "type": "object",
+      "json_only": true,
+      "no_prose_outside_json": true,
+      "response_shape": "one_of",
+      "one_of": {
+        "candidate_draft": {
+          "response_mode": "candidate_draft",
+          "required_keys": [
+            "candidate_id",
+            "declared_changed_components",
+            "components_py"
+          ],
+          "allowed_keys": [
+            "response_mode",
+            "candidate_id",
+            "declared_changed_components",
+            "components_py"
+          ],
+          "additional_keys_allowed": false
+        },
+        "source_request": {
+          "response_mode": "source_request",
+          "enabled": true,
+          "required_keys": [
+            "response_mode",
+            "logical_ids",
+            "rationale"
+          ],
+          "allowed_keys": [
+            "response_mode",
+            "logical_ids",
+            "rationale"
+          ],
+          "additional_keys_allowed": false,
+          "purpose": "controlled source resolver request for prompt source_catalog logical ids"
+        }
+      },
+      "additional_keys_allowed": false,
+      "prohibited_keys": [
+        "runner_patch",
+        "eval_patch",
+        "success_metric",
+        "budget",
+        "seed_policy",
+        "checkpoint",
+        "ppo_config",
+        "operation_diff",
+        "diagnostics",
+        "candidate_manifest",
+        "files"
+      ],
+      "authoring_response_protocol": {
+        "schema_version": "true_rl_agent.authoring_provider_response_contract.v2",
+        "response_mode_field": "response_mode",
+        "default_response_mode": "candidate_draft",
+        "supported_response_modes": [
+          "candidate_draft",
+          "source_request"
+        ],
+        "source_request_service_enabled": true,
+        "instructions": [
+          "Omit response_mode or set response_mode='candidate_draft' when returning candidate fields.",
+          "candidate_draft and source_request fields are mutually exclusive response shapes.",
+          "Use source_request only for logical ids declared in the prompt source_catalog.",
+          "After a source_followup prompt, return candidate_draft unless another bounded source read is necessary."
+        ]
+      },
+      "declared_changed_components_allowed_values": [
+        "reward_callable"
+      ],
+      "field_contracts": {
+        "response_mode": {
+          "type": "string",
+          "optional": true,
+          "default": "candidate_draft",
+          "allowed_values": [
+            "candidate_draft",
+            "source_request"
+          ],
+          "phase7_note": "source_request is serviced only through the prompt source_catalog allowlist"
+        },
+        "candidate_id": {
+          "type": "string",
+          "max_chars": 80,
+          "allowed_characters": "lowercase ASCII letters, digits, dot, underscore, and dash",
+          "format": "portable path segment beginning with a lowercase letter or digit",
+          "portability": "no trailing dot; basename must not be con, prn, aux, nul, com1-9, or lpt1-9",
+          "materialized_file": "candidate_manifest.yaml"
+        },
+        "rationale": {
+          "type": "string",
+          "available_in_response_modes": [
+            "source_request"
+          ],
+          "purpose": "bounded justification for an allowlisted source request",
+          "candidate_hypothesis": false
+        },
+        "declared_changed_components": {
+          "type": "array[string]",
+          "allowed_values": [
+            "reward_callable"
+          ],
+          "purpose": "provider declaration; verifier-derived change set remains authoritative",
+          "materialized_file": "operation_diff.json"
+        },
+        "components_py": {
+          "type": "string",
+          "purpose": "complete training_code/components.py source; the canonical experiment hypothesis must be a non-empty statically resolvable string literal in TrainingComponents.rationale",
+          "materialized_file": "training_code/components.py",
+          "derived_materialized_files": {
+            "rationale.md": "TrainingComponents.rationale"
+          },
+          "repair_provenance_rule": "keep the embedded hypothesis focused on the experiment mechanism; mechanical repair notes remain in authoring attempt provenance"
+        }
+      }
+    },
+    "candidate_files": {
+      "schema_version": "true_rl_agent.candidate_package_files.v2",
+      "package_contract_hash": "ea177ecd60812c8c3da7de62f594c1673e1dc7878e162e01fb25596255f6d785",
+      "package_contract": {
+        "schema_version": "true_rl_agent.candidate_package_contract.v1",
+        "provider_authored_files": [
+          "candidate_manifest.yaml",
+          "training_code/components.py",
+          "rationale.md",
+          "operation_diff.json",
+          "diagnostics.json"
+        ],
+        "file_max_bytes": {
+          "candidate_manifest.yaml": 2048,
+          "training_code/components.py": 24576,
+          "rationale.md": 8192,
+          "operation_diff.json": 8192,
+          "diagnostics.json": 8192
+        },
+        "max_total_bytes": 51200,
+        "all_files_required": true,
+        "additional_files_allowed": false,
+        "regular_files_required": true,
+        "symlinks_allowed": false,
+        "scope": "new_unsealed_candidate_packages",
+        "legacy_sealed_replay_enforces_new_size_limits": false
+      },
+      "materialized_files": [
+        "candidate_manifest.yaml",
+        "training_code/components.py",
+        "rationale.md",
+        "operation_diff.json",
+        "diagnostics.json"
+      ],
+      "llm_writable_provider_json_fields": [
+        "response_mode",
+        "candidate_id",
+        "declared_changed_components",
+        "components_py"
+      ],
+      "provider_materialized_files": {
+        "candidate_manifest.yaml": {
+          "source": "provider",
+          "purpose": "fixed schema, candidate_id, and controlled entrypoint"
+        },
+        "operation_diff.json": {
+          "source": "candidate_materializer",
+          "derived_from": [
+            "declared_changed_components"
+          ],
+          "authority": "provider declaration is provisional; verifier-derived change set remains authoritative",
+          "purpose": "public record of declared changed components; not an LLM-editable runner diff"
+        },
+        "diagnostics.json": {
+          "source": "candidate_materializer",
+          "derived_from": [
+            "provider_response_parse",
+            "candidate_materialization_status"
+          ],
+          "purpose": "public candidate-package diagnostics placeholder for future extensions"
+        },
+        "rationale.md": {
+          "source": "candidate_materializer",
+          "derived_from": [
+            "training_code/components.py:TrainingComponents.rationale"
+          ],
+          "authority": "the embedded TrainingComponents.rationale is the canonical experiment hypothesis for fresh provider candidates",
+          "purpose": "derived human-readable view of the canonical hypothesis"
+        }
+      },
+      "llm_must_not_output_files": [
+        "runner patches",
+        "eval patches",
+        "budget or seed files",
+        "checkpoint files",
+        "PPO config files"
+      ]
+    },
+    "component_contract": {
+      "schema_version": "true_rl_agent.candidate_component_contract.v1",
+      "capability_schema_ref": "true_rl_agent.candidate_authoring_capabilities.v1",
+      "status": "available",
+      "module": "true_rl_agent.candidates.components",
+      "entrypoint": "training_code.components:build_training_components",
+      "builder_signature": "def build_training_components() -> TrainingComponents:",
+      "allowed_import": "from true_rl_agent.candidates.components import RewardInputs, RewardTerm, TrainingComponents",
+      "classes": {
+        "RewardTerm": "RewardTerm(name: str, weight: float, fn: Callable[[task RewardInputs], Any], clip_min: float | None = None, clip_max: float | None = None, description: str = '')",
+        "TrainingComponents": "TrainingComponents(name: str, reward_terms: list[RewardTerm] = [], diagnostics: list[DiagnosticTerm] = [], schedules: list[ScheduleTerm] = [], metadata: dict = {}, rationale: str = '')"
+      },
+      "allowed_schedule_keys": [],
+      "forbidden_surfaces": [
+        "runner state",
+        "environment objects",
+        "optimizer or PPO hyperparameters",
+        "eval protocol",
+        "success metric",
+        "seeds",
+        "budgets",
+        "checkpoints",
+        "filesystem"
+      ],
+      "static_verifier_rules": {
+        "schema_version": "true_rl_agent.static_candidate_verifier_prompt_rules.v1",
+        "rule_source": "StaticCandidateVerifier",
+        "verification_policy_id": "true_rl_agent.static_candidate_verifier.pure_function.v2",
+        "verification_policy_hash": "17e48a15617337729f47783f32d7b8940b4b25d06ef8632ee0e486c05e3add74",
+        "candidate_package_contract_hash": "ea177ecd60812c8c3da7de62f594c1673e1dc7878e162e01fb25596255f6d785",
+        "allowed_files": [
+          "candidate_manifest.yaml",
+          "diagnostics.json",
+          "operation_diff.json",
+          "rationale.md",
+          "training_code/components.py"
+        ],
+        "file_max_bytes": {
+          "candidate_manifest.yaml": 2048,
+          "training_code/components.py": 24576,
+          "rationale.md": 8192,
+          "operation_diff.json": 8192,
+          "diagnostics.json": 8192
+        },
+        "max_total_bytes": 51200,
+        "allowed_imports": {
+          "true_rl_agent.candidates.components": [
+            "RewardInputs",
+            "RewardTerm",
+            "TrainingComponents"
+          ]
+        },
+        "blocked_text_fragments": [
+          "import os",
+          "subprocess",
+          "open(",
+          "optimizer",
+          "checkpoint policy selector surface",
+          "eval configuration surface",
+          "success metric surface",
+          "runner attribute access",
+          "environment attribute access"
+        ],
+        "blocked_names": [
+          "checkpoint policy selector surface",
+          "env",
+          "eval configuration surface",
+          "optimizer",
+          "runner",
+          "success metric surface"
+        ],
+        "blocked_name_prefixes": [
+          "__"
+        ],
+        "blocked_calls": [
+          "__import__",
+          "__setattr__",
+          "__setitem__",
+          "breakpoint",
+          "compile",
+          "delattr",
+          "dir",
+          "eval",
+          "exec",
+          "exit",
+          "getattr",
+          "globals",
+          "help",
+          "input",
+          "locals",
+          "open",
+          "print",
+          "quit",
+          "setattr",
+          "vars"
+        ],
+        "blocked_call_roots": [
+          "os",
+          "pathlib",
+          "shutil",
+          "socket",
+          "subprocess",
+          "sys"
+        ],
+        "blocked_mutating_methods": [
+          "append",
+          "clear",
+          "extend",
+          "insert",
+          "pop",
+          "remove",
+          "reverse",
+          "setdefault",
+          "sort",
+          "update"
+        ],
+        "blocked_mutating_call_suffix": "_",
+        "blocked_random_calls": [
+          "bernoulli",
+          "beta",
+          "cauchy",
+          "choice",
+          "choices",
+          "exponential",
+          "fork_rng",
+          "gamma",
+          "geometric",
+          "get_rng_state",
+          "initial_seed",
+          "log_normal",
+          "manual_seed",
+          "multinomial",
+          "normal",
+          "permutation",
+          "poisson",
+          "rand",
+          "randint",
+          "randn",
+          "random",
+          "random_sample",
+          "seed",
+          "set_rng_state",
+          "shuffle",
+          "standard_normal",
+          "uniform"
+        ],
+        "blocked_state_attributes": [
+          "__class__",
+          "__dict__",
+          "__globals__",
+          "data",
+          "storage",
+          "untyped_storage"
+        ],
+        "blocked_attribute_prefixes": [
+          "_"
+        ],
+        "blocked_ast_nodes": [
+          "AugAssign",
+          "Delete",
+          "Global",
+          "Import",
+          "NamedExpr",
+          "Nonlocal"
+        ],
+        "blocked_assignment_target_nodes": [
+          "Attribute",
+          "Subscript"
+        ],
+        "allowed_top_level_ast_nodes": [
+          "FunctionDef",
+          "ImportFrom",
+          "module_docstring"
+        ],
+        "allowed_schedule_keys": [
+          "reward_weight_scale"
+        ],
+        "function_decorators_allowed": false,
+        "nested_functions_allowed": false,
+        "mutable_or_dynamic_defaults_allowed": false,
+        "additional_files_allowed": false,
+        "import_aliases_allowed": false,
+        "relative_imports_allowed": false,
+        "component_callable_contract": {
+          "callable_type": "python_function",
+          "defined_in_canonical_components_source": true,
+          "positional_argument_count": 1,
+          "closures_allowed": false,
+          "component_name_contract": {
+            "max_chars": 64,
+            "max_utf8_bytes": 64,
+            "must_be_nonempty_and_trimmed": true,
+            "forbidden_substrings": [
+              ":",
+              "->"
+            ],
+            "control_characters_allowed": false
+          }
+        },
+        "component_load_timeout_s": 2.0,
+        "generation_lane_intent": {
+          "schema_version": "true_rl_agent.generation_lane_intent.exploration.v1",
+          "lane_id": "lane-b",
+          "mode": "novel",
+          "current_head_hash": "7c2756aeb0ea21d1db378779d4db5fb3bade4081bd2e016302d889f750448eb9",
+          "inspired_by_trial_id": null,
+          "inspired_by_card_hash": null,
+          "hypothesis": null,
+          "verifier_equivalence_exclusion_set_hash": "ac4b6e8940430bed5974127060d1e406d8ad1e6197a64c632b2e7e49bff9b0b4",
+          "acceptance_authority": false
+        },
+        "single_component_semantic_exclusion": {
+          "schema_version": "true_rl_agent.single_component_semantic_exclusion.v1",
+          "operation": "rename",
+          "canonical_mechanism_delta": "RewardTerm:swing_foot_stance_plane_sweep_penalty",
+          "component_kind": "RewardTerm",
+          "public_input_dependencies": [
+            "base_height",
+            "goal_progress_fraction",
+            "support_contact",
+            "support_lin_vel",
+            "support_pos_relative_to_terrain_origin"
+          ],
+          "parameter_normalized_semantic_signature": "629cc3f8c8f17e6277299a778b4fec68a2e1dcc7b2770eba930ff57f433a8131",
+          "instruction": "Propose one component mechanism whose normalized callable, input, and clip structure is substantively different from this exclusion; renaming or changing only numeric parameters is not distinct.",
+          "exclusion_hash": "6a5216f61b341b227c6c4a4f22968d9a065dace4e4d2681f05c4147d6e24e4b5"
+        }
+      },
+      "complete_reward_runtime_semantics": {
+        "composition_order": [
+          "raw_term = fn(task_reward_inputs)",
+          "guarded_term = clip(raw_term, clip_min, clip_max)",
+          "weighted_term = weight * guarded_term",
+          "training_reward = sum(all weighted terms)"
+        ],
+        "activation_mode": "complete_replacement",
+        "base_reward_included": false,
+        "reference_reward_called": false,
+        "optimization_direction": "Training maximizes the sum of candidate-defined weighted terms.",
+        "source_requirement": "Return one complete training_code/components.py program."
+      }
+    },
+    "candidate_must_not_change": [
+      "runner code",
+      "runner",
+      "eval protocol",
+      "success metric",
+      "training budget",
+      "seed policy",
+      "checkpoints",
+      "PPO",
+      "acceptance rules"
+    ],
+    "operation_diff_contract": {
+      "materialized_by": "candidate_materializer",
+      "llm_output_key_allowed": false,
+      "derived_from": [
+        "declared_changed_components"
+      ],
+      "authority": "verifier-derived change set remains authoritative",
+      "purpose": "public provenance for declared changed components, not a runner patch"
+    },
+    "diagnostics_contract": {
+      "materialized_by": "candidate_materializer",
+      "llm_output_key_allowed": false,
+      "derived_from": [
+        "provider_response_parse",
+        "candidate_materialization_status"
+      ],
+      "purpose": "public candidate-package materialization diagnostics; task-owned diagnostics use only prompt-visible capabilities"
+    }
+  },
+  "authoring_context_frame": {
+    "schema_version": "true_rl_agent.authoring_context_frame.v2",
+    "frame_id": "static_repair.v1",
+    "frame_kind": "static_repair",
+    "purpose": "repair from exact feedback under stable contracts; use the latest failed source when available, otherwise retain draft context for pre-materialization provider failures",
+    "stable_contract_refs": [
+      "task",
+      "loop_contract",
+      "required_candidate_package",
+      "candidate_capabilities",
+      "reward_inputs_contract",
+      "public_eval_contract",
+      "control_effectiveness_contract"
+    ],
+    "included_sections": [
+      "schema_version",
+      "task",
+      "loop_contract",
+      "candidate_capabilities",
+      "reward_inputs_contract",
+      "public_eval_contract",
+      "control_effectiveness_contract",
+      "known_good_examples",
+      "selection_guidance",
+      "source_catalog",
+      "candidate_lineage",
+      "source_payloads",
+      "public_feedback_summary",
+      "runtime_feedback_summary",
+      "public_history",
+      "public_context",
+      "exploration_directive",
+      "required_candidate_package",
+      "provider_or_runtime_repair_feedback"
+    ],
+    "omitted_sections": [],
+    "source_payloads": [
+      {
+        "logical_id": "current_best/training_code/components.py",
+        "content_sha256": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45",
+        "bytes": 4902,
+        "delivery": "inline"
+      }
+    ],
+    "source_payload_summaries": [
+      {
+        "logical_id": "current_best/training_code/components.py",
+        "summary": "106 lines; from true_rl_agent.candidates.components import RewardTerm, TrainingComponents; def track_lin_vel_xy_exp(inputs):; def track_ang_vel_z_exp(inputs):; def ang_vel_xy_l2(inputs):; def flat_orientation_l2(inputs):; def dof_torques_l2(inputs):; def dof_acc_l2(inputs):; def action_rate_l2(inputs):"
+      }
+    ],
+    "source_hashes": [
+      {
+        "logical_id": "current_best/training_code/components.py",
+        "content_sha256": "29da35bd2a7aa6f68c0095422d79e118c68ef07f099c420a986b9a98435b3f45"
+      }
+    ],
+    "feedback_items": [
+      {
+        "section": "provider_or_runtime_repair_feedback",
+        "failure_category": "json_parse_error"
+      }
+    ],
+    "frame_contract": {
+      "required_sections": [
+        "task",
+        "loop_contract",
+        "required_candidate_package",
+        "candidate_capabilities",
+        "reward_inputs_contract",
+        "public_eval_contract",
+        "control_effectiveness_contract",
+        "source_catalog",
+        "candidate_lineage",
+        "source_payloads",
+        "exploration_directive",
+        "provider_or_runtime_repair_feedback",
+        "schema_version"
+      ],
+      "optional_sections": [
+        "public_feedback_summary",
+        "runtime_feedback_summary",
+        "public_history",
+        "known_good_examples",
+        "selection_guidance"
+      ],
+      "source_followup_enabled": true
+    },
+    "budget_metadata": {
+      "section_serialized_bytes": {
+        "schema_version": 33,
+        "task": 2908,
+        "loop_contract": 2104,
+        "candidate_capabilities": 2724,
+        "reward_inputs_contract": 8501,
+        "public_eval_contract": 5253,
+        "control_effectiveness_contract": 448,
+        "known_good_examples": 2,
+        "selection_guidance": 1753,
+        "source_catalog": 3486,
+        "candidate_lineage": 1772,
+        "source_payloads": 5693,
+        "public_feedback_summary": 23540,
+        "runtime_feedback_summary": 1912,
+        "public_history": 21812,
+        "public_context": 549,
+        "exploration_directive": 508,
+        "required_candidate_package": 15764,
+        "provider_or_runtime_repair_feedback": 1063
+      },
+      "estimated_prompt_bytes": 99825,
+      "estimated_prompt_context_units": 24957,
+      "hard_limits": {
+        "max_prompt_payload_bytes": 262144,
+        "max_section_bytes": 98304,
+        "max_source_inline_payload_bytes": 24576,
+        "max_source_request_bytes_per_round": 49152
+      },
+      "legacy_alias_section_bytes": {
+        "public_context": 549
+      },
+      "provider_task_sections": {
+        "schema_version": "true_rl_agent.prompt.provider_task_sections_receipt.v2",
+        "serializer": "canonical_prompt_json.v1",
+        "section_keys": [
+          "task",
+          "reward_inputs_contract",
+          "public_eval_contract",
+          "public_feedback_summary",
+          "runtime_feedback_summary",
+          "known_good_examples",
+          "selection_guidance"
+        ],
+        "content_hash": "d3205235bc5c26d5b86bd14b31218015e94cee56d5f39e453b488a3eda1ca8b6",
+        "serialized_bytes": 46625,
+        "max_serialized_bytes": 57344,
+        "headroom_bytes": 10719
+      },
+      "actual_prompt_payload_bytes": 110544,
+      "actual_prompt_payload_context_units": 27636
+    },
+    "legacy_alias_sections": [
+      "public_context"
+    ]
+  },
+  "provider_or_runtime_repair_feedback": {
+    "schema_version": "true_rl_agent.provider_repair_feedback.v1",
+    "status": "repair_required",
+    "provider_status": "fail",
+    "failure_category": "json_parse_error",
+    "reason": "provider final content channel was empty",
+    "failure": {
+      "schema_version": "true_rl_agent.provider_failure.v1",
+      "category": "json_parse_error",
+      "reason": "provider final content channel was empty",
+      "details": {
+        "failure_kind": "empty_final_content_with_reasoning",
+        "finish_reason": "stop"
+      }
+    },
+    "instructions": [
+      "Return one valid JSON object matching candidate_draft with candidate_id, declared_changed_components, and components_py.",
+      "Put the canonical experiment hypothesis in the non-empty literal TrainingComponents.rationale inside components_py; do not return a standalone candidate rationale field.",
+      "Fix only the candidate package response or training_code/components.py needed for this failure.",
+      "Do not ask to change runner, eval protocol, training budget, seed policy, checkpoints, PPO, or acceptance rules."
+    ]
+  }
+}

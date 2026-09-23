@@ -1,0 +1,938 @@
+{
+  "status": "PASS",
+  "arms": [
+    {
+      "evidence_directory": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/short_force_80_01/short",
+      "scoring": "all_planned_verified_complete_then_last_force_fresh_window_and_final_stable",
+      "repeated_high_fraction": 0.8,
+      "displacement_failure_enabled": true,
+      "maximum_displacement_diagnostic_m": 1.228737593673241,
+      "source_environment_hash": "c451dd809d4a26db2d61fb2c9ea08de83ef39a8b8f809882a9c40e7430bbb2c8",
+      "diagnostic_execution_environment_hash": "c451dd809d4a26db2d61fb2c9ea08de83ef39a8b8f809882a9c40e7430bbb2c8",
+      "displacement_diagnostics": {
+        "crossed_old_boundary_episodes": 29,
+        "successful_crossed_old_boundary_episodes": 0
+      },
+      "timing": {
+        "scheduled_starts": [
+          51,
+          73
+        ],
+        "repeated_last_force_end": 84,
+        "repeated_recovery_samples_inclusive": [
+          85,
+          165
+        ],
+        "episode_horizon_steps": 303,
+        "repeated_post_force_observation_steps": 219
+      },
+      "sequence_summary": {
+        "episodes": 192,
+        "successes": 121,
+        "seeds": [
+          {
+            "seed": 10042,
+            "episodes": 64,
+            "successes": 40
+          },
+          {
+            "seed": 10043,
+            "episodes": 64,
+            "successes": 41
+          },
+          {
+            "seed": 10044,
+            "episodes": 64,
+            "successes": 40
+          }
+        ],
+        "failure_counts": {
+          "success_recovered": 121,
+          "fall_forward": 3,
+          "height_collapse": 29,
+          "fall_backward": 2,
+          "fall_side": 10,
+          "out_of_bounds": 27
+        },
+        "strata": {
+          "low": {
+            "episodes": 48,
+            "successes": 48
+          },
+          "medium": {
+            "episodes": 48,
+            "successes": 45
+          },
+          "high": {
+            "episodes": 48,
+            "successes": 14
+          },
+          "repeated": {
+            "episodes": 48,
+            "successes": 14
+          }
+        }
+      },
+      "original_saved_summary": {
+        "episodes": 192,
+        "successes": 121,
+        "seeds": [
+          {
+            "seed": 10042,
+            "episodes": 64,
+            "successes": 40
+          },
+          {
+            "seed": 10043,
+            "episodes": 64,
+            "successes": 41
+          },
+          {
+            "seed": 10044,
+            "episodes": 64,
+            "successes": 40
+          }
+        ],
+        "failure_counts": {
+          "success_recovered": 121,
+          "fall_forward": 3,
+          "height_collapse": 29,
+          "fall_backward": 2,
+          "fall_side": 10,
+          "out_of_bounds": 27
+        },
+        "strata": {
+          "low": {
+            "episodes": 48,
+            "successes": 48
+          },
+          "medium": {
+            "episodes": 48,
+            "successes": 45
+          },
+          "high": {
+            "episodes": 48,
+            "successes": 14
+          },
+          "repeated": {
+            "episodes": 48,
+            "successes": 14
+          }
+        }
+      },
+      "repeated_seed_results": [
+        {
+          "seed": 10042,
+          "episodes": 16,
+          "successes": 7
+        },
+        {
+          "seed": 10043,
+          "episodes": 16,
+          "successes": 3
+        },
+        {
+          "seed": 10044,
+          "episodes": 16,
+          "successes": 4
+        }
+      ],
+      "window_recovered_episodes": {
+        "low": 48,
+        "medium": 45,
+        "high": 16,
+        "repeated": 15
+      },
+      "pulse_counts": {
+        "planned_pulses": 240,
+        "observed_pulses": 238,
+        "complete_pulses": 232,
+        "partial_pulses": 6,
+        "unobserved_pulses_after_failure": 2
+      },
+      "maximum_errors": {
+        "quaternion_xyzw_norm_error": 1.9869172240838395e-07,
+        "physics_body_quaternion_xyzw_norm_error": 2.904878924070431e-07,
+        "delivered_requested_error_n": 0.0002816961842226786,
+        "independent_force_error_n": 0.0003339355678449911,
+        "outside_pulse_force_n": 0,
+        "impulse_error_ns": 3.7029136746307055e-05
+      },
+      "raw_sha256": {
+        "seed_01.npz": "sha256:4b611ef4175a1b62dc2a0462bca7578c6bdeb6b91bd3cd117fd49eef2f9df9ba",
+        "seed_02.npz": "sha256:90121b928bea60d1d74dac526dfc8d88fcc07d805697e9888bc291033a03c581",
+        "seed_03.npz": "sha256:cc79ec6ee252f4192ba68b222d48beb577df691811d13a1d631abccab91e6938"
+      },
+      "ranges": {
+        "actual_force_n": {
+          "min": 75.95468570918109,
+          "max": 323.4240934251233
+        },
+        "actual_impulse_ns": {
+          "min": 5.042570787373169,
+          "max": 71.15326505396482
+        },
+        "mass_kg": {
+          "min": 14.048468228196725,
+          "max": 17.959752198075876
+        }
+      },
+      "successful_worst_samples": {
+        "max_abs_roll_rad": {
+          "value": 0.6673368228691058,
+          "seed": 10044,
+          "env_id": 48,
+          "control_step": 64
+        },
+        "max_abs_pitch_rad": {
+          "value": 0.5278817008025707,
+          "seed": 10043,
+          "env_id": 35,
+          "control_step": 65
+        },
+        "min_height_m": {
+          "value": 0.1946576088666916,
+          "seed": 10043,
+          "env_id": 40,
+          "control_step": 78
+        },
+        "max_planar_speed_mps": {
+          "value": 3.0880222417630923,
+          "seed": 10043,
+          "env_id": 40,
+          "control_step": 62
+        },
+        "max_angular_speed_radps": {
+          "value": 15.544180183985471,
+          "seed": 10044,
+          "env_id": 48,
+          "control_step": 71
+        },
+        "max_xy_drift_m": {
+          "value": 1.1912563807592869,
+          "seed": 10043,
+          "env_id": 38,
+          "control_step": 232
+        }
+      },
+      "successful_terminal_stable_tail_min": {
+        "steps": 173,
+        "duration_s": 3.46,
+        "seed": 10043,
+        "env_id": 57
+      },
+      "before_second": {
+        "planned_episodes": 48,
+        "reached_pre_second_sample": 47,
+        "stable_immediately_before_second": 0,
+        "first_force_dwell_completed_before_second": 0,
+        "denominator_note": "Stable count uses reached episodes; dwell count uses all 48 planned repeated episodes. Early failures remain in outcome denominator."
+      }
+    },
+    {
+      "evidence_directory": "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P6/no_displacement_01/short",
+      "scoring": "all_planned_verified_complete_then_last_force_fresh_window_and_final_stable",
+      "repeated_high_fraction": 0.8,
+      "displacement_failure_enabled": false,
+      "maximum_displacement_diagnostic_m": 1.4906161002389964,
+      "source_environment_hash": "c451dd809d4a26db2d61fb2c9ea08de83ef39a8b8f809882a9c40e7430bbb2c8",
+      "diagnostic_execution_environment_hash": "e36549a8063e43f48c32fa4d81d5410c03bbe3624386d4672f123c71e0e84dc4",
+      "displacement_diagnostics": {
+        "crossed_old_boundary_episodes": 27,
+        "successful_crossed_old_boundary_episodes": 21
+      },
+      "timing": {
+        "scheduled_starts": [
+          51,
+          73
+        ],
+        "repeated_last_force_end": 84,
+        "repeated_recovery_samples_inclusive": [
+          85,
+          165
+        ],
+        "episode_horizon_steps": 303,
+        "repeated_post_force_observation_steps": 219
+      },
+      "sequence_summary": {
+        "episodes": 192,
+        "successes": 142,
+        "seeds": [
+          {
+            "seed": 10042,
+            "episodes": 64,
+            "successes": 44
+          },
+          {
+            "seed": 10043,
+            "episodes": 64,
+            "successes": 52
+          },
+          {
+            "seed": 10044,
+            "episodes": 64,
+            "successes": 46
+          }
+        ],
+        "failure_counts": {
+          "success_recovered": 142,
+          "fall_forward": 3,
+          "height_collapse": 32,
+          "fall_backward": 2,
+          "fall_side": 13
+        },
+        "strata": {
+          "low": {
+            "episodes": 48,
+            "successes": 48
+          },
+          "medium": {
+            "episodes": 48,
+            "successes": 45
+          },
+          "high": {
+            "episodes": 48,
+            "successes": 22
+          },
+          "repeated": {
+            "episodes": 48,
+            "successes": 27
+          }
+        }
+      },
+      "original_saved_summary": {
+        "episodes": 192,
+        "successes": 142,
+        "seeds": [
+          {
+            "seed": 10042,
+            "episodes": 64,
+            "successes": 44
+          },
+          {
+            "seed": 10043,
+            "episodes": 64,
+            "successes": 52
+          },
+          {
+            "seed": 10044,
+            "episodes": 64,
+            "successes": 46
+          }
+        ],
+        "failure_counts": {
+          "success_recovered": 142,
+          "fall_forward": 3,
+          "height_collapse": 32,
+          "fall_backward": 2,
+          "fall_side": 13
+        },
+        "strata": {
+          "low": {
+            "episodes": 48,
+            "successes": 48
+          },
+          "medium": {
+            "episodes": 48,
+            "successes": 45
+          },
+          "high": {
+            "episodes": 48,
+            "successes": 22
+          },
+          "repeated": {
+            "episodes": 48,
+            "successes": 27
+          }
+        }
+      },
+      "repeated_seed_results": [
+        {
+          "seed": 10042,
+          "episodes": 16,
+          "successes": 11
+        },
+        {
+          "seed": 10043,
+          "episodes": 16,
+          "successes": 9
+        },
+        {
+          "seed": 10044,
+          "episodes": 16,
+          "successes": 7
+        }
+      ],
+      "window_recovered_episodes": {
+        "low": 48,
+        "medium": 45,
+        "high": 22,
+        "repeated": 27
+      },
+      "pulse_counts": {
+        "planned_pulses": 240,
+        "observed_pulses": 237,
+        "complete_pulses": 231,
+        "partial_pulses": 6,
+        "unobserved_pulses_after_failure": 3
+      },
+      "maximum_errors": {
+        "quaternion_xyzw_norm_error": 1.917468090972818e-07,
+        "physics_body_quaternion_xyzw_norm_error": 2.904878924070431e-07,
+        "delivered_requested_error_n": 0.00032254862478196204,
+        "independent_force_error_n": 0.0003810536056905168,
+        "outside_pulse_force_n": 0,
+        "impulse_error_ns": 3.7029136746307055e-05
+      },
+      "raw_sha256": {
+        "seed_01.npz": "sha256:77c0ede024e7418d6ca0f7691522b9e8d13d272410bde21c3322f269ad9dddd5",
+        "seed_02.npz": "sha256:2a2a1765b9da63a37a904384583396d8743ffcf1aaceacd4897f6b61e68a818b",
+        "seed_03.npz": "sha256:58c06fa4e5872f57452a517fca057027600998c47706b4217f2a53795d809942"
+      },
+      "ranges": {
+        "actual_force_n": {
+          "min": 75.95468570918109,
+          "max": 323.4240934251233
+        },
+        "actual_impulse_ns": {
+          "min": 5.042571133100733,
+          "max": 71.15326505396482
+        },
+        "mass_kg": {
+          "min": 14.048468228196725,
+          "max": 17.959752198075876
+        }
+      },
+      "successful_worst_samples": {
+        "max_abs_roll_rad": {
+          "value": 0.6685747229026093,
+          "seed": 10044,
+          "env_id": 48,
+          "control_step": 64
+        },
+        "max_abs_pitch_rad": {
+          "value": 0.6933517486931148,
+          "seed": 10043,
+          "env_id": 33,
+          "control_step": 69
+        },
+        "min_height_m": {
+          "value": 0.180104598402977,
+          "seed": 10043,
+          "env_id": 60,
+          "control_step": 77
+        },
+        "max_planar_speed_mps": {
+          "value": 3.357034100991707,
+          "seed": 10044,
+          "env_id": 47,
+          "control_step": 65
+        },
+        "max_angular_speed_radps": {
+          "value": 14.014714133271546,
+          "seed": 10044,
+          "env_id": 48,
+          "control_step": 71
+        },
+        "max_xy_drift_m": {
+          "value": 1.4906161002389964,
+          "seed": 10044,
+          "env_id": 55,
+          "control_step": 121
+        }
+      },
+      "successful_terminal_stable_tail_min": {
+        "steps": 129,
+        "duration_s": 2.58,
+        "seed": 10042,
+        "env_id": 55
+      },
+      "before_second": {
+        "planned_episodes": 48,
+        "reached_pre_second_sample": 46,
+        "stable_immediately_before_second": 0,
+        "first_force_dwell_completed_before_second": 0,
+        "denominator_note": "Stable count uses reached episodes; dwell count uses all 48 planned repeated episodes. Early failures remain in outcome denominator."
+      }
+    }
+  ],
+  "audit_script_sha256": "sha256:b68875238d6d4e88c5880f4dfbddf92542ea769396ab12b243811aeeae4f3ad2",
+  "limits": [
+    "Fixed checkpoint public-dev diagnostic; not training or qualification.",
+    "Wrench API arguments verify applied external impulse, not net robot momentum change.",
+    "Root posture is sampled each control step; no visual or substep posture proof.",
+    "Recorded first-episode masks are checked against independent raw failure/timeout closure."
+  ],
+  "paired_sequence_outcomes": {
+    "success_recovered -> success_recovered": 121,
+    "fall_forward -> fall_forward": 3,
+    "height_collapse -> height_collapse": 29,
+    "fall_backward -> fall_backward": 2,
+    "fall_side -> fall_side": 9,
+    "out_of_bounds -> success_recovered": 21,
+    "out_of_bounds -> fall_side": 4,
+    "fall_side -> height_collapse": 1,
+    "out_of_bounds -> height_collapse": 2
+  },
+  "paired_repeated_sequence_outcomes": {
+    "out_of_bounds -> success_recovered": 13,
+    "fall_side -> fall_side": 7,
+    "success_recovered -> success_recovered": 14,
+    "height_collapse -> height_collapse": 7,
+    "out_of_bounds -> fall_side": 3,
+    "fall_backward -> fall_backward": 1,
+    "fall_side -> height_collapse": 1,
+    "out_of_bounds -> height_collapse": 2
+  },
+  "former_boundary_cases": {
+    "episodes": 27,
+    "new_outcomes": {
+      "success_recovered": 21,
+      "fall_side": 4,
+      "height_collapse": 2
+    },
+    "repeated_episodes": 18,
+    "repeated_new_outcomes": {
+      "success_recovered": 13,
+      "fall_side": 3,
+      "height_collapse": 2
+    },
+    "rows": [
+      {
+        "seed": 10042,
+        "env_id": 48,
+        "stratum": "repeated",
+        "old_boundary_step": 116,
+        "new_episode_steps": 303,
+        "raw_equal_through_old_boundary": true,
+        "new_success": true,
+        "new_label": "success_recovered",
+        "new_sequence_recovery_step": 124,
+        "new_max_xy_drift_m": 1.2070718584901885,
+        "new_terminal_stable": true
+      },
+      {
+        "seed": 10042,
+        "env_id": 49,
+        "stratum": "repeated",
+        "old_boundary_step": 121,
+        "new_episode_steps": 303,
+        "raw_equal_through_old_boundary": true,
+        "new_success": true,
+        "new_label": "success_recovered",
+        "new_sequence_recovery_step": 132,
+        "new_max_xy_drift_m": 1.2429068915019685,
+        "new_terminal_stable": true
+      },
+      {
+        "seed": 10042,
+        "env_id": 55,
+        "stratum": "repeated",
+        "old_boundary_step": 168,
+        "new_episode_steps": 303,
+        "raw_equal_through_old_boundary": true,
+        "new_success": true,
+        "new_label": "success_recovered",
+        "new_sequence_recovery_step": 148,
+        "new_max_xy_drift_m": 1.2188582506439374,
+        "new_terminal_stable": true
+      },
+      {
+        "seed": 10042,
+        "env_id": 57,
+        "stratum": "repeated",
+        "old_boundary_step": 105,
+        "new_episode_steps": 303,
+        "raw_equal_through_old_boundary": true,
+        "new_success": true,
+        "new_label": "success_recovered",
+        "new_sequence_recovery_step": 124,
+        "new_max_xy_drift_m": 1.2371556468140597,
+        "new_terminal_stable": true
+      },
+      {
+        "seed": 10043,
+        "env_id": 33,
+        "stratum": "high",
+        "old_boundary_step": 89,
+        "new_episode_steps": 303,
+        "raw_equal_through_old_boundary": false,
+        "new_success": true,
+        "new_label": "success_recovered",
+        "new_sequence_recovery_step": 118,
+        "new_max_xy_drift_m": 1.333814816592837,
+        "new_terminal_stable": true
+      },
+      {
+        "seed": 10043,
+        "env_id": 34,
+        "stratum": "high",
+        "old_boundary_step": 83,
+        "new_episode_steps": 303,
+        "raw_equal_through_old_boundary": true,
+        "new_success": true,
+        "new_label": "success_recovered",
+        "new_sequence_recovery_step": 107,
+        "new_max_xy_drift_m": 1.3070476183001127,
+        "new_terminal_stable": true
+      },
+      {
+        "seed": 10043,
+        "env_id": 37,
+        "stratum": "high",
+        "old_boundary_step": 87,
+        "new_episode_steps": 303,
+        "raw_equal_through_old_boundary": true,
+        "new_success": true,
+        "new_label": "success_recovered",
+        "new_sequence_recovery_step": 110,
+        "new_max_xy_drift_m": 1.276161415582731,
+        "new_terminal_stable": true
+      },
+      {
+        "seed": 10043,
+        "env_id": 39,
+        "stratum": "high",
+        "old_boundary_step": 114,
+        "new_episode_steps": 303,
+        "raw_equal_through_old_boundary": true,
+        "new_success": true,
+        "new_label": "success_recovered",
+        "new_sequence_recovery_step": 111,
+        "new_max_xy_drift_m": 1.2136456587596296,
+        "new_terminal_stable": true
+      },
+      {
+        "seed": 10043,
+        "env_id": 47,
+        "stratum": "high",
+        "old_boundary_step": 93,
+        "new_episode_steps": 303,
+        "raw_equal_through_old_boundary": true,
+        "new_success": true,
+        "new_label": "success_recovered",
+        "new_sequence_recovery_step": 107,
+        "new_max_xy_drift_m": 1.2139609610261475,
+        "new_terminal_stable": true
+      },
+      {
+        "seed": 10043,
+        "env_id": 50,
+        "stratum": "repeated",
+        "old_boundary_step": 95,
+        "new_episode_steps": 303,
+        "raw_equal_through_old_boundary": true,
+        "new_success": true,
+        "new_label": "success_recovered",
+        "new_sequence_recovery_step": 126,
+        "new_max_xy_drift_m": 1.3218404289190795,
+        "new_terminal_stable": true
+      },
+      {
+        "seed": 10043,
+        "env_id": 51,
+        "stratum": "repeated",
+        "old_boundary_step": 101,
+        "new_episode_steps": 89,
+        "raw_equal_through_old_boundary": false,
+        "new_success": false,
+        "new_label": "fall_side",
+        "new_sequence_recovery_step": null,
+        "new_max_xy_drift_m": 0.9227100402655242,
+        "new_terminal_stable": false
+      },
+      {
+        "seed": 10043,
+        "env_id": 53,
+        "stratum": "repeated",
+        "old_boundary_step": 101,
+        "new_episode_steps": 303,
+        "raw_equal_through_old_boundary": false,
+        "new_success": true,
+        "new_label": "success_recovered",
+        "new_sequence_recovery_step": 130,
+        "new_max_xy_drift_m": 1.4238404899169175,
+        "new_terminal_stable": true
+      },
+      {
+        "seed": 10043,
+        "env_id": 54,
+        "stratum": "repeated",
+        "old_boundary_step": 101,
+        "new_episode_steps": 303,
+        "raw_equal_through_old_boundary": false,
+        "new_success": true,
+        "new_label": "success_recovered",
+        "new_sequence_recovery_step": 133,
+        "new_max_xy_drift_m": 1.3157767515492031,
+        "new_terminal_stable": true
+      },
+      {
+        "seed": 10043,
+        "env_id": 56,
+        "stratum": "repeated",
+        "old_boundary_step": 115,
+        "new_episode_steps": 303,
+        "raw_equal_through_old_boundary": true,
+        "new_success": true,
+        "new_label": "success_recovered",
+        "new_sequence_recovery_step": 130,
+        "new_max_xy_drift_m": 1.2066367655321912,
+        "new_terminal_stable": true
+      },
+      {
+        "seed": 10043,
+        "env_id": 58,
+        "stratum": "repeated",
+        "old_boundary_step": 105,
+        "new_episode_steps": 303,
+        "raw_equal_through_old_boundary": false,
+        "new_success": true,
+        "new_label": "success_recovered",
+        "new_sequence_recovery_step": 120,
+        "new_max_xy_drift_m": 1.1185846971752693,
+        "new_terminal_stable": true
+      },
+      {
+        "seed": 10043,
+        "env_id": 60,
+        "stratum": "repeated",
+        "old_boundary_step": 135,
+        "new_episode_steps": 303,
+        "raw_equal_through_old_boundary": true,
+        "new_success": true,
+        "new_label": "success_recovered",
+        "new_sequence_recovery_step": 139,
+        "new_max_xy_drift_m": 1.200728743279359,
+        "new_terminal_stable": true
+      },
+      {
+        "seed": 10044,
+        "env_id": 36,
+        "stratum": "high",
+        "old_boundary_step": 116,
+        "new_episode_steps": 303,
+        "raw_equal_through_old_boundary": false,
+        "new_success": true,
+        "new_label": "success_recovered",
+        "new_sequence_recovery_step": 111,
+        "new_max_xy_drift_m": 1.2144147324355492,
+        "new_terminal_stable": true
+      },
+      {
+        "seed": 10044,
+        "env_id": 37,
+        "stratum": "high",
+        "old_boundary_step": 78,
+        "new_episode_steps": 93,
+        "raw_equal_through_old_boundary": false,
+        "new_success": false,
+        "new_label": "fall_side",
+        "new_sequence_recovery_step": null,
+        "new_max_xy_drift_m": 1.2930031545339726,
+        "new_terminal_stable": false
+      },
+      {
+        "seed": 10044,
+        "env_id": 39,
+        "stratum": "high",
+        "old_boundary_step": 84,
+        "new_episode_steps": 303,
+        "raw_equal_through_old_boundary": false,
+        "new_success": true,
+        "new_label": "success_recovered",
+        "new_sequence_recovery_step": 111,
+        "new_max_xy_drift_m": 1.338124308508828,
+        "new_terminal_stable": true
+      },
+      {
+        "seed": 10044,
+        "env_id": 47,
+        "stratum": "high",
+        "old_boundary_step": 84,
+        "new_episode_steps": 303,
+        "raw_equal_through_old_boundary": false,
+        "new_success": true,
+        "new_label": "success_recovered",
+        "new_sequence_recovery_step": 114,
+        "new_max_xy_drift_m": 1.3766721165697728,
+        "new_terminal_stable": true
+      },
+      {
+        "seed": 10044,
+        "env_id": 53,
+        "stratum": "repeated",
+        "old_boundary_step": 107,
+        "new_episode_steps": 129,
+        "raw_equal_through_old_boundary": false,
+        "new_success": false,
+        "new_label": "fall_side",
+        "new_sequence_recovery_step": null,
+        "new_max_xy_drift_m": 1.3450904011845595,
+        "new_terminal_stable": false
+      },
+      {
+        "seed": 10044,
+        "env_id": 55,
+        "stratum": "repeated",
+        "old_boundary_step": 97,
+        "new_episode_steps": 303,
+        "raw_equal_through_old_boundary": false,
+        "new_success": true,
+        "new_label": "success_recovered",
+        "new_sequence_recovery_step": 135,
+        "new_max_xy_drift_m": 1.4906161002389964,
+        "new_terminal_stable": true
+      },
+      {
+        "seed": 10044,
+        "env_id": 56,
+        "stratum": "repeated",
+        "old_boundary_step": 94,
+        "new_episode_steps": 73,
+        "raw_equal_through_old_boundary": false,
+        "new_success": false,
+        "new_label": "fall_side",
+        "new_sequence_recovery_step": null,
+        "new_max_xy_drift_m": 0.7035698358705472,
+        "new_terminal_stable": false
+      },
+      {
+        "seed": 10044,
+        "env_id": 57,
+        "stratum": "repeated",
+        "old_boundary_step": 94,
+        "new_episode_steps": 93,
+        "raw_equal_through_old_boundary": false,
+        "new_success": false,
+        "new_label": "height_collapse",
+        "new_sequence_recovery_step": null,
+        "new_max_xy_drift_m": 1.2074544321461067,
+        "new_terminal_stable": false
+      },
+      {
+        "seed": 10044,
+        "env_id": 58,
+        "stratum": "repeated",
+        "old_boundary_step": 99,
+        "new_episode_steps": 303,
+        "raw_equal_through_old_boundary": false,
+        "new_success": true,
+        "new_label": "success_recovered",
+        "new_sequence_recovery_step": 130,
+        "new_max_xy_drift_m": 1.4875810954601352,
+        "new_terminal_stable": true
+      },
+      {
+        "seed": 10044,
+        "env_id": 60,
+        "stratum": "repeated",
+        "old_boundary_step": 97,
+        "new_episode_steps": 90,
+        "raw_equal_through_old_boundary": false,
+        "new_success": false,
+        "new_label": "height_collapse",
+        "new_sequence_recovery_step": null,
+        "new_max_xy_drift_m": 1.1123453566682773,
+        "new_terminal_stable": false
+      },
+      {
+        "seed": 10044,
+        "env_id": 62,
+        "stratum": "repeated",
+        "old_boundary_step": 97,
+        "new_episode_steps": 303,
+        "raw_equal_through_old_boundary": false,
+        "new_success": true,
+        "new_label": "success_recovered",
+        "new_sequence_recovery_step": 129,
+        "new_max_xy_drift_m": 1.3447026245397458,
+        "new_terminal_stable": true
+      }
+    ],
+    "interpretation": "Paired by fixed seed/env; call it an exact continuation only where the saved raw prefix matches. All J final outcomes use its full independent first episode."
+  },
+  "trajectory_comparison": {
+    "seeds": [
+      {
+        "seed": 10042,
+        "initial_xy_equal": true,
+        "origins_equal": true,
+        "body_masses_equal": true,
+        "non_repeated": {
+          "episodes": 48,
+          "bitwise_equal_raw_episodes": 48,
+          "max_abs_difference_on_common_steps": {
+            "position": 0,
+            "quaternion_xyzw": 0,
+            "linear": 0,
+            "angular": 0
+          }
+        },
+        "before_first_force": {
+          "episodes": 64,
+          "bitwise_equal_raw_episodes": 64,
+          "max_abs_difference_on_common_steps": {
+            "position": 0,
+            "quaternion_xyzw": 0,
+            "linear": 0,
+            "angular": 0
+          }
+        }
+      },
+      {
+        "seed": 10043,
+        "initial_xy_equal": true,
+        "origins_equal": true,
+        "body_masses_equal": true,
+        "non_repeated": {
+          "episodes": 48,
+          "bitwise_equal_raw_episodes": 12,
+          "max_abs_difference_on_common_steps": {
+            "position": 0.0657585859298706,
+            "quaternion_xyzw": 0.1001245710067451,
+            "linear": 0.48100733757019043,
+            "angular": 8.388566732406616
+          }
+        },
+        "before_first_force": {
+          "episodes": 64,
+          "bitwise_equal_raw_episodes": 22,
+          "max_abs_difference_on_common_steps": {
+            "position": 0.0008249282836914062,
+            "quaternion_xyzw": 0.0017923517152667046,
+            "linear": 0.021282625384628773,
+            "angular": 0.3180554062128067
+          }
+        }
+      },
+      {
+        "seed": 10044,
+        "initial_xy_equal": true,
+        "origins_equal": true,
+        "body_masses_equal": true,
+        "non_repeated": {
+          "episodes": 48,
+          "bitwise_equal_raw_episodes": 8,
+          "max_abs_difference_on_common_steps": {
+            "position": 0.04713594913482666,
+            "quaternion_xyzw": 0.14846662431955338,
+            "linear": 0.7556747943162918,
+            "angular": 9.660992622375488
+          }
+        },
+        "before_first_force": {
+          "episodes": 64,
+          "bitwise_equal_raw_episodes": 11,
+          "max_abs_difference_on_common_steps": {
+            "position": 0.0006673336029052734,
+            "quaternion_xyzw": 0.001729377021547407,
+            "linear": 0.015288603492081165,
+            "angular": 0.24723231047391891
+          }
+        }
+      }
+    ],
+    "interpretation": "Descriptive only: same seeds do not erase prior reset/RNG/parallel-physics history. No bitwise-equality admission gate."
+  }
+}

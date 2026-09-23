@@ -6,7 +6,6 @@ only projections needed to audit old report formats; it cannot run a generation.
 
 
 from __future__ import annotations
-import hashlib
 import re
 from collections import Counter
 from collections.abc import Mapping
@@ -40,10 +39,9 @@ from true_rl_agent.agent_core.generation_contract import (
     GENERATION_SESSION_CONTRACT_V3_SCHEMA_VERSION,
     GenerationLaneAssignment,
     GenerationSessionContract,
-    GenerationSessionContractRef,
     generation_resource_plan_hash,
     load_generation_session_contract,
-    publish_generation_session_contract,
+    load_replay_generation_session_contract,
 )
 from true_rl_agent.agent_core.generation_lifecycle import (
     GENERATION_CONTINUATION_POLICY_FILENAME,
@@ -98,11 +96,9 @@ from true_rl_agent.evaluation.binding import (
 )
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
 from true_rl_agent.evaluation.phases import EvaluationPhase
-from true_rl_agent.fs_contract import read_bounded_regular_file
 from true_rl_agent.json_contract import (
     canonical_json_bytes,
     load_strict_json_object,
-    strict_json_object_loads,
 )
 from true_rl_agent.prompt_artifacts import RoundAuthoringJournal
 from true_rl_agent.runner.checkpoint import file_sha256
@@ -224,10 +220,8 @@ STAIR_GENERATION_PROVIDER_THINKING_DISABLED_TEMPERATURE = 0.2
 _SOURCE_COMMIT = re.compile(r"[0-9a-f]{40}\Z")
 
 
-_P6B_TERMINAL_REPORT_MAX_BYTES = 4 * 1024 * 1024
 
 
-_GENERATION_SESSION_CONTRACT_MAX_BYTES = 128 * 1024
 
 
 @dataclass(frozen=True)
@@ -658,8 +652,8 @@ def _load_foundation(
         },
     )
     session_contract, session_contract_ref = (
-        _load_compatible_session_contract(
-            config,
+        load_replay_generation_session_contract(
+            config.output_dir,
             session_contract,
         )
     )
@@ -691,153 +685,6 @@ def _load_foundation(
         final_confirmation_policy=final_confirmation_policy,
         final_confirmation_plan=formal_final_plan,
     )
-
-
-def _load_compatible_session_contract(
-    config: HistoricalStairGenerationConfig,
-    current: GenerationSessionContract,
-) -> tuple[GenerationSessionContract, GenerationSessionContractRef]:
-    """Retain one closed P6-B contract across authoring-environment drift.
-
-    The compatibility branch is intentionally task-owned and terminal-only.
-    It cannot authorize a fresh or in-progress session, P6-C, or drift in any
-    scientific/resource contract other than the environment-derived authoring
-    policy identity.  Session Genesis and the terminal report loader then bind
-    and replay the exact returned stored-contract reference.
-    """
-
-    try:
-        ref = publish_generation_session_contract(
-            config.output_dir, current, require_existing=True,
-        )
-    except FileExistsError:
-        if (
-            not config.resume_existing
-            or config.session_mode != DEVELOPMENT_GENERATION_PILOT_MODE
-        ):
-            raise
-        stored, ref = _load_terminal_p6b_session_contract(config)
-        _assert_terminal_p6b_contract_compatibility(
-            stored=stored,
-            current=current,
-        )
-        return stored, ref
-    return current, ref
-
-
-def _load_terminal_p6b_session_contract(
-    config: HistoricalStairGenerationConfig,
-) -> tuple[GenerationSessionContract, GenerationSessionContractRef]:
-    report_path = config.output_dir / STAIR_GENERATION_REPORT_FILENAME
-    report_payload = read_bounded_regular_file(
-        report_path,
-        max_bytes=_P6B_TERMINAL_REPORT_MAX_BYTES,
-        label="terminal P6-B generation report",
-    )
-    report = strict_json_object_loads(
-        report_payload,
-        context="terminal P6-B generation report",
-    )
-    if report_payload != canonical_json_bytes(report, trailing_newline=True):
-        raise ValueError("terminal P6-B generation report is not canonical JSON")
-    terminal = report.get("terminal_binding")
-    checks = report.get("checks")
-    if (
-        report.get("schema_version") != STAIR_GENERATION_REPORT_SCHEMA_VERSION
-        or report.get("session_mode") != DEVELOPMENT_GENERATION_PILOT_MODE
-        or report.get("session_id") != config.session_id
-        or report.get("output_dir") != str(config.output_dir.resolve())
-        or report.get("acceptance_authority") is not False
-        or not isinstance(checks, Mapping)
-        or not checks
-        or not all(value is True for value in checks.values())
-        or checks.get("mode_is_development_generation_pilot") is not True
-        or checks.get("lifecycle_terminal") is not True
-        or checks.get("one_generation_one_ledger_record") is not True
-        or not isinstance(terminal, Mapping)
-        or terminal.get("schema_version")
-        != "true_rl_agent.generation_terminal_binding.v1"
-        or terminal.get("acceptance_authority") is not False
-        or terminal.get("closed_generation_count") != 1
-        or terminal.get("required_generation_count") != 1
-    ):
-        raise ValueError(
-            "stored generation contract compatibility requires a canonical "
-            "terminal P6-B v2 report"
-        )
-
-    contract_path = config.output_dir / GENERATION_SESSION_CONTRACT_FILENAME
-    contract_payload = read_bounded_regular_file(
-        contract_path,
-        max_bytes=_GENERATION_SESSION_CONTRACT_MAX_BYTES,
-        label="stored terminal P6-B generation session contract",
-    )
-    contract_value = strict_json_object_loads(
-        contract_payload,
-        context="stored terminal P6-B generation session contract",
-    )
-    if contract_payload != canonical_json_bytes(
-        contract_value,
-        trailing_newline=True,
-    ):
-        raise ValueError(
-            "stored terminal P6-B generation session contract is not canonical JSON"
-        )
-    stored = GenerationSessionContract.from_mapping(contract_value)
-    if report.get("generation_session_contract_hash") != stored.contract_hash:
-        raise ValueError(
-            "terminal P6-B report does not bind the stored generation session contract"
-        )
-    return stored, GenerationSessionContractRef(
-        logical_name=GENERATION_SESSION_CONTRACT_FILENAME,
-        checksum="sha256:" + hashlib.sha256(contract_payload).hexdigest(),
-        size_bytes=len(contract_payload),
-    )
-
-
-def _assert_terminal_p6b_contract_compatibility(
-    *,
-    stored: GenerationSessionContract,
-    current: GenerationSessionContract,
-) -> None:
-    identity_fields = (
-        "schema_version",
-        "session_mode",
-        "session_id",
-        "task_id",
-        "backend_id",
-        "width",
-        "authoring_order",
-        "ledger_record_schema",
-        "max_generations",
-        "max_trials",
-        "max_train_jobs",
-    )
-    drifted_identity = [
-        field_name
-        for field_name in identity_fields
-        if getattr(stored, field_name) != getattr(current, field_name)
-    ]
-    if drifted_identity:
-        raise ValueError(
-            "terminal P6-B stored generation contract identity drifted: "
-            + ", ".join(drifted_identity)
-        )
-    stored_hashes = dict(stored.bound_contract_hashes)
-    current_hashes = dict(current.bound_contract_hashes)
-    non_authoring_fields = sorted(
-        (set(stored_hashes) | set(current_hashes)) - {"authoring_policy"}
-    )
-    drifted_hashes = [
-        field_name
-        for field_name in non_authoring_fields
-        if stored_hashes.get(field_name) != current_hashes.get(field_name)
-    ]
-    if drifted_hashes:
-        raise ValueError(
-            "terminal P6-B stored generation contract bound hashes drifted: "
-            + ", ".join(drifted_hashes)
-        )
 
 
 def _formal_lifecycle_identity(
@@ -1853,6 +1700,7 @@ def _generation_history_for_ledger(
         raise ValueError("Stair generation requires an acceptance protocol")
     return project_public_history(
         ledger,
+        phased_evaluation_adapter=foundation.phased_adapter,
         initial_current_best=genesis.initial_current_best,
         expected_session_genesis_hash=genesis.session_genesis_hash,
         acceptance_protocol=protocol,

@@ -30,6 +30,7 @@ from true_rl_agent.evaluation.acceptance_protocol import (
 )
 from true_rl_agent.evaluation.binding import require_sha256_digest
 from true_rl_agent.evaluation.current_best import CurrentBestEvalStats
+from true_rl_agent.evaluation.phased_adapter import PhasedEvaluationAdapter
 from true_rl_agent.evaluation.decision_record_contract import (
     DecisionRecordValidation,
     project_validated_decision,
@@ -177,6 +178,7 @@ def project_public_history(
     expected_initial_policy_state_hash: str | None = None,
     expected_authoring_mode: str = NON_PROVIDER_AUTHORING_MODE,
     expected_ledger_epoch_hash: str | None = None,
+    phased_evaluation_adapter: PhasedEvaluationAdapter | None = None,
 ) -> ProjectedPublicHistory:
     """Project a full ordered history once before any public consumer sees it."""
 
@@ -228,6 +230,7 @@ def project_public_history(
             record,
             entry=entry,
             acceptance_protocol=acceptance_protocol,
+            phased_evaluation_adapter=phased_evaluation_adapter,
         )
         for record, entry in zip(records, replay.entries, strict=True)
     )
@@ -242,41 +245,12 @@ def project_public_history(
     )
 
 
-def project_replayed_records(
-    records: Sequence[Mapping[str, Any]],
-    *,
-    initial_current_best: CurrentBestEvalStats,
-    expected_session_genesis_hash: str,
-    acceptance_protocol: AcceptanceProtocol,
-    expected_initial_policy_state_hash: str | None = None,
-    expected_authoring_mode: str = NON_PROVIDER_AUTHORING_MODE,
-    expected_ledger_epoch_hash: str | None = None,
-) -> tuple[dict[str, Any], ...]:
-    replay = replay_acceptance_ledger(
-        records,
-        initial_current_best=initial_current_best,
-        expected_session_genesis_hash=expected_session_genesis_hash,
-        acceptance_protocol=acceptance_protocol,
-        expected_initial_policy_state_hash=expected_initial_policy_state_hash,
-        expected_authoring_mode=expected_authoring_mode,
-        expected_ledger_epoch_hash=expected_ledger_epoch_hash,
-    )
-    replay.raise_for_invalid_session_bindings()
-    return tuple(
-        _project_public_history_record(
-            record,
-            entry=entry,
-            acceptance_protocol=acceptance_protocol,
-        )
-        for record, entry in zip(records, replay.entries, strict=True)
-    )
-
-
 def _project_public_history_record(
     record: Mapping[str, Any],
     *,
     entry: AcceptanceReplayEntry,
     acceptance_protocol: AcceptanceProtocol,
+    phased_evaluation_adapter: PhasedEvaluationAdapter | None = None,
 ) -> dict[str, Any]:
     if dispatch_ledger_record_schema(record).record_kind != "generation":
         return {**dict(record), "decision": dict(entry.public_decision)}
@@ -289,6 +263,7 @@ def _project_public_history_record(
         public_decision=entry.public_decision,
         acceptance_protocol=acceptance_protocol,
         expected_parent=entry.current_best_before,
+        phased_evaluation_adapter=phased_evaluation_adapter,
     )
 
 
@@ -755,9 +730,9 @@ def _sequence_reasons(
                 )
 
     declared_best = _mapping(comparison.get("current_best"))
-    for field, expected in current_best.comparison_identity().items():
-        if declared_best.get(field) != expected:
-            reasons.append(f"acceptance_replay_current_best_{field}_mismatch")
+    for field_name, expected in current_best.comparison_identity().items():
+        if declared_best.get(field_name) != expected:
+            reasons.append(f"acceptance_replay_current_best_{field_name}_mismatch")
 
     candidate_score = evidence.score_mean
     best_score = current_best.score_for_comparison()
@@ -1082,6 +1057,5 @@ __all__ = [
     "AcceptanceReplayResult",
     "ProjectedPublicHistory",
     "project_public_history",
-    "project_replayed_records",
     "replay_acceptance_ledger",
 ]

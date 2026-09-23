@@ -1,0 +1,666 @@
+{
+  "additional_recording_authorized_by_this_report": false,
+  "audited_at_utc": "2026-09-12T03:37:55.604167+00:00",
+  "cells": {
+    "g1": {
+      "cell": "push.g1_37dof.recovery_v2",
+      "checkpoint_sha256": "sha256:0a16d82b0653a019ec7e23faaa9f18dd93e2cf5b9bb1d07c1c9674356b50243b",
+      "checks": {
+        "all_192_episodes_exact": true,
+        "cell_manifest_identity_equal": true,
+        "checkpoint_identity_equal": true,
+        "checkpoint_load_checks_pass": true,
+        "evaluation_binding_equal": true,
+        "evaluation_protocol_equal": true,
+        "execution_environment_equal": true,
+        "formal_contract_equal": true,
+        "formal_source_plan_equal": true,
+        "no_genesis_or_formal_replacement": true,
+        "no_other_jobs_or_retries": true,
+        "no_video_reclassification": true,
+        "one_dev_pass_192_episodes": true,
+        "phase_public_dev_and_pass": true,
+        "reported_recordings_sha_valid": true,
+        "seed_1_identity": true,
+        "seed_1_repeated_two_verified_events": true,
+        "seed_1_sidecar_outcome_equals_raw": true,
+        "seed_1_video_interval": true,
+        "seed_2_identity": true,
+        "seed_2_repeated_two_verified_events": true,
+        "seed_2_sidecar_outcome_equals_raw": true,
+        "seed_2_video_interval": true,
+        "seed_3_identity": true,
+        "seed_3_repeated_two_verified_events": true,
+        "seed_3_sidecar_outcome_equals_raw": true,
+        "seed_3_video_interval": true,
+        "selected_env_48": true,
+        "summary_source_sha_equal": true,
+        "task_evidence_hashes_valid": true,
+        "three_seeds_64_envs": true,
+        "three_video_rows": true,
+        "training_import_equal": true
+      },
+      "consumption": {
+        "clips": 3,
+        "environments_per_seed": 64,
+        "episodes": 192,
+        "execution_cost": {
+          "clock_source": "time.perf_counter_ns",
+          "measurement_scope": "split_rollout_and_summary_aggregation",
+          "schema_version": "true_rl_agent.evaluation.execution_cost.v1",
+          "splits": {
+            "public_dev": {
+              "closed_first_episode_control_steps": 79076,
+              "evaluation_env_count_per_seed": 64,
+              "seed_count": 3,
+              "simulated_env_control_steps": 79104,
+              "vector_env_step_calls": 1236,
+              "wall_time_s": 129.839806707
+            }
+          }
+        },
+        "native_passes_observed": 1,
+        "process_wall_s": 162.3185842037201,
+        "seed_units": 3
+      },
+      "coverage_gap": "No success clip; formal and native public_dev both 0/192 successes.",
+      "decoded_videos": [
+        {
+          "decoded_frames": 411,
+          "decoded_resolution": [
+            1280,
+            720
+          ],
+          "decoder_exit_code": 0,
+          "expected_resolution": [
+            1280,
+            720
+          ],
+          "file": {
+            "path": "PLAN/2new_world/P6/native_evidence_01/g1/video/public_dev-01.mp4",
+            "sha256": "sha256:9ed1db2e2827f43b89a4b4f4130de9f88a42020398b542e593195969a324d831",
+            "size_bytes": 4923335
+          },
+          "full_stream_decoded": true,
+          "passed": true,
+          "run_index": 1,
+          "sidecar_frame_count": 411
+        },
+        {
+          "decoded_frames": 411,
+          "decoded_resolution": [
+            1280,
+            720
+          ],
+          "decoder_exit_code": 0,
+          "expected_resolution": [
+            1280,
+            720
+          ],
+          "file": {
+            "path": "PLAN/2new_world/P6/native_evidence_01/g1/video/public_dev-02.mp4",
+            "sha256": "sha256:28af311b8c7db8c221be1c8f4d090c25ff39d6622a19ee78df4d18fde3ed7ca0",
+            "size_bytes": 4928546
+          },
+          "full_stream_decoded": true,
+          "passed": true,
+          "run_index": 2,
+          "sidecar_frame_count": 411
+        },
+        {
+          "decoded_frames": 411,
+          "decoded_resolution": [
+            1280,
+            720
+          ],
+          "decoder_exit_code": 0,
+          "expected_resolution": [
+            1280,
+            720
+          ],
+          "file": {
+            "path": "PLAN/2new_world/P6/native_evidence_01/g1/video/public_dev-03.mp4",
+            "sha256": "sha256:50b3a8892f4adf8e55c018c81a085fee06e33b1865b4d0e5ab93dd1b537239f8",
+            "size_bytes": 4876588
+          },
+          "full_stream_decoded": true,
+          "passed": true,
+          "run_index": 3,
+          "sidecar_frame_count": 411
+        }
+      ],
+      "formal_episode_outcomes": {
+        "not_recovered": 191,
+        "out_of_bounds": 1
+      },
+      "input_files": {
+        "completed_train_import": {
+          "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/g1/completed_reference_training_import.json",
+          "sha256": "sha256:74b2e45406455de644a1dbf1943b4de4d6e88f99d4bb373218b49247efcff8f2",
+          "size_bytes": 13796
+        },
+        "formal_public_dev": {
+          "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/g1/public_dev.json",
+          "sha256": "sha256:42f359a60104998b3904ccffd50c2e83e29eed35e2ac79336f6da1bedb243379",
+          "size_bytes": 617699
+        },
+        "native_job": {
+          "path": "PLAN/2new_world/P6/native_evidence_01/g1/native_dev_job.json",
+          "sha256": "sha256:1a5c99323310549239c3015966e0b9e372cd60ca7ca5b6201e5ad312f0d800ff",
+          "size_bytes": 5023
+        },
+        "native_public_dev": {
+          "path": "PLAN/2new_world/P6/native_evidence_01/g1/eval/public_dev/summary.json",
+          "sha256": "sha256:0546d530783fb947c4ae3496dd101fb912c7906c0e418b7c7493247221655be2",
+          "size_bytes": 617689
+        },
+        "native_result": {
+          "path": "PLAN/2new_world/P6/native_evidence_01/g1/result.json",
+          "sha256": "sha256:c425b9d52539f06e11e15249f4e20f9def8167b55ef637ce45408aef1dbd5e17",
+          "size_bytes": 9903
+        },
+        "recordings": {
+          "path": "PLAN/2new_world/P6/native_evidence_01/g1/video/recordings.json",
+          "sha256": "sha256:a3f3f27deacc432994c28b86dc3227f00805375f914a67d28f3fd0eb15d5a958",
+          "size_bytes": 19768
+        }
+      },
+      "native_episode_outcomes": {
+        "not_recovered": 191,
+        "out_of_bounds": 1
+      },
+      "passed": true,
+      "per_episode_differences": [],
+      "qualification_gate": {
+        "evidence_hash": "e1e671ec089def79a9a9483f937c7786732b4a6c05992ec8992ceb6b40ec0495",
+        "protocol_hash": "5cdf5001a4354d818fcb76ff9c40e5e7c025fc4e78dcabae5e4fd42e2eee8c2b",
+        "schema_version": "true_rl_agent.reference_qualification_gate.v1",
+        "status": "fail"
+      },
+      "recorded_outcomes": {
+        "not_recovered": 3
+      },
+      "seeds": [
+        {
+          "aggregate_equal": true,
+          "derived_seed": 10042,
+          "different_episode_count": 0,
+          "episode_count": 64,
+          "exactly_equal_episode_count": 64,
+          "formal_per_episode_hash": "0312c7c16b8010008526c5415e5baa1a31aa79a975148cdd50ed96dba2765eaf",
+          "formal_successes": 0,
+          "leaf_or_shape_difference_count": 0,
+          "native_per_episode_hash": "0312c7c16b8010008526c5415e5baa1a31aa79a975148cdd50ed96dba2765eaf",
+          "native_successes": 0,
+          "run_index": 1,
+          "secondary_metrics_equal": true
+        },
+        {
+          "aggregate_equal": true,
+          "derived_seed": 10043,
+          "different_episode_count": 0,
+          "episode_count": 64,
+          "exactly_equal_episode_count": 64,
+          "formal_per_episode_hash": "ab69a56b6ec958a6092f03e00ffae414754abc6bfbf8cf0b7bb3d29ef611358f",
+          "formal_successes": 0,
+          "leaf_or_shape_difference_count": 0,
+          "native_per_episode_hash": "ab69a56b6ec958a6092f03e00ffae414754abc6bfbf8cf0b7bb3d29ef611358f",
+          "native_successes": 0,
+          "run_index": 2,
+          "secondary_metrics_equal": true
+        },
+        {
+          "aggregate_equal": true,
+          "derived_seed": 10044,
+          "different_episode_count": 0,
+          "episode_count": 64,
+          "exactly_equal_episode_count": 64,
+          "formal_per_episode_hash": "a494f695ffec3bfd74d58b12c942966328c75d0afb838f17e4b201f4c93da5f0",
+          "formal_successes": 0,
+          "leaf_or_shape_difference_count": 0,
+          "native_per_episode_hash": "a494f695ffec3bfd74d58b12c942966328c75d0afb838f17e4b201f4c93da5f0",
+          "native_successes": 0,
+          "run_index": 3,
+          "secondary_metrics_equal": true
+        }
+      ],
+      "selected_env_48": [
+        {
+          "env_id": 48,
+          "episode_steps": 412,
+          "event_steps": [
+            69,
+            234
+          ],
+          "event_times_s": [
+            1.3800000000000001,
+            4.68
+          ],
+          "label": "not_recovered",
+          "max_injection_error_mps": 5.960464477539063e-08,
+          "recovered_event_count": 0,
+          "requested_delta_velocity_world_mps": [
+            [
+              -0.5153689980506897,
+              0.6226884126663208
+            ],
+            [
+              -0.6226884722709656,
+              -0.5153689384460449
+            ]
+          ],
+          "run_index": 1,
+          "seed": 10042,
+          "sidecar_frame_count": 411,
+          "simulated_duration_s": 8.22,
+          "stratum": "repeated",
+          "success": false
+        },
+        {
+          "env_id": 48,
+          "episode_steps": 412,
+          "event_steps": [
+            69,
+            234
+          ],
+          "event_times_s": [
+            1.3800000000000001,
+            4.68
+          ],
+          "label": "not_recovered",
+          "max_injection_error_mps": 0.0,
+          "recovered_event_count": 0,
+          "requested_delta_velocity_world_mps": [
+            [
+              0.6972180604934692,
+              0.4089413583278656
+            ],
+            [
+              -0.4089413583278656,
+              0.6972180604934692
+            ]
+          ],
+          "run_index": 2,
+          "seed": 10043,
+          "sidecar_frame_count": 411,
+          "simulated_duration_s": 8.22,
+          "stratum": "repeated",
+          "success": false
+        },
+        {
+          "env_id": 48,
+          "episode_steps": 412,
+          "event_steps": [
+            69,
+            234
+          ],
+          "event_times_s": [
+            1.3800000000000001,
+            4.68
+          ],
+          "label": "not_recovered",
+          "max_injection_error_mps": 5.960464477539063e-08,
+          "recovered_event_count": 0,
+          "requested_delta_velocity_world_mps": [
+            [
+              0.2521737217903137,
+              0.7679547071456909
+            ],
+            [
+              -0.7679547667503357,
+              0.25217366218566895
+            ]
+          ],
+          "run_index": 3,
+          "seed": 10044,
+          "sidecar_frame_count": 411,
+          "simulated_duration_s": 8.22,
+          "stratum": "repeated",
+          "success": false
+        }
+      ],
+      "source_kind": "unqualified_reference_diagnostic",
+      "stop": "Do not record again or retrain to fill the missing class."
+    },
+    "go2": {
+      "cell": "push.go2_12dof.recovery_v2",
+      "checkpoint_sha256": "sha256:55683f99894efeef440b07f53f1ddd9cc832e2cbcecf8d1f9dbd99262ccde5b2",
+      "checks": {
+        "all_192_episodes_exact": true,
+        "cell_manifest_identity_equal": true,
+        "checkpoint_identity_equal": true,
+        "checkpoint_load_checks_pass": true,
+        "evaluation_binding_equal": true,
+        "evaluation_protocol_equal": true,
+        "execution_environment_equal": true,
+        "formal_contract_equal": true,
+        "formal_source_plan_equal": true,
+        "no_genesis_or_formal_replacement": true,
+        "no_other_jobs_or_retries": true,
+        "no_video_reclassification": true,
+        "one_dev_pass_192_episodes": true,
+        "phase_public_dev_and_pass": true,
+        "reported_recordings_sha_valid": true,
+        "seed_1_identity": true,
+        "seed_1_repeated_two_verified_events": true,
+        "seed_1_sidecar_outcome_equals_raw": true,
+        "seed_1_video_interval": true,
+        "seed_2_identity": true,
+        "seed_2_repeated_two_verified_events": true,
+        "seed_2_sidecar_outcome_equals_raw": true,
+        "seed_2_video_interval": true,
+        "seed_3_identity": true,
+        "seed_3_repeated_two_verified_events": true,
+        "seed_3_sidecar_outcome_equals_raw": true,
+        "seed_3_video_interval": true,
+        "selected_env_48": true,
+        "summary_source_sha_equal": true,
+        "task_evidence_hashes_valid": true,
+        "three_seeds_64_envs": true,
+        "three_video_rows": true,
+        "training_import_equal": true
+      },
+      "consumption": {
+        "clips": 3,
+        "environments_per_seed": 64,
+        "episodes": 192,
+        "execution_cost": {
+          "clock_source": "time.perf_counter_ns",
+          "measurement_scope": "split_rollout_and_summary_aggregation",
+          "schema_version": "true_rl_agent.evaluation.execution_cost.v1",
+          "splits": {
+            "public_dev": {
+              "closed_first_episode_control_steps": 58176,
+              "evaluation_env_count_per_seed": 64,
+              "seed_count": 3,
+              "simulated_env_control_steps": 58176,
+              "vector_env_step_calls": 909,
+              "wall_time_s": 87.499377584
+            }
+          }
+        },
+        "native_passes_observed": 1,
+        "process_wall_s": 117.8274474143982,
+        "seed_units": 3
+      },
+      "coverage_gap": "No failure clip; formal and native public_dev both 192/192 successes.",
+      "decoded_videos": [
+        {
+          "decoded_frames": 302,
+          "decoded_resolution": [
+            1280,
+            720
+          ],
+          "decoder_exit_code": 0,
+          "expected_resolution": [
+            1280,
+            720
+          ],
+          "file": {
+            "path": "PLAN/2new_world/P6/native_evidence_01/go2/video/public_dev-01.mp4",
+            "sha256": "sha256:8eec4646617767eb07fcb194233d10006af308acc473c20b31587fcc1e5e5aa4",
+            "size_bytes": 1304933
+          },
+          "full_stream_decoded": true,
+          "passed": true,
+          "run_index": 1,
+          "sidecar_frame_count": 302
+        },
+        {
+          "decoded_frames": 302,
+          "decoded_resolution": [
+            1280,
+            720
+          ],
+          "decoder_exit_code": 0,
+          "expected_resolution": [
+            1280,
+            720
+          ],
+          "file": {
+            "path": "PLAN/2new_world/P6/native_evidence_01/go2/video/public_dev-02.mp4",
+            "sha256": "sha256:49f440965ea0dbe4886b8eb1911d3ee7e727da26aee2d60a32428a80add7ff24",
+            "size_bytes": 1268965
+          },
+          "full_stream_decoded": true,
+          "passed": true,
+          "run_index": 2,
+          "sidecar_frame_count": 302
+        },
+        {
+          "decoded_frames": 302,
+          "decoded_resolution": [
+            1280,
+            720
+          ],
+          "decoder_exit_code": 0,
+          "expected_resolution": [
+            1280,
+            720
+          ],
+          "file": {
+            "path": "PLAN/2new_world/P6/native_evidence_01/go2/video/public_dev-03.mp4",
+            "sha256": "sha256:0a7453579f51ea3fdd55491acee0995a0609794b946d244999cf3aed77abfd90",
+            "size_bytes": 1295340
+          },
+          "full_stream_decoded": true,
+          "passed": true,
+          "run_index": 3,
+          "sidecar_frame_count": 302
+        }
+      ],
+      "formal_episode_outcomes": {
+        "success_recovered": 192
+      },
+      "input_files": {
+        "completed_train_import": {
+          "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/go2/completed_reference_training_import.json",
+          "sha256": "sha256:7b533c4f9210d6e27dd67402d289dce85add609f3b6daab4ddccfca354df5913",
+          "size_bytes": 13829
+        },
+        "formal_public_dev": {
+          "path": "PLAN/2new_world/P6/formal_evaluation_evidence_01/go2/public_dev.json",
+          "sha256": "sha256:24e86fc586064513af85882ee72d7615f3c059cf71b6801312c67e81ac72cb0e",
+          "size_bytes": 620308
+        },
+        "native_job": {
+          "path": "PLAN/2new_world/P6/native_evidence_01/go2/native_dev_job.json",
+          "sha256": "sha256:6f427659c4e8f01ebf94f6581c553e10cdc4e476b8a36e9563567a2b4853f672",
+          "size_bytes": 5032
+        },
+        "native_public_dev": {
+          "path": "PLAN/2new_world/P6/native_evidence_01/go2/eval/public_dev/summary.json",
+          "sha256": "sha256:21e6be21cb8d19e4e089856f9a1f498560571f2812a939321591a6d26efec480",
+          "size_bytes": 620293
+        },
+        "native_result": {
+          "path": "PLAN/2new_world/P6/native_evidence_01/go2/result.json",
+          "sha256": "sha256:9de562a4ca8e57f5f313d81c22f265e1a55181a08bdb3e47b211b08f6e2c30a6",
+          "size_bytes": 9850
+        },
+        "recordings": {
+          "path": "PLAN/2new_world/P6/native_evidence_01/go2/video/recordings.json",
+          "sha256": "sha256:ca4f94b5f88873c9378343b25e2cb02a26f326a3036ff84d00fa658206a68fea",
+          "size_bytes": 19926
+        }
+      },
+      "native_episode_outcomes": {
+        "success_recovered": 192
+      },
+      "passed": true,
+      "per_episode_differences": [],
+      "qualification_gate": {
+        "evidence_hash": "07c84de5ca462b879aa37697ac6b86dc381dadd7c62d99c2d88a0f4452800f8d",
+        "protocol_hash": "6ceaeb7b2db365683d5b7a6009e562077ab7b322077b08729f36f4614075fe0d",
+        "schema_version": "true_rl_agent.reference_qualification_gate.v1",
+        "status": "fail"
+      },
+      "recorded_outcomes": {
+        "success_recovered": 3
+      },
+      "seeds": [
+        {
+          "aggregate_equal": true,
+          "derived_seed": 10042,
+          "different_episode_count": 0,
+          "episode_count": 64,
+          "exactly_equal_episode_count": 64,
+          "formal_per_episode_hash": "21f73e85912aec2eebb1fe0cfb724e92633ec397311f8ee8883af12d0352e119",
+          "formal_successes": 64,
+          "leaf_or_shape_difference_count": 0,
+          "native_per_episode_hash": "21f73e85912aec2eebb1fe0cfb724e92633ec397311f8ee8883af12d0352e119",
+          "native_successes": 64,
+          "run_index": 1,
+          "secondary_metrics_equal": true
+        },
+        {
+          "aggregate_equal": true,
+          "derived_seed": 10043,
+          "different_episode_count": 0,
+          "episode_count": 64,
+          "exactly_equal_episode_count": 64,
+          "formal_per_episode_hash": "5b4e2e5ef09b5d7a1919d2c7e1319c8ed282fafc9acdebfd271987337e38218f",
+          "formal_successes": 64,
+          "leaf_or_shape_difference_count": 0,
+          "native_per_episode_hash": "5b4e2e5ef09b5d7a1919d2c7e1319c8ed282fafc9acdebfd271987337e38218f",
+          "native_successes": 64,
+          "run_index": 2,
+          "secondary_metrics_equal": true
+        },
+        {
+          "aggregate_equal": true,
+          "derived_seed": 10044,
+          "different_episode_count": 0,
+          "episode_count": 64,
+          "exactly_equal_episode_count": 64,
+          "formal_per_episode_hash": "aa1af5dc2cb12d9867769e31cdb0ff283351c9914d02863dedb038a67addf843",
+          "formal_successes": 64,
+          "leaf_or_shape_difference_count": 0,
+          "native_per_episode_hash": "aa1af5dc2cb12d9867769e31cdb0ff283351c9914d02863dedb038a67addf843",
+          "native_successes": 64,
+          "run_index": 3,
+          "secondary_metrics_equal": true
+        }
+      ],
+      "selected_env_48": [
+        {
+          "env_id": 48,
+          "episode_steps": 303,
+          "event_steps": [
+            51,
+            172
+          ],
+          "event_times_s": [
+            1.02,
+            3.44
+          ],
+          "label": "success_recovered",
+          "max_injection_error_mps": 0.0,
+          "recovered_event_count": 2,
+          "requested_delta_velocity_world_mps": [
+            [
+              -0.37890681624412537,
+              0.4578096270561218
+            ],
+            [
+              -0.4578096568584442,
+              -0.3789067566394806
+            ]
+          ],
+          "run_index": 1,
+          "seed": 10042,
+          "sidecar_frame_count": 302,
+          "simulated_duration_s": 6.04,
+          "stratum": "repeated",
+          "success": true
+        },
+        {
+          "env_id": 48,
+          "episode_steps": 303,
+          "event_steps": [
+            51,
+            172
+          ],
+          "event_times_s": [
+            1.02,
+            3.44
+          ],
+          "label": "success_recovered",
+          "max_injection_error_mps": 0.0,
+          "recovered_event_count": 2,
+          "requested_delta_velocity_world_mps": [
+            [
+              0.5126048922538757,
+              0.3006596565246582
+            ],
+            [
+              -0.3006596565246582,
+              0.5126048922538757
+            ]
+          ],
+          "run_index": 2,
+          "seed": 10043,
+          "sidecar_frame_count": 302,
+          "simulated_duration_s": 6.04,
+          "stratum": "repeated",
+          "success": true
+        },
+        {
+          "env_id": 48,
+          "episode_steps": 303,
+          "event_steps": [
+            51,
+            172
+          ],
+          "event_times_s": [
+            1.02,
+            3.44
+          ],
+          "label": "success_recovered",
+          "max_injection_error_mps": 0.0,
+          "recovered_event_count": 2,
+          "requested_delta_velocity_world_mps": [
+            [
+              0.1854017972946167,
+              0.564611554145813
+            ],
+            [
+              -0.564611554145813,
+              0.1854017674922943
+            ]
+          ],
+          "run_index": 3,
+          "seed": 10044,
+          "sidecar_frame_count": 302,
+          "simulated_duration_s": 6.04,
+          "stratum": "repeated",
+          "success": true
+        }
+      ],
+      "source_kind": "unqualified_reference_diagnostic",
+      "stop": "Do not record again or retrain to fill the missing class."
+    }
+  },
+  "checkpoint_scope": "Matched sealed identity and successful load receipts across formal phase, original completed train import, native phase, native job and video sidecar; checkpoint binary itself is retained on execution host, not downloaded here.",
+  "comparison": "All per_episode fields and nested values, including types; no tolerance or excluded fields.",
+  "decoder": {
+    "executable": "D:\\humanoid_agent\\true_RL_Agent\\.venv\\Lib\\site-packages\\imageio_ffmpeg\\binaries\\ffmpeg-win-x86_64-v7.1.exe",
+    "mode": "CPU full stream decode to null; frame count from ffmpeg progress=end",
+    "sha256": "sha256:2ce797a0f88d7f067180338fb227f7b1928ea727bd9a4d7a1d022f7c52af71a3"
+  },
+  "passed": true,
+  "retraining_authorized_by_this_report": false,
+  "schema_version": "true_rl_agent.p6.native_evidence_audit.v1",
+  "scope": "Independent local read-only audit of downloaded formal and native evidence; no simulator, SSH, GPU, provider, retraining or extra recording launched.",
+  "source_files_unchanged": true,
+  "totals": {
+    "additional_runs_performed_for_audit": 0,
+    "decoded_clips": 6,
+    "diagnostic_accept_jobs": 0,
+    "diagnostic_sealed_jobs": 0,
+    "diagnostic_train_jobs": 0,
+    "episodes_compared": 384,
+    "episodes_exactly_equal": 384,
+    "native_passes_observed": 2
+  }
+}

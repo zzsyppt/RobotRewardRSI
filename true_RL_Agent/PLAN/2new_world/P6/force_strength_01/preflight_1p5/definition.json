@@ -1,0 +1,43 @@
+{
+  "base_seed": 42,
+  "body_name": "base",
+  "comparison_scope": "source_velocity_result_is_historical_different_mechanism",
+  "control_dt_s": 0.02,
+  "definition_hash": "3fe24c4699667864582fa1506f4ab1d370edc88a21364bbdc5396972a4ab3521",
+  "derived_seeds": [
+    10042,
+    10043,
+    10044
+  ],
+  "direct_torque_nm": [
+    0,
+    0,
+    0
+  ],
+  "dwell_steps": 16,
+  "envs_per_seed": 64,
+  "first_recovery_sample": "pulse_end_control_step_plus_one",
+  "force_rule": "force_scale * total_mass_kg * source_delta_v_world_mps / actual_pulse_duration_s",
+  "force_scale": 1.5,
+  "holdout_jobs": 0,
+  "is_global": true,
+  "mass_rule": "actual_all_robot_link_masses_sum_after_reset_per_environment",
+  "mechanism": "finite_world_horizontal_force_at_bound_base_link_com",
+  "physics_dt_s": 0.005,
+  "positions": null,
+  "provider_calls": 0,
+  "pulse_control_steps": 11,
+  "pulse_duration_s": 0.22,
+  "recovery_scope": "every_completed_pulse_independent_window_then_final_stable",
+  "robot": "go2",
+  "schema_version": "true_rl_agent.p6.external_force_diagnostic.v2",
+  "seed_count": 3,
+  "source_resolved_protocol_hash": "39f0d453a04e0c1a059395597b6a54aa3715dd739edd394b78f90641217f76e1",
+  "start_control_steps": [
+    51,
+    172
+  ],
+  "train_jobs": 0,
+  "wall_limit_s": 1800,
+  "window_steps": 81
+}

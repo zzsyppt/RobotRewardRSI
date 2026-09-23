@@ -1,0 +1,1517 @@
+{
+  "status": "PASS_GEN05_COMPLETE_AUTHORING_PROMPT_PROVENANCE_WITH_FIVE_GENERATION_ROLLUP",
+  "audited_at_utc": "2026-09-23T08:49:18.558570+00:00",
+  "generation": 5,
+  "snapshot": ".tmp/go2_push_a08_live_17.zip",
+  "snapshot_sha256": "e774972977f28db3025fcdb421b19d6d706d5259a38e3965d62c6c4ee8cc0b8b",
+  "frozen_source_commit": "f13ceb6660e01e5367f3a0961fca9a269737bf2c",
+  "frozen_source_archive_sha256": "e7a8275f8a3f981288ac9b9d1db2873c091de877ca0cbe6ba00efcc58d4aba1c",
+  "source_manifest_verified": true,
+  "accepted_head_source_checksum": "sha256:0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336",
+  "evaluated_history_reconciliation": {
+    "scope": "same_parent_and_session_comparison_domain",
+    "current_head_hash": "456dc8b3c7cde84bf1d8cd063cbacb50b323613b32d10a2f1bdc6c57e3ed2df6",
+    "prior_generation_count": 4,
+    "prior_trial_count": 8,
+    "eligible_trials": [],
+    "keys": [],
+    "count": 0,
+    "key_set_hash": "93af470f76fcae9ca4fe74dafd4f2b8a50c23dd6b53140d96aec7027db1af871"
+  },
+  "snapshot_files_checked": 31,
+  "feedback_trial": "go2-push-5rounds-20260923-a08-generation-004-lane-a",
+  "current_best_dev": {
+    "score": 0.9114583333333334,
+    "failure_counts": {
+      "fall_side": 10,
+      "not_recovered": 7,
+      "success_recovered": 175
+    },
+    "strata": {
+      "high": {
+        "episodes": 48,
+        "successes": 37
+      },
+      "low": {
+        "episodes": 48,
+        "successes": 48
+      },
+      "medium": {
+        "episodes": 48,
+        "successes": 48
+      },
+      "repeated": {
+        "episodes": 48,
+        "successes": 42
+      }
+    },
+    "recovery_counts": {
+      "completed_push_event_count": 240,
+      "control_episode_count": 0,
+      "control_success_count": 0,
+      "eligible_episode_count": 192,
+      "episodes": 192,
+      "invalid_injection_count": 0,
+      "planned_push_event_count": 240,
+      "push_event_count": 240,
+      "pushed_episode_count": 192,
+      "sequence_recovered_count": 175,
+      "success_count": 175,
+      "successes": 175,
+      "verified_push_event_count": 240
+    }
+  },
+  "detailed_feedback_dev": {
+    "score": 0.8385416666666666,
+    "failure_counts": {
+      "fall_side": 7,
+      "height_collapse": 14,
+      "not_recovered": 9,
+      "success_recovered": 161,
+      "fall_forward": 1
+    },
+    "strata": {
+      "high": {
+        "episodes": 48,
+        "successes": 32
+      },
+      "low": {
+        "episodes": 48,
+        "successes": 46
+      },
+      "medium": {
+        "episodes": 48,
+        "successes": 45
+      },
+      "repeated": {
+        "episodes": 48,
+        "successes": 38
+      }
+    },
+    "recovery_counts": {
+      "completed_push_event_count": 238,
+      "control_episode_count": 0,
+      "control_success_count": 0,
+      "eligible_episode_count": 192,
+      "episodes": 192,
+      "invalid_injection_count": 0,
+      "planned_push_event_count": 240,
+      "push_event_count": 238,
+      "pushed_episode_count": 192,
+      "sequence_recovered_count": 161,
+      "success_count": 161,
+      "successes": 161,
+      "verified_push_event_count": 238
+    }
+  },
+  "lanes": [
+    {
+      "lane": "lane-a",
+      "prompts": [
+        {
+          "path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-a/authoring_attempts/attempt_000001/prompt_payload.json",
+          "sha256": "c894fb7b23836184ce65ab9b3f23016264bb47ca5298a58ed51eecb38e2b83f6",
+          "frame_kind": "candidate_draft",
+          "bytes": 71056,
+          "task_section_bytes": 20907,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336",
+              "bytes": 4827,
+              "source": "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-004/lane-b/002_push_recovery_lateral_brace_v1/training_code/components.py"
+            },
+            {
+              "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+              "sha256": "c3a43ee3c713aa2918c39dca634cbc7cc711f6e07ea410e455e2b4b98cb5cd7f",
+              "bytes": 5769,
+              "source": "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-004/lane-a/002_push_recovery_side_braced_stance_v1/training_code/components.py"
+            }
+          ],
+          "evaluated_mechanism_families": null,
+          "long_string_duplicate_excess_bytes": 1307
+        },
+        {
+          "path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-a/authoring_attempts/attempt_000002/prompt_payload.json",
+          "sha256": "b834948e4c1be7c137a51e04b4edfebfeafa237a3702f0a79cbfe0b3a4d4c1e4",
+          "frame_kind": "static_repair",
+          "bytes": 72684,
+          "task_section_bytes": 20907,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336",
+              "bytes": 4827,
+              "source": "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-004/lane-b/002_push_recovery_lateral_brace_v1/training_code/components.py"
+            },
+            {
+              "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+              "sha256": "c3a43ee3c713aa2918c39dca634cbc7cc711f6e07ea410e455e2b4b98cb5cd7f",
+              "bytes": 5769,
+              "source": "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-004/lane-a/002_push_recovery_side_braced_stance_v1/training_code/components.py"
+            }
+          ],
+          "evaluated_mechanism_families": null,
+          "long_string_duplicate_excess_bytes": 1307
+        }
+      ],
+      "attempt_results": [
+        {
+          "attempt": "attempt_000001",
+          "provider_status": "fail",
+          "provider_failure": "reasoning_output_exhausted",
+          "verifier_status": null,
+          "stop_reason": null,
+          "repair_feedback": null,
+          "provider_usage": {
+            "reasoning_units": 32768,
+            "request_cache_hit_units": 5376,
+            "request_cache_miss_units": 13450,
+            "request_units": 18826,
+            "response_units": 32768,
+            "total_units": 51594
+          },
+          "source_request_count": 0,
+          "gate_audit": {
+            "recorded_assessments": {},
+            "blocking_assessments": [],
+            "candidate_family_key_from_actual_source": null,
+            "union_validation": "not_reached_or_empty",
+            "status": "PASS_AVAILABLE_GATE_EVIDENCE",
+            "pending_review": [],
+            "candidate_admitted": false
+          }
+        },
+        {
+          "attempt": "attempt_000002",
+          "provider_status": "pass",
+          "provider_failure": null,
+          "verifier_status": "pass",
+          "stop_reason": "candidate_verified",
+          "repair_feedback": null,
+          "provider_usage": {
+            "request_cache_hit_units": 5376,
+            "request_cache_miss_units": 13772,
+            "request_units": 19148,
+            "response_units": 1582,
+            "total_units": 20730
+          },
+          "source_request_count": 0,
+          "gate_audit": {
+            "recorded_assessments": {
+              "anti_degenerate_assessment": {
+                "blocking": false,
+                "candidate_authoring_anchor_available": true,
+                "candidate_source_sha256": "79baa37b5dcacd0591a20d849189c68ab7dc7b2e33b1e6b740f55c2ef5fe5398",
+                "changed_mechanism_count": 1,
+                "changed_mechanisms": [
+                  "RewardTerm:roll_brace"
+                ],
+                "classification": "mechanism_delta_present",
+                "compares_to": "0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336",
+                "comparison_anchor": "current_best",
+                "comparison_scope": "authoring_anchor_and_evaluated_history",
+                "evaluated_history_source_count": 0,
+                "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+                "history_sources_with_anchor": 0,
+                "history_sources_without_anchor": 0,
+                "reason": "candidate_source_structure_differs_from_comparison_anchor",
+                "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+                "status": "pass",
+                "structural_comparison": "canonical_component_terms"
+              },
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 7,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_owner": "task_owned_push_recovery",
+                  "num_actions": 12,
+                  "num_envs": 4,
+                  "num_joints": 12,
+                  "purpose": "authoring_time_reward_callable_smoke_only"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 6.1575000286102295,
+                    "kind": "RewardTerm",
+                    "name": "upright_recovery",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 2.052500009536743,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.20192751288414001,
+                    "kind": "RewardTerm",
+                    "name": "lateral_brace",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.20192751288414001,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.0,
+                    "kind": "RewardTerm",
+                    "name": "roll_brace",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 0,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.7704204320907593,
+                    "kind": "RewardTerm",
+                    "name": "stationary_v3",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.7704204320907593,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.0346666693687439,
+                    "kind": "RewardTerm",
+                    "name": "joint_pose",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.34666669368743896,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.0008666667342185975,
+                    "kind": "RewardTerm",
+                    "name": "action_rate",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.08666667342185974,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 20.0,
+                    "kind": "RewardTerm",
+                    "name": "fall",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 1,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_push_recovery"
+              }
+            },
+            "blocking_assessments": [],
+            "candidate_family_key_from_actual_source": "50efa8d5aae9ec920ab23da4d4610dac4343d85e198584d17c2afa32be1e9ac3",
+            "union_validation": "not_reached_or_empty",
+            "status": "PASS_AVAILABLE_GATE_EVIDENCE",
+            "pending_review": [],
+            "candidate_admitted": true
+          }
+        }
+      ],
+      "memory_bytes": 5624,
+      "memory_experiments": 4,
+      "memory_trial_rows": [
+        {
+          "generation": 1,
+          "lane": "a",
+          "candidate_id": "push_recovery_nonsaturating_stance_v1",
+          "operation": "rename",
+          "mechanism": "RewardTerm:upright_recovery",
+          "status": "accepted",
+          "public_dev_delta": 0.145833,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "formal_acceptance_passed"
+        },
+        {
+          "generation": 1,
+          "lane": "b",
+          "candidate_id": "push_go2_recovery_gated_damping_v1",
+          "operation": "rename",
+          "mechanism": "RewardTerm:recovery_damping",
+          "status": "qualified_not_selected",
+          "public_dev_delta": 0.114583,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "sibling_not_selected"
+        },
+        {
+          "generation": 2,
+          "lane": "a",
+          "candidate_id": "push_recovery_linear_tilt_ramp_v1",
+          "operation": "rename",
+          "mechanism": "RewardTerm:upright_recovery_linear_tilt",
+          "status": "qualified_not_selected",
+          "public_dev_delta": -0.338542,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "sibling_not_selected"
+        },
+        {
+          "generation": 2,
+          "lane": "b",
+          "candidate_id": "push_recovery_tilt_aware_stance_v2",
+          "operation": "modify",
+          "mechanism": "RewardTerm:upright_recovery",
+          "status": "formal_rejected",
+          "public_dev_delta": -0.328125,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "not_run_due_to_early_reject"
+        },
+        {
+          "generation": 3,
+          "lane": "a",
+          "candidate_id": "push_recovery_rate_damped_v1",
+          "operation": "add",
+          "mechanism": "RewardTerm:fall_rate_damping",
+          "status": "qualified_not_selected",
+          "public_dev_delta": -0.880208,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "sibling_not_selected"
+        },
+        {
+          "generation": 3,
+          "lane": "b",
+          "candidate_id": "push_recovery_vel_damped_stance_v1",
+          "operation": "add",
+          "mechanism": "RewardTerm:recovery_damping",
+          "status": "formal_rejected",
+          "public_dev_delta": -0.114583,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "not_run_due_to_early_reject"
+        },
+        {
+          "generation": 4,
+          "lane": "a",
+          "candidate_id": "push_recovery_side_braced_stance_v1",
+          "operation": "add",
+          "mechanism": "RewardTerm:lateral_brace",
+          "status": "qualified_not_selected",
+          "public_dev_delta": -0.041667,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "sibling_not_selected"
+        },
+        {
+          "generation": 4,
+          "lane": "b",
+          "candidate_id": "push_recovery_lateral_brace_v1",
+          "operation": "add",
+          "mechanism": "RewardTerm:lateral_brace",
+          "status": "accepted",
+          "public_dev_delta": 0.03125,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "formal_acceptance_passed"
+        }
+      ]
+    },
+    {
+      "lane": "lane-b",
+      "prompts": [
+        {
+          "path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-b/authoring_attempts/attempt_000001/prompt_payload.json",
+          "sha256": "8bbf275cc2074531481e376988277cf90e23f21c4a171f43919fbe8b966fcb7a",
+          "frame_kind": "candidate_draft",
+          "bytes": 71709,
+          "task_section_bytes": 20907,
+          "sources": [
+            {
+              "logical_id": "current_best/training_code/components.py",
+              "sha256": "0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336",
+              "bytes": 4827,
+              "source": "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-004/lane-b/002_push_recovery_lateral_brace_v1/training_code/components.py"
+            },
+            {
+              "logical_id": "memory/latest_nonaccepted/training_code/components.py",
+              "sha256": "c3a43ee3c713aa2918c39dca634cbc7cc711f6e07ea410e455e2b4b98cb5cd7f",
+              "bytes": 5769,
+              "source": "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-004/lane-a/002_push_recovery_side_braced_stance_v1/training_code/components.py"
+            }
+          ],
+          "evaluated_mechanism_families": null,
+          "long_string_duplicate_excess_bytes": 1307
+        }
+      ],
+      "attempt_results": [
+        {
+          "attempt": "attempt_000001",
+          "provider_status": "pass",
+          "provider_failure": null,
+          "verifier_status": "pass",
+          "stop_reason": "candidate_verified",
+          "repair_feedback": null,
+          "provider_usage": {
+            "reasoning_units": 28089,
+            "request_cache_hit_units": 16896,
+            "request_cache_miss_units": 2124,
+            "request_units": 19020,
+            "response_units": 30152,
+            "total_units": 49172
+          },
+          "source_request_count": 0,
+          "gate_audit": {
+            "recorded_assessments": {
+              "anti_degenerate_assessment": {
+                "blocking": false,
+                "candidate_authoring_anchor_available": true,
+                "candidate_source_sha256": "019090cb328b1e8eea37310feaf1226a3e0ad6e89e9758228970e874a40bd3b2",
+                "changed_mechanism_count": 1,
+                "changed_mechanisms": [
+                  "RewardTerm:lateral_tilt_decay"
+                ],
+                "classification": "mechanism_delta_present",
+                "compares_to": "0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336",
+                "comparison_anchor": "current_best",
+                "comparison_scope": "authoring_anchor_and_evaluated_history",
+                "evaluated_history_source_count": 0,
+                "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+                "history_sources_with_anchor": 0,
+                "history_sources_without_anchor": 0,
+                "reason": "candidate_source_structure_differs_from_comparison_anchor",
+                "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+                "status": "pass",
+                "structural_comparison": "canonical_component_terms"
+              },
+              "component_smoke": {
+                "advisory_reward_term_names": [],
+                "checked_diagnostics": 0,
+                "checked_reward_terms": 7,
+                "diagnostic_results": [],
+                "fixture_summary": {
+                  "fixture_owner": "task_owned_push_recovery",
+                  "num_actions": 12,
+                  "num_envs": 4,
+                  "num_joints": 12,
+                  "purpose": "authoring_time_reward_callable_smoke_only"
+                },
+                "reason": "component_smoke_passed",
+                "reward_results": [
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 6.1575000286102295,
+                    "kind": "RewardTerm",
+                    "name": "upright_recovery",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 2.052500009536743,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.20192751288414001,
+                    "kind": "RewardTerm",
+                    "name": "lateral_brace",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.20192751288414001,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.0,
+                    "kind": "RewardTerm",
+                    "name": "lateral_tilt_decay",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 0,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.7704204320907593,
+                    "kind": "RewardTerm",
+                    "name": "stationary_v3",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.7704204320907593,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.0346666693687439,
+                    "kind": "RewardTerm",
+                    "name": "joint_pose",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.34666669368743896,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 0.0008666667342185975,
+                    "kind": "RewardTerm",
+                    "name": "action_rate",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 4,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 0.08666667342185974,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  },
+                  {
+                    "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+                    "effective_max_abs_after_clip_and_weight": 20.0,
+                    "kind": "RewardTerm",
+                    "name": "fall",
+                    "observed_clip_saturation_count": 0,
+                    "observed_raw_nonzero_count": 1,
+                    "observed_sample_count": 4,
+                    "observed_shape": [
+                      4
+                    ],
+                    "raw_max_abs": 1.0,
+                    "reason": "reward_callable_returned_finite_expected_shape",
+                    "status": "pass"
+                  }
+                ],
+                "schema_version": "true_rl_agent.component_smoke_result.v2",
+                "status": "pass",
+                "task_id": "unitree_push_recovery"
+              },
+              "sibling_semantic_exclusion_assessment": {
+                "blocking": false,
+                "equivalence": null,
+                "exclusion_hash": "45086d73775844abb4328fd1d86edfa7d22ade67532200d1a3afbddd13e4a83d",
+                "reason": "sibling_semantic_delta_distinct",
+                "schema_version": "true_rl_agent.sibling_semantic_exclusion_assessment.v1",
+                "status": "pass"
+              }
+            },
+            "blocking_assessments": [],
+            "candidate_family_key_from_actual_source": "5a220374a7dc2cdf0bba98c8e8d2073043bd1da8cdc07c8085618c978be49490",
+            "union_validation": "not_reached_or_empty",
+            "status": "PASS_AVAILABLE_GATE_EVIDENCE",
+            "pending_review": [],
+            "candidate_admitted": true
+          }
+        }
+      ],
+      "memory_bytes": 5624,
+      "memory_experiments": 4,
+      "memory_trial_rows": [
+        {
+          "generation": 1,
+          "lane": "a",
+          "candidate_id": "push_recovery_nonsaturating_stance_v1",
+          "operation": "rename",
+          "mechanism": "RewardTerm:upright_recovery",
+          "status": "accepted",
+          "public_dev_delta": 0.145833,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "formal_acceptance_passed"
+        },
+        {
+          "generation": 1,
+          "lane": "b",
+          "candidate_id": "push_go2_recovery_gated_damping_v1",
+          "operation": "rename",
+          "mechanism": "RewardTerm:recovery_damping",
+          "status": "qualified_not_selected",
+          "public_dev_delta": 0.114583,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "sibling_not_selected"
+        },
+        {
+          "generation": 2,
+          "lane": "a",
+          "candidate_id": "push_recovery_linear_tilt_ramp_v1",
+          "operation": "rename",
+          "mechanism": "RewardTerm:upright_recovery_linear_tilt",
+          "status": "qualified_not_selected",
+          "public_dev_delta": -0.338542,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "sibling_not_selected"
+        },
+        {
+          "generation": 2,
+          "lane": "b",
+          "candidate_id": "push_recovery_tilt_aware_stance_v2",
+          "operation": "modify",
+          "mechanism": "RewardTerm:upright_recovery",
+          "status": "formal_rejected",
+          "public_dev_delta": -0.328125,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "not_run_due_to_early_reject"
+        },
+        {
+          "generation": 3,
+          "lane": "a",
+          "candidate_id": "push_recovery_rate_damped_v1",
+          "operation": "add",
+          "mechanism": "RewardTerm:fall_rate_damping",
+          "status": "qualified_not_selected",
+          "public_dev_delta": -0.880208,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "sibling_not_selected"
+        },
+        {
+          "generation": 3,
+          "lane": "b",
+          "candidate_id": "push_recovery_vel_damped_stance_v1",
+          "operation": "add",
+          "mechanism": "RewardTerm:recovery_damping",
+          "status": "formal_rejected",
+          "public_dev_delta": -0.114583,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "not_run_due_to_early_reject"
+        },
+        {
+          "generation": 4,
+          "lane": "a",
+          "candidate_id": "push_recovery_side_braced_stance_v1",
+          "operation": "add",
+          "mechanism": "RewardTerm:lateral_brace",
+          "status": "qualified_not_selected",
+          "public_dev_delta": -0.041667,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "sibling_not_selected"
+        },
+        {
+          "generation": 4,
+          "lane": "b",
+          "candidate_id": "push_recovery_lateral_brace_v1",
+          "operation": "add",
+          "mechanism": "RewardTerm:lateral_brace",
+          "status": "accepted",
+          "public_dev_delta": 0.03125,
+          "public_dev_guard_delta": null,
+          "runtime_effect": "not_assessed",
+          "reason": "formal_acceptance_passed"
+        }
+      ]
+    }
+  ],
+  "initial_sibling_differing_sections": [
+    "required_candidate_package",
+    "authoring_context_frame"
+  ],
+  "F10_current_best_distinct_dev_checked": true,
+  "F11_actual_comparison_repairs": [],
+  "candidate_claims_for_readback": [
+    {
+      "lane": "lane-a",
+      "attempt": "attempt_000002",
+      "candidate_id": "push_recovery_roll_braced_stance_v2",
+      "source": "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-005/lane-a/002_push_recovery_roll_braced_stance_v2/training_code/components.py",
+      "source_checksum": "sha256:79baa37b5dcacd0591a20d849189c68ab7dc7b2e33b1e6b740f55c2ef5fe5398",
+      "stop_reason": "candidate_verified",
+      "literal_rationales": [
+        "Closest prior program: push_recovery_lateral_brace_v1, the accepted current best (public_dev mean 0.9115). Its dominant residual failure is fall_dominated with 10 fall_side and 7 not_recovered, and the high stratum is the weak point (37/48 vs 48/48 low and medium), so sideways toppling under strong pushes is the bottleneck. The sibling push_recovery_side_braced_stance_v1 (displacement-gated squared roll) was qualified_not_selected at 0.8385 with height_collapse_dominated, so gating the lateral term on displacement is negative evidence and is not repeated. Sole mechanism change here: a new RewardTerm roll_brace is added; upright_recovery, lateral_brace, stationary_v3, joint_pose, action_rate, fall, all their weights, signs, clips, and the empty schedule and diagnostic lists are preserved exactly. The anchor's lateral_brace is linear in |roll| beyond a 0.10 rad deadband, so its restoring slope is constant and weak once roll is large; a base tipping sideways under a strong push can accumulate large roll at only a linear cost while the height branch of upright_recovery dominates the gradient. roll_brace returns -clamp(|roll| - 0.10, 0, inf)^2, a quadratic lateral potential that is exactly zero inside the same 0.10 rad deadband and grows with the square of roll excess, so it adds restoring slope that increases with tilt magnitude exactly in the large-roll regime where the anchor's linear term is too weak. It is asymmetric by construction: it never penalizes pitch or forward/backward motion, so it cannot suppress the sagittal recovery transient. The clip [-2, 0] with weight -1.0 bounds the weighted contribution, and the shared deadband keeps the nominal stance value identical to the anchor. Success definition, push schedule, and all runner-owned surfaces are untouched."
+      ],
+      "public_input_fields": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "causal_or_mathematical_claims": "Pending independent source/evidence readback; verifier PASS is not proof.",
+      "undeclared_input_fields": []
+    },
+    {
+      "lane": "lane-b",
+      "attempt": "attempt_000001",
+      "candidate_id": "push_recovery_lateral_tilt_decay_v1",
+      "source": "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-005/lane-b/001_push_recovery_lateral_tilt_decay_v1/training_code/components.py",
+      "source_checksum": "sha256:019090cb328b1e8eea37310feaf1226a3e0ad6e89e9758228970e874a40bd3b2",
+      "stop_reason": "candidate_verified",
+      "literal_rationales": [
+        "Closest prior program: the accepted current best push_recovery_lateral_brace_v1 (public_dev mean 0.9115; its parent push_recovery_nonsaturating_stance_v1 was 0.8802). Its public_dev breakdown is 175 success_recovered, 10 fall_side and 7 not_recovered: after the lateral brace landed, height_collapse and fall_forward vanished completely, so every residual toppling failure is a sideways roll collapse, concentrated in the high (37/48) and repeated (42/48) strata. Negative evidence that is not repeated: the sibling push_recovery_side_braced_stance_v1 (0.8385, height_collapse dominated) and the earlier push_recovery_tilt_aware_stance_v2 and push_recovery_vel_damped_stance_v1 all strengthened level or speed penalties in the displacement regime that contains the recovery transient. Sole mechanism change: one new RewardTerm lateral_tilt_decay is added; the anchor's upright_recovery kernel, lateral_brace, stationary_v3, joint_pose, action_rate and fall callables, their weights, signs, clips, term order, and the empty schedule and diagnostic lists are preserved exactly. lateral_tilt_decay computes roll_rate = base_ang_vel_scaled[:, 0], the morphology-scaled world-frame roll rate, and level_gate = clamp((abs(roll) - 0.10) / 0.10, 0, 1), which reuses the accepted brace's 0.10 rad roll deadband, and returns -(level_gate * clamp(roll * roll_rate, 0, inf)). It is the one-sided derivative of the lateral tilt energy: it charges a state only while the sideways tilt magnitude is growing, it is exactly zero while the base sits inside the nominal stance band, and it is exactly zero whenever roll * roll_rate is negative, that is while the base is already rolling back toward level. The anchor prices the lateral state with three level quantities, namely the squared tilt branch inside upright_recovery, the linear roll brace, and the symmetric lateral speed term; none of them separates a still-growing topple from an already-decaying one, so at the tipping onset the only lateral gradient available scales with the current roll rather than with the diverging rate that decides whether the fresh stable dwell is reached before the base passes the point of no return. The new term supplies exactly that missing one-sided rate gradient, which shortens the window in which a repeated-pulse sequence can re-topple a base that is still rolling, and it touches no translational channel, so it cannot brake the lateral stepping strategy that the accepted speed terms already bound, which is the failure mode of the refuted speed-damping route. It is also structurally distinct from the excluded single-component card RewardTerm:roll_brace, which depends on roll alone as a level brace: this mechanism pairs roll with the world-frame roll rate and is one-sided in the growth direction, with clip [-1.0, 0.0] at weight -1.5 bounding the added contribution to 1.5, the same order as the accepted lateral_brace, so it shapes the tipping onset rather than competing with the -20 fall penalty. The success definition, the pulse schedule, and all task-owned, evaluation-owned, checkpoint-owned and budget-owned surfaces are untouched."
+      ],
+      "public_input_fields": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "causal_or_mathematical_claims": "Pending independent source/evidence readback; verifier PASS is not proof.",
+      "undeclared_input_fields": []
+    }
+  ],
+  "public_boundaries": {
+    "private_paths_checked": 77,
+    "checkpoint_hashes_checked": 10,
+    "literal_hits": 0,
+    "public_only_guard": "PASS",
+    "task_receipt_recomputed": "PASS"
+  },
+  "audit_limits": [
+    "Snapshot only; missing attempt results remain in flight, not failures.",
+    "Source readback is needed to distinguish causal claims from measured facts; this script does not approve candidate mechanisms.",
+    "Checkpoint files are not downloaded/rehashed; no simulation visual inspection; no inferred seed leakage from numeric coincidences."
+  ],
+  "evidence_sha256": {
+    "PLAN/2new_world/Go2_push/source_snapshot_08.json": "bff645daff96c7afcdb71b46e8aa95cfcaef206499fe711bbe9d21e3cdbfa4b9",
+    "PLAN/2new_world/Go2_push/launch_08.json": "d1ff162a90b73f804404472e246b91f41b5864df2ecd3c327ddcfecc346c9785",
+    "PLAN/2new_world/Go2_push/attempt_08/session/session_genesis.json": "15d54f658aa68263401f8e11fd5046ad5e3b181089fd05bb975144c9e953c837",
+    "PLAN/2new_world/Go2_push/attempt_08/session/reference_eval_artifact.json": "9310047437b4a1eaec79fb6047fbf55a8f08446edcf1237006e522624da96086",
+    "PLAN/2new_world/Go2_push/attempt_08/session/ledger.jsonl": "8047cafecdcb70cfaa4e324226f0e0ac1cc914f02254e90237eea5cde9fdd759",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-004-lane-b/eval/public_dev/summary.json": "a944b7dfe0742cdc3053a115c0b03d56ccb20921816350db469eb43ad8a1794a",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-004-lane-a/eval/public_dev/summary.json": "36cd4405fe6ce38582656f67b869fc8c8875a645f89151b6ee41f97102078eb4",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08/eval/public_accept/summary.json": "d0fa6612026127c9dd32364e2dd14e9425aa88ab127b086a51a3fd75e08fd97e",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08/eval/public_dev/summary.json": "9792c53e8d55883a90fc03a31b407b54919d271a87cc05a2521461aa60067e1f",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08/eval/sealed_validation/summary.json": "1ec4b6d1773ff357056f40848ef3db1f03fd18f6ac4ae1fa0493434e1b7ed58e",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/eval/public_accept/summary.json": "a4f098d3681b0d1ecb5ef9ac1f2d6ecf03cb564abc1a10127c4c7f4252e18d9e",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/eval/public_dev/summary.json": "5b571b1d26f768e6e4e2af17894cc1e1eafc800af6bd92f915df0dd7b17eb919",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-001-lane-a/eval/sealed_validation/summary.json": "f090c7ea005afe513aa56ef278e20aca7a30ebad2470e12d6114296cfb9eed9d",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-001-lane-b/eval/public_dev/summary.json": "2e2944c1f703759a1d590663ac419aabc660b7cb488bdffe11f5107e83033386",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-002-lane-a/eval/public_dev/summary.json": "523334f7cd9c8ea19507ebc0bb3d57bda087c260b5c24b244e85cbaefce57a87",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-002-lane-b/eval/public_accept/summary.json": "596ae0b7349a89cbb952945614f4e0c4e7b52294a4feeb4de3db1de0057e8c27",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-002-lane-b/eval/public_dev/summary.json": "3b6da5db63a59db5abeaae7b66ed6936743be4f24aca0b88152463cd24de8f93",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-003-lane-a/eval/public_dev/summary.json": "e1040f7eb29c8773b5ac1219739cf4c9b248e51a2be4c9a1c1c2f6cef6c30af6",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-003-lane-b/eval/public_accept/summary.json": "1834510420cfc067be0dbb3a2f7ddea509dbafd4035dbb1fd9a1042dba1bae0b",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-003-lane-b/eval/public_dev/summary.json": "3b3fa3096a272a48bcd95724d4d9222cfee7f37760537eb436b181e7e92d9f18",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-004-lane-b/eval/public_accept/summary.json": "27a65998a1f7b30f67b6a3e9d8c51175b4af6d3f85af545a69896f5a0c7e5769",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-004-lane-b/eval/sealed_validation/summary.json": "3588f26479ae557562215566bd5c2209412e6b1fb304d6b63d31ddde5a227469",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "c894fb7b23836184ce65ab9b3f23016264bb47ca5298a58ed51eecb38e2b83f6",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-004/lane-b/002_push_recovery_lateral_brace_v1/training_code/components.py": "0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-004/lane-a/002_push_recovery_side_braced_stance_v1/training_code/components.py": "c3a43ee3c713aa2918c39dca634cbc7cc711f6e07ea410e455e2b4b98cb5cd7f",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "311906e13f0d1ece92d90ac1404fbf795bcb00c2979d742f75c61f08d8065c37",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-a/authoring_attempts/attempt_000002/prompt_payload.json": "b834948e4c1be7c137a51e04b4edfebfeafa237a3702f0a79cbfe0b3a4d4c1e4",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-a/authoring_attempts/attempt_000002/attempt_result.json": "1fb570d7d6b14b808f8e2c656927b4f58380588b610a22fe9245e76bbe491ec7",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-005/lane-a/002_push_recovery_roll_braced_stance_v2/training_code/components.py": "79baa37b5dcacd0591a20d849189c68ab7dc7b2e33b1e6b740f55c2ef5fe5398",
+    "PLAN/2new_world/Go2_push/attempt_08/session/runner/go2-push-5rounds-20260923-a08-generation-004-lane-a/train/summary.json": "5564c807901b0acd0bf05b761287808cc2faf8ddbb1274728f0caef8b6ce2663",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-b/authoring_attempts/attempt_000001/prompt_payload.json": "8bbf275cc2074531481e376988277cf90e23f21c4a171f43919fbe8b966fcb7a",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "3a14c55e9a26e10e48ab98ab7dd6bc140c0cb8d19018a36d209799fe801433c7",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-005/lane-b/001_push_recovery_lateral_tilt_decay_v1/training_code/components.py": "019090cb328b1e8eea37310feaf1226a3e0ad6e89e9758228970e874a40bd3b2"
+  },
+  "provider_calls": 0,
+  "training_jobs": 0,
+  "evaluation_jobs": 0,
+  "prompt_provenance_status": "PASS_GEN05_COMPLETE_AUTHORING_PROMPT_PROVENANCE_WITH_FIVE_GENERATION_ROLLUP",
+  "pending_gate_readback": [],
+  "authoring_completion": {
+    "terminal_lanes": [
+      "lane-a",
+      "lane-b"
+    ],
+    "required_lanes": [
+      "lane-a",
+      "lane-b"
+    ],
+    "complete": true
+  },
+  "manual_reviews": [
+    {
+      "snapshot": ".tmp/go2_push_a08_live_16.zip",
+      "scope": "Gen5A first provider failure then verified fallback; Gen5B initial prompt only, no B response yet.",
+      "findings": [
+        "New accepted parent is Gen4B source0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336 with175/192 publicdev. Latestnonaccepted is Gen4A sourcec3a43ee3c713aa2918c39dca634cbc7cc711f6e07ea410e455e2b4b98cb5cd7f with161/192 publicdev. Exact bodies occur once in correct slots and detailed phase summaries independently match rawdev.",
+        "All eight prior trials remain in four-generation memory, with statuses, identities and dev deltas compared to each generation own parent. Gen4A/B deltas are161/192-169/192=-0.041667 and175/192-169/192=+0.03125.",
+        "Current parent changed from Gen1A to Gen4B after acceptance, so none of the eight prior trials were evaluated under the new parent. Full same-parent evaluated-family set is correctly empty; no metadata or historical-family gate is required for A. This resets comparison scope, not experiment memory.",
+        "Runtime feedback is explicitly Gen4A same-trial train, not the newly accepted Gen4B: actual lateral_brace weight-1, signed last mean+.00139, max_abs.9593716263771057,500/500 nonzero sampled observations all match raw Gen4A record. The two different lateral_brace implementations are disambiguated by source checksum and trial identity.",
+        "A fallback changes only frame plus added response failure feedback. Parent175/192/latest161/192 detail, signed runtime source, four-generation memory and exact source bodies remain unchanged; selected parent and prompt references match actual files. All final recorded A static/smoke/anti-degenerate checks pass; zero source requests.",
+        "Prompt sizes71056/72684/71709 B, memory5624 B; parent4827 B and latest5769 B are each inline once. B receives bounded sibling semantic metadata, not current A source/reasoning. Public-only and task receipt validation pass.",
+        "No B result exists yet, so no final five-generation prompt/provider aggregate is declared and authoring status remains PARTIAL. F11 historical-repeat repair remains unexercised."
+      ],
+      "signed_runtime_term": {
+        "term_id": "reward_term_002_ee5a361dca49",
+        "public_label": "lateral_brace",
+        "observation_count": 500,
+        "nonzero_observation_count": 500,
+        "nonzero_observation_fraction": 1.0,
+        "max_abs_weighted_contribution": 0.9593716263771057,
+        "last_weighted_mean": 0.00139,
+        "effective_weight": -1.0,
+        "sampling_interval_steps": 24
+      },
+      "raw_training_summary_sha256": "5564c807901b0acd0bf05b761287808cc2faf8ddbb1274728f0caef8b6ce2663",
+      "A_fallback_receipt": {
+        "thinking": "disabled",
+        "final_bytes": 5778,
+        "usage": {
+          "request_cache_hit_units": 5376,
+          "request_cache_miss_units": 13772,
+          "request_units": 19148,
+          "response_units": 1582,
+          "total_units": 20730
+        },
+        "prompt_checksum": "sha256:b834948e4c1be7c137a51e04b4edfebfeafa237a3702f0a79cbfe0b3a4d4c1e4"
+      },
+      "F12_cumulative_actual_receipts": {
+        "failed_requests": 5,
+        "reasoning_units": 163839,
+        "total_units": 253423,
+        "requests": [
+          {
+            "path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-b/authoring_attempts/attempt_000001/attempt_result.json",
+            "reasoning_units": 32768,
+            "total_units": 49646
+          },
+          {
+            "path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-003/lane-b/authoring_attempts/attempt_000001/attempt_result.json",
+            "reasoning_units": 32767,
+            "total_units": 50352
+          },
+          {
+            "path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-a/authoring_attempts/attempt_000001/attempt_result.json",
+            "reasoning_units": 32768,
+            "total_units": 50812
+          },
+          {
+            "path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-b/authoring_attempts/attempt_000001/attempt_result.json",
+            "reasoning_units": 32768,
+            "total_units": 51019
+          },
+          {
+            "path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-a/authoring_attempts/attempt_000001/attempt_result.json",
+            "reasoning_units": 32768,
+            "total_units": 51594
+          }
+        ]
+      },
+      "blocking_findings": [],
+      "status": "PARTIAL_GEN05_NEW_PARENT_HISTORY_SCOPE_PROVENANCE_PASS_A_COMPLETE_B_PENDING"
+    },
+    {
+      "snapshot": ".tmp/go2_push_a08_live_17.zip",
+      "scope": "Complete Gen5 authoring and cumulative five-generation/ten-lane authoring audit. Gen5 training and evaluations remain in progress and are not part of this PASS.",
+      "findings": [
+        "B first response is candidate_verified. Actual source019090cb328b1e8eea37310feaf1226a3e0ad6e89e9758228970e874a40bd3b2 projects to family5a220374a7dc2cdf0bba98c8e8d2073043bd1da8cdc07c8085618c978be49490. All final static/smoke/anti-degenerate and sibling checks pass; actual sibling hash45086d73775844abb4328fd1d86edfa7d22ade67532200d1a3afbddd13e4a83d matches the prompt.",
+        "B prompt8bbf275cc2074531481e376988277cf90e23f21c4a171f43919fbe8b966fcb7a binds its actual attempt and selected prompt reference; parent is new Gen4B0d80850... . Parent175/192 and latestGen4A161/192 are correctly separated, including same-trial signed Gen4A lateral_brace sample; all raw summaries and source bodies reconcile.",
+        "Four-generation/eight-trial memory is complete. Same-parent history is correctly empty after accepting Gen4B, without deleting older trial memory; absent historical-family assessment is therefore appropriate for both Gen5 candidates.",
+        "Fifteen actual prompts and results plus ten candidate source files (40 immutable artifacts) were rehashed against prior audit receipts and current live17 ZIP. All15 prompt public-only/task receipts were revalidated using101 actual private paths and10 checkpoint hashes from current authoritative evidence; zero literal hits and zero duplicate inline source bodies.",
+        "Five generations produced15 provider requests,10 verified candidate outputs,5 reasoning exhaustion failures,5 successful disabled-thinking fallbacks and0 source requests. Usage sums are direct from actual receipts, including failed calls; they are token usage units rather than currency.",
+        "Prompt sizes48301-72684 B, task sections16096-20907 B, memory996-5624 B. Memory rows grow0/2/4/6/8 with no omissions; the major Gen2 increase adds separate current-best/nonaccepted source and feedback rather than repeated full transcripts.",
+        "Actual nonempty history comparisons ran four times in Gen3/4 against2/4keys, all distinct and passed. No natural history rejection or F11 historical-repair frame occurred in A08. Offline real-source repeat rejection and direct/nested repair-frame probes remain explicitly labeled offline coverage.",
+        "Author rationales are retained as candidate claims; public scores and activation samples do not prove those causal stories. F9 candidate sign/causal errors belong to independent source review; no new rationale gate or product change was introduced."
+      ],
+      "blocking_findings": [],
+      "status": "PASS_COMPLETE_GEN05_AND_ALL_FIVE_GENERATION_AUTHORING_BOUNDARIES_ONLY"
+    }
+  ],
+  "five_generation_authoring_summary": {
+    "scope": "Complete authoring for five generations/ten lanes only; Gen5 training/evaluation not yet closed.",
+    "snapshot": ".tmp/go2_push_a08_live_17.zip",
+    "snapshot_sha256": "e774972977f28db3025fcdb421b19d6d706d5259a38e3965d62c6c4ee8cc0b8b",
+    "generations": [
+      {
+        "generation": 1,
+        "provider_attempt_count": 2,
+        "prompt_bytes_min": 48301,
+        "prompt_bytes_max": 48994,
+        "task_section_bytes": 16096,
+        "memory_bytes": 996,
+        "prior_memory_generations": 0,
+        "prior_memory_trials": 0,
+        "evaluated_same_parent_count": 0,
+        "verified_candidates": [
+          "push_recovery_nonsaturating_stance_v1",
+          "push_go2_recovery_gated_damping_v1"
+        ],
+        "attempts": [
+          {
+            "generation": 1,
+            "lane": "lane-a",
+            "attempt": "attempt_000001",
+            "provider_status": "pass",
+            "stop_reason": "candidate_verified",
+            "provider_usage": {
+              "reasoning_units": 16753,
+              "request_cache_hit_units": 12160,
+              "request_cache_miss_units": 221,
+              "request_units": 12381,
+              "response_units": 18050,
+              "total_units": 30431
+            },
+            "result_path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-001/lane-a/authoring_attempts/attempt_000001/attempt_result.json"
+          },
+          {
+            "generation": 1,
+            "lane": "lane-b",
+            "attempt": "attempt_000001",
+            "provider_status": "pass",
+            "stop_reason": "candidate_verified",
+            "provider_usage": {
+              "reasoning_units": 24352,
+              "request_cache_hit_units": 10880,
+              "request_cache_miss_units": 1705,
+              "request_units": 12585,
+              "response_units": 25291,
+              "total_units": 37876
+            },
+            "result_path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-001/lane-b/authoring_attempts/attempt_000001/attempt_result.json"
+          }
+        ]
+      },
+      {
+        "generation": 2,
+        "provider_attempt_count": 3,
+        "prompt_bytes_min": 63418,
+        "prompt_bytes_max": 65751,
+        "task_section_bytes": 20635,
+        "memory_bytes": 3465,
+        "prior_memory_generations": 1,
+        "prior_memory_trials": 2,
+        "evaluated_same_parent_count": 0,
+        "verified_candidates": [
+          "push_recovery_linear_tilt_ramp_v1",
+          "push_recovery_tilt_aware_stance_v2"
+        ],
+        "attempts": [
+          {
+            "generation": 2,
+            "lane": "lane-a",
+            "attempt": "attempt_000001",
+            "provider_status": "pass",
+            "stop_reason": "candidate_verified",
+            "provider_usage": {
+              "reasoning_units": 17104,
+              "request_cache_hit_units": 5376,
+              "request_cache_miss_units": 11294,
+              "request_units": 16670,
+              "response_units": 18646,
+              "total_units": 35316
+            },
+            "result_path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-a/authoring_attempts/attempt_000001/attempt_result.json"
+          },
+          {
+            "generation": 2,
+            "lane": "lane-b",
+            "attempt": "attempt_000001",
+            "provider_status": "fail",
+            "stop_reason": null,
+            "provider_usage": {
+              "reasoning_units": 32768,
+              "request_cache_hit_units": 14720,
+              "request_cache_miss_units": 2158,
+              "request_units": 16878,
+              "response_units": 32768,
+              "total_units": 49646
+            },
+            "result_path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-b/authoring_attempts/attempt_000001/attempt_result.json",
+            "failure_category": "reasoning_output_exhausted",
+            "final_bytes": 0
+          },
+          {
+            "generation": 2,
+            "lane": "lane-b",
+            "attempt": "attempt_000002",
+            "provider_status": "pass",
+            "stop_reason": "candidate_verified",
+            "provider_usage": {
+              "request_cache_hit_units": 5376,
+              "request_cache_miss_units": 11824,
+              "request_units": 17200,
+              "response_units": 1236,
+              "total_units": 18436
+            },
+            "result_path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-b/authoring_attempts/attempt_000002/attempt_result.json"
+          }
+        ]
+      },
+      {
+        "generation": 3,
+        "provider_attempt_count": 3,
+        "prompt_bytes_min": 65733,
+        "prompt_bytes_max": 68058,
+        "task_section_bytes": 20665,
+        "memory_bytes": 3948,
+        "prior_memory_generations": 2,
+        "prior_memory_trials": 4,
+        "evaluated_same_parent_count": 2,
+        "verified_candidates": [
+          "push_recovery_rate_damped_v1",
+          "push_recovery_vel_damped_stance_v1"
+        ],
+        "attempts": [
+          {
+            "generation": 3,
+            "lane": "lane-a",
+            "attempt": "attempt_000001",
+            "provider_status": "pass",
+            "stop_reason": "candidate_verified",
+            "provider_usage": {
+              "reasoning_units": 27862,
+              "request_cache_hit_units": 6016,
+              "request_cache_miss_units": 11355,
+              "request_units": 17371,
+              "response_units": 29555,
+              "total_units": 46926
+            },
+            "result_path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-003/lane-a/authoring_attempts/attempt_000001/attempt_result.json"
+          },
+          {
+            "generation": 3,
+            "lane": "lane-b",
+            "attempt": "attempt_000001",
+            "provider_status": "fail",
+            "stop_reason": null,
+            "provider_usage": {
+              "reasoning_units": 32767,
+              "request_cache_hit_units": 15360,
+              "request_cache_miss_units": 2225,
+              "request_units": 17585,
+              "response_units": 32767,
+              "total_units": 50352
+            },
+            "result_path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-003/lane-b/authoring_attempts/attempt_000001/attempt_result.json",
+            "failure_category": "reasoning_output_exhausted",
+            "final_bytes": 0
+          },
+          {
+            "generation": 3,
+            "lane": "lane-b",
+            "attempt": "attempt_000002",
+            "provider_status": "pass",
+            "stop_reason": "candidate_verified",
+            "provider_usage": {
+              "request_cache_hit_units": 5888,
+              "request_cache_miss_units": 12019,
+              "request_units": 17907,
+              "response_units": 1585,
+              "total_units": 19492
+            },
+            "result_path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-003/lane-b/authoring_attempts/attempt_000002/attempt_result.json"
+          }
+        ]
+      },
+      {
+        "generation": 4,
+        "provider_attempt_count": 4,
+        "prompt_bytes_min": 68199,
+        "prompt_bytes_max": 70514,
+        "task_section_bytes": 20896,
+        "memory_bytes": 4409,
+        "prior_memory_generations": 3,
+        "prior_memory_trials": 6,
+        "evaluated_same_parent_count": 4,
+        "verified_candidates": [
+          "push_recovery_side_braced_stance_v1",
+          "push_recovery_lateral_brace_v1"
+        ],
+        "attempts": [
+          {
+            "generation": 4,
+            "lane": "lane-a",
+            "attempt": "attempt_000001",
+            "provider_status": "fail",
+            "stop_reason": null,
+            "provider_usage": {
+              "reasoning_units": 32768,
+              "request_cache_hit_units": 6016,
+              "request_cache_miss_units": 12028,
+              "request_units": 18044,
+              "response_units": 32768,
+              "total_units": 50812
+            },
+            "result_path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-a/authoring_attempts/attempt_000001/attempt_result.json",
+            "failure_category": "reasoning_output_exhausted",
+            "final_bytes": 0
+          },
+          {
+            "generation": 4,
+            "lane": "lane-a",
+            "attempt": "attempt_000002",
+            "provider_status": "pass",
+            "stop_reason": "candidate_verified",
+            "provider_usage": {
+              "request_cache_hit_units": 5888,
+              "request_cache_miss_units": 12478,
+              "request_units": 18366,
+              "response_units": 1659,
+              "total_units": 20025
+            },
+            "result_path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-a/authoring_attempts/attempt_000002/attempt_result.json"
+          },
+          {
+            "generation": 4,
+            "lane": "lane-b",
+            "attempt": "attempt_000001",
+            "provider_status": "fail",
+            "stop_reason": null,
+            "provider_usage": {
+              "reasoning_units": 32768,
+              "request_cache_hit_units": 16128,
+              "request_cache_miss_units": 2123,
+              "request_units": 18251,
+              "response_units": 32768,
+              "total_units": 51019
+            },
+            "result_path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-b/authoring_attempts/attempt_000001/attempt_result.json",
+            "failure_category": "reasoning_output_exhausted",
+            "final_bytes": 0
+          },
+          {
+            "generation": 4,
+            "lane": "lane-b",
+            "attempt": "attempt_000002",
+            "provider_status": "pass",
+            "stop_reason": "candidate_verified",
+            "provider_usage": {
+              "request_cache_hit_units": 16000,
+              "request_cache_miss_units": 2573,
+              "request_units": 18573,
+              "response_units": 1392,
+              "total_units": 19965
+            },
+            "result_path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-b/authoring_attempts/attempt_000002/attempt_result.json"
+          }
+        ]
+      },
+      {
+        "generation": 5,
+        "provider_attempt_count": 3,
+        "prompt_bytes_min": 71056,
+        "prompt_bytes_max": 72684,
+        "task_section_bytes": 20907,
+        "memory_bytes": 5624,
+        "prior_memory_generations": 4,
+        "prior_memory_trials": 8,
+        "evaluated_same_parent_count": 0,
+        "verified_candidates": [
+          "push_recovery_roll_braced_stance_v2",
+          "push_recovery_lateral_tilt_decay_v1"
+        ],
+        "attempts": [
+          {
+            "generation": 5,
+            "lane": "lane-a",
+            "attempt": "attempt_000001",
+            "provider_status": "fail",
+            "stop_reason": null,
+            "provider_usage": {
+              "reasoning_units": 32768,
+              "request_cache_hit_units": 5376,
+              "request_cache_miss_units": 13450,
+              "request_units": 18826,
+              "response_units": 32768,
+              "total_units": 51594
+            },
+            "result_path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-a/authoring_attempts/attempt_000001/attempt_result.json",
+            "failure_category": "reasoning_output_exhausted",
+            "final_bytes": 0
+          },
+          {
+            "generation": 5,
+            "lane": "lane-a",
+            "attempt": "attempt_000002",
+            "provider_status": "pass",
+            "stop_reason": "candidate_verified",
+            "provider_usage": {
+              "request_cache_hit_units": 5376,
+              "request_cache_miss_units": 13772,
+              "request_units": 19148,
+              "response_units": 1582,
+              "total_units": 20730
+            },
+            "result_path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-a/authoring_attempts/attempt_000002/attempt_result.json"
+          },
+          {
+            "generation": 5,
+            "lane": "lane-b",
+            "attempt": "attempt_000001",
+            "provider_status": "pass",
+            "stop_reason": "candidate_verified",
+            "provider_usage": {
+              "reasoning_units": 28089,
+              "request_cache_hit_units": 16896,
+              "request_cache_miss_units": 2124,
+              "request_units": 19020,
+              "response_units": 30152,
+              "total_units": 49172
+            },
+            "result_path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-b/authoring_attempts/attempt_000001/attempt_result.json"
+          }
+        ]
+      }
+    ],
+    "provider_attempts": 15,
+    "verified_candidates": 10,
+    "provider_failures": 5,
+    "failed_requests": [
+      {
+        "generation": 2,
+        "lane": "lane-b",
+        "attempt": "attempt_000001",
+        "provider_status": "fail",
+        "stop_reason": null,
+        "provider_usage": {
+          "reasoning_units": 32768,
+          "request_cache_hit_units": 14720,
+          "request_cache_miss_units": 2158,
+          "request_units": 16878,
+          "response_units": 32768,
+          "total_units": 49646
+        },
+        "result_path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-b/authoring_attempts/attempt_000001/attempt_result.json",
+        "failure_category": "reasoning_output_exhausted",
+        "final_bytes": 0
+      },
+      {
+        "generation": 3,
+        "lane": "lane-b",
+        "attempt": "attempt_000001",
+        "provider_status": "fail",
+        "stop_reason": null,
+        "provider_usage": {
+          "reasoning_units": 32767,
+          "request_cache_hit_units": 15360,
+          "request_cache_miss_units": 2225,
+          "request_units": 17585,
+          "response_units": 32767,
+          "total_units": 50352
+        },
+        "result_path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-003/lane-b/authoring_attempts/attempt_000001/attempt_result.json",
+        "failure_category": "reasoning_output_exhausted",
+        "final_bytes": 0
+      },
+      {
+        "generation": 4,
+        "lane": "lane-a",
+        "attempt": "attempt_000001",
+        "provider_status": "fail",
+        "stop_reason": null,
+        "provider_usage": {
+          "reasoning_units": 32768,
+          "request_cache_hit_units": 6016,
+          "request_cache_miss_units": 12028,
+          "request_units": 18044,
+          "response_units": 32768,
+          "total_units": 50812
+        },
+        "result_path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-a/authoring_attempts/attempt_000001/attempt_result.json",
+        "failure_category": "reasoning_output_exhausted",
+        "final_bytes": 0
+      },
+      {
+        "generation": 4,
+        "lane": "lane-b",
+        "attempt": "attempt_000001",
+        "provider_status": "fail",
+        "stop_reason": null,
+        "provider_usage": {
+          "reasoning_units": 32768,
+          "request_cache_hit_units": 16128,
+          "request_cache_miss_units": 2123,
+          "request_units": 18251,
+          "response_units": 32768,
+          "total_units": 51019
+        },
+        "result_path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-b/authoring_attempts/attempt_000001/attempt_result.json",
+        "failure_category": "reasoning_output_exhausted",
+        "final_bytes": 0
+      },
+      {
+        "generation": 5,
+        "lane": "lane-a",
+        "attempt": "attempt_000001",
+        "provider_status": "fail",
+        "stop_reason": null,
+        "provider_usage": {
+          "reasoning_units": 32768,
+          "request_cache_hit_units": 5376,
+          "request_cache_miss_units": 13450,
+          "request_units": 18826,
+          "response_units": 32768,
+          "total_units": 51594
+        },
+        "result_path": "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-a/authoring_attempts/attempt_000001/attempt_result.json",
+        "failure_category": "reasoning_output_exhausted",
+        "final_bytes": 0
+      }
+    ],
+    "provider_usage_sum": {
+      "reasoning_units": 277999,
+      "request_cache_hit_units": 147456,
+      "request_cache_miss_units": 111349,
+      "request_units": 258805,
+      "response_units": 292987,
+      "total_units": 551792
+    },
+    "failed_request_usage_sum": {
+      "reasoning_units": 163839,
+      "request_units": 89584,
+      "response_units": 163839,
+      "total_units": 253423
+    },
+    "successful_disabled_thinking_fallbacks": 5,
+    "source_requests_from_final_lane_counters": 0,
+    "prompt_bytes_range": [
+      48301,
+      72684
+    ],
+    "task_section_bytes_range": [
+      16096,
+      20907
+    ],
+    "memory_bytes_range": [
+      996,
+      5624
+    ],
+    "inline_source_body_bytes_range": [
+      1846,
+      10596
+    ],
+    "frame_counts": {
+      "candidate_draft": 10,
+      "static_repair": 5
+    },
+    "actual_assessment_counts": {
+      "anti_degenerate_assessment:pass": 10,
+      "component_smoke:pass": 10,
+      "sibling_semantic_exclusion_assessment:pass": 5,
+      "historical_verifier_exclusion_assessment:pass": 4
+    },
+    "public_boundary": {
+      "prompts_rechecked": 15,
+      "observed_private_paths": 101,
+      "observed_checkpoint_hashes": 10,
+      "literal_private_hits": 0,
+      "public_only_and_task_receipt_revalidation": "PASS",
+      "duplicate_inline_source_bodies": 0,
+      "limit": "Checks actual observed identifiers and structural public-only rules; no claim of ruling out arbitrary covert numeric encodings."
+    },
+    "immutable_files_rehashed_against_previous_receipts_and_latest_zip": 40,
+    "immutable_evidence_sha256": {
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-001/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "5119dae9f796c40a30d2fdadc7b031428b345885c02d46185860784365239293",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-001/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "f2149a2e123542226138dca4ea571a177fb89249dd2c0365b752e4de800d779d",
+      "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-001/lane-a/001_push_recovery_nonsaturating_stance_v1/training_code/components.py": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-001/lane-b/authoring_attempts/attempt_000001/prompt_payload.json": "b79a8ef749079b71a3de8dc4c25ac1d0e8924ce299f5d7d257bd39580548546c",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-001/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "8270c2d13ecf661c5c18db1177e756075f5fe72e83a550cc9388bff5383640aa",
+      "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-001/lane-b/001_push_go2_recovery_gated_damping_v1/training_code/components.py": "bb3ae423e2f84d1a0aea017b323413582ceb125214d68798b5a0849f78b02fdd",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "21fb6e1fab35611fc17e04a6fd90dbff1612f54b17b7f5baca2cf636e594ceb6",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "5a6113cffe613deb559b0bcb46fbd1ad31304fdf6c8b03edd69d926f05f35244",
+      "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-002/lane-a/001_push_recovery_linear_tilt_ramp_v1/training_code/components.py": "31f2bc0b1787bcd77f85cd5ca62bcbd36a1b57e360f98234936a4bc166982d8b",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-b/authoring_attempts/attempt_000001/prompt_payload.json": "d567e13b0a9a0238a57eb6095359349c8569d1574f5ac15fb719e932bc21787b",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "261f6be6395314a893e6b4b37b94795bf3c7439ea2fbcd33fad4adf0e7a8aa61",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-b/authoring_attempts/attempt_000002/prompt_payload.json": "acc8313e0c431393e8757a089086393188c42a73e90830c5201af81159b2aba7",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-002/lane-b/authoring_attempts/attempt_000002/attempt_result.json": "bf33fd5eeccc051b86c29224aba87672fe2b53bcdee4c4042b24ed1ddfc6b726",
+      "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-002/lane-b/002_push_recovery_tilt_aware_stance_v2/training_code/components.py": "80a0f71379defc448b9040babd8a1a045b2d6f8f7c207361e15d65caeacaca58",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-003/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "bcc6daecd6b54aa98bb56362772120d46ec66ee6ef10f2181523d9d872786dac",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-003/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "791e70940bc2abd43f71e1b5d84a05e40ebc7194ea05edd17d195b73fbd83a54",
+      "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-003/lane-a/001_push_recovery_rate_damped_v1/training_code/components.py": "2aa64e0b57a20a76595e41628dc732222f464402c204789a2896fbd3319055de",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-003/lane-b/authoring_attempts/attempt_000001/prompt_payload.json": "71f1d698cfaba048042712e59054e79522cdce666bfb05675c3ec4c2ac30c8cc",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-003/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "4a45591ba5aac96302f7b61daf2654c69c6c6d338272ad858e77f5b1869575a5",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-003/lane-b/authoring_attempts/attempt_000002/prompt_payload.json": "d27895befe5350b41ae976cbf1849b24057e03f4ea057e95ab07312e5a1b719b",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-003/lane-b/authoring_attempts/attempt_000002/attempt_result.json": "09db2125bfb650136f428bd91ad55af50bb506c3c792af40a4c2e0003edc5259",
+      "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-003/lane-b/002_push_recovery_vel_damped_stance_v1/training_code/components.py": "da09ff5d4a0f618d5d86e49c59214478fb973305710d872e47a29f4337b8f30c",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "fa6e9f7919421bf2cbfec3dbf2be347d33a088281ee7116547d03c2574643868",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "66acd19f0655c14eeeaa08b2cbd0bd0054620f23a30fb356f1915332168e5264",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-a/authoring_attempts/attempt_000002/prompt_payload.json": "6a450db9296ca754d56f11c2c4c08732a329921dc70e344411ebaaa75c71d4be",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-a/authoring_attempts/attempt_000002/attempt_result.json": "aa85024d4919d070480102c3f7121a040809c73b8cb54d1fd04f116c0c61af9e",
+      "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-004/lane-a/002_push_recovery_side_braced_stance_v1/training_code/components.py": "c3a43ee3c713aa2918c39dca634cbc7cc711f6e07ea410e455e2b4b98cb5cd7f",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-b/authoring_attempts/attempt_000001/prompt_payload.json": "02d7867f2410868dc4383b89f7737d3eaa5410a98ce14bc4c29c8dabf13371df",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "e179b7b363fab4fd126c632c9c81c6a5f4e3898720f836bca8d8d4ad719d7b7c",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-b/authoring_attempts/attempt_000002/prompt_payload.json": "c04aaefd5b475947a2a4adf965274cd8855b7484106e520f712b5bd9a6649756",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-b/authoring_attempts/attempt_000002/attempt_result.json": "bb83d4b1920b70cbfd325809ab4486f76602db20cba65ab357abea9eb98dbf9b",
+      "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-004/lane-b/002_push_recovery_lateral_brace_v1/training_code/components.py": "0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "c894fb7b23836184ce65ab9b3f23016264bb47ca5298a58ed51eecb38e2b83f6",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "311906e13f0d1ece92d90ac1404fbf795bcb00c2979d742f75c61f08d8065c37",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-a/authoring_attempts/attempt_000002/prompt_payload.json": "b834948e4c1be7c137a51e04b4edfebfeafa237a3702f0a79cbfe0b3a4d4c1e4",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-a/authoring_attempts/attempt_000002/attempt_result.json": "1fb570d7d6b14b808f8e2c656927b4f58380588b610a22fe9245e76bbe491ec7",
+      "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-005/lane-a/002_push_recovery_roll_braced_stance_v2/training_code/components.py": "79baa37b5dcacd0591a20d849189c68ab7dc7b2e33b1e6b740f55c2ef5fe5398",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-b/authoring_attempts/attempt_000001/prompt_payload.json": "8bbf275cc2074531481e376988277cf90e23f21c4a171f43919fbe8b966fcb7a",
+      "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-005/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "3a14c55e9a26e10e48ab98ab7dd6bc140c0cb8d19018a36d209799fe801433c7",
+      "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-005/lane-b/001_push_recovery_lateral_tilt_decay_v1/training_code/components.py": "019090cb328b1e8eea37310feaf1226a3e0ad6e89e9758228970e874a40bd3b2"
+    },
+    "prior_audit_receipt_sha256": {
+      "prompt_audit_gen01.json": "9243fbc7e3b64ad860ab9b49c411b523a32d5c693db808bade7edade26d63411",
+      "prompt_audit_gen02.json": "672d4fbf3b994a626d3c13d122a665b7084481a80ed22ac68e7f52075b89ab1d",
+      "prompt_audit_gen03.json": "24d70fc1688665cb3c48942d8ea510c30fb62a00185688e2d34d91ed4e624370",
+      "prompt_audit_gen04.json": "ffae9367f221f0a95ac79fc81a06e04e011d7d7832f03b75d8638a9c8e36ef24"
+    },
+    "live_vs_offline_coverage": {
+      "F10": "Live distinct current-best/latest-nonaccepted feedback exercised Gen2-5, including parent changes; raw public-dev and same-trial runtime identities reconciled.",
+      "F13": "Live full-history comparisons executed for four candidates in Gen3/4 against two/four keys. All were distinct and passed. No historical repeat rejection naturally occurred in A08.",
+      "F11": "A08 has five provider-exhaustion retry frames and no historical-repeat repair frame. Direct/nested historical repair retention is offline source-boundary probe coverage, not an A08 live-trigger claim.",
+      "offline_receipts": {
+        "source_boundary_review.json": "87ba59939a7e256c2a0612e4d727686825d83d62a3b46110c8101a985a4cbfcd",
+        "source_boundary_dynamic_probe.json": "c84cfad794734918b7f8cb548e543210e87e59ba4b257739a8893efad221afb9",
+        "prompt_audit_tool_preparation.json": "7c492462335a73632c87a0ae296c0145d63130b942edd49cded89cdfc778d98c"
+      }
+    }
+  }
+}

@@ -1,12 +1,14 @@
 # true_RL_Agent 系统概览
 
-核对日期：2026-09-10。本文说明当前主线的职责和证据入口；具体协议以活动 cell 解析出的配置为准，历史实验数值留在原始报告中。
+Push 段核对日期：2026-09-22；其他协议证据以各任务验收为准。本文说明当前主线的职责和证据入口；具体协议以活动 cell 解析出的配置为准，历史实验数值留在原始报告中。
 
 ## 1. 系统要解决什么问题
 
 系统让 LLM 提出受控的 reward program 改动，再由可信系统验证、训练、评测和判决。机器人与任务是两个独立维度：机器人提供资产、形态和状态/动作事实，任务定义成功、失败、分布、指标与反馈。增加机器人不应把新机器人的关节名、体型阈值或任务规则写进共享编排层。
 
-P3 在 9 月 9 日固定 C2 标定基底并重新测量后，`stair.g1_37dof.unified_v3` 与 `stair.go2_12dof.unified_v3` 均通过原 public-accept reference 资格门；剩余卷间差异和泛化限制见 [当前验收](../PLAN/2new_world/P3/ACCEPTANCE_ZH.md)。V2 行保留已有证据解释。Stair composition/reference 入口默认 G1 V3，共享正式入口要求显式 task/cell，成本合同按所选协议的实际工作量和测量来源冻结。`push.g1_29dof.reference_v1` 已接入 reference-program Genesis、三阶段评测和共享 session；这是 P4 的工程通路，真实 Go2 × Push Recovery 资格仍归 P6。旧 `push.g1_29dof.legacy_v1` 保留原协议。准确配置入口见 [README 活动格子表](../README.md)。
+P3 在 9 月 9 日固定 C2 标定基底并重新测量后，`stair.g1_37dof.unified_v3` 与 `stair.go2_12dof.unified_v3` 均通过原 public-accept reference 资格门；剩余卷间差异和泛化限制见 [当前验收](../PLAN/2new_world/P3/ACCEPTANCE_ZH.md)。V2 行保留已有证据解释。Stair composition/reference 入口默认 G1 V3，共享正式入口要求显式 task/cell，成本合同按所选协议的实际工作量和测量来源冻结。
+
+Push 的活动行改为 `push.g1_37dof.recovery_v3` 与 `push.go2_12dof.recovery_v3`，共同使用[单一外力评价协议](../src/true_rl_agent/tasks/push_recovery/force_protocol.py)。任务规定 COM 水平力、完整力脉冲、最后一推后的连续恢复及末态稳定，无力空档固定0.22秒，位移不再导致失败；机器人绑定提供各自尺度、base link 和策略 ABI。此次只统一评价：原 checkpoint 的训练条件和 reference identity 保留，新评价 base seed 为1500000000，两机器人各192例 public-dev 的实施验收不读取 holdout、不重训，也不声明新的 reference 资格 GO。历史 G1 的 dev 96/192、accept 106/192、sealed 245/448 资格仅在原速度增量域有效；Go2 原域两次 NO-GO 也保留原义。旧 v2/G1-29 行用于历史读取，不进入新的活跃矩阵。范围见[本次实施计划](../PLAN/2new_world/P6/FORCE_UNIFICATION_IMPLEMENTATION_ZH.md)，历史成绩见 [P6 验收](../PLAN/2new_world/P6/ACCEPTANCE_ZH.md)，准确入口见 [README 活动格子表](../README.md)。
 
 ## 2. 受控改进闭环
 
@@ -40,7 +42,7 @@ Stair 与 Push 的正式宿主是 [run_generation_session.py](../scripts/run_gen
 | [agent_core](../src/true_rl_agent/agent_core/)、[runner](../src/true_rl_agent/runner/) | 有界 authoring、作业生命周期、预算、seed 隔离、checkpoint、可信证据和判决 | 根据机器人名称猜测奖励或任务阈值 |
 | LLM candidate | 当前协议授予的 reward program 源码面 | PPO、预算、初始化、评测、checkpoint 选择、成功/失败或接受门 |
 
-这是职责边界，不是“编排已完全通用”的完成声明。当前正式 generation 装配仍以 Stair 为中心；Go2 Push 的主线工作需要收回这些任务特化装配，同时继续让任务拥有任务语义，不能在共享层增加另一套 Stair/Push 分支规则。扩展检查入口见 [扩展与边界指南](extension_and_boundary_guide.md)。
+P4 已将 Stair 与 Push 的正式 generation 生命周期收归共享宿主。宿主从 TaskPlugin 取得并显式注入 PhasedEvaluationAdapter，用于 reference、分阶段评测、任务选择与公开历史重建；任务继续拥有评分、失败分类、reference 资格、反馈和终态比较语义。共享层维护固定宽度、身份、成本、恢复与 ledger，不根据任务名称重写这些规则。接线通过不等于新 Push 的物理资格通过，后者仍归 P6 实测。扩展检查入口见 [扩展与边界指南](extension_and_boundary_guide.md)。
 
 ## 4. 当前 Stair 协议
 

@@ -1,0 +1,16 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1789060272.785485 2203893 descriptor_database.cc:633] File already exists in database: grpc/health/v1/health.proto
+W0000 00:00:1789060272.785569 2203893 message.cc:301] Protobuf GeneratedMessageFactory: File is already registered: grpc/health/v1/health.proto
+[ISAACLAB] AppLauncher initialization complete
+Traceback (most recent call last):
+  File "/data/yuyangliu/AGENT/true_RL_Agent/PLAN/2new_world/P5/runtime_probe.py", line 92, in main
+    result = execute_stair_training_smoke(config=config, source_manifest_preflight=preflight_stair_execution_source_manifest(config),
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_execution.py", line 640, in execute_stair_training_smoke
+    return _execute_stair_training(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_execution.py", line 698, in _execute_stair_training
+    from true_rl_agent.tasks.stair_climbing.isaaclab_runtime_env import (
+  File "/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_runtime_env.py", line 34, in <module>
+    from true_rl_agent.tasks.stair_climbing.isaaclab_unified_terrain import (
+ImportError: cannot import name 'goal_progress_m_by_terrain_type' from 'true_rl_agent.tasks.stair_climbing.isaaclab_unified_terrain' (/data/yuyangliu/AGENT/true_RL_Agent/src/true_rl_agent/tasks/stair_climbing/isaaclab_unified_terrain.py)

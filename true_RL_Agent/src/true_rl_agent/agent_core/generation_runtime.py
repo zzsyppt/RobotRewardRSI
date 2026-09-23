@@ -35,12 +35,18 @@ def prepare_generation_genesis(foundation, *, require_existing=False):
     else:
         retries = foundation.cost_contract.retry_train_jobs
         execution = dict(gpu_process_binding=foundation.gpu_bindings[0],
-            reference_train_attempt_scope=PreGenesisExecutionScope(**common,
-                invocation_segment_id="session-genesis", attempt_budget_units=1 + retries,
-                max_infrastructure_retries=retries),
+            reference_train_attempt_scope=(None if config.reuses_reference_training else
+                PreGenesisExecutionScope(**common,
+                    invocation_segment_id="session-genesis", attempt_budget_units=1 + retries,
+                    max_infrastructure_retries=retries)),
             reference_eval_phase_attempt_scopes={phase: PreGenesisExecutionScope(**common,
                 invocation_segment_id="session-genesis-" + phase.value.replace("_", "-"),
                 attempt_budget_units=1, max_infrastructure_retries=0) for phase in EvaluationPhase})
+        if config.reuses_reference_training:
+            execution.update(
+                source_reference_training_genesis_dir=config.source_reference_training_genesis_dir,
+                source_reference_training_session_id=config.source_reference_training_session_id,
+            )
     genesis = prepare_session_genesis(output_dir=config.output_dir, session_id=config.session_id,
         task_plugin=composition.task_plugin, backend_adapter=composition.backend_adapter,
         runner=foundation.runner, policy_initialization=composition.policy_initialization,
@@ -71,7 +77,8 @@ def generation_public_history(foundation, *, genesis, ledger):
         acceptance_protocol=foundation.composition.task_plugin.task_spec.acceptance_protocol,
         expected_initial_policy_state_hash=genesis.expected_initial_policy_state_hash,
         expected_authoring_mode=PROVIDER_AUTHORING_MODE,
-        expected_ledger_epoch_hash=primary_ledger_epoch_hash(genesis.session_genesis_hash))
+        expected_ledger_epoch_hash=primary_ledger_epoch_hash(genesis.session_genesis_hash),
+        phased_evaluation_adapter=foundation.phased_adapter)
 
 
 def generation_provider_config(*, output_dir, env_file, policy):
@@ -82,7 +89,8 @@ def generation_provider_config(*, output_dir, env_file, policy):
         max_tokens=policy["max_output_tokens"], timeout_s=policy["timeout_s"],
         temperature=policy["temperature"], reasoning_mode=policy["reasoning_mode"],
         reasoning_effort=policy["reasoning_effort"],
-        empty_final_reasoning_retry=policy["empty_final_reasoning_retry"])
+        empty_final_reasoning_retry=policy["empty_final_reasoning_retry"],
+        model_context=policy.get("model_context"))
 
 
 def generation_provider(foundation, *, generation_id, lane_id):
@@ -129,11 +137,10 @@ def prepare_generation_inputs(foundation, *, genesis, guard, segment_id,
     return inputs, exploration
 
 
-def prevalidate_generation_terminal(foundation, *, genesis, ledger, terminal_binding,
+def prevalidate_generation_terminal(foundation, *, ledger,
                                    actual_cost_receipt, resource_evidence):
     count = foundation.session_contract.max_generations
-    if not (len(ledger) == terminal_binding["closed_generation_count"] == count
-            and terminal_binding["cost_chain_head_hash"] == actual_cost_receipt.payload_hash
+    if not (len(ledger) == count
             and actual_cost_receipt.payload["cap_checks"]["all_passed"]
             and resource_evidence["generation_index"] == count
             and resource_evidence["attempt_chain"]["open_reservation_count"] == 0):

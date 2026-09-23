@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import unittest
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, Mapping
 
 from true_rl_agent.agent_core.exploration import (
@@ -131,6 +131,40 @@ _LARGE_SUMMARY_PROJECTOR_CONTRACT_HASH = canonical_json_hash(
 
 
 class ExplorationFrontierTests(unittest.TestCase):
+    def test_evaluated_family_set_uses_current_parent_and_measured_trials_only(self) -> None:
+        previous_parent = fake_bootstrap_current_best()
+        parent = replace(previous_parent, anchor_id="new-current-parent")
+        history = _history(parent, [
+            _generation(
+                previous_parent, generation_index=1,
+                trial_a=_trial("trial-old-parent-a", "screened_only", seed="old-a"),
+                trial_b=_trial("trial-old-parent-b", "qualified_not_selected", seed="old-b"),
+                selected_trial_id=None,
+            ),
+            _generation(
+                parent, generation_index=2,
+                trial_a=_trial("trial-positive-a", "screened_only", seed="measured"),
+                trial_b=_trial("trial-untrained-b", "candidate_failed", seed="untrained"),
+                selected_trial_id=None,
+            ),
+        ])
+        plan = build_generation_exploration_plan(
+            history, task_projector=_PROJECTOR,
+            expected_projector_contract_hash=_PROJECTOR_CONTRACT_HASH,
+        )
+        self.assertEqual(len(plan.index.cards), 4)
+        self.assertEqual(plan.evaluated_verifier_equivalence_keys, (
+            single_component_verifier_equivalence_key(_delta("measured")),
+        ))
+        # The positive but evaluated mechanism is distinct from scientific-negative
+        # suppression; its family gate must not rewrite the revisit contract.
+        self.assertEqual(plan.blocked_verifier_equivalence_keys, ())
+        empty_negative_hash = verifier_equivalence_exclusion_set_hash(())
+        self.assertTrue(all(
+            intent["verifier_equivalence_exclusion_set_hash"] == empty_negative_hash
+            for intent in plan.lane_intents
+        ))
+
     def test_verifier_equivalence_ignores_name_source_and_parent_parameters(self) -> None:
         first = _delta("equivalent-base")
         renamed = _delta("equivalent-renamed")
@@ -205,6 +239,9 @@ class ExplorationFrontierTests(unittest.TestCase):
         self.assertEqual(plan.blocked_verifier_equivalence_keys, ())
         self.assertEqual(plan.lane_intents, (lane_a, lane_b))
         self.assertEqual(plan.prompt_projection, projection)
+        self.assertEqual(plan.evaluated_verifier_equivalence_keys, tuple(sorted({
+            single_component_verifier_equivalence_key(card.mechanism_operation_delta)
+            for card in first.cards if card.parent_current_best_hash == first.current_head_hash})))
         impossible_deferred = {**projection, "deferred_frontier_card_count": 1}
         with self.assertRaisesRegex(ValueError, "omission accounting"):
             compact_exploration_prompt_projection(impossible_deferred)

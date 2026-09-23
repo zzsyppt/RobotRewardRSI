@@ -15,7 +15,7 @@ from true_rl_agent.agent_core.exploration import GenerationExplorationPlan
 from true_rl_agent.agent_core.generation import FixedWidthGenerationInputs, GenerationLaneRuntime
 from true_rl_agent.agent_core.generation_attempt_scopes import GenerationLaneOperationScopes
 from true_rl_agent.agent_core.generation_contract import (
-    GENERATION_LANE_IDS, GENERATION_MANIFEST_V2_SCHEMA_VERSION,
+    GENERATION_LANE_IDS, GENERATION_MANIFEST_V2_SCHEMA_VERSION, GENERATION_LEDGER_RECORD_V3_SCHEMA_VERSION,
     GenerationLaneAssignment, GenerationManifest, GenerationSessionContract,
     generation_training_initialization_hash,
 )
@@ -61,6 +61,7 @@ def build_generation_lane_inputs(
         ledger_authoring_mode=PROVIDER_AUTHORING_MODE,
         expected_ledger_epoch_hash=ledger_epoch_hash,
         generation_session_contract=contract,
+        phased_evaluation_adapter=phased_adapter,
     )
     base_context = context_builder.build(records)
     if (
@@ -135,6 +136,11 @@ def build_generation_lane_inputs(
             generation_lane_intent=exploration.lane_intents[lane_index],
             blocked_verifier_equivalence_keys=(
                 exploration.blocked_verifier_equivalence_keys
+            ),
+            evaluated_verifier_equivalence_keys=(
+                exploration.evaluated_verifier_equivalence_keys
+                if contract.ledger_record_schema == GENERATION_LEDGER_RECORD_V3_SCHEMA_VERSION
+                else ()
             ),
         )
         if not generation_scoped_paths:

@@ -1,0 +1,337 @@
+{
+  "status": "PASS_BOTH_LANES_SOURCE_REVIEW_WITH_NONBLOCKING_F9",
+  "session_id": "go2-push-5rounds-20260923-a08",
+  "generation_index": 4,
+  "snapshot": ".tmp/go2_push_a08_live_13.zip",
+  "scope": "Independent read-only actual source and executed historical-gate audit; no product, candidate, experiment or remote changes. CPU finite examples are not trajectory/performance evidence.",
+  "frozen_source_checks": {
+    "src/true_rl_agent/candidates/component_source_semantics.py": "963f3c7385f9e08a7a99b72e3499f27bcc4e55266a3e155b42d5fd2d2924d3f5",
+    "src/true_rl_agent/candidates/authoring_policy.py": "038dce885ac95d3dd2f3bfb5ac80d290648e9ff9277c95df797027e5f0530c9f",
+    "src/true_rl_agent/agent_core/authoring_loop.py": "b4495703efe30a36b8e062ba44d95926223ef94bd3d2746c8e0bf00a1ce1e090",
+    "src/true_rl_agent/agent_core/exploration.py": "f8186e72df46aa66a4d3606c0104e4936bc7880148c0aca5d56fec98a46e900f",
+    "src/true_rl_agent/tasks/push_recovery/runtime_adapter.py": "b849651740e1362eafb085a990a8158b7821b1cdbf25f362bcd5d239b1f7d2f4"
+  },
+  "historical_scope": {
+    "current_parent_head_hash": "c011cc5fa3ac6e6125e7d9e0cb4ee82f7cb7b11773e6114d94b568a5632f266f",
+    "same_parent_measured_trial_ids": [
+      "go2-push-5rounds-20260923-a08-generation-002-lane-a",
+      "go2-push-5rounds-20260923-a08-generation-002-lane-b",
+      "go2-push-5rounds-20260923-a08-generation-003-lane-a",
+      "go2-push-5rounds-20260923-a08-generation-003-lane-b"
+    ],
+    "same_parent_measured_candidate_ids": [
+      "push_recovery_linear_tilt_ramp_v1",
+      "push_recovery_tilt_aware_stance_v2",
+      "push_recovery_rate_damped_v1",
+      "push_recovery_vel_damped_stance_v1"
+    ],
+    "verifier_family_keys": [
+      "1c99d43308fa4a320214b89159285e3ca5be2d31d182dcfbd08fb5e297cc001b",
+      "3852cb4fa6652f69b5ee37127c0a14aef4bb48cd2d042308e2d0768804a4705f",
+      "38881adccf70b64ed6b78e26475f484f79da62b91734266b570fe72a94bad6cc",
+      "5c8a7232ac355bccecac90ec7e405453d300073fa6cab31e36fb66119defdebd"
+    ],
+    "key_set_hash": "9735a39e699c34bbff4503fb3187aad834d62c77c98c30ee85d2123fb16f3ca8",
+    "negative_set_hash": "93af470f76fcae9ca4fe74dafd4f2b8a50c23dd6b53140d96aec7027db1af871",
+    "finding": "All four Gen2/Gen3 measured deltas are retained despite no accepted head advance. Actual A gate evaluated/union hash and candidate key match ledger reconstruction; the negative set remains independently empty."
+  },
+  "lane_a": {
+    "candidate_id": "push_recovery_side_braced_stance_v1",
+    "candidate_sha256": "c3a43ee3c713aa2918c39dca634cbc7cc711f6e07ea410e455e2b4b98cb5cd7f",
+    "parent_sha256": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+    "source_assessment_replay": {
+      "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+      "status": "pass",
+      "classification": "mechanism_delta_present",
+      "reason": "candidate_source_structure_differs_from_comparison_anchor",
+      "compares_to": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+      "candidate_source_sha256": "c3a43ee3c713aa2918c39dca634cbc7cc711f6e07ea410e455e2b4b98cb5cd7f",
+      "blocking": false,
+      "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+      "changed_mechanism_count": 1,
+      "changed_mechanisms": [
+        "RewardTerm:lateral_brace"
+      ],
+      "structural_comparison": "canonical_component_terms"
+    },
+    "mechanism_delta": {
+      "schema_version": "true_rl_agent.candidate_mechanism_operation_delta.v2",
+      "operation": "add",
+      "before_component": null,
+      "after_component": {
+        "mechanism_id": "RewardTerm:lateral_brace",
+        "structure_hash": "1c803150b2053540b54784e302a2aed2dde2752dcbcb3b816a5b8d3d0a48b3b7",
+        "parameter_normalized_structure_hash": "b25b0f7dd351309109fc3f23e8732e5e99acc5f36dc6f7fca14af5c290e76b18",
+        "input_fields": [
+          "base_height_relative",
+          "pitch",
+          "roll"
+        ]
+      },
+      "anchor_source_checksum": "sha256:64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+      "candidate_source_checksum": "sha256:c3a43ee3c713aa2918c39dca634cbc7cc711f6e07ea410e455e2b4b98cb5cd7f"
+    },
+    "verifier_equivalence_key": "913bee5db908934de416a00cf94bfab04f32992c4213a1bbfe713251886f5c32",
+    "preserved_exact_functions_weights_clips_bindings": [
+      "upright_recovery",
+      "stationary_v3",
+      "joint_pose",
+      "action_rate",
+      "fall"
+    ],
+    "single_mechanism_proof": "Adds one directly bound displacement-gated roll-excess term. Existing five terms stay exact. Unlike Gen3B gate-times-speed, the new term removes velocity dependencies and adds roll-specific excess as the multiplied atom. Unlike Gen2 height-times-tilt coupling it is a separate rational-gated roll term. Existing normalized identity distinguishes all four measured families; this is not a coefficient-only variant.",
+    "boundary": "Controlled component import and public height/roll/pitch tensors only. No hidden side effects, I/O/network, diagnostics/schedules or training/evaluation configuration change. Gate and roll expression both feed returned term.fn.",
+    "authoring_gate": {
+      "provider_attempts": 2,
+      "stop_reason": "candidate_verified",
+      "verifier_status": "pass",
+      "actual_historical_assessment": {
+        "blocking": false,
+        "evaluated_exclusion_set_hash": "9735a39e699c34bbff4503fb3187aad834d62c77c98c30ee85d2123fb16f3ca8",
+        "exclusion_set_hash": "9735a39e699c34bbff4503fb3187aad834d62c77c98c30ee85d2123fb16f3ca8",
+        "exclusion_sources": [],
+        "negative_evidence_exclusion_set_hash": "93af470f76fcae9ca4fe74dafd4f2b8a50c23dd6b53140d96aec7027db1af871",
+        "reason": "historical_verifier_equivalent_distinct",
+        "schema_version": "true_rl_agent.historical_verifier_exclusion_assessment.v1",
+        "status": "pass",
+        "verifier_equivalence_key": "913bee5db908934de416a00cf94bfab04f32992c4213a1bbfe713251886f5c32"
+      },
+      "smoke_status": "pass",
+      "changed_term_smoke": {
+        "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+        "effective_max_abs_after_clip_and_weight": 0.0,
+        "kind": "RewardTerm",
+        "name": "lateral_brace",
+        "observed_clip_saturation_count": 0,
+        "observed_raw_nonzero_count": 0,
+        "observed_sample_count": 4,
+        "observed_shape": [
+          4
+        ],
+        "raw_max_abs": 0.0,
+        "reason": "reward_callable_returned_finite_expected_shape",
+        "status": "pass"
+      }
+    },
+    "first_attempt_failure": {
+      "recorded_failure": {
+        "category": "reasoning_output_exhausted",
+        "details": {
+          "failure_kind": "empty_final_content_with_reasoning",
+          "finish_reason": "length"
+        },
+        "reason": "reasoning exhausted the output budget before final JSON",
+        "schema_version": "true_rl_agent.provider_failure.v1"
+      },
+      "response_receipt": {
+        "finish_reason": "length",
+        "response_text_present": true,
+        "reasoning_content_present": true
+      },
+      "judgment": "Output exhaustion before final candidate JSON, not scientific rejection; bounded retry is consistent with the existing fallback."
+    },
+    "nonblocking_F9": {
+      "claim": "An extra roll penalty adds lateral restoring slope without fighting the recovery transient.",
+      "source_fact": "fn<=0, clip[-2,0], weight=-1 produce a nonnegative contribution [0,2]. The added term rewards roll excess at nonzero displacement, contrary to its penalty/restoring explanation. This repeats the double-negative interpretation error found in Gen3B, with a different legal mechanism.",
+      "finite_synthetic_inputs": {
+        "height_relative": [
+          1.0,
+          1.0,
+          0.8
+        ],
+        "roll": [
+          0.0,
+          0.5,
+          0.5
+        ],
+        "pitch": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "actual_raw": [
+        -0.0,
+        -0.11755102040816326,
+        -0.14625
+      ],
+      "actual_clip_bounds": [
+        -2.0,
+        0.0
+      ],
+      "actual_weight": -1.0,
+      "actual_weighted_rate": [
+        0.0,
+        0.11755102040816326,
+        0.14625
+      ],
+      "interpretation_limit": "This proves only the added term sign. It does not show that total reward favors leaning or that trajectories exploit it. Attributions of earlier failures to transient/near-goal interference are hypotheses. Existing F9 only, no new sign/name gate."
+    }
+  },
+  "lane_b": {
+    "candidate_id": "push_recovery_lateral_brace_v1",
+    "candidate_sha256": "0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336",
+    "parent_sha256": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+    "source_assessment_replay": {
+      "schema_version": "true_rl_agent.anti_degenerate_assessment.v4",
+      "status": "pass",
+      "classification": "mechanism_delta_present",
+      "reason": "candidate_source_structure_differs_from_comparison_anchor",
+      "compares_to": "64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+      "candidate_source_sha256": "0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336",
+      "blocking": false,
+      "feedback_for_author": "Mechanism delta is present; runner-owned eval still decides acceptance.",
+      "changed_mechanism_count": 1,
+      "changed_mechanisms": [
+        "RewardTerm:lateral_brace"
+      ],
+      "structural_comparison": "canonical_component_terms"
+    },
+    "mechanism_delta": {
+      "schema_version": "true_rl_agent.candidate_mechanism_operation_delta.v2",
+      "operation": "add",
+      "before_component": null,
+      "after_component": {
+        "mechanism_id": "RewardTerm:lateral_brace",
+        "structure_hash": "89a521ecc5bcf8ac6764229f0933b6803fb5fd174f03d057aa65867fe30d0dc0",
+        "parameter_normalized_structure_hash": "69e5f45b0178ed960cdfd39514ac3709cd26f236e57233b78ff89dab66736450",
+        "input_fields": [
+          "base_lin_vel_scaled",
+          "roll"
+        ]
+      },
+      "anchor_source_checksum": "sha256:64f336809d6a7a20bf939d0fba925bb662c70e1a394f101e0046296b6f1f2775",
+      "candidate_source_checksum": "sha256:0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336"
+    },
+    "verifier_equivalence_key": "385d96bdf9dab5b40a6a0e346163c5ea4e70df59809e469511cbf095674a1e7d",
+    "preserved_exact_functions_weights_clips_bindings": [
+      "upright_recovery",
+      "stationary_v3",
+      "joint_pose",
+      "action_rate",
+      "fall"
+    ],
+    "single_mechanism_proof": "Adds one directly bound term of abs-roll excess plus abs world-y linear velocity. Sibling A shares the term name but uses height/tilt-dependent rational gate times squared-roll excess and no velocity. The changed input/index/shape makes them distinct mechanisms; independent sibling comparison returns None. Same-parent historical four keys also differ. No new alias or coefficient-only family repeat.",
+    "boundary": "Controlled component import and public roll/base velocity tensors only. Existing five terms remain exact. No hidden side effects, I/O/network, diagnostics/schedules or training/evaluation configuration edit.",
+    "authoring_gate": {
+      "provider_attempts": 2,
+      "stop_reason": "candidate_verified",
+      "verifier_status": "pass",
+      "actual_historical_assessment": {
+        "blocking": false,
+        "evaluated_exclusion_set_hash": "9735a39e699c34bbff4503fb3187aad834d62c77c98c30ee85d2123fb16f3ca8",
+        "exclusion_set_hash": "9735a39e699c34bbff4503fb3187aad834d62c77c98c30ee85d2123fb16f3ca8",
+        "exclusion_sources": [],
+        "negative_evidence_exclusion_set_hash": "93af470f76fcae9ca4fe74dafd4f2b8a50c23dd6b53140d96aec7027db1af871",
+        "reason": "historical_verifier_equivalent_distinct",
+        "schema_version": "true_rl_agent.historical_verifier_exclusion_assessment.v1",
+        "status": "pass",
+        "verifier_equivalence_key": "385d96bdf9dab5b40a6a0e346163c5ea4e70df59809e469511cbf095674a1e7d"
+      },
+      "actual_sibling_assessment": {
+        "blocking": false,
+        "equivalence": null,
+        "exclusion_hash": "81c4780cafb9de60a4fa7f49df48adfe021e08ea51d3cfec50e01bc682ee5456",
+        "reason": "sibling_semantic_delta_distinct",
+        "schema_version": "true_rl_agent.sibling_semantic_exclusion_assessment.v1",
+        "status": "pass"
+      },
+      "smoke_status": "pass",
+      "changed_term_smoke": {
+        "coverage": "finite_fixture_only_not_a_proof_of_universal_effect",
+        "effective_max_abs_after_clip_and_weight": 0.20192751288414001,
+        "kind": "RewardTerm",
+        "name": "lateral_brace",
+        "observed_clip_saturation_count": 0,
+        "observed_raw_nonzero_count": 4,
+        "observed_sample_count": 4,
+        "observed_shape": [
+          4
+        ],
+        "raw_max_abs": 0.20192751288414001,
+        "reason": "reward_callable_returned_finite_expected_shape",
+        "status": "pass"
+      }
+    },
+    "first_attempt_failure": {
+      "recorded_failure": {
+        "category": "reasoning_output_exhausted",
+        "details": {
+          "failure_kind": "empty_final_content_with_reasoning",
+          "finish_reason": "length"
+        },
+        "reason": "reasoning exhausted the output budget before final JSON",
+        "schema_version": "true_rl_agent.provider_failure.v1"
+      },
+      "response_receipt": {
+        "finish_reason": "length",
+        "response_text_present": true,
+        "reasoning_content_present": true
+      },
+      "judgment": "Provider output exhaustion before candidate JSON, not scientific rejection. Existing bounded retry produced a distinct legal candidate."
+    },
+    "nonblocking_F9": {
+      "claim": "A lateral penalty/restoring potential, exactly zero inside the roll deadband, which cannot suppress sagittal recovery.",
+      "source_fact": "Negative fn, clip[-2,0] and weight=-1 produce a positive reward [0,2]. At roll0 with v_y_scaled=.2 the term is +.1, so roll deadband alone does not make it zero. Absolute-roll and world-y speed are rewarded rather than penalized by this added term.",
+      "finite_synthetic_inputs": {
+        "roll": [
+          0.0,
+          0.0,
+          0.3
+        ],
+        "scaled_linear_velocity": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0.2,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "actual_raw": [
+        -0.0,
+        -0.1,
+        -0.19999999999999998
+      ],
+      "actual_clip_bounds": [
+        -2.0,
+        0.0
+      ],
+      "actual_weight": -1.0,
+      "actual_weighted_rate": [
+        0.0,
+        0.1,
+        0.19999999999999998
+      ],
+      "interpretation_limit": "This only establishes the added contribution and code/claim mismatch, not total-reward preference, observed exploitation or a guaranteed effect on recovery. Causal claims remain hypotheses. Existing F9; no candidate edits or new sign/name validator."
+    }
+  },
+  "evidence_sha256": {
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-a/authoring_attempts/attempt_000002/attempt_result.json": "aa85024d4919d070480102c3f7121a040809c73b8cb54d1fd04f116c0c61af9e",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-a/authoring_attempts/attempt_000002/prompt_payload.json": "6a450db9296ca754d56f11c2c4c08732a329921dc70e344411ebaaa75c71d4be",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-a/authoring_anchor.json": "4457beebff46e95436958711a4455f25aa402d9b08d9c8165e2597154ee0e16e",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-004/lane-a/002_push_recovery_side_braced_stance_v1/training_code/components.py": "c3a43ee3c713aa2918c39dca634cbc7cc711f6e07ea410e455e2b4b98cb5cd7f",
+    "PLAN/2new_world/Go2_push/attempt_08/session/ledger.jsonl": "c8c10b82f58380359706bccb2745282f96287674a170d16febabb45bf4692ed8",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "66acd19f0655c14eeeaa08b2cbd0bd0054620f23a30fb356f1915332168e5264",
+    "PLAN/2new_world/Go2_push/source_snapshot_08.json": "bff645daff96c7afcdb71b46e8aa95cfcaef206499fe711bbe9d21e3cdbfa4b9",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-b/authoring_attempts/attempt_000002/attempt_result.json": "bb83d4b1920b70cbfd325809ab4486f76602db20cba65ab357abea9eb98dbf9b",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-b/authoring_attempts/attempt_000002/prompt_payload.json": "c04aaefd5b475947a2a4adf965274cd8855b7484106e520f712b5bd9a6649756",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-b/authoring_anchor.json": "59ba0c822a3e230ea7e7e7f0f05dbeb6fd81308b694f4b39b206d35edc20caa4",
+    "PLAN/2new_world/Go2_push/attempt_08/session/provider_candidates/go2-push-5rounds-20260923-a08-generation-004/lane-b/002_push_recovery_lateral_brace_v1/training_code/components.py": "0d80850a0d6cd84cf33b740279f051f7ae35349740c97fbb5a407f57619c8336",
+    "PLAN/2new_world/Go2_push/attempt_08/session/authoring/go2-push-5rounds-20260923-a08-generation-004/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "e179b7b363fab4fd126c632c9c81c6a5f4e3898720f836bca8d8d4ad719d7b7c"
+  },
+  "training_evidence_limit": "Root reports both lanes training. Source review does not establish completed activation, fixed evaluation, improvement or acceptance.",
+  "snapshot_scope": {
+    "lane_a": "Original snapshot12 A receipt/evidence hashes preserved, source hash rechecked only.",
+    "lane_b": "Incremental actual source and gates checked from snapshot13."
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "calculation_basis": "Read-only verified SHA-256 of the three existing v1 real manifests; sum product(shape) * dtype.itemsize. New history is H=3 complete vectors for only the already bound support and forbidden bodies.",
+  "formula": "additional_raw_bytes = 3 * (support_contact_forces_w raw bytes + forbidden_contact_forces_w raw bytes)",
+  "limits_bytes": {"chunk_raw": 67108864, "archive_stored_including_manifest": 2147483648},
+  "observations": [
+    {"archive": "r2_parent_on", "manifest_sha256": "ddf28e49bfb383527a0e8b160ee02b30fc42388ffd916ead9835d76bd312b75c", "prior_raw_bytes": 115171200, "prior_stored_chunk_bytes": 51960826, "additional_history_raw_bytes": 84602880, "estimated_v2_raw_bytes_same_frames": 199774080, "max_additional_chunk_raw_bytes": 3317760, "max_v2_chunk_raw_bytes_same_frames": 7839360, "chunk_count": 27},
+    {"archive": "r2_gen8_on", "manifest_sha256": "fe488cb848dbe61454c0b9cc4fa6d8f8fc278deb1157065170577d9e91be5f20", "prior_raw_bytes": 127025280, "prior_stored_chunk_bytes": 52551385, "additional_history_raw_bytes": 93312000, "estimated_v2_raw_bytes_same_frames": 220337280, "max_additional_chunk_raw_bytes": 3317760, "max_v2_chunk_raw_bytes_same_frames": 7839360, "chunk_count": 30},
+    {"archive": "r2_g1_on", "manifest_sha256": "78107b9ff560bc77f431fbf36e5a1d9a0216c064984d1232f5f0e0bb22ccf924", "prior_raw_bytes": 141540480, "prior_stored_chunk_bytes": 67637358, "additional_history_raw_bytes": 55987200, "estimated_v2_raw_bytes_same_frames": 197527680, "max_additional_chunk_raw_bytes": 1990656, "max_v2_chunk_raw_bytes_same_frames": 7028352, "chunk_count": 30}
+  ],
+  "source_root": "/data/yuyangliu/AGENT/feedback_p2_20260923",
+  "source_relative_manifest": "<archive>/numeric_evidence/manifest.json",
+  "boundaries": ["These are exact uncompressed additions for the existing saved frame counts, not a measurement of newly generated v2 arrays.", "The archive stored-byte cap remains enforced by the existing writer. Compression ratio, runtime overhead and peak RSS require the new real on/off runs."]
+}

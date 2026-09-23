@@ -15,6 +15,7 @@ from true_rl_agent.agent_core.exploration_projection import (
 )
 from true_rl_agent.agent_core.generation_contract import (
     GENERATION_PUBLIC_HISTORY_PROJECTION_SCHEMA_VERSION,
+    project_public_trial_reason,
 )
 from true_rl_agent.agent_core.public_safety import sanitize_prompt_public_value
 from true_rl_agent.candidates.authoring_policy import (
@@ -24,7 +25,10 @@ from true_rl_agent.candidates.authoring_policy import (
     require_canonical_mechanism_delta,
     require_component_name,
 )
-from true_rl_agent.candidates.mechanism import MECHANISM_ATTRIBUTION_SCHEMA_VERSION
+from true_rl_agent.candidates.mechanism import (
+    MECHANISM_ATTRIBUTION_SCHEMA_VERSION,
+    RuntimeActivationEvidence,
+)
 from true_rl_agent.prompt_serialization import canonical_prompt_json_bytes
 
 EXPERIMENT_MEMORY_MAX_ROUNDS = 16
@@ -183,15 +187,15 @@ def _bounded_memory(
                 ),
                 None,
             )
-            if drop_position is not None:
-                shown.pop(drop_position)
-                omitted_count += 1
-            elif protected_summary_position is not None:
+            if protected_summary_position is not None:
                 index, entry = shown[protected_summary_position]
                 shown[protected_summary_position] = (
                     index,
                     _retained_entry_summary(entry),
                 )
+            elif drop_position is not None:
+                shown.pop(drop_position)
+                omitted_count += 1
             elif exploration is not None:
                 exploration = degrade_exploration_prompt_projection(exploration)
             else:
@@ -229,6 +233,17 @@ def _protected_entry_indexes(
 
 
 def _retained_entry_summary(entry: Mapping[str, Any]) -> dict[str, Any]:
+    if entry.get("trial_outcomes"):
+        # The trial table already identifies both mechanisms and their deltas.
+        # Keep the generation decision and changed-term runtime observations;
+        # a second copy of the selected trial's score/identity adds no history.
+        return _sanitize_mapping({
+            key: entry[key]
+            for key in (
+                "round_index", "accepted", "reason", "candidate_components",
+                "trial_outcomes",
+            ) if key in entry
+        })
     return _sanitize_mapping(
         {
             key: entry[key]
@@ -246,6 +261,8 @@ def _retained_entry_summary(entry: Mapping[str, Any]) -> dict[str, Any]:
                 "guard_delta",
                 "reason",
                 "candidate_components",
+                "trial_outcomes",
+                "runtime_observation",
             )
             if key in entry
         }
@@ -294,6 +311,10 @@ def _memory_payload(
                 "objective and guard values are copied from decision.comparison with "
                 "their authoritative score-source identities; no score is recomputed"
             ),
+            "runtime_observation_semantics": (
+                "Reward execution state, not causal effect; unknown preserves partial records. "
+                "In detailed feedback, available means a record exists; null is unmeasured."
+            ),
             "omitted_experiment_count": omitted_count,
             "experiments": list(shown),
         }
@@ -303,6 +324,17 @@ def _memory_payload(
             "no acceptance authority and no checkpoint/source reuse authority"
         )
         payload["exploration"] = dict(exploration_projection)
+    if any(entry.get("trial_outcomes") for entry in shown):
+        payload["trial_outcome_columns"] = [
+            "lane", "candidate_id", "operation", "mechanism", "status",
+            "public_dev_delta", "public_dev_guard_delta", "runtime_effect", "reason",
+            "runtime_observation",
+        ]
+        payload["trial_outcome_semantics"] = (
+            "Task-projected public-dev differences against that generation's parent; "
+            "null is unmeasured; runtime effect does not imply score improvement. "
+            "runtime_observation belongs to this lane."
+        )
     return _sanitize_mapping(payload)
 
 
@@ -339,13 +371,19 @@ def _record_entry(
             "guard_delta": comparison.get("guard_delta"),
             "failed_gates": _failed_gate_names(decision.get("gate_statuses")),
             "activated_components": runtime.get("component_activation_records"),
+            "runtime_observation": RuntimeActivationEvidence.from_mapping(runtime).reward_execution_state(),
             "candidate_components": candidate_components,
+            "trial_outcomes": [_trial_outcome(lane) for lane in
+                _mapping(record.get("generation")).get("trials", ())],
         }
     )
 
 
 def _compact_entry(entry: Mapping[str, Any]) -> dict[str, Any]:
     compact: dict[str, Any] = {}
+    observation = entry.get("runtime_observation")
+    if isinstance(observation, str) and not entry.get("trial_outcomes"):
+        compact["runtime_observation"] = observation
     round_index = _optional_int(entry.get("round_index"))
     if round_index is not None and round_index > 0:
         compact["round_index"] = round_index
@@ -410,7 +448,33 @@ def _compact_entry(entry: Mapping[str, Any]) -> dict[str, Any]:
         compact["candidate_components"] = candidate_components
     if components:
         compact["activated_components"] = components
+    outcomes = entry.get("trial_outcomes")
+    if isinstance(outcomes, list | tuple) and outcomes:
+        compact["trial_outcomes"] = [
+            # Previously compacted rows have no measurement column. Preserve
+            # that absence instead of reconstructing it from runtime_effect.
+            list(row[:9]) + [row[9] if len(row) > 9 and isinstance(row[9], str) else "not_available"]
+            for row in outcomes[:2]
+        ]
     return _sanitize_mapping(compact)
+
+
+def _trial_outcome(trial: Mapping[str, Any]) -> list[Any]:
+    delta = _mapping(trial.get("mechanism_operation_delta"))
+    component = _mapping(delta.get("after_component") or delta.get("before_component"))
+    outcome = _mapping(trial.get("prompt_outcome"))
+    return [
+        str(trial.get("lane_id", "")).removeprefix("lane-"),
+        _optional_text(_mapping(trial.get("candidate")).get("candidate_id")),
+        _optional_text(delta.get("operation")),
+        _optional_text(component.get("mechanism_id")),
+        _optional_text(trial.get("trial_status")),
+        outcome.get("objective_delta"), outcome.get("guard_delta"),
+        outcome.get("runtime_effect"), project_public_trial_reason(trial.get("status_reason")),
+        RuntimeActivationEvidence.from_mapping(
+            trial.get("runtime_activation_summary")
+        ).reward_execution_state(),
+    ]
 
 
 def _runtime_component_records(record: Mapping[str, Any]) -> list[Mapping[str, Any]]:
@@ -514,12 +578,18 @@ def _compact_candidate_component_records(
             ("weight", ("weight", "effective_weight")),
             ("last_mean", ("last_mean", "last_weighted_mean")),
             ("max_abs", ("max_abs", "max_abs_weighted_contribution")),
+            ("max_abs_parent_delta", ("max_abs_parent_delta",)),
         ):
             numeric = _first_present(
                 *(_optional_number(item.get(key)) for key in source_keys)
             )
             if numeric is not None:
                 component[public_key] = numeric
+        for key in ("sampled_env_transitions", "nonzero_env_transitions",
+                    "delta_sampled_env_transitions", "delta_nonzero_env_transitions"):
+            count = item.get(key)
+            if isinstance(count, int) and not isinstance(count, bool) and count >= 0:
+                component[key] = count
         canonical.append(component)
     if canonical:
         if len(canonical) > max_components:
@@ -632,11 +702,12 @@ def compact_component_activation_records(
 
 def _component_salience_key(
     indexed_component: tuple[int, Mapping[str, Any]],
-) -> tuple[float, float, int]:
+) -> tuple[bool, float, float, int]:
     index, component = indexed_component
     max_abs = _optional_number(component.get("max_abs"))
     last_mean = _optional_number(component.get("last_mean"))
     return (
+        "max_abs_parent_delta" not in component,
         -abs(float(max_abs)) if max_abs is not None else 0.0,
         -abs(float(last_mean)) if last_mean is not None else 0.0,
         index,

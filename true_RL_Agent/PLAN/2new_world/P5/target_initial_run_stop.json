@@ -1,0 +1,26 @@
+{
+  "status": "INTERRUPTED_KNOWN_FAILED_RUN",
+  "pid": 2210960,
+  "command": [
+    "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-t",
+    "."
+  ],
+  "children": [
+    {
+      "pid": 2211055,
+      "cmd": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "-c",
+        "from multiprocessing.resource_tracker import main;main(7)"
+      ]
+    }
+  ],
+  "reason": "Stair fixture missing runtime diagnostic receipt; final complete discovery rerun after fixture correction",
+  "time": 1789063362.3408113
+}

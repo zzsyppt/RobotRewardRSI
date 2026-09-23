@@ -547,6 +547,27 @@ class _AttemptBackedStairRunner(Runner):
             },
             **_gpu_summary_fields(train_spec.job_id, binding, physical_uuid),
         }
+        if train_spec.runtime_diagnostic_context_hash is not None:
+            comparison = load_strict_json_object(
+                Path(train_spec.metadata["summary_path"]).parent / "runtime_comparison.json",
+                context="fixture runtime comparison",
+            )
+            if canonical_json_hash(comparison) != train_spec.runtime_diagnostic_context_hash:
+                raise AssertionError("fixture runtime comparison differs from TrainJobSpec")
+            # This runner models a positive task result; actual differential
+            # execution is covered by the dispatcher tests and Isaac probes.
+            summary["runtime_diagnostic_context_hash"] = train_spec.runtime_diagnostic_context_hash
+            summary["runtime_activation_summary"]["operation_effect"] = {
+                "schema_version": "true_rl_agent.stair_reward_operation_effect.v1",
+                "context_hash": train_spec.runtime_diagnostic_context_hash,
+                "mechanism_operation_delta": comparison["mechanism_operation_delta"],
+                "comparison": "same_transition_weighted_rate_difference",
+                "coverage": "all_dispatched_training_transitions",
+                "sampled_control_steps": calls,
+                "sampled_env_transitions": calls * config.train_num_envs,
+                "nonzero_env_transitions": calls * config.train_num_envs,
+                "max_abs_weighted_delta": 1.0,
+            }
         return summary
 
     def _evaluation_config(self, eval_spec):

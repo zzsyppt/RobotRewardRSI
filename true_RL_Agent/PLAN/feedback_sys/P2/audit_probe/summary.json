@@ -1,0 +1,420 @@
+{
+ "audited_at": "2026-09-24",
+ "auditor": "independent P2 audit (Claude), read-only on server archives",
+ "server_source_tree": {
+  "path": "/data/yuyangliu/p2_audit/src_current",
+  "origin": "local working tree exported 2026-09-24 (P1 HEAD b24ddfe9 + uncommitted P2)",
+  "sha256": {
+   "runner/numeric_evidence.py": "2283e8e9f770135a610506173e91948fdfc7dcf79b9b227f5f0932a44da30579",
+   "tasks/stair_climbing/numeric_capture.py": "45994c44ae130f9af64f8a7b4aeba9941e38a03c18f75c7ba7fa6fc4e0c1c092",
+   "tasks/push_recovery/numeric_capture.py": "6562c127ae4f9b8b4e3af71ad5055242723be2bbb749c5ee07e9997301bdb68e"
+  }
+ },
+ "recompute_with_current_source": {
+  "stair": {
+   "r2_parent_on": {
+    "status": "PASS",
+    "episodes": 864,
+    "seconds": 135.5
+   },
+   "r2_gen8_on": {
+    "status": "PASS",
+    "episodes": 864,
+    "seconds": 153.8
+   },
+   "r2_g1_on": {
+    "status": "PASS",
+    "episodes": 864,
+    "seconds": 88.3
+   }
+  },
+  "push_archives_pass": 12,
+  "push_archives_total": 12
+ },
+ "parent_archive": {
+  "identity_keys": [
+   "backend_execution_environment_verification",
+   "capability_profile_hash",
+   "checkpoint_hash",
+   "environment_source_preflight",
+   "evaluation_binding",
+   "evaluation_plan_hash",
+   "job_id",
+   "program_source_checksum",
+   "resolved_cell_manifest_hash",
+   "seed_namespace",
+   "splits",
+   "subject_id",
+   "subject_kind",
+   "subject_manifest_hash",
+   "task_id",
+   "training_binding_hash"
+  ],
+  "raw_bytes": 115171200,
+  "stored_bytes": 51960826,
+  "padding_fraction_of_frames": 0.4122,
+  "per_array_raw_bytes": {
+   "joint_pos": 22560768,
+   "support_pos_w": 22560768,
+   "support_lin_vel_w": 22560768,
+   "support_contact_forces_w": 22560768,
+   "base_quat_w": 7520256,
+   "base_pos_w": 5640192,
+   "forbidden_contact_forces_w": 5640192,
+   "episode_length": 3760128,
+   "done_mask": 470016,
+   "wrapper_done_mask": 470016,
+   "termination_0": 470016,
+   "termination_1": 470016,
+   "valid": 470016,
+   "terrain_env_origins_w": 10368,
+   "terrain_types": 6912
+  }
+ },
+ "forbidden_force_operand_gap": {
+  "r2_parent_on": {
+   "forbidden_episodes": 72,
+   "forb_force_nonzero_at_terminal": 46,
+   "forb_force_nonzero_within_last5": 46,
+   "manager_term_true_at_terminal": 72,
+   "any_support_contact_at_terminal": 49,
+   "nonforbidden_episodes_with_forb_force_nonzero_anywhere": 0,
+   "forbidden_episodes_with_forb_force_nonzero_anywhere": 46,
+   "forb_force_terminal_N_quantiles": [
+    0.0,
+    42.2,
+    455.8,
+    1552.2
+   ]
+  },
+  "r2_gen8_on": {
+   "forbidden_episodes": 34,
+   "forb_force_nonzero_at_terminal": 24,
+   "forb_force_nonzero_within_last5": 24,
+   "manager_term_true_at_terminal": 34,
+   "any_support_contact_at_terminal": 29,
+   "nonforbidden_episodes_with_forb_force_nonzero_anywhere": 0,
+   "forbidden_episodes_with_forb_force_nonzero_anywhere": 24,
+   "forb_force_terminal_N_quantiles": [
+    0.0,
+    87.2,
+    1061.0,
+    2417.6
+   ]
+  },
+  "r2_g1_on": {
+   "forbidden_episodes": 197,
+   "forb_force_nonzero_at_terminal": 186,
+   "forb_force_nonzero_within_last5": 186,
+   "manager_term_true_at_terminal": 197,
+   "any_support_contact_at_terminal": 95,
+   "nonforbidden_episodes_with_forb_force_nonzero_anywhere": 0,
+   "forbidden_episodes_with_forb_force_nonzero_anywhere": 186,
+   "forb_force_terminal_N_quantiles": [
+    0.0,
+    979.3,
+    9964.5,
+    25552.7
+   ]
+  }
+ },
+ "contact_history_length": 3,
+ "training_sample_lag1_autocorrelation_push_go2": {
+  "upright_height": {
+   "early": 0.956,
+   "middle": 0.621,
+   "late": 0.976
+  },
+  "stationary_v3": {
+   "early": -0.113,
+   "middle": 0.371,
+   "late": 0.539
+  },
+  "joint_pose": {
+   "early": 0.595,
+   "middle": 0.604,
+   "late": 0.938
+  },
+  "action_rate": {
+   "early": 0.275,
+   "middle": 0.24,
+   "late": 0.196
+  },
+  "fall": {
+   "early": null,
+   "middle": -0.028,
+   "late": null
+  }
+ },
+ "training_sampling_public_projection_bytes_compact_json": 1110,
+ "width_one_recent_round_runtime_activation_bytes_without_with": [
+  312,
+  1517
+ ],
+ "capture_failure_attribution": {
+  "stair_boundary": "NumericEvidenceError/ValueError propagate unchanged (not StairCandidateProgramFailure)",
+  "push_adapter": "ValueError propagates unchanged (not PushCandidateProgramFailure)"
+ },
+ "files": {
+  "probe_archives.json": {
+   "sha256": "fe73aabf565b55a0989bb12635f1f25dc28306752a9f4ac64a0332979d362fe5",
+   "bytes": 20208
+  },
+  "probe_archives.py": {
+   "sha256": "dcce5ec6d981013391b9cb5fa45d2d029afb5d5f646dedfe1b598aeb1895b24d",
+   "bytes": 6299
+  },
+  "probe_forbidden.json": {
+   "sha256": "c936e7c66895021fb6ad5f02544c3806adddd26296935e889b23285c28c12df4",
+   "bytes": 1457
+  },
+  "probe_forbidden.py": {
+   "sha256": "58e5e582d2458c0312c4d2d084e9fe9f6128a3d8db337630eb7d5273fbe60de6",
+   "bytes": 3326
+  },
+  "recompute_current.json": {
+   "sha256": "0ba04b4e23adfdd2444c439608e61be7d0b267aff622d2e125e8493e0e3339ba",
+   "bytes": 2763
+  },
+  "recompute_current.log": {
+   "sha256": "cef0a5c3d799120cbf5a27b399af555e7741cb756b5ddf3a26b5ad23455d26d4",
+   "bytes": 2603
+  },
+  "recompute_current.py": {
+   "sha256": "bed5c37d5cc23cc2956220c1dbbfabe8958ee82739bea6c934cabbcd05e15a56",
+   "bytes": 2181
+  }
+ },
+ "server_result_sha256": {
+  "probe_archives.json": "fe73aabf565b55a0989bb12635f1f25dc28306752a9f4ac64a0332979d362fe5",
+  "probe_forbidden.json": "c936e7c66895021fb6ad5f02544c3806adddd26296935e889b23285c28c12df4",
+  "recompute_current.json": "0ba04b4e23adfdd2444c439608e61be7d0b267aff622d2e125e8493e0e3339ba",
+  "recompute_current.log": "cef0a5c3d799120cbf5a27b399af555e7741cb756b5ddf3a26b5ad23455d26d4"
+ },
+ "resources": {
+  "gpu_runs": 0,
+  "training_runs": 0,
+  "provider_requests": 0,
+  "server_cpu_only": true,
+  "archives_modified": false
+ },
+ "local_full_suite": {
+  "command": "PYTHONPATH=src python -m unittest discover -s tests -t . -p 'test_*.py'",
+  "ran": 1790,
+  "status": "OK",
+  "skipped": 19,
+  "seconds": 1209.722,
+  "log": {
+   "path": "local_full_suite.log",
+   "sha256": "7b93648adacf3972aa92f3feb6a06271820100a7aed371e491a4c6340dae4976",
+   "bytes": 3395
+  }
+ },
+ "fix_round_2026_09_24": {
+  "server_fixed_source_tree": {
+   "path": "/data/yuyangliu/p2_audit/src_fix",
+   "origin": "local working tree exported after the user's fix round (P2 + audit fixes, uncommitted at export time)"
+  },
+  "old_v1_archives_with_fixed_source": {
+   "stair": {
+    "r2_parent_on": "PASS",
+    "r2_gen8_on": "PASS",
+    "r2_g1_on": "PASS"
+   },
+   "push_pass": 12,
+   "push_total": 12
+  },
+  "new_v2_archives_with_fixed_source": {
+   "stair": {
+    "stair_parent_on": {
+     "status": "PASS",
+     "profile": "stair.unified_first_episode.v2",
+     "history_status": "recorded"
+    },
+    "stair_g1_on": {
+     "status": "PASS",
+     "profile": "stair.unified_first_episode.v2",
+     "history_status": "recorded"
+    }
+   },
+   "push": {
+    "push_g1_v3_on/run1": {
+     "status": "PASS",
+     "direction_status": "recorded_world_xy",
+     "planar_motion_norms": true
+    },
+    "push_g1_v3_on/run2": {
+     "status": "PASS",
+     "direction_status": "recorded_world_xy",
+     "planar_motion_norms": true
+    },
+    "push_g1_v3_on/run3": {
+     "status": "PASS",
+     "direction_status": "recorded_world_xy",
+     "planar_motion_norms": true
+    },
+    "push_go2_v2_on/run1": {
+     "status": "PASS",
+     "direction_status": "recorded_world_xy",
+     "planar_motion_norms": true
+    },
+    "push_go2_v2_on/run2": {
+     "status": "PASS",
+     "direction_status": "recorded_world_xy",
+     "planar_motion_norms": true
+    },
+    "push_go2_v2_on/run3": {
+     "status": "PASS",
+     "direction_status": "recorded_world_xy",
+     "planar_motion_norms": true
+    }
+   }
+  },
+  "stair_history_predicate_vs_manager_term_own_implementation": {
+   "stair_parent_on": {
+    "valid_frames": 276259,
+    "predicate_mismatch": 0,
+    "manager_true_frames": 72,
+    "terminal_forbidden": 72,
+    "terminal_inst_zero_hist_nonzero": 26,
+    "terminal_hist_zero_manager_true": 0,
+    "hist_newest_equals_instantaneous_frames": 276259,
+    "support_hist_vs_inst_contact_mismatch_bodyframes": 13295,
+    "support_bodyframes": 1105036,
+    "padding_history_nonzero": 0,
+    "threshold": 1.0
+   },
+   "stair_g1_on": {
+    "valid_frames": 300247,
+    "predicate_mismatch": 0,
+    "manager_true_frames": 197,
+    "terminal_forbidden": 197,
+    "terminal_inst_zero_hist_nonzero": 11,
+    "terminal_hist_zero_manager_true": 0,
+    "hist_newest_equals_instantaneous_frames": 300247,
+    "support_hist_vs_inst_contact_mismatch_bodyframes": 11240,
+    "support_bodyframes": 600494,
+    "padding_history_nonzero": 0,
+    "threshold": 1.0
+   }
+  },
+  "stair_history_slot_semantics": {
+   "slot_k_equals_instantaneous_of_control_step_t_minus_k": {
+    "slot1_agree_frac": 0.4116588748227137,
+    "slot2_agree_frac": 0.38375269212586016,
+    "bodyframes": 76148
+   },
+   "conclusion": "history slots are intra-control-step buffer updates, not the previous control steps' end values; equal spacing is still not established"
+  },
+  "push_direction_physics": {
+   "velocity_v2_go2": {
+    "cos_at_injection_plus_0": {
+     "n": 240,
+     "median": 0.08695125624268057,
+     "frac_gt_0.9": 0.1375
+    },
+    "cos_at_injection_plus_1": {
+     "n": 240,
+     "median": 0.9997886746496911,
+     "frac_gt_0.9": 1.0
+    },
+    "cos_at_injection_plus_2": {
+     "n": 240,
+     "median": 0.9991241747742539,
+     "frac_gt_0.9": 1.0
+    },
+    "cos_at_injection_plus_3": {
+     "n": 240,
+     "median": 0.9992907157693353,
+     "frac_gt_0.9": 0.9958333333333333
+    },
+    "frame_at_injection_step_matches_velocity_before": {
+     "n": 240,
+     "median_abs_diff": 0.0,
+     "p90": 0.0
+    },
+    "frame_at_injection_step_matches_velocity_after_next_physics": {
+     "n": 240,
+     "median_abs_diff": 1.1296281944838134,
+     "p90": 1.9225474547148953
+    },
+    "frame_at_injection_plus1_matches_velocity_after_next_physics": {
+     "n": 240,
+     "median_abs_diff": 0.0,
+     "p90": 0.0
+    }
+   },
+   "force_v3_g1_cos_at_pulse_end": {
+    "kind": "force",
+    "seeds": 3,
+    "norm_speed_max_rel_err": 1.0993816362891405e-07,
+    "norm_drift_max_rel_err": 1.0679060729767371e-07,
+    "events": 194,
+    "cos_vel_vs_push_at_injection_median": 0.9905893062111188,
+    "cos_drift_vs_push_1s_later_median": 0.9814473577802714,
+    "cos_vel_frac_gt_0.9": 0.9381443298969072,
+    "drift_cos_frac_gt_0": 1.0
+   }
+  },
+  "local_full_suite": {
+   "ran": 1801,
+   "status": "OK",
+   "skipped": 19,
+   "seconds": 1200.194,
+   "log": "fix_round/local_full_suite_fix.log",
+   "log_sha256": "3ac994328e712c0d2c1cc7f63b8a6463851372362747e7bfef435c3816e97a93"
+  },
+  "files": {
+   "local_full_suite_fix.log": {
+    "sha256": "3ac994328e712c0d2c1cc7f63b8a6463851372362747e7bfef435c3816e97a93",
+    "bytes": 3406
+   },
+   "probe_v2_fields.json": {
+    "sha256": "fd9aabb2cd58b2ff5b4ce1c8d097db6885359189ea6f0c804a8fa39ad697835c",
+    "bytes": 1581
+   },
+   "probe_v2_fields.py": {
+    "sha256": "c9a3fd1edeec2b23cb52f0b90b7a0affb421bf9ecbaeedc788d117b0b59d61d5",
+    "bytes": 6437
+   },
+   "probe_v2_semantics.json": {
+    "sha256": "568cab59cb173533168a037380d4d943fc0ff9aa4047e85d9de8532e7d253f5b",
+    "bytes": 3743
+   },
+   "probe_v2_semantics.py": {
+    "sha256": "b1b01db13a6cb6fceed295a61a599c55fd2b7f9942c2f1b2ccef7051be34c219",
+    "bytes": 5245
+   },
+   "recompute_fix_v1.json": {
+    "sha256": "16132d9c1894dd3e1ca3a8315dc64537c87f39af690bce5bdfccc1902b790cd6",
+    "bytes": 2759
+   },
+   "recompute_fix_v1.log": {
+    "sha256": "405ed96065188e3e5bcecaa2c5f3056aee19dfe868702e7b8549f772c1e29231",
+    "bytes": 2603
+   },
+   "recompute_fix_v1.py": {
+    "sha256": "c57fb567f094cd52d0e01a1d184a92aac019d463b5598005efc88167784a34a7",
+    "bytes": 2172
+   },
+   "recompute_fix_v2.json": {
+    "sha256": "48139044179391c7e7338bf52370630c4bbb30b00172f41fe288030de7ef96d6",
+    "bytes": 3962
+   },
+   "recompute_fix_v2.log": {
+    "sha256": "8e28dd1ec3be5c3cd5fa05fca4a4523e6d3dd2ed0151b519200a1ad4a1e3f95d",
+    "bytes": 3597
+   },
+   "recompute_fix_v2.py": {
+    "sha256": "34f1bab76b9f874f18d17b342aa0dcc4cb21da7e744e647eae35851a12e3307c",
+    "bytes": 2293
+   }
+  },
+  "resources": {
+   "gpu_runs": 0,
+   "training_runs": 0,
+   "provider_requests": 0,
+   "archives_modified": false
+  }
+ }
+}

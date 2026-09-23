@@ -10,6 +10,7 @@ from true_rl_agent.agent_core.source_request_limits import (
     BEST_OBSERVED_SOURCE_ID,
     CURRENT_BEST_SOURCE_ID,
     LATEST_FAILED_SOURCE_ID,
+    LATEST_NONACCEPTED_SOURCE_ID,
 )
 from true_rl_agent.evaluation.binding import (
     canonical_json_hash,
@@ -202,6 +203,21 @@ def mechanism_operation_effect(value: Any) -> str:
     return "pure_rename" if unchanged_semantics else "rename_and_modify"
 
 
+def single_component_exact_implementation_key(value: Any) -> str:
+    """Name-insensitive exact delta; callers bind its parent and comparison domain."""
+    delta = require_mechanism_operation_delta(value)
+    def component_key(component):
+        if component is None:
+            return None
+        kind, _, _ = parse_canonical_mechanism_id(component["mechanism_id"])
+        return {"kind": kind, "structure_hash": component["structure_hash"]}
+    return canonical_json_hash({
+        "schema_version": "true_rl_agent.exact_component_implementation.v1",
+        "before": component_key(delta["before_component"]),
+        "after": component_key(delta["after_component"]),
+    })
+
+
 def single_component_verifier_equivalence_key(value: Any) -> str:
     """Hash the verifier-owned, name-insensitive meaning of one component delta.
 
@@ -323,7 +339,7 @@ def select_authoring_anchor_source(
     if not isinstance(observed, Mapping):
         return None, None, "none"
     logical_id = observed.get("source_logical_id")
-    if logical_id not in {BEST_OBSERVED_SOURCE_ID, LATEST_FAILED_SOURCE_ID}:
+    if logical_id not in {BEST_OBSERVED_SOURCE_ID, LATEST_FAILED_SOURCE_ID, LATEST_NONACCEPTED_SOURCE_ID}:
         return None, None, "none"
     source, digest = _prompt_source_payload(prompt_payload, str(logical_id))
     return source, digest, "best_observed_nonaccepted"

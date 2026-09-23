@@ -1,0 +1,270 @@
+{
+  "status": "PASS_PROMPT_AND_SINGLE_MECHANISM_AUDIT",
+  "audited_at_utc": "2026-09-23T03:25:31.095705+00:00",
+  "scope": "A06 generation 001 actual two first prompts, first successful attempts and candidate sources. No candidate performance or generation closure conclusion.",
+  "source_commit": "7c58ec32f6dcdd4da238fe52321c58c9abf582c8",
+  "lanes": [
+    {
+      "lane_id": "lane-a",
+      "prompt_path": "session/authoring/go2-push-5rounds-20260923-a06-generation-001/lane-a/authoring_attempts/attempt_000001/prompt_payload.json",
+      "prompt_sha256": "5119dae9f796c40a30d2fdadc7b031428b345885c02d46185860784365239293",
+      "candidate_id": "push_recovery_height_hinge_v4",
+      "candidate_source_path": "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-001/lane-a/001_push_recovery_height_hinge_v4/training_code/components.py",
+      "candidate_source_checksum": "sha256:b2a7268b424ef41de85499c7a47897d9fc35e558b60cd63dbd8cd9d410d66068",
+      "source_bytes": 2573,
+      "measurements": {
+        "file_bytes": 48301,
+        "canonical_bytes": 48301,
+        "section_bytes": {
+          "schema_version": 33,
+          "task": 1999,
+          "loop_contract": 2190,
+          "candidate_capabilities": 3654,
+          "reward_inputs_contract": 10918,
+          "public_eval_contract": 948,
+          "control_effectiveness_contract": 694,
+          "known_good_examples": 2,
+          "selection_guidance": 761,
+          "source_catalog": 3692,
+          "candidate_lineage": 1991,
+          "source_payloads": 2475,
+          "public_feedback_summary": 1096,
+          "runtime_feedback_summary": 213,
+          "public_history": 1333,
+          "exploration_directive": 423,
+          "required_candidate_package": 12124,
+          "authoring_context_frame": 3343
+        },
+        "task_section_bytes": 16096,
+        "task_section_limit_bytes": 57344,
+        "memory_bytes": 996,
+        "memory_experiments": 0,
+        "memory_omitted": 0,
+        "source_payload_count": 1,
+        "source_body_bytes": 1846,
+        "long_string_duplicate_excess_bytes": 965,
+        "long_string_duplicate_excess_fraction": 0.01997888242479452,
+        "duplicate_threshold_characters": 80
+      },
+      "provider_usage": {
+        "reasoning_units": 14154,
+        "request_cache_hit_units": 12160,
+        "request_cache_miss_units": 221,
+        "request_units": 12381,
+        "response_units": 14966,
+        "total_units": 27347
+      },
+      "finish_reason": "stop",
+      "attempt_count": 1,
+      "source_request_count": 0,
+      "verifier": "PASS",
+      "component_smoke": "PASS",
+      "changed_mechanisms": [
+        "RewardTerm:upright_height->recovery_stance"
+      ],
+      "other_four_reward_term_configs_and_function_bodies_ast_preserved": [
+        "stationary_v3",
+        "joint_pose",
+        "action_rate",
+        "fall"
+      ],
+      "annotation_note": "Comparison removes only argument/return annotations; lane A adds RewardInputs annotations. Executable bodies and all four RewardTerm calls are identical.",
+      "reward_term_count": 5,
+      "public_inputs_used": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "imports": [
+        "true_rl_agent.candidates.components"
+      ],
+      "rationale": "Closest prior is current_best push_standing_recovery_stationary_reference_v3. The single changed mechanism is the upright-height reward callable: it keeps the exp(-4*tilt) orientation reward but replaces the symmetric squared height-error with a one-sided hinge on height deficit, clip-bounded at -4, so low-height crouching produces a strong negative gradient and weighted contribution. The stationary, joint-pose, action-rate, and fall terms and all weights are preserved. This targets the public-dev height_collapse_dominated failure without changing task timing, pushes, or protocol.",
+      "public_boundary": {
+        "guard": "PASS",
+        "task_receipt": "PASS",
+        "private_literal_hits": 0,
+        "forbidden_private_objects": []
+      }
+    },
+    {
+      "lane_id": "lane-b",
+      "prompt_path": "session/authoring/go2-push-5rounds-20260923-a06-generation-001/lane-b/authoring_attempts/attempt_000001/prompt_payload.json",
+      "prompt_sha256": "0d2fd93ba22b9c23e95c077f28b99f063f13bea2b9aa68e1fa1cf2bd8070032d",
+      "candidate_id": "push_standing_recovery_height_barrier_v1",
+      "candidate_source_path": "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-001/lane-b/001_push_standing_recovery_height_barrier_v1/training_code/components.py",
+      "candidate_source_checksum": "sha256:376785250b1dbfeb1c918c49ea37f3f24bf8b353279a14d25fe9b9f1667a36ae",
+      "source_bytes": 2849,
+      "measurements": {
+        "file_bytes": 48993,
+        "canonical_bytes": 48993,
+        "section_bytes": {
+          "schema_version": 33,
+          "task": 1999,
+          "loop_contract": 2190,
+          "candidate_capabilities": 3654,
+          "reward_inputs_contract": 10918,
+          "public_eval_contract": 948,
+          "control_effectiveness_contract": 694,
+          "known_good_examples": 2,
+          "selection_guidance": 761,
+          "source_catalog": 3692,
+          "candidate_lineage": 1991,
+          "source_payloads": 2475,
+          "public_feedback_summary": 1096,
+          "runtime_feedback_summary": 213,
+          "public_history": 1333,
+          "exploration_directive": 423,
+          "required_candidate_package": 12816,
+          "authoring_context_frame": 3343
+        },
+        "task_section_bytes": 16096,
+        "task_section_limit_bytes": 57344,
+        "memory_bytes": 996,
+        "memory_experiments": 0,
+        "memory_omitted": 0,
+        "source_payload_count": 1,
+        "source_body_bytes": 1846,
+        "long_string_duplicate_excess_bytes": 965,
+        "long_string_duplicate_excess_fraction": 0.019696691364072417,
+        "duplicate_threshold_characters": 80
+      },
+      "provider_usage": {
+        "reasoning_units": 27107,
+        "request_cache_hit_units": 10880,
+        "request_cache_miss_units": 1712,
+        "request_units": 12592,
+        "response_units": 27958,
+        "total_units": 40550
+      },
+      "finish_reason": "stop",
+      "attempt_count": 1,
+      "source_request_count": 0,
+      "verifier": "PASS",
+      "component_smoke": "PASS",
+      "changed_mechanisms": [
+        "RewardTerm:upright_height->upright_height_barrier"
+      ],
+      "other_four_reward_term_configs_and_function_bodies_ast_preserved": [
+        "stationary_v3",
+        "joint_pose",
+        "action_rate",
+        "fall"
+      ],
+      "annotation_note": "Comparison removes only argument/return annotations; lane A adds RewardInputs annotations. Executable bodies and all four RewardTerm calls are identical.",
+      "reward_term_count": 5,
+      "public_inputs_used": [
+        "action_delta",
+        "base_ang_vel_scaled",
+        "base_height_relative",
+        "base_lin_vel_scaled",
+        "joint_pos_error",
+        "pitch",
+        "roll",
+        "terminated_non_timeout"
+      ],
+      "imports": [
+        "true_rl_agent.candidates.components"
+      ],
+      "rationale": "Reference current-best push_standing_recovery_stationary_reference_v3 has public-dev failures dominated by height_collapse (26/192) and high-stratum falls (high stratum 19/48 success). Its upright_height term uses exp(-4*tilt -4*height_error^2), which saturates and leaves only a soft penalty as base_height_relative drops. This candidate changes exactly one component mechanism: the upright_height RewardTerm callable is replaced by upright_height_barrier. The new callable keeps the same exponential nominal stance reward and adds a quadratic barrier on (0.8 - base_height_relative) clamped at zero, multiplied by a bounded factor from downward world-frame base_lin_vel_scaled[2]. Every other reference RewardTerm, weight, and callable is preserved. The added barrier directly penalizes the observed pre-fall height collapse and downward motion while leaving nominal standing and mild crouch behavior unchanged.",
+      "public_boundary": {
+        "guard": "PASS",
+        "task_receipt": "PASS",
+        "private_literal_hits": 0,
+        "forbidden_private_objects": []
+      }
+    }
+  ],
+  "reference_feedback": {
+    "source_selection": "reference_current_best",
+    "score": 0.734375,
+    "episodes": 192,
+    "successes": 141,
+    "strata": {
+      "high": {
+        "episodes": 48,
+        "successes": 19
+      },
+      "low": {
+        "episodes": 48,
+        "successes": 48
+      },
+      "medium": {
+        "episodes": 48,
+        "successes": 47
+      },
+      "repeated": {
+        "episodes": 48,
+        "successes": 27
+      }
+    },
+    "failure_counts": {
+      "fall_backward": 11,
+      "fall_side": 13,
+      "height_collapse": 26,
+      "not_recovered": 1,
+      "success_recovered": 141
+    },
+    "counts_recomputed_from_A06_public_dev": true,
+    "anchor_source_checksum": "sha256:43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+    "prior_A03_A05_candidate_memory_imported": false
+  },
+  "sibling_isolation": {
+    "top_level_differences": [
+      "required_candidate_package",
+      "authoring_context_frame"
+    ],
+    "lane_B_exclusion": {
+      "schema_version": "true_rl_agent.single_component_semantic_exclusion.v1",
+      "operation": "rename",
+      "canonical_mechanism_delta": "RewardTerm:recovery_stance",
+      "component_kind": "RewardTerm",
+      "public_input_dependencies": [
+        "base_height_relative",
+        "pitch",
+        "roll"
+      ],
+      "parameter_normalized_semantic_signature": "a42eaf26e2e7157036b7c75f8d2c7ad2c0d534a12b3dbd70389e0c9b1191a8a7",
+      "instruction": "Propose one component mechanism whose normalized callable, input, and clip structure is substantively different from this exclusion; renaming or changing only numeric parameters is not distinct.",
+      "exclusion_hash": "f6d61338d438a64b5fa3adbf6e02dc09dbd4265fb120fc8defe53cf226bac848"
+    },
+    "exclusion_receipt_binding_verified": true,
+    "other_lane_candidate_id_source_body_or_source_hash_visible": false,
+    "same_public_reference_feedback_and_source": true
+  },
+  "mechanism_readback": {
+    "lane-a": "exp(-4*tilt) - 6*max(1-h,0)^2 - 0.5*max(h-1,0)^2, RewardTerm clipped [-4,1], weight 3 preserved.",
+    "lane-b": "Original stance exponential minus 4*max(0.8-h,0)^2*(1+min(max(-vz,0),2)); weight 3 preserved.",
+    "single_changed_term_each": true,
+    "pure_numeric_only_change": false,
+    "effectiveness": "Not established; formulas and authoring passage do not prove recovery improvement."
+  },
+  "public_boundaries": {
+    "distinct_private_paths_checked": 19,
+    "distinct_checkpoint_hashes_checked": 2,
+    "private_literal_hits": 0,
+    "accept_or_sealed_score_rows_visible": false,
+    "limitation": "Literal paths/hashes and structural checks against available A06 private evidence; not exhaustive enumeration of undisclosed numeric hidden seeds."
+  },
+  "memory_assessment": "Zero prior experiment rows, one authoritative source body per prompt. Repeat strings measured rather than made into a new gate; later generations needed to assess memory growth.",
+  "evidence_sha256": {
+    "session/session_genesis.json": "f106e800379935a820c446165d096d730dbe95c8bea13390f4e07b5086c07807",
+    "session/reference_eval_artifact.json": "946d829f98522fb85833ae9de2a2a67e3e5b5f241268a0730a18b2e56cf577e7",
+    "session/runner/go2-push-5rounds-20260923-a06/eval/public_accept/summary.json": "8418394d261741060c5a19d9db2f4435e53e45bf20744057bdbf9862aff380fa",
+    "session/runner/go2-push-5rounds-20260923-a06/eval/public_dev/summary.json": "d5dedac335a918447bcb2ba5a8da0f692f6955405b083bfe4fe6515a5ddfd2e8",
+    "session/runner/go2-push-5rounds-20260923-a06/eval/sealed_validation/summary.json": "361f047ce9aaed52a6af5405cc68e587058e1d2773e672a3c3b6578bf7e1cffe",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-001/lane-a/authoring_attempts/attempt_000001/prompt_payload.json": "5119dae9f796c40a30d2fdadc7b031428b345885c02d46185860784365239293",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-001/lane-a/authoring_attempts/attempt_000001/attempt_result.json": "383b6300ece784bea5e1ec4712544c4b99a7f8aa855ad22290150fd7aaff8cd9",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-001/lane-a/001_push_recovery_height_hinge_v4/training_code/components.py": "b2a7268b424ef41de85499c7a47897d9fc35e558b60cd63dbd8cd9d410d66068",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-001/lane-b/authoring_attempts/attempt_000001/prompt_payload.json": "0d2fd93ba22b9c23e95c077f28b99f063f13bea2b9aa68e1fa1cf2bd8070032d",
+    "session/authoring/go2-push-5rounds-20260923-a06-generation-001/lane-b/authoring_attempts/attempt_000001/attempt_result.json": "fc1072b3314a758e49c89e0eee31f6441e4d92a0217acf68357824af208fa1f1",
+    "session/provider_candidates/go2-push-5rounds-20260923-a06-generation-001/lane-b/001_push_standing_recovery_height_barrier_v1/training_code/components.py": "376785250b1dbfeb1c918c49ea37f3f24bf8b353279a14d25fe9b9f1667a36ae"
+  },
+  "findings": [],
+  "five_round_experiment_complete": false,
+  "audit_adaptation": "Initial audit-only probe expected sibling_semantic_exclusion; actual prompt contract calls it single_component_semantic_exclusion. Read the existing field and reran all checks; no product change."
+}
