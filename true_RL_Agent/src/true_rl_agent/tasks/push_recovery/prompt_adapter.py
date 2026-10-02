@@ -34,6 +34,7 @@ from true_rl_agent.tasks.push_recovery.config import PushRecoveryTaskConfig
 from true_rl_agent.tasks.push_recovery.exploration import public_dev_comparison, public_dev_parent_reference
 from true_rl_agent.tasks.push_recovery.reward_inputs import PushRecoveryV2RewardInputs
 from true_rl_agent.tasks.push_recovery.metrics import classify_push_prompt_failure
+from true_rl_agent.tasks.push_recovery.behavior import compare_push_behavior, project_push_behavior
 from true_rl_agent.tasks.push_recovery.reward_input_contract import (
     prompt_effective_reward_input_fields,
     public_push_signal_reward_input_fields,
@@ -566,10 +567,13 @@ def _v2_dev_summary(value: Any) -> dict[str, Any]:
                 target["successes"] += successes
     for stratum in strata.values():
         stratum["n_over_N"] = f"{stratum['successes']}/{stratum['episodes']}"
-    return {"score_stats": _score_stats_summary(split.get("score_stats")), "recovery_counts": counts,
+    result = {"score_stats": _score_stats_summary(split.get("score_stats")), "recovery_counts": counts,
         "stratum_results": strata,
         "failure_breakdown": {"counts": labels, "total": counts.get("episodes", sum(labels.values()))},
         "dominant_outcome": max(labels, key=labels.get) if labels and max(labels.values()) > 0 else "not_available"}
+    if isinstance(split.get("behavior"), Mapping):
+        result["behavior"] = project_push_behavior(split["behavior"])
+    return result
 
 
 def _v2_prompt_record(record: Mapping[str, Any]) -> dict[str, Any]:
@@ -616,6 +620,14 @@ def _v2_prompt_record(record: Mapping[str, Any]) -> dict[str, Any]:
             phase = _mapping(trial.get("public_dev"))
             if phase:
                 item["public_dev"] = {"public_summary": _v2_dev_summary(phase.get("public_summary"))}
+                behavior = item["public_dev"]["public_summary"].get("behavior")
+                # Consume trusted parent evidence before this task's compact
+                # history drops it. Reprojecting a view preserves the bound diff.
+                if behavior is not None and ("parent_current_best" in generation or "parent_public_dev" in generation):
+                    behavior["parent_diff"] = compare_push_behavior(behavior,
+                        _mapping(generation.get("parent_public_dev")).get("behavior"),
+                        expected_parent_checkpoint_hash=_mapping(generation.get("parent_current_best")).get("checkpoint_hash"))
+                    item["public_dev"]["public_summary"]["behavior"] = project_push_behavior(behavior)
             comparison = public_dev_comparison(generation, trial)
             item["prompt_outcome"] = {"runtime_effect": "not_assessed"}
             if comparison:
@@ -650,7 +662,12 @@ def _v2_feedback_summary(
             current_feedback = (_v2_trial_feedback("accepted_current_best", current)
                 if current is not None else _v2_reference_feedback(initial_anchor))
             if current_feedback.get("public_dev"):
+                if "behavior" in current_feedback["public_dev"]:
+                    current_feedback["public_dev"]["behavior"] = {"status": "omitted", "reason": "behavior_budget_reserved_for_selected_feedback_trial"}
                 feedback["current_best"] = current_feedback
+    dev = feedback.get("public_dev")
+    if isinstance(dev, dict) and "behavior" not in dev:
+        dev["behavior"] = {"status": "missing", "reason": "not_recorded_in_source_phase"}
     return {"schema_version": "true_rl_agent.public_feedback_summary.push_recovery.v2", **feedback}
 
 

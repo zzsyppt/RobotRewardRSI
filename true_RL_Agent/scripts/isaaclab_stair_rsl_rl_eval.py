@@ -38,6 +38,7 @@ from true_rl_agent.runner.specs import require_execution_device  # noqa: E402
 from true_rl_agent.tasks.stair_climbing.entrypoint_contract import (  # noqa: E402
     STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION,
     STAIR_EVAL_PURPOSE_FORMAL,
+    STAIR_EVAL_PURPOSE_PUBLIC_DEV_DIAGNOSTIC,
     StairEvalEntrypointContext,
     validate_stair_eval_invocation,
 )
@@ -97,11 +98,13 @@ def _build_parser(app_launcher_class: Any) -> argparse.ArgumentParser:
     parser.add_argument("--stair-final-plan", type=Path)
     parser.add_argument("--evaluation-plan-hash")
     parser.add_argument("--base-task-protocol-hash", default=None)
+    parser.add_argument("--diagnostic-cohort", default="v1")
     parser.add_argument(
         "--stair-eval-purpose",
         choices=(
             STAIR_EVAL_PURPOSE_FORMAL,
             STAIR_EVAL_PURPOSE_FINAL_CONFIRMATION,
+            STAIR_EVAL_PURPOSE_PUBLIC_DEV_DIAGNOSTIC,
         ),
         default=STAIR_EVAL_PURPOSE_FORMAL,
     )

@@ -1,0 +1,59 @@
+{
+  "schema_version": "feedback.p3new.stair_retrospective_cases.v1",
+  "purpose": "Fixed historical development cases; not confirmation selection or a new detector",
+  "visual_review": {
+    "reviewer": "Codex development subagent /root/n1n2_completion_audit",
+    "date": "2026-09-29",
+    "method": "Read all three existing grids with view_image; reviewed displayed samples only, not complete movies",
+    "independent_confirmation": false,
+    "limitations": "Historical equalized/resized grids; native details, exact body-ground clearance and continuous motion are not established"
+  },
+  "historical_description_source": "PLAN/feedback_sys/P3/human_review_20260924/REVIEWER_GUIDE.md",
+  "cases": [
+    {
+      "case_id": "stair-historical-rollover",
+      "episode_id": "r1.e64",
+      "slot": 64,
+      "original_names": ["后翻", "rear-up then roll-over"],
+      "normalized_name": "采样画面中躯干由倾斜转为倒置",
+      "image": "PLAN/feedback_sys/P3/review_video_20260924/g64_r1_zoom.png",
+      "recordings": "PLAN/feedback_sys/P3/review_video_20260924/slot64_recordings.json",
+      "shown_steps": [360, 380, 390, 398, 405, 410, 414, 418, 421, 423, 424, 425],
+      "observation_steps": [390, 398, 405, 410, 414, 418, 421, 423, 424, 425],
+      "visible_description": "390–414的显示样本中躯干倾斜逐渐改变，418–425的显示样本中躯干倒置、腿朝上。",
+      "not_established": ["完整连续翻转轨迹", "绕身体哪根轴的精确角位移", "背部受力或接触面", "失败原因"],
+      "known_numeric_relation": "tilt与up_z<0支持测量级姿态变化，不单独定义或证明后翻；当前同域成功对照少于3，残差必须保留comparison_missing。",
+      "promotion_disposition": "retain_visual_candidate; no numeric rollover definition or promotion"
+    },
+    {
+      "case_id": "stair-historical-belly-sag",
+      "episode_id": "r1.e156",
+      "slot": 156,
+      "original_names": ["腹部下沉", "belly sag"],
+      "normalized_name": "采样画面中低躯干姿态伴腿形变化",
+      "image": "PLAN/feedback_sys/P3/review_video_20260924/g156_r1_zoom.png",
+      "recordings": "PLAN/feedback_sys/P3/review_video_20260924/slot156_recordings.json",
+      "shown_steps": [170, 185, 195, 205, 212, 218, 222, 225, 227, 229, 230, 231],
+      "observation_steps": [170, 185, 195, 205, 212, 218, 222, 225, 227, 229, 230, 231],
+      "visible_description": "显示样本中躯干较低，腿的屈伸轮廓改变；最后数格仍为低姿。",
+      "not_established": ["腹部离台阶的精确高度或下沉幅度", "腹部实际接触台沿", "接触力与首次碰撞时刻", "失败原因"],
+      "known_numeric_relation": "旧slip_any命中只表示受载参考点运动；当前四项签名为空、同域6成功中4个也为空，实际规则阴性。禁触终局不能补造腹部接触几何。",
+      "promotion_disposition": "retain_visual_candidate; surface-relative belly geometry and synchronized provenance unavailable"
+    },
+    {
+      "case_id": "stair-historical-freeze",
+      "episode_id": "r1.e55",
+      "slot": 55,
+      "original_names": ["冻结跨立", "freeze"],
+      "normalized_name": "后段离散样本中躯干与腿形近似重复",
+      "image": "PLAN/feedback_sys/P3/review_video_20260924/g55_r1_eq.png",
+      "recordings": "PLAN/feedback_sys/P3/review_video_20260924/slot55_recordings.json",
+      "shown_steps": [40, 60, 75, 90, 105, 130, 180, 250, 330, 410, 500, 587],
+      "observation_steps": [180, 250, 330, 410, 500, 587],
+      "visible_description": "180、250、330、410、500、587步的显示格中，躯干与腿形近似重复；早段形态不同。",
+      "not_established": ["未显示间隔内连续冻结", "控制器冻结", "全身或所有关节静止", "逐脚具体支撑面或无打滑"],
+      "known_numeric_relation": "旧low_progress已命中；当前加入RR_foot同体无载低运动且规则阳性。root低进展和单脚低运动不能扩大为全身冻结。",
+      "promotion_disposition": "retain_visual_candidate; existing measurable terms retained, no whole-body freeze detector"
+    }
+  ]
+}

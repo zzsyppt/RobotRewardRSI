@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import copy
+import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -67,6 +69,35 @@ def _base_sections(feedback: dict) -> dict:
 
 
 class PromptCapacityReceiptTests(unittest.TestCase):
+    def test_minimum_core_receipt_stays_bound_through_failed_source_repair(self) -> None:
+        from tests.unit.test_candidate_authoring_loop import _write_candidate_package
+        from true_rl_agent.agent_core.openai_compatible_provider import (
+            OpenAICompatibleCandidateProvider, OpenAICompatibleProviderConfig,
+        )
+        from true_rl_agent.prompting.source_catalog import build_prompt_source_context
+        original = _base_sections({"status": "available", "latest_public_score": 0.5})
+        task_views = (
+            _minimum_core_push_prompt_sections(original),
+            _minimum_core_stair_prompt_sections(original, target_bytes=56 * 1024),
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            failed = _write_candidate_package(Path(directory), "failed-minimum-core",
+                "def reward(inp):\n    return inp.base_height\n")
+            provider = OpenAICompatibleCandidateProvider(OpenAICompatibleProviderConfig(
+                model="offline", output_dir=Path(directory) / "provider"))
+            for sections in task_views:
+                context = build_prompt_source_context([], latest_failed_candidate=failed)
+                context.update(task_prompt_sections=sections,
+                    candidate_repair_feedback={"failure_category": "verifier_error"})
+                payload = build_prompt_payload(public_context=context)
+                text = provider._chat_completion_request(payload)["messages"][1]["content"]
+                delivered = json.loads(text)
+                self.assertEqual(provider_task_prompt_sections(delivered), sections)
+                self.assertNotIn("public_history", delivered)
+                budget = delivered["authoring_context_frame"]["budget_metadata"]
+                self.assertEqual(budget["actual_prompt_payload_bytes"], len(text.encode()))
+                validate_provider_task_prompt_receipt(budget["provider_task_sections"], prompt_payload=delivered)
+
     def test_receipt_binds_visible_projection_and_is_deterministic(self) -> None:
         original = _base_sections(
             {"status": "available", "feedback_entries": [{"round_id": "r1"}]}

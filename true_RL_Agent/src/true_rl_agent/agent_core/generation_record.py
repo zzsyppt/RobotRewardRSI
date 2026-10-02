@@ -668,13 +668,13 @@ def project_generation_public_history_record(
         "guard_reference": guard_reference,
         "formal": _public_copy(record["formal"]),
     }
-    if (guard_reference is None
-            and any(trial.get("public_dev") is not None for trial in public_trials)):
+    if any(trial.get("public_dev") is not None for trial in public_trials):
         if phased_evaluation_adapter is None:
             raise ValueError("generation parent public-dev projection requires the phased evaluation adapter")
-        # Selection may never start after a sibling failure. Its absence does
-        # not erase the measured parent's public phase. Carry task-owned data;
-        # the generation layer does not derive objective or guard scores.
+        # Selection screens carry only selection statistics. Preserve the
+        # bound parent's task evidence as well, so a task can compare behavior
+        # with its actual parent whether or not selection was reached.
+        # The generation layer does not interpret that evidence.
         guard_ref = _find_guard_phase_receipt(record.get("private_artifacts"))
         manifest = load_bound_generation_manifest(record)
         if canonical_json_hash(guard_ref.to_dict()) != manifest.guard_reference_phase_receipt_hash:

@@ -10,7 +10,7 @@ from collections.abc import Mapping
 from contextlib import nullcontext
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, Protocol, TypeVar
 
 from true_rl_agent.agent_core.public_safety import (
     redact_secret_key_markers,
@@ -168,6 +168,10 @@ AttemptAdmissionHook = Callable[
 EvalCheckpointAdmissionHook = Callable[
     [CheckpointRef, ResolvedCellManifestV1, tuple[str, ...]], None
 ]
+class EvalPhaseSummaryFinalizer(Protocol):
+    def __call__(
+        self, eval_spec: EvalPhaseJobSpec, summary: Mapping[str, Any], *, output_dir: Path,
+    ) -> Mapping[str, Any]: ...
 
 
 @dataclass(frozen=True)
@@ -185,6 +189,9 @@ class SubprocessRunner(Runner):
         compare=False,
     )
     eval_checkpoint_admission_hook: EvalCheckpointAdmissionHook | None = field(
+        default=None, repr=False, compare=False,
+    )
+    eval_phase_summary_finalizer: EvalPhaseSummaryFinalizer | None = field(
         default=None, repr=False, compare=False,
     )
 
@@ -218,6 +225,10 @@ class SubprocessRunner(Runner):
             self.eval_checkpoint_admission_hook
         ):
             raise TypeError("eval_checkpoint_admission_hook must be callable when provided")
+        if self.eval_phase_summary_finalizer is not None and not callable(
+            self.eval_phase_summary_finalizer
+        ):
+            raise TypeError("eval_phase_summary_finalizer must be callable when provided")
 
     def run_train(self, train_spec: TrainJobSpec) -> TrainJobResult:
         return self._execute_with_attempts(
@@ -476,11 +487,17 @@ class SubprocessRunner(Runner):
                     execution_context=execution_context,
                 )
             ),
-            recover_completed=lambda execution_context: self._run_evaluation_phase(
+            finalize=lambda completion: self._complete_evaluation_phase(
+                eval_spec, completion,
+            ),
+            recover_completed=lambda execution_context: self._complete_evaluation_phase(
                 eval_spec,
-                process_log_dir=None,
-                reuse_existing_summary=True,
-                execution_context=execution_context,
+                self._run_evaluation_phase(
+                    eval_spec,
+                    process_log_dir=None,
+                    reuse_existing_summary=True,
+                    execution_context=execution_context,
+                ),
             ),
         )
 
@@ -718,7 +735,7 @@ class SubprocessRunner(Runner):
         attempt_timeout_s: int | None = None,
         reuse_existing_summary: bool = False,
         execution_context: _GpuJobExecutionContext | None = None,
-    ) -> EvaluationPhaseResult:
+    ) -> _SummaryJobCompletion:
         try:
             checkpoint = eval_spec.execution_checkpoint()
         except (TypeError, ValueError) as exc:
@@ -745,15 +762,60 @@ class SubprocessRunner(Runner):
             attempt_timeout_s=attempt_timeout_s,
             reuse_existing_summary=reuse_existing_summary,
             execution_context=execution_context,
+            allow_postprocessing=(
+                not reuse_existing_summary
+                and self.eval_phase_summary_finalizer is not None
+            ),
         )
         summary = completion.summary
         self._validate_backend_execution_environment_summary(summary, eval_spec)
         self._validate_execution_device_summary(summary, eval_spec)
         self._validate_eval_protocol_binding(summary, eval_spec)
+        return completion
+
+    def _complete_evaluation_phase(
+        self,
+        eval_spec: EvalPhaseJobSpec,
+        completion: _SummaryJobCompletion,
+    ) -> EvaluationPhaseResult:
+        """Finalize task CPU evidence after process exit and lease release.
+
+        A handoff summary is never an EvaluationPhaseResult. Completed historical
+        summaries are replayed without re-analysis or attachment access.
+        """
+        summary = completion.summary
+        if completion.status == "postprocessing":
+            finalizer = self.eval_phase_summary_finalizer
+            if finalizer is None:
+                raise RunnerExecutionError("eval phase requires a summary finalizer")
+            try:
+                path = self._summary_path(eval_spec.metadata, job_id=eval_spec.job_id)
+                summary = dict(finalizer(eval_spec, summary, output_dir=path.parent))
+                validate_job_summary_identity(
+                    summary, expected=eval_spec.job_identity(),
+                    summary_name="finalized eval phase summary",
+                )
+                self._validate_eval_protocol_binding(summary, eval_spec)
+                result = self._phase_result_from_summary(
+                    summary, eval_spec=eval_spec,
+                    expected_checkpoint_hash=eval_spec.execution_checkpoint().checksum,
+                    actual_gpu_process_binding=completion.gpu_process_binding,
+                )
+                temporary = path.with_name(path.name + ".finalizing")
+                temporary.write_bytes(canonical_json_bytes(summary) + b"\n")
+                temporary.replace(path)
+                return result
+            except Exception as exc:
+                # Retrying CPU evidence must never replay an already completed
+                # rollout under the infrastructure retry policy.
+                raise RunnerExecutionError(
+                    f"{eval_spec.job_id}: eval phase finalization failed: {exc}",
+                    failure_kind=RunnerFailureKind.SUMMARY_INVALID,
+                ) from exc
         return self._phase_result_from_summary(
             summary,
             eval_spec=eval_spec,
-            expected_checkpoint_hash=checkpoint.checksum,
+            expected_checkpoint_hash=eval_spec.execution_checkpoint().checksum,
             actual_gpu_process_binding=completion.gpu_process_binding,
         )
 
@@ -764,8 +826,9 @@ class SubprocessRunner(Runner):
         job_kind: str,
         operation: Callable[
             [Path | None, _GpuJobExecutionContext | None, int],
-            _ExecutionResultT,
+            Any,
         ],
+        finalize: Callable[[Any], _ExecutionResultT] | None = None,
         recover_completed: Callable[
             [_GpuJobExecutionContext | None],
             _ExecutionResultT,
@@ -780,7 +843,8 @@ class SubprocessRunner(Runner):
                     f"{spec.job_id}: GPU process binding requires an attempt scope",
                     failure_kind=RunnerFailureKind.CONTRACT_INVALID,
                 )
-            return operation(None, None, self.timeout_s)
+            result = operation(None, None, self.timeout_s)
+            return finalize(result) if finalize is not None else result
         if not isinstance(scope, JobAttemptExecutionScope):
             raise TypeError("job attempt scope is invalid")
 
@@ -998,12 +1062,22 @@ class SubprocessRunner(Runner):
                     if resource_binding_hash is not None
                     else None
                 )
+                lease_wall_duration_ns = None
                 try:
                     result = operation(
                         log_dir,
                         execution_context,
                         attempt_timeout_s,
                     )
+                    if finalize is not None:
+                        if resource_binding_hash is not None:
+                            # The owned process has exited. Release the same
+                            # lease before task CPU work, not merely its timer.
+                            lease_context.release()
+                            lease_wall_duration_ns = self._resource_lease_wall_duration_ns(
+                                lease_wall_started_ns
+                            )
+                        result = finalize(result)
                 except CandidateRuntimeError as exc:
                     journal.finish(
                         reservation,
@@ -1013,7 +1087,8 @@ class SubprocessRunner(Runner):
                         output_hash=None,
                         returncode=None,
                         resource_lease_wall_duration_ns=(
-                            self._resource_lease_wall_duration_ns(lease_wall_started_ns)
+                            lease_wall_duration_ns if lease_wall_duration_ns is not None
+                            else self._resource_lease_wall_duration_ns(lease_wall_started_ns)
                         ),
                     )
                     raise
@@ -1031,7 +1106,8 @@ class SubprocessRunner(Runner):
                         output_hash=None,
                         returncode=None,
                         resource_lease_wall_duration_ns=(
-                            self._resource_lease_wall_duration_ns(lease_wall_started_ns)
+                            lease_wall_duration_ns if lease_wall_duration_ns is not None
+                            else self._resource_lease_wall_duration_ns(lease_wall_started_ns)
                         ),
                     )
                     if retryable:
@@ -1046,7 +1122,8 @@ class SubprocessRunner(Runner):
                         output_hash=None,
                         returncode=None,
                         resource_lease_wall_duration_ns=(
-                            self._resource_lease_wall_duration_ns(lease_wall_started_ns)
+                            lease_wall_duration_ns if lease_wall_duration_ns is not None
+                            else self._resource_lease_wall_duration_ns(lease_wall_started_ns)
                         ),
                     )
                     raise
@@ -1059,7 +1136,8 @@ class SubprocessRunner(Runner):
                         output_hash=None,
                         returncode=None,
                         resource_lease_wall_duration_ns=(
-                            self._resource_lease_wall_duration_ns(lease_wall_started_ns)
+                            lease_wall_duration_ns if lease_wall_duration_ns is not None
+                            else self._resource_lease_wall_duration_ns(lease_wall_started_ns)
                         ),
                     )
                     raise
@@ -1076,7 +1154,8 @@ class SubprocessRunner(Runner):
                     output_hash=self._attempt_output_hash(result),
                     returncode=None,
                     resource_lease_wall_duration_ns=(
-                        self._resource_lease_wall_duration_ns(lease_wall_started_ns)
+                        lease_wall_duration_ns if lease_wall_duration_ns is not None
+                        else self._resource_lease_wall_duration_ns(lease_wall_started_ns)
                     ),
                 )
                 return result
@@ -1256,6 +1335,7 @@ class SubprocessRunner(Runner):
         reuse_existing_summary: bool = False,
         execution_context: _GpuJobExecutionContext | None = None,
         reused_gpu_process_binding: GpuProcessBinding | None = None,
+        allow_postprocessing: bool = False,
     ) -> _SummaryJobCompletion:
         """Interpret process exit and a fresh structured summary as one contract."""
 
@@ -1347,9 +1427,13 @@ class SubprocessRunner(Runner):
                 argv=argv,
                 job_id=identity.job_id,
             )
-            status = validate_result_status(
-                summary.get("status"),
-                field_name=f"{summary_name} status",
+            status = (
+                "postprocessing"
+                if allow_postprocessing and summary.get("status") == "postprocessing"
+                else validate_result_status(
+                    summary.get("status"),
+                    field_name=f"{summary_name} status",
+                )
             )
             actual_gpu_process_binding = (
                 self._validated_gpu_process_binding_from_summary(

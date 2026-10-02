@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, fields, replace
+from functools import partial
 from pathlib import Path, PurePosixPath
 from typing import Any, Mapping
 
@@ -51,6 +52,7 @@ from true_rl_agent.tasks.stair_climbing.checkpoint_ancestry import (
 )
 from true_rl_agent.tasks.stair_climbing.generation_finalization import read_stair_final_plan
 from true_rl_agent.tasks.stair_climbing.memory import StairTaskMemoryAdapter
+from true_rl_agent.tasks.stair_climbing.phased_evaluation import finalize_stair_eval_phase_summary
 from true_rl_agent.tasks.stair_climbing.plugin import StairClimbingTaskPlugin
 from true_rl_agent.tasks.stair_climbing.robot_binding import resolve_stair_cell_manifest
 from true_rl_agent.tasks.stair_climbing.row_catalog import (
@@ -518,6 +520,10 @@ class StairClimbingCompositionProvider(TaskCompositionProvider):
                 cwd=context.project_root,
                 eval_checkpoint_admission_hook=(
                     build_stair_checkpoint_ancestry_admission(task_config, resolved_cell_manifest)
+                    if task_config.is_unified_protocol else None
+                ),
+                eval_phase_summary_finalizer=(
+                    partial(finalize_stair_eval_phase_summary, config=task_config)
                     if task_config.is_unified_protocol else None
                 ),
             ),

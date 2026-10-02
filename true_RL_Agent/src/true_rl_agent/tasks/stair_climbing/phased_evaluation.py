@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from copy import deepcopy
+from pathlib import Path
+import time
 from typing import Any
 
 from true_rl_agent.evaluation.binding import canonical_json_hash
@@ -24,7 +27,7 @@ from true_rl_agent.evaluation.sealed_validation import (
 from true_rl_agent.runner.checkpoint import validate_checkpoint_safety_report
 from true_rl_agent.runner.eval_isolation import build_candidate_isolation_gate
 from true_rl_agent.runner.job_identity import JobIdentity
-from true_rl_agent.runner.specs import EvalJobSpec
+from true_rl_agent.runner.specs import EvalJobSpec, EvalPhaseJobSpec
 from true_rl_agent.tasks.stair_climbing.config import (
     STAIR_TASK_ID,
     StairClimbingTaskConfig,
@@ -77,7 +80,7 @@ def build_stair_eval_phase_summary(
     checkpoint_safety_report: Mapping[str, Any],
     expected_seed_namespace: str = STAIR_FORMAL_EVAL_NAMESPACE,
 ) -> dict[str, Any]:
-    """Build the private subprocess summary for exactly one Stair split."""
+    """Bind rollout evidence; expensive CPU behavior waits for GPU release."""
 
     phase = EvaluationPhase.parse(phase)
     if set(execution.summaries) != {phase.value}:
@@ -122,7 +125,11 @@ def build_stair_eval_phase_summary(
            if execution.checkpoint_loading is not None else {}),
         **({"constructed_learner": dict(execution.constructed_learner)}
            if execution.constructed_learner is not None else {}),
-        "status": "pass",
+        "status": (
+            "postprocessing"
+            if execution.numeric_evidence is not None and config.is_unified_protocol
+            else "pass"
+        ),
         "task_evidence": task_evidence,
         "task_evidence_hash": canonical_json_hash(task_evidence),
         "checkpoint_safety_report": dict(checkpoint_safety_report),
@@ -132,6 +139,70 @@ def build_stair_eval_phase_summary(
         "candidate_path_argument_present": False,
         "errors": [],
     }
+
+
+def finalize_stair_eval_phase_summary(
+    eval_spec: EvalPhaseJobSpec,
+    summary: Mapping[str, Any],
+    *,
+    config: StairClimbingTaskConfig,
+    output_dir: Path,
+) -> dict[str, Any]:
+    """Complete the single production behavior derivation on the CPU host.
+
+    The runner invokes this only after its owned process exits and its GPU lease
+    is released. Historical completed summaries are not re-analyzed.
+    """
+    from true_rl_agent.runner.numeric_evidence import load_numeric_evidence_manifest
+    from true_rl_agent.tasks.stair_climbing.behavior import (
+        project_stair_behavior,
+    )
+    from true_rl_agent.tasks.stair_climbing.process_report import build_stair_process_behavior
+
+    if summary.get("status") != "postprocessing":
+        raise ValueError("Stair finalization requires an unfinished rollout summary")
+    if not config.is_unified_protocol or eval_spec.phase is not EvaluationPhase.PUBLIC_DEV:
+        raise ValueError("Stair behavior finalization requires unified public-dev")
+    finalized = deepcopy(dict(summary))
+    evidence = finalized["task_evidence"]
+    reference = evidence["numeric_evidence"]
+    expected = {
+        **eval_spec.job_identity().to_public_dict(),
+        "checkpoint_hash": eval_spec.execution_checkpoint().checksum,
+        "evaluation_plan_hash": eval_spec.evaluation_plan_hash,
+        "evaluation_binding": eval_spec.evaluation_binding.to_public_dict(),
+        "seed_namespace": evidence["execution_identity"]["seed_namespace"],
+        "splits": [eval_spec.phase.value],
+        "environment_source_preflight": finalized["environment_source_preflight"],
+        "backend_execution_environment_verification": finalized[
+            "backend_execution_environment_verification"
+        ],
+    }
+    wall_started = time.perf_counter()
+    cpu_started = time.process_time()
+    archive = load_numeric_evidence_manifest(reference)
+    if archive["metadata"].get("summary") != evidence["summary"]:
+        raise ValueError("Stair numeric evidence summary binding mismatch")
+    full = build_stair_process_behavior(reference, expected_identity=expected)
+    evidence["behavior"] = project_stair_behavior(full)
+    from true_rl_agent.json_contract import canonical_json_bytes
+    from true_rl_agent.runner.checkpoint import file_sha256
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    path = output_dir / "behavior_full.json"
+    temporary = output_dir / "behavior_full.json.finalizing"
+    if path.is_symlink() or temporary.is_symlink():
+        raise ValueError("Stair full behavior output must not be a symlink")
+    temporary.write_bytes(canonical_json_bytes(full) + b"\n")
+    temporary.replace(path)
+    evidence["behavior_full"] = {"schema_version": "true_rl_agent.process_full_ref.v1",
+        "file": path.name, "sha256": file_sha256(path).removeprefix("sha256:"), "size_bytes": path.stat().st_size}
+    split_cost = finalized["evaluation_execution_cost"]["splits"][eval_spec.phase.value]
+    split_cost["postprocessing_wall_time_s"] = time.perf_counter() - wall_started
+    split_cost["postprocessing_cpu_time_s"] = time.process_time() - cpu_started
+    finalized["task_evidence_hash"] = canonical_json_hash(evidence)
+    finalized["status"] = "pass"
+    return finalized
 
 
 def build_stair_phase_task_evidence(
@@ -410,6 +481,9 @@ def _validated_complete_phase_summary(
         sealed_summary=canonical[EvaluationPhase.SEALED_VALIDATION],
         objective_family_mask=objective_family_mask,
     )
+    if "behavior" in first.task_evidence:
+        from true_rl_agent.tasks.stair_climbing.behavior import project_stair_behavior
+        summary["metrics"]["behavior"] = project_stair_behavior(first.task_evidence["behavior"])
     return by_phase, summary
 
 
@@ -709,7 +783,7 @@ def canonical_stair_phase_result_summary(
 ) -> dict[str, Any]:
     evidence = result.task_evidence
     required_fields = {"schema_version", "phase", "execution_identity", "summary"}
-    if set(evidence) not in (required_fields, required_fields | {"numeric_evidence"}):
+    if not required_fields.issubset(evidence) or set(evidence) - required_fields - {"numeric_evidence", "behavior", "behavior_full"}:
         raise ValueError("Stair phase task evidence fields mismatch")
     if (
         evidence.get("schema_version") != STAIR_PHASE_EVIDENCE_SCHEMA_VERSION
@@ -726,6 +800,26 @@ def canonical_stair_phase_result_summary(
         validate_numeric_evidence_reference(evidence["numeric_evidence"])
     if not isinstance(execution_identity, Mapping):
         raise ValueError("Stair phase execution identity is invalid")
+    if "behavior" in evidence:
+        from true_rl_agent.tasks.stair_climbing.behavior import project_stair_behavior
+        if expected_phase is not EvaluationPhase.PUBLIC_DEV or "numeric_evidence" not in evidence:
+            raise ValueError("Stair behavior requires public_dev numeric evidence")
+        behavior = project_stair_behavior(evidence["behavior"])
+        if (behavior["domain"]["checkpoint_hash"] != result.checkpoint_hash
+                or behavior["domain"]["archive_hash"] != evidence["numeric_evidence"]["manifest_sha256"]
+                or behavior["domain"]["task_protocol_hash"] != config.evaluation_semantics.to_dict()["task_protocol_hash"]):
+            raise ValueError("Stair behavior phase binding mismatch")
+    if "behavior_full" in evidence:
+        reference = evidence["behavior_full"]
+        if ("behavior" not in evidence or not isinstance(reference, Mapping)
+                or set(reference) != {"schema_version", "file", "sha256", "size_bytes"}
+                or reference["schema_version"] != "true_rl_agent.process_full_ref.v1"
+                or reference["file"] != "behavior_full.json"
+                or not isinstance(reference["sha256"], str) or len(reference["sha256"]) != 64
+                or any(c not in "0123456789abcdef" for c in reference["sha256"])
+                or type(reference["size_bytes"]) is not int or reference["size_bytes"] <= 0
+                or behavior["schema_version"] != "true_rl_agent.stair.behavior.public.v4"):
+            raise ValueError("Stair full behavior reference mismatch")
     expected_splits = [expected_phase.value]
     if (
         execution_identity.get("checkpoint_hash") != result.checkpoint_hash
@@ -811,4 +905,5 @@ __all__ = [
     "build_stair_full_eval_summary",
     "build_stair_phase_task_evidence",
     "canonical_stair_phase_result_summary",
+    "finalize_stair_eval_phase_summary",
 ]

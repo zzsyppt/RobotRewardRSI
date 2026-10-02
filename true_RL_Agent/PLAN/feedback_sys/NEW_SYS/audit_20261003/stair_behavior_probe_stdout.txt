@@ -1,0 +1,80 @@
+episodes 864 {'forbidden_contact': 125, 'success': 682, 'timeout': 39, 'slip': 1, 'base_orientation_instability': 16, 'off_course': 1}
+
+A. successful episodes (682, 229344 steps), feet FL FR RL RR
+   duty_stairs                        [0.715, 0.728, 0.382, 0.611]
+   duty_flat                          [0.665, 0.691, 0.579, 0.586]
+   impulse_share                      [0.301, 0.27, 0.153, 0.276]
+   hind_left_lowest_duty_share        1.0
+   hind_left_duty_below_half_share    0.9912023460410557
+   modes                              {'1101': 0.397, '1111': 0.148, '0010': 0.114, '0000': 0.095, '1110': 0.075, '1100': 0.052}
+   flight                             0.095
+   agreement                          {'FL-FR': 0.91, 'FL-RL': 0.37, 'FL-RR': 0.8, 'FR-RL': 0.39, 'FR-RR': 0.79, 'RL-RR': 0.34}
+   touchdown_period_s                 [0.54, 0.54, 0.5, 0.42]
+   touchdown_phase_vs_FL              {'FR': [0.97, 0.87], 'RL': [0.79, 0.86], 'RR': [0.08, 0.81]}
+   swing_s_q25_50_75                  [0.1, 0.14, 0.22]
+   swing_shorter_than_quarter_second  0.842
+   foot_forward_of_trunk_m            [0.17, 0.19, -0.4, -0.22]
+   foot_left_of_trunk_m               [0.17, -0.22, 0.07, -0.01]
+   heading_deg_q10_50_90              [0.3, 7.2, 16.7]
+
+B. time-outs and single-foot unloaded runs
+   timeouts_last_3s                     {'still advancing': 5, 'stepping without progress': 3, 'standing, one hind foot unloaded': 15, 'standing on four feet': 15, 'standing, one front foot unloaded': 1}
+   upright_single_foot_unloaded_ge_1s   {'forbidden_contact': '7/125', 'success': '3/682', 'timeout': '22/39', 'slip': '0/1', 'base_orientation_instability': '2/16', 'off_course': '0/1'}
+   upright_single_foot_unloaded_ge_2s   {'forbidden_contact': '0/125', 'success': '0/682', 'timeout': '18/39', 'slip': '0/1', 'base_orientation_instability': '0/16', 'off_course': '0/1'}
+   ge_2s_runs                           {'n': 18, 'hind': 17, 'median_dur_s': 8.69, 'last_until_end': 15, 'foot_at_surface': 17, 'foot_slow': 17, 'no_progress': 16, 'others_not_stepping': 16, 'front_on_first_step_hind_on_ground': 17}
+
+C. weight-support accounting
+   weight_proxy_N                           150.9
+   mean_foot_vertical_force_by_stratum_N    {'c0_id': 150.9, 'c1_conditional_frontier': 154.4, 'c1_id': 153.8, 'c2_mechanism_ood': 107.8, 'height_ood': 140.9, 'joint_ood': 136.0, 'phase_composition_ood': 157.4, 'tread_ood': 150.8}
+   static_last_5s_episodes                  32
+   static_feet_share_below_0p7              [(1, 123, 'c2_mechanism_ood', 0.61, 0.0, 4), (1, 134, 'c2_mechanism_ood', 0.49, 0.0, 4), (2, 190, 'joint_ood', 0.64, 0.0, 3), (2, 126, 'c2_mechanism_ood', 0.5, 0.0, 4), (2, 128, 'c2_mechanism_ood', 0.56, 0.0, 4)]
+   static_feet_share_quantiles_rest         [1.03, 1.09, 1.13]
+
+D. regime timeline (every step labelled, no model call)
+   regimes_per_episode    {'success_median': 1.0, 'success_q90': 1.0, 'failure_median': 3.0, 'failure_q90': 5.0}
+   time_share             {'failure': {'stepping and advancing': 0.578, 'stepping without advancing': 0.121, 'standing, one foot unloaded': 0.105, 'tipped over': 0.084, 'standing on four feet': 0.081, 'unclassified': 0.031}, 'success': {'stepping and advancing': 0.992, 'stepping without advancing': 0.007, 'unclassified': 0.0}}
+   r2.e68 [c1_conditional_frontier, forbidden_contact, 10.5 s, progress 2.57/4.35 m]
+        0.0-  1.8 s  stepping and advancing         progress +0.05 -> +1.06 m; feet carry 1.01 of weight; upright min 0.81
+        1.8-  3.8 s  stepping without advancing     progress +1.05 -> +0.91 m; feet carry 0.94 of weight; upright min 0.75
+        3.8-  8.1 s  stepping and advancing         progress +0.91 -> +3.11 m; feet carry 0.95 of weight; upright min 0.69
+        8.1- 10.1 s  stepping without advancing     progress +3.11 -> +3.03 m; feet carry 1.01 of weight; upright min 0.59
+       10.1- 10.5 s  tipped over                    progress +3.01 -> +2.57 m; feet carry 0.10 of weight; upright min -0.86
+   r1.e129 [c2_mechanism_ood, forbidden_contact, 7.1 s, progress 3.89/4.35 m]
+        0.0-  7.1 s  stepping and advancing         progress +0.03 -> +3.89 m; feet carry 0.64 of weight; upright min 0.89
+   r1.e204 [joint_ood, timeout, 10.9 s, progress 0.82/4.35 m]
+        0.0-  1.7 s  stepping and advancing         progress -0.04 -> +0.80 m; feet carry 1.12 of weight; upright min 0.86
+        1.7-  2.8 s  stepping without advancing     progress +0.80 -> +0.82 m; feet carry 1.12 of weight; upright min 0.87
+        2.8-  3.4 s  unclassified                   progress +0.82 -> +0.82 m; feet carry 1.11 of weight; upright min 0.91
+        3.4- 10.9 s  standing, RR foot unloaded     progress +0.82 -> +0.82 m; feet carry 1.13 of weight; upright min 0.91
+   r1.e134 [c2_mechanism_ood, timeout, 12.0 s, progress 2.44/4.35 m]
+        0.0-  4.5 s  stepping and advancing         progress +0.04 -> +2.47 m; feet carry 0.69 of weight; upright min 0.87
+        4.5-  4.9 s  stepping without advancing     progress +2.47 -> +2.46 m; feet carry 0.61 of weight; upright min 0.88
+        4.9- 12.0 s  standing on four feet          progress +2.46 -> +2.44 m; feet carry 0.50 of weight; upright min 0.87
+
+E. descriptor checks tied to reward logic
+   touchdowns                                       42325
+   air_time_s_median                                0.14
+   air_time_ge_half_second_share                    0.007867690490253987
+   mean_air_minus_threshold_s                       -0.34008836385115176
+   calf_at_extension_limit_share_success_stairs     [0.0, 0.0, 0.74, 0.03]
+   calf_at_extension_limit_share_success_flat       [0.0, 0.0, 0.28, 0.0]
+   calf_at_extension_limit_share_timeouts_last3s    [0.0, 0.09, 1.0, 1.0]
+   timeouts_with_a_hind_calf_at_limit_over_90pct    34/39
+
+F. time-outs: where x what (last 3 s)
+   15  front feet on step 1, hind feet on ground  three feet loaded, one hind foot unloaded
+    8  front feet on step 1, hind feet on ground  four feet loaded, no stepping
+    7  rough-surface cell, mid-stairs             four feet loaded, no stepping
+    5  still advancing                            -
+    3  front feet on step 1, hind feet on ground  stepping in place
+    1  elsewhere                                  three feet loaded, one front foot unloaded
+   still advancing, foot levels at the end: [[8, 8, 6, 7], [8, 8, 7, 8], [8, 8, 7, 8], [7, 7, 6, 6], [8, 8, 6, 7]]
+   not at the first step: (run, env, stratum, foot levels, form, feet share of weight, max base force N)
+       (1, 123, 'c2_mechanism_ood', [6, 6, 5, 5], 'four feet loaded, no stepping', 0.61, 0.0)
+       (1, 132, 'c2_mechanism_ood', [5, 6, 4, 4], 'four feet loaded, no stepping', 0.91, 0.0)
+       (1, 134, 'c2_mechanism_ood', [5, 5, 4, 4], 'four feet loaded, no stepping', 0.49, 0.0)
+       (1, 141, 'c2_mechanism_ood', [7, 7, 6, 6], 'four feet loaded, no stepping', 0.55, 0.0)
+       (2, 190, 'joint_ood', [2, 1, 1, 1], 'three feet loaded, one front foot unloaded', 0.64, 0.0)
+       (2, 115, 'c2_mechanism_ood', [6, 6, 5, 5], 'four feet loaded, no stepping', 0.96, 0.0)
+       (2, 126, 'c2_mechanism_ood', [5, 5, 4, 4], 'four feet loaded, no stepping', 0.5, 0.0)
+       (2, 128, 'c2_mechanism_ood', [3, 3, 2, 2], 'four feet loaded, no stepping', 0.56, 0.0)

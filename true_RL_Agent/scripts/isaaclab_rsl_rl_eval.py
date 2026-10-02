@@ -343,9 +343,9 @@ def main() -> int:
                 native_video.configure_viewer(env_cfg)
             base_env = make_physical_push_environment(env_cfg, render_mode="rgb_array" if native_video else None)
             if native_video:
-                from true_rl_agent.runner.native_video import NativeVideoRecorder
-                args_cli._push_video_recorder = NativeVideoRecorder(base_env, native_video)
-                base_env = args_cli._push_video_recorder.env
+                from true_rl_agent.runner.native_video import native_video_recorders
+                args_cli._push_video_recorders = native_video_recorders(base_env, native_video)
+                base_env = args_cli._push_video_recorders[0].env
         else:
             env_cfg = instantiate_g1_29_environment_cfg(device=args_cli.device, num_envs=args_cli.num_envs)
             apply_push_recovery_overlay(env_cfg, config, args_cli)
@@ -396,12 +396,15 @@ def main() -> int:
         summary["constructed_learner"] = constructed_learner
         if physical_config:
             summary["policy_io_evidence"] = policy_io_evidence
-            recorder = getattr(args_cli, "_push_video_recorder", None)
-            if recorder is not None:
-                sidecar = {"schema_version": "true_rl_agent.push_recovery.native_video.v2",
+            recorders = getattr(args_cli, "_push_video_recorders", ())
+            if recorders:
+                sidecar = {"schema_version": "true_rl_agent.push_recovery.native_video.v3",
                     "checkpoint": checkpoint_safety_report, "checkpoint_loading": checkpoint_loading,
                     "resolved_cell_manifest_hash": args_cli.resolved_cell_manifest.manifest_hash,
-                    "runtime_dynamics": runtime_dynamics, "recordings": recorder.records,
+                    "runtime_dynamics": runtime_dynamics,
+                    "recordings": [record for recorder in recorders for record in recorder.records],
+                    "capture_point": "after_physics_before_task_observe_reset_and_interval_events",
+                    "control_step_scope": "first_episode_steps_1_through_terminal_inclusive",
                     "reclassified_by_video_exporter": False}
                 (native_video.output_dir / "recordings.json").write_text(json.dumps(sidecar, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         summary = attach_gpu_runtime_evidence(
@@ -447,13 +450,13 @@ def main() -> int:
             base_env.close()
 
     summary.update(resolved_cell_summary_fields(args_cli.resolved_cell_manifest))
-    if summary.get("status") == "pass":
+    if summary.get("status") in {"pass", "postprocessing"}:
         require_physx_success(summary_path.with_suffix(".kit.log"))
     summary_path.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     if args_cli.status_file:
         Path(args_cli.status_file).write_text(str(summary.get("status", "fail")) + "\n", encoding="utf-8")
     print(json.dumps({"summary_path": str(summary_path), "status": summary.get("status")}, sort_keys=True))
-    return 0 if summary.get("status") == "pass" else 1
+    return 0 if summary.get("status") in {"pass", "postprocessing"} else 1
 
 
 def run_public_eval(
@@ -484,16 +487,30 @@ def run_public_eval(
             )
             for index in range(seed_count)
         ]
+        behavior_context = None
+        manifest = args.resolved_cell_manifest
+        if (phase is EvaluationPhase.PUBLIC_DEV and manifest is not None
+                and "push_resolved_protocol" in manifest.robot_task_binding["task_projection"]):
+            from true_rl_agent.evaluation.binding import canonical_json_hash
+            from true_rl_agent.runner.source_snapshot import running_project_source_snapshot
+            from true_rl_agent.tasks.push_recovery.behavior import push_behavior_context
+            behavior_context = push_behavior_context(manifest,
+                evaluation_plan_hash=args.evaluation_plan_hash,
+                checkpoint_hash=checkpoint_safety_report["checkpoint_hash"],
+                program_source_checksum=args.program_source_checksum,
+                runtime_dynamics_hash=public_runtime_dynamics(config)["runtime_dynamics_hash"],
+                execution_source_hash=canonical_json_hash(running_project_source_snapshot()))
         return build_push_phase_summary(
             phase=phase,
             evaluation_plan_hash=args.evaluation_plan_hash,
             seed_summaries=summaries,
             expected_seed_count=seed_count,
             wall_time_ns=time.perf_counter_ns() - started_ns,
-            identity=eval_summary_binding(args),
+            identity={**eval_summary_binding(args), "program_source_checksum": args.program_source_checksum},
             execution_device=str(args.device),
             checkpoint_safety_report=checkpoint_safety_report,
             runtime_dynamics_hash=public_runtime_dynamics(config)["runtime_dynamics_hash"],
+            behavior_context=behavior_context,
         )
     public_dev_summaries = [
         run_rollout(env, config, args, inference_policy=inference_policy, split_name="public_dev", run_index=index + 1)

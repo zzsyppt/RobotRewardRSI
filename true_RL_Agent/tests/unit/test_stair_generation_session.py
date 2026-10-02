@@ -1280,21 +1280,51 @@ class StairGenerationSessionTests(unittest.TestCase):
                 generation_id=generation_id,
                 lane_id="lane-b",
             )
-            with (
-                patch(
-                    "true_rl_agent.agent_core.generation_provider_budget.RoundAuthoringJournal.snapshot",
-                    side_effect=[prior, current],
-                ),
-                patch(
-                    "true_rl_agent.agent_core.generation_provider_budget.verify_prompt_payload",
-                    return_value=prompt_payload,
-                ),
+            # A supplier's output-limit deviation is charged, not rounded away.
+            # It may use spare aggregate budget, but cannot expand that budget.
+            for input_units, output_units, generations, error in (
+                (100, 20, 1, None),
+                (100, 65_000, 2, None),
+                (300_001, 20, 2, "input exceeded"),
+                (100, 32_769, 1, "unit cap cannot reserve"),
+                (100, 400_000, 2, "unit cap cannot reserve"),
             ):
-                actual = provider.next_authoring_response(prompt_payload=prompt_payload)
-            self.assertIs(actual, expected)
-            delegate.next_authoring_response.assert_called_once_with(
-                prompt_payload=prompt_payload
-            )
+                with self.subTest(input_units=input_units, output_units=output_units,
+                                  generations=generations):
+                    prior.attempts[0]["provider_attempt"]["provider_usage"] = {
+                        "request_units": input_units,
+                        "response_units": output_units,
+                        "total_units": input_units + output_units,
+                    }
+                    delegate.reset_mock()
+                    provider = CostGuardedProvider(
+                        delegate=delegate,
+                        provider_caps=provider.provider_caps,
+                        output_dir=output,
+                        generation_id=generation_id,
+                        lane_id="lane-b",
+                        max_generations=generations,
+                    )
+                    with (
+                        patch(
+                            "true_rl_agent.agent_core.generation_provider_budget.RoundAuthoringJournal.snapshot",
+                            side_effect=[prior, current],
+                        ),
+                        patch(
+                            "true_rl_agent.agent_core.generation_provider_budget.verify_prompt_payload",
+                            return_value=prompt_payload,
+                        ),
+                    ):
+                        if error is not None:
+                            with self.assertRaisesRegex(RuntimeError, error):
+                                provider.next_authoring_response(prompt_payload=prompt_payload)
+                            delegate.next_authoring_response.assert_not_called()
+                        else:
+                            actual = provider.next_authoring_response(prompt_payload=prompt_payload)
+                            self.assertIs(actual, expected)
+                            delegate.next_authoring_response.assert_called_once_with(
+                                prompt_payload=prompt_payload
+                            )
 
     def test_resource_report_binds_raw_summary_pid_and_uuid_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

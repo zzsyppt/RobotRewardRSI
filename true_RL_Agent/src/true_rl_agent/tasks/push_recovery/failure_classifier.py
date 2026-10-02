@@ -3,9 +3,31 @@
 from __future__ import annotations
 
 from collections import Counter
+from collections.abc import Mapping
 from typing import Any
 
 SUCCESS_LABEL = "success"
+RECOVERY_SUCCESS_LABEL = "success_recovered"
+RECOVERY_FAILURE_LABELS = frozenset({
+    "not_recovered", "invalid_push_injection", "out_of_bounds",
+    "fall_forward", "fall_backward", "fall_side", "height_collapse",
+})
+
+
+def recovery_outcome_class(record: Mapping[str, Any]) -> str | None:
+    """Read a recorded v2/v3 outcome; do not reclassify physical recovery.
+
+    Controls, missing outcomes and contradictory/unknown labels have no pushed
+    success/failure class. In particular, success retains its nonempty label.
+    """
+    if record.get("control_only") is not False:
+        return None
+    label, success = record.get("failure_label"), record.get("success")
+    if success is True and label == RECOVERY_SUCCESS_LABEL:
+        return "success"
+    if success is False and isinstance(label, str) and label in RECOVERY_FAILURE_LABELS:
+        return "failure"
+    return None
 
 
 def classify_episode(metrics: dict[str, Any], thresholds: dict[str, float]) -> dict[str, Any]:
@@ -131,10 +153,10 @@ def classify_recovery_episode(metrics: dict[str, Any], parameters: dict[str, Any
     elif outside:
         label = "out_of_bounds"
     elif actual == planned and actual > 0 and recovered == actual and metrics["final_recovery_condition"]:
-        label = "success_recovered"
+        label = RECOVERY_SUCCESS_LABEL
     else:
         label = "not_recovered"
-    return {"label": label, "success": label == "success_recovered",
+    return {"label": label, "success": label == RECOVERY_SUCCESS_LABEL,
         "control_success": control and not fall and not outside and not invalid,
         "control_failure_label": fall or ("out_of_bounds" if outside else None),
         "push_event_count": actual, "recovered_event_count": recovered,
@@ -155,8 +177,8 @@ def classify_force_recovery_episode(metrics: dict[str, Any], parameters: dict[st
     if not fall and not control:
         invalid += max(0, planned - actual) + sum(not event["completed"] and event["injection_verified"] for event in events)
     label = fall or ("invalid_push_injection" if invalid else "no_push_control" if control
-        else "success_recovered" if metrics["sequence_recovered"] and metrics["final_recovery_condition"] else "not_recovered")
-    return {"label": label, "success": label == "success_recovered",
+        else RECOVERY_SUCCESS_LABEL if metrics["sequence_recovered"] and metrics["final_recovery_condition"] else "not_recovered")
+    return {"label": label, "success": label == RECOVERY_SUCCESS_LABEL,
         "control_success": control and not fall and not invalid, "control_failure_label": fall,
         "push_event_count": actual, "completed_push_event_count": sum(event["completed"] for event in events),
         "verified_push_event_count": sum(event["injection_verified"] for event in events),

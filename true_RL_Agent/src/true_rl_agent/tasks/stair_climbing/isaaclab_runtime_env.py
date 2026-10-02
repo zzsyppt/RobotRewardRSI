@@ -177,6 +177,11 @@ class StairEvalTransitionRecorder(RecorderTerm):
                     lazy_sensor_update=self._env.cfg.scene.lazy_sensor_update,
                 ))
         self._env.extras[STAIR_EVAL_TRANSITION_EXTRAS_KEY] = payload
+        # Numeric tensors have been cloned; render the same pre-reset state.
+        # The task execution layer owns recording lifetime and scored-episode scope.
+        capture = getattr(self._env, "_stair_pre_reset_capture", None)
+        if capture is not None:
+            capture()
         return None, None
 
     def runtime_summary(self) -> dict[str, Any]:

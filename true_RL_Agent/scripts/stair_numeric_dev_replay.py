@@ -8,7 +8,6 @@ this command never trains, qualifies a reference, or executes acceptance/holdout
 from __future__ import annotations
 
 import argparse
-from contextlib import ExitStack
 from dataclasses import replace
 import hashlib
 import json
@@ -32,10 +31,15 @@ from true_rl_agent.runner.budget import build_budget_accounting
 from true_rl_agent.runner.checkpoint import file_sha256
 from true_rl_agent.runner.checkpoint_preflight import validate_checkpoint_input_artifact
 from true_rl_agent.runner.job_argv import validate_eval_job_argv
+from true_rl_agent.runner.job_attempts import PreGenesisExecutionScope
+from true_rl_agent.runner.native_video import add_native_video_arguments, native_video_argv_from_args
 from true_rl_agent.runner.gpu_lease import GpuLeaseManager, PreGenesisGpuLeaseHolder
 from true_rl_agent.runner.resource_shadow import discover_nvidia_gpu_inventory
 from true_rl_agent.runner.specs import CheckpointRef, require_eval_phase_result_matches_spec
 from true_rl_agent.tasks.stair_climbing.composition import StairClimbingCompositionProvider
+from true_rl_agent.tasks.stair_climbing.diagnostic_evaluation import (
+    prepare_stair_public_dev_diagnostic, project_stair_public_dev_diagnostic,
+)
 from true_rl_agent.tasks.stair_climbing.row_catalog import stair_robot_row
 from true_rl_agent.tasks.stair_climbing.unified_protocol import StairUnifiedProtocol
 
@@ -136,25 +140,38 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--isaac-python", default=sys.executable)
     parser.add_argument("--mode", choices=("preflight", "run"), required=True)
     parser.add_argument("--capture-numeric", choices=("on", "off"), required=True)
+    parser.add_argument("--cohort", choices=("formal", "diagnostic"), default="formal")
+    parser.add_argument("--diagnostic-cohort", default="v1")
     parser.add_argument("--numeric-evidence-max-bytes", type=int, default=2 * 1024**3)
     parser.add_argument("--timeout-s", type=int, default=36000)
+    add_native_video_arguments(parser)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
+    from true_rl_agent.tasks.stair_climbing.seed_policy import diagnostic_seed_namespace
+
+    diagnostic_namespace = diagnostic_seed_namespace(args.diagnostic_cohort)
+    if args.cohort != "diagnostic" and args.diagnostic_cohort != "v1":
+        raise ValueError("Stair diagnostic cohort requires --cohort diagnostic")
     if args.numeric_evidence_max_bytes <= 0 or args.timeout_s <= 0:
         raise ValueError("numeric evidence byte limit and timeout must be positive")
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     report = {
-        "purpose": "Stair same-checkpoint fixed public-dev replay", "status": "PREPARING",
+        "purpose": ("Stair same-checkpoint fixed public-dev replay" if args.cohort == "formal"
+                    else "Stair same-checkpoint independent public-dev diagnostic"), "status": "PREPARING",
+        "cohort": args.cohort,
         "mode": args.mode, "capture_numeric": args.capture_numeric == "on", "started_at_unix": time.time(),
         "train_jobs": 0, "accept_jobs": 0, "sealed_jobs": 0, "final_jobs": 0,
         "provider_requests": 0, "reference_qualification_performed": False, "phases_executed": [],
     }
-    resources = ExitStack()
-    lease_started = None
+    if args.diagnostic_cohort != "v1":
+        report.update(diagnostic_cohort=args.diagnostic_cohort, seed_namespace=diagnostic_namespace)
+    attempt_scope = None
+    phase_invoked = False
+    probe_lease_seconds = 0.0
     try:
         protocol_path = args.protocol.resolve(strict=True)
         protocol = StairUnifiedProtocol.load(protocol_path)
@@ -175,6 +192,8 @@ def main(argv: list[str] | None = None) -> int:
         checkpoint = _completed_source(summary, composition=composition, checkpoint_path=args.checkpoint.absolute())
         source_summary_hash = "sha256:" + hashlib.sha256(source_bytes).hexdigest()
         session_id = "stair-dev-replay-" + checkpoint.checksum.removeprefix("sha256:")[:16]
+        if args.cohort == "diagnostic":
+            session_id += "-diagnostic"
         environment_hash = None
         if args.mode == "run":
             if os.environ.get("CUDA_VISIBLE_DEVICES", "").strip():
@@ -194,13 +213,25 @@ def main(argv: list[str] | None = None) -> int:
                 lease_root=Path("/tmp/true_rl_agent_gpu_leases"),
                 devices={item.execution_device: item.identity for item in discover_nvidia_gpu_inventory()},
             )
-            lease = resources.enter_context(manager.acquire(args.device, holder=holder))
-            lease_started = time.monotonic()
-            report["gpu_lease"] = dict(lease.receipt)
-            environment = backend.resolve_session_execution_environment(
-                session_id=session_id, session_dir=output, allow_create=True,
-            )
+            with manager.acquire(args.device, holder=holder) as lease:
+                probe_started = time.monotonic()
+                report["environment_probe_gpu_lease"] = dict(lease.receipt)
+                try:
+                    environment = backend.resolve_session_execution_environment(
+                        session_id=session_id, session_dir=output, allow_create=True,
+                    )
+                finally:
+                    probe_lease_seconds = time.monotonic() - probe_started
             environment_hash = environment["manifest_hash"]
+            attempt_scope = PreGenesisExecutionScope(
+                journal_root=output / "job_attempts", session_id=session_id,
+                genesis_identity_hash=execution_identity, session_contract_hash=execution_identity,
+                lane_id=args.device, invocation_segment_id=execution_identity[:16],
+                budget_contract_hash=canonical_json_hash({"timeout_s": args.timeout_s, "attempts": 1}),
+                attempt_budget_units=1, max_infrastructure_retries=0,
+                resource_binding_hash=manager.identity_for(args.device).identity_hash,
+            )
+            composition = replace(composition, runner=replace(composition.runner, gpu_lease_manager=manager))
         jobs = backend.materialize_reference_jobs(
             session_id=session_id, task_spec=composition.task_plugin.task_spec,
             reference=composition.reference_program_artifact, artifact_root=output / "eval_template",
@@ -220,12 +251,26 @@ def main(argv: list[str] | None = None) -> int:
         plan = backend.rematerialize_eval_plan(
             eval_plan=plan, round_id=session_id, summary_path=(output / "evaluation/summary.json").as_posix(),
         )
-        phase = backend.materialize_eval_phase(
-            eval_plan=plan, phase=EvaluationPhase.PUBLIC_DEV,
-            capture_numeric=args.capture_numeric == "on",
+        phase_options = dict(
+            attempt_scope=attempt_scope, capture_numeric=args.capture_numeric == "on",
             numeric_evidence_dir=(output / "numeric_evidence").as_posix() if args.capture_numeric == "on" else None,
             numeric_evidence_max_bytes=args.numeric_evidence_max_bytes,
         )
+        if args.cohort == "diagnostic":
+            phase = prepare_stair_public_dev_diagnostic(
+                config=config, backend_adapter=backend, formal_eval_plan=plan,
+                job_id=plan.job_id + "-diagnostic", round_id=session_id,
+                summary_path=(output / "evaluation/summary.json").as_posix(),
+                diagnostic_cohort=args.diagnostic_cohort, **phase_options)
+        else:
+            phase = backend.materialize_eval_phase(
+                eval_plan=plan, phase=EvaluationPhase.PUBLIC_DEV, **phase_options)
+        video_argv = native_video_argv_from_args(args)
+        if video_argv:
+            metadata = dict(phase.metadata)
+            metadata["cli_argv"] = [*metadata["cli_argv"], *video_argv]
+            metadata["cli_command"] = " ".join(metadata["cli_argv"])
+            phase = replace(phase, metadata=metadata)
         validate_eval_job_argv(phase, phase.metadata["cli_argv"])
         composition.runner._validate_checkpoint_before_launch(
             checkpoint=checkpoint, metadata=phase.metadata, job_id=phase.job_id,
@@ -242,6 +287,7 @@ def main(argv: list[str] | None = None) -> int:
             checkpoint_sha256=checkpoint.checksum, checkpoint_bytes_checked=True,
             preserved_training_binding_hash=plan.training_binding_hash, source_subject=plan.subject.to_public_dict(),
             evaluation_plan_hash=phase.evaluation_plan_hash,
+            evaluation_binding=phase.evaluation_binding.to_public_dict(),
             public_dev_job_spec_hash=canonical_json_hash(phase.to_public_dict()), job_file_sha256=file_sha256(job_path),
             public_dev_seed_count=plan.public_seed_count, eval_num_envs=plan.eval_num_envs,
             planned_public_dev_episodes=plan.public_seed_count * plan.eval_num_envs,
@@ -252,10 +298,15 @@ def main(argv: list[str] | None = None) -> int:
         else:
             report["status"] = "RUNNING"
             _write_json(output / "result.json", report)
+            phase_invoked = True
             result = composition.runner.run_eval_phase(phase)
             require_eval_phase_result_matches_spec(result, phase)
-            public_summary = composition.task_plugin.phased_evaluation_adapter().project_public_phase_summary(
-                phase_result=result,
+            public_summary = (
+                project_stair_public_dev_diagnostic(config=config,
+                    eval_plan=phase.evaluation_plan, phase_result=result,
+                    diagnostic_cohort=args.diagnostic_cohort)
+                if args.cohort == "diagnostic" else
+                composition.task_plugin.phased_evaluation_adapter().project_public_phase_summary(phase_result=result)
             )
             result_path = output / "public_dev_result.json"
             _write_json(result_path, result.to_private_dict(), create_once=True)
@@ -279,9 +330,20 @@ def main(argv: list[str] | None = None) -> int:
         traceback.print_exc()
         return 1
     finally:
-        resources.close()
-        if lease_started is not None:
-            report["gpu_lease_wall_duration_s"] = time.monotonic() - lease_started
+        report["environment_probe_gpu_lease_wall_duration_s"] = probe_lease_seconds
+        # The runner's phase receipt stops GPU timing before CPU finalization.
+        # Missing phase timing remains unknown, never a zero-duration success.
+        phase_lease_seconds = 0.0 if not phase_invoked else None
+        if attempt_scope is not None:
+            receipts = list(attempt_scope.journal_root.rglob("attempt_*.result.json"))
+            report["phase_attempt_receipts"] = [str(path) for path in receipts]
+            durations = [json.loads(path.read_text(encoding="utf-8")).get("resource_lease_wall_duration_ns")
+                         for path in receipts]
+            if durations and all(value is not None for value in durations):
+                phase_lease_seconds = sum(durations) / 1e9
+        report["eval_phase_gpu_lease_wall_duration_s"] = phase_lease_seconds
+        report["gpu_lease_wall_duration_s"] = (
+            probe_lease_seconds + phase_lease_seconds if phase_lease_seconds is not None else None)
         report["ended_at_unix"] = time.time()
         _write_json(output / "result.json", report)
         print(json.dumps({"status": report["status"], "output": str(output)}), flush=True)

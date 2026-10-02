@@ -424,4 +424,9 @@ def _task_neutral_evidence_discipline() -> list[str]:
             "nonaccepted best-observed bootstrap anchor."
         ),
         SINGLE_COMPONENT_DELTA_INSTRUCTION,
+        (
+            "Process evidence may contain several correlated observations; it does not authorize "
+            "changing multiple mechanisms. Separate observations from hypotheses, keep the "
+            "current focus during repair, and treat a previous rationale as a proposal, not an observation."
+        ),
     ]

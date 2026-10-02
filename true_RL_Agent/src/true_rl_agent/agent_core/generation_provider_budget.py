@@ -7,6 +7,7 @@ from typing import Any
 from true_rl_agent.agent_core.generation_contract import GENERATION_LANE_IDS
 from true_rl_agent.agent_core.generation_foundation import GenerationSessionFoundation
 from true_rl_agent.agent_core.openai_compatible_provider import OpenAICompatibleCandidateProvider
+from true_rl_agent.agent_core.provider_errors import provider_failure_requires_service_recovery
 from true_rl_agent.prompt_artifacts import (
     AuthoringEvidenceRef, PromptPayloadRef, RoundAuthoringJournal,
     verify_authoring_evidence, verify_prompt_payload,
@@ -177,6 +178,19 @@ def _assert_provider_request_budget(
                         "total_units",
                     )
                 ):
+                    if provider_failure_requires_service_recovery(
+                        provider_attempt.get("provider_failure")
+                    ):
+                        # A recorded service rejection can resume after recovery.
+                        # Keep its attempt and reserve the full unknown usage;
+                        # never replace the durable receipt with invented zeros.
+                        request_units += provider_caps["input_units_per_attempt_reserve"]
+                        response_units += provider_caps["output_units_per_attempt_cap"]
+                        total_units += (
+                            provider_caps["input_units_per_attempt_reserve"]
+                            + provider_caps["output_units_per_attempt_cap"]
+                        )
+                        continue
                     raise RuntimeError(
                         "prior provider request has no authoritative usage receipt"
                     )
@@ -194,14 +208,11 @@ def _assert_provider_request_budget(
                     ):
                         raise ValueError("prior provider usage counter is invalid")
                     values.append(value)
-                if (
-                    values[0] > provider_caps["input_units_per_attempt_reserve"]
-                    or values[1] > provider_caps["output_units_per_attempt_cap"]
-                    or values[2]
-                    > provider_caps["input_units_per_attempt_reserve"]
-                    + provider_caps["output_units_per_attempt_cap"]
-                ):
-                    raise RuntimeError("prior provider request exceeded its frozen cap")
+                if values[0] > provider_caps["input_units_per_attempt_reserve"]:
+                    raise RuntimeError("prior provider input exceeded its frozen cap")
+                # The output cap constrains the request sent to the provider.
+                # Charge its authoritative response in full, even if it exceeds
+                # that request, and enforce the frozen aggregate budget below.
                 request_units += values[0]
                 response_units += values[1]
                 total_units += values[2]
@@ -489,4 +500,3 @@ def _unique_private_artifact(
     ):
         raise TypeError("private artifact reference is invalid")
     return item
-

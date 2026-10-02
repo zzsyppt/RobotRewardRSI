@@ -1,0 +1,26 @@
+{
+  "schema_version": "feedback_p3r.stage_budget.v1",
+  "date": "2026-09-29",
+  "project_limits": {"provider_usd": 120, "gpu_capacity_hours": 500},
+  "stage_limits": {"provider_usd": 30, "gpu_capacity_hours": 4},
+  "prior_provider_allocations_reserved": {"p0": 2, "p3": 15},
+  "accounting_note": "Prior allocations are conservative reservations, not claimed invoice charges. Preserve existing receipts and separately disclose external reviewer/desktop assistant costs unavailable to this experiment journal.",
+  "substage_limits_usd": {"r0a": 3, "r0b": 12, "r4": 12, "optional_media_and_auxiliary": 3},
+  "author_opportunities": {"r0a": 8, "r0b_default": 32, "r0b_hard_max": 40, "r4": 48},
+  "candidate_training_enabled": false,
+  "stronger_author_probe_enabled": false,
+  "early_3live_enabled": false,
+  "review_profile": "model_review",
+  "review_authorization": "User explicitly selected model expert review during implementation on 2026-09-29; never report it as human review.",
+  "provider": {
+    "base_url": "https://api.deepseek.com", "requested_model": "deepseek-v4-flash",
+    "reasoning_effort": "high", "max_output_tokens": 32768, "max_input_tokens": 40000,
+    "prices_usd_per_million": {"cache_hit": 0.006, "cache_miss": 0.3, "output": 1.2},
+    "pricing_source": "https://api-docs.deepseek.com/quick_start/pricing/",
+    "pricing_checked_date": "2026-09-29"
+  },
+  "r0a": {"max_actual_requests": 8, "max_attempts_per_packet": 1, "worst_usd_per_request": 0.0513216, "worst_total_usd": 0.4105728},
+  "author_episode_limits": {"max_provider_attempts": 5, "max_source_requests": 2, "extra_retry_pool": 0},
+  "api_execution_requires": "substage input/source/settings freeze and preflight; this allocation alone is not a call receipt",
+  "unknown_outcome": "reserve full attempt and cost; inspect journal and live process before any resubmission"
+}

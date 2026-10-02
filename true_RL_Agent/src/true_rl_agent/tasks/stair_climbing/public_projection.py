@@ -125,7 +125,7 @@ def _project_unified_stair_public_result(
         set(incoming)
         - _TASK_DERIVED_INPUT_KEYS
         - RUNNER_OWNED_PUBLIC_EVAL_METRIC_KEYS
-        - {"unified_score"}
+        - {"unified_score", "behavior"}
     )
     if unsupported:
         raise ValueError(
@@ -272,6 +272,14 @@ def _project_unified_stair_public_result(
             "acceptance": acceptance,
         }
     )
+    if "behavior" in incoming:
+        from true_rl_agent.tasks.stair_climbing.behavior import project_stair_behavior
+        behavior = project_stair_behavior(incoming["behavior"])
+        if (behavior["domain"]["task_protocol_hash"] != config.evaluation_semantics.to_dict()["task_protocol_hash"]
+                or behavior["domain"]["checkpoint_hash"] != _mapping(
+                    incoming.get(SEALED_VALIDATION_EVIDENCE_KEY), "Stair behavior checkpoint binding").get("checkpoint_hash")):
+            raise ValueError("Stair behavior differs from evaluated checkpoint or protocol")
+        metrics["behavior"] = behavior
     return PublicEvalResult(
         status=public_result.status,
         public_score=canonical_score,

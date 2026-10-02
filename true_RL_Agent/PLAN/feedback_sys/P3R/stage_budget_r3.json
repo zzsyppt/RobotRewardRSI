@@ -1,0 +1,107 @@
+{
+  "schema_version": "feedback_p3r.stage_budget.v1",
+  "date": "2026-09-29",
+  "project_limits": {
+    "provider_usd": 120,
+    "gpu_capacity_hours": 500
+  },
+  "stage_limits": {
+    "provider_usd": 30,
+    "gpu_capacity_hours": 4
+  },
+  "prior_provider_allocations_reserved": {
+    "p0": 2,
+    "p3": 15
+  },
+  "accounting_note": "Prior allocations are conservative reservations, not claimed invoice charges. Preserve existing receipts and separately disclose external reviewer/desktop assistant costs unavailable to this experiment journal.",
+  "substage_limits_usd": {
+    "r0a_closed_actual": 0.437974032,
+    "r0b_closed_actual": 0.993046416,
+    "r4_conditional": 24,
+    "unallocated": 4.568979552
+  },
+  "author_opportunities": {
+    "r0a": 16,
+    "r0b_default": 32,
+    "r0b_hard_max": 40,
+    "r4": 48
+  },
+  "candidate_training_enabled": false,
+  "stronger_author_probe_enabled": false,
+  "early_3live_enabled": false,
+  "review_profile": "model_review",
+  "review_authorization": "User explicitly selected model expert review during implementation on 2026-09-29; never report it as human review.",
+  "provider": {
+    "base_url": "https://api.deepseek.com",
+    "requested_model": "deepseek-v4-flash",
+    "reasoning_effort": "high",
+    "max_output_tokens": 65536,
+    "max_input_tokens": 40000,
+    "prices_usd_per_million": {
+      "cache_hit": 0.006,
+      "cache_miss": 0.3,
+      "output": 1.2
+    },
+    "pricing_source": "https://api-docs.deepseek.com/quick_start/pricing/",
+    "pricing_checked_date": "2026-09-29"
+  },
+  "r0a": {
+    "max_actual_requests": 16,
+    "max_attempts_per_packet": 1,
+    "completed_requests": 16,
+    "actual_peak_usd": 0.437974032,
+    "selected_stage": "runtime_probe_r2/stage.json",
+    "selected_gate": "PASS",
+    "selection_scope": "8/8 within r2; do not pool best responses across rounds; not a reliability confidence bound"
+  },
+  "author_episode_limits": {
+    "max_provider_attempts": 5,
+    "max_source_requests": 2,
+    "extra_retry_pool": 0
+  },
+  "api_execution_requires": "R3 PASS plus own frozen preflight/release; no author calls admitted by this budget file",
+  "unknown_outcome": "reserve full attempt and cost; inspect journal and live process before any resubmission",
+  "revision": "r3_closed_r0_conditional_confirmation",
+  "supersedes_for_new_substages": {
+    "path": "stage_budget_r2.json",
+    "sha256": "7907ec1912b5819c91a536067a2215f7035fcd496fd7d001d69c3014e3f666f5"
+  },
+  "reallocation_reason": "Both R0 stages closed with known receipts. Allocate USD24 within original USD30 for conditional R4; this does not release API before R3 and preflight.",
+  "r0b": {
+    "released_episodes": 32,
+    "max_provider_requests": 160,
+    "worst_usd_per_request": 0.0906432,
+    "worst_total_usd": 14.502912,
+    "optional_extension_released": false,
+    "status": "CLOSED",
+    "actual_provider_requests": 34,
+    "actual_peak_usd": 0.993046416
+  },
+  "r4": {
+    "status": "CONDITIONAL_ALLOCATION_NOT_API_RELEASED",
+    "remaining_allocation_usd": 24,
+    "full_worst_usd_at_selected_caps": 21.754368,
+    "admission": "R3 semantic gates and final request preflight PASS plus source/input/settings frozen release required; max48 episodes x5 attempts."
+  },
+  "confirmation_capture": {
+    "status": "ALLOCATION_ONLY_SOURCE_AND_COMMAND_FREEZE_PENDING",
+    "max_total_gpu_capacity_hours": 1.0,
+    "max_new_public_cohorts_per_task": 1,
+    "tasks": {
+      "stair": {
+        "episodes": 864,
+        "namespace": "public_dev_diagnostic_v1",
+        "rollout_timeout_s": 1800
+      },
+      "push": {
+        "episodes": 192,
+        "eval_base_seed": 1500000000,
+        "rollout_timeout_s": 900
+      }
+    },
+    "max_probe_and_failed_capacity_seconds": 900,
+    "automatic_retries": 0,
+    "previous_media_gpu_capacity_hours": 0.03962359666666666,
+    "candidate_training": false
+  }
+}

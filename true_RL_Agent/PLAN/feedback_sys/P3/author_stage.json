@@ -1,0 +1,145 @@
+{
+  "schema_version": "true_rl_agent.p3.author_stage.v1",
+  "status": "draft_not_frozen",
+  "stage_id": "p3-at-development-20260924",
+  "purpose": "Small paired engineering value gate for evidence-grounded candidate proposals; no training benefit claim.",
+  "authoring_mode": "production_candidate_authoring_loop",
+  "candidate_training_enabled": false,
+  "design": {
+    "cases": 12,
+    "tasks": {
+      "stair": 6,
+      "push": 6
+    },
+    "arms": [
+      "A",
+      "T"
+    ],
+    "fresh_repetitions_per_arm": 2,
+    "author_episodes": 48,
+    "statistical_unit": "case; repetitions nested within case, cases clustered by policy ancestry/session",
+    "independence_claim": "No independent-lineage or generalization claim from 12 cases.",
+    "randomization_seed": 2026092403,
+    "order": "balanced A/T order within case/repetition; shuffled case order; mapping withheld from reviewer",
+    "focused_questions": 12,
+    "underlying_observation_packages": 2,
+    "policy_clusters": 2,
+    "case_scope": "Predeclared neutral task/stratum/logical-run focus; retain the same complete denominator and production default selector. No experiment-only episode mining.",
+    "observation_reuse": "Repeated views of two observation packages; report within-case fresh-repeat variability separately."
+  },
+  "arms": {
+    "A": "Current task-owned public aggregate/runtime feedback at the same as-of cutoff.",
+    "T": "Same source/permission/time cutoff; task-owned bounded behavior subtree within public_feedback_summary. Exact differences and any displaced task sections are frozen from real builder preflight; default selector only.",
+    "shared": [
+      "task ABI",
+      "parent source",
+      "source_catalog",
+      "requestable source set",
+      "public-dev source pool",
+      "model configuration",
+      "static admission and CPU component smoke",
+      "token/output/attempt/source-read limits"
+    ],
+    "forbidden_differences": [
+      "sealed/accept details",
+      "future outcomes",
+      "extra source permissions",
+      "extra budget",
+      "different repair policy"
+    ]
+  },
+  "provider": {
+    "implementation": "OpenAICompatibleCandidateProvider",
+    "base_url": "https://api.deepseek.com",
+    "endpoint": "/chat/completions",
+    "requested_model": "deepseek-v4-flash",
+    "current_canonical_model": "deepseek-flash",
+    "current_mapping": "DeepSeek-V4.1-Flash",
+    "record_response_model_and_fingerprint": true,
+    "reasoning_mode": "adaptive",
+    "reasoning_effort": "max",
+    "temperature": 0.2,
+    "max_output_tokens": 32768,
+    "max_input_tokens": 40000,
+    "input_count_authority": "provider_usage_prompt_tokens; local estimate is preflight only",
+    "max_response_bytes": 524288,
+    "timeout_s": 180,
+    "env_file": "/data/yuyangliu/secrets/deepseek.env",
+    "api_key_env": "DEEPSEEK_API_KEY",
+    "credential_check": "remote file exists and readable; value not read/exported, no network credential validation"
+  },
+  "budget": {
+    "stage_usd": 15,
+    "stage_gpu_capacity_hours": 2,
+    "planned_gpu_capacity_hours": "All actual public-dev replay attempts, failed starts and replacement runs share the 2 GPU-capacity-hour ceiling; record the executed case inventory, not only author cases. No training.",
+    "max_actual_provider_requests": 240,
+    "max_attempts_per_author_episode": 5,
+    "max_source_requests_per_author_episode": 2,
+    "max_source_ids_per_request": 2,
+    "max_source_bytes_per_author_episode": 49152,
+    "extra_retry_pool": 0,
+    "unknown_outcome": "consumes reserved attempt and worst-case USD; never blindly resubmit",
+    "prices_usd_per_million": {
+      "cache_hit": 0.006,
+      "cache_miss": 0.3,
+      "output": 1.2
+    },
+    "pricing_source": "https://api-docs.deepseek.com/quick_start/pricing/",
+    "pricing_checked_date": "2026-09-24",
+    "pricing_basis": "conservative peak prices verified by root; no assumed cache discount",
+    "worst_usd_per_request": 0.0513216,
+    "worst_usd_240_requests": 12.317184,
+    "charge_policy": "all attempted requests including source followup, repair, malformed output, transport failure and unknown outcome",
+    "stop_before_request": "remaining stage USD must cover full 40000 input + 32768 output reservation",
+    "input_overflow": "actual usage above 40000 is protocol failure; preserve and charge the attempt, halt pending review; no free replacement",
+    "pricing_bound_status": "12.317184 USD assumes each attempt stays inside frozen 40k input/32768 output units. Original production CostGuardedProvider enforces reservation and stops after a usage overrun; actual USD audit is separate."
+  },
+  "context": {
+    "production_prompt_max_bytes": 262144,
+    "production_section_max_bytes": 98304,
+    "experiment_memory_max_bytes": 14336,
+    "experiment_memory_max_rounds": 16,
+    "same_input_token_cap_for_A_T": 40000,
+    "preflight_estimator": "Use production frame/budget metadata and existing input_units_per_attempt_reserve=40000. No old P0 estimator is an exact token bound; provider usage is authoritative.",
+    "T_default_working_set": "Task production default bounded behavior view; no case-specific hand-picked transcripts. Same neutral case focus in A/T; if requested evidence is omitted, that limitation remains a genuine test outcome.",
+    "omissions_required": true,
+    "capacity_regression": "Keep P1 real-history floors: Stair g13>=11,g16>=13; Push g6>=5. Do not allocate a new memory column."
+  },
+  "human_review": {
+    "reviewer_count_required": 1,
+    "status": "pending_user_review",
+    "deliver_materials_first": true,
+    "hide_arm_and_configuration": true,
+    "shuffle_output_order": true,
+    "ground_truth": "same public-dev readonly timelines and source code; candidate proposals/hidden future outcomes excluded",
+    "unknown_is_allowed": true,
+    "duplicate_self_review_fraction": 0.1,
+    "claim": "single-reviewer consistency only; cannot claim independent inter-rater agreement"
+  },
+  "gates": {
+    "hard_errors_max": 0,
+    "fact_support_rate_min": 0.95,
+    "required_process_categories_with_action_relevant_gain": 2,
+    "authorization_nonregression": true,
+    "testability_nonregression": true,
+    "human_review_required_for_value_pass": true,
+    "current_value_status": "NOT_EVALUATED",
+    "optional_cost_route": "Not selected. This stage preregisters the quality-gain gate; costs are descriptive and cannot rescue a failed quality gate after observing outputs.",
+    "no_training_outcome_prediction_accuracy": "No later training is run; grade falsifiability and evidence support, not prospective improvement hit rate."
+  },
+  "freeze_requirements": [
+    "12 populated cases and at least 2 preregistered process categories",
+    "all source identities/checksums/as-of/visibility closed",
+    "common A/T context and precise T replacements reviewed",
+    "deterministic case/episode selectors fixed before author outputs",
+    "budget preflight of all first prompts; actual provider usage audited",
+    "source snapshot and model/price configuration fingerprinted",
+    "root notified that data card is frozen before any API execution"
+  ],
+  "scope_limitations": [
+    "Existing same-policy cases are correlated.",
+    "Ablation concerns default evidence package quality, not a scientific RL benefit.",
+    "Historical A outputs are baselines only, never fresh-arm substitutes.",
+    "No API/GPU execution was performed by preparing this card."
+  ]
+}

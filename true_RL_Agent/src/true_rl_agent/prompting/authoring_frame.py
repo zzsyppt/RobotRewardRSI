@@ -21,6 +21,7 @@ from true_rl_agent.prompting.source_catalog import (
     has_inline_current_authoring_failed_source,
 )
 from true_rl_agent.prompting.task_sections import (
+    PROVIDER_TASK_PROMPT_SECTION_KEYS,
     build_provider_task_prompt_receipt,
 )
 
@@ -84,11 +85,11 @@ _FRAME_POLICIES = {
             *_STABLE_CONTRACT_REFS,
             *_SOURCE_CONTEXT_REFS,
             "public_history",
+            "public_feedback_summary",
             "selection_guidance",
             "schema_version",
         ),
         optional_sections=(
-            "public_feedback_summary",
             "runtime_feedback_summary",
             "known_good_examples",
         ),
@@ -106,15 +107,15 @@ _FRAME_POLICIES = {
             "candidate_lineage",
             "source_payloads",
             "exploration_directive",
+            "public_feedback_summary",
+            "selection_guidance",
             "provider_or_runtime_repair_feedback",
             "schema_version",
         ),
         optional_sections=(
-            "public_feedback_summary",
             "runtime_feedback_summary",
             "public_history",
             "known_good_examples",
-            "selection_guidance",
         ),
     ),
     "source_followup": AuthoringFramePolicy(
@@ -125,16 +126,16 @@ _FRAME_POLICIES = {
             "source_catalog",
             "candidate_lineage",
             "source_payloads",
+            "exploration_directive",
+            "public_feedback_summary",
+            "selection_guidance",
             "provider_or_runtime_repair_feedback",
             "schema_version",
         ),
         optional_sections=(
-            "public_feedback_summary",
             "runtime_feedback_summary",
             "public_history",
             "known_good_examples",
-            "exploration_directive",
-            "selection_guidance",
         ),
         omitted_recent_history_reason="omitted_for_source_followup_frame",
     ),
@@ -210,9 +211,10 @@ def project_sections_for_authoring_frame(
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """Apply the frame's provider-visible section boundary.
 
-    Static repair deliberately keeps the exact failed source and stable contract/
-    lineage anchors, while excluding hypothesis-selection context that cannot help
-    repair the current static failure.
+    Static repair keeps the exact failed source, stable contracts, current intent
+    and the task's bounded public evidence. A verifier rejection does not make the
+    observations behind that intent obsolete. Optional history and examples may
+    be omitted, but prior rationale must not replace the task's measured feedback.
     """
 
     if frame_kind != "static_repair":
@@ -253,6 +255,12 @@ def project_sections_for_authoring_frame(
         and item.get("logical_id") in retained_source_ids
     ]
     allowed = frozenset(_FRAME_POLICIES[frame_kind].required_sections)
+    task_feedback = section_values.get("public_feedback_summary")
+    if isinstance(task_feedback, Mapping) and "capacity_projection_receipt" in task_feedback:
+        # A task's minimum-core receipt binds its complete section group. Keep
+        # that already bounded view atomically instead of silently invalidating
+        # its source hash or manufacturing a second projection receipt here.
+        allowed = allowed.union(PROVIDER_TASK_PROMPT_SECTION_KEYS)
     projected = {
         section: value
         for section, value in section_values.items()

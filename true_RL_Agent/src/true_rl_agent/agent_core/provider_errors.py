@@ -113,12 +113,23 @@ class ProviderCandidateError(RuntimeError):
     @property
     def requires_service_recovery(self) -> bool:
         """Billing and authorization failures cannot be repaired by a candidate."""
-        return (
-            self.category == "runtime_error"
-            and self.details.get("failure_kind") == "http_error"
-            and self.details.get("retryable") is False
-            and self.details.get("http_status") in {401, 402, 403}
+        return provider_failure_requires_service_recovery(
+            {"category": self.category, "details": self.details}
         )
+
+
+def provider_failure_requires_service_recovery(value: Any) -> bool:
+    """Use the same service-rejection boundary for live errors and journals."""
+    if not isinstance(value, Mapping):
+        return False
+    details = value.get("details")
+    return (
+        value.get("category") == "runtime_error"
+        and isinstance(details, Mapping)
+        and details.get("failure_kind") == "http_error"
+        and details.get("retryable") is False
+        and details.get("http_status") in {401, 402, 403}
+    )
 
 
 class ProviderServiceUnavailableError(RuntimeError):

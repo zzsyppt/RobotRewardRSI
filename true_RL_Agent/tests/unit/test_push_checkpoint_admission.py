@@ -72,6 +72,20 @@ class PushCheckpointAdmissionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "bytes changed"):
             on.runner.eval_checkpoint_admission_hook(phase.execution_checkpoint(), on.resolved_cell_manifest, tuple(phase.metadata["cli_argv"]))
 
+    def test_video_presentation_flags_reach_eval_argv_only(self):
+        args = self.args("video", "off")
+        args.video_dir = self.root / "video"
+        args.video_env_index = 19
+        args.video_camera_eye = [2.0, -2.0, 1.5]
+        args.video_camera_lookat = [0.0, 0.0, 0.5]
+        args.video_resolution = [640, 480]
+        _, phase, _ = prepare(args)
+        argv = phase.metadata["cli_argv"]
+        self.assertEqual(argv[-15:], ["--video-dir", str(args.video_dir), "--video-env-index", "19",
+            "--video-camera-eye", "2.0", "-2.0", "1.5", "--video-camera-lookat", "0.0", "0.0", "0.5",
+            "--video-resolution", "640", "480"])
+        self.assertEqual(phase.metadata["cli_command"], " ".join(argv))
+
     def test_training_dynamics_robot_direction_and_binding_are_not_relaxed(self):
         target, _, _ = prepare(self.args("target", "on"))
         source, current = self.composition.resolved_cell_manifest, target.resolved_cell_manifest

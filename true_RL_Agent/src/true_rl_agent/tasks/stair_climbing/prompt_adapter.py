@@ -366,6 +366,11 @@ class StairClimbingPromptAdapter:
             ),
             runtime_feedback=runtime_feedback,
         )
+        behavior = _latest_behavior_feedback(safe_records)
+        if behavior is None and not safe_records:
+            behavior = _reference_behavior_feedback(safe_context)
+        if behavior is not None:
+            sections["public_feedback_summary"]["behavior"] = behavior
         sections = _compact_public_feedback_to_fit_task_sections(
             sections,
             evaluation_profile=self.config.evaluation_profile_config,
@@ -2053,7 +2058,7 @@ def _minimum_core_stair_prompt_sections(
         }
     # Shared headers are part of the retained rows' meaning, including repair
     # frames that need minimum-core compaction.
-    for key in ("shared_evaluation_identity", "diagnostic_table_definitions"):
+    for key in ("shared_evaluation_identity", "diagnostic_table_definitions", "behavior"):
         if key in feedback:
             minimum_feedback[key] = copy.deepcopy(feedback[key])
     if comparisons:
@@ -3042,6 +3047,10 @@ def _project_unified_prompt_public_result(
     visible_metrics: dict[str, Any] = {}
     if feedback:
         visible_metrics["prompt_feedback"] = copy.deepcopy(dict(feedback))
+    behavior = metrics.get("behavior", _mapping(metrics.get("public_dev")).get("behavior"))
+    if isinstance(behavior, Mapping):
+        from true_rl_agent.tasks.stair_climbing.behavior import project_stair_behavior
+        visible_metrics["behavior"] = project_stair_behavior(behavior)
     candidate_loaded = metrics.get("candidate_code_loaded_in_eval")
     if isinstance(candidate_loaded, bool):
         visible_metrics["candidate_code_loaded_in_eval"] = candidate_loaded
@@ -3116,6 +3125,15 @@ def _project_unified_prompt_generation(
         projected["formal"] = _project_unified_prompt_formal(
             generation.get("formal")
         )
+    # Preserve the task-owned evidence before PublicContextBuilder sanitizes
+    # history. The parent checkpoint remains independently bound by the ledger.
+    parent = _mapping(generation.get("parent_public_dev"))
+    if isinstance(parent.get("behavior"), Mapping):
+        from true_rl_agent.tasks.stair_climbing.behavior import project_stair_behavior
+        projected["parent_public_dev"] = {"behavior": project_stair_behavior(parent["behavior"])}
+    best = _mapping(generation.get("parent_current_best"))
+    if best.get("checkpoint_hash"):
+        projected["parent_current_best"] = {"checkpoint_hash": best["checkpoint_hash"]}
     projector = StairExplorationProjector(
         config,
         objective_family_mask=(
@@ -3225,7 +3243,7 @@ def _validated_unified_prompt_feedback(
     expected = build_unified_stair_prompt_feedback(
         suite=config.ordered_evaluation_suite,
         semantics=config.evaluation_semantics,
-        summary=public_dev,
+        summary={key: value for key, value in public_dev.items() if key != "behavior"},
         objective_family_mask=mask,
     )
     # Prompt feedback is a derived view, not a second scientific authority.
@@ -3238,6 +3256,58 @@ def _prompt_feedback_objective_score(
 ) -> float | None:
     generalization = _mapping(feedback.get("generalization_summary"))
     return _finite_score(generalization.get("public_dev_objective_score"))
+
+
+def _reference_behavior_feedback(public_context: Mapping[str, Any]) -> dict[str, Any] | None:
+    """The qualified initial reference is evidence, without a candidate trial."""
+    from true_rl_agent.tasks.stair_climbing.behavior import project_stair_behavior
+    anchor = _mapping(public_context.get("initial_anchor_public_evidence"))
+    if anchor.get("anchor_kind") != "reference_program":
+        return None
+    result = _mapping(anchor.get("public_result"))
+    metrics = _mapping(result.get("metrics"))
+    behavior = metrics.get("behavior", _mapping(metrics.get("public_dev")).get("behavior"))
+    if result.get("status") != "pass" or not isinstance(behavior, Mapping):
+        return None
+    return {"source_kind": "reference_anchor", "source_public_result_hash": anchor.get("public_result_hash"),
+            "selection": "initial reference with no candidate history", "omitted_measured_trials": 0,
+            "profile": project_stair_behavior(behavior),
+            "diff": {"status": "not_available", "reason": "reference_anchor_has_no_candidate_pair"}}
+
+
+def _latest_behavior_feedback(public_records: Sequence[Mapping[str, Any]]) -> dict[str, Any] | None:
+    """One measured trial, bound parent comparison, and explicit omitted lanes."""
+    from true_rl_agent.tasks.stair_climbing.behavior import compare_stair_behavior, project_stair_behavior
+
+    for record in reversed(public_records):
+        generation = _mapping(record.get("generation"))
+        trials = [trial for trial in generation.get("trials", ())
+                  if isinstance(trial, Mapping) and isinstance(_mapping(trial.get("public_dev")).get("public_summary"), Mapping)]
+        if trials:
+            trial = trials[-1]
+            if not isinstance(trial["public_dev"]["public_summary"].get("behavior"), Mapping):
+                return None
+            behavior = project_stair_behavior(trial["public_dev"]["public_summary"]["behavior"])
+            parent = _mapping(generation.get("parent_public_dev")).get("behavior")
+            difference = compare_stair_behavior(parent, behavior,
+                expected_parent_checkpoint_hash=_mapping(generation.get("parent_current_best")).get("checkpoint_hash"))
+            if behavior.get("schema_version") == "true_rl_agent.stair.behavior.public.v4":
+                from .process_report import attach_stair_process_difference
+                behavior = attach_stair_process_difference(behavior, difference)
+                if "rows" in difference:
+                    difference = {**{key: value for key, value in difference.items() if key != "rows"},
+                                  "omitted_stratum_diff_rows": len(difference["rows"])}
+            return {"source_trial_id": trial.get("trial_id"), "source_lane_id": trial.get("lane_id"),
+                    "selection": "last measured lane in latest generation; independent of acceptance",
+                    "omitted_measured_trials": len(trials)-1, "profile": behavior,
+                    "diff": difference}
+        metrics = _mapping(_mapping(record.get("public_result")).get("metrics"))
+        behavior = metrics.get("behavior", _mapping(metrics.get("public_dev")).get("behavior"))
+        if isinstance(behavior, Mapping):
+            return {"source_trial_id": record.get("round_id"), "omitted_measured_trials": 0,
+                    "selection": "latest measured round with behavior", "profile": project_stair_behavior(behavior),
+                    "diff": {"status": "not_available", "reason": "missing_bound_parent_or_behavior"}}
+    return None
 
 
 def _feedback_trial_records(
@@ -3260,7 +3330,7 @@ def _feedback_trial_records(
                 continue
             feedback = build_unified_stair_prompt_feedback(
                 suite=config.ordered_evaluation_suite, semantics=config.evaluation_semantics,
-                summary=summary, objective_family_mask=objective_family_mask_provider()
+                summary={key: value for key, value in summary.items() if key != "behavior"}, objective_family_mask=objective_family_mask_provider()
                 if objective_family_mask_provider else None,
             )
             candidate = _mapping(trial.get("candidate"))

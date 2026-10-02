@@ -1,0 +1,724 @@
+{
+  "schema_version": "trajectory.p0.input_contract.v1",
+  "source_lock_ref": "source_lock.json",
+  "scope": "R4 Stair Go2 numeric-only contract; not a production EpisodeEvidence implementation",
+  "channels": [
+    {
+      "channel_id": "base_pos_w",
+      "availability": "observed",
+      "unit": "m",
+      "frame": "world",
+      "entity_order": [
+        "robot_0.root"
+      ],
+      "clock_id": "episode_control_end",
+      "sample_phase": "post_step_pre_reset",
+      "alignment_map_ref": "t=episode_length*seed.step_dt",
+      "capture_clock_id": "episode_control_end",
+      "measurement_clock_id": "episode_control_end",
+      "alignment_error_s": 0.0,
+      "alignment_semantics": "same recorder snapshot",
+      "validity_ref": "valid[step,env] AND finite required components",
+      "semantics": "articulation root reference point, not COM",
+      "recorded_shape_first_chunk": [
+        64,
+        288,
+        3
+      ],
+      "dtype": "<f4"
+    },
+    {
+      "channel_id": "base_quat_w",
+      "availability": "observed",
+      "unit": "1",
+      "frame": "body_to_world_wxyz",
+      "entity_order": [
+        "robot_0.root"
+      ],
+      "clock_id": "episode_control_end",
+      "sample_phase": "post_step_pre_reset",
+      "alignment_map_ref": "t=episode_length*seed.step_dt",
+      "capture_clock_id": "episode_control_end",
+      "measurement_clock_id": "episode_control_end",
+      "alignment_error_s": 0.0,
+      "alignment_semantics": "same recorder snapshot",
+      "validity_ref": "valid[step,env] AND finite required components",
+      "semantics": "recorded wxyz; validate abs(norm(raw_q)-1)<=1e-4, then normalize for all primary orientation values/runs and body-frame rotations; raw up-z is diagnostic only",
+      "recorded_shape_first_chunk": [
+        64,
+        288,
+        4
+      ],
+      "dtype": "<f4"
+    },
+    {
+      "channel_id": "joint_pos",
+      "availability": "observed",
+      "unit": "rad",
+      "frame": "joint_coordinate",
+      "entity_order": [
+        "FL_hip_joint",
+        "FR_hip_joint",
+        "RL_hip_joint",
+        "RR_hip_joint",
+        "FL_thigh_joint",
+        "FR_thigh_joint",
+        "RL_thigh_joint",
+        "RR_thigh_joint",
+        "FL_calf_joint",
+        "FR_calf_joint",
+        "RL_calf_joint",
+        "RR_calf_joint"
+      ],
+      "clock_id": "episode_control_end",
+      "sample_phase": "post_step_pre_reset",
+      "alignment_map_ref": "t=episode_length*seed.step_dt",
+      "capture_clock_id": "episode_control_end",
+      "measurement_clock_id": "episode_control_end",
+      "alignment_error_s": 0.0,
+      "alignment_semantics": "same recorder snapshot",
+      "validity_ref": "valid[step,env] AND finite required components",
+      "semantics": "absolute joint position, not normalized action",
+      "recorded_shape_first_chunk": [
+        64,
+        288,
+        12
+      ],
+      "dtype": "<f4"
+    },
+    {
+      "channel_id": "support_pos_w",
+      "availability": "observed",
+      "unit": "m",
+      "frame": "world",
+      "entity_order": [
+        "robot_0.support.FL",
+        "robot_0.support.FR",
+        "robot_0.support.RL",
+        "robot_0.support.RR"
+      ],
+      "clock_id": "episode_control_end",
+      "sample_phase": "post_step_pre_reset",
+      "alignment_map_ref": "t=episode_length*seed.step_dt",
+      "capture_clock_id": "episode_control_end",
+      "measurement_clock_id": "episode_control_end",
+      "alignment_error_s": 0.0,
+      "alignment_semantics": "same recorder snapshot",
+      "validity_ref": "valid[step,env] AND finite required components",
+      "semantics": "recorded body_pos_w link-position channel, not foot sole; historical asset link-reference/COM-offset mapping is not fully verified",
+      "recorded_shape_first_chunk": [
+        64,
+        288,
+        4,
+        3
+      ],
+      "dtype": "<f4"
+    },
+    {
+      "channel_id": "support_lin_vel_w",
+      "availability": "observed",
+      "unit": "m/s",
+      "frame": "world",
+      "entity_order": [
+        "robot_0.support.FL",
+        "robot_0.support.FR",
+        "robot_0.support.RL",
+        "robot_0.support.RR"
+      ],
+      "clock_id": "episode_control_end",
+      "sample_phase": "post_step_pre_reset",
+      "alignment_map_ref": "t=episode_length*seed.step_dt",
+      "capture_clock_id": "episode_control_end",
+      "measurement_clock_id": "episode_control_end",
+      "alignment_error_s": 0.0,
+      "alignment_semantics": "same recorder snapshot",
+      "validity_ref": "valid[step,env] AND finite required components",
+      "semantics": "recorded body_lin_vel_w COM-velocity channel; historical asset mapping to body_pos_w link reference point is not fully verified; not asserted to be the exact derivative of support_pos_w; M04 uses horizontal xy norm only",
+      "recorded_shape_first_chunk": [
+        64,
+        288,
+        4,
+        3
+      ],
+      "dtype": "<f4"
+    },
+    {
+      "channel_id": "support_contact_forces_w",
+      "availability": "observed",
+      "unit": "N",
+      "frame": "world",
+      "entity_order": [
+        "robot_0.support.FL",
+        "robot_0.support.FR",
+        "robot_0.support.RL",
+        "robot_0.support.RR"
+      ],
+      "clock_id": "episode_control_end",
+      "sample_phase": "post_step_pre_reset",
+      "alignment_map_ref": "t=episode_length*seed.step_dt",
+      "capture_clock_id": "episode_control_end",
+      "measurement_clock_id": "sensor_buffer_update_events",
+      "alignment_error_s": null,
+      "alignment_semantics": "recorder read is on the control endpoint; physical sensor update timestamp/latency unknown",
+      "validity_ref": "valid[step,env] AND finite required components",
+      "semantics": "net normal contact force; not total force or contact pair",
+      "recorded_shape_first_chunk": [
+        64,
+        288,
+        4,
+        3
+      ],
+      "dtype": "<f4"
+    },
+    {
+      "channel_id": "forbidden_contact_forces_w",
+      "availability": "observed",
+      "unit": "N",
+      "frame": "world",
+      "entity_order": [
+        "robot_0.body.base"
+      ],
+      "clock_id": "episode_control_end",
+      "sample_phase": "post_step_pre_reset",
+      "alignment_map_ref": "t=episode_length*seed.step_dt",
+      "capture_clock_id": "episode_control_end",
+      "measurement_clock_id": "sensor_buffer_update_events",
+      "alignment_error_s": null,
+      "alignment_semantics": "recorder read is on the control endpoint; physical sensor update timestamp/latency unknown",
+      "validity_ref": "valid[step,env] AND finite required components",
+      "semantics": "only base; profile forbidden role is not sensor coverage",
+      "recorded_shape_first_chunk": [
+        64,
+        288,
+        1,
+        3
+      ],
+      "dtype": "<f4"
+    },
+    {
+      "channel_id": "support_contact_forces_w_history",
+      "availability": "observed",
+      "unit": "N",
+      "frame": "world",
+      "entity_order": [
+        "robot_0.support.FL",
+        "robot_0.support.FR",
+        "robot_0.support.RL",
+        "robot_0.support.RR"
+      ],
+      "clock_id": "sensor_buffer_update_events",
+      "sample_phase": "buffer_read_at_post_step_pre_reset",
+      "alignment_map_ref": "history_slot_alignment_unknown",
+      "capture_clock_id": "episode_control_end",
+      "measurement_clock_id": "sensor_buffer_update_events",
+      "alignment_error_s": null,
+      "alignment_semantics": "recorder read is on the control endpoint; physical sensor update timestamp/latency unknown",
+      "validity_ref": "valid[step,env] AND finite required components; no per-slot validity",
+      "semantics": "buffer contents observed, individual slot physical time and validity unknown",
+      "recorded_shape_first_chunk": [
+        64,
+        288,
+        3,
+        4,
+        3
+      ],
+      "dtype": "<f4"
+    },
+    {
+      "channel_id": "forbidden_contact_forces_w_history",
+      "availability": "observed",
+      "unit": "N",
+      "frame": "world",
+      "entity_order": [
+        "robot_0.body.base"
+      ],
+      "clock_id": "sensor_buffer_update_events",
+      "sample_phase": "buffer_read_at_post_step_pre_reset",
+      "alignment_map_ref": "history_slot_alignment_unknown",
+      "capture_clock_id": "episode_control_end",
+      "measurement_clock_id": "sensor_buffer_update_events",
+      "alignment_error_s": null,
+      "alignment_semantics": "recorder read is on the control endpoint; physical sensor update timestamp/latency unknown",
+      "validity_ref": "valid[step,env] AND finite required components; no per-slot validity",
+      "semantics": "buffer contents observed, individual slot physical time and validity unknown",
+      "recorded_shape_first_chunk": [
+        64,
+        288,
+        3,
+        1,
+        3
+      ],
+      "dtype": "<f4"
+    },
+    {
+      "channel_id": "episode_length",
+      "availability": "observed",
+      "unit": "control_step",
+      "frame": "episode",
+      "entity_order": [
+        "robot_0"
+      ],
+      "clock_id": "episode_control_end",
+      "sample_phase": "post_step_pre_reset",
+      "alignment_map_ref": "t=episode_length*seed.step_dt",
+      "capture_clock_id": "episode_control_end",
+      "measurement_clock_id": "episode_control_end",
+      "alignment_error_s": 0.0,
+      "alignment_semantics": "same recorder snapshot",
+      "validity_ref": "valid[step,env] AND finite required components",
+      "semantics": "one-based elapsed control steps at recorded endpoint",
+      "recorded_shape_first_chunk": [
+        64,
+        288
+      ],
+      "dtype": "<i8"
+    },
+    {
+      "channel_id": "done_mask",
+      "availability": "observed",
+      "unit": "bool",
+      "frame": "none",
+      "entity_order": [
+        "robot_0"
+      ],
+      "clock_id": "episode_control_end",
+      "sample_phase": "post_step_pre_reset",
+      "alignment_map_ref": "t=episode_length*seed.step_dt",
+      "capture_clock_id": "episode_control_end",
+      "measurement_clock_id": "episode_control_end",
+      "alignment_error_s": 0.0,
+      "alignment_semantics": "same recorder snapshot",
+      "validity_ref": "valid[step,env] AND finite required components",
+      "semantics": "manager done; not equivalent to task evaluator first-arrival closure",
+      "recorded_shape_first_chunk": [
+        64,
+        288
+      ],
+      "dtype": "|b1"
+    },
+    {
+      "channel_id": "wrapper_done_mask",
+      "availability": "observed",
+      "unit": "bool",
+      "frame": "none",
+      "entity_order": [
+        "robot_0"
+      ],
+      "clock_id": "episode_control_end",
+      "sample_phase": "post_step_pre_reset",
+      "alignment_map_ref": "t=episode_length*seed.step_dt",
+      "capture_clock_id": "episode_control_end",
+      "measurement_clock_id": "episode_control_end",
+      "alignment_error_s": 0.0,
+      "alignment_semantics": "same recorder snapshot",
+      "validity_ref": "valid[step,env] AND finite required components",
+      "semantics": "wrapper done; not translator outcome authority",
+      "recorded_shape_first_chunk": [
+        64,
+        288
+      ],
+      "dtype": "|b1"
+    },
+    {
+      "channel_id": "termination_0",
+      "availability": "observed",
+      "unit": "bool",
+      "frame": "none",
+      "entity_order": [
+        "robot_0"
+      ],
+      "clock_id": "episode_control_end",
+      "sample_phase": "post_step_pre_reset",
+      "alignment_map_ref": "t=episode_length*seed.step_dt",
+      "capture_clock_id": "episode_control_end",
+      "measurement_clock_id": "episode_control_end",
+      "alignment_error_s": 0.0,
+      "alignment_semantics": "same recorder snapshot",
+      "validity_ref": "valid[step,env] AND finite required components",
+      "semantics": "termination_term_order[0]=time_out",
+      "recorded_shape_first_chunk": [
+        64,
+        288
+      ],
+      "dtype": "|b1"
+    },
+    {
+      "channel_id": "termination_1",
+      "availability": "observed",
+      "unit": "bool",
+      "frame": "none",
+      "entity_order": [
+        "robot_0.body.base"
+      ],
+      "clock_id": "episode_control_end",
+      "sample_phase": "post_step_pre_reset",
+      "alignment_map_ref": "t=episode_length*seed.step_dt",
+      "capture_clock_id": "episode_control_end",
+      "measurement_clock_id": "episode_control_end",
+      "alignment_error_s": 0.0,
+      "alignment_semantics": "same recorder snapshot",
+      "validity_ref": "valid[step,env] AND finite required components",
+      "semantics": "termination_term_order[1]=base_contact; history-based manager mask may differ from current force",
+      "recorded_shape_first_chunk": [
+        64,
+        288
+      ],
+      "dtype": "|b1"
+    },
+    {
+      "channel_id": "valid",
+      "availability": "observed",
+      "unit": "bool",
+      "frame": "none",
+      "entity_order": [
+        "robot_0"
+      ],
+      "clock_id": "episode_control_end",
+      "sample_phase": "post_step_pre_reset",
+      "alignment_map_ref": "t=episode_length*seed.step_dt",
+      "capture_clock_id": "episode_control_end",
+      "measurement_clock_id": "episode_control_end",
+      "alignment_error_s": 0.0,
+      "alignment_semantics": "same recorder snapshot",
+      "validity_ref": "valid[step,env] AND finite required components",
+      "semantics": "first scored episode active before applying this sample outcome",
+      "recorded_shape_first_chunk": [
+        64,
+        288
+      ],
+      "dtype": "|b1"
+    },
+    {
+      "channel_id": "terrain_env_origins_w",
+      "availability": "observed",
+      "unit": "m",
+      "frame": "world",
+      "entity_order": [
+        "environment"
+      ],
+      "clock_id": "run_static",
+      "sample_phase": "first_chunk_static",
+      "alignment_map_ref": "run_static",
+      "capture_clock_id": "run_static",
+      "measurement_clock_id": "run_static",
+      "alignment_error_s": 0.0,
+      "alignment_semantics": "same recorder snapshot",
+      "validity_ref": "finite AND public cell assignment matches",
+      "semantics": "run-static terrain origin, first chunk only",
+      "recorded_shape_first_chunk": [
+        288,
+        3
+      ],
+      "dtype": "<f4"
+    },
+    {
+      "channel_id": "terrain_types",
+      "availability": "observed",
+      "unit": "index",
+      "frame": "public_cell_assignment",
+      "entity_order": [
+        "environment"
+      ],
+      "clock_id": "run_static",
+      "sample_phase": "first_chunk_static",
+      "alignment_map_ref": "run_static",
+      "capture_clock_id": "run_static",
+      "measurement_clock_id": "run_static",
+      "alignment_error_s": 0.0,
+      "alignment_semantics": "same recorder snapshot",
+      "validity_ref": "finite AND public cell assignment matches",
+      "semantics": "run-static cell index, first chunk only",
+      "recorded_shape_first_chunk": [
+        288
+      ],
+      "dtype": "<i8"
+    },
+    {
+      "channel_id": "task_progress",
+      "availability": "derivable",
+      "unit": "m",
+      "inputs": [
+        "base_pos_w",
+        "terrain_env_origins_w"
+      ],
+      "formula": "base_pos_w.x-origin.x (Stair task direction only)",
+      "catalog_ref": "MEASUREMENT_CATALOG_ZH.md",
+      "physical_continuity_claim": false
+    },
+    {
+      "channel_id": "root_interval_velocity",
+      "availability": "derivable",
+      "unit": "m/s",
+      "inputs": [
+        "base_pos_w",
+        "episode_length"
+      ],
+      "formula": "diff(position)/diff(time); interval-average proxy",
+      "catalog_ref": "MEASUREMENT_CATALOG_ZH.md",
+      "physical_continuity_claim": false
+    },
+    {
+      "channel_id": "support_body_relative_position",
+      "availability": "derivable",
+      "unit": "m",
+      "inputs": [
+        "base_pos_w",
+        "base_quat_w",
+        "support_pos_w"
+      ],
+      "formula": "R(normalized_q).T*(support_pos-base_pos); validate raw quaternion norm error<=1e-4 before normalization",
+      "catalog_ref": "MEASUREMENT_CATALOG_ZH.md",
+      "physical_continuity_claim": false
+    },
+    {
+      "channel_id": "contact_marker",
+      "availability": "derivable",
+      "unit": "bool",
+      "inputs": [
+        "support_contact_forces_w"
+      ],
+      "formula": "norm(F)>1 N; current sample only",
+      "catalog_ref": "MEASUREMENT_CATALOG_ZH.md",
+      "physical_continuity_claim": false
+    },
+    {
+      "channel_id": "body_up_world_z",
+      "availability": "derivable",
+      "unit": "1",
+      "inputs": [
+        "base_quat_w"
+      ],
+      "formula": "q=raw_q/norm(raw_q) after finite and abs(norm(raw_q)-1)<=1e-4 validation; 1-2*(qx*qx+qy*qy); raw up-z diagnostic only",
+      "catalog_ref": "MEASUREMENT_CATALOG_ZH.md",
+      "physical_continuity_claim": false
+    },
+    {
+      "channel_id": "joint_pose_range",
+      "availability": "derivable",
+      "unit": "rad",
+      "inputs": [
+        "joint_pos"
+      ],
+      "formula": "max(q)-min(q) over valid episode samples",
+      "catalog_ref": "MEASUREMENT_CATALOG_ZH.md",
+      "physical_continuity_claim": false
+    },
+    {
+      "channel_id": "policy_action_raw",
+      "availability": "missing",
+      "reason": "not captured; observation term names and action configuration do not contain executed actions"
+    },
+    {
+      "channel_id": "policy_observation_vector",
+      "availability": "missing",
+      "reason": "state channels are not the full policy observation O"
+    },
+    {
+      "channel_id": "command_time_series",
+      "availability": "missing",
+      "reason": "task geometry is known; realized per-step command is not captured"
+    },
+    {
+      "channel_id": "joint_velocity",
+      "availability": "missing",
+      "reason": "runtime may read it but numeric archive does not record it"
+    },
+    {
+      "channel_id": "actual_torque_and_saturation",
+      "availability": "missing",
+      "reason": "runtime may read torque; executed value and saturation absent"
+    },
+    {
+      "channel_id": "actual_reward_components",
+      "availability": "missing",
+      "reason": "no dense reward components/weights/gates in this archive"
+    },
+    {
+      "channel_id": "reward_air_time_first_contact",
+      "availability": "missing",
+      "reason": "sensor timer state and first-contact gate absent"
+    },
+    {
+      "channel_id": "actual_mass_com_momentum",
+      "availability": "missing",
+      "reason": "randomized mass and whole-body momentum absent"
+    },
+    {
+      "channel_id": "effective_joint_limits",
+      "availability": "missing",
+      "reason": "no per-environment effective limits; nominal asset limits not yet bound"
+    },
+    {
+      "channel_id": "friction_force_and_contact_pair",
+      "availability": "missing",
+      "reason": "net normal force does not provide tangential force or contact object"
+    },
+    {
+      "channel_id": "all_link_poses_and_forces",
+      "availability": "missing",
+      "reason": "only selected support bodies and base force collected"
+    },
+    {
+      "channel_id": "history_slot_timestamps_and_validity",
+      "availability": "missing",
+      "reason": "configured period cannot reconstruct observed history time/validity"
+    },
+    {
+      "channel_id": "media_receipt",
+      "availability": "missing",
+      "reason": "numeric manifest media_status=not_collected; external media not inspected in P0"
+    },
+    {
+      "channel_id": "parent_comparison",
+      "availability": "missing",
+      "reason": "no compatible parent archive frozen for first card"
+    }
+  ],
+  "source_code_hashes": {
+    "src/true_rl_agent/tasks/stair_climbing/numeric_capture.py": "877510407e897434210c6a0231318af5adeb53074a79484386e72490e7a6557d",
+    "src/true_rl_agent/tasks/stair_climbing/transition_decoder.py": "8dababd0e43259e8c23ded16524b134b6aa269b3cc98ab54646ac3dd2af67723",
+    "src/true_rl_agent/tasks/stair_climbing/runtime_projection.py": "33377cbcfcde69f56d230d63e6639a1d09cc47ffdb5825cd213880d42531e6af",
+    "src/true_rl_agent/tasks/stair_climbing/isaaclab_runtime_env.py": "80eb68813fc54eef85cd66626f8cddf7bf1321c6d82086689386a241d11231c3",
+    "src/true_rl_agent/tasks/stair_climbing/evaluation_runtime.py": "06ab2f9e79dddd7d1c1e8269eb674d7766ad0b7affd9cc26a326741203d9118d",
+    "src/true_rl_agent/runner/numeric_evidence.py": "2283e8e9f770135a610506173e91948fdfc7dcf79b9b227f5f0932a44da30579",
+    "configs/robots/unitree_go2_12dof_isaaclab_v1.body_frame.json": "3b0c3765b0a47ceb2b32c77734c9f7abcbfc20d417fd187ae84c00b368d9c75c",
+    "configs/tasks/stair_go2_12dof_unified_binding_v3.json": "d6a856697edd6d4807f74a30ca4889c1268f07890b9b87abb7e63c02eda0e900",
+    "src/true_rl_agent/tasks/stair_climbing/process_report.py": "c89ad2dee3a7ba2c99aef78c401cfd22c4d227d2a8ba5e2f0b50d3b92a3f3ff5",
+    "src/true_rl_agent/tasks/stair_climbing/behavior.py": "606e1a69da140f095e0e0a28932dfa35e721853a13e04eb91c552b41c439dbba",
+    "src/true_rl_agent/tasks/stair_climbing/prompt_adapter.py": "8b8b5b99e093454a5ed1ad9648d91d451edc137e611d29ac4c4958d223ef0fcf",
+    "src/true_rl_agent/prompting/payload.py": "5cfd0c00ac5467d170197a43555b5eab2a7b1b481ead9cbe6a18b36c5b0659fd",
+    "src/true_rl_agent/agent_core/openai_compatible_provider.py": "cd3eae5ff8b556a766861f671be00d4925940b3d152598a85e953f18d71cb162"
+  },
+  "entity_binding": {
+    "actor_id": "robot_0 (episode-local)",
+    "root": "articulation_root",
+    "support": [
+      "FL_foot",
+      "FR_foot",
+      "RL_foot",
+      "RR_foot"
+    ],
+    "forbidden": [
+      "base"
+    ],
+    "joints": [
+      "FL_hip_joint",
+      "FR_hip_joint",
+      "RL_hip_joint",
+      "RR_hip_joint",
+      "FL_thigh_joint",
+      "FR_thigh_joint",
+      "RL_thigh_joint",
+      "RR_thigh_joint",
+      "FL_calf_joint",
+      "FR_calf_joint",
+      "RL_calf_joint",
+      "RR_calf_joint"
+    ],
+    "body_frame_ref": "configs/robots/unitree_go2_12dof_isaaclab_v1.body_frame.json"
+  },
+  "time": {
+    "control_clock": "episode_control_end",
+    "origin": "episode_start",
+    "timestamps": "k*seed.step_dt, k=1..N",
+    "first_sample_s": 0.02,
+    "control_dt_s": 0.02,
+    "physics_dt_s": 0.005,
+    "physics_steps_per_control": 4,
+    "no_t0_state": true,
+    "phase": "post_step_pre_reset",
+    "state_channels_alignment": "same cloned recorder snapshot; no external clock join",
+    "history": {
+      "status": "recorded",
+      "schema_version": "true_rl_agent.stair.contact_force_history.v1",
+      "source": "contact_sensor.net_forces_w_history",
+      "force_semantics": "world_frame_net_normal_contact_force_N_not_contact_pair_or_surface",
+      "history_length": 3,
+      "history_order": "newest_to_oldest",
+      "history_clock": "contact_sensor_buffer_update_events",
+      "configured_sensor_update_period_s": 0.005,
+      "physics_dt_s": 0.005,
+      "control_dt_s": 0.02,
+      "physics_steps_per_control": 4,
+      "lazy_sensor_update": true,
+      "per_history_slot_timestamps": "not_recorded; configured_update_period_is_not_observed_sample_spacing",
+      "coverage": "existing_sensor_buffer_at_pre_reset_control_step_end; not_full_physics_trajectory",
+      "reset_history": "sensor_zeroes_history_on_reset; no_per_slot_validity_flags",
+      "array_axes": [
+        "control_step",
+        "environment",
+        "history",
+        "bound_body",
+        "xyz"
+      ]
+    },
+    "interval_indices": "half-open [a,b+1) for inclusive one-based samples a..b",
+    "sampled_span": "(b-a)*dt",
+    "sample_cell_duration_proxy": "(b-a+1)*dt",
+    "censoring": "left/right if predicate present at coverage endpoint; unknown at a gap; never extend beyond last valid sample"
+  },
+  "public_boundary": {
+    "accepted_identity_splits": [
+      "public_dev"
+    ],
+    "require_every_seed_split": "public_dev",
+    "archive_frozen_is_not_task_sealed": true,
+    "benchmark_partition": "development",
+    "evaluation_uses": [
+      "development_regression",
+      "descriptive_audit"
+    ],
+    "prospective_confirmation": false,
+    "forbidden_uses_for_task_sealed": [
+      "feedback",
+      "reference_fit",
+      "calibration",
+      "examples",
+      "model_discovery",
+      "cache_derived_public_text"
+    ],
+    "output_scope": "P0 internal audit artifacts; not author input; only approved text and opaque references may enter future author payload"
+  },
+  "coverage": {
+    "raw": "all 30 R4 chunks read and checksummed by inspector; result recorded separately",
+    "media": "not inspected",
+    "model_inspection": "none; zero calls",
+    "semantic": "preselected necessary facts only; E1 card review pending",
+    "valid": "first scored episode including terminal; padded reset values not observations",
+    "invalid_predicate": "unknown, not false",
+    "aggregation": "per-descriptor valid denominator; sample-pooled and episode-equal statistics separate"
+  },
+  "deferred": [
+    "periodic_gait_phase",
+    "nominal_or_effective_limit_proximity",
+    "independently_verified_terrain_clearance",
+    "reward_response",
+    "physical_impulse_or_momentum_balance",
+    "policy_card_and_public_version_migration"
+  ],
+  "measurement_semantics_version": "trajectory.p0.measurements.v2",
+  "contact_combination_encoding": {
+    "version": "role_index_lsb.v1",
+    "entities": [
+      "FL",
+      "FR",
+      "RL",
+      "RR"
+    ],
+    "weights": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "encode": "sum(int(marker[i])<<i)",
+    "decode": "marker[i]=bool((code>>i)&1)",
+    "production_abi_changed": false
+  },
+  "deferred_obligations": {
+    "periodic_gait_phase": "Freeze and independently validate sufficient/stable cycles, event pairing, sensitivity and complete-cycle denominator before enabling; not removed from first-version goals",
+    "nominal_or_effective_limit_proximity": "Verify hash-matched asset joint-coordinate limits, or capture actual per-environment limits; nominal proxy must remain labeled",
+    "independently_verified_terrain_clearance": "Validate each enabled geometry/edge/rough-surface and coordinate reference; this is pending validation, not absent input channels",
+    "support_position_velocity_reference_mapping": "Verify historical asset link-position and COM-velocity reference points/offsets before same-point or derivative claims"
+  }
+}

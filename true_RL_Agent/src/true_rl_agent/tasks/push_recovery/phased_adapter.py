@@ -12,7 +12,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, Literal
 
-from true_rl_agent.evaluation.binding import canonical_json_hash, require_sha256_checksum
+from true_rl_agent.evaluation.binding import canonical_json_hash, require_sha256_checksum, is_sha256_digest
 from true_rl_agent.evaluation.phased_adapter import GenerationWorkload
 from true_rl_agent.composition.cell_manifest import ResolvedCellManifestV1
 from true_rl_agent.evaluation.phase_assembly import (
@@ -183,11 +183,28 @@ class PushPhasedEvaluationAdapter:
         if (
             result.task_id != "unitree_push_recovery"
             or result.eval_protocol_hash != self.config.evaluation_protocol().protocol_hash
-            or set(evidence) != {"schema_version", "phase", "seed_summaries"}
+            or set(evidence) not in ({"schema_version", "phase", "seed_summaries"},
+                                     {"schema_version", "phase", "seed_summaries", "behavior"},
+                                     {"schema_version", "phase", "seed_summaries", "behavior", "behavior_full"})
             or evidence["schema_version"] != PUSH_PHASE_EVIDENCE_SCHEMA
             or evidence["phase"] != result.phase.value
         ):
             raise ValueError("Push phase evidence identity mismatch")
+        if "behavior" in evidence and result.phase is not EvaluationPhase.PUBLIC_DEV:
+            raise ValueError("Push behavior evidence is public_dev-only")
+        if "behavior_full" in evidence:
+            full = evidence["behavior_full"]
+            public = evidence["behavior"]
+            if (not isinstance(full, Mapping) or not isinstance(public, Mapping)
+                    or set(full) != {"schema_version", "file", "sha256", "size_bytes"}
+                    or full.get("schema_version") != "true_rl_agent.process_full_ref.v1"
+                    or full.get("file") != "behavior_full.json"
+                    or not is_sha256_digest(full.get("sha256"))
+                    or not isinstance(full.get("size_bytes"), int) or isinstance(full.get("size_bytes"), bool)
+                    or full["size_bytes"] <= 0
+                    or public.get("schema_version") != "true_rl_agent.push_recovery.behavior.public.v3"
+                    or public.get("full_derivation_sha256") != full.get("sha256")):
+                raise ValueError("Push process report differs from sealed full derivation")
         summaries = evidence["seed_summaries"]
         if not isinstance(summaries, list) or len(summaries) != self.seed_count(result.phase):
             raise ValueError("Push phase evidence seed count mismatch")
@@ -230,8 +247,15 @@ class PushPhasedEvaluationAdapter:
     def project_public_phase_summary(self, *, phase_result: EvaluationPhaseResult) -> Mapping[str, Any]:
         if phase_result.phase is EvaluationPhase.SEALED_VALIDATION:
             raise ValueError("sealed phase summaries cannot enter generation trial history")
-        return project_push_split(self._phase_summaries(phase_result),
-                              split_name=phase_result.phase.value, errors=[])
+        summary = project_push_split(self._phase_summaries(phase_result),
+                                     split_name=phase_result.phase.value, errors=[])
+        if "behavior" in phase_result.task_evidence:
+            from true_rl_agent.tasks.push_recovery.behavior import project_push_behavior
+            behavior = project_push_behavior(phase_result.task_evidence["behavior"])
+            if behavior["binding"]["checkpoint_hash"] != phase_result.checkpoint_hash:
+                raise ValueError("Push behavior checkpoint differs from its phase receipt")
+            summary["behavior"] = behavior
+        return summary
 
     def project_public_dev_screen(
         self, *, trial_id: str, phase_result: EvaluationPhaseResult,
@@ -330,6 +354,9 @@ class PushPhasedEvaluationAdapter:
             acceptance_protocol=self.config.acceptance_protocol(),
             evaluation_protocol=self.config.evaluation_protocol(),
         )
+        public_metrics = dict(projected.metrics)
+        if "behavior" in first.task_evidence:
+            public_metrics["public_dev"] = self.project_public_phase_summary(phase_result=first)
         sealed = build_push_sealed_rollout_evidence(
             summaries=summaries[EvaluationPhase.SEALED_VALIDATION],
             evaluation_protocol=self.config.evaluation_protocol(),
@@ -353,7 +380,7 @@ class PushPhasedEvaluationAdapter:
             "evaluation_protocol": self.config.evaluation_protocol().to_public_dict(),
             "evaluation_binding": eval_plan.evaluation_binding.to_public_dict(),
             "status": projected.status, "public_score": projected.public_score,
-            "metrics": dict(projected.metrics),
+            "metrics": public_metrics,
             "execution_device": first.execution_device,
             "environment_source_preflight": dict(first.environment_source_preflight),
             "backend_execution_environment_verification": dict(first.backend_execution_environment_verification),

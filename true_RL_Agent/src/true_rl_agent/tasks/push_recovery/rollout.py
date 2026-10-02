@@ -73,10 +73,11 @@ def run_physical_push_rollout(env: Any, config: dict[str, Any], args: Any, *,
     state.begin_evaluation(split_name, seed)
     reset = env.reset()
     obs = reset[0] if isinstance(reset, tuple) else reset
-    recorder = getattr(args, "_push_video_recorder", None)
+    recorders = getattr(args, "_push_video_recorders", ())
     force_sequence = "push_evaluation_protocol" in config
-    if recorder is not None:
-        recorder.start(f"{split_name}-{run_index:02d}", seed, task_records_steps=force_sequence)
+    for recorder in recorders:
+        suffix = f"-env-{recorder.options.env_index}" if len(recorders) > 1 else ""
+        recorder.start(f"{split_name}-{run_index:02d}{suffix}", seed, task_records_steps=True)
     num_envs, device = int(base.num_envs), base.device
     max_steps = args.max_steps if args.max_steps is not None else int(base.max_episode_length)
     previous_action = torch.zeros((num_envs, base.action_manager.total_action_dim), device=device)
@@ -87,10 +88,13 @@ def run_physical_push_rollout(env: Any, config: dict[str, Any], args: Any, *,
     previous_numeric_capture = getattr(state, "numeric_capture", None)
     numeric = PushNumericCapture(numeric_capture, state, split_name=split_name, run_index=run_index) if numeric_capture is not None else None
     state.numeric_capture = numeric
-    if recorder is not None and force_sequence:
+    if recorders:
+        # Both mechanisms observe here before reset and interval velocity writes.
+        # Wrapper-after-step recording would sample a different state for v2.
         def capture_frame() -> None:
-            if not bool(state.closed[recorder.options.env_index]):
-                recorder.record_step()
+            for recorder in recorders:
+                if not bool(state.closed[recorder.options.env_index]):
+                    recorder.record_step()
         base._push_pre_reset_capture = capture_frame
     try:
         for _ in range(int(max_steps)):
@@ -123,7 +127,7 @@ def run_physical_push_rollout(env: Any, config: dict[str, Any], args: Any, *,
             for name in ("_numeric_pose", "_numeric_conditions", "_numeric_planar_motion"):
                 if hasattr(state, name):
                     delattr(state, name)
-        if recorder is not None and force_sequence:
+        if recorders:
             if previous_capture is None:
                 del base._push_pre_reset_capture
             else:
@@ -135,13 +139,17 @@ def run_physical_push_rollout(env: Any, config: dict[str, Any], args: Any, *,
         record["mean_action_l2"] = float(action_sum[index]) / count
         record["mean_action_rate_l2"] = float(action_rate_sum[index]) / count
     aggregate = aggregate_recovery_episodes(records, force_sequence=force_sequence)
-    if recorder is not None:
+    for recorder in recorders:
         outcome = records[recorder.options.env_index]
-        record = recorder.finish(frame_count=outcome["episode_steps"] if force_sequence else max(0, outcome["episode_steps"] - 1))
+        record = recorder.finish(frame_count=outcome["episode_steps"])
+        terminal_present = (any(sample["control_step"] == outcome["episode_steps"]
+                                for sample in record["manifest"]["samples"])
+                            if record.get("capture_mode") == "selected_rgb_snapshots"
+                            else record["frame_count"] == outcome["episode_steps"] and outcome["episode_steps"] > 0)
         record.update(episode_outcome=outcome, episode_evidence_source="pre_reset_task_state",
-            split=split_name, run_index=run_index, resolved_protocol_hash=state.parameters["resolved_protocol_hash"])
-        if force_sequence:
-            record.update(capture_point="after_physics_before_termination_and_reset", includes_terminal_frame=True)
+            split=split_name, run_index=run_index, resolved_protocol_hash=state.parameters["resolved_protocol_hash"],
+            capture_point="after_physics_before_task_observe_reset_and_interval_events",
+            terminal_control_step=outcome["episode_steps"], includes_terminal_frame=terminal_present)
     valid = observation_finite and reward_finite and aggregate["invalid_injection_count"] == 0 and bool(state.closed.all())
     means = {"mean_episode_steps": "episode_steps", "mean_min_base_height_m": "min_base_height_m",
         "mean_max_abs_pitch_rad": "max_abs_pitch_rad", "mean_max_abs_roll_rad": "max_abs_roll_rad",

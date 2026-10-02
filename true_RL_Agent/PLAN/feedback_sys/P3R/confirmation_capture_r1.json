@@ -1,0 +1,90 @@
+{
+  "schema_version": "feedback_p3r.confirmation_capture.v1",
+  "status": "PREFLIGHT_RELEASED_RUN_REQUIRES_PREFLIGHT_PASS",
+  "created_utc": "2026-09-28T19:56:43.170109+00:00",
+  "source": {
+    "execution_source_hash": "8fa8877b99c335ffcc76e884e30e26fb88a4d930b02f932d3824e78e1d9c9080",
+    "archive_sha256": "c65239503628d7733a295203e9372a28f1679f05ba78df3481da80ea1376a0c8"
+  },
+  "source_root": "/data/yuyangliu/AGENT/feedback_p3r_20260929/source_confirmation_r1",
+  "budget_gpu_capacity_hours": 1.0,
+  "api_calls_released": 0,
+  "candidate_training": false,
+  "refs": {
+    "CONFIRMATION_PROTOCOL_ZH.md": {
+      "path": "CONFIRMATION_PROTOCOL_ZH.md",
+      "sha256": "1bf776b532fca16d766a8516bf13f731d7cf2cd0f6e9dba8fa41177f2ec309ae"
+    },
+    "confirmation_design.json": {
+      "path": "confirmation_design.json",
+      "sha256": "d9e0c8e9b91b5c077ba8e8609d67aa6a8cd567b4e9c8e0170cc37af409da65ae"
+    },
+    "stage_budget_r3.json": {
+      "path": "stage_budget_r3.json",
+      "sha256": "0900dc8befaca38734884d27f45a2479af7a0baa11fc3a95a407d1956f03e5c7"
+    },
+    "results/stair_behavior_r1_rules.json": {
+      "path": "results/stair_behavior_r1_rules.json",
+      "sha256": "bc438a958fb82bda3d391d165527c88dd46a94cc514f66a15d7e5e8e9dfdcece"
+    }
+  },
+  "preflight_outputs": {
+    "stair": "/data/yuyangliu/AGENT/feedback_p3r_20260929/stair_confirmation_preflight_r1",
+    "push": "/data/yuyangliu/AGENT/feedback_p3r_20260929/push_confirmation_preflight_r1"
+  },
+  "run_outputs": {
+    "stair": "/data/yuyangliu/AGENT/feedback_p3r_20260929/stair_confirmation_r1",
+    "push": "/data/yuyangliu/AGENT/feedback_p3r_20260929/push_confirmation_r1"
+  },
+  "commands_without_mode_output": {
+    "stair": [
+      "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+      "/data/yuyangliu/AGENT/feedback_p3r_20260929/source_confirmation_r1/scripts/stair_numeric_dev_replay.py",
+      "--checkpoint",
+      "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit3_go2_full_train/runner/audit3_go2_full_train/checkpoints/best.pt",
+      "--train-summary",
+      "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit3_go2_full_train/runner/audit3_go2_full_train/train/summary.json",
+      "--protocol",
+      "/data/yuyangliu/AGENT/feedback_p3r_20260929/source_confirmation_r1/configs/tasks/stair_go2_12dof_unified_protocol_v3.json",
+      "--device",
+      "cuda:0",
+      "--isaac-python",
+      "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+      "--capture-numeric",
+      "on",
+      "--cohort",
+      "diagnostic",
+      "--timeout-s",
+      "1800"
+    ],
+    "push": [
+      "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+      "/data/yuyangliu/AGENT/feedback_p3r_20260929/source_confirmation_r1/scripts/push_numeric_replay.py",
+      "--cell",
+      "push.g1_37dof.recovery_v2",
+      "--source-manifest",
+      "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912/resolved_cell_manifest.json",
+      "--checkpoint-summary",
+      "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912/runner/p6-g1-stationary-v3-reference-20260912/train/summary.json",
+      "--checkpoint",
+      "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912/runner/p6-g1-stationary-v3-reference-20260912/checkpoints/best.pt",
+      "--device",
+      "cuda:1",
+      "--isaac-python",
+      "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+      "--capture",
+      "on",
+      "--eval-base-seed",
+      "1500000000",
+      "--timeout-s",
+      "900"
+    ]
+  },
+  "input_checkpoint_sha256": {
+    "stair": "7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+    "push": "91c00d4e61492dcfb6511aa0ae9ef85121c5bb08dafde7eabf29c10281ad1749"
+  },
+  "attempts_per_task": 1,
+  "automatic_retry": false,
+  "freeze_note": "Questions and selection frozen before new data. Preflight inspects existing checkpoint and environment only. Actual run release will bind validated phase/cohort identities. Annotators see raw first, behavior after annotation freeze."
+}

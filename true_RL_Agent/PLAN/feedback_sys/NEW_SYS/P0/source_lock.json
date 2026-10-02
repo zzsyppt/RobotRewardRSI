@@ -1,0 +1,663 @@
+{
+  "schema_version": "trajectory.p0.source_lock.v1",
+  "baseline_commit": "e85d37c2ac855bc366a4c80340f7c2ee6af4ae54",
+  "sources": [
+    {
+      "source_id": "r4",
+      "manifest_relative_path": "outputs/trajectory_p0/raw/numeric_evidence/manifest.json",
+      "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+      "manifest_bytes": 573879,
+      "identity": {
+        "job_id": "stair-dev-replay-7b582643510cc9dd-diagnostic-eval-diagnostic-public-dev",
+        "task_id": "unitree_stair_climbing",
+        "subject_kind": "reference",
+        "subject_id": "go2-stair-official-flat-derived-v1",
+        "subject_manifest_hash": "ece5ad653267f11e5b791403208472f42622e44661fdbc7162776799a370dbd4",
+        "program_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+        "training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98",
+        "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+        "evaluation_binding": {
+          "schema_version": "true_rl_agent.evaluation.binding.v1",
+          "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+          "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+          "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+          "seed_cohort_hash": "d41ac09594b4a4b4b48c2df075088328301a68d293bf9310882030574115ac32",
+          "evaluation_binding_hash": "1db7a52e1cec0769caf34926267b41981c8aa066341ca26354962ee758b5905b"
+        },
+        "evaluation_plan_hash": "c10b9bbcd5191909f9ec925e042bd7cb33e5516b0e1d5ff1cb415968f4e89f19",
+        "checkpoint_hash": "sha256:7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+        "resolved_cell_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+        "seed_namespace": "public_dev_diagnostic_n5_r4_20261001",
+        "splits": [
+          "public_dev"
+        ],
+        "environment_source_preflight": {
+          "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+          "status": "pass",
+          "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+          "source_manifest_hash": "27cbf13780dbc2e0087019aefdacfe9cf4e7930d0c845a56f6c28f3382018d9a"
+        },
+        "backend_execution_environment_verification": {
+          "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+          "backend_id": "isaac_lab_rsl_rl",
+          "status": "pass",
+          "expected_manifest_hash": "df178ed6908d8118b1cf48b74f9b8946889d9334242af196f7f8451ab779ac59",
+          "actual_manifest_hash": "df178ed6908d8118b1cf48b74f9b8946889d9334242af196f7f8451ab779ac59"
+        }
+      },
+      "profile": "stair.unified_first_episode.v2",
+      "acceptance_split": "public_dev",
+      "archive_frozen": true,
+      "benchmark_partition": "development",
+      "evaluation_uses": [
+        "development_regression",
+        "descriptive_audit"
+      ],
+      "policy_family_counted_as_independent": false,
+      "asset_closure": {
+        "closure_hash": "c7fe9da20ae348ea53d34c266b7b6cea7746c94d2a4593450183dd464f783faf",
+        "entries": [
+          {
+            "content_version": "79cfc265c577a0c75620a5a65514dce7-3",
+            "identity": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/IsaacLab/Robots/Unitree/Go2/Props/instanceable_meshes.usd",
+            "sha256": "2902646d0f4c13c9ecae3ac9046e32c7d18902eef9679de9829f642a15c93fb5",
+            "size_bytes": 18802187
+          },
+          {
+            "content_version": "8430562a941334d76de815696980b472",
+            "identity": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/IsaacLab/Robots/Unitree/Go2/go2.usd",
+            "sha256": "ba171c972b987d8c8fb7157ccad2ba9c0c1fed105755d2d8af46bef96cc11c6d",
+            "size_bytes": 8142
+          }
+        ],
+        "file_count": 2,
+        "kind": "usd_used_layer_closure_v1",
+        "root_identity": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/IsaacLab/Robots/Unitree/Go2/go2.usd",
+        "total_bytes": 18810329,
+        "unresolved": []
+      },
+      "runtime_projection": {
+        "schema_version": "true_rl_agent.task.stair_climbing.runtime_projection.vnext.v1",
+        "cell_variant_id": "stair.go2_12dof.unified_v3",
+        "robot_profile_id": "unitree_go2_12dof_isaaclab_v1",
+        "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1",
+        "robot_profile_hash": "3e9c110449be639fceb48d6792fc8f683f43bd34978286325bba99547d20f1c0",
+        "runtime_adapter_hash": "14f03caebe810885d5681d73812987b2d31706cf432c4de5597b14a9dbfcd3f0",
+        "robot_task_binding_hash": "e021614f64e7a23520ed779eecc6697f80d0d5548074f843bafae6f14150e7dc",
+        "resolved_roles": {
+          "base": [
+            "base"
+          ],
+          "support_effector": [
+            "FL_foot",
+            "FR_foot",
+            "RL_foot",
+            "RR_foot"
+          ],
+          "forbidden_contact": [
+            "base"
+          ]
+        },
+        "joint_names": [
+          "FL_hip_joint",
+          "FR_hip_joint",
+          "RL_hip_joint",
+          "RR_hip_joint",
+          "FL_thigh_joint",
+          "FR_thigh_joint",
+          "RL_thigh_joint",
+          "RR_thigh_joint",
+          "FL_calf_joint",
+          "FR_calf_joint",
+          "RL_calf_joint",
+          "RR_calf_joint"
+        ],
+        "joint_groups": {},
+        "action_joint_names": [
+          "FL_hip_joint",
+          "FR_hip_joint",
+          "RL_hip_joint",
+          "RR_hip_joint",
+          "FL_thigh_joint",
+          "FR_thigh_joint",
+          "RL_thigh_joint",
+          "RR_thigh_joint",
+          "FL_calf_joint",
+          "FR_calf_joint",
+          "RL_calf_joint",
+          "RR_calf_joint"
+        ],
+        "contact_sensor_name": "contact_forces",
+        "height_sensor_name": "height_scanner",
+        "contact_history_length": 3,
+        "height_scan_ray_count": 187,
+        "policy_io_schema_hash": "5fdd774448ee18f6d37040380efabe6c9fbcb4229cfb5675818ea388e447dca1",
+        "sensor_schema_hash": "47c42e91348ce1d49e0988040d0941317afe1b16cb90692d73e02ba7d065896d",
+        "binding_facts_hash": "1160a2a4544eb3cb8d55aa436988a73eca46019296d2b559eab246749798a53f",
+        "kinematic_base_source": "articulation_root",
+        "legacy_reward_adapter_id": null,
+        "support_transition_inputs": true,
+        "task_scales": {
+          "horizontal": 1.0,
+          "vertical": 0.589087
+        },
+        "resolved_cell_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+        "projection_hash": "ea9d42a4012815a8f5ebf6b35b93303111477817feb5a1391fa807efc6167a14",
+        "reward_input_schema_hash_vnext": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+        "reward_capability_hash_vnext": "658069454a3972110a78c6c6ee217ec2ee14cd3a9fbcf07c37017fceeecb0c7d"
+      },
+      "chunks": [
+        {
+          "file": "chunk_000000.npz",
+          "sha256": "5f5e89aef9bf56a51d638be61c33783abe8473e79337bc2743599fd96b5e0e6b",
+          "stored_bytes": 5108112,
+          "raw_bytes": 7839360
+        },
+        {
+          "file": "chunk_000001.npz",
+          "sha256": "c60f501d8570e604f6191aae1c43d96ba4dc190c7c72eeea9a573d62ff7850ec",
+          "stored_bytes": 5029277,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000002.npz",
+          "sha256": "c3af7b8c4d0bafd9e2b681d4397a860aab190a5f760fcd33ab065f3276f182a2",
+          "stored_bytes": 4948331,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000003.npz",
+          "sha256": "b9158bfb8f21b261f21191186a3653501fdf12ef87dee3d9a960919ab86a43cc",
+          "stored_bytes": 4853835,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000004.npz",
+          "sha256": "e24c1e6f1211b9a214195ff27a6d57d59cc46ce88e34c031be4e612522444586",
+          "stored_bytes": 4265140,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000005.npz",
+          "sha256": "42879b5c20c63820dc248d9871578d3bd9dd4873c5f8948314682dc6f1500c78",
+          "stored_bytes": 1693023,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000006.npz",
+          "sha256": "6e05aa64fcbcf7ad9c71c1071ca498955293ebd4469736fb4eb070c212b5afdb",
+          "stored_bytes": 906883,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000007.npz",
+          "sha256": "f6bcc456d9df6b49911ae0103f1b07400e6710adf154d9b225ae03a05d740f43",
+          "stored_bytes": 531618,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000008.npz",
+          "sha256": "46f25e34674effb59b82a0e0619858336b58db36e7e469657b6da7332059249f",
+          "stored_bytes": 401799,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000009.npz",
+          "sha256": "8f7e3905852d985fc3fb83f07014c31b4c04ef158c7cb5c91990e3d4d6ca716a",
+          "stored_bytes": 120097,
+          "raw_bytes": 7466400
+        },
+        {
+          "file": "chunk_000010.npz",
+          "sha256": "618b4b50718c094ac0d50919653022f401fe707b8df1323e3fec62410f430184",
+          "stored_bytes": 5110478,
+          "raw_bytes": 7839360
+        },
+        {
+          "file": "chunk_000011.npz",
+          "sha256": "6e6fa76e01360349b96f02d3583af2076d173e457cbac07a5714b79724f50102",
+          "stored_bytes": 5026983,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000012.npz",
+          "sha256": "4b3a4789382c6e752548119ccff1287c797a6d7a4f67b356a7b570bad6125a61",
+          "stored_bytes": 4955476,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000013.npz",
+          "sha256": "a4fe7618e01e042ba711dcb678e7096d5b75b8be3add206f68d1034a73e5e398",
+          "stored_bytes": 4917517,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000014.npz",
+          "sha256": "f11e67dd36812c0ba9f118f0432608e52f02c3effcfb1b3d7120a74c8451e59a",
+          "stored_bytes": 4326241,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000015.npz",
+          "sha256": "370f902cf01c97c3a9ba60f042a3c2c9ef0427ce266ecb09542dce0f58b2ffb6",
+          "stored_bytes": 1762324,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000016.npz",
+          "sha256": "cf6c313826b4396f6c9bafa81a0c7b8d26689187767382b6c05f012403c5ffea",
+          "stored_bytes": 853262,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000017.npz",
+          "sha256": "0cf0a0e4b3760683d02911dc54b7d2508a244fbb05b169c2f468ee1f8c9958f2",
+          "stored_bytes": 447539,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000018.npz",
+          "sha256": "0a98bd0efc8918eb9b44f7845d7b466aafd035c6eddfb0b15a2d62e68b175384",
+          "stored_bytes": 324935,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000019.npz",
+          "sha256": "a580f4cafd1a9a2499972987ba66e3416535dd2fbf9edf475aff8ed0008ac7d5",
+          "stored_bytes": 103041,
+          "raw_bytes": 7466400
+        },
+        {
+          "file": "chunk_000020.npz",
+          "sha256": "f27c02714544adc793b371118cae98c363f795cf1bd12dd5f91696de013eecb9",
+          "stored_bytes": 5110747,
+          "raw_bytes": 7839360
+        },
+        {
+          "file": "chunk_000021.npz",
+          "sha256": "7f43a6bd084bb02f2d7b2d8f101f93768407bbf341c8f381dba3581f643397d8",
+          "stored_bytes": 5056691,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000022.npz",
+          "sha256": "15e3fb6a4f21659cabdeae01eab943756423de51123f36cae79265434480725f",
+          "stored_bytes": 4978995,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000023.npz",
+          "sha256": "e625821a591e8d7f2c1c3dc647406b694768852255e6b6c354b53a4b68efbfef",
+          "stored_bytes": 4888380,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000024.npz",
+          "sha256": "dd7248bd84780695a4e024761eaeaeb1c29bfdd56a934182175d268ba1e9e6f1",
+          "stored_bytes": 4188879,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000025.npz",
+          "sha256": "afc4a61a5dbcfceb2c005fd35d65b0f25cb1f95b48e91df3d59f69472a17ef65",
+          "stored_bytes": 1640021,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000026.npz",
+          "sha256": "2628f8f2d686b0c031ba834afa740e11cef08b6d8f2f3ac720d09bb8b81ad263",
+          "stored_bytes": 790447,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000027.npz",
+          "sha256": "25823bf5416a683fe54c117e2ed0c522fd63d349dfac65dae947dd58ee519c0e",
+          "stored_bytes": 381138,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000028.npz",
+          "sha256": "b981a688fa0905966e3b27133f2eb0f36906a8b02bd37564fe6d9371be0be22c",
+          "stored_bytes": 237501,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000029.npz",
+          "sha256": "554e4dd61f903ea387d72093a8e939b2533e51e1859e1d28cef411c119b651a3",
+          "stored_bytes": 81035,
+          "raw_bytes": 7466400
+        }
+      ],
+      "origin_manifest_path": "/data/yuyangliu/AGENT/feedback_p3new_20260929/n5_confirmation_20261001_r4/stair/numeric_evidence/manifest.json",
+      "role": "first_full_cohort"
+    },
+    {
+      "source_id": "legacy_dev",
+      "manifest_relative_path": "PLAN/feedback_sys/P3R/results/stair_numeric_dev_r1/numeric_evidence/manifest.json",
+      "manifest_sha256": "22fb749620c4e614cbb4df4fbfdb82b70d76c8f1cd81a3eda50de465d9fb3e4a",
+      "manifest_bytes": 574096,
+      "identity": {
+        "job_id": "stair-dev-replay-7b582643510cc9dd-eval-public-dev",
+        "task_id": "unitree_stair_climbing",
+        "subject_kind": "reference",
+        "subject_id": "go2-stair-official-flat-derived-v1",
+        "subject_manifest_hash": "ece5ad653267f11e5b791403208472f42622e44661fdbc7162776799a370dbd4",
+        "program_source_checksum": "sha256:10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+        "training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98",
+        "capability_profile_hash": "8279f27b233a2d22ad22342a27c7fd9c5a0673974f6cfb803cd9ec69b8adf1db",
+        "evaluation_binding": {
+          "schema_version": "true_rl_agent.evaluation.binding.v1",
+          "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+          "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+          "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+          "seed_cohort_hash": "a7830816449821400a6ae51fabbb046f8d98ab3084bfcaeb56b240249ea790ea",
+          "evaluation_binding_hash": "ff0b754f727af4df616e77d10f8f67019cea485ed76b1b9c6b00cf902c451178"
+        },
+        "evaluation_plan_hash": "66166a854b737bc852d0931903755a0535430b5d051e964b6fc9a3a8f631fca8",
+        "checkpoint_hash": "sha256:7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+        "resolved_cell_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+        "seed_namespace": "formal_reference_candidate_eval",
+        "splits": [
+          "public_dev"
+        ],
+        "environment_source_preflight": {
+          "schema_version": "true_rl_agent.task.stair_climbing.execution_source_preflight.v1",
+          "status": "pass",
+          "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9",
+          "source_manifest_hash": "ef434773192061f3e8d32c369a64c8178da802727440ebcf35aee855e77e9991"
+        },
+        "backend_execution_environment_verification": {
+          "schema_version": "true_rl_agent.backend_execution_environment_verification.v1",
+          "backend_id": "isaac_lab_rsl_rl",
+          "status": "pass",
+          "expected_manifest_hash": "16644058f9b86d58a2f3a1486b9568016fb1d94f9e89807809b93aa05b142630",
+          "actual_manifest_hash": "16644058f9b86d58a2f3a1486b9568016fb1d94f9e89807809b93aa05b142630"
+        }
+      },
+      "profile": "stair.unified_first_episode.v2",
+      "acceptance_split": "public_dev",
+      "archive_frozen": true,
+      "benchmark_partition": "development",
+      "evaluation_uses": [
+        "development_regression",
+        "descriptive_audit"
+      ],
+      "policy_family_counted_as_independent": false,
+      "asset_closure": {
+        "closure_hash": "c7fe9da20ae348ea53d34c266b7b6cea7746c94d2a4593450183dd464f783faf",
+        "entries": [
+          {
+            "content_version": "79cfc265c577a0c75620a5a65514dce7-3",
+            "identity": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/IsaacLab/Robots/Unitree/Go2/Props/instanceable_meshes.usd",
+            "sha256": "2902646d0f4c13c9ecae3ac9046e32c7d18902eef9679de9829f642a15c93fb5",
+            "size_bytes": 18802187
+          },
+          {
+            "content_version": "8430562a941334d76de815696980b472",
+            "identity": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/IsaacLab/Robots/Unitree/Go2/go2.usd",
+            "sha256": "ba171c972b987d8c8fb7157ccad2ba9c0c1fed105755d2d8af46bef96cc11c6d",
+            "size_bytes": 8142
+          }
+        ],
+        "file_count": 2,
+        "kind": "usd_used_layer_closure_v1",
+        "root_identity": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/IsaacLab/Robots/Unitree/Go2/go2.usd",
+        "total_bytes": 18810329,
+        "unresolved": []
+      },
+      "runtime_projection": {
+        "schema_version": "true_rl_agent.task.stair_climbing.runtime_projection.vnext.v1",
+        "cell_variant_id": "stair.go2_12dof.unified_v3",
+        "robot_profile_id": "unitree_go2_12dof_isaaclab_v1",
+        "runtime_adapter_id": "go2_12dof_isaaclab_adapter_v1",
+        "robot_profile_hash": "3e9c110449be639fceb48d6792fc8f683f43bd34978286325bba99547d20f1c0",
+        "runtime_adapter_hash": "14f03caebe810885d5681d73812987b2d31706cf432c4de5597b14a9dbfcd3f0",
+        "robot_task_binding_hash": "e021614f64e7a23520ed779eecc6697f80d0d5548074f843bafae6f14150e7dc",
+        "resolved_roles": {
+          "base": [
+            "base"
+          ],
+          "support_effector": [
+            "FL_foot",
+            "FR_foot",
+            "RL_foot",
+            "RR_foot"
+          ],
+          "forbidden_contact": [
+            "base"
+          ]
+        },
+        "joint_names": [
+          "FL_hip_joint",
+          "FR_hip_joint",
+          "RL_hip_joint",
+          "RR_hip_joint",
+          "FL_thigh_joint",
+          "FR_thigh_joint",
+          "RL_thigh_joint",
+          "RR_thigh_joint",
+          "FL_calf_joint",
+          "FR_calf_joint",
+          "RL_calf_joint",
+          "RR_calf_joint"
+        ],
+        "joint_groups": {},
+        "action_joint_names": [
+          "FL_hip_joint",
+          "FR_hip_joint",
+          "RL_hip_joint",
+          "RR_hip_joint",
+          "FL_thigh_joint",
+          "FR_thigh_joint",
+          "RL_thigh_joint",
+          "RR_thigh_joint",
+          "FL_calf_joint",
+          "FR_calf_joint",
+          "RL_calf_joint",
+          "RR_calf_joint"
+        ],
+        "contact_sensor_name": "contact_forces",
+        "height_sensor_name": "height_scanner",
+        "contact_history_length": 3,
+        "height_scan_ray_count": 187,
+        "policy_io_schema_hash": "5fdd774448ee18f6d37040380efabe6c9fbcb4229cfb5675818ea388e447dca1",
+        "sensor_schema_hash": "47c42e91348ce1d49e0988040d0941317afe1b16cb90692d73e02ba7d065896d",
+        "binding_facts_hash": "1160a2a4544eb3cb8d55aa436988a73eca46019296d2b559eab246749798a53f",
+        "kinematic_base_source": "articulation_root",
+        "legacy_reward_adapter_id": null,
+        "support_transition_inputs": true,
+        "task_scales": {
+          "horizontal": 1.0,
+          "vertical": 0.589087
+        },
+        "resolved_cell_manifest_hash": "7e8fa0c45109bbfc0162a90cf68d4186a0a3f96a0df9cce1e9b1b09f50aa6de9",
+        "projection_hash": "ea9d42a4012815a8f5ebf6b35b93303111477817feb5a1391fa807efc6167a14",
+        "reward_input_schema_hash_vnext": "cf1d7295eba9decc1ad778d699153a3ea212bf762306212a91a9a9c5c9ebda93",
+        "reward_capability_hash_vnext": "658069454a3972110a78c6c6ee217ec2ee14cd3a9fbcf07c37017fceeecb0c7d"
+      },
+      "chunks": [
+        {
+          "file": "chunk_000000.npz",
+          "sha256": "3d12439028bc11a6e9c7682f4027bc4e72c8c9a470221e8892aea0585de3caf7",
+          "stored_bytes": 5110867,
+          "raw_bytes": 7839360
+        },
+        {
+          "file": "chunk_000001.npz",
+          "sha256": "b99dfd409ea54f60722fa71ee21c915d77422a593cb5c8e3b4f592cb13e23475",
+          "stored_bytes": 5034367,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000002.npz",
+          "sha256": "7fd849607cf946fc669e06d29d8b6edcac77977bfcf00ada9ca53ff4beda04a7",
+          "stored_bytes": 4975930,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000003.npz",
+          "sha256": "fd60e24f34f474dfa9e5c6ad30d88d5e9db5ab1cd17fcda525e6eb68ea710511",
+          "stored_bytes": 4951862,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000004.npz",
+          "sha256": "d3b5dfca44f38ce0111f9e878de2badda7ad8d72de574878d5136e3d4fc33bdc",
+          "stored_bytes": 4364469,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000005.npz",
+          "sha256": "766efaa04b61513fc1be626462ad16e2ab1a7cac5247e13c2893a4cfa4afad18",
+          "stored_bytes": 1739907,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000006.npz",
+          "sha256": "88a093a8cfa6e3b49dfab224a817a6baae2838d1d94e5c5218be7804a0f98783",
+          "stored_bytes": 877774,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000007.npz",
+          "sha256": "65cc0014eb1f9a29c61c6424e7fe6ced8615873fbc43bb9d46c08e9b6e0f61e2",
+          "stored_bytes": 524181,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000008.npz",
+          "sha256": "368b069b78143086b902e8c28467f661034f5b82e09a7dd04a72a69137d1bff7",
+          "stored_bytes": 371455,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000009.npz",
+          "sha256": "98df4080265d43514d7044c79a11170213990d7cc2ac73efdd3ca2f411f0f3ad",
+          "stored_bytes": 110454,
+          "raw_bytes": 7466400
+        },
+        {
+          "file": "chunk_000010.npz",
+          "sha256": "5fb8ecfec359a000d60111a556cfe5c2a879489a995458e7fa96e87c7d83f0d2",
+          "stored_bytes": 5105966,
+          "raw_bytes": 7839360
+        },
+        {
+          "file": "chunk_000011.npz",
+          "sha256": "6e703a7cc97aff700452665a5fe338a1b9629aed5b6e9053c8960f44a20854be",
+          "stored_bytes": 5063052,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000012.npz",
+          "sha256": "fd5e1af6355d2cc2646bcd0d5157c5d7af10b18a6d9bd7d173916a0915a680f8",
+          "stored_bytes": 5040713,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000013.npz",
+          "sha256": "96755b142bdc7907f268bd689e52e3cc78389c9b38629fa490295afac5869232",
+          "stored_bytes": 4968942,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000014.npz",
+          "sha256": "5eaa1f325d967d6c46ffa891c46db1a638f75dac5844ef1bfcb066c4e82c283a",
+          "stored_bytes": 4334596,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000015.npz",
+          "sha256": "9c6ecf6b4786862b59841f1fae148a6c6c1230d666b28bace3d89ec804fe6235",
+          "stored_bytes": 1811612,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000016.npz",
+          "sha256": "e9590e1f42c8bc1c0af0789bc9c3b6dc2965fadfe7608adf99d2d9672c59a434",
+          "stored_bytes": 809924,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000017.npz",
+          "sha256": "7292e2b34beac8a93b007bfac516e89a10b29c31e2c1260de343eb5393ef6cbc",
+          "stored_bytes": 526683,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000018.npz",
+          "sha256": "f6fd1415175454052857c91e6bd6394704fd9caaa03c1d9399bc073b68c71834",
+          "stored_bytes": 388443,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000019.npz",
+          "sha256": "788bde14f8c08cd50f44d8d508d9fb077d1963e73f6de8b538de080cdfb5859f",
+          "stored_bytes": 128136,
+          "raw_bytes": 7466400
+        },
+        {
+          "file": "chunk_000020.npz",
+          "sha256": "b9270a3b632082bb41173d2a11d80dc2c198a96619256c3e5aade595e04997ea",
+          "stored_bytes": 5111183,
+          "raw_bytes": 7839360
+        },
+        {
+          "file": "chunk_000021.npz",
+          "sha256": "e6574934b0b391a1eba83776c60072b68294e6bd393ef9fa2cdac81c890c3f32",
+          "stored_bytes": 5019744,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000022.npz",
+          "sha256": "8aa9db0c46a42142af76e044e61a44fad50c6a9d1cf518fda04e8ef28193cd97",
+          "stored_bytes": 4982643,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000023.npz",
+          "sha256": "0c186d57d110b8434af9d4df0bf090ae7b308beb9444e9a8020b637c099c4e30",
+          "stored_bytes": 4879300,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000024.npz",
+          "sha256": "aa3b1793a7eb178fcec853d9f845baf66a6fadf357964ec97a8511ed9bfcbb21",
+          "stored_bytes": 4145379,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000025.npz",
+          "sha256": "3f43d925fa49ebfbe9616819d899d9b7641c6c90c353e5af7179e4fd916f0936",
+          "stored_bytes": 1708216,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000026.npz",
+          "sha256": "79d1818e48f5500a07ed086b4ca0547f190167a187a7fff1a85474c221c90948",
+          "stored_bytes": 744511,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000027.npz",
+          "sha256": "c6a9ba2ca2b320754f01353adec1a8b0e85fca02459bc8c208e7c1dc1f39fbe8",
+          "stored_bytes": 341458,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000028.npz",
+          "sha256": "3901bfce9d3a94778190daaa1ec082774a2bedebfaabe395ad02a13dd1c9e681",
+          "stored_bytes": 271824,
+          "raw_bytes": 7833600
+        },
+        {
+          "file": "chunk_000029.npz",
+          "sha256": "f1ebf75e5599ac3d7367763146c53ae2d9755ac017a548fd27c2f80a27c024dc",
+          "stored_bytes": 88313,
+          "raw_bytes": 6976800
+        }
+      ],
+      "role": "known_counterexamples_only_not_pooled"
+    }
+  ]
+}

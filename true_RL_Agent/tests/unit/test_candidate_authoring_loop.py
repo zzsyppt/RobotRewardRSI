@@ -9,6 +9,7 @@ import unittest
 import torch
 from dataclasses import replace
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -36,6 +37,11 @@ from true_rl_agent.agent_core.authoring_loop import (  # noqa: E402
 from true_rl_agent.agent_core.authoring_response import (  # noqa: E402
     CandidateDraftResponse,
     SourceRequestResponse,
+    next_authoring_response,
+)
+from true_rl_agent.agent_core.generation_provider_budget import (
+    CostGuardedProvider,
+    collect_provider_actuals,
 )
 from true_rl_agent.agent_core.provider_errors import (
     ProviderCandidateError,  # noqa: E402
@@ -2056,7 +2062,7 @@ def build_training_components():
         self.assertEqual(len(failed_sources), 1)
         self.assertIn("failed_static_reward", failed_sources[0]["content"])
 
-    def test_static_repair_payload_keeps_full_failed_source_but_not_draft_context(
+    def test_static_repair_payload_keeps_failed_source_and_task_evidence_without_history(
         self,
     ) -> None:
         current_best_source = (
@@ -2122,13 +2128,13 @@ def build_training_components():
         repair_text = serialize_prompt_payload(repair_payload)
         self.assertNotIn(current_best_source, repair_text)
         for omitted_section in (
-            "public_feedback_summary",
             "runtime_feedback_summary",
             "public_history",
             "known_good_examples",
-            "selection_guidance",
         ):
             self.assertNotIn(omitted_section, repair_payload)
+        for retained_section in ("public_feedback_summary", "selection_guidance", "exploration_directive"):
+            self.assertEqual(repair_payload[retained_section], initial_payload[retained_section])
         self.assertIn("exploration_directive", repair_payload)
         for stable_contract in (
             "task",
@@ -2638,19 +2644,33 @@ def build_training_components():
         self.assertFalse(result.provider_failure["details"]["retryable"])
 
     def test_billing_and_auth_failures_persist_then_stop_without_candidate_failure(self) -> None:
-        for status in (401, 402, 403):
-            with self.subTest(status=status), tempfile.TemporaryDirectory() as tmp:
+        for status, attempt_cap in ((401, 5), (402, 5), (403, 5), (402, 1)):
+            with self.subTest(status=status, attempt_cap=attempt_cap), tempfile.TemporaryDirectory() as tmp:
                 provider = _TransportFailureProvider(retryable=False, http_status=status)
-                round_dir = Path(tmp) / "round-001"
+                output_dir = Path(tmp)
+                generation_id = "pilot-generation-001"
+                round_id = f"{generation_id}-lane-a"
+                round_dir = output_dir / "authoring" / generation_id / "lane-a"
+                caps = {"attempts_per_lane_per_generation": 5,
+                    "input_units_per_attempt_reserve": 40000, "output_units_per_attempt_cap": 32768}
+
+                def guarded(delegate):
+                    return CostGuardedProvider(
+                        delegate=SimpleNamespace(next_authoring_response=lambda *, prompt_payload:
+                            next_authoring_response(delegate, prompt_payload=prompt_payload)),
+                        output_dir=output_dir, generation_id=generation_id, lane_id="lane-a",
+                        provider_caps=caps,
+                    )
+
                 kwargs = dict(
                     context_builder=PublicContextBuilder(
                         task_prompt_adapter=FakeTaskPlugin().prompt_adapter(),
                         acceptance_protocol=TEST_ACCEPTANCE_PROTOCOL,
                     ),
-                    candidate_admission_policy=FakeVerifier(), round_dir=round_dir, max_attempts=5,
+                    candidate_admission_policy=FakeVerifier(), round_dir=round_dir, max_attempts=attempt_cap,
                 )
                 with self.assertRaisesRegex(ProviderServiceUnavailableError, f"HTTP {status}"):
-                    CandidateAuthoringLoop(provider=provider, **kwargs).run_round(round_id="round-001", records=[])
+                    CandidateAuthoringLoop(provider=guarded(provider), **kwargs).run_round(round_id=round_id, records=[])
                 self.assertEqual(len(provider.payloads), 1)
                 result_path = round_dir / "authoring_attempts/attempt_000001/attempt_result.json"
                 persisted = json.loads(result_path.read_text(encoding="utf-8"))
@@ -2659,12 +2679,26 @@ def build_training_components():
                 self.assertIsNone(persisted["continuation_state"]["stop_reason"])
                 self.assertNotIn("provider_usage", persisted["provider_attempt"])
                 original = result_path.read_bytes()
-                # This tests authoring continuation only. Formal cost guards still
-                # require authoritative usage before any same-session API request.
-                resumed = CandidateAuthoringLoop(provider=_ImmediateSuccessProvider(), **kwargs).run_round(
-                    round_id="round-001", records=[])
+                actuals = collect_provider_actuals(SimpleNamespace(
+                    config=SimpleNamespace(output_dir=output_dir, session_id="pilot"),
+                    cost_contract=SimpleNamespace(to_dict=lambda: {"provider": caps})), ledger=[])
+                self.assertEqual(actuals["attempts"], 1)
+                self.assertEqual(actuals["conservative_attempts"], 1)
+                self.assertEqual(actuals["request_units"], 40000)
+                self.assertEqual(actuals["response_units"], 32768)
+                recovered = _ImmediateSuccessProvider()
+                if attempt_cap == 1:
+                    with self.assertRaises(AuthoringBudgetExhaustedError):
+                        CandidateAuthoringLoop(provider=guarded(recovered), **kwargs).run_round(
+                            round_id=round_id, records=[])
+                    self.assertEqual(len(recovered.payloads), 0)
+                    self.assertEqual(result_path.read_bytes(), original)
+                    continue
+                resumed = CandidateAuthoringLoop(provider=guarded(recovered), **kwargs).run_round(
+                    round_id=round_id, records=[])
                 self.assertEqual(resumed.stop_reason, "candidate_verified")
                 self.assertEqual(len(resumed.attempt_records), 2)
+                self.assertEqual(len(recovered.payloads), 1)
                 self.assertEqual(result_path.read_bytes(), original)
 
     def test_retryable_transport_failure_uses_existing_attempt_budget_without_code_repair(self) -> None:
@@ -2785,14 +2819,15 @@ def build_training_components():
             "static_repair",
         )
         for compact_section in (
-            "public_feedback_summary",
             "runtime_feedback_summary",
             "public_history",
             "known_good_examples",
-            "selection_guidance",
         ):
             self.assertNotIn(compact_section, second_payload)
             self.assertNotIn(compact_section, third_payload)
+        for retained_section in ("public_feedback_summary", "selection_guidance", "exploration_directive"):
+            self.assertEqual(second_payload[retained_section], provider.payloads[0][retained_section])
+            self.assertEqual(third_payload[retained_section], provider.payloads[0][retained_section])
         self.assertLessEqual(
             third_payload["authoring_context_frame"]["budget_metadata"][
                 "actual_prompt_payload_bytes"

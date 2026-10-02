@@ -1,0 +1,361 @@
+{
+  "schema_version": "trajectory.p0.verification.v1",
+  "status": "p0_semantics_repair_complete_parent_independent_reacceptance_pending",
+  "measurement_semantics_version": "trajectory.p0.measurements.v2",
+  "baseline_commit": "e85d37c2ac855bc366a4c80340f7c2ee6af4ae54",
+  "repair_base_commit": "d854bc90d767e23aa27c16f9f84e92eccf1e9026",
+  "branch": "codex/trajectory-translator-upgrade",
+  "baseline_tag": "baseline/pre-trajectory-translator-20261003",
+  "baseline_tag_peeled_commit": "e85d37c2ac855bc366a4c80340f7c2ee6af4ae54",
+  "initial_git_state": "normal-permission read-only status clean at d854bc90; local and remote branch equal; sandbox false long-path D entries ignored",
+  "scope": "P0 semantic correction only; no production translator/schema/ABI change and no P1 work",
+  "previous_delivery": {
+    "commit": "d854bc90d767e23aa27c16f9f84e92eccf1e9026",
+    "verification_git_path": "true_RL_Agent/PLAN/feedback_sys/NEW_SYS/P0/verification.json",
+    "developer_record": "192 before final gate fixes, then 17 affected tests; immutable historical record in the prior commit",
+    "parent_independent_report": "Parent reported 16 modules/194 tests passed on d854bc90; not claimed as executed by this repair run",
+    "acceptance": "not approved: M04 XYZ predicate and M05 reverse documentation required correction"
+  },
+  "corrections": {
+    "M04": "All generic and legacy predicates use recorded XY norm<0.05; XYZ is diagnostic only",
+    "M05": "role_index_lsb.v1; sum(int(marker[i])<<i); [FL,FR,RL,RR] weights[1,2,4,8]; production ABI unchanged",
+    "M02": "Validate raw quaternion norm then normalize; all primary values/runs and body-frame anchors use normalized q; raw diagnostics remain separate",
+    "asset_semantics": "Historical body_pos_w link-position versus body_lin_vel_w COM-velocity mapping not fully verified; no exact-derivative claims"
+  },
+  "commands": [
+    {
+      "id": "final_full_specialized_regression",
+      "kind": "executed",
+      "cwd": "true_RL_Agent",
+      "argv": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "-v",
+        "tests.unit.test_stair_trajectory_input_inspection",
+        "tests.unit.test_numeric_evidence",
+        "tests.unit.test_process_report",
+        "tests.unit.test_stair_process_report",
+        "tests.unit.test_push_process_report",
+        "tests.unit.test_visual_observer",
+        "tests.unit.test_visual_review",
+        "tests.unit.test_native_snapshot_media",
+        "tests.unit.test_stair_behavior",
+        "tests.unit.test_push_behavior",
+        "tests.unit.test_feedback_evidence_boundary",
+        "tests.unit.test_task_visual_observation",
+        "tests.unit.test_stair_numeric_capture",
+        "tests.unit.test_push_numeric_capture",
+        "tests.unit.test_p3r_stair_projection",
+        "tests.unit.test_push_feedback_projection",
+        "tests.unit.test_stair_trajectory_reference_facts"
+      ],
+      "exit_code": 0,
+      "log": "outputs/trajectory_p0/regression_semantics_v2_final.log",
+      "env": {
+        "PYTHONPATH": "src",
+        "PYTHONIOENCODING": "utf-8"
+      },
+      "module_count": 17,
+      "tests": 201,
+      "baseline_tests": 194,
+      "new_reference_tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 46.391,
+      "scope": "Full current 17-module execution after all code/test fixes; not a sum of historical runs or full repository suite"
+    },
+    {
+      "id": "real_input_semantics_v2",
+      "kind": "executed",
+      "cwd": "true_RL_Agent",
+      "argv": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        "scripts/inspect_stair_trajectory_input.py",
+        "--manifest",
+        "outputs/trajectory_p0/raw/numeric_evidence/manifest.json",
+        "--manifest-sha256",
+        "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83",
+        "--output",
+        "outputs/trajectory_p0/input_audit_semantics_v2.json"
+      ],
+      "exit_code": 0,
+      "log": "outputs/trajectory_p0/input_inspector_semantics_v2.log",
+      "env": {
+        "PYTHONPATH": "src",
+        "PYTHONIOENCODING": "utf-8"
+      },
+      "chunks": 30,
+      "episode_count": 864,
+      "valid_rows": 298375,
+      "note": "Exclusive output creation; use a fresh filename for any rerun"
+    },
+    {
+      "id": "independent_reference_semantics_v2",
+      "kind": "executed",
+      "cwd": "true_RL_Agent",
+      "argv": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P0/recompute_reference_facts.py",
+        "--project-root",
+        "."
+      ],
+      "exit_code": 0,
+      "log": "outputs/trajectory_p0/reference/recompute_v2.log",
+      "verified_manifests": 2,
+      "verified_chunks": 60,
+      "selected_episodes": 18,
+      "full_facts": 309,
+      "summary_facts": 247
+    },
+    {
+      "id": "deterministic_reference_recheck_semantics_v2",
+      "kind": "executed",
+      "cwd": "true_RL_Agent",
+      "argv": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        "PLAN/feedback_sys/NEW_SYS/P0/recompute_reference_facts.py",
+        "--project-root",
+        ".",
+        "--output",
+        "outputs/trajectory_p0/reference_recheck_v2.json"
+      ],
+      "exit_code": 0,
+      "log": "outputs/trajectory_p0/reference_recheck_v2.log",
+      "byte_identical_to_frozen": true,
+      "sha256": "ce3a6115793eb4e182f3bb5641f163dc9d7858e3f4682b9ee99806ab637d7c74"
+    },
+    {
+      "id": "independent_scalar_original_chunk_checks",
+      "kind": "executed",
+      "cwd": "true_RL_Agent",
+      "argv": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        "outputs/trajectory_p0/repair_v2_scalar_check.py"
+      ],
+      "exit_code": 0,
+      "log": "outputs/trajectory_p0/repair_v2_scalar_check.log",
+      "verified_r4_run1_chunks": 10,
+      "result": "e60 XY214..637 n424 cell8.48/span8.46 right-censored; XYZ475..625 n151 not right-censored; e35 step14 code11/count135"
+    },
+    {
+      "id": "semantic_mutation_regressions",
+      "kind": "executed",
+      "cwd": "true_RL_Agent",
+      "argv": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        "outputs/trajectory_p0/repair_v2_mutation_check.py"
+      ],
+      "exit_code": 0,
+      "log": "outputs/trajectory_p0/repair_v2_mutation_check.log",
+      "env": {
+        "PYTHONPATH": "src;.",
+        "PYTHONIOENCODING": "utf-8"
+      },
+      "intentionally_wrong_variants": 7,
+      "detected_variants": 7,
+      "note": "In-memory mutations only; expected rejection is not a failing final test run"
+    }
+  ],
+  "logs": [
+    {
+      "path": "outputs/trajectory_p0/regression_semantics_v2_final.log",
+      "sha256": "645d54a3f0e1605c9eae242a8c42c4152109e7282fb0d3213505189fd7005ac4",
+      "bytes": 39646
+    },
+    {
+      "path": "outputs/trajectory_p0/input_inspector_semantics_v2.log",
+      "sha256": "42d9a050b34a0fe95b588615adc75f47c517d43d310f37ad578f9f852ec9b598",
+      "bytes": 409
+    },
+    {
+      "path": "outputs/trajectory_p0/reference/recompute_v2.log",
+      "sha256": "451e931924eec07b657fd6ed88a8817b439b3b8567521c0e5c3bc78a4e401d9b",
+      "bytes": 321
+    },
+    {
+      "path": "outputs/trajectory_p0/reference_recheck_v2.log",
+      "sha256": "03d2e6972e75d1026aa30328cd5578b587affd0fb40ed396a8ff6977801fbe74",
+      "bytes": 319
+    },
+    {
+      "path": "outputs/trajectory_p0/repair_v2_scalar_check.log",
+      "sha256": "6656872f0f330a696849c0bf7b127f3a9c8148351bcbf2e164bad8e0bfda0a50",
+      "bytes": 1077
+    },
+    {
+      "path": "outputs/trajectory_p0/repair_v2_mutation_check.log",
+      "sha256": "d3297b29c7b7be51234b23642e1971d3eb915c0b0d883f302104f42510efae84",
+      "bytes": 49
+    }
+  ],
+  "earlier_repair_runs": [
+    {
+      "log": "outputs/trajectory_p0/reference_semantics_v2_tests.log",
+      "tests": 7,
+      "seconds": 1.385,
+      "status": "passed before strengthening equality-boundary assertions"
+    },
+    {
+      "log": "outputs/trajectory_p0/regression_semantics_v2_full.log",
+      "tests": 201,
+      "seconds": 46.476,
+      "status": "passed before strengthening equality-boundary assertions; superseded by final full run"
+    }
+  ],
+  "real_input_summary": {
+    "declaration": "every_control_step_of_each_scored_first_episode_including_pre_reset_terminal",
+    "padding": "valid=false; zero-filled numeric values are not observations",
+    "episode_count": 864,
+    "valid_rows": 298375,
+    "padding_rows": 251993,
+    "post_outcome_observations": "not_collected",
+    "reset_time_sample": "not_collected",
+    "chunks": 30,
+    "stored_chunk_bytes": 83039745
+  },
+  "input_preservation": {
+    "source_lock_unchanged": true,
+    "e1_selection_unchanged": true,
+    "selected_raw_npz_hashes_unchanged": 18,
+    "raw_sample_hashes": {
+      "r4.r1.e35": "c1982859efa559505f879660307d5585379f13c2690650e279faaaa43728fea2",
+      "r4.r2.e44": "efe260abd9ac0ae9e41066df3dfb3dbd672f1f0b94a6e20e9d3f4ea0e3fa247a",
+      "r4.r3.e82": "5f54e88ac1c551a9a67f1ec20f121f6e0000e9e2802fe3ddb5fb8c22afbc968e",
+      "r4.r1.e139": "82afd19d4749e23219b0507f5b547fd753bdab54c8ba9f3af42c4a155dc9f4ba",
+      "r4.r3.e148": "43bd97fd0dab82b1560dd1764814fb7296308da1192066aa5bed76c1fd562dfa",
+      "r4.r3.e184": "75f1097cabcaa44fcfcf328467567c3ec556033f2baac9ce7aa4ecaa8ac3bc06",
+      "r4.r3.e218": "dc80643b0966e232fc9f160243a9dcdc00c05c9c8c821fec0b4fa82d21ee9652",
+      "r4.r3.e264": "1757c32e30d5960e8bca27f8ecfbafb7b146183943b77a175e21abeef05676f8",
+      "r4.r1.e129": "85a4014b111f776005ce9f82adf97d9c8870c7fe671324ad7ffbd2b79bd4902e",
+      "r4.r1.e175": "125d17dcfb3a264d2142ad362e5dbf55569afee44dce8396271f2848eb692bdd",
+      "r4.r1.e206": "a1c4ccd3a7535d44431d84271b3020e35e828c0bb4400e8013b1629e17210311",
+      "r4.r1.e60": "f9d70c4dd70a9146b4ae8d5101d386eae319e5914e9413b4a2898ffd33b5daa5",
+      "r4.r1.e48": "1e46f018eecfe0479d91972033bfe8489439a2072782fedcb1d71598c273c813",
+      "r4.r1.e123": "8905448a101895ca7b960740f21856357206aed93f9cab5aac5c51869b57c688",
+      "r4.r2.e164": "c8582f8aad261ee6878088d3eb62a150556c2cda86a65d9eac7ba81a58592a90",
+      "r4.r3.e190": "0e80fe60b6778de299899a99685333dea4caa574cadb2cdfbf24ee14f0d9e9e7",
+      "legacy_dev.r1.e54": "6b2cb35b280bf267c6a30b2a1de99c37b47c38c0a6aa7688b00c79964e770f9b",
+      "legacy_dev.r1.e60": "7c1f06cc9d655ad88dea9873129193fc38f59dde9d6b3aaf9d59f5d18e907e7d"
+    },
+    "input_audit_byte_identical_to_previous": true
+  },
+  "evidence_artifacts": [
+    {
+      "path": "outputs/trajectory_p0/input_audit_semantics_v2.json",
+      "sha256": "08824ce69ee329646e4ec224f937a17786c580626883ea9d37a7b3edec4e95f1",
+      "bytes": 829995
+    },
+    {
+      "path": "outputs/trajectory_p0/reference/full_reference_facts.json",
+      "sha256": "661c6782dc198d8367dc20c6b42b4a2d4d30b9d6d333dcebbf72d4e60528f009",
+      "bytes": 2747870
+    },
+    {
+      "path": "outputs/trajectory_p0/reference_recheck_v2.json",
+      "sha256": "ce3a6115793eb4e182f3bb5641f163dc9d7858e3f4682b9ee99806ab637d7c74",
+      "bytes": 115890
+    },
+    {
+      "path": "outputs/trajectory_p0/repair_v2_scalar_check.py",
+      "sha256": "479ac52cfc0e9b4cba715a0c0397ee896e18ca978dd1ca4f691d8088710991a1",
+      "bytes": 3188
+    },
+    {
+      "path": "outputs/trajectory_p0/repair_v2_scalar_check.json",
+      "sha256": "8ca9b7de9723117828c739c17bc2e7351dbacdc8a2914ba407139c3e6cccc235",
+      "bytes": 1538
+    },
+    {
+      "path": "outputs/trajectory_p0/repair_v2_mutation_check.py",
+      "sha256": "c01ef257533ad5ca9ad60c31ca446fdff6c3c857476de2b8128478a20cfaf7e9",
+      "bytes": 2688
+    },
+    {
+      "path": "outputs/trajectory_p0/repair_v2_mutation_check.json",
+      "sha256": "0aa1c1de620ad0046f5ae2b3477e304acd108ac533a17e60cb9095a94c072f56",
+      "bytes": 1230
+    }
+  ],
+  "deliverable_hashes": {
+    "PLAN/feedback_sys/NEW_SYS/P0/e1_selection.json": "4f45e1f9138a322a4f369a6ea3a287dc50c7de74519b4af5dca8208edeb777fc",
+    "PLAN/feedback_sys/NEW_SYS/P0/input_contract.json": "582e3932bb8db8d7f33d941251db69d9c22c1c692d655c753510b1909b161a25",
+    "PLAN/feedback_sys/NEW_SYS/P0/MEASUREMENT_CATALOG_ZH.md": "3cb93132997bd5ada807026221ce99bbf8736e46604790d38775bdbb53aa8acd",
+    "PLAN/feedback_sys/NEW_SYS/P0/necessary_facts.json": "ce3a6115793eb4e182f3bb5641f163dc9d7858e3f4682b9ee99806ab637d7c74",
+    "PLAN/feedback_sys/NEW_SYS/P0/README_ZH.md": "4f37b91e3128a031bae551a27c707669483599b7aa5ec7f7437c64136870357e",
+    "PLAN/feedback_sys/NEW_SYS/P0/recompute_reference_facts.py": "ba398d1ae4b74bc59783d4fa2976aaff78e074b8012ade99f416318789d8c17d",
+    "PLAN/feedback_sys/NEW_SYS/P0/source_lock.json": "c3f0f643eaead24df15da92c5247375c1a32c8d383639186587a02131d7fb412"
+  },
+  "code_hashes": {
+    "scripts/inspect_stair_trajectory_input.py": "1046922804b118d93d6f745262cb037a6e7e56eac35194e62f7fe805365e5f6c",
+    "tests/unit/test_stair_trajectory_input_inspection.py": "66b0ae892c3ea448319973f451934a2d910f873d2c51d25129b6c98ca483c54e",
+    "tests/unit/test_stair_trajectory_reference_facts.py": "b101978429ac25a85599958515c7d569e3533b31aae0ebab2731109bd0f0585d",
+    "PLAN/feedback_sys/NEW_SYS/P0/recompute_reference_facts.py": "ba398d1ae4b74bc59783d4fa2976aaff78e074b8012ade99f416318789d8c17d"
+  },
+  "original_source_hashes_verified": true,
+  "frozen_remote_source_check": {
+    "root": "/data/yuyangliu/AGENT/feedback_p3new_20260929/n5_confirmation_source_r4_final",
+    "command": "ssh -o BatchMode=yes humanoid-server sha256sum <the four exact source paths>",
+    "exit_code": 0,
+    "hashes": {
+      "src/true_rl_agent/tasks/stair_climbing/numeric_capture.py": "877510407e897434210c6a0231318af5adeb53074a79484386e72490e7a6557d",
+      "src/true_rl_agent/tasks/stair_climbing/runtime_projection.py": "33377cbcfcde69f56d230d63e6639a1d09cc47ffdb5825cd213880d42531e6af",
+      "src/true_rl_agent/tasks/stair_climbing/isaaclab_runtime_env.py": "80eb68813fc54eef85cd66626f8cddf7bf1321c6d82086689386a241d11231c3",
+      "src/true_rl_agent/tasks/stair_climbing/transition_decoder.py": "8dababd0e43259e8c23ded16524b134b6aa269b3cc98ab54646ac3dd2af67723"
+    },
+    "all_equal_current_baseline": true,
+    "performed_in_delivery": "d854bc90d767e23aa27c16f9f84e92eccf1e9026",
+    "rerun_this_repair": false
+  },
+  "development_reviews": [
+    {
+      "role": "read-only code/test semantic repair review",
+      "model": "gpt-6-astra",
+      "reasoning": "ultra",
+      "finding": "Equality-speed boundary could escape longest-run-only assertions",
+      "resolution": "Added equality-only generic episode and equality terminal sample in legacy branch; reviewer confirmed closure",
+      "status": "code and final metadata review closed; no remaining blocking issue; not parent acceptance",
+      "metadata_checks": "Reviewer independently matched 42 hashes/byte records including all 18 original samples; final 201-test log and zero skips confirmed"
+    }
+  ],
+  "syntax_and_document_validation": {
+    "python_ast_files": 4,
+    "json_parse": "all P0 JSON passed",
+    "markdown_local_links": "all exist"
+  },
+  "known_failed_attempts": [
+    {
+      "action": "read-only channel inventory display",
+      "reason": "Python GBK stdout could not encode a formula symbol",
+      "resolution": "Set PYTHONIOENCODING=utf-8; no files were changed by the failed read"
+    }
+  ],
+  "not_verified": [
+    "full repository suite",
+    "P1 measurement engine/policy card",
+    "E1 all final card sentences/support/recall",
+    "nominal/effective joint limit proximity",
+    "periodic gait phase",
+    "independent terrain-clearance semantics",
+    "actual reward response",
+    "DeepSeek or author model end-to-end",
+    "video/model visual inspection",
+    "new capture/training",
+    "3-5 independent policy lineages",
+    "new morphology/task/generalization",
+    "closed-loop benefit",
+    "ruff unavailable; no dependencies installed",
+    "historical asset link-position/COM-velocity reference-point and COM-offset equivalence"
+  ],
+  "product_model_calls": 0,
+  "gpu_jobs": 0,
+  "server_writes": 0,
+  "stop_condition": "Create a new dedicated-branch commit, push without amend/force, stop writing and await parent reacceptance; do not enter P1"
+}

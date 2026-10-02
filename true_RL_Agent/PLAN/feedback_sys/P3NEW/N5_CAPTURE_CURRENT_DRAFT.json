@@ -1,0 +1,956 @@
+{
+  "schema_version": "p3new.n5_capture_draft.v2",
+  "status": "DRAFT_NOT_RELEASED",
+  "created_at_utc": "2026-09-29T16:46:35.238279+00:00",
+  "purpose": "Static preparation of the proposed first N5 confirmation capture only; no new trajectories, images, behavior reports or model calls have been generated.",
+  "derived_from_completed_r4_capture_card": {
+    "path": "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\P3NEW\\results\\multi_env_development_r4\\capture_card.json",
+    "sha256": "dfd257e1623e2e587d021888f8f3aaf2131fd6578c3f3a9041fc74fcf58347e0",
+    "size_bytes": 10628
+  },
+  "source": {
+    "preflight_only_root": "/data/yuyangliu/AGENT/feedback_p3new_20260929/source_multi_env_r4",
+    "preflight_is_final_runtime_freeze": false,
+    "final_frozen_source_root": "/data/yuyangliu/AGENT/feedback_p3new_20260929/source_n5_preflight_r1",
+    "final_source_manifest_ref": {
+      "path": "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\P3NEW\\results\\n5_source_preflight_r1\\source_manifest.json",
+      "sha256": "6fe815234de2f577fdd5236805ed5319673b17a7e9b6f1869e6c447fc39423dc",
+      "size_bytes": 49745
+    },
+    "final_source_bundle_sha256": "eea3b720c2e4129e0795685448815a91b38699116dc2fec46d518023f71f899b",
+    "pending_root_work": "N4 Push one-shot completion, report-context capacity and same-material review freeze; no N5 trajectories yet"
+  },
+  "static_preflight_receipt": {
+    "path": "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\P3NEW\\results\\N5_preflight_development_draft\\remote_static_materials\\static_preflight_summary.json",
+    "sha256": "2d0d420d9ac63a2fe6828e5824dac0e42c03cc2c7c291c2616f3019b48968541",
+    "size_bytes": 21904
+  },
+  "remote_preflight_summary_ref": {
+    "path": "/data/yuyangliu/AGENT/feedback_p3new_20260929/N5_preflight_development_draft/static_preflight_summary.json",
+    "sha256": "2d0d420d9ac63a2fe6828e5824dac0e42c03cc2c7c291c2616f3019b48968541",
+    "size_bytes": 21904
+  },
+  "media_selection_rule": {
+    "hash": "SHA256",
+    "utf8_input": "p3new-n5-media-v1|{task}|{env_index}",
+    "selection": "minimum lowercase hexadecimal digest within each registered inclusive domain; integer env_index tie-break",
+    "selected_before_any_new_rollout": true,
+    "choose_or_rerun_env_after_outcome": false
+  },
+  "capture_profile": {
+    "envs_per_task_per_seed": 2,
+    "public_dev_seed_runs": 3,
+    "episodes_per_task": 6,
+    "views_per_control_step": 2,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "snapshot_interval_steps": 1,
+    "snapshot_fixed_steps": null,
+    "episode_scope": "each selected env first episode only, control steps 1 through its own terminal T inclusive",
+    "same_run_numeric_and_media": true,
+    "same_state_and_clock_between_views": true,
+    "raw_rgb": true,
+    "resize_crop_enhancement": false,
+    "observer_input_sampling": "Raw-success/raw-failure minimum fixed hash: two episodes; task selectors choose first/middle/terminal plus event before/response/after, at most six actual dual-view steps each. Limits aggregate per report, not per request."
+  },
+  "tasks": {
+    "stair": {
+      "planned_run_argv_template_not_executable_until_final_source_freeze": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/feedback_p3new_20260929/source_n5_preflight_r1/scripts/stair_numeric_dev_replay.py",
+        "--checkpoint",
+        "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit3_go2_full_train/runner/audit3_go2_full_train/checkpoints/best.pt",
+        "--train-summary",
+        "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit3_go2_full_train/runner/audit3_go2_full_train/train/summary.json",
+        "--protocol",
+        "/data/yuyangliu/AGENT/feedback_p3new_20260929/source_n5_preflight_r1/configs/tasks/stair_go2_12dof_unified_protocol_v3.json",
+        "--device",
+        "cuda:0",
+        "--isaac-python",
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "--capture-numeric",
+        "on",
+        "--cohort",
+        "diagnostic",
+        "--timeout-s",
+        "7200",
+        "--video-env-index",
+        "2",
+        "--video-camera-eye",
+        "-1",
+        "-1.8",
+        "1",
+        "--video-camera-lookat",
+        "0.25",
+        "0",
+        "-0.15",
+        "--video-secondary-camera-eye",
+        "-1",
+        "1.8",
+        "1",
+        "--video-secondary-camera-lookat",
+        "0.25",
+        "0",
+        "-0.15",
+        "--video-resolution",
+        "1920",
+        "1080",
+        "--mode",
+        "run",
+        "--output",
+        "/data/yuyangliu/AGENT/feedback_p3new_20260929/n5_capture_r1/stair",
+        "--video-dir",
+        "/data/yuyangliu/AGENT/feedback_p3new_20260929/n5_capture_r1/stair/video",
+        "--video-secondary-env-index",
+        "63",
+        "--video-snapshot-interval-steps",
+        "1"
+      ],
+      "executed_preflight_argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/feedback_p3new_20260929/source_multi_env_r4/scripts/stair_numeric_dev_replay.py",
+        "--checkpoint",
+        "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit3_go2_full_train/runner/audit3_go2_full_train/checkpoints/best.pt",
+        "--train-summary",
+        "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit3_go2_full_train/runner/audit3_go2_full_train/train/summary.json",
+        "--protocol",
+        "/data/yuyangliu/AGENT/feedback_p3new_20260929/source_multi_env_r4/configs/tasks/stair_go2_12dof_unified_protocol_v3.json",
+        "--device",
+        "cuda:0",
+        "--isaac-python",
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "--capture-numeric",
+        "on",
+        "--cohort",
+        "diagnostic",
+        "--timeout-s",
+        "7200",
+        "--video-env-index",
+        "2",
+        "--video-camera-eye",
+        "-1",
+        "-1.8",
+        "1",
+        "--video-camera-lookat",
+        "0.25",
+        "0",
+        "-0.15",
+        "--video-secondary-camera-eye",
+        "-1",
+        "1.8",
+        "1",
+        "--video-secondary-camera-lookat",
+        "0.25",
+        "0",
+        "-0.15",
+        "--video-resolution",
+        "1920",
+        "1080",
+        "--mode",
+        "preflight",
+        "--output",
+        "/data/yuyangliu/AGENT/feedback_p3new_20260929/N5_preflight_development_draft/stair",
+        "--video-dir",
+        "/data/yuyangliu/AGENT/feedback_p3new_20260929/N5_preflight_development_draft/stair/video",
+        "--video-secondary-env-index",
+        "63",
+        "--video-snapshot-interval-steps",
+        "1"
+      ],
+      "preflight_status": "PREFLIGHT_PASS",
+      "checkpoint": {
+        "path": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit3_go2_full_train/runner/audit3_go2_full_train/checkpoints/best.pt",
+        "sha256": "7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+        "size_bytes": 6882293
+      },
+      "source_input_refs": {
+        "--checkpoint": {
+          "path": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit3_go2_full_train/runner/audit3_go2_full_train/checkpoints/best.pt",
+          "sha256": "7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+          "size_bytes": 6882293
+        },
+        "--train-summary": {
+          "path": "/data/yuyangliu/isolated/new_world_p2_audit_final/true_RL_Agent/PLAN/2new_world/P2/results/audit3_go2_full_train/runner/audit3_go2_full_train/train/summary.json",
+          "sha256": "a02aaf0d926551a288e249532da77dfbe70ab6e7c2a91f35152ae32afd1b6d6f",
+          "size_bytes": 33300
+        },
+        "--protocol": {
+          "path": "/data/yuyangliu/AGENT/feedback_p3new_20260929/source_multi_env_r4/configs/tasks/stair_go2_12dof_unified_protocol_v3.json",
+          "sha256": "1766de171d3f5f7ff901164c69acb2b958fd392dc2138f31076c72c429c81dba",
+          "size_bytes": 8582
+        }
+      },
+      "identity_equal_to_completed_r4": {
+        "checkpoint_sha256": true,
+        "preserved_training_binding_hash": true,
+        "source_training_manifest_hash": true
+      },
+      "r4_runner_result_ref": {
+        "path": "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\P3NEW\\results\\multi_env_engineering_r4\\pixel_review\\stair\\result.json",
+        "sha256": "ffc613f31ae5b86ad76cdbe7f2a9e6bba73db3352d61527fb52ebf5746be977c",
+        "size_bytes": 4952
+      },
+      "preserved_training_binding_hash": "c0112a87a7fb5750ef11d55a6bb50cfdeb0be662380c1387b2d8cab8c977de98",
+      "source_training_manifest_hash": "193fa9038a6f46539fb71a7e73edc44bdc024be2b899785394b8f82113c91f37",
+      "evaluation_binding_from_r4_source_preflight": {
+        "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+        "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+        "evaluation_binding_hash": "cb8551a6ddb57a8e452ce0a3421e5a96d1a6c46e1e8d82bb9a37db43f17d530a",
+        "schema_version": "true_rl_agent.evaluation.binding.v1",
+        "seed_cohort_hash": "64b5a60ac587f3a3f51bb53eb59a0c73ddf0b68aed18aba86f2b78846160ec79",
+        "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9"
+      },
+      "binding_differs_from_r4_old_development": true,
+      "numeric_eval_envs": 288,
+      "numeric_public_dev_seed_runs": 3,
+      "media_env_selection": [
+        {
+          "domain_inclusive": [
+            0,
+            11
+          ],
+          "selected_env": 2,
+          "selected_sha256": "0cf44653ab7d1a6a64dfdee7898dca273e0baedbd376fefe34709ec9c3119345",
+          "complete_hash_order": [
+            {
+              "env_index": 2,
+              "sha256": "0cf44653ab7d1a6a64dfdee7898dca273e0baedbd376fefe34709ec9c3119345"
+            },
+            {
+              "env_index": 6,
+              "sha256": "1324a84d5ab067b631c42c41521b2fc3a62d4e7c23e3d3f51fc32ff1a4b13f1a"
+            },
+            {
+              "env_index": 10,
+              "sha256": "20c95f0774e342c37a94ed80925c9e561bb0087b456f59c25cd0e4acc99167a1"
+            },
+            {
+              "env_index": 3,
+              "sha256": "4bc70e00e00597f065d8db9bb36cca368e08af2af1cd41eedc75a5deaccb2cf3"
+            },
+            {
+              "env_index": 8,
+              "sha256": "8a9a5418827db04affc589c3bf63216a6b950aae24d19b3e1eb15395d7bfd6af"
+            },
+            {
+              "env_index": 4,
+              "sha256": "9e3faa677525526af1e1bdac220fc3ede87e569ac5c5f795c70cbcede20874bd"
+            },
+            {
+              "env_index": 7,
+              "sha256": "b5ff4c63b0cebdde89c9eb38ba240661fb166a59be4a665c900633c81a67a216"
+            },
+            {
+              "env_index": 1,
+              "sha256": "bb2145255495a3f54e35a064b8f486acd1478533a9c3e058d73ea7901f16f979"
+            },
+            {
+              "env_index": 11,
+              "sha256": "c6968c4b1598f361e937c0faa2bd1e0c5efc47238b190940b5dc543c3755c1a4"
+            },
+            {
+              "env_index": 5,
+              "sha256": "cc4f0606db739ef07eb437e1b5a018a37453d65e7ef53616c3f2df7295b3ed52"
+            },
+            {
+              "env_index": 9,
+              "sha256": "d07c4cbbe3ecfec41a40c741b668a615d2a42b2a4491cf335f2e76a6a08a0669"
+            },
+            {
+              "env_index": 0,
+              "sha256": "e28a4c20e94f22f321429ccd06a2b0fe3ee2084329d4fe7ecbad45ed28148c25"
+            }
+          ]
+        },
+        {
+          "domain_inclusive": [
+            60,
+            71
+          ],
+          "selected_env": 63,
+          "selected_sha256": "024a2db3e2aa5661140877a96871adbff97623858dad13698d56314eb2872cc0",
+          "complete_hash_order": [
+            {
+              "env_index": 63,
+              "sha256": "024a2db3e2aa5661140877a96871adbff97623858dad13698d56314eb2872cc0"
+            },
+            {
+              "env_index": 61,
+              "sha256": "18b1a22c74a6da02246e62fbee21cf1021c9b4f43414a38682cd5504890f05d6"
+            },
+            {
+              "env_index": 62,
+              "sha256": "28deacfc4fe1e40e97ac5012bf9f7a2fd5acdbd4c35851924976815709aacd6d"
+            },
+            {
+              "env_index": 67,
+              "sha256": "41c1a86194366a965797c5abc295c73fc2830ddeeb325428542f7f6b831ecddb"
+            },
+            {
+              "env_index": 69,
+              "sha256": "5aed3924987ae32f472883109b28000199be5a4318cf4e0719a091379b267888"
+            },
+            {
+              "env_index": 60,
+              "sha256": "81f0c3b896ec170ef8ce65b62e9a0eaeb7ba40308699d2c76cbe661fa7b2f303"
+            },
+            {
+              "env_index": 66,
+              "sha256": "99099fa16d16e01bbfa09a03d7882f4a5d2421faba1e727c7034d412f57a79bb"
+            },
+            {
+              "env_index": 64,
+              "sha256": "9a5fdf66b33d38976a038824be57011f52240ab40a5729c3cd921937f003a04a"
+            },
+            {
+              "env_index": 71,
+              "sha256": "a1d1f6abcde514bb706238bef19f9a766cfe2e1ed102e24a44588775a251c37c"
+            },
+            {
+              "env_index": 68,
+              "sha256": "a6bc5e2263b8e6de1ed2876956f34b69158c0206cd82e2cb4ba0788840fbc69a"
+            },
+            {
+              "env_index": 65,
+              "sha256": "a91927076d25d756cc1b4096e294cd752ec59d3bc5caeaa5536758b9fabb9a10"
+            },
+            {
+              "env_index": 70,
+              "sha256": "e3040d861c9bdf39ba2f433cf1b1f5e703b0f1b4c4d56f9514d23a751c107cbe"
+            }
+          ]
+        }
+      ],
+      "static_env_mapping": [
+        {
+          "selection_domain_inclusive": [
+            0,
+            11
+          ],
+          "selected_env": 2,
+          "terrain_type_index": 0,
+          "episode_index_within_cell": 2,
+          "cell": {
+            "cell_id": "public_dev.c0_id_level_3",
+            "template_id": "c0_id_level_3",
+            "cohort": "public_dev",
+            "terrain_regime_id": "c0_regular",
+            "stratum_id": "c0_id",
+            "claim_kind": "in_distribution",
+            "factor_levels": {
+              "phase": "p0",
+              "riser_band": "0.132",
+              "tread_band": "0.400",
+              "sequence_pattern": "regular",
+              "roughness_band": "0.000",
+              "surface_pattern": "flat"
+            },
+            "geometry": {
+              "schema_version": "true_rl_agent.task.stair_climbing.geometry.v3",
+              "size_m": [
+                8.0,
+                4.0
+              ],
+              "floor_depth_m": 0.5,
+              "start_platform_length_m": 1.5,
+              "riser_heights_m": [
+                0.132001704,
+                0.132001704,
+                0.132001704,
+                0.132001704,
+                0.132001704,
+                0.132001704,
+                0.132001704,
+                0.132001704
+              ],
+              "tread_depths_m": [
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4
+              ],
+              "top_platform_length_m": 3.3,
+              "progress_goal_m": 4.35,
+              "surface_profile": {
+                "kind": "flat"
+              }
+            },
+            "geometry_digest": "e13d09c91db06583e37326ba88ead4813a9f59002839642a9285df061157cd3d",
+            "episode_horizon_control_steps": 600,
+            "episode_horizon_s": 12.0
+          }
+        },
+        {
+          "selection_domain_inclusive": [
+            60,
+            71
+          ],
+          "selected_env": 63,
+          "terrain_type_index": 5,
+          "episode_index_within_cell": 3,
+          "cell": {
+            "cell_id": "public_dev.c1_conditional_frontier_level_5",
+            "template_id": "c1_conditional_frontier_level_5",
+            "cohort": "public_dev",
+            "terrain_regime_id": "c1_irregular_flat",
+            "stratum_id": "c1_conditional_frontier",
+            "claim_kind": "conditional_on_c1_support",
+            "factor_levels": {
+              "phase": "p0",
+              "riser_band": "0.236",
+              "tread_band": "0.434",
+              "sequence_pattern": "back_loaded",
+              "roughness_band": "0.000",
+              "surface_pattern": "flat"
+            },
+            "geometry": {
+              "schema_version": "true_rl_agent.task.stair_climbing.geometry.v3",
+              "size_m": [
+                8.0,
+                4.0
+              ],
+              "floor_depth_m": 0.5,
+              "start_platform_length_m": 1.5,
+              "riser_heights_m": [
+                0.200982,
+                0.20962,
+                0.218257,
+                0.226894,
+                0.244169,
+                0.252806,
+                0.261444,
+                0.270081
+              ],
+              "tread_depths_m": [
+                0.460781,
+                0.451789,
+                0.442797,
+                0.424813,
+                0.415821,
+                0.406829,
+                0.397837,
+                0.469773
+              ],
+              "top_platform_length_m": 3.02956,
+              "progress_goal_m": 4.62044,
+              "surface_profile": {
+                "kind": "flat"
+              }
+            },
+            "geometry_digest": "6e7e538e87f4b90620ca9b7f0b9f1ac35c0ee807746b85a82fc287d25507a0ae",
+            "episode_horizon_control_steps": 637,
+            "episode_horizon_s": 12.74
+          }
+        }
+      ],
+      "media_episodes": 6,
+      "media_run_indices": [
+        1,
+        2,
+        3
+      ],
+      "qualification_performed": false,
+      "gpu_capture_started": false,
+      "preflight_artifact_refs": [
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p3new_20260929/N5_preflight_development_draft/stair/composition/resolved_cell_manifest.json",
+          "sha256": "01c9e6e216b41291707eb6b0deaa2f82cd0401011aa9df09710b6e5bd2d761cf",
+          "size_bytes": 11306
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p3new_20260929/N5_preflight_development_draft/stair/eval_template/go2-stair-official-flat-derived-v1/c179e38468a1c98311dfa77a541f0c81b6cab0d45b8223d97dbffe1c3b610c62/.true_rl_agent_reference_artifact.json",
+          "sha256": "fd2ca8eaa261ec4fd349aae20cac1641fea1a1b479f39d47ceeacb9405c57e31",
+          "size_bytes": 1301
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p3new_20260929/N5_preflight_development_draft/stair/eval_template/go2-stair-official-flat-derived-v1/c179e38468a1c98311dfa77a541f0c81b6cab0d45b8223d97dbffe1c3b610c62/training_code/components.py",
+          "sha256": "10b1a34218d7fbb3ed124a6913e6d45d1462e5508d062510f31a3d1d7ac272cb",
+          "size_bytes": 2326
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p3new_20260929/N5_preflight_development_draft/stair/public_dev_job.json",
+          "sha256": "30834806bdd516fed6249cac07b311b312533edfa0c756291310af88ab8834bf",
+          "size_bytes": 15400
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p3new_20260929/N5_preflight_development_draft/stair/result.json",
+          "sha256": "db20a0d9b176e2bdf0a5574c95427fb3060590644dd1dc78ab4b44afb8e4bc23",
+          "size_bytes": 2786
+        }
+      ],
+      "cohort": {
+        "cli": "diagnostic",
+        "namespace": "public_dev_diagnostic_v1"
+      },
+      "final_source_preflight": {
+        "path": "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\P3NEW\\results\\n5_source_preflight_r1\\remote_preflight\\stair\\result.json",
+        "sha256": "aa9bc5228e4d334b859a56ef2025d978ca76af30acdbdd88ee99d1ab36bcd870",
+        "size_bytes": 2786
+      },
+      "final_source_evaluation_binding": {
+        "acceptance_protocol_hash": "8039854266ab34b67ab2925fd4d7345a9e6a1693390c78e81be2bc4cf4ff8f6c",
+        "eval_protocol_hash": "7a671684ddf6dc85e463cb089266fab6b316f43b6217d1763e5e7db4aa73a613",
+        "evaluation_binding_hash": "cb8551a6ddb57a8e452ce0a3421e5a96d1a6c46e1e8d82bb9a37db43f17d530a",
+        "schema_version": "true_rl_agent.evaluation.binding.v1",
+        "seed_cohort_hash": "64b5a60ac587f3a3f51bb53eb59a0c73ddf0b68aed18aba86f2b78846160ec79",
+        "task_protocol_hash": "d85bebb001f72dd13c8107215ec5d81e391d795fd2541c8dc589ce4fbe9e35e9"
+      }
+    },
+    "push": {
+      "planned_run_argv_template_not_executable_until_final_source_freeze": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/feedback_p3new_20260929/source_n5_preflight_r1/scripts/push_numeric_replay.py",
+        "--cell",
+        "push.g1_37dof.recovery_v2",
+        "--source-manifest",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912/resolved_cell_manifest.json",
+        "--checkpoint-summary",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912/runner/p6-g1-stationary-v3-reference-20260912/train/summary.json",
+        "--checkpoint",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912/runner/p6-g1-stationary-v3-reference-20260912/checkpoints/best.pt",
+        "--device",
+        "cuda:0",
+        "--isaac-python",
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "--capture",
+        "on",
+        "--eval-base-seed",
+        "1500000000",
+        "--timeout-s",
+        "7200",
+        "--video-env-index",
+        "3",
+        "--video-camera-eye",
+        "2.5",
+        "-2.5",
+        "1.4",
+        "--video-camera-lookat",
+        "0.3",
+        "0",
+        "-0.2",
+        "--video-secondary-camera-eye",
+        "2.5",
+        "2.5",
+        "1.4",
+        "--video-secondary-camera-lookat",
+        "0.3",
+        "0",
+        "-0.2",
+        "--video-resolution",
+        "1920",
+        "1080",
+        "--mode",
+        "run",
+        "--output",
+        "/data/yuyangliu/AGENT/feedback_p3new_20260929/n5_capture_r1/push",
+        "--video-dir",
+        "/data/yuyangliu/AGENT/feedback_p3new_20260929/n5_capture_r1/push/video",
+        "--video-secondary-env-index",
+        "59",
+        "--video-snapshot-interval-steps",
+        "1"
+      ],
+      "executed_preflight_argv": [
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "/data/yuyangliu/AGENT/feedback_p3new_20260929/source_multi_env_r4/scripts/push_numeric_replay.py",
+        "--cell",
+        "push.g1_37dof.recovery_v2",
+        "--source-manifest",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912/resolved_cell_manifest.json",
+        "--checkpoint-summary",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912/runner/p6-g1-stationary-v3-reference-20260912/train/summary.json",
+        "--checkpoint",
+        "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912/runner/p6-g1-stationary-v3-reference-20260912/checkpoints/best.pt",
+        "--device",
+        "cuda:0",
+        "--isaac-python",
+        "/data/yuyangliu/envs/isaaclab6_validation/bin/python",
+        "--capture",
+        "on",
+        "--eval-base-seed",
+        "1500000000",
+        "--timeout-s",
+        "7200",
+        "--video-env-index",
+        "3",
+        "--video-camera-eye",
+        "2.5",
+        "-2.5",
+        "1.4",
+        "--video-camera-lookat",
+        "0.3",
+        "0",
+        "-0.2",
+        "--video-secondary-camera-eye",
+        "2.5",
+        "2.5",
+        "1.4",
+        "--video-secondary-camera-lookat",
+        "0.3",
+        "0",
+        "-0.2",
+        "--video-resolution",
+        "1920",
+        "1080",
+        "--mode",
+        "preflight",
+        "--output",
+        "/data/yuyangliu/AGENT/feedback_p3new_20260929/N5_preflight_development_draft/push",
+        "--video-dir",
+        "/data/yuyangliu/AGENT/feedback_p3new_20260929/N5_preflight_development_draft/push/video",
+        "--video-secondary-env-index",
+        "59",
+        "--video-snapshot-interval-steps",
+        "1"
+      ],
+      "preflight_status": "PREPARED",
+      "checkpoint": {
+        "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912/runner/p6-g1-stationary-v3-reference-20260912/checkpoints/best.pt",
+        "sha256": "91c00d4e61492dcfb6511aa0ae9ef85121c5bb08dafde7eabf29c10281ad1749",
+        "size_bytes": 5545131
+      },
+      "source_input_refs": {
+        "--checkpoint": {
+          "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912/runner/p6-g1-stationary-v3-reference-20260912/checkpoints/best.pt",
+          "sha256": "91c00d4e61492dcfb6511aa0ae9ef85121c5bb08dafde7eabf29c10281ad1749",
+          "size_bytes": 5545131
+        },
+        "--checkpoint-summary": {
+          "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912/runner/p6-g1-stationary-v3-reference-20260912/train/summary.json",
+          "sha256": "27db73ab8ee53c8cdbb8186a770b3c87ab59c15dc1af77d240bc6621018b2f9b",
+          "size_bytes": 32025
+        },
+        "--source-manifest": {
+          "path": "/data/yuyangliu/AGENT/true_RL_Agent/outputs/p6_g1_stationary_v3_qualification_20260912/resolved_cell_manifest.json",
+          "sha256": "ba19261d0445b5a77a3be9eb5bad341917d4b63ed82a4d25d93b6fccffb73569",
+          "size_bytes": 13928
+        }
+      },
+      "identity_equal_to_completed_r4": {
+        "checkpoint_sha256": true,
+        "preserved_training_binding_hash": true,
+        "source_training_manifest_hash": true
+      },
+      "r4_runner_result_ref": {
+        "path": "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\P3NEW\\results\\multi_env_engineering_r4\\pixel_review\\push\\result.json",
+        "sha256": "0121436534b8d6a32047d8802e1cf0ac66da44fcc51b2c7fb90ed530d9619272",
+        "size_bytes": 23249
+      },
+      "preserved_training_binding_hash": "292d09c995cfa8f4b021572b81ceaa48d3a207995ba84ac2c92ecff8806a72aa",
+      "source_training_manifest_hash": "65cf26a941c75bbea4def58a975325a2389ec07a954528ce5c73a82cd20d4a84",
+      "evaluation_binding_from_r4_source_preflight": {
+        "acceptance_protocol_hash": "bb6946ef12e12fce33dd77bb58257de41a728997b5e9677b7a631d7b78024de7",
+        "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+        "evaluation_binding_hash": "acde9f4b15abb449366290bdee8d87e1c0179ec07f4a05448e97f089c803d464",
+        "schema_version": "true_rl_agent.evaluation.binding.v1",
+        "seed_cohort_hash": "78fcd36dddb12ef0b3a520a87bf89c55bbf7d346c0c4c39e8666c44ac490c469",
+        "task_protocol_hash": "dc1d18e84c8d9d9452433e0004977989be809a92578dc34294d203d03cab754a"
+      },
+      "binding_differs_from_r4_old_development": true,
+      "numeric_eval_envs": 64,
+      "numeric_public_dev_seed_runs": 3,
+      "media_env_selection": [
+        {
+          "domain_inclusive": [
+            0,
+            15
+          ],
+          "selected_env": 3,
+          "selected_sha256": "023cc8048696ba31717f1037693c454a631b513ba78ae929def39bee4f95603e",
+          "complete_hash_order": [
+            {
+              "env_index": 3,
+              "sha256": "023cc8048696ba31717f1037693c454a631b513ba78ae929def39bee4f95603e"
+            },
+            {
+              "env_index": 10,
+              "sha256": "12918d9b7be154725756d928774c1f2275313e25ec922db19552857379547411"
+            },
+            {
+              "env_index": 9,
+              "sha256": "229267c4cba37ca067b63ed9447c1e5d43a43d02475e03a13f9082ea9d2d351d"
+            },
+            {
+              "env_index": 0,
+              "sha256": "328b9784bbf996167b89c365b53caa408a3107c0c383ea6d99dda630f0b0921a"
+            },
+            {
+              "env_index": 11,
+              "sha256": "347a8d2e04018fda19fdeb3bb1483f7f96ca203c4801b93eda2347433d87e883"
+            },
+            {
+              "env_index": 8,
+              "sha256": "3886a0c96c86db16d2cbe26e50d84dfdf6682b01b6dd3bca20ea9e34dc12f1af"
+            },
+            {
+              "env_index": 7,
+              "sha256": "4cec2c88179433c418a6c65807ba060fbdc1e820eb15a01c4f58840df9dc083e"
+            },
+            {
+              "env_index": 2,
+              "sha256": "935b163594e9e0d80a4195587104d0f93f8c3c41f99a8674e2a33681575185ff"
+            },
+            {
+              "env_index": 1,
+              "sha256": "97f440d3cc62e238f9382ed4fdb17919d7d6bb4c5a037b12434c12fb344f7562"
+            },
+            {
+              "env_index": 12,
+              "sha256": "a5d3c226d05fff271bb614bf12dee7e00886d9dd8d9362862a7849a4cbd1c029"
+            },
+            {
+              "env_index": 14,
+              "sha256": "c45a9bd4ea3d11cb06967d73cc35291f3428f6a4d6d5191e658138d5b5580d03"
+            },
+            {
+              "env_index": 4,
+              "sha256": "c508ff7ea93805be80e656cc20bd09d89d61a1700e74940e9343ad094b3f2a39"
+            },
+            {
+              "env_index": 13,
+              "sha256": "d96e3e9ce4c741e7f53a34083ca75bfcdf2824c6ef359f7f58ffccbfdc78a08a"
+            },
+            {
+              "env_index": 15,
+              "sha256": "d9a575c2caa8b5ea00543fae50e952d21338506a981b26d1023c6584b066ae55"
+            },
+            {
+              "env_index": 6,
+              "sha256": "f911dd094cb2746aeead1b2913f28b57008fe6ad3197817caeb1e5d3d7dbd831"
+            },
+            {
+              "env_index": 5,
+              "sha256": "f98fe5834857b51937d804f1a917292a7301a8ed521c428d0362b603f4b19ce3"
+            }
+          ]
+        },
+        {
+          "domain_inclusive": [
+            48,
+            63
+          ],
+          "selected_env": 59,
+          "selected_sha256": "0cb899224be9644146f6f45d3dd4de1dd1b0e615966889f47d9c81d3ae98f867",
+          "complete_hash_order": [
+            {
+              "env_index": 59,
+              "sha256": "0cb899224be9644146f6f45d3dd4de1dd1b0e615966889f47d9c81d3ae98f867"
+            },
+            {
+              "env_index": 56,
+              "sha256": "1b81a6ce4c24e9b394b9581f7df694fb34dbcc7ff103e5bec1cdecdbe6df09b5"
+            },
+            {
+              "env_index": 63,
+              "sha256": "39fda7866c34d7a8208967189f331921e42fa5fe40b4438dad9673a35b8a2723"
+            },
+            {
+              "env_index": 50,
+              "sha256": "3da63c73f46a280d90ecea219f48215f37a23b1e127ce34c86ba99d30258afc5"
+            },
+            {
+              "env_index": 54,
+              "sha256": "51a4f3c2c9f86fbd4c4c0618d83b7aaf6a804f9df14b2cfb196bf5afcbfe3bef"
+            },
+            {
+              "env_index": 53,
+              "sha256": "6debdf884e1a9c75984d4dacaf715714ad2f73be4c9db4ffdc3d7ded7af8865e"
+            },
+            {
+              "env_index": 52,
+              "sha256": "786d61a47a06a69d51368450aded09b0b818d99031c15eb7f7ded8def5b43da7"
+            },
+            {
+              "env_index": 49,
+              "sha256": "7fb80545ad4dc88ac4096a31caeac4b2cdfa80e30e41d628602049dcf7c5ab4c"
+            },
+            {
+              "env_index": 58,
+              "sha256": "a37fe6297276e68a4eecd15daafab77b2a203d4c275b9f41a8f013e80a573f65"
+            },
+            {
+              "env_index": 60,
+              "sha256": "b08ccbd176dfa59535a1769f667885993e0bbd13d1d601c2223bc260abeb59c2"
+            },
+            {
+              "env_index": 48,
+              "sha256": "b34074e2b3aed87d038d28c9469f85665e66d426521f45180b7a7554dd36d083"
+            },
+            {
+              "env_index": 57,
+              "sha256": "cb85f828600e9e6c30d15a4bd28d86b0e4cdfa417a7cec55961e8040261a7f85"
+            },
+            {
+              "env_index": 51,
+              "sha256": "d4a3a52b6a57146b7173eb1fe8d8e78bff26751299b9d8e46b78cea936052c8b"
+            },
+            {
+              "env_index": 62,
+              "sha256": "dffc08712827205c80f004f3197d9e16715beafa1213ea012b623adddcd92ee6"
+            },
+            {
+              "env_index": 55,
+              "sha256": "edca42af7ea14029c46015fdbe29e58791b266d5cc79c982f59747ed08c08b6a"
+            },
+            {
+              "env_index": 61,
+              "sha256": "f234a140327350555b96e8626990f704f8e2ecba9d1bb90ec2dd5ff80f9619b2"
+            }
+          ]
+        }
+      ],
+      "static_env_mapping": [
+        {
+          "selection_domain_inclusive": [
+            0,
+            15
+          ],
+          "selected_env": 3,
+          "stratum": "low",
+          "stratum_index_0based": 0,
+          "direction_index_0based": 3,
+          "planned_push_count": 1,
+          "mapping_source": {
+            "path": "/data/yuyangliu/AGENT/feedback_p3new_20260929/source_multi_env_r4/src/true_rl_agent/tasks/push_recovery/runtime.py",
+            "sha256": "525db076f41e2315bd7b556aa535f589ba0cbfafe5cdaf7670072a55b7597975",
+            "size_bytes": 29761
+          },
+          "mapping_rule": "64-env cohort, counts [16,16,16,16], bucketize cumulative ends with right=True; direction local index modulo16"
+        },
+        {
+          "selection_domain_inclusive": [
+            48,
+            63
+          ],
+          "selected_env": 59,
+          "stratum": "repeated",
+          "stratum_index_0based": 3,
+          "direction_index_0based": 11,
+          "planned_push_count": 2,
+          "mapping_source": {
+            "path": "/data/yuyangliu/AGENT/feedback_p3new_20260929/source_multi_env_r4/src/true_rl_agent/tasks/push_recovery/runtime.py",
+            "sha256": "525db076f41e2315bd7b556aa535f589ba0cbfafe5cdaf7670072a55b7597975",
+            "size_bytes": 29761
+          },
+          "mapping_rule": "64-env cohort, counts [16,16,16,16], bucketize cumulative ends with right=True; direction local index modulo16"
+        }
+      ],
+      "media_episodes": 6,
+      "media_run_indices": [
+        1,
+        2,
+        3
+      ],
+      "qualification_performed": false,
+      "gpu_capture_started": false,
+      "preflight_artifact_refs": [
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p3new_20260929/N5_preflight_development_draft/push/composition/resolved_cell_manifest.json",
+          "sha256": "4f000f839aa6e9089a6fc9da07bc3785a2aee2c34c345239c6347dc7e721184c",
+          "size_bytes": 13928
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p3new_20260929/N5_preflight_development_draft/push/public_dev_job.json",
+          "sha256": "313c8bfc53b7ad41870493ca47dad8d8c6f62326b5c164c018788e4ff5712d25",
+          "size_bytes": 2110
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p3new_20260929/N5_preflight_development_draft/push/reference_source/push_standing_recovery_stationary_reference_v3/672ed09c3c706922a8ece060fcad0544a75a61dd4518b49fb2ea3b5831550604/.true_rl_agent_reference_artifact.json",
+          "sha256": "947a9e09a4dc8fe95611df40ab3a6774e0fc13ec27af493ed536401129dc8fee",
+          "size_bytes": 1348
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p3new_20260929/N5_preflight_development_draft/push/reference_source/push_standing_recovery_stationary_reference_v3/672ed09c3c706922a8ece060fcad0544a75a61dd4518b49fb2ea3b5831550604/training_code/components.py",
+          "sha256": "43440ad6adec5d99914a41142a951402d753acde5bdf41a162ed1e29d2b74d7d",
+          "size_bytes": 1846
+        },
+        {
+          "path": "/data/yuyangliu/AGENT/feedback_p3new_20260929/N5_preflight_development_draft/push/result.json",
+          "sha256": "07408df865a89ca354020c41b9e97d0ba4a17cf6fffe910cd9e23c354a705383",
+          "size_bytes": 2151
+        }
+      ],
+      "cohort": {
+        "eval_base_seed": 1500000000,
+        "derived_public_dev_runner_seeds": [
+          1500010000,
+          1500010001,
+          1500010002
+        ],
+        "seed_rule": "(base_seed + 10000 + run_index - 1) modulo (2**31 - 1)"
+      },
+      "final_source_preflight": {
+        "path": "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\P3NEW\\results\\n5_source_preflight_r1\\remote_preflight\\push\\result.json",
+        "sha256": "ac32d656c0dfd8c390892150fabc96c402ed71b1006c8c74b388128d19e756bb",
+        "size_bytes": 2152
+      },
+      "final_source_evaluation_binding": {
+        "acceptance_protocol_hash": "bb6946ef12e12fce33dd77bb58257de41a728997b5e9677b7a631d7b78024de7",
+        "eval_protocol_hash": "b5b7a1e95a8cf528bbfca00153c1b6bf50b7eddcd4166d715407cb068b25c7d5",
+        "evaluation_binding_hash": "acde9f4b15abb449366290bdee8d87e1c0179ec07f4a05448e97f089c803d464",
+        "schema_version": "true_rl_agent.evaluation.binding.v1",
+        "seed_cohort_hash": "78fcd36dddb12ef0b3a520a87bf89c55bbf7d346c0c4c39e8666c44ac490c469",
+        "task_protocol_hash": "dc1d18e84c8d9d9452433e0004977989be809a92578dc34294d203d03cab754a"
+      }
+    }
+  },
+  "resources_snapshot": {
+    "checked_at_utc": "2026-09-29T16:43:00.422673+00:00",
+    "disk": {
+      "total_bytes": 640865542144,
+      "used_bytes": 532553334784,
+      "free_bytes": 81081896960
+    },
+    "gpus_csv": "0, GPU-06661cdd-1a0e-904e-a2e3-705eda5fb65b, NVIDIA GeForce RTX 5090, 7 MiB, 32607 MiB, 0 %\n1, GPU-8cd998f2-d42e-394e-7aae-a6701bb9b187, NVIDIA GeForce RTX 5090, 6 MiB, 32607 MiB, 0 %\n",
+    "compute_processes_csv": ""
+  },
+  "resource_acceptance": "Snapshot only. Recompute dense PNG + numeric + metadata worst-case storage and reserve margin before run; current free bytes alone do not establish capacity sufficiency.",
+  "resource_policy": {
+    "gpu_hours_cap": null,
+    "phase_timeout_s": 7200,
+    "gpu_device_from_r4_template": "cuda:0",
+    "planned_schedule": "sequential, recheck current GPU processes and acquire production leases",
+    "retain_actual_probe_and_eval_lease_durations": true,
+    "max_infrastructure_retries": 0
+  },
+  "before_actual_run_required": [
+    "Finish observer capacity repair and engineering/semantic development checks; this draft is not their acceptance evidence.",
+    "Re-freeze final source/config/script bundle and exact argv, replace __FINAL_FROZEN_SOURCE_ROOT__, verify input and driver hashes, and re-run static preflight under that final source.",
+    "Verify registered qualification/parent source lineage still matches the same checkpoint; rehash checkpoint files at launch.",
+    "Audit that diagnostic namespace / Push base seed cohort have not been consumed or exposed in prior confirmation/development; distinctness from r4 alone does not prove freshness.",
+    "Freeze full numeric/media evidence selection, shortage handling, raw-facts-first reveal protocol and independent reviewers before confirmation data are revealed.",
+    "Confirm fresh empty run output directories and a conservative complete dense-media/numeric storage envelope with margin; check RAM and filesystem capacity again.",
+    "Recheck GPU/process occupancy and production GPU lease eligibility immediately before each task; retain measured resource receipts.",
+    "Record an explicit reviewed release card after the above checks; do not execute this draft as a release."
+  ],
+  "formal_n5_evaluation_started": false,
+  "new_numeric_files": 0,
+  "new_png_files": 0,
+  "api_calls": 0,
+  "gpu_jobs": 0,
+  "semantic_acceptance": "NOT_ESTABLISHED",
+  "note": "Preflight composition/reference/job files are static development artifacts retained under N5_preflight_development_draft, not executed N5 results.",
+  "updated_at_utc": "2026-09-29T18:33:30.274735+00:00",
+  "latest_static_preflight": {
+    "path": "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\P3NEW\\results\\n5_source_preflight_r1\\remote_preflight\\result.json",
+    "sha256": "b6e519bf256b7a451ccb909581f268bb79b0fd630dae0492c04379f058d4f48b",
+    "size_bytes": 4186
+  },
+  "cohort_history_check": {
+    "path": "D:\\humanoid_agent\\true_RL_Agent\\PLAN\\feedback_sys\\P3NEW\\results\\n5_source_preflight_r1\\remote_preflight\\cohort_history_check.json",
+    "sha256": "83af36ff725041976e34af34a191a6922b284f4007e2e4c8e73dfc03ebc8e1fd",
+    "size_bytes": 541
+  },
+  "remaining_before_capture_release": [
+    "Author smoke terminal/readback retained for both tasks",
+    "Fact/report/visual packets executable within local reviewer context, metadata and questions frozen",
+    "Control script/source hashes, same material allowlist, independent roles, full stage ledger and usage reservations frozen",
+    "Fresh resource and both checkpoint bytes rechecked before GPU run"
+  ]
+}

@@ -37,6 +37,7 @@ from true_rl_agent.tasks.push_recovery.config import (
 )
 from true_rl_agent.tasks.push_recovery.force_protocol import ForceEvaluationProtocol
 from true_rl_agent.tasks.push_recovery.memory import PushTaskMemoryAdapter
+from true_rl_agent.tasks.push_recovery.phased_evaluation import finalize_push_eval_phase_summary
 from true_rl_agent.tasks.push_recovery.plugin import PushRecoveryTaskPlugin
 from true_rl_agent.tasks.push_recovery.protocol import PushRecoveryProtocol
 from true_rl_agent.tasks.push_recovery.robot_binding import (
@@ -311,6 +312,7 @@ class PushRecoveryCompositionProvider(TaskCompositionProvider):
                 timeout_s=composition_config.runner_timeout_s,
                 cwd=context.project_root,
                 eval_checkpoint_admission_hook=admit_push_evaluation_checkpoint if task_config.push_protocol is not None else None,
+                eval_phase_summary_finalizer=finalize_push_eval_phase_summary if task_config.push_protocol is not None else None,
             ),
             candidate_admission_policy=candidate_admission_policy,
             policy_initialization=PolicyInitialization.random(),

@@ -515,7 +515,7 @@ class StairExplorationProjector:
             suite=self.config.ordered_evaluation_suite,
             semantics=self.config.evaluation_semantics,
             split="public_dev",
-            summary=summary,
+            summary={key: value for key, value in summary.items() if key != "behavior"},
         )
         return build_unified_score_projection(
             canonical,
@@ -542,7 +542,7 @@ class StairExplorationProjector:
                 suite=self.config.ordered_evaluation_suite,
                 semantics=self.config.evaluation_semantics,
                 split=split,
-                summary=value,
+                summary={key: item for key, item in value.items() if key != "behavior"},
             )
             projection = build_unified_score_projection(
                 canonical,

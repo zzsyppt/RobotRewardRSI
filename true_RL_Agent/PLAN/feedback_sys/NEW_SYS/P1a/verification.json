@@ -1,0 +1,430 @@
+{
+  "schema_version": "trajectory.p1a.verification.v1",
+  "status": "p1a_checks_pass_broad_cpu_has_preexisting_failures_parent_independent_acceptance_pending",
+  "generated_at_utc": "2026-10-02T22:02:14.484085+00:00",
+  "base_commit": "2d888a846636ffb0e3a732d9d3423288ff3b2cac",
+  "branch": "codex/trajectory-translator-upgrade",
+  "baseline_tag": "baseline/pre-trajectory-translator-20261003",
+  "baseline_tag_commit": "e85d37c2ac855bc366a4c80340f7c2ee6af4ae54",
+  "initial_state": "normal-permission read-only clean; Windows sandbox long-path false D entries excluded",
+  "scope": "P1a offline numeric measurement/event/state/relation evidence only; no P1b or live routing",
+  "environment": {
+    "cwd": "D:\\humanoid_agent\\true_RL_Agent",
+    "python": ".venv/Scripts/python.exe",
+    "PYTHONPATH": "src",
+    "PYTHONIOENCODING": "utf-8",
+    "TRUE_RL_AGENT_ISAAC_DYNAMIC_TEST": "0 for full CPU discovery"
+  },
+  "tests": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest -v tests.unit.test_trajectory_temporal tests.unit.test_trajectory_measurement tests.unit.test_stair_trajectory_adapter tests.unit.test_stair_trajectory_evidence_build tests.unit.test_trajectory_evidence_verification tests.unit.test_project_boundaries",
+      "exit_code": 0,
+      "tests": 93,
+      "seconds": 4.457,
+      "raw_result": "Ran 93 tests in 4.457s\n\nOK",
+      "skipped_test_lines": [],
+      "log": {
+        "path": "outputs/trajectory_p1a/affected_final.log",
+        "bytes": 18476,
+        "sha256": "ff85c844eda69981f1ff99c90a38b47b5a661f2d313891e167055cd3c7163b48"
+      }
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest -v tests.unit.test_stair_trajectory_input_inspection tests.unit.test_numeric_evidence tests.unit.test_process_report tests.unit.test_stair_process_report tests.unit.test_push_process_report tests.unit.test_visual_observer tests.unit.test_visual_review tests.unit.test_native_snapshot_media tests.unit.test_stair_behavior tests.unit.test_push_behavior tests.unit.test_feedback_evidence_boundary tests.unit.test_task_visual_observation tests.unit.test_stair_numeric_capture tests.unit.test_push_numeric_capture tests.unit.test_p3r_stair_projection tests.unit.test_push_feedback_projection tests.unit.test_stair_trajectory_reference_facts",
+      "exit_code": 0,
+      "tests": 201,
+      "seconds": 50.775,
+      "raw_result": "Ran 201 tests in 50.775s\n\nOK",
+      "skipped_test_lines": [],
+      "log": {
+        "path": "outputs/trajectory_p1a/original_201_final.log",
+        "bytes": 39646,
+        "sha256": "cefb6851071ed620f8e204c51b64c006fb5c1fb0a0de81aa1c5575f8008b0508"
+      }
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest discover -s tests -t . -v",
+      "exit_code": 1,
+      "tests": 2125,
+      "seconds": 1087.209,
+      "raw_result": "Ran 2125 tests in 1087.209s\n\nFAILED (failures=1, errors=8, skipped=19)",
+      "skipped_test_lines": [
+        "test_stair_accepted_head_resumes_and_closes_final (tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_accepted_head_resumes_and_closes_final) ... skipped 'Stair runtime source closure requires target Isaac installation'",
+        "test_stair_early_rejection_sealed_rejection_and_no_selection (tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_early_rejection_sealed_rejection_and_no_selection) ... skipped 'Stair runtime source closure requires target Isaac installation'",
+        "test_stair_reference_head_uses_shared_preparation_session_final_and_replay (tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_reference_head_uses_shared_preparation_session_final_and_replay) ... skipped 'Stair runtime source closure requires target Isaac installation'",
+        "test_stair_runtime_and_infrastructure_failures_keep_distinct_evidence (tests.integration.test_generation_session.SharedGenerationSessionTests.test_stair_runtime_and_infrastructure_failures_keep_distinct_evidence) ... skipped 'Stair runtime source closure requires target Isaac installation'",
+        "test_candidate_package_preflight_rejects_nonregular_and_symlink_files (tests.unit.test_candidate_package.CandidatePackageTests.test_candidate_package_preflight_rejects_nonregular_and_symlink_files) ... skipped \"file symlinks are unavailable: [WinError 1314] 瀹㈡埛绔病鏈夋墍闇€鐨勭壒鏉冦€? 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmpxngxrtbb\\\\\\\\outside.md' -> 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmpxngxrtbb\\\\\\\\symlinked\\\\\\\\candidate\\\\\\\\rationale.md'\"",
+        "test_bounded_reader_rejects_final_symlink (tests.unit.test_fs_contract.FileSystemContractTests.test_bounded_reader_rejects_final_symlink) ... skipped \"symlinks unavailable: [WinError 1314] 瀹㈡埛绔病鏈夋墍闇€鐨勭壒鏉冦€? 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmp7f6utib1\\\\\\\\target.bin' -> 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmp7f6utib1\\\\\\\\link.bin'\"",
+        "test_linux_process_incarnation_and_process_group_liveness (tests.unit.test_generation_lifecycle.GenerationLifecycleTests.test_linux_process_incarnation_and_process_group_liveness) ... skipped 'requires real Linux procfs'",
+        "test_live_summary_writer_replaces_symlink_without_touching_target (tests.unit.test_live_invocation.LiveInvocationJournalTests.test_live_summary_writer_replaces_symlink_without_touching_target) ... skipped \"symlinks unavailable: [WinError 1314] 瀹㈡埛绔病鏈夋墍闇€鐨勭壒鏉冦€? 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmp0wsw8esy\\\\\\\\external.json' -> 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmp0wsw8esy\\\\\\\\live_summary.json'\"",
+        "test_real_retry_chain_and_owned_process_groups_are_closed (tests.unit.test_p6b_attempt_chain_fault_probe.P6BAttemptChainFaultProbeTests.test_real_retry_chain_and_owned_process_groups_are_closed) ... skipped 'Linux production probe'",
+        "test_symlink_root_is_rejected_before_publication (tests.unit.test_reference_artifact.ReferenceArtifactTests.test_symlink_root_is_rejected_before_publication) ... skipped \"directory symlinks are unavailable: [WinError 1314] 瀹㈡埛绔病鏈夋墍闇€鐨勭壒鏉冦€? 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmpzqs7c2vt\\\\\\\\real-artifacts' -> 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmpzqs7c2vt\\\\\\\\linked-artifacts'\"",
+        "test_incomplete_process_group_cleanup_is_typed (tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_incomplete_process_group_cleanup_is_typed) ... skipped 'Linux process-group contract'",
+        "test_linux_parent_death_signal_stops_owned_job (tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_linux_parent_death_signal_stops_owned_job) ... skipped 'Linux parent-death contract'",
+        "test_normal_exit_quiesces_grandchild_before_logs_are_returned (tests.unit.test_runner_p1_reliability.RunnerProcessHandleTests.test_normal_exit_quiesces_grandchild_before_logs_are_returned) ... skipped 'Linux process-group contract'",
+        "test_real_recorder_payload_decodes_tracks_and_aggregates (tests.unit.test_stair_isaaclab_runtime_env.StairIsaacLabRuntimeEnvTests.test_real_recorder_payload_decodes_tracks_and_aggregates) ... skipped 'set TRUE_RL_AGENT_ISAAC_DYNAMIC_TEST=1 to run Isaac integration'",
+        "test_train_and_eval_builders_install_only_the_declared_runtime (tests.unit.test_stair_isaaclab_runtime_env.StairIsaacLabRuntimeEnvTests.test_train_and_eval_builders_install_only_the_declared_runtime) ... skipped 'set TRUE_RL_AGENT_ISAAC_DYNAMIC_TEST=1 to run Isaac integration'",
+        "test_existing_inputs_reject_leaf_symlinks_before_resolve (tests.unit.test_stair_local_paths.StairLocalPathTests.test_existing_inputs_reject_leaf_symlinks_before_resolve) ... skipped \"symlink creation is unavailable: [WinError 1314] 瀹㈡埛绔病鏈夋墍闇€鐨勭壒鏉冦€? 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmpgqwk9a0a\\\\\\\\target.json' -> 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmpgqwk9a0a\\\\\\\\file-link.json'\"",
+        "test_output_guards_reject_dangling_symlinks (tests.unit.test_stair_local_paths.StairLocalPathTests.test_output_guards_reject_dangling_symlinks) ... skipped \"symlink creation is unavailable: [WinError 1314] 瀹㈡埛绔病鏈夋墍闇€鐨勭壒鏉冦€? 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmpjxnrq1yy\\\\\\\\missing-target.json' -> 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmpjxnrq1yy\\\\\\\\output.json'\"",
+        "test_stair_config_rejects_protocol_symlink (tests.unit.test_stair_local_paths.StairLocalPathTests.test_stair_config_rejects_protocol_symlink) ... skipped \"symlink creation is unavailable: [WinError 1314] 瀹㈡埛绔病鏈夋墍闇€鐨勭壒鏉冦€? 'D:\\\\\\\\humanoid_agent\\\\\\\\true_RL_Agent\\\\\\\\configs\\\\\\\\tasks\\\\\\\\stair_protocol_v2_draft_r2.json' -> 'C:\\\\\\\\Users\\\\\\\\lover\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\tmp9gxp82u3\\\\\\\\stair_protocol_v2_draft_r2.json'\"",
+        "test_subprocess_train_rejects_symlinked_checkpoint_output_without_following_it (tests.unit.test_subprocess_runner.SubprocessRunnerTests.test_subprocess_train_rejects_symlinked_checkpoint_output_without_following_it) ... skipped 'file symlinks unavailable: OSError'"
+      ],
+      "log": {
+        "path": "outputs/trajectory_p1a/cpu_full.log",
+        "bytes": 486510,
+        "sha256": "b2a500fc90d8795fe11e6b9885ca6164f389dab6af53ef43410f52bfe26f15d3"
+      }
+    }
+  ],
+  "full_cpu_timing_note": "Full discovery started before the final conjunction lookback repair and verifier mapping changes. All affected modules and the original 201 were rerun separately after final code freeze; do not treat the discovery run alone as proof of those final edits.",
+  "broad_cpu_failures": {
+    "claim": "Full repository CPU discovery did not pass; no GPU or full-repository success claim.",
+    "items": [
+      {
+        "test": "test_stair_body_projection",
+        "reason": "Existing bare import from test_body_projection cannot resolve with PYTHONPATH=src. Accepted P0 has identical source. Adding tests/unit to PYTHONPATH permits its 2 tests to pass; source untouched."
+      },
+      {
+        "test": "test_push_force_consumers.test_two_native_snapshot_streams_close_at_each_env_terminal",
+        "reason": "Existing runtime camera path requires omni, absent from this CPU venv. Reproduced independently without importing any P1a module."
+      },
+      {
+        "test": "test_stair_pre_reset_media",
+        "reason": "The same existing runtime camera dependency on omni causes 6 error entries, including 4 subcases. Runtime recorder and tests are unchanged from accepted P0."
+      },
+      {
+        "test": "test_push_recovery_task.test_push_static_repair_keeps_task_contract_and_only_failed_source",
+        "reason": "Existing test rejects public_feedback_summary although baseline provider repair payload includes it. Reproduced independently without importing any P1a module; unrelated contract is not changed."
+      }
+    ],
+    "independent_reproduction": {
+      "path": "outputs/trajectory_p1a/existing_failures_check.log",
+      "bytes": 125916,
+      "sha256": "bba5e82b74dce235e9675ef67c0273dce3d0944506c8b4bf5cb28e96be0be83e"
+    },
+    "pre_reset_media_reproduction": {
+      "path": "outputs/trajectory_p1a/existing_pre_reset_media_check.log",
+      "bytes": 18521,
+      "sha256": "8e7fb45440a698b60f6d415481f7fe386ce43689f2886b16b8cd7a2306fa9853"
+    },
+    "import_path_recheck": {
+      "path": "outputs/trajectory_p1a/existing_import_check.log",
+      "bytes": 505,
+      "sha256": "91f37f70efdd7184de73068e14ffb94e7cc722e1fa81db43f81fd9e42c68b1cb"
+    },
+    "summary": "2125 discovered tests; failures=1, errors=8 (7 omni dependency entries and 1 import), skipped=19"
+  },
+  "stage_gates": [
+    {
+      "path": "outputs/trajectory_p1a/gate1_core_final.log",
+      "bytes": 6420,
+      "sha256": "f0430fab543ff64d18b7f6b9f2f663a2b63bfc507d4b5a64016e88b586c494a2"
+    },
+    {
+      "path": "outputs/trajectory_p1a/gate2_all_final.log",
+      "bytes": 16018,
+      "sha256": "cc9f6e094c9e1315ac17e860f5c36425ad7f6acda1a523fa14b9c4cfd1c883ca"
+    },
+    {
+      "path": "outputs/trajectory_p1a/gate2_review_fix.log",
+      "bytes": 16218,
+      "sha256": "4e1af68420cb3d6eb37ebf3307a1c3bdef57dddd2468fc9d40303000e60da92a"
+    }
+  ],
+  "frozen_inputs": {
+    "necessary_facts.json": "ce3a6115793eb4e182f3bb5641f163dc9d7858e3f4682b9ee99806ab637d7c74",
+    "source_lock.json": "c3f0f643eaead24df15da92c5247375c1a32c8d383639186587a02131d7fb412",
+    "e1_selection.json": "4f45e1f9138a322a4f369a6ea3a287dc50c7de74519b4af5dca8208edeb777fc",
+    "input_contract.json": "582e3932bb8db8d7f33d941251db69d9c22c1c692d655c753510b1909b161a25"
+  },
+  "full_reference_sha256": "661c6782dc198d8367dc20c6b42b4a2d4d30b9d6d333dcebbf72d4e60528f009",
+  "artifacts": [
+    {
+      "manifest": {
+        "path": "outputs/trajectory_p1a/r4_final/manifest.json",
+        "bytes": 17076,
+        "sha256": "f40f1d6f5e97681f230be26b4ad81690d13c7d9a6f82d3639b2ccccc8ddc559f"
+      },
+      "source_manifest_ref": {
+        "schema_version": "true_rl_agent.numeric_evidence.ref.v1",
+        "manifest_path": "outputs\\trajectory_p0\\raw\\numeric_evidence\\manifest.json",
+        "manifest_sha256": "8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83"
+      },
+      "scanned_episodes": 864,
+      "scanned_valid_rows": 298375,
+      "emitted_episodes": 864,
+      "emitted_valid_rows": 298375,
+      "record_counts": {
+        "episode": 864,
+        "measurement": 31104,
+        "state_interval": 250376,
+        "event": 232232,
+        "temporal_relation": 79417
+      },
+      "evidence": {
+        "path": "evidence.jsonl",
+        "sha256": "4ccbe33dd600dbe007f96f6b153f0ed5fcdaecff5adb20089cc38120cde74161",
+        "bytes": 1218026903
+      },
+      "code_sha256": {
+        "scripts/build_stair_trajectory_evidence.py": "886870ecddfc31c13fdf6594797cb9f407af051ec5e229f6a567b05244c68a06",
+        "src/true_rl_agent/evaluation/trajectory_translation/contracts.py": "672c9468761d1b30343c9f7562a7ba0c91559d60019c1250f9f1a626138a0c57",
+        "src/true_rl_agent/evaluation/trajectory_translation/measurement.py": "23a85e6e5a7665c152d6319c62eec60850c57743d488c2449548001278bc8c49",
+        "src/true_rl_agent/evaluation/trajectory_translation/temporal.py": "d6987269f652f4f5a4b9c6352e630e4f3a93b107c57a1ca8f38c9498c90d195d",
+        "src/true_rl_agent/evaluation/trajectory_translation/__init__.py": "a0f279c7f0a30427ed230c65c52f91de3727cad8e19ea1c10d5baf11b701c02f",
+        "src/true_rl_agent/tasks/stair_climbing/trajectory_adapter.py": "721a6f00c582331816ef54facc5b01e28ec8db1135b4e9ac1b39e378ed3fe67e"
+      }
+    },
+    {
+      "manifest": {
+        "path": "outputs/trajectory_p1a/legacy_dev_final/manifest.json",
+        "bytes": 16757,
+        "sha256": "833a723659cb80ad682c0683fc3dab33f40ca34e0dde82f4ce44e4dfc47c821a"
+      },
+      "source_manifest_ref": {
+        "schema_version": "true_rl_agent.numeric_evidence.ref.v1",
+        "manifest_path": "PLAN\\feedback_sys\\P3R\\results\\stair_numeric_dev_r1\\numeric_evidence\\manifest.json",
+        "manifest_sha256": "22fb749620c4e614cbb4df4fbfdb82b70d76c8f1cd81a3eda50de465d9fb3e4a"
+      },
+      "scanned_episodes": 864,
+      "scanned_valid_rows": 300105,
+      "emitted_episodes": 2,
+      "emitted_valid_rows": 1113,
+      "record_counts": {
+        "episode": 2,
+        "measurement": 72,
+        "state_interval": 770,
+        "event": 728,
+        "temporal_relation": 283
+      },
+      "evidence": {
+        "path": "evidence.jsonl",
+        "sha256": "6a544eb54b8b2a758f2c4e9af7d303a9a27d112fffec7e0a0899d113f8644f21",
+        "bytes": 3829057
+      },
+      "code_sha256": {
+        "scripts/build_stair_trajectory_evidence.py": "886870ecddfc31c13fdf6594797cb9f407af051ec5e229f6a567b05244c68a06",
+        "src/true_rl_agent/evaluation/trajectory_translation/contracts.py": "672c9468761d1b30343c9f7562a7ba0c91559d60019c1250f9f1a626138a0c57",
+        "src/true_rl_agent/evaluation/trajectory_translation/measurement.py": "23a85e6e5a7665c152d6319c62eec60850c57743d488c2449548001278bc8c49",
+        "src/true_rl_agent/evaluation/trajectory_translation/temporal.py": "d6987269f652f4f5a4b9c6352e630e4f3a93b107c57a1ca8f38c9498c90d195d",
+        "src/true_rl_agent/evaluation/trajectory_translation/__init__.py": "a0f279c7f0a30427ed230c65c52f91de3727cad8e19ea1c10d5baf11b701c02f",
+        "src/true_rl_agent/tasks/stair_climbing/trajectory_adapter.py": "721a6f00c582331816ef54facc5b01e28ec8db1135b4e9ac1b39e378ed3fe67e"
+      }
+    }
+  ],
+  "build_commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\build_stair_trajectory_evidence.py --manifest outputs\\trajectory_p0\\raw\\numeric_evidence\\manifest.json --manifest-sha256 8c5f2d68db3df151c850beb6e2147ced671fb00acc802e23427f188c0d7e9d83 --source-id r4 --output outputs\\trajectory_p1a\\r4_final",
+      "exit_code": 0,
+      "log": {
+        "path": "outputs/trajectory_p1a/r4_final_build.log",
+        "bytes": 438,
+        "sha256": "f99b148b9a8f938f644092606f1e697582fe1bde41fdc608789515c2c2f31326"
+      }
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\build_stair_trajectory_evidence.py --manifest PLAN\\feedback_sys\\P3R\\results\\stair_numeric_dev_r1\\numeric_evidence\\manifest.json --manifest-sha256 22fb749620c4e614cbb4df4fbfdb82b70d76c8f1cd81a3eda50de465d9fb3e4a --source-id legacy_dev --episode 1:54 --episode 1:60 --output outputs\\trajectory_p1a\\legacy_dev_final",
+      "exit_code": 0,
+      "log": {
+        "path": "outputs/trajectory_p1a/legacy_final_build.log",
+        "bytes": 418,
+        "sha256": "03d7a113553037dae59252fccca5456a87b4cd3409c82a0acadd2b8a6a4b276d"
+      }
+    }
+  ],
+  "comparison": {
+    "command": ".\\.venv\\Scripts\\python.exe -B scripts\\verify_stair_trajectory_evidence.py --input outputs\\trajectory_p1a\\r4_final --input outputs\\trajectory_p1a\\legacy_dev_final --output outputs\\trajectory_p1a\\frozen_comparison_delivery.json",
+    "exit_code": 0,
+    "report": {
+      "path": "outputs/trajectory_p1a/frozen_comparison_delivery.json",
+      "bytes": 4699329,
+      "sha256": "f20cd0d5adbb0de51107e7b2c6b3cb5cc3e05200cdc05b321623ef7f4afd69f1"
+    },
+    "log": {
+      "path": "outputs/trajectory_p1a/frozen_comparison_delivery.log",
+      "bytes": 302,
+      "sha256": "81243d5e20e36ce73b31334c1640b9db046c1e39b2573d85e4ee4f1771fbc29b"
+    },
+    "counts": {
+      "necessary": {
+        "counts": {
+          "pass": 247
+        },
+        "fact_count": 247,
+        "compared_scalar_fields": 4168
+      },
+      "full": {
+        "counts": {
+          "pass": 291,
+          "unsupported": 18
+        },
+        "fact_count": 309,
+        "compared_scalar_fields": 44365
+      }
+    },
+    "full_ledger_coverage_complete": false,
+    "unsupported_reason": "18 full inventory facts: P0 export missing_channels/existing_temporal_channels lists have no identical product inventory view. Numeric/history values and threshold-source semantics are independently checked; corresponding product limitations, channel refs, coverage and missing all-nonfoot-force declaration limits are documented per field.",
+    "mapping_notes": [
+      "Lookup uses source manifest SHA256 + run + environment, never display names.",
+      "Canonical robot_0.support/body entity IDs map to frozen role names after exact entity-order validation.",
+      "Half-open production step intervals map to inclusive frozen last_step by subtracting one.",
+      "Run cell duration, observed span and recorder boundary brackets remain separate; physical duration is null only when explicitly unknown.",
+      "Summary float rounding is accepted only within each frozen fact's absolute/relative tolerance; integers, booleans and indices are exact.",
+      "Frozen summary tail rows are selected by step from the longer production tail; full ledger checks every frozen tail row.",
+      "Derived summaries use emitted counts/intervals only (occupancy, means, extrema, sign tests); no raw-array calculation fills missing product values.",
+      "Sparse outcome counters may omit zero classes; cohort denominator and every episode count are checked independently.",
+      "Frozen counterexample check=confirmed_by_raw_operands is an oracle receipt: compare its boolean proposition against emitted numeric/temporal records, without claiming new raw verification.",
+      "Frozen low-speed threshold_source prose ('P0 development descriptive threshold, not task success/failure rule') maps explicitly to measurement_config.low_speed_and_progress_threshold_source=development_calibration; the 0.05 scalar and M04 XY/XYZ definition are checked independently, not inferred from threshold magnitude.",
+      "Full-ledger missing_channels/existing_temporal_channels are array-inventory claims, not omitted numeric operations. Product limitations and evidence refs express most corresponding concepts but do not serialize those exact complete inventories; they remain explicit unsupported fields rather than inferred from absent records."
+    ]
+  },
+  "raw_spotchecks": {
+    "script": {
+      "path": "outputs/trajectory_p1a/raw_spotchecks.py",
+      "bytes": 14442,
+      "sha256": "86a40fee9aea908f37d20c538b83fbfdc95806950496bdb60d6539f59ed17eca"
+    },
+    "report": {
+      "path": "outputs/trajectory_p1a/raw_spotchecks.json",
+      "bytes": 107574,
+      "sha256": "8d515b2c3a41b1e264c97b4a5624e5d6bd94f6c3e17f3ecba5b92439f660bd77"
+    },
+    "cases": [
+      {
+        "case_id": "r4.r1.e60.xy_vs_xyz",
+        "pass": true,
+        "scalars": {
+          "fl_velocity_xyz_mps": [
+            0.0415688157081604,
+            0.016667895019054413,
+            -0.0320286750793457
+          ],
+          "xy_speed_mps": 0.04478599294137869,
+          "xyz_speed_mps": 0.05506015974444246,
+          "current_force_norm_n": 0.0,
+          "low_speed_off": true
+        },
+        "record_ids": [
+          "evidence:5ee4c4d270b87e6968a8c01927a9f848bf72f400ec150bd29e896459ee399da1"
+        ]
+      },
+      {
+        "case_id": "r4.r1.e35.role_index_lsb",
+        "pass": true,
+        "scalars": {
+          "force_norms_n": [
+            79.2696762084961,
+            70.4294662475586,
+            0.0,
+            83.71871185302739
+          ],
+          "markers_FL_FR_RL_RR": [
+            true,
+            true,
+            false,
+            true
+          ],
+          "code": 11,
+          "counts": [
+            22,
+            1,
+            0,
+            15,
+            38,
+            0,
+            19,
+            17,
+            12,
+            0,
+            0,
+            135,
+            8,
+            0,
+            2,
+            42
+          ],
+          "valid_count": 311
+        },
+        "record_ids": [
+          "evidence:1a640135db619d501e483aaec9b790fb4a81729ee99551afb2ea60976824cdd5"
+        ]
+      },
+      {
+        "case_id": "r4.r1.e129.terminal_history",
+        "pass": true,
+        "scalars": {
+          "current_base_force_norm_n": 0.0,
+          "history_slot_norms_n": [
+            0.0,
+            0.0,
+            635.4031353719352
+          ],
+          "termination_1": true
+        },
+        "record_ids": [
+          "evidence:9a7f6ac8eb9589e1e7561c48183592ebc683b3d8f879318603198d66d75727de",
+          "evidence:0203363a9bdda9d6b9bbe96f64ce1dbac8e6ac6ed390f34300e1d888c37ddf5f",
+          "evidence:dd66278f9d10d889c1dcec1edc63009252276f6e7d0e769fd6575b3eecde1660"
+        ]
+      },
+      {
+        "case_id": "legacy_dev.r1.e54.negative_before_low_speed_off",
+        "pass": true,
+        "scalars": {
+          "raw_q_wxyz": [
+            0.6157213449478149,
+            -0.6529029011726379,
+            0.3268764615058899,
+            -0.2962375581264496
+          ],
+          "raw_q_norm": 0.9999999424576617,
+          "normalized_q_wxyz": [
+            0.615721380377863,
+            -0.6529029387421997,
+            0.3268764803151269,
+            -0.29623757517265237
+          ],
+          "normalized_up_z": -0.06626096160281225,
+          "first_negative_step": 278,
+          "onset_before": true,
+          "negative_onset_range_s": [
+            5.54,
+            5.5600000000000005
+          ],
+          "low_speed_off_onset_range_s": [
+            6.5,
+            6.5200000000000005
+          ]
+        },
+        "record_ids": [
+          "evidence:cdad7c7d24bc1293e7f271ec95fa73711d04bf3969b090fb8e2371a5b6a93375",
+          "evidence:85ad89d97494aa38d35e6522b2bdc41a63c59def1eae1b084596462e55c4f1b8",
+          "evidence:10f08c2ace4cf2ea8f5bc5a87a58e806ef87460c9ad45c9d565d416e6bda1506"
+        ]
+      }
+    ],
+    "artifact_identity_note": "Raw excerpts point to first-build JSONL; final rebuild has byte-identical SHA and line numbers."
+  },
+  "review": {
+    "agent": "clean gpt-6-astra ultra acceptance_design; full new production/tests read-only",
+    "finding": "Conjunction lost lookback dependencies in raw refs; repaired by propagating max operand lookback with nested state/event regression.",
+    "other_blocking_findings": 0,
+    "parent_independent_acceptance": "pending"
+  },
+  "not_verified": [
+    "target-server/GPU/Isaac dynamic rollout",
+    "new training",
+    "live author/card integration",
+    "periodic phase qualification",
+    "effective/nominal joint limits",
+    "per-geometry terrain qualification",
+    "historical link-position/COM-velocity reference mapping",
+    "new capture profile",
+    "prospective held-out generalization"
+  ],
+  "tools_unavailable": [
+    "ruff is not installed in project venv; not installed during this task"
+  ],
+  "p0_readme_erratum": "Old 245 episode+1 cohort=246; new246+1=247; sole new r4.r1.e60.RL_foot.low_speed_off. Facts unchanged.",
+  "delivery_boundary": "Commit/push dedicated branch only; stop writing and await parent independent P1a acceptance."
+}

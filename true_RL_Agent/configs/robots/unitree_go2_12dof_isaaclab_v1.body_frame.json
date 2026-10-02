@@ -1,0 +1,20 @@
+{
+  "schema_version": "true_rl_agent.robot_body_frame.v1",
+  "robot_profile_id": "unitree_go2_12dof_isaaclab_v1",
+  "robot_profile_hash": "3e9c110449be639fceb48d6792fc8f683f43bd34978286325bba99547d20f1c0",
+  "body_name": "base",
+  "kinematic_base_source": "articulation_root",
+  "forward_axis_body": [1.0, 0.0, 0.0],
+  "up_axis_body": [0.0, 0.0, 1.0],
+  "image_body_names": ["FR_calf", "FL_calf", "RR_calf", "RL_calf"],
+  "root_asset": {
+    "identity": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/IsaacLab/Robots/Unitree/Go2/go2.usd",
+    "sha256": "ba171c972b987d8c8fb7157ccad2ba9c0c1fed105755d2d8af46bef96cc11c6d"
+  },
+  "verification": {
+    "method": "CPU pxr.Sdf read of hash-matched USD; no simulation",
+    "root_frame": "base has PhysicsArticulationRootAPI and identity initial orientation; USD upAxis=Z",
+    "forward_geometry": "FL/FR hip localPos0.x=+0.1934; RL/RR=-0.1934; Head_upper=+0.285",
+    "up_geometry": "thigh-to-calf and calf-to-foot localPos0=(0,0,-0.213)"
+  }
+}

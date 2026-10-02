@@ -1,0 +1,731 @@
+{
+ "A_success_gait": {
+  "episodes": 682,
+  "steps": 229344,
+  "duty_stairs": [
+   0.715,
+   0.728,
+   0.382,
+   0.611
+  ],
+  "duty_flat": [
+   0.665,
+   0.691,
+   0.579,
+   0.586
+  ],
+  "impulse_share": [
+   0.301,
+   0.27,
+   0.153,
+   0.276
+  ],
+  "hind_left_lowest_duty_share": 1.0,
+  "hind_left_duty_below_half_share": 0.9912023460410557,
+  "modes": {
+   "1101": 0.397,
+   "1111": 0.148,
+   "0010": 0.114,
+   "0000": 0.095,
+   "1110": 0.075,
+   "1100": 0.052
+  },
+  "flight": 0.095,
+  "agreement": {
+   "FL-FR": 0.91,
+   "FL-RL": 0.37,
+   "FL-RR": 0.8,
+   "FR-RL": 0.39,
+   "FR-RR": 0.79,
+   "RL-RR": 0.34
+  },
+  "touchdown_period_s": [
+   0.54,
+   0.54,
+   0.5,
+   0.42
+  ],
+  "touchdown_phase_vs_FL": {
+   "FR": [
+    0.97,
+    0.87
+   ],
+   "RL": [
+    0.79,
+    0.86
+   ],
+   "RR": [
+    0.08,
+    0.81
+   ]
+  },
+  "swing_s_q25_50_75": [
+   0.1,
+   0.14,
+   0.22
+  ],
+  "swing_shorter_than_quarter_second": 0.842,
+  "foot_forward_of_trunk_m": [
+   0.17,
+   0.19,
+   -0.4,
+   -0.22
+  ],
+  "foot_left_of_trunk_m": [
+   0.17,
+   -0.22,
+   0.07,
+   -0.01
+  ],
+  "heading_deg_q10_50_90": [
+   0.3,
+   7.2,
+   16.7
+  ]
+ },
+ "B_stall": {
+  "timeouts_last_3s": {
+   "still advancing": 5,
+   "stepping without progress": 3,
+   "standing, one hind foot unloaded": 15,
+   "standing on four feet": 15,
+   "standing, one front foot unloaded": 1
+  },
+  "upright_single_foot_unloaded_ge_1s": {
+   "forbidden_contact": "7/125",
+   "success": "3/682",
+   "timeout": "22/39",
+   "slip": "0/1",
+   "base_orientation_instability": "2/16",
+   "off_course": "0/1"
+  },
+  "upright_single_foot_unloaded_ge_2s": {
+   "forbidden_contact": "0/125",
+   "success": "0/682",
+   "timeout": "18/39",
+   "slip": "0/1",
+   "base_orientation_instability": "0/16",
+   "off_course": "0/1"
+  },
+  "ge_2s_runs": {
+   "n": 18,
+   "hind": 17,
+   "median_dur_s": 8.69,
+   "last_until_end": 15,
+   "foot_at_surface": 17,
+   "foot_slow": 17,
+   "no_progress": 16,
+   "others_not_stepping": 16,
+   "front_on_first_step_hind_on_ground": 17
+  }
+ },
+ "B_runs_ge_2s": [
+  {
+   "run": 1,
+   "env": 204,
+   "stratum": "joint_ood",
+   "foot": "RR",
+   "dur": 7.96,
+   "to_end": 0.0,
+   "clr": 0.023078635840409964,
+   "clr_loaded": 0.02225906401872635,
+   "spd": 0.002885144343680115,
+   "dprog": 0.0024623870849609375,
+   "others_td": 0.0,
+   "levels": [
+    1,
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "run": 1,
+   "env": 215,
+   "stratum": "joint_ood",
+   "foot": "RL",
+   "dur": 8.78,
+   "to_end": 0.0,
+   "clr": 0.022406246029434553,
+   "clr_loaded": 0.02206733077764511,
+   "spd": 0.03976903965480303,
+   "dprog": -0.0009348392486572266,
+   "others_td": 0.0,
+   "levels": [
+    1,
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "run": 1,
+   "env": 189,
+   "stratum": "joint_ood",
+   "foot": "RR",
+   "dur": 10.22,
+   "to_end": 0.0,
+   "clr": 0.022433788692414643,
+   "clr_loaded": 0.022744718939065933,
+   "spd": 0.013177390968055262,
+   "dprog": 0.014259576797485352,
+   "others_td": 0.19569471624266144,
+   "levels": [
+    1,
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "run": 1,
+   "env": 48,
+   "stratum": "c1_conditional_frontier",
+   "foot": "RR",
+   "dur": 9.92,
+   "to_end": 0.0,
+   "clr": 0.023719795258535493,
+   "clr_loaded": 0.022721368819475174,
+   "spd": 0.011303964764773545,
+   "dprog": 0.016217947006225586,
+   "others_td": 0.10080645161290323,
+   "levels": [
+    1,
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "run": 1,
+   "env": 51,
+   "stratum": "c1_conditional_frontier",
+   "foot": "RL",
+   "dur": 10.34,
+   "to_end": 0.0,
+   "clr": 0.022662515321483466,
+   "clr_loaded": 0.021943513303995132,
+   "spd": 0.03322534111366252,
+   "dprog": 0.005310773849487305,
+   "others_td": 0.2901353965183752,
+   "levels": [
+    1,
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "run": 1,
+   "env": 55,
+   "stratum": "c1_conditional_frontier",
+   "foot": "RR",
+   "dur": 9.84,
+   "to_end": 0.0,
+   "clr": 0.025194949023728447,
+   "clr_loaded": 0.02251516655087471,
+   "spd": 0.008309058468349702,
+   "dprog": 0.01383829116821289,
+   "others_td": 0.1016260162601626,
+   "levels": [
+    1,
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "run": 1,
+   "env": 179,
+   "stratum": "height_ood",
+   "foot": "RL",
+   "dur": 10.5,
+   "to_end": 0.0,
+   "clr": 0.02334844329527446,
+   "clr_loaded": 0.022120650857686996,
+   "spd": 0.033524124413906106,
+   "dprog": 0.010324239730834961,
+   "others_td": 0.09523809523809523,
+   "levels": [
+    1,
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "run": 2,
+   "env": 204,
+   "stratum": "joint_ood",
+   "foot": "RR",
+   "dur": 7.4,
+   "to_end": 0.0,
+   "clr": 0.022832038978467115,
+   "clr_loaded": 0.022225357592105865,
+   "spd": 0.006784914449058674,
+   "dprog": -0.0007004737854003906,
+   "others_td": 0.0,
+   "levels": [
+    1,
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "run": 2,
+   "env": 212,
+   "stratum": "joint_ood",
+   "foot": "RL",
+   "dur": 2.48,
+   "to_end": 6.98,
+   "clr": 0.023862023086797808,
+   "clr_loaded": 0.022098340094089508,
+   "spd": 0.04381677388934599,
+   "dprog": 0.050189971923828125,
+   "others_td": 1.6129032258064517,
+   "levels": [
+    1,
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "run": 2,
+   "env": 190,
+   "stratum": "joint_ood",
+   "foot": "FL",
+   "dur": 8.6,
+   "to_end": 0.0,
+   "clr": 0.14927098433985267,
+   "clr_loaded": 0.02334272861480713,
+   "spd": 0.11124166599874179,
+   "dprog": -0.07552194595336914,
+   "others_td": 0.11627906976744186,
+   "levels": [
+    2,
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "run": 2,
+   "env": 50,
+   "stratum": "c1_conditional_frontier",
+   "foot": "RR",
+   "dur": 10.040000000000001,
+   "to_end": 0.0,
+   "clr": 0.024816806943886785,
+   "clr_loaded": 0.02269856259226799,
+   "spd": 0.026744813442163437,
+   "dprog": 0.01563715934753418,
+   "others_td": 0.8964143426294819,
+   "levels": [
+    1,
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "run": 2,
+   "env": 53,
+   "stratum": "c1_conditional_frontier",
+   "foot": "RR",
+   "dur": 10.120000000000001,
+   "to_end": 0.0,
+   "clr": 0.024668316139651852,
+   "clr_loaded": 0.022656917572021484,
+   "spd": 0.009037843123612109,
+   "dprog": 0.016344785690307617,
+   "others_td": 0.2964426877470355,
+   "levels": [
+    1,
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "run": 2,
+   "env": 54,
+   "stratum": "c1_conditional_frontier",
+   "foot": "RL",
+   "dur": 2.32,
+   "to_end": 8.02,
+   "clr": 0.02433254518385591,
+   "clr_loaded": 0.02226792648434639,
+   "spd": 0.03707745374212491,
+   "dprog": -0.018816232681274414,
+   "others_td": 1.7241379310344829,
+   "levels": [
+    1,
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "run": 2,
+   "env": 55,
+   "stratum": "c1_conditional_frontier",
+   "foot": "RR",
+   "dur": 10.22,
+   "to_end": 0.0,
+   "clr": 0.02523351663362723,
+   "clr_loaded": 0.02277141809463501,
+   "spd": 0.008555977153319568,
+   "dprog": 0.023908138275146484,
+   "others_td": 0.09784735812133072,
+   "levels": [
+    1,
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "run": 3,
+   "env": 204,
+   "stratum": "joint_ood",
+   "foot": "RR",
+   "dur": 7.5600000000000005,
+   "to_end": 0.0,
+   "clr": 0.022871718855288926,
+   "clr_loaded": 0.0222792848944664,
+   "spd": 0.008951274183807924,
+   "dprog": -0.0013420581817626953,
+   "others_td": 0.0,
+   "levels": [
+    1,
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "run": 3,
+   "env": 206,
+   "stratum": "joint_ood",
+   "foot": "RR",
+   "dur": 8.540000000000001,
+   "to_end": 0.0,
+   "clr": 0.023277443207678248,
+   "clr_loaded": 0.02219438925385475,
+   "spd": 0.003441008695074634,
+   "dprog": 0.005675792694091797,
+   "others_td": 0.23419203747072598,
+   "levels": [
+    1,
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "run": 3,
+   "env": 190,
+   "stratum": "joint_ood",
+   "foot": "RL",
+   "dur": 7.86,
+   "to_end": 0.0,
+   "clr": 0.02207515657933917,
+   "clr_loaded": 0.02205023169517517,
+   "spd": 0.0010831837634776385,
+   "dprog": 0.0001678466796875,
+   "others_td": 0.0,
+   "levels": [
+    1,
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "run": 3,
+   "env": 169,
+   "stratum": "height_ood",
+   "foot": "RL",
+   "dur": 3.3200000000000003,
+   "to_end": 7.16,
+   "clr": 0.023745203368276,
+   "clr_loaded": 0.022263556718826294,
+   "spd": 0.042803886256752965,
+   "dprog": 0.012714862823486328,
+   "others_td": 0.9036144578313252,
+   "levels": [
+    1,
+    1,
+    0,
+    0
+   ]
+  }
+ ],
+ "C_support": {
+  "weight_proxy_N": 150.9,
+  "mean_foot_vertical_force_by_stratum_N": {
+   "c0_id": 150.9,
+   "c1_conditional_frontier": 154.4,
+   "c1_id": 153.8,
+   "c2_mechanism_ood": 107.8,
+   "height_ood": 140.9,
+   "joint_ood": 136.0,
+   "phase_composition_ood": 157.4,
+   "tread_ood": 150.8
+  },
+  "static_last_5s_episodes": 32,
+  "static_feet_share_below_0p7": [
+   [
+    1,
+    123,
+    "c2_mechanism_ood",
+    0.61,
+    0.0,
+    4
+   ],
+   [
+    1,
+    134,
+    "c2_mechanism_ood",
+    0.49,
+    0.0,
+    4
+   ],
+   [
+    2,
+    190,
+    "joint_ood",
+    0.64,
+    0.0,
+    3
+   ],
+   [
+    2,
+    126,
+    "c2_mechanism_ood",
+    0.5,
+    0.0,
+    4
+   ],
+   [
+    2,
+    128,
+    "c2_mechanism_ood",
+    0.56,
+    0.0,
+    4
+   ]
+  ],
+  "static_feet_share_quantiles_rest": [
+   1.03,
+   1.09,
+   1.13
+  ]
+ },
+ "D_timeline": {
+  "regimes_per_episode": {
+   "success_median": 1.0,
+   "success_q90": 1.0,
+   "failure_median": 3.0,
+   "failure_q90": 5.0
+  },
+  "time_share": {
+   "failure": {
+    "stepping and advancing": 0.578,
+    "stepping without advancing": 0.121,
+    "standing, one foot unloaded": 0.105,
+    "tipped over": 0.084,
+    "standing on four feet": 0.081,
+    "unclassified": 0.031
+   },
+   "success": {
+    "stepping and advancing": 0.992,
+    "stepping without advancing": 0.007,
+    "unclassified": 0.0
+   }
+  }
+ },
+ "E_reward_links": {
+  "touchdowns": 42325,
+  "air_time_s_median": 0.14,
+  "air_time_ge_half_second_share": 0.007867690490253987,
+  "mean_air_minus_threshold_s": -0.34008836385115176,
+  "calf_at_extension_limit_share_success_stairs": [
+   0.0,
+   0.0,
+   0.74,
+   0.03
+  ],
+  "calf_at_extension_limit_share_success_flat": [
+   0.0,
+   0.0,
+   0.28,
+   0.0
+  ],
+  "calf_at_extension_limit_share_timeouts_last3s": [
+   0.0,
+   0.09,
+   1.0,
+   1.0
+  ],
+  "timeouts_with_a_hind_calf_at_limit_over_90pct": "34/39"
+ },
+ "F_timeouts": {
+  "table": {
+   "still advancing | -": 5,
+   "front feet on step 1, hind feet on ground | stepping in place": 3,
+   "front feet on step 1, hind feet on ground | three feet loaded, one hind foot unloaded": 15,
+   "front feet on step 1, hind feet on ground | four feet loaded, no stepping": 8,
+   "rough-surface cell, mid-stairs | four feet loaded, no stepping": 7,
+   "elsewhere | three feet loaded, one front foot unloaded": 1
+  },
+  "not_at_first_step": [
+   [
+    1,
+    123,
+    "c2_mechanism_ood",
+    [
+     6,
+     6,
+     5,
+     5
+    ],
+    "four feet loaded, no stepping",
+    0.61,
+    0.0
+   ],
+   [
+    1,
+    132,
+    "c2_mechanism_ood",
+    [
+     5,
+     6,
+     4,
+     4
+    ],
+    "four feet loaded, no stepping",
+    0.91,
+    0.0
+   ],
+   [
+    1,
+    134,
+    "c2_mechanism_ood",
+    [
+     5,
+     5,
+     4,
+     4
+    ],
+    "four feet loaded, no stepping",
+    0.49,
+    0.0
+   ],
+   [
+    1,
+    141,
+    "c2_mechanism_ood",
+    [
+     7,
+     7,
+     6,
+     6
+    ],
+    "four feet loaded, no stepping",
+    0.55,
+    0.0
+   ],
+   [
+    2,
+    190,
+    "joint_ood",
+    [
+     2,
+     1,
+     1,
+     1
+    ],
+    "three feet loaded, one front foot unloaded",
+    0.64,
+    0.0
+   ],
+   [
+    2,
+    115,
+    "c2_mechanism_ood",
+    [
+     6,
+     6,
+     5,
+     5
+    ],
+    "four feet loaded, no stepping",
+    0.96,
+    0.0
+   ],
+   [
+    2,
+    126,
+    "c2_mechanism_ood",
+    [
+     5,
+     5,
+     4,
+     4
+    ],
+    "four feet loaded, no stepping",
+    0.5,
+    0.0
+   ],
+   [
+    2,
+    128,
+    "c2_mechanism_ood",
+    [
+     3,
+     3,
+     2,
+     2
+    ],
+    "four feet loaded, no stepping",
+    0.56,
+    0.0
+   ]
+  ],
+  "still_advancing_levels": [
+   [
+    8,
+    8,
+    6,
+    7
+   ],
+   [
+    8,
+    8,
+    7,
+    8
+   ],
+   [
+    8,
+    8,
+    7,
+    8
+   ],
+   [
+    7,
+    7,
+    6,
+    6
+   ],
+   [
+    8,
+    8,
+    6,
+    7
+   ]
+  ]
+ }
+}

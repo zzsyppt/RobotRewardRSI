@@ -1,0 +1,153 @@
+{
+  "schema_version": "feedback_p3r.ceiling_inputs.v1",
+  "p3_cases": {
+    "path": "../P3/author_case_inputs_r5/case_inputs.json",
+    "sha256": "962798382e3497dab9b53982ed0cef7469cb7a3f10b4a365023eddccef10fe96"
+  },
+  "cases": [
+    {
+      "case_id": "stair-01",
+      "variants": {
+        "A": {
+          "base": "A"
+        },
+        "T0": {
+          "base": "T"
+        },
+        "Tc-num": {
+          "base": "A",
+          "behavior": {
+            "path": "r0b_evidence/stair-01_Tc-num.json",
+            "sha256": "d67fef63a64f569c554749a09610424eeb3678901131c7d8303f62cc5227adee"
+          }
+        },
+        "Tc-vis": {
+          "base": "A",
+          "behavior": {
+            "path": "r0b_evidence/stair-01_Tc-vis.json",
+            "sha256": "6850834c32411d9b7ca720ab4a307f8896467c7b329cd1e382c01dae09573d84"
+          }
+        }
+      },
+      "review_reference": {
+        "registered_failure_shape": "Conditional frontier includes forbidden-contact, orientation and timeout outcomes. One registered level5 example develops low forward gain, sustained tilt and rollover; an additional level4 timeout has long small-motion unloaded-foot behavior. They are different outcome/geometry examples, not one obligatory sequence.",
+        "source_refs": [
+          "stair-01_Tc-num.json",
+          "stair-01_Tc-vis.json"
+        ],
+        "unknowns": [
+          "Exact contact surface and training cause are not established.",
+          "Selected video is not a population frequency sample."
+        ]
+      }
+    },
+    {
+      "case_id": "stair-03",
+      "variants": {
+        "A": {
+          "base": "A"
+        },
+        "T0": {
+          "base": "T"
+        },
+        "Tc-num": {
+          "base": "A",
+          "behavior": {
+            "path": "r0b_evidence/stair-03_Tc-num.json",
+            "sha256": "7d53876da7aa6fe67021c8f9df35b2ae076eaad60ac4f89db7d4e5af10f67963"
+          }
+        },
+        "Tc-vis": {
+          "base": "A",
+          "behavior": {
+            "path": "r0b_evidence/stair-03_Tc-vis.json",
+            "sha256": "562c80d8410a150b680f2c0eb85bf2a30d288392bc69e72eafa002c2856f2f84"
+          }
+        }
+      },
+      "review_reference": {
+        "registered_failure_shape": "Height OOD has forbidden-contact failures including examples without confirmed sustained tilt. The registered frame sequence shows low trunk posture with continued leg motion. Successes in the same cell/run remain a required counterexample.",
+        "source_refs": [
+          "stair-03_Tc-num.json",
+          "stair-03_Tc-vis.json"
+        ],
+        "unknowns": [
+          "Trunk-to-surface clearance is not the recorded foot-point clearance.",
+          "No exact belly/edge collision point is asserted."
+        ]
+      }
+    },
+    {
+      "case_id": "push-02",
+      "variants": {
+        "A": {
+          "base": "A"
+        },
+        "T0": {
+          "base": "T"
+        },
+        "Tc-num": {
+          "base": "A",
+          "behavior": {
+            "path": "r0b_evidence/push-02_Tc-num.json",
+            "sha256": "d4660466c59968b6b3916e00eca162428d514ee32474d0fb0a83e4bb85486764"
+          }
+        },
+        "Tc-vis": {
+          "base": "A",
+          "behavior": {
+            "path": "r0b_evidence/push-02_Tc-vis.json",
+            "sha256": "42118b690c30f34b79ed01126160e53751675c67ec037b9fd705ea897aa1ee68"
+          }
+        }
+      },
+      "review_reference": {
+        "registered_failure_shape": "Medium includes failures that never complete recovery dwell and failures that complete it but finish unstable. Registered env19 latches at109 then becomes unstable and fails final planar speed; env23 is successful despite a later transient instability. Other falls remain in the cohort denominator.",
+        "source_refs": [
+          "push-02_Tc-num.json",
+          "push-02_Tc-vis.json"
+        ],
+        "unknowns": [
+          "No per-foot force/placement measurement; do not infer exact step count or ankle/hip strategy.",
+          "Neither visual uprightness nor a completed dwell alone establishes task success."
+        ]
+      }
+    },
+    {
+      "case_id": "push-04",
+      "variants": {
+        "A": {
+          "base": "A"
+        },
+        "T0": {
+          "base": "T"
+        },
+        "Tc-num": {
+          "base": "A",
+          "behavior": {
+            "path": "r0b_evidence/push-04_Tc-num.json",
+            "sha256": "ba8242551627ff27710501c2b49efbeb13498c1ad4441c1f347f510c62363d20"
+          }
+        },
+        "Tc-vis": {
+          "base": "A",
+          "behavior": {
+            "path": "r0b_evidence/push-04_Tc-vis.json",
+            "sha256": "0bb71d253f24440f0a710c9840113e2da06041ef3225b0b2f116d1d660b75e33"
+          }
+        }
+      },
+      "review_reference": {
+        "registered_failure_shape": "Repeated stratum includes a registered episode that falls during the first recovery window, before the second planned push executes, plus successful multi-event episodes. Use observed/planned/censored windows and success controls separately.",
+        "source_refs": [
+          "push-04_Tc-num.json",
+          "push-04_Tc-vis.json"
+        ],
+        "unknowns": [
+          "A first-push fall is not evidence of accumulation across two executed pushes.",
+          "Proposed reward causes/effects remain untrained hypotheses."
+        ]
+      }
+    }
+  ]
+}

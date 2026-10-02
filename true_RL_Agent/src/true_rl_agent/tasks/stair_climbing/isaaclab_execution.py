@@ -8,6 +8,7 @@ import math
 import re
 import shutil
 import time
+from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
@@ -1092,6 +1093,44 @@ def _execute_stair_reward_program_boundary(
         raise failure from exc
 
 
+@contextmanager
+def _stair_pre_reset_video_capture(base_env: Any, *recorders: Any):
+    """Temporarily bind media to StairEvalTransitionRecorder's numeric capture."""
+    previous = getattr(base_env, "_stair_pre_reset_capture", None)
+    def capture() -> None:
+        for recorder in recorders:
+            recorder.record_step()
+    base_env._stair_pre_reset_capture = capture
+    try:
+        yield
+    finally:
+        if previous is None:
+            del base_env._stair_pre_reset_capture
+        else:
+            base_env._stair_pre_reset_capture = previous
+
+
+def _finish_stair_seed_video(recorder: Any, seed_outcomes: tuple[Any, ...], *,
+                             split: str, ordered_suite: Any | None) -> dict[str, Any]:
+    # A task success latch can close before Gym done. Keep the true outcome T;
+    # it cannot be recovered by rendering after the later cohort rollout ends.
+    outcome = seed_outcomes[recorder.options.env_index]
+    record = recorder.finish(frame_count=outcome.episode_steps)
+    terminal_present = (any(sample["control_step"] == outcome.episode_steps
+                            for sample in record["manifest"]["samples"])
+                        if record.get("capture_mode") == "selected_rgb_snapshots"
+                        else record["frame_count"] == outcome.episode_steps and outcome.episode_steps > 0)
+    record.update(split=split, episode_outcome=outcome.to_public_dict(),
+                  episode_evidence_source="pre_reset_task_state",
+                  capture_point="after_stair_numeric_clone_before_reset_and_interval_events",
+                  terminal_control_step=outcome.episode_steps,
+                  includes_terminal_frame=terminal_present)
+    if ordered_suite is not None:
+        course = ordered_suite.cell(outcome.evaluation_cell_id)
+        record["geometry_digest"] = course.geometry_digest
+    return record
+
+
 def execute_stair_evaluation(
     *,
     config: StairClimbingTaskConfig,
@@ -1199,6 +1238,7 @@ def execute_stair_evaluation(
         run_stair_split_execution,
     )
     from true_rl_agent.tasks.stair_climbing.isaaclab_runtime_env import (
+        StairEvalTransitionRecorder,
         build_stair_eval_env_cfg,
         register_production_stair_envs,
     )
@@ -1220,22 +1260,29 @@ def execute_stair_evaluation(
         ),
     )
     if native_video is not None:
+        # Both unified and legacy builders install this exact pre-reset recorder.
+        transition = getattr(getattr(env_cfg, "recorders", None), "transition", None)
+        if getattr(transition, "class_type", None) is not StairEvalTransitionRecorder:
+            raise ValueError("Stair native recording requires StairEvalTransitionRecorder")
         native_video.configure_viewer(env_cfg)
     base_env = gym.make(
         STAIR_EVAL_GYM_ID, cfg=env_cfg,
         render_mode="rgb_array" if native_video is not None else None,
     )
-    recorder = None
+    recorders = ()
     if native_video is not None:
-        from true_rl_agent.runner.native_video import NativeVideoRecorder
+        from true_rl_agent.runner.native_video import native_video_recorders
 
-        recorder = NativeVideoRecorder(base_env, native_video)
-        base_env = recorder.env
+        recorders = native_video_recorders(base_env, native_video)
+        base_env = recorders[0].env
     if requires_runtime_lease:
         assert runtime_lease is not None
         runtime_lease.bind(base_env)
     env = None
+    capture_hooks = ExitStack()
     try:
+        if recorders:
+            capture_hooks.enter_context(_stair_pre_reset_video_capture(base_env.unwrapped, *recorders))
         if config.is_unified_protocol:
             verify_stair_vnext_termination_manager_resolution(
                 base_env.unwrapped,
@@ -1303,15 +1350,14 @@ def execute_stair_evaluation(
                 print(f"stair evaluation split={split} seed={completed}/{total}", flush=True)
 
             def finish_seed_video(seed_outcomes: tuple[Any, ...]) -> None:
-                outcome = seed_outcomes[native_video.env_index]
-                # Gym's first frame follows control step 1. Exclude the
-                # terminal auto-reset frame and all later unscored episodes.
-                record = recorder.finish(frame_count=outcome.episode_steps - 1)
-                record["split"] = split
-                record["episode_outcome"] = outcome.to_public_dict()
-                if config.ordered_evaluation_suite_config is not None:
-                    course = config.ordered_evaluation_suite_config.cell(outcome.evaluation_cell_id)
-                    record["geometry_digest"] = course.geometry_digest
+                for recorder in recorders:
+                    _finish_stair_seed_video(recorder, seed_outcomes, split=split,
+                                             ordered_suite=config.ordered_evaluation_suite_config)
+
+            def start_seed_video(index: int, seed: int) -> None:
+                for recorder in recorders:
+                    suffix = f"_env_{recorder.options.env_index}" if len(recorders) > 1 else ""
+                    recorder.start(f"{split}_seed_{index}{suffix}", seed, task_records_steps=True)
 
             split_execution = run_stair_split_execution(
                 env=env,
@@ -1324,11 +1370,8 @@ def execute_stair_evaluation(
                 seed_namespace=seed_namespace,
                 runtime_projection=runtime_projection,
                 progress_callback=seed_completed,
-                on_seed_reset=(
-                    (lambda index, seed: recorder.start(f"{split}_seed_{index}", seed))
-                    if recorder is not None else None
-                ),
-                on_seed_completed=(finish_seed_video if recorder is not None else None),
+                on_seed_reset=(start_seed_video if recorders else None),
+                on_seed_completed=(finish_seed_video if recorders else None),
                 numeric_capture=numeric_capture,
             )
             per_seed = split_execution.per_seed_outcomes
@@ -1384,17 +1427,19 @@ def execute_stair_evaluation(
             constructed_learner=constructed_learner,
             numeric_evidence=(numeric_capture.complete(summaries["public_dev"]) if numeric_capture is not None else None),
         )
-        if recorder is not None:
+        if recorders:
             sidecar = {
-                "schema_version": "true_rl_agent.stair_native_video.v1",
+                "schema_version": "true_rl_agent.stair_native_video.v2",
                 "reclassified_by_video_exporter": False,
-                "recorded_interval": "first_episode_control_step_1_to_terminal_minus_1",
+                "recorded_interval": "first_episode_control_steps_1_through_task_outcome_inclusive",
+                "capture_point": "after_stair_numeric_clone_before_reset_and_interval_events",
+                "terminal_frame_presence": "per_record_includes_terminal_frame_from_actual_media",
                 "execution": result.execution_identity(),
                 "checkpoint_loading": dict(checkpoint_loading),
                 "constructed_learner": dict(constructed_learner),
                 "resolved_cell_manifest": resolved_cell_manifest.to_dict(),
                 "evaluation_summaries": result.public_summaries(),
-                "recordings": recorder.records,
+                "recordings": [record for recorder in recorders for record in recorder.records],
             }
             (native_video.output_dir / "recordings.json").write_text(
                 json.dumps(sidecar, indent=2, sort_keys=True) + "\n", encoding="utf-8"
@@ -1402,6 +1447,7 @@ def execute_stair_evaluation(
         print("stair evaluation result=ready", flush=True)
         return result
     finally:
+        capture_hooks.close()
         target = env if env is not None else base_env
         if requires_runtime_lease:
             print(

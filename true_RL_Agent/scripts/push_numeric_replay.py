@@ -2,13 +2,12 @@
 """Replay a completed Push reference through the public-dev runner, with optional numeric capture.
 
 All source paths are explicit inputs. This command never trains, qualifies a
-reference, or runs holdouts. Run mode acquires the existing GPU lease before
-environment inspection. Independent archive reduction runs separately on CPU.
+reference, or runs holdouts. A short lease covers environment inspection; the
+runner owns the rollout lease and releases it before CPU behavior derivation.
 """
 from __future__ import annotations
 
 import argparse
-from contextlib import ExitStack
 from dataclasses import replace
 import json
 import os
@@ -27,8 +26,10 @@ from true_rl_agent.evaluation.phases import EvaluationPhase
 from true_rl_agent.runner.checkpoint import file_sha256
 from true_rl_agent.runner.job_argv import validate_eval_job_argv
 from true_rl_agent.runner.gpu_lease import GpuLeaseManager, PreGenesisGpuLeaseHolder
+from true_rl_agent.runner.job_attempts import PreGenesisExecutionScope
+from true_rl_agent.runner.native_video import add_native_video_arguments, native_video_argv_from_args
 from true_rl_agent.runner.resource_shadow import discover_nvidia_gpu_inventory
-from true_rl_agent.runner.specs import CheckpointRef
+from true_rl_agent.runner.specs import CheckpointRef, require_eval_phase_result_matches_spec
 from true_rl_agent.tasks.push_recovery.composition import PushRecoveryCompositionProvider
 from true_rl_agent.tasks.push_recovery.config import PushRecoveryTaskConfig
 from true_rl_agent.tasks.push_recovery.checkpoint_admission import validate_push_reference_evaluation_source
@@ -49,10 +50,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--eval-base-seed", type=int, default=1500000000)
     parser.add_argument("--timeout-s", type=int, default=1800)
     parser.add_argument("--numeric-evidence-max-bytes", type=int, default=2 * 1024**3)
+    add_native_video_arguments(parser)
     return parser
 
 
-def prepare(args: argparse.Namespace):
+def prepare(args: argparse.Namespace, *, gpu_lease_manager: GpuLeaseManager | None = None):
     trained = json.loads(args.checkpoint_summary.read_text(encoding="utf-8"))
     if trained.get("status") != "pass" or trained.get("subject_kind") != "reference":
         raise ValueError("Push replay requires a completed reference training receipt")
@@ -85,9 +87,32 @@ def prepare(args: argparse.Namespace):
     if args.mode == "run" and file_sha256(args.checkpoint) != checksum:
         raise ValueError("checkpoint bytes differ from the completed training receipt")
     environment_hash = None
+    attempt_scope = None
+    probe_seconds = 0.0
+    probe_receipt = None
     if args.mode == "run":
-        environment_hash = backend.resolve_session_execution_environment(session_id="push-numeric-replay",
-            session_dir=args.output, allow_create=True)["manifest_hash"]
+        if gpu_lease_manager is None:
+            raise ValueError("Push replay run requires its GPU lease manager")
+        execution_identity = canonical_json_hash({"purpose": "Push numeric replay", "output": str(args.output),
+            "source_train_summary_sha256": file_sha256(args.checkpoint_summary), "cell": args.cell,
+            "capture": args.capture, "evaluation_binding": backend.evaluation_binding_for(composition.task_plugin.task_spec).to_public_dict()})
+        holder = PreGenesisGpuLeaseHolder(session_id="push-numeric-replay", genesis_identity_hash=execution_identity,
+            session_contract_hash=execution_identity, lane_id=args.device, invocation_segment_id=execution_identity[:16],
+            logical_job_id="push-numeric-replay")
+        with gpu_lease_manager.acquire(args.device, holder=holder) as lease:
+            started = time.monotonic()
+            probe_receipt = dict(lease.receipt)
+            environment_hash = backend.resolve_session_execution_environment(session_id="push-numeric-replay",
+                session_dir=args.output, allow_create=True)["manifest_hash"]
+            probe_seconds = time.monotonic() - started
+        attempt_scope = PreGenesisExecutionScope(
+            journal_root=args.output / "job_attempts", session_id="push-numeric-replay",
+            genesis_identity_hash=execution_identity, session_contract_hash=execution_identity,
+            lane_id=args.device, invocation_segment_id=execution_identity[:16],
+            budget_contract_hash=canonical_json_hash({"timeout_s": args.timeout_s, "attempts": 1}),
+            attempt_budget_units=1, max_infrastructure_retries=0,
+            resource_binding_hash=gpu_lease_manager.identity_for(args.device).identity_hash)
+        composition = replace(composition, runner=replace(composition.runner, gpu_lease_manager=gpu_lease_manager))
     jobs = backend.materialize_reference_jobs(session_id="push-numeric-replay", task_spec=composition.task_plugin.task_spec,
         reference=reference, artifact_root=args.output / "reference_source", policy_initialization=composition.policy_initialization,
         evaluation_binding=backend.evaluation_binding_for(composition.task_plugin.task_spec),
@@ -102,9 +127,16 @@ def prepare(args: argparse.Namespace):
     plan = backend.rematerialize_eval_plan(eval_plan=plan, round_id="push-numeric-replay",
         summary_path=(args.output / "evaluation/summary.json").as_posix())
     phase = backend.materialize_eval_phase(eval_plan=plan, phase=EvaluationPhase.PUBLIC_DEV,
+        attempt_scope=attempt_scope,
         capture_numeric=args.capture == "on",
         numeric_evidence_dir=(args.output / "numeric").as_posix() if args.capture == "on" else None,
         numeric_evidence_max_bytes=args.numeric_evidence_max_bytes)
+    video_argv = native_video_argv_from_args(args)
+    if video_argv:
+        metadata = dict(phase.metadata)
+        metadata["cli_argv"] = [*metadata["cli_argv"], *video_argv]
+        metadata["cli_command"] = " ".join(metadata["cli_argv"])
+        phase = replace(phase, metadata=metadata)
     validate_eval_job_argv(phase, phase.metadata["cli_argv"])
     composition.runner.eval_checkpoint_admission_hook(phase.execution_checkpoint(), composition.resolved_cell_manifest, tuple(phase.metadata["cli_argv"]))
     # Keep original source identity. A preparation cannot claim runner admission;
@@ -116,6 +148,9 @@ def prepare(args: argparse.Namespace):
         "preserved_training_binding_hash": plan.training_binding_hash, "same_robot_and_policy_abi": True,
         "same_training_protocol": True, "execution_environment_manifest_hash": environment_hash,
         "evaluation_plan_hash": phase.evaluation_plan_hash, "job_spec_hash": canonical_json_hash(phase.to_public_dict()),
+        "evaluation_binding": phase.evaluation_binding.to_public_dict(),
+        "environment_probe_gpu_lease": probe_receipt,
+        "environment_probe_gpu_lease_wall_duration_s": probe_seconds,
         "public_dev_seeds": plan.public_seed_count, "eval_num_envs": plan.eval_num_envs,
         "checkpoint_runner_admission": "not_executed"}
     return composition, phase, report
@@ -132,30 +167,26 @@ def main(argv: list[str] | None = None) -> int:
         "accept_jobs": 0, "sealed_jobs": 0, "provider_requests": 0, "qualification_claimed": False}
     def write(name, value):
         (args.output / name).write_text(json.dumps(value, indent=2, sort_keys=True, allow_nan=False) + "\n", encoding="utf-8")
-    resources = ExitStack()
-    lease_started = None
+    phase = None
+    phase_invoked = False
     try:
         if args.mode == "run":
             if os.environ.get("CUDA_VISIBLE_DEVICES", "").strip():
                 raise ValueError("use an unmasked host CUDA ordinal for the production runner")
-            execution_identity = canonical_json_hash({"purpose": "Push numeric replay", "output": str(args.output),
-                "source_train_summary_sha256": file_sha256(args.checkpoint_summary), "cell": args.cell, "capture": args.capture})
-            holder = PreGenesisGpuLeaseHolder(session_id="push-numeric-replay", genesis_identity_hash=execution_identity,
-                session_contract_hash=execution_identity, lane_id=args.device, invocation_segment_id=execution_identity[:16],
-                logical_job_id="push-numeric-replay")
             manager = GpuLeaseManager(lease_root=Path("/tmp/true_rl_agent_gpu_leases"),
                 devices={item.execution_device: item.identity for item in discover_nvidia_gpu_inventory()})
-            lease = resources.enter_context(manager.acquire(args.device, holder=holder))
-            lease_started = time.monotonic()
-            report["gpu_lease"] = dict(lease.receipt)
-        composition, phase, identity = prepare(args)
+        else:
+            manager = None
+        composition, phase, identity = prepare(args, gpu_lease_manager=manager)
         report.update(identity)
         write("public_dev_job.json", phase.to_public_dict())
         if args.mode == "preflight":
             report["status"] = "PREPARED"
             return 0
         write("result.json", report)
+        phase_invoked = True
         result = composition.runner.run_eval_phase(phase)
+        require_eval_phase_result_matches_spec(result, phase)
         write("public_dev_result.json", result.to_private_dict())
         raw = json.loads(Path(phase.metadata["summary_path"]).read_text(encoding="utf-8"))
         if file_sha256(args.checkpoint) != report["checkpoint_sha256"]:
@@ -172,9 +203,17 @@ def main(argv: list[str] | None = None) -> int:
         traceback.print_exc()
         return 1
     finally:
-        if lease_started is not None:
-            report["gpu_capacity_seconds"] = time.monotonic() - lease_started
-        resources.close()
+        phase_seconds = None if phase_invoked else 0.0
+        if phase is not None and phase.attempt_scope is not None:
+            receipts = list(phase.attempt_scope.journal_root.rglob("attempt_*.result.json"))
+            report["phase_attempt_receipts"] = [str(path) for path in receipts]
+            durations = [json.loads(path.read_text(encoding="utf-8")).get("resource_lease_wall_duration_ns") for path in receipts]
+            if durations and all(value is not None for value in durations):
+                phase_seconds = sum(durations) / 1e9
+        report["eval_phase_gpu_lease_wall_duration_s"] = phase_seconds
+        probe_seconds = report.get("environment_probe_gpu_lease_wall_duration_s")
+        report["gpu_capacity_seconds"] = (probe_seconds + phase_seconds
+            if probe_seconds is not None and phase_seconds is not None else None)
         report["ended_at_unix"] = time.time()
         write("result.json", report)
         print(json.dumps({"status": report["status"], "output": str(args.output)}), flush=True)

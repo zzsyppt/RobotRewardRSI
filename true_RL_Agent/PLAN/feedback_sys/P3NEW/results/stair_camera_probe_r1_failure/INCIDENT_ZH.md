@@ -1,0 +1,7 @@
+# Stair 近景开发试拍 r1 中断记录
+
+2026-09-29。此目录封存远端原始 `stair_close_camera_probe.py`、`argv.json`、`run.log`、`run_status.json`、`summary.kit.log`，均为原字节副本；不改远端 r1 目录。对应 SHA-256：helper `64dbf919b7435fc7f9015f03b63f718ce05c3c111443c60ba30c1963103290a9`；argv `0fb4bd88a946d3449b33a1d1e884d0df7bdfd3d6103ab57ba1c2de500de97fe3`；run.log `f68bfa2798a7be1c8a0c451b0527b40b99e9fde61bc8c5b830cdf4afeab5163a`；run_status `b6a45f17fec61b06710ba89abc104a7308f753b6a4dbba07ad76e1f26c3d8026`；Kit log `0b1918ed33b97c9871e5d0d74a2d6ab8886c72202f2f6032ab98d06586a8f2b9`。
+
+源头复核：旧 public-dev job 和 r1 实际 `argv.json` 的 `--device` 都是 `cuda:0`；冻结 helper 从 `original[--device]` 派生 `device`，`GpuLeaseManager.acquire(device)` 没有硬编码 cuda:1。真实 `run_status` 的 lease identity、holder lane 也都是 cuda:0。此前开发卡与口头消息将旧 slot282 录像命令的 cuda:1 误当此次原 job 设备，属记录/操作判断错误，不是 helper 资源绑定缺陷。根端报告曾因该错误说明发出 SIGTERM；原始回执却记录子进程 exit 0/`FINISHED`、lease 持有 145.60005813278258 秒。远端 `video/` 空、评估 summary 不存在，故**不能记成功**；判定为 operator-interrupted 基础设施失败。旧输出保留，不用 exit 0 覆盖缺失的视频事实。
+
+根端运行期进程显存快照为 GPU0 约 6938 MiB、GPU1 约 256 MiB。Kit log 标示 GPU0 `Active`，GPU1 未标 active，最终 viewport `deviceMask: 1`；Isaac Lab AppLauncher 安装源码在 `_resolve_device_settings` 中按 `--device cuda:0` 同时设置 `active_gpu=0`、`physics_gpu=0`。因此现有证据支持仿真与主渲染配置在 GPU0；GPU1 的约 256 MiB 是同进程附带占用，具体初始化组件未定位，不能声称它执行了有效渲染。相机 eye/lookat/resolution 不提供单独 GPU 选择；不加 CUDA mask、不改物理/seed/eval。保守按两卡整个 lease 区间计容量：`2×145.60005813278258/3600 = 0.0808889212 GPUh`，从阶段 2 GPUh 内扣除。

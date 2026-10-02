@@ -1,0 +1,380 @@
+{
+  "schema_version": "feedback_p3r.confirmation_design.v1",
+  "status": "QUESTIONS_AND_SELECTION_FROZEN_BEFORE_COLLECTION",
+  "source_question_design_sha256": "9fd1b4177c2eb0eb8214ec1a4b9e4378e30b0b4991033e0973eb6479b71ee119",
+  "protocol_sha256": "1bf776b532fca16d766a8516bf13f731d7cf2cd0f6e9dba8fa41177f2ec309ae",
+  "review_profile": "model_review",
+  "underlying_observation_packages": 2,
+  "policy_clusters": 2,
+  "independent_environment_claim": false,
+  "r3_minimum_episodes_per_task": 12,
+  "sample_rank_prefix": "p3r-confirm-v1",
+  "r4_schedule_seed": 2026092904,
+  "review_shuffle_seed": 2026092905,
+  "api_released": false,
+  "capture_released": false,
+  "cases": [
+    {
+      "case_id": "r4-stair-01",
+      "task": "stair",
+      "cell_variant_id": "stair.go2_12dof.unified_v3",
+      "process_category": "contact_and_progress",
+      "scope": "c1_conditional_frontier",
+      "common_focus": "Evaluate the conditional-frontier stratum and identify a testable authorized reward change. Separate observations, hypotheses and interventions. Cite prompt-visible evidence; mark missing timing or denominators as unknown. Include a falsifiable expected measurement in TrainingComponents.rationale; do not claim an unrun training benefit.",
+      "checkpoint_hash": "sha256:7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+      "observation_package_id": "stair-public-dev-diagnostic-confirm-01"
+    },
+    {
+      "case_id": "r4-stair-02",
+      "task": "stair",
+      "cell_variant_id": "stair.go2_12dof.unified_v3",
+      "process_category": "surface_and_progress",
+      "scope": "c2_mechanism_ood",
+      "common_focus": "Evaluate the rough-surface stratum and identify a testable authorized reward change. Separate observations, hypotheses and interventions. Cite prompt-visible evidence; mark missing timing or denominators as unknown. Include a falsifiable expected measurement in TrainingComponents.rationale; do not claim an unrun training benefit.",
+      "checkpoint_hash": "sha256:7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+      "observation_package_id": "stair-public-dev-diagnostic-confirm-01"
+    },
+    {
+      "case_id": "r4-stair-03",
+      "task": "stair",
+      "cell_variant_id": "stair.go2_12dof.unified_v3",
+      "process_category": "contact_and_progress",
+      "scope": "height_ood",
+      "common_focus": "Evaluate the height-transfer stratum and identify a testable authorized reward change. Separate observations, hypotheses and interventions. Cite prompt-visible evidence; mark missing timing or denominators as unknown. Include a falsifiable expected measurement in TrainingComponents.rationale; do not claim an unrun training benefit.",
+      "checkpoint_hash": "sha256:7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+      "observation_package_id": "stair-public-dev-diagnostic-confirm-01"
+    },
+    {
+      "case_id": "r4-stair-04",
+      "task": "stair",
+      "cell_variant_id": "stair.go2_12dof.unified_v3",
+      "process_category": "surface_and_progress",
+      "scope": "tread_ood",
+      "common_focus": "Evaluate the tread-transfer stratum and identify a testable authorized reward change. Separate observations, hypotheses and interventions. Cite prompt-visible evidence; mark missing timing or denominators as unknown. Include a falsifiable expected measurement in TrainingComponents.rationale; do not claim an unrun training benefit.",
+      "checkpoint_hash": "sha256:7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+      "observation_package_id": "stair-public-dev-diagnostic-confirm-01"
+    },
+    {
+      "case_id": "r4-stair-05",
+      "task": "stair",
+      "cell_variant_id": "stair.go2_12dof.unified_v3",
+      "process_category": "contact_and_progress",
+      "scope": "joint_ood",
+      "common_focus": "Evaluate the joint-geometry stratum and identify a testable authorized reward change. Separate observations, hypotheses and interventions. Cite prompt-visible evidence; mark missing timing or denominators as unknown. Include a falsifiable expected measurement in TrainingComponents.rationale; do not claim an unrun training benefit.",
+      "checkpoint_hash": "sha256:7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+      "observation_package_id": "stair-public-dev-diagnostic-confirm-01"
+    },
+    {
+      "case_id": "r4-stair-06",
+      "task": "stair",
+      "cell_variant_id": "stair.go2_12dof.unified_v3",
+      "process_category": "surface_and_progress",
+      "scope": "phase_composition_ood",
+      "common_focus": "Evaluate the phase-composition stratum and identify a testable authorized reward change, or explain why available evidence does not distinguish one. Separate observations, hypotheses and interventions. Cite prompt-visible evidence; mark missing timing or denominators as unknown. Include a falsifiable expected measurement in TrainingComponents.rationale; do not claim an unrun training benefit.",
+      "checkpoint_hash": "sha256:7b582643510cc9ddd9ae6755fc551cfc89f6ea1a06fc7b6837dd3b203da11c4c",
+      "observation_package_id": "stair-public-dev-diagnostic-confirm-01"
+    },
+    {
+      "case_id": "r4-push-01",
+      "task": "push",
+      "cell_variant_id": "push.g1_37dof.recovery_v2",
+      "process_category": "recovery_stability",
+      "scope": "low",
+      "common_focus": "Evaluate the low-magnitude stratum and identify a testable authorized reward change, or explain insufficient evidence. Separate observations, hypotheses and interventions. Cite prompt-visible evidence; mark missing timing or denominators as unknown. Include a falsifiable expected measurement in TrainingComponents.rationale; do not claim an unrun training benefit.",
+      "checkpoint_hash": "sha256:91c00d4e61492dcfb6511aa0ae9ef85121c5bb08dafde7eabf29c10281ad1749",
+      "observation_package_id": "push-public-dev-diagnostic-confirm-01"
+    },
+    {
+      "case_id": "r4-push-02",
+      "task": "push",
+      "cell_variant_id": "push.g1_37dof.recovery_v2",
+      "process_category": "recovery_stability",
+      "scope": "medium",
+      "common_focus": "Evaluate the medium-magnitude stratum and identify a testable authorized reward change. Separate observations, hypotheses and interventions. Cite prompt-visible evidence; mark missing timing or denominators as unknown. Include a falsifiable expected measurement in TrainingComponents.rationale; do not claim an unrun training benefit.",
+      "checkpoint_hash": "sha256:91c00d4e61492dcfb6511aa0ae9ef85121c5bb08dafde7eabf29c10281ad1749",
+      "observation_package_id": "push-public-dev-diagnostic-confirm-01"
+    },
+    {
+      "case_id": "r4-push-03",
+      "task": "push",
+      "cell_variant_id": "push.g1_37dof.recovery_v2",
+      "process_category": "recovery_stability",
+      "scope": "high",
+      "common_focus": "Evaluate the high-magnitude stratum and identify a testable authorized reward change. Separate observations, hypotheses and interventions. Cite prompt-visible evidence; mark missing timing or denominators as unknown. Include a falsifiable expected measurement in TrainingComponents.rationale; do not claim an unrun training benefit.",
+      "checkpoint_hash": "sha256:91c00d4e61492dcfb6511aa0ae9ef85121c5bb08dafde7eabf29c10281ad1749",
+      "observation_package_id": "push-public-dev-diagnostic-confirm-01"
+    },
+    {
+      "case_id": "r4-push-04",
+      "task": "push",
+      "cell_variant_id": "push.g1_37dof.recovery_v2",
+      "process_category": "recovery_window",
+      "scope": "repeated",
+      "common_focus": "Evaluate the repeated-event stratum and identify a testable authorized reward change. Separate observations, hypotheses and interventions. Cite prompt-visible evidence; mark missing timing or denominators as unknown. Include a falsifiable expected measurement in TrainingComponents.rationale; do not claim an unrun training benefit.",
+      "checkpoint_hash": "sha256:91c00d4e61492dcfb6511aa0ae9ef85121c5bb08dafde7eabf29c10281ad1749",
+      "observation_package_id": "push-public-dev-diagnostic-confirm-01"
+    },
+    {
+      "case_id": "r4-push-05",
+      "task": "push",
+      "cell_variant_id": "push.g1_37dof.recovery_v2",
+      "process_category": "recovery_window",
+      "scope": "all",
+      "common_focus": "Compare recovery evidence across the complete public-dev suite and identify a testable authorized reward change. Separate observations, hypotheses and interventions. Cite prompt-visible evidence; mark missing timing or denominators as unknown. Include a falsifiable expected measurement in TrainingComponents.rationale; do not claim an unrun training benefit.",
+      "checkpoint_hash": "sha256:91c00d4e61492dcfb6511aa0ae9ef85121c5bb08dafde7eabf29c10281ad1749",
+      "observation_package_id": "push-public-dev-diagnostic-confirm-01"
+    },
+    {
+      "case_id": "r4-push-06",
+      "task": "push",
+      "cell_variant_id": "push.g1_37dof.recovery_v2",
+      "process_category": "recovery_window",
+      "scope": "logical_run_01",
+      "common_focus": "Assess which conclusions about the first logical public-dev run are supported by the visible evidence; propose a testable authorized reward change only if warranted. Separate observations, hypotheses and interventions. Cite prompt-visible evidence; mark missing timing or denominators as unknown. Include a falsifiable expected measurement in TrainingComponents.rationale; do not claim an unrun training benefit.",
+      "checkpoint_hash": "sha256:91c00d4e61492dcfb6511aa0ae9ef85121c5bb08dafde7eabf29c10281ad1749",
+      "observation_package_id": "push-public-dev-diagnostic-confirm-01"
+    }
+  ],
+  "schedule": [
+    {
+      "case_id": "r4-stair-01",
+      "arm": "A",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-stair-01",
+      "arm": "T",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-stair-01",
+      "arm": "T",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-stair-01",
+      "arm": "A",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-push-04",
+      "arm": "A",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-push-04",
+      "arm": "T",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-push-04",
+      "arm": "T",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-push-04",
+      "arm": "A",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-stair-03",
+      "arm": "T",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-stair-03",
+      "arm": "A",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-stair-03",
+      "arm": "A",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-stair-03",
+      "arm": "T",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-push-05",
+      "arm": "T",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-push-05",
+      "arm": "A",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-push-05",
+      "arm": "A",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-push-05",
+      "arm": "T",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-push-02",
+      "arm": "A",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-push-02",
+      "arm": "T",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-push-02",
+      "arm": "T",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-push-02",
+      "arm": "A",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-stair-06",
+      "arm": "A",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-stair-06",
+      "arm": "T",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-stair-06",
+      "arm": "T",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-stair-06",
+      "arm": "A",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-push-06",
+      "arm": "A",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-push-06",
+      "arm": "T",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-push-06",
+      "arm": "T",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-push-06",
+      "arm": "A",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-push-03",
+      "arm": "A",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-push-03",
+      "arm": "T",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-push-03",
+      "arm": "T",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-push-03",
+      "arm": "A",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-stair-04",
+      "arm": "A",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-stair-04",
+      "arm": "T",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-stair-04",
+      "arm": "T",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-stair-04",
+      "arm": "A",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-stair-02",
+      "arm": "T",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-stair-02",
+      "arm": "A",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-stair-02",
+      "arm": "A",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-stair-02",
+      "arm": "T",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-stair-05",
+      "arm": "A",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-stair-05",
+      "arm": "T",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-stair-05",
+      "arm": "T",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-stair-05",
+      "arm": "A",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-push-01",
+      "arm": "T",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-push-01",
+      "arm": "A",
+      "repetition": 1
+    },
+    {
+      "case_id": "r4-push-01",
+      "arm": "A",
+      "repetition": 2
+    },
+    {
+      "case_id": "r4-push-01",
+      "arm": "T",
+      "repetition": 2
+    }
+  ]
+}

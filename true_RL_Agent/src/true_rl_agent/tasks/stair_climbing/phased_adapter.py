@@ -127,11 +127,15 @@ class StairPhasedEvaluationAdapter:
 
         if phase_result.phase is EvaluationPhase.SEALED_VALIDATION:
             raise ValueError("sealed phase summaries cannot enter generation trial history")
-        return canonical_stair_phase_result_summary(
+        summary = canonical_stair_phase_result_summary(
             config=self.config,
             expected_phase=phase_result.phase,
             result=phase_result,
         )
+        if "behavior" in phase_result.task_evidence:
+            from true_rl_agent.tasks.stair_climbing.behavior import project_stair_behavior
+            summary = {**summary, "behavior": project_stair_behavior(phase_result.task_evidence["behavior"])}
+        return summary
 
     def project_reference_public_dev_gate(self, *, phase_result):
         # Stair qualification retains its existing complete-suite decision.

@@ -130,7 +130,7 @@ class StairNumericCapture:
         return self.writer.complete({**self.context, "seeds": self._seeds, "summary": dict(summary)})
 
 
-def recompute_stair_numeric_evidence(reference: Mapping[str, Any]) -> dict[str, Any]:
+def recompute_stair_numeric_evidence(reference: Mapping[str, Any], *, observe_transition=None) -> dict[str, Any]:
     """Recompute outcomes and existing aggregates using only persisted inputs."""
     import torch
 
@@ -201,6 +201,8 @@ def recompute_stair_numeric_evidence(reference: Mapping[str, Any]) -> dict[str, 
             for index, transition in enumerate(transitions):
                 if active[index]:
                     outcome = trackers[index].observe(transition)
+                    if observe_transition is not None:
+                        observe_transition(run_index, transition, raw, outcome)
                     if outcome is not None:
                         outcomes[index], active[index] = outcome, False
             observed_steps += 1

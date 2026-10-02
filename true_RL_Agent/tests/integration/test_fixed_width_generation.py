@@ -2023,6 +2023,15 @@ class FixedWidthGenerationTests(unittest.TestCase):
                 from true_rl_agent.agent_core import generation_record as generation_record_module
 
                 self.assertIsNotNone(ledger[0]["formal"])
+                # A selected generation still needs the receipt-backed parent
+                # evidence; selection's aggregate guard is not a behavior view.
+                self.assertIsNotNone(projected.records[0]["generation"]["guard_reference"])
+                self.assertEqual(
+                    projected.records[0]["generation"]["parent_public_dev"],
+                    generation_inputs.phased_adapter.project_public_phase_summary(
+                        phase_result=guard_phase
+                    ),
+                )
                 with patch.object(generation_record_module, "_load_bound_trial_execution",
                                   wraps=generation_record_module._load_bound_trial_execution) as load_execution:
                     direct_formal_projection = generation_record_module.project_generation_public_history_record(
